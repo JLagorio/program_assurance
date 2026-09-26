@@ -1,23 +1,23 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Heading } from "../../primitives";
+import { Heading, HeadingLevelProvider } from "../../primitives";
 import * as Stories from "./Heading.stories";
 
 <Meta of={Stories} />
 
 # Heading
 
-A title. The size is the design's and the level is the page's: `size` picks the style from the heading ramp and an element to go with it, and `as` overrides the element when the outline needs another level. Four sizes, four jobs: a displayed number, a page title, a section heading, a card or dialog title. The colour is the text colour, or its inverse on a bold fill, which a Box sets for you; a tone is not a heading colour. A required `size`, a default element per size, `as`, and `color` limited to three. The sizes are fixed, and the level is semantic and separate from the style.
+A title. The size is the design's and the level is the page's: `size` picks the style from the heading ramp and an element to go with it, and `as` overrides the element when the outline needs another level. Four sizes, four jobs: a displayed number, a page title, a section heading, a card or dialog title. The colour is the text colour, or its inverse on a bold fill, which a Box sets for you; a tone is not a heading colour. A required `size`, a default element per size, `as`, and `color` limited to three. The sizes are fixed, and the level is semantic and separate from the style. Inside a `HeadingLevelProvider` the level comes from the context, as below.
 
 <Canvas of={Stories.HeadingMatrix} />
 
 ## Anatomy
 
-| Part    | What it is                                                                                                                                              |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Element | By size: `large` a `div`, `medium` an `h1`, `small` an `h2`, `xsmall` an `h3`. `as` overrides it with a `HeadingElement`: a level, a `div` or a `span`. |
-| Size    | `large`, `medium`, `small`, `xsmall`: the four `font.heading` tokens.                                                                                   |
-| Colour  | `color.text`, inherited; `color.text.inverse` or `color.text.warning.inverse` from a bold Box.                                                          |
+| Part    | What it is                                                                                                                                                                                                                |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Element | The contextual level inside a HeadingLevelProvider; otherwise by size: `large` a `div`, `medium` an `h1`, `small` an `h2`, `xsmall` an `h3`. `as` overrides either with a `HeadingElement`: a level, a `div` or a `span`. |
+| Size    | `large`, `medium`, `small`, `xsmall`: the four `font.heading` tokens.                                                                                                                                                     |
+| Colour  | `color.text`, inherited; `color.text.inverse` or `color.text.warning.inverse` from a bold Box.                                                                                                                            |
 
 ## Variants
 
@@ -41,10 +41,20 @@ Not built, and why: `xxlarge` and `xlarge` (the product has no hero, and 22px is
 
 Under it, `font.heading.xxsmall` at 11 / 14, uppercase, is the Eyebrow. Four are enough here because a page is a title, its sections and their cards.
 
+## Level from context
+
+`HeadingLevelProvider` sets which level a heading placed inside takes. With `level` it starts an outline (a portalled region, a rail that sits under the page's h1 at 2); without it, it goes one below the surrounding level, and the first one gives 2, the level under the page's title. `useHeadingLevel()` reads it, `undefined` outside every provider.
+
+The kit's own titles read the same context, and each keeps its default where nothing sets one, so a page without a provider renders as it always has: PageHeader.Title an h1, Section.Title an h2, EmptyTitle an h2, Shell.Panel.Title an h2, CollapsibleHeader, AccordionTrigger, Inspector.Group, Item.Group and Related an h3. A titled Section gives its content the next level, and a Shell.Panel starts at 2 with its body one below a title. A Heading without `as` takes the contextual level too; `large`, a displayed number, stays a div.
+
+<Canvas of={Stories.LevelFromContext} />
+
+Context follows the React tree, portals included: content portalled into another region (a panel, a dialog) keeps the level of the place it was rendered from. A portal that starts a new outline wraps its content in `HeadingLevelProvider level={n}`.
+
 ## Modifiers
 
 - **`size`**: required. The design's choice.
-- **`as`**: the page's choice. `h2` for a section at the card size in a rail; `h4` for a subsection at the section size; `div` for a title-sized line where the outline already has its `h1`.
+- **`as`**: the page's choice, over the context's. `h2` for a section at the card size in a rail; `h4` for a subsection at the section size; `div` for a title-sized line where the outline already has its `h1`.
 - **`color`**: `color.text`, `color.text.inverse`, `color.text.warning.inverse`. Left off, it follows the surface.
 - **`id`**, for a section's `aria-labelledby`.
 - **No `style`.** A heading has no computed dimension.
@@ -66,7 +76,7 @@ Under it, `font.heading.xxsmall` at 11 / 14, uppercase, is the Eyebrow. Four are
 
 ## Accessibility
 
-- **The level is the element**, and the element is the page's decision through `as`. The size says nothing to a screen reader.
+- **The level is the element**, and the element is the page's decision, through the context or `as`. The size says nothing to a screen reader.
 - **A section is named by its heading.** `<Box as="section" aria-labelledby>` pointing at the Heading's `id`.
 - **The outline is a map.** A screen reader's user jumps by heading; two `h1`s are two pages, a skipped level is a missing floor.
 - **`large` is a `div`** so a displayed number is not a heading in the outline. A Stat's label is its heading, if it needs one.
@@ -75,6 +85,7 @@ Under it, `font.heading.xxsmall` at 11 / 14, uppercase, is the Eyebrow. Four are
 ## Props
 
 <ArgTypes of={Heading} />
+<ArgTypes of={HeadingLevelProvider} />
 
 ### Playground
 
@@ -86,7 +97,7 @@ Under it, `font.heading.xxsmall` at 11 / 14, uppercase, is the Eyebrow. Four are
 
 - [Text](?path=/docs/primitives-text--docs): everything that is not a title.
 - [Typography](?path=/docs/components-typography--docs): the Eyebrow, the heading under `xsmall`.
-- [PageHeader](?path=/docs/layout-pageheader--docs) and [PageHeader](?path=/docs/layout-pageheader--docs): where the `h1` is drawn.
+- [PageHeader](?path=/docs/layout-pageheader--docs): where the `h1` is drawn, and the record title in a preview at the context's level.
 - [Section](?path=/docs/layout-section--docs) and [Card](?path=/docs/components-card--docs): where the `h2` and the `h3` are drawn.
 - [Stat](?path=/docs/components-stat--docs): where `large` is drawn.
 - [Typography tokens](?path=/docs/tokens-typography--docs): the ramp.

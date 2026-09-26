@@ -140,15 +140,18 @@ function Register() {
                 setSelected(next ? new Set(rows.map((r) => r.id)) : new Set())
               }
               label="Select all"
+              pinned="start"
             />
             <Table.Header
               sort={sort.key === "id" ? sort.dir : false}
               onSort={() => toggleSort("id")}
-              sticky
+              pinned="start"
+              offset={32}
+              edge
             >
               Id
             </Table.Header>
-            <Table.Header>Control</Table.Header>
+            <Table.Header minWidth={200}>Control</Table.Header>
             <Table.Header width={180}>Owner</Table.Header>
             <Table.Header>Status</Table.Header>
             <Table.Header>Severity</Table.Header>
@@ -174,8 +177,16 @@ function Register() {
                   })
                 }
                 label={`Select ${r.id}`}
+                pinned="start"
               />
-              <Table.Id id={r.id} isActive={preview === r.id} onPreview={() => setPreview(r.id)} />
+              <Table.Id
+                id={r.id}
+                isActive={preview === r.id}
+                onPreview={() => setPreview(r.id)}
+                pinned="start"
+                offset={32}
+                edge
+              />
               <Table.Cell>{r.name}</Table.Cell>
               <Table.Cell>
                 <Person name={r.owner} />
@@ -278,7 +289,169 @@ function Grouped() {
   );
 }
 
+/** The register on a phone: the name keeps its 200px floor (`minWidth`) and the frame scrolls sideways under the pinned id rather than squeezing it to a sliver, and the open row's id keeps the eye's slot, so the eye never covers it. */
+export const RegisterPhone: Story = {
+  name: "Register at 390px",
+  globals: { viewport: { value: "ledgerPhone", isRotated: false } },
+  tags: ["narrow"],
+  render: () => <Register />,
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(window.innerWidth).toBe(390));
+    const canvas = within(canvasElement);
+    const root = canvasElement.ownerDocument.documentElement;
+    const table = canvas.getByRole("table");
+    const frame = table.parentElement!;
+    await waitFor(() => expect(frame.scrollWidth).toBeGreaterThan(frame.clientWidth));
+    await expect(root.scrollWidth).toBeLessThanOrEqual(root.clientWidth);
+    const name = canvas.getByRole("columnheader", { name: "Control" });
+    await expect(name.getBoundingClientRect().width).toBeGreaterThanOrEqual(200);
+
+    // The open row's id is whole, and ends before its eye.
+    const eye = within(table).getByRole("button", { name: "Preview row", pressed: true });
+    const slot = eye.closest<HTMLElement>('[data-slot="preview-eye"]')!;
+    const id = slot.previousElementSibling as HTMLElement;
+    await expect(id).toHaveTextContent("CTRL-0450");
+    await expect(id.scrollWidth).toBeLessThanOrEqual(id.clientWidth);
+    await expect(id.getBoundingClientRect().right - 24).toBeLessThanOrEqual(
+      slot.getBoundingClientRect().left + 1,
+    );
+    // Scrolled sideways, the checkbox and the id hold still and the name scrolls under them.
+    const idLeft = slot.getBoundingClientRect().left;
+    frame.scrollLeft = 160;
+    fireEvent.scroll(frame);
+    await waitFor(() => expect(name.getBoundingClientRect().left).toBeLessThan(idLeft));
+    await expect(Math.round(slot.getBoundingClientRect().left)).toBe(Math.round(idLeft));
+    frame.scrollLeft = 0;
+    fireEvent.scroll(frame);
+    // Every control smaller than 24px takes the touch hit area.
+    for (const control of within(table).getAllByRole("button")) {
+      const { width, height } = control.getBoundingClientRect();
+      if (width > 0 && (width < 24 || height < 24))
+        await expect(control).toHaveClass("touch-target");
+    }
+    // A checkbox's hit area is its own, larger than its 16px box: a point 11px from its middle,
+    // sideways or up and down, still reaches it, in the heading as in a row.
+    const doc = canvasElement.ownerDocument;
+    for (const checkbox of [
+      within(table).getByRole("checkbox", { name: "Select all" }),
+      within(table).getAllByRole("checkbox")[1]!,
+    ]) {
+      const box = checkbox.getBoundingClientRect();
+      const [x, y] = [box.left + box.width / 2, box.top + box.height / 2];
+      for (const [dx, dy] of [
+        [-11, 0],
+        [11, 0],
+        [0, -11],
+        [0, 11],
+      ] as const)
+        await expect(checkbox.contains(doc.elementFromPoint(x + dx, y + dy))).toBe(true);
+    }
+  },
+};
+
 export const Groups: Story = { render: () => <Grouped /> };
+
+const listRows = [
+  { id: "CTRL-0412", name: "Segregation of duties", systems: ["Payments API", "Ledger", "Vault"] },
+  { id: "CTRL-0418", name: "Access review", systems: ["Directory"] },
+];
+
+function ListLine() {
+  const [opened, setOpened] = useState<string | null>(null);
+  return (
+    <Stack space="space.100">
+      <Table label="Controls by system" style={{ maxWidth: 520 }}>
+        <thead>
+          <tr>
+            <Table.Header minWidth={180}>Control</Table.Header>
+            <Table.Header width={200}>Systems</Table.Header>
+          </tr>
+        </thead>
+        <tbody>
+          {listRows.map((row) => (
+            <Table.Row key={row.id} className="cursor-pointer" onClick={() => setOpened(row.id)}>
+              <Table.Cell>{row.name}</Table.Cell>
+              <Table.Cell>
+                <Table.List
+                  items={row.systems.map((system) => ({
+                    key: system,
+                    label: system,
+                    meta: "Component",
+                  }))}
+                />
+              </Table.Cell>
+            </Table.Row>
+          ))}
+        </tbody>
+      </Table>
+      <Text size="small" color="color.text.subtle">
+        Row opened: {opened ?? "none"}
+      </Text>
+    </Stack>
+  );
+}
+
+/** A list line with nothing to open: hover or focus shows its card, and so does a click or a tap, so the whole list is reachable where nothing can hover. The tap opens the card and not the row. */
+export const ListLineStory: Story = {
+  name: "List line without an opener",
+  render: () => <ListLine />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const line = canvas.getByTitle("Payments API, Ledger, Vault");
+    await userEvent.click(line);
+    const body = within(canvasElement.ownerDocument.body);
+    await waitFor(() => expect(body.getByText("Vault")).toBeVisible());
+    await expect(canvas.getByText("Row opened: none")).toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
+  },
+};
+
+function FixedIds() {
+  const [preview, setPreview] = useState<string | null>("CTRL-0450");
+  return (
+    <Table label="Controls, fixed layout" className="table-fixed" style={{ maxWidth: 480 }}>
+      <thead>
+        <tr>
+          <Table.Header width={128}>Id</Table.Header>
+          <Table.Header>Control</Table.Header>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.slice(0, 3).map((r) => (
+          <Table.Row key={r.id} onClick={() => setPreview(r.id)}>
+            <Table.Id id={r.id} isActive={preview === r.id} onPreview={() => setPreview(r.id)} />
+            <Table.Cell>{r.name}</Table.Cell>
+          </Table.Row>
+        ))}
+      </tbody>
+    </Table>
+  );
+}
+
+/** In a `table-fixed` table the column sets the id's width, so at rest the id keeps its full width, and it gives up the eye's 24px only while the eye shows: on the row's hover, on focus in the cell, on the open row, and always where nothing can hover. It ends in an ellipsis before the eye, never under it. */
+export const FixedLayoutIds: Story = {
+  name: "Ids in a fixed layout",
+  render: () => <FixedIds />,
+  play: async ({ canvasElement }) => {
+    const table = within(within(canvasElement).getByRole("table"));
+    const idOf = (eye: HTMLElement) =>
+      eye.closest<HTMLElement>('[data-slot="preview-eye"]')!.previousElementSibling as HTMLElement;
+    const open = table.getByRole("button", { name: "Preview row", pressed: true });
+    await expect(idOf(open)).toHaveStyle({ paddingInlineEnd: "24px" });
+    await expect(idOf(open).scrollWidth).toBeLessThanOrEqual(idOf(open).clientWidth);
+    await expect(idOf(open).getBoundingClientRect().right - 24).toBeLessThanOrEqual(
+      open.getBoundingClientRect().left,
+    );
+    const rest = table
+      .getAllByRole("button", { name: "Preview row" })
+      .find((eye) => eye.getAttribute("aria-pressed") !== "true")!;
+    // A pointer that can hover: the resting row's id has its whole width.
+    if (window.matchMedia("(hover: hover)").matches)
+      await expect(idOf(rest)).toHaveStyle({ paddingInlineEnd: "0px" });
+    await userEvent.click(rest);
+    await waitFor(() => expect(idOf(rest)).toHaveStyle({ paddingInlineEnd: "24px" }));
+  },
+};
 
 const parts = [
   { id: "SYS-01", name: "Ground segment", kind: "System", depth: 0, children: 2, controls: 212 },

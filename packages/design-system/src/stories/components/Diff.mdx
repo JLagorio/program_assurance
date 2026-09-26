@@ -1,0 +1,122 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Diff } from "../../components";
+import * as Stories from "./Diff.stories";
+
+<Meta of={Stories} />
+
+# Diff
+
+What changed between two versions of a text: a revised statement, a library update against the copy in use, a tailored narrative against its baseline. Removed lines are marked −, added lines +, the words that changed inside an edited line are struck through or underlined, and unchanged runs fold behind a button so the reader sees the change, not two full copies.
+
+It compares; it does not edit or decide. The caller owns what the two texts are and what happens next (accept the update, keep the tailoring). One text on its own is [CodeBlock](?path=/docs/components-codeblock--docs) for source or [Text](?path=/docs/primitives-text--docs) for prose; what happened to a record over time is a [Timeline](?path=/docs/components-timeline--docs); two values per record across many records is a [DataTable](?path=/docs/patterns-data-table--docs) column, with a Diff in the row's preview when the reader needs the change.
+
+<Canvas of={Stories.Inline} />
+
+## Anatomy
+
+| Part       | What it is                                                                                                                                                                                  |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frame      | A group named `Changes from {beforeLabel} to {afterLabel}`, on `elevation.surface` with a 1px `color.border` and `radius.medium`.                                                           |
+| Header     | The legend (− and the earlier text's label, + and the later's) and the summary at the end: "3 changed, 1 added, 1 removed", or "No differences". Side by side, each label heads its column. |
+| Line       | A row: optional line numbers, the marker (+, − or blank) and the text, which keeps its spacing and wraps. Removed lines on `color.background.danger.subtler`, added on `.success.subtler`.  |
+| Word marks | Inside an edited line, the removed words in a `<del>`, struck through on `color.background.danger.subtle`; the added words in an `<ins>`, underlined on `color.background.success.subtle`.  |
+| Fold       | An unchanged run, behind a subtle xsmall button: "Show 4 unchanged lines", then "Hide 4 unchanged lines".                                                                                   |
+
+## How it compares
+
+Lines first, then words. A line is what sits between line breaks, so in a narrative a paragraph is a line: pass the text as it is stored, not wrapped at a width, or every reflow reads as a change. The comparison is the shortest edit script (Myers' algorithm, in the component, no dependency), so the unchanged lines are as many as they can be.
+
+A block of removed lines is then paired with the added lines that replaced them, in order, by how much text they share. A pair that keeps at least half its characters is an **edited** line and gets word marks; a pair that keeps less is a **rewrite**, shown as a removed and an added line with no word marks, because marking every word of a rewritten paragraph says nothing. A space between two changed words joins them, so "shall enforce" to "must require" reads as one change; the spaces at the ends of a changed run are left unmarked, so no mark hangs at a line's edge, and a change of spacing alone marks its line but no words. Words are runs of letters and digits, each punctuation mark, and each CJK character, cut by the same rule on the server and in the browser so hydration matches. Past 1,000 line edits, or 500 word edits in one line, it stops searching for the shortest script: it anchors on the lines each version has exactly once, in order, and compares the gaps between them, so a long text with many scattered edits keeps its unchanged lines. Only a gap with nothing to anchor on is shown replaced whole.
+
+The same comparison is exported as `diffText(before, after)`: the rows of the side-by-side view and the counts (`changed`, `added`, `removed`, `unchanged`), for a section's count or for deciding whether a Diff is worth showing.
+
+<Canvas of={Stories.Counts} />
+
+## Layouts
+
+`layout="inline"`, the default, is one column: each edited line's earlier version directly above its later one, then any lines only one version has. `layout="side-by-side"` puts the earlier text beside the later, row for row, and suits a wide page where the reader compares long paragraphs.
+
+<Canvas of={Stories.SideBySide} />
+
+Side by side measures its own width, not the window's. Below 36rem of its own (a panel, a rail, a phone), the halves stack and the view reads as inline: the second copy of each unchanged line and the empty halves go. Nothing is lost, and the reader's place does not change.
+
+<Canvas of={Stories.InANarrowContainer} />
+
+The Diff fills the width it is given. It measures itself for that fallback, so its own lines never size it: in a flex row it takes the row's free width, and in a box that shrinks to its content (a popover, a table cell with no width), give it a width.
+
+<Canvas of={Stories.BesideOtherContent} />
+
+## States
+
+| State          | What shows                                                                                   |
+| -------------- | -------------------------------------------------------------------------------------------- |
+| Changed        | The marked lines, the unchanged context and the folds, with the counts in the header.        |
+| No differences | "No differences" in the header and the whole text behind one fold.                           |
+| New text       | Every line added (`before=""`); no word marks.                                               |
+| Removed text   | Every line removed (`after=""`).                                                             |
+| Rewritten      | A removed and an added line with no word marks, counted as one change.                       |
+| Fold open      | The unchanged lines in place, and the same button, now Hide, keeping focus.                  |
+| Blank lines    | A blank line keeps a full line's height; one added or removed is marked like any other line. |
+
+<Canvas of={Stories.States} />
+
+<Canvas of={Stories.BlankLines} />
+
+## Modifiers
+
+- **`beforeLabel`, `afterLabel`**: what the two texts are, "Version 3" and "Now", "Library" and "This program". They head the legend and name the group. "Before" and "After" by default; say which.
+- **`context`**: unchanged lines kept on each side of a change, 3 by default. A longer unchanged run folds, unless the fold would hide a single line. `Infinity` shows every line.
+- **`lineNumbers`**: a gutter with each version's numbers, both inline and each side's own side by side. Off by default, because a narrative's lines are paragraphs.
+- **`code`**: the code face, for source and configuration.
+- **`label`**: the group's name when the default does not say enough ("Access policy, Version 3 to Now").
+
+Long unbroken text, such as a link or a hash, wraps at the frame's edge instead of widening it.
+
+<Canvas of={Stories.LongUnbrokenText} />
+
+<Canvas of={Stories.Code} />
+
+## Content
+
+- **Name both versions** in the labels: a version number, a date, "Library" or "Now". "Before" and "After" leave the reader to work out which is which.
+- **Compare what the reader will decide on.** Pass the statement, not the whole record serialized; field-by-field changes belong in labelled properties.
+- **Keep paragraphs as lines.** Text hard-wrapped at a width turns one edited sentence into several changed lines.
+- **One Diff per text.** Several fields that changed are several Diffs under their own headings, or a DataTable with a preview.
+
+## Accessibility
+
+- **Never colour alone.** Every change is marked three ways: the + or − marker, a visually hidden "Added:" or "Removed:" before the line, and a text decoration on changed words (struck through for removed, underlined for added) in native `<del>` and `<ins>` elements. In forced-colours mode the tints go and the markers and decorations stay.
+- **The group is named** `Changes from {beforeLabel} to {afterLabel}`, and a visually hidden legend says which version the removed and added lines come from.
+- **A fold is a disclosure:** a button with `aria-expanded` and `aria-controls`. Opening it keeps focus on the same button, which now hides the lines again, so focus is never dropped. Folded lines are `hidden="until-found"`, so the browser's find-in-page reaches them and opens their fold.
+- **Read once:** side by side, the second copy of an unchanged line is hidden from assistive technology; line numbers and markers are hidden too, and are not selectable, so a copied selection is the text alone.
+- **Touch:** the fold buttons are 24px tall; nothing depends on hover.
+- **Direction:** the gutter, marker and column rule use logical properties, so a right-to-left page mirrors them: the line numbers, the marker and the earlier column sit at the right. Each line of prose takes its direction from its own text (`dir="auto"`), so a Latin statement on a right-to-left page keeps its full stop at its end; with `code`, every line reads left to right, so a brace never mirrors.
+- **Contrast:** text and line numbers on the tinted rows meet 4.5:1 in both modes; the a11y gate checks every story.
+
+<Canvas of={Stories.RightToLeft} />
+
+<Canvas of={Stories.Localized} />
+
+The legend, the summary, the hidden prefixes and the fold's words come from the locale's messages (`diffLabel`, `diffLegend`, `diffChangedCount`, `diffAdded`, `diffShowLinesOne`, `diffShowLinesOther` and the rest), and the counts from its number and list formats.
+
+## Props
+
+<ArgTypes of={Diff} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [CodeBlock](?path=/docs/components-codeblock--docs): one version of source, with a Copy.
+- [Timeline](?path=/docs/components-timeline--docs): what happened to a record, in order.
+- [DataTable](?path=/docs/patterns-data-table--docs): many records, each with a value that changed; open one to see its Diff.
+- [Collapsible](?path=/docs/components-collapsible--docs): the disclosure under each fold.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

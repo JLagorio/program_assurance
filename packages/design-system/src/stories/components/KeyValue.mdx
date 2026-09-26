@@ -7,7 +7,7 @@ import * as Stories from "./KeyValue.stories";
 
 # KeyValue
 
-One rail row: a label column and a value. Owner, Frequency, Last verified, each on its own line with the label in a fixed column so the values make a column too. It is a definition list of one pair, valid wherever it sits. The shape every rail writes by hand.
+One rail row: a label column and a value. Owner, Frequency, Last verified, each on its own line with the label in a fixed column so the values make a column too. On its own it is a definition list of one pair, valid wherever it sits; a rail's rows go in one **KeyValue.Group**, which makes them one definition list and gives them one label width.
 
 It is one of two ways to write a fact. A [Fact](?path=/docs/components-fact--docs) is inline, label then value on one baseline, for the strip under a record's title; a KeyValue is a row, for the rail and the inspector.
 
@@ -17,8 +17,8 @@ It is one of two ways to write a fact. A [Fact](?path=/docs/components-fact--doc
 
 | Part  | What it is                                                                                                                             |
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Label | `dt` in the label column, `labelWidth` wide (104 by default), `font.body` in `color.text.subtle`, truncating.                          |
-| Value | `dd` in the rest, `font.body` in `color.text`: text, a Badge, a Person, a TextLink, an Absent. Truncates with its title unless `wrap`, which also breaks an unbroken identifier or timestamp inside the rail (the Unbroken story). |
+| Label | `dt` in the label column, `labelWidth` wide (104 by default, or the group's), `font.body` in `color.text.subtle`. A label that is cut shows in full in a tooltip on hover. |
+| Value | `dd` in the rest, `font.body` in `color.text`: text, a Badge, a Person, a TextLink, an Absent. Truncates unless `wrap`, which also breaks an unbroken identifier or timestamp inside the rail (the Unbroken story). A cut value, plain or composed (a code and a title, a TextLink), shows its whole text in a tooltip on hover and when a control inside it takes keyboard focus, through [Truncate](?path=/docs/components-truncate--docs). It truncates across only, so a control in the value keeps its focus ring and touch area above and below the row (the Control In A Value story). |
 | Row   | `space.050` above and below, `space.150` between label and value, baselines aligned.                                                   |
 
 ## Variants
@@ -34,11 +34,31 @@ KeyValue has one appearance. What varies is the value:
 | A statement            | Text with `wrap`. |
 | Nothing                | An Absent.        |
 
-Not built, and why: a group component, because each KeyValue is its own definition list so it is valid inside any pattern, and the rail's group is the Inspector's; a label-over-value layout, because that shape is a decision still open; an editable value, because that is an [Editable](?path=/docs/patterns-editable--docs) inside the value.
+Not built, and why: an editable value, because that is an [Editable](?path=/docs/patterns-editable--docs) inside the value; a named width scale, because the label widths in use are still being settled.
+
+## KeyValue.Group
+
+One `dl` for a rail, an inspector group or a row's More fields. Its KeyValues become its rows (a `div` holding the `dt` and `dd`, which HTML allows), share its `labelWidth` through context, and follow its `layout`:
+
+| `layout`         | Rows                                                                                                                                                       |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auto` (default) | Label beside value while the value has at least 8rem beside the label; label over value when the group is narrower (a phone, a narrow panel). Every row changes together, because every row has the same width and the same label and value bases. It is intrinsic layout (a wrapping row), so it responds to the group's own width, not the window. |
+| `columns`        | Label beside value at any width: a rail of one-line rows.                                                                                                  |
+| `stacked`        | Label over value, always.                                                                                                                                  |
+
+A row's own `labelWidth` overrides the group's; give the width to the group once instead. A screen reader hears one list of pairs instead of one list per fact. The group ends at each value: a KeyValue inside a value (a peek's facts, a HoverCard's) is its own definition list again (the Group Ends At The Value story).
+
+<Canvas of={Stories.Group} />
+
+<Canvas of={Stories.GroupInANarrowPanel} />
+
+<Canvas of={Stories.GroupLayouts} />
+
+<Canvas of={Stories.GroupEndsAtTheValue} />
 
 ## Sizes
 
-One size, `font.body`. The row is as wide as its rail; the label column is `labelWidth`, the same for every row in one rail, and the value takes the rest. The Glance uses 88, a rail 104; a rail with long labels ("Authorizing official") sets 160 on every row.
+One size, `font.body`. The row is as wide as its rail; the label column is `labelWidth`, the same for every row in one rail, and the value takes the rest. The Glance uses 88, a rail 104; a rail with long labels ("Authorizing official") sets 160 on its KeyValue.Group.
 
 <Canvas of={Stories.InRail} />
 
@@ -48,7 +68,7 @@ A KeyValue has one state. Its value may: a Badge is a state, a TextLink hovers. 
 
 ## Modifiers
 
-- **`labelWidth`**: the label column, the same down one rail.
+- **`labelWidth`**: the label column, the same down one rail; on the KeyValue.Group once.
 - **`wrap`** for a value that is a sentence.
 - **The value** as in Variants.
 
@@ -69,16 +89,27 @@ A KeyValue has one state. Its value may: a Badge is a state, a TextLink hovers. 
 
 ## Accessibility
 
-- **It is a definition list**: `dl`, `dt`, `dd`, so a screen reader hears "Owner, Dana Whitfield" as a pair, and a rail of them as a series of pairs.
-- **A truncated string value carries its full text as the title**, so a hover reads it; a value that matters whole takes `wrap` so no one has to hover.
+- **It is a definition list**: `dl`, `dt`, `dd`, so a screen reader hears "Owner, Dana Whitfield" as a pair. In a KeyValue.Group a rail is one list of pairs.
+- **A cut label or value shows its whole text** in a tooltip on hover, and a cut value on keyboard focus of a control inside it. The tooltip is a visual copy: the full text is in the DOM and read by a screen reader. A value that matters whole takes `wrap`, so no one has to hover; a touch screen has no hover.
+- **A control in the value stays whole on the block axis.** The value clips only sideways (`overflow-x: clip` with the ellipsis), so an [Editable](?path=/docs/patterns-editable--docs) or a [TextLink](?path=/docs/components-textlink--docs) keeps its focus ring and, where a pointer is coarse, a touch area at least 24px tall.
 - **The label is text, not a heading.** A rail's sections are headed by an Eyebrow or a Collapsible; the label names one fact.
 - **Contrast:** the label in `color.text.subtle` passes 4.5:1; the gate runs the matrix.
 
+<Canvas of={Stories.ControlInAValue} />
+
+<Canvas of={Stories.CutValueAndLabel} />
+
 ## Props
 
-Native `dl` props and refs target the definition-list root. Use IDs, data attributes and event handlers directly; `className` merges with the default row classes, and caller `style` can override the columns computed from `labelWidth`. The inner `dt`/`dd`, wrapping behavior and title on a truncated string value are preserved.
+Native props and refs target the row's root: the `dl` on its own, the row `div` inside a KeyValue.Group. Use IDs, data attributes and event handlers directly; `className` merges with the default row classes, and caller `style` can override the columns computed from `labelWidth`. The inner `dt`/`dd`, wrapping behavior and the reveal of a cut label or value are preserved.
 
 <ArgTypes of={KeyValue} />
+
+### KeyValue.Group
+
+Native `dl` props, a ref and `render` target the group's list.
+
+<ArgTypes of={KeyValue.Group} />
 
 ### Playground
 
@@ -90,6 +121,7 @@ Native `dl` props and refs target the definition-list root. Use IDs, data attrib
 
 - [Fact](?path=/docs/components-fact--docs): the inline pair, and the strip under a title.
 - [Typography](?path=/docs/components-typography--docs): `Eyebrow` to head a group of rows, `Prose` for a paragraph, `Absent` for nothing.
+- [Truncate](?path=/docs/components-truncate--docs): the reveal a cut label or value uses.
 - [Glance](?path=/docs/patterns-glance--docs), [Panel](?path=/docs/layout-shell--docs): where rails of KeyValues live.
 
 ## Don't

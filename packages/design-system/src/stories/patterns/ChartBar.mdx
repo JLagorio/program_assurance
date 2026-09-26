@@ -54,7 +54,7 @@ Bars per category: the size of each thing, compared. Several series sit side by 
 
 ## Sizes
 
-`size` is the plot's height: `small` 120px, `medium` 200px (the default), `large` 320px, or `height` in pixels. A bar never grows past 24px however wide the plot; the slots grow instead, so a wide chart of four bars still reads as four bars and not four slabs. A horizontal chart gives its category axis the width its longest name needs, to 160px, and cuts the rest with the whole name in a title.
+`size` is the plot's height: `small` 120px, `medium` 200px (the default), `large` 320px, or `height` in pixels; unsaid, the Frame's, and `large` in the Frame's expanded Dialog. A bar never grows past 24px however wide the plot; the slots grow instead, so a wide chart of four bars still reads as four bars and not four slabs. A horizontal chart gives its category axis the width its longest name needs, to 160px, and cuts the rest with the whole name in a title.
 
 ## States
 
@@ -74,7 +74,8 @@ Bars per category: the size of each thing, compared. Several series sit side by 
 - **`xLabel`**, **`yLabel`** print axis titles: the unit on the value axis when the title does not say it.
 - **`domain`** pins the value axis, `[0, "auto"]` when unsaid; a value below zero extends it on its own. **`texture`** and **`syncId`** as on the Frame. A series' own **`format`** wins over the plot's in the tooltip, the card and the table: a fraction printed as a percentage.
 - **`reference`** draws dashed lines: a target across every bar, a milestone on the category axis, labelled at the end. A `y` reference on a horizontal chart is a vertical line, labelled above the plot.
-- **`format`**, **`formatX`** for the numbers and the categories, inherited from the Frame.
+- **`format`**, **`formatX`** for the numbers and the categories, inherited from the Frame; the Frame's table prints the plot's.
+- **`data`**, **`x`**, **`series`**: Inside a Frame, `data`, `x` and `series` may be left to the Frame, and the Frame learns them from the part when they are given here instead: say them once, to either.
 - **`onSelect`** and **`details`** as in States; the selection is `{ datum, series?, index }`, and `series` is absent when Enter chose the whole category.
 - **`loading`** draws the skeleton; the Frame sets it from `status="loading"`.
 - **`label`** names the plot outside a Frame.

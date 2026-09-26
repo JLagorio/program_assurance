@@ -5,13 +5,20 @@
   grid-template-columns: var(--ds-dimension-layout-list) minmax(0, 1fr);
 }
 /* A rail that stays put under the shell's header and scrolls inside itself. The shell sets
-   --shell-top (banner plus top nav); outside a shell it is the top nav's height. */
+   --shell-top (banner plus top nav); outside a shell it is the top nav's height. A rail in a
+   scroller of its own (a dialog's body, a panel) sticks to that scroller instead: an ancestor sets
+   --rail-top, where the rail stops in it, and --rail-max-height, the scroller's height. WorkPane
+   sets both for itself. */
 @utility sticky-rail {
   position: sticky;
-  top: calc(var(--shell-top, var(--ds-dimension-layout-topnav)) + var(--ds-space-300));
+  top: var(
+    --rail-top,
+    calc(var(--shell-top, var(--ds-dimension-layout-topnav)) + var(--ds-space-300))
+  );
   align-self: flex-start;
-  max-height: calc(
-    100vh - var(--shell-top, var(--ds-dimension-layout-topnav)) - var(--ds-space-600)
+  max-height: var(
+    --rail-max-height,
+    calc(100vh - var(--shell-top, var(--ds-dimension-layout-topnav)) - var(--ds-space-600))
   );
 }
 /* A work surface that fills the viewport under the shell's header and a page header. */
@@ -36,10 +43,11 @@
 }
 
 /* The page header: the Lead across the row, then what names the page beside its actions. The
-   heading keeps a readable measure (14rem, about twenty characters of heading-small a line) and
-   grows; when a row cannot hold that measure beside the actions, the actions wrap under it and sit
-   at the end, so a title never breaks one word per line beside a full-label primary. The same rule
-   holds on a page, in a Shell.Panel and in a Sheet, so shell.css has no header rule of its own. */
+   heading keeps a readable measure (14rem, about twenty characters of heading-small a line), or its
+   own width when that is shorter, and grows; when a row cannot hold that measure beside the
+   actions, the actions wrap under it and sit at the end, so a title never breaks one word per line
+   beside a full-label primary, and a short title keeps its action on its row. The same rule holds
+   on a page, in a Shell.Panel and in a Sheet, so shell.css has no header rule of its own. */
 @utility page-header {
   & > [data-slot="page-header-lead"] {
     flex-basis: 100%;
@@ -47,8 +55,27 @@
   & > [data-slot="page-header-heading"],
   & > [data-slot="page-header-title"] {
     flex: 1 1 min(100%, 14rem);
+    max-inline-size: max-content;
   }
   & > [data-slot="page-header-actions"] {
+    max-inline-size: 100%;
+    margin-inline-start: auto;
+  }
+}
+
+/* The section header, on the page header's rule at body size: the heading keeps a readable
+   measure (12rem, about twenty-five characters of body text a line), or its own width when that is
+   shorter, and grows; when the row cannot hold that measure beside the actions, the actions take
+   the next row at the end, so a title never breaks mid-word beside them, and a short title keeps
+   its actions on its row. It reads the header's own width, not the window's, so the same rule
+   holds on a page, in a Shell.Panel and in a Sheet. */
+@utility section-header {
+  & > [data-slot="section-heading"],
+  & > [data-slot="section-title"] {
+    flex: 1 1 min(100%, 12rem);
+    max-inline-size: max-content;
+  }
+  & > [data-slot="section-actions"] {
     max-inline-size: 100%;
     margin-inline-start: auto;
   }
@@ -68,7 +95,8 @@
     var(--ds-space-1000);
 }
 
-/* A relationship chooser owns its internal preview, independently of the page shell. */
+/* A relationship chooser owns its internal preview, independently of the page shell. Below the
+   split container size (dimension.container.split) an open preview replaces the results. */
 [data-record-browser] {
   container-type: inline-size;
 }
@@ -76,7 +104,7 @@
   width: 40%;
   min-width: 320px;
 }
-@container (width < 800px) {
+@container (width < theme(--container-split)) {
   [data-record-browser-body][data-preview="open"] > [data-record-browser-results] {
     display: none;
   }

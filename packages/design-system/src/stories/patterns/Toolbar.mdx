@@ -7,7 +7,7 @@ import * as Stories from "./Toolbar.stories";
 
 # Toolbar
 
-The row above a table: search first, saved views next, filters after them, and display controls/actions at the end. Everything in it is the small size, so the row is one height and the table starts right under it. A [DataTable](?path=/docs/patterns-data-table--docs) takes it as `toolbar`, above its frameless rows; a plain [Table](?path=/docs/components-table--docs) puts it above.
+The row above a table: search first, saved views next, filters after them, and display controls and actions at the end. Everything in it is the small size, so the row is one height and the table starts right under it. A [DataTable](?path=/docs/patterns-data-table--docs) takes it as `toolbar`, above its frameless rows; a plain [Table](?path=/docs/components-table--docs) puts it above.
 
 It is a row of controls, not a heading. A standalone register has a PageHeader; an embedded register can use a Section. Toolbar contains controls only.
 
@@ -17,10 +17,12 @@ It is a row of controls, not a heading. A standalone register has a PageHeader; 
 
 | Part    | What it is                                                                                                                                                                              |
 | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Search  | An [InputGroup](?path=/docs/components-inputgroup--docs) with the search icon and a small `Input` of type search, 200px, named by its placeholder. Only with `onSearch`.                |
-| Views   | `views`, after search: permanent saved-view controls that never collapse into More; a strip wider than its row scrolls inside it, arrows at the edges where a pointer can hover.                                                                                                     |
+| Search  | A small [SearchField](?path=/docs/components-searchfield--docs), up to 240px, named by its placeholder, with a clear button while it holds a query. Only with `onSearch`.               |
+| Views   | `views`, after search: saved-view controls that never fold into More; a strip wider than its space scrolls inside it, arrows at the edges where a pointer can hover.                    |
 | Filters | `filters`, after saved views: [FilterChips](?path=/docs/components-filterchip--docs), a [ToggleGroup](?path=/docs/components-togglegroup--docs) of lenses, a small Select that narrows. |
-| Actions | `actions`, pushed to the end: small Buttons with the primary last, or a count as text, "12 of 340 controls".                                                                            |
+| Display | `children`, before the actions: Columns, Settings, a grouping Select, an overflow of collection commands. They fold into More after the filters.                                        |
+| More    | The one overflow: a small Button, "More", that appears only when something has folded. Its popover holds the filters, then the display controls under a divider.                        |
+| Actions | `actions`, pushed to the end: small Buttons with the primary last, or a count as text, "12 of 340 controls". They never fold.                                                           |
 
 ## Variants
 
@@ -30,7 +32,7 @@ Toolbar has one appearance. What varies is which parts the register needs:
 | ---------------------------------- | -------------------------------------------------------------------- |
 | Searched, filtered, acted on       | Search, chips, actions.                                              |
 | Seen through lenses                | No search; a ToggleGroup in `filters`, a count at the end.           |
-| One thing to choose about the view | A small Select as a permanent child.                                 |
+| One thing to choose about the view | A small Select in `children`.                                        |
 | Only a count or an Export          | `actions` alone.                                                     |
 | Rows chosen for a batch action     | Not a Toolbar: the DataTable's SelectionBar appears above the table. |
 
@@ -38,22 +40,35 @@ There is no title in a Toolbar, no tall Toolbar (the kit's rows are one height a
 
 ## Sizes
 
-One height: every control in the row is small, `dimension.control.small` 28px, so a Button in it says `size="small"` and a SelectTrigger `size="sm"`. The toolbar measures its available container width. When the controls no longer fit, only `filters` move into More. Saved views (`views`), display controls (`children`) and `actions` remain visible. The popover uses ordinary Tab navigation so nested filters and menus keep their native behavior. At phone widths search gets a dedicated row when necessary to keep permanent controls visible. Filters never wrap across the toolbar. The caller owns surrounding spacing.
+One height: every control in the row is small, `dimension.control.small` 28px, so a Button in it says `size="small"` and a SelectTrigger `size="sm"`. The caller owns surrounding spacing.
+
+The toolbar measures its container, not the window, so it responds the same in a panel as on a phone. When the row cannot hold everything it folds instead of stacking. `filters` move into More first; if the row still cannot hold the display controls (`children`), they follow, under a divider, and each still opens its own menu from inside More. A choice that closes a menu opened there closes More with it, as a parent menu would; a toggle, a submenu, or an item that keeps its menu open keeps More open. The search, the saved views and `actions` never fold, and the primary keeps its whole label.
+
+When search, views, More and the actions still cannot share one row, the row wraps into two in the same order: the search with the saved views, then More with the actions at the end. Every register takes the same two rows at a given width, a views menu keeps its label, count and chevron, and the primary keeps its whole label. The toolbar stays at two rows while More and the primary fit side by side; narrower than that, as in a panel at its minimum width, the actions take a line of their own under More, still at the end, and nothing overlaps. The search gives up room first, down to 128px; below that, the saved views take what is left: a views menu shortens its label with an ellipsis, its full label in its title, and keeps its count and chevron, and a strip of several views scrolls. A toolbar without a search stays one row, and actions that do not fit wrap inside their group, labels whole: another reason to keep to five. While More is open it keeps what it holds, even if its container widens; the row takes everything back when it closes.
 
 <Canvas of={Stories.Live} />
 <Canvas of={Stories.Constrained} />
+<Canvas of={Stories.Phone} />
+<Canvas of={Stories.PhoneLongPrimary} />
+<Canvas of={Stories.Frame} />
+<Canvas of={Stories.NarrowestFrame} />
+<Canvas of={Stories.PanelMinimum} />
 
 ## States
 
 The toolbar has no states of its own; its controls have theirs. The search field is empty (the placeholder names what is searched), typed, or focused, and the table under it narrows on every keystroke. A count at the end says how many rows remain, so the result of typing is read as well as seen.
 
+The search is live, so Enter does nothing: a toolbar inside a form, as in a dialog that links the records a reader picks, never submits the form when the reader presses Enter to search. The clear button and Escape empty the search through `onSearch("")` and keep focus in it; with the search empty, Escape reaches the dialog or popover around the toolbar.
+
+<Canvas of={Stories.InAForm} />
+
 ## Modifiers
 
-- **`search`, `onSearch`, `placeholder`**: the field, its value, and what it searches. Without `onSearch` there is no field.
-- **`views`**: permanent saved-view controls immediately after search.
-- **`filters`**: collapsible filters, after saved views.
-- **`children`**: permanent display controls, such as grouping, columns and settings.
-- **`actions`**: what sits at the end.
+- **`search`, `onSearch`, `placeholder`**: the field, its value, and what it searches. Without `onSearch` there is no field. The clear button and Escape call `onSearch("")`.
+- **`views`**: saved-view controls immediately after search. They never fold.
+- **`filters`**: filters, after saved views. The first to fold into More.
+- **`children`**: display controls, such as grouping, columns, settings and an overflow of collection commands. They fold into More after the filters.
+- **`actions`**: what sits at the end. They never fold.
 - **`className`** for a frame's own padding; inside a DataTable the frame gives it.
 
 ## Content
@@ -63,22 +78,28 @@ The toolbar has no states of its own; its controls have theirs. The search field
 - **Up to five actions**; more go under a More menu. The primary last.
 - **A count reads "12 of 340 controls"**, tabular, `font.body.small` in `color.text.subtle`. It is text, not a Badge or a Count.
 
+More's own words come from the locale, like the other labels the kit writes; the caller writes the placeholder, the filters and the actions in the reader's language.
+
+<Canvas of={Stories.Localized} />
+
 ## Style
 
-| Element | Token                                                                                             |
-| ------- | ------------------------------------------------------------------------------------------------- |
-| Row     | flex, one row · gap `space.100` · container-driven overflow into More                             |
-| Search  | 200px · `dimension.control.small` · the search icon `dimension.icon.small` in `color.icon.subtle` |
-| Actions | at the end · gap `space.100`                                                                      |
-| Count   | `font.body.small` `color.text.subtle` · tabular numerals                                          |
+| Element | Token                                                                                                                                                           |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Row     | flex, one row, or two when it has a search (three when More and the primary cannot share one) · gap `space.100` · container-driven fold into More               |
+| Search  | up to 240px on one row; on two, the first row up to the saved views · `dimension.control.small` · the search icon `dimension.icon.small` in `color.icon.subtle` |
+| Actions | at the end · gap `space.100`                                                                                                                                    |
+| Count   | `font.body.small` `color.text.subtle` · tabular numerals                                                                                                        |
 
 ## Accessibility
 
 - **A plain row, not the ARIA `toolbar` role.** That role promises arrow-key movement between its controls; a row of a search field, chips and buttons is better served by Tab in reading order, so Toolbar renders a plain layout div.
-- **The search field is named** by its placeholder through `aria-label`; the icon is decorative.
+- **The search field is named** by its placeholder through `aria-label`; the icon is decorative. Its clear button is named "Clear search" and is not a Tab stop, since Escape does the same; see [SearchField](?path=/docs/components-searchfield--docs).
 - **Typing narrows the table** under it. The count at the end is the result, in text a screen reader can read back.
 - **The chips say pressed**; a chip that opens a popover says expanded. See FilterChip.
-- **Order:** search, saved views, filters, display controls, actions. The reader narrows first and acts last, and Tab follows.
+- **Order:** search, saved views, filters, display controls, actions. The reader narrows first and acts last, and Tab follows. Two rows are the same order wrapped, so Tab and a screen reader read the same sequence at every width.
+- **More says what it holds**: "More filters", "More display options" or "More filters and display options". Its popover is a dialog named by its title: Filters, Display, or Filters and display; below filters, the display controls are a group named Display. Each name is a locale message (`moreFilters`, `moreDisplay`, `moreFiltersAndDisplay`, `filters`, `display`, `filtersAndDisplay`, and `more` for the visible label), so a `LedgerProvider` translates them. It uses ordinary Tab navigation, so nested filters and menus keep their own behavior. Escape closes one layer at a time: an inner menu first, back to its trigger, then More, back to More.
+- **Focus never falls to the page.** A control that folds while it has focus hands it to More; when More goes away, focus moves to the first control that came back. Closing More returns focus to it, unless the reader has moved on, as into a dialog that a command in More opened.
 
 ## Props
 
@@ -94,6 +115,7 @@ The toolbar has no states of its own; its controls have theirs. The search field
 
 - [Table](?path=/docs/components-table--docs) below it; [Pagination](?path=/docs/components-pagination--docs) under the table.
 - [DataTable](?path=/docs/patterns-data-table--docs): `DataTable.Search`, `.Filter`, `.Presets` and `.Columns` are the parts a toolbar holds when the table has state; `.SelectionBar` is the bar that replaces it while rows are chosen.
+- [SearchField](?path=/docs/components-searchfield--docs): the search, on its own.
 - [FilterChip](?path=/docs/components-filterchip--docs), [ToggleGroup](?path=/docs/components-togglegroup--docs): the filters.
 - [PageHeader](?path=/docs/layout-pageheader--docs) names a standalone register; Section can name an embedded collection.
 

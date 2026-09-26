@@ -150,6 +150,7 @@ function forEachClass(context, cb) {
 // Structure, not design: display, position, alignment, overflow, text flow, interaction. No colour, size, space, type, radius, shadow.
 const structural = [
   /^page-header$/, // Composable layout header; columns defined in styles/layout.css.
+  /^section-header$/, // Section.Header wrap rule; defined in styles/layout.css.
   /^drawer-(popup|overlay|content|swipe-handle)$/, // drawer.css: Base UI swipe geometry
   /^(block|inline-block|inline|flex|inline-flex|grid|inline-grid|contents|hidden|flow-root|table|table-(row|cell|caption|header-group|row-group|footer-group|column|column-group)|list-item)$/,
   /^(static|relative|absolute|fixed|sticky)$/,
@@ -224,7 +225,9 @@ const structural = [
   /^(inert)$/,
   /^gap(-x|-y)?-px$/, // a hairline gutter between tiles, painted with the border token
   /^animate-(rise|enter|exit|dialog-(in|out)|fade-(in|out)|dim-(in|out)|collapse-(open|close)|slide-(in|out)-(start|end|top|bottom))$/, // motion.css, on the motion tokens
-  /^(grid-cols-main-rail|grid-cols-list-detail|sticky-rail|sticky-bar|stagger-children|min-h-work|fill-window|shell-(root|banner|topnav|topnav-start|sidenav|sidenav-overlay|scrim|main|panel))$/, // layout.css and shell.css, on the layout dimension tokens
+  /^(grid-cols-main-rail|grid-cols-list-detail|sticky-rail|sticky-bar|stagger-children|min-h-work|fill-window|touch-target|shell-(root|banner|topnav|topnav-start|sidenav|sidenav-overlay|scrim|main|panel))$/, // layout.css and shell.css, on the layout dimension tokens
+  /^stat-grid(-[2-6])?$/, // stat.css: Stat.Grid's columns from its own width, on the space tokens
+  /^touch-target-block(-after)?$/, // touch.css: the band twin of touch-target, on ::before or ::after
   /^table-(auto|fixed)$/, // column algorithm, not a design value
   /^opacity-(0|100)$/, // hidden and shown; the design opacities are opacity-disabled and opacity-loading
   /^(bg|border)-transparent$/, // no paint, which is structure: a placeholder border that holds layout, a row that must not light up

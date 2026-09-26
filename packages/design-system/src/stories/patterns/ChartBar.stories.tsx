@@ -40,7 +40,7 @@ export const BarMatrix: Story = {
   render: () => (
     <Stack space="space.400">
       <Specimens title="One series (brand) · grouped (the categorical set) · stacked (the status tones)">
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Bar
             data={bySource}
             x="source"
@@ -49,7 +49,7 @@ export const BarMatrix: Story = {
             label="Findings by source"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Bar
             data={byAssessor}
             x="week"
@@ -58,7 +58,7 @@ export const BarMatrix: Story = {
             label="Reviews by assessor"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Bar
             data={byFamily}
             x="family"
@@ -70,7 +70,7 @@ export const BarMatrix: Story = {
         </Box>
       </Specimens>
       <Specimens title="Horizontal with end labels · a target per bar · floating from-to values with a milestone">
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Bar
             data={bySource}
             x="source"
@@ -81,7 +81,7 @@ export const BarMatrix: Story = {
             label="Findings by source"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Bar
             data={byFamily}
             x="family"
@@ -91,7 +91,7 @@ export const BarMatrix: Story = {
             label="Satisfied against target"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Bar
             data={windows}
             x="phase"
@@ -105,7 +105,7 @@ export const BarMatrix: Story = {
         </Box>
       </Specimens>
       <Specimens title="A line over the bars · axis titles · loading">
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Bar
             data={byMonth}
             x="month"
@@ -115,7 +115,7 @@ export const BarMatrix: Story = {
             label="Closed against the plan"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Bar
             data={bySource}
             x="source"
@@ -126,7 +126,7 @@ export const BarMatrix: Story = {
             label="Findings by source"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Bar
             data={bySource}
             x="source"
@@ -138,7 +138,7 @@ export const BarMatrix: Story = {
         </Box>
       </Specimens>
       <Specimens title="Below zero, with the zero line · a shared domain · textured">
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Bar
             data={varianceRows}
             x="phase"
@@ -149,7 +149,7 @@ export const BarMatrix: Story = {
             label="Schedule variance by phase"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Bar
             data={bySource}
             x="source"
@@ -159,7 +159,7 @@ export const BarMatrix: Story = {
             label="Findings by source, to 60"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Bar
             data={byFamily}
             x="family"
@@ -172,10 +172,10 @@ export const BarMatrix: Story = {
         </Box>
       </Specimens>
       <Specimens title="Sizes · small 120 · medium 200 · large 320">
-        <Box style={{ width: 240 }}>
+        <Box style={{ width: "100%", maxWidth: 240 }}>
           <Chart.Bar data={bySource} x="source" series={sourceSeries} size="small" label="Small" />
         </Box>
-        <Box style={{ width: 240 }}>
+        <Box style={{ width: "100%", maxWidth: 240 }}>
           <Chart.Bar
             data={bySource}
             x="source"
@@ -184,7 +184,7 @@ export const BarMatrix: Story = {
             label="Medium"
           />
         </Box>
-        <Box style={{ width: 240 }}>
+        <Box style={{ width: "100%", maxWidth: 240 }}>
           <Chart.Bar data={bySource} x="source" series={sourceSeries} size="large" label="Large" />
         </Box>
       </Specimens>
@@ -195,7 +195,7 @@ export const BarMatrix: Story = {
 /** Findings by source: one series, so no legend; `brand` because the reader is asked to look at it; the value at each bar's end. */
 export const Single: Story = {
   render: () => (
-    <Box style={{ width: 560 }}>
+    <Box style={{ maxWidth: 560 }}>
       <Chart
         title="Findings by source"
         description="Opened this year"
@@ -213,7 +213,7 @@ export const Single: Story = {
 /** Three assessors side by side, week by week: the categorical set in order, a 2px gap between bars. Past three, stack or emphasise. */
 export const Grouped: Story = {
   render: () => (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Reviews by assessor"
         description="Per week, the last five weeks"
@@ -231,7 +231,7 @@ export const Grouped: Story = {
 /** Coverage by family, four status series stacked: parts of each family's whole. The tones are the Badge's, and the tooltip totals the stack. */
 export const Stacked: Story = {
   render: () => (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Coverage by control family"
         description="Determinations across 372 controls"
@@ -249,7 +249,7 @@ export const Stacked: Story = {
 /** Long names go down the side, and the value sits at the bar's end. */
 export const Horizontal: Story = {
   render: () => (
-    <Box style={{ width: 480 }}>
+    <Box style={{ maxWidth: 480 }}>
       <Chart
         title="Findings by source"
         data={bySource}
@@ -272,7 +272,7 @@ export const Horizontal: Story = {
 /** Actual against planned: a mark in ink across each bar at its target: a bullet chart. */
 export const Targets: Story = {
   render: () => (
-    <Box style={{ width: 560 }}>
+    <Box style={{ maxWidth: 560 }}>
       <Chart
         title="Satisfied controls against the plan"
         description="The mark is each family's target for this assessment"
@@ -290,7 +290,7 @@ export const Targets: Story = {
 /** A value that is a `[from, to]` pair floats: phase windows in weeks, with today as a milestone above the plot. */
 export const Windows: Story = {
   render: () => (
-    <Box style={{ width: 560 }}>
+    <Box style={{ maxWidth: 560 }}>
       <Chart
         title="RMF phase windows"
         description="Weeks from kickoff"
@@ -315,7 +315,7 @@ export const Windows: Story = {
 /** Bars with a line over them on the same axis: closed findings each month against the plan. The line's swatch is a stroke in the legend's tooltip. */
 export const Combo: Story = {
   render: () => (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Closed findings against the plan"
         description="Per month, this year"
@@ -333,7 +333,7 @@ export const Combo: Story = {
 /** Below zero: schedule variance in days hangs from the zero line, the rounded end at the data end, the label under the bar. The axis reaches below zero on its own; `domain` can pin it. */
 export const Negatives: Story = {
   render: () => (
-    <Box style={{ width: 560 }}>
+    <Box style={{ maxWidth: 560 }}>
       <Chart
         title="Schedule variance by phase"
         description="Days against the plan; below zero is early"
@@ -358,7 +358,7 @@ export const Negatives: Story = {
 /** A series' own `format`: the close rate is stored as a fraction and printed as a percentage on the axis, the labels, the tooltip, the card and the table, while the Frame keeps the kit's format for anything else. */
 export const Rates: Story = {
   render: () => (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Close rate by month"
         description="Closed over all findings in the month; the target is one in two"
@@ -384,7 +384,7 @@ export const Rates: Story = {
 /** `texture`: every series wears a pattern as well as its colour, so a stack reads in print and under colour-vision loss. The legend and the tooltip wear it too. */
 export const Textured: Story = {
   render: () => (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Coverage by control family"
         description="Textured"
@@ -403,7 +403,7 @@ export const Textured: Story = {
 /** A click on a segment opens its card: the kit's head (the series, the family, the value) and the caller's facts and link. Enter on the focused plot opens the whole category. */
 export const Details: Story = {
   render: () => (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Coverage by control family"
         description="Click a segment"
@@ -488,7 +488,7 @@ export const Dont: Story = {
         }
         doText="Long names go down the side, whole, with the value at the bar's end."
         dont={
-          <Box style={{ width: 240 }}>
+          <Box style={{ width: "100%", maxWidth: 240 }}>
             <Chart title="Findings by source" size="small">
               <Chart.Bar
                 data={bySource}

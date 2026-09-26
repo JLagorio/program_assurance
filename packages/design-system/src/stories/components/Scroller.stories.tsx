@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import { Button, Scroller, ScrollerArrow, ScrollerViewport } from "../../components";
@@ -146,5 +147,91 @@ export const Horizontal: Story = {
         });
       }
     }
+  },
+};
+
+function CurrentStrip({ label, current }: { label: string; current: string }) {
+  return (
+    <Scroller orientation="horizontal" data-testid={label}>
+      <ScrollerViewport aria-label={label} role="list" tabIndex={0} className="flex gap-100 py-050">
+        {views.map((view) => (
+          <div key={view} role="listitem" className="shrink-0">
+            <Button isSelected={view === current}>{view}</Button>
+          </div>
+        ))}
+      </ScrollerViewport>
+      <ScrollerArrow edge="start" />
+      <ScrollerArrow edge="end" />
+    </Scroller>
+  );
+}
+
+function NarrowingStrips() {
+  const [wide, setWide] = useState(true);
+  return (
+    <Stack space="space.300">
+      <Stack space="space.100">
+        <Text size="xsmall" color="color.text.subtlest">
+          Narrowed while open: the pressed view scrolls back into the strip
+        </Text>
+        <div>
+          <Button size="small" onClick={() => setWide((value) => !value)}>
+            {wide ? "Narrow the strip" : "Widen the strip"}
+          </Button>
+        </div>
+        <div style={{ maxWidth: wide ? 800 : 240 }}>
+          <CurrentStrip label="Resizing views" current="Operational issues" />
+        </div>
+      </Stack>
+      <Stack space="space.100">
+        <Text size="xsmall" color="color.text.subtlest">
+          Narrow from the start: the pressed view is in the strip on its first layout
+        </Text>
+        <div style={{ maxWidth: 240 }}>
+          <CurrentStrip label="Narrow views" current="Activity" />
+        </div>
+      </Stack>
+    </Stack>
+  );
+}
+
+const inView = (viewport: HTMLElement, item: HTMLElement) => {
+  const bounds = viewport.getBoundingClientRect();
+  const box = item.getBoundingClientRect();
+  return box.left >= bounds.left - 1 && box.right <= bounds.right + 1;
+};
+
+/**
+ * A strip keeps its current item in view. When it narrows, and the first time it overflows, the
+ * selected tab, the current step or the pressed view scrolls back in if it ended outside; focus
+ * stays where it was. After that, widening or new content leaves the strip where the reader put it.
+ */
+export const KeepsCurrentInView: Story = {
+  render: () => <NarrowingStrips />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const narrow = canvas.getByTestId("Narrow views");
+    const narrowViewport = viewportOf(narrow);
+    await expect(narrowViewport.scrollWidth).toBeGreaterThan(narrowViewport.clientWidth);
+    await waitFor(() =>
+      expect(inView(narrowViewport, within(narrow).getByRole("button", { name: "Activity" }))).toBe(
+        true,
+      ),
+    );
+
+    const resizing = canvas.getByTestId("Resizing views");
+    const viewport = viewportOf(resizing);
+    const current = within(resizing).getByRole("button", { name: "Operational issues" });
+    await expect(current).toHaveAttribute("aria-pressed", "true");
+    const toggle = canvas.getByRole("button", { name: "Narrow the strip" });
+    await userEvent.click(toggle);
+    await waitFor(() => expect(viewport.scrollWidth).toBeGreaterThan(viewport.clientWidth));
+    await waitFor(() => expect(inView(viewport, current)).toBe(true));
+    await expect(viewport.scrollLeft).toBeGreaterThan(0);
+    // The strip moved; focus did not.
+    await expect(canvas.getByRole("button", { name: "Widen the strip" })).toHaveFocus();
+    await expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+      document.documentElement.clientWidth,
+    );
   },
 };

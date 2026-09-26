@@ -64,7 +64,7 @@ export const Specimens: Story = {
             Replay the tiles
           </Button>
         </Inline>
-        <Box style={{ width: 360 }}>
+        <Box style={{ maxWidth: 360 }}>
           <Collapsible className="border-t border-default">
             <h3>
               <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">

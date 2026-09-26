@@ -1,0 +1,71 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { ErrorSummary } from "../../components";
+import * as Stories from "./ErrorSummary.stories";
+
+<Meta of={Stories} />
+
+# ErrorSummary
+
+Every issue with a submitted form in one place. A danger Alert titled "There is a problem" that lists each issue as a button; the button moves focus to the field, with its label in view. The summary takes focus when it appears, so a reader who submits lands on the list of what to fix.
+
+```tsx
+<ErrorSummary
+  focusKey={attempts}
+  issues={[
+    { message: "Enter a task title.", target: titleId },
+    { message: "Choose a program.", target: () => programRef.current },
+  ]}
+/>
+```
+
+<Canvas of={Stories.OnSubmit} />
+
+## When to use it
+
+- **A long form or a dialog that scrolls**, where some invalid fields are out of sight after a submission.
+- **A multi-step flow**, on the last step, for issues on earlier steps.
+
+Each field still shows its own [FieldError](?path=/docs/components-field--docs). A short form whose fields all fit on screen needs no summary: focus the first invalid control instead. A failure that is not about a field (a lost connection, a refused permission) is an [Alert](?path=/docs/components-alert--docs) with `role="alert"`.
+
+<Canvas of={Stories.DoDont} />
+
+## Issues
+
+- **`message`** says what fixes the field and names it, in the same words as its FieldError: "Enter a task title.", not "Required.".
+- **`target`** is the control: its `id`, the element, or a function that finds it. A RadioGroup or a FieldSet focuses its first focusable control; a Checkbox or Switch `id`, which names the hidden input, focuses the visible box.
+- **`onSelect`** runs before focus moves, to open the step or tab that holds the field; the summary then focuses the field once it has rendered.
+- An issue with neither `target` nor `onSelect` (a rule across two fields) is listed as text, not a button, because it leads nowhere.
+
+List the issues in the order the fields appear, and pass the ones found at the last submission. Recomputing them on every keystroke re-announces the alert while the reader types; the fields' own errors update as the reader repairs them.
+
+<Canvas of={Stories.EarlierStep} />
+
+## Focus
+
+The summary focuses itself when it appears. Change `focusKey` on each failed submission (a submit count) to bring focus back to a summary already showing. `autoFocus={false}` leaves focus where it is, for a summary rendered on arrival at a step. With no issues it renders nothing, so it can stay in place above the form.
+
+With TanStack Form, an error returned from `onSubmitAsync` is cleared on the field's next blur, and the summary taking focus is that blur: keep a server rejection in your own state until the reader changes the value, as the Forms recovery story does.
+
+<Canvas of={Stories.NoIssues} />
+
+## Accessibility
+
+- `role="alert"` announces the summary when it appears; focus lands on it, named by its title, and Tab reaches the first item.
+- The title is a heading at the contextual level (an h2 outside every HeadingLevelProvider, an h3 under a level-3 provider), so the summary is in the page's outline.
+- Items are buttons, because they act on the page; each moves focus with the keyboard focus ring showing and brings the field's label into view.
+- The icon is decorative; the title and the danger surface say it is an error, not the colour alone.
+
+<Canvas of={Stories.InSection} />
+
+## Props
+
+<ArgTypes of={ErrorSummary} />
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+[Field](?path=/docs/components-field--docs) · [Forms](?path=/docs/patterns-forms--docs) · [Alert](?path=/docs/components-alert--docs) · [GOV.UK error summary](https://design-system.service.gov.uk/components/error-summary/)

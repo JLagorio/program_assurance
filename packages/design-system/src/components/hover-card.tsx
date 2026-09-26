@@ -3,6 +3,7 @@ import { PreviewCard as PreviewCardPrimitive } from "@base-ui/react/preview-card
 
 import { classes } from "../lib/base-ui";
 import { useLedgerLocale } from "../lib/locale";
+import { overlaySurface } from "./overlay";
 
 export type HoverCardProps<Payload = unknown> = PreviewCardPrimitive.Root.Props<Payload>;
 
@@ -36,7 +37,10 @@ export function HoverCardContent({
 }: HoverCardContentProps) {
   const inheritedDirection = useDirection();
   const direction = dir === "ltr" || dir === "rtl" ? dir : inheritedDirection;
+  // The overlay surface is recorded as the current one, so a child that matches its surface
+  // (a sticky header, a pinned cell) paints the popup's colour.
   const defaults = {
+    ...overlaySurface,
     width: 256,
     maxWidth: "var(--available-width)",
     transformOrigin: "var(--transform-origin)",

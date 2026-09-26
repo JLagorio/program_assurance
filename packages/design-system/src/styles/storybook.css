@@ -5,3 +5,5 @@
 @import "./reset.css";
 @import "./ledger.css";
 @import "./base.css";
+/* The packaged faces, as a product imports them: the Storybook renders Geist from the package. */
+@import "./fonts.css";

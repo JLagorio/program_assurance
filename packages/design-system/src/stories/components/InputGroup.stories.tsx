@@ -3,18 +3,23 @@ import { Search, X } from "lucide-react";
 import { useId, useRef, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import {
+  Button,
   FieldLabel,
   FieldDescription,
   FieldError,
   Field,
+  IconButton,
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
   InputGroupText,
   InputGroupTextarea,
+  Kbd,
+  KbdGroup,
 } from "../../components";
 import { Stack } from "../../primitives";
+import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Components/InputGroup",
@@ -252,5 +257,168 @@ export const States: Story = {
     ).not.toBe(getComputedStyle(archived.closest('[data-slot="input-group"]')!).backgroundColor);
     await userEvent.type(directory, "Dana");
     await expect(directory).toHaveValue("Dana");
+  },
+};
+
+/** A search with a clear button and a ⌘K hint, as a toolbar or a top nav holds it. */
+function HintedSearch({ label }: { label: string }) {
+  return (
+    <InputGroup>
+      <InputGroupInput type="search" aria-label={label} placeholder="Search controls" />
+      <InputGroupAddon>
+        <Search aria-hidden="true" />
+      </InputGroupAddon>
+      <InputGroupAddon align="inline-end">
+        <InputGroupButton size="icon-xs" aria-label="Clear search">
+          <X aria-hidden="true" />
+        </InputGroupButton>
+        <InputGroupText>
+          <KbdGroup>
+            <Kbd label="Command">⌘</Kbd>
+            <Kbd>K</Kbd>
+          </KbdGroup>
+        </InputGroupText>
+      </InputGroupAddon>
+    </InputGroup>
+  );
+}
+
+/** In a 320px frame: the keyboard hint shows while the group is 256px or wider and steps aside below that, so the input keeps the room; a unit stays at every width. */
+export const Narrow: Story = {
+  name: "In a narrow frame",
+  globals: { viewport: { value: "ledgerSmall", isRotated: false } },
+  tags: ["narrow"],
+  render: function NarrowExample() {
+    const fieldId = useId();
+    return (
+      <div style={{ maxWidth: 320 }}>
+        <Stack space="space.300">
+          <div data-testid="wide">
+            <HintedSearch label="Search at full width" />
+          </div>
+          <div data-testid="narrow" style={{ maxWidth: 200 }}>
+            <HintedSearch label="Search at 200px" />
+          </div>
+          <div style={{ maxWidth: 200 }}>
+            <Field>
+              <FieldLabel htmlFor={`${fieldId}-retention`}>Retention</FieldLabel>
+              <InputGroup>
+                <InputGroupInput id={`${fieldId}-retention`} type="number" defaultValue="90" />
+                <InputGroupAddon align="inline-end">
+                  <InputGroupText>days</InputGroupText>
+                </InputGroupAddon>
+              </InputGroup>
+            </Field>
+          </div>
+        </Stack>
+      </div>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const doc = canvasElement.ownerDocument.documentElement;
+    await expect(doc.scrollWidth).toBeLessThanOrEqual(doc.clientWidth);
+    const hint = (id: string) =>
+      canvas.getByTestId(id).querySelector<HTMLElement>('[data-slot="input-group-text"]')!;
+    await expect(hint("wide")).toBeVisible();
+    await expect(hint("narrow")).not.toBeVisible();
+    await expect(canvas.getByText("days")).toBeVisible();
+    // Without the hint the input keeps a usable width beside the icon and the clear button.
+    const narrowInput = canvas.getByRole("searchbox", { name: "Search at 200px" });
+    await expect(narrowInput.getBoundingClientRect().width).toBeGreaterThan(100);
+    await expect(
+      within(canvas.getByTestId("narrow")).getByRole("button", { name: "Clear search" }),
+    ).toBeVisible();
+  },
+};
+
+/** The mistake the narrow rule is written to prevent, beside the right way. */
+export const Dont: Story = {
+  render: () => (
+    <Pair
+      do={
+        <div data-testid="do" className="flex items-center gap-100" style={{ maxWidth: 128 }}>
+          <IconButton label="Search" variant="subtle" icon={<Search />} aria-haspopup="dialog" />
+          <Button variant="primary">Create</Button>
+        </div>
+      }
+      doText="In a crowded row the search is an icon button that opens the search in a dialog, as the Shell's top nav does below md. Both controls keep their size."
+      dont={
+        <div data-testid="dont" className="flex items-center gap-100" style={{ maxWidth: 128 }}>
+          <HintedSearch label="Search beside Create" />
+          <Button variant="primary">Create</Button>
+        </div>
+      }
+      dontText="The field squeezed beside Create. The group clips its addons at its own edge instead of painting over the button, but the input is too narrow to use."
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const doc = canvasElement.ownerDocument.documentElement;
+    await expect(doc.scrollWidth).toBeLessThanOrEqual(doc.clientWidth);
+    // Do: the icon button and Create sit side by side at full size inside the frame.
+    const good = canvas.getByTestId("do");
+    const search = within(good).getByRole("button", { name: "Search" });
+    const goodCreate = within(good).getByRole("button", { name: "Create" });
+    await expect(search.getBoundingClientRect().right).toBeLessThanOrEqual(
+      goodCreate.getBoundingClientRect().left,
+    );
+    await expect(goodCreate.getBoundingClientRect().right).toBeLessThanOrEqual(
+      good.getBoundingClientRect().right,
+    );
+    // Don't: the group clips its addons at its edge, so the button next to it is what a pointer reaches.
+    const squeezed = canvas.getByTestId("dont");
+    const group = squeezed.querySelector<HTMLElement>('[data-slot="input-group"]')!;
+    await expect(getComputedStyle(group).overflowX).toBe("clip");
+    const create = within(squeezed).getByRole("button", { name: "Create" });
+    const box = create.getBoundingClientRect();
+    await expect(group.getBoundingClientRect().right).toBeLessThanOrEqual(box.left);
+    const hit = canvasElement.ownerDocument.elementFromPoint(
+      box.left + 2,
+      box.top + box.height / 2,
+    );
+    await expect(create.contains(hit)).toBe(true);
+    await userEvent.click(create);
+    await expect(create).toHaveFocus();
+  },
+};
+
+/**
+ * InputGroupInput inside a Field is bound like Input: named by the label, described by the hint
+ * and error, and the whole group draws the invalid border.
+ */
+export const BoundInField: Story = {
+  name: "Bound in a Field",
+  render: () => (
+    <div className="max-w-full" style={{ width: 320 }}>
+      <Field invalid required>
+        <FieldLabel>Budget</FieldLabel>
+        <InputGroup>
+          <InputGroupAddon>
+            <InputGroupText>$</InputGroupText>
+          </InputGroupAddon>
+          <InputGroupInput inputMode="decimal" />
+          <InputGroupAddon align="inline-end">
+            <InputGroupText>USD</InputGroupText>
+          </InputGroupAddon>
+        </InputGroup>
+        <FieldDescription>The approved amount for this year.</FieldDescription>
+        <FieldError>Enter a budget in US dollars.</FieldError>
+      </Field>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const budget = canvas.getByRole("textbox", { name: "Budget" });
+    await expect(budget).toHaveAttribute("aria-invalid", "true");
+    await expect(budget).toHaveAttribute("aria-required", "true");
+    await expect(budget).toHaveAccessibleDescription(
+      "The approved amount for this year. Enter a budget in US dollars.",
+    );
+    const group = budget.closest<HTMLElement>('[data-slot="input-group"]')!;
+    const danger = getComputedStyle(group).getPropertyValue("--ds-color-border-danger").trim();
+    await expect(getComputedStyle(group).borderColor).toBe(danger);
+    await userEvent.click(canvas.getByText("USD"));
+    await expect(budget).toHaveFocus();
   },
 };

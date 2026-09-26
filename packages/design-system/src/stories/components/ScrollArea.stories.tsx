@@ -14,7 +14,7 @@ const viewportRef = createRef<HTMLDivElement>();
 export const Vertical: Story = {
   render: () => (
     <ScrollArea
-      className="h-[240px] w-[320px] rounded-medium border border-default"
+      className="h-[240px] w-full max-w-[320px] rounded-medium border border-default"
       viewportProps={{ ref: viewportRef, role: "region", "aria-label": "Evidence list" }}
     >
       <div className="p-150">
@@ -44,7 +44,7 @@ export const HorizontalAndRTL: Story = {
   render: () => (
     <LedgerProvider direction="rtl">
       <ScrollArea
-        className="h-[180px] w-[320px] rounded-medium border border-default"
+        className="h-[180px] w-full max-w-[320px] rounded-medium border border-default"
         viewportProps={{ role: "region", "aria-label": "Program timeline" }}
       >
         <div className="flex w-[1000px] gap-200 p-200">

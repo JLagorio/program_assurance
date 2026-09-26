@@ -1,12 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useId, createRef, useState } from "react";
-import { expect, fn, userEvent, within } from "storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import {
   FieldSet,
   FieldLegend,
   FieldDescription,
   FieldError,
+  Field,
+  FieldLabel,
   Button,
   RadioGroup,
   RadioGroupItem,
@@ -222,7 +224,7 @@ function FormDemo() {
     <form
       noValidate
       aria-label="Review schedule"
-      style={{ width: 360 }}
+      style={{ maxWidth: 360 }}
       onReset={() => {
         setFrequency("");
         setTried(false);
@@ -356,7 +358,9 @@ export const InField: Story = {
     await userEvent.click(canvas.getByRole("button", { name: "Schedule" }));
     await expect(group).toHaveAttribute("aria-invalid", "true");
     await expect(group).toHaveAccessibleDescription("Choose a frequency.");
-    await expect(canvas.getByRole("alert")).toHaveTextContent("Choose a frequency.");
+    await expect(canvasElement.querySelector('[data-slot="field-error"]')).toHaveTextContent(
+      "Choose a frequency.",
+    );
     await userEvent.click(canvas.getByText("Monthly"));
     await expect(monthly).toBeChecked();
     await expect(changed).toHaveBeenLastCalledWith("monthly");
@@ -375,6 +379,85 @@ export const InField: Story = {
     await expect(monthly).not.toBeChecked();
     await userEvent.keyboard(" ");
     await expect(monthly).toBeChecked();
+  },
+};
+
+function BoundGroup() {
+  const [frequency, setFrequency] = useState("");
+  const [tried, setTried] = useState(false);
+  const invalid = tried && !frequency;
+  return (
+    <form
+      noValidate
+      aria-label="Bound review schedule"
+      className="w-layout-list max-w-full"
+      onSubmit={(event) => {
+        event.preventDefault();
+        setTried(true);
+      }}
+    >
+      <Stack space="space.200">
+        <Field invalid={invalid} required>
+          <FieldSet>
+            <FieldLegend variant="label">Review frequency</FieldLegend>
+            <FieldDescription>How often the control is reviewed.</FieldDescription>
+            <RadioGroup<string> value={frequency} onValueChange={setFrequency}>
+              {(["Monthly", "Quarterly", "Annually"] as const).map((label) => (
+                <Field key={label} orientation="horizontal">
+                  <RadioGroupItem value={label.toLowerCase()} />
+                  <FieldLabel>{label}</FieldLabel>
+                </Field>
+              ))}
+            </RadioGroup>
+            {invalid && <FieldError>Choose a review frequency.</FieldError>}
+          </FieldSet>
+        </Field>
+        <Inline space="space.100">
+          <Button type="submit" variant="primary">
+            Schedule review
+          </Button>
+        </Inline>
+      </Stack>
+    </form>
+  );
+}
+
+/**
+ * The group in a Field around a FieldSet, with no ids: the legend names the group, the hint and
+ * error describe it, `required` and `invalid` reach it once, and every item shows the invalid
+ * border. The focused item keeps the focus outline.
+ */
+export const BoundInField: Story = {
+  name: "Bound in a Field",
+  render: () => <BoundGroup />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const group = canvas.getByRole("radiogroup", { name: "Review frequency" });
+    await expect(group).toHaveAttribute("aria-required", "true");
+    await expect(group).toHaveAccessibleDescription("How often the control is reviewed.");
+    await userEvent.click(canvas.getByRole("button", { name: "Schedule review" }));
+    await expect(group).toHaveAttribute("aria-invalid", "true");
+    await expect(group).toHaveAccessibleDescription(
+      "How often the control is reviewed. Choose a review frequency.",
+    );
+    const monthly = canvas.getByRole("radio", { name: "Monthly" });
+    const annually = canvas.getByRole("radio", { name: "Annually" });
+    // Forced colours replace the token colours with system ones: the error text and aria-invalid
+    // carry the state there, and the focus outline is the Highlight ring from forced-colors.css.
+    const forced = matchMedia("(forced-colors: active)").matches;
+    const danger = getComputedStyle(monthly).getPropertyValue("--ds-color-border-danger").trim();
+    const ring = getComputedStyle(monthly).getPropertyValue("--ds-color-border-focused").trim();
+    if (!forced) await expect(getComputedStyle(annually).borderColor).toBe(danger);
+    // Keyboard focus, as Tab gives it; the option draws :focus-visible without a trusted key press.
+    monthly.focus({ focusVisible: true } as FocusOptions);
+    await waitFor(() => {
+      expect(getComputedStyle(monthly).outlineStyle).toBe("solid");
+      if (!forced) expect(getComputedStyle(monthly).outlineColor).toBe(ring);
+    });
+    await expect(getComputedStyle(annually).outlineStyle).toBe("none");
+    await userEvent.keyboard("{ArrowDown}");
+    await expect(canvas.getByRole("radio", { name: "Quarterly" })).toBeChecked();
+    await waitFor(() => expect(group).not.toHaveAttribute("aria-invalid", "true"));
   },
 };
 

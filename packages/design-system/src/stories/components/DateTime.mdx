@@ -1,0 +1,82 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+import { DateLabel, DateTime, RelativeTime } from "../../components";
+import * as Stories from "./DateTime.stories";
+
+<Meta of={Stories} />
+
+# DateTime, RelativeTime and DateLabel
+
+Every date the product shows, through one formatter: the LedgerProvider's locale and time zone. Each renders a `<time>` with its ISO value, and the full value ("Friday, September 18, 2026 at 5:30 PM Pacific Daylight Time") opens in a tooltip on hover and keyboard focus and is the description a screen reader hears.
+
+| Part         | Shows                                                 | For                                                      |
+| ------------ | ----------------------------------------------------- | -------------------------------------------------------- |
+| DateTime     | "Sep 18, 2026" or "Sep 18, 2026, 5:30 PM"             | A date or a moment in a property, a cell, a sentence     |
+| RelativeTime | "5 minutes ago", "yesterday", "in 3 days"             | Activity, updated and saved times, where recency matters |
+| DateLabel    | "Sep 22, 2026 · Overdue", "Due today", "Due tomorrow" | A due date, expiry or milestone the reader acts on       |
+
+Use them wherever the product prints a date, in place of `toLocaleString`, `toLocaleDateString` or a formatter of its own, so one record reads the same day on every screen. Inside DataTable a date column is `c.date`, which reads the same locale and zone; it shows an instant's day by default and its time with `format: "medium"`. A date the reader enters is a [DatePicker](?path=/docs/components-datepicker--docs) or a [DateTimeField](?path=/docs/components-datetimefield--docs).
+
+```tsx
+<DateTime value={record.updated_at} />
+<RelativeTime value={comment.created_at} />
+<DateLabel value={task.due_on} complete={task.status === "done"} />
+```
+
+## Days and instants
+
+An ISO day (`"2026-09-18"`) is a calendar day: it never shifts, whoever reads it. An instant (an ISO timestamp with an offset, a Date or epoch milliseconds) is shown in the provider's zone, UTC unless the product sets one, so the same instant reads Sep 18 in Los Angeles and Sep 19 in Tokyo. Mount one LedgerProvider with the reader's zone near the root and keep it the same on the server and the client. Nothing (`null`, `undefined`, `""`) shows [Absent](?path=/docs/components-typography--docs), with `absentLabel` for a screen reader. A string that is neither warns once and shows as written.
+
+`format` is `date` (a day's default), `datetime` (an instant's default), `time`, or Intl options of your own; `showTimeZone` adds the zone's short name to an instant.
+
+<Canvas of={Stories.Formats} />
+
+## The full value
+
+The tooltip opens on hover and on keyboard focus, never on hover alone. A date standing alone takes a tab stop so a keyboard reaches it; inside a link, a button or a row that takes focus itself (one with a `tabindex`, as in a grid or tree) the host's focus opens it and the date takes none. A row that cannot take focus, as in a plain table, is no host, so the date keeps its tab stop. Turn the tab stop off (`focusable={false}`) in a dense list whose preview or record already shows the full value, and the tooltip off (`isTooltipDisabled`, as on IconButton) where the text is already full.
+
+<Canvas of={Stories.FullValue} />
+
+## RelativeTime
+
+Words from `Intl.RelativeTimeFormat` in the provider's locale: under a minute either way is "now"; then minutes, hours, days ("yesterday", "tomorrow"), weeks, months and years. The words follow the clock without a reload, updating when they would change. A fixed `now` stops the updates, for a test or a snapshot. A calendar day reads relative to the reader's today. `unitStyle` is `long`, `short` or `narrow`.
+
+<Canvas of={Stories.Relative} />
+<Canvas of={Stories.Updating} />
+
+## DateLabel
+
+A due date that says where it stands. Overdue (danger), due today and due within `soonWithin` days (warning, 2 by default) each carry an icon and words beside the date as well as a tone, so the state never rests on colour and survives forced colours. A later date shows plainly with a calendar icon, and `complete` shows a finished item's date plainly, never overdue. A day is judged against the reader's today; an instant against now, in the provider's zone.
+
+<Canvas of={Stories.DueDates} />
+
+## Accessibility
+
+- The `<time>` element carries the machine value; the words are the visible text and the full value is the description on focus.
+- The tooltip is a visual copy of that description, hidden from assistive technology.
+- DateLabel's state is in its words ("Overdue", "Due today"), which a screen reader reads with the date.
+
+## Props
+
+<ArgTypes of={DateTime} />
+
+### RelativeTime
+
+<ArgTypes of={RelativeTime} />
+
+### DateLabel
+
+<ArgTypes of={DateLabel} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+[DatePicker](?path=/docs/components-datepicker--docs) · [DateTimeField](?path=/docs/components-datetimefield--docs) · [Timeline](?path=/docs/components-timeline--docs) · [DataTable](?path=/docs/patterns-datatable--docs) · [Badge](?path=/docs/components-badge--docs)
+
+## Don't
+
+<Canvas of={Stories.Dont} />

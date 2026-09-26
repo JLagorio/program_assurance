@@ -1,3 +1,5 @@
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
 import {
   Check,
@@ -12,6 +14,7 @@ import {
 import { createContext, useContext, type ComponentProps, type CSSProperties } from "react";
 
 import { cn } from "../lib/cn";
+import { headingTag, useHeadingLevel } from "../primitives/heading-level";
 
 /*
  * An empty region says why there is nothing and what to do next. The default is the centred
@@ -106,20 +109,25 @@ export function EmptyMedia({ variant = "default", className, ...props }: EmptyMe
   );
 }
 
-export type EmptyTitleProps = ComponentProps<"div">;
-export function EmptyTitle({ className, ...props }: EmptyTitleProps) {
+export type EmptyTitleProps = useRender.ComponentProps<"h2">;
+/** What is missing, in the reader's words. In the default size it is a heading at the contextual level (an h2 outside every HeadingLevelProvider, an h3 in a titled Section), so a page whose content is an Empty keeps it in the outline; in compact, a rail's row, it is body text in a div. `render` sets another element outright: `render={<h1 />}` where the Empty is the page's only content, `render={<div />}` for none. */
+export function EmptyTitle({ render, ref, className, ...props }: EmptyTitleProps) {
   const { size } = useEmpty();
-  return (
-    <div
-      data-slot="empty-title"
-      className={cn(
+  const level = useHeadingLevel();
+  return useRender({
+    defaultTagName: size === "compact" ? "div" : headingTag(level ?? 2),
+    render,
+    ref,
+    state: { slot: "empty-title" },
+    props: mergeProps<"h2">(props, {
+      ...{ "data-slot": "empty-title" },
+      className: cn(
         "text-default",
         size === "compact" ? "font-body font-medium" : "font-heading-small text-balance",
         className,
-      )}
-      {...props}
-    />
-  );
+      ),
+    }),
+  });
 }
 
 export type EmptyDescriptionProps = ComponentProps<"div">;
@@ -258,7 +266,10 @@ function Document({ badge }: { badge?: Badge | undefined }) {
         style={PAGE_BACK}
       />
       <div
-        className={cn("col-start-1 row-start-1 flex flex-col gap-100 px-150 py-150 shadow-raised", SURFACE)}
+        className={cn(
+          "col-start-1 row-start-1 flex flex-col gap-100 px-150 py-150 shadow-raised",
+          SURFACE,
+        )}
         style={PAGE}
       >
         <div className="h-100 w-1/2 rounded-small bg-neutral" />
@@ -280,7 +291,10 @@ function Document({ badge }: { badge?: Badge | undefined }) {
 function Checklist() {
   return (
     <div className="grid items-center justify-items-center" style={SCENE}>
-      <div className={cn("flex flex-col justify-center gap-100 px-150 shadow-raised", SURFACE)} style={CARD}>
+      <div
+        className={cn("flex flex-col justify-center gap-100 px-150 shadow-raised", SURFACE)}
+        style={CARD}
+      >
         {[LINE, LINE_SHORT, LINE].map((width, i) => (
           <div key={i} className="flex items-center gap-100">
             <div className="size-150 shrink-0 rounded-xsmall border border-bold bg-surface" />
@@ -312,7 +326,10 @@ function Tree() {
     <div className="flex flex-col items-center justify-center" style={SCENE}>
       <div className={cn("shadow-raised", SURFACE)} style={NODE} />
       <div className="h-100 border-l border-bold" />
-      <div className="h-100 border-t border-l border-r border-bold rounded-t-small" style={BRANCH} />
+      <div
+        className="h-100 border-t border-l border-r border-bold rounded-t-small"
+        style={BRANCH}
+      />
       <div className="flex justify-between" style={BRANCH}>
         <div className={cn("-translate-x-1/2", SURFACE)} style={NODE} />
         <div className={cn("translate-x-1/2", SURFACE)} style={NODE} />
@@ -325,11 +342,17 @@ function Tree() {
 function Chart() {
   return (
     <div className="grid items-center justify-items-center" style={SCENE}>
-      <div className={cn("flex items-end gap-150 px-200 pt-200 pb-150 shadow-raised", SURFACE)} style={CARD}>
+      <div
+        className={cn("flex items-end gap-150 px-200 pt-200 pb-150 shadow-raised", SURFACE)}
+        style={CARD}
+      >
         {BARS.map((height, i) => (
           <div
             key={i}
-            className={cn("grow rounded-t-small", i === BARS.length - 1 ? "bg-neutral" : "bg-skeleton")}
+            className={cn(
+              "grow rounded-t-small",
+              i === BARS.length - 1 ? "bg-neutral" : "bg-skeleton",
+            )}
             style={{ height: `${height}%` }}
           />
         ))}
@@ -349,7 +372,13 @@ function Calendar() {
         </div>
         <div className="grid grow grid-cols-7 place-items-center px-100 py-050">
           {Array.from({ length: 21 }, (_, i) => (
-            <div key={i} className={cn("size-075 rounded-full", i % 5 === 3 ? "bg-skeleton" : "bg-skeleton-subtle")} />
+            <div
+              key={i}
+              className={cn(
+                "size-075 rounded-full",
+                i % 5 === 3 ? "bg-skeleton" : "bg-skeleton-subtle",
+              )}
+            />
           ))}
         </div>
       </div>

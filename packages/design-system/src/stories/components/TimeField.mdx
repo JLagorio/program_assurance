@@ -1,0 +1,63 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+import { TimeField } from "../../components";
+import * as Stories from "./TimeField.stories";
+
+<Meta of={Stories} />
+
+# TimeField
+
+A time of day, typed, held and reported as an ISO time (`"17:30"`, the contract of `input type="time"`) and shown on the LedgerProvider locale's clock: "5:30 PM" in en-US, "17:30" in de-DE. It has no date and no zone.
+
+Use it for a wall time that stands on its own: a daily stand-up, office hours, a reminder time. A moment (evidence collected, due at 5 PM on a day) is a [DateTimeField](?path=/docs/components-datetimefield--docs), which pairs this input with a day and names the zone. A duration ("90 minutes") is a number field, not a time.
+
+```tsx
+<Field>
+  <FieldLabel>Start time</FieldLabel>
+  <TimeField name="start" value={start} onValueChange={setStart} min="08:00" max="18:00" />
+  <FieldDescription>Between 8:00 AM and 6:00 PM.</FieldDescription>
+</Field>
+```
+
+<Canvas of={Stories.TypedEntry} />
+
+## Entry
+
+The reader types on either clock and the field reads it on Tab or Enter: "5pm", "5:30 p", "17:30", "1730", "9.15 Uhr" in German, the locale's own day periods ("오후 5:30") and its digits. The field then shows the time on the locale's clock, or on `hourCycle` (`"h12"` or `"h23"`) where a product sets one clock. A time with no day period is read on the 24-hour clock, so "5:30" is 5:30 AM, shown as such.
+
+Text that is not a time, or a time outside `min` and `max`, stays as typed, the field reports `""` and says what fixes it under itself ("Enter a time such as 5:30 PM.", "Enter 8:00 AM or later."). The message is a FieldError inside the Field, so it describes the input and marks the Field invalid; `onEntryError` receives it too. Escape puts back the last time.
+
+## Stepping
+
+The input is a spinbutton that also takes typing. Up and Down move by `step` minutes (15 by default) on that grid, so 5:07 goes up to 5:15; Page Up and Page Down move an hour; both stay within `min` and `max`, and wrap at midnight without them. From empty they start at the step nearest the reader's clock. Its value is the minutes since midnight with the time's words as `aria-valuetext`, so a screen reader hears "5:15 PM" as it changes.
+
+<Canvas of={Stories.Clocks} />
+
+## Values and forms
+
+Use `value` and `onValueChange` for controlled state or `defaultValue` for uncontrolled. A value that is not an ISO time warns once and is treated as empty. A hidden input carries the time under `name`; put `name` on the TimeField, not on the Field, whose control is the visible text. A native form reset restores an uncontrolled default.
+
+## Accessibility
+
+- Inside a Field it is the Field's control: the FieldLabel names it, and the hint, the error and the Field's `invalid`, `disabled` and `required` reach it. Outside one, give it `aria-label`.
+- The clock icon is decorative; the input's name and value carry everything.
+- Nothing is validated while the reader types; the entry is read when they leave it or press Enter.
+
+<Canvas of={Stories.TimeFieldMatrix} />
+
+## Props
+
+<ArgTypes of={TimeField} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+[DateTimeField](?path=/docs/components-datetimefield--docs) · [DatePicker](?path=/docs/components-datepicker--docs) · [Field](?path=/docs/components-field--docs) · [Input](?path=/docs/components-input--docs)
+
+## Don't
+
+<Canvas of={Stories.Dont} />

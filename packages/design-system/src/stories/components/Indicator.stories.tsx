@@ -72,12 +72,12 @@ const rows = [
 /** In a table: severity is the Indicator, status the row's one pill. */
 export const InRows: Story = {
   render: () => (
-    <div style={{ width: 640 }}>
+    <div style={{ maxWidth: 640 }}>
       <Table label="Findings">
         <thead>
           <tr>
             <Table.Header width={88}>Id</Table.Header>
-            <Table.Header>Finding</Table.Header>
+            <Table.Header minWidth={200}>Finding</Table.Header>
             <Table.Header width={104}>Severity</Table.Header>
             <Table.Header width={128}>Status</Table.Header>
           </tr>

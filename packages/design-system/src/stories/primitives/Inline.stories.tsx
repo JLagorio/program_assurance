@@ -43,7 +43,7 @@ function Frame({ children, width = 360 }: { children: React.ReactNode; width?: n
       backgroundColor="elevation.surface.sunken"
       padding="space.100"
       className="rounded-medium"
-      style={{ width }}
+      style={{ width, maxWidth: "100%" }}
     >
       {children}
     </Box>
@@ -329,7 +329,9 @@ export const Dont: Story = {
   ),
 };
 
+/** A row of chips wraps (`shouldWrap`), so it fits any width it is given. */
 export const Playground: Story = {
+  args: { shouldWrap: true },
   render: (args) => (
     <Frame>
       <Inline {...args}>

@@ -1,39 +1,82 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogBody,
+  AlertDialogCancel,
+  AlertDialogContent,
+} from "../../components";
 import * as Stories from "./AlertDialog.stories";
 
 <Meta of={Stories} />
 
 # AlertDialog
 
-Based on [shadcn’s Base UI source](https://ui.shadcn.com/docs/components/base/alert-dialog) and [Base UI](https://base-ui.com/react/components/alert-dialog). Ledger retains its tokens and application layouts.
-
-## Anatomy
-
-A confirmation that requires an explicit decision. Compose AlertDialog, Trigger, Content, Header, Title, Description, Footer, Cancel and Action. Flat export names include the AlertDialog prefix. Media supplies an optional icon region; Portal and Overlay allow custom composition.
-
-## Variants
+A decision that needs a word before it happens: delete, archive, discard a draft. Built on [Base UI Alert Dialog](https://base-ui.com/react/components/alert-dialog) with [shadcn’s composition](https://ui.shadcn.com/docs/components/base/alert-dialog) and Ledger's tokens.
 
 <Canvas of={Stories.ConfirmationAndPending} />
 
+## When to use it
+
+- **Before a destructive or irreversible command**, or before throwing away a draft.
+- **Over the Dialog or Sheet that owns the decision**, the one stack overlays allow.
+
+Not for a form: that is a [Dialog](?path=/docs/components-dialog--docs). Not for a result the reader only needs to know about: that is a toast or an [Alert](?path=/docs/components-alert--docs). Not for a question the reader can undo in one step: do it, then offer Undo.
+
+## Anatomy
+
+- **AlertDialogHeader** holds an optional AlertDialogMedia, the title (the question, an h2) and the description (the consequence).
+- **AlertDialogBody** holds what the decision affects when one line is not enough: the records a delete removes, a field for a reason. It follows the header with its inset and no divider, and scrolls between the header and the footer so the answers stay in view.
+- **AlertDialogFooter** holds AlertDialogCancel, the safe answer, before AlertDialogAction, the verb.
+- AlertDialogContent records the overlay surface as the current one; AlertDialogPortal and AlertDialogOverlay are exported for a custom popup.
+
+<Canvas of={Stories.WithBody} />
+
+## Sizes
+
+`size="default"` is 440px wide; `size="sm"` is 320px, for a one-line question. Both narrow to the window less a 1rem gutter.
+
 <Canvas of={Stories.SmallConfirmation} />
 
-<Canvas of={Stories.CustomPortal} />
+## Pending
+
+`pending` on the AlertDialog holds it while the command runs: Escape and AlertDialogCancel are cancelled, Cancel is disabled but stays focusable (`aria-disabled`), since focus starts there, and the popup is `aria-busy`. Give the Action `isLoading`, which keeps its focus, and close with `open={false}` when the command succeeds. On a failure, end the pending state and say inside the dialog what went wrong, with the Action as the retry. The Action never closes the dialog by itself; render it as an AlertDialogCancel (`render={<AlertDialogCancel />}`) only when the verb needs no command to finish first.
 
 ## Accessibility
 
-Base UI prevents outside-click dismissal and supplies the alertdialog role. Put the consequences in Description. Set Content initialFocus to the least destructive action when appropriate. Escape requests a close unless the caller cancels it; Cancel is an explicit native Close part.
+- **The role is `alertdialog`**, named by the title and described by the description.
+- **The blanket never dismisses it**; Escape and Cancel do, unless it is pending.
+- **Focus goes to Cancel** when the decision is destructive: pass it as `initialFocus`. Focus returns to what opened the dialog, or to `finalFocus` when that went away.
+
+## Content
+
+- The title is the question: "Delete 24 drafts?". The description is the consequence, not the question again: "These drafts are removed for everyone."
+- The Action says the verb ("Delete drafts"); Cancel says the safe way out ("Keep drafts", "Keep editing").
 
 ## Props
 
-Root exposes generic Base UI AlertDialog props, payloads, handles and cancellable onOpenChange. Content supports native popup props plus default/sm size. Action is a Ledger Button, matching shadcn: the caller performs the action and closes only when it succeeds. Cancel composes Base UI Close with Button.
+<ArgTypes of={AlertDialog} />
 
-### Migration and API
+### AlertDialogContent
 
-- Replace configured title, description, confirmLabel and onConfirm with explicit Title, Description and Action children/onClick.
-- Replace onClose with onOpenChange and pending with caller-owned cancellation, disabled buttons and loading state. Action does not automatically dismiss the confirmation.
-- Move returnFocusRef to Content finalFocus. Existing app confirmations retain their 440px maximum and top placement.
+<ArgTypes of={AlertDialogContent} />
+
+### AlertDialogBody
+
+<ArgTypes of={AlertDialogBody} />
+
+### AlertDialogCancel
+
+<ArgTypes of={AlertDialogCancel} />
+
+### AlertDialogAction
+
+<ArgTypes of={AlertDialogAction} />
+
+<Canvas of={Stories.Playground} />
+
+<Canvas of={Stories.CustomPortal} />
 
 ## Related
 
-- [Dialog](?path=/docs/components-dialog--docs)
-- [Button](?path=/docs/components-button--docs)
+- [Dialog](?path=/docs/components-dialog--docs), [Overlays](?path=/docs/components-overlays--docs), [Button](?path=/docs/components-button--docs).

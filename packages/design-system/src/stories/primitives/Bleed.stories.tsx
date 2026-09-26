@@ -64,13 +64,13 @@ export const BleedMatrix: Story = {
   render: () => (
     <Stack space="space.300">
       <Inline space="space.300" alignBlock="start" shouldWrap>
-        <Stack space="space.050">
+        <Stack space="space.050" className="min-w-0">
           <Label>inline space.200, in a card padded space.200</Label>
           <Box
             backgroundColor="elevation.surface.raised"
             padding="space.200"
             className="rounded-large shadow-raised"
-            style={{ width: 360 }}
+            style={{ width: 360, maxWidth: "100%" }}
           >
             <Stack space="space.150">
               <Text weight="medium">Boundary protection</Text>
@@ -83,9 +83,9 @@ export const BleedMatrix: Story = {
             </Stack>
           </Box>
         </Stack>
-        <Stack space="space.050">
+        <Stack space="space.050" className="min-w-0">
           <Label>inline space.200 on a table in a CardContent</Label>
-          <Box style={{ width: 360 }}>
+          <Box style={{ width: 360, maxWidth: "100%" }}>
             <Card>
               <CardHeader>
                 <CardTitle>
@@ -200,7 +200,7 @@ export const Dont: Story = {
             backgroundColor="elevation.surface.raised"
             padding="space.200"
             className="rounded-large shadow-raised"
-            style={{ width: 320 }}
+            style={{ maxWidth: 320 }}
           >
             <Stack space="space.150">
               <Text weight="medium">Boundary protection</Text>
@@ -216,7 +216,7 @@ export const Dont: Story = {
             backgroundColor="elevation.surface.raised"
             padding="space.200"
             className="rounded-large shadow-raised"
-            style={{ width: 320 }}
+            style={{ maxWidth: 320 }}
           >
             <Stack space="space.150">
               <Text weight="medium">Boundary protection</Text>
@@ -234,7 +234,7 @@ export const Dont: Story = {
             backgroundColor="elevation.surface.raised"
             padding="space.200"
             className="rounded-large shadow-raised"
-            style={{ width: 320 }}
+            style={{ maxWidth: 320 }}
           >
             <Bleed inline="space.200">
               <Strip label="To the edge, not past it." />
@@ -247,7 +247,7 @@ export const Dont: Story = {
             backgroundColor="elevation.surface.raised"
             padding="space.200"
             className="rounded-large shadow-raised"
-            style={{ width: 320 }}
+            style={{ maxWidth: 320 }}
           >
             <Bleed inline="space.300">
               <Strip label="Past the edge." />
@@ -266,7 +266,7 @@ export const Playground: Story = {
       backgroundColor="elevation.surface.raised"
       padding="space.200"
       className="rounded-large shadow-raised"
-      style={{ width: 360 }}
+      style={{ width: 360, maxWidth: "100%" }}
     >
       <Stack space="space.150">
         <Text weight="medium">Card</Text>

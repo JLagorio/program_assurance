@@ -22,11 +22,13 @@ import {
   byFamily,
   byFamilyFacts,
   byMonth,
+  byMonthRates,
   bySource,
   componentFacts,
   componentsOf,
   familyNames,
   findingSeries,
+  percent,
   riskGroups,
   sourceSeries,
   statusSeries,
@@ -62,12 +64,12 @@ export const ChartMatrix: Story = {
   render: () => (
     <Stack space="space.400">
       <Specimens title="Frame · ready · loading (the plot's own skeleton) · refreshing (the last plot, dimmed)">
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart title="Findings over time" series={findingSeries} swatch="line" size="small">
             <Chart.Line data={byMonth} x="month" series={findingSeries} size="small" />
           </Chart>
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart
             title="Findings over time"
             series={findingSeries}
@@ -78,7 +80,7 @@ export const ChartMatrix: Story = {
             <Chart.Line data={byMonth} x="month" series={findingSeries} size="small" />
           </Chart>
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart
             title="Findings over time"
             series={findingSeries}
@@ -91,7 +93,7 @@ export const ChartMatrix: Story = {
         </Box>
       </Specimens>
       <Specimens title="Frame · empty · error with a retry · a drill-down's path">
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart
             title="Findings over time"
             status="empty"
@@ -101,7 +103,7 @@ export const ChartMatrix: Story = {
             <Chart.Line data={byMonth} x="month" series={findingSeries} size="small" />
           </Chart>
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart
             title="Findings over time"
             status="error"
@@ -116,7 +118,7 @@ export const ChartMatrix: Story = {
             <Chart.Line data={byMonth} x="month" series={findingSeries} size="small" />
           </Chart>
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart
             title="Findings by system"
             path={[{ label: "All systems", onSelect: () => {} }, { label: "Payments" }]}
@@ -138,7 +140,7 @@ export const ChartMatrix: Story = {
         <Chart.Legend series={riskGroups} swatch="dot" />
       </Specimens>
       <Specimens title="Frame · the Table twin, and a control in actions">
-        <Box style={{ width: 420 }}>
+        <Box style={{ width: "100%", maxWidth: 420 }}>
           <Chart
             title="Findings by source"
             data={bySource}
@@ -172,12 +174,12 @@ export const ChartMatrix: Story = {
         />
       </Specimens>
       <Specimens title="Textured · every series wears a pattern, in the plot, the legend and the tooltip">
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart title="Coverage by control family" series={statusSeries} texture size="small">
             <Chart.Bar data={byFamily} x="family" series={statusSeries} stacked size="small" />
           </Chart>
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart title="Findings, open and closed" series={findingSeries} texture size="small">
             <Chart.Area data={byMonth} x="month" series={findingSeries} stacked size="small" />
           </Chart>
@@ -196,7 +198,7 @@ export const ChartMatrix: Story = {
         />
       </Specimens>
       <Specimens title="Frame · the Download menu and the Expand button · a narrow Frame wraps its header">
-        <Box style={{ width: 420 }}>
+        <Box style={{ width: "100%", maxWidth: 420 }}>
           <Chart
             title="Findings by source"
             data={bySource}
@@ -210,7 +212,7 @@ export const ChartMatrix: Story = {
             <Chart.Bar data={bySource} x="source" series={sourceSeries} size="small" />
           </Chart>
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart
             title="Coverage by control family"
             description="Determinations across 372 controls"
@@ -238,7 +240,7 @@ function FramedChart() {
   const [range, setRange] = useState<"3m" | "9m">("9m");
   const data = range === "3m" ? byMonth.slice(-3) : byMonth;
   return (
-    <Box style={{ width: 720, maxWidth: "100%" }}>
+    <Box style={{ maxWidth: 720 }}>
       <Button onClick={() => figure.current?.focus()}>Focus chart</Button>
       <Chart.Frame
         ref={figure}
@@ -274,7 +276,7 @@ function FramedChart() {
   );
 }
 
-/** The Frame: title, one line under it, the legend (hover dims the other series, click isolates one), a control that redraws the plot, and the Table toggle that lays the same numbers out. */
+/** The Frame: title, one line under it, the legend (hover dims the other series, click hides its own), a control that redraws the plot, and the Table toggle that lays the same numbers out. */
 export const Framed: Story = {
   render: () => <FramedChart />,
   play: async ({ canvasElement }) => {
@@ -290,7 +292,21 @@ export const Framed: Story = {
       "aria-pressed",
       "false",
     );
-    await userEvent.click(canvas.getByRole("button", { name: "Show as table" }));
+    // The series just hidden is still under the pointer, and the one left is not dimmed for it.
+    await expect(figure.querySelectorAll("[data-chart-plot] .opacity-disabled")).toHaveLength(0);
+    // Inline, the plot takes the medium height.
+    await expect(
+      figure.querySelector("[data-chart-plot]")?.getBoundingClientRect().height,
+    ).toBeCloseTo(200, 0);
+    // The Table toggle keeps its name when pressed; `aria-pressed` carries the state, and focus stays.
+    const table = canvas.getByRole("button", { name: "Table" });
+    await expect(table).toHaveAttribute("aria-pressed", "false");
+    await userEvent.click(table);
+    await expect(canvas.getByRole("button", { name: "Table" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(table).toHaveFocus();
     await userEvent.click(canvas.getByRole("button", { name: "Expand" }));
     const dialog = await page.findByRole("dialog", { name: "Findings over time" });
     await expect(within(dialog).getByRole("figure")).not.toHaveAttribute("id", "findings-chart");
@@ -300,7 +316,16 @@ export const Framed: Story = {
       "false",
     );
     await waitFor(() => expect(within(dialog).getByRole("table")).toBeVisible());
-    await userEvent.click(within(dialog).getByRole("button", { name: "Show as chart" }));
+    const dialogTable = within(dialog).getByRole("button", { name: "Table" });
+    await expect(dialogTable).toHaveAttribute("aria-pressed", "true");
+    await userEvent.click(dialogTable);
+    // Expanded, the same plot redraws at large.
+    await waitFor(() =>
+      expect(dialog.querySelector("[data-chart-plot]")?.getBoundingClientRect().height).toBeCloseTo(
+        320,
+        0,
+      ),
+    );
     await userEvent.click(within(dialog).getByRole("button", { name: "Open" }));
     await userEvent.click(within(dialog).getByRole("button", { name: "Close" }));
     await waitFor(() => expect(page.queryByRole("dialog")).not.toBeInTheDocument());
@@ -311,6 +336,186 @@ export const Framed: Story = {
     );
     await userEvent.click(canvas.getByRole("button", { name: "Focus chart" }));
     await expect(figure).toHaveFocus();
+  },
+};
+
+const closeRate = [{ key: "closeRate", label: "Close rate", tone: "brand" as const }];
+/** Each family's determinations as shares of its controls. */
+const familyShares = byFamily.map(({ family, satisfied, partial, other, notAssessed }) => {
+  const total = satisfied + partial + other + notAssessed;
+  return {
+    family,
+    satisfied: satisfied / total,
+    partial: partial / total,
+    other: other / total,
+    notAssessed: notAssessed / total,
+  };
+});
+
+/** Said once. On the left the Frame holds the data, the series, the format and the size, and the bar inside is bare; Expand redraws it at large. On the right the Frame holds only its title and the bar holds everything: the legend keys the bar's series, and the table and the CSV print its format. Either way the plot, the tooltip, the table and the CSV say the same thing. */
+export const SaidOnce: Story = {
+  render: () => (
+    <GridPrimitive templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap="space.300">
+      <Chart
+        title="Close rate by month"
+        description="Closed as a share of open and closed"
+        data={byMonthRates}
+        x="month"
+        xLabel="Month"
+        series={closeRate}
+        format={percent}
+        size="small"
+        expandable
+      >
+        <Chart.Bar labels="end" />
+      </Chart>
+      <Chart
+        title="Coverage by control family, as shares"
+        description="Each family's determinations"
+        download={["csv"]}
+      >
+        <Chart.Bar
+          data={familyShares}
+          x="family"
+          xLabel="Family"
+          series={statusSeries}
+          stacked
+          domain={[0, 1]}
+          format={percent}
+        />
+      </Chart>
+    </GridPrimitive>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    const rates = canvas.getByRole("figure", { name: "Close rate by month" });
+    const shares = canvas.getByRole("figure", { name: "Coverage by control family, as shares" });
+    // The bare bar draws the Frame's records at the Frame's size.
+    await expect(
+      rates.querySelector("[data-chart-plot]")?.getBoundingClientRect().height,
+    ).toBeCloseTo(120, 0);
+    await waitFor(() => expect(within(rates).getAllByText("18%").length).toBeGreaterThan(0));
+    await userEvent.click(within(rates).getByRole("button", { name: "Table" }));
+    const rateTable = await within(rates).findByRole("table");
+    await expect(within(rateTable).getAllByRole("row")[1]).toHaveTextContent("Jan18%");
+    await userEvent.click(within(rates).getByRole("button", { name: "Table" }));
+    await userEvent.click(within(rates).getByRole("button", { name: "Expand" }));
+    const dialog = await page.findByRole("dialog", { name: "Close rate by month" });
+    await waitFor(() =>
+      expect(dialog.querySelector("[data-chart-plot]")?.getBoundingClientRect().height).toBeCloseTo(
+        320,
+        0,
+      ),
+    );
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("dialog")).not.toBeInTheDocument());
+    // The Frame given only a title keys the bar's series and prints its format in the table.
+    await expect(within(shares).getByRole("button", { name: "Satisfied" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await userEvent.click(within(shares).getByRole("button", { name: "Table" }));
+    const shareTable = await within(shares).findByRole("table");
+    await expect(
+      within(shareTable)
+        .getAllByRole("columnheader")
+        .map((h) => h.textContent),
+    ).toEqual(["Family", "Satisfied", "Partial", "Other than satisfied", "Not assessed"]);
+    await expect(within(shareTable).getAllByRole("row")[1]).toHaveTextContent("AC71%10%15%4%");
+  },
+};
+
+/** Each determination across every family: a ring's slices. */
+const overall = statusSeries.map((s) => ({
+  key: s.key,
+  label: s.label ?? s.key,
+  tone: s.tone,
+  value: byFamily.reduce((n, d) => n + Number((d as Record<string, unknown>)[s.key] ?? 0), 0),
+}));
+
+function Following() {
+  const [view, setView] = useState<"family" | "overall" | "figures">("family");
+  return (
+    <Box style={{ maxWidth: 640 }}>
+      <Chart
+        title="Control coverage"
+        description="Determinations across six families"
+        actions={
+          <ToggleGroup
+            aria-label="View"
+            value={[view]}
+            onValueChange={(values) => {
+              if (values[0]) setView(values[0]);
+            }}
+          >
+            <ToggleGroupItem value="family">By family</ToggleGroupItem>
+            <ToggleGroupItem value="overall">Overall</ToggleGroupItem>
+            <ToggleGroupItem value="figures">Figures</ToggleGroupItem>
+          </ToggleGroup>
+        }
+      >
+        {view === "family" ? (
+          <Chart.Bar data={byFamily} x="family" xLabel="Family" series={statusSeries} stacked />
+        ) : view === "overall" ? (
+          <Chart.Donut slices={overall} label="75%" caption="satisfied" size={160} thickness={16} />
+        ) : (
+          <div>
+            {overall.map((s) => (
+              <KeyValue key={s.key} label={s.label} labelWidth={160}>
+                {String(s.value)}
+              </KeyValue>
+            ))}
+          </div>
+        )}
+      </Chart>
+    </Box>
+  );
+}
+
+/** The Frame follows the part it holds. Swap the bars for a ring and the legend keys its slices, a series hidden from the bars stays hidden in the ring, and the table lays the ring out by slice. Swap the ring for figures, which are no part, and the legend and the Table toggle leave with it rather than describe a plot that is gone. */
+export const FollowsItsPart: Story = {
+  render: () => <Following />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const figure = within(canvas.getByRole("figure", { name: "Control coverage" }));
+    const headings = () => figure.getAllByRole("columnheader").map((h) => h.textContent);
+    await userEvent.click(figure.getByRole("button", { name: "Partial" }));
+    await expect(figure.getByRole("button", { name: "Partial" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+    await userEvent.click(figure.getByRole("button", { name: "Table" }));
+    await expect(headings()).toEqual([
+      "Family",
+      "Satisfied",
+      "Partial",
+      "Other than satisfied",
+      "Not assessed",
+    ]);
+    await userEvent.click(figure.getByRole("button", { name: "Table" }));
+    // The ring: the same keys, so Partial stays hidden; the track and three slices draw.
+    await userEvent.click(figure.getByRole("button", { name: "Overall" }));
+    await waitFor(() =>
+      expect(canvasElement.querySelectorAll(".recharts-pie-sector")).toHaveLength(4),
+    );
+    await expect(figure.getByRole("button", { name: "Partial" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+    await userEvent.click(figure.getByRole("button", { name: "Table" }));
+    await expect(headings()).toEqual(["Category", "Value", "Share"]);
+    await expect(figure.getAllByRole("row")).toHaveLength(5);
+    await userEvent.click(figure.getByRole("button", { name: "Table" }));
+    // Figures are no part: nothing is left to key or to lay out.
+    await userEvent.click(figure.getByRole("button", { name: "Figures" }));
+    await waitFor(() =>
+      expect(figure.queryByRole("button", { name: "Satisfied" })).not.toBeInTheDocument(),
+    );
+    await expect(figure.queryByRole("button", { name: "Table" })).not.toBeInTheDocument();
+    await userEvent.click(figure.getByRole("button", { name: "By family" }));
+    await expect(await figure.findByRole("button", { name: "Satisfied" })).toBeVisible();
+    await expect(figure.getByRole("button", { name: "Table" })).toBeVisible();
   },
 };
 
@@ -339,7 +544,7 @@ function Drilling() {
   const [system, setSystem] = useState<string | null>(null);
   const rows = system ? componentsOf(system) : systemTotals;
   return (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart.Frame
         title="Findings by system"
         description={
@@ -395,7 +600,7 @@ function FamilyCard({ selection }: { selection: ChartSelection }) {
 /** Details on a mark: a click on a segment opens a card anchored to it, with the kit's head (the series, the category, the value) and the caller's facts and link. Tab to the plot, arrow to a family and press Enter for the whole category. */
 export const Details: Story = {
   render: () => (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Coverage by control family"
         description="Click a segment for the family; Enter on the focused plot opens the category"
@@ -418,6 +623,7 @@ export const Details: Story = {
     const canvas = within(canvasElement);
     const page = within(canvasElement.ownerDocument.body);
     const plot = canvas.getByRole("application");
+    const figure = canvas.getByRole("figure", { name: "Coverage by control family" });
     let previousPath: string | null = null;
     let changedAt = performance.now();
     const mark = await waitFor(() => {
@@ -425,7 +631,10 @@ export const Details: Story = {
       const path = element?.querySelector("path")?.getAttribute("d") ?? null;
       if (path !== previousPath) changedAt = performance.now();
       previousPath = path;
-      expect(plot.getBoundingClientRect().width).toBeGreaterThan(500);
+      // The plot has measured its container: it spans the Frame, whatever the frame's width.
+      expect(
+        Math.abs(plot.getBoundingClientRect().width - figure.getBoundingClientRect().width),
+      ).toBeLessThan(2);
       expect(element?.getBoundingClientRect().height).toBeGreaterThan(0);
       // Recharts keys animated marks by their changing coordinates, replacing each SVG node.
       expect(performance.now() - changedAt).toBeGreaterThan(100);
@@ -435,6 +644,9 @@ export const Details: Story = {
     await userEvent.click(mark);
     const dialog = await page.findByRole("dialog", { name: "Coverage by control family, details" });
     await waitFor(() => expect(within(dialog).getByText("Access control")).toBeVisible());
+    // The card says what the tooltip would, so the tooltip stands down while the card is open.
+    const tooltip = canvasElement.querySelector(".recharts-tooltip-wrapper");
+    if (tooltip) await expect(getComputedStyle(tooltip).display).toBe("none");
     await waitFor(() =>
       expect(within(dialog).getByRole("button", { name: "Open AC" })).toHaveFocus(),
     );
@@ -469,7 +681,7 @@ function Filtering_() {
   const [family, setFamily] = useState<string | null>(null);
   const rows = family ? byFamily.filter((f) => f.family === family) : byFamily;
   return (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Stack space="space.200">
         <Chart
           title="Coverage by control family"
@@ -513,7 +725,7 @@ function Filtering_() {
 /** The table twin with columns beyond the series: `columns` names keys in the datum the plot does not draw, a name beside the category (`place: "before"`), a total, a share and an owner after the series, so the twin is the record's table and not only the plot's. The CSV carries them too. Click Table. */
 export const Columns: Story = {
   render: () => (
-    <Box style={{ width: 760 }}>
+    <Box style={{ maxWidth: 760 }}>
       <Chart
         title="Coverage by control family"
         description="Determinations across the six families; the table adds the name, the total, the share and the owner"
@@ -541,7 +753,7 @@ export const Filtering: Story = { render: () => <Filtering_ /> };
 /** One series is the point: it takes `brand`, the rest take `neutral`. The honest answer to "make this chart clearer". */
 export const Emphasis: Story = {
   render: () => (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Reviews by assessor"
         description="D. Whitfield against the team"
@@ -622,7 +834,7 @@ export const States: Story = {
 function Replaying() {
   const [n, setN] = useState(0);
   return (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Findings by source"
         description="The marks arrive over motion.duration.slow on the standard curve"
@@ -670,7 +882,7 @@ export const Legends: Story = {
           <Chart.Legend series={statusSeries} />
         </Stack>
       </Inline>
-      <Box style={{ width: 420 }}>
+      <Box style={{ width: "100%", maxWidth: 420 }}>
         <Chart
           title="Reviews by assessor"
           series={assessors}
@@ -761,7 +973,7 @@ export const Linked: Story = {
 /** The Download menu hands the reader the table twin as a CSV, or the plot as a PNG at twice the pixel density on the surface colour; Expand opens the same chart in a large Dialog. Both sit with the Table toggle. */
 export const Downloads: Story = {
   render: () => (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Coverage by control family"
         description="Determinations across 372 controls"
@@ -809,7 +1021,7 @@ export const Textured: Story = {
 /** At a narrow width the header wraps: the legend and the tools drop under the title, and the plot keeps its height. */
 export const Narrow: Story = {
   render: () => (
-    <Box style={{ width: 320 }}>
+    <Box style={{ maxWidth: 320 }}>
       <Chart
         title="Coverage by control family"
         description="Determinations across 372 controls"

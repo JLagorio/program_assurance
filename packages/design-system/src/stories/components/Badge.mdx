@@ -163,6 +163,7 @@ Use `icon={<CircleCheck aria-hidden="true" />}` for a leading icon, or place ico
 
 - A plain Badge is inline text. A click handler does not make it a keyboard control.
 - A link requires an actual anchor with a destination through `render`; `variant="link"` supplies presentation only.
+- A badge rendered as an anchor or a button takes a hit area of at least 24px where any pointer is coarse, and stops clipping so the area reaches past the pill. A label badge stays unpositioned.
 - Native attributes and refs reach the actual element. Custom router adapters must forward them.
 - Pair semantic colors with visible words and hide decorative icons from assistive technology.
 - Use native controls for selection or dismissal. Badge does not implement those behaviors.

@@ -5,6 +5,7 @@ import { expect, userEvent, waitFor, within } from "storybook/test";
 import {
   Button,
   Drawer,
+  DrawerBody,
   DrawerClose,
   DrawerContent,
   DrawerDescription,
@@ -26,6 +27,7 @@ import {
 const meta = {
   title: "Components/Drawer",
   component: Drawer,
+  subcomponents: { DrawerContent, DrawerBody, DrawerFooter },
   parameters: { layout: "padded" },
 } satisfies Meta<typeof Drawer>;
 export default meta;
@@ -41,12 +43,12 @@ export const Actions: Story = {
           <DrawerTitle>Control actions</DrawerTitle>
           <DrawerDescription>For CTRL-0412.</DrawerDescription>
         </DrawerHeader>
-        <div className="flex min-h-0 flex-1 flex-col gap-100 overflow-y-auto p-250">
+        <DrawerBody className="flex flex-col gap-100">
           <Button ref={actionRef} variant="subtle">
             Mark verified
           </Button>
           <Button variant="subtle">Request evidence</Button>
-        </div>
+        </DrawerBody>
         <DrawerFooter>
           <DrawerClose render={<Button />}>Done</DrawerClose>
         </DrawerFooter>
@@ -82,13 +84,13 @@ export const Positions: Story = {
               <DrawerTitle>{direction} drawer</DrawerTitle>
               <DrawerDescription>Swipe toward the edge to dismiss.</DrawerDescription>
             </DrawerHeader>
-            <div className="min-h-0 flex-1 overflow-y-auto p-250">
+            <DrawerBody>
               {Array.from({ length: 30 }, (_, i) => (
                 <p key={i} className="py-100">
                   Evidence item {i + 1}
                 </p>
               ))}
-            </div>
+            </DrawerBody>
             <DrawerFooter>
               <DrawerClose render={<Button />}>Close</DrawerClose>
             </DrawerFooter>
@@ -105,6 +107,14 @@ export const Positions: Story = {
       const popup = await body.findByRole("dialog", { name: `${direction} drawer` });
       await waitFor(() =>
         expect(popup.getBoundingClientRect().height).toBeLessThanOrEqual(window.innerHeight),
+      );
+      // The body is the scroller; with nothing to focus in it, it is a tab stop of its own.
+      const region = await within(popup).findByRole("group", { name: "Content, scrolls" });
+      await expect(region).toHaveAttribute("data-slot", "drawer-body");
+      await expect(region.scrollHeight).toBeGreaterThan(region.clientHeight);
+      // The popup records the overlay surface as the current one for what sits on it.
+      await expect(popup.style.getPropertyValue("--ds-utility-elevation-surface-current")).toBe(
+        "var(--ds-elevation-surface-overlay)",
       );
       await userEvent.click(within(popup).getByRole("button", { name: "Close" }));
       await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
@@ -126,7 +136,7 @@ function SnapDemo() {
           <DrawerTitle>Evidence</DrawerTitle>
           <DrawerDescription>Drag between half height and full height.</DrawerDescription>
         </DrawerHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto p-250">
+        <DrawerBody>
           <Button onClick={() => setSnapPoint(snapPoint === 1 ? 0.5 : 1)}>
             {snapPoint === 1 ? "Collapse" : "Expand"}
           </Button>
@@ -135,7 +145,7 @@ function SnapDemo() {
               Evidence item {i + 1}
             </p>
           ))}
-        </div>
+        </DrawerBody>
         <DrawerFooter>
           <DrawerClose render={<Button />}>Done</DrawerClose>
         </DrawerFooter>
@@ -158,7 +168,7 @@ function Filters() {
         <DrawerHeader>
           <DrawerTitle>Filters</DrawerTitle>
         </DrawerHeader>
-        <div className="flex min-h-0 flex-1 flex-col gap-200 overflow-y-auto p-250">
+        <DrawerBody className="flex flex-col gap-200">
           <Select defaultValue="draft" items={{ draft: "Draft", ready: "Ready" }}>
             <SelectTrigger aria-label="Status">
               <SelectValue />
@@ -169,7 +179,7 @@ function Filters() {
             </SelectContent>
           </Select>
           <DatePicker aria-label="Due date" defaultValue="2026-09-14" />
-        </div>
+        </DrawerBody>
         <DrawerFooter>
           <DrawerClose render={<Button />}>Close</DrawerClose>
           <Button onClick={() => setPending(!pending)}>{pending ? "Finish saving" : "Save"}</Button>
@@ -199,7 +209,8 @@ export const NestedPopups: Story = {
     await expect(trigger).toHaveTextContent("Ready");
     const date = within(dialog).getByRole("button", { name: "Due date" });
     await userEvent.click(date);
-    const calendar = await body.findByRole("dialog", { name: "Choose a date" });
+    // The calendar is named by the field's label, or by the locale's "Choose a date" without one.
+    const calendar = await body.findByRole("dialog", { name: /^(Due date|Choose a date)$/ });
     await userEvent.click(within(calendar).getByRole("button", { name: /September 18, 2026/ }));
     await expect(date).toHaveTextContent("Sep 18, 2026");
     await waitFor(() => expect(date).toHaveFocus());
@@ -222,7 +233,7 @@ export const NestedDrawers: Story = {
         <DrawerHeader>
           <DrawerTitle>Parent drawer</DrawerTitle>
         </DrawerHeader>
-        <div className="p-250">
+        <DrawerBody>
           <Drawer showSwipeHandle>
             <DrawerTrigger render={<Button />}>Open child</DrawerTrigger>
             <DrawerContent>
@@ -234,7 +245,7 @@ export const NestedDrawers: Story = {
               </DrawerFooter>
             </DrawerContent>
           </Drawer>
-        </div>
+        </DrawerBody>
         <DrawerFooter>
           <DrawerClose render={<Button />}>Close parent</DrawerClose>
         </DrawerFooter>

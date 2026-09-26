@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, spyOn, userEvent, waitFor, within } from "storybook/test";
 
 import { CodeBlock, Textarea } from "../../components";
 import { Box, Stack, Text } from "../../primitives";
@@ -30,9 +31,53 @@ const log = [
   "2026-09-05T08:14:05Z verify  CTRL-0412 marked Verified; next assessment 2026-11-12",
 ];
 
-/** A document as it is serialised, from the line it starts at, with a Copy at the top end. The caller passes the lines; here they are the source split. */
+const openTip = () => document.querySelector('[data-slot="tooltip-content"][data-open]');
+
+/** A document as it is serialised, from the line it starts at, with a Copy at the top end. The caller passes the lines; here they are the source split. The Copy is the kit's CopyButton: it keeps its name, and says Copied in its tooltip and a polite status. */
 export const Code: Story = {
   render: () => <CodeBlock lines={lines} start={40} copy={source} label="control.json" className="max-w-layout-measure" />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const block = canvas.getByRole("group", { name: "control.json" });
+    await expect(block).toHaveAttribute("tabindex", "0");
+    // The gutter's numbers are not read out with the code.
+    await expect(block.querySelector("pre > div > span")).toHaveAttribute("aria-hidden", "true");
+    const write = spyOn(navigator.clipboard, "writeText").mockResolvedValue(undefined);
+    try {
+      const copy = canvas.getByRole("button", { name: "Copy" });
+      await expect(copy).toHaveAttribute("data-slot", "copy-button");
+      await userEvent.click(copy);
+      await waitFor(() => expect(write).toHaveBeenCalledWith(source));
+      await waitFor(() => expect(openTip()).toHaveTextContent("Copied"));
+      await expect(copy).toHaveAccessibleName("Copy");
+      await expect(
+        canvasElement.querySelector('[data-copy-button-status=""]'),
+      ).toHaveTextContent("Copied");
+    } finally {
+      write.mockRestore();
+    }
+  },
+};
+
+/** One line, the case a Copy is most often for: the frame holds the button, and a line longer than the block scrolls out from under it rather than behind it. */
+export const OneLineCommand: Story = {
+  name: "One line, with a Copy",
+  render: () => (
+    <CodeBlock
+      label="Start the local stack"
+      lines={["supabase start --network-id program-assurance-local --workdir ./supabase"]}
+      copy="supabase start --network-id program-assurance-local --workdir ./supabase"
+      className="max-w-layout-measure"
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const frame = canvas.getByRole("group", { name: "Start the local stack" }).getBoundingClientRect();
+    const copy = canvas.getByRole("button", { name: "Copy" }).getBoundingClientRect();
+    await expect(copy.top).toBeGreaterThanOrEqual(frame.top);
+    await expect(copy.bottom).toBeLessThanOrEqual(frame.bottom);
+    await expect(copy.right).toBeLessThanOrEqual(frame.right);
+  },
 };
 
 /** The caller owns highlighting: each line is rendered nodes, here the keys in the brand colour and the strings subtle. */

@@ -28,9 +28,11 @@ type Story = StoryObj;
 function Example({
   fail = false,
   retainSelection = false,
+  context,
 }: {
   fail?: boolean;
   retainSelection?: boolean;
+  context?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [linked, setLinked] = useState<string[]>([]);
@@ -65,6 +67,7 @@ function Example({
           setLinked(chosen.map((r) => r.id));
         }}
         confirmLabel="Link evidence"
+        {...(context ? { context: <p className="font-body text-subtle">{context}</p> } : {})}
       />
     </div>
   );
@@ -150,6 +153,60 @@ export const RetainedSelection: Story = {
   },
 };
 
+/** Whether a focused control is inside the popup's visible box and clear of its footer. */
+const inView = (element: HTMLElement, popup: HTMLElement, footer: HTMLElement) => {
+  const box = element.getBoundingClientRect();
+  const frame = popup.getBoundingClientRect();
+  const floor = footer.contains(element) ? frame.bottom : footer.getBoundingClientRect().top;
+  if (box.height > floor - frame.top) return box.top < floor && box.bottom > frame.top;
+  return box.top >= frame.top - 1 && box.bottom <= floor + 1;
+};
+
+/**
+ * At 400% zoom, 320 by 256 CSS px. The context scrolls with the results rather than taking a
+ * fixed row, and under 30rem tall the whole dialog scrolls as one with the footer held at the
+ * bottom: the title and Close come back into view when it is scrolled up, and every control that
+ * takes focus can be seen.
+ */
+export const ShortWindow: Story = {
+  render: () => <Example context="Linking to the access review · 3 artifacts already linked" />,
+  parameters: {
+    viewport: {
+      options: {
+        ledgerShort: {
+          name: "Short window (320 by 256 CSS px)",
+          styles: { width: "320px", height: "256px" },
+        },
+      },
+    },
+  },
+  globals: { viewport: { value: "ledgerShort", isRotated: false } },
+  play: async ({ canvasElement }) => {
+    await expect(window.innerHeight).toBeLessThanOrEqual(480);
+    const canvas = within(canvasElement);
+    const screen = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Add evidence" }));
+    const popup = await screen.findByRole("dialog", { name: "Link evidence" });
+    const context = popup.querySelector<HTMLElement>("[data-record-browser-context]")!;
+    await expect(context.closest("[data-record-browser-results]")).not.toBeNull();
+    await expect(popup.scrollHeight).toBeGreaterThan(popup.clientHeight);
+    const footer = popup.querySelector<HTMLElement>('[data-slot="dialog-footer"]')!;
+    for (let step = 0; step < 6; step++) {
+      await userEvent.tab();
+      const focused = canvasElement.ownerDocument.activeElement as HTMLElement;
+      await expect(popup).toContainElement(focused);
+      await waitFor(() => expect(inView(focused, popup, footer)).toBe(true));
+    }
+    popup.scrollTop = 0;
+    await waitFor(() =>
+      expect(within(popup).getByRole("heading", { name: "Link evidence" })).toBeVisible(),
+    );
+    await expect(footer.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight + 1);
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  },
+};
+
 function PendingExample() {
   const [open, setOpen] = useState(false);
   const [requests, setRequests] = useState(0);
@@ -210,6 +267,15 @@ export const PendingConfirmation: Story = {
     });
     await expect(canvas.getByText("Confirmation requests: 1")).toBeInTheDocument();
     await expect(dialog.getByRole("button", { name: "Cancel" })).toBeDisabled();
+    // The kit's pending lock: the dialog is busy and Close says it is unavailable.
+    await expect(screen.getByRole("dialog", { name: "Link evidence" })).toHaveAttribute(
+      "aria-busy",
+      "true",
+    );
+    await expect(dialog.getByRole("button", { name: "Close" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
     await userEvent.keyboard("{Escape}");
     await expect(screen.getByRole("dialog", { name: "Link evidence" })).toBeVisible();
     await userEvent.click(dialog.getByRole("button", { name: "Close" }));
@@ -221,6 +287,10 @@ export const PendingConfirmation: Story = {
     await userEvent.click(dialog.getByRole("button", { name: "Leave workflow" }));
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Link evidence" })).toBeNull());
     dialog = await open();
+    // The session left while it confirmed does not lock the next one.
+    await expect(screen.getByRole("dialog", { name: "Link evidence" })).not.toHaveAttribute(
+      "aria-busy",
+    );
     await userEvent.click(dialog.getByRole("checkbox", { name: "Select row EVD-002" }));
     await interact(() => dialog.getByRole("button", { name: "Finish linking" }).click());
     await expect(screen.getByRole("dialog", { name: "Link evidence" })).toBeVisible();

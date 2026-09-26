@@ -1,0 +1,63 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Inspector } from "../../patterns";
+import * as Stories from "./Inspector.stories";
+
+<Meta of={Stories} />
+
+# Inspector
+
+Groups of a record's facts: state, owner, identifiers and dates, as label and value rows under a title that folds. It is the Details rail beside a record's work area, and the Details block in a preview or a panel. The surrounding layout owns where it sits and how it scrolls.
+
+`Inspector` takes the groups as data and opens every one. `Inspector.Group` is one group on its own, with KeyValue rows (or a row of Badges, a short list) as children and an action beside its title.
+
+<Canvas of={Stories.Groups} />
+
+## Group
+
+Each group's title is a [CollapsibleHeader](?path=/docs/components-collapsible--docs): a button inside a heading, the title at the start and a chevron at the end that turns while the group is open. A group is open by default; `defaultOpen={false}` makes the collapsed Details a reader opens when they need provenance, counts or derivation, and `open` with `onOpenChange` hands the state to the caller. The action, an IconButton or a link button, sits beside the title while the whole title fits beside it on one line, and takes the next row, at the end, otherwise.
+
+<Canvas of={Stories.Group} />
+
+<Canvas of={Stories.Controlled} />
+
+## Heading level
+
+A group's heading takes the contextual level, an h3 when nothing sets one. On a record page the rail sits under the page's h1, so wrap the rail's content in `HeadingLevelProvider level={2}` and its groups are h2s; in a titled Shell.Panel the body already starts at 3, under the panel's h2; under a preview's h2 record title, the content after the header goes one below with a HeadingLevelProvider, and the groups are h3s.
+
+<Canvas of={Stories.InARail} />
+
+## When to use it
+
+- **Use it** for the handful of facts that identify a record and its state, beside the work or at the top of a preview.
+- **Not** for a record's own content, the statement, the narrative, the evidence: those are [Section](?path=/docs/layout-section--docs)s in the work area. **Not** for editing more than one fact at a time: that is a form in a Dialog; a single supported fact is an [Editable](?path=/docs/patterns-editable--docs) in a row.
+- **Not** for linked records: a [Related](?path=/docs/patterns-related--docs) card lists them with their own links.
+- On a page body, a collapsed block of details is a collapsible [Section](?path=/docs/layout-section--docs); in a rail of facts, it is an Inspector.Group with `defaultOpen={false}`.
+
+## Accessibility
+
+- Every group title is a button inside a heading, so the rail is in the heading outline and each group's state is announced ("Provenance, collapsed, button"). Enter and Space toggle it; focus stays on it.
+- Open and closed look different by more than colour: the chevron turns. Under reduced motion it turns without moving and the rows appear without the fold.
+- The action is its own tab stop after the title, outside the heading, and names what it acts on ("Edit details").
+- Give the rail's region a label (Shell.Aside's `label`), and set the level so the groups sit under the right parent, as above.
+
+## Props
+
+<ArgTypes of={Inspector} />
+
+### Inspector.Group
+
+<ArgTypes of={Inspector.Group} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [KeyValue](?path=/docs/components-keyvalue--docs): the rows.
+- [Collapsible](?path=/docs/components-collapsible--docs): the disclosure header each group's title is.
+- [Section](?path=/docs/layout-section--docs): the collapsible block on a page body.
+- [Shell](?path=/docs/layout-shell--docs): the Aside and the Panel it sits in.

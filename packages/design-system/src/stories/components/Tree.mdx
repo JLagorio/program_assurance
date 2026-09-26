@@ -94,7 +94,7 @@ The tree retains one entry tab stop as rows are selected, removed or collapsed. 
 - **It is a tree**: `role="tree"` named by `label`, every row a `treeitem` with `aria-level`, `aria-selected`, and `aria-expanded` on a branch: the ARIA pattern.
 - **One entry tab stop per tree.** Initially the selected row is tabbable, or the first row when none is. Arrow navigation moves that tab stop without selecting; returning to the tree retains the last focused row. Removing that row restores focus to a preceding visible row when focus would otherwise be lost.
 - **Keyboard:** Down and Up move between visible rows; Right opens a closed branch, or moves into an open one; Left closes an open branch, or moves to the parent; Home and End go to the ends; Enter or Space selects.
-- **The chevron is for the mouse.** It focuses and toggles the branch without selecting it. It is hidden from the keyboard and screen readers, which have Right and Left.
+- **The chevron is for the pointer.** It focuses and toggles the branch without selecting it. It is hidden from the keyboard and screen readers, which have Right and Left. Where any pointer is coarse its hit area is 24px, centred on the 20px chevron.
 - **Trailing controls are outside the model.** A button in `trailing` is its own tab stop; keep to a Count, a Badge or a Dot where the tree is long.
 - **The selection is never hidden.** When the selected row's branch is closed, the caller selects the parent, so the reader does not lose their place.
 

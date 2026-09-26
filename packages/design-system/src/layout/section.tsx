@@ -1,9 +1,29 @@
+import { Collapsible as CollapsiblePrimitive } from "@base-ui/react/collapsible";
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
-import { createContext, useContext, useMemo, type ComponentProps, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useLayoutEffect,
+  useMemo,
+  type ComponentProps,
+  type ReactNode,
+} from "react";
 import { Count } from "../components/badge";
+import {
+  CollapsibleContent,
+  DisclosureTrigger,
+  type CollapsibleProps,
+} from "../components/collapsible";
 import { cn } from "../lib/cn";
-import { useLandmarkTitle, useRegisterTitle } from "../lib/landmark-title";
+import { useLandmarkTitle } from "../lib/landmark-title";
+import {
+  HeadingLevelScope,
+  headingTag,
+  nextHeadingLevel,
+  useHeadingLevel,
+  type HeadingLevel,
+} from "../primitives/heading-level";
 
 export type SectionProps = Omit<ComponentProps<"section">, "title"> & {
   /** The heading, for the built-in header. Leave it out and compose Section.Header, Section.Heading, Section.Title and Section.Actions yourself. */
@@ -13,6 +33,14 @@ export type SectionProps = Omit<ComponentProps<"section">, "title"> & {
   action?: ReactNode | undefined;
   /** Draw a rule under the heading when the content needs separation. */
   divided?: boolean | undefined;
+  /** Folds the content under the title: the title becomes a button inside the heading, with a chevron after it that turns while the content is open, and the content stays hidden until the reader opens it. For provenance, counts and derivation a reader opens when they need them. Needs `title`. */
+  isCollapsible?: boolean | undefined;
+  /** With `isCollapsible`, whether it starts open. Closed by default. */
+  defaultOpen?: boolean | undefined;
+  /** With `isCollapsible`, the open state, when the caller controls it. */
+  open?: boolean | undefined;
+  /** With `isCollapsible`, called when the reader opens or closes it, with Base UI's event details (`details.cancel()` keeps the state). */
+  onOpenChange?: CollapsibleProps["onOpenChange"] | undefined;
 };
 export type SectionHeaderProps = ComponentProps<"div"> & {
   /** Draw a rule under the heading when the content needs separation. */
@@ -26,78 +54,134 @@ export type SectionActionsProps = ComponentProps<"div">;
 const SectionContext = createContext<{
   titleId: string;
   setHasTitle: (present: boolean) => void;
+  /** The level of this Section's own title. */
+  level: HeadingLevel;
 } | null>(null);
 
-/** A titled region: the built-in header from `title`, `count`, `description` and `action`, or the parts composed by hand. Compose disclosure with Collapsible when needed. */
+/** Present while the Title is mounted, before paint, so the Section's content takes its level in the same frame. */
+function useRegisterTitle(setHasTitle: ((present: boolean) => void) | undefined) {
+  useLayoutEffect(() => {
+    setHasTitle?.(true);
+    return () => setHasTitle?.(false);
+  }, [setHasTitle]);
+}
+
+/** A titled region: the built-in header from `title`, `count`, `description` and `action`, or the parts composed by hand. Its title takes the contextual heading level (an h2 outside every HeadingLevelProvider) and its content one level below, so a Section inside a Section is an h3. `isCollapsible` folds the content under the title, as on Item. */
 function SectionRoot({
   title,
   count,
   description,
   action,
   divided = false,
+  isCollapsible = false,
+  defaultOpen = false,
+  open,
+  onOpenChange,
   className,
   children,
   ...props
 }: SectionProps) {
   const { titleId, hasTitle, setHasTitle } = useLandmarkTitle();
-  const context = useMemo(() => ({ titleId, setHasTitle }), [titleId, setHasTitle]);
+  const surrounding = useHeadingLevel();
+  const level = surrounding ?? 2;
+  const context = useMemo(() => ({ titleId, setHasTitle, level }), [titleId, setHasTitle, level]);
   const configured = title !== undefined;
+  const folds = isCollapsible && configured;
+  const sectionProps = {
+    ...props,
+    "aria-labelledby": configured || hasTitle ? titleId : undefined,
+    "data-slot": "section",
+    className: cn("min-w-0", className),
+  };
+  const header = configured ? (
+    <Header divided={divided}>
+      <Heading>
+        <div className="flex min-w-0 items-baseline gap-100">
+          {folds ? (
+            <Title>
+              <DisclosureTrigger className="py-050">
+                {title}
+                {count != null ? (
+                  <>
+                    {" "}
+                    <Count value={count} />
+                  </>
+                ) : null}
+              </DisclosureTrigger>
+            </Title>
+          ) : (
+            <>
+              <Title>{title}</Title>
+              {count != null ? <Count value={count} /> : null}
+            </>
+          )}
+        </div>
+        {description ? <Description>{description}</Description> : null}
+      </Heading>
+      {action ? <Actions>{action}</Actions> : null}
+    </Header>
+  ) : null;
+  // One element tree whether or not a composed Title has mounted yet: only the level changes.
+  const body = (
+    <HeadingLevelScope level={configured || hasTitle ? nextHeadingLevel(level) : surrounding}>
+      {children}
+    </HeadingLevelScope>
+  );
   return (
     <SectionContext.Provider value={context}>
-      <section
-        {...props}
-        aria-labelledby={configured || hasTitle ? titleId : undefined}
-        data-slot="section"
-        className={cn("min-w-0", className)}
-      >
-        {configured ? (
-          <Header divided={divided}>
-            <Heading>
-              <div className="flex min-w-0 items-baseline gap-100">
-                <Title>{title}</Title>
-                {count != null ? <Count value={count} /> : null}
-              </div>
-              {description ? <Description>{description}</Description> : null}
-            </Heading>
-            {action ? <Actions>{action}</Actions> : null}
-          </Header>
-        ) : null}
-        {children}
-      </section>
+      {folds ? (
+        <CollapsiblePrimitive.Root
+          {...(open === undefined ? { defaultOpen } : { open })}
+          {...(onOpenChange ? { onOpenChange } : {})}
+          render={<section {...sectionProps} />}
+        >
+          {header}
+          {/* Kept mounted while closed, so drafts inside survive and find-in-page opens it. */}
+          <CollapsibleContent hiddenUntilFound data-slot="section-content">
+            {body}
+          </CollapsibleContent>
+        </CollapsiblePrimitive.Root>
+      ) : (
+        <section {...sectionProps}>
+          {header}
+          {body}
+        </section>
+      )}
     </SectionContext.Provider>
   );
 }
 
-/** The bar over the content: a Heading on the left, Actions on the right. */
+/** The bar over the content: a Heading, then Actions at the end of its row. The Heading keeps a readable measure; when the row cannot give it that beside the Actions, they take the next row, at the end. */
 export function Header({ divided = false, className, ...props }: SectionHeaderProps) {
   return (
     <div
       {...props}
       data-slot="section-header"
       className={cn(
-        "flex items-start justify-between gap-100 pb-100",
+        "section-header flex min-w-0 flex-wrap items-start justify-between gap-100 pb-100",
         divided && "border-b border-default",
         className,
       )}
     />
   );
 }
-/** The left of the header: the Title with a Count or a Badge beside it, then a Description. */
+/** The start of the header: the Title with a Count or a Badge beside it, then a Description. In a Header it keeps a readable measure of about 12rem, or its own width when that is shorter, and grows. */
 export function Heading({ className, ...props }: SectionHeadingProps) {
   return (
     <div
       {...props}
       data-slot="section-heading"
-      className={cn("flex min-w-0 flex-1 flex-col gap-025", className)}
+      className={cn("flex min-w-0 flex-col gap-025", className)}
     />
   );
 }
-/** The region's heading and its accessible name: an h2, or `render` for another level. */
+/** The region's heading and its accessible name, at the Section's level: an h2 outside every HeadingLevelProvider, one below the surrounding level inside one (an h3 in a titled Section). `render` sets another element outright. */
 export function Title({ render, ref, className, ...props }: SectionTitleProps) {
   const section = useContext(SectionContext);
+  const surrounding = useHeadingLevel();
   useRegisterTitle(section?.setHasTitle);
   return useRender({
-    defaultTagName: "h2",
+    defaultTagName: headingTag(section?.level ?? surrounding ?? 2),
     render,
     ref,
     state: { slot: "section-title" },
@@ -117,13 +201,13 @@ export function Description({ className, ...props }: SectionDescriptionProps) {
     />
   );
 }
-/** The right of the header: one action, or a few. */
+/** The end of the header: one action, or a few. They stay on one row with the Heading while it keeps its measure, and take the next row otherwise. */
 export function Actions({ className, ...props }: SectionActionsProps) {
   return (
     <div
       {...props}
       data-slot="section-actions"
-      className={cn("flex shrink-0 items-center gap-100", className)}
+      className={cn("flex shrink-0 flex-wrap items-center justify-end gap-100", className)}
     />
   );
 }

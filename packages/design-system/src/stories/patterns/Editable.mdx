@@ -93,11 +93,12 @@ There is no disabled state. A value the reader cannot change is plain text in th
 
 ## Accessibility
 
+- **Touch:** the value keeps its 22px line. Where any pointer is coarse the trigger's `::after` is a hit area at least 24px tall across the value, centred on it (the shared `touch-target-block-after` band); `::before` holds the hover tint. A finger reaches the whole area in a table cell (In table) and in a rail, since KeyValue truncates its value across only (Rail).
 - **The row is named by the label and the value:** "Owner: Dana Whitfield". The label is read before the value, so a screen reader hears what the field is where a sighted reader reads the KeyValue's label beside it.
 - **The field is named by the label** (`aria-label`) and, invalid, is `aria-invalid` and described by the message.
 - **Keyboard:** Tab reaches the row; Enter or Space opens the field with the existing value; Enter commits and Escape puts the old value back, and either returns focus to the row. Leaving the field by Tab or a click commits and focus goes where the reader sent it. Select and searchable Combobox triggers expose the native combobox role. Enter, Space or Down opens the options; arrows move between them and Enter chooses. Escape closes without changing the value. While saving, the trigger stays focusable and read-only, with `aria-disabled` announcing that another edit must wait.
 - **In a DataTable:** Enter moves to the next row only after accepting a valid text commit. Invalid input keeps focus, and an IME composition confirmation neither saves nor changes rows.
-- **A landed save is announced:** "Saved", or "Not saved", from a status region under the row; the Spinner says "Saving".
+- **A landed save is announced:** "Saved", or "Not saved", from a status region under the row; the Spinner says "Saving". The region is visually hidden inside the Editable's own positioned wrapper, so in a table that scrolls sideways it stays in the table's frame and never widens the page (In table).
 - **The stories** exercise validation, keyboard selection, search, save rejection, rollback, pending guards and focus restoration in both themes.
 
 ## Props

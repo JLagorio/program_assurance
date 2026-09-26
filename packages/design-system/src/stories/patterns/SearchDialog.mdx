@@ -1,0 +1,87 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { SearchDialog } from "../..";
+import * as Stories from "./SearchDialog.stories";
+
+<Meta of={Stories} />
+
+# SearchDialog
+
+The product's search: find a record of any type by its name or its identifier and open it. A dialog over the page, a field at the top, the results under their record type, each row the identifier, the name with a line of meta under it and one status at the end, and the keys in the footer. It opens from the top nav's [TopNav.Search](?path=/docs/layout-shell--docs) or ⌘K (Ctrl+K elsewhere). It finds a record; it does not run a command, which is the [CommandPalette](?path=/docs/patterns-commandpalette--docs), and it does not pick a record for a field or a link, which is the [RecordPicker](?path=/docs/patterns-recordpicker--docs) (one record from one kind) or a [Combobox](?path=/docs/components-combobox--docs) (by name, inside a form). A search that narrows one register is that register's [Toolbar](?path=/docs/patterns-toolbar--docs) search.
+
+<Canvas of={Stories.SearchDialogStory} />
+
+## Anatomy
+
+| Part    | What it is                                                                                                                                                              |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Field   | Focused on open; the placeholder says what to type. A spinner at its end while a search runs.                                                                           |
+| Heading | The record type over its rows: `group` on the results. Consecutive results with the same group share one.                                                               |
+| Row     | `identifier` in `color.text.subtle`, the `title` with its `meta` under it, both wrapping, and one `badge`. An unavailable row adds its `disabledReason` under the meta. |
+| Message | Before a query, the prompt; while a search with no results yet runs, Searching…; after one, No results for.                                                             |
+| Failure | An Alert above any results, with Try again when `onRetry` is given.                                                                                                     |
+| Footer  | The keys: the arrows to move, Enter to open, Escape to close (a button, for touch); the count at the end.                                                               |
+
+## Two ways to search
+
+**The dialog matches.** Hand over every record in `results`; the dialog shows the ones whose title, identifier, meta, group or keywords contain every word of the query, ignoring case and accents. The `id` is never matched and never shown, so a UUID there cannot make a short query match everything (the Matching story: "de" finds a name and a meta, not an id). Pass `filter` for another rule.
+
+**The caller searches.** Pass `filter={null}`, own the `query` with `onQueryChange`, and hand over each query's results with `loading` while they come. Set `loading` in `onQueryChange`, in the same update as the query, and debounce only the request: a query shown before `loading` is set, with no results yet, reads as No results. Results already listed stay usable while the next ones load (the Remote search story checks both).
+
+<Canvas of={Stories.RemoteSearch} />
+
+## States
+
+| State       | What shows                                                                                                          |
+| ----------- | ------------------------------------------------------------------------------------------------------------------- |
+| Before      | `initialResults` (recent or suggested records) under their own heading, else the `prompt`.                          |
+| Results     | The rows, the first highlighted so Enter opens the best match; the count in the footer.                             |
+| Searching   | With results listed, they stay and the list is busy. With none, Searching…, never No results.                       |
+| No results  | No results for “…” and a hint, or `noResults`. A different state from a search in flight.                           |
+| Failed      | `error` above the rows (`true` for the default words), with Try again; the rows already listed stay.                |
+| Unavailable | A row with `disabledReason` (or `disabled`) stays listed and the arrows reach it; it says why and cannot be chosen. |
+| Chosen      | The dialog closes, then `onSelect` runs with the result, so a navigation or a dialog it opens does not stack.       |
+
+<Canvas of={Stories.NoResults} />
+<Canvas of={Stories.Failure} />
+<Canvas of={Stories.BeforeAQuery} />
+<Canvas of={Stories.UnavailableRecord} />
+
+## Content
+
+- **The placeholder names what is searched**: "Search programs, risks and controls". The default, "Type a name or an identifier", is for a product with one kind of record.
+- **The identifier is the one people use**: PRG-014, AC-2. A UUID goes in `id`, which is never shown.
+- **The meta is the type and one fact** in a few words: "Risk · High", "Program · Sarah Chen". Put the type there when the heading does not say it.
+- **One badge**, the status the choice turns on.
+- **Keywords are for matching**: other names, codes, tags. They are never shown.
+
+## Accessibility
+
+- **A modal dialog named by `title`**, "Search" by default, with the `description` read after it. Focus moves to the field on open and returns to the opener on close, or to `finalFocus`.
+- **Base UI's Autocomplete, inline.** The field is a combobox that controls a listbox; the arrows move through the rows across the headings, Enter opens the highlighted row, and Escape closes the dialog. Home and End move the caret in the field.
+- **The active descendant follows the highlight.** The field's `aria-activedescendant` names the highlighted row on open, after every keystroke and after each arrow, so a screen reader always hears the row Enter will open. The first row is highlighted as results arrive.
+- **The count is spoken.** Once the results hold still for 600ms, the page's [Announcer](?path=/docs/components-announcer--docs) says "12 results", or the no-results sentence; a failure is said at once, assertively. Shell mounts the Announcer; the dialog works without one.
+- **Headings are groups.** Each heading labels its rows, so a screen reader hears "Risks, group" before a risk.
+- **Retry is described by the failure** and returns focus to the field, so the next keystroke searches.
+- **An unavailable row is reached, not skipped.** It is `aria-disabled`, its `disabledReason` is its description (not part of its name), and Enter or a press does nothing, as a DropdownMenuItem with a `disabledReason` behaves.
+- **One ⌘K per page.** TopNav.Search binds ⌘K (Ctrl+K elsewhere) by default, and so does `useCommandPalette`, whose shortcut cannot be changed. A page with both gives TopNav.Search another `shortcut`, or `shortcut={null}`, so one key does not open two dialogs.
+- **The highlighted row is outlined in forced colours**, not only tinted. Names and meta wrap inside the row; nothing is cut off.
+
+## Props
+
+<ArgTypes of={SearchDialog} />
+
+A result is `{ id, title, identifier?, meta?, badge?, group?, keywords?, disabled?, disabledReason? }`: `id` is identity only, `title` is the name, and the rest are described above.
+
+<Canvas of={Stories.Playground} />
+
+## Related
+
+- [Shell](?path=/docs/layout-shell--docs): TopNav.Search, the button and the shortcut that open this dialog.
+- [CommandPalette](?path=/docs/patterns-commandpalette--docs): the same kind of dialog for running a command.
+- [RecordPicker](?path=/docs/patterns-recordpicker--docs): picking one record of one kind for a link or a field.
+- [Announcer](?path=/docs/components-announcer--docs): where the count is spoken.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

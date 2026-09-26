@@ -1,8 +1,16 @@
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import type { ComponentProps } from "react";
 
 import { cn } from "../lib/cn";
 import { classes } from "../lib/base-ui";
-import { Button, IconButton, type ButtonProps, type IconButtonProps } from "./button";
+import {
+  Button,
+  IconButton,
+  buttonVariants,
+  type ButtonProps,
+  type IconButtonProps,
+} from "./button";
 
 export type AttachmentState = "idle" | "uploading" | "processing" | "error" | "done";
 export type AttachmentSize = "xsmall" | "small" | "medium";
@@ -19,7 +27,15 @@ export type AttachmentMediaProps = ComponentProps<"div"> & {
   variant?: "icon" | "image" | undefined;
 };
 export type AttachmentContentProps = ComponentProps<"div">;
-export type AttachmentTitleProps = ComponentProps<"span">;
+export type AttachmentTitleProps = ComponentProps<"span"> & {
+  /**
+   * Where a name too long for the card is cut. `middle`, the default, keeps the end of a plain-text
+   * name in view (its extension and the ten characters before it), so
+   * `scan-report-2026-09-01.pdf` and `scan-report-2026-09-15.pdf` stay apart; `end` cuts at the
+   * end. A name composed of elements always cuts at the end. Either way the whole name is read.
+   */
+  truncate?: "middle" | "end" | undefined;
+};
 export type AttachmentDescriptionProps = ComponentProps<"span">;
 export type AttachmentActionsProps = ComponentProps<"div">;
 /** IconButton's required label, tooltip, loading, disabled and render composition. */
@@ -32,6 +48,12 @@ type TriggerProps<Props> = Props extends unknown
   : never;
 /** A card-wide action button. Supply aria-label or aria-labelledby; the overlay has no visible label. */
 export type AttachmentTriggerProps = TriggerProps<ButtonProps>;
+/**
+ * A card-wide link: an anchor, or a router link through `render`, with the Trigger's overlay.
+ * Supply `aria-label` ("Download quarterly-report.pdf"); the overlay has no visible label. `href`,
+ * `download`, `target` and `rel` are the anchor's own.
+ */
+export type AttachmentLinkProps = useRender.ComponentProps<"a">;
 export type AttachmentGroupProps = ComponentProps<"div">;
 
 const sizes: Record<AttachmentSize, string> = {
@@ -39,6 +61,17 @@ const sizes: Record<AttachmentSize, string> = {
   small: "gap-100 p-100 font-body-small",
   medium: "gap-150 p-150 font-body",
 };
+
+/* The card answers its card-wide action: the raised hover surface while the Trigger or Link is
+   hovered (a pointer that can hover only, so a tap does not leave it lit), the pressed surface while
+   it is pressed, and nothing for a disabled Trigger. An action in Actions sits above the overlay,
+   so hovering it leaves the card at rest. */
+const answersOverlay = [
+  "[@media(hover:hover)]:has-[[data-slot=attachment-trigger]:not([data-disabled]):hover]:bg-surface-raised-hovered",
+  "has-[[data-slot=attachment-trigger]:not([data-disabled]):active]:bg-surface-raised-pressed",
+  "[@media(hover:hover)]:has-[[data-slot=attachment-link]:hover]:bg-surface-raised-hovered",
+  "has-[[data-slot=attachment-link]:active]:bg-surface-raised-pressed",
+];
 
 function AttachmentRoot({
   state = "done",
@@ -55,8 +88,9 @@ function AttachmentRoot({
       data-orientation={orientation}
       aria-busy={state === "uploading" || state === "processing" ? true : undefined}
       className={cn(
-        "group/attachment relative isolate flex max-w-full min-w-0 shrink-0 rounded-medium border border-default bg-surface-raised text-default",
+        "group/attachment relative isolate flex max-w-full min-w-0 shrink-0 rounded-medium border border-default bg-surface-raised text-default transition-colors duration-fast ease-standard motion-reduce:transition-none",
         "data-[state=idle]:border-dashed data-[state=error]:border-danger",
+        answersOverlay,
         sizes[size],
         orientation === "vertical" ? "w-layout-rail flex-col" : "w-fit items-center",
         className,
@@ -94,13 +128,61 @@ function AttachmentContent({ className, ...props }: AttachmentContentProps) {
   );
 }
 
-function AttachmentTitle({ className, ...props }: AttachmentTitleProps) {
+/** How much of the end of a name the middle cut keeps: the extension and ten characters before it, never more than half. */
+function splitName(name: string): [head: string, tail: string] {
+  const dot = name.lastIndexOf(".");
+  const extension = dot > 0 && name.length - dot <= 10 ? name.length - dot : 0;
+  const keep = Math.min(extension + 10, Math.floor(name.length / 2));
+  return [name.slice(0, name.length - keep), name.slice(name.length - keep)];
+}
+
+function AttachmentTitle({
+  truncate = "middle",
+  className,
+  children,
+  ...props
+}: AttachmentTitleProps) {
+  if (truncate === "end" || typeof children !== "string")
+    return (
+      <span
+        data-slot="attachment-title"
+        className={cn("block min-w-0 truncate font-medium", className)}
+        {...props}
+      >
+        {children}
+      </span>
+    );
+  const [head, tail] = splitName(children);
+  const { onCopy } = props;
+  // The eye gets the name in two pieces, the start cut with an ellipsis and the end kept whole;
+  // assistive technology gets it once, unbroken. `dir="auto"` keeps a name's own direction, so the
+  // kept end stays at the end of an English name on a right-to-left page. The spoken copy is not
+  // selectable, so a selection holds the name once, from the visible pieces.
   return (
     <span
       data-slot="attachment-title"
-      className={cn("block min-w-0 truncate font-medium", className)}
+      data-truncate="middle"
+      className={cn("flex min-w-0 font-medium", className)}
       {...props}
-    />
+      onCopy={(event) => {
+        onCopy?.(event);
+        if (event.defaultPrevented) return;
+        // The pieces are flex items, so the browser's copy puts a line break between them. A
+        // selection that stays inside the title copies the name as it is written.
+        const title = event.currentTarget;
+        const selection = title.ownerDocument.getSelection();
+        if (!selection || selection.isCollapsed) return;
+        if (!title.contains(selection.anchorNode) || !title.contains(selection.focusNode)) return;
+        event.preventDefault();
+        event.clipboardData.setData("text/plain", selection.toString().replace(/\n/g, ""));
+      }}
+    >
+      <span className="sr-only select-none">{children}</span>
+      <span aria-hidden="true" dir="auto" className="flex min-w-0">
+        <span className="min-w-0 overflow-hidden text-ellipsis whitespace-pre">{head}</span>
+        <span className="shrink-0 whitespace-pre">{tail}</span>
+      </span>
+    </span>
   );
 }
 
@@ -134,18 +216,31 @@ function AttachmentAction({ variant = "subtle", size = "small", ...props }: Atta
   return <IconButton data-slot="attachment-action" variant={variant} size={size} {...props} />;
 }
 
+/** The overlay a card-wide Trigger or Link draws: the whole card, above the content, below Actions. */
+const overlay =
+  "absolute inset-0 z-10 h-full w-full rounded-medium bg-transparent p-0 hover:bg-transparent active:bg-transparent";
+
 function AttachmentTrigger({ className, ...props }: AttachmentTriggerProps) {
   return (
     <Button
       data-slot="attachment-trigger"
       variant="subtle"
-      className={classes(
-        "absolute inset-0 z-10 h-full w-full rounded-medium bg-transparent p-0 hover:bg-transparent active:bg-transparent",
-        className,
-      )}
+      className={classes(overlay, className)}
       {...props}
     />
   );
+}
+
+function AttachmentLink({ render, className, ref, ...props }: AttachmentLinkProps) {
+  return useRender({
+    defaultTagName: "a",
+    render,
+    ref,
+    state: { slot: "attachment-link" },
+    props: mergeProps<"a">(props, {
+      className: buttonVariants({ variant: "subtle", className: cn(overlay, className) }),
+    }),
+  });
 }
 
 function AttachmentGroup({ className, ...props }: AttachmentGroupProps) {
@@ -162,6 +257,18 @@ function AttachmentGroup({ className, ...props }: AttachmentGroupProps) {
   );
 }
 
+export {
+  AttachmentAction,
+  AttachmentActions,
+  AttachmentContent,
+  AttachmentDescription,
+  AttachmentGroup,
+  AttachmentLink,
+  AttachmentMedia,
+  AttachmentTitle,
+  AttachmentTrigger,
+};
+
 /** One file's presentation. Compose media, metadata and independent controls; selection, upload and preview remain caller-owned. */
 export const Attachment = Object.assign(AttachmentRoot, {
   Media: AttachmentMedia,
@@ -171,5 +278,42 @@ export const Attachment = Object.assign(AttachmentRoot, {
   Actions: AttachmentActions,
   Action: AttachmentAction,
   Trigger: AttachmentTrigger,
+  Link: AttachmentLink,
   Group: AttachmentGroup,
 });
+
+const sizeUnits = ["kilobyte", "megabyte", "gigabyte", "terabyte", "petabyte"] as const;
+
+export type FormatFileSizeOptions = {
+  /** BCP 47 locale. en-US by default, never the host's; pass `useLedgerLocale().locale` in a component. */
+  locale?: string | undefined;
+};
+
+/**
+ * A byte count as a reader says it: "512 bytes", "840 kB", "2.4 MB". Decimal units (1 kB is 1,000
+ * bytes), as the units' names mean and as macOS and iOS report sizes, with at most one decimal, in
+ * the locale's numerals. Express a limit in the same units (`50_000_000` for 50 MB) so a message
+ * and a hint agree.
+ */
+export function formatFileSize(bytes: number, { locale = "en-US" }: FormatFileSizeOptions = {}) {
+  const count = Number.isFinite(bytes) ? Math.max(0, Math.round(bytes)) : 0;
+  if (count < 1000)
+    return new Intl.NumberFormat(locale, {
+      style: "unit",
+      unit: "byte",
+      unitDisplay: "long",
+    }).format(count);
+  let value = count / 1000;
+  let unit = 0;
+  // Step up while the rounded value would read 1,000 of this unit.
+  while (Math.round(value * 10) / 10 >= 1000 && unit < sizeUnits.length - 1) {
+    value /= 1000;
+    unit += 1;
+  }
+  return new Intl.NumberFormat(locale, {
+    style: "unit",
+    unit: sizeUnits[unit],
+    unitDisplay: "short",
+    maximumFractionDigits: 1,
+  }).format(value);
+}

@@ -1,0 +1,48 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { VisuallyHidden } from "../../primitives";
+import * as Stories from "./VisuallyHidden.stories";
+
+<Meta of={Stories} />
+
+# VisuallyHidden
+
+Words for assistive technology alone. They stay in the accessibility tree and in reading order, and take no space on screen. Use them where the eye has what it needs from the layout and a screen reader does not: the meaning of a mark beside a name, a heading for a region whose content is its own heading, the word an empty value stands for.
+
+```tsx
+<Icon color="color.icon.subtle">
+  <Shield />
+</Icon>
+<VisuallyHidden>Authorization boundary:</VisuallyHidden>
+<Text>Tactical edge segment</Text>
+```
+
+<Canvas of={Stories.Uses} />
+
+## When to use it
+
+- **Beside a mark, read inline with the text:** "Authorization boundary: Tactical edge segment". For a mark that stands alone, an [Icon](?path=/docs/components-icon--docs) with a `label` names it as an image.
+- **A heading the outline needs** and the screen does not show: `as="h2"` inside a region that is otherwise clear to the eye.
+- **An empty value:** [Absent](?path=/docs/components-typography--docs) with a `label` uses it for "Not recorded".
+- **Not for a control's name.** A button or a field is named by its `label`, `aria-label` or a FieldLabel; hidden text inside a button works but is harder to keep right.
+- **Not to hide content from everyone.** Content no one should see is not rendered.
+
+## Accessibility
+
+- **It is read, not skipped.** `sr-only` clips the text to a 1px box; `display: none` or `visibility: hidden` would remove it from the accessibility tree.
+- **It is read where it sits**, so put it in the order the sentence needs; punctuation ("Authorization boundary:") keeps a screen reader from running it into the next words.
+- **It is never a substitute for visible text** a sighted reader needs.
+
+## Props
+
+<ArgTypes of={VisuallyHidden} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Don't
+
+<Canvas of={Stories.Dont} />

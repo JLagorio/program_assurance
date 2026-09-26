@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -10,13 +11,17 @@ import {
 
 import { TooltipProvider } from "../../components/tooltip";
 import { token } from "../../generated/tokens";
+import { announce, Announcer } from "../../lib/announce";
 import { cn } from "../../lib/cn";
 import { useLedgerLocale } from "../../lib/locale";
 import { AreaPortal, SlotsContext } from "../slots";
 import { applyShell, readShell, SHELL_STORAGE_KEY, writeShell } from "../storage";
 import {
   desktopQuery,
+  focusPage,
+  followFocusToPage,
   MAIN,
+  mergeRefs,
   PANEL_MIN,
   PEEK_CLOSE_DELAY,
   ShellContext,
@@ -27,6 +32,15 @@ import {
   type SideNavTrigger,
   type SkipLink,
 } from "./context";
+
+/** Milliseconds after a location change before the page is announced, so a router that sets `document.title` after rendering has set it. */
+const PAGE_SETTLE = 150;
+
+/** The page's name after a change: the document's title, else the page's first h1. */
+const currentPageTitle = (root: HTMLElement | null) =>
+  root?.ownerDocument.title.trim() ||
+  root?.querySelector(`${MAIN} h1`)?.textContent?.trim() ||
+  null;
 
 /* ---------- root ---------- */
 
@@ -39,6 +53,19 @@ export type ShellProps = ComponentProps<"div"> & {
   sideNavShortcut?: boolean | undefined;
   /** Remember the collapsed state and the dragged widths in this browser: `true` for the default key, or a key of your own. Put `shellScript` in the document head so the first paint honours it. */
   persist?: string | boolean | undefined;
+  /**
+   * The page Main shows, from the router: its pathname or a route id, for the page that has
+   * rendered (a router's resolved location, not a pending one). When it changes, the shell treats
+   * it as a new page at every width: it closes the phone side-nav overlay or the desktop flyout,
+   * moves focus to Main without scrolling (unless focus is on a control in the page that survived
+   * the change; focus in a menu or a dialog follows once the popup hands it back), and announces
+   * the page's title. Pass a key that changes with the
+   * page, not with a tab or a filter that writes to the URL. Without it the shell does none of
+   * this.
+   */
+  locationKey?: string | undefined;
+  /** What the shell announces after `locationKey` changes. By default `document.title`, else Main's first h1, read once the new page has rendered; return null to announce nothing. */
+  getPageTitle?: ((locationKey: string) => string | null | undefined) | undefined;
 };
 
 export function ShellRoot({
@@ -47,12 +74,16 @@ export function ShellRoot({
   collapsedSideNav = "hidden",
   sideNavShortcut = false,
   persist,
+  locationKey,
+  getPageTitle,
   className,
   style,
+  ref,
   onFocusCapture,
   onPointerDownCapture,
   ...props
 }: ShellProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const [isDesktop, setIsDesktop] = useState(true);
   const [expanded, setExpanded] = useState(!defaultSideNavCollapsed);
   const [open, setOpen] = useState(false);
@@ -116,8 +147,17 @@ export function ShellRoot({
       setOpen(false);
       setPeeking(false);
       if (!isDesktop) listeners.current.onCollapse?.({ trigger });
-      // Escape and the scrim leave focus nowhere; it goes back to the button that opened it.
-      if (!isDesktop && (trigger === "escape" || trigger === "scrim")) toggle.current?.focus();
+      if (isDesktop || trigger === "navigation") return;
+      // Escape and the scrim leave focus nowhere, and so does any other close from inside the
+      // overlay, which turns inert as it closes: focus goes back to the button that opened it. A
+      // destination chosen in the overlay moves focus to the page instead (focusPage).
+      const focused = document.activeElement;
+      if (
+        trigger === "escape" ||
+        trigger === "scrim" ||
+        focused?.closest('[data-shell-area="sidenav"]')
+      )
+        toggle.current?.focus();
     },
     [isDesktop],
   );
@@ -226,6 +266,49 @@ export function ShellRoot({
     return () => setSkipLinks((links) => links.filter((l) => l.id !== link.id));
   }, []);
 
+  const focusThePage = useCallback(() => focusPage(rootRef.current), []);
+
+  // The root's width, for the CSS that keeps Main at its minimum beside the side nav and the panel:
+  // 100vw would count a classic scrollbar as room. Set on the element, so a resize re-renders nothing.
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root || typeof ResizeObserver === "undefined") return;
+    const update = () => root.style.setProperty("--shell-width", `${root.clientWidth}px`);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(root);
+    return () => observer.disconnect();
+  }, []);
+
+  // A new page: close the overlay or the flyout, move focus to the page, then say where the reader is.
+  const latest = useRef({ isDesktop, open, getPageTitle });
+  latest.current = { isDesktop, open, getPageTitle };
+  const previousLocation = useRef(locationKey);
+  useEffect(() => {
+    const previous = previousLocation.current;
+    previousLocation.current = locationKey;
+    if (previous === locationKey || previous === undefined || locationKey === undefined) return;
+    const { isDesktop: desktop, open: overlayOpen } = latest.current;
+    if (overlayOpen) {
+      setOpen(false);
+      setPeeking(false);
+      if (!desktop) listeners.current.onCollapse?.({ trigger: "navigation" });
+    }
+    focusPage(rootRef.current);
+    // Focus left in a menu or a dialog goes on to the page once the popup hands it back.
+    const stopFollowing = followFocusToPage(rootRef.current);
+    const timer = setTimeout(() => {
+      const title = latest.current.getPageTitle
+        ? latest.current.getPageTitle(locationKey)
+        : currentPageTitle(rootRef.current);
+      if (title) announce(title);
+    }, PAGE_SETTLE);
+    return () => {
+      clearTimeout(timer);
+      stopFollowing();
+    };
+  }, [locationKey]);
+
   const [asideSlot, setAsideSlot] = useState<HTMLDivElement | null>(null);
   const [panelSlot, setPanelSlot] = useState<HTMLDivElement | null>(null);
   const opener = useRef<HTMLElement | null>(null);
@@ -254,6 +337,7 @@ export function ShellRoot({
       setBanner,
       registerSkipLink,
       skipLinks,
+      focusPage: focusThePage,
       toggle,
       listeners: listeners.current,
     }),
@@ -277,12 +361,15 @@ export function ShellRoot({
       resizeSideNav,
       registerSkipLink,
       skipLinks,
+      focusThePage,
     ],
   );
 
   // The widths come from the tokens, or from what the reader dragged and the browser remembered.
   const vars = {
     "--shell-banner": hasBanner ? token("dimension.layout.banner") : "0px",
+    // The narrowest the panel's column gives way to, beside a Main at its own minimum (shell.css).
+    "--shell-panel-min": `${PANEL_MIN}px`,
     ...(sideNavWidth ? { "--shell-sidenav-width": `${sideNavWidth}px` } : {}),
     ...(panelWidth ? { "--shell-panel-width": `${panelWidth}px` } : {}),
   } as CSSProperties;
@@ -292,6 +379,7 @@ export function ShellRoot({
       <TooltipProvider delay={300} timeout={300}>
         <div
           {...props}
+          ref={mergeRefs(ref, rootRef)}
           data-slot="shell"
           data-collapsed-sidenav={collapsedSideNav}
           data-sidenav-motion={sideNavMotion ? "" : undefined}
@@ -313,6 +401,7 @@ export function ShellRoot({
           }}
         >
           <SkipLinks />
+          <Announcer />
           <SlotsContext.Provider value={slots}>
             {children}
             <div ref={setAsideSlot} data-shell-slot="aside" className="min-w-0" />

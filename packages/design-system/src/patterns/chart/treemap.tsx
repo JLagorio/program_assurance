@@ -12,17 +12,23 @@ import {
   TooltipContent,
   categoricalTone,
   chartColor,
+  heights,
   rectAnchor,
   surface,
   truncate,
   useFrame,
+  useFrameReport,
   useMotion,
   usePicked,
+  usePlotSize,
   useTooltipMotion,
   type ChartSeries,
   type ChartSize,
   type ChartTone,
+  type ChartTwin,
   type Formatter,
+  type FrameReport,
+  type TwinSource,
 } from "./_shared";
 
 export type TreemapNodeInput = {
@@ -39,6 +45,9 @@ export type TreemapSelection = { name: string; value: number; group: string };
 
 export type ChartTreemapProps = {
   data: TreemapNodeInput[];
+  /** What each level of the hierarchy is called, from the top, for the table twin's headings: `["System", "Component"]`. The Frame's `xLabel` for the top level, then "Group" and "Name", when unsaid. */
+  levels?: string[] | undefined;
+  /** The plot's height. The Frame's when unsaid, else `medium` (200px); `large` in the expanded Dialog. */
   size?: ChartSize | undefined;
   height?: number | undefined;
   format?: Formatter | undefined;
@@ -180,6 +189,42 @@ function Tile({
   );
 }
 
+/**
+ * A treemap's table twin: one row per leaf, in the tree's order, a column per level holding the
+ * names on its way down (empty past a shallower leaf), then its value. Every branch the legend
+ * hides stays: the table is the data.
+ */
+function treemapTwin(
+  nodes: TreemapNodeInput[],
+  heading: (level: number, depth: number) => string,
+  valueLabel: string,
+  format: Formatter,
+): ChartTwin {
+  const leaves: { path: string[]; value: number }[] = [];
+  const walk = (list: TreemapNodeInput[], path: string[]) => {
+    for (const n of list) {
+      if (n.children?.length) walk(n.children, [...path, n.name]);
+      else leaves.push({ path: [...path, n.name], value: n.value ?? 0 });
+    }
+  };
+  walk(nodes, []);
+  const depth = Math.max(1, ...leaves.map((l) => l.path.length));
+  const levels = Array.from({ length: depth }, (_, i) => i);
+  return {
+    columns: [
+      ...levels.map((i) => ({ label: heading(i, depth), numeric: false })),
+      { label: valueLabel, numeric: true },
+    ],
+    rows: leaves.map((l, r) => ({
+      key: String(r),
+      cells: [
+        ...levels.map((i) => ({ text: l.path[i] ?? "", csv: l.path[i] ?? "" })),
+        { text: format(l.value), csv: String(l.value) },
+      ],
+    })),
+  };
+}
+
 type Clicked = {
   name: string;
   value: number;
@@ -193,8 +238,9 @@ type Clicked = {
 /** Part-to-whole with a hierarchy: a tile per leaf, sized by value, in the tone of its top-level parent. A click on a tile chooses it. */
 export function ChartTreemap({
   data,
-  size,
-  height,
+  levels,
+  size: sizeProp,
+  height: heightProp,
   format: formatProp,
   label,
   loading: loadingProp,
@@ -204,17 +250,53 @@ export function ChartTreemap({
 }: ChartTreemapProps) {
   const { t } = useLedgerLocale();
 
-  const { name, hidden, highlighted, format, formatX, loading } = useFrame(
+  const { name, hidden, highlighted, format, formatX, loading, offstage } = useFrame(
     label,
     formatProp,
     undefined,
     loadingProp,
   );
+  const { size, height } = usePlotSize(sizeProp, heightProp);
   const motion = useMotion();
   const tooltipMotion = useTooltipMotion();
   const { picked, pick, clear } = usePicked<TreemapSelection>();
   const nodes = useMemo(() => withTones(data), [data]);
   const shown = useMemo(() => nodes.filter((n) => !hidden.has(n.name)), [nodes, hidden]);
+  const legend = useMemo<ChartSeries[]>(
+    () => nodes.map((n) => ({ key: n.name, label: n.name, tone: n.tone })),
+    [nodes],
+  );
+  const table = useMemo<TwinSource>(
+    () => ({
+      kind: "custom",
+      build: ({ xLabel }) =>
+        treemapTwin(
+          data,
+          (i, depth) => {
+            const named = levels?.[i];
+            if (named) return named;
+            if (depth === 1) return xLabel ?? t("chartName");
+            if (i === depth - 1) return t("chartName");
+            return (i === 0 ? xLabel : undefined) ?? t("chartGroup");
+          },
+          t("value"),
+          format,
+        ),
+    }),
+    [data, levels, t, format],
+  );
+  const report = useMemo<FrameReport>(
+    () => ({
+      series: legend,
+      swatch: "square",
+      format,
+      height: height ?? heights[size ?? "medium"],
+      table,
+    }),
+    [legend, format, height, size, table],
+  );
+  useFrameReport(report);
+  if (offstage) return null;
   if (loading)
     return (
       <PlotSkeleton kind="tiles" name={name} size={size} height={height} className={className} />

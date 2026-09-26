@@ -1,13 +1,15 @@
 import { DirectionProvider, useDirection } from "@base-ui/react/direction-provider";
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
 import { Check, ChevronRight } from "lucide-react";
-import type { ComponentProps } from "react";
+import { Children, useId, type ComponentProps, type ReactNode } from "react";
 
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
+import { Stack } from "../primitives/stack";
 import {
   menuItem,
+  menuItemDescription,
   menuItemDisabled,
   menuItemHighlighted,
   menuLabel,
@@ -125,13 +127,74 @@ const itemClasses = cn(
 export type DropdownMenuItemProps = MenuPrimitive.Item.Props & {
   inset?: boolean | undefined;
   variant?: "default" | "destructive" | undefined;
+  /**
+   * A second line under the label, in smaller subtle text that wraps: what tells two similar
+   * actions apart, or a prerequisite. It is the item's accessible description, not part of its
+   * name. Keep it to a short phrase.
+   */
+  description?: ReactNode | undefined;
+  /**
+   * Why the action is unavailable. It disables the item, which the arrow keys still reach and a
+   * screen reader announces as unavailable, and shows the reason as the item's description line in
+   * place of `description`. The reason stays readable on the disabled row. An empty string is no
+   * reason.
+   */
+  disabledReason?: string | undefined;
 };
+
+/**
+ * With a description, the label and the line under it share one column, between the leading
+ * content (an icon, an avatar) and the trailing content (a shortcut): the leading elements before
+ * the first text, the text itself, and whatever follows the last text.
+ */
+const isText = (node: unknown) => typeof node === "string" || typeof node === "number";
+
+/** The label's own words, which typeahead matches, so the line under it never joins them. */
+const labelText = (children: ReactNode) =>
+  Children.toArray(children).filter(isText).join("").trim() || undefined;
+
+function withDescription(children: ReactNode, line: ReactNode, id: string) {
+  const nodes = Children.toArray(children);
+  const first = nodes.findIndex(isText);
+  const last = nodes.length - 1 - [...nodes].reverse().findIndex(isText);
+  const [lead, text, trail] =
+    first < 0
+      ? [[], nodes, []]
+      : [nodes.slice(0, first), nodes.slice(first, last + 1), nodes.slice(last + 1)];
+  return (
+    <>
+      {lead}
+      <Stack as="span" className="min-w-0 flex-1" data-slot="dropdown-menu-item-text">
+        <span>{text}</span>
+        {/* Hidden from the name; aria-describedby still reads it. */}
+        <span
+          id={id}
+          aria-hidden
+          data-slot="dropdown-menu-item-description"
+          className={menuItemDescription}
+        >
+          {line}
+        </span>
+      </Stack>
+      {trail}
+    </>
+  );
+}
+
 export function DropdownMenuItem({
   className,
   inset,
   variant = "default",
+  description,
+  disabledReason,
+  disabled,
+  children,
   ...props
 }: DropdownMenuItemProps) {
+  const descriptionId = useId();
+  const reason = disabledReason ? disabledReason : undefined;
+  const line = reason ?? description;
+  const hasLine = line !== undefined && line !== null && line !== false && line !== "";
   return (
     <MenuPrimitive.Item
       data-slot="dropdown-menu-item"
@@ -140,12 +203,22 @@ export function DropdownMenuItem({
       className={classes(
         cn(
           itemClasses,
-          "data-[variant=destructive]:text-danger data-[variant=destructive]:data-highlighted:bg-danger",
+          // A disabled destructive item fades like any other: the danger colour says it would run.
+          "data-[variant=destructive]:not-data-[disabled]:text-danger data-[variant=destructive]:not-data-[disabled]:data-highlighted:bg-danger",
         ),
         className,
       )}
       {...props}
-    />
+      label={props.label ?? (hasLine ? labelText(children) : undefined)}
+      disabled={Boolean(disabled || reason)}
+      aria-describedby={
+        hasLine
+          ? [props["aria-describedby"], descriptionId].filter(Boolean).join(" ")
+          : props["aria-describedby"]
+      }
+    >
+      {hasLine ? withDescription(children, line, descriptionId) : children}
+    </MenuPrimitive.Item>
   );
 }
 

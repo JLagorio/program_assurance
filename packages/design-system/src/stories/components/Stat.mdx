@@ -31,9 +31,13 @@ Not built, and why: no trend arrow, delta or sparkline ("+3 this week"), because
 
 ## Sizes
 
-One type size, `font.heading.small`. What varies is the grid: `cols` from two to six, two below the small breakpoint, and six is three on a small screen.
+One type size, `font.heading.small`. What varies is the grid: `cols` from two to six, the most it shows. The grid takes its columns from its own width, not the window's, so it reads the same on a page, in an aside and in a 320px panel on a wide screen. Each tile keeps at least 128px: six and five fold to three, every count folds to two, and one column below 257px, so a panel's body and a 320px phone show two across. A short last row shares its width, so the gutter never shows as an empty cell.
+
+A parent that sizes the grid to its content (an items-start Stack, an Inline, a popover) makes it as wide as all its tiles side by side, up to the room it has, because each tile asks for its 128px. Up to `cols` tiles, that keeps them across. More tiles than `cols` still fold to `cols` columns, so each tile is wider than it needs: give that grid a width, such as the row's (`w-full`). A value wider than a tile takes a row of its own where the browser supports `calc-size()` and is clipped elsewhere, so keep values short (see Content).
 
 <Canvas of={Stories.SixAcross} />
+<Canvas of={Stories.InANarrowPanel} />
+<Canvas of={Stories.SizedToItsContent} />
 
 ## States
 

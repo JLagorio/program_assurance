@@ -23,7 +23,7 @@ How the form controls go together: which control answers which question, how a f
 | One of four to a dozen plain words                       | [Select](?path=/docs/components-select--docs).                                                                    |
 | One of a short list whose options carry a Dot or a Badge | [Select](?path=/docs/components-select--docs).                                                                    |
 | One of many, or names the reader would type              | [Combobox](?path=/docs/components-combobox--docs).                                                                |
-| Several things that can each be true                     | [Checkbox](?path=/docs/components-checkbox--docs)es in a FieldSet with FieldLegend.                               |
+| Several things that can each be true                     | A [CheckboxGroup](?path=/docs/components-checkboxgroup--docs) of Checkboxes under a FieldLegend.                  |
 | An on/off setting                                        | [Switch](?path=/docs/components-switch--docs), with an external label or Field.                                   |
 | A day to schedule                                        | [DatePicker](?path=/docs/components-datepicker--docs). A remembered date is an Input with the format in the hint. |
 | A record: a person, a control, a requirement             | Combobox, or a [RecordPicker](?path=/docs/patterns-recordpicker--docs) when the choice needs more than a row.     |
@@ -32,12 +32,12 @@ How the form controls go together: which control answers which question, how a f
 
 ## Anatomy
 
-Compose each [Field](?path=/docs/components-field--docs) from a FieldLabel, control and FieldDescription or FieldError. Native IDs and ARIA connect them. A group of choice controls uses FieldSet and FieldLegend. The Fields stack `space.200` apart, or sit in a Grid when the answers are short. The buttons come last.
+Compose each [Field](?path=/docs/components-field--docs) from a FieldLabel, the control, a FieldDescription and a FieldError. The Field ties them together: no ids, no `htmlFor`, no `aria-describedby`. A group of choices is a Field around a FieldSet (or a CheckboxGroup) with a FieldLegend. The Fields stack `space.200` apart, or sit in a Grid when the answers are short. The buttons come last.
 
 | Part    | What it is                                                                                                                   |
 | ------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | Field   | Label, control, message. The label is a noun in sentence case; the hint a sentence; the error what fixes it.                 |
-| Group   | FieldSet and FieldLegend: a legend over Checkboxes or a RadioGroup, with the hint and the error for the group.               |
+| Group   | A Field around a FieldSet or CheckboxGroup: a legend over the choices, with the hint and the error for the group.            |
 | Section | Group related fields under a clear heading, with `space.300` between sections.                                               |
 | Buttons | An Inline at the end of the form, aligned to the end: Cancel as a subtle Button, then the primary. The primary says the act. |
 
@@ -55,16 +55,16 @@ Compose each [Field](?path=/docs/components-field--docs) from a FieldLabel, cont
 
 ## Modifiers
 
-- **Required is marked, optional is not.** Add an aria-hidden asterisk to FieldLabel and `aria-required` to the control; the form checks on submit.
-- **When most of a form is required, mark nothing**, and say "Optional." in the hint of the few that are. The rule is per product, not per form: the products' record forms mark required.
-- **Choose one validation presentation.** Use `noValidate` when the application supplies its own error summary and inline messages. Native `required` remains available for native form validation; `aria-required` communicates the requirement on the control.
+- **Required is marked, optional is not.** Pass `required` to the Field: the control announces it and the label shows the asterisk, hidden from its name. The form checks on submit.
+- **When most of a form is required, mark nothing** (`FieldLabel required={false}`), and say "Optional." in the hint of the few that are. The rule is per product, not per form: the products' record forms mark required.
+- **Choose one validation presentation.** Use `noValidate` when the application supplies its own messages and [ErrorSummary](?path=/docs/components-errorsummary--docs). The Field's `required` is not a native constraint; native `required` on the control makes the browser and Base UI check it too, so leave it off when the form library validates.
 
 ## States
 
 - **TanStack Form owns state.** Create the form with `useForm`, bind each control through a `form.Field` render prop, and submit a native `<form>` with `form.handleSubmit()`.
-- **Validate with Zod.** The main example uses `onDynamic` with `revalidateLogic({ mode: "blur", modeAfterSubmission: "change" })`: validate on blur initially, then on change after submission, with errors shown for touched invalid fields. One validation slot avoids stale messages from another mode. The example below uses only `onSubmit`, so validation runs when Save is pressed. Submit-only validation does not promise immediate feedback as the user repairs a value.
-- **Keep Save available for incomplete values.** Disable it while submitting, using `form.Subscribe`; show success only after persistence completes. The examples save locally for demonstration.
-- **Expose errors accessibly.** Render issue messages with FieldError. Set `data-invalid` on Field, `aria-invalid` on the control, and connect the message ID with `aria-describedby`. The main example focuses the first invalid control after submission.
+- **Validate with Zod, on submit, then on change.** The main example uses `onDynamic` with `revalidateLogic({ mode: "submit", modeAfterSubmission: "change" })`: nothing is marked until the first submission, then each field clears as the reader repairs it. One validation slot avoids stale messages from another mode. A product that validates on blur passes `mode: "blur"`. The Required on submit example uses only `onSubmit`, which does not update as the reader repairs a value.
+- **Keep the primary available for incomplete values.** Disable it while submitting, using `form.Subscribe`; show success only after persistence completes. The examples save locally for demonstration.
+- **Mark the field, say what fixes it.** Pass `invalid` to the Field and the messages to FieldError; the control is marked and described by them. After a failed submission, focus the first invalid control; when the form is long or spans steps, show an ErrorSummary above it instead, which takes focus and lists every issue.
 - **Reset deliberately.** Use `form.reset()` for an explicit Reset action. Preserve the draft after a server failure.
 
 <Canvas of={Stories.RequiredOnSubmit} />
@@ -90,6 +90,8 @@ Use Cancel as a subtle button before the operation's primary. Preserve dirty dra
 ## Related
 
 - [Field](?path=/docs/components-field--docs): the label, hint and error around one control or one group.
+- [ErrorSummary](?path=/docs/components-errorsummary--docs): every issue in one place after a failed submission.
+- [CheckboxGroup](?path=/docs/components-checkboxgroup--docs): several choices under one legend, with select-all.
 - [Input](?path=/docs/components-input--docs), [Textarea](?path=/docs/components-textarea--docs), [InputGroup](?path=/docs/components-inputgroup--docs): the fields.
 - [Checkbox](?path=/docs/components-checkbox--docs), [Switch](?path=/docs/components-switch--docs), [RadioGroup](?path=/docs/components-radiogroup--docs): the choice controls.
 - [Select](?path=/docs/components-select--docs), [Combobox](?path=/docs/components-combobox--docs), [DatePicker](?path=/docs/components-datepicker--docs), [Calendar](?path=/docs/components-calendar--docs): the pickers.
@@ -97,7 +99,7 @@ Use Cancel as a subtle button before the operation's primary. Preserve dirty dra
 
 ## Accessibility
 
-Use a visible label for every control. Connect FieldLabel using `htmlFor` and the control’s `id`; connect descriptions and errors using `aria-describedby`. Custom controls forward native IDs, ARIA and refs to their actual input. Groups use a fieldset and legend. On failed submit, focus the first invalid field and present all errors together when a form spans several sections. Keep submitted values after a server failure.
+Use a visible label for every control. Inside a Field the label, hint and error reach the control without ids; custom controls that render a Ledger control, or forward native props to one, take the binding too. Groups use a fieldset and legend. On failed submit, focus the first invalid field, or an ErrorSummary that lists every error when a form spans several sections or steps. Inline errors are not live regions; the summary is. Keep submitted values after a server failure.
 
 ## Form libraries
 
@@ -105,13 +107,14 @@ Forms is a composition pattern, with no component props of its own. Import `useF
 
 ### TanStack and shadcn anatomy
 
-This follows the [shadcn TanStack Form guide](https://ui.shadcn.com/docs/forms/tanstack-form) and [TanStack validation documentation](https://tanstack.com/form/latest/docs/framework/react/guides/validation). Field uses the same flat label, description and error parts. FieldGroup, Stack or Grid supplies layout. The caller puts `data-invalid` on Field and `aria-invalid` on the actual control.
+This follows the [Base UI TanStack guide](https://base-ui.com/react/handbook/forms#tanstack-form) and the [TanStack validation documentation](https://tanstack.com/form/latest/docs/framework/react/guides/validation). Field uses the flat label, description and error parts; FieldGroup, Stack or Grid supplies layout. The Field takes `invalid` from the field's meta and wires the rest.
 
 ```tsx
 const form = useForm({
   defaultValues: { title: "" },
+  validationLogic: revalidateLogic({ mode: "submit", modeAfterSubmission: "change" }),
   validators: {
-    onSubmit: z.object({ title: z.string().trim().min(1, "Enter a title.") }),
+    onDynamic: z.object({ title: z.string().trim().min(1, "Enter a task title.") }),
   },
   onSubmit: async ({ value }) => {
     await saveRecord(value);
@@ -119,6 +122,7 @@ const form = useForm({
 });
 
 <form
+  noValidate
   onSubmit={(event) => {
     event.preventDefault();
     void form.handleSubmit();
@@ -127,51 +131,41 @@ const form = useForm({
   <Stack space="space.200">
     <form.Field name="title">
       {(field) => {
-        const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+        const invalid = field.state.meta.isTouched && !field.state.meta.isValid;
         return (
-          <Field data-invalid={isInvalid}>
-            <FieldLabel htmlFor="title">
-              Title
-              <span aria-hidden className="text-danger">
-                {" "}
-                *
-              </span>
-            </FieldLabel>
+          <Field invalid={invalid} required>
+            <FieldLabel>Task title</FieldLabel>
             <Input
-              id="title"
-              aria-describedby={isInvalid ? "title-error" : undefined}
               name={field.name}
               value={field.state.value}
-              required
               onBlur={field.handleBlur}
-              onChange={(event) => field.handleChange(event.target.value)}
-              aria-invalid={isInvalid}
+              onValueChange={field.handleChange}
             />
-            {isInvalid && <FieldError id="title-error" errors={field.state.meta.errors} />}
+            <FieldError errors={invalid ? field.state.meta.errors : []} />
           </Field>
         );
       }}
     </form.Field>
-    <Button type="submit">Save</Button>
+    <Button type="submit" variant="primary">
+      Create task
+    </Button>
   </Stack>
 </form>;
 ```
 
-The live examples use `noValidate` to demonstrate schema errors. For production, retain native constraints such as `required`, `type` and `maxLength`; omit `noValidate` when native browser feedback is appropriate. Use `aria-required` and a visible label marker when only an accessible requirement is intended.
+The live examples use `noValidate` and let the schema report every error. The Field's `required` announces and marks without a native constraint. Native constraints on the control (`required`, `type`, `pattern`) are also checked by Base UI inside a Field: after an Enter in the field, or on each change once the form has marked it invalid. Leave them off the control when the form library already checks the same rule.
 
-Bind Input, and Textarea with `value`, `onBlur={field.handleBlur}` and `onChange` passing `event.target.value`. Select and RadioGroup use `value` and `onValueChange={field.handleChange}`; Checkbox and Switch use boolean `checked` and `onCheckedChange`; a checkbox’s mixed presentation uses the separate boolean `indeterminate` prop. Combobox uses Root `value`/`onValueChange` and forwards blur through ComboboxInput; DatePicker uses `value`/`onChange`. Forward blur to the focusable control. For checkbox arrays, use `form.Field` with `mode="array"` and TanStack's `pushValue`/`removeValue` helpers.
+Bind Input, and Textarea with `value`, `onBlur={field.handleBlur}` and `onChange` passing `event.target.value`. Select and RadioGroup use `value` and `onValueChange={field.handleChange}`; Checkbox and Switch use boolean `checked` and `onCheckedChange`; a checkbox’s mixed presentation uses the separate boolean `indeterminate` prop. Combobox uses Root `value`/`onValueChange` and forwards blur through ComboboxInput; DatePicker, DateRangePicker, TimeField and DateTimeField use `value`/`onValueChange` as well, reporting ISO strings. Forward blur to the focusable control. For checkbox arrays, use `form.Field` with `mode="array"` and TanStack's `pushValue`/`removeValue` helpers.
 
 ### Validation and recovery
 
-The recovery example combines native inputs, a custom input, Select and Combobox. TanStack owns editable values and metadata; native form submission also includes a control associated from outside the form. Its Zod schema requires an owner only for Assigned status; changing that status clears the obsolete error. A local async validator simulates a server rejection for `taken@example.test`, preserving the draft for correction and resubmission. Error-summary buttons and explicit refs focus the actual controls. Reset clears the draft and validation state.
+The recovery example combines native inputs, an InputGroup, a custom input, Select and Combobox. TanStack owns editable values and metadata; native form submission also includes a control associated from outside the form. A failed submission shows an ErrorSummary, which takes focus and leads to each field. The Zod schema requires an owner only for Assigned status, so changing that status clears the obsolete error and the Field's `required` follows it. A local async validator simulates a server rejection for `taken@example.test`; the rejected value is kept until the reader changes it, because TanStack clears a submit-time error on the field's next blur. Reset clears the draft and validation state.
 
 <Canvas of={Stories.ValidationRecovery} />
 
 ### Migrating from useRequired
 
-`useRequired` is removed. Use TanStack's `useForm` and `form.Field`, schema validators, and `revalidateLogic({ mode: "submit", modeAfterSubmission: "change" })` for required checks that update as the user repairs a submission. Use `form.reset()` for Reset, and `onSubmitInvalid` with a form-scoped invalid-control lookup or an explicit ref for focus. Return field errors from `onSubmitAsync` for server validation. Simple visual-state examples can pass `aria-invalid` and FieldError directly.
-
-The application-owned `useRecordForm` keeps its record-specific validation and submission policy. Package examples import TanStack directly; they do not import that application helper.
+`useRequired` is removed. Use TanStack's `useForm` and `form.Field`, schema validators, and `revalidateLogic({ mode: "submit", modeAfterSubmission: "change" })` for required checks that update as the user repairs a submission. Use `form.reset()` for Reset, and `onSubmitInvalid` with a form-scoped invalid-control lookup, an explicit ref, or an ErrorSummary for focus. Return field errors from `onSubmitAsync` for server validation. Package examples import TanStack directly.
 
 ## Don't
 

@@ -7,9 +7,13 @@ import * as Stories from "./Text.stories";
 
 # Text
 
-Body text on the body ramp. The size is a composite type token, so the family, the size, the leading and the tracking always agree; the weight is one of three; the colour is a text token, or inherited, so a Text inside a bold Box is inverse without being told. `as`, `size`, `weight`, `color`, `align`, `maxLines`, and a colour that inverts inside a bold fill. `font.body` at 13px is the UI size; `small` at 12px is a label's and a hint's. The rules on colour and weight: running text is neutral, colour is functional, semibold is for a heading and not a paragraph.
+Body text on the body ramp. The size is a composite type token, so the family, the size, the leading and the tracking always agree; the weight is one of three; the colour is a text token, or inherited, so a Text inside a bold Box is inverse without being told. `as`, `size`, `weight`, `color`, `align`, `maxLines` (which shows the whole text while it is cut), `preserveLineBreaks`, and a colour that inverts inside a bold fill. `font.body` at 13px is the UI size; `small` at 12px is a label's and a hint's. The rules on colour and weight: running text is neutral, colour is functional, semibold is for a heading and not a paragraph.
 
 <Canvas of={Stories.TextMatrix} />
+
+<Canvas of={Stories.MaxLinesReveal} />
+
+<Canvas of={Stories.PreserveLineBreaks} />
 
 ## Anatomy
 
@@ -19,7 +23,8 @@ Body text on the body ramp. The size is a composite type token, so the family, t
 | Size    | `large`, `medium`, `small`, `xsmall`: the four `font.body` tokens.                                                              |
 | Weight  | `regular`, `medium`, `semibold`. Over the token's own weight.                                                                    |
 | Colour  | A `color.text` token, or inherited: `color.text` from the page, `color.text.inverse` from a bold Box.                            |
-| Clamp   | `maxLines` 1, 2 or 3, with an ellipsis.                                                                                          |
+| Clamp   | `maxLines` 1, 2 or 3, with an ellipsis, and the whole text in a tooltip while it is cut (through [Truncate](?path=/docs/components-truncate--docs)). A one-line clamp makes an inline element (`span`, `strong`, `em`, `small`, `label`) a block, so it has a box to cut. |
+| Breaks  | `preserveLineBreaks` keeps the line breaks and spaces of authored text (`white-space: pre-wrap`).                                  |
 
 ## Variants
 
@@ -31,7 +36,7 @@ Body text on the body ramp. The size is a composite type token, so the family, t
 | Meta      | `small` or `xsmall`, `subtle` or `subtlest`: a date, an id, a count.                                         |
 | Emphasis  | `weight="medium"` on a word in a sentence; `as="strong"` when the emphasis is for a screen reader too.       |
 
-Not built, and why: a `bold` weight (the ramp's top is `semibold`, the page title's weight, and a paragraph above it shouts); italic (for the titles of works and technical terms, and the product has neither in running text); an underline (a link is a TextLink; an underline that is not a link reads as one); a `truncate` with a tooltip (`maxLines` clamps, and the parent gives the full text a `title` or a Tooltip when it matters); an escape below the ramp (`xsmall` is the floor, and nothing is set below 11px); a text transform (an Eyebrow sets its own uppercase; nothing else is transformed).
+Not built, and why: a `bold` weight (the ramp's top is `semibold`, the page title's weight, and a paragraph above it shouts); italic (for the titles of works and technical terms, and the product has neither in running text); an underline (a link is a TextLink; an underline that is not a link reads as one); a separate truncate prop (`maxLines` clamps and reveals; a [Truncate](?path=/docs/components-truncate--docs) cuts a composed value); an escape below the ramp (`xsmall` is the floor, and nothing is set below 11px); a text transform (an Eyebrow sets its own uppercase; nothing else is transformed).
 
 ## Sizes
 
@@ -48,7 +53,8 @@ The UI size is 13, a point under the usual 14, because a register's rows are the
 
 - **`size`**, **`weight`**, **`color`**, **`align`**, **`maxLines`**, **`as`** as in Anatomy.
 - **`color`** is left off where the text should follow its surface: inside a bold Box, inside a Button.
-- **`maxLines`** is 1, 2 or 3. A longer clamp is a Section with a "Show more".
+- **`maxLines`** is 1, 2 or 3. A longer clamp is a Section with a "Show more". While the text is cut, hovering it, or focusing the link or button it sits in with the keyboard, shows the whole in a tooltip; nothing opens while it fits. A `title` of your own replaces the tooltip.
+- **`preserveLineBreaks`** for authored text read as written: a comment, a note, a statement with its line breaks. A one-line clamp keeps none. Several paragraphs, or Markdown, are a [Prose](?path=/docs/components-typography--docs).
 - **No `style`.** A width for a label column is a Box's, or a Grid's template.
 
 ## Content
@@ -67,12 +73,12 @@ The UI size is 13, a point under the usual 14, because a register's rows are the
 | Size    | `font.body.large` · `font.body` · `font.body.small` · `font.body.xsmall`, the family, size, leading and tracking in one |
 | Weight  | `font.weight.regular` · `.medium` · `.semibold`                                                    |
 | Colour  | `color.text` · `.subtle` · `.subtlest` · `.disabled` · `.brand` · `.selected` · `.danger` · `.warning` · `.success` · `.information` · `.inverse` · `.warning.inverse` |
-| Clamp   | `truncate` for one line; `line-clamp-2`, `line-clamp-3`                                             |
+| Clamp   | one line clipped across (`overflow-x: clip`, ellipsis); `line-clamp-2`, `line-clamp-3`              |
 | Measure | `dimension.layout.measure`, set by the parent                                                       |
 
 ## Accessibility
 
-- **A clamped text is still all there.** `maxLines` hides with CSS; a screen reader reads the whole. The eye needs the rest too: the parent gives a `title`, or a Tooltip, or the row opens the record.
+- **A clamped text is still all there.** `maxLines` hides with CSS; a screen reader reads the whole. The eye gets the rest from the tooltip, on hover and on keyboard focus of the link or button the text sits in; the tooltip is hidden from assistive technology, so the text is not read twice. A touch screen has no hover: where a phone reader needs the whole, let it wrap or let the row open the record.
 - **`as="strong"` for emphasis that must be heard**; `weight="medium"` for emphasis that is only seen.
 - **A label is a `label`** with `htmlFor`, so the control is named. Text as a label without the element names nothing.
 - **Colour is never the only signal.** A red count has the word beside it: "2 past due", not "2".

@@ -1,6 +1,10 @@
-import { ChevronDown } from "lucide-react";
 import { type ReactNode } from "react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../components/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleHeader,
+  type CollapsibleProps,
+} from "../components/collapsible";
 
 import {
   Accordion,
@@ -10,6 +14,7 @@ import {
 } from "../components/accordion";
 
 import { KeyValue } from "../components/key-value";
+import { cn } from "../lib/cn";
 
 export type InspectorGroupData = {
   /** The group's name, a noun for the kind of fact: "Ownership", "Schedule". */
@@ -25,7 +30,7 @@ export type InspectorProps = {
   footer?: ReactNode;
 };
 
-/** Reusable groups of properties. The surrounding layout owns positioning and scrolling. */
+/** Reusable groups of properties. The surrounding layout owns positioning and scrolling. Each group's heading takes the contextual level: an h3 outside every HeadingLevelProvider, an h3 in a titled panel's body, an h2 in an Aside wrapped in `HeadingLevelProvider level={2}`. */
 function InspectorRoot({ groups, footer }: InspectorProps) {
   const body = (
     <>
@@ -64,23 +69,36 @@ export type InspectorGroupProps = {
   children: ReactNode;
   /** At the top end of the group, before the rows: an IconButton ("Edit properties") or a link button. */
   action?: ReactNode;
+  /** Whether the group starts open: `true` by default. `false` for the collapsed Details a reader opens when they need provenance, counts or derivation. */
+  defaultOpen?: boolean | undefined;
+  /** The open state, when the caller controls it. */
+  open?: boolean | undefined;
+  /** Called when the reader opens or closes the group, with Base UI's event details (`details.cancel()` keeps the state). */
+  onOpenChange?: CollapsibleProps["onOpenChange"] | undefined;
+  className?: string | undefined;
 };
 
-/** One group of facts on its own: a folding row, open by default, KeyValue rows as children. */
-function InspectorGroup({ title, children, action }: InspectorGroupProps) {
+/** One group of facts on its own: a folding row, open by default, KeyValue rows as children. Its title is a CollapsibleHeader, a button inside a heading at the contextual level (an h3 outside every provider), with a chevron that turns while the group is open. The action sits beside the title while the whole title fits beside it on one line; otherwise it takes the next row, at the end, rather than squeezing the title. */
+function InspectorGroup({
+  title,
+  children,
+  action,
+  defaultOpen = true,
+  open,
+  onOpenChange,
+  className,
+}: InspectorGroupProps) {
   return (
-    <Collapsible defaultOpen className="border-t border-default first:border-t-0">
-      <div className="flex min-w-0 items-center gap-100">
-        <h3 className="min-w-0 flex-1">
-          <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
-            <span className="min-w-0 break-words">{title}</span>
-            <ChevronDown
-              aria-hidden="true"
-              className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-open/collapsible:rotate-180"
-            />
-          </CollapsibleTrigger>
-        </h3>
-        {action ? <div className="shrink-0">{action}</div> : null}
+    <Collapsible
+      {...(open === undefined ? { defaultOpen } : { open })}
+      {...(onOpenChange ? { onOpenChange } : {})}
+      className={cn("border-t border-default first:border-t-0", className)}
+    >
+      <div className="flex min-w-0 flex-wrap items-center gap-100">
+        <CollapsibleHeader>{title}</CollapsibleHeader>
+        {action ? (
+          <div className="ms-auto flex max-w-full shrink-0 flex-wrap justify-end">{action}</div>
+        ) : null}
       </div>
       <CollapsibleContent>
         <div className="pb-200">

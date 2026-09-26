@@ -47,10 +47,16 @@ Part-to-whole with a hierarchy: a tile per leaf, sized by value, in the tone of 
 
 <Canvas of={Stories.Details} />
 
+In a Frame the treemap's leaves are its table twin and its CSV: a row per leaf in the tree's order, a column per level holding the names on its way down, then its value. `levels` names the columns (`["System", "Component"]`); unsaid, the top level takes the Frame's `xLabel`, else "Group", and the leaves "Name". The legend keys the top-level branches when the Frame is given no `series`, and a branch hidden from it stays in the table, which is the data.
+
+<Canvas of={Stories.AsATable} />
+
 ## Modifiers
 
 - **`data`** as nodes: a name, a value on a leaf, children on a branch, a `tone` on a top-level node when the categorical order is not wanted.
-- **`format`** for the tooltip and the card.
+- **`levels`** for the table twin's headings, one per level from the top.
+- **`format`** for the tooltip, the card and the Frame's table.
+- **`size`** or **`height`**: the Frame's when unsaid; `large` in the Frame's expanded Dialog.
 - **`onSelect`** and **`details`** as in States; the selection is `{ name, value, group }`, `group` being the top-level branch.
 - **`loading`** draws the skeleton; the Frame sets it from `status="loading"`.
 - **`label`** names the plot outside a Frame.
@@ -76,6 +82,7 @@ Part-to-whole with a hierarchy: a tile per leaf, sized by value, in the tone of 
 - **Named by the Frame**, or by `label`: the plot is a group. Interactive charts require one of these names. When `onSelect` or `details` is supplied, each leaf is a named button reachable with Tab; Enter and Space perform the same action as a click. Its accessible name includes the branch, full name and value, even when the visible label is shortened. Display-only tiles and unnamed, decorative plots add no tab stops.
 - **Text never sits on a tile's colour**: the name is on a surface chip, in the text colour.
 - **Every tile has a title** with its whole name and value, whether or not the name fits.
+- **The table is one toggle away** in a Frame: every leaf, every level named, every value, so the areas are never the only way to read the sizes.
 - **A chosen tile's card is a dialog**, and focus returns to that tile when it closes, or the first available tile if it was removed.
 - **Keyboard drill-down preserves the chosen leaf's focus** when Recharts replaces its branch, or focuses the first available tile when that leaf no longer exists.
 - **Loading is `aria-busy`** and named "[the plot's name], loading".

@@ -252,7 +252,8 @@ assert.ok(packedBreadcrumbLink);
 assert.match(packedBreadcrumbLink, /data-slot="breadcrumb-link"/);
 assert.ok(packedBreadcrumbLink.includes('href="/records"'));
 assert.match(packedBreadcrumbLink, /data-consumer-render="anchor"/);
-assert.match(breadcrumbHtml, />Records<[/]a>/);
+// A text link's name sits in the truncating label, so a long name can shorten with an ellipsis.
+assert.match(breadcrumbHtml, /<span [^>]*data-slot="breadcrumb-label"[^>]*>Records<[/]span><[/]a>/);
 const packedBreadcrumbPage = breadcrumbHtml.match(
   /<span [^>]*data-slot="breadcrumb-page"[^>]*>/,
 )?.[0];
@@ -1631,7 +1632,9 @@ assert.match(
   /<dl[^>]*data-field="owner"[^>]*grid-template-columns:120px 1fr/,
 );
 assert.match(displayHtml, /<dt[^>]*>Owner<\/dt>/);
-assert.match(displayHtml, /<dd[^>]*title="Dana"[^>]*>Dana<\/dd>/);
+// A cut value reveals itself through Truncate's tooltip, not a native title.
+assert.match(displayHtml, /<dd[^>]*data-slot="truncate"[^>]*>Dana<\/dd>/);
+assert.doesNotMatch(displayHtml, /<dd[^>]*title=/);
 assert.match(
   displayHtml,
   /role="region"[^>]*aria-label="Catalogue notice"[^>]*aria-live="off"/,

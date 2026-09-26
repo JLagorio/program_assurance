@@ -21,6 +21,11 @@ export const menuItemSelected = "bg-selected text-selected";
 
 export const menuItemDisabled = "data-[disabled]:pointer-events-none data-[disabled]:text-disabled";
 
+/** A row's second line: a short description, or why the row is unavailable. It wraps and stays
+    readable on a disabled row, because it is the explanation. */
+export const menuItemDescription =
+  "block whitespace-normal break-words font-body-small text-subtle";
+
 /** A section heading inside the list. */
 export const menuLabel = "px-100 pb-050 pt-075 font-heading-xxsmall uppercase text-subtlest";
 

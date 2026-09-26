@@ -8,6 +8,9 @@ import {
   FieldError,
   Button,
   Field,
+  FieldContent,
+  FieldSet,
+  FieldLegend,
   Switch,
   Table,
 } from "../../components";
@@ -280,7 +283,7 @@ function RowsDemo() {
     ["cds", "Cross domain solution overlay", "31 controls"],
   ] as const;
   return (
-    <div style={{ width: 520 }}>
+    <div style={{ maxWidth: 520 }}>
       <Table>
         <thead>
           <Table.Row>
@@ -349,6 +352,64 @@ export const InRows: Story = {
     await expect(privacy).not.toBeChecked();
     await expect(rootClick).toHaveBeenCalledTimes(3);
     await expect(renderedClick).toHaveBeenCalledTimes(3);
+  },
+};
+
+/**
+ * In a Field the switch needs no ids: the label names it, the hint and error describe it, and
+ * `invalid` and `required` reach it. Invalid draws the danger outline while the switch is not
+ * focused; focus replaces it with the focus outline, so focus stays visible. A disabled FieldSet
+ * disables the switches inside it.
+ */
+export const BoundInField: Story = {
+  name: "Bound in a Field",
+  render: () => (
+    <Stack space="space.300" className="w-layout-list max-w-full">
+      <Field orientation="horizontal" invalid required>
+        <Switch />
+        <FieldContent>
+          <FieldLabel>Share with the assessor</FieldLabel>
+          <FieldDescription>The assessor sees the draft before it is published.</FieldDescription>
+          <FieldError>Share the draft before you request an assessment.</FieldError>
+        </FieldContent>
+      </Field>
+      <FieldSet disabled>
+        <FieldLegend variant="label">While saving</FieldLegend>
+        <Field orientation="horizontal">
+          <Switch defaultChecked />
+          <FieldLabel>Notify the owner</FieldLabel>
+        </Field>
+      </FieldSet>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const share = canvas.getByRole("switch", { name: "Share with the assessor" });
+    await expect(share).toHaveAttribute("aria-invalid", "true");
+    await expect(share).toHaveAttribute("aria-required", "true");
+    await expect(share).toHaveAccessibleDescription(
+      "The assessor sees the draft before it is published. Share the draft before you request an assessment.",
+    );
+    // Forced colours replace the token colours with system ones: the error text and aria-invalid
+    // carry the state there, and the focus outline is the Highlight ring from forced-colors.css.
+    const forced = matchMedia("(forced-colors: active)").matches;
+    const danger = getComputedStyle(share).getPropertyValue("--ds-color-border-danger").trim();
+    const ring = getComputedStyle(share).getPropertyValue("--ds-color-border-focused").trim();
+    if (!forced) await expect(getComputedStyle(share).outlineColor).toBe(danger);
+    const resting = getComputedStyle(share).outlineWidth;
+    // Keyboard focus, as Tab gives it; the option draws :focus-visible without a trusted key press.
+    share.focus({ focusVisible: true } as FocusOptions);
+    await waitFor(() =>
+      forced
+        ? expect(getComputedStyle(share).outlineWidth).not.toBe(resting)
+        : expect(getComputedStyle(share).outlineColor).toBe(ring),
+    );
+    await userEvent.keyboard(" ");
+    await expect(share).toBeChecked();
+    const notify = canvas.getByRole("switch", { name: "Notify the owner" });
+    await expect(notify).toHaveAttribute("aria-disabled", "true");
+    await userEvent.click(notify, { pointerEventsCheck: 0 });
+    await expect(notify).toBeChecked();
   },
 };
 

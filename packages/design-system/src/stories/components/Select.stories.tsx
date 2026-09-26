@@ -643,3 +643,58 @@ export const Dialogs: Story = {
     await waitFor(() => expect(opener).toHaveFocus());
   },
 };
+
+/**
+ * In a Field the trigger needs no ids: the label names it, the hint and the error describe it,
+ * and the Field's `invalid`, `required` and `disabled` reach it.
+ */
+export const BoundInField: Story = {
+  name: "Bound in a Field",
+  render: () => (
+    <Stack space="space.200" className="w-layout-list max-w-full">
+      <Field invalid required>
+        <FieldLabel>Status</FieldLabel>
+        <Select items={{ open: "Open", closed: "Closed" }}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Choose a status" />
+          </SelectTrigger>
+          <SelectContent alignItemWithTrigger={false}>
+            <SelectItem value="open">Open</SelectItem>
+            <SelectItem value="closed">Closed</SelectItem>
+          </SelectContent>
+        </Select>
+        <FieldDescription>Open work shows on the owner's list.</FieldDescription>
+        <FieldError>Choose a status.</FieldError>
+      </Field>
+      <Field disabled>
+        <FieldLabel>Program</FieldLabel>
+        <Select items={{ atlas: "Atlas payments" }} defaultValue="atlas">
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent alignItemWithTrigger={false}>
+            <SelectItem value="atlas">Atlas payments</SelectItem>
+          </SelectContent>
+        </Select>
+      </Field>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const status = canvas.getByRole("combobox", { name: "Status" });
+    await expect(status).toHaveAttribute("aria-invalid", "true");
+    await expect(status).toHaveAttribute("aria-required", "true");
+    await expect(status).toHaveAccessibleDescription(
+      "Open work shows on the owner's list. Choose a status.",
+    );
+    const program = canvas.getByRole("combobox", { name: "Program" });
+    await expect(program).toBeDisabled();
+    await userEvent.click(status);
+    const page = within(canvasElement.ownerDocument.body);
+    // The open list is named by the Field's label too.
+    await expect(await page.findByRole("listbox", { name: "Status" })).toBeInTheDocument();
+    await userEvent.click(await page.findByRole("option", { name: "Closed" }));
+    await expect(status).toHaveTextContent("Closed");
+    await waitFor(() => expect(page.queryByRole("listbox")).not.toBeInTheDocument());
+  },
+};

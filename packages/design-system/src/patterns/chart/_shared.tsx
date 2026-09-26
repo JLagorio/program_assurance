@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -16,12 +17,17 @@ import {
   type RefObject,
 } from "react";
 import {
+  DefaultZIndexes,
   Line,
   ReferenceArea,
   ReferenceLine,
   ResponsiveContainer,
   useActiveTooltipCoordinate,
   useActiveTooltipLabel,
+  usePlotArea,
+  useXAxisScale,
+  useYAxisScale,
+  ZIndexLayer,
 } from "recharts";
 
 import { token, tokenValue, type TokenName } from "../../generated/tokens";
@@ -368,12 +374,197 @@ export type FrameState = {
   sync: string | undefined;
   /** Every series wears a pattern as well as its colour. */
   texture: boolean;
+  /** The Frame's records, category key and series: what a Bar, Line or Area inside draws when it is given none. */
+  data: ChartDatum[] | undefined;
+  x: string | undefined;
+  series: ChartSeries[] | undefined;
+  /** The Frame's plot size, for a part that sets neither `size` nor `height`. */
+  size: ChartSize | undefined;
+  height: number | undefined;
+  /** The Frame is the expanded copy in its Dialog: every plot inside draws at `large`. */
+  expanded: boolean;
+  /** The reader pressed Values: a colour-scale Heatmap prints its values. */
+  values: boolean;
+  /** The table twin stands in for the plot: a part keeps reporting to the Frame and draws nothing. */
+  offstage: boolean;
 };
 
 export const FrameContext = createContext<FrameState | null>(null);
 export const none: ReadonlySet<string> = new Set();
 
-/** What a plot inherits from the Frame around it: its name, the legend's state, the formats, whether it is loading, its sync and its textures. */
+/* ---------- what a part reports to its Frame ---------- */
+
+/** One column of a table twin: its heading, and whether it holds numbers (set to the end, tabular). */
+export type TwinColumn = { label: string; numeric: boolean };
+
+/** One row of a table twin: each cell's text in the table and its value in the CSV (numbers raw). */
+export type TwinRow = { key: string; cells: { text: string; csv: string }[] };
+
+/** The same numbers as the plot, laid out as a table: what the Frame's Table toggle shows and its CSV holds. */
+export type ChartTwin = { columns: TwinColumn[]; rows: TwinRow[] };
+
+/** What the Frame lends a kind's table builder: its category heading and its extra columns. */
+export type TwinOptions = { xLabel: string | undefined; columns: ChartColumn[] | undefined };
+
+/**
+ * How a part's numbers become a table. `category` is records along a category axis (Bar, Line,
+ * Area): the Frame lays it out, with its own `data`, `x`, `series`, `xLabel` and `columns` winning.
+ * `custom` is a kind's own shape (points, slices, leaves, a grid), built when the table shows.
+ */
+export type TwinSource =
+  | {
+      kind: "category";
+      data: ChartDatum[];
+      x: string;
+      series: ChartSeries[];
+      xLabel?: string | undefined;
+    }
+  | { kind: "custom"; build: (options: TwinOptions) => ChartTwin };
+
+/**
+ * What a part tells the Frame around it, so the legend, the table twin, the CSV and the states
+ * follow the plot: its keyed series and their swatch, the formats it draws with, its height, its
+ * table, and whether it can print its values. The Frame's own props win over every field.
+ */
+export type FrameReport = {
+  series?: ChartSeries[] | undefined;
+  swatch?: SwatchShape | undefined;
+  format?: Formatter | undefined;
+  formatX?: CategoryFormatter | undefined;
+  height?: number | undefined;
+  table?: TwinSource | undefined;
+  values?: boolean | undefined;
+};
+
+/** How a part reaches the Frame around it: `report` says what it draws; `mount` counts it in while it is mounted and returns the way out. */
+export type FrameRegistry = {
+  report: (report: FrameReport) => void;
+  mount: () => () => void;
+};
+
+export const FrameReportContext = createContext<FrameRegistry | null>(null);
+
+/** Two reports that would lay the Frame out the same. */
+export const sameReport = (a: FrameReport, b: FrameReport) =>
+  a.series === b.series &&
+  a.swatch === b.swatch &&
+  a.format === b.format &&
+  a.formatX === b.formatX &&
+  a.height === b.height &&
+  a.table === b.table &&
+  a.values === b.values;
+
+/**
+ * Tells the Frame around the part what it draws, before the browser paints, whenever it changes.
+ * Memoize the report: a new object each render reports again. The part counts itself in while it
+ * is mounted, so a part the caller removes takes its legend and table with it. Outside a Frame it
+ * does nothing.
+ */
+export function useFrameReport(report: FrameReport) {
+  const registry = useContext(FrameReportContext);
+  useLayoutEffect(() => registry?.mount(), [registry]);
+  useLayoutEffect(() => {
+    registry?.report(report);
+  }, [registry, report]);
+}
+
+const noData: ChartDatum[] = [];
+const noSeries: ChartSeries[] = [];
+
+/** The records a category part draws: its own, else the Frame's. */
+export function useFrameData(
+  data: ChartDatum[] | undefined,
+  x: string | undefined,
+  series: ChartSeries[] | undefined,
+) {
+  const frame = useContext(FrameContext);
+  return {
+    data: data ?? frame?.data ?? noData,
+    x: x ?? frame?.x ?? "",
+    series: series ?? frame?.series ?? noSeries,
+  };
+}
+
+/**
+ * The plot's size: its own `size` or `height`, else the Frame's; `large` in the expanded Dialog,
+ * whatever the part says, so Expand redraws the plot at the size a page's one chart takes.
+ */
+export function usePlotSize(size: ChartSize | undefined, height: number | undefined) {
+  const frame = useContext(FrameContext);
+  if (frame?.expanded) return { size: "large" as ChartSize, height: undefined };
+  if (size !== undefined || height !== undefined) return { size, height };
+  return { size: frame?.size, height: frame?.height };
+}
+
+/** Whether a column of the datum holds a number anywhere, so it sits to the end. */
+const numericColumn = (data: ChartDatum[], c: ChartColumn) =>
+  data.some((d) => typeof d[c.key] === "number");
+
+/** An extra column's heading, for a twin. */
+export const extraColumn = (data: ChartDatum[], c: ChartColumn): TwinColumn => ({
+  label: c.label ?? c.key,
+  numeric: numericColumn(data, c),
+});
+
+/** An extra column's cell: its text by `columnText`, and in the CSV a number raw or the column's own format. */
+export const extraCell = (
+  d: ChartDatum,
+  c: ChartColumn,
+  format: Formatter,
+  formatX: CategoryFormatter,
+) => {
+  const v = d[c.key];
+  return {
+    text: columnText(d, c, format, formatX),
+    csv: typeof v === "number" || !c.format ? raw(v) : c.format(v, d),
+  };
+};
+
+/** The twin of a category plot: the category, the columns before the series, a column per series, the columns after. */
+export function categoryTwin({
+  data,
+  x,
+  xLabel,
+  series,
+  columns,
+  format,
+  formatX,
+}: {
+  data: ChartDatum[];
+  x: string;
+  xLabel: string;
+  series: ChartSeries[];
+  columns: ChartColumn[] | undefined;
+  format: Formatter;
+  formatX: CategoryFormatter;
+}): ChartTwin {
+  const { before, after } = splitColumns(columns);
+  return {
+    columns: [
+      { label: xLabel, numeric: false },
+      ...before.map((c) => extraColumn(data, c)),
+      ...series.map((s) => ({ label: s.label ?? s.key, numeric: true })),
+      ...after.map((c) => extraColumn(data, c)),
+    ],
+    rows: data.map((d, i) => {
+      const category = formatX((d[x] as string | number | Date | undefined) ?? "");
+      return {
+        key: String(i),
+        cells: [
+          { text: category, csv: category },
+          ...before.map((c) => extraCell(d, c, format, formatX)),
+          ...series.map((s) => ({
+            text: formatValue(d[s.key], s.format ?? format),
+            csv: raw(d[s.key]),
+          })),
+          ...after.map((c) => extraCell(d, c, format, formatX)),
+        ],
+      };
+    }),
+  };
+}
+
+/** What a plot inherits from the Frame around it: its name, the legend's state, the formats, whether it is loading, its sync and its textures, and whether it is expanded or stands aside for the table. Its data and size come from `useFrameData` and `usePlotSize`. */
 export function useFrame(
   label: string | undefined,
   format: Formatter | undefined,
@@ -385,15 +576,21 @@ export function useFrame(
   const defaults = useChartFormat();
 
   const frame = useContext(FrameContext);
+  const highlighted = frame?.highlighted ?? null;
   return {
     name: label ?? frame?.name,
     hidden: frame?.hidden ?? none,
-    highlighted: frame?.highlighted ?? null,
+    // A series just hidden from the legend is still under the pointer; it must not dim the rest.
+    highlighted: highlighted !== null && frame?.hidden.has(highlighted) ? null : highlighted,
     format: format ?? frame?.format ?? defaults.format,
     formatX: formatX ?? frame?.formatX ?? defaults.category,
     loading: loading ?? frame?.loading ?? false,
     sync: syncId ?? frame?.sync,
     texture: texture ?? frame?.texture ?? false,
+    /** The table twin stands in for the plot: the part reports and draws nothing. */
+    offstage: frame?.offstage ?? false,
+    /** In the expanded Dialog. */
+    expanded: frame?.expanded ?? false,
   };
 }
 
@@ -418,9 +615,6 @@ export const seriesClass = (
 /** The class a mark takes from a choice: dimmed when another mark is chosen. */
 export const markClass = (chosen: boolean | null): { className: string } | Record<never, never> =>
   chosen === false ? { className: "opacity-disabled" } : {};
-
-/** A recharts label prop only when there is a label to draw. */
-export const labelProp = (l: ReturnType<typeof referenceLabel>) => (l ? { label: l } : {});
 
 /* ---------- textures ---------- */
 
@@ -681,10 +875,14 @@ export function Swatch({
     return <TextureSwatch texture={texture} color={color} />;
   if (shape === "line")
     return (
+      // Hollow, the stroke is an outline, as a hollow square is: the series is hidden.
       <span
         aria-hidden
-        className="inline-block h-025 w-150 shrink-0 rounded-xsmall"
-        style={{ backgroundColor: color }}
+        className={cn(
+          "inline-block w-150 shrink-0 rounded-xsmall",
+          hollow ? "h-050 border" : "h-025",
+        )}
+        style={hollow ? { borderColor: color } : { backgroundColor: color }}
       />
     );
   return (
@@ -809,36 +1007,348 @@ export function TooltipContent({
   );
 }
 
-type ViewBox = { x: number; y: number; width: number; height: number };
+/** Whether a reference draws as a vertical line: on the category axis of a column chart, on the value axis of a horizontal one. */
+const isVertical = (r: ChartReference, horizontal: boolean | undefined) =>
+  horizontal ? r.y !== undefined : r.y === undefined;
 
-const labelText = (text: string, x: number, y: number, anchor: "start" | "middle" | "end") => (
-  <text
-    x={x}
-    y={y}
-    textAnchor={anchor}
-    className="font-body-xsmall"
-    fill={token("color.text.subtlest")}
-  >
-    {text}
-  </text>
-);
+/** Whether a band runs across categories or dates, so its label sits above the plot. */
+const isAcross = (b: ChartBand) => b.fromX !== undefined || b.toX !== undefined;
 
-/** A reference line's label in `color.text.subtlest`: above the plot for a vertical line, at the line's end for a horizontal one; a band's label above its middle. */
-export function referenceLabel(text: string | undefined, vertical: boolean, band = false) {
-  if (!text) return undefined;
-  return (props: { viewBox?: ViewBox }) => {
-    const v = props.viewBox ?? { x: 0, y: 0, width: 0, height: 0 };
-    if (band) return labelText(text, v.x + v.width / 2, v.y - 5, "middle");
-    return vertical
-      ? labelText(text, v.x, v.y - 5, "middle")
-      : labelText(text, v.x + v.width, v.y - 4, "end");
+let measureContext: CanvasRenderingContext2D | null | undefined;
+/** A label's width in `font.body.xsmall`, measured, or estimated where there is no canvas. */
+const labelWidth = (text: string) => {
+  if (measureContext === undefined && typeof document !== "undefined")
+    measureContext = document.createElement("canvas").getContext("2d");
+  if (!measureContext) return text.length * 6.5;
+  measureContext.font = tokenValue("font.body.xsmall");
+  return measureContext.measureText(text).width;
+};
+
+type TopLabel = {
+  key: string;
+  text: string;
+  /** Where it belongs: a line's x, or a band's middle. */
+  at: number;
+  /** The mark's extent: a line's x at both ends, a band's two ends. */
+  from: number;
+  to: number;
+  width: number;
+  weight: number;
+  /** The whole text, when `text` is shortened. */
+  full?: string | undefined;
+};
+
+/** The fewest characters a shortened label keeps; a label with room for fewer drops out. */
+const MIN_CHARACTERS = 3;
+
+/** The longest cut of a label, with an ellipsis and the whole kept in `full`, that `fits`; null when none that keeps `MIN_CHARACTERS` does. */
+function longestCut(label: TopLabel, fits: (cut: TopLabel) => boolean): TopLabel | null {
+  const full = label.full ?? label.text;
+  let best: TopLabel | null = null;
+  let lo = MIN_CHARACTERS;
+  let hi = full.length - 1;
+  while (lo <= hi) {
+    const n = Math.floor((lo + hi) / 2);
+    const text = `${full.slice(0, n).trimEnd()}…`;
+    const cut = { ...label, text, width: labelWidth(text), full };
+    if (fits(cut)) {
+      best = cut;
+      lo = n + 1;
+    } else hi = n - 1;
+  }
+  return best;
+}
+
+/** A label cut with an ellipsis to at most `max` pixels, the whole kept in `full`; null when it cannot keep `MIN_CHARACTERS`. */
+const shorten = (label: TopLabel, max: number): TopLabel | null =>
+  label.width <= max ? label : longestCut(label, (cut) => cut.width <= max);
+
+/**
+ * Where a label's middle may sit and still read as its mark's: over its band, however wide the
+ * label; or, for a line, with the line under the text or within a gap of its end (so the labels
+ * of two lines close together can sit either side of them).
+ */
+const reach = (l: TopLabel, gap: number) =>
+  l.from < l.to
+    ? ([l.from, l.to] as const)
+    : ([l.at - l.width / 2 - gap, l.at + l.width / 2 + gap] as const);
+
+type Placed = { key: string; text: string; full: string | undefined; x: number };
+
+/**
+ * Where a group of labels, set left to right `gap` apart, may start and still keep every member
+ * within its `reach` and the group within `[lo, hi]`: it cannot when `min` passes `max`.
+ */
+function groupStart(members: TopLabel[], lo: number, hi: number, gap: number) {
+  let min = lo;
+  let max = hi;
+  let o = 0;
+  for (const m of members) {
+    const [a, b] = reach(m, gap);
+    const inset = o + m.width / 2;
+    min = Math.max(min, a - inset);
+    max = Math.min(max, b - inset);
+    o += m.width + gap;
+  }
+  return { min, max: Math.min(max, hi - Math.max(o - gap, 0)) };
+}
+
+/**
+ * One pass of the row: each label keeps to where it belongs unless it would touch its neighbour;
+ * then the two move apart as one group, the lighter further, as far as every member's `reach` and
+ * `[lo, hi]` allow. The first group that cannot satisfy them is the conflict, with how far it
+ * misses: one found later may only be in its way because it sits where it cannot.
+ */
+function placeRow(
+  row: TopLabel[],
+  lo: number,
+  hi: number,
+  gap: number,
+): { placed: Placed[] } | { conflict: TopLabel[]; by: number } {
+  type Group = { members: TopLabel[]; start: number; width: number };
+  let conflict: { conflict: TopLabel[]; by: number } | null = null;
+  const offsets = (g: Group) => {
+    let o = 0;
+    return g.members.map((m) => {
+      const at = o;
+      o += m.width + gap;
+      return at;
+    });
   };
+  const place = (g: Group) => {
+    const offs = offsets(g);
+    const { min, max } = groupStart(g.members, lo, hi, gap);
+    if (min > max + 0.5) conflict ??= { conflict: g.members, by: min - max };
+    const total = g.members.reduce((n, m) => n + m.weight, 0);
+    const start =
+      g.members.reduce((n, m, i) => n + m.weight * (m.at - m.width / 2 - (offs[i] ?? 0)), 0) /
+      total;
+    g.start = Math.max(min, Math.min(start, max));
+  };
+  const groups: Group[] = [...row]
+    .sort((a, b) => a.at - b.at)
+    .map((m) => ({ members: [m], start: m.at - m.width / 2, width: m.width }));
+  groups.forEach(place);
+  for (let i = 1; i < groups.length;) {
+    const a = groups[i - 1]!;
+    const b = groups[i]!;
+    if (a.start + a.width + gap <= b.start) {
+      i++;
+      continue;
+    }
+    const merged: Group = {
+      members: [...a.members, ...b.members],
+      start: a.start,
+      width: a.width + gap + b.width,
+    };
+    place(merged);
+    groups.splice(i - 1, 2, merged);
+    i = Math.max(1, i - 1);
+  }
+  if (conflict) return conflict;
+  return {
+    placed: groups.flatMap((g) => {
+      const offs = offsets(g);
+      return g.members.map((m, i) => ({
+        key: m.key,
+        text: m.text,
+        full: m.full,
+        x: g.start + (offs[i] ?? 0) + m.width / 2,
+      }));
+    }),
+  };
+}
+
+/**
+ * Labels in one row that do not overlap, stay within `[lo, hi]` and stay over their marks. A
+ * line's label weighs more than a band's, so it keeps closer to its line. Where the row cannot
+ * hold them all, the lightest label in the way whose shortening narrows the miss (the widest of
+ * equals) shortens with an ellipsis, its whole text kept for a title, until they fit; one that
+ * cannot keep `MIN_CHARACTERS` drops out. Then every label shortened or dropped is offered back,
+ * the heaviest first, whole or as long as the row holds it, so none gives up more than it must.
+ */
+function spreadLabels(labels: TopLabel[], lo: number, hi: number, gap = 8): Placed[] {
+  let row = labels;
+  const miss = (members: TopLabel[]) => {
+    if (!members.length) return -Infinity;
+    const { min, max } = groupStart(members, lo, hi, gap);
+    return min - max;
+  };
+  // Each round takes a character from a label at least, or drops one, so the row places within
+  // as many rounds as it has characters.
+  const rounds = labels.reduce((n, l) => n + (l.full ?? l.text).length + 1, 1);
+  for (let round = 0; round <= rounds; round++) {
+    const result = placeRow(row, lo, hi, gap);
+    if ("placed" in result) {
+      for (const label of [...labels].sort((a, b) => b.weight - a.weight)) {
+        const now = row.find((l) => l.key === label.key);
+        if (now && !now.full) continue;
+        // The row with this label as `l`, in the order the labels came.
+        const withIt = (l: TopLabel) =>
+          labels.flatMap((m) => (m.key === label.key ? [l] : row.filter((r) => r.key === m.key)));
+        const holds = (l: TopLabel) => "placed" in placeRow(withIt(l), lo, hi, gap);
+        const text = label.full ?? label.text;
+        const whole = { ...label, text, width: labelWidth(text), full: undefined };
+        const back = holds(whole) ? whole : longestCut(whole, holds);
+        if (back && (!now || back.width > now.width)) row = withIt(back);
+      }
+      const final = placeRow(row, lo, hi, gap);
+      return "placed" in final ? final.placed : result.placed;
+    }
+    // Only a label whose shortening, or dropping out, narrows the miss gives way: in a group held
+    // between the plot's start and a line, cutting that line's label or a window's after it
+    // gains nothing, and the window would give up its words for nothing.
+    const { conflict, by } = result;
+    const inWay = [...conflict].sort((a, b) => a.weight - b.weight || b.width - a.width);
+    const narrows = inWay.filter((l) => {
+      const cut = shorten(l, l.width - 0.5);
+      return miss(conflict.flatMap((m) => (m === l ? (cut ? [cut] : []) : [m]))) < by - 0.01;
+    });
+    const [loser, rival] = narrows.length ? narrows : inWay;
+    if (!loser) break;
+    // By what the row misses, and no further than the next widest of its weight, so equals give
+    // up alike; `shorten` takes a character at least.
+    const toRival = rival?.weight === loser.weight ? loser.width - rival.width : Infinity;
+    const next = shorten(loser, loser.width - Math.max(Math.min(by, toRival), 0.5));
+    row = row.flatMap((l) => (l === loser ? (next ? [next] : []) : [l]));
+  }
+  return [];
+}
+
+/**
+ * Every reference line's and band's label, in `color.text.subtlest`, drawn over the marks. Above
+ * the plot, in one row: a vertical line's over its line (lines on one date share one label, joined
+ * with a middle dot), and a band's across categories or dates over its middle; where two would
+ * overlap in a narrow plot they move apart, each staying over its mark (a band's middle over the
+ * band) and within the plot's width, clear of the axis ticks and the end labels' margin. Where the
+ * row cannot hold them so, a band's shortens before a line's wherever that makes room, each only as
+ * far as the row needs, with an ellipsis and its whole text as the label's title; one with no room
+ * for three characters drops out. Inside the plot: a horizontal line's at its end, and a band's
+ * between two values at its top end, ringed in the surface so a line that crosses one runs behind
+ * the words.
+ */
+export function ReferenceLabels({
+  reference,
+  bands,
+  horizontal,
+  time,
+}: {
+  reference?: ChartReference[] | undefined;
+  bands?: ChartBand[] | undefined;
+  horizontal?: boolean | undefined;
+  time?: boolean | undefined;
+}) {
+  const xScale = useXAxisScale();
+  const yScale = useYAxisScale();
+  const plot = usePlotArea();
+  if (!xScale || !yScale || !plot) return null;
+  const onTime = Boolean(time);
+  const top: TopLabel[] = [];
+  const inside: { key: string; text: string; y: number }[] = [];
+  reference?.forEach((r, i) => {
+    if (!r.label) return;
+    const key = `line-${i}`;
+    if (isVertical(r, horizontal)) {
+      const at = xScale(horizontal ? r.y : axisValue(r.x, onTime), { position: "middle" });
+      if (at !== undefined)
+        top.push({
+          key,
+          text: r.label,
+          at,
+          from: at,
+          to: at,
+          width: labelWidth(r.label),
+          weight: 3,
+        });
+      return;
+    }
+    const y = yScale(horizontal ? axisValue(r.x, onTime) : r.y, { position: "middle" });
+    if (y !== undefined) inside.push({ key, text: r.label, y });
+  });
+  bands?.forEach((b, i) => {
+    if (!b.label) return;
+    const key = `band-${i}`;
+    if (isAcross(b)) {
+      const from =
+        b.fromX === undefined ? plot.x : xScale(axisValue(b.fromX, onTime), { position: "start" });
+      const to =
+        b.toX === undefined
+          ? plot.x + plot.width
+          : xScale(axisValue(b.toX, onTime), { position: "end" });
+      if (from !== undefined && to !== undefined)
+        top.push({
+          key,
+          text: b.label,
+          at: (from + to) / 2,
+          from: Math.min(from, to),
+          to: Math.max(from, to),
+          width: labelWidth(b.label),
+          weight: 1,
+        });
+      return;
+    }
+    const y = yScale(Math.max(b.from ?? 0, b.to ?? 0));
+    if (y !== undefined) inside.push({ key, text: b.label, y });
+  });
+  if (!top.length && !inside.length) return null;
+  // Lines on one category or date share one label, so neither is pushed off the line or left out.
+  const row: TopLabel[] = [];
+  for (const l of top) {
+    const i = row.findIndex((m) => m.from === m.to && l.from === l.to && Math.abs(m.at - l.at) < 1);
+    const same = row[i];
+    if (!same) {
+      row.push(l);
+      continue;
+    }
+    const text = `${same.text} · ${l.text}`;
+    row[i] = { ...same, key: `${same.key}+${l.key}`, text, width: labelWidth(text) };
+  }
+  const end = plot.x + plot.width;
+  const ink = token("color.text.subtlest");
+  // Over every mark, under the hover's cursor line and active dot.
+  return (
+    <ZIndexLayer zIndex={DefaultZIndexes.scatter + 1}>
+      <g>
+        {spreadLabels(row, plot.x, end).map((l) => (
+          <g key={l.key}>
+            {l.full ? <title>{l.full}</title> : null}
+            <text
+              x={l.x}
+              y={plot.y - 5}
+              textAnchor="middle"
+              className="font-body-xsmall"
+              fill={ink}
+            >
+              {l.text}
+            </text>
+          </g>
+        ))}
+        {inside.map((l) => (
+          <text
+            key={l.key}
+            x={end}
+            y={l.y - 4}
+            textAnchor="end"
+            className="font-body-xsmall"
+            fill={ink}
+            stroke={surface()}
+            strokeWidth={3}
+            strokeLinejoin="round"
+            paintOrder="stroke"
+          >
+            {l.text}
+          </text>
+        ))}
+      </g>
+    </ZIndexLayer>
+  );
 }
 
 /** A category value as recharts wants it on the axis: milliseconds on a time axis, itself otherwise. */
 const axisValue = (v: string | number | Date | undefined, time: boolean) =>
   v === undefined ? undefined : time ? toMs(v) : v instanceof Date ? v.getTime() : v;
 
+/** The reference lines, dashed in their tone. Their labels are `ReferenceLabels`', drawn over the marks. */
 export function References({
   reference,
   horizontal,
@@ -855,7 +1365,6 @@ export function References({
         const stroke = chartColor(r.tone ?? "neutral");
         // On a horizontal chart the value axis is x, so a `y` reference is a vertical line.
         const onValueAxis = r.y !== undefined;
-        const vertical = horizontal ? onValueAxis : !onValueAxis;
         const cat = axisValue(r.x, Boolean(time)) as string | number;
         const pos = horizontal
           ? onValueAxis
@@ -872,7 +1381,6 @@ export function References({
             strokeWidth={1}
             strokeDasharray="4 3"
             ifOverflow="extendDomain"
-            {...labelProp(referenceLabel(r.label, vertical))}
           />
         );
       })}
@@ -880,6 +1388,7 @@ export function References({
   );
 }
 
+/** The bands, a wash of their tone under the marks. Their labels are `ReferenceLabels`'. */
 export function Bands({
   bands,
   time,
@@ -891,8 +1400,7 @@ export function Bands({
   return (
     <>
       {bands.map((b, i) => {
-        const across = b.fromX !== undefined || b.toX !== undefined;
-        const pos = across
+        const pos = isAcross(b)
           ? {
               x1: axisValue(b.fromX, Boolean(time)) as string | number,
               x2: axisValue(b.toX, Boolean(time)) as string | number,
@@ -906,7 +1414,6 @@ export function Bands({
             fillOpacity={0.1}
             stroke="none"
             ifOverflow="extendDomain"
-            {...labelProp(referenceLabel(b.label, false, across))}
           />
         );
       })}
@@ -1080,6 +1587,33 @@ const surfaceIn = (el: HTMLElement | null) =>
   el?.querySelector<SVGElement>(".recharts-surface[tabindex], [data-chart-tile][tabindex]") ?? null;
 
 /**
+ * The box of a chart that sits inline, drawn by an empty `<svg>`: `width` at most, `height` kept
+ * (or, with `ratio`, the ratio kept), and narrower in a narrower container. Being a replaced
+ * element, it asks nothing of a grid track or a flex row's minimum, so a tile scales it down as it
+ * would an image, while a shrink-to-fit parent still gives it `width`. The chart itself sits over
+ * it, absolutely.
+ */
+export function InlineSizer({
+  width,
+  height,
+  ratio,
+}: {
+  width: number;
+  height: number;
+  ratio?: boolean | undefined;
+}) {
+  return (
+    <svg
+      aria-hidden
+      width={width}
+      height={height}
+      viewBox={ratio ? `0 0 ${width} ${height}` : undefined}
+      className={cn("block max-w-full", ratio && "h-auto")}
+    />
+  );
+}
+
+/**
  * The container with the kit's height. Named by `label` or by the Frame; unnamed, it is decoration
  * and not focusable. Enter on the focused plot chooses the active point when the plot can; the
  * details card for a chosen mark anchors to it here.
@@ -1109,10 +1643,15 @@ export function Plot({
   /** Enter on the focused plot. */
   onEnter?: (() => void) | undefined;
   busy?: boolean | undefined;
-  /** A fixed width in pixels for a plot that sits inline (a ring); the children then bring their own container. */
+  /**
+   * The largest width in pixels for a plot that sits inline (a ring); the children then bring their
+   * own container. The plot keeps `width` by `height` as its ratio and scales down to a narrower
+   * container, never up, in a block, a grid track or a flex row alike.
+   */
   width?: number | undefined;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const plotHeight = height ?? heights[size ?? "medium"];
   const focusedTile = useRef<SVGElement | null>(null);
   const focusedTileKey = useRef<string | null>(null);
   // Whether the plot was focused by a pointer or by the keyboard: the focus ring shows for the keyboard only.
@@ -1166,13 +1705,14 @@ export function Plot({
       aria-busy={busy || undefined}
       data-focus={focusedBy ?? undefined}
       data-chart-plot=""
+      data-card={card && anchor ? "open" : undefined}
       className={cn(
         "relative",
-        width === undefined && "w-full",
+        width === undefined ? "w-full" : "w-fit max-w-full",
         busy && "opacity-loading",
         className,
       )}
-      style={{ height: height ?? heights[size ?? "medium"], width }}
+      style={width === undefined ? { height: plotHeight } : undefined}
       onFocusCapture={(event) => {
         const tile = (event.target as Element).closest<SVGElement>("[data-chart-tile]");
         if (tile) {
@@ -1197,12 +1737,15 @@ export function Plot({
         <ResponsiveContainer
           width="100%"
           height="100%"
-          initialDimension={{ width: 320, height: height ?? heights[size ?? "medium"] }}
+          initialDimension={{ width: 320, height: plotHeight }}
         >
           {children as never}
         </ResponsiveContainer>
       ) : (
-        children
+        <>
+          <InlineSizer width={width} height={plotHeight} ratio />
+          <div className="absolute inset-0">{children}</div>
+        </>
       )}
       {card && anchor ? (
         <Card anchor={anchor} label={name} onClose={() => onClose?.()} refocus={refocus}>
@@ -1217,41 +1760,14 @@ export function Plot({
 
 const csvCell = (s: string) => (/[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s);
 
-const raw = (v: ChartValue): string =>
+/** A value as the CSV holds it: a number raw, a range as "a–b", nothing as empty. */
+export const raw = (v: ChartValue): string =>
   typeof v === "number" ? String(v) : isRange(v) ? `${v[0]}–${v[1]}` : v == null ? "" : String(v);
 
-/** The table twin as CSV: the category column, the columns before the series, a column per series, the columns after; the values unformatted and the categories formatted. */
-export function toCsv(
-  data: ChartDatum[],
-  x: string,
-  xLabel: string,
-  series: ChartSeries[],
-  formatX: CategoryFormatter,
-  columns?: ChartColumn[],
-): string {
-  const { before, after } = splitColumns(columns);
-  const cell = (d: ChartDatum, c: ChartColumn) => {
-    const v = d[c.key];
-    return typeof v === "number" || !c.format ? raw(v) : c.format(v, d);
-  };
-  const head = [
-    xLabel,
-    ...before.map((c) => c.label ?? c.key),
-    ...series.map((s) => s.label ?? s.key),
-    ...after.map((c) => c.label ?? c.key),
-  ]
-    .map(csvCell)
-    .join(",");
-  const rows = data.map((d) =>
-    [
-      formatX((d[x] as string | number | Date | undefined) ?? ""),
-      ...before.map((c) => cell(d, c)),
-      ...series.map((s) => raw(d[s.key])),
-      ...after.map((c) => cell(d, c)),
-    ]
-      .map(csvCell)
-      .join(","),
-  );
+/** The table twin as CSV: its headings, then a line per row, numbers raw and text as the table prints it. */
+export function twinCsv(twin: ChartTwin): string {
+  const head = twin.columns.map((c) => csvCell(c.label)).join(",");
+  const rows = twin.rows.map((r) => r.cells.map((c) => csvCell(c.csv)).join(","));
   return [head, ...rows].join("\n");
 }
 

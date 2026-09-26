@@ -19,7 +19,8 @@ import { Fact } from "../components/typography";
    the first the headline as a Badge and the rest a dot and a word, and the actions that change
    the state, where a blocked action stays in the row, disabled, with its reason written under
    it, because hiding the action hides the rule. The actions sit beside the title, as on every
-   record's header. */
+   record's header, and take the next row when the row cannot give the title its measure: the bar
+   is composed from PageHeader's parts so it keeps PageHeader's wrap rule. */
 
 export type ActionBarState = {
   /** The axis: "Implementation", "Assessment", "Evidence". */
@@ -77,7 +78,7 @@ export function ActionBar({ crumbs, id, title, context, states, actions, tabs }:
     : null;
   const buttons = actions?.length ? (
     <div className="flex max-w-layout-measure flex-col items-end gap-050">
-      <div className="flex items-center gap-100">
+      <div className="flex flex-wrap items-center justify-end gap-100">
         {actions.map((a) => (
           <Button
             key={a.label}
@@ -105,32 +106,36 @@ export function ActionBar({ crumbs, id, title, context, states, actions, tabs }:
       }
     >
       <PageHeader>
-        <Breadcrumb className="col-span-full">
-          <BreadcrumbList>
-            {crumbs}
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>
-                <Id>{id}</Id>
-              </BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-        <div className="min-w-0">
+        <PageHeader.Lead>
+          <Breadcrumb>
+            <BreadcrumbList>
+              {crumbs}
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>
+                  <Id>{id}</Id>
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </PageHeader.Lead>
+        <PageHeader.Heading>
           <PageHeader.Title>{title}</PageHeader.Title>
-          <div className="pt-050 flex flex-wrap items-center gap-100 font-body-small text-subtle">
-            {context}
-          </div>
-        </div>
-        <PageHeader.Actions>{buttons}</PageHeader.Actions>
-        <div className="col-span-full">
-          <>
+          {context ? (
+            <div className="flex flex-wrap items-center gap-100 pt-050 font-body-small text-subtle">
+              {context}
+            </div>
+          ) : null}
+        </PageHeader.Heading>
+        {buttons ? <PageHeader.Actions>{buttons}</PageHeader.Actions> : null}
+        {facts || tabs ? (
+          <div className="min-w-0 basis-full">
             {facts ? (
               <Fact.Group className="border-t border-default pt-100">{facts}</Fact.Group>
             ) : null}
             {tabs}
-          </>
-        </div>
+          </div>
+        ) : null}
       </PageHeader>
     </div>
   );

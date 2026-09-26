@@ -77,6 +77,143 @@
         "$description": "Tailwind's xl, 1280px: the panel breakpoint under its Tailwind name, for Grid's `xl` column count."
       }
     },
+    "container": {
+      "3xs": {
+        "$value": "16rem",
+        "$description": "Tailwind's container 3xs, 256px, restated so the `@3xs` variant reads a token. A card header puts its actions beside the title, and an input group shows its shortcut, from here.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "2xs": {
+        "$value": "18rem",
+        "$description": "Tailwind's container 2xs, 288px, restated so the `@2xs` variant reads a token. No part switches here yet.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "xs": {
+        "$value": "20rem",
+        "$description": "Tailwind's container xs, 320px, restated so the `@xs` variant reads a token. No part switches here yet.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "sm": {
+        "$value": "24rem",
+        "$description": "Tailwind's container sm, 384px, restated so the `@sm` variant reads a token. Pagination shows its Previous and Next words from here.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "md": {
+        "$value": "28rem",
+        "$description": "Tailwind's container md, 448px, restated so the `@md` variant reads a token. A field group sets label and control side by side from here. Not the viewport md, 48rem.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "lg": {
+        "$value": "32rem",
+        "$description": "Tailwind's container lg, 512px, restated so the `@lg` variant reads a token. No part switches here yet.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "xl": {
+        "$value": "36rem",
+        "$description": "Tailwind's container xl, 576px, restated so the `@xl` variant reads a token. Below it a side-by-side Diff stacks its halves and reads as the inline view.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "2xl": {
+        "$value": "42rem",
+        "$description": "Tailwind's container 2xl, 672px, restated so the `@2xl` variant reads a token. No part switches here yet.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "3xl": {
+        "$value": "48rem",
+        "$description": "Tailwind's container 3xl, 768px, restated so the `@3xl` variant reads a token. A WorkPane sets its list beside the detail from here, and the top nav shows its search as a field and keeps its foldable items out of More.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "4xl": {
+        "$value": "56rem",
+        "$description": "Tailwind's container 4xl, 896px, restated so the `@4xl` variant reads a token. No part switches here yet.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "5xl": {
+        "$value": "64rem",
+        "$description": "Tailwind's container 5xl, 1024px, restated so the `@5xl` variant reads a token. No part switches here yet.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "6xl": {
+        "$value": "72rem",
+        "$description": "Tailwind's container 6xl, 1152px, restated so the `@6xl` variant reads a token. No part switches here yet.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "7xl": {
+        "$value": "80rem",
+        "$description": "Tailwind's container 7xl, 1280px, restated so the `@7xl` variant reads a token. No part switches here yet.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "compact": {
+        "$value": "25rem",
+        "$description": "400px. Below it a region is compact: a header gives its actions a row of their own under the title, as the panel header does.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "split": {
+        "$value": "50rem",
+        "$description": "800px. From here a body shows two panes side by side; below it an open preview replaces the list, as in RecordBrowser.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      }
+    },
     "layout": {
       "sidenav": {
         "$value": "228px",

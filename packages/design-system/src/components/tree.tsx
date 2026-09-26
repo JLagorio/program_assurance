@@ -311,7 +311,7 @@ export function TreeItem({
             e.currentTarget.closest<HTMLElement>('[role="treeitem"]')?.focus();
             onToggle?.();
           }}
-          className="inline-flex size-250 shrink-0 items-center justify-center rounded-small icon-subtle outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered hover:icon-default"
+          className="relative inline-flex size-250 shrink-0 touch-target items-center justify-center rounded-small icon-subtle outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered hover:icon-default"
         >
           <ChevronRight
             className={cn(

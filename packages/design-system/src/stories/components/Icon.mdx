@@ -1,0 +1,62 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Icon } from "../../components";
+import * as Stories from "./Icon.stories";
+
+<Meta of={Stories} />
+
+# Icon
+
+A Lucide glyph with its size, colour and name decided in one place. With a `label` the icon is an image with that name, for a mark that stands for something on its own: an authorization boundary on a tree row, a met check in a cell, an overdue clock. Without one it is decoration beside the word that says the same, and it is hidden from assistive technology. The sizes and colours are the ones on [Tokens/Icons](?path=/docs/tokens-icons--docs).
+
+```tsx
+<Icon label="Authorization boundary" color="color.icon.subtle">
+  <Shield />
+</Icon>
+```
+
+<Canvas of={Stories.IconMatrix} />
+
+## When to use it
+
+- **A mark that carries meaning with no word beside it** takes an Icon with a `label`. The label is the value, not the glyph: "Met", not "Check"; "Authorization boundary", not "Shield".
+- **An icon beside its word** takes an Icon without a label, or no wrapper at all where the part draws it (Button `iconBefore`, Item `leading`, a Badge's icon). Those parts already hide it.
+- **A clickable icon is an [IconButton](?path=/docs/components-iconbutton--docs)**, whose `label` is its name and its tooltip. An Icon is never a target.
+- **A status with a word** is an [Indicator](?path=/docs/components-indicator--docs) or a Badge; colour alone never carries the meaning.
+
+<Canvas of={Stories.Named} />
+
+## Anatomy
+
+| Part    | What it is                                                                                                               |
+| ------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Wrapper | A `span` (or the element `render` names), `inline-flex`, the icon's size. `role="img"` and `aria-label` with a `label`; `aria-hidden` without one. |
+| Glyph   | The Lucide element passed as the child, sized by the wrapper to `dimension.icon.small` (14px) or `.medium` (16px), at Lucide's stroke.         |
+| Colour  | A `color.icon` token, or the surrounding text colour when left out.                                                     |
+
+## Accessibility
+
+- **A named icon is an image with a name.** A screen reader says "Authorization boundary, image"; a generic element with `aria-label` is ignored, which is the mistake this part replaces.
+- **A decorative icon is hidden**, so the word beside it is not read twice.
+- **A sighted reader needs the meaning too.** A named mark with no word beside it is fine in a dense row where the column or legend says what it means; elsewhere put the word beside it. An Icon has no tooltip, because a tooltip on something that cannot take focus is hover-only.
+- **Forced colours**: the glyph is drawn in `currentColor`, so it takes the system text colour.
+
+## Props
+
+<ArgTypes of={Icon} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Tokens/Icons](?path=/docs/tokens-icons--docs): sizes, stroke, colours and naming.
+- [VisuallyHidden](?path=/docs/primitives-visuallyhidden--docs): hidden words beside a mark, read inline with the text.
+- [IconButton](?path=/docs/components-iconbutton--docs): an icon that acts.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

@@ -2,6 +2,7 @@ import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion";
 import { ChevronDown } from "lucide-react";
 
 import { cn } from "../lib/cn";
+import { headingTag, useHeadingLevel } from "../primitives/heading-level";
 
 export type AccordionProps = AccordionPrimitive.Root.Props;
 export type AccordionItemProps = AccordionPrimitive.Item.Props;
@@ -28,9 +29,11 @@ function AccordionItem({ className, ...props }: AccordionItemProps) {
   );
 }
 
+/** The item's trigger inside its heading. The heading takes the contextual level, an h3 outside every HeadingLevelProvider; wrap the Accordion in one for another level. Props, the ref and `render` go to the trigger. */
 function AccordionTrigger({ className, children, ...props }: AccordionTriggerProps) {
+  const Tag = headingTag(useHeadingLevel() ?? 3);
   return (
-    <AccordionPrimitive.Header className="flex">
+    <AccordionPrimitive.Header render={<Tag />} className="flex">
       <AccordionPrimitive.Trigger
         data-slot="accordion-trigger"
         className={cn(
@@ -54,7 +57,8 @@ function AccordionContent({ className, children, ...props }: AccordionContentPro
   return (
     <AccordionPrimitive.Panel
       data-slot="accordion-content"
-      className="h-(--accordion-panel-height) overflow-hidden data-open:animate-collapse-open data-closed:animate-collapse-close"
+      // Clips only while it folds: once open, Base UI writes the height as `auto` and a focus ring at the edge shows whole.
+      className="h-(--accordion-panel-height) overflow-hidden data-open:animate-collapse-open data-closed:animate-collapse-close [&[data-open][style*='--accordion-panel-height:auto']]:overflow-visible [&[data-open][style*='--accordion-panel-height:_auto']]:overflow-visible"
       {...props}
     >
       <div className={cn("pb-200", className)}>{children}</div>

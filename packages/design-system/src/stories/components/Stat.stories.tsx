@@ -3,6 +3,7 @@ import { createRef } from "react";
 import { expect, fn, userEvent, within } from "storybook/test";
 
 import { Stat, tones } from "../../components";
+import { Shell } from "../../layout";
 import { Box, Grid, Stack, Text } from "../../primitives";
 import { Matrix, Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -15,6 +16,22 @@ const meta = {
 } satisfies Meta<typeof Stat>;
 export default meta;
 type Story = StoryObj<typeof meta>;
+
+/** The tiles on a grid's first row, read from layout offsets so the rise animation's transform does not move them. */
+const firstRow = (grid: HTMLElement) => {
+  const tiles = [...grid.children] as HTMLElement[];
+  const top = tiles[0]!.offsetTop;
+  return tiles.filter((tile) => Math.abs(tile.offsetTop - top) < 1);
+};
+/** A tile's floor in stat.css: two space.800. */
+const tileMin = 128;
+/** The columns a grid of `cols` shows at its own inner width: each tile keeps 128px, six and five fold to three, every count to two, one below two tiles. */
+const expectedColumns = (width: number, cols: 2 | 3 | 4 | 5 | 6) => {
+  const fits = (n: number) => width >= n * tileMin + (n - 1);
+  if (fits(cols)) return cols;
+  if (cols >= 5 && fits(3)) return 3;
+  return fits(2) ? 2 : 1;
+};
 
 /** Stat and Stat.Tile in every tone and at zero; Stat.Grid as a card and as a band. */
 export const StatMatrix: Story = {
@@ -30,7 +47,7 @@ export const StatMatrix: Story = {
           return col === "Stat" ? (
             <Stat label="Open findings" value={value} tone={tone} />
           ) : (
-            <Box style={{ width: 200 }}>
+            <Box style={{ width: 200, maxWidth: "100%" }}>
               <Stat.Tile
                 label="Open findings"
                 value={value}
@@ -42,8 +59,8 @@ export const StatMatrix: Story = {
         }}
       />
       <Specimens title="Stat.Grid · card, 3 columns">
-        <Box style={{ width: 600 }}>
-          <Stat.Grid cols={3}>
+        <Box style={{ width: 600, maxWidth: "100%" }}>
+          <Stat.Grid cols={3} role="group" aria-label="Card, 3 columns">
             <Stat.Tile label="Coverage" value="80%" note="298 of 372" tone="success" />
             <Stat.Tile
               label="Not satisfied"
@@ -56,8 +73,8 @@ export const StatMatrix: Story = {
         </Box>
       </Specimens>
       <Specimens title="Stat.Grid · band, 4 columns">
-        <Box style={{ width: 600 }}>
-          <Stat.Grid cols={4} frame="band">
+        <Box style={{ width: 600, maxWidth: "100%" }}>
+          <Stat.Grid cols={4} frame="band" role="group" aria-label="Band, 4 columns">
             <Stat.Tile label="Coverage" value="80%" />
             <Stat.Tile label="Not satisfied" value={74} />
             <Stat.Tile label="Open findings" value={5} />
@@ -71,6 +88,21 @@ export const StatMatrix: Story = {
       </Text>
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    for (const [name, cols] of [
+      ["Card, 3 columns", 3],
+      ["Band, 4 columns", 4],
+    ] as const) {
+      const grid = canvas.getByRole("group", { name });
+      // The specimen is 600px wide where its row has room, so its title holds on a desktop.
+      const row = grid.parentElement!.parentElement!;
+      await expect(Math.abs(grid.offsetWidth - Math.min(600, row.clientWidth))).toBeLessThanOrEqual(
+        1,
+      );
+      await expect(firstRow(grid)).toHaveLength(expectedColumns(grid.clientWidth, cols));
+    }
+  },
 };
 
 /** The three frames: a card at the top of a record, a band between two sections, and bare Stats in a row of a Section. */
@@ -146,7 +178,7 @@ export const Frames: Story = {
     await expect(grid).toHaveStyle({ maxWidth: "960px" });
     await expect(grid.style.backgroundColor).toBe("transparent");
     await expect(getComputedStyle(grid).backgroundColor).toBe("rgba(0, 0, 0, 0)");
-    await expect(grid).toHaveClass("grid", "sm:grid-cols-4", "border-default");
+    await expect(grid).toHaveClass("stat-grid", "stat-grid-4", "border-default");
     await expect(tile).toHaveAttribute("id", "blocked-metric");
     await expect(tile).toHaveClass("py-200", "bg-surface");
     await expect(tile).not.toHaveClass("py-150");
@@ -163,8 +195,12 @@ export const Frames: Story = {
   },
 };
 
-/** Six tiles: three across on a small screen, six from the large breakpoint. Resize the canvas. */
+/** Six tiles: six across when the grid has room, three when it has half, two in a panel. The grid follows its own width, so resize the canvas or put it in a panel. */
 export const SixAcross: Story = {
+  play: async ({ canvasElement }) => {
+    const grid = canvasElement.querySelector<HTMLElement>(".stat-grid")!;
+    await expect(firstRow(grid)).toHaveLength(expectedColumns(grid.clientWidth, 6));
+  },
   render: () => (
     <Stat.Grid cols={6}>
       <Stat.Tile label="Native records" value={412} note="read from the delivered file" />
@@ -180,6 +216,104 @@ export const SixAcross: Story = {
       <Stat.Tile label="Proposed" value={5} note="no finding in the register" tone="warning" />
     </Stat.Grid>
   ),
+};
+
+/** The grids in a panel's body on a wide screen: a 320px panel with its edge and `Shell.Panel.Body`'s space.200 padding, which leaves 287px. Four, six and three tiles sit two across, each at least 128px, and no note breaks a word a line. The window is wide; the grid follows the panel. */
+export const InANarrowPanel: Story = {
+  render: () => (
+    <section
+      aria-label="Narrow panel"
+      className="border-s border-default"
+      style={{ maxWidth: 320 }}
+    >
+      <Shell.Panel.Body>
+        <Stack space="space.300">
+          <Stat.Grid cols={4} aria-label="Four tiles in a panel" role="group">
+            <Stat.Tile label="Controls" value={80} note="Across 6 families" />
+            <Stat.Tile label="Verified" value={41} tone="success" note="51% of scope" />
+            <Stat.Tile label="Overdue" value={3} tone="danger" note="Oldest 12 days" />
+            <Stat.Tile label="Blocked" value={0} note="Nothing waiting on you" />
+          </Stat.Grid>
+          <Stat.Grid cols={6} frame="band" aria-label="Six tiles in a panel" role="group">
+            <Stat.Tile label="Native records" value={412} />
+            <Stat.Tile label="Normalized" value={412} />
+            <Stat.Tile label="Clean" value={380} />
+            <Stat.Tile label="Folded in" value={18} />
+            <Stat.Tile label="Held for analyst" value={9} tone="warning" />
+            <Stat.Tile label="Proposed" value={5} tone="warning" />
+          </Stat.Grid>
+          <Stat.Grid cols={3} aria-label="Three tiles in a panel" role="group">
+            <Stat.Tile label="Coverage" value="80%" note="298 of 372" tone="success" />
+            <Stat.Tile label="Not satisfied" value={74} note="26 other · 40 partial" />
+            <Stat.Tile label="Open findings" value={5} note="1 CAT I" tone="danger" />
+          </Stat.Grid>
+        </Stack>
+      </Shell.Panel.Body>
+    </section>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const doc = canvasElement.ownerDocument.documentElement;
+    await expect(doc.scrollWidth).toBeLessThanOrEqual(doc.clientWidth);
+    for (const [name, cols] of [
+      ["Four tiles in a panel", 4],
+      ["Six tiles in a panel", 6],
+      ["Three tiles in a panel", 3],
+    ] as const) {
+      const grid = canvas.getByRole("group", { name });
+      const row = firstRow(grid);
+      // Two across in the panel's body, as on a 320px phone, never a pile of one column.
+      await expect(row).toHaveLength(2);
+      await expect(row).toHaveLength(expectedColumns(grid.clientWidth, cols));
+      // The rise animation moves tiles only vertically, so their horizontal bounds are final.
+      const bounds = grid.getBoundingClientRect();
+      for (const tile of [...grid.children] as HTMLElement[]) {
+        const box = tile.getBoundingClientRect();
+        await expect(box.width).toBeGreaterThanOrEqual(tileMin - 0.5);
+        await expect(box.right).toBeLessThanOrEqual(bounds.right + 0.5);
+      }
+    }
+    // A short last row shares its width, so no gutter paint shows as an empty cell.
+    const three = canvas.getByRole("group", { name: "Three tiles in a panel" });
+    const last = three.lastElementChild as HTMLElement;
+    await expect(Math.abs(last.offsetWidth - three.clientWidth)).toBeLessThanOrEqual(1);
+  },
+};
+
+/** A grid whose parent sizes it to its content (an items-start Stack, an Inline, a popover) is as wide as all its tiles side by side, up to the room it has. Four short tiles ask for 128px each, so they measure four columns and stay across. Six tiles in three columns would be six tiles wide with each tile doubled, so that grid is given the row's width (`w-full`). */
+export const SizedToItsContent: Story = {
+  render: () => (
+    <Stack space="space.300" alignInline="start">
+      <Stat.Grid cols={4} role="group" aria-label="Four short tiles">
+        <Stat.Tile label="Controls" value={80} />
+        <Stat.Tile label="Verified" value={41} tone="success" />
+        <Stat.Tile label="Overdue" value={3} tone="danger" />
+        <Stat.Tile label="Blocked" value={0} />
+      </Stat.Grid>
+      <Stat.Grid cols={3} className="w-full" role="group" aria-label="Six tiles given the row">
+        <Stat.Tile label="Native records" value={412} />
+        <Stat.Tile label="Normalized" value={412} />
+        <Stat.Tile label="Clean" value={380} />
+        <Stat.Tile label="Folded in" value={18} />
+        <Stat.Tile label="Held for analyst" value={9} tone="warning" />
+        <Stat.Tile label="Proposed" value={5} tone="warning" />
+      </Stat.Grid>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const four = canvas.getByRole("group", { name: "Four short tiles" });
+    const room = four.parentElement!.clientWidth;
+    const across = 4 * tileMin + 3;
+    // As wide as its four tiles side by side, or as the space it is given when that is less.
+    await expect(four.clientWidth).toBeGreaterThanOrEqual(Math.min(across, room - 2) - 0.5);
+    await expect(firstRow(four)).toHaveLength(expectedColumns(four.clientWidth, 4));
+    if (room >= across + 2) await expect(firstRow(four)).toHaveLength(4);
+    // Given the row, six tiles take it and fold by its width: three across and two rows on a desktop.
+    const six = canvas.getByRole("group", { name: "Six tiles given the row" });
+    await expect(Math.abs(six.offsetWidth - room)).toBeLessThanOrEqual(1);
+    await expect(firstRow(six)).toHaveLength(expectedColumns(six.clientWidth, 3));
+  },
 };
 
 /** The mistakes the page is written to prevent, each beside the right way. */

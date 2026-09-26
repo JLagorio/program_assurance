@@ -1,0 +1,89 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { LinkButton, LinkIconButton } from "../../components";
+import * as Stories from "./LinkButton.stories";
+
+<Meta of={Stories} />
+
+# LinkButton
+
+Navigation that looks like a button: “View requirements”, “Create program” when it opens a page, “Open my work”. LinkButton is an anchor, or the application's router Link through `render`, with [Button](?path=/docs/components-button--docs)'s variants, sizes, icon slots and insets. Because it is a real link, the reader can middle-click it, copy its address or open it in a new tab, and Base UI's native-button check never sees it. LinkIconButton is its icon-only form.
+
+Use Button for an action that happens on this page, and [TextLink](?path=/docs/components-textlink--docs) for a link inside a sentence or a record name in a table. A Button that navigates from `onClick`, or a Button that renders a router Link, is the mistake this part replaces.
+
+<Canvas of={Stories.Matrix} />
+
+## Variants and sizes
+
+| Variant     | Use                                                                   |
+| ----------- | --------------------------------------------------------------------- |
+| `secondary` | The default: a destination beside other actions.                     |
+| `primary`   | The main destination of a region, such as Continue to review.        |
+| `subtle`    | A low-emphasis destination in a toolbar, a row or a card footer.      |
+| `danger`    | A destination that leads to a destructive task, rarely.               |
+
+Sizes are Button's: `medium` 32px (the default), `small` 28px and `xsmall` 24px. `iconBefore` and `iconAfter` take an icon element, drawn at 14px and hidden from assistive technology, and the icon's side takes the smaller inset. `isFullWidth` fills the container. There is no `link` variant: a link that looks like text is a TextLink.
+
+## Router links
+
+Pass the router's Link through `render`. It keeps its href, its client-side navigation and its active state; LinkButton supplies the look, the icons and the children. A custom component must forward the props and the ref it receives to its anchor.
+
+```tsx
+import { Link } from "@tanstack/react-router";
+import { LinkButton } from "@ledger/design-system";
+
+<LinkButton variant="primary" iconBefore={<Plus />} render={<Link to="/programs/new" />}>
+  Create program
+</LinkButton>;
+```
+
+TanStack Router's `createLink(LinkButton)` works too, and gives a component that takes the router's `to`, `params` and `search` directly. A router marks a link to the current page with `aria-current="page"`; that is right for a LinkButton that points at the page the reader is on.
+
+<Canvas of={Stories.RouterLink} />
+
+## LinkIconButton
+
+The icon-only form, with a required `label` that names the destination and shows in its tooltip on hover and keyboard focus, as on [IconButton](?path=/docs/components-iconbutton--docs). `small` is 28px, the default, and `medium` 32px with a 16px icon. Where any pointer is coarse it takes a hit area of at least 24px. Say where it goes, including a new tab: “Open CTRL-0412 in a new tab”. `isTooltipDisabled` drops the tooltip when the label is already visible nearby.
+
+<Canvas of={Stories.IconOnly} />
+
+## Disabled with a reason
+
+A destination that is not ready takes `disabledReason`. The link loses its href and stays in the tab order as a disabled link (`role="link"`, `aria-disabled="true"`), so a keyboard reader reaches it and learns why: the reason is its accessible description and shows in a tooltip on hover, on keyboard focus and on a tap. Clicks and Enter do nothing. While a reason is set the `render` element is not rendered, only its children, so a router link cannot navigate or appear in the browser's link menu. On LinkIconButton the tooltip shows the label and then the reason.
+
+Prefer a destination that is always available and explains on arrival; use a reason when following the link would only lead to an error.
+
+<Canvas of={Stories.DisabledWithAReason} />
+
+A reason that comes or goes while the link has focus leaves focus on it: a report that becomes ready while the reader is on View report gets its href and router link back, and Enter follows it.
+
+<Canvas of={Stories.ReasonChangesWhileFocused} />
+
+## Accessibility
+
+- It is a link: Tab reaches it, Enter follows it, and Space does not, as for any link. A screen reader announces a link, so the label names a destination (“View requirements”), not an operation (“Save”).
+- An external or new-tab destination says so in its label, or in a visible icon with the words in `label` for LinkIconButton.
+- The icons are decorative; the name comes from the children or `label`.
+- The focus ring, the hit area on touch and the disabled face are Button's.
+
+## Props
+
+<ArgTypes of={LinkButton} />
+
+### LinkIconButton
+
+<ArgTypes of={LinkIconButton} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+[Button](?path=/docs/components-button--docs) · [IconButton](?path=/docs/components-iconbutton--docs) · [TextLink](?path=/docs/components-textlink--docs) · [DropdownMenu](?path=/docs/components-dropdownmenu--docs) (a destination inside a menu is a LinkItem)
+
+## Don't
+
+<Canvas of={Stories.Dont} />

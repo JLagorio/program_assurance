@@ -78,6 +78,8 @@ try {
     throw new Error("Consumer CSS is missing Base UI drawer swipe geometry");
   if (!css.includes(".toast-root") || !css.includes(".toast-viewport") || !css.includes("--toast-swipe-movement-y"))
     throw new Error("Consumer CSS is missing Base UI toast stack and swipe geometry");
+  if (!/@font-face\{[^}]*font-family:\s*["']?Geist Variable/.test(css.replace(/\s*\n\s*/g, "")))
+    throw new Error("Consumer CSS is missing the packaged Geist faces from fonts.css");
   console.log("Packed consumer declarations, Vite bundle and Tailwind CSS passed");
 } finally {
   if (process.argv.includes("--keep")) console.log(`Consumer fixture: ${dir}`);

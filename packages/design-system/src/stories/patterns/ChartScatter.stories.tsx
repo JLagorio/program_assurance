@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import { Chart } from "../..";
 import { Button, KeyValue } from "../../components";
@@ -29,7 +30,7 @@ export const ScatterMatrix: Story = {
   render: () => (
     <Stack space="space.400">
       <Specimens title="One tone · three groups · a bubble with quadrants">
-        <Box style={{ width: 340 }}>
+        <Box style={{ width: "100%", maxWidth: 340 }}>
           <Chart.Scatter
             data={risks}
             x="likelihood"
@@ -40,7 +41,7 @@ export const ScatterMatrix: Story = {
             label="Risks"
           />
         </Box>
-        <Box style={{ width: 340 }}>
+        <Box style={{ width: "100%", maxWidth: 340 }}>
           <Chart.Scatter
             data={risks}
             x="likelihood"
@@ -52,7 +53,7 @@ export const ScatterMatrix: Story = {
             label="Risks by status"
           />
         </Box>
-        <Box style={{ width: 340 }}>
+        <Box style={{ width: "100%", maxWidth: 340 }}>
           <Chart.Scatter
             data={risks}
             x="likelihood"
@@ -67,7 +68,7 @@ export const ScatterMatrix: Story = {
         </Box>
       </Specimens>
       <Specimens title="Axis titles · loading">
-        <Box style={{ width: 340 }}>
+        <Box style={{ width: "100%", maxWidth: 340 }}>
           <Chart.Scatter
             data={risks}
             x="likelihood"
@@ -80,7 +81,7 @@ export const ScatterMatrix: Story = {
             label="Risks"
           />
         </Box>
-        <Box style={{ width: 340 }}>
+        <Box style={{ width: "100%", maxWidth: 340 }}>
           <Chart.Scatter
             data={risks}
             x="likelihood"
@@ -99,7 +100,7 @@ export const ScatterMatrix: Story = {
 /** Risks by likelihood and impact in three status groups. Three at most: any two of the first three hues stay apart under colour vision. */
 export const Groups: Story = {
   render: () => (
-    <Box style={{ width: 560 }}>
+    <Box style={{ maxWidth: 560 }}>
       <Chart
         title="Risks by likelihood and impact"
         description="Open risks in the register"
@@ -125,7 +126,7 @@ export const Groups: Story = {
 /** Sized by exposure, with the lines that make quadrants. A bubble's area follows the value, so twice the exposure is twice the ink. */
 export const Bubbles: Story = {
   render: () => (
-    <Box style={{ width: 560 }}>
+    <Box style={{ maxWidth: 560 }}>
       <Chart
         title="Risks by likelihood and impact"
         description="Sized by exposure in $K; the lines split the register into quadrants"
@@ -153,7 +154,7 @@ export const Bubbles: Story = {
 /** A click on a point opens its card: the point's name and group, each axis, then the caller's facts and link. */
 export const Details: Story = {
   render: () => (
-    <Box style={{ width: 560 }}>
+    <Box style={{ maxWidth: 560 }}>
       <Chart
         title="Risks by likelihood and impact"
         description="Click a risk"
@@ -188,6 +189,61 @@ export const Details: Story = {
       </Chart>
     </Box>
   ),
+};
+
+/** The Frame is given only its title and two extra columns: the legend keys the scatter's groups, and the Table toggle lays the points out one row each, the name and the group first, then a column per axis. The groups are a column of words, not a column each. */
+export const AsATable: Story = {
+  render: () => (
+    <Box style={{ maxWidth: 560 }}>
+      <Chart
+        title="Risks by likelihood and impact"
+        description="Sized by exposure in $K"
+        columns={[
+          { key: "title", label: "Title", place: "before" },
+          { key: "owner", label: "Owner" },
+        ]}
+        download={["csv"]}
+      >
+        <Chart.Scatter
+          data={risks}
+          x="likelihood"
+          y="impact"
+          z="exposure"
+          name="id"
+          groupBy="status"
+          groups={riskGroups}
+          xLabel="Likelihood"
+          yLabel="Impact"
+          zLabel="Exposure"
+        />
+      </Chart>
+    </Box>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("button", { name: "In treatment" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await userEvent.click(canvas.getByRole("button", { name: "Table" }));
+    const table = await canvas.findByRole("table", {
+      name: "Risks by likelihood and impact, as a table",
+    });
+    await expect(
+      within(table)
+        .getAllByRole("columnheader")
+        .map((h) => h.textContent),
+    ).toEqual(["Point", "Group", "Title", "Likelihood", "Impact", "Exposure", "Owner"]);
+    const rows = within(table).getAllByRole("row").slice(1);
+    await expect(rows).toHaveLength(risks.length);
+    await expect(
+      within(rows[0]!)
+        .getAllByRole("cell")
+        .map((c) => c.textContent),
+    ).toEqual(["RSK-014", "Open", "Unpatched hypervisor", "4", "5", "420", "D. Whitfield"]);
+    await userEvent.click(canvas.getByRole("button", { name: "Table" }));
+    await waitFor(() => expect(canvas.queryByRole("table")).not.toBeInTheDocument());
+  },
 };
 
 /** The mistakes the page is written to prevent, each beside the right way. */
@@ -236,6 +292,7 @@ export const Dont: Story = {
 export const Playground: Story = {
   args: {
     z: "exposure",
+    zLabel: "Exposure",
     groupBy: "status",
     groups: riskGroups,
     xLabel: "Likelihood",

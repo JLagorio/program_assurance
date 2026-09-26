@@ -16,6 +16,11 @@ import {
   resetView,
   useColumnDrag,
   useDataTable,
+  useTableQuery,
+  tableQueryFromSearch,
+  tableQueryKey,
+  tableQueryToSearch,
+  tableQueryToString,
   toCsv,
   viewKey,
   writeView,
@@ -24,8 +29,11 @@ import {
   type DataTableState,
   type PaginationState,
   type SortingState,
+  type StatusMap,
+  type TableQuery,
+  type TableQueryParams,
 } from "../..";
-import { Button, Indicator, Input, Spinner, Stat, type Tone } from "../../components";
+import { Button, Id, Indicator, Input, Spinner, Stat, type Tone } from "../../components";
 
 import { Table } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
@@ -214,7 +222,7 @@ function LiveFilterOptions() {
   const table = useDataTable({ columns, data, getRowId: (row) => row.id, label: "Live findings" });
   return (
     <Stack space="space.150">
-      <Inline space="space.100">
+      <Inline space="space.100" alignBlock="center" shouldWrap>
         <Button onClick={() => setData(findings.slice(0, 3))}>Load findings</Button>
         <Button onClick={() => setData([{ ...findings[0]!, status: "In review" }])}>
           Refresh findings
@@ -405,6 +413,65 @@ export const PinnedColumns: Story = {
   },
 };
 
+/** The pinned table in a frame that narrows, as in a panel. While the pinned columns would take more than 60% of the frame, pins give way from the middle outward, the name first, so the middle keeps room to scroll; they return when the frame widens. The reader's pins, the column menus and the export stay as they were. */
+function PinnedInFrame() {
+  const [width, setWidth] = useState(320);
+  return (
+    <Stack space="space.150">
+      <Inline space="space.100" shouldWrap>
+        <Button onClick={() => setWidth(320)}>Narrow frame</Button>
+        <Button onClick={() => setWidth(960)}>Wide frame</Button>
+      </Inline>
+      <div data-testid="pinned-frame" style={{ width, maxWidth: "100%" }}>
+        <Wide />
+      </div>
+    </Stack>
+  );
+}
+
+export const PinnedNarrow: Story = {
+  name: "Pinned columns in a narrow frame",
+  render: () => <PinnedInFrame />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const table = canvas.getByRole("table", { name: "Findings with pinned columns" });
+    const frame = table.parentElement!;
+    const heading = (name: string) =>
+      canvas.getByRole("button", { name: `${name} column menu` }).closest("th")!;
+    const offset = (name: string) => heading(name).style.insetInlineStart;
+
+    // Narrow: the name gives way and scrolls; the id stays pinned after the checkbox.
+    await waitFor(() => expect(offset("Finding")).toBe(""));
+    await expect(offset("ID")).toBe("32px");
+    const band = heading("ID").getBoundingClientRect().right - frame.getBoundingClientRect().left;
+    await expect(band).toBeLessThanOrEqual(frame.clientWidth * 0.6);
+    const idLeft = heading("ID").getBoundingClientRect().left;
+    const nameLeft = heading("Finding").getBoundingClientRect().left;
+    frame.scrollLeft = 120;
+    fireEvent.scroll(frame);
+    await waitFor(() =>
+      expect(heading("Finding").getBoundingClientRect().left).toBeLessThan(nameLeft - 100),
+    );
+    await expect(Math.round(heading("ID").getBoundingClientRect().left)).toBe(Math.round(idLeft));
+    frame.scrollLeft = 0;
+    fireEvent.scroll(frame);
+
+    // The reader's pins are unchanged: the state still holds them and the menu offers Unpin.
+    await expect(canvas.getByText(/pinned: id, name/)).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Finding column menu" }));
+    const unpin = await body.findByRole("menuitem", { name: "Unpin" });
+    await waitFor(() => expect(unpin).toBeVisible());
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+
+    // Wide: the pins return, the name after the id.
+    await userEvent.click(canvas.getByRole("button", { name: "Wide frame" }));
+    if (canvas.getByTestId("pinned-frame").parentElement!.clientWidth >= 700)
+      await waitFor(() => expect(offset("Finding")).toBe("124px"));
+  },
+};
+
 /** The same table under a view name: reorder, resize, hide or pin something, reload the story, and it is still so. Reset view in the Columns menu forgets it. */
 export const SavedView: Story = {
   name: "Saved view",
@@ -507,6 +574,265 @@ function Reordering() {
 export const ReorderingByHand: Story = {
   name: "Reordering, by hand",
   render: () => <Reordering />,
+};
+
+const movableColumns = defineColumns<Finding>((c) => [
+  c.id("id", { pin: "start" }),
+  c.text("name", { header: "Finding", width: 200 }),
+  c.status("status", { header: "Status", tone: (r) => statusTone[r.status] }),
+  c.person("owner", { header: "Owner" }),
+  c.date("due", { header: "Due", width: 120 }),
+  c.actions((r) => [{ label: "Open", onSelect: () => console.log("open", r.id) }]),
+]);
+
+function Movable({ label }: { label: string }) {
+  const table = useDataTable({
+    label,
+    columns: movableColumns,
+    data: findings.slice(0, 3),
+    getRowId: (r) => r.id,
+    reorderable: true,
+  });
+  return <DataTable table={table} />;
+}
+
+/** The headings of a table's columns, in the order they are drawn. */
+const headingOrder = (table: HTMLElement) =>
+  within(table)
+    .getAllByRole("button", { name: / column menu$/ })
+    .map((menu) => menu.getAttribute("aria-label")!.replace(/ column menu$/, ""));
+
+/** The polite status a reorderable DataTable speaks its column moves through, beside the table's frame. */
+const moveStatus = (table: HTMLElement) =>
+  table
+    .closest<HTMLElement>('[data-slot="table-container"]')!
+    .parentElement!.querySelector<HTMLElement>('[role="status"][data-slot="column-move-status"]')!;
+
+/** Nothing covers the middle of the element: a pointer there, or the eye, reaches it, not a pinned column over it. */
+const uncovered = (element: HTMLElement) => {
+  const box = element.getBoundingClientRect();
+  const hit = element.ownerDocument.elementFromPoint(
+    box.left + box.width / 2,
+    box.top + box.height / 2,
+  );
+  return hit !== null && element.contains(hit);
+};
+
+/** The grip drags a column; its menu moves it one place each way, for the keyboard, a touch screen and anyone who cannot drag. Move left and Move right stop at the edges of the column's band: the pinned id and the row actions keep their places. In a right-to-left table the words follow what the reader sees, so Move right moves a column towards the start. After a move, focus is back on the column's menu, clear of the pinned columns in a frame that scrolls, and a status says where the column stands ("Finding, 3 of 5"). */
+export const MovingColumns: Story = {
+  name: "Moving a column from its menu",
+  render: () => (
+    <Stack space="space.300">
+      <Movable label="Findings to arrange" />
+      <LedgerProvider direction="rtl">
+        <Movable label="Findings, right to left" />
+      </LedgerProvider>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const table = canvas.getByRole("table", { name: "Findings to arrange" });
+    const menuOf = (name: string, of = table) =>
+      within(of).getByRole("button", { name: `${name} column menu` });
+    const item = (name: string) => body.findByRole("menuitem", { name });
+    const closed = () => waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    await expect(headingOrder(table)).toEqual(["ID", "Finding", "Status", "Owner", "Due"]);
+
+    // A pinned column keeps its band: its menu has no Move.
+    await userEvent.click(menuOf("ID"));
+    await body.findByRole("menuitemradio", { name: "Sort ascending" });
+    await expect(body.queryByRole("menuitem", { name: /^Move/ })).toBeNull();
+    await userEvent.keyboard("{Escape}");
+    await closed();
+
+    // At the start of the middle band, Move left is disabled; Move right swaps with Status, and
+    // focus comes back to the column's own menu.
+    await userEvent.click(menuOf("Finding"));
+    await expect(await item("Move left")).toHaveAttribute("aria-disabled", "true");
+    await userEvent.click(await item("Move right"));
+    await closed();
+    await waitFor(() =>
+      expect(headingOrder(table)).toEqual(["ID", "Status", "Finding", "Owner", "Due"]),
+    );
+    await waitFor(() => expect(menuOf("Finding")).toHaveFocus());
+    // The status says where it went, and at a phone's width, where the frame scrolls, the menu
+    // with focus is not under the pinned row actions.
+    await waitFor(() => expect(moveStatus(table)).toHaveTextContent("Finding, 3 of 5"));
+    await waitFor(() => expect(uncovered(menuOf("Finding"))).toBe(true));
+
+    // By keyboard alone: open the menu, arrow to Move left, Enter.
+    await userEvent.keyboard("{Enter}");
+    await body.findByRole("menu");
+    const moveLeft = await item("Move left");
+    const focused = () => canvasElement.ownerDocument.activeElement;
+    for (let press = 0; press < 8 && focused() !== moveLeft; press++)
+      await userEvent.keyboard("{ArrowDown}");
+    await expect(moveLeft).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    await closed();
+    await waitFor(() =>
+      expect(headingOrder(table)).toEqual(["ID", "Finding", "Status", "Owner", "Due"]),
+    );
+    await waitFor(() => expect(menuOf("Finding")).toHaveFocus());
+    await waitFor(() => expect(moveStatus(table)).toHaveTextContent("Finding, 2 of 5"));
+    await waitFor(() => expect(uncovered(menuOf("Finding"))).toBe(true));
+
+    // At the end of the middle band, Move right is disabled: the row actions stay last.
+    await userEvent.click(menuOf("Due"));
+    await expect(await item("Move right")).toHaveAttribute("aria-disabled", "true");
+    await expect(await item("Move left")).not.toHaveAttribute("aria-disabled", "true");
+    await userEvent.keyboard("{Escape}");
+    await closed();
+
+    // Right to left: the start is on the right, so Move right is the disabled one, and Move left
+    // puts Finding to the left of Status.
+    const rtl = canvas.getByRole("table", { name: "Findings, right to left" });
+    await userEvent.click(menuOf("Finding", rtl));
+    await expect(await item("Move right")).toHaveAttribute("aria-disabled", "true");
+    await userEvent.click(await item("Move left"));
+    await closed();
+    await waitFor(() =>
+      expect(headingOrder(rtl)).toEqual(["ID", "Status", "Finding", "Owner", "Due"]),
+    );
+    const finding = menuOf("Finding", rtl).closest("th")!.getBoundingClientRect();
+    const status = menuOf("Status", rtl).closest("th")!.getBoundingClientRect();
+    await expect(finding.right).toBeLessThanOrEqual(status.left + 1);
+    await waitFor(() => expect(menuOf("Finding", rtl)).toHaveFocus());
+    await waitFor(() => expect(moveStatus(rtl)).toHaveTextContent("Finding, 3 of 5"));
+    await waitFor(() => expect(uncovered(menuOf("Finding", rtl))).toBe(true));
+  },
+};
+
+const panelColumns = defineColumns<Finding>((c) => [
+  c.text("name", { header: "Finding", width: 160, priority: 0 }),
+  c.status("status", {
+    header: "Status",
+    width: 100,
+    priority: 1,
+    tone: (r) => statusTone[r.status],
+  }),
+  c.person("owner", { header: "Owner" }),
+  c.date("due", { header: "Due", width: 112 }),
+  c.actions((r) => [{ label: "Open", onSelect: () => console.log("open", r.id) }]),
+]);
+
+/** No priority past the name: these columns rank by their place, so a move can change which of them fit. */
+const unrankedColumns = defineColumns<Finding>((c) => [
+  c.text("name", { header: "Finding", width: 80, priority: 0 }),
+  c.status("status", { header: "Status", width: 100, tone: (r) => statusTone[r.status] }),
+  c.text("family", { header: "Family", width: 120 }),
+  c.number("open", { header: "Open", width: 90 }),
+  c.actions((r) => [{ label: "Open", onSelect: () => console.log("open", r.id) }]),
+]);
+
+function MovableInPanel({
+  label,
+  columns,
+  selectable = false,
+}: {
+  label: string;
+  columns: typeof panelColumns;
+  selectable?: boolean | undefined;
+}) {
+  const table = useDataTable({
+    label,
+    columns,
+    data: findings.slice(0, 3),
+    getRowId: (r) => r.id,
+    reorderable: true,
+    selectable,
+  });
+  return <DataTable responsive table={table} />;
+}
+
+/** A responsive, reorderable register in a 360px panel: it draws the name and the status and folds the rest into More fields. Move left and Move right step only among the columns it draws, so every move shows, and the last drawn column's Move right is disabled rather than passing a folded one. Unranked columns rank by their place, so a move can still change which of them fit: when the moved column itself folds, focus stays in the header row, on the column it passed, and the status says it went to More fields. The select-all checkbox keeps its whole hit area in the heading. */
+export const MovingColumnsNarrow: Story = {
+  name: "Moving columns in a narrow frame",
+  render: () => (
+    <Stack space="space.300">
+      <div style={{ maxWidth: 360 }}>
+        <MovableInPanel label="Findings in a panel" columns={panelColumns} selectable />
+      </div>
+      <div style={{ maxWidth: 360 }}>
+        <MovableInPanel label="Findings with unranked columns" columns={unrankedColumns} />
+      </div>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const root = canvasElement.ownerDocument.documentElement;
+    const doc = canvasElement.ownerDocument;
+    const item = (name: string) => body.findByRole("menuitem", { name });
+    const closed = () => waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    await expect(root.scrollWidth).toBeLessThanOrEqual(root.clientWidth);
+
+    // The select-all checkbox: a point 11px from its middle, inside the 24px it needs, still
+    // reaches it, sideways and up and down, as it does in a row.
+    const panel = canvas.getByRole("table", { name: "Findings in a panel" });
+    const all = within(panel).getByRole("checkbox", { name: "Select all rows on this page" });
+    const box = all.getBoundingClientRect();
+    const [x, y] = [box.left + box.width / 2, box.top + box.height / 2];
+    for (const [dx, dy] of [
+      [-11, 0],
+      [11, 0],
+      [0, -11],
+      [0, 11],
+    ] as const)
+      await expect(all.contains(doc.elementFromPoint(x + dx, y + dy))).toBe(true);
+
+    // The panel draws the name and the status; Owner and Due are in More fields. Finding moves
+    // right past Status, the next column drawn, and focus comes back to its menu.
+    const menuOf = (name: string, of: HTMLElement) =>
+      within(of).getByRole("button", { name: `${name} column menu` });
+    await waitFor(() => expect(headingOrder(panel)).not.toContain("Owner"));
+    const drawn = headingOrder(panel);
+    await expect(drawn[0]).toBe("Finding");
+    await userEvent.click(menuOf("Finding", panel));
+    await body.findByRole("menuitemradio", { name: "Sort ascending" });
+    if (drawn.length > 1) {
+      await expect(await item("Move left")).toHaveAttribute("aria-disabled", "true");
+      await userEvent.click(await item("Move right"));
+      await closed();
+      await waitFor(() => expect(headingOrder(panel)).toEqual(["Status", "Finding"]));
+      await waitFor(() => expect(menuOf("Finding", panel)).toHaveFocus());
+      await waitFor(() => expect(moveStatus(panel)).toHaveTextContent("Finding, 2 of 2"));
+      // Finding is now the last column drawn: Move right would pass Owner, which is folded.
+      await userEvent.click(menuOf("Finding", panel));
+      await expect(await item("Move right")).toHaveAttribute("aria-disabled", "true");
+      await expect(await item("Move left")).not.toHaveAttribute("aria-disabled", "true");
+    } else {
+      // A frame that draws only the name has nothing to move past.
+      await expect(body.queryByRole("menuitem", { name: /^Move/ })).toBeNull();
+    }
+    await userEvent.keyboard("{Escape}");
+    await closed();
+
+    // Unranked: Status, Family and Open rank by their place. Where Status can move right past
+    // Open, over the folded Family, Family then fits before them and Status folds.
+    const unranked = canvas.getByRole("table", { name: "Findings with unranked columns" });
+    await waitFor(() => expect(headingOrder(unranked)).not.toContain("Family"));
+    const before = headingOrder(unranked);
+    const passed = before[before.indexOf("Status") + 1];
+    await userEvent.click(menuOf("Status", unranked));
+    const moveRight = await item("Move right");
+    if (passed === undefined) {
+      // A frame that draws Status last: Move right would pass only folded columns.
+      await expect(moveRight).toHaveAttribute("aria-disabled", "true");
+      await userEvent.keyboard("{Escape}");
+      await closed();
+      return;
+    }
+    await userEvent.click(moveRight);
+    await closed();
+    await waitFor(() => expect(headingOrder(unranked)).not.toContain("Status"));
+    await waitFor(() =>
+      expect(moveStatus(unranked)).toHaveTextContent("Status, moved into More fields"),
+    );
+    // Focus never drops to the page: it is on the column Status passed.
+    await waitFor(() => expect(menuOf(passed, unranked)).toHaveFocus());
+  },
 };
 
 /** A system as built: subsystems, boards, chips. The name column carries the chevron and the indent; the table is a treegrid and takes the arrow keys. Controls total in the footer. */
@@ -1164,7 +1490,7 @@ function States() {
   const narrowed = String(table.state.globalFilter ?? "") !== "";
   return (
     <Stack space="space.150">
-      <Inline space="space.100">
+      <Inline space="space.100" shouldWrap>
         {(["loading", "empty", "filtered", "error", "ready"] as const).map((s) => (
           <Button
             key={s}
@@ -1459,7 +1785,7 @@ function Parts() {
         <Filter table={table} column="due" />
       </Inline>
       <Presets table={table} presets={presets} />
-      <Inline space="space.100" alignBlock="center">
+      <Inline space="space.100" alignBlock="center" shouldWrap>
         <Presets table={table} presets={presets} variant="menu" />
         <DataTable.Columns table={table} />
         <DataTable.Settings table={table} />
@@ -1722,7 +2048,7 @@ function ResponsiveRegister() {
   });
   return (
     <Stack>
-      <Inline>
+      <Inline space="space.100" shouldWrap>
         <Button onClick={() => setWidth(280)}>Narrow container</Button>
         <Button onClick={() => setWidth(1000)}>Wide container</Button>
         <Button onClick={() => table.getColumn("owner")?.toggleVisibility(false)}>
@@ -1766,14 +2092,17 @@ export const ResponsiveContainers: Story = {
     const before = canvas.getByTestId("responsive-export").textContent;
     await expect(canvas.getByTestId("responsive-visibility")).toHaveTextContent('{"family":false}');
     await userEvent.click(canvas.getByRole("button", { name: "Wide container" }));
-    await waitFor(() =>
-      expect(canvas.queryAllByRole("button", { name: /^More fields for/ })).toHaveLength(0),
-    );
-    await waitFor(fits);
-    const headers = within(table).getAllByRole("columnheader");
-    expect(headers[1]!.getBoundingClientRect().left).toBeGreaterThanOrEqual(
-      headers[0]!.getBoundingClientRect().right - 1,
-    );
+    // The wide container unfolds the fields only where the canvas has room for it (not on a phone).
+    if (container.parentElement!.clientWidth >= 1000) {
+      await waitFor(() =>
+        expect(canvas.queryAllByRole("button", { name: /^More fields for/ })).toHaveLength(0),
+      );
+      await waitFor(fits);
+      const headers = within(table).getAllByRole("columnheader");
+      expect(headers[1]!.getBoundingClientRect().left).toBeGreaterThanOrEqual(
+        headers[0]!.getBoundingClientRect().right - 1,
+      );
+    }
     expect(canvas.getByTestId("responsive-export").textContent).toBe(before);
     await userEvent.click(canvas.getByRole("button", { name: "Hide owner" }));
     await userEvent.click(canvas.getByRole("button", { name: "Narrow container" }));
@@ -1860,7 +2189,7 @@ function ResponsiveVirtualRegister() {
   });
   return (
     <Stack>
-      <Inline>
+      <Inline space="space.100" shouldWrap>
         <Button onClick={() => setWidth(280)}>Preview width</Button>
         <Button onClick={() => setWidth(900)}>Page width</Button>
         <Button onClick={() => table.setSorting([{ id: "name", desc: true }])}>
@@ -1919,7 +2248,9 @@ export const ResponsiveVirtualRows: Story = {
     await expect(following.getBoundingClientRect().top).toBeGreaterThanOrEqual(
       returnedDetail.getBoundingClientRect().bottom - 1,
     );
-    // A wide layout must discard a cached narrow disclosure height even while it is offscreen.
+    // A wide layout must discard a cached narrow disclosure height even while it is offscreen. The
+    // page width unfolds the fields only where the canvas has room for it (not on a phone).
+    if (container.parentElement!.clientWidth < 900) return;
     frame.scrollTop = 20000;
     fireEvent.scroll(frame);
     await waitFor(() => expect(table.querySelector('tr[data-row-id="0"]')).toBeNull());
@@ -1944,7 +2275,7 @@ export const ResponsiveVirtualRows: Story = {
   },
 };
 
-/** The register on a small phone: search takes its own row, the saved-view strip scrolls inside its row rather than past the window, and the table folds its lower-priority fields into the row disclosure. */
+/** The register on a small phone: the saved-view strip scrolls inside its row rather than past the window, the toolbar takes two rows (the search, then More with the filters and the primary at the end, its label whole), and the table folds its lower-priority fields into the row disclosure. */
 export const RegisterNarrow: Story = {
   name: "Register at 340px",
   globals: { viewport: { value: "ledgerSmall", isRotated: false } },
@@ -1958,10 +2289,816 @@ export const RegisterNarrow: Story = {
     // The current labels can fit exactly; longer labels still scroll inside this boundary.
     await expect(viewport).toHaveStyle({ overflowX: "auto" });
     await expect(viewport.getBoundingClientRect().right).toBeLessThanOrEqual(window.innerWidth);
+    // Two rows: the search, then More with the primary at the end.
+    const search = canvas.getByRole("searchbox", { name: "Search findings" });
+    const more = await canvas.findByRole("button", { name: "More filters" });
+    const primary = canvas.getByRole("button", { name: "New finding" });
+    await expect(search.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      more.getBoundingClientRect().top,
+    );
+    await expect(
+      Math.abs(more.getBoundingClientRect().top - primary.getBoundingClientRect().top),
+    ).toBeLessThan(4);
+    await expect(primary.scrollWidth).toBeLessThanOrEqual(primary.clientWidth);
+    await expect(primary.getBoundingClientRect().right).toBeLessThanOrEqual(window.innerWidth);
     const table = canvas.getByRole("table", { name: "Findings" });
     await waitFor(() =>
       expect(table.getBoundingClientRect().right).toBeLessThanOrEqual(window.innerWidth),
     );
     await expect(await canvas.findAllByRole("button", { name: /More fields/ })).not.toHaveLength(0);
+  },
+};
+
+const longFindings: Finding[] = [
+  { ...findings[0]!, name: "Segregation of duties across payables, receivables and treasury" },
+  ...findings.slice(1, 6),
+];
+
+/** A register on a phone, where nothing can hover: the kebab and the eye are always shown, the value beside the eye ends in an ellipsis before it rather than under it, and every control smaller than 24px takes a 24px hit area. Here the id folds into More fields, so the eye moves to the name. */
+function PhoneRegister() {
+  const [opened, setOpened] = useState<string | null>(longFindings[0]!.id);
+  const columns = useMemo(
+    () =>
+      defineColumns<Finding>((c) => [
+        c.id("id", {
+          preview: (r) => setOpened(r.id),
+          active: (r) => r.id === opened,
+          priority: 1,
+        }),
+        c.text("name", { header: "Finding", minWidth: 240, priority: 0 }),
+        c.status("status", { header: "Status", tone: (r) => statusTone[r.status], priority: 2 }),
+        c.person("owner", { header: "Owner" }),
+        c.actions((r) => [
+          { label: "Open", onSelect: () => setOpened(r.id) },
+          { label: "Reassign", onSelect: () => console.log("reassign", r.id) },
+        ]),
+      ]),
+    [opened],
+  );
+  const table = useDataTable({
+    columns,
+    data: longFindings,
+    getRowId: (r) => r.id,
+    label: "Findings on a phone",
+  });
+  return (
+    <Stack space="space.150">
+      <DataTable responsive table={table} />
+      <Text size="small" color="color.text.subtle">
+        {opened ? `preview ${opened}` : "no preview open"}
+      </Text>
+    </Stack>
+  );
+}
+
+export const RowControlsPhone: Story = {
+  name: "Row controls at 390px",
+  globals: { viewport: { value: "ledgerPhone", isRotated: false } },
+  tags: ["narrow"],
+  render: () => <PhoneRegister />,
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(window.innerWidth).toBe(390));
+    const canvas = within(canvasElement);
+    const root = canvasElement.ownerDocument.documentElement;
+    const table = canvas.getByRole("table", { name: "Findings on a phone" });
+    await waitFor(() => expect(root.scrollWidth).toBeLessThanOrEqual(root.clientWidth));
+
+    // At this width the id folds into More fields, so the eye moves to the name; the open row's
+    // eye shows, and the name beside it ends in an ellipsis before it.
+    const open = () =>
+      within(table)
+        .getByRole("button", { name: "Preview row", pressed: true })
+        .closest<HTMLElement>('[data-slot="preview-eye"]')!;
+    await waitFor(() =>
+      expect(open().previousElementSibling).toHaveTextContent(longFindings[0]!.name),
+    );
+    const slot = open();
+    const value = slot.previousElementSibling as HTMLElement;
+    await expect(slot).toHaveStyle({ opacity: "1" });
+    await expect(value).toHaveStyle({ paddingInlineEnd: "24px" });
+    await expect(value.scrollWidth).toBeGreaterThan(value.clientWidth);
+    await expect(value.getBoundingClientRect().right - 24).toBeLessThanOrEqual(
+      slot.getBoundingClientRect().left + 1,
+    );
+
+    // Nothing waits for a hover: the kebab carries the no-hover rule, and every control smaller
+    // than 24px carries the touch hit area.
+    const kebab = within(table).getAllByRole("button", { name: "Row actions" })[0]!;
+    await expect(kebab).toHaveClass("[@media(hover:none)]:opacity-100");
+    for (const control of within(table).getAllByRole("button")) {
+      const { width, height } = control.getBoundingClientRect();
+      if (width > 0 && (width < 24 || height < 24))
+        await expect(control).toHaveClass("touch-target");
+    }
+
+    // Another row's eye moves the preview, and the room follows it.
+    const second = within(table.querySelectorAll<HTMLElement>("tr[data-row-id]")[1]!);
+    await userEvent.click(second.getByRole("button", { name: "Preview row" }));
+    await waitFor(() =>
+      expect(second.getByRole("button", { name: "Preview row" })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      ),
+    );
+    await expect(canvas.getByText(`preview ${longFindings[1]!.id}`)).toBeVisible();
+  },
+};
+
+/* The sort as a toolbar menu, a column's width from its menu, the question kept outside the
+   register, and one status vocabulary. */
+
+/** The sort trigger, wherever the toolbar has put it: in the row, or inside More when the row cannot hold the display controls. */
+const findSortTrigger = async (canvasElement: HTMLElement) => {
+  const body = within(canvasElement.ownerDocument.body);
+  const shown = body.queryByRole("button", { name: /^Sort\b/ });
+  if (shown) return shown;
+  await userEvent.click(within(canvasElement).getByRole("button", { name: /^More/ }));
+  return body.findByRole("button", { name: /^Sort\b/ });
+};
+
+/** The toolbar's filter chip for a column: the button that opens its popover, not the header's sort or column menu. */
+const filterChip = (canvasElement: HTMLElement, label: string) =>
+  within(canvasElement)
+    .getAllByRole("button", { name: new RegExp(`^${label}`) })
+    .find((button) => button.getAttribute("aria-haspopup") === "dialog")!;
+
+/** The leaf header whose heading reads `name`. */
+const headerNamed = (table: HTMLElement, name: string) =>
+  within(table)
+    .getAllByRole("columnheader")
+    .find((header) => header.textContent?.trim() === name);
+
+function SortRegister({
+  label = "Findings by sort",
+  offered,
+  sortLabel,
+  sorted = true,
+}: {
+  label?: string | undefined;
+  offered?: readonly string[] | undefined;
+  sortLabel?: string | undefined;
+  sorted?: boolean | undefined;
+}) {
+  const table = useDataTable({
+    columns,
+    data: findings.slice(0, 8),
+    getRowId: (r) => r.id,
+    label,
+    initialState: sorted ? { sorting: [{ id: "due", desc: false }] } : {},
+  });
+  return (
+    <DataTable
+      table={table}
+      toolbar={
+        <Toolbar
+          search={table.state.globalFilter}
+          onSearch={table.setGlobalFilter}
+          placeholder="Search findings"
+        >
+          <DataTable.Sort table={table} columns={offered} label={sortLabel} />
+          <DataTable.Columns table={table} />
+          <DataTable.Settings table={table} />
+        </Toolbar>
+      }
+    />
+  );
+}
+
+/** `DataTable.Sort` in the toolbar: the trigger reads the sort, the menu picks the column under Sort by and the direction under it, in words that follow the column (oldest first for a date, A to Z for a name), and stays open so both are set in one visit. The header it sorts by keeps its arrow and `aria-sort`. */
+export const SortMenuStory: Story = {
+  name: "Sort menu",
+  render: () => <SortRegister />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const table = canvas.getByRole("table", { name: "Findings by sort" });
+    const trigger = await findSortTrigger(canvasElement);
+    await expect(trigger).toHaveAccessibleName("Sort: Due, Oldest first");
+    await expect(trigger).toHaveAttribute("data-slot", "data-table-sort");
+    await expect(headerNamed(table, "Due")).toHaveAttribute("aria-sort", "ascending");
+
+    // By pointer: a column under Sort by, then a direction; the menu stays open between them.
+    await userEvent.click(trigger);
+    const menu = await body.findByRole("menu");
+    // Each set of radios is one group, named by its label.
+    const columnsGroup = within(menu).getByRole("group", { name: "Sort by" });
+    const directionGroup = within(menu).getByRole("group", { name: "Direction" });
+    await expect(within(columnsGroup).getByRole("menuitemradio", { name: "Due" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    await expect(within(directionGroup).getAllByRole("menuitemradio")).toHaveLength(2);
+    await userEvent.click(within(menu).getByRole("menuitemradio", { name: "Owner" }));
+    await waitFor(() =>
+      expect(headerNamed(table, "Owner")).toHaveAttribute("aria-sort", "ascending"),
+    );
+    await expect(headerNamed(table, "Due")).not.toHaveAttribute("aria-sort");
+    await expect(menu).toBeVisible();
+    await userEvent.click(within(menu).getByRole("menuitemradio", { name: "Z to A" }));
+    await waitFor(() =>
+      expect(headerNamed(table, "Owner")).toHaveAttribute("aria-sort", "descending"),
+    );
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    const again = await findSortTrigger(canvasElement);
+    await waitFor(() => expect(again).toHaveFocus());
+    await expect(again).toHaveAccessibleName("Sort: Owner, Z to A");
+
+    // By keyboard: Enter opens it, the arrows reach Open items, Enter chooses; the direction holds.
+    await userEvent.keyboard("{Enter}");
+    await body.findByRole("menu");
+    const open = await body.findByRole("menuitemradio", { name: "Open items" });
+    const focused = () => canvasElement.ownerDocument.activeElement;
+    for (let press = 0; press < 10 && focused() !== open; press++)
+      await userEvent.keyboard("{ArrowDown}");
+    await expect(open).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() =>
+      expect(headerNamed(table, "Open items")).toHaveAttribute("aria-sort", "descending"),
+    );
+    await expect(body.getByRole("menuitemradio", { name: "Highest first" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+  },
+};
+
+const foldingColumns = defineColumns<Finding>((c) => [
+  c.id("id", { priority: 1 }),
+  c.text("name", { header: "Finding", minWidth: 200, priority: 0 }),
+  c.status("status", { header: "Status", tone: (r) => statusTone[r.status], priority: 2 }),
+  c.number("open", { header: "Open items", width: 110, priority: 3 }),
+  c.date("due", { header: "Due", width: 120, priority: 4 }),
+]);
+
+function FoldedSort() {
+  const table = useDataTable({
+    columns: foldingColumns,
+    data: findings.slice(0, 6),
+    getRowId: (r) => r.id,
+    label: "Findings on a phone, by sort",
+  });
+  return (
+    <DataTable
+      responsive
+      table={table}
+      toolbar={
+        <Toolbar>
+          <DataTable.Sort table={table} />
+        </Toolbar>
+      }
+    />
+  );
+}
+
+/** On a phone the register folds Due into each row's More fields, so no header can sort by it or show that it is sorted. The menu still offers it, and its trigger says what the rows are ordered by; a column that is drawn shows its arrow and `aria-sort` as ever. */
+export const SortMenuFolded: Story = {
+  name: "Sort menu at 390px",
+  globals: { viewport: { value: "ledgerPhone", isRotated: false } },
+  tags: ["narrow"],
+  render: () => <FoldedSort />,
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(window.innerWidth).toBe(390));
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const table = canvas.getByRole("table", { name: "Findings on a phone, by sort" });
+    await waitFor(() => expect(headerNamed(table, "Due")).toBeUndefined());
+    const trigger = await findSortTrigger(canvasElement);
+    await expect(trigger).toHaveAccessibleName("Sort");
+
+    // Nothing is sorted yet, so the direction waits for a column.
+    await userEvent.click(trigger);
+    await expect(await body.findByRole("menuitemradio", { name: "Ascending" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    await userEvent.click(body.getByRole("menuitemradio", { name: "Due" }));
+    await userEvent.click(await body.findByRole("menuitemradio", { name: "Newest first" }));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    await expect(trigger).toHaveAccessibleName("Sort: Due, Newest first");
+    // No drawn header is the sorted one, so none claims to be; the rows are in Due order.
+    for (const header of within(table).getAllByRole("columnheader"))
+      await expect(header).not.toHaveAttribute("aria-sort");
+    const latest = [...findings.slice(0, 6)].sort((a, b) => b.due.localeCompare(a.due))[0]!;
+    await expect(table.querySelector("tr[data-row-id]")).toHaveAttribute("data-row-id", latest.id);
+
+    // A drawn column sorts from the menu too, and its header says so.
+    await userEvent.click(trigger);
+    await userEvent.click(await body.findByRole("menuitemradio", { name: "Finding" }));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() =>
+      expect(headerNamed(table, "Finding")).toHaveAttribute("aria-sort", "descending"),
+    );
+    await expect(trigger).toHaveAccessibleName("Sort: Finding, Z to A");
+  },
+};
+
+/** The controls a caller has on `DataTable.Sort`: the columns it offers, in order, and the trigger's words before anything is sorted. */
+export const SortPlayground: StoryObj<{ label: string; columns: string[] }> = {
+  name: "Sort playground",
+  args: { label: "Sort", columns: ["due", "open", "name", "owner"] },
+  argTypes: {
+    label: { control: "text" },
+    columns: {
+      control: "check",
+      options: ["id", "name", "status", "owner", "family", "open", "due"],
+    },
+  },
+  render: (args) => (
+    <SortRegister
+      label="Findings, sort playground"
+      sorted={false}
+      sortLabel={args.label}
+      offered={args.columns}
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    const trigger = await findSortTrigger(canvasElement);
+    await expect(trigger).toHaveAccessibleName("Sort");
+    await userEvent.click(trigger);
+    await body.findByRole("menu");
+    const offered = body
+      .getAllByRole("menuitemradio")
+      .map((item) => item.textContent)
+      .slice(0, 4);
+    await expect(offered).toEqual(["Due", "Open items", "Finding", "Owner"]);
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+  },
+};
+
+const widthColumns = defineColumns<Finding>((c) => [
+  c.text("name", { header: "Finding", width: 240 }),
+  c.text("family", { header: "Family", minWidth: 96 }),
+  c.date("due", { header: "Due", width: 120 }),
+]);
+
+function WidthFromMenu() {
+  const table = useDataTable({
+    columns: widthColumns,
+    data: findings.slice(0, 3),
+    getRowId: (r) => r.id,
+    resizable: true,
+    label: "Findings to size",
+  });
+  return <DataTable table={table} />;
+}
+
+/** A resizable column's menu sets its width without a drag, for a single pointer, a touch screen or anyone who cannot drag (WCAG 2.5.7): Wider and Narrower step 32px and keep the menu open for another press, stopping at the column's minimum and maximum, and Reset width returns to the author's width. A polite status says the width the column now has, and the handle's value follows. */
+export const ColumnWidthFromMenu: Story = {
+  name: "Column width from its menu",
+  render: () => <WidthFromMenu />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const table = canvas.getByRole("table", { name: "Findings to size" });
+    const width = (name: string) =>
+      Number(
+        headerNamed(table, name)!
+          .querySelector('[role="separator"]')!
+          .getAttribute("aria-valuenow"),
+      );
+    const item = (name: string) => body.findByRole("menuitem", { name });
+    await expect(width("Finding")).toBe(240);
+
+    // A column's width is also its floor, so it can grow and come back, not shrink below it.
+    await userEvent.click(within(table).getByRole("button", { name: "Finding column menu" }));
+    await expect(await item("Narrower")).toHaveAttribute("aria-disabled", "true");
+    await expect(await item("Reset width")).toHaveAttribute("aria-disabled", "true");
+    await userEvent.click(await item("Wider"));
+    await waitFor(() => expect(width("Finding")).toBe(272));
+    await expect(body.getByRole("menu")).toBeVisible();
+    await waitFor(() => expect(moveStatus(table)).toHaveTextContent("Finding, 272 pixels wide"));
+    await userEvent.click(await item("Wider"));
+    await waitFor(() => expect(width("Finding")).toBe(304));
+    await userEvent.click(await item("Narrower"));
+    await waitFor(() => expect(width("Finding")).toBe(272));
+    await userEvent.click(await item("Reset width"));
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    await waitFor(() => expect(width("Finding")).toBe(240));
+    await waitFor(() => expect(moveStatus(table)).toHaveTextContent("Finding, 240 pixels wide"));
+
+    // A column with only a minimum narrows to it and stops there, by keyboard alone.
+    const family = within(table).getByRole("button", { name: "Family column menu" });
+    family.focus();
+    await userEvent.keyboard("{Enter}");
+    const narrower = await item("Narrower");
+    const focused = () => canvasElement.ownerDocument.activeElement;
+    for (let press = 0; press < 10 && focused() !== narrower; press++)
+      await userEvent.keyboard("{ArrowDown}");
+    await expect(narrower).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() => expect(width("Family")).toBe(118));
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() => expect(width("Family")).toBe(96));
+    await waitFor(() => expect(narrower).toHaveAttribute("aria-disabled", "true"));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    await waitFor(() => expect(family).toHaveFocus());
+  },
+};
+
+const questionView = "data-table-example-question";
+
+function SessionRegister() {
+  const table = useDataTable({
+    columns,
+    data: findings,
+    getRowId: (r) => r.id,
+    pageSize: 4,
+    pageSizes: [4, 8],
+    label: "Findings, kept for the session",
+    view: questionView,
+    initialState: { sorting: [{ id: "due", desc: false }] },
+  });
+  useTableQuery(table, { storage: "session" });
+  return (
+    <DataTable
+      table={table}
+      toolbar={
+        <Inline space="space.100" alignBlock="center" shouldWrap>
+          <DataTable.Search table={table} placeholder="Search findings" />
+          <DataTable.Filter table={table} column="status" />
+          <DataTable.Sort table={table} />
+        </Inline>
+      }
+    />
+  );
+}
+
+function SessionRoundTrip() {
+  const [ready, setReady] = useState(false);
+  const [record, setRecord] = useState(false);
+  useEffect(() => {
+    const clear = () => {
+      try {
+        sessionStorage.removeItem(tableQueryKey(questionView));
+        localStorage.removeItem(viewKey(questionView));
+      } catch {
+        // storage unavailable: nothing to clear
+      }
+    };
+    clear();
+    setReady(true);
+    return clear;
+  }, []);
+  if (!ready) return <Text>Preparing the register</Text>;
+  return record ? (
+    <Stack space="space.150" alignInline="start">
+      <Text weight="medium">Finding FND-2204</Text>
+      <Button onClick={() => setRecord(false)}>Back to findings</Button>
+    </Stack>
+  ) : (
+    <Stack space="space.150">
+      <Inline space="space.100">
+        <Button onClick={() => setRecord(true)}>Open a record</Button>
+      </Inline>
+      <SessionRegister />
+    </Stack>
+  );
+}
+
+/** `useTableQuery(table, { storage: "session" })` keeps the register's question in this tab: a status filter, a sort and the second page survive opening a record and coming back, while the view store keeps the layout beside it. */
+export const QuestionInSession: Story = {
+  name: "Question kept for the session",
+  render: () => <SessionRoundTrip />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const findTable = () => canvas.findByRole("table", { name: "Findings, kept for the session" });
+    await findTable();
+
+    // Ask a question: Draft findings, the most open items first, the second page.
+    await userEvent.click(canvas.getByRole("button", { name: "Status", expanded: false }));
+    await userEvent.click(await body.findByRole("checkbox", { name: "Draft 6" }));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    await userEvent.click(await findSortTrigger(canvasElement));
+    await userEvent.click(await body.findByRole("menuitemradio", { name: "Open items" }));
+    await userEvent.click(await body.findByRole("menuitemradio", { name: "Highest first" }));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    await userEvent.click(canvas.getByRole("button", { name: "Next page" }));
+    await waitFor(() => expect(canvas.getByText("5–6 of 6")).toBeVisible());
+    await waitFor(() =>
+      expect(sessionStorage.getItem(tableQueryKey(questionView))).toBe(
+        tableQueryToString({
+          sorting: [{ id: "open", desc: true }],
+          filters: [{ id: "status", value: ["Draft"] }],
+          page: 2,
+        }),
+      ),
+    );
+
+    // Open a record and come back: the register asks the same question.
+    await userEvent.click(canvas.getByRole("button", { name: "Open a record" }));
+    await userEvent.click(await canvas.findByRole("button", { name: "Back to findings" }));
+    const table = await findTable();
+    await waitFor(() => expect(canvas.getByText("5–6 of 6")).toBeVisible());
+    await expect(filterChip(canvasElement, "Status")).toHaveTextContent("Draft");
+    await expect(await findSortTrigger(canvasElement)).toHaveAccessibleName(
+      "Sort: Open items, Highest first",
+    );
+    await expect(headerNamed(table, "Open items")).toHaveAttribute("aria-sort", "descending");
+  },
+};
+
+/** A router's history, in memory: entries, the current one, push, replace and back. */
+function useMemoryHistory(initial: string) {
+  const [state, setState] = useState({ entries: [initial], index: 0 });
+  return {
+    location: state.entries[state.index]!,
+    canGoBack: state.index > 0,
+    push: (next: string) =>
+      setState(({ entries, index }) => ({
+        entries: [...entries.slice(0, index + 1), next],
+        index: index + 1,
+      })),
+    replace: (next: string) =>
+      setState(({ entries, index }) => ({
+        entries: entries.map((entry, at) => (at === index ? next : entry)),
+        index,
+      })),
+    back: () => setState(({ entries, index }) => ({ entries, index: Math.max(0, index - 1) })),
+  };
+}
+
+function UrlRegister({
+  search,
+  onSearchChange,
+}: {
+  search: string;
+  onSearchChange: (params: TableQueryParams) => void;
+}) {
+  const table = useDataTable({
+    columns,
+    data: findings,
+    getRowId: (r) => r.id,
+    pageSize: 4,
+    label: "Findings, asked in the URL",
+    initialState: { sorting: [{ id: "due", desc: false }] },
+  });
+  useTableQuery(table, { search, onSearchChange });
+  return (
+    <DataTable
+      table={table}
+      toolbar={
+        <Inline space="space.100" alignBlock="center" shouldWrap>
+          <DataTable.Search table={table} placeholder="Search findings" />
+          <DataTable.Sort table={table} />
+        </Inline>
+      }
+    />
+  );
+}
+
+const overdueLink = `/findings?${tableQueryToString({ filters: [{ id: "status", value: ["Overdue"] }] })}`;
+
+function UrlRoundTrip({ lag }: { lag?: number | undefined }) {
+  const history = useMemoryHistory("/findings");
+  const [path, query = ""] = history.location.split("?");
+  // What a router's navigate with `replace` does: merge the question over the search. With `lag`,
+  // the route commits it that many milliseconds later, as a router does after its loaders.
+  const onSearchChange = (params: TableQueryParams) => {
+    const next = new URLSearchParams(query);
+    for (const [name, value] of Object.entries(params))
+      if (value === undefined) next.delete(name);
+      else next.set(name, value);
+    const text = next.toString();
+    const commit = () => history.replace(`${path}${text ? `?${text}` : ""}`);
+    if (lag === undefined) commit();
+    else setTimeout(commit, lag);
+  };
+  return (
+    <Stack space="space.150">
+      <Inline space="space.100" alignBlock="center" shouldWrap>
+        <Button disabled={!history.canGoBack} onClick={history.back}>
+          Back
+        </Button>
+        <Button onClick={() => history.push(overdueLink)}>Follow a shared link</Button>
+        {path === "/findings" ? (
+          <Button onClick={() => history.push("/findings/FND-2204")}>Open a record</Button>
+        ) : null}
+      </Inline>
+      <div data-testid="location">
+        <Id className="break-all font-body-small text-subtle">{history.location}</Id>
+      </div>
+      {path === "/findings" ? (
+        <UrlRegister search={query} onSearchChange={onSearchChange} />
+      ) : (
+        <Text weight="medium">Finding FND-2204</Text>
+      )}
+    </Stack>
+  );
+}
+
+/** `useTableQuery(table, { search, onSearchChange })` keeps the question in the URL through whatever router the product has: the reader's search and sort become `q` and `sort`, Back after opening a record restores them, and a shared link or Forward applies its question to the register that is already open. The helpers underneath are pure: `tableQueryToSearch` and `tableQueryFromSearch` write and validate the parameters. */
+export const QuestionInUrl: Story = {
+  name: "Question in the URL",
+  render: () => <UrlRoundTrip />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const location = () => canvas.getByTestId("location").textContent ?? "";
+    const findTable = () => canvas.findByRole("table", { name: "Findings, asked in the URL" });
+
+    // The parameters are validated: a malformed slice is dropped, not applied in part.
+    const question: TableQuery = {
+      search: "backup",
+      sorting: [{ id: "due", desc: true }],
+      filters: [
+        { id: "status", value: ["Overdue", "In review"] },
+        { id: "due", value: [undefined, "2026-06-30"] },
+        { id: "name", value: { contains: "access" } },
+      ],
+      page: 2,
+    };
+    await expect(tableQueryFromSearch(tableQueryToSearch(question))).toEqual(question);
+    await expect(
+      tableQueryFromSearch(
+        tableQueryToSearch({ search: "a", sorting: [] }, { prefix: "findings." }),
+        { prefix: "findings." },
+      ),
+    ).toEqual({ search: "a", sorting: [] });
+    await expect(
+      tableQueryFromSearch({ q: "ok", filters: "{not json", page: "-3", sort: ",," }),
+    ).toEqual({ search: "ok", sorting: [] });
+    await expect(tableQueryFromSearch({ filters: { status: [{ nested: true }] } })).toEqual({
+      filters: [],
+    });
+
+    // Ask: a search and a sort, each written to the URL as it changes.
+    const table = await findTable();
+    await userEvent.type(canvas.getByRole("textbox", { name: "Search findings" }), "Backup");
+    await waitFor(() => expect(location()).toBe("/findings?q=Backup"));
+    await userEvent.click(within(headerNamed(table, "Due")!).getByRole("button", { name: "Due" }));
+    await waitFor(() => expect(location()).toBe("/findings?q=Backup&sort=-due"));
+
+    // Open a record, then Back: the register mounts again and asks the same question.
+    await userEvent.click(canvas.getByRole("button", { name: "Open a record" }));
+    await waitFor(() => expect(location()).toBe("/findings/FND-2204"));
+    await userEvent.click(canvas.getByRole("button", { name: "Back" }));
+    const back = await findTable();
+    await waitFor(() =>
+      expect(canvas.getByRole("textbox", { name: "Search findings" })).toHaveValue("Backup"),
+    );
+    await expect(headerNamed(back, "Due")).toHaveAttribute("aria-sort", "descending");
+    await expect(location()).toBe("/findings?q=Backup&sort=-due");
+
+    // A shared link lands on the open register: its question replaces the reader's.
+    await userEvent.click(canvas.getByRole("button", { name: "Follow a shared link" }));
+    await waitFor(() =>
+      expect(canvas.getByRole("textbox", { name: "Search findings" })).toHaveValue(""),
+    );
+    await waitFor(() =>
+      expect(
+        [...back.querySelectorAll('[data-slot="badge"]')].map((badge) => badge.textContent),
+      ).toEqual(["Overdue", "Overdue", "Overdue", "Overdue"]),
+    );
+    await expect(headerNamed(back, "Due")).toHaveAttribute("aria-sort", "ascending");
+    await expect(location()).toBe(overdueLink);
+    await userEvent.click(canvas.getByRole("button", { name: "Back" }));
+    await waitFor(() =>
+      expect(canvas.getByRole("textbox", { name: "Search findings" })).toHaveValue("Backup"),
+    );
+  },
+};
+
+/** A router that commits its search later than the reader types, as one does after its loaders, gives back each earlier question on the way. `useTableQuery` knows its own echoes: the search box keeps every letter, and the URL ends on the whole word. A question the reader did not write, such as a followed link, still applies. */
+export const QuestionInLaggingUrl: Story = {
+  name: "Question in a URL that commits late",
+  render: () => <UrlRoundTrip lag={120} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const location = () => canvas.getByTestId("location").textContent ?? "";
+    await canvas.findByRole("table", { name: "Findings, asked in the URL" });
+    const field = canvas.getByRole("textbox", { name: "Search findings" });
+
+    // A letter every 50ms: the route gives back "B" while the reader is typing the fourth letter.
+    await userEvent.type(field, "Backup", { delay: 50 });
+    await expect(field).toHaveValue("Backup");
+    await waitFor(() => expect(location()).toBe("/findings?q=Backup"), { timeout: 3000 });
+    // Every echo has arrived by now; none took a letter away.
+    await new Promise((resolve) => setTimeout(resolve, 240));
+    await expect(field).toHaveValue("Backup");
+    await expect(location()).toBe("/findings?q=Backup");
+
+    // A link the reader follows is not an echo: its question replaces theirs.
+    await userEvent.click(canvas.getByRole("button", { name: "Follow a shared link" }));
+    await waitFor(() => expect(field).toHaveValue(""));
+    await expect(location()).toBe(overdueLink);
+  },
+};
+
+type WorkItem = { id: string; name: string; state: string };
+
+/** One vocabulary, as a product would keep it beside its status badge and pass everywhere. */
+const workStatuses = {
+  overdue: { label: "Overdue", tone: "danger" },
+  in_review: { label: "In review", tone: "information" },
+  draft: { label: "Draft", tone: "neutral" },
+  verified: { label: "Verified", tone: "success" },
+} satisfies StatusMap;
+
+const workItems: WorkItem[] = [
+  { id: "WRK-101", name: "Rotate the signing keys", state: "verified" },
+  { id: "WRK-102", name: "Review privileged access", state: "overdue" },
+  { id: "WRK-103", name: "Test the backup restore", state: "draft" },
+  { id: "WRK-104", name: "Recertify the firewall rules", state: "in_review" },
+  { id: "WRK-105", name: "Retire the legacy vault", state: "archived" },
+  { id: "WRK-106", name: "Sign off the postmortem", state: "overdue" },
+];
+
+const workColumns = defineColumns<WorkItem>((c) => [
+  c.id("id"),
+  c.text("name", { header: "Task", minWidth: 200 }),
+  c.status("state", { header: "Status", statuses: workStatuses }),
+]);
+
+function StatusMapped() {
+  const table = useDataTable({
+    columns: workColumns,
+    data: workItems,
+    getRowId: (r) => r.id,
+    label: "Work by status",
+    initialState: { sorting: [{ id: "state", desc: false }] },
+  });
+  return (
+    <Stack space="space.150">
+      <DataTable
+        table={table}
+        toolbar={
+          <Inline space="space.100" alignBlock="center" shouldWrap>
+            <DataTable.Search table={table} placeholder="Search work" />
+            <DataTable.Filter table={table} column="state" />
+            <DataTable.Sort table={table} />
+          </Inline>
+        }
+      />
+      <output data-testid="status-export" hidden>
+        {toCsv(table)}
+      </output>
+    </Stack>
+  );
+}
+
+/** `c.status(key, { statuses })` takes one shared map of each stored value to its label, tone and rank. The badge shows the label in the tone, the column sorts by rank rather than by the alphabet (a value the map does not know sorts after the known ones, in a neutral badge), the search finds a status by its label, the filter lists the labels in that order, and export writes the labels. */
+export const StatusMapStory: Story = {
+  name: "Shared status map",
+  render: () => <StatusMapped />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const table = canvas.getByRole("table", { name: "Work by status" });
+    const order = () =>
+      [...table.querySelectorAll<HTMLElement>("tr[data-row-id]")].map(
+        (row) => row.dataset["rowId"],
+      );
+    await expect(order()).toEqual([
+      "WRK-102",
+      "WRK-106",
+      "WRK-104",
+      "WRK-103",
+      "WRK-101",
+      "WRK-105",
+    ]);
+    const badges = [...table.querySelectorAll('[data-slot="badge"]')].map((b) => b.textContent);
+    await expect(badges).toEqual([
+      "Overdue",
+      "Overdue",
+      "In review",
+      "Draft",
+      "Verified",
+      "archived",
+    ]);
+    await expect(await findSortTrigger(canvasElement)).toHaveAccessibleName(
+      "Sort: Status, Ascending",
+    );
+
+    // The search finds a status by the words its badge shows, not only by the stored value.
+    const search = canvas.getByRole("textbox", { name: "Search work" });
+    await userEvent.type(search, "in review");
+    await waitFor(() => expect(order()).toEqual(["WRK-104"]));
+    await userEvent.clear(search);
+    await waitFor(() => expect(order()).toHaveLength(workItems.length));
+
+    // The filter speaks the labels, in the map's order.
+    await userEvent.click(canvas.getByRole("button", { name: "Status", expanded: false }));
+    const dialog = await body.findByRole("dialog", { name: "Status" });
+    const boxes = within(dialog).getAllByRole("checkbox");
+    const names = ["Overdue 2", "In review 1", "Draft 1", "Verified 1", "archived 1"];
+    await expect(boxes).toHaveLength(names.length);
+    for (const [at, name] of names.entries()) await expect(boxes[at]).toHaveAccessibleName(name);
+    await userEvent.click(within(dialog).getByRole("checkbox", { name: "In review 1" }));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    await expect(filterChip(canvasElement, "Status")).toHaveTextContent("In review");
+    await waitFor(() => expect(order()).toEqual(["WRK-104"]));
+    await expect(canvas.getByTestId("status-export").textContent).toContain(
+      "WRK-104,Recertify the firewall rules,In review",
+    );
   },
 };

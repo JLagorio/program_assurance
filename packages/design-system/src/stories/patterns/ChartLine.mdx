@@ -50,7 +50,11 @@ A line per series over an ordered axis: a trend, a burndown, one measure against
 
 ## Sizes
 
-`size` is the plot's height: `small` 120px, `medium` 200px (the default), `large` 320px, or `height` in pixels. Category ticks thin themselves to what fits, keeping the first; a time axis draws at most eight ticks, each at a unit's start; the right margin grows by 44px for end labels.
+`size` is the plot's height: `small` 120px, `medium` 200px (the default), `large` 320px, or `height` in pixels; unsaid, the Frame's, and `large` in the Frame's expanded Dialog. Category ticks thin themselves to what fits, keeping the first; a time axis draws at most eight ticks, each at a unit's start; the right margin grows by 44px for end labels.
+
+The labels above the plot share one row: where a milestone's and a window's would overlap in a narrow plot, they move apart, the milestone's staying closest to its line, and milestones on one date share one label, joined with a middle dot. Each stays over its mark (a window's middle over its window) and within the plot's width, clear of the axis ticks; where the row is too short for them so, a window's label shortens before a milestone's wherever that makes room, each only as far as the row needs, with an ellipsis and its whole text as its title, and one with no room for three characters is left out. Labels inside the plot are drawn over the lines, ringed in the surface, so a line that crosses one runs behind the words.
+
+<Canvas of={Stories.NarrowLabels} />
 
 ## States
 
@@ -69,7 +73,8 @@ A line per series over an ordered axis: a trend, a burndown, one measure against
 - **`curve`**, **`dots`**, **`labels`**, **`baseline`**, **`bands`**, **`reference`**, **`connectNulls`** as in Variants and Anatomy.
 - **`scale="time"`**, **`domain`**, **`delta`** as in Variants; **`syncId`** and **`texture`** as on the Frame (a line's stroke stays solid); a series' own **`format`**.
 - **`xLabel`**, **`yLabel`** print axis titles.
-- **`format`**, **`formatX`** for the numbers and the categories, inherited from the Frame.
+- **`format`**, **`formatX`** for the numbers and the categories, inherited from the Frame; the Frame's table prints the plot's.
+- **`data`**, **`x`**, **`series`**: Inside a Frame, `data`, `x` and `series` may be left to the Frame, and the Frame learns them from the part when they are given here instead: say them once, to either. The Frame's legend takes a Line's stroke swatch from it.
 - **`onSelect`** and **`details`** as in States; the selection is `{ datum, index }`.
 - **`loading`** draws the skeleton; the Frame sets it from `status="loading"`.
 - **`label`** names the plot outside a Frame.

@@ -5,7 +5,7 @@ import { Check, ChevronDown, ChevronUp } from "lucide-react";
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
-import { controlBase, controlHeight } from "./controls";
+import { controlBase, controlHeight, useFieldControlState } from "./controls";
 import {
   menuChoiceSelected,
   menuItem,
@@ -22,13 +22,15 @@ export type SelectProps<
   Multiple extends boolean | undefined = false,
 > = SelectPrimitive.Root.Props<Value, Multiple>;
 
+/** Inside a Field the trigger takes the label, hint and error and the Field's `invalid`, `disabled` and `required` (announced; `required` here is the native constraint); inside a FieldSet it follows its `disabled`. Explicit props win. */
 export function Select<Value, Multiple extends boolean | undefined = false>(
   props: SelectProps<Value, Multiple>,
 ) {
   const { direction } = useLedgerLocale();
+  const field = useFieldControlState();
   return (
     <DirectionProvider direction={direction}>
-      <SelectPrimitive.Root {...props} />
+      <SelectPrimitive.Root {...props} disabled={props.disabled || field.disabled} />
     </DirectionProvider>
   );
 }
@@ -42,11 +44,13 @@ export function SelectTrigger({
   children,
   ...props
 }: SelectTriggerProps) {
+  const field = useFieldControlState();
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       data-size={size}
       {...props}
+      {...(field.required && props["aria-required"] === undefined ? { "aria-required": true } : {})}
       className={classes(
         cn(
           controlBase,
@@ -94,6 +98,7 @@ export function SelectContent({
   ...props
 }: SelectContentProps) {
   const inheritedDirection = useDirection();
+  const field = useFieldControlState();
   const direction = dir === "ltr" || dir === "rtl" ? dir : inheritedDirection;
   const defaults = {
     width: "var(--anchor-width)",
@@ -137,7 +142,9 @@ export function SelectContent({
               className="min-h-0 overflow-y-auto overscroll-contain"
               style={{ scrollPaddingBlock: "var(--ds-space-300)" }}
               aria-label={props["aria-label"]}
-              aria-labelledby={props["aria-labelledby"]}
+              aria-labelledby={
+                props["aria-labelledby"] ?? (props["aria-label"] ? undefined : field.labelId)
+              }
             >
               {children}
             </SelectPrimitive.List>

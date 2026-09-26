@@ -17,16 +17,27 @@
   --shell-sidenav-width: var(--shell-sidenav-stored, var(--ds-dimension-layout-sidenav));
   --shell-sidenav-rail-width: calc(var(--ds-space-600) + var(--ds-space-100));
   --shell-panel-width: var(--shell-panel-stored, var(--ds-dimension-layout-panel));
+  /* Main's reserved minimum beside the side nav and the panel: one list column inside Main's
+     desktop gutters (mainMinWidth in context.tsx is the same sum). Main's column never goes under
+     it; the panel's column gives way first, down to its own minimum (--shell-panel-floor), and the
+     side nav is capped so that the three always fit. --shell-width is the root's measured width
+     (100vw would count a classic scrollbar as room); before the shell measures it, 100vw. */
+  --shell-main-min: calc(var(--ds-dimension-layout-list) + 2 * var(--ds-space-300));
+  --shell-sidenav-inset: min(
+    var(--shell-sidenav-width),
+    50vw,
+    var(--shell-width, 100vw) - var(--shell-main-min) - var(--shell-aside-inset, 0px) -
+      var(--shell-panel-floor, 0px)
+  );
   /* The stacking order, lowest first: the chrome (banner, top nav), the scrim under a flyout, the
      flyout itself. Popups and dialogs portal to the body at 50 and win by document order. */
   --shell-z-chrome: 30;
   --shell-z-scrim: 40;
   --shell-z-overlay: 50;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) var(--shell-aside-inset, 0px) var(
-      --shell-panel-inset,
-      0px
-    );
+  grid-template-columns:
+    auto minmax(min(var(--shell-main-min), 100%), 1fr) var(--shell-aside-inset, 0px)
+    minmax(var(--shell-panel-floor, 0px), var(--shell-panel-inset, 0px));
   grid-template-rows: auto auto minmax(0, 1fr) auto;
   grid-template-areas:
     "banner banner banner panel"
@@ -59,7 +70,7 @@
    the head of that column and the side nav looks full height; the toggle moves to the slot's end,
    whichever child it is. */
 @utility shell-topnav-start {
-  width: min(var(--shell-sidenav-width), 50vw);
+  width: var(--shell-sidenav-inset, min(var(--shell-sidenav-width), 50vw));
   & > [data-slot="shell-sidenav-toggle"] {
     order: 1;
     margin-inline-start: auto;
@@ -70,7 +81,7 @@
   position: sticky;
   top: var(--shell-top);
   height: calc(100dvh - var(--shell-top));
-  width: min(var(--shell-sidenav-width), 50vw);
+  width: var(--shell-sidenav-inset, min(var(--shell-sidenav-width), 50vw));
 }
 /* Main also publishes the inset under the page, its bottom padding, so a block that fills the
    window (fill-window) ends where the page does. */
@@ -173,6 +184,7 @@
 @media (width >= theme(--breakpoint-panel)) {
   .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]) {
     --shell-panel-inset: min(var(--shell-panel-width), 50vw);
+    --shell-panel-floor: min(var(--shell-panel-min), var(--shell-panel-inset));
   }
 }
 @media (width >= theme(--breakpoint-aside)) {

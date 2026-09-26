@@ -1,23 +1,41 @@
 import { useLedgerLocale } from "../lib/locale";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useRef, type ComponentProps } from "react";
+import { createContext, useContext, useEffect, useRef, type ComponentProps } from "react";
 import {
   DayPicker,
   getDefaultClassNames,
+  type DateRange,
   type DayButton,
+  type Modifiers,
   type Root,
   type Chevron as DayPickerChevron,
   type WeekNumber,
 } from "react-day-picker";
 
+import { announce } from "../lib/announce";
 import { cn } from "../lib/cn";
 import { Button, buttonVariants, type ButtonProps } from "./button";
 
 export type CalendarProps = ComponentProps<typeof DayPicker> & {
   buttonVariant?: ButtonProps["variant"];
+  /**
+   * More words for a day's accessible name, after the kit's date, today, selected and range
+   * words: why a disabled day is not available ("Weekends are closed"), what a marked day holds.
+   * Return undefined to add nothing. Keep the rule itself in the field's hint as well, where
+   * everyone reads it.
+   */
+  describeDay?: ((date: Date, modifiers: Modifiers) => string | undefined) | undefined;
 };
 
-/** A month you pick a day (or a range) from. react-day-picker underneath; 32px cells, the selection is the blue budget, today is weight 600 with no dot. */
+/* A picker that closes on a completed range and returns focus to a trigger that reads the new
+   range turns the calendar's own announcement off, so the range is not said twice. Package-only. */
+export const CalendarAnnounceContext = createContext(true);
+
+/**
+ * A month you pick a day (or a range) from. react-day-picker underneath; 32px cells, the selection
+ * is the blue budget, today is weight 600 with no dot. Words, digits, week start and `lang` follow
+ * the LedgerProvider's locale; a completed range is announced.
+ */
 export function Calendar({
   className,
   classNames,
@@ -29,9 +47,18 @@ export function Calendar({
   navLayout,
   buttonVariant = "subtle",
   showOutsideDays = true,
+  describeDay,
   ...props
 }: CalendarProps) {
-  const { direction, t, formatCalendarDate } = useLedgerLocale();
+  const {
+    direction,
+    t,
+    formatCalendarDate,
+    formatNumber,
+    locale: ledgerLocale,
+    weekStartsOn,
+  } = useLedgerLocale();
+  const announces = useContext(CalendarAnnounceContext);
   const base = getDefaultClassNames();
   const navButton = buttonVariants({
     variant: buttonVariant,
@@ -42,10 +69,50 @@ export function Calendar({
     ? (date: Date, options: Intl.DateTimeFormatOptions) =>
         date.toLocaleDateString(locale.code, options)
     : formatCalendarDate;
+  const dayLabel = (date: Date, modifiers: Modifiers) =>
+    [
+      calendarFormat(date, { dateStyle: "full" }),
+      modifiers["today"] ? t("today") : null,
+      modifiers["range_start"] ? t("dateRangeStart") : null,
+      modifiers["range_end"] ? t("dateRangeEnd") : null,
+      modifiers["selected"] && !modifiers["range_start"] && !modifiers["range_end"]
+        ? t("selected")
+        : null,
+      describeDay?.(date, modifiers) ?? null,
+    ]
+      .filter(Boolean)
+      .join(", ");
+  // A completed range is said once, politely: "September 7 to 11, 2026 selected".
+  const pickerProps = (
+    props.mode === "range" && props.onSelect && announces
+      ? {
+          ...props,
+          onSelect: (range: DateRange | undefined, ...rest: unknown[]) => {
+            (props.onSelect as (range: DateRange | undefined, ...args: unknown[]) => void)(
+              range,
+              ...rest,
+            );
+            if (range?.from && range.to) {
+              const long = { month: "long", day: "numeric", year: "numeric" } as const;
+              const start = calendarFormat(range.from, long);
+              const end = calendarFormat(range.to, long);
+              // A one-day range (DayPicker's first click) is said as its day, not "7 to 7".
+              announce(
+                t("dateRangeSelected", {
+                  range: start === end ? start : t("dateRangeSpoken", { start, end }),
+                }),
+              );
+            }
+          },
+        }
+      : props
+  ) as typeof props;
   return (
     <DayPicker
       dir={direction}
+      lang={locale?.code ?? ledgerLocale}
       locale={locale}
+      {...(locale ? {} : { weekStartsOn })}
       captionLayout={captionLayout}
       navLayout={navLayout}
       showOutsideDays={showOutsideDays}
@@ -53,29 +120,33 @@ export function Calendar({
         formatCaption: (date) => calendarFormat(date, { month: "long", year: "numeric" }),
         formatWeekdayName: (date) => calendarFormat(date, { weekday: "short" }),
         formatMonthDropdown: (date) => calendarFormat(date, { month: "long" }),
+        formatYearDropdown: (date) => calendarFormat(date, { year: "numeric" }),
+        formatDay: (date) => calendarFormat(date, { day: "numeric" }),
+        formatWeekNumber: (week) => formatNumber(week),
         ...formatters,
       }}
       labels={{
+        labelNav: () => t("dateCalendarNavigation"),
+        labelGrid: (date) => calendarFormat(date, { month: "long", year: "numeric" }),
+        labelWeekday: (date) => calendarFormat(date, { weekday: "long" }),
         labelPrevious: () => t("previousMonth"),
         labelNext: () => t("nextMonth"),
         labelMonthDropdown: () => t("month"),
         labelYearDropdown: () => t("year"),
         labelWeekNumber: (week) => t("calendarWeek", { week }),
-        labelDayButton: (date, modifiers) =>
-          [
-            calendarFormat(date, { dateStyle: "full" }),
-            modifiers["today"] ? t("today") : null,
-            modifiers["selected"] ? t("selected") : null,
-          ]
-            .filter(Boolean)
-            .join(", "),
+        labelDayButton: dayLabel,
+        labelGridcell: (date, modifiers) => dayLabel(date, modifiers ?? {}),
         ...labels,
       }}
       className={cn("w-fit p-150", className)}
       classNames={{
         root: cn(base.root, "font-body text-default"),
-        months: "relative flex flex-col gap-200 sm:flex-row",
-        month: cn("flex w-full flex-col gap-150", navLayout === "around" && "relative"),
+        // Below the `sm` window the months always stack: the window is the space there, and a
+        // popover sized to its content is one month wide from its first frame instead of
+        // shrinking to the screen after it is placed. From `sm` the calendar's own space decides:
+        // side by side when it holds them, wrapped under each other when it does not.
+        months: "relative flex flex-col gap-200 sm:flex-row sm:flex-wrap sm:justify-center",
+        month: cn("flex flex-col gap-150", navLayout === "around" && "relative"),
         month_caption: "flex h-control-small items-center justify-center px-400",
         caption_label: "inline-flex items-center gap-050 font-body font-medium",
         dropdowns: "flex h-control-medium items-center justify-center gap-100",
@@ -111,7 +182,7 @@ export function Calendar({
         WeekNumber: CalendarWeekNumber,
         ...components,
       }}
-      {...props}
+      {...pickerProps}
     />
   );
 }
@@ -174,6 +245,9 @@ export function CalendarDayButton({ className, day, modifiers, ...props }: Calen
       data-range-end={modifiers["range_end"]}
       data-range-middle={modifiers["range_middle"]}
       className={cn(
+        // In forced colours the browser drops the fills that mark the selection; the selected
+        // day and the range keep their own colours there, so the choice stays visible.
+        "data-[selected-single=true]:forced-color-adjust-none data-[range-start=true]:forced-color-adjust-none data-[range-end=true]:forced-color-adjust-none data-[range-middle=true]:forced-color-adjust-none",
         "size-400 p-0 font-body font-regular text-default data-[selected-single=true]:bg-brand-bold data-[selected-single=true]:text-inverse data-[selected-single=true]:hover:bg-brand-bold-hovered data-[range-start=true]:bg-brand-bold data-[range-start=true]:text-inverse data-[range-start=true]:hover:bg-brand-bold-hovered data-[range-end=true]:bg-brand-bold data-[range-end=true]:text-inverse data-[range-end=true]:hover:bg-brand-bold-hovered data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-selected data-[range-middle=true]:text-default data-[range-middle=true]:hover:bg-selected-hovered",
         getDefaultClassNames().day_button,
         className,

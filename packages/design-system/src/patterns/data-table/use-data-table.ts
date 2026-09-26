@@ -23,6 +23,8 @@ const hook = createTableHook({
   enableMultiSort: false,
   enableSortingRemoval: false,
   columnResizeMode: "onEnd",
+  // TanStack's includesString, and a status map's labels too.
+  globalFilterFn: "search",
 });
 
 export const { useTableContext, useCellContext, useHeaderContext } = hook;
@@ -52,17 +54,17 @@ export type DataTableOptions<TData extends RowData> = Partial<TanStackOptions<TD
   pinnable?: boolean | undefined;
   /** The reader can hide columns. On by default; `hideable: false` on a column keeps that one. */
   hideable?: boolean | undefined;
-  /** A handle on every header's trailing edge. */
+  /** A handle on every header's trailing edge, and Wider, Narrower and Reset width in the column menu; drag, arrow keys or one press resize. */
   resizable?: boolean | undefined;
-  /** A grip on every header; drag or arrow keys reorder. Pinned columns keep their band. */
+  /** A grip on every header, and Move left and Move right in the column menu; drag, arrow keys or one press reorder. Pinned columns keep their band. */
   reorderable?: boolean | undefined;
-  /** The per-column menu on header hover: sort, pin, hide. On when anything above is. */
+  /** The per-column menu on a header's hover: sort, move (with `reorderable`), pin, hide. On when `pinnable` or `hideable` is. */
   columnMenu?: boolean | undefined;
   /** `fixed` makes every width authoritative and leaves the slack to the unsized columns; on by itself when the table resizes or reorders. `auto` lets the browser fit content. */
   layout?: "auto" | "fixed" | undefined;
   /** Names the table so the reader's layout (order, widths, visibility, pins, density) persists in this browser. */
   view?: string | undefined;
-  /** The rows' height at first: `compact` (36px) for a picker's table; `default` (40px) unsaid. The reader changes it from the Columns menu, and the choice persists with `view`. */
+  /** The rows' height at first: `compact` (36px) for a picker's table; `default` (40px) unsaid. The reader changes it from the Settings menu, and the choice persists with `view`. */
   density?: Density | undefined;
   /** Nested rows: `children` reads a row's parts; the table is a treegrid and the leading disclosure column carries the chevron. */
   tree?:

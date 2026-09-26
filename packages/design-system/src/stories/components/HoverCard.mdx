@@ -1,4 +1,5 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { HoverCardContent } from "../../components";
 
 import * as Stories from "./HoverCard.stories";
 
@@ -25,7 +26,7 @@ An action trigger can use `render={<button type="button" />}`. Its native button
 
 Content is 256px wide by default. Override its width through `style`, including a state callback. Placement defaults to `side="bottom"`, `sideOffset={4}`, `align="center"` and `alignOffset={4}`. These four props belong to Content. The positioner handles collisions; logical sides and alignment follow the Ledger locale, with Content's `dir` available as an override.
 
-The surface uses Ledger's overlay, border, text, radius, spacing and motion tokens. Content `className` and `style` callbacks receive Base UI popup state; render props, classes, styles and refs are merged.
+The surface uses Ledger's overlay, border, text, radius, spacing and motion tokens, and records the overlay surface as the current one, so a child painted with `bg-surface-current` (a sticky label, a fade at an edge) matches the card. Content `className` and `style` callbacks receive Base UI popup state; render props, classes, styles and refs are merged.
 
 <Canvas of={Stories.HoverCardMatrix} />
 
@@ -50,6 +51,8 @@ Replace the wrapper's `content` prop with `HoverCardContent` children. Compose a
 ## Props
 
 HoverCard inherits Base UI's [Root props](https://base-ui.com/react/components/preview-card#root), and HoverCardTrigger inherits its [Trigger props](https://base-ui.com/react/components/preview-card#trigger). HoverCardContent inherits [Popup props](https://base-ui.com/react/components/preview-card#popup) plus the four positioning props described above.
+
+<ArgTypes of={HoverCardContent} />
 
 <Canvas of={Stories.Playground} />
 

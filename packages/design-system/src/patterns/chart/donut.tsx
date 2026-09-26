@@ -1,5 +1,5 @@
 import { useLedgerLocale } from "../../lib/locale";
-import { useId, type ReactNode } from "react";
+import { useId, useMemo, type ReactNode } from "react";
 import {
   Cell,
   Pie,
@@ -20,6 +20,7 @@ import {
   TooltipContent,
   categoricalTone,
   chartColor,
+  heights,
   hoveredColor,
   markClass,
   rectAnchor,
@@ -28,13 +29,16 @@ import {
   textureFill,
   textureOf,
   useFrame,
+  useFrameReport,
   useMotion,
   usePicked,
   useTooltipMotion,
   type ChartSeries,
   type ChartTone,
   type Formatter,
+  type FrameReport,
   type Texture,
+  type TwinSource,
 } from "./_shared";
 
 export type DonutSlice = {
@@ -56,9 +60,9 @@ export type ChartDonutProps = {
   caption?: string | undefined;
   /** `full` is a ring; `half` is a gauge, open at the bottom, the label at its base. */
   arc?: "full" | "half" | undefined;
-  /** Diameter in pixels. */
+  /** The largest diameter in pixels. In a narrower container the ring scales down, keeping its proportions; the number keeps its type size. In the expanded Dialog it draws at 320px, the `large` plot's height, at least. */
   size?: number | undefined;
-  /** The ring's thickness in pixels. */
+  /** The ring's thickness in pixels at `size`; it scales with the ring. */
   thickness?: number | undefined;
   /** The number format in the tooltip. */
   format?: Formatter | undefined;
@@ -97,8 +101,8 @@ export function ChartDonut({
   label,
   caption,
   arc = "full",
-  size = 120,
-  thickness = 12,
+  size: sizeProp = 120,
+  thickness: thicknessProp = 12,
   format: formatProp,
   name: nameProp,
   texture: textureProp,
@@ -109,14 +113,12 @@ export function ChartDonut({
 }: ChartDonutProps) {
   const { t, formatNumber } = useLedgerLocale();
 
-  const { name, hidden, highlighted, format, formatX, loading, texture } = useFrame(
-    nameProp,
-    formatProp,
-    undefined,
-    loadingProp,
-    undefined,
-    textureProp,
-  );
+  const { name, hidden, highlighted, format, formatX, loading, texture, offstage, expanded } =
+    useFrame(nameProp, formatProp, undefined, loadingProp, undefined, textureProp);
+  // Expanded, the ring takes the room the Dialog gives a plot, thickness in proportion.
+  const grow = expanded ? Math.max(1, heights.large / sizeProp) : 1;
+  const size = sizeProp * grow;
+  const thickness = thicknessProp * grow;
   const id = useId();
   const motion = useMotion();
   const tooltipMotion = useTooltipMotion();
@@ -129,7 +131,14 @@ export function ChartDonut({
   const inner = outer - thickness;
   const boxHeight = half ? outer + 4 : size;
   const angles = half ? { startAngle: 180, endAngle: 0 } : { startAngle: 90, endAngle: -270 };
-  const cy = half ? outer : "50%";
+  // `size` is the largest the ring gets: in a narrower container (a block, a grid track or a flex
+  // row) the box keeps its ratio and the geometry is given in shares of the box (Recharts reads
+  // radii against half the box's shorter side), so the ring and its thickness scale together, as
+  // through a viewBox.
+  const maxRadius = Math.min(size, boxHeight) / 2;
+  const share = (px: number) => `${(px / maxRadius) * 100}%`;
+  const radii = { innerRadius: share(inner), outerRadius: share(outer) };
+  const cy = half ? `${(outer / boxHeight) * 100}%` : "50%";
   const chooses = Boolean(onSelect || details);
   const toneOf = (s: DonutSlice) => s.tone ?? categoricalTone(slices.indexOf(s));
   const textures: Record<string, Texture> = {};
@@ -138,6 +147,48 @@ export function ChartDonut({
     texture
       ? textureFill(id, s.key, textureOf(slices.indexOf(s)), chartColor(toneOf(s)))
       : chartColor(toneOf(s));
+  const legend = useMemo<ChartSeries[]>(
+    () =>
+      slices.map((s, i) => ({ key: s.key, label: s.label, tone: s.tone ?? categoricalTone(i) })),
+    [slices],
+  );
+  const table = useMemo<TwinSource>(
+    () => ({
+      kind: "custom",
+      build: ({ xLabel }) => {
+        // Every slice's share of the whole, whichever the legend hides: the table is the data.
+        const whole = slices.reduce((n, s) => n + s.value, 0);
+        return {
+          columns: [
+            { label: xLabel ?? t("chartCategory"), numeric: false },
+            { label: t("value"), numeric: true },
+            { label: t("chartShare"), numeric: true },
+          ],
+          rows: slices.map((s) => {
+            const part = whole ? s.value / whole : 0;
+            return {
+              key: s.key,
+              cells: [
+                { text: s.label, csv: s.label },
+                { text: format(s.value), csv: String(s.value) },
+                {
+                  text: formatNumber(part, { style: "percent", maximumFractionDigits: 0 }),
+                  csv: String(Number(part.toFixed(4))),
+                },
+              ],
+            };
+          }),
+        };
+      },
+    }),
+    [slices, t, format, formatNumber],
+  );
+  const report = useMemo<FrameReport>(
+    () => ({ series: legend, swatch: "square", format, height: boxHeight, table }),
+    [legend, format, boxHeight, table],
+  );
+  useFrameReport(report);
+  if (offstage) return null;
   if (loading)
     return (
       <div
@@ -145,10 +196,16 @@ export function ChartDonut({
         aria-label={name ? t("loadingLabel", { label: name }) : undefined}
         aria-busy
         aria-hidden={name ? undefined : true}
-        className={cn("relative inline-block shrink-0 animate-pulse", className)}
-        style={{ width: size, height: boxHeight }}
+        className={cn("relative inline-block w-fit max-w-full shrink-0 animate-pulse", className)}
       >
-        <svg width={size} height={boxHeight} aria-hidden>
+        {/* Sized as the loaded ring's box is, so nothing moves when the slices arrive. */}
+        <svg
+          viewBox={`0 0 ${size} ${boxHeight}`}
+          width={size}
+          height={boxHeight}
+          className="block h-auto max-w-full"
+          aria-hidden
+        >
           <circle
             cx={outer}
             cy={outer}
@@ -205,8 +262,7 @@ export function ChartDonut({
               dataKey="value"
               cx="50%"
               cy={cy}
-              innerRadius={inner}
-              outerRadius={outer}
+              {...radii}
               fill={token("color.chart.track")}
               stroke="none"
               isAnimationActive={false}
@@ -218,8 +274,7 @@ export function ChartDonut({
               nameKey="label"
               cx="50%"
               cy={cy}
-              innerRadius={inner}
-              outerRadius={outer}
+              {...radii}
               stroke={surface()}
               strokeWidth={shown.length > 1 ? 2 : 0}
               activeShape={(p: PieSectorDataItem) => {

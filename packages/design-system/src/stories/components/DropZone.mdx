@@ -1,0 +1,92 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { DropZone } from "../../components";
+import * as Stories from "./DropZone.stories";
+
+<Meta of={Stories} />
+
+# DropZone
+
+A region files can be dropped on, with a [FileTrigger](?path=/docs/components-filetrigger--docs) inside for the keyboard, a screen reader and a touch screen, which cannot drag. Every drop and every choice is checked against `accept`, `maxSize` and `multiple`; accepted files go to `onSelect`, each refused file gets a message, and the result is announced.
+
+Use it where attaching files is the task: an upload form, an import, a record's files. For an attach button in a compact spot (a composer, a toolbar), use a FileTrigger on its own. DropZone chooses files and checks them; it does not upload them. Show the accepted files as [Attachment](?path=/docs/components-attachment--docs) rows and run the upload yourself.
+
+<Canvas of={Stories.Playground} />
+
+## Anatomy
+
+```tsx
+<Field required>
+  <FieldLabel>Supporting files</FieldLabel>
+  <DropZone accept="application/pdf,image/*" maxSize={5_000_000} multiple onSelect={upload}>
+    <FieldDescription>PDF or image, up to 5 MB each.</FieldDescription>
+  </DropZone>
+</Field>
+```
+
+- **Title**: the instruction for a pointer, "Drag a file here" or "Drag files here" with `multiple`; `title` replaces it.
+- **Children**: the constraints, as a FieldDescription, under the title. In a Field they describe the trigger.
+- **Trigger**: a FileTrigger with the zone's `accept`, `multiple` and `disabled`, labelled "Choose a file" or "Choose files"; `triggerLabel` replaces the words and `triggerRef` reaches the button.
+- **Refusals**: one line per refused file (a drop of too many files is one line), under the trigger.
+
+Put the zone in a [Field](?path=/docs/components-field--docs). The FieldLabel names the trigger, the FieldDescription describes it, `required` adds "(required)" to its name, and a FieldError of your own, for a problem found on submit, describes it too. Leave the Field's `invalid` unset unless a form library owns it: a FieldError that shows marks the Field invalid by itself, the zone's or yours. Outside a Field the trigger is named by its own words alone (give it `triggerLabel` words that say what to choose), and a refusal still describes it and marks it invalid.
+
+<Canvas of={Stories.WithoutAField} />
+
+## Checking files
+
+The zone reads `accept` as the file input does: a media type matches the file's type, a wildcard (`image/*`) its family, an extension (`.pdf`) the end of its name, and `*/*` any file. `maxSize` is bytes per file; write it in decimal units (`5_000_000` for 5 MB), since the message formats it with `formatFileSize`. Without `multiple`, a drop of several files refuses them all with one message.
+
+| Reason  | Message (locale key)                                            |
+| ------- | --------------------------------------------------------------- |
+| `type`  | "notes.docx is not an accepted file type." (`fileTypeRejected`) |
+| `size`  | "survey.pdf is larger than 5 MB." (`fileTooLarge`)              |
+| `count` | "Add one file at a time." (`fileCountRejected`)                 |
+
+Accepted files in the same drop still go to `onSelect`; `onReject` receives the refusals, each with its `file`, `reason` and `message`. The refusals show in the zone as the Field's FieldError: they describe the trigger, turn the Field invalid (the label and the border take the danger colour, and the trigger `aria-invalid`), and stay until the next drop or choice replaces them. A Field's explicit `invalid={false}` keeps the label at rest, but the trigger and the border still show the refusal.
+
+<Canvas of={Stories.Validation} />
+
+## Dragging
+
+While files are dragged over it the zone's border turns solid and takes the selected colour, and its title reads "Drop the file to add it" or "Drop the files to add them", so the state does not rest on colour and survives forced colours. Text or a link dragged across the page does not light it. A click on the zone's surface opens the picker, for a pointer; the trigger is still the only tab stop.
+
+<Canvas of={Stories.DragAndDrop} />
+
+`disabled`, on the zone, its Field or a FieldSet, disables the trigger and refuses drops; the zone still takes the drag, so the browser does not open a file dropped on it.
+
+## The upload flow
+
+The caller owns what happens to the files. The pattern the stories show:
+
+- Each accepted file becomes an Attachment row in `uploading`, with a labelled [Progress](?path=/docs/components-progress--docs) and a Cancel named for the file ("Cancel uploading plan.pdf").
+- A failed upload keeps its row in `error` with the reason in the Description, a Retry and a Remove, each named for the file.
+- A finished row is `done`, with the type and the size (`formatFileSize`) and a Download.
+- Each result is announced (`announce`: "Uploaded plan.pdf.", "Could not upload scan.png."). After a removal, focus goes to the trigger (`triggerRef`).
+- The primary stays enabled. On submit, say what is missing in a FieldError and move focus to the trigger: no file yet, a file still uploading, a failed upload not yet retried or removed.
+
+<Canvas of={Stories.UploadFlow} />
+
+## Accessibility
+
+- One tab stop, the trigger. Enter or Space opens the picker; a click on its label does too.
+- The result of a drop or a choice is announced politely, since focus stays on the trigger: "Added plan.pdf.", "Added 2 files.", and each refusal. The messages are in the locale (`fileAdded`, `filesAddedOne`, `filesAddedOther`, `dropFileHere`, `dropFilesHere`, `dropFileRelease`, `dropFilesRelease`, `chooseFile`, `chooseFiles` and the three above), so a LedgerProvider can translate them.
+- The drag state is a border style and a title as well as a colour. The icon is decorative.
+- A refusal is text in the zone and the trigger's description, never only the danger border.
+- The zone responds to its own width: its content is one centred column that wraps, and a long file name in a refusal breaks inside it.
+
+## Props
+
+<ArgTypes of={DropZone} />
+
+### Playground
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+[FileTrigger](?path=/docs/components-filetrigger--docs) · [Attachment](?path=/docs/components-attachment--docs) · [Field](?path=/docs/components-field--docs) · [Progress](?path=/docs/components-progress--docs). Reference: [Carbon file uploader](https://carbondesignsystem.com/components/file-uploader/usage/), [React Aria DropZone](https://react-spectrum.adobe.com/react-aria/DropZone.html), [Polaris DropZone](https://polaris-react.shopify.com/components/selection-and-input/drop-zone).
+
+## Don't
+
+<Canvas of={Stories.DoDont} />

@@ -1,5 +1,5 @@
 import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
-import { Drawer, DrawerContent, DrawerTrigger, DrawerClose } from "../../components";
+import { Drawer, DrawerBody, DrawerContent, DrawerTrigger, DrawerClose } from "../../components";
 import * as Stories from "./Drawer.stories";
 
 <Meta of={Stories} />
@@ -18,7 +18,7 @@ A gesture-driven panel using [shadcn’s Base UI composition](https://ui.shadcn.
       <DrawerTitle>Control actions</DrawerTitle>
       <DrawerDescription>For the selected control.</DrawerDescription>
     </DrawerHeader>
-    <div className="min-h-0 flex-1 overflow-y-auto p-250">Actions</div>
+    <DrawerBody>Actions</DrawerBody>
     <DrawerFooter>
       <DrawerClose render={<Button />}>Done</DrawerClose>
     </DrawerFooter>
@@ -26,18 +26,20 @@ A gesture-driven panel using [shadcn’s Base UI composition](https://ui.shadcn.
 </Drawer>
 ```
 
-Content composes Portal, the modal Overlay, Base UI Viewport/Popup and the text-selectable Content region. Header, Title, Description, Footer and Close are explicit parts. Portal, Overlay and SwipeHandle are also exported for custom native compositions.
+Content composes Portal, the modal Overlay, Base UI Viewport/Popup and the text-selectable Content region, and records the overlay surface as the current one, so a sticky header or pinned cell inside matches the drawer. Header, Body, Title, Description, Footer and Close are explicit parts; the title is the drawer's h2 and headings inside start at h3. Portal, Overlay and SwipeHandle are also exported for custom native compositions.
+
+DrawerBody is the one scrolling region between the header and the footer, with the drawer's inset, at least 80px tall. Base UI lets a swipe that starts in it scroll it, and dismiss once it is at its edge. Read-only content that overflows makes it a tab stop, "Content, scrolls". In a window under 30rem tall the drawer scrolls as one, with the footer held at the bottom.
 
 <Canvas of={Stories.Actions} />
 
 ## Variants and states
 
-`swipeDirection` is `down` by default; `up`, `left` and `right` use physical edges. `showSwipeHandle` defaults to false. Root supports controlled or uncontrolled open state, native snap points and modal modes. Give long content its own scrolling body. Side drawers default to 75% of the viewport, capped at 24rem; vertical drawers leave space above the panel.
+`swipeDirection` is `down` by default; `up`, `left` and `right` use physical edges. `showSwipeHandle` defaults to false. Root supports controlled or uncontrolled open state, native snap points and modal modes. Put long content in DrawerBody. Side drawers default to 75% of the viewport, capped at 24rem; vertical drawers leave space above the panel.
 
 <Canvas of={Stories.Positions} />
 <Canvas of={Stories.SnapPoints} />
 
-For pending work, cancel the native `onOpenChange` event details when dismissal is unavailable. The same callback receives Escape, outside press, close button and swipe requests.
+Drawer has no `pending` prop. For pending work, cancel the native `onOpenChange` event details while the command runs, and disable the close controls; the same callback receives Escape, outside press, close button and swipe requests. Dialog, Sheet and AlertDialog have `pending`.
 
 <Canvas of={Stories.NestedPopups} />
 
@@ -51,10 +53,11 @@ Nested drawers must be nested in the React tree. Ledger’s CSS follows Base UI�
 
 ## Props
 
-Replace the old configured `title`, `description`, `footer` and `onClose` props with children and Root `onOpenChange`. Move `returnFocusRef` to Content `finalFocus`, and surface dimensions/className to Content. The Vaul dependency and its portal/Escape/focus bridge are removed from the package.
+Root takes children and `onOpenChange`; Content takes `initialFocus`, `finalFocus`, refs and `className`.
 
 <ArgTypes of={Drawer} />
 <ArgTypes of={DrawerContent} />
+<ArgTypes of={DrawerBody} />
 <ArgTypes of={DrawerTrigger} />
 <ArgTypes of={DrawerClose} />
 

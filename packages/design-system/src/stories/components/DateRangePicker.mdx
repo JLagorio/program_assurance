@@ -1,0 +1,58 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+import { DateRangePicker } from "../../components";
+import * as Stories from "./DateRangePicker.stories";
+
+<Meta of={Stories} />
+
+# DateRangePicker
+
+A range of calendar days from one field: a trigger that reads the range ("Sep 7 – 11, 2026") and a popover with two months and, optionally, named presets. It holds and reports two ISO days, `{ start, end }`, both inclusive, and never shifts them across zones. Built on [Calendar](?path=/docs/components-calendar--docs)'s range mode.
+
+Use it for a period the reader thinks of as one thing: a reporting period, a program period, a date filter. A single day is a [DatePicker](?path=/docs/components-datepicker--docs). A start and an end that the reader sets at different times, or that carry their own rules, are two DatePickers whose `min` and `max` follow each other.
+
+```tsx
+<Field>
+  <FieldLabel>Reporting period</FieldLabel>
+  <DateRangePicker value={period} onValueChange={setPeriod} presets={quarters} />
+</Field>
+```
+
+<Canvas of={Stories.WithPresets} />
+
+## Choosing
+
+The first day the reader chooses starts a new range and the second ends it, in either order; choosing the same day twice makes a one-day range. Until the end is chosen the footer says "Choose the end date." and a screen reader hears it. Once both ends are chosen the popover closes, focus returns to the trigger and `onValueChange` receives the range. Escape or a click outside closes without a change; a half-chosen range is never reported. Clear reports `{ start: "", end: "" }`.
+
+`presets` are named ranges beside the months: choosing one sets the range and closes. The preset that matches the value is pressed and carries a check. On a phone the presets wrap above the month. A preset whose start or end may not be chosen (outside `min` or `max`, or unavailable) is disabled but stays in the tab order, and its reason ("The earliest date is Sep 1, 2026.") is its description and shows in a tooltip, as Button's `disabledReason`.
+
+<Canvas of={Stories.Playground} />
+
+## Limits
+
+`min`, `max` and `isDateUnavailable` work as on DatePicker: those days are disabled with their reason in their names, and the months do not page past the limits. A range may span an unavailable day, such as a weekend inside a reporting week.
+
+<Canvas of={Stories.MinAndMax} />
+
+## Values and forms
+
+Each end is an ISO day; an end that is not one warns once and is treated as empty, and ends out of order are no range. `startName` and `endName` put the ends in two hidden inputs for a native form.
+
+## Accessibility
+
+- Inside a Field the trigger is the Field's control: the FieldLabel names it, and the hint, the error and the Field's state reach it.
+- The trigger's name is its label and its description is the range in full words, "September 7, 2026 to September 11, 2026", so a screen reader does not read the dash. The popover is named after the field.
+- The months keep the Calendar's keyboard and name each range end; the presets are toggle buttons in a group named "Presets".
+
+## Props
+
+<ArgTypes of={DateRangePicker} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+[Calendar](?path=/docs/components-calendar--docs) · [DatePicker](?path=/docs/components-datepicker--docs) · [Field](?path=/docs/components-field--docs) · [DataTable](?path=/docs/patterns-datatable--docs)
+
+## Don't
+
+<Canvas of={Stories.Dont} />

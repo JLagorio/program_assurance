@@ -1,16 +1,18 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { DropdownMenuContent, DropdownMenuItem, DropdownMenuLinkItem } from "../../components";
 import * as Stories from "./DropdownMenu.stories";
 
 <Meta of={Stories} />
 
 # DropdownMenu
 
-Actions and view options anchored to a button, using shadcn's Base UI Menu composition. Ledger supplies the menu surface, row geometry, colors and motion.
+Actions and view options anchored to a button, using shadcn's Base UI Menu composition. Ledger supplies the menu surface, row geometry, colors and motion. A choice of one value in a form is a [Select](?path=/docs/components-select--docs), a searchable list of commands is a [Command](?path=/docs/components-command--docs), and a destination in a menu is a LinkItem, not an item that navigates from `onClick`.
 
 ```tsx
 <DropdownMenu>
   <DropdownMenuTrigger render={<Button variant="secondary" />}>Actions</DropdownMenuTrigger>
-  <DropdownMenuContent style={{ width: 200 }}>
+  <DropdownMenuContent>
     <DropdownMenuItem onClick={edit}>Edit</DropdownMenuItem>
     <DropdownMenuSeparator />
     <DropdownMenuItem variant="destructive" onClick={archive}>
@@ -26,9 +28,17 @@ Root owns controlled or uncontrolled open state, modality, generic trigger paylo
 
 Content includes its portal and positioner. It defaults to bottom/start, with a 4px side offset and zero alignment offset. Its width fits its contents and is at least the trigger width or 128px, within the available viewport. A narrow trigger never forces action labels to wrap. It scrolls when the available space is smaller than its contents, inside a [Scroller](?path=/docs/components-scroller--docs) whose hover arrows mark each overflowed edge. Native `style`, `className`, `render` and refs target the popup; classes and styles accept state callbacks. Content's `dir` overrides Ledger's inherited positioning direction.
 
-Use Group around related items and Label inside that Group. Items compose icons, text and Shortcut as children. Destructive actions use `variant="destructive"`; `inset` aligns labels and items without icons. The row uses Ledger's 28px menu height. Action labels stay on one line.
+Use Group around related items and Label inside that Group. Items compose icons, text and Shortcut as children. Destructive actions use `variant="destructive"`; a disabled destructive item fades like any other, so it never looks ready to run. `inset` aligns labels and items without icons. The row uses Ledger's 28px menu height. Action labels stay on one line.
 
 <Canvas of={Stories.DropdownMenuMatrix} />
+
+## Descriptions and disabled reasons
+
+`description` on DropdownMenuItem adds a second line under the label, in smaller subtle text that wraps inside the menu: what tells two similar actions apart (“Keeps the current version as the baseline”), or a prerequisite. The label and the line share one column between the item's icon and its Shortcut. The line is the item's accessible description, not part of its name, so the arrow keys and typeahead still find the label alone. Keep it to a short phrase; a menu that needs a paragraph per item is a dialog.
+
+An action that cannot run takes `disabledReason` instead of `disabled`: the item is disabled, the arrow keys still reach it, a screen reader announces it as unavailable and reads the reason, and the reason shows as its description line, readable on the faded row. Write what would make it available: “Add content to this version before publishing it.” A tooltip cannot do this job inside a menu, and a disabled item without a reason leaves the reader guessing.
+
+<Canvas of={Stories.DescriptionsAndReasons} />
 
 ## Choices and closing
 
@@ -48,11 +58,11 @@ LinkItem is Base UI's native anchor part. Give it `href`, or `render` a router L
 
 ## Accessibility and dialogs
 
-The trigger exposes `aria-haspopup="menu"` and expanded state. Items use `menuitem`, `menuitemcheckbox` or `menuitemradio`, with checked state where appropriate. Enter, Space or ArrowDown opens from the trigger; arrows, Home, End and typeahead navigate; Enter or Space activates an action. Disabled items remain focusable and announce their disabled state, but cannot activate. Root defaults to modal with looping keyboard navigation.
+The trigger exposes `aria-haspopup="menu"` and expanded state. Items use `menuitem`, `menuitemcheckbox` or `menuitemradio`, with checked state where appropriate. Enter, Space or ArrowDown opens from the trigger; arrows, Home, End and typeahead navigate; Enter or Space activates an action. Disabled items remain focusable and announce their disabled state, but cannot activate; give them a `disabledReason` so the reason is announced with them. Root defaults to modal with looping keyboard navigation.
 
 A row-action button must remain keyboard-reachable. Use `opacity-0 focus-visible:opacity-100 group-hover/row:opacity-100 data-popup-open:opacity-100` for visual concealment, rather than `visibility: hidden`, which removes it from keyboard navigation.
 
-Content owns `finalFocus`. Ledger's modal wrappers resolve an activating menu item to its stable menu trigger, so closing the dialog returns there. For custom modal compositions, give the dialog an explicit return ref and use `finalFocus={false}` if menu focus return must be suppressed. A menu inside a current Radix dialog shares its portal boundary; Escape dismisses the menu before its parent dialog.
+Content owns `finalFocus`. Ledger's modal wrappers resolve an activating menu item to its stable menu trigger, so closing the dialog returns there. For custom modal compositions, give the dialog an explicit return ref and use `finalFocus={false}` if menu focus return must be suppressed. A menu inside a Base UI dialog shares its portal boundary; Escape dismisses the menu before its parent dialog.
 
 <Canvas of={Stories.Dialogs} />
 
@@ -61,6 +71,20 @@ Content owns `finalFocus`. Ledger's modal wrappers resolve an activating menu it
 Replace the configured `trigger` prop with Trigger's `render`; move placement and width into Content. Replace `DropdownMenu.Item`, `.Label` and `.Separator` with the flat exports. `onSelect` becomes `onClick` for actions; `isSelected` becomes CheckboxItem or RadioGroup state; `closeOnSelect` becomes `closeOnClick`; `tone="danger"` becomes `variant="destructive"`; `trailing` becomes Shortcut children. Remove children-as-`close` callbacks: items close through Base UI, and Root exposes controlled state or `actionsRef` for imperative dismissal.
 
 See [shadcn Dropdown Menu](https://ui.shadcn.com/docs/components/base/dropdown-menu) and [Base UI Menu](https://base-ui.com/react/components/menu) for the native APIs. Content adds the four positioning props to Popup. Ledger adds token styling and locale/dialog integration; reference catalogs remain independently refreshable.
+
+## Props
+
+### DropdownMenuItem
+
+<ArgTypes of={DropdownMenuItem} />
+
+### DropdownMenuLinkItem
+
+<ArgTypes of={DropdownMenuLinkItem} />
+
+### DropdownMenuContent
+
+<ArgTypes of={DropdownMenuContent} />
 
 ## Related
 

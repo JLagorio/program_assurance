@@ -26,6 +26,8 @@ Sign in as the seeded developer account against the local stack (`npm run local:
 - A failed save keeps the draft; a dirty cancel asks through the shared confirmation; a pending save blocks dismissal.
 - Empty data and an empty filter result are different states with the right recovery.
 - Actual table bounds with the panel open and closed; hidden fields reachable through the row disclosure; reader state unchanged after resizing.
+- The toolbar at 390px and 340px, as Registers describes it: two rows at most, the search, saved views and primary never fold, and what folds is reachable in More.
+- With touch emulated (no hover, coarse pointer), the eye stays visible and keyboard accessible (Registers).
 - One-row scrollable tab strip with a full-width underline.
 - The browser title is `<Screen> — Program Assurance`.
 

@@ -29,7 +29,7 @@ Columns and rows on a template. The template is a string, the CSS value itself, 
 | Label and value | `104px 1fr` as a `dl`: the facts of a rail, a settings list. KeyValue draws one row of it.                                                               |
 | Main and rail   | `minmax(0, 1fr) 272px`: the record page's body and its rail, at `dimension.layout.rail`. The Shell's `grid-cols-main-rail` is this with the rail's rule. |
 | Named areas     | `templateAreas` with `templateRows`: a head over two columns, a form with a full-width row.                                                              |
-| Responsive      | One template per breakpoint: one column, two from `md`, main and rail from `lg`.                                                                         |
+| Responsive      | One template per breakpoint of the window: one column, two from `md`, main and rail from `lg`.                                                           |
 
 Not built, and why: a column count per breakpoint as a number (the template says the widths as well as the count, and `repeat(3, minmax(0, 1fr))` is one string); a page grid with gutters and margins (the Shell's areas and the page's gutter tokens do this, and a page here is a form or a register, not a magazine); `justifyItems` and `alignContent` (no layout here has needed them, and a cell that sits differently carries its own class); `templateAreas` as an array of rows (one string is the CSS value, and the reader can paste it).
 
@@ -61,8 +61,11 @@ The widths a template names come from the layout tokens where one exists: `dimen
 - **Widths in the template, once.** Not on the children in three places.
 - **`minmax(0, 1fr)`**, so a column can shrink below its content and the content truncates or wraps inside it.
 - **One template per breakpoint** when the layout changes with width. Three columns at every width is 90px each in a rail.
+- **The breakpoints are the window's, not the grid's.** A responsive template suits the page's own layout, as Atlassian's Grid does; inside a Shell.Panel, an aside or a sheet the window stays wide while the space is narrow, and the template keeps its wide columns. A part that lives in a panel lays out by its own width with one intrinsic template, `repeat(auto-fit, minmax(min(100%, 144px), 1fr))`: six columns on the page, two in a 320px panel.
 - **Chips are not a grid.** Things of their own width that wrap are an Inline; a Grid stretches each to its column and leaves a hole in the last row.
 - **Pairs are a `dl`.** A label column and a value column with `dt` and `dd` children, so the pairs are pairs to a screen reader.
+
+<Canvas of={Stories.IntrinsicInAPanel} />
 
 ## Style
 

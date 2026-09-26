@@ -6,15 +6,44 @@ import * as Stories from "./Section.stories";
 
 # Section
 
-Optional presentation for a titled content region. `title`, `count`, `description` and `action` render the built-in header; leave `title` out and compose Section.Header, Section.Heading, Section.Title, Section.Description and Section.Actions yourself when the heading needs another level, a badge, or two actions. The Title names the region either way. Native section props and refs pass through every part. A rule is opt-in with `divided`.
+Optional presentation for a titled content region. `title`, `count`, `description` and `action` render the built-in header; leave `title` out and compose Section.Header, Section.Heading, Section.Title, Section.Description and Section.Actions yourself when the heading needs a badge or two actions. The Title names the region either way. Native section props and refs pass through every part. A rule is opt-in with `divided`.
 
 <Canvas of={Stories.Presentation} />
 <Canvas of={Stories.Composed} />
 <Canvas of={Stories.Untitled} />
 
-Use Stack or Grid directly when no titled region is needed. Compose Collapsible when disclosure helps the workflow. Section imposes no distinction between work, reference, forms or narrative.
+The header wraps by its own width, not the window's, so it behaves the same on a page, in a Shell.Panel and in a Sheet. The Heading keeps a readable measure of about 12rem, or its own width when shorter, and grows; when the row cannot hold that beside the Actions, the Actions take the next row, at the end, and the title keeps its words whole. A short title keeps its action on its row even in a narrow panel.
+
+<Canvas of={Stories.InANarrowPanel} />
+
+## Heading levels
+
+A Section's title takes the contextual heading level and its content one level below, so the outline follows the nesting without a level at every call site:
+
+- On a page, where nothing sets a level, the title is an h2 under the PageHeader's h1, and a Section inside it is an h3.
+- In a titled Shell.Panel the body starts at 3, under the panel's h2; in a panel with no title (a preview, whose record title is the body's first heading) it starts at 2. The panel starts its own outline wherever in the route it is rendered from (the In a titled panel and In a preview panel stories).
+- Under a record title in a preview or a dialog, wrap the content after the header in a [HeadingLevelProvider](?path=/docs/primitives-heading--docs) so its Sections sit one below the title.
+- `Section.Title render={<h4 />}` still sets an element outright. An untitled Section changes nothing.
+
+<Canvas of={Stories.Nested} />
+
+## Collapsible
+
+`isCollapsible` folds the content under the title: the collapsed Details section for provenance, counts and derivation a reader opens when they need them. The title and its count become a button inside the heading, a chevron after them turns while the content is open, and the action stays in the header, outside the heading. It is closed until `defaultOpen`, or controlled with `open` and `onOpenChange`. Closed content stays mounted and hidden until found, so a draft inside survives and find-in-page opens it. It needs `title`; compose a [CollapsibleHeader](?path=/docs/components-collapsible--docs) for a disclosure that is not a Section.
+
+<Canvas of={Stories.Collapsible} />
+
+Use it where a page body has a block the reader may not need. Do not build one from a subtle Button with a ChevronDown or a native `<details>`: neither is in the heading outline, and neither chevron turns. In a rail of facts, the collapsed group is [Inspector.Group](?path=/docs/patterns-inspector--docs) with `defaultOpen={false}`.
+
+Use Stack or Grid directly when no titled region is needed. Section imposes no distinction between work, reference, forms or narrative.
+
+## Accessibility
+
+- A titled Section is a region named by its title. Untitled, it is a plain container, and `aria-labelledby` never points at a title that is not there.
+- The level follows the outline, as above; check a new composition with a heading list, which should read as a map of the page.
+- A collapsible Section's button carries `aria-expanded`, and `aria-controls` while the content is open; Enter and Space toggle it and focus stays on it. The chevron is decoration and holds still under reduced motion.
 
 <ArgTypes of={Section} />
 <ArgTypes of={Section.Header} />
 
-Heading, Description and Actions take only their element's native props; Title takes `render` for another heading level.
+Heading, Description and Actions take only their element's native props; Title takes `render` for another element.

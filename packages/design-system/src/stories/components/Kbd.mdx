@@ -1,35 +1,73 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Kbd } from "../../components";
+import { Kbd, KbdShortcut } from "../../components";
 import * as Stories from "./Kbd.stories";
 
 <Meta of={Stories} />
 
 # Kbd
 
-Keyboard input displayed as a keycap, in text, tooltips and menu hints. Use `KbdGroup`
-to show the keys of a shortcut together. The existing `Kbd.Group` alias also works.
+Keyboard input displayed as a keycap, in text, tooltips and menu hints. Use `KbdShortcut`
+for a shortcut written once for every platform (`"Mod+K"` is ⌘ K on a Mac and Ctrl K
+elsewhere), and `KbdGroup` to compose the caps of a shortcut by hand. The existing
+`Kbd.Group` alias also works.
 
 <Canvas of={Stories.KbdMatrix} />
 
 ## Anatomy
 
-Both parts render native `<kbd>` elements and accept their native props and refs.
+All three parts render native `<kbd>` elements and accept their native props and refs.
 `Kbd` draws a 16px-tall cap, at least 16px wide, using the sunken surface, default
-border, extra-small radius and small text tokens. `KbdGroup` spaces its caps 4px apart.
+border, extra-small radius and small text tokens. `KbdGroup` and `KbdShortcut` space
+their caps 4px apart.
 
 ```tsx
-import { Kbd, KbdGroup } from "@ledger/design-system";
+import { Kbd, KbdGroup, KbdShortcut } from "@ledger/design-system";
+
+<KbdShortcut keys="Mod+K" />
 
 <KbdGroup>
-  <Kbd label="Command">⌘</Kbd>
-  <Kbd>K</Kbd>
+  <Kbd>Ctrl</Kbd>
+  <Kbd>[</Kbd>
 </KbdGroup>
 ```
 
-Use separate caps when that makes a multi-key shortcut easier to read. Choose the
-platform's keys in the calling application. There is no platform detection or shortcut
-handler inside these components.
+Use separate caps when that makes a multi-key shortcut easier to read.
+
+## Shortcuts on every platform
+
+Write a shortcut once, as keys joined by `+`, with `Mod` for the platform's modifier:
+`"Mod+K"`, `"Mod+Shift+P"`, `"Ctrl+["`, `"Escape"`. `Mod` is Command on macOS, iOS and
+iPadOS and Control elsewhere. `KbdShortcut` draws the keys in the platform's glyphs and
+order (⇧⌘P on a Mac, Ctrl Shift P elsewhere), capitalizes a single character, and names the
+named keys once: the arrows, Enter (↵), Escape (Esc), Tab, Space, Backspace and Delete.
+Use `Mod` for a chord that follows the platform, and `Ctrl` for one that is Control
+everywhere, like the side nav's Ctrl [; on Apple platforms Control is drawn ⌃, so it
+reads ⌃ [ there.
+
+<Canvas of={Stories.Shortcuts} />
+
+The platform is read once for the page, and every shortcut in the kit reads the same
+answer:
+
+- **`useModifierKey()`** for a render: `"meta"` or `"ctrl"`. The server and the first
+  client render say `"ctrl"`, so hydration matches; the browser's answer follows straight
+  after. `KbdShortcut` uses it.
+- **`getModifierKey()`** for a key handler, which runs in the browser: test `event.metaKey`
+  when it says `"meta"` and `event.ctrlKey` when it says `"ctrl"`.
+- **`useFormatShortcut()`** returns a function that gives a shortcut as a string, following
+  the locale and the platform: `format("Mod+K")` is the text for a hint or a title ("⌘K",
+  "Ctrl+K"), `format("Mod+K", "label")` what a screen reader says ("Command K"), and
+  `format("Mod+K", "aria")` the value for `aria-keyshortcuts` on the control the shortcut
+  runs ("Meta+K"). `formatShortcut(shortcut, { modifier, messages, as })` is the same,
+  pure, for code outside React; in a render, prefer the hook, which hydrates safely.
+- **`shortcutKeys(shortcut, options)`** gives each key's cap, spoken name and
+  `aria-keyshortcuts` name, for a caller that draws its own.
+
+Pass `modifier` to show one platform's keys regardless of the reader's, as documentation
+does. The kit draws shortcuts; binding one to an action stays with the caller.
+
+<Canvas of={Stories.PlatformModifier} />
 
 ## Accessibility
 
@@ -37,16 +75,28 @@ handler inside these components.
 behavior; the surrounding button or menu item owns the action. Keep the action's name
 in the surrounding text, such as “Press Command K to search.”
 
-Use `label` to supply a glyph's `aria-label`; an explicit `aria-label` takes precedence.
-Screen-reader handling of glyphs and labels varies, so the shortcut should remain
-understandable from its visible text and context.
+`KbdShortcut` hides its caps from assistive technology and adds one visually hidden line
+with the keys' names ("Shift Command P"), so a screen reader never reads a glyph's
+character name. Put `aria-keyshortcuts` (from `useFormatShortcut`) on the control the
+shortcut runs.
+
+On `Kbd`, `label` sets the glyph's `aria-label`; an explicit `aria-label` takes precedence.
+ARIA does not name an element with no role, so screen readers may read the glyph itself;
+for a glyph key, prefer `KbdShortcut`. The shortcut should remain understandable from its
+visible text and context.
+
+Key names and word caps come from the locale's messages (`keyCommand`, `keyControl`,
+`keyCapControl` and the rest), so a German product shows Strg and says Steuerung.
 
 ## Props
 
 `className`, `style`, attributes, events and `ref` target each part's own `<kbd>`.
-Both refs use `HTMLElement`. Parts expose `data-slot="kbd"` and `data-slot="kbd-group"`.
+All refs use `HTMLElement`. Parts expose `data-slot="kbd"`, `data-slot="kbd-group"` and
+`data-slot="kbd-shortcut"`; a shortcut also carries `data-modifier`, the platform it drew.
 
 <ArgTypes of={Kbd} />
+
+<ArgTypes of={KbdShortcut} />
 
 ### Playground
 
@@ -55,12 +105,11 @@ Both refs use `HTMLElement`. Parts expose `data-slot="kbd"` and `data-slot="kbd-
 
 ## Migration
 
-Existing `Kbd`, `label`, and `Kbd.Group` callers need no edits. Native attributes and
-refs are now supported on both parts; use the flat `KbdGroup` export for new compositions.
-Geometry and token styling are unchanged.
+Existing `Kbd`, `label`, and `Kbd.Group` callers need no edits. For a shortcut that follows
+the platform, replace a hand-written `⌘` or `Ctrl` cap with `KbdShortcut keys="Mod+…"`.
 
 ## Related
 
 - [Tooltip](?path=/docs/components-tooltip--docs): show a shortcut beside an action's name.
-- [DropdownMenu](?path=/docs/components-dropdownmenu--docs): put a shortcut in an item's `trailing` slot.
+- [DropdownMenu](?path=/docs/components-dropdownmenu--docs): put a shortcut in an item's `DropdownMenuShortcut`.
 - [Command](?path=/docs/components-command--docs): keyboard hints in the palette.

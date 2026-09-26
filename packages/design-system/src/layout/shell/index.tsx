@@ -38,8 +38,10 @@ export type {
   ProfileProps,
   ShellMarkProps,
   ShellTopNavEndProps,
+  ShellTopNavItemProps,
   ShellTopNavMiddleProps,
   ShellTopNavProps,
+  ShellTopNavSearchProps,
   ShellTopNavStartProps,
 } from "./top-nav";
 export type {

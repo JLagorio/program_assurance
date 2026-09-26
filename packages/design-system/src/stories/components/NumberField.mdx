@@ -1,0 +1,77 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { NumberField } from "../../components";
+import * as Stories from "./NumberField.stories";
+
+<Meta of={Stories} />
+
+# NumberField
+
+A number the reader types or steps: a retention period, a budget, a count of reviewers. Base UI NumberField underneath, so the value is parsed and formatted in the reader's locale, kept within `min` and `max`, and stepped by `step` from the keyboard or the decrement and increment buttons.
+
+Use it for a quantity. Do not use it for digits that name something, such as an identifier, a build number or a postcode: those are text, an [Input](?path=/docs/components-input--docs) with `inputMode="numeric"`, because a number field drops leading zeros, adds grouping separators and offers steps that mean nothing. For a value chosen along a range with a pointer, a slider may suit better; the kit has none yet.
+
+<Canvas of={Stories.Keyboard} />
+
+## Stepping
+
+| The reader                                | What happens                                                            |
+| ----------------------------------------- | ----------------------------------------------------------------------- |
+| Presses Up or Down                        | The value steps by `step` (1 by default).                               |
+| Holds Shift, or Alt                       | It steps by `largeStep` (10), or `smallStep` (0.1).                     |
+| Presses Home or End                       | It goes to `min` or `max`, when they are set.                           |
+| Presses the decrement or increment button | It steps once; holding the button repeats.                              |
+| Types                                     | The text is parsed in the locale; on blur it is formatted and clamped.  |
+| Turns the wheel                           | Nothing, unless `allowWheelScrub`, and then only for the focused field. |
+
+At a bound, the button that would pass it is unavailable. A read-only field keeps its value selectable and has no buttons. `onValueChange` runs on every change; `onValueCommitted` runs once the reader is done (on blur after typing, on releasing a button, at once for a key), which is the moment to save.
+
+<Canvas of={Stories.TypedAndFormatted} />
+<Canvas of={Stories.Wheel} />
+
+## Formatting and locale
+
+`format` takes `Intl.NumberFormat` options: a unit (`{ style: "unit", unit: "day", unitDisplay: "long" }` shows "90 days"), a currency, a percentage, fraction digits. The number is formatted and parsed in the closest `LedgerProvider`'s locale, not the browser's, so the server and the client agree; `locale` overrides it for one field. The value itself is always a plain number, or `null` when the field is empty, and a form receives the raw number under the Field's or the field's `name`.
+
+Right to left, the buttons move to the field's end (the left), decrement nearest the number; Up still increases it.
+
+<Canvas of={Stories.Localized} />
+<Canvas of={Stories.RightToLeft} />
+<Canvas of={Stories.InAForm} />
+
+## Sizes and states
+
+`medium` (32px) in a form; `small` (28px) in a toolbar, a row or a rail. `className` and `style` go to the root, where the width is set, and `render` replaces the root element; the ref, `placeholder`, `autoFocus` and the `aria-*` props go to the input; `inputRef` is Base UI's hidden input that carries the value in a form.
+
+<Canvas of={Stories.States} />
+
+## In a Field
+
+Inside a [Field](?path=/docs/components-field--docs) the FieldLabel names the input and both buttons ("Increase Retention"), the FieldDescription and FieldError describe it, and the Field's `invalid`, `required` and `disabled` reach it, with no ids written by hand. The Field's `required` is announced; the NumberField's own `required` is the native constraint that also blocks an empty submit.
+
+<Canvas of={Stories.BoundInField} />
+
+## Accessibility
+
+- **A text box that says it holds a number.** The input is a textbox, so text editing works as in any field on every platform, with the role description "Number field" (the `numberField` message).
+- **The buttons** are named "Decrease" and "Increase" (the `decreaseValue` and `increaseValue` messages), followed by whatever names the input: the FieldLabel inside a Field, or the `aria-labelledby` element ("Increase Retention"). A field named only by `aria-label` names them through the `decreaseValueFor` and `increaseValueFor` messages ("Increase Retention days"), so two fields side by side never have two buttons called "Increase". They are not Tab stops, because the arrow keys do the same; a touch screen reader reaches them by swiping. Each takes a 24px target under a coarse pointer, and a press with a mouse keeps focus in the input.
+- **At a bound** a button is unavailable (`aria-disabled`), not only dimmed.
+- **The wheel** never changes a value the reader is not working on: off by default, and with `allowWheelScrub` it steps only the focused field.
+
+## Props
+
+<ArgTypes of={NumberField} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+[Input](?path=/docs/components-input--docs) · [Field](?path=/docs/components-field--docs) · [InputGroup](?path=/docs/components-inputgroup--docs) · [Base UI Number Field](https://base-ui.com/react/components/number-field)
+
+## Don't
+
+<Canvas of={Stories.Dont} />

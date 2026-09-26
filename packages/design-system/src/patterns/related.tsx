@@ -6,7 +6,8 @@ import { Count } from "../components/badge";
 import { Item, type ItemSize } from "../components/item";
 import { KeyValue } from "../components/key-value";
 import { cn } from "../lib/cn";
-import { Card } from "../components/card";
+import { headingTag, useHeadingLevel } from "../primitives/heading-level";
+import { Card, raisedSurface } from "../components/card";
 import {
   Empty,
   EmptyContent,
@@ -36,7 +37,7 @@ export type RelatedEmpty =
     };
 
 export type RelatedProps = {
-  /** The kind of record linked, a noun: "Linked findings", "Systems", "Team". */
+  /** The kind of record linked, a noun: "Linked findings", "Systems", "Team". A heading at the contextual level, an h3 outside every HeadingLevelProvider. */
   title: ReactNode;
   /** A Count after the title: how many are linked. */
   count?: number | undefined;
@@ -68,6 +69,7 @@ function RelatedRoot({
   children,
 }: RelatedProps) {
   const headingId = useId();
+  const HeadingTag = headingTag(useHeadingLevel() ?? 3);
   const has = Children.toArray(children).some(Boolean);
   const emptyProps: Exclude<RelatedEmpty, string> =
     typeof empty === "string" ? { title: empty } : empty;
@@ -75,9 +77,12 @@ function RelatedRoot({
   return (
     <Card className={cn("flex flex-col", className)}>
       <div className="flex items-center gap-100 border-b border-default px-200 py-100">
-        <h3 id={headingId} className="min-w-0 truncate font-body font-semibold text-default">
+        <HeadingTag
+          id={headingId}
+          className="min-w-0 truncate font-body font-semibold text-default"
+        >
           {title}
-        </h3>
+        </HeadingTag>
         {count !== undefined ? <Count value={count} /> : null}
         {action ? (
           <span className="ms-auto flex shrink-0 items-center gap-100">{action}</span>
@@ -154,7 +159,7 @@ export type RelatedCardProps = {
   children?: ReactNode;
 };
 
-/** One linked record as a card, in a Related with `layout="cards"`: the mark, the name as the link, the meta, one status, a few properties, and the actions that show on hover. */
+/** One linked record as a card, in a Related with `layout="cards"`: the mark, the name as the link, the meta, one status, a few properties, and the actions that show on hover. It paints the raised surface and records it as the current one, as Card does, so a sticky or surface-matching child inside reads `bg-surface-current`. */
 function RelatedCard({
   leading,
   title,
@@ -174,7 +179,8 @@ function RelatedCard({
     props: {
       className: cn(
         titleClass,
-        link && "rounded-xsmall outline-none hover:underline focus-visible:outline-focused",
+        link &&
+          "relative touch-target rounded-xsmall outline-none hover:underline focus-visible:outline-focused",
       ),
       children: text,
     },
@@ -185,6 +191,7 @@ function RelatedCard({
         "group/card flex list-none flex-col gap-100 rounded-large border border-default bg-surface-raised p-150 transition-shadow duration-fast ease-standard animate-rise hover:shadow-raised",
         className,
       )}
+      style={raisedSurface}
     >
       <div className="flex items-center gap-100">
         {leading ? <span className="flex shrink-0 items-center">{leading}</span> : null}

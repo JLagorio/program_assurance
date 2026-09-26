@@ -36,6 +36,7 @@ Textarea remains native. NativeSelect is removed; use Select or Combobox. See th
 | `@ledger/design-system/reset.css`   | `src/styles/reset.css`. Import before `ledger.css`.                         |
 | `@ledger/design-system/ledger.css`  | `src/styles/ledger.css`                                                     |
 | `@ledger/design-system/base.css`    | `src/styles/base.css`                                                       |
+| `@ledger/design-system/fonts.css`   | `src/styles/fonts.css`, the self-hosted Geist faces. Optional.              |
 | `@ledger/design-system/tokens.css`  | `src/generated/tokens.css`, the variables alone                             |
 | `@ledger/design-system/tokens.json` | `src/generated/tokens.figma.json`                                           |
 | `@ledger/design-system/eslint`      | `eslint-plugin/index.js`                                                    |
@@ -55,6 +56,8 @@ Run inside the package, or from the repo root with `-w @ledger/design-system`.
 | `npm run typecheck`    | `tsc --noEmit`.                                                                                                    |
 | `npm run lint`         | ESLint over the package, on its own preset.                                                                        |
 | `npm test`             | Contrast, token interchange, locale and persisted-view tests. `npm run test:report` prints every contrast pairing. |
+| `npm run test:a11y`    | Every story rendered with its play function and axe, light and dark.                                               |
+| `npm run test:layout`  | Every story at a 390px phone and in a 320px frame: no sideways scroll, no word broken mid-word.                    |
 
 Never edit `src/generated/` by hand; run `npm run build:tokens -w @ledger/design-system`.
 
@@ -76,9 +79,10 @@ Configure Vite with the React and Tailwind plugins. Import this stylesheet from 
 @import "@ledger/design-system/reset.css";
 @import "@ledger/design-system/ledger.css";
 @import "@ledger/design-system/base.css";
+@import "@ledger/design-system/fonts.css";
 ```
 
-`base.css` supplies optional document defaults. The package's `@source` directive includes its components in Tailwind's scan. Components do not inject CSS during server rendering.
+`base.css` supplies optional document defaults, and `fonts.css` the Geist faces the type tokens name. The package's `@source` directive includes its components in Tailwind's scan. Components do not inject CSS during server rendering.
 
 ```tsx
 import { Button, LedgerProvider, Toaster } from "@ledger/design-system";
@@ -97,7 +101,7 @@ Use the same locale, time zone and initial color mode on server and client. Node
 
 ## Token interchange
 
-The authoring source and legacy `tokens.json` export use the versioned **ledger-css-v1** CSS-oriented dialect. They are not DTCG interchange documents. Use `@ledger/design-system/tokens.dtcg.light.json` or `@ledger/design-system/tokens.dtcg.dark.json` for the validated DTCG 2025.10 boundary. Each mode is independent. CSS-specific tracking information is retained in a namespaced extension where DTCG has no equivalent. Regenerate with `build:tokens`; never hand-edit generated files.
+The authoring source and legacy `tokens.json` export use the versioned **ledger-css-v1** CSS-oriented dialect. They are not DTCG interchange documents. Use `@ledger/design-system/tokens.dtcg.light.json` or `@ledger/design-system/tokens.dtcg.dark.json` for the validated DTCG 2025.10 boundary, and `tokens.dtcg.light-contrast.json` or `tokens.dtcg.dark-contrast.json` for the increased-contrast values. Each mode is independent. CSS-specific tracking information is retained in a namespaced extension where DTCG has no equivalent. Regenerate with `build:tokens`; never hand-edit generated files.
 
 ## API ownership and compatibility
 
@@ -107,7 +111,7 @@ Port source into the package with relative imports and package `cn`; application
 
 Semantic axes keep clear meanings: `tone` communicates status, `variant` chooses treatment and `size` chooses density. Native DOM names retain their meanings. Extend components deliberately instead of creating parallel standard and product versions of the same control.
 
-DOM attributes and refs belong on the element that consumers must label, submit, focus, measure or integrate. Standard parts preserve their native targets and composition affordances; patterns document any narrower contract. Stepper refs target its ordered list and list items; Stat, Tile and Grid expose their divs, KeyValue its definition list, and Banner its message div. These display families accept native attributes/events and caller style overrides. Field composes native label/message parts; custom controls forward IDs, ARIA and refs. A `BreadcrumbLink render={<Link to="/records" />}` child must accept its merged props and ref. Button and IconButton share Base UI action behavior; navigation uses `buttonVariants` on a real anchor or router Link. See the [Button page](src/stories/components/Button.mdx) for loading, render composition and migration examples.
+DOM attributes and refs belong on the element that consumers must label, submit, focus, measure or integrate. Standard parts preserve their native targets and composition affordances; patterns document any narrower contract. Stepper refs target its ordered list and list items; Stat, Tile and Grid expose their divs, KeyValue its definition list, and Banner its message div. These display families accept native attributes/events and caller style overrides. Field composes native label/message parts; custom controls forward IDs, ARIA and refs. A `BreadcrumbLink render={<Link to="/records" />}` child must accept its merged props and ref. Button and IconButton share Base UI action behavior; navigation is a LinkButton, an anchor or a router Link through `render`. See the [Button page](src/stories/components/Button.mdx) for loading, render composition and migration examples.
 
 Family pages in Storybook own the current API, defaults, composition examples and migration notes. The [handoff](../../docs/guides/design-system-migration-handoff.md) tracks completed work and remaining integration risks; the [changelog](CHANGELOG.md) records changes.
 

@@ -1,10 +1,25 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { ChevronDown, Search, X } from "lucide-react";
-import { createRef } from "react";
+import { ChevronDown, Download, ExternalLink, MoreHorizontal, Search, X } from "lucide-react";
+import { createRef, useRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
-import { Button, ButtonGroup, IconButton } from "../../components";
-import { Stack } from "../../primitives";
+import {
+  Button,
+  ButtonGroup,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  IconButton,
+  Input,
+  TextLink,
+} from "../../components";
+import { Inline, Stack, Text } from "../../primitives";
 import { Matrix as Grid, Specimens } from "../_lib/matrix";
 
 const meta = {
@@ -165,6 +180,323 @@ export const InPlace: Story = {
     await userEvent.keyboard("{Enter}");
     await expect(closeAction).toHaveBeenCalledTimes(1);
     await expect(close).toHaveAccessibleName("Close");
+  },
+};
+
+/**
+ * A table or tree row that sizes its row actions down to 20px keeps a hit area of at least 24px on
+ * a touch screen, centred on the button, so the row keeps its height and a finger still lands.
+ */
+export const InADenseRow: Story = {
+  globals: { viewport: { value: "ledgerPhone", isRotated: false } },
+  render: () => (
+    <Inline space="space.050" alignBlock="center" className="h-control-xsmall">
+      <IconButton
+        label="Open CTRL-0412"
+        icon={<ExternalLink />}
+        variant="subtle"
+        className="size-250"
+        isTooltipDisabled
+      />
+      <Text size="small" className="min-w-0 flex-1 truncate">
+        CTRL-0412 Vendor master changes
+      </Text>
+      <IconButton
+        label="Remove CTRL-0412"
+        icon={<X />}
+        variant="subtle"
+        className="size-250"
+        isTooltipDisabled
+      />
+    </Inline>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    for (const name of ["Open CTRL-0412", "Remove CTRL-0412"]) {
+      const action = canvas.getByRole("button", { name });
+      await expect(action.getBoundingClientRect().width).toBe(20);
+      await expect(action).toHaveClass("touch-target");
+      await expect(getComputedStyle(action).position).toBe("relative");
+      if (matchMedia("(any-pointer: coarse)").matches) {
+        const area = getComputedStyle(action, "::before");
+        await expect(parseFloat(area.width)).toBeGreaterThanOrEqual(24);
+        await expect(parseFloat(area.height)).toBeGreaterThanOrEqual(24);
+      }
+    }
+  },
+};
+
+const renameSystem = fn();
+
+/**
+ * An icon button that opens a menu. Its tooltip shows when focus arrives by Tab. When focus comes
+ * back from the menu, closed with Escape or by choosing a command, the tooltip stays shut, so the
+ * next Escape reaches whatever holds the button instead of closing a tooltip first.
+ */
+export const OpensAMenu: Story = {
+  render: () => (
+    <Inline space="space.100" alignBlock="center">
+      <Button size="small">Create system</Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <IconButton label="More system actions" icon={<MoreHorizontal />} variant="subtle" />
+          }
+        />
+        <DropdownMenuContent>
+          <DropdownMenuItem onClick={renameSystem}>Rename</DropdownMenuItem>
+          <DropdownMenuItem>Archive</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </Inline>
+  ),
+  play: async ({ canvasElement }) => {
+    renameSystem.mockClear();
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const openTooltip = () =>
+      canvasElement.ownerDocument.querySelector('[data-slot="tooltip-content"][data-open]');
+    const settle = () => new Promise((resolve) => setTimeout(resolve, 200));
+    const create = canvas.getByRole("button", { name: "Create system" });
+    const more = canvas.getByRole("button", { name: "More system actions" });
+
+    // Arriving by Tab shows the name.
+    create.focus();
+    await userEvent.tab();
+    await expect(more).toHaveFocus();
+    await waitFor(() => expect(openTooltip()).toHaveTextContent("More system actions"));
+
+    // Escape closes the menu and focus comes back without the tooltip.
+    await userEvent.keyboard("{Enter}");
+    await body.findByRole("menu");
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    await waitFor(() => expect(more).toHaveFocus());
+    await settle();
+    await expect(openTooltip()).toBeNull();
+
+    // So does choosing a command.
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() => expect(body.getByRole("menuitem", { name: "Rename" })).toHaveFocus());
+    await userEvent.keyboard("{Enter}");
+    await expect(renameSystem).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    await waitFor(() => expect(more).toHaveFocus());
+    await settle();
+    await expect(openTooltip()).toBeNull();
+
+    // Leaving and arriving again by Tab shows it, and Escape closes it.
+    await userEvent.tab({ shift: true });
+    await expect(create).toHaveFocus();
+    await userEvent.tab();
+    await waitFor(() => expect(openTooltip()).toHaveTextContent("More system actions"));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(openTooltip()).toBeNull());
+    await expect(more).toHaveFocus();
+  },
+};
+
+function ControlPicker() {
+  const [expanded, setExpanded] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+  return (
+    <Dialog>
+      <DialogTrigger render={<Button />}>Choose a control</DialogTrigger>
+      <DialogContent initialFocus={searchRef}>
+        <DialogHeader>
+          <DialogTitle>Choose a control</DialogTitle>
+        </DialogHeader>
+        <Stack space="space.150" className="p-250">
+          <Input ref={searchRef} aria-label="Search controls" />
+          <Inline space="space.050" alignBlock="center">
+            <Text className="min-w-0 flex-1 truncate">CTRL-0412 Vendor master changes</Text>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <IconButton
+                    label="More control actions"
+                    icon={<MoreHorizontal />}
+                    variant="subtle"
+                  />
+                }
+              />
+              <DropdownMenuContent>
+                <DropdownMenuItem>Rename</DropdownMenuItem>
+                <DropdownMenuItem>Archive</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <IconButton
+              label="Show more fields"
+              icon={<ChevronDown />}
+              variant="subtle"
+              aria-expanded={expanded}
+              aria-controls="ctrl-0412-fields"
+              onClick={() => setExpanded(!expanded)}
+            />
+          </Inline>
+          <Stack id="ctrl-0412-fields" space="space.050" hidden={!expanded}>
+            <Text size="small">Owner: Finance operations</Text>
+            <TextLink href="#ctrl-0412">Open CTRL-0412</TextLink>
+          </Stack>
+        </Stack>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * Inside a dialog, a disclosure's expanded content sits in the same dialog, so focus that comes
+ * back from it arrives like any other and shows the name. A menu the button opens is still a popup:
+ * focus that returns from it leaves the tooltip shut, and the next Escape closes the dialog.
+ */
+export const InADialog: Story = {
+  render: () => <ControlPicker />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const openTooltip = () =>
+      canvasElement.ownerDocument.querySelector('[data-slot="tooltip-content"][data-open]');
+    const settle = () => new Promise((resolve) => setTimeout(resolve, 200));
+    const trigger = canvas.getByRole("button", { name: "Choose a control" });
+    trigger.focus();
+    await userEvent.keyboard("{Enter}");
+    const dialog = within(await body.findByRole("dialog", { name: "Choose a control" }));
+    await waitFor(() =>
+      expect(dialog.getByRole("textbox", { name: "Search controls" })).toHaveFocus(),
+    );
+    const actions = dialog.getByRole("button", { name: "More control actions" });
+    const fields = dialog.getByRole("button", { name: "Show more fields" });
+
+    // Arriving by Tab shows each name.
+    await userEvent.tab();
+    await expect(actions).toHaveFocus();
+    await waitFor(() => expect(openTooltip()).toHaveTextContent("More control actions"));
+    await userEvent.tab();
+    await expect(fields).toHaveFocus();
+    await waitFor(() => expect(openTooltip()).toHaveTextContent("Show more fields"));
+
+    // Expanded, Tab into the revealed fields and back: the name shows again.
+    await expect(dialog.queryByRole("link", { name: "Open CTRL-0412" })).toBeNull();
+    await userEvent.keyboard("{Enter}");
+    await expect(fields).toHaveAttribute("aria-expanded", "true");
+    await userEvent.tab();
+    await expect(dialog.getByRole("link", { name: "Open CTRL-0412" })).toHaveFocus();
+    await userEvent.tab({ shift: true });
+    await expect(fields).toHaveFocus();
+    await waitFor(() => expect(openTooltip()).toHaveTextContent("Show more fields"));
+
+    // Still expanded, leaving the other way and arriving again shows it too.
+    await userEvent.tab({ shift: true });
+    await expect(actions).toHaveFocus();
+    await userEvent.tab();
+    await expect(fields).toHaveFocus();
+    await waitFor(() => expect(openTooltip()).toHaveTextContent("Show more fields"));
+
+    // The menu is a popup: coming back from it leaves the tooltip shut.
+    await userEvent.tab({ shift: true });
+    await expect(actions).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    await body.findByRole("menu");
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    await waitFor(() => expect(actions).toHaveFocus());
+    await settle();
+    await expect(openTooltip()).toBeNull();
+
+    // So the next Escape closes the dialog.
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(trigger).toHaveFocus());
+  },
+};
+
+const exportAction = fn();
+const openTip = () => document.querySelector('[data-slot="tooltip-content"][data-open]');
+
+/**
+ * An icon-only action that cannot run names itself and says why in one tooltip: the label, then
+ * the reason. It stays in the tab order with `aria-disabled`, the reason is its accessible
+ * description, and a tap opens the tooltip too. With `isTooltipDisabled` the reason still shows.
+ */
+export const DisabledWithAReason: Story = {
+  name: "Disabled with a reason",
+  render: () => (
+    <Inline space="space.100" alignBlock="center">
+      <IconButton
+        label="Export"
+        icon={<Download />}
+        disabledReason="Nothing to export until a control is added."
+        onClick={exportAction}
+      />
+      <IconButton
+        label="Remove"
+        icon={<X />}
+        variant="subtle"
+        isTooltipDisabled
+        disabledReason="A published control cannot be removed."
+      />
+    </Inline>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    exportAction.mockClear();
+    const exporter = canvas.getByRole("button", { name: "Export" });
+    await expect(exporter).toHaveAttribute("aria-disabled", "true");
+    await expect(exporter).not.toBeDisabled();
+    await expect(exporter).toHaveAccessibleDescription(
+      "Nothing to export until a control is added.",
+    );
+    await userEvent.tab();
+    await expect(exporter).toHaveFocus();
+    await waitFor(() => expect(openTip()).toHaveTextContent("Export"));
+    await expect(openTip()).toHaveTextContent("Nothing to export until a control is added.");
+    await userEvent.keyboard("{Enter} ");
+    await expect(exportAction).not.toHaveBeenCalled();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(openTip()).toBeNull());
+    const remove = canvas.getByRole("button", { name: "Remove" });
+    await userEvent.tab();
+    await expect(remove).toHaveFocus();
+    await waitFor(() =>
+      expect(openTip()).toHaveTextContent("A published control cannot be removed."),
+    );
+    await expect(openTip()).not.toHaveTextContent("Remove");
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(openTip()).toBeNull());
+  },
+};
+
+function ExportWhenReady() {
+  const [ready, setReady] = useState(false);
+  return (
+    <IconButton
+      label="Export"
+      icon={<Download />}
+      disabledReason={ready ? undefined : "Nothing to export until a control is added."}
+      onFocus={() => setTimeout(() => setReady(true), 50)}
+      onClick={exportAction}
+    />
+  );
+}
+
+/**
+ * The tooltip that carries a reason is a different tree from the label's own, so the button is
+ * rebuilt when a reason comes or goes; focus stays on it through the change.
+ */
+export const ReasonChangesWhileFocused: Story = {
+  name: "A reason that changes while focused",
+  render: () => <ExportWhenReady />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    exportAction.mockClear();
+    await userEvent.tab();
+    await expect(canvas.getByRole("button", { name: "Export" })).toHaveFocus();
+    await waitFor(() =>
+      expect(canvas.getByRole("button", { name: "Export" })).not.toHaveAttribute("aria-disabled"),
+    );
+    await expect(canvas.getByRole("button", { name: "Export" })).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    await expect(exportAction).toHaveBeenCalledTimes(1);
   },
 };
 

@@ -1,19 +1,27 @@
 import type { ComponentPropsWithoutRef, ElementType, ReactNode, Ref } from "react";
 
 import { cn } from "../lib/cn";
+import { headingTag, useHeadingLevel } from "./heading-level";
 import { classFor, type HeadingColorToken, type HeadingElement } from "./tokens";
 
 /* Heading takes a required `size` that picks the text style and a default element from h1 to h6,
    `as` to override the element, and `color` limited to `color.text`, `color.text.inverse` and
    `color.text.warning.inverse`, applied automatically inside a Box with a bold background. The
    sizes are fixed, and the level is semantic, chosen by the page, separate from the style. Four
-   sizes on font.heading, the default element by size, the three colours, and no `style`. */
+   sizes on font.heading, the default element by size, the three colours, and no `style`. Inside a
+   HeadingLevelProvider, a titled Section or a panel's body, a Heading without `as` takes the
+   contextual level instead of its size's default; `large`, a displayed number, stays a div. */
 
-const size = { large: "font-heading-large", medium: "font-heading-medium", small: "font-heading-small", xsmall: "font-heading-xsmall" } as const;
+const size = {
+  large: "font-heading-large",
+  medium: "font-heading-medium",
+  small: "font-heading-small",
+  xsmall: "font-heading-xsmall",
+} as const;
 const defaultTag = { large: "div", medium: "h1", small: "h2", xsmall: "h3" } as const;
 
 export type HeadingProps = {
-  /** The element, when the page's outline needs a level other than the size's default. Level is semantic and chosen by the page; size is visual and chosen by the design. */
+  /** The element, when the outline needs a level other than the contextual one. Without it a Heading takes the level from the nearest HeadingLevelProvider (or titled Section, or panel body), and outside every provider the size's default: `large` a div, `medium` an h1, `small` an h2, `xsmall` an h3. Level is semantic and chosen by the page; size is visual and chosen by the design. */
   as?: HeadingElement | undefined;
   ref?: Ref<HTMLElement> | undefined;
   children?: ReactNode | undefined;
@@ -26,7 +34,10 @@ export type HeadingProps = {
 
 /** A title: the size from the design, the level from the page. */
 export function Heading({ as, size: s, color, className, children, ...rest }: HeadingProps) {
-  const Tag = (as ?? defaultTag[s]) as ElementType;
+  const level = useHeadingLevel();
+  // A displayed number is never a heading, whatever the context says.
+  const contextual = level !== undefined && s !== "large" ? headingTag(level) : undefined;
+  const Tag = (as ?? contextual ?? defaultTag[s]) as ElementType;
   return (
     <Tag className={cn(size[s], color && classFor(color), className)} {...rest}>
       {children}

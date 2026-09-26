@@ -9,7 +9,7 @@ import { menuItem, menuItemHighlighted, menuItemDisabled, menuChoiceSelected } f
 import { classes } from "../lib/base-ui";
 import { Scroller, ScrollerArrow, ScrollerViewport } from "./scroller";
 import { useLedgerLocale } from "../lib/locale";
-import { type ControlSize } from "./controls";
+import { useFieldControlState, type ControlSize } from "./controls";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "./input-group";
 
 /** Base UI's generic selection, filtering, form and popup state. Root has no DOM element. */
@@ -57,11 +57,16 @@ export function Combobox<Value, Multiple extends boolean | undefined = false>({
   ...props
 }: ComboboxProps<Value, Multiple>) {
   const ledger = useLedgerLocale();
+  const field = useFieldControlState();
   const direction = dir ?? ledger.direction;
   return (
     <DirectionContext.Provider value={direction}>
       <DirectionProvider direction={direction}>
-        <Primitive.Root<Value, Multiple> locale={locale ?? ledger.locale} {...props} />
+        <Primitive.Root<Value, Multiple>
+          locale={locale ?? ledger.locale}
+          {...props}
+          disabled={props.disabled || field.disabled}
+        />
       </DirectionProvider>
     </DirectionContext.Provider>
   );
@@ -177,13 +182,15 @@ export function ComboboxContent({
 export function ComboboxList({ className, style, ...props }: ComboboxListProps) {
   const defaults = { maxHeight: "min(var(--ds-dimension-layout-panel), var(--available-height))" };
   const { t } = useLedgerLocale();
+  const field = useFieldControlState();
+  const labelledBy = props["aria-labelledby"] ?? field.labelId;
   return (
     <Scroller orientation="vertical" surface="overlay">
       <ScrollerViewport
         render={
           <Primitive.List
-            aria-labelledby={props["aria-labelledby"]}
-            aria-label={props["aria-labelledby"] ? undefined : t("choose")}
+            aria-labelledby={labelledBy}
+            aria-label={labelledBy ? undefined : t("choose")}
             data-slot="combobox-list"
             className={classes("overscroll-none p-050 outline-none empty:p-0", className)}
             style={

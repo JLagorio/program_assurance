@@ -150,11 +150,18 @@ export const PopoverMatrix: Story = {
     await user.keyboard("{Enter}");
     const rtl = await body.findByRole("dialog", { name: "Sharing settings" });
     await waitFor(() => expect(rtl).toBeVisible());
-    await waitFor(() =>
-      expect(rtl.getBoundingClientRect().right).toBeLessThanOrEqual(
-        custom.getBoundingClientRect().left,
-      ),
-    );
+    // Inline-end is the left in RTL. Where the window leaves no room there (a phone, a narrow
+    // frame), the popup flips to stay on screen instead.
+    if (custom.getBoundingClientRect().left >= rtl.getBoundingClientRect().width + 32) {
+      await waitFor(() =>
+        expect(rtl.getBoundingClientRect().right).toBeLessThanOrEqual(
+          custom.getBoundingClientRect().left,
+        ),
+      );
+    } else {
+      await waitFor(() => expect(rtl.getBoundingClientRect().left).toBeGreaterThanOrEqual(0));
+      await expect(rtl.getBoundingClientRect().right).toBeLessThanOrEqual(window.innerWidth);
+    }
     const rtlDone = within(rtl).getByRole("button", { name: "Done" });
     await waitFor(() => expect(rtlDone).toHaveFocus());
     await user.tab();
@@ -244,6 +251,10 @@ export const Task: Story = {
     const outside = canvas.getByRole("button", { name: "Open control" });
     await user.click(trigger);
     let popup = await body.findByRole("dialog", { name: "Defer control" });
+    // The popup records the overlay surface as the current one for what sits on it.
+    await expect(popup.style.getPropertyValue("--ds-utility-elevation-surface-current")).toBe(
+      "var(--ds-elevation-surface-overlay)",
+    );
     let reason = within(popup).getByRole("textbox", { name: "Reason" });
     await waitFor(() => expect(reason).toHaveFocus());
     await expect(popup).toHaveAccessibleDescription("Record why the review should wait.");

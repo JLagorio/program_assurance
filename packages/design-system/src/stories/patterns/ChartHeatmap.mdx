@@ -24,12 +24,12 @@ A grid of rows by columns with a value painted in each cell: how much, across tw
 
 ## Variants
 
-| Variant              | Use                                                                                                                                                                        |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `scale="sequential"` | How much: findings by family and month, in `color.chart.sequential.1` to `5`. The default.                                                                                 |
-| `scale="diverging"`  | Above and below a `midpoint`: schedule variance in days, red below and blue above around grey.                                                                             |
-| A tone function      | Status by place: the risk matrix, each cell the tone its position earns, the count printed.                                                                                |
-| `showValues`         | The value printed on a colour scale too, when the reader must read every cell: on a surface chip in `color.text`, since text never sits on a chart colour. Off by default. |
+| Variant              | Use                                                                                                                                                                                                                                                                 |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scale="sequential"` | How much: findings by family and month, in `color.chart.sequential.1` to `5`. The default.                                                                                                                                                                          |
+| `scale="diverging"`  | Above and below a `midpoint`: schedule variance in days, red below and blue above around grey.                                                                                                                                                                      |
+| A tone function      | Status by place: the risk matrix, each cell the tone its position earns, the count printed.                                                                                                                                                                         |
+| `showValues`         | The value printed on a colour scale too, when the reader must read every cell: on a surface chip in `color.text`, since text never sits on a chart colour. Unsaid, a Frame around the grid offers the reader a Values toggle that prints them; `false` offers none. |
 
 <Canvas of={Stories.Sequential} />
 <Canvas of={Stories.Diverging} />
@@ -43,7 +43,7 @@ A grid of rows by columns with a value painted in each cell: how much, across tw
 | `medium` | 32px        | A Section. The default.                                       |
 | `large`  | 40px        | A five-by-five matrix that is a page's point, values printed. |
 
-A cell is at least 40px wide; the grid scrolls sideways inside its own box past the width it has.
+A cell is at least 40px wide; the grid scrolls sideways inside its own box past the width it has. In a Frame's expanded Dialog the cells are `large`.
 
 ## States
 
@@ -60,7 +60,7 @@ A cell is at least 40px wide; the grid scrolls sideways inside its own box past 
 
 - **`scale`**, **`domain`**, **`midpoint`**, **`showValues`** as in Variants.
 - **`rowLabel`**, **`columnLabel`** name the dimensions: the corner cell, and what a screen reader hears.
-- **`format`** for the values, the tooltip and the card.
+- **`format`** for the values, the tooltip, the card and the Frame's table. The Frame's, else the kit's.
 - **`onSelect`** and **`details`** as in States; the selection is `{ row, column, value }`.
 - **`loading`** draws the skeleton. The Frame does not set it: a grid's shape is its own.
 - **`label`** is required: the grid is a table and needs a name.
@@ -89,6 +89,8 @@ A cell is at least 40px wide; the grid scrolls sideways inside its own box past 
 
 - **It is a table**: a `table` named by `label`, column headers across and row headers down, the corner naming the rows and, for a screen reader, the columns ("Likelihood by Impact"). A screen reader reads each cell as "row, column, value".
 - **Every cell has its value in text**: printed on a status scale, screen-reader-only on a colour scale, so the colour is never the only channel.
+- **A colour scale's values are one press away** in a Frame: Values, a toggle button whose name stays "Values" while `aria-pressed` says whether they show, prints every value on its cell for keyboard, touch and magnifier readers alike. The reader's choice holds across the table view and the expanded Dialog.
+- **The table twin is the grid pivoted**: the Frame's Table toggle and CSV lay it out as a row per row and a column per column, headed by `rowLabel`, every value printed and no colour.
 - **Cells that choose are buttons**, focusable in reading order, with the kit's focus ring; a chosen one says `aria-pressed`. The card is a dialog and focus returns to the cell when it closes.
 - **The scale is `aria-hidden`**: its ends are text, and the values are in the cells.
 - **Loading is `aria-busy`** and named "[the grid's name], loading".

@@ -7,7 +7,9 @@ import * as Stories from "./Button.stories";
 
 # Button
 
-Button starts an action. Use a short label that names what happens, such as “Save changes” or “Export report.” For navigation, style a real anchor or router Link with `buttonVariants`; for a text link, use [TextLink](?path=/docs/components-textlink--docs).
+Button starts an action. Use a short label that names what happens, such as “Save changes” or “Export report.”
+
+Use it for something that happens on this page: saving, opening a dialog or a menu, changing state. Do not use it to go somewhere: navigation that looks like a button is a [LinkButton](?path=/docs/components-linkbutton--docs), a real anchor the reader can open in a new tab, and a link in text is a [TextLink](?path=/docs/components-textlink--docs). An icon-only action is an [IconButton](?path=/docs/components-iconbutton--docs); an on/off state is a [Toggle](?path=/docs/components-toggle--docs).
 
 <Canvas of={Stories.Matrix} />
 
@@ -41,30 +43,45 @@ Button defaults to `type="button"`. Set `type="submit"` for a form's submit acti
 
 <Canvas of={Stories.Loading} />
 
+## Disabled with a reason
+
+Keep actions enabled where you can, and explain on use: a form's submit stays enabled and reports what is missing. When an action truly cannot run, say why with `disabledReason` instead of `disabled`. The button takes the disabled face but stays in the tab order with `aria-disabled`, so a keyboard reader reaches it; the reason is its accessible description and shows in a tooltip on hover, on keyboard focus and on a tap. Activation is blocked. Write the reason as what would make the action available: “Add content to this version before publishing it.”, not “Disabled.” A `title` on a disabled button never shows, because a disabled button takes no pointer events.
+
+`disabledReason` disables the button by itself and keeps it focusable even when `disabled` is also set. An empty string is no reason. A Button with a reason owns its tooltip; do not put it inside another TooltipTrigger.
+
+<Canvas of={Stories.DisabledWithAReason} />
+
+A reason that comes or goes while the button has focus leaves focus where it is. Publishing a version can make Publish unavailable at once: focus stays on it and its tooltip says why. A scan that finishes while the reader is on Download leaves them on an enabled Download.
+
+<Canvas of={Stories.ReasonChangesWhileFocused} />
+
 ## Composition
 
 `render` accepts an element or a render function for an action control. Render elements merge native props, handlers, refs, classes and styles. Render functions receive the props and state and must apply those props to their result. Custom components must forward them to their DOM element. Button's root ref describes a native button; put a ref for another target on the render element itself.
 
 Use `nativeButton={false}` when the rendered action is not a native button; it receives button semantics and Enter/Space activation. `className` and `style` also accept callbacks with Base UI's `{ disabled }` state, including while loading.
 
-Navigation uses a real anchor or the application's router Link, with the same styling recipe. [Base UI Button enforces button semantics](https://base-ui.com/react/components/button#rendering-links-as-buttons), so styling the link directly preserves its navigation behavior:
+Navigation is a [LinkButton](?path=/docs/components-linkbutton--docs): an anchor, or the application's router Link through `render`, with Button's variants, sizes, icon slots and insets. Do not render a link through Button's `render`: [Base UI Button enforces button semantics](https://base-ui.com/react/components/button#rendering-links-as-buttons), logs an error for an anchor, and `nativeButton={false}` would give the link `role="button"`.
 
 ```tsx
-<a href="/requirements" className={buttonVariants({ variant: "primary" })}>
+<LinkButton variant="primary" render={<Link to="/requirements" />}>
   View requirements
-</a>
+</LinkButton>
 ```
 
-`buttonVariants` accepts `variant`, `size`, `isSelected`, `isFullWidth` and `className`. It supplies classes without adding ARIA or disabled behavior. Existing `Button asChild` and `IconButton asChild` usages must move to a styled link for navigation, or to `render` for an action control.
+`buttonVariants` is the lower-level recipe LinkButton uses. It accepts `variant`, `size`, `isSelected`, `isFullWidth` and `className`, and supplies classes without adding ARIA, icon insets or disabled behavior; reach for it only where a part cannot take LinkButton. Existing `Button asChild` and `IconButton asChild` usages move to LinkButton or LinkIconButton for navigation, or to `render` for an action control.
 
 <Canvas of={Stories.AsLink} />
 
 ## Accessibility
 
 - Tab reaches an enabled button. Enter and Space activate it; the focus outline appears on keyboard focus.
-- Disabled buttons are skipped by Tab by default. Explain unavailable actions nearby; for form validation, keep the submit action available so the form can report errors.
+- Disabled buttons are skipped by Tab by default. For an action that cannot run, `disabledReason` keeps it focusable with `aria-disabled` and gives it the reason as its description; for form validation, keep the submit action available so the form can report errors.
 - Loading blocks click, Enter and Space activation, including handlers on the rendered action. It keeps the accessible name stable.
 - Use [IconButton](?path=/docs/components-iconbutton--docs) for an icon only action with a required accessible label, and [Toggle](?path=/docs/components-toggle--docs) for an on/off control.
+- `variant="link"` is as tall as its text. Where any pointer is coarse it takes an invisible hit area of at least 24px, centred on it, so nothing around it moves.
+
+<Canvas of={Stories.OnTouch} />
 
 ## Props
 
@@ -76,4 +93,4 @@ Navigation uses a real anchor or the application's router Link, with the same st
 
 ## Related
 
-[IconButton](?path=/docs/components-iconbutton--docs) · [ButtonGroup](?path=/docs/components-buttongroup--docs) · [TextLink](?path=/docs/components-textlink--docs) · [DropdownMenu](?path=/docs/components-dropdownmenu--docs) · [AlertDialog](?path=/docs/components-alertdialog--docs) · [Forms](?path=/docs/patterns-forms--docs)
+[IconButton](?path=/docs/components-iconbutton--docs) · [LinkButton](?path=/docs/components-linkbutton--docs) · [CopyButton](?path=/docs/components-copybutton--docs) · [ButtonGroup](?path=/docs/components-buttongroup--docs) · [TextLink](?path=/docs/components-textlink--docs) · [DropdownMenu](?path=/docs/components-dropdownmenu--docs) · [AlertDialog](?path=/docs/components-alertdialog--docs) · [Forms](?path=/docs/patterns-forms--docs)

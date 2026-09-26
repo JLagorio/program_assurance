@@ -2,7 +2,15 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { expect, userEvent, waitFor, within } from "storybook/test";
-import { Calendar, CalendarDayButton } from "../../components";
+import {
+  Button,
+  Calendar,
+  CalendarDayButton,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "../../components";
+import { LedgerProvider } from "../../lib/locale";
 
 const meta = {
   title: "Components/Calendar",
@@ -69,8 +77,160 @@ export const CalendarRange: Story = {
       "data-range-middle",
       "true",
     );
+    // The ends say which end they are; the middle days say selected.
+    await expect(
+      canvas.getByRole("button", { name: /September 7, 2026, Start of range/ }),
+    ).toBeVisible();
+    await expect(
+      canvas.getByRole("button", { name: /October 9, 2026, End of range/ }),
+    ).toBeVisible();
+    await expect(canvas.getByRole("button", { name: /October 1, 2026, Selected/ })).toBeVisible();
+    // The completed range is announced once, politely.
+    await waitFor(() =>
+      expect(
+        canvasElement.ownerDocument.querySelector(
+          '[data-slot="announcer-region"][data-politeness="polite"]',
+        ),
+      ).toHaveTextContent("September 7, 2026 to October 9, 2026 selected"),
+    );
+    // Choosing the start again leaves a one-day range, which is said as its day, not "7 to 7".
+    await userEvent.click(canvas.getByRole("button", { name: /September 7, 2026/ }));
+    await expect(
+      canvas.getByRole("button", { name: /September 7, 2026, Start of range, End of range/ }),
+    ).toBeVisible();
+    await waitFor(() => {
+      const lines = [
+        ...canvasElement.ownerDocument.querySelectorAll(
+          '[data-slot="announcer-region"][data-politeness="polite"] > *',
+        ),
+      ].map((line) => line.textContent);
+      expect(lines).toContain("September 7, 2026 selected");
+    });
   },
 };
+/** Two months side by side when the space holds them, stacked when it does not: above the `sm` window the months follow the calendar's own space. */
+const expectMonthsFit = async (space: HTMLElement) => {
+  const bounds = space.getBoundingClientRect();
+  const grids = [...space.querySelectorAll<HTMLElement>('[role="grid"]')].map((grid) =>
+    grid.getBoundingClientRect(),
+  );
+  await expect(grids).toHaveLength(2);
+  const [first, second] = grids as [DOMRect, DOMRect];
+  for (const grid of grids) {
+    await expect(grid.left).toBeGreaterThanOrEqual(bounds.left - 0.5);
+    await expect(grid.right).toBeLessThanOrEqual(bounds.right + 0.5);
+  }
+  const room = bounds.width >= first.width + second.width + 16;
+  if (room) await expect(second.top).toBe(first.top);
+  else await expect(second.top).toBeGreaterThan(first.bottom);
+  return room;
+};
+const expectNoSidewaysScroll = async (element: HTMLElement) => {
+  const doc = element.ownerDocument.documentElement;
+  await expect(doc.scrollWidth).toBeLessThanOrEqual(doc.clientWidth);
+};
+
+/** A range calendar in a 320px panel on a wide screen: the second month goes under the first instead of past the panel's edge, and the days keep their 32px cells. */
+export const InANarrowPanel: Story = {
+  render: () => (
+    <section aria-label="Narrow panel" style={{ maxWidth: 320 }}>
+      <RangeDemo />
+    </section>
+  ),
+  play: async ({ canvasElement }) => {
+    const panel = within(canvasElement).getByRole("region", { name: "Narrow panel" });
+    await expect(await expectMonthsFit(panel)).toBe(false);
+    await expectNoSidewaysScroll(canvasElement);
+    const day = within(panel).getByRole("button", { name: /October 9, 2026/ });
+    await expect(day.getBoundingClientRect().width).toBeGreaterThanOrEqual(24);
+    await expect(day.getBoundingClientRect().height).toBeGreaterThanOrEqual(24);
+  },
+};
+
+function RangePopoverDemo() {
+  const [range, setRange] = useState<DateRange | undefined>({
+    from: new Date(2026, 8, 7),
+    to: new Date(2026, 8, 11),
+  });
+  return (
+    // Room under the trigger for the two-month popup, so on the docs page it opens over the
+    // canvas rather than the next example. The play opens it: a docs page renders it closed and
+    // keeps its scroll position and focus.
+    <div style={{ minHeight: 320 }}>
+      <Popover>
+        <PopoverTrigger render={<Button variant="secondary">Review window</Button>} />
+        <PopoverContent
+          aria-label="Choose the review window"
+          align="start"
+          className="p-0"
+          style={{ width: "auto" }}
+        >
+          <Calendar
+            mode="range"
+            selected={range}
+            onSelect={setRange}
+            defaultMonth={new Date(2026, 8, 1)}
+            numberOfMonths={2}
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+/** Opens the popover from its trigger, as a reader does, and waits for it to settle. */
+const openPopup = async (canvasElement: HTMLElement) => {
+  const doc = canvasElement.ownerDocument;
+  await userEvent.click(within(canvasElement).getByRole("button", { name: "Review window" }));
+  await waitFor(() =>
+    expect(doc.querySelector('[data-slot="popover-content"] [role="grid"]')).not.toBeNull(),
+  );
+  const popup = doc.querySelector<HTMLElement>('[data-slot="popover-content"]')!;
+  await Promise.all(popup.getAnimations().map((animation) => animation.finished));
+  return popup;
+};
+/** Escape closes the popover and returns focus to its trigger. */
+const closePopup = async (canvasElement: HTMLElement) => {
+  await userEvent.keyboard("{Escape}");
+  const doc = canvasElement.ownerDocument;
+  await waitFor(() => expect(doc.querySelector('[data-slot="popover-content"]')).toBeNull());
+  await expect(within(canvasElement).getByRole("button", { name: "Review window" })).toHaveFocus();
+};
+
+/** A range in a popover sized to its content: two months side by side on a desktop. The play opens it; on the docs page, open Review window. */
+export const RangeInAPopover: Story = {
+  render: () => <RangePopoverDemo />,
+  play: async ({ canvasElement }) => {
+    const popup = await openPopup(canvasElement);
+    const room = await expectMonthsFit(popup);
+    if (canvasElement.ownerDocument.defaultView!.innerWidth >= 640) await expect(room).toBe(true);
+    await expect(popup.getBoundingClientRect().right).toBeLessThanOrEqual(
+      canvasElement.ownerDocument.documentElement.clientWidth,
+    );
+    await expectNoSidewaysScroll(canvasElement);
+  },
+};
+
+/** The same popover on a phone: the popup keeps to the screen and the months stack in one column.
+    It stays open in Storybook. Under the Vitest runner the play closes it after its checks,
+    because the runner resizes the page to the next story's viewport before it unmounts this one,
+    and an open popover resized across `sm` logs a ResizeObserver loop the next story reports. */
+export const RangeInAPopoverOnAPhone: Story = {
+  globals: { viewport: { value: "ledgerPhone", isRotated: false } },
+  render: () => <RangePopoverDemo />,
+  play: async ({ canvasElement }) => {
+    const popup = await openPopup(canvasElement);
+    await expect(await expectMonthsFit(popup)).toBe(false);
+    await expect(popup.getBoundingClientRect().right).toBeLessThanOrEqual(
+      canvasElement.ownerDocument.documentElement.clientWidth,
+    );
+    await expectNoSidewaysScroll(canvasElement);
+    // The same test addon-vitest's setViewport makes before it resizes the page.
+    if ((globalThis as { __vitest_browser__?: unknown }).__vitest_browser__) {
+      await closePopup(canvasElement);
+    }
+  },
+};
+
 export const DropdownsAndWeekNumbers: Story = {
   render: () => (
     <Calendar
@@ -159,5 +319,70 @@ export const NavigationLayouts: Story = {
         await expect(group.getAllByRole("status")[0]).toHaveTextContent("September 2026");
       }
     }
+  },
+};
+
+/** A disabled day says why in its name (`describeDay`); the rule itself belongs in the field's hint as well. */
+export const DisabledDayReasons: Story = {
+  render: () => (
+    <Calendar
+      mode="single"
+      defaultMonth={new Date(2026, 8, 1)}
+      disabled={{ dayOfWeek: [0, 6] }}
+      describeDay={(date, modifiers) =>
+        modifiers["disabled"] && [0, 6].includes(date.getDay()) ? "Weekends are closed." : undefined
+      }
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const saturday = canvas.getByRole("button", { name: /September 19, 2026/ });
+    await expect(saturday).toBeDisabled();
+    await expect(saturday).toHaveAccessibleName(
+      "Saturday, September 19, 2026, Weekends are closed.",
+    );
+    await expect(canvas.getByRole("button", { name: /September 18, 2026/ })).toBeEnabled();
+  },
+};
+
+/** Under a LedgerProvider the month speaks its locale: `lang`, the first day of the week, the weekday names and the digits. German weeks start on Monday; Egyptian Arabic weeks on Saturday, right to left, in Arabic-Indic digits. Two months on one page name their navigation apart (`labels.labelNav`), or it repeats as a landmark. */
+export const Localized: Story = {
+  render: () => (
+    <div className="flex flex-wrap items-start gap-400">
+      <LedgerProvider locale="de-DE">
+        <section aria-label="German">
+          <Calendar
+            mode="single"
+            defaultMonth={new Date(2026, 8, 1)}
+            labels={{ labelNav: () => "Monatsnavigation" }}
+          />
+        </section>
+      </LedgerProvider>
+      <LedgerProvider locale="ar-EG" direction="rtl">
+        <section aria-label="Arabic">
+          <Calendar
+            mode="single"
+            defaultMonth={new Date(2026, 8, 1)}
+            labels={{ labelNav: () => "التنقل بين الأشهر" }}
+          />
+        </section>
+      </LedgerProvider>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const german = canvas.getByRole("region", { name: "German" });
+    await expect(german.querySelector('[data-slot="calendar"]')).toHaveAttribute("lang", "de-DE");
+    const germanDays = german.querySelectorAll("thead th");
+    await expect(germanDays[0]).toHaveAttribute("aria-label", "Montag");
+    await expect(within(german).getByRole("grid")).toHaveAccessibleName("September 2026");
+    await expect(within(german).getByRole("navigation")).toHaveAccessibleName("Monatsnavigation");
+
+    const arabic = canvas.getByRole("region", { name: "Arabic" });
+    const root = arabic.querySelector('[data-slot="calendar"]');
+    await expect(root).toHaveAttribute("lang", "ar-EG");
+    await expect(root).toHaveAttribute("dir", "rtl");
+    await expect(arabic.querySelectorAll("thead th")[0]).toHaveAttribute("aria-label", "السبت");
+    await expect(within(arabic).getAllByRole("button", { name: /١٨/ }).length).toBeGreaterThan(0);
   },
 };

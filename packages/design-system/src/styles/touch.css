@@ -1,0 +1,53 @@
+/* A control drawn smaller than a fingertip keeps its look and gets a hit area of at least 24px
+   (WCAG 2.5.8) wherever any pointer is coarse: a phone, a tablet, a touchscreen laptop. The area is
+   the ::before pseudo-element, centred on the control, so neither the layout nor the neighbours
+   move; ::after stays free for focus rings and link overlays. The control must be positioned:
+   pair it with `relative`, or use it on an element that is already absolute or sticky. */
+@utility touch-target {
+  @media (any-pointer: coarse) {
+    &::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: max(100%, var(--ds-space-300));
+      height: max(100%, var(--ds-space-300));
+      transform: translate(-50%, -50%);
+    }
+  }
+}
+
+/* The band twin, for a control whose area cannot be a centred box: exactly the control's width, at
+   least 24px tall, centred on it vertically, never wider. An inline link that wraps is one: its
+   positioning box runs from its first word to its last, so a band kept to that width stays on the
+   link where a centred square would land on the words beside it. It sets the same properties as
+   touch-target and comes after it, so on an element that carries both, the band wins. Pair it with
+   `relative`, like touch-target. */
+@utility touch-target-block {
+  @media (any-pointer: coarse) {
+    &::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: max(100%, var(--ds-space-300));
+      transform: translateY(-50%);
+    }
+  }
+}
+
+/* The same band on ::after, for a control whose ::before is already taken (Editable's hover tint). */
+@utility touch-target-block-after {
+  @media (any-pointer: coarse) {
+    &::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: max(100%, var(--ds-space-300));
+      transform: translateY(-50%);
+    }
+  }
+}

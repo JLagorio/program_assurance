@@ -1,37 +1,84 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Sheet, SheetBody, SheetClose, SheetContent, SheetFooter } from "../../components";
 import * as Stories from "./Sheet.stories";
 
 <Meta of={Stories} />
 
 # Sheet
 
-Based on [shadcn’s Base UI source](https://ui.shadcn.com/docs/components/base/sheet) and [Base UI](https://base-ui.com/react/components/dialog). Ledger retains its tokens and application layouts.
-
-## Anatomy
-
-An edge panel using Base UI Dialog. Compose Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter and SheetClose.
-
-## Variants
+A modal panel at an edge of the window: a selection, a review, or a task that must hold focus beside the page's context. Built on [Base UI Dialog](https://base-ui.com/react/components/dialog) with [shadcn’s Sheet composition](https://ui.shadcn.com/docs/components/base/sheet) and Ledger's tokens.
 
 <Canvas of={Stories.EdgesAndScrolling} />
 
-<Canvas of={Stories.NestedAndRTL} />
+## When to use it
+
+- **A modal selection or review** that needs the height of the window, such as choosing many records ([PickerSheet](?path=/docs/patterns-pickersheet--docs)) or reviewing one ([PreviewSheet](?path=/docs/patterns-previewsheet--docs)).
+- **Filters or a short form** that should sit at the edge while the reader keeps the page in mind.
+
+Not for work beside a list the reader keeps using: that is the Shell's panel, which blocks nothing. Not for a create or edit form: that is a [Dialog](?path=/docs/components-dialog--docs). Not for a phone's bottom sheet with a swipe: that is a [Drawer](?path=/docs/components-drawer--docs).
+
+## Anatomy
+
+- **SheetContent** brings its portal, the blanket and a close button at the top end, and slides from `side`: `right` by default, `left`, `top` or `bottom`, or `start` and `end`, which follow the reading direction. It records the overlay surface as the current one, so a sticky header or pinned cell inside matches the sheet.
+- **SheetHeader** holds the title (the sheet's h2; headings inside start at h3) and the description.
+- **SheetBody** is the one scrolling region, with the sheet's inset. A toolbar row that should not scroll sits between the header and the body.
+- **SheetFooter** stays outside the scroll.
+
+## Widths
+
+`width` on SheetContent picks a step for a sheet at the start or end edge; do not set pixels in `style`.
+
+| `width`      | Size               | For                                |
+| ------------ | ------------------ | ---------------------------------- |
+| `small`      | 320px              | Filters, a short form              |
+| `medium`     | 420px, the default | A form, a record's details         |
+| `large`      | 760px              | A table of about four columns      |
+| `xlarge`     | 960px              | A table beside a preview           |
+| `fullscreen` | The window         | A task that needs the whole window |
+
+Each step is capped by the window. `large` and `xlarge` match Dialog's.
+
+<Canvas of={Stories.Widths} />
+
+## Scrolling and short windows
+
+The body takes the height the header, any toolbar row and the footer leave, at least 80px, and scrolls. Read-only content that overflows makes it a tab stop, "Content, scrolls". In a window under 30rem tall the sheet scrolls as one: the header and any toolbar scroll away with the body, and the footer stays at the bottom, so a list is never squeezed to a single row.
+
+## Pending
+
+`pending` on the Sheet holds it while a command runs: Escape, the blanket, the close button and every SheetClose are cancelled or disabled, the close button and a SheetClose rendered as a kit Button stay focusable while they are (`aria-disabled`), and the popup is `aria-busy`. Close the sheet with `open={false}` when the command succeeds.
+
+<Canvas of={Stories.Pending} />
 
 ## Accessibility
 
-Base UI provides modal focus trapping, nested dismissal and focus return. Give the panel a title. Keep a close control available; Content includes one by default. Put scrolling on a body child so the header and footer remain reachable.
+- **Give the sheet a title.** Base UI traps focus, handles Escape and nested dialogs, and returns focus to the opener, or to `finalFocus` when the opener went away. Move focus to a field with `initialFocus`, never `autoFocus`.
+- **Keep a close control available**; the content includes one by default.
+
+<Canvas of={Stories.NestedAndRTL} />
 
 ## Props
 
-Root exposes the generic Base UI Dialog contract. Content accepts native popup props, refs, render, initialFocus and finalFocus, plus side and showCloseButton. The four physical sides follow shadcn; Ledger also accepts start/end for locale-relative edges.
+<ArgTypes of={Sheet} />
 
-### Migration and API
+### SheetContent
 
-- Replace title/subtitle/footer shortcuts with Title, Description and Footer children. Eyebrow, facts, back actions and toolbars are ordinary header/body composition.
-- Replace onClose with onOpenChange; returnFocusRef becomes Content finalFocus; width becomes Content style.maxWidth.
-- Content defaults to physical right and a 420px maximum width for side panels. Migrated callers explicitly use logical end to preserve RTL behavior.
+<ArgTypes of={SheetContent} />
+
+### SheetBody
+
+<ArgTypes of={SheetBody} />
+
+### SheetFooter
+
+<ArgTypes of={SheetFooter} />
+
+### SheetClose
+
+<ArgTypes of={SheetClose} />
+
+<Canvas of={Stories.Playground} />
 
 ## Related
 
-- [Dialog](?path=/docs/components-dialog--docs)
-- [ScrollArea](?path=/docs/components-scrollarea--docs)
+- [Dialog](?path=/docs/components-dialog--docs), [PickerSheet](?path=/docs/patterns-pickersheet--docs), [PreviewSheet](?path=/docs/patterns-previewsheet--docs), [Overlays](?path=/docs/components-overlays--docs).

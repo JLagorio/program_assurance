@@ -80,11 +80,39 @@ Every border is a 1px hairline: `border.width` is 1px and `color.border` is the 
 | Selected tab or item, 2px       | `color.border.selected` | `border-selected border-w-selected` |
 | Off                             | `color.border.disabled` | `border-disabled`                   |
 
-Input boundaries meet at least 3:1 against the supported page, sunken, raised, overlay and input surfaces, including hovered and pressed input fills. This supersedes the earlier 1.5:1 resting-border decision. Decorative rules and disabled controls use separate tokens; a decorative border must not be the only visible boundary of an interactive control.
+The field border is light by decision (2026-09-04): `color.border.input` is 1.87:1 on the light page and about 2:1 on the dark one, and the contrast test holds it at 1.5:1 or more on the page, sunken, raised, overlay and input surfaces, including the hovered and pressed input fills. The input surface, the hover tint and the focus and danger borders, which do meet 3:1, carry the affordance. A reader who asks for more contrast gets a field and choice-control boundary of 3:1 or more on every one of those surfaces: see Increased contrast below. Decorative rules and disabled controls use separate tokens; a decorative border must not be the only visible boundary of an interactive control.
 
-The automated contrast contract covers default, hovered and pressed text/fill pairs, selected rows, status fills, focus and input borders, and translucent fills on their actual parent surfaces in both modes. Alpha blends are composed in encoded sRGB before calculating WCAG luminance. These token checks complement rendered interaction and manual accessibility checks; they do not establish conformance for arbitrary custom combinations.
+The automated contrast contract covers default, hovered and pressed text/fill pairs, selected rows, status fills, focus and input borders, and translucent fills on their actual parent surfaces in both modes, at the standard contrast and the increased one. Alpha blends are composed in encoded sRGB before calculating WCAG luminance. These token checks complement rendered interaction and manual accessibility checks; they do not establish conformance for arbitrary custom combinations.
 
 A status border comes in `default` (3:1) and `subtle` (decorative): `color.border.danger`, `color.border.danger.subtle`, and the same for warning, success and information.
+
+## Increased contrast
+
+The standard values above are the default, low-contrast choices included: a 1.87:1 field border, a 1.22:1 hairline, and selected, pressed and highlighted fills between 1.05:1 and 1.8:1. A reader who asks the system for more contrast gets a second set of values, in light and in dark, where every boundary and every state reads 3:1 against the surface, and a focus ring reads 3:1 on those states too.
+
+| What turns it on                     | Where                                                                                     |
+| ------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `prefers-contrast: more`             | The reader's system setting, for the whole document, unless the root pins standard.       |
+| `data-contrast-mode="more"`          | Pins increased contrast on that element and everything inside it, usually `html`.         |
+| `data-contrast-mode="no-preference"` | Pins the standard contrast, whatever the system says.                                     |
+| No attribute                         | Follows the reader's setting, as `data-color-mode` absent follows `prefers-color-scheme`. |
+
+The contrast and the colour mode are independent and nest either way: a dark region inside an increased-contrast page, or an increased-contrast region inside a dark one, takes the nearest of each. The mode switch does not set the contrast yet; a product that offers the choice writes the attribute on `html` itself, and the Storybook's Contrast toolbar does the same.
+
+| Family                                                                                                    | Standard                                                 | Increased                                                                                                                                      |
+| --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Field and choice-control boundary, `color.border.input`                                                   | 1.87:1 light, about 2:1 dark                             | 3:1 or more on every surface and on the hovered and pressed input fills                                                                        |
+| Hairline, `color.border`                                                                                  | 1.22:1 light, about 1.3:1 dark                           | 3:1 on every surface                                                                                                                           |
+| Pressed and highlighted fills, `color.background.neutral` and `.subtle`, rest, hover, pressed             | 1.13:1 to 1.46:1 light, 1.16:1 to 1.78:1 dark            | 3:1 against the surface they sit on                                                                                                            |
+| Selected fills, `color.background.selected`, rest, hover, pressed                                         | 1.05:1 to 1.22:1 light, 1.23:1 to 1.97:1 dark            | 3:1 against the surface                                                                                                                        |
+| Text and icons on those fills: `color.text`, `.subtle`, `.selected`; `color.icon`, `.subtle`, `.selected` | 4.5:1 and 3:1 on the standard fills                      | `color.text`, the subtle ones and the selected ones step darker in light and lighter in dark, so they keep 4.5:1 and 3:1 on the stronger fills |
+| Focus ring, `color.border.focused`                                                                        | 3:1 on the surface; 2.3:1 to 3.2:1 on the fills in light | 3:1 on the surface and on every fill above, so focus inside a selected or hovered row shows; darker in light, lighter in dark                  |
+
+What it costs: secondary text reads closer to primary text (in dark, `color.text.subtle` is the same step as `color.text`), and a 3:1 fill is a mid tone, so a coloured word (a link, a status) on a hovered or selected row is not promised its 4.5:1 there, nor a coloured boundary (`color.border.selected`, `color.border.danger`) its 3:1 against the fill; each keeps 3:1 against the surface. `color.text.subtlest` steps up too but is held to the surfaces, as at the standard contrast, so a placeholder still reads apart from a value. Every pairing on this page is tested at both contrasts: `test/contrast.test.mjs` runs light and dark at each.
+
+Nothing reads the contrast directly: a part uses the tokens and follows. `tokenValue()` returns the value in effect at the element it is given. For Figma and other DTCG tools the package exports `tokens.dtcg.light-contrast.json` and `tokens.dtcg.dark-contrast.json` beside the light and dark documents. Forced colours (Windows High Contrast) is a different mode, where the system replaces the palette; `forced-colors.css` handles it.
+
+<Canvas of={Stories.IncreasedContrast} />
 
 ## Blanket and skeleton
 

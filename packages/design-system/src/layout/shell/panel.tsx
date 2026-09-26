@@ -13,8 +13,15 @@ import {
 
 import { IconButton, type IconButtonProps } from "../../components/button";
 import { cn } from "../../lib/cn";
-import { useLandmarkTitle, useRegisterTitle } from "../../lib/landmark-title";
+import { useLandmarkTitle } from "../../lib/landmark-title";
 import { useLedgerLocale } from "../../lib/locale";
+import {
+  HeadingLevelProvider,
+  HeadingLevelScope,
+  headingTag,
+  nextHeadingLevel,
+  useHeadingLevel,
+} from "../../primitives/heading-level";
 import { AreaPortal, SlotsContext } from "../slots";
 import {
   MAIN,
@@ -54,7 +61,17 @@ const PanelContext = createContext<{
   onClose: () => void;
   titleId: string;
   setHasTitle: (present: boolean) => void;
+  /** Whether a title names the panel, so its body's headings sit one level below it. */
+  titled: boolean;
 } | null>(null);
+
+/** Present while the Title is mounted, before paint, so the body's headings take their level in the same frame. */
+function useRegisterTitle(setHasTitle: ((present: boolean) => void) | undefined) {
+  useLayoutEffect(() => {
+    setHasTitle?.(true);
+    return () => setHasTitle?.(false);
+  }, [setHasTitle]);
+}
 
 /** A route-owned contribution to the persistent shell. Mount to open; unmount to close. */
 export function PanelRoot(props: ShellPanelProps) {
@@ -89,9 +106,10 @@ export function PanelSurface({
   closeRef.current = onClose;
   // The built-in header when a title or actions are given; otherwise the children compose the parts.
   const configured = title !== undefined || actions !== undefined;
+  const titled = configured || hasTitle;
   const context = useMemo(
-    () => ({ onClose: () => closeRef.current(), titleId, setHasTitle }),
-    [titleId, setHasTitle],
+    () => ({ onClose: () => closeRef.current(), titleId, setHasTitle, titled }),
+    [titleId, setHasTitle, titled],
   );
   // Capture before the compact layout hides Main. Restore only while focus still belongs to this panel.
   useLayoutEffect(() => {
@@ -153,21 +171,25 @@ export function PanelSurface({
         }
       }}
     >
-      <PanelContext.Provider value={context}>
-        {configured ? (
-          <>
-            <PanelSplitter />
-            <PanelHeader>
-              <PanelTitle>{title ?? name}</PanelTitle>
-              {actions != null && actions !== false && <PanelActions>{actions}</PanelActions>}
-              <PanelClose />
-            </PanelHeader>
-            <PanelBody>{children}</PanelBody>
-          </>
-        ) : (
-          children
-        )}
-      </PanelContext.Provider>
+      {/* The panel is its own landmark beside Main, portalled from wherever the route renders it:
+          its outline starts at 2, under the page's h1, whatever level surrounds it in React. */}
+      <HeadingLevelProvider level={2}>
+        <PanelContext.Provider value={context}>
+          {configured ? (
+            <>
+              <PanelSplitter />
+              <PanelHeader>
+                <PanelTitle>{title ?? name}</PanelTitle>
+                {actions != null && actions !== false && <PanelActions>{actions}</PanelActions>}
+                <PanelClose />
+              </PanelHeader>
+              <PanelBody>{children}</PanelBody>
+            </>
+          ) : (
+            children
+          )}
+        </PanelContext.Provider>
+      </HeadingLevelProvider>
     </aside>
   );
 }
@@ -186,12 +208,13 @@ export function PanelHeader({ className, ...props }: ShellPanelHeaderProps) {
   );
 }
 
-/** The panel's heading and the landmark's name: an h2, or `render` for another level. */
+/** The panel's heading and the landmark's name: an h2 (the panel starts its outline at 2), or `render` for another level. */
 export function PanelTitle({ render, ref, className, ...props }: ShellPanelTitleProps) {
   const panel = useContext(PanelContext);
+  const level = useHeadingLevel();
   useRegisterTitle(panel?.setHasTitle);
   return useRender({
-    defaultTagName: "h2",
+    defaultTagName: headingTag(level ?? 2),
     render,
     ref,
     state: { slot: "panel-title" },
@@ -240,19 +263,24 @@ export function PanelClose({
   );
 }
 
-/** The panel's content, padded, containing its own inline size so a wide table scrolls inside it. */
-export function PanelBody({ className, style, ...props }: ShellPanelBodyProps) {
+/** The panel's content, padded, containing its own inline size so a wide table scrolls inside it. Its headings start one level below the panel's title (an h3 under the h2), or at 2 when no title names the panel, as in a preview whose record title is the body's first heading. */
+export function PanelBody({ className, style, children, ...props }: ShellPanelBodyProps) {
+  const panel = useContext(PanelContext);
+  const surrounding = useHeadingLevel();
+  const level = panel?.titled ? nextHeadingLevel(surrounding ?? 2) : surrounding;
   return (
     <div
       {...props}
       data-slot="shell-panel-body"
       className={cn("min-w-0 flex-1 p-200", className)}
       style={{ contain: "inline-size", ...style }}
-    />
+    >
+      <HeadingLevelScope level={level}>{children}</HeadingLevelScope>
+    </div>
   );
 }
 
-/** Makes the panel resizable from its start edge. The built-in header renders one; compose it yourself otherwise. */
+/** Makes the panel resizable from its start edge. The built-in header renders one; composing the parts, render it as the panel's first child. It holds still over the panel's visible height while the content scrolls. */
 export function PanelSplitter({ label, ...props }: ShellSplitterProps) {
   const shell = useShell();
   const { t } = useLedgerLocale();
@@ -264,6 +292,7 @@ export function PanelSplitter({ label, ...props }: ShellSplitterProps) {
       direction={-1}
       edge="start"
       setWidth={shell.setPanelWidth}
+      inScroller
     />
   );
 }

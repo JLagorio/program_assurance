@@ -207,7 +207,7 @@ export const Paths: Story = {
 /** A rail of milestones: each step carries its record under the label, the owner and the open task behind a Collapsible, and the rail runs past it. */
 export const Milestones: Story = {
   render: () => (
-    <Box style={{ width: 520 }}>
+    <Box style={{ maxWidth: 520 }}>
       <Stepper label="Activation" orientation="vertical">
         <Stepper.Item state="done" label="Contract signed" meta="12 Aug">
           <Collapsible className="border-t border-default border-t-0">
@@ -243,7 +243,7 @@ export const Milestones: Story = {
             <CollapsibleContent>
               <div className="pb-200">
                 <Stack space="space.100">
-                  <Inline space="space.050">
+                  <Inline space="space.050" shouldWrap>
                     <Badge variant="secondary" size="xsmall" tone="warning">
                       Pending
                     </Badge>

@@ -1,0 +1,16 @@
+/* @ledger/design-system — the typefaces, self-hosted.
+   font.family.body and font.family.heading name Geist, and this file ships it: Geist's variable
+   font (weights 100 to 900, upright and italic) from @fontsource-variable/geist, a dependency of
+   the package, under the SIL Open Font License. Its family name is "Geist Variable", the first
+   name in the token's stack, so the page never depends on Geist being installed or on a font CDN.
+   Each face covers one script range (Latin, Latin Extended, Cyrillic, Vietnamese) and loads only
+   when text in that range and style renders; font-display is swap, so text shows at once in the
+   fallback (Inter, then the system sans) and takes Geist when it arrives.
+
+   Import it once, beside the package's other stylesheets:
+     @import "@ledger/design-system/fonts.css";
+
+   font.family.code names Geist Mono Variable first; it falls back to JetBrains Mono and the
+   system monospace until the package ships @fontsource-variable/geist-mono too. */
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist/wght-italic.css";

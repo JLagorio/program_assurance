@@ -29,6 +29,7 @@ import {
   tableFeatures,
 } from "@tanstack/react-table";
 import type { Density } from "../../mode/density";
+import type { Tone } from "../../lib/status-tone";
 import type { ReactNode } from "react";
 
 /*
@@ -40,6 +41,22 @@ import type { ReactNode } from "react";
 /** What a column is, which decides its alignment, its sort, its filter and the part that draws it. */
 export type ColumnKind =
   "id" | "text" | "number" | "date" | "status" | "person" | "list" | "actions" | "custom";
+
+/** One value of a status vocabulary: the words it shows, its tone, and its place in the order. */
+export type StatusEntry = {
+  /** What the badge and the filter say. The value itself unsaid. */
+  label?: string | undefined;
+  tone: Tone;
+  /** Where the value sorts: lower first. Its place in the map unsaid. */
+  rank?: number | undefined;
+};
+
+/**
+ * A status vocabulary shared by every column and badge that shows it: each stored value to its
+ * label, tone and rank. `c.status(key, { statuses })` draws, sorts and filters by it; a product
+ * keeps one map per concept and passes the same one everywhere.
+ */
+export type StatusMap<Value extends string = string> = Readonly<Record<Value, StatusEntry>>;
 
 /** A row action in the overflow menu of an `actions` column. */
 export type RowAction = {
@@ -76,6 +93,8 @@ export type DataTableColumnMeta = {
   export?: ((row: never) => string) | undefined;
   /** The column edits in place. */
   editable?: boolean | undefined;
+  /** `status` kind: the shared vocabulary, which gives the filter its labels and its order. */
+  statuses?: StatusMap | undefined;
 };
 
 /** What the hook stores on the table for the renderer: the kit options that are not TanStack's. */
@@ -94,7 +113,7 @@ export type DataTableMeta = {
   resizable?: boolean | undefined;
   /** A grip on every header; drag or arrow keys reorder. */
   reorderable?: boolean | undefined;
-  /** The per-column menu on header hover: sort, pin, hide. */
+  /** The per-column menu on a header's hover: sort, move (with `reorderable`), pin, hide. */
   columnMenu?: boolean | undefined;
   /** `fixed` makes every width authoritative and leaves the slack to the unsized columns; `auto` lets the browser fit content. */
   layout?: "auto" | "fixed" | undefined;
@@ -171,6 +190,29 @@ const filterFn_dateRange = constructFilterFn({
   autoRemove: (v: unknown) => !Array.isArray(v) || (!v[0] && !v[1]),
 });
 
+/**
+ * The search box's filter. As TanStack's `includesString`, a value matches when its text includes
+ * the search, ignoring case. A status column with a shared map also matches the label its badge
+ * shows, so the reader finds a status by the words on the screen, not only by the stored value.
+ */
+const filterFn_search = constructFilterFn({
+  ...filterFns.includesString,
+  filter: (dataValue: unknown, filterValue: unknown, row, columnId) => {
+    const search = String(filterValue);
+    if (typeof dataValue === "string" && dataValue.includes(search)) return true;
+    const statuses = (
+      row.table.getColumn(columnId)?.columnDef.meta as DataTableColumnMeta | undefined
+    )?.statuses;
+    if (!statuses) return false;
+    const value = row.getValue(columnId);
+    const label =
+      typeof value === "string" && Object.prototype.hasOwnProperty.call(statuses, value)
+        ? statuses[value]?.label
+        : undefined;
+    return label !== undefined && label.toLowerCase().includes(search);
+  },
+});
+
 export const dataTableFeatures = tableFeatures({
   rowSortingFeature,
   columnFilteringFeature,
@@ -196,7 +238,12 @@ export const dataTableFeatures = tableFeatures({
   expandedRowModel: createExpandedRowModel(),
   groupedRowModel: createGroupedRowModel(),
   sortFns,
-  filterFns: { ...filterFns, matches: filterFn_matches, dateRange: filterFn_dateRange },
+  filterFns: {
+    ...filterFns,
+    matches: filterFn_matches,
+    dateRange: filterFn_dateRange,
+    search: filterFn_search,
+  },
   aggregationFns,
   columnMeta: {} as DataTableColumnMeta,
   tableMeta: {} as DataTableMeta,

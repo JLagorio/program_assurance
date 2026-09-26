@@ -4,16 +4,18 @@
       "$type": "fontFamily",
       "body": {
         "$value": [
+          "Geist Variable",
           "Geist",
           "Inter",
           "ui-sans-serif",
           "system-ui",
           "sans-serif"
         ],
-        "$description": "The one UI face. Identifiers, dates and numbers use it too."
+        "$description": "The one UI face. Identifiers, dates and numbers use it too. Geist Variable is the face fonts.css loads; Geist is the same family installed on the machine."
       },
       "heading": {
         "$value": [
+          "Geist Variable",
           "Geist",
           "Inter",
           "ui-sans-serif",
@@ -24,12 +26,13 @@
       },
       "code": {
         "$value": [
+          "Geist Mono Variable",
           "Geist Mono",
           "JetBrains Mono",
           "ui-monospace",
           "monospace"
         ],
-        "$description": "Code blocks and data previews only. Never UI text."
+        "$description": "Code blocks and data previews only. Never UI text. Geist Mono Variable is the name the packaged mono face takes once fonts.css loads it."
       }
     },
     "weight": {

@@ -164,7 +164,7 @@ export function useColumnDrag(id: string, enabled: boolean) {
       role="button"
       aria-label={t("reorderColumn")}
       className={cn(
-        "inline-flex size-250 shrink-0 cursor-grab items-center justify-center rounded-small icon-subtle outline-none touch-none hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused",
+        "relative inline-flex size-250 shrink-0 touch-target cursor-grab items-center justify-center rounded-small icon-subtle outline-none touch-none hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused",
         isDragging && "cursor-grabbing",
       )}
     >

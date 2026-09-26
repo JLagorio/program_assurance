@@ -36,11 +36,98 @@ export const panelCompactQuery = () => `(width < ${tokenValue("dimension.breakpo
 export const PEEK_CLOSE_DELAY = 200;
 /** The main area, for the focus bookkeeping that returns focus to the page. */
 export const MAIN = '[data-shell-area="main"]';
+/** The panel area, which stands in for Main where it replaces it. */
+export const PANEL = '[data-shell-area="panel"]';
+/** The areas that hold the page, as opposed to the navigation around it. */
+const PAGE_AREAS = '[data-shell-area="main"], [data-shell-area="aside"], [data-shell-area="panel"]';
+
+/**
+ * The narrowest Main gets while the side nav and the panel are beside it: one list column
+ * (`dimension.layout.list`) inside Main's desktop gutters (`space.300` each side), 388px with the
+ * default tokens. The same sum is `--shell-main-min` in shell.css; the splitters stop there and the
+ * CSS caps a remembered width there, so no pair of widths leaves Main without room for its content.
+ */
+export const mainMinWidth = (el?: Element) =>
+  Number.parseFloat(tokenValue("dimension.layout.list", el)) +
+  2 * Number.parseFloat(tokenValue("space.300", el));
+
+const shown = (el: HTMLElement | null): el is HTMLElement => !!el && el.getClientRects().length > 0;
+
+/**
+ * After a page change, focus goes to the page: Main, or the panel where it replaces Main, without
+ * scrolling. It stays put when it is already on a control in the page that survived the change (a
+ * tab, a pager, a next-record link) or in a popup outside the shell, which `followFocusToPage`
+ * takes on to the page once the popup hands focus back.
+ */
+export function focusPage(root: HTMLElement | null) {
+  if (!root) return;
+  const active = root.ownerDocument.activeElement;
+  if (active && active !== root.ownerDocument.body && active.isConnected) {
+    if (!root.contains(active) || active.closest(PAGE_AREAS)) return;
+  }
+  const target = [MAIN, PANEL]
+    .map((area) => root.querySelector<HTMLElement>(area))
+    .find((el) => shown(el));
+  target?.focus({ preventScroll: true });
+}
+
+/** How long after a page change focus left in a popup is followed back to the page. */
+const FOLLOW_FOCUS = 1000;
+
+/**
+ * Focus in a popup outside the shell when the page changes (a menu item, a command in a dialog)
+ * stays there, and the popup returns it to its trigger as it closes: in the top nav, say, which
+ * would start the reader from the navigation again. Follow it for a moment, so that when it comes
+ * back into the shell, or is dropped on the body, it goes on to the page through `focusPage`.
+ * Returns the function that stops following; with focus anywhere else it does nothing.
+ */
+export function followFocusToPage(root: HTMLElement | null): () => void {
+  const doc = root?.ownerDocument;
+  const active = doc?.activeElement;
+  if (!root || !doc || !active || active === doc.body || root.contains(active)) return () => {};
+  const dropped = () => !doc.activeElement || doc.activeElement === doc.body;
+  let settle: ReturnType<typeof setTimeout> | undefined;
+  const onFocusIn = (event: FocusEvent) => {
+    if (!(event.target instanceof Node) || !root.contains(event.target)) return;
+    stop();
+    focusPage(root);
+  };
+  // A popup removed while focused leaves focus on the body; look once the removal has landed.
+  const onFocusOut = (event: FocusEvent) => {
+    if (event.relatedTarget) return;
+    clearTimeout(settle);
+    settle = setTimeout(() => {
+      if (!dropped()) return;
+      stop();
+      focusPage(root);
+    });
+  };
+  const timer = setTimeout(() => {
+    stop();
+    if (dropped()) focusPage(root);
+  }, FOLLOW_FOCUS);
+  function stop() {
+    doc?.removeEventListener("focusin", onFocusIn, true);
+    doc?.removeEventListener("focusout", onFocusOut, true);
+    clearTimeout(timer);
+    clearTimeout(settle);
+  }
+  doc.addEventListener("focusin", onFocusIn, true);
+  doc.addEventListener("focusout", onFocusOut, true);
+  return stop;
+}
 
 export type SkipLink = { id: string; label: string; area?: string | undefined };
-/** What caused the side nav to collapse or expand, the argument of SideNav's onCollapse and onExpand. */
+/** What caused the side nav to collapse or expand, the argument of SideNav's onCollapse and onExpand. `navigation` is a destination chosen in the phone overlay, or a change of Shell's `locationKey`. */
 export type SideNavTrigger =
-  "toggle-button" | "shortcut" | "splitter" | "scrim" | "escape" | "hook" | "viewport";
+  | "toggle-button"
+  | "shortcut"
+  | "splitter"
+  | "scrim"
+  | "escape"
+  | "hook"
+  | "viewport"
+  | "navigation";
 
 export type ShellApi = {
   isDesktop: boolean;
@@ -61,6 +148,8 @@ export type ShellApi = {
   setBanner: (present: boolean) => void;
   registerSkipLink: (link: SkipLink) => () => void;
   skipLinks: SkipLink[];
+  /** Moves focus to the page after a destination is chosen; see `focusPage`. */
+  focusPage: () => void;
   /** The toggle button, so closing the overlay with Escape or the scrim returns focus to it. */
   toggle: RefObject<HTMLElement | null>;
   listeners: {
@@ -90,6 +179,7 @@ const detached: ShellApi = {
   setBanner: noop,
   registerSkipLink: () => noop,
   skipLinks: [],
+  focusPage: noop,
   toggle: { current: null },
   listeners: {},
 };

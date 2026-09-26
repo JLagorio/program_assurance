@@ -117,7 +117,9 @@ function TableRoot({
       onScroll: track,
       ...(density === "compact" ? { "data-density": "compact" } : {}),
       className: cn(
-        "group/scroll w-full rounded-small outline-none focus-visible:outline-focused",
+        // Relative, so an absolutely positioned descendant (a visually hidden label) is clipped
+        // by the frame's scroll instead of scrolling the page or the panel around it.
+        "group/scroll relative w-full rounded-small outline-none focus-visible:outline-focused",
         fill
           ? "min-h-0 flex-1 overflow-auto"
           : maxHeight === undefined
@@ -190,6 +192,8 @@ export type ThProps = ComponentProps<"th"> &
     sticky?: boolean | undefined;
     /** The column's width in pixels. Column widths are content decisions, so they are a prop, not a class. */
     width?: number | undefined;
+    /** The least width in pixels the column keeps: in a narrow frame the table scrolls sideways rather than squeezing it. Give the name column one (180 to 220) so it is never the column that gives way. */
+    minWidth?: number | undefined;
     /** A handle on the trailing edge. `onResizeStart` takes the pointer down; `resizeDelta` moves the guide while it drags; double-click resets. */
     resize?:
       | {
@@ -204,17 +208,34 @@ export type ThProps = ComponentProps<"th"> &
           resizeDelta?: number | null | undefined;
         }
       | undefined;
-    /** A control that appears on hover after the heading: the column menu, a drag grip. */
+    /** Controls that appear on hover and focus over the heading's end: the column menu, a drag grip. Where no pointer can hover they are always shown, beside the heading, and take more of the column: 24px for one 20px control, 46px for two (a grip and a menu). Widen the column by that much there so the heading keeps its room; DataTable does. A column menu that sorts carries `data-column-menu`, and there the heading drops its up-down hint for it. */
     trailing?: ReactNode;
   };
 
+/**
+ * Where nothing can hover, how much wider a header's trailing controls make it: the gap before them,
+ * `space.050`, and each 20px control (`size-250`) with `space.025` between. DataTable widens a
+ * column with a menu or a grip by this much there, so the heading keeps the room it has at rest
+ * where a pointer can hover.
+ */
+export const headerTrailingWidth = (controls: number) =>
+  controls > 0 ? 4 + controls * 20 + (controls - 1) * 2 : 0;
+
 /* A cell's `width` is firm: it is also its `min-width`, because when the table is wider than its
-   frame the browser gives a cell with only a `width` its min-content width instead. */
+   frame the browser gives a cell with only a `width` its min-content width instead. `minWidth` is a
+   floor alone: the column takes slack above it and the frame scrolls below it. */
 const widthStyle = (
   width: number | undefined,
+  minWidth: number | undefined,
   style: CSSProperties | undefined,
 ): CSSProperties | undefined =>
-  width === undefined ? style : { width, minWidth: width, ...style };
+  width === undefined && minWidth === undefined
+    ? style
+    : {
+        ...(width === undefined ? {} : { width, minWidth: width }),
+        ...(minWidth === undefined ? {} : { minWidth }),
+        ...style,
+      };
 
 function Th({
   ref,
@@ -227,6 +248,7 @@ function Th({
   edge,
   hairline = true,
   width,
+  minWidth,
   resize,
   trailing,
   style,
@@ -236,6 +258,8 @@ function Th({
   const { direction, t } = useLedgerLocale();
   const sortable = sort !== undefined || onSort !== undefined;
   const pinned = pinnedProp ?? (sticky ? "start" : false);
+  // A heading squeezed by its column's controls ends in an ellipsis; the whole shows on hover.
+  const title = typeof children === "string" ? children : undefined;
   return (
     <th
       ref={ref}
@@ -246,7 +270,7 @@ function Th({
         pinnedClass(pinned, edge, "z-20"),
         className,
       )}
-      style={widthStyle(width, { ...pinnedStyle(pinned, offset), ...style })}
+      style={widthStyle(width, minWidth, { ...pinnedStyle(pinned, offset), ...style })}
       {...props}
     >
       <span className="flex items-center gap-050">
@@ -255,24 +279,35 @@ function Th({
             type="button"
             onClick={onSort}
             className={cn(
-              "group/sort inline-flex h-control-xsmall min-w-0 items-center gap-050 rounded-small px-050 outline-none transition-colors duration-fast ease-standard hover:text-default focus-visible:outline-focused",
+              "group/sort relative inline-flex h-control-xsmall min-w-0 touch-target items-center gap-050 rounded-small px-050 outline-none transition-colors duration-fast ease-standard hover:text-default focus-visible:outline-focused",
               sort && "text-default",
             )}
           >
-            <span className="truncate">{children}</span>
+            <span className="truncate" title={title}>
+              {children}
+            </span>
             {sort === "asc" ? (
               <ArrowUp className="size-150 shrink-0" />
             ) : sort === "desc" ? (
               <ArrowDown className="size-150 shrink-0" />
             ) : (
-              <ChevronsUpDown className="invisible size-150 shrink-0 icon-subtlest group-focus-visible/sort:visible group-hover/sort:visible" />
+              // Where nothing can hover the hint says the heading sorts, unless the column's menu is
+              // beside it: the menu sorts, and one control there is enough.
+              <ChevronsUpDown className="invisible size-150 shrink-0 icon-subtlest group-focus-visible/sort:visible group-hover/sort:visible [@media(hover:none)]:visible [@media(hover:none)]:group-has-[[data-column-menu]]/th:hidden" />
             )}
           </button>
         ) : (
-          <span className="truncate">{children}</span>
+          // A control in the heading, the select-all checkbox, is not clipped with the text, so
+          // its hit area, larger than the box, stays whole.
+          <span className="truncate has-data-[slot=checkbox]:overflow-visible" title={title}>
+            {children}
+          </span>
         )}
         {trailing ? (
-          <span className="absolute inset-y-0 end-100 flex items-center gap-025 bg-surface-current ps-050 opacity-0 transition-opacity duration-fast ease-standard focus-within:opacity-100 group-hover/th:opacity-100 has-[[data-state=open]]:opacity-100">
+          // Over the heading's end on hover and focus; where nothing can hover, always there and in
+          // the row's flow after the row's gap (`headerTrailingWidth`), so the heading keeps its room
+          // in a column widened for it and never runs under the controls.
+          <span className="absolute inset-y-0 end-100 flex items-center gap-025 bg-surface-current ps-050 opacity-0 transition-opacity duration-fast ease-standard focus-within:opacity-100 group-hover/th:opacity-100 has-[[data-popup-open]]:opacity-100 has-[[data-state=open]]:opacity-100 [@media(hover:none)]:static [@media(hover:none)]:ms-auto [@media(hover:none)]:ps-0 [@media(hover:none)]:opacity-100">
             {trailing}
           </span>
         ) : null}
@@ -326,6 +361,8 @@ export type TdProps = ComponentProps<"td"> &
     sticky?: boolean | undefined;
     /** The column's width in pixels, for a table with no header row. */
     width?: number | undefined;
+    /** The column's least width in pixels, for a table with no header row. */
+    minWidth?: number | undefined;
   };
 
 /** A cell. It truncates to one line; a plain string is also the cell's title, so the whole shows on hover. */
@@ -336,6 +373,7 @@ function Td({
   offset,
   edge,
   width,
+  minWidth,
   style,
   children,
   ...props
@@ -350,7 +388,7 @@ function Td({
         pinned && "group-hover/row:bg-surface-hovered group-data-[selected]/row:bg-selected",
         className,
       )}
-      style={widthStyle(width, { ...pinnedStyle(pinned, offset), ...style })}
+      style={widthStyle(width, minWidth, { ...pinnedStyle(pinned, offset), ...style })}
       {...props}
     >
       {children}
@@ -411,7 +449,7 @@ export function PreviewButton({
               onPreview();
             }}
             className={cn(
-              "inline-flex size-250 shrink-0 items-center justify-center rounded-small outline-none transition-colors duration-fast ease-standard focus-visible:outline-focused",
+              "relative inline-flex size-250 shrink-0 touch-target items-center justify-center rounded-small outline-none transition-colors duration-fast ease-standard focus-visible:outline-focused",
               isActive
                 ? "bg-selected icon-selected"
                 : "icon-subtlest hover:bg-neutral-subtle-hovered hover:icon-default group-hover/row:icon-subtle",
@@ -424,6 +462,50 @@ export function PreviewButton({
       />
       <TooltipContent>{t("preview")}</TooltipContent>
     </Tooltip>
+  );
+}
+
+/** While the eye shows: on the row's hover, on focus in the cell, and always where nothing can hover. */
+const EYE_SHOWN =
+  "group-hover/row:pe-300 group-focus-within/eye:pe-300 [@media(hover:none)]:pe-300";
+
+/**
+ * The value beside the eye gives up the eye's 24px while the eye shows, so it ends in an ellipsis
+ * before the eye instead of running under it. For a value in a cell whose width the column sets
+ * (a `Table.Cell`); pair it with `PreviewEye` inside one `group/eye relative flex` span.
+ */
+export const previewValueClass = (isActive: boolean | undefined) =>
+  cn(EYE_SHOWN, isActive && "pe-300");
+
+/**
+ * The id sizes its column in a table laid out by its content, so there the eye keeps its slot at
+ * rest: hovering a row never moves the columns. In a `table-fixed` table the column's width is set,
+ * so the id keeps its full width at rest and gives up the slot only while the eye shows.
+ */
+const idEyeClass = (isActive: boolean | undefined) =>
+  cn("pe-300", !isActive && "in-[.table-fixed]:[@media(hover:hover)]:pe-0", EYE_SHOWN);
+
+/** The eye's slot over the end of its cell: hidden at rest where a pointer can hover, shown on the row's hover, on focus in the cell and on the open row; always shown where nothing can hover. */
+export function PreviewEye({
+  onPreview,
+  isActive,
+}: {
+  onPreview: () => void;
+  isActive?: boolean | undefined;
+}) {
+  return (
+    <span
+      data-slot="preview-eye"
+      className={cn(
+        "absolute inset-y-0 end-0 flex items-center ps-050 opacity-0 transition-opacity duration-fast ease-standard",
+        "bg-surface-current group-hover/row:bg-surface-hovered group-data-[selected]/row:bg-selected",
+        "group-focus-within/eye:opacity-100 group-hover/row:opacity-100 [@media(hover:none)]:opacity-100",
+        // the row whose preview is open keeps its eye, so the reader can see which row it is
+        isActive && "opacity-100",
+      )}
+    >
+      <PreviewButton onPreview={onPreview} isActive={isActive} />
+    </span>
   );
 }
 
@@ -451,7 +533,7 @@ function IdCell({
   return (
     <Td className="max-w-none" width={width} pinned={pinned} offset={offset} edge={edge}>
       <span
-        className="relative flex items-center"
+        className="group/eye relative flex items-center"
         {...(indent ? { style: { paddingInlineStart: indent } } : {})}
       >
         <Id
@@ -459,23 +541,12 @@ function IdCell({
             "min-w-0 flex-1 truncate transition-colors duration-fast ease-standard",
             isActive ? "text-brand" : null,
             tone === "brand" && !isActive ? "group-hover/row:text-brand" : null,
+            onPreview && idEyeClass(isActive),
           )}
         >
           {id}
         </Id>
-        {onPreview ? (
-          <span
-            className={cn(
-              "absolute inset-y-0 end-0 flex items-center ps-050 opacity-0 transition-opacity duration-fast ease-standard",
-              "bg-surface-current group-hover/row:bg-surface-hovered group-data-[selected]/row:bg-selected",
-              "focus-within:opacity-100 group-hover/row:opacity-100 [@media(hover:none)]:opacity-100",
-              // the row whose preview is open keeps its eye, so the reader can see which row it is
-              isActive && "opacity-100",
-            )}
-          >
-            <PreviewButton onPreview={onPreview} isActive={isActive} />
-          </span>
-        ) : null}
+        {onPreview ? <PreviewEye onPreview={onPreview} isActive={isActive} /> : null}
       </span>
     </Td>
   );
@@ -559,7 +630,7 @@ function TableGroup({
                 e.stopPropagation();
                 onToggle();
               }}
-              className="flex shrink-0 items-center rounded-small outline-none focus-visible:outline-focused"
+              className="relative flex shrink-0 touch-target items-center rounded-small outline-none focus-visible:outline-focused"
             >
               <ChevronDown
                 className={cn(
@@ -624,7 +695,7 @@ function TreeCell({
               e.stopPropagation();
               onToggle?.();
             }}
-            className="inline-flex size-250 shrink-0 items-center justify-center rounded-small icon-subtle outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused"
+            className="relative inline-flex size-250 shrink-0 touch-target items-center justify-center rounded-small icon-subtle outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused"
           >
             <ChevronRight
               className={cn(
@@ -682,7 +753,7 @@ function DisclosureCell({
             type="button"
             aria-label={expanded ? t("collapseLabel", { label }) : t("expandLabel", { label })}
             onClick={onToggle}
-            className="inline-flex size-250 shrink-0 items-center justify-center rounded-small icon-subtle outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused"
+            className="relative inline-flex size-250 shrink-0 touch-target items-center justify-center rounded-small icon-subtle outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused"
           >
             <ChevronRight
               className={cn(
@@ -751,7 +822,7 @@ function HandleCell({
         role="button"
         aria-label={label ?? t("reorder")}
         className={cn(
-          "inline-flex size-250 shrink-0 items-center justify-center rounded-small icon-subtlest outline-none touch-none cursor-grab hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused",
+          "relative inline-flex size-250 shrink-0 touch-target items-center justify-center rounded-small icon-subtlest outline-none touch-none cursor-grab hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused",
           isDragging && "cursor-grabbing",
           className,
         )}
@@ -776,7 +847,8 @@ export type ListItem = {
 /**
  * Several values in one cell, on one line: the first by name, the rest as a count, every one in a
  * hover card with its meta line. The card is facts only. With `onOpen` the line is a button;
- * without it the line is text the keyboard can still rest on. Given `expanded`, the line carries a
+ * without it the line is text the keyboard can still rest on, and a click or a tap opens the card,
+ * so the list is reachable where nothing can hover. Given `expanded`, the line carries a
  * chevron and reads as the row's disclosure, so a cell that opens the row into a table says so.
  * The full list is the line's title.
  */
@@ -827,7 +899,7 @@ function ListCell({
     </>
   );
   const shape =
-    "flex min-w-0 max-w-full items-center gap-075 rounded-xsmall text-left outline-none focus-visible:outline-focused";
+    "relative flex min-w-0 max-w-full touch-target items-center gap-075 rounded-xsmall text-left outline-none focus-visible:outline-focused";
   const card = (
     <div className="flex flex-col gap-100">
       <ul className="flex flex-col gap-075">
@@ -866,7 +938,17 @@ function ListCell({
               {line}
             </button>
           ) : (
-            <span tabIndex={0} title={title} className={shape}>
+            // Where nothing can hover the tap is the only way to the card, so it opens it rather than
+            // passing on to the row.
+            <span
+              tabIndex={0}
+              title={title}
+              className={shape}
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen(true);
+              }}
+            >
               {line}
             </span>
           )

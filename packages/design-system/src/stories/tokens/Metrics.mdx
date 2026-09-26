@@ -61,6 +61,31 @@ The sizes, the stroke, the colour and the naming rules are on the [Icons](?path=
 
 One source for three readers: `layout.css` writes `@media (width >= theme(--breakpoint-panel))`, the shell reads `tokenValue("dimension.breakpoint.panel")` for `matchMedia`, and a class takes the variant. `sm`, `md`, `lg` and `xl` restate Tailwind's values so a class and a media query cannot drift apart.
 
-`src/styles/layout.css` adds the few templates a class string cannot say, each reading these tokens: `grid-cols-main-rail`, `grid-cols-list-detail`, `sticky-rail`, `min-h-work`, `fill-window` and `shell-root`, the navigation grid. The shell sets `--shell-top` (banner plus top nav) so a sticky rail knows where to stop, and its main area sets `--shell-inset-bottom` so a filled register knows where to end.
+## Container sizes
+
+A part inside a panel, a rail, a card or a dialog switches on its own width, not the window's, through a container query. These are the sizes it reads: the `--container-*` theme keys, one token each. Tailwind's scale is restated at its own values, so every `@md:` and `@3xl:` class keeps its width and now reads a token, and the kit adds two of its own. Where `reset.css` is imported, it clears Tailwind's own copies first, so a container size the tokens do not name does not exist.
+
+The names are Tailwind's, and they are not the breakpoints: `@md` is 28rem, the width of a container, while `md:` is the 48rem viewport. Name a container on the part (`@container/field-group`) and query it by name (`@md/field-group:`) so a nested container cannot answer instead.
+
+| Token                              | Value                | Variant            | Where it switches                                                                       |
+| ---------------------------------- | -------------------- | ------------------ | --------------------------------------------------------------------------------------- |
+| `dimension.container.3xs`          | 16rem                | `@3xs:`            | A card header puts its actions beside the title; an input group shows its shortcut.     |
+| `dimension.container.2xs`          | 18rem                | `@2xs:`            | No part yet.                                                                            |
+| `dimension.container.xs`           | 20rem                | `@xs:`             | No part yet.                                                                            |
+| `dimension.container.sm`           | 24rem                | `@sm:`             | Pagination shows its Previous and Next words.                                           |
+| `dimension.container.compact`      | 25rem                | `@compact:`        | Below it a region is compact: the panel header gives its actions a row under the title. |
+| `dimension.container.md`           | 28rem                | `@md:`             | A field group sets label and control side by side.                                      |
+| `dimension.container.lg`           | 32rem                | `@lg:`             | No part yet.                                                                            |
+| `dimension.container.xl`           | 36rem                | `@xl:`             | Below it a side-by-side Diff stacks its halves and reads as the inline view.            |
+| `dimension.container.2xl`          | 42rem                | `@2xl:`            | No part yet.                                                                            |
+| `dimension.container.3xl`          | 48rem                | `@3xl:`            | A WorkPane sets its list beside the detail; the top nav shows its search as a field.    |
+| `dimension.container.split`        | 50rem                | `@split:`          | Two panes side by side; below it RecordBrowser's open preview replaces the list.        |
+| `dimension.container.4xl` to `7xl` | 56, 64, 72 and 80rem | `@4xl:` to `@7xl:` | No part yet.                                                                            |
+
+In a stylesheet, a container query reads the same key: `layout.css` writes `@container (width < theme(--container-split))`, and Tailwind writes the value in, since a query cannot read a custom property. A new switch uses one of these sizes; when none fits, the size is a new token with a description of what switches there, never a literal in a query.
+
+<Canvas of={Stories.ContainerSizes} />
+
+`src/styles/layout.css` adds the few templates a class string cannot say, each reading these tokens: `grid-cols-main-rail`, `grid-cols-list-detail`, `sticky-rail`, `min-h-work`, `fill-window` and `shell-root`, the navigation grid. The shell sets `--shell-top` (banner plus top nav) so a sticky rail knows where to stop, and its main area sets `--shell-inset-bottom` so a filled register knows where to end. A rail in a scroller of its own reads `--rail-top` and `--rail-max-height` instead; a WorkPane in a dialog's body or a panel sets them to that scroller's top and height.
 
 <Canvas of={Stories.Dimension} />

@@ -14,6 +14,8 @@ import {
   Field,
   Input,
   InputGroup,
+  Kbd,
+  KbdGroup,
 } from "../../components";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { Search } from "lucide-react";
@@ -55,7 +57,7 @@ export const InputMatrix: Story = {
           const fieldHint1 =
             state === "invalid" ? undefined : "As it appears on the authorization package.";
           return (
-            <div style={{ width: 240 }}>
+            <div style={{ width: 240, maxWidth: "100%" }}>
               {col === "bare" ? (
                 <Input aria-label="Program name" {...stateProps(state)} />
               ) : col === "in a Field" ? (
@@ -302,7 +304,7 @@ export const Kinds: Story = {
     return (
       <Stack space="space.300">
         <Specimens title="type and inputMode">
-          <div style={{ width: 240 }}>
+          <div style={{ width: 240, maxWidth: "100%" }}>
             <Field>
               <FieldLabel id={`${fieldId}-email-8-label`} htmlFor={`${fieldId}-email-8`}>
                 {"Email"}
@@ -320,7 +322,7 @@ export const Kinds: Story = {
               </FieldDescription>
             </Field>
           </div>
-          <div style={{ width: 160 }}>
+          <div style={{ width: 160, maxWidth: "100%" }}>
             <Field>
               <FieldLabel id={`${fieldId}-retention-9-label`} htmlFor={`${fieldId}-retention-9`}>
                 {"Retention"}
@@ -342,18 +344,23 @@ export const Kinds: Story = {
           </div>
         </Specimens>
         <Specimens title="an InputGroup at either end">
-          <div style={{ width: 280 }}>
+          <div style={{ width: 280, maxWidth: "100%" }}>
             <InputGroup>
               <InputGroupInput placeholder="Search risks, controls, evidence…" />
               <InputGroupAddon>{<Search />}</InputGroupAddon>
               <InputGroupAddon align="inline-end">
-                <InputGroupText>{"⌘K"}</InputGroupText>
+                <InputGroupText>
+                  <KbdGroup>
+                    <Kbd label="Command">⌘</Kbd>
+                    <Kbd>K</Kbd>
+                  </KbdGroup>
+                </InputGroupText>
               </InputGroupAddon>
             </InputGroup>
           </div>
         </Specimens>
         <Specimens title="read-only: a value shown in the form's grid that cannot be edited here">
-          <div style={{ width: 200 }}>
+          <div style={{ width: 200, maxWidth: "100%" }}>
             <Field>
               <FieldLabel
                 id={`${fieldId}-program-id-10-label`}
@@ -383,7 +390,7 @@ export const Dont: Story = {
       <Stack space="space.400">
         <Pair
           do={
-            <div style={{ width: 240 }}>
+            <div style={{ width: 240, maxWidth: "100%" }}>
               <Field>
                 <FieldLabel id={`${fieldId}-owner-11-label`} htmlFor={`${fieldId}-owner-11`}>
                   {"Owner"}
@@ -398,7 +405,7 @@ export const Dont: Story = {
           }
           doText="The label names the field; the placeholder shows the format and goes away."
           dont={
-            <div style={{ width: 240 }}>
+            <div style={{ width: 240, maxWidth: "100%" }}>
               <Input placeholder="Owner" />
             </div>
           }
@@ -406,7 +413,7 @@ export const Dont: Story = {
         />
         <Pair
           do={
-            <div style={{ width: 240 }}>
+            <div style={{ width: 240, maxWidth: "100%" }}>
               <Field>
                 <FieldLabel
                   id={`${fieldId}-program-name-12-label`}
@@ -423,7 +430,7 @@ export const Dont: Story = {
           }
           doText="A noun, sentence case, no colon."
           dont={
-            <div style={{ width: 240 }}>
+            <div style={{ width: 240, maxWidth: "100%" }}>
               <Field>
                 <FieldLabel
                   id={`${fieldId}-enter-the-program-name-13-label`}
@@ -442,7 +449,7 @@ export const Dont: Story = {
         />
         <Pair
           do={
-            <div style={{ width: 240 }}>
+            <div style={{ width: 240, maxWidth: "100%" }}>
               <Field data-invalid={Boolean("Choose a person who is on the program.")}>
                 <FieldLabel id={`${fieldId}-owner-14-label`} htmlFor={`${fieldId}-owner-14`}>
                   {"Owner"}
@@ -464,7 +471,7 @@ export const Dont: Story = {
           }
           doText="The error says what is wrong and what fixes it."
           dont={
-            <div style={{ width: 240 }}>
+            <div style={{ width: 240, maxWidth: "100%" }}>
               <Field data-invalid={Boolean("Invalid input")}>
                 <FieldLabel id={`${fieldId}-owner-15-label`} htmlFor={`${fieldId}-owner-15`}>
                   {"Owner"}
@@ -486,7 +493,7 @@ export const Dont: Story = {
         />
         <Pair
           do={
-            <div style={{ width: 120 }}>
+            <div style={{ width: 120, maxWidth: "100%" }}>
               <Field>
                 <FieldLabel id={`${fieldId}-acronym-16-label`} htmlFor={`${fieldId}-acronym-16`}>
                   {"Acronym"}
@@ -501,7 +508,7 @@ export const Dont: Story = {
           }
           doText="Eight characters get a field eight characters wide."
           dont={
-            <div style={{ width: 480 }}>
+            <div style={{ width: 480, maxWidth: "100%" }}>
               <Field>
                 <FieldLabel id={`${fieldId}-acronym-17-label`} htmlFor={`${fieldId}-acronym-17`}>
                   {"Acronym"}
@@ -591,5 +598,42 @@ export const NativeComposition: Story = {
     await expect(new FormData(canvasElement.querySelector("form")!).get("account")).toBe("ledger");
     await userEvent.click(canvas.getByRole("button", { name: "Reset account" }));
     await expect(input).toHaveValue("atlas");
+  },
+};
+
+/**
+ * In a Field the input needs no ids: the label names it, the hint and the error describe it, and
+ * the Field's `invalid`, `required` and `disabled` reach it. `required` is announced; a native
+ * constraint stays the Input's own `required`.
+ */
+export const BoundInField: Story = {
+  name: "Bound in a Field",
+  render: () => (
+    <Stack space="space.200" className="w-layout-list max-w-full">
+      <Field invalid required>
+        <FieldLabel>Program name</FieldLabel>
+        <Input />
+        <FieldDescription>How it appears in the register.</FieldDescription>
+        <FieldError>Enter a program name.</FieldError>
+      </Field>
+      <Field disabled>
+        <FieldLabel>Reference</FieldLabel>
+        <Input defaultValue="CTRL-0412" />
+      </Field>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const name = canvas.getByRole("textbox", { name: "Program name" });
+    await expect(name).toHaveAttribute("aria-invalid", "true");
+    await expect(name).toHaveAttribute("aria-required", "true");
+    await expect(name).not.toHaveAttribute("required");
+    await expect(name).toHaveAccessibleDescription(
+      "How it appears in the register. Enter a program name.",
+    );
+    await expect(canvasElement.querySelector(`label[for="${name.id}"]`)).toHaveTextContent(
+      "Program name",
+    );
+    await expect(canvas.getByRole("textbox", { name: "Reference" })).toBeDisabled();
   },
 };

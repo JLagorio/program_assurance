@@ -192,6 +192,13 @@ export const RenderLink: Story = {
     await expect(link).toHaveAttribute("data-variant", "outline");
     await expect(link).toHaveClass("align-middle", "self-center");
     await expect(link).toHaveStyle({ verticalAlign: "middle", marginInlineStart: "8px" });
+    // A badge that links takes a 24px hit area on a touch screen and stops clipping so it can
+    // reach past the pill; a label badge stays unpositioned and clipped.
+    await expect(link).toHaveStyle({ position: "relative", overflow: "visible" });
+    await expect(canvas.getByText("Available")).toHaveStyle({
+      position: "static",
+      overflow: "hidden",
+    });
     await userEvent.click(link);
     await expect(renderCalls.badge).toHaveBeenCalledTimes(1);
     await expect(renderCalls.adapter).toHaveBeenCalledTimes(1);
@@ -496,7 +503,7 @@ const rows = [
 /** In a table: the status is the row's one pill at `xsmall`; severity is an Indicator; a count is a Count. */
 export const InRows: Story = {
   render: () => (
-    <div style={{ width: 640 }}>
+    <div style={{ maxWidth: 640 }}>
       <Table label="Controls">
         <thead>
           <tr>
@@ -535,36 +542,40 @@ export const InRows: Story = {
 export const Categories: Story = {
   render: () => (
     <Stack space="space.200">
-      <Inline space="space.100" alignBlock="center">
-        <Box style={{ width: 96 }}>
+      <Inline space="space.100" alignBlock="start">
+        <Box className="shrink-0" paddingBlock="space.025" style={{ width: 96 }}>
           <Text size="small" color="color.text.subtle">
             Method
           </Text>
         </Box>
-        {["Inspection", "Test", "Analysis", "Demonstration"].map((m) => (
-          <Badge variant="secondary" tone="neutral" key={m}>
-            {m}
-          </Badge>
-        ))}
+        <Inline space="space.100" rowSpace="space.100" shouldWrap className="min-w-0 flex-1">
+          {["Inspection", "Test", "Analysis", "Demonstration"].map((m) => (
+            <Badge variant="secondary" tone="neutral" key={m}>
+              {m}
+            </Badge>
+          ))}
+        </Inline>
       </Inline>
-      <Inline space="space.100" alignBlock="center">
-        <Box style={{ width: 96 }}>
+      <Inline space="space.100" alignBlock="start">
+        <Box className="shrink-0" paddingBlock="space.025" style={{ width: 96 }}>
           <Text size="small" color="color.text.subtle">
             Determination
           </Text>
         </Box>
-        <Badge variant="secondary" tone="success">
-          Satisfied
-        </Badge>
-        <Badge variant="secondary" tone="warning">
-          Partial
-        </Badge>
-        <Badge variant="secondary" tone="danger">
-          Other than satisfied
-        </Badge>
-        <Badge variant="secondary" tone="neutral">
-          Not assessed
-        </Badge>
+        <Inline space="space.100" rowSpace="space.100" shouldWrap className="min-w-0 flex-1">
+          <Badge variant="secondary" tone="success">
+            Satisfied
+          </Badge>
+          <Badge variant="secondary" tone="warning">
+            Partial
+          </Badge>
+          <Badge variant="secondary" tone="danger">
+            Other than satisfied
+          </Badge>
+          <Badge variant="secondary" tone="neutral">
+            Not assessed
+          </Badge>
+        </Inline>
       </Inline>
     </Stack>
   ),
@@ -601,14 +612,14 @@ export const StatusGuidance: Story = {
         doText="One or two words: the state."
         dont={
           <Badge variant="secondary" tone="success">
-            This control was verified by Dana Whitfield on 28 Aug
+            Verified by Dana Whitfield on 28 Aug
           </Badge>
         }
         dontText="A sentence in a pill. Who and when are facts for the record, not the status."
       />
       <Pair
         do={
-          <Inline space="space.100">
+          <Inline space="space.100" rowSpace="space.100" shouldWrap>
             <Badge variant="secondary" tone="danger" appearance="bold">
               Overdue
             </Badge>
@@ -622,7 +633,7 @@ export const StatusGuidance: Story = {
         }
         doText="One bold status in the view, the one that must win."
         dont={
-          <Inline space="space.100">
+          <Inline space="space.100" rowSpace="space.100" shouldWrap>
             <Badge variant="secondary" tone="danger" appearance="bold">
               Overdue
             </Badge>
@@ -638,7 +649,7 @@ export const StatusGuidance: Story = {
       />
       <Pair
         do={
-          <Inline space="space.100">
+          <Inline space="space.100" rowSpace="space.100" shouldWrap>
             <Badge variant="secondary" tone="neutral">
               Inspection
             </Badge>
@@ -652,7 +663,7 @@ export const StatusGuidance: Story = {
         }
         doText="Categories are neutral; the word tells them apart."
         dont={
-          <Inline space="space.100">
+          <Inline space="space.100" rowSpace="space.100" shouldWrap>
             <Badge variant="secondary" tone="information">
               Inspection
             </Badge>

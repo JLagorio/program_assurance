@@ -13,6 +13,7 @@ import {
 
 import { cn } from "../../lib/cn";
 import {
+  InlineSizer,
   TooltipContent,
   chartColor,
   surface,
@@ -38,6 +39,7 @@ export type ChartSparklineProps = {
   reference?: number | undefined;
   /** A ringed marker on the last point. */
   endDot?: boolean | undefined;
+  /** The most it takes, in pixels: in a narrower container (a cell, a grid track, a flex row) it narrows and keeps its height. */
   width?: number | undefined;
   height?: number | undefined;
   /** The number format in the tooltip. */
@@ -69,22 +71,29 @@ export function ChartSparkline({
 }: ChartSparklineProps) {
   const { t } = useLedgerLocale();
 
-  const { name, format, formatX, loading } = useFrame(label, formatProp, undefined, loadingProp);
+  const { name, format, formatX, loading, offstage } = useFrame(
+    label,
+    formatProp,
+    undefined,
+    loadingProp,
+  );
   const motion = useMotion();
   const tooltipMotion = useTooltipMotion();
   const color = chartColor(tone);
   const series: ChartSeries[] = [{ key: y, label: t("value"), tone }];
   const last = data.length - 1;
+  if (offstage) return null;
   if (loading)
     return (
       <span
         aria-hidden
         className={cn(
-          "inline-block animate-pulse rounded-xsmall bg-skeleton align-middle",
+          "inline-block w-fit max-w-full animate-pulse rounded-xsmall bg-skeleton align-middle",
           className,
         )}
-        style={{ width, height }}
-      />
+      >
+        <InlineSizer width={width} height={height} />
+      </span>
     );
   const dot = endDot
     ? (p: DotProps) =>
@@ -100,10 +109,15 @@ export function ChartSparkline({
       role={name ? "group" : undefined}
       aria-label={name}
       aria-hidden={name ? undefined : true}
-      className={cn("inline-block align-middle", className)}
-      style={{ width, height }}
+      className={cn("relative inline-block w-fit max-w-full align-middle", className)}
     >
-      <ResponsiveContainer width="100%" height="100%" initialDimension={{ width, height }}>
+      <InlineSizer width={width} height={height} />
+      <ResponsiveContainer
+        width="100%"
+        height="100%"
+        initialDimension={{ width, height }}
+        className="absolute inset-0"
+      >
         <ComposedChart
           data={data}
           margin={{ top: 3, right: 3, bottom: 3, left: 3 }}

@@ -69,7 +69,7 @@ function Delayed() {
   return (
     <div className="flex flex-col items-start gap-150">
       <p>The spinner waits until the delay expires. A new operation resets the wait.</p>
-      <div className="flex items-center gap-150">
+      <div className="flex flex-wrap items-center gap-150">
         <Button
           onClick={() => {
             setDelay(300);

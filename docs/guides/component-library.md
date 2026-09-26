@@ -127,15 +127,23 @@ every product. A product's own config adds nothing about the kit. The [product p
 | `ledger/no-deprecated-token`    | A deprecated token's utility                                            | Its replacement, applied by `--fix`.                  |
 | `ledger/no-deprecated-name`     | A part's old name (`Shell.Sidebar`, `Shell.NavItem`)                    | Its replacement; `--fix` does the one-to-one renames. |
 | `ledger/prefer-text-link`       | A Link or anchor carrying `text-brand` or `hover:underline`             | TextLink render with the link element.                |
-| `ledger/no-colgroup`            | `<colgroup>`                                                            | `width` on each Table.Header.                         |
+| `ledger/no-colgroup`            | `<colgroup>`                                                            | `width` or `minWidth` on each Table.Header.           |
 | `ledger/use-primitives`         | A `div` or `span` carrying layout classes (warning)                     | Box, Stack, Inline, Flex or Grid.                     |
 | `ledger/cell-plain`             | A Table.Cell carrying a neutral colour, weight or type token            | Nothing; only a status colour may differ.             |
 | `ledger/id-not-blue`            | An Id with `text-brand` outside a link or button                        | Wrap it in a link, or drop the class.                 |
 | `ledger/no-kit-shadow`          | A local component named like a kit part                                 | Import the kit part.                                  |
-| `ledger/no-native-confirm` | Browser confirm calls in product code | Shared application AlertDialog confirmation. |
-| `ledger/text-link-navigation` | TextLink rendering a known non-link/action element | A real anchor/router link, or Button for actions. |
-| `ledger/dialog-footer-order` | Cancel after the primary in DialogFooter | Cancel first, then the primary. |
+| `ledger/no-native-confirm`      | Browser confirm calls in product code                                   | Shared application AlertDialog confirmation.          |
+| `ledger/text-link-navigation`   | TextLink rendering a known non-link/action element                      | A real anchor/router link, or Button for actions.     |
+| `ledger/dialog-footer-order`    | Cancel after the primary in DialogFooter                                | Cancel first, then the primary.                       |
 | `ledger/button-icon-slot`       | An element with `size-icon-*` inside a Button or IconButton             | `iconBefore`, `iconAfter` or `icon`, passed bare.     |
+
+The kit's own structural utilities, defined on tokens in `src/styles/`, pass `ledger/no-non-token-class` by name; the `structural` list in `eslint-plugin/index.js` holds them all. The ones that carry a responsive or touch rule:
+
+- `page-header` (layout.css): PageHeader's row; the heading keeps a 14rem measure, and actions that do not fit beside it take the next row, at the end.
+- `section-header` (layout.css): Section.Header's row, on the same rule at body size with a 12rem measure, or the heading's own width when that is shorter.
+- `touch-target` (touch.css): an invisible hit area at least 24px square, centred on a control, wherever any pointer is coarse; pair it with `relative`.
+- `touch-target-block` (touch.css): its band twin, the control's own width and at least 24px tall, for an inline link that wraps; `touch-target-block-after` draws it on `::after` where `::before` is taken.
+- `stat-grid`, `stat-grid-2` to `stat-grid-6` (stat.css): Stat.Grid's columns from its own width, folding in balanced steps with each tile at least 128px.
 
 ## Pattern direction
 
@@ -159,11 +167,13 @@ The [Pages guide](../../packages/design-system/src/stories/patterns/Pages.mdx) r
 
 - A list row carries the name, one status, the number the reader sorts by, at most one bar, and
   the actions. Everything else goes in the peek.
-- A record header carries identity and one primary action or Actions menu, always beside the title. The title wraps to the left of the fixed action column at every width. Status, ownership and editors belong in a labelled Details section or supporting properties, never in page or preview headers.
+- A record header carries identity and one primary action or Actions menu beside the title. The title keeps a readable measure; when the row cannot hold it beside the actions, the actions take the next row at the end. PageHeader and Section.Header follow the same rule on a page, in a panel and in a sheet. Status, ownership and editors belong in a labelled Details section or supporting properties, never in page or preview headers.
 - Hover previews provide brief context. A selected-record surface supports the actions that make sense without leaving the queue, with a clear route to the full record.
 - Choose an inline panel or an overlay based on available space and whether the underlying queue must remain usable. Both can contain actions.
 - Shell.Panel supplies placement, heading, close and content spacing. A dismissible surface needs a visible close and a surviving focus target. Use Base UI Sheet when the rest of the page should be blocked.
-- Toolbar's `filters` alone collapse into More when space is constrained. Keep saved views in `views`, grouping, columns and settings in `children`, and buttons in `actions`; these remain visible. Search can occupy its own row at phone widths.
+- Toolbar folds rather than stacks, by its container's width: `filters` fold into More first, then the display controls in `children` (grouping, columns, settings) follow them into More under Display, still operable there. Search, saved views in `views` and the buttons in `actions` stay visible; when they cannot share one row the toolbar takes two, and a third only when More and the primary cannot share a line. The folded controls return when space does.
+- A part responds to the space it is given, not the window: prefer intrinsic layout (`flex-wrap`, fitted grids, `min-w-0`) and use a container query where a switch is needed. Viewport breakpoints belong to page-level parts (the Shell's regions, overlays, the Grid primitive's responsive columns).
+- Anything interactive is reachable without hover (`[@media(hover:none)]:opacity-100` on a revealed control), and a control drawn under 24px carries `relative touch-target`, an invisible hit area where the pointer is coarse.
 - Long requirements, success criteria and assessment objectives wrap. Edit criteria directly in the cell with `Editable.Text multiline` and use a searchable chooser with confirmation for assessment relationships.
 - A screen is shaped by the reader's question. When a column, fact or block exists because the
   store has the field, it goes.

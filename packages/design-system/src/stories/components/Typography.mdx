@@ -7,7 +7,7 @@ import * as Stories from "./Typography.stories";
 
 # Typography
 
-The small text parts a record page is made of, beyond body copy and titles. `Eyebrow` is the uppercase micro-label on `font.heading.xxsmall`: a section's name in a rail, a record's kind above its title, a callout's label. `Absent` is the muted dash where a value would be. `Prose` is a labelled paragraph: an Eyebrow over body text. For body copy and titles, the [Text](?path=/docs/primitives-text--docs) and [Heading](?path=/docs/primitives-heading--docs) primitives; this page is the three parts between them.
+The small text parts a record page is made of, beyond body copy and titles. `Eyebrow` is the uppercase micro-label on `font.heading.xxsmall`: a section's name in a rail, a record's kind above its title, a callout's label. `Absent` is the muted dash where a value would be, with a `label` a screen reader hears in its place. `Prose` is authored text: one paragraph or several, with the line breaks it was written with, a safe Markdown subset on request, under an optional Eyebrow label. For body copy and titles, the [Text](?path=/docs/primitives-text--docs) and [Heading](?path=/docs/primitives-heading--docs) primitives; this page is the three parts between them.
 
 <Canvas of={Stories.TypographyMatrix} />
 
@@ -16,8 +16,8 @@ The small text parts a record page is made of, beyond body copy and titles. `Eye
 | Part    | What it is                                                                                                     |
 | ------- | -------------------------------------------------------------------------------------------------------------- |
 | Eyebrow | `font.heading.xxsmall`, uppercase, `color.text.subtle`; a tone colours it. A `div`, or the element `as` names. |
-| Absent  | An em dash in `color.text.subtlest`, the size of its line.                                                     |
-| Prose   | An Eyebrow, then a paragraph in `font.body` and `color.text`, `space.050` between them, `space.075` above.     |
+| Absent  | An em dash in `color.text.subtlest`, the size of its line. With `label`, the dash is `aria-hidden` and the label is [VisuallyHidden](?path=/docs/primitives-visuallyhidden--docs) text beside it. |
+| Prose   | An optional Eyebrow, then the text in `font.body` (or `font.body.large` with `size="large"`) and `color.text`: `space.050` under the Eyebrow, `space.075` above a labelled Prose, `space.100` between paragraphs (`space.150` at large). |
 
 ## Variants
 
@@ -25,7 +25,7 @@ The small text parts a record page is made of, beyond body copy and titles. `Eye
 | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Eyebrow | The name of a group of rows in a rail (`as="h3"`), the kind above a record's title, the label of a callout (with a tone), the label of a value in a grid (`as="dt"`). |
 | Absent  | Any value that is not there: in a KeyValue, a Fact, a cell.                                                                                                           |
-| Prose   | A paragraph with a name: Rationale, Objective, Condition. In a rail or a detail body.                                                                                 |
+| Prose   | Authored text with or without a name: a rationale, an implementation statement, a control statement, a narrative. In a rail or a detail body.                         |
 
 Not built, and why: a description-list primitive, because KeyValue and Fact are the two shapes of a pair; a "no data" word in place of the dash, because the dash is the product's one absent mark and reads in a column; an Eyebrow with an icon or a count, because it is a label and a count is a Count beside it.
 
@@ -35,6 +35,22 @@ One size each. The Eyebrow is `font.heading.xxsmall` whatever it heads; the Abse
 
 <Canvas of={Stories.InRail} />
 
+## Prose
+
+A string is authored text. A blank line starts a paragraph, and a single line break stays in place, so a statement pasted from a document reads as it was written.
+
+<Canvas of={Stories.ProseParagraphs} />
+
+`markdown` takes a safe subset: paragraphs; `-`, `*` and `1.` lists, nested by indentation; `*emphasis*` and `**strong**`; `` `inline code` `` and fenced code; `[links](https://…)` and `<https://…>`. Line breaks are kept. Anything else, headings, tables and HTML included, shows as the characters typed. The application renders its own markup (an OSCAL parameter insertion, say) on top of the text it passes in.
+
+<Canvas of={Stories.ProseMarkdown} />
+
+Links render as TextLinks with native anchors; `renderLink` makes each one a router link, so the kit stays router-free.
+
+<Canvas of={Stories.ProseRouterLinks} />
+
+<Canvas of={Stories.AbsentLabelled} />
+
 ## States
 
 None. The three are text. The tone on an Eyebrow or a Prose is a colour for a callout, not a state.
@@ -43,12 +59,16 @@ None. The three are text. The tone on an Eyebrow or a Prose is a colour for a ca
 
 - **Eyebrow `tone`** for a callout's label: `warning` over a condition, `danger` over a finding. `neutral`, the default, is `color.text.subtle`.
 - **Eyebrow `as`**: `h3` or `h4` when it heads a section, so the page's outline has it; `dt` when it labels a value; `span` inline.
-- **Prose `label`** and **`tone`**: the paragraph's name, and its colour when it is a callout.
+- **Prose `label`** and **`tone`**: the text's name, and its colour when it is a callout. Leave the label out under a heading of its own.
+- **Prose children as a string** are authored text: a blank line starts a paragraph, and a line break stays a line break (`white-space: pre-line`). Composed inline content (words and a TextLink) is one paragraph.
+- **Prose `markdown`** renders a safe subset in place of the children, and **`renderLink`** sends its links through a router's link element.
+- **Prose `size`**: `medium` in a rail, `large` for reading text at the measure.
+- **Absent `label`**: what a screen reader hears for the empty value, "Not recorded" or "None".
 
 ## Content
 
 - **An eyebrow is one to three words**, a noun: "Schedule", "By supplier origin", "Rationale". Uppercase is set by the component; write it in sentence case.
-- **Prose is one paragraph** under its name. Two paragraphs are two Prose, or a section.
+- **Prose keeps the author's paragraphs.** Pass the text as written; do not split it into several Prose to get paragraphs, and do not add `<br>`s.
 - **The dash means nothing here.** "N/A" means not applicable, "Unknown" means unknown; those are values and are written as words.
 
 ## Style
@@ -57,7 +77,7 @@ None. The three are text. The tone on an Eyebrow or a Prose is a colour for a ca
 | ------- | ----------------------------------------------------------------------------------------- |
 | Eyebrow | `font.heading.xxsmall` · uppercase · `color.text.subtle` · `color.text.<tone>` when toned |
 | Absent  | `color.text.subtlest` · the line's font                                                   |
-| Prose   | `font.body` · `color.text` · `space.050` under the eyebrow · `space.075` above            |
+| Prose   | `font.body` or `font.body.large` · `color.text` · `space.050` under the eyebrow · `space.075` above · `space.100` or `space.150` between paragraphs · inline code `font.code` on `elevation.surface.sunken` |
 
 The eyebrow moved from `color.text.subtlest` to `color.text.subtle` in this walk: a label is secondary text, and the prototype had written forty-five of its own eyebrows in subtle against eight in subtlest. The Shell's section headings and the Preview eyebrow took the step with it.
 
@@ -65,7 +85,8 @@ The eyebrow moved from `color.text.subtlest` to `color.text.subtle` in this walk
 
 - **An eyebrow that heads a section is a heading**, with `as="h3"` or `h4`, so the page's outline lists it and a screen reader can jump to it. As a `div` it is a label and is read in place.
 - **Uppercase is styling**, so a screen reader reads the words, not the letters; write the text in sentence case.
-- **The dash is read as a dash**, which is enough for "nothing"; it is not hidden, because an empty cell would be read as nothing at all and the reader could not tell a gap from a skip.
+- **The dash alone is often silent.** Screen readers skip an em dash at their default punctuation level, so a value with nothing in it sounds like a skipped row. Give Absent a `label` ("Not recorded", "None") wherever the empty value matters: the dash is then hidden and the label is read in its place.
+- **Prose Markdown injects no HTML.** The source is parsed into React elements; `<script>` and any other markup show as the characters typed. A link whose address is not http(s), mailto, tel or relative (a `javascript:` or `data:` address) shows as its words, not as a link. Links in Prose are underlined, so they are told apart from the text by more than colour.
 - **Contrast:** `color.text.subtle` at 11px uppercase passes 4.5:1, and `color.text.subtlest` does for the dash; the gate runs every tone.
 
 ## Props

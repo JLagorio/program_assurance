@@ -57,7 +57,7 @@ Changes persist in this browser's local storage, including system-tree edits, re
 
 ## Try the system and requirement relationships
 
-1. Open **System**. Open **Add** after Columns and Settings, choose **Add subsystem** or **Add component**, choose a parent, name the element, and save. It appears under that parent; reload retains it.
+1. Open **System**. Open **Add** at the end of its toolbar, choose **Add subsystem** or **Add component**, choose a parent, name the element, and save. It appears under that parent; reload retains it.
 2. Open the row's **…** action menu and choose **Edit** to rename it or **Move** to choose a different parent. The element keeps its ID and relationships. You cannot move the root or place an element beneath itself or a descendant.
 3. Select **Mission Computer** and follow **View allocated requirements**. The list names Mission Computer. **Show all requirements** restores the full register; choosing another program tab also opens that tab's full register.
 4. Open a requirement. **Allocate** selects responsible system elements. **Link controls** separately selects controls, a mapped/derived relationship, and rationale. Linking controls leaves allocations unchanged, and allocating leaves control relationships unchanged. Reload retains both.

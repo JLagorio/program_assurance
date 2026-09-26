@@ -137,7 +137,11 @@ function StateIcon({ state }: { state: SaveState }) {
   return null;
 }
 
-/** The message under the value and what a screen reader hears when a save lands. */
+/**
+ * The message under the value and what a screen reader hears when a save lands. The announcer is
+ * sr-only, so absolutely positioned: the Editable's wrapper is `relative`, which keeps it inside a
+ * table that scrolls sideways instead of widening the page.
+ */
 function Message({ id, state, error }: { id: string; state: SaveState; error: string | null }) {
   const { t } = useLedgerLocale();
   return (
@@ -154,8 +158,13 @@ function Message({ id, state, error }: { id: string; state: SaveState; error: st
   );
 }
 
-const resting =
-  "relative flex w-full items-center gap-075 rounded-small py-025 text-left outline-none focus-visible:outline-focused before:absolute before:-inset-x-050 before:inset-y-0 before:rounded-small before:transition-colors before:duration-fast before:ease-standard hover:before:bg-neutral-subtle-hovered active:before:bg-neutral-subtle-pressed";
+/* ::before is the hover tint. On a touch screen ::after is the hit area, the shared band on ::after
+   (touch-target-block-after): the value's width and at least 24px tall, centred, so a 22px line is
+   as easy to tap as a table's row. */
+const resting = cn(
+  "relative flex w-full items-center gap-075 rounded-small py-025 text-left outline-none focus-visible:outline-focused before:absolute before:-inset-x-050 before:inset-y-0 before:rounded-small before:transition-colors before:duration-fast before:ease-standard hover:before:bg-neutral-subtle-hovered active:before:bg-neutral-subtle-pressed",
+  "touch-target-block-after",
+);
 
 export type EditableTextProps = EditableProps<string> & {
   /** What to add, as a noun, shown in the field while it is empty and at rest in place of the dash: "Unassigned", "Add next action". */
@@ -187,7 +196,7 @@ function EditableText({ placeholder, multiline = false, ...props }: EditableText
   const Editor = multiline ? Textarea : Input;
 
   return (
-    <div className="flex min-w-0 flex-col gap-025">
+    <div className="relative flex min-w-0 flex-col gap-025">
       {editing ? (
         <Bleed inline="space.050">
           <Editor
@@ -310,7 +319,7 @@ function EditableSelect<T extends string>({
     </>
   );
   return (
-    <div className="flex min-w-0 flex-col gap-025">
+    <div className="relative flex min-w-0 flex-col gap-025">
       {searchable ? (
         <Combobox<T>
           items={options}

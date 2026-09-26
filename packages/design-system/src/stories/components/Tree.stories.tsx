@@ -4,7 +4,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { FileText, Folder } from "lucide-react";
 import { createRef, useState } from "react";
 
-import { Badge, Count, Item, Tree } from "../../components";
+import { Badge, Button, Count, Item, Tree } from "../../components";
 import { Box, Stack } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -36,7 +36,7 @@ export const TreeMatrix: Story = {
   render: () => (
     <Stack space="space.300">
       <Specimens title="small (32px), text only">
-        <Box className="w-layout-list">
+        <Box className="w-layout-list max-w-full">
           <Tree label="Composition">
             <Tree.Item depth={0} hasChildren expanded>
               Atlas payments platform
@@ -69,7 +69,7 @@ export const TreeMatrix: Story = {
         </Box>
       </Specimens>
       <Specimens title="xsmall (24px), with icons on every row">
-        <Box className="w-layout-list">
+        <Box className="w-layout-list max-w-full">
           <Tree label="Control families" size="xsmall">
             <Tree.Item depth={0} hasChildren expanded trailing={<Count value={12} />}>
               <Folder className="size-icon-small icon-subtle" /> Finance
@@ -218,7 +218,11 @@ export const Families: Story = {
       "aria-selected",
       "true",
     );
-    await userEvent.click(within(payables).getByRole("button", { hidden: true }));
+    const chevron = within(payables).getByRole("button", { hidden: true });
+    // The 20px chevron takes a 24px hit area on a touch screen, without moving the row.
+    await expect(chevron).toHaveClass("touch-target");
+    await expect(getComputedStyle(chevron).position).toBe("relative");
+    await userEvent.click(chevron);
     await expect(payables).toHaveFocus();
     await expect(payables).toHaveAttribute("aria-expanded", "false");
   },
@@ -332,12 +336,13 @@ function TreeDemo() {
             isSelected={item === selected}
             onSelect={() => setSelected(item)}
             trailing={
-              <button
-                type="button"
+              <Button
+                size="xsmall"
+                variant="subtle"
                 onClick={() => setItems((rows) => rows.filter((row) => row !== item))}
               >
                 Remove {item}
-              </button>
+              </Button>
             }
           >
             {item}
@@ -420,9 +425,13 @@ function NestedTreesDemo() {
               depth={0}
               aria-label="Beta entry"
               trailing={
-                <button type="button" onClick={() => setShowEmptyCollection(false)}>
+                <Button
+                  size="xsmall"
+                  variant="subtle"
+                  onClick={() => setShowEmptyCollection(false)}
+                >
                   Remove empty collection
-                </button>
+                </Button>
               }
             >
               Beta entry

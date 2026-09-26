@@ -18,6 +18,8 @@
 @import "./chart.css";
 @import "./density.css";
 @import "./layout.css";
+@import "./touch.css";
+@import "./stat.css";
 @import "./shell.css";
 @import "./drawer.css";
 @import "./toast.css";

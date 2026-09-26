@@ -27,9 +27,13 @@ Group `size="compact"` reduces vertical padding. `flush` extends separators and 
 
 ## Accessibility
 
-The title is a real anchor or button. Enter follows links; Space activates buttons. Disclosure buttons announce expanded state and reference the linked title's id. Actions are independent tab stops. Plain rows stay out of the tab order unless the caller explicitly supplies tabIndex for programmatic focus.
+The title is a real anchor or button. Enter follows links; Space activates buttons. Disclosure buttons announce expanded state and reference the linked title's id. The chevron sits above the title's stretched link, so a click or a tap on it opens the row and never follows the link; where any pointer is coarse its hit area is 24px. Actions are independent tab stops. Plain rows stay out of the tab order unless the caller explicitly supplies tabIndex for programmatic focus.
 
-A group title names the list. Use `labelledBy` when a surrounding section already provides the heading. Keep link titles descriptive; meta and trailing values are separate from the link's accessible name.
+A group title names the list. It is a heading at the contextual level: an h3 when nothing sets one, one below a titled Section, an h2 in a rail that starts its outline at 2 with `HeadingLevelProvider level={2}`. Use `labelledBy` when a surrounding section already provides the heading. A compact `empty` message is body text, not a heading.
+
+<Canvas of={Stories.GroupHeadingLevel} />
+
+Keep link titles descriptive; meta and trailing values are separate from the link's accessible name.
 
 <Canvas of={Stories.NativeIntegration} />
 

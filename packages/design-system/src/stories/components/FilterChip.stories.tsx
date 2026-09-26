@@ -117,7 +117,7 @@ function ToolbarDemo() {
   const statusValue =
     chosen.length === 1 ? chosen[0] : chosen.length > 1 ? `${chosen.length} chosen` : undefined;
   return (
-    <div style={{ width: 640 }}>
+    <div style={{ maxWidth: 640 }}>
       <Toolbar
         search=""
         onSearch={() => {}}
@@ -201,12 +201,30 @@ function ToolbarDemo() {
   );
 }
 
-/** In a Toolbar: a toggle, a chip that steps through its values, and a chip that opens a popover of checkboxes. Clear filters appears when any is on. */
+/** In a Toolbar: a toggle, a chip that steps through its values, and a chip that opens a popover of checkboxes. Clear filters appears when any is on. On a phone or in a panel the chips fold into More. */
 export const InToolbar: Story = {
   render: () => <ToolbarDemo />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const body = within(canvasElement.ownerDocument.body);
+    if (!canvas.queryByRole("button", { name: "Gaps" })) {
+      // Too narrow for the chips: they wait in More, where each still works and Escape returns.
+      const more = canvas.getByRole("button", { name: /^More filters/ });
+      await userEvent.click(more);
+      const folded = await body.findByRole("dialog", { name: "Filters" });
+      const gaps = within(folded).getByRole("button", { name: "Gaps" });
+      const status = within(folded).getByRole("button", { name: "Status Overdue" });
+      await waitFor(() => expect(gaps).toBeVisible());
+      await waitFor(() => expect(status).toBeVisible());
+      await expect(toolbarRefs.toggle.current).toBe(gaps);
+      await expect(gaps).toHaveAttribute("aria-pressed", "true");
+      await userEvent.click(gaps);
+      await expect(gaps).toHaveAttribute("aria-pressed", "false");
+      await userEvent.keyboard("{Escape}");
+      await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+      await waitFor(() => expect(more).toHaveFocus());
+      return;
+    }
     const gaps = canvas.getByRole("button", { name: "Gaps" });
     const status = canvas.getByRole("button", { name: "Status Overdue" });
     toolbarCalls.chip.mockClear();
@@ -258,6 +276,48 @@ export const InToolbar: Story = {
   },
 };
 
+const longOwner = "Priya Natarajan-Oyelaran, Dana Whitfield";
+
+/** In a 320px frame, a panel or a phone: every chip stays one line, no chip shrinks below its label, and a long value truncates with its full text as the title and in the chip's name. */
+export const Narrow: Story = {
+  name: "In a 320px frame",
+  globals: { viewport: { value: "ledgerSmall", isRotated: false } },
+  tags: ["narrow"],
+  render: () => (
+    <div data-testid="frame" style={{ maxWidth: 320 }}>
+      <Inline space="space.075" shouldWrap>
+        <FilterChip label="Status filter" value="In review" isActive />
+        <FilterChip label="Owner" value={longOwner} isActive />
+        <FilterChip label="Gaps" />
+        <FilterChip label="Hide closed" />
+      </Inline>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const doc = canvasElement.ownerDocument.documentElement;
+    await expect(doc.scrollWidth).toBeLessThanOrEqual(doc.clientWidth);
+    const frame = canvas.getByTestId("frame").getBoundingClientRect();
+    const chips = canvas.getAllByRole("button");
+    await expect(chips).toHaveLength(4);
+    const oneLine = chips[2]!.getBoundingClientRect().height;
+    for (const chip of chips) {
+      const box = chip.getBoundingClientRect();
+      // One line: the text never spills out of the pill's height, and the pill stays in the frame.
+      await expect(chip.scrollHeight).toBeLessThanOrEqual(chip.clientHeight);
+      await expect(box.height).toBe(oneLine);
+      await expect(box.right).toBeLessThanOrEqual(frame.right + 0.5);
+      const label = chip.querySelector<HTMLElement>('[data-slot="filter-chip-label"]')!;
+      await expect(label.scrollWidth).toBeLessThanOrEqual(label.clientWidth);
+    }
+    await expect(canvas.getByRole("button", { name: "Status filter In review" })).toBeVisible();
+    const owner = canvas.getByRole("button", { name: `Owner ${longOwner}` });
+    const value = owner.querySelector<HTMLElement>('[data-slot="filter-chip-value"]')!;
+    await expect(value.scrollWidth).toBeGreaterThan(value.clientWidth);
+    await expect(value).toHaveAttribute("title", longOwner);
+  },
+};
+
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
   render: () => (
@@ -281,7 +341,7 @@ export const Dont: Story = {
         }
         doText="A ToggleGroup coordinates exclusive choices; Count displays the totals."
         dont={
-          <Inline space="space.075">
+          <Inline space="space.075" rowSpace="space.075" shouldWrap>
             {["All", "High", "Medium", "Low"].map((s) => (
               <FilterChip key={s} label={s} isActive={s === "High"} />
             ))}

@@ -1,9 +1,13 @@
 import { createContext, useContext, useMemo, type ComponentProps } from "react";
 import { Drawer as Primitive } from "@base-ui/react/drawer";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
+import { HeadingLevelProvider } from "../primitives/heading-level";
+import { bodySlot, overlaySurface, useReadOnlyScroller, withStyle } from "./overlay";
 
 type DrawerContextValue = {
   hasSnapPoints: boolean;
@@ -82,7 +86,13 @@ export function DrawerSwipeHandle({ className, ...props }: DrawerSwipeHandleProp
   );
 }
 export type DrawerContentProps = Primitive.Popup.Props;
-export function DrawerContent({ className, children, dir, ...props }: DrawerContentProps) {
+export function DrawerContent({
+  className,
+  children,
+  dir,
+  style,
+  ...props
+}: DrawerContentProps) {
   const context = useContext(DrawerContext);
   const { direction } = useLedgerLocale();
   if (!context) throw new Error("DrawerContent must be used within a Drawer.");
@@ -107,13 +117,17 @@ export function DrawerContent({ className, children, dir, ...props }: DrawerCont
               className,
             )}
             {...props}
+            style={withStyle(overlaySurface, style)}
           >
             {showSwipeHandle && <DrawerSwipeHandle />}
             <Primitive.Content
               data-slot="drawer-content"
-              className="drawer-content flex min-h-0 flex-1 flex-col overflow-hidden overscroll-contain select-text"
+              // Scrolls as a fallback: a DrawerBody normally takes the overflow, and in a short
+              // window (under 30rem) the header scrolls away with the body and the footer stays.
+              className="drawer-content flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain select-text"
             >
-              {children}
+              {/* The title is the drawer's h2; headings inside take the next level. */}
+              <HeadingLevelProvider level={3}>{children}</HeadingLevelProvider>
             </Primitive.Content>
           </Primitive.Popup>
         </Primitive.Viewport>
@@ -134,13 +148,37 @@ export function DrawerHeader({ className, ...props }: DrawerHeaderProps) {
     />
   );
 }
+export type DrawerBodyProps = useRender.ComponentProps<"div">;
+/**
+ * The one scrolling region between DrawerHeader and DrawerFooter, with the drawer's inset. It
+ * takes the height the header and footer leave, at least 80px, and scrolls inside it; Base UI lets
+ * a swipe that starts in it scroll it, and dismiss once it is at its edge. In a window under 30rem
+ * tall it grows to its content instead, so the drawer scrolls as one with the footer held at the
+ * bottom. While it overflows with nothing to focus inside, it is a tab stop so the keyboard can
+ * scroll it.
+ */
+export function DrawerBody({ className, render, ref, ...props }: DrawerBodyProps) {
+  const own = useReadOnlyScroller<HTMLDivElement>();
+  return useRender({
+    defaultTagName: "div",
+    render,
+    ref: ref ? [own, ref] : own,
+    props: mergeProps<"div">(props, {
+      ...bodySlot("drawer-body"),
+      className: cn(
+        "min-h-1000 min-w-0 flex-1 overflow-y-auto overscroll-contain p-250 outline-none focus-visible:outline-field-focused [@media(max-height:30rem)]:flex-auto [@media(max-height:30rem)]:shrink-0 [@media(max-height:30rem)]:overflow-visible",
+        className,
+      ),
+    }),
+  });
+}
 export type DrawerFooterProps = ComponentProps<"div">;
 export function DrawerFooter({ className, ...props }: DrawerFooterProps) {
   return (
     <div
       data-slot="drawer-footer"
       className={cn(
-        "mt-auto flex shrink-0 flex-wrap items-center justify-end gap-100 border-t border-default bg-surface-sunken px-250 py-150",
+        "sticky bottom-0 z-10 mt-auto flex shrink-0 flex-wrap items-center justify-end gap-100 border-t border-default bg-surface-sunken px-250 py-150",
         className,
       )}
       {...props}

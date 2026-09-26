@@ -4,6 +4,8 @@ import { createLedgerLocale, type LedgerLocale, type LedgerLocaleOptions } from 
 export {
   createLedgerLocale,
   defaultMessages,
+  type CalendarDay,
+  type WallTime,
   type LedgerLocale,
   type LedgerLocaleOptions,
   type LedgerMessages,
@@ -46,7 +48,11 @@ export function LedgerProvider({
   );
 }
 
-/** Read copy and formatters from the closest LedgerProvider. English/UTC is the safe default. */
+/**
+ * Read copy and formatters from the closest LedgerProvider. English/UTC is the safe default.
+ * Instants format in the provider's `timeZone`; calendar days (`formatDay`, `formatCalendarDate`)
+ * never shift; typed days and times parse in the provider's locale (`parseDay`, `parseTime`).
+ */
 export function useLedgerLocale(): LedgerLocale {
   return useContext(LocaleContext);
 }

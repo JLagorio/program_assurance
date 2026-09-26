@@ -17,7 +17,7 @@ import * as Stories from "./Breadcrumb.stories";
 
 Show where the reader is in the record tree and provide links to its parent levels. Breadcrumb follows the shadcn Base UI component structure, with Ledger's typography, color, spacing, icon, focus, and motion tokens.
 
-Compose the list, items, links, separators, and current page explicitly. The list wraps when space is limited. The component does not generate separators, infer the current page, truncate labels, or manage overflow for you.
+Compose the list, items, links, separators, and current page explicitly. The component does not generate separators or infer the current page. The list keeps the trail on one line in any container: when it does not fit, the middle levels fold behind an ellipsis whose menu lists them as links.
 
 <Canvas of={Stories.BreadcrumbMatrix} />
 
@@ -25,15 +25,15 @@ Compose the list, items, links, separators, and current page explicitly. The lis
 
 All seven parts are named exports from `@ledger/design-system`.
 
-| Part                  | Default element and responsibility                                                       |
-| --------------------- | ---------------------------------------------------------------------------------------- |
-| `Breadcrumb`          | A `nav` with `aria-label="breadcrumb"`. Contains the list.                               |
-| `BreadcrumbList`      | An `ol` that wraps its children and labels.                                              |
-| `BreadcrumbItem`      | An inline-flex `li` for one level. Contains a link, page, or composed control.           |
-| `BreadcrumbLink`      | An `a`, or the element supplied through Base UI's `render` prop.                         |
-| `BreadcrumbPage`      | A `span` with `role="link"`, `aria-disabled="true"`, and `aria-current="page"`.          |
-| `BreadcrumbSeparator` | A decorative `li` between items. A chevron by default; accepts custom children.          |
-| `BreadcrumbEllipsis`  | A decorative `span` containing a horizontal ellipsis. Provides no interaction by itself. |
+| Part                  | Default element and responsibility                                                                             |
+| --------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `Breadcrumb`          | A `nav` with `aria-label="breadcrumb"`. Contains the list.                                                     |
+| `BreadcrumbList`      | An `ol` that keeps one line and folds levels behind an ellipsis menu, or wraps.                                |
+| `BreadcrumbItem`      | An `li` for one level, on the list's line or in its wrapping text. Contains a link, page, or composed control. |
+| `BreadcrumbLink`      | An `a`, or the element supplied through Base UI's `render` prop. Always an ancestor: it drops an `aria-current` it is handed. |
+| `BreadcrumbPage`      | A `span` with `role="link"`, `aria-disabled="true"`, and `aria-current="page"`.                                |
+| `BreadcrumbSeparator` | A decorative `li` between items. A chevron by default; accepts custom children.                                |
+| `BreadcrumbEllipsis`  | A decorative `span` containing a horizontal ellipsis. Provides no interaction by itself.                       |
 
 ```tsx
 import {
@@ -68,17 +68,20 @@ import {
 
 The component has one appearance. Its parts support different compositions without adding variant props.
 
-| Composition       | How to build it                                                                                                                      |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Standard trail    | Place `BreadcrumbLink` in each parent item and `BreadcrumbPage` in the final item.                                                   |
-| Custom separator  | Pass text or an icon to `BreadcrumbSeparator`, such as `<BreadcrumbSeparator>/</BreadcrumbSeparator>`.                               |
-| Collapsed parents | Put `BreadcrumbEllipsis` inside a named button or menu trigger. The application owns which levels are hidden and how to reveal them. |
-| Local hierarchy   | Render an actual button through `BreadcrumbLink` for a level that changes state in place.                                            |
-| Single page       | One `BreadcrumbItem` containing `BreadcrumbPage`, without separators.                                                                |
+| Composition       | How to build it                                                                                                                                                                         |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Standard trail    | Place `BreadcrumbLink` in each parent item and `BreadcrumbPage` in the final item.                                                                                                      |
+| Custom separator  | Pass text or an icon to `BreadcrumbSeparator`, such as `<BreadcrumbSeparator>/</BreadcrumbSeparator>`.                                                                                  |
+| Collapsed parents | Automatic: the list folds middle levels behind its own ellipsis menu. For a disclosure of your own, set `overflow="wrap"` and put `BreadcrumbEllipsis` inside a named button.           |
+| Icon or badge     | Put an icon inside `BreadcrumbLink` with `className="inline-flex items-center gap-050"`, and a badge in the `BreadcrumbItem` beside the link. The level keeps its whole width or folds. |
+| Local hierarchy   | Render an actual button through `BreadcrumbLink` for a level that changes state in place.                                                                                               |
+| Single page       | One `BreadcrumbItem` containing `BreadcrumbPage`, without separators.                                                                                                                   |
 
 <Canvas of={Stories.CustomSeparator} />
 
 ### Collapsed parents
+
+The list folds levels by itself when its container is too narrow (see [Sizes](#sizes)). To own the disclosure instead, set `overflow="wrap"` on the list so the two do not compete.
 
 Ellipsis is hidden from assistive technology, including its internal "More" text. Give the enclosing control its own accessible name and implement its behavior. This example uses a disclosure button with `aria-expanded`, reveals the parents inline, and retains keyboard focus on the button.
 
@@ -101,9 +104,36 @@ import { BreadcrumbEllipsis, BreadcrumbItem } from "@ledger/design-system";
 
 ## Sizes
 
-One default size: `font.body.small`. The ordered list uses wrapping flex layout, and long labels can wrap within an item. There is no automatic single-line truncation or maximum number of levels.
+One default size: `font.body.small`. The trail follows the width of its container, not the window, so it behaves the same on a page, in a panel and on a phone.
 
-A constrained header must allow room for additional lines. If a product requires a compact trail, compose a disclosure or overflow menu and keep the hidden levels accessible.
+With `overflow="collapse"` (the default) the trail stays on one line. When it does not fit, it gives up space in this order:
+
+1. The middle levels fold behind the ellipsis, nearest the root first.
+2. The parent's and the current page's names share what is left. The longer one shortens first, down to 80px, so the shorter keeps its whole name while it can.
+3. The root folds, and the ellipsis leads the line.
+4. The parent folds, leaving the ellipsis and the page.
+
+A shortened name keeps its full text as its title, and a link never shrinks below 80px (or its whole name, when that is shorter). The ellipsis menu lists the folded levels as links in order, and every level returns when the space does. The line never starts or ends with a separator.
+
+Only `BreadcrumbPage` and a `BreadcrumbLink` whose children are text shorten. A level composed from other content, such as an icon beside the name or a plain `span` for a level the reader cannot go back to, keeps its whole width or folds; folded, it appears in the ellipsis menu under its link's name, or as a disabled item when it has no link. The line keeps the height of its tallest level whether that level shows or folds, so the page below does not move as levels fold.
+
+<Canvas of={Stories.CollapsesToFit} />
+
+<Canvas of={Stories.LongerNameGivesWay} />
+
+<Canvas of={Stories.ShortTrailFoldsTheRoot} />
+
+<Canvas of={Stories.RootFoldsLast} />
+
+<Canvas of={Stories.UnlinkedParentFolds} />
+
+<Canvas of={Stories.ComposedLevels} />
+
+The trail folds to the width it is given: a block such as `PageHeader.Lead`, or a flex item with `min-width: 0`, which `Breadcrumb` has by itself. Beside an action it may size to its content; it still follows the row as it narrows and widens. A wrapper around it in a flex row needs `min-w-0` too; without it, the row grows to the whole trail.
+
+<Canvas of={Stories.BesideAnAction} />
+
+With `overflow="wrap"` every level shows and the trail wraps at word boundaries; each separator starts its line with the level it leads to.
 
 <Canvas of={Stories.LongWrappingTrail} />
 
@@ -111,18 +141,21 @@ A constrained header must allow room for additional lines. If a product requires
 
 ## States
 
-| State             | Behavior                                                                                             |
-| ----------------- | ---------------------------------------------------------------------------------------------------- |
-| Parent link       | Subtle text, default text color on hover; native Tab and Enter behavior.                             |
-| Keyboard focus    | Ledger's focus outline on the rendered link or button.                                               |
-| Current page      | Regular-weight default text. Announced as the current, disabled link; no `href` or default tab stop. |
-| Collapsed parents | Application-owned state on the enclosing control. Ellipsis remains decorative.                       |
+| State             | Behavior                                                                                                                      |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Parent link       | Subtle text, default text color on hover; native Tab and Enter behavior.                                                      |
+| Keyboard focus    | Ledger's focus outline on the rendered link or button.                                                                        |
+| Current page      | Regular-weight default text. Announced as the current, disabled link; no `href` or default tab stop.                          |
+| Folded levels     | Out of the line and the accessibility tree; listed as links in the ellipsis menu, whose button is named "Show hidden levels". |
+| Shortened name    | Ends in an ellipsis; the full name is the link's or page's `title`.                                                           |
+| Collapsed parents | With `overflow="wrap"`, application-owned state on the enclosing control; the ellipsis is decorative.                         |
 
 `BreadcrumbPage` preserves shadcn's accessible semantics: it is a noninteractive span exposed as a disabled current link. Its role does not make it an anchor or add keyboard behavior.
 
 ## Modifiers
 
-- **`aria-label`** on `Breadcrumb` names the navigation landmark. The default is lowercase `breadcrumb`.
+- **`aria-label`** on `Breadcrumb` names the navigation landmark. The default is lowercase `breadcrumb` (the `breadcrumb` message, which a `LedgerProvider` can translate).
+- **`overflow`** on `BreadcrumbList`: `"collapse"` (default) keeps one line and folds levels; `"wrap"` shows every level on as many lines as it needs.
 - **`render`** on `BreadcrumbLink` composes a router link or another suitable element through Base UI's `useRender` and `mergeProps`.
 - **`children`** on `BreadcrumbSeparator` replaces the default chevron.
 - **Native props and `ref`** reach each part's rendered DOM element. Use `className` and `style` on the relevant part for a deliberate layout adjustment.
@@ -153,6 +186,36 @@ The example below verifies that props and both refs reach the anchor, and that m
 
 <Canvas of={Stories.RenderLink} />
 
+### The current page and router links
+
+Only `BreadcrumbPage` is the current page. A router link marks itself `aria-current="page"` whenever the current path starts with its own, so on `/programs/atlas/controls` a trail of plain router links announces Programs and the program as the current page too, and a screen reader says so on every level. A trail must have exactly one current page, and it is the last level.
+
+BreadcrumbLink is always an ancestor, so it drops an `aria-current` it is handed. That covers a router that renders through the part. With TanStack Router, create the trail link once:
+
+```tsx
+import { createLink } from "@tanstack/react-router";
+import { BreadcrumbLink } from "@ledger/design-system";
+
+// The router works out the href and the active state, then renders BreadcrumbLink with them.
+export const TrailLink = createLink(BreadcrumbLink);
+
+<BreadcrumbItem>
+  <TrailLink to="/programs">Programs</TrailLink>
+</BreadcrumbItem>;
+```
+
+A router Link given as a `render` element sets the attribute inside itself, after the kit's props, where BreadcrumbLink cannot reach. Give it exact matching instead, so an ancestor is never active:
+
+```tsx
+<BreadcrumbLink render={<Link to="/programs" activeOptions={{ exact: true }} />}>
+  Programs
+</BreadcrumbLink>
+```
+
+Either way, compose the trail once in the application, next to its record links, rather than at every page. The kit does not strip the attribute from the DOM after the router sets it: React and the router own it.
+
+<Canvas of={Stories.RouterLinks} />
+
 ### In-place state
 
 Use an anchor for page navigation. For a hierarchy that updates local state, supply a native button explicitly:
@@ -173,19 +236,19 @@ The rendered control remains a button, including its Enter and Space behavior. T
 
 This is a breaking API change. Update complete breadcrumb compositions, including their surrounding layout.
 
-| Previous API or behavior                            | New composition                                                                                             |
-| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `Breadcrumb.Item`                                   | Import `BreadcrumbItem` as a named export.                                                                  |
-| Root automatically supplied `ol`                    | Place `BreadcrumbList` inside `Breadcrumb`.                                                                 |
-| Item automatically supplied its leading chevron     | Place `BreadcrumbSeparator` between items.                                                                  |
-| `<Breadcrumb.Item isCurrent>Page</Breadcrumb.Item>` | `<BreadcrumbItem><BreadcrumbPage>Page</BreadcrumbPage></BreadcrumbItem>`                                    |
-| `Breadcrumb.Item asChild` around an anchor          | Put `BreadcrumbLink href="…"` inside `BreadcrumbItem`.                                                      |
-| `Breadcrumb.Item asChild` around a router link      | Put `BreadcrumbLink render={<RouterLink to="…" />}` inside `BreadcrumbItem`.                                |
-| Item `onClick` implicitly created a button          | Explicitly render a button through `BreadcrumbLink`, or compose a suitable control inside `BreadcrumbItem`. |
-| Root `label="Program hierarchy"`                    | Root `aria-label="Program hierarchy"`.                                                                      |
-| Item `className` styled its link or page            | Apply that class to `BreadcrumbLink` or `BreadcrumbPage`; item props now target the `li`.                   |
-| Current page used medium weight                     | `BreadcrumbPage` uses regular weight, following shadcn's structure and styling intent.                      |
-| Every crumb truncated to keep one line              | The list and long labels wrap. Review narrow headers and use an explicit overflow composition where needed. |
+| Previous API or behavior                            | New composition                                                                                                                                               |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Breadcrumb.Item`                                   | Import `BreadcrumbItem` as a named export.                                                                                                                    |
+| Root automatically supplied `ol`                    | Place `BreadcrumbList` inside `Breadcrumb`.                                                                                                                   |
+| Item automatically supplied its leading chevron     | Place `BreadcrumbSeparator` between items.                                                                                                                    |
+| `<Breadcrumb.Item isCurrent>Page</Breadcrumb.Item>` | `<BreadcrumbItem><BreadcrumbPage>Page</BreadcrumbPage></BreadcrumbItem>`                                                                                      |
+| `Breadcrumb.Item asChild` around an anchor          | Put `BreadcrumbLink href="…"` inside `BreadcrumbItem`.                                                                                                        |
+| `Breadcrumb.Item asChild` around a router link      | Put `BreadcrumbLink render={<RouterLink to="…" />}` inside `BreadcrumbItem`.                                                                                  |
+| Item `onClick` implicitly created a button          | Explicitly render a button through `BreadcrumbLink`, or compose a suitable control inside `BreadcrumbItem`.                                                   |
+| Root `label="Program hierarchy"`                    | Root `aria-label="Program hierarchy"`.                                                                                                                        |
+| Item `className` styled its link or page            | Apply that class to `BreadcrumbLink` or `BreadcrumbPage`; item props now target the `li`.                                                                     |
+| Current page used medium weight                     | `BreadcrumbPage` uses regular weight, following shadcn's structure and styling intent.                                                                        |
+| Every crumb truncated to keep one line              | The list keeps one line by folding middle levels behind an ellipsis menu; only the current page and the parent shorten, each with its full name as the title. |
 
 `BreadcrumbProps` and `BreadcrumbItemProps` remain exported as aliases for their native `nav` and `li` props. They no longer contain the old custom props. For any part, `React.ComponentProps<typeof BreadcrumbLink>` (or the corresponding component) derives its public props.
 
@@ -199,17 +262,18 @@ This is a breaking API change. Update complete breadcrumb compositions, includin
 
 ## Style
 
-| Element                     | Ledger tokens and classes                                                             |
-| --------------------------- | ------------------------------------------------------------------------------------- |
-| List typography             | `font.body.small` / `font-body-small`                                                 |
-| Parent links and separators | `color.text.subtle` / `text-subtle`; links use `color.text` / `text-default` on hover |
-| Current page                | `color.text` / `text-default`, `font-regular`                                         |
-| List gap                    | `space.075` / `gap-075`                                                               |
-| Item gap                    | `space.050` / `gap-050`                                                               |
-| Chevron                     | `dimension.icon.small` / `size-icon-small`                                            |
-| Ellipsis                    | `size-250` container with a `dimension.icon.medium` / `size-icon-medium` icon         |
-| Focus                       | `radius.xsmall` / `rounded-xsmall`, `focus-visible:outline-focused`                   |
-| Link transition             | `duration-fast`, `ease-standard`                                                      |
+| Element                     | Ledger tokens and classes                                                                                                                                                                                                                                                                                            |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| List typography             | `font.body.small` / `font-body-small`                                                                                                                                                                                                                                                                                |
+| Parent links and separators | `color.text.subtle` / `text-subtle`; links use `color.text` / `text-default` on hover                                                                                                                                                                                                                                |
+| Current page                | `color.text` / `text-default`, `font-regular`                                                                                                                                                                                                                                                                        |
+| List gap                    | `space.075` / `gap-075`                                                                                                                                                                                                                                                                                              |
+| Item gap                    | `space.050` / `gap-050`                                                                                                                                                                                                                                                                                              |
+| Chevron                     | `dimension.icon.small` / `size-icon-small`                                                                                                                                                                                                                                                                           |
+| Ellipsis                    | `size-250` container with a `dimension.icon.medium` / `size-icon-medium` icon; the list's own menu trigger uses `size-200` to keep the line 16px tall                                                                                                                                                                |
+| Touch                       | Links and the ellipsis trigger take `touch-target`, a 24px hit area centred on the control wherever a pointer is coarse, without moving the line. With `overflow="wrap"`, links take `touch-target-block` instead: a band the link's own width, so a link that wraps never takes a tap meant for the words beside it |
+| Focus                       | `radius.xsmall` / `rounded-xsmall`, `focus-visible:outline-focused`                                                                                                                                                                                                                                                  |
+| Link transition             | `duration-fast`, `ease-standard`                                                                                                                                                                                                                                                                                     |
 
 These defaults use the same semantic tokens in light and dark modes. Customize presentation through Ledger tokens while retaining the component anatomy and prop contract.
 
@@ -218,8 +282,10 @@ These defaults use the same semantic tokens in light and dark modes. Customize p
 - `Breadcrumb` creates a named navigation landmark containing an ordered list supplied by `BreadcrumbList`.
 - Use distinct `aria-label` values for distinct breadcrumb landmarks on one page. The matrix does this without disabling the landmark uniqueness check.
 - Parent anchors are reached by Tab and activated by Enter. Keep their real destinations so users can open them in another tab.
+- Exactly one level is the current page: `BreadcrumbPage`, last. BreadcrumbLink drops an `aria-current` a router hands it; a router link through `render` needs exact matching (see [The current page and router links](#the-current-page-and-router-links)).
 - `BreadcrumbPage` identifies the current page through `aria-current="page"`, with `role="link"` and `aria-disabled="true"`. It has no default tab stop.
 - Separators and ellipsis have `role="presentation"` and `aria-hidden="true"`. Do not put interactive content inside a separator.
+- A folded level leaves the accessibility tree. The list's ellipsis is a menu button named "Show hidden levels" (the `showHiddenLevels` message, which a `LedgerProvider` can translate), and it keeps its place in the reading and tab order when the root folds and it leads the line; its items are links with the folded levels' real hrefs. Choosing one runs the folded link itself, so a router link keeps its client-side navigation; a modified click opens the href in a new tab.
 - Ellipsis alone is not an accessible control. Its button or menu trigger needs a name, keyboard behavior, and appropriate state attributes.
 - Custom render components must forward props and refs to preserve native attributes and keyboard behavior.
 
@@ -227,15 +293,15 @@ These defaults use the same semantic tokens in light and dark modes. Customize p
 
 Each part accepts its native element's props, including DOM attributes, event handlers, `className`, `style`, and `ref`. `BreadcrumbLink` additionally accepts Base UI's `render` prop.
 
-| Export                | Native props                    | Ref target                                                  |
-| --------------------- | ------------------------------- | ----------------------------------------------------------- |
-| `Breadcrumb`          | `React.ComponentProps<"nav">`   | `HTMLElement` (`nav`)                                       |
-| `BreadcrumbList`      | `React.ComponentProps<"ol">`    | `HTMLOListElement`                                          |
-| `BreadcrumbItem`      | `React.ComponentProps<"li">`    | `HTMLLIElement`                                             |
-| `BreadcrumbLink`      | `useRender.ComponentProps<"a">` | Anchor by default; the composed element when using `render` |
-| `BreadcrumbPage`      | `React.ComponentProps<"span">`  | `HTMLSpanElement`                                           |
-| `BreadcrumbSeparator` | `React.ComponentProps<"li">`    | `HTMLLIElement`                                             |
-| `BreadcrumbEllipsis`  | `React.ComponentProps<"span">`  | `HTMLSpanElement`                                           |
+| Export                | Native props                                                       | Ref target                                                  |
+| --------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------- |
+| `Breadcrumb`          | `React.ComponentProps<"nav">`                                      | `HTMLElement` (`nav`)                                       |
+| `BreadcrumbList`      | `BreadcrumbListProps`: `React.ComponentProps<"ol">` and `overflow` | `HTMLOListElement`                                          |
+| `BreadcrumbItem`      | `React.ComponentProps<"li">`                                       | `HTMLLIElement`                                             |
+| `BreadcrumbLink`      | `useRender.ComponentProps<"a">`                                    | Anchor by default; the composed element when using `render` |
+| `BreadcrumbPage`      | `React.ComponentProps<"span">`                                     | `HTMLSpanElement`                                           |
+| `BreadcrumbSeparator` | `React.ComponentProps<"li">`                                       | `HTMLLIElement`                                             |
+| `BreadcrumbEllipsis`  | `React.ComponentProps<"span">`                                     | `HTMLSpanElement`                                           |
 
 <ArgTypes of={Breadcrumb} />
 

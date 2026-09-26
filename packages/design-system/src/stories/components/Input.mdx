@@ -10,18 +10,17 @@ One line of free text, using shadcn's Base UI Input implementation with Ledger c
 ## Anatomy
 
 ```tsx
-<Field>
-  <FieldLabel htmlFor="input">Program name</FieldLabel>
-  <Input
-    id="input"
-    aria-describedby="input-help"
-    name="program"
-    value={name}
-    onValueChange={setName}
-  />
-  <FieldDescription id="input-help">As it appears on the authorization package.</FieldDescription>
+<Field invalid={invalid} required>
+  <FieldLabel>Program name</FieldLabel>
+  <Input name="program" value={name} onValueChange={setName} />
+  <FieldDescription>As it appears on the authorization package.</FieldDescription>
+  <FieldError errors={errors} />
 </Field>
 ```
+
+Inside a [Field](?path=/docs/components-field--docs) the Input takes the label, the hint and the error with no ids, and the Field's `invalid`, `required` and `disabled`.
+
+<Canvas of={Stories.BoundInField} />
 
 Use `InputGroupInput` inside InputGroup when the field has addons. Input itself remains a single input element.
 
@@ -37,7 +36,7 @@ Focus draws one continuous 2px edge over the field border, without a gap or a se
 
 ## Accessibility
 
-Use FieldLabel with `htmlFor` and the input’s `id`, or another explicit accessible name. Reference hint/error IDs with `aria-describedby`, and pass `aria-invalid` and `aria-required` to the input. Native `required` enables browser validation. A placeholder gives an example and never replaces the label.
+In a Field the label, hint, error, invalid state and requirement reach the input without ids. Outside one, use a label with `htmlFor` and the input’s `id`, `aria-describedby` for hints, and `aria-invalid` and `aria-required` on the input. The Field's `required` only announces; native `required` on the Input is a browser and Base UI constraint. A placeholder gives an example and never replaces the label.
 
 Native `onChange` remains supported. Search clearing and application shortcuts are caller-owned; Input does not install an Escape handler. Use an accessible InputGroupButton when a clear action is needed.
 

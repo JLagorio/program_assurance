@@ -23,10 +23,10 @@ export const AreaMatrix: Story = {
   render: () => (
     <Stack space="space.400">
       <Specimens title="One series · stacked · smooth with end labels">
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Area data={byMonth} x="month" series={open} size="small" label="Open findings" />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Area
             data={byMonth}
             x="month"
@@ -36,7 +36,7 @@ export const AreaMatrix: Story = {
             label="Findings, stacked"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Area
             data={byMonth}
             x="month"
@@ -49,7 +49,7 @@ export const AreaMatrix: Story = {
         </Box>
       </Specimens>
       <Specimens title="Textured · a time axis · a shared domain">
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Area
             data={byAssessor}
             x="week"
@@ -60,7 +60,7 @@ export const AreaMatrix: Story = {
             label="Reviews by assessor, textured"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Area
             data={byWeek}
             x="date"
@@ -70,7 +70,7 @@ export const AreaMatrix: Story = {
             label="Open findings by week"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Area
             data={byMonth}
             x="month"
@@ -82,7 +82,7 @@ export const AreaMatrix: Story = {
         </Box>
       </Specimens>
       <Specimens title="Baseline auto · a band and a limit · loading">
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Area
             data={byMonth}
             x="month"
@@ -92,7 +92,7 @@ export const AreaMatrix: Story = {
             label="Controls assessed"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Area
             data={byMonth}
             x="month"
@@ -103,7 +103,7 @@ export const AreaMatrix: Story = {
             label="Open findings against the limit"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Area
             data={byMonth}
             x="month"
@@ -122,7 +122,7 @@ export const AreaMatrix: Story = {
 /** One series with a wash under it: the wash says "how much" where a line alone says "which way". The hue at 12%. */
 export const Single: Story = {
   render: () => (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Open findings"
         description="At the end of each month, this year"
@@ -140,7 +140,7 @@ export const Single: Story = {
 /** Stacked areas: parts of a whole over time. The tooltip totals the stack. */
 export const Stacked: Story = {
   render: () => (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Findings, open and closed"
         description="Parts of the month's total"
@@ -158,7 +158,7 @@ export const Stacked: Story = {
 /** `texture` on a stack: each wash wears its pattern in its colour, so four assessors read apart in print and under colour-vision loss. */
 export const Textured: Story = {
   render: () => (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Reviews by assessor"
         description="Per week, stacked and textured"
@@ -177,7 +177,7 @@ export const Textured: Story = {
 /** A click in a month's column opens its card, as on a Line. */
 export const Details: Story = {
   render: () => (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Findings, open and closed"
         description="Click a month"

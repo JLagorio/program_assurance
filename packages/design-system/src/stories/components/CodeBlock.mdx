@@ -20,7 +20,7 @@ It is not a field: a value the reader edits is a [Textarea](?path=/docs/componen
 | Frame  | A box in `elevation.surface.sunken` with a 1px `color.border` and `radius.medium`. It scrolls both ways inside itself; it is a tab stop so the keyboard can scroll it.        |
 | Gutter | The line numbers, `color.text.subtlest`, tabular, right-aligned, on a column that sticks to the start edge when the lines scroll sideways, with a 1px rule at its end.        |
 | Line   | One row per entry of `lines`, `space.150` from the gutter, in `font.code`. A string, or the caller's spans.                                                                  |
-| Copy   | With `copy`, a subtle IconButton at the top end that puts the text on the clipboard and says Copied for a moment.                                                            |
+| Copy   | With `copy`, the kit's [CopyButton](?path=/docs/components-copybutton--docs), icon-only and subtle, at the top end on the block's own surface. The frame is at least as tall as it, and the lines keep room at their end to scroll out from under it. |
 
 ## Variants
 
@@ -28,7 +28,7 @@ One. What changes is what the lines are: a string per line, or nodes the caller 
 
 <Canvas of={Stories.Highlighted} />
 
-Not built, and why: a highlighted line (the one a validation error points at, the changed lines of a revision), because no screen asks for it yet; a diff, which is two documents and a decision; a language picker or a tokenizer.
+Not built, and why: a highlighted line (the one a validation error points at, the changed lines of a revision), because no screen asks for it yet; a language picker or a tokenizer. Two versions of a text compared line by line are a [Diff](?path=/docs/components-diff--docs).
 
 ## Sizes
 
@@ -41,9 +41,12 @@ One face, `font.code`, at the body size. The block is as wide as its container a
 | Rest      | The lines, the gutter, the frame.                                                                            |
 | Focus     | The kit's focus outline on the frame, on keyboard focus, so a keyboard reader can scroll it.                 |
 | Scrolled  | Sideways, the gutter stays and the lines pass under it. Down, the gutter goes with the lines.                |
-| Copied    | The Copy's icon is a check in `color.icon.success` and its label reads Copied, for a moment.                 |
+| Copied    | The Copy's icon is a check in `color.icon.success` and its tooltip and a polite status say Copied, for a moment; its name stays Copy. |
+| Not copied | When the browser refuses the write, the icon is an alert in `color.icon.danger` and the tooltip and status say Could not copy. |
 
 <Canvas of={Stories.CodeBlockMatrix} />
+
+<Canvas of={Stories.OneLineCommand} />
 
 ## Modifiers
 
@@ -72,14 +75,15 @@ One face, `font.code`, at the body size. The block is as wide as its container a
 | Frame   | `elevation.surface.sunken` · 1px `color.border` · `radius.medium` · `space.050` block inside              |
 | Gutter  | `font.code` · `color.text.subtlest` · tabular · `space.100` inline · 1px `color.border` at its end        |
 | Line    | `font.code` · `color.text` · `space.150` from the gutter                                                  |
-| Copy    | IconButton `subtle` `small` at `space.100` from the top and the end · `color.icon.success` when copied    |
+| Copy    | CopyButton, icon-only, `subtle` `small`, at `space.050` from the top and the end on `elevation.surface.sunken` · the frame at least `dimension.control.large` tall · `space.500` at the lines' end · `color.icon.success` when copied |
 | Focus   | The kit's focus outline, `color.border.focused`                                                           |
 
 ## Accessibility
 
 - **The frame is a group named by `label`** and a tab stop, so a keyboard reader can reach a block that scrolls and move it with the arrows. A block with a bare "Code" name is a block the screen reader cannot tell from the next one.
 - **Line numbers are not selectable,** so a copied selection is the code alone.
-- **The Copy is an IconButton:** named, with the kit's tooltip, and a status region says Copied.
+- **The Copy is a CopyButton:** named Copy, with the kit's tooltip, and a status region says Copied, or Could not copy when the browser refuses.
+- **The gutter is hidden from assistive technology,** so browse mode reads the code, not a line number before every line.
 - **Contrast:** the gutter's `color.text.subtlest` passes on the sunken surface in both modes; the caller's highlight colours are the kit's text tokens, which do too.
 - **The a11y gate** checks the name, the tab stop and the contrast in the matrix.
 
@@ -98,7 +102,7 @@ One face, `font.code`, at the body size. The block is as wide as its container a
 - [Textarea](?path=/docs/components-textarea--docs): code the reader edits.
 - [Id](?path=/docs/components-id--docs): one identifier in running text.
 - [Text](?path=/docs/primitives-text--docs): prose.
-- [IconButton](?path=/docs/components-iconbutton--docs): the Copy.
+- [CopyButton](?path=/docs/components-copybutton--docs): the Copy, on its own beside an identifier or a command.
 - [ScrollArea](?path=/docs/components-scrollarea--docs): a region that scrolls with the kit's bar; the CodeBlock uses the platform's, so the gutter can stick.
 
 ## Don't

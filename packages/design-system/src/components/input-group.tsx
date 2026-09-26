@@ -6,13 +6,18 @@ import { Input, type InputProps } from "./input";
 import { Textarea, type TextareaProps } from "./textarea";
 
 export type InputGroupProps = ComponentProps<"div">;
+/**
+ * The field's frame. Squeezed below its addons' width it clips at its own edge rather than paint
+ * over its neighbours, and a keyboard hint (a Kbd in an InputGroupText) steps aside below 256px so
+ * the input keeps the room. A group with a hint is a size container, so give it a definite width.
+ */
 export function InputGroup({ className, ...props }: InputGroupProps) {
   return (
     <div
       data-slot="input-group"
       role="group"
       className={cn(
-        "group/input-group relative flex h-control-medium w-full min-w-0 items-center rounded-medium border border-input bg-input transition-colors duration-fast ease-standard outline-none hover:bg-input-hovered",
+        "group/input-group relative flex h-control-medium w-full min-w-0 items-center overflow-x-clip rounded-medium border border-input bg-input transition-colors duration-fast ease-standard outline-none hover:bg-input-hovered has-[kbd]:@container/input-group",
         "has-[[data-size=small]]:h-control-small has-[[data-slot=input-group-control]:focus-visible]:bg-input-pressed has-[[data-slot=input-group-control]:focus-visible]:border-focused has-[[data-slot=input-group-control]:focus-visible]:outline-field-focused has-[[data-slot=input-group-control][aria-invalid=true]]:border-danger has-[[data-slot=input-group-control][aria-invalid=true]:focus-visible]:border-danger has-[[data-slot=input-group-control][aria-invalid=true]:focus-visible]:outline-field-danger has-[[data-slot=input-group-control]:disabled]:border-disabled has-[[data-slot=input-group-control]:disabled]:bg-disabled has-[[data-slot=input-group-control][readonly]]:bg-surface-sunken has-[[data-slot=input-group-control][readonly]]:hover:bg-surface-sunken",
         "has-[>textarea]:h-auto has-[>[data-align=block-start]]:h-auto has-[>[data-align=block-start]]:flex-col has-[>[data-align=block-end]]:h-auto has-[>[data-align=block-end]]:flex-col",
         className,
@@ -26,8 +31,8 @@ export type InputGroupAddonProps = ComponentProps<"div"> & {
   align?: "inline-start" | "inline-end" | "block-start" | "block-end" | undefined;
 };
 const alignments = {
-  "inline-start": "order-first ps-100",
-  "inline-end": "order-last pe-100",
+  "inline-start": "order-first whitespace-nowrap ps-100",
+  "inline-end": "order-last whitespace-nowrap pe-100",
   "block-start": "order-first w-full justify-start px-100 pt-075",
   "block-end": "order-last w-full justify-start px-100 pb-075",
 };
@@ -90,12 +95,13 @@ export function InputGroupButton({
   );
 }
 export type InputGroupTextProps = ComponentProps<"span">;
+/** A unit, a prefix or a hint beside the control. Units stay at every width; a keyboard hint (a Kbd inside) hides while the group is narrower than 256px. */
 export function InputGroupText({ className, ...props }: InputGroupTextProps) {
   return (
     <span
       data-slot="input-group-text"
       className={cn(
-        "flex items-center gap-075 font-body-small text-subtle [&_svg]:pointer-events-none [&_svg]:size-icon-small",
+        "flex items-center gap-075 font-body-small text-subtle has-[kbd]:hidden @3xs/input-group:has-[kbd]:flex [&_svg]:pointer-events-none [&_svg]:size-icon-small",
         className,
       )}
       {...props}

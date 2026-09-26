@@ -26,6 +26,11 @@
 [data-focus="pointer"] .recharts-wrapper .recharts-surface:focus-visible {
   outline: none;
 }
+/* While a chosen mark's card is open, the card says what the tooltip would: the tooltip stands
+   down, so on a phone, where a tap is both hover and click, the two never stack. */
+[data-chart-plot][data-card="open"] .recharts-tooltip-wrapper {
+  display: none;
+}
 /* A plot with marks that open something takes the pointer over them, not over the whole plot. */
 .recharts-wrapper .recharts-tooltip-cursor {
   pointer-events: none;

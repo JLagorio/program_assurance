@@ -10,7 +10,7 @@ import {
   Button,
   Input,
 } from "../../components";
-import { Stack, Text } from "../../primitives";
+import { HeadingLevelProvider, Stack, Text } from "../../primitives";
 
 const meta = {
   title: "Components/Accordion",
@@ -114,5 +114,38 @@ export const ControlledAndRetained: Story = {
     await expect(input).toHaveValue("Unsaved draft");
     await userEvent.click(canvas.getByRole("button", { name: "Focus first by ref" }));
     await expect(canvas.getByRole("button", { name: "Record A" })).toHaveFocus();
+  },
+};
+
+/** Each item's heading takes the contextual level: an h3 when nothing sets it (the Examples above), an h2 here, where the Accordion is the first thing in a region that starts its outline at 2. The trigger is a button inside the heading and the chevron turns with `aria-expanded`. */
+export const HeadingLevel: Story = {
+  name: "Heading level",
+  render: () => (
+    <HeadingLevelProvider level={2}>
+      <Accordion defaultValue={["ownership"]} className="w-layout-list max-w-full">
+        <Entry value="ownership" label="Ownership" />
+        <Entry value="schedule" label="Schedule" />
+      </Accordion>
+    </HeadingLevelProvider>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    for (const name of ["Ownership", "Schedule"]) {
+      const heading = canvas.getByRole("heading", { name });
+      await expect(heading.tagName).toBe("H2");
+      await expect(heading).toContainElement(canvas.getByRole("button", { name }));
+    }
+    await userEvent.click(canvas.getByRole("button", { name: "Schedule" }));
+    await expect(canvas.getByRole("button", { name: "Schedule" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+    // An open item clips only while it folds, so a focus ring at its content's edge shows whole.
+    const open = canvasElement.querySelectorAll<HTMLElement>(
+      "[data-slot=accordion-content][data-open]",
+    );
+    await expect(open.length).toBeGreaterThan(0);
+    for (const panel of open)
+      await waitFor(() => expect(getComputedStyle(panel).overflow).toBe("visible"));
   },
 };

@@ -32,6 +32,12 @@ Use `value` with `onValueChange` for controlled state and `defaultValue` otherwi
 
 Triggers are native buttons with Enter, Space, and normal Tab behavior. Base UI follows current APG guidance and does not add arrow-key roving focus. The trigger wrapper supplies the heading and associates every panel with its trigger.
 
+Each heading takes the contextual level from the nearest [HeadingLevelProvider](?path=/docs/primitives-heading--docs), titled Section or panel body, and is an h3 when nothing sets one. Wrap the Accordion in a HeadingLevelProvider for another level: `level={2}` where it is a page rail's first heading under the h1.
+
+<Canvas of={Stories.HeadingLevel} />
+
+Use Accordion for a set that belongs together; for one disclosure with a title, use [CollapsibleHeader](?path=/docs/components-collapsible--docs), or a collapsible [Section](?path=/docs/layout-section--docs) on a page.
+
 ## Related
 
 [Collapsible](?path=/docs/components-collapsible--docs), [shadcn Accordion](https://ui.shadcn.com/docs/components/base/accordion), and [Base UI Accordion](https://base-ui.com/react/components/accordion).

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useId, useRef, useState } from "react";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import {
   FieldLabel,
   AlertDialog,
@@ -13,12 +14,14 @@ import {
   Badge,
   Button,
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
   Drawer,
+  DrawerBody,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
@@ -46,6 +49,7 @@ import {
   PopoverContent,
   PopoverTrigger,
   Sheet,
+  SheetBody,
   SheetContent,
   SheetDescription,
   SheetFooter,
@@ -178,14 +182,14 @@ function Modals() {
           }
         }}
       >
-        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+        <DialogContent width="medium">
           <DialogHeader>
             <DialogTitle>Schedule assessment</DialogTitle>
             <DialogDescription>
               Pick a window; the owner is notified when you save.
             </DialogDescription>
           </DialogHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+          <DialogBody>
             <Stack space="space.200">
               <Field>
                 <FieldLabel id={`${fieldId}-assessor-2-label`} htmlFor={`${fieldId}-assessor-2`}>
@@ -208,7 +212,7 @@ function Modals() {
                 />
               </Field>
             </Stack>
-          </div>
+          </DialogBody>
           <DialogFooter>
             <>
               <Button variant="subtle" onClick={() => setDialog(false)}>
@@ -230,21 +234,18 @@ function Modals() {
           }
         }}
       >
-        <DialogContent
-          style={{ maxWidth: ({ medium: 520, large: 860 } as const)["large"] }}
-          className="top-200 translate-y-0 sm:top-600"
-        >
+        <DialogContent width="large">
           <DialogHeader>
             <DialogTitle>Link evidence</DialogTitle>
           </DialogHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-none">
-            <div className="grid grid-cols-1 md:grid-cols-3">
-              <div className="px-250 py-200 md:col-span-2">
+          <DialogBody className="@container p-0">
+            <div className="grid grid-cols-1 @2xl:grid-cols-3">
+              <div className="px-250 py-200 @2xl:col-span-2">
                 <Text color="color.text.subtle">
                   The body scrolls; the header, aside and footer stay put.
                 </Text>
               </div>
-              <div className="border-t border-default bg-surface-sunken px-250 py-200 md:border-s md:border-t-0">
+              <div className="border-t border-default bg-surface-sunken px-250 py-200 @2xl:border-s @2xl:border-t-0">
                 <Stack space="space.050">
                   <KeyValue label="Control">CTRL-0412</KeyValue>
                   <KeyValue label="Owner">Dana Whitfield</KeyValue>
@@ -256,7 +257,7 @@ function Modals() {
                 </Stack>
               </div>
             </div>
-          </div>
+          </DialogBody>
           <DialogFooter>
             <Button variant="primary" onClick={() => setLarge(false)}>
               Link 3 items
@@ -273,22 +274,18 @@ function Modals() {
           }
         }}
       >
-        <SheetContent side="end" style={{ maxWidth: 420 }}>
+        <SheetContent side="end" width="medium">
           <SheetHeader>
-            <div className="flex items-start gap-100">
-              <div className="flex min-w-0 flex-1 flex-col gap-025">
-                <SheetTitle>CTRL-0412</SheetTitle>
-                <SheetDescription>Segregation of duties, payables</SheetDescription>
-              </div>
-            </div>
+            <SheetTitle>CTRL-0412</SheetTitle>
+            <SheetDescription>Segregation of duties, payables</SheetDescription>
           </SheetHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+          <SheetBody>
             <Stack space="space.050">
               <KeyValue label="Owner">Dana Whitfield</KeyValue>
               <KeyValue label="Frequency">Quarterly</KeyValue>
               <KeyValue label="Last verified">12 Aug 2026</KeyValue>
             </Stack>
-          </div>
+          </SheetBody>
           <SheetFooter>
             <Button variant="primary" onClick={() => setSheet(false)}>
               Done
@@ -303,34 +300,20 @@ function Modals() {
             <DrawerTitle>Quick actions</DrawerTitle>
             <DrawerDescription>The bottom sheet for narrow screens.</DrawerDescription>
           </DrawerHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto px-250 py-150">
+          <DrawerBody>
             <Stack space="space.100">
               <Button variant="subtle">Mark verified</Button>
               <Button variant="subtle">Request evidence</Button>
             </Stack>
-          </div>
+          </DrawerBody>
           <DrawerFooter>
             <DrawerClose render={<Button />}>Close</DrawerClose>
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
 
-      <AlertDialog
-        open={confirm}
-        onOpenChange={(next, details) => {
-          if (!next) {
-            if (pending) {
-              details.cancel();
-              return;
-            }
-            setConfirm(false);
-          }
-        }}
-      >
-        <AlertDialogContent
-          initialFocus={alertCancelRef}
-          className="top-200 translate-y-0 sm:top-1000"
-        >
+      <AlertDialog open={confirm} pending={pending} onOpenChange={setConfirm}>
+        <AlertDialogContent initialFocus={alertCancelRef}>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this control?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -338,9 +321,7 @@ function Modals() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel ref={alertCancelRef} disabled={pending}>
-              Cancel
-            </AlertDialogCancel>
+            <AlertDialogCancel ref={alertCancelRef}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               variant="danger"
               isLoading={pending}
@@ -362,7 +343,40 @@ function Modals() {
   );
 }
 
-export const Modal: Story = { render: () => <Modals /> };
+const overlaySurfaceVar = "var(--ds-elevation-surface-overlay)";
+
+/**
+ * The blanketed four. Each has a body part that scrolls between a fixed header and footer, a width
+ * step rather than a pixel width, and records the overlay surface as the current one, so a sticky
+ * header or pinned cell inside paints the overlay's colour.
+ */
+export const Modal: Story = {
+  render: () => <Modals />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement),
+      body = within(canvasElement.ownerDocument.body);
+    const cases = [
+      ["Dialog", "dialog", "Schedule assessment", "dialog-body"],
+      ["Dialog with aside", "dialog", "Link evidence", "dialog-body"],
+      ["Sheet", "dialog", "CTRL-0412", "sheet-body"],
+      ["Drawer", "dialog", "Quick actions", "drawer-body"],
+      ["AlertDialog", "alertdialog", "Delete this control?", null],
+    ] as const;
+    for (const [opener, role, name, slot] of cases) {
+      await userEvent.click(canvas.getByRole("button", { name: new RegExp(`^${opener}$`) }));
+      const popup = await body.findByRole(role, { name });
+      const surface = popup.closest<HTMLElement>(
+        '[style*="--ds-utility-elevation-surface-current"]',
+      );
+      await expect(surface?.style.getPropertyValue("--ds-utility-elevation-surface-current")).toBe(
+        overlaySurfaceVar,
+      );
+      if (slot) await expect(popup.querySelector(`[data-slot="${slot}"]`)).not.toBeNull();
+      await userEvent.keyboard("{Escape}");
+      await waitFor(() => expect(body.queryByRole(role)).toBeNull());
+    }
+  },
+};
 
 function StackDemo() {
   const alertCancelRef2 = useRef<HTMLButtonElement>(null);
@@ -380,22 +394,18 @@ function StackDemo() {
           }
         }}
       >
-        <SheetContent side="end" style={{ maxWidth: 420 }}>
+        <SheetContent side="end" width="medium">
           <SheetHeader>
-            <div className="flex items-start gap-100">
-              <div className="flex min-w-0 flex-1 flex-col gap-025">
-                <SheetTitle>CTRL-0412</SheetTitle>
-                <SheetDescription>Segregation of duties, payables</SheetDescription>
-              </div>
-            </div>
+            <SheetTitle>CTRL-0412</SheetTitle>
+            <SheetDescription>Segregation of duties, payables</SheetDescription>
           </SheetHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+          <SheetBody>
             <Stack space="space.050">
               <KeyValue label="Owner">Dana Whitfield</KeyValue>
               <KeyValue label="Frequency">Quarterly</KeyValue>
               <KeyValue label="Last verified">12 Aug 2026</KeyValue>
             </Stack>
-          </div>
+          </SheetBody>
           <SheetFooter>
             <>
               <Button variant="danger" onClick={() => setConfirm(true)}>
@@ -416,10 +426,7 @@ function StackDemo() {
           }
         }}
       >
-        <AlertDialogContent
-          initialFocus={alertCancelRef2}
-          className="top-200 translate-y-0 sm:top-1000"
-        >
+        <AlertDialogContent initialFocus={alertCancelRef2}>
           <AlertDialogHeader>
             <AlertDialogTitle>Archive this control?</AlertDialogTitle>
             <AlertDialogDescription>

@@ -1,0 +1,64 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+import { DateTimeField } from "../../components";
+import * as Stories from "./DateTimeField.stories";
+
+<Meta of={Stories} />
+
+# DateTimeField
+
+A moment: a day and a time together, typed or picked, in the LedgerProvider's time zone, which it names after the time ("PDT"). It holds and reports an ISO instant in UTC (`"2026-09-19T00:30:00.000Z"`), so the moment a reader enters is the moment stored, and every reader sees it in their provider's zone.
+
+Use it for a point in time: evidence collected at, a response due at 5 PM, a scheduled start. A day with no time (a due date, a planned completion) is a [DatePicker](?path=/docs/components-datepicker--docs); a wall time that repeats is a [TimeField](?path=/docs/components-timefield--docs). It replaces `input type="datetime-local"`, which ignores the provider and leaves the zone unsaid.
+
+```tsx
+<Field>
+  <FieldLabel>Evidence collected</FieldLabel>
+  <DateTimeField name="collected_at" value={collectedAt} onValueChange={setCollectedAt} />
+</Field>
+```
+
+<Canvas of={Stories.InField} />
+
+## The two halves
+
+The day is a typed [DatePicker](?path=/docs/components-datepicker--docs) input with its month, and the time a [TimeField](?path=/docs/components-timefield--docs) input with its stepping; each reads what the reader types in the locale, and the time shows the zone's short name. Where the field's container holds them they sit side by side; below 256px the time goes under the day.
+
+The field reports an instant once both halves read, and `""` while either is missing or not valid. `defaultTime` (an ISO time such as `"17:00"`) fills the time when the reader picks a day first. When focus leaves the field with one half filled, it says "Enter both a date and a time." A day and a wall time become an instant in the provider's zone: a time a daylight-saving change skips moves forward by the gap, and a time that happens twice takes the earlier moment.
+
+<Canvas of={Stories.DefaultTimeAndIncomplete} />
+
+## Limits
+
+`min` and `max` are instants. Days outside them are disabled in the month with their reason; a time before `min` on its first day is an error that names the limit: "Enter Sep 21, 2026, 9:00 AM or later." `isDateUnavailable` works as on DatePicker.
+
+<Canvas of={Stories.MinAndMax} />
+
+## Values and forms
+
+`value` is an instant with an offset or `Z`. A value with no offset (`"2026-09-18T17:30"`, what `datetime-local` holds) is read as a wall time in the provider's zone, which makes moving a native field over a one-line change; anything else warns once and is treated as empty. A hidden input carries the instant under `name`; put `name` here, not on the Field. A native form reset puts the field back as it was, a half entry and its message included. One message under the field speaks for both halves: a day or time that does not read, a moment outside the limits, or a missing half.
+
+<Canvas of={Stories.FormReset} />
+
+## Accessibility
+
+- Inside a Field the day input is the Field's control, so the FieldLabel points at it. The whole field is a group named by the label; the day input is named "Evidence collected Date" and the time "Evidence collected Time Pacific Daylight Time", so a screen reader hears the zone that the eye reads as "PDT".
+- The Field's hint and error describe both inputs, and its invalid state reaches both.
+- Keep `showTimeZone` on. A time without its zone reads as two moments to readers in two offices.
+
+## Props
+
+<ArgTypes of={DateTimeField} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+[DatePicker](?path=/docs/components-datepicker--docs) · [TimeField](?path=/docs/components-timefield--docs) · [DateTime](?path=/docs/components-datetime--docs) · [Field](?path=/docs/components-field--docs)
+
+## Don't
+
+<Canvas of={Stories.Dont} />

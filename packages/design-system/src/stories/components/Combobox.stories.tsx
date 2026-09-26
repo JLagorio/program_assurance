@@ -1,6 +1,7 @@
 import {
   FieldLabel,
   FieldDescription,
+  FieldError,
   InputGroupAddon,
   ComboboxClear,
   ComboboxTrigger,
@@ -651,5 +652,63 @@ export const AsyncResults: Story = {
     await expect(input).toHaveValue("Vue");
     await expect(input).toHaveFocus();
     await expect(input).toHaveAttribute("aria-expanded", "false");
+  },
+};
+
+const boundPeople = [
+  { value: "dana", label: "Dana Whitlock" },
+  { value: "priya", label: "Priya Natarajan" },
+];
+
+/**
+ * In a Field the input needs no ids: the label names it, the hint and the error describe it, and
+ * the Field's `invalid`, `required` and `disabled` reach it.
+ */
+export const BoundInField: Story = {
+  name: "Bound in a Field",
+  render: () => (
+    <Stack space="space.200" className="w-layout-list max-w-full">
+      <Field invalid required>
+        <FieldLabel>Assessor</FieldLabel>
+        <Combobox items={boundPeople}>
+          <ComboboxInput placeholder="Choose a person" />
+          <ComboboxContent>
+            <ComboboxEmpty>No matches.</ComboboxEmpty>
+            <ComboboxList>
+              {(item: (typeof boundPeople)[number]) => (
+                <ComboboxItem key={item.value} value={item}>
+                  {item.label}
+                </ComboboxItem>
+              )}
+            </ComboboxList>
+          </ComboboxContent>
+        </Combobox>
+        <FieldDescription>Someone outside the program team.</FieldDescription>
+        <FieldError>Choose an assessor.</FieldError>
+      </Field>
+      <Field disabled>
+        <FieldLabel>Owner</FieldLabel>
+        <Combobox items={boundPeople} defaultValue={boundPeople[0]}>
+          <ComboboxInput />
+        </Combobox>
+      </Field>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const assessor = canvas.getByRole("combobox", { name: "Assessor" });
+    await expect(assessor).toHaveAttribute("aria-invalid", "true");
+    await expect(assessor).toHaveAttribute("aria-required", "true");
+    await expect(assessor).toHaveAccessibleDescription(
+      "Someone outside the program team. Choose an assessor.",
+    );
+    await expect(canvas.getByRole("combobox", { name: "Owner" })).toBeDisabled();
+    await userEvent.type(assessor, "Pri");
+    await userEvent.click(
+      await within(canvasElement.ownerDocument.body).findByRole("option", {
+        name: "Priya Natarajan",
+      }),
+    );
+    await expect(assessor).toHaveValue("Priya Natarajan");
   },
 };

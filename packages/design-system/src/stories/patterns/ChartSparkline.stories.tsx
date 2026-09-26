@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import { expect } from "storybook/test";
+
 import { Chart } from "../..";
 import { Stat, Table } from "../../components";
 import { Box, Inline, Stack, Text } from "../../primitives";
@@ -52,7 +54,7 @@ export const SparklineMatrix: Story = {
 /** Sparklines in tiles: the number carries the value, the line the trend, and a reference says what the limit is. */
 export const InTiles: Story = {
   render: () => (
-    <Box style={{ width: 720 }}>
+    <Box style={{ maxWidth: 720 }}>
       <Stat.Grid cols={3}>
         <Stat.Tile
           label="Open findings"
@@ -98,7 +100,7 @@ export const InTiles: Story = {
 /** A sparkline per row: the trend column of a table, beside the number it belongs to. Unnamed, so a screen reader hears the number once. */
 export const InRows: Story = {
   render: () => (
-    <Box style={{ width: 480 }}>
+    <Box style={{ maxWidth: 480 }}>
       <Table label="Findings by family">
         <thead>
           <tr>
@@ -136,6 +138,54 @@ export const InRows: Story = {
       </Table>
     </Box>
   ),
+};
+
+/** `width` is the most a sparkline takes: a 160 by 40 sparkline in a 120px cell narrows to the cell and keeps its height, and beside its number in a row of the same width it takes what the number leaves. */
+export const Narrow: Story = {
+  render: () => (
+    <Stack space="space.300">
+      <Box data-testid="cell" style={{ maxWidth: 120 }}>
+        <Chart.Sparkline
+          data={byMonth}
+          y="open"
+          tone="brand"
+          width={160}
+          height={40}
+          endDot
+          label="Open findings, nine months"
+        />
+      </Box>
+      <Box data-testid="row" style={{ maxWidth: 120 }}>
+        <Inline space="space.100" alignBlock="center">
+          <Text size="large" weight="semibold">
+            12
+          </Text>
+          <Chart.Sparkline
+            data={byMonth}
+            y="open"
+            tone="brand"
+            width={160}
+            height={40}
+            endDot
+            label="Open findings beside the number"
+          />
+        </Inline>
+      </Box>
+    </Stack>
+  ),
+  play: async ({ canvas }) => {
+    for (const [cellId, name] of [
+      ["cell", "Open findings, nine months"],
+      ["row", "Open findings beside the number"],
+    ] as const) {
+      const cell = canvas.getByTestId(cellId).getBoundingClientRect();
+      const box = canvas.getByRole("group", { name }).getBoundingClientRect();
+      await expect(box.width).toBeLessThan(160);
+      await expect(box.right).toBeLessThanOrEqual(cell.right + 0.5);
+      await expect(box.height).toBe(40);
+    }
+    await expect(canvas.getByText("12")).toBeVisible();
+  },
 };
 
 /** The mistakes the page is written to prevent, each beside the right way. */

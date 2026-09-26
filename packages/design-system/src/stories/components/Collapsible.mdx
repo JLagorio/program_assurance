@@ -1,15 +1,47 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleHeader,
+  CollapsibleTrigger,
+} from "../../components";
 import * as Stories from "./Collapsible.stories";
 
 <Meta of={Stories} />
 
 # Collapsible
 
-Based on [shadcn’s Base UI source](https://ui.shadcn.com/docs/components/base/collapsible) and [Base UI](https://base-ui.com/react/components/collapsible). Ledger retains its tokens and application layouts.
+One independent disclosure: content the reader opens when they need it. Based on [shadcn’s Base UI source](https://ui.shadcn.com/docs/components/base/collapsible) and [Base UI](https://base-ui.com/react/components/collapsible). Ledger retains its tokens and application layouts.
 
 ## Anatomy
 
-An independent boolean disclosure using Collapsible, CollapsibleTrigger and CollapsibleContent. Use Accordion for a coordinated set. Labels, counts and icons are ordinary trigger children.
+`Collapsible` holds the state, `CollapsibleContent` the content that folds, and one of two triggers opens it:
+
+- **`CollapsibleHeader`**, the disclosure header: the trigger inside a heading, the title at the start and a chevron at the end that turns while the content is open, the row tint under the pointer and the focus ring on the keyboard. Use it whenever the disclosure has a title: a rail's group, a block of details, a folded list.
+- **`CollapsibleTrigger`**, the bare trigger with no heading and no chevron, for a trigger that is something else already (a Button through `render`, a row's own control).
+
+```tsx
+<Collapsible>
+  <CollapsibleHeader>Provenance</CollapsibleHeader>
+  <CollapsibleContent>…</CollapsibleContent>
+</Collapsible>
+```
+
+<Canvas of={Stories.Header} />
+
+Counts and marks are ordinary children of the header: `<CollapsibleHeader>Derivation <Count value={3} /></CollapsibleHeader>`; they are part of the button's name. An action for the block goes after the header in a flex row, where the header grows; never inside it, because a button cannot hold another.
+
+## Heading level
+
+The header's heading takes the contextual level from the nearest [HeadingLevelProvider](?path=/docs/primitives-heading--docs), a titled Section or a panel's body, and is an h3 when nothing sets one, as Accordion's is. Wrap it in a HeadingLevelProvider for another level: `level={2}` for a page's rail, whose groups sit under the h1. The content under the header is not raised a level; a heading inside it goes one below through a HeadingLevelProvider.
+
+<Canvas of={Stories.HeaderLevels} />
+
+## When to use it
+
+- **CollapsibleHeader** for a titled block the reader may not need: provenance, counts, derivation, reference notes. On a page, a collapsible [Section](?path=/docs/layout-section--docs) (`collapsible`) is the same header with the Section's count, description and action; in a rail of facts, [Inspector.Group](?path=/docs/patterns-inspector--docs).
+- **Not** a subtle Button with a chevron as the trigger: it sits outside the outline and its chevron does not turn. **Not** a native `<details>`: its marker and motion are the browser's.
+- **Not** for a coordinated set where opening one closes another: that is an [Accordion](?path=/docs/components-accordion--docs). **Not** for a row that discloses more of itself: Item's `isCollapsible` and Table's disclosure column own their chevrons.
 
 ## Variants
 
@@ -21,20 +53,31 @@ An independent boolean disclosure using Collapsible, CollapsibleTrigger and Coll
 
 ## Accessibility
 
-Base UI owns expanded state, trigger/panel association, disabled behavior and keyboard activation. Retained closed panels stay hidden and unfocusable. hiddenUntilFound lets supported browser find-in-page reveal closed content. Nested disclosures keep independent state.
+Base UI owns expanded state, trigger/panel association, disabled behavior and keyboard activation: Tab reaches the trigger, Enter and Space toggle it, and focus stays on it. CollapsibleHeader's trigger is a button inside a heading, so the block is in the heading outline and its state is announced ("Provenance, collapsed, button"); the chevron is decoration, turned by the same state rather than by colour. Under reduced motion the chevron turns without moving and the content opens without the fold. Retained closed panels stay hidden and unfocusable. `hiddenUntilFound` lets supported browser find-in-page reveal closed content. Nested disclosures keep independent state.
 
 ## Props
 
-The three parts expose native Base UI props, refs, render, state classes/styles and cancellable onOpenChange. Content uses the measured --collapsible-panel-height for Ledger motion and respects reduced motion.
+The parts expose native Base UI props, refs, `render`, state classes and styles, and a cancellable `onOpenChange`. Content uses the measured `--collapsible-panel-height` for Ledger motion and respects reduced motion. It clips only while it folds: settled open, its overflow is visible, so the focus ring of a link or a button at its edge shows whole. CollapsibleHeader passes its props, its ref and `render` to the trigger; its children are the title.
+
+<ArgTypes of={Collapsible} />
+<ArgTypes of={CollapsibleHeader} />
+<ArgTypes of={CollapsibleTrigger} />
+<ArgTypes of={CollapsibleContent} />
+
+### State selectors
+
+The Root carries `data-open` and `data-closed`; the trigger carries `data-panel-open` while its content is open. Style a trigger's own chevron from the trigger (`group-data-panel-open/…`), not from `data-open`, which the trigger never has, and never from Radix's `data-state`.
 
 ### Migration and API
 
 - Replace Collapsible.Trigger/Content with the flat exports. Replace asChild with render and forceMount with keepMounted.
-- Use data-open/data-closed instead of Radix data-state selectors. Item, Section, Stepper, Inspector and DataTable metrics use the same Base UI disclosure behavior.
+- Use data-open/data-closed on the Root and data-panel-open on the trigger instead of Radix data-state selectors. Item, Section, Stepper, Inspector and DataTable metrics use the same Base UI disclosure behavior.
+- A Details block built from a subtle Button and a ChevronDown moves to CollapsibleHeader, or to a collapsible Section on a page.
 - The unused LegacyAccordion/LegacyCollapsible adapters are removed; use the current flat Accordion and Collapsible parts.
 
 ## Related
 
 - [Accordion](?path=/docs/components-accordion--docs)
 - [Section](?path=/docs/layout-section--docs)
+- [Inspector](?path=/docs/patterns-inspector--docs)
 - [Stepper](?path=/docs/components-stepper--docs)

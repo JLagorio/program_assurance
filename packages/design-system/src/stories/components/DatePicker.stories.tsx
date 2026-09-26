@@ -20,7 +20,9 @@ import {
   Input,
 } from "../../components";
 
+import { LedgerProvider } from "../../lib/locale";
 import { Inline, Stack } from "../../primitives";
+import { interact } from "../_lib/interact";
 import { Matrix as Grid } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
 
@@ -53,7 +55,7 @@ export const DatePickerMatrix: Story = {
           const fieldError1 = state === "invalid" ? "Required." : undefined;
           const fieldHint1 = state === "invalid" ? undefined : "When the milestone is due.";
           return (
-            <div style={{ width: 220 }}>
+            <div style={{ width: 220, maxWidth: "100%" }}>
               {col === "bare" ? (
                 <DatePicker
                   aria-label="Scheduled completion"
@@ -111,7 +113,7 @@ export const Open: Story = {
   render: function FieldExample() {
     const fieldId = useId();
     return (
-      <div style={{ width: 220, height: 420 }}>
+      <div style={{ maxWidth: 220, height: 420 }}>
         <Field>
           <FieldLabel
             id={`${fieldId}-scheduled-completion-2-label`}
@@ -191,7 +193,7 @@ function FormDemo() {
                           name={field.name}
                           aria-required={name === "scheduled"}
                           value={field.state.value}
-                          onChange={field.handleChange}
+                          onValueChange={field.handleChange}
                           onBlur={field.handleBlur}
                           aria-invalid={invalid}
                           aria-describedby={`${id}-message`}
@@ -246,24 +248,27 @@ export const InField: Story = {
     await userEvent.click(opener);
     const dialog = await screen.findByRole("dialog", { name: "Milestone dates" });
     await userEvent.click(within(dialog).getByRole("button", { name: "Save milestone" }));
-    await expect(within(dialog).getByRole("alert")).toHaveTextContent("Required.");
+    // FieldError is not a live region: the message describes the control that focus moves to.
+    await expect(within(dialog).getByText("Required.")).toBeVisible();
 
     const target = within(dialog).getByRole("button", { name: "Target date" });
     await userEvent.click(target);
-    const calendar = await screen.findByRole("dialog", { name: "Choose a date" });
+    // The month is named after its field, and the trigger is described by its day.
+    const calendar = await screen.findByRole("dialog", { name: "Target date" });
     await waitFor(() => expect(calendar.contains(calendar.ownerDocument.activeElement)).toBe(true));
     await expectPointerTarget(within(calendar).getByRole("button", { name: "Today" }));
     await userEvent.keyboard("{Escape}");
-    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Choose a date" })).toBeNull());
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Target date" })).toBeNull());
     await expect(dialog).toBeVisible();
     await waitFor(() => expect(target).toHaveFocus());
+    await expect(target).toHaveAccessibleDescription(/Oct 2, 2026/);
 
     await userEvent.click(target);
-    const reopened = await screen.findByRole("dialog", { name: "Choose a date" });
+    const reopened = await screen.findByRole("dialog", { name: "Target date" });
     const clear = within(reopened).getByRole("button", { name: "Clear" });
     await expectPointerTarget(clear);
     await userEvent.click(clear);
-    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Choose a date" })).toBeNull());
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Target date" })).toBeNull());
     await expect(target).toHaveTextContent("Choose a date");
     await expect(dialog).toBeVisible();
     await waitFor(() => expect(target).toHaveFocus());
@@ -283,7 +288,7 @@ export const Dont: Story = {
       <Stack space="space.400">
         <Pair
           do={
-            <div style={{ width: 220 }}>
+            <div style={{ maxWidth: 220 }}>
               <Field>
                 <FieldLabel
                   id={`${fieldId}-scheduled-completion-5-label`}
@@ -304,7 +309,7 @@ export const Dont: Story = {
           }
           doText="The placeholder says what to do; the hint says what the date means."
           dont={
-            <div style={{ width: 220 }}>
+            <div style={{ maxWidth: 220 }}>
               <Field>
                 <FieldLabel
                   id={`${fieldId}-scheduled-completion-6-label`}
@@ -324,7 +329,7 @@ export const Dont: Story = {
         />
         <Pair
           do={
-            <div style={{ width: 220 }}>
+            <div style={{ maxWidth: 220 }}>
               <Field>
                 <FieldLabel
                   id={`${fieldId}-authorized-7-label`}
@@ -346,7 +351,7 @@ export const Dont: Story = {
           }
           doText="An approximate or remembered date is typed, with the format in the hint."
           dont={
-            <div style={{ width: 220 }}>
+            <div style={{ maxWidth: 220 }}>
               <Field>
                 <FieldLabel
                   id={`${fieldId}-authorized-8-label`}
@@ -369,7 +374,7 @@ export const Dont: Story = {
         />
         <Pair
           do={
-            <div style={{ width: 220 }}>
+            <div style={{ maxWidth: 220 }}>
               <Field>
                 <FieldLabel
                   id={`${fieldId}-scheduled-completion-9-label`}
@@ -387,7 +392,7 @@ export const Dont: Story = {
           }
           doText="One day in a form is a field: the month opens when asked."
           dont={
-            <div style={{ width: 300 }}>
+            <div style={{ maxWidth: 300 }}>
               <FieldSet aria-labelledby={`${fieldId}-scheduled-completion-10-label`}>
                 <FieldLegend id={`${fieldId}-scheduled-completion-10-label`} variant="label">
                   {"Scheduled completion"}
@@ -445,7 +450,7 @@ function NativeFormDemo() {
             aria-labelledby={`${fieldId}-controlled-date-12-label`}
             name="controlled"
             value={controlled}
-            onChange={setControlled}
+            onValueChange={setControlled}
           />
         </Field>
         <Button type="reset">Reset dates</Button>
@@ -530,7 +535,7 @@ function FocusIntegrationDemo() {
                 aria-required
                 data-testid="date-trigger"
                 value={field.state.value}
-                onChange={field.handleChange}
+                onValueChange={field.handleChange}
                 onBlur={field.handleBlur}
                 aria-invalid={invalid}
                 aria-describedby={invalid ? `${fieldId}-error` : undefined}
@@ -563,5 +568,218 @@ export const FocusIntegration: Story = {
     await expect(canvas.getByLabelText("Date touched")).toHaveTextContent("true");
     await userEvent.click(canvas.getByRole("button", { name: "Focus date ref" }));
     await expect(trigger).toHaveFocus();
+  },
+};
+
+const weekends = (iso: string) =>
+  [0, 6].includes(new Date(`${iso}T12:00:00Z`).getUTCDay()) ? "Weekends are closed." : false;
+
+/** Opens a picker's month from its trigger and waits for the grid. */
+const openMonth = async (trigger: HTMLElement, name: string) => {
+  const screen = within(trigger.ownerDocument.body);
+  await userEvent.click(trigger);
+  const month = await screen.findByRole("dialog", { name });
+  await waitFor(() => expect(month.querySelector('[role="grid"]')).not.toBeNull());
+  return month;
+};
+
+/** `min`, `max` and `isDateUnavailable` disable days, each with its reason in the day's name; the rule is in the hint too. The month cannot page before the earliest day. */
+export const MinMaxAndReasons: Story = {
+  render: () => (
+    <div style={{ maxWidth: 260, minHeight: 420 }}>
+      <Field>
+        <FieldLabel>Review meeting</FieldLabel>
+        <DatePicker
+          name="review"
+          defaultValue="2026-09-18"
+          min="2026-09-07"
+          max="2026-10-30"
+          isDateUnavailable={weekends}
+        />
+        <FieldDescription>A weekday between Sep 7 and Oct 30, 2026.</FieldDescription>
+      </Field>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const trigger = canvas.getByRole("button", { name: "Review meeting" });
+    await expect(trigger).toHaveAccessibleDescription(/Sep 18, 2026/);
+    await expect(trigger).toHaveAccessibleDescription(/A weekday between/);
+    const month = within(await openMonth(trigger, "Review meeting"));
+    const saturday = month.getByRole("button", { name: /September 19, 2026/ });
+    await expect(saturday).toBeDisabled();
+    await expect(saturday).toHaveAccessibleName(/Not available\. Weekends are closed\./);
+    const early = month.getByRole("button", { name: /September 4, 2026/ });
+    await expect(early).toBeDisabled();
+    await expect(early).toHaveAccessibleName(/The earliest date is Sep 7, 2026\./);
+    await expect(month.getByRole("button", { name: "Previous month" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    await userEvent.click(month.getByRole("button", { name: /September 22, 2026/ }));
+    await waitFor(() => expect(trigger).toHaveFocus());
+    await expect(trigger).toHaveTextContent("Sep 22, 2026");
+  },
+};
+
+/** When today may not be chosen, Today stays in the tab order, disabled, and says why. */
+export const TodayUnavailable: Story = {
+  render: () => (
+    <div style={{ maxWidth: 260, minHeight: 420 }}>
+      <Field>
+        <FieldLabel>Closing date</FieldLabel>
+        <DatePicker defaultValue="2025-12-19" max="2025-12-31" />
+        <FieldDescription>A day in the 2025 reporting year.</FieldDescription>
+      </Field>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const trigger = within(canvasElement).getByRole("button", { name: "Closing date" });
+    const month = within(await openMonth(trigger, "Closing date"));
+    const today = month.getByRole("button", { name: "Today" });
+    await expect(today).toHaveAttribute("aria-disabled", "true");
+    await expect(today).not.toHaveAttribute("disabled");
+    await expect(today).toHaveAccessibleDescription("The latest date is Dec 31, 2025.");
+    await expect(month.getByRole("button", { name: "Clear" })).toBeEnabled();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(trigger).toHaveFocus());
+    await expect(trigger).toHaveTextContent("Dec 19, 2025");
+  },
+};
+
+/** `calendarProps` reaches the month: the year dropdown for a day a year out, and the months it may reach. */
+export const YearDropdown: Story = {
+  render: () => (
+    <div style={{ maxWidth: 260, minHeight: 440 }}>
+      <Field>
+        <FieldLabel>Planned completion</FieldLabel>
+        <DatePicker
+          defaultValue="2026-09-18"
+          calendarProps={{
+            captionLayout: "dropdown",
+            startMonth: new Date(2026, 0, 1),
+            endMonth: new Date(2028, 11, 1),
+          }}
+        />
+      </Field>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const trigger = within(canvasElement).getByRole("button", { name: "Planned completion" });
+    const month = within(await openMonth(trigger, "Planned completion"));
+    await userEvent.selectOptions(month.getByRole("combobox", { name: "Year" }), "2027");
+    await userEvent.click(month.getByRole("button", { name: /September 17, 2027/ }));
+    await expect(trigger).toHaveTextContent("Sep 17, 2027");
+    await waitFor(() => expect(trigger).toHaveFocus());
+    await waitFor(() =>
+      expect(within(canvasElement.ownerDocument.body).queryByRole("dialog")).toBeNull(),
+    );
+  },
+};
+
+function TypedEntryDemo() {
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <form aria-label="Typed date" style={{ maxWidth: 280, minHeight: 420 }}>
+      <Field>
+        <FieldLabel>Due date</FieldLabel>
+        <DatePicker
+          entry="type"
+          name="due"
+          defaultValue="2026-09-18"
+          min="2026-09-01"
+          onEntryError={setError}
+        />
+        <FieldDescription>Type a date, or choose one from the month.</FieldDescription>
+      </Field>
+      <output aria-label="Entry error">{error ?? "none"}</output>
+    </form>
+  );
+}
+
+/**
+ * `entry="type"`: the day is typed in the locale's words or numbers and read on Tab or Enter.
+ * Text that is not a day keeps what the reader typed, reports no day and says what fixes it under
+ * the field; Escape puts back the last day. The button opens the month, and so does Alt+Down.
+ */
+export const TypedEntry: Story = {
+  render: () => <TypedEntryDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const form = canvas.getByRole("form", { name: "Typed date" }) as HTMLFormElement;
+    const submitted = () => new FormData(form).get("due");
+    const input = canvas.getByRole("textbox", { name: "Due date" });
+    await expect(input).toHaveValue("Sep 18, 2026");
+    await expect(submitted()).toBe("2026-09-18");
+
+    await userEvent.clear(input);
+    await userEvent.type(input, "10/2/2026");
+    await userEvent.tab();
+    await expect(input).toHaveValue("Oct 2, 2026");
+    await expect(submitted()).toBe("2026-10-02");
+
+    await userEvent.clear(input);
+    await userEvent.type(input, "Sep 31");
+    await userEvent.tab();
+    await expect(input).toHaveValue("Sep 31");
+    await expect(input).toHaveAttribute("aria-invalid", "true");
+    await expect(input).toHaveAccessibleDescription(/Enter a date such as/);
+    const message = canvasElement.querySelector('[data-slot="field-error"]');
+    await expect(message).toHaveTextContent(/Enter a date such as/);
+    await expect(message).toBeVisible();
+    await expect(canvas.getByLabelText("Entry error")).toHaveTextContent(/Enter a date such as/);
+    await expect(submitted()).toBe("");
+
+    await userEvent.clear(input);
+    await userEvent.type(input, "Aug 3, 2026{Enter}");
+    await expect(canvasElement.querySelector('[data-slot="field-error"]')).toHaveTextContent(
+      "Enter Sep 1, 2026 or later.",
+    );
+
+    await userEvent.clear(input);
+    await userEvent.type(input, "2026-09-25{Enter}");
+    await expect(input).toHaveValue("Sep 25, 2026");
+    await expect(input).not.toHaveAttribute("aria-invalid");
+    await expect(canvas.getByLabelText("Entry error")).toHaveTextContent("none");
+    await userEvent.type(input, " oops");
+    await userEvent.keyboard("{Escape}");
+    await expect(input).toHaveValue("Sep 25, 2026");
+
+    // Alt+Down opens the month from the text; the popup then takes focus after the key's own act
+    // scope, so the key is driven in one.
+    await interact(() =>
+      input.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "ArrowDown", altKey: true, bubbles: true }),
+      ),
+    );
+    const month = within(
+      await within(canvasElement.ownerDocument.body).findByRole("dialog", { name: "Due date" }),
+    );
+    await userEvent.click(await month.findByRole("button", { name: /September 28, 2026/ }));
+    await waitFor(() => expect(input).toHaveFocus());
+    await expect(input).toHaveValue("Sep 28, 2026");
+    await expect(submitted()).toBe("2026-09-28");
+    await expect(canvas.getByRole("button", { name: "Choose a date Due date" })).toBeVisible();
+  },
+};
+
+/** The same field under `LedgerProvider locale="de-DE"`: typed in German order and words, shown as "18. Sept. 2026". */
+export const TypedInGerman: Story = {
+  render: () => (
+    <LedgerProvider locale="de-DE">
+      <div style={{ maxWidth: 280 }}>
+        <Field>
+          <FieldLabel>Fällig am</FieldLabel>
+          <DatePicker entry="type" defaultValue="2026-09-18" />
+        </Field>
+      </div>
+    </LedgerProvider>
+  ),
+  play: async ({ canvasElement }) => {
+    const input = within(canvasElement).getByRole("textbox", { name: "Fällig am" });
+    await expect(input).toHaveValue("18. Sept. 2026");
+    await userEvent.clear(input);
+    await userEvent.type(input, "2.10.2026{Enter}");
+    await expect(input).toHaveValue("2. Okt. 2026");
   },
 };

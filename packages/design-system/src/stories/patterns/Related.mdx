@@ -19,7 +19,7 @@ The header and the footer are the card's; the rows are [Item](?path=/docs/compon
 
 | Part              | What it is                                                                                                                                                                                              |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Title             | The kind of record, a noun, an h3 in `font.body` semibold: "Linked findings", "Systems", "Team".                                                                                                        |
+| Title             | The kind of record, a noun, a heading in `font.body` semibold at the contextual level (an h3 when nothing sets one): "Linked findings", "Systems", "Team".                                               |
 | Count             | After the title: how many are linked.                                                                                                                                                                   |
 | Action            | At the end of the header's line: one small button, "Add" or "Link" with a plus, or a TextLink. The way to add one; it stays when the card is empty.                                                     |
 | Row (`list`)      | An Item, flush: a mark or an id, the name as the link, and the state or the date at the end. The hairlines and the hover fill span the card; the text sits at its inset.                                |
@@ -100,13 +100,17 @@ The size is the list's; every row in one card is the same height. A card in the 
 
 ## Accessibility
 
-- **The heading is an `h3`** under the rail's or the section's h2, and the rows or the cards are a list named by it: a screen reader hears "Systems, list, 3 items".
-- **The name is the link**, in a row and in a card, named by the record's name alone; the id, the status, the meta and the properties are read as the text beside it. A row's link is stretched over the row; a card's is the name, because the card has actions of its own.
+- **The heading takes the contextual level**: an h3 when nothing sets one, one below a titled Section, an h2 in a rail that starts its outline at 2 (`HeadingLevelProvider level={2}`). The rows or the cards are a list named by it: a screen reader hears "Systems, list, 3 items".
+- **The name is the link**, in a row and in a card, named by the record's name alone; the id, the status, the meta and the properties are read as the text beside it. A row's link is stretched over the row; a card's is the name, because the card has actions of its own, and where any pointer is coarse the name takes a hit area at least 24px tall.
 - **The actions are always in the tab order.** They are hidden by opacity, not removed, and they show while any of them has focus; a keyboard reader reaches "Open Ground segment in a new tab" and "More for Ground segment" after the name. On a touch screen they are always shown.
 - **Each action is a labelled icon button** that names the record: "Unlink" alone would be six identical buttons on a page of cards.
 - **The count is text**, read after the title; the footer's link says how many.
 - **The empty state is text, then the action**: the icon is hidden, the title and the line are read first, the button is a stop after them.
 - **The hover shadow is decoration.** Nothing is said by it.
+
+<Canvas of={Stories.HeadingLevelAndSurface} />
+
+A Related.Card paints the raised surface and records it as the current one, as Card does, so a child that matches its surface with `bg-surface-current` (a sticky header, a fade at an edge) paints the card's colour rather than the page's.
 
 ## Props
 

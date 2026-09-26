@@ -43,7 +43,7 @@ function RailDemo() {
   const [owner, setOwner] = useState("");
   const [status, setStatus] = useState<Status>("In review");
   return (
-    <Stack space="space.050" className="w-layout-list">
+    <Stack space="space.050" className="w-layout-list max-w-full">
       <KeyValue label="Name">
         <Editable.Text
           label="Name"
@@ -114,6 +114,25 @@ export const Rail: Story = {
     await userEvent.keyboard("{Enter}");
     await expect(page.queryByRole("listbox")).toBeNull();
     await waitFor(() => expect(status).not.toHaveAttribute("aria-disabled", "true"));
+
+    // A KeyValue truncates its value across only, so the value's touch area is not cut to the
+    // row: where a pointer is coarse a finger reaches the name anywhere in a band at least 24px
+    // tall centred on its 22px line, above and below the line as well as on it.
+    const name = canvas.getByRole("button", { name: /Name: Segregation/ });
+    const value = name.closest("dd")!;
+    await expect(getComputedStyle(value).overflowX).toBe("clip");
+    await expect(getComputedStyle(value).overflowY).toBe("visible");
+    await expect(name).toHaveClass("touch-target-block-after");
+    const box = name.getBoundingClientRect();
+    const at = (dy: number) =>
+      canvasElement.ownerDocument.elementFromPoint(
+        box.left + box.width / 2,
+        box.top + box.height / 2 + dy,
+      );
+    if (matchMedia("(any-pointer: coarse)").matches) {
+      await expect(name.contains(at(-11.5))).toBe(true);
+      await expect(name.contains(at(11.5))).toBe(true);
+    } else await expect(getComputedStyle(name, "::after").content).toBe("none");
   },
 };
 const roster = [
@@ -136,7 +155,7 @@ function RosterDemo() {
   const [owner, setOwner] = useState<Member>("Marcus Ryde");
   const [reviewer, setReviewer] = useState<Member>("Sarah Chen");
   return (
-    <Stack space="space.050" className="w-layout-list">
+    <Stack space="space.050" className="w-layout-list max-w-full">
       <KeyValue label="Owner">
         <Editable.Select<Member>
           label="Owner"
@@ -286,12 +305,35 @@ function TableDemo() {
 }
 
 /** In a table's cells, under the column's heading. A DataTable column with `editable` draws these; here they are placed by hand. */
-export const InTable: Story = { render: () => <TableDemo /> };
+export const InTable: Story = {
+  render: () => <TableDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const doc = canvasElement.ownerDocument.documentElement;
+    // Each value's save announcer is sr-only (absolutely positioned) inside its cell, so a table
+    // wider than a phone scrolls in its own frame and never widens the page.
+    await expect(doc.scrollWidth).toBeLessThanOrEqual(doc.clientWidth);
+    const value = canvas.getByRole("button", { name: /Next action: Confirm the review cadence/ });
+    value.scrollIntoView({ block: "center", inline: "center" });
+    const box = value.getBoundingClientRect();
+    const at = (dy: number) =>
+      canvasElement.ownerDocument.elementFromPoint(
+        box.left + box.width / 2,
+        box.top + box.height / 2 + dy,
+      );
+    // The value keeps its 22px line. Where a pointer is coarse, a finger reaches it anywhere in a
+    // band at least 24px tall centred on it (its ::after; ::before is the hover tint).
+    if (matchMedia("(any-pointer: coarse)").matches) {
+      await expect(value.contains(at(-11.5))).toBe(true);
+      await expect(value.contains(at(11.5))).toBe(true);
+    } else await expect(getComputedStyle(value, "::after").content).toBe("none");
+  },
+};
 
 function ValidationDemo() {
   const [acronym, setAcronym] = useState("ATLAS");
   return (
-    <Stack space="space.050" className="w-layout-list">
+    <Stack space="space.050" className="w-layout-list max-w-full">
       <KeyValue label="Acronym">
         <Editable.Text
           label="Acronym"
@@ -321,7 +363,7 @@ export const Validation: Story = { render: () => <ValidationDemo /> };
 function FailingDemo() {
   const [owner, setOwner] = useState("Dana Whitfield");
   return (
-    <Stack space="space.050" className="w-layout-list">
+    <Stack space="space.050" className="w-layout-list max-w-full">
       <KeyValue label="Owner">
         <Editable.Text
           label="Owner"
@@ -350,7 +392,7 @@ function States() {
   const [failing, setFailing] = useState("Saves never land");
   const [status, setStatus] = useState<Status>("In review");
   return (
-    <Stack space="space.050" className="w-layout-list">
+    <Stack space="space.050" className="w-layout-list max-w-full">
       <KeyValue label="Text">
         <Editable.Text label="Text" value={name} onChange={setName} save={() => wait(600)} />
       </KeyValue>
@@ -433,7 +475,7 @@ function Dashes() {
   return (
     <Pair
       do={
-        <Box className="w-layout-list">
+        <Box className="w-layout-list max-w-full">
           <KeyValue label="Owner">
             <Editable.Text
               label="Owner"
@@ -447,7 +489,7 @@ function Dashes() {
       }
       doText="Empty says what is missing, as a noun: Unassigned. Nothing said, the row shows the muted dash."
       dont={
-        <Box className="w-layout-list">
+        <Box className="w-layout-list max-w-full">
           <KeyValue label="Owner">
             <Editable.Text
               label="Owner"
@@ -470,7 +512,7 @@ function StatusAsText() {
   return (
     <Pair
       do={
-        <Box className="w-layout-list">
+        <Box className="w-layout-list max-w-full">
           <KeyValue label="Status">
             <Editable.Select
               label="Status"
@@ -489,7 +531,7 @@ function StatusAsText() {
       }
       doText="One of a fixed set is a Select: the options are the only values, drawn as the Badge the record shows."
       dont={
-        <Box className="w-layout-list">
+        <Box className="w-layout-list max-w-full">
           <KeyValue label="Status">
             <Editable.Text label="Status" value={b} onChange={setB} save={() => wait(300)} />
           </KeyValue>
@@ -508,7 +550,7 @@ function FormOfEditables() {
   return (
     <Pair
       do={
-        <Stack space="space.200" className="w-layout-list">
+        <Stack space="space.200" className="w-layout-list max-w-full">
           <Field>
             <FieldLabel id={`${fieldId}-title-1-label`} htmlFor={`${fieldId}-title-1`}>
               {"Title"}
@@ -539,7 +581,7 @@ function FormOfEditables() {
               placeholder="Who fixes it"
             />
           </Field>
-          <Inline space="space.100" alignInline="end">
+          <Inline space="space.100" rowSpace="space.100" alignInline="end" shouldWrap>
             <Button variant="subtle">Cancel</Button>
             <Button variant="primary">Create finding</Button>
           </Inline>
@@ -547,7 +589,7 @@ function FormOfEditables() {
       }
       doText="A record that does not exist yet is a form: Fields, a primary that creates it, and the check on submit."
       dont={
-        <Stack space="space.050" className="w-layout-list">
+        <Stack space="space.050" className="w-layout-list max-w-full">
           <KeyValue label="Title">
             <Editable.Text
               label="Title"
@@ -589,7 +631,7 @@ type PlaygroundArgs = Pick<EditableTextProps, "label" | "placeholder"> & { value
 function PlaygroundText({ label, placeholder, value: initial }: PlaygroundArgs) {
   const [value, setValue] = useState(initial);
   return (
-    <Box className="w-layout-list">
+    <Box className="w-layout-list max-w-full">
       <KeyValue label={label}>
         <Editable.Text
           label={label}

@@ -285,7 +285,7 @@ export const TimelineMatrix: Story = {
         ))}
       </Specimens>
       <Specimens title="Across: centred with the time above, for a line of releases; start-aligned with the time below, for stages with a body">
-        <Box style={{ width: 520 }}>
+        <Box className="w-full" style={{ maxWidth: 520 }}>
           <Timeline label="Releases" orientation="horizontal">
             <Timeline.Item
               tone="success"
@@ -319,7 +319,7 @@ export const TimelineMatrix: Story = {
             <Timeline.Item time="Sep 2025" title="v2.1" meta="Improvements" />
           </Timeline>
         </Box>
-        <Box style={{ width: 520 }}>
+        <Box className="w-full" style={{ maxWidth: 520 }}>
           <Timeline
             label="Approval"
             orientation="horizontal"

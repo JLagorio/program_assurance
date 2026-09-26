@@ -1,9 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Bold, Italic, Underline } from "lucide-react";
 import { createRef, useState } from "react";
-import { expect, userEvent, within } from "storybook/test";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 
-import { ToggleGroup, ToggleGroupItem } from "../../components";
+import {
+  Count,
+  Scroller,
+  ScrollerArrow,
+  ScrollerViewport,
+  ToggleGroup,
+  ToggleGroupItem,
+} from "../../components";
 import { LedgerProvider } from "../../lib/locale";
 import { Stack, Text } from "../../primitives";
 import { Matrix, Specimens } from "../_lib/matrix";
@@ -26,6 +33,14 @@ const meta = {
 } satisfies Meta<typeof ToggleGroup>;
 export default meta;
 type Story = StoryObj<typeof meta>;
+
+/** How many lines a group's items sit on. */
+const lines = (group: HTMLElement) =>
+  new Set(
+    within(group)
+      .getAllByRole("button")
+      .map((item) => Math.round(item.getBoundingClientRect().top)),
+  ).size;
 
 /** Variants, inherited sizes, default spacing and connected items. */
 export const ToggleGroupMatrix: Story = {
@@ -78,6 +93,9 @@ export const ToggleGroupMatrix: Story = {
         const group = canvas.getByRole("group", { name: `${variant} ${size} view` });
         await expect(group).toHaveAttribute("data-slot", "toggle-group");
         await expect(getComputedStyle(group).columnGap).toBe("8px");
+        // In a table cell the group keeps one line at every width; the Matrix scrolls instead.
+        await expect(getComputedStyle(group).flexWrap).toBe("nowrap");
+        await expect(lines(group)).toBe(1);
         const items = within(group);
         const table = items.getByRole("button", { name: "Table" });
         const board = items.getByRole("button", { name: "Board" });
@@ -94,6 +112,7 @@ export const ToggleGroupMatrix: Story = {
     }
     const connected = canvas.getByRole("group", { name: "Connected alignment" });
     await expect(getComputedStyle(connected).columnGap).toBe("0px");
+    await expect(getComputedStyle(connected).flexWrap).toBe("nowrap");
     const [first, middle, last] = within(connected).getAllByRole("button");
     await expect(first!.getBoundingClientRect().right).toBe(middle!.getBoundingClientRect().left);
     await expect(middle!.getBoundingClientRect().right).toBe(last!.getBoundingClientRect().left);
@@ -237,6 +256,104 @@ export const ViewsStory: Story = {
       await userEvent.keyboard(`{${key}}`);
       await expect(first).toHaveFocus();
     }
+  },
+};
+
+const severities = [
+  ["all", "All", 24],
+  ["high", "High", 6],
+  ["medium", "Medium", 11],
+  ["low", "Low", 7],
+] as const;
+
+function Severity({ label }: { label: string }) {
+  return (
+    <ToggleGroup aria-label={label} defaultValue={["high"]}>
+      {severities.map(([value, name, count]) => (
+        <ToggleGroupItem key={value} value={value}>
+          {name} <Count value={count} />
+        </ToggleGroupItem>
+      ))}
+    </ToggleGroup>
+  );
+}
+
+/** A spaced group in a row narrower than its items wraps them onto the next line, every choice in view and in reach. A joined group, a group in a table cell and a group in a horizontal Scroller (a saved-views strip) keep one line; the Scroller scrolls it, so a joined group that must fit a narrower row goes in one. */
+export const NarrowRow: Story = {
+  name: "Narrow row",
+  render: () => (
+    <Stack space="space.300">
+      <Specimens title="In a 240px row: wraps">
+        <div data-testid="wrapping-row" style={{ maxWidth: 240 }}>
+          <Severity label="Severity" />
+        </div>
+      </Specimens>
+      <Specimens title="In a horizontal Scroller: one line that scrolls">
+        <div style={{ maxWidth: 240, width: "100%" }}>
+          <Scroller orientation="horizontal">
+            <ScrollerViewport>
+              <Severity label="Severity strip" />
+            </ScrollerViewport>
+            <ScrollerArrow edge="start" />
+            <ScrollerArrow edge="end" />
+          </Scroller>
+        </div>
+      </Specimens>
+      <Specimens title="Joined, in a 120px row: one control, in a Scroller">
+        <div style={{ maxWidth: 120, width: "100%" }}>
+          <Scroller orientation="horizontal">
+            <ScrollerViewport>
+              <ToggleGroup
+                aria-label="Joined alignment"
+                variant="outline"
+                spacing={0}
+                defaultValue={["left"]}
+              >
+                <ToggleGroupItem value="left">Left</ToggleGroupItem>
+                <ToggleGroupItem value="center">Center</ToggleGroupItem>
+                <ToggleGroupItem value="right">Right</ToggleGroupItem>
+              </ToggleGroup>
+            </ScrollerViewport>
+            <ScrollerArrow edge="start" />
+            <ScrollerArrow edge="end" />
+          </Scroller>
+        </div>
+      </Specimens>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const row = canvas.getByTestId("wrapping-row").getBoundingClientRect();
+    const wrapping = canvas.getByRole("group", { name: "Severity" });
+    for (const item of within(wrapping).getAllByRole("button")) {
+      await expect(item.getBoundingClientRect().right).toBeLessThanOrEqual(row.right + 1);
+    }
+    await expect(lines(wrapping)).toBeGreaterThan(1);
+    const strip = canvas.getByRole("group", { name: "Severity strip" });
+    const items = within(strip).getAllByRole("button");
+    await expect(lines(strip)).toBe(1);
+    const viewport = strip.closest<HTMLElement>('[data-slot="scroller-viewport"]')!;
+    await expect(viewport.scrollWidth).toBeGreaterThan(viewport.clientWidth);
+    // The pressed choice is in view, and the last one is a scroll away.
+    const pressed = within(strip).getByRole("button", { name: /High/ });
+    await expect(pressed.getBoundingClientRect().right).toBeLessThanOrEqual(
+      viewport.getBoundingClientRect().right + 1,
+    );
+    items.at(-1)!.focus();
+    await waitFor(() =>
+      expect(items.at(-1)!.getBoundingClientRect().right).toBeLessThanOrEqual(
+        viewport.getBoundingClientRect().right + 1,
+      ),
+    );
+    // A joined group never wraps: its items stay edge to edge on one line, and the Scroller
+    // around it scrolls.
+    const joined = canvas.getByRole("group", { name: "Joined alignment" });
+    const [left, center, right] = within(joined).getAllByRole("button");
+    await expect(lines(joined)).toBe(1);
+    await expect(left!.getBoundingClientRect().right).toBe(center!.getBoundingClientRect().left);
+    await expect(center!.getBoundingClientRect().right).toBe(right!.getBoundingClientRect().left);
+    const joinedViewport = joined.closest<HTMLElement>('[data-slot="scroller-viewport"]')!;
+    await expect(joinedViewport.scrollWidth).toBeGreaterThan(joinedViewport.clientWidth);
   },
 };
 

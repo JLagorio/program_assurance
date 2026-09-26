@@ -284,10 +284,65 @@ export const PickerSheetStory: Story = {
   },
 };
 
-/** The sheet's footer, drawn on its own for a pair. */
+/**
+ * Whether a focused control is inside the popup's visible box and clear of its footer. A region
+ * taller than that box (the table's own frame) only has to show part of itself.
+ */
+const inView = (element: HTMLElement, popup: HTMLElement, footer: HTMLElement) => {
+  const box = element.getBoundingClientRect();
+  const frame = popup.getBoundingClientRect();
+  const floor = footer.contains(element) ? frame.bottom : footer.getBoundingClientRect().top;
+  if (box.height > floor - frame.top) return box.top < floor && box.bottom > frame.top;
+  return box.top >= frame.top - 1 && box.bottom <= floor + 1;
+};
+
+/**
+ * At 400% zoom, 320 by 256 CSS px. Under 30rem tall the sheet scrolls as one: the header and the
+ * search scroll away with the rows and the footer stays, so the list is not squeezed to a row, and
+ * every control that takes focus can be seen.
+ */
+export const ShortWindow: Story = {
+  render: () => <PickerStates />,
+  parameters: {
+    viewport: {
+      options: {
+        ledgerShort: {
+          name: "Short window (320 by 256 CSS px)",
+          styles: { width: "320px", height: "256px" },
+        },
+      },
+    },
+  },
+  globals: { viewport: { value: "ledgerShort", isRotated: false } },
+  play: async ({ canvasElement }) => {
+    await expect(window.innerHeight).toBeLessThanOrEqual(480);
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Allocate requirements" }));
+    const popup = await page.findByRole("dialog", { name: "Allocate requirements" });
+    const region = popup.querySelector<HTMLElement>('[data-slot="sheet-body"]')!;
+    await expect(getComputedStyle(region).overflowY).toBe("visible");
+    await expect(popup.scrollHeight).toBeGreaterThan(popup.clientHeight);
+    const footer = popup.querySelector<HTMLElement>('[data-slot="sheet-footer"]')!;
+    for (let step = 0; step < 8; step++) {
+      await userEvent.tab();
+      const focused = canvasElement.ownerDocument.activeElement as HTMLElement;
+      await expect(popup).toContainElement(focused);
+      await waitFor(() => expect(inView(focused, popup, footer)).toBe(true));
+    }
+    await expect(footer.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight + 1);
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
+  },
+};
+
+/**
+ * The sheet's footer, drawn on its own for a pair. Where the row is too narrow, the count moves
+ * above the buttons and the buttons wrap, each label on one line.
+ */
 function Footer({ children }: { children: ReactNode }) {
   return (
-    <div className="flex w-full items-center justify-between gap-150 rounded-medium border border-default bg-surface-sunken px-200 py-100">
+    <div className="flex w-full flex-wrap items-center justify-between gap-x-150 gap-y-100 rounded-medium border border-default bg-surface-sunken px-200 py-100">
       {children}
     </div>
   );
@@ -306,7 +361,7 @@ export const Dont: Story = {
                 Clear
               </Button>
             </span>
-            <Inline space="space.100">
+            <Inline space="space.100" rowSpace="space.100" shouldWrap>
               <Button>Cancel</Button>
               <Button variant="primary">Allocate 12 to Flight computer</Button>
             </Inline>
@@ -316,7 +371,7 @@ export const Dont: Story = {
         dont={
           <Footer>
             <span />
-            <Inline space="space.100">
+            <Inline space="space.100" rowSpace="space.100" shouldWrap>
               <Button>Cancel</Button>
               <Button variant="primary">OK</Button>
             </Inline>
@@ -328,7 +383,7 @@ export const Dont: Story = {
         do={
           <Footer>
             <span className="font-body-small text-subtle tabular-nums">28 to choose from</span>
-            <Inline space="space.100">
+            <Inline space="space.100" rowSpace="space.100" shouldWrap>
               <Button>Cancel</Button>
               <Button variant="primary" disabled>
                 Allocate to Flight computer
@@ -340,7 +395,7 @@ export const Dont: Story = {
         dont={
           <Footer>
             <span className="font-body-small text-subtle tabular-nums">0 chosen</span>
-            <Inline space="space.100">
+            <Inline space="space.100" rowSpace="space.100" shouldWrap>
               <Button>Cancel</Button>
               <Button variant="primary">Allocate to Flight computer</Button>
             </Inline>

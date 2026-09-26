@@ -1,0 +1,61 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { CopyButton } from "../../components";
+import * as Stories from "./CopyButton.stories";
+
+<Meta of={Stories} />
+
+# CopyButton
+
+Puts a value on the clipboard: an identifier the reader will paste into a ticket, a command, a link, a configuration. It is a [Button](?path=/docs/components-button--docs), or with `label` an [IconButton](?path=/docs/components-iconbutton--docs), that copies `text` and says whether it worked. [CodeBlock](?path=/docs/components-codeblock--docs) uses it for its Copy.
+
+Use it where the reader takes a value away. Do not use it for a value they only read, and do not use it to share a record: a link to the record is a [TextLink](?path=/docs/components-textlink--docs) the reader can copy with the browser.
+
+<Canvas of={Stories.Labelled} />
+
+## Two forms
+
+| Form       | How                                     | Where                                                                   |
+| ---------- | --------------------------------------- | ----------------------------------------------------------------------- |
+| Labelled   | Children, “Copy” (the `copy` message) by default | Beside a command or a block, where there is room for a word.            |
+| Icon-only  | `label`, such as “Copy ID”              | Beside an identifier in a line, a row or a details rail.                |
+
+The two are one prop apart and exclusive: with `label` there are no children. `variant` is `secondary` by default, or `subtle` beside an identifier or inside a block; `primary` is available and rarely right. `size` is `medium` for the labelled form and `small` (28px) for the icon-only one by default.
+
+<Canvas of={Stories.IdCopy} />
+
+## What the reader sees
+
+- **Copied.** The icon becomes a check, and “Copied” shows in a tooltip for two seconds, which opens by itself, so a touch reader sees it too. A polite status message says “Copied” to a screen reader.
+- **Could not copy.** When the browser refuses the write (no permission, an insecure page, no clipboard), the icon becomes an alert, the tooltip and the status say “Could not copy” for four seconds, and `onCopyError` receives the error. A reader never pastes stale contents thinking they copied.
+- **Stable.** The button keeps its name and its width through both. Escape or a tap elsewhere closes the tooltip early.
+- **Said again.** A second copy while the first result still shows is a new status message, so a screen reader hears it too.
+
+`onCopied` receives the text once the clipboard holds it; announce anything further there. `onClick` runs first, and calling `preventDefault()` in it skips the copy. The messages are `copy`, `copied` and `copyFailed`, which a `LedgerProvider` can translate.
+
+<Canvas of={Stories.CopyFails} />
+
+## Accessibility
+
+- The icon-only form is named by `label`, which is also its tooltip. Name what is copied (“Copy ID”, “Copy record id”) so several copy buttons on one screen can be told apart.
+- The result is a status message (WCAG 4.1.3), polite, in a region that is always present; the tooltip and the icon are the visible half. The name never changes, so a voice command keeps working.
+- Focus stays on the button through the copy.
+- The icon change is a shape, check or alert, not only a colour.
+
+## Props
+
+<ArgTypes of={CopyButton} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+[CodeBlock](?path=/docs/components-codeblock--docs) · [Id](?path=/docs/components-id--docs) · [IconButton](?path=/docs/components-iconbutton--docs) · [Button](?path=/docs/components-button--docs)
+
+## Don't
+
+<Canvas of={Stories.Dont} />

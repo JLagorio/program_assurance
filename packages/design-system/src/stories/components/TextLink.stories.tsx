@@ -37,7 +37,11 @@ export const TextLinkMatrix: Story = {
   ),
 };
 
-/** Navigation that reads as text. Native href and Base UI render both preserve anchor behavior. */
+/**
+ * Navigation that reads as text. Native href and Base UI render both preserve anchor behavior. A
+ * link in a sentence keeps its words as the touch target, including one that wraps in the narrow
+ * column; the standalone links take a hit area at least 24px tall where a pointer is coarse.
+ */
 export const InProse: Story = {
   render: () => (
     <Stack space="space.200">
@@ -52,6 +56,15 @@ export const InProse: Story = {
         </TextLink>
         .
       </Text>
+      <div style={{ maxWidth: 240 }}>
+        <Text as="p">
+          Raised against the access control family, see{" "}
+          <TextLink className="underline" render={<a href="#req-trace" />}>
+            REQ-0118 Account management for privileged users
+          </TextLink>{" "}
+          for the full trace.
+        </Text>
+      </div>
       <Inline space="space.300" alignBlock="baseline">
         <TextLink size="small" render={<a href="#a" />}>
           Small
@@ -66,6 +79,48 @@ export const InProse: Story = {
       </Inline>
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const link = (name: string) => canvas.getByRole("link", { name });
+    const wrapped = link("REQ-0118 Account management for privileged users");
+    const inSentence = [link("AC-2(4)"), link("REQ-0118"), wrapped];
+    const standalone = ["Small", "Medium", "Medium weight", "An anchor from href"].map(link);
+    await expect(wrapped.getClientRects().length).toBeGreaterThan(1);
+    // A link with its sentence's text beside it takes no touch area; a standalone one does, where
+    // a pointer is coarse: at least 24px tall and no wider than its words. A mouse gets none.
+    const coarse = matchMedia("(any-pointer: coarse)").matches;
+    for (const each of inSentence) {
+      await expect(each).toHaveAttribute("data-in-text");
+      await expect(getComputedStyle(each, "::before").content).toBe("none");
+    }
+    for (const each of standalone) {
+      await expect(each).not.toHaveAttribute("data-in-text");
+      await expect(each).toHaveClass("touch-target-block");
+      await expect(getComputedStyle(each).position).toBe("relative");
+      const area = getComputedStyle(each, "::before");
+      if (!coarse) {
+        await expect(area.content).toBe("none");
+        continue;
+      }
+      await expect(parseFloat(area.height)).toBeGreaterThanOrEqual(24);
+      await expect(parseFloat(area.width)).toBeLessThanOrEqual(
+        each.getBoundingClientRect().width + 0.5,
+      );
+    }
+    // None of the words around the wrapped link, on any of its lines, resolves to it.
+    const words = document.createRange();
+    const stray: string[] = [];
+    for (const node of Array.from(wrapped.parentElement!.childNodes)) {
+      if (node.nodeType !== Node.TEXT_NODE) continue;
+      words.selectNodeContents(node);
+      for (const r of Array.from(words.getClientRects()))
+        for (let x = r.left + 1; x < r.right - 1; x += 2)
+          for (let y = r.top + 1; y < r.bottom - 1; y += 2)
+            if (document.elementFromPoint(x, y) === wrapped)
+              stray.push(`${Math.round(x)},${Math.round(y)}`);
+    }
+    await expect(stray).toEqual([]);
+  },
 };
 
 export const Playground: Story = {};

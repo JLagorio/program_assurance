@@ -4,9 +4,40 @@ A living list for the design system and the prototype. Josef owns the decisions;
 
 Completed entries record what landed on their date. For screen composition, [the product pattern contract](guides/product-patterns.md) is current; later corrections supersede earlier notes.
 
-Updated 2026-09-18.
+Updated 2026-09-25.
 
 ## Current design-system work
+
+- [x] **Ledger audit** (2026-09-24/25). 55 units, 976 verified findings, the order of work and decisions D1–D13: `docs/guides/ledger-audit-2026-09-24/`.
+- [x] **Missing parts from the audit** (2026-09-25, Josef: "all of the missing files now and stories"; D1, D7 and D8 as the audit recommends). Forms (Field on Base UI Field.Root, ErrorSummary, CheckboxGroup, SearchField, NumberField), overlay bodies and the pending lock, LinkButton and disabledReason, the heading-level context and CollapsibleHeader, Truncate, VisuallyHidden, Icon, Prose, List, KeyValue.Group, date and time fields and display, FileTrigger and DropZone, announce(), Shell locationKey, TopNav.Search and SearchDialog, DataTable.Sort, the table query serializer, StatusMap, Chart.Frame context, Diff, increased contrast and fonts.css. The app is not re-pointed yet. Open: the Combobox "In Dialog" ResizeObserver flake in full light runs, and the builders' decisions listed in the changelog.
+
+- [x] **Responsive audit, second pass** (2026-09-24/25, Josef: "build it all", the audit's recommendations for the open decisions). The audit is at `docs/guides/responsive-audit-2026-09-24.md`. Landed in the kit, uncommitted:
+  - container-keyed Stat.Grid, Calendar, Pagination and WorkPane;
+  - touch-visible row actions and header menus, and pins that give way;
+  - Section and PageHeader headers that wrap their actions;
+  - a Toolbar that folds into two rows, and the product contract to match;
+  - a collapsing Breadcrumb;
+  - InputGroup clipping and the phone search;
+  - FilterChip on one line, and ToggleGroup wrapping;
+  - `touch-target` hit areas;
+  - Move left/right for columns;
+  - fluid chart and fixture stories;
+  - `npm run test:layout` (every story at 390px and in a 320px frame) in CI.
+
+  Changelog entry "Responsive audit, second pass".
+
+- [ ] **Responsive follow-ups** (from the builders' open issues; Josef's call where marked):
+  - WorkPane on a phone stacks the whole list before the detail; a list-or-detail drill-in mode is a design decision (Josef). WorkPane has no story, so CI does not check it.
+  - Calendar's fixed 32px days paint past a column narrower than about 238px.
+  - A Badge longer than its row paints past it (`max-w-full` with truncation, as Dot does).
+  - Card's action fold is a fixed 18rem container size, so a full-width card on a 320px phone folds by 2px.
+  - A wrapped Pagination list centres its lines, so Next can sit alone on a phone.
+  - At 208px (a panel at its narrowest) the Toolbar's saved-views label shrinks to one letter.
+  - Chart labels measure before the web font loads on a cold start.
+  - The column resize handle is 8px on touch; the keyboard path exists.
+  - A plain Table's pins do not give way; only DataTable's do.
+  - Heatmap row names scroll away with a wide grid.
+  - `PreviewHeader` is not exported or used anywhere (delete?).
 
 - [x] **Responsive audit fixes** (2026-09-18, Josef: "fix it all"). The audit at `docs/guides/responsive-audit-2026-09-18.md` swept 554 stories and 55 product URLs at 1440/800/390/340. Landed: PageHeader wraps its actions under a title that cannot keep its 14rem measure (one rule for page, panel and sheet); the shell gives the aside the window's remainder when it follows Main; `Shell.TopNav.End overflow`; horizontal Stepper and Timeline scroll in a Scroller; PageSkeleton follows the width; Toolbar views and Presets strips scroll; KeyValue `wrap` breaks unbroken values; `sm`/`xl` breakpoint tokens; 390 and 340 Storybook viewports, ten narrow stories, and every story fails on sideways page scroll. Product: the schema shell folds its end items, the record rail formats timestamps. Open: Breadcrumb separator placement (API change), touch-target heights.
 - [x] **Scroller** (2026-09-18, Josef: the Select's chevrons should be one scroller part with vertical and horizontal orientations, used in tabs too, and the native scrollbar goes while it is used). `Scroller`, `ScrollerViewport` and `ScrollerArrow` in the kit: arrows only where the viewport overflows, at an edge that can still scroll and where the pointer can hover; hover scrolls a menu, a click steps a tab strip; the viewport hides its native scrollbar and keeps the arrows' thickness as scroll padding while they show. Select's arrows wear the look and now fit the popup's inner box (they overhung it by 3–5px); DropdownMenu content, Combobox's list and horizontal line Tabs compose the part. The Select Scrolling story is on a left-to-right canvas with one RTL specimen instead of an RTL canvas. Storybook: Components/Scroller.

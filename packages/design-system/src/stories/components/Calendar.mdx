@@ -6,43 +6,62 @@ import * as Stories from "./Calendar.stories";
 
 # Calendar
 
-A day or range picker following [shadcn’s Calendar](https://ui.shadcn.com/docs/components/base/calendar), built on React DayPicker. Ledger provides token styling and provider-localized date labels.
+A month to pick a day, several days or a range from, following [shadcn’s Calendar](https://ui.shadcn.com/docs/components/base/calendar) on React DayPicker, with Ledger tokens and the LedgerProvider's locale.
 
-## Anatomy
+Use it inside a picker. A day in a form is a [DatePicker](?path=/docs/components-datepicker--docs), a range a [DateRangePicker](?path=/docs/components-daterangepicker--docs); an inline month takes the room of six fields for one answer. Use Calendar on its own where the month is the content, such as a schedule panel.
 
 ```tsx
 const [date, setDate] = useState<Date>();
 <Calendar mode="single" selected={date} onSelect={setDate} />;
 ```
 
-Calendar exposes DayPicker’s native props. Navigation uses the shared Button recipe; `CalendarDayButton` uses Button while preserving DayPicker’s focus, selection and event contracts. Days remain 32px cells.
+Calendar takes DayPicker's own props: `mode` (single, multiple or range), `selected` and `onSelect`, disabled matchers, `startMonth` and `endMonth`, `numberOfMonths`, `captionLayout="dropdown"`, `showWeekNumber`. Custom `components`, `formatters`, `labels` and `classNames` merge with Calendar's defaults; customize a day with the exported CalendarDayButton so DayPicker's focus, selection and events stay intact. `buttonVariant` sets the navigation buttons. Days are 32px cells, above the 24px touch minimum.
 
 <Canvas of={Stories.Single} />
 
-## Variants and states
+## Days and zones
 
-Use native single, multiple or range selection, disabled matchers and month bounds. `numberOfMonths` supports a range across months, stacking on narrow screens. `captionLayout="dropdown"` and `showWeekNumber` use the same token styling.
+Calendar's Dates stand for calendar days: the local year, month and day, never an instant. They are labelled with `formatCalendarDate`, so a provider's `timeZone` never moves a day. Today is the reader's own day.
+
+## Locale
+
+Under a LedgerProvider the month speaks its locale: `lang` on the root, the first day of the week (Monday in de-DE, Saturday in ar-EG, Sunday in en-US), the caption, weekday names and their spoken names, the day digits, the year dropdown and week numbers. A caller's own date-fns `locale`, `weekStartsOn`, `lang`, `labels` and `formatters` win. Two calendars on one page name their navigation apart through `labels.labelNav`, or the navigation landmark repeats.
+
+<Canvas of={Stories.Localized} />
+
+## Ranges
+
+With `mode="range"` the first and last days are the blue budget and the days between take the selected tint; `numberOfMonths={2}` spans a range across months. Below the `sm` window the months always stack; above it the calendar's own space decides, so a range in a 320px panel stacks on a wide screen. The range's ends say which end they are ("Start of range", "End of range") and a completed range is announced once, politely: "September 7, 2026 to October 9, 2026 selected", or "September 7, 2026 selected" for a one-day range.
 
 <Canvas of={Stories.CalendarRange} />
+<Canvas of={Stories.InANarrowPanel} />
+<Canvas of={Stories.RangeInAPopover} />
+
+## Disabled days
+
+A disabled matcher makes a day unchoosable and skips it in the keyboard order. `describeDay(date, modifiers)` adds the reason to its name ("Weekends are closed."), after the kit's date, today, selected and range words. Keep the rule in the field's hint too; DatePicker and DateRangePicker do both from `min`, `max` and `isDateUnavailable`.
+
+<Canvas of={Stories.DisabledDayReasons} />
 <Canvas of={Stories.DropdownsAndWeekNumbers} />
 
-Custom `components`, `formatters`, `labels` and `classNames` merge with Calendar’s defaults. Use the exported CalendarDayButton when customizing a day. `buttonVariant` controls the navigation buttons; selected days keep their selection treatment.
+## Navigation
 
-`navLayout="around"` places Previous beside the first month caption and Next beside the last, including multi-month and right-to-left calendars. The default and `"after"` layouts share the navigation bar; `"after"` puts it later in the keyboard order.
+`navLayout="around"` places Previous beside the first month's caption and Next beside the last, in either direction. The default and `"after"` share one navigation bar; `"after"` puts it later in the keyboard order.
 
 <Canvas of={Stories.NavigationLayouts} />
 
 ## Accessibility
 
-DayPicker owns keyboard movement and disabled-day behavior. The day button forwards native attributes and moves focus when DayPicker marks it focused. Give standalone pickers a visible context or accessible name. Ledger supplies localized month/day labels; explicit locale, labels and formatters remain caller overrides. Timestamp timezone settings do not shift date-only labels. Native `timeZone` remains available for callers that supply timezone-aware Date values.
+- DayPicker owns the grid keyboard: arrows by day and week, Page Up and Page Down by month, Shift with them by year, Home and End by week, one tab stop. The day button takes focus when DayPicker marks it focused.
+- Every day's name is the full date in the locale, with today, selected or its range end, and any reason from `describeDay`.
+- Selection is shown by fill and survives forced colours: the selected day and the range keep their own colours there.
+- Give a standalone Calendar a visible heading or an accessible name.
 
 ## Props
-
-Existing DayPicker callers keep their selection contract. CalendarDayButton is a new flat export. Custom component overrides now preserve unrelated defaults, and dropdown chevrons point down rather than inheriting the next-month icon.
 
 <ArgTypes of={Calendar} />
 <ArgTypes of={CalendarDayButton} />
 
 ## Related
 
-[DatePicker](?path=/docs/components-datepicker--docs), [Popover](?path=/docs/components-popover--docs), [Dialog](?path=/docs/components-dialog--docs).
+[DatePicker](?path=/docs/components-datepicker--docs) · [DateRangePicker](?path=/docs/components-daterangepicker--docs) · [Popover](?path=/docs/components-popover--docs) · [Dialog](?path=/docs/components-dialog--docs)

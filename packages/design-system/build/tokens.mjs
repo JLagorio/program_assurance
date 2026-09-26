@@ -2,8 +2,9 @@
 // Reads tokens/*.json (DTCG) and writes src/generated/*. Run: npm run build:tokens -w @ledger/design-system
 //
 // Outputs
-//   tokens.css       :root palette + light semantic + non-colour vars; [data-color-mode="dark"] block; prefers-color-scheme fallback
-//   theme.css        @theme inline: maps space / radius / shadow / weight / easing tokens onto Tailwind namespaces
+//   tokens.css       :root palette + light semantic + non-colour vars; [data-color-mode="dark"] block; prefers-color-scheme fallback;
+//                    increased contrast: prefers-contrast: more, and [data-contrast-mode="more" | "no-preference"]
+//   theme.css        @theme inline: maps space / radius / shadow / weight / easing / breakpoint / container tokens onto Tailwind namespaces
 //   reset.css        @theme inline: removes Tailwind's default namespaces (a consumer opts in when fully migrated)
 //   utilities.css    one @utility per token, on its own property only (bg-*, text-*, icon-*, border-*, font-*, h-*, ...)
 //   tokens.ts        the name union, token(), tokenValue(), the utility allowlist
@@ -133,6 +134,10 @@ function utilityFor(token) {
     // media query) written as its literal value, since a media query cannot read a custom property.
     if (b === "breakpoint")
       return { kind: "theme", ns: "breakpoint", key: rest(p, 2), cls: null, literal: true };
+    // A container size is the same for a container query: a theme key (`@md:`, `@max-split:`;
+    // `theme(--container-split)` in an @container query), written as its literal value.
+    if (b === "container")
+      return { kind: "theme", ns: "container", key: rest(p, 2), cls: null, literal: true };
     if (b === "icon") return { kind: "size", cls: `size-icon-${rest(p, 2)}` };
     if (b === "control")
       return {
@@ -213,9 +218,36 @@ const dictionary = await sd.getPlatformTokens("web");
 const all = dictionary.allTokens;
 const tokenMap = dictionary.tokenMap;
 const resolveDark = (v) => (isRef(v) ? resolveReferences(v, tokenMap, { usesDtcg: true }) : v);
+const bySourcePath = new Map(all.map((token) => [token.path.join("."), token]));
 
 const lightVars = [];
 const darkVars = [];
+// Increased contrast. A token with `$extensions.ledger.contrast` ({ light, dark }) carries four
+// values. Every scope that sets a mode (:root, [data-color-mode], the prefers-color-scheme block)
+// writes the mode's two as `<var>--standard` and `<var>--more`, and every scope that sets the
+// contrast ([data-contrast-mode], the prefers-contrast root) flips two flags. The token itself is
+// the same expression everywhere, re-declared in both kinds of scope, so the nearest mode and the
+// nearest contrast decide it at any nesting. A flag is "on" when it is a space and "off" when it is
+// `initial` (guaranteed-invalid, so var() takes its fallback): a space toggle, as custom properties
+// resolve where they are declared.
+const contrastVars = []; // re-declared in every contrast scope
+const contrastNames = new Set(); // public names of tokens with a contrast value, or derived from one
+const flag = { more: "--ds-contrast-more", standard: "--ds-contrast-standard" };
+const flagsStandard = [
+  [flag.more, "initial"],
+  [flag.standard, " "],
+];
+const flagsMore = [
+  [flag.more, " "],
+  [flag.standard, "initial"],
+];
+const contrastExpr = (v) =>
+  `var(${flag.more}, var(${v}--standard)) var(${flag.standard}, var(${v}--more))`;
+const publicRef = (v) =>
+  refPath(v)
+    .split(".")
+    .filter((seg) => seg !== "default")
+    .join(".");
 const themeLines = [];
 const utilityBlocks = [];
 const docs = [];
@@ -276,9 +308,36 @@ for (const token of all) {
   } else {
     lightCss = cssValue(token.original.$value, token.$value, type);
   }
-  lightVars.push([v, lightCss], ...extraLight);
   literals[name] = type === "typography" ? lightCss : literal(token.$value, type);
-  if (darkOriginal !== null) darkVars.push([v, cssValue(darkOriginal, darkResolved, type)]);
+  const contrast = token.original?.$extensions?.ledger?.contrast ?? null;
+  if (contrast === null) {
+    lightVars.push([v, lightCss], ...extraLight);
+    if (darkOriginal !== null) darkVars.push([v, cssValue(darkOriginal, darkResolved, type)]);
+  } else {
+    if (type === "typography") throw new Error(`${name}: a typography token has no contrast value`);
+    const darkCss = darkOriginal !== null ? cssValue(darkOriginal, darkResolved, type) : lightCss;
+    // Each of the four values must name a mode-independent token (a palette step) or a literal:
+    // a `--more` written in a mode scope resolves there, before any nested contrast scope.
+    for (const original of [token.original.$value, darkOriginal, contrast.light, contrast.dark]) {
+      if (!isRef(original)) continue;
+      const target = bySourcePath.get(refPath(original));
+      const targetExt = target?.original?.$extensions?.ledger ?? {};
+      if (!target || targetExt.dark !== undefined || targetExt.contrast !== undefined)
+        throw new Error(
+          `${name}: a contrast token's values must reference palette steps, not ${original}`,
+        );
+    }
+    const lightMore = contrast.light
+      ? cssValue(contrast.light, resolveDark(contrast.light), type)
+      : lightCss;
+    const darkMore = contrast.dark
+      ? cssValue(contrast.dark, resolveDark(contrast.dark), type)
+      : darkCss;
+    lightVars.push([`${v}--standard`, lightCss], [`${v}--more`, lightMore], [v, contrastExpr(v)]);
+    darkVars.push([`${v}--standard`, darkCss], [`${v}--more`, darkMore], [v, contrastExpr(v)]);
+    contrastVars.push([v, contrastExpr(v)]);
+    contrastNames.add(name);
+  }
 
   const u = utilityFor(token);
   if (u) {
@@ -358,10 +417,47 @@ for (const token of all) {
     dark: darkOriginal !== null ? prettyRef(darkOriginal) : null,
     lightResolved: type === "typography" ? lightCss : literal(token.$value, type),
     darkResolved: darkResolved !== null ? literal(darkResolved, type) : null,
+    // Increased contrast, each mode: the reference and the literal, or null when the token has none.
+    contrast: contrast
+      ? {
+          light: prettyRef(contrast.light ?? token.original.$value),
+          dark: prettyRef(contrast.dark ?? darkOriginal ?? token.original.$value),
+          lightResolved: literal(resolveDark(contrast.light ?? token.original.$value), type),
+          darkResolved: literal(
+            resolveDark(contrast.dark ?? darkOriginal ?? token.original.$value),
+            type,
+          ),
+        }
+      : null,
     introduced: ext.introduced ?? null,
     deprecated: ext.deprecated ?? null,
     utility: u ? u.cls : null,
   });
+}
+
+// A token that names a contrast token (`{color.border.input}`) resolves where it is declared, so
+// it is re-declared in every contrast scope too, and in the dark scopes when it has no dark value
+// of its own. It must name the same token in both modes; otherwise it needs a contrast value.
+for (let grew = true; grew;) {
+  grew = false;
+  for (const token of all) {
+    const name = dotName(token);
+    if (contrastNames.has(name) || token.$type === "typography") continue;
+    const light = token.original.$value;
+    const dark = token.original?.$extensions?.ledger?.dark ?? null;
+    const refs = [light, dark].filter((o) => o !== null && isRef(o));
+    if (!refs.some((o) => contrastNames.has(publicRef(o)))) continue;
+    if (dark !== null && dark !== light)
+      throw new Error(
+        `${name} references a contrast token with a different value per mode; give it a contrast value`,
+      );
+    const v = cssVar(token);
+    const css = `var(${cssVarFromPath(refPath(light))})`;
+    contrastVars.push([v, css]);
+    if (dark === null) darkVars.push([v, css]);
+    contrastNames.add(name);
+    grew = true;
+  }
 }
 
 /* ---------- emit ---------- */
@@ -375,8 +471,8 @@ fs.mkdirSync(outDir, { recursive: true });
 
 fs.writeFileSync(
   path.join(outDir, "tokens.css"),
-  header("custom properties, both modes") +
-    block(":root", lightVars) +
+  header("custom properties, both modes, standard and increased contrast") +
+    block(":root", [...flagsStandard, ...lightVars]) +
     "\n" +
     // an explicit light scope, so a nested light region inside a dark page (a mode-by-mode story) reads light
     block(
@@ -387,7 +483,21 @@ fs.writeFileSync(
     block('[data-color-mode="dark"]', darkVars) +
     "\n@media (prefers-color-scheme: dark) {\n" +
     block('  :root:not([data-color-mode="light"])', darkVars).replace(/^ {2}(?=\s*--)/gm, "    ") +
-    "}\n",
+    "}\n" +
+    // Increased contrast: the reader's setting, unless the page pins standard contrast; then a pin
+    // either way on any element, which re-declares every contrast token for its subtree.
+    "\n/* Increased contrast. prefers-contrast: more turns it on for the document unless the root pins\n" +
+    '   data-contrast-mode="no-preference"; data-contrast-mode="more" or "no-preference" pins it on\n' +
+    "   any element. The flags are internal: read the tokens, never the flags. */\n" +
+    "@media (prefers-contrast: more) {\n" +
+    block('  :root:not([data-contrast-mode="no-preference"])', flagsMore).replace(
+      /^ {2}(?=\s*--)/gm,
+      "    ",
+    ) +
+    "}\n\n" +
+    block('[data-contrast-mode="more"]', [...flagsMore, ...contrastVars]) +
+    "\n" +
+    block('[data-contrast-mode="no-preference"]', [...flagsStandard, ...contrastVars]),
 );
 
 fs.writeFileSync(
@@ -403,7 +513,8 @@ fs.writeFileSync(
   path.join(outDir, "reset.css"),
   header("Tailwind theme: default namespaces removed so only token utilities exist") +
     `/* A consumer imports this once every class it uses is a token utility.
-   After it, bg-blue-500, text-sm, font-medium (Tailwind's), rounded-md and p-4 no longer exist. */
+   After it, bg-blue-500, text-sm, font-medium (Tailwind's), rounded-md and p-4 no longer exist.
+   The container sizes (@md, @3xl) come back from theme.css, where each is a token. */
 @theme inline {
   --color-*: initial;
   --text-*: initial;
@@ -416,6 +527,7 @@ fs.writeFileSync(
   --inset-shadow-*: initial;
   --spacing: initial;
   --ease-*: initial;
+  --container-*: initial;
 }
 `,
 );
@@ -606,7 +718,7 @@ for (const f of fs
   .sort())
   deep(merged, JSON.parse(fs.readFileSync(path.join(root, "tokens", f), "utf8")));
 fs.writeFileSync(path.join(outDir, "tokens.figma.json"), JSON.stringify(merged, null, 2) + "\n");
-for (const mode of ["light", "dark"])
+for (const mode of ["light", "dark", "light-contrast", "dark-contrast"])
   fs.writeFileSync(
     path.join(outDir, `tokens.dtcg.${mode}.json`),
     JSON.stringify(exportDtcg(merged, mode), null, 2) + "\n",

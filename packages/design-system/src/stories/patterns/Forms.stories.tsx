@@ -4,6 +4,7 @@ import {
   FieldError,
   FieldSet,
   FieldLegend,
+  FieldContent,
   ComboboxInput,
   ComboboxContent,
   ComboboxEmpty,
@@ -11,12 +12,15 @@ import {
   ComboboxItem,
   Button,
   Checkbox,
+  CheckboxGroup,
   Combobox,
   DatePicker,
   Dot,
+  ErrorSummary,
   Field,
   Input,
   InputGroup,
+  InputGroupInput,
   RadioGroup,
   RadioGroupItem,
   Select,
@@ -29,6 +33,7 @@ import {
   SelectSeparator,
   Switch,
   Textarea,
+  type ErrorSummaryIssue,
 } from "../../components";
 import { revalidateLogic, useForm, useStore } from "@tanstack/react-form";
 import { z } from "zod";
@@ -55,13 +60,11 @@ const controlSchema = z.object({
 });
 
 function ControlForm() {
-  const fieldId = useId();
-
   const formRef = useRef<HTMLFormElement>(null);
   const [saved, setSaved] = useState<z.infer<typeof controlSchema> | null>(null);
   const form = useForm({
     defaultValues: { title: "", owner: "", rationale: "", reference: "CTRL-0412" },
-    validationLogic: revalidateLogic({ mode: "blur", modeAfterSubmission: "change" }),
+    validationLogic: revalidateLogic({ mode: "submit", modeAfterSubmission: "change" }),
     validators: { onDynamic: controlSchema },
     onSubmitInvalid: () => {
       // Validation has updated the store; React commits aria-invalid before the next frame.
@@ -71,6 +74,12 @@ function ControlForm() {
     },
     onSubmit: ({ value }) => setSaved(value),
   });
+  const owners = [
+    { value: "", label: "Choose an owner" },
+    { value: "dana", label: "Dana Whitfield" },
+    { value: "priya", label: "Priya Natarajan" },
+    { value: "marcus", label: "Marcus Oyelaran" },
+  ];
   return (
     <form
       ref={formRef}
@@ -86,120 +95,64 @@ function ControlForm() {
       <Stack space="space.200">
         <form.Field name="title">
           {(field) => {
-            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-            const fieldError1 = isInvalid
-              ? [...new Set(field.state.meta.errors.map((error) => error?.message))].join(" ")
-              : undefined;
+            const invalid = field.state.meta.isTouched && !field.state.meta.isValid;
             return (
-              <Field data-invalid={Boolean(fieldError1)}>
-                <FieldLabel
-                  id={`${fieldId}-control-name-1-label`}
-                  htmlFor={`${fieldId}-control-name-1`}
-                >
-                  {"Control name"}
-                  <span aria-hidden="true" className="text-danger">
-                    {" "}
-                    *
-                  </span>
-                </FieldLabel>
+              <Field invalid={invalid} required>
+                <FieldLabel>Control name</FieldLabel>
                 <Input
-                  id={`${fieldId}-control-name-1`}
-                  aria-labelledby={`${fieldId}-control-name-1-label`}
-                  aria-required={true}
-                  aria-describedby={`${fieldId}-control-name-1-message`}
                   name={field.name}
                   value={field.state.value}
-                  required
                   onBlur={field.handleBlur}
-                  onChange={(event) => field.handleChange(event.target.value)}
-                  aria-invalid={Boolean(fieldError1) || isInvalid}
+                  onValueChange={field.handleChange}
                   placeholder="Segregation of duties, payables"
                 />
-                {Boolean(fieldError1) ? (
-                  <FieldError id={`${fieldId}-control-name-1-message`}>{fieldError1}</FieldError>
-                ) : (
-                  <FieldDescription id={`${fieldId}-control-name-1-message`}>
-                    {"How it appears in the register."}
-                  </FieldDescription>
-                )}
+                <FieldDescription>How it appears in the register.</FieldDescription>
+                <FieldError errors={invalid ? field.state.meta.errors : []} />
               </Field>
             );
           }}
         </form.Field>
         <form.Field name="owner">
-          {(field) => {
-            const valueItems = [
-              { value: "", label: "Choose an owner" },
-              { value: "dana", label: "Dana Whitfield" },
-              { value: "priya", label: "Priya Natarajan" },
-              { value: "marcus", label: "Marcus Oyelaran" },
-            ];
-            return (
-              <Field>
-                <FieldLabel id={`${fieldId}-owner-2-label`} htmlFor={`${fieldId}-owner-2`}>
-                  {"Owner"}
-                </FieldLabel>
-                <Select<string>
-                  items={valueItems}
-                  name={field.name}
-                  value={field.state.value}
-                  onValueChange={(value) => {
-                    if (value === null) return;
-                    return field.handleChange(value);
-                  }}
-                >
-                  <SelectTrigger
-                    id={`${fieldId}-owner-2`}
-                    aria-labelledby={`${fieldId}-owner-2-label`}
-                    className="w-full"
-                    onBlur={field.handleBlur}
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent aria-labelledby={`${fieldId}-owner-2-label`}>
-                    {valueItems.map((item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-            );
-          }}
+          {(field) => (
+            <Field>
+              <FieldLabel>Owner</FieldLabel>
+              <Select<string>
+                items={owners}
+                name={field.name}
+                value={field.state.value}
+                onValueChange={(value) => {
+                  if (value !== null) field.handleChange(value);
+                }}
+              >
+                <SelectTrigger className="w-full" onBlur={field.handleBlur}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {owners.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          )}
         </form.Field>
         <form.Field name="rationale">
           {(field) => {
-            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-            const fieldError3 = isInvalid
-              ? [...new Set(field.state.meta.errors.map((error) => error?.message))].join(" ")
-              : undefined;
+            const invalid = field.state.meta.isTouched && !field.state.meta.isValid;
             return (
-              <Field data-invalid={Boolean(fieldError3)}>
-                <FieldLabel id={`${fieldId}-rationale-3-label`} htmlFor={`${fieldId}-rationale-3`}>
-                  {"Rationale"}
-                  <span aria-hidden="true" className="text-danger">
-                    {" "}
-                    *
-                  </span>
-                </FieldLabel>
+              <Field invalid={invalid} required>
+                <FieldLabel>Rationale</FieldLabel>
                 <Textarea
-                  id={`${fieldId}-rationale-3`}
-                  aria-labelledby={`${fieldId}-rationale-3-label`}
-                  aria-required={true}
-                  aria-describedby={fieldError3 ? `${fieldId}-rationale-3-message` : undefined}
                   name={field.name}
                   value={field.state.value}
                   rows={3}
-                  required
                   onBlur={field.handleBlur}
                   onChange={(event) => field.handleChange(event.target.value)}
-                  aria-invalid={Boolean(fieldError3) || isInvalid}
                   placeholder="Why this control exists and what it prevents."
                 />
-                {Boolean(fieldError3) ? (
-                  <FieldError id={`${fieldId}-rationale-3-message`}>{fieldError3}</FieldError>
-                ) : null}
+                <FieldError errors={invalid ? field.state.meta.errors : []} />
               </Field>
             );
           }}
@@ -207,21 +160,14 @@ function ControlForm() {
         <form.Field name="reference">
           {(field) => (
             <Field>
-              <FieldLabel id={`${fieldId}-reference-4-label`} htmlFor={`${fieldId}-reference-4`}>
-                {"Reference"}
-              </FieldLabel>
+              <FieldLabel>Reference</FieldLabel>
               <Input
-                id={`${fieldId}-reference-4`}
-                aria-labelledby={`${fieldId}-reference-4-label`}
-                aria-describedby={`${fieldId}-reference-4-message`}
                 name={field.name}
                 value={field.state.value}
                 onBlur={field.handleBlur}
                 readOnly
               />
-              <FieldDescription id={`${fieldId}-reference-4-message`}>
-                {"Read only until the assessment closes."}
-              </FieldDescription>
+              <FieldDescription>Read only until the assessment closes.</FieldDescription>
             </Field>
           )}
         </form.Field>
@@ -239,7 +185,7 @@ function ControlForm() {
           <form.Subscribe selector={(state) => state.isSubmitting}>
             {(isSubmitting) => (
               <Button type="submit" variant="primary" disabled={isSubmitting}>
-                Save
+                Save control
               </Button>
             )}
           </form.Subscribe>
@@ -255,7 +201,11 @@ function ControlForm() {
   );
 }
 
-/** A form pattern: TanStack owns state and validation; Ledger components render the fields. */
+/**
+ * The short path: TanStack owns values and validation and passes `invalid` and `errors` to each
+ * Field; the Field ties label, hint, error and requirement to the control with no ids. Validation
+ * runs on submit, then on change; focus goes to the first invalid control.
+ */
 export const Fields: Story = {
   render: () => <ControlForm />,
   play: async ({ canvasElement }) => {
@@ -264,10 +214,18 @@ export const Fields: Story = {
     const rationale = canvas.getByRole("textbox", { name: "Rationale" });
     await expect(canvas.queryAllByRole("alert")).toHaveLength(0);
     await expect(title).toHaveAccessibleDescription("How it appears in the register.");
-    await userEvent.click(canvas.getByRole("button", { name: "Save" }));
+    await expect(title).toHaveAttribute("aria-required", "true");
+    // Nothing is marked before the first submission.
+    await userEvent.type(title, "x{Backspace}");
+    await userEvent.tab();
+    await expect(title).not.toHaveAttribute("aria-invalid", "true");
+    await userEvent.click(canvas.getByRole("button", { name: "Save control" }));
     await waitFor(() => expect(title).toHaveFocus());
     await expect(title).toHaveAttribute("aria-invalid", "true");
-    await expect(title.closest("[data-invalid]")).toHaveAttribute("data-invalid", "true");
+    await expect(title.closest('[data-slot="field"]')).toHaveAttribute("data-invalid");
+    await expect(title).toHaveAccessibleDescription(
+      "How it appears in the register. Enter a control name.",
+    );
     await expect(rationale).toHaveAccessibleDescription(
       "A rationale is required before the control can be verified.",
     );
@@ -313,18 +271,15 @@ const people = [
 
 function PickerFields() {
   const fieldId = useId();
-
   const [owner, setOwner] = useState<string | undefined>("priya");
   const [status, setStatus] = useState("review");
   const [due, setDue] = useState("2026-09-14");
   const ownerItems = people;
   return (
-    <div style={{ width: 360 }}>
+    <div style={{ maxWidth: 360 }}>
       <Stack space="space.200">
         <Field>
-          <FieldLabel id={`${fieldId}-status-5-label`} htmlFor={`${fieldId}-status-5`}>
-            {"Status"}
-          </FieldLabel>
+          <FieldLabel>Status</FieldLabel>
           <Select
             items={{
               draft: (
@@ -353,19 +308,10 @@ function PickerFields() {
               if (value !== null) setStatus(value);
             }}
           >
-            <SelectTrigger
-              id={`${fieldId}-status-5`}
-              aria-labelledby={`${fieldId}-status-5-label`}
-              aria-describedby={`${fieldId}-status-5-message`}
-              className="w-full"
-            >
+            <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent
-              aria-labelledby={`${fieldId}-status-5-label`}
-              align="start"
-              alignItemWithTrigger={false}
-            >
+            <SelectContent align="start" alignItemWithTrigger={false}>
               <SelectGroup>
                 <SelectLabel>Open</SelectLabel>
                 <SelectItem value="draft" label="Draft">
@@ -384,17 +330,12 @@ function PickerFields() {
               </SelectItem>
             </SelectContent>
           </Select>
-          <FieldDescription id={`${fieldId}-status-5-message`}>
-            {"A Select: the options carry their Dot."}
-          </FieldDescription>
+          <FieldDescription>A Select: the options carry their Dot.</FieldDescription>
         </Field>
         <Field>
-          <FieldLabel id={`${fieldId}-owner-6-label`} htmlFor={`${fieldId}-owner-6`}>
-            {"Owner"}
-          </FieldLabel>
+          <FieldLabel>Owner</FieldLabel>
           <Combobox<(typeof ownerItems)[number]>
             items={ownerItems}
-
             isItemEqualToValue={(item, selected) => item.value === selected.value}
             filter={(item, query) =>
               [item.label, item.value, "keywords" in item ? item.keywords : ""]
@@ -405,15 +346,10 @@ function PickerFields() {
             value={ownerItems.find((item) => item.value === owner) ?? null}
             onValueChange={(item) => setOwner(item?.value ?? "")}
           >
-            <ComboboxInput
-              id={`${fieldId}-owner-6`}
-              aria-labelledby={`${fieldId}-owner-6-label`}
-              aria-describedby={`${fieldId}-owner-6-message`}
-              placeholder="Choose an owner"
-            />
+            <ComboboxInput placeholder="Choose an owner" />
             <ComboboxContent>
-              <ComboboxEmpty>{"No matches."}</ComboboxEmpty>
-              <ComboboxList aria-labelledby={`${fieldId}-owner-6-label`}>
+              <ComboboxEmpty>No matches.</ComboboxEmpty>
+              <ComboboxList>
                 {(item) => (
                   <ComboboxItem
                     key={item.value}
@@ -429,23 +365,22 @@ function PickerFields() {
               </ComboboxList>
             </ComboboxContent>
           </Combobox>
-          <FieldDescription id={`${fieldId}-owner-6-message`}>
-            {"A Combobox: a list worth searching."}
-          </FieldDescription>
+          <FieldDescription>A Combobox: a list worth searching.</FieldDescription>
         </Field>
         <Field>
-          <FieldLabel id={`${fieldId}-due-7-label`} htmlFor={`${fieldId}-due-7`}>
-            {"Due"}
+          {/* The ids are optional: DatePicker binds to its Field. Its description starts with the day. */}
+          <FieldLabel id={`${fieldId}-due-label`} htmlFor={`${fieldId}-due`}>
+            Due
           </FieldLabel>
           <DatePicker
-            id={`${fieldId}-due-7`}
-            aria-labelledby={`${fieldId}-due-7-label`}
-            aria-describedby={`${fieldId}-due-7-message`}
+            id={`${fieldId}-due`}
+            aria-labelledby={`${fieldId}-due-label`}
+            aria-describedby={`${fieldId}-due-message`}
             value={due}
-            onChange={setDue}
+            onValueChange={setDue}
           />
-          <FieldDescription id={`${fieldId}-due-7-message`}>
-            {"A DatePicker: one day, held as an ISO date."}
+          <FieldDescription id={`${fieldId}-due-message`}>
+            A DatePicker: one day, held as an ISO date.
           </FieldDescription>
         </Field>
       </Stack>
@@ -453,112 +388,103 @@ function PickerFields() {
   );
 }
 
-/** The pickers in Fields: the same shape as the fields beside them. */
-export const Pickers: Story = { render: () => <PickerFields /> };
+/** The pickers in Fields: the same shape as the fields beside them, named and described by the Field. */
+export const Pickers: Story = {
+  render: () => <PickerFields />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("combobox", { name: "Status" })).toHaveAccessibleDescription(
+      "A Select: the options carry their Dot.",
+    );
+    await expect(canvas.getByRole("combobox", { name: "Owner" })).toHaveAccessibleDescription(
+      "A Combobox: a list worth searching.",
+    );
+    await expect(canvas.getByRole("button", { name: /Due/ })).toHaveAccessibleDescription(
+      /A DatePicker: one day, held as an ISO date\.$/,
+    );
+  },
+};
 
 function ChoiceFields() {
-  const fieldId = useId();
-
-  const [p, setP] = useState({ pii: true, cross: false, safety: false });
+  const [parameters, setParameters] = useState<string[]>(["pii"]);
   const [frequency, setFrequency] = useState("quarterly");
   const [notify, setNotify] = useState(true);
   return (
-    <div style={{ width: 420 }}>
+    <div style={{ maxWidth: 420 }}>
       <Stack space="space.300">
-        <FieldSet
-          aria-labelledby={`${fieldId}-parameters-8-label`}
-          aria-describedby={`${fieldId}-parameters-8-message`}
-        >
-          <FieldLegend id={`${fieldId}-parameters-8-label`} variant="label">
-            {"Parameters"}
-          </FieldLegend>
-          <Stack space="space.100">
-            <label className="inline-flex items-center gap-100">
-              <Checkbox
-                aria-describedby={`${fieldId}-parameters-8-message`}
-                checked={p.pii}
-                onCheckedChange={(v) => setP({ ...p, pii: v })}
-              />
-              Handles PII
-            </label>
-            <label className="inline-flex items-center gap-100">
-              <Checkbox
-                aria-describedby={`${fieldId}-parameters-8-message`}
-                checked={p.cross}
-                onCheckedChange={(v) => setP({ ...p, cross: v })}
-              />
-              Cross-domain
-            </label>
-            <label className="inline-flex items-center gap-100">
-              <Checkbox
-                aria-describedby={`${fieldId}-parameters-8-message`}
-                checked={p.safety}
-                onCheckedChange={(v) => setP({ ...p, safety: v })}
-              />
-              Safety-critical
-            </label>
-          </Stack>
-          <FieldDescription id={`${fieldId}-parameters-8-message`}>
-            {"Each one adds controls to the baseline."}
-          </FieldDescription>
-        </FieldSet>
-        <FieldSet aria-labelledby={`${fieldId}-frequency-9-label`}>
-          <FieldLegend id={`${fieldId}-frequency-9-label`} variant="label">
-            {"Frequency"}
-          </FieldLegend>
-          <RadioGroup
-            aria-labelledby={`${fieldId}-frequency-9-label`}
-            value={frequency}
-            onValueChange={setFrequency}
-          >
-            <label className="inline-flex items-center gap-100">
-              <RadioGroupItem value="monthly" />
-              Monthly
-            </label>
-            <label className="inline-flex items-center gap-100">
-              <RadioGroupItem value="quarterly" />
-              Quarterly
-            </label>
-            <label className="inline-flex items-center gap-100">
-              <RadioGroupItem value="annually" />
-              Annually
-            </label>
+        <Field>
+          <CheckboxGroup value={parameters} onValueChange={setParameters}>
+            <FieldLegend variant="label">Parameters</FieldLegend>
+            <FieldDescription>Each one adds controls to the baseline.</FieldDescription>
+            {(
+              [
+                ["pii", "Handles PII"],
+                ["cross", "Cross-domain"],
+                ["safety", "Safety-critical"],
+              ] as const
+            ).map(([value, label]) => (
+              <Field key={value} orientation="horizontal">
+                <Checkbox value={value} />
+                <FieldLabel>{label}</FieldLabel>
+              </Field>
+            ))}
+          </CheckboxGroup>
+        </Field>
+        <FieldSet>
+          <FieldLegend variant="label">Frequency</FieldLegend>
+          <RadioGroup<string> value={frequency} onValueChange={setFrequency}>
+            {(["Monthly", "Quarterly", "Annually"] as const).map((label) => (
+              <Field key={label} orientation="horizontal">
+                <RadioGroupItem value={label.toLowerCase()} />
+                <FieldLabel>{label}</FieldLabel>
+              </Field>
+            ))}
           </RadioGroup>
         </FieldSet>
-        <Field>
-          <FieldLabel
-            id={`${fieldId}-notify-the-owner-on-status-change-10-label`}
-            htmlFor={`${fieldId}-notify-the-owner-on-status-change-10`}
-          >
-            {"Notify the owner on status change"}
-          </FieldLabel>
-          <Switch
-            id={`${fieldId}-notify-the-owner-on-status-change-10`}
-            aria-labelledby={`${fieldId}-notify-the-owner-on-status-change-10-label`}
-            aria-describedby={`${fieldId}-notify-the-owner-on-status-change-10-message`}
-            checked={notify}
-            onCheckedChange={setNotify}
-          />
-          <FieldDescription id={`${fieldId}-notify-the-owner-on-status-change-10-message`}>
-            {"Send an email when a finding changes status."}
-          </FieldDescription>
+        <Field orientation="horizontal">
+          <Switch checked={notify} onCheckedChange={setNotify} />
+          <FieldContent>
+            <FieldLabel>Notify the owner on status change</FieldLabel>
+            <FieldDescription>Send an email when a finding changes status.</FieldDescription>
+          </FieldContent>
         </Field>
       </Stack>
     </div>
   );
 }
 
-/** The choice controls: a Checkbox group and a RadioGroup in FieldSets; a Switch uses Field for its external label and hint. */
-export const Choices: Story = { render: () => <ChoiceFields /> };
+/**
+ * The choice controls: a CheckboxGroup whose legend names it and whose hint describes it, a
+ * RadioGroup named by its FieldSet's legend, and a Switch in a horizontal Field. Each item is a
+ * horizontal Field, so its label needs no id.
+ */
+export const Choices: Story = {
+  render: () => <ChoiceFields />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("group", { name: "Parameters" })).toHaveAccessibleDescription(
+      "Each one adds controls to the baseline.",
+    );
+    await userEvent.click(canvas.getByText("Cross-domain"));
+    await expect(canvas.getByRole("checkbox", { name: "Cross-domain" })).toBeChecked();
+    const frequency = canvas.getByRole("radiogroup", { name: "Frequency" });
+    await expect(within(frequency).getByRole("radio", { name: "Quarterly" })).toBeChecked();
+    const notify = canvas.getByRole("switch", { name: "Notify the owner on status change" });
+    await expect(notify).toHaveAccessibleDescription(
+      "Send an email when a finding changes status.",
+    );
+    await userEvent.click(canvas.getByText("Notify the owner on status change"));
+    await expect(notify).not.toBeChecked();
+  },
+};
 
 /** A form on a six-column Grid: each field as wide as its answer, a description across the row, the buttons at the end. */
 export const Layout: Story = {
   render: function FieldExample() {
     const fieldId = useId();
-
     const priyaItems = people;
     return (
-      <div style={{ width: 640 }}>
+      <div style={{ maxWidth: 640 }}>
         <Stack space="space.300">
           <Grid
             templateColumns="repeat(6, minmax(0, 1fr))"
@@ -566,55 +492,23 @@ export const Layout: Story = {
             rowGap="space.200"
           >
             <div style={{ gridColumn: "span 2" }}>
-              <Field>
-                <FieldLabel id={`${fieldId}-acronym-11-label`} htmlFor={`${fieldId}-acronym-11`}>
-                  {"Acronym"}
-                  <span aria-hidden="true" className="text-danger">
-                    {" "}
-                    *
-                  </span>
-                </FieldLabel>
-                <Input
-                  id={`${fieldId}-acronym-11`}
-                  aria-labelledby={`${fieldId}-acronym-11-label`}
-                  aria-required={true}
-                  aria-describedby={`${fieldId}-acronym-11-message`}
-                  defaultValue="ATLAS"
-                  maxLength={8}
-                />
-                <FieldDescription id={`${fieldId}-acronym-11-message`}>
-                  {"Up to eight characters."}
-                </FieldDescription>
+              <Field required>
+                <FieldLabel>Acronym</FieldLabel>
+                <Input defaultValue="ATLAS" maxLength={8} />
+                <FieldDescription>Up to eight characters.</FieldDescription>
               </Field>
             </div>
             <div style={{ gridColumn: "span 4" }}>
-              <Field>
-                <FieldLabel
-                  id={`${fieldId}-program-name-12-label`}
-                  htmlFor={`${fieldId}-program-name-12`}
-                >
-                  {"Program name"}
-                  <span aria-hidden="true" className="text-danger">
-                    {" "}
-                    *
-                  </span>
-                </FieldLabel>
-                <Input
-                  id={`${fieldId}-program-name-12`}
-                  aria-labelledby={`${fieldId}-program-name-12-label`}
-                  aria-required={true}
-                  defaultValue="Atlas payments platform"
-                />
+              <Field required>
+                <FieldLabel>Program name</FieldLabel>
+                <Input defaultValue="Atlas payments platform" />
               </Field>
             </div>
             <div style={{ gridColumn: "span 3" }}>
               <Field>
-                <FieldLabel id={`${fieldId}-owner-13-label`} htmlFor={`${fieldId}-owner-13`}>
-                  {"Owner"}
-                </FieldLabel>
+                <FieldLabel>Owner</FieldLabel>
                 <Combobox<(typeof priyaItems)[number]>
                   items={priyaItems}
-
                   isItemEqualToValue={(item, selected) => item.value === selected.value}
                   filter={(item, query) =>
                     [item.label, item.value, "keywords" in item ? item.keywords : ""]
@@ -622,19 +516,12 @@ export const Layout: Story = {
                       .toLocaleLowerCase()
                       .includes(query.toLocaleLowerCase())
                   }
-                  value={priyaItems.find((item) => item.value === "priya") ?? null}
-                  onValueChange={(item) => {
-                    return undefined;
-                  }}
+                  defaultValue={priyaItems.find((item) => item.value === "priya") ?? null}
                 >
-                  <ComboboxInput
-                    id={`${fieldId}-owner-13`}
-                    aria-labelledby={`${fieldId}-owner-13-label`}
-                    placeholder="Choose an owner"
-                  />
+                  <ComboboxInput placeholder="Choose an owner" />
                   <ComboboxContent>
-                    <ComboboxEmpty>{"No matches."}</ComboboxEmpty>
-                    <ComboboxList aria-labelledby={`${fieldId}-owner-13-label`}>
+                    <ComboboxEmpty>No matches.</ComboboxEmpty>
+                    <ComboboxList>
                       {(item) => (
                         <ComboboxItem
                           key={item.value}
@@ -654,37 +541,24 @@ export const Layout: Story = {
             </div>
             <div style={{ gridColumn: "span 3" }}>
               <Field>
-                <FieldLabel
-                  id={`${fieldId}-authorization-due-14-label`}
-                  htmlFor={`${fieldId}-authorization-due-14`}
-                >
-                  {"Authorization due"}
+                <FieldLabel id={`${fieldId}-due-label`} htmlFor={`${fieldId}-due`}>
+                  Authorization due
                 </FieldLabel>
                 <DatePicker
-                  id={`${fieldId}-authorization-due-14`}
-                  aria-labelledby={`${fieldId}-authorization-due-14-label`}
+                  id={`${fieldId}-due`}
+                  aria-labelledby={`${fieldId}-due-label`}
                   defaultValue="2026-12-18"
                 />
               </Field>
             </div>
             <div style={{ gridColumn: "span 6" }}>
               <Field>
-                <FieldLabel
-                  id={`${fieldId}-description-15-label`}
-                  htmlFor={`${fieldId}-description-15`}
-                >
-                  {"Description"}
-                </FieldLabel>
+                <FieldLabel>Description</FieldLabel>
                 <Textarea
-                  id={`${fieldId}-description-15`}
-                  aria-labelledby={`${fieldId}-description-15-label`}
-                  aria-describedby={`${fieldId}-description-15-message`}
                   rows={3}
                   placeholder="Cardholder and settlement processing for the Atlas platform."
                 />
-                <FieldDescription id={`${fieldId}-description-15-message`}>
-                  {"What the system does for the mission."}
-                </FieldDescription>
+                <FieldDescription>What the system does for the mission.</FieldDescription>
               </Field>
             </div>
           </Grid>
@@ -700,8 +574,6 @@ export const Layout: Story = {
 
 /** Submit-only validation; incomplete fields keep the submit button available. */
 function RequiredForm() {
-  const fieldId = useId();
-
   const [saved, setSaved] = useState(false);
   const schema = z.object({
     title: z.string().trim().min(1, "Enter a title."),
@@ -726,45 +598,17 @@ function RequiredForm() {
         {(["title", "owner"] as const).map((name) => (
           <form.Field key={name} name={name}>
             {(field) => {
-              const fieldError16 =
-                field.state.meta.isTouched && !field.state.meta.isValid
-                  ? [...new Set(field.state.meta.errors.map((error) => error?.message))].join(" ")
-                  : undefined;
+              const invalid = field.state.meta.isTouched && !field.state.meta.isValid;
               return (
-                <Field data-invalid={Boolean(fieldError16)}>
-                  <FieldLabel
-                    id={`${fieldId}-field-16-${encodeURIComponent(String(name))}-label`}
-                    htmlFor={`${fieldId}-field-16-${encodeURIComponent(String(name))}`}
-                  >
-                    {name === "title" ? "Title" : "Owner"}
-                    <span aria-hidden="true" className="text-danger">
-                      {" "}
-                      *
-                    </span>
-                  </FieldLabel>
+                <Field invalid={invalid} required>
+                  <FieldLabel>{name === "title" ? "Title" : "Owner"}</FieldLabel>
                   <Input
-                    id={`${fieldId}-field-16-${encodeURIComponent(String(name))}`}
-                    aria-labelledby={`${fieldId}-field-16-${encodeURIComponent(String(name))}-label`}
-                    aria-required={true}
-                    aria-invalid={Boolean(fieldError16)}
-                    aria-describedby={
-                      fieldError16
-                        ? `${fieldId}-field-16-${encodeURIComponent(String(name))}-message`
-                        : undefined
-                    }
                     name={field.name}
                     value={field.state.value}
-                    required
                     onBlur={field.handleBlur}
-                    onChange={(event) => field.handleChange(event.target.value)}
+                    onValueChange={field.handleChange}
                   />
-                  {Boolean(fieldError16) ? (
-                    <FieldError
-                      id={`${fieldId}-field-16-${encodeURIComponent(String(name))}-message`}
-                    >
-                      {fieldError16}
-                    </FieldError>
-                  ) : null}
+                  <FieldError errors={invalid ? field.state.meta.errors : []} />
                 </Field>
               );
             }}
@@ -783,7 +627,7 @@ function RequiredForm() {
             Reset
           </Button>
           <Button type="submit" variant="primary">
-            Save
+            Save record
           </Button>
         </Inline>
       </Stack>
@@ -793,6 +637,18 @@ function RequiredForm() {
 export const RequiredOnSubmit: Story = {
   name: "Required on submit",
   render: () => <RequiredForm />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const title = canvas.getByRole("textbox", { name: "Title" });
+    await expect(title).toHaveAttribute("aria-required", "true");
+    await expect(canvas.getByRole("button", { name: "Save record" })).toBeEnabled();
+    await userEvent.click(canvas.getByRole("button", { name: "Save record" }));
+    await expect(title).toHaveAttribute("aria-invalid", "true");
+    await expect(title).toHaveAccessibleDescription("Enter a title.");
+    await expect(canvas.getByRole("textbox", { name: "Owner" })).toHaveAccessibleDescription(
+      "Enter an owner.",
+    );
+  },
 };
 
 function BoundCustomControl({
@@ -803,8 +659,12 @@ function BoundCustomControl({
 }
 const recoverySchema = z
   .object({
-    name: z.string().trim().min(1, "Required."),
-    email: z.string().trim().min(1, "Required.").pipe(z.string().email("Enter an email address.")),
+    name: z.string().trim().min(1, "Enter a name."),
+    email: z
+      .string()
+      .trim()
+      .min(1, "Enter an email address.")
+      .pipe(z.string().email("Enter an email address like name@example.test.")),
     custom: z.string(),
     status: z.string(),
     owner: z.string(),
@@ -814,6 +674,14 @@ const recoverySchema = z
     message: "Choose an owner for assigned work.",
   });
 const recoveryOwners = [{ value: "alice", label: "Alice" }];
+const takenEmail = "This email is already registered.";
+const summarized = ["name", "email", "owner"] as const;
+const firstMessage = (errors: readonly unknown[] | undefined) =>
+  errors
+    ?.map((error) =>
+      typeof error === "string" ? error : (error as { message?: string } | undefined)?.message,
+    )
+    .find(Boolean);
 
 function RecoveryDemo() {
   const fieldId = useId();
@@ -821,22 +689,37 @@ function RecoveryDemo() {
   const selectRef = useRef<HTMLButtonElement>(null);
   const comboRef = useRef<HTMLInputElement>(null);
   const [saved, setSaved] = useState(false);
+  const [issues, setIssues] = useState<ErrorSummaryIssue[]>([]);
+  const [attempts, setAttempts] = useState(0);
+  // TanStack clears a submit-time error on the field's next blur, and the summary taking focus is
+  // that blur, so the rejected value is kept here until the reader changes it.
+  const [rejectedEmail, setRejectedEmail] = useState<string | null>(null);
   const form = useForm({
     defaultValues: { name: "", email: "", custom: "", status: "open", owner: "" },
     validationLogic: revalidateLogic({ mode: "submit", modeAfterSubmission: "change" }),
     validators: {
       onDynamic: recoverySchema,
       // A local stand-in for a server response; no request leaves the story.
-      onSubmitAsync: async ({ value }) =>
-        value.email === "taken@example.test"
-          ? { fields: { email: { message: "This email is already registered." } } }
-          : undefined,
+      onSubmitAsync: async ({ value }) => {
+        if (value.email !== "taken@example.test") return undefined;
+        setRejectedEmail(value.email);
+        return { fields: { email: { message: takenEmail } } };
+      },
     },
-    onSubmitInvalid: () =>
-      requestAnimationFrame(() =>
-        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(),
-      ),
-    onSubmit: () => setSaved(true),
+    // The summary takes the issues found at this submission and focuses itself.
+    onSubmitInvalid: ({ formApi }) => {
+      setIssues(
+        summarized.flatMap((key) => {
+          const message = firstMessage(formApi.getFieldMeta(key)?.errors);
+          return message ? [{ message, target: `${fieldId}-${key}` }] : [];
+        }),
+      );
+      setAttempts((count) => count + 1);
+    },
+    onSubmit: () => {
+      setIssues([]);
+      setSaved(true);
+    },
   });
   const requiresOwner = useStore(form.store, (state) => state.values.status === "assigned");
   return (
@@ -853,49 +736,46 @@ function RecoveryDemo() {
         }}
       >
         <Stack space="space.200">
+          <ErrorSummary issues={issues} focusKey={attempts} />
           {(["name", "email"] as const).map((name) => (
             <form.Field key={name} name={name}>
               {(field) => {
-                const invalid = field.state.meta.isTouched && !field.state.meta.isValid;
-                const id = `${fieldId}-${name}`;
-                const input = (
-                  <Input
-                    id={id}
-                    name={field.name}
-                    type={name === "email" ? "email" : "text"}
-                    required
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(event) => field.handleChange(event.target.value)}
-                    aria-invalid={invalid}
-                    aria-describedby={`${id}-message`}
-                  />
-                );
+                const rejected = name === "email" && field.state.value === rejectedEmail;
+                const invalid =
+                  rejected || (field.state.meta.isTouched && !field.state.meta.isValid);
+                const control = {
+                  id: `${fieldId}-${name}`,
+                  name: field.name,
+                  value: field.state.value,
+                  onBlur: field.handleBlur,
+                  onValueChange: field.handleChange,
+                };
                 return (
-                  <Field data-invalid={invalid}>
-                    <FieldLabel htmlFor={id}>
-                      {name === "name" ? "Name" : "Email"}
-                      <span aria-hidden className="text-danger">
-                        {" "}
-                        *
-                      </span>
-                    </FieldLabel>
+                  <Field invalid={invalid} required>
+                    <FieldLabel>{name === "name" ? "Name" : "Email"}</FieldLabel>
                     {name === "name" ? (
                       <div data-testid="field-wrapper">
-                        <InputGroup>{input}</InputGroup>
+                        <InputGroup>
+                          <InputGroupInput {...control} />
+                        </InputGroup>
                       </div>
                     ) : (
-                      input
+                      <Input {...control} type="email" />
                     )}
-                    {invalid ? (
-                      <FieldError id={`${id}-message`} errors={field.state.meta.errors} />
-                    ) : (
-                      <FieldDescription id={`${id}-message`}>
-                        {name === "name"
-                          ? "Use the full name."
-                          : "Use taken@example.test to try a server rejection."}
-                      </FieldDescription>
-                    )}
+                    <FieldDescription>
+                      {name === "name"
+                        ? "Use the full name."
+                        : "Use taken@example.test to try a server rejection."}
+                    </FieldDescription>
+                    <FieldError
+                      errors={
+                        rejected
+                          ? [{ message: takenEmail }]
+                          : invalid
+                            ? field.state.meta.errors
+                            : []
+                      }
+                    />
                   </Field>
                 );
               }}
@@ -904,17 +784,15 @@ function RecoveryDemo() {
           <form.Field name="custom">
             {(field) => (
               <Field>
-                <FieldLabel htmlFor={`${fieldId}-custom`}>Custom identifier</FieldLabel>
+                <FieldLabel>Custom identifier</FieldLabel>
                 <BoundCustomControl
-                  id={`${fieldId}-custom`}
                   name={field.name}
                   value={field.state.value}
                   onChange={field.handleChange}
                   onBlur={field.handleBlur}
-                  aria-describedby={`${fieldId}-custom-hint`}
                 />
-                <FieldDescription id={`${fieldId}-custom-hint`}>
-                  Native props reach the input through a custom component.
+                <FieldDescription>
+                  The Field reaches the input through a custom component.
                 </FieldDescription>
               </Field>
             )}
@@ -922,7 +800,7 @@ function RecoveryDemo() {
           <form.Field name="status">
             {(field) => (
               <Field>
-                <FieldLabel htmlFor={`${fieldId}-status`}>Status</FieldLabel>
+                <FieldLabel>Status</FieldLabel>
                 <Select
                   items={{ open: "Open", assigned: "Assigned" }}
                   name={field.name}
@@ -930,7 +808,6 @@ function RecoveryDemo() {
                   onValueChange={(value) => field.handleChange(value ?? "open")}
                 >
                   <SelectTrigger
-                    id={`${fieldId}-status`}
                     ref={selectRef}
                     data-testid="status-trigger"
                     className="w-full"
@@ -950,16 +827,8 @@ function RecoveryDemo() {
             {(field) => {
               const invalid = field.state.meta.isTouched && !field.state.meta.isValid;
               return (
-                <Field data-invalid={invalid}>
-                  <FieldLabel htmlFor={`${fieldId}-owner`}>
-                    Owner
-                    {requiresOwner && (
-                      <span aria-hidden className="text-danger">
-                        {" "}
-                        *
-                      </span>
-                    )}
-                  </FieldLabel>
+                <Field invalid={invalid} required={requiresOwner}>
+                  <FieldLabel>Owner</FieldLabel>
                   <Combobox
                     items={recoveryOwners}
                     name={field.name}
@@ -970,9 +839,6 @@ function RecoveryDemo() {
                       id={`${fieldId}-owner`}
                       ref={comboRef}
                       onBlur={field.handleBlur}
-                      aria-required={requiresOwner}
-                      aria-invalid={invalid}
-                      aria-describedby={`${fieldId}-owner-message`}
                     />
                     <ComboboxContent>
                       <ComboboxEmpty>No matches.</ComboboxEmpty>
@@ -985,39 +851,12 @@ function RecoveryDemo() {
                       </ComboboxList>
                     </ComboboxContent>
                   </Combobox>
-                  {invalid ? (
-                    <FieldError id={`${fieldId}-owner-message`} errors={field.state.meta.errors} />
-                  ) : (
-                    <FieldDescription id={`${fieldId}-owner-message`}>
-                      Required when status is Assigned.
-                    </FieldDescription>
-                  )}
+                  <FieldDescription>Required when status is Assigned.</FieldDescription>
+                  <FieldError errors={invalid ? field.state.meta.errors : []} />
                 </Field>
               );
             }}
           </form.Field>
-          <form.Subscribe selector={(state) => state.fieldMeta}>
-            {(meta) => (
-              <Inline role="group" aria-label="Validation summary" space="space.200" shouldWrap>
-                {(["name", "email", "owner"] as const)
-                  .filter((key) => meta[key]?.isTouched && meta[key]?.errors.length)
-                  .map((key) => (
-                    <Button
-                      key={key}
-                      type="button"
-                      variant="link"
-                      onClick={() =>
-                        formRef.current
-                          ?.querySelector<HTMLElement>(`[id="${fieldId}-${key}"]`)
-                          ?.focus()
-                      }
-                    >
-                      Review {key}
-                    </Button>
-                  ))}
-              </Inline>
-            )}
-          </form.Subscribe>
           <Inline space="space.100" shouldWrap>
             <Button type="button" onClick={() => selectRef.current?.focus()}>
               Focus status ref
@@ -1040,6 +879,8 @@ function RecoveryDemo() {
               variant="subtle"
               onClick={() => {
                 form.reset();
+                setIssues([]);
+                setRejectedEmail(null);
                 setSaved(false);
               }}
             >
@@ -1084,6 +925,7 @@ export const ValidationRecovery: Story = {
     const email = canvas.getByRole("textbox", { name: "Email" });
     const owner = canvas.getByRole("combobox", { name: "Owner" });
     const status = canvas.getByRole("combobox", { name: "Status" });
+    const save = canvas.getByRole("button", { name: "Save details" });
     await expect(name).toHaveAccessibleDescription("Use the full name.");
     await expect(canvasElement.querySelectorAll(`[id="${name.id}"]`)).toHaveLength(1);
     const label = canvasElement.querySelector<HTMLLabelElement>(`label[for="${name.id}"]`)!;
@@ -1091,21 +933,36 @@ export const ValidationRecovery: Story = {
     await expect(name).toHaveFocus();
     await expect(
       canvas.getByRole("textbox", { name: "Custom identifier" }),
-    ).toHaveAccessibleDescription("Native props reach the input through a custom component.");
-    await userEvent.click(canvas.getByRole("button", { name: "Save details" }));
-    await waitFor(() => expect(name).toHaveFocus());
+    ).toHaveAccessibleDescription("The Field reaches the input through a custom component.");
+    // A failed submission focuses the summary, which lists every issue and leads to each field.
+    await userEvent.click(save);
+    const summary = await canvas.findByRole("alert", { name: "There is a problem" });
+    await waitFor(() => expect(summary).toHaveFocus());
+    await expect(within(summary).getAllByRole("listitem")).toHaveLength(2);
     await expect(name).toHaveAttribute("aria-invalid", "true");
     await expect(email).toHaveAttribute("aria-invalid", "true");
-    await userEvent.click(canvas.getByRole("button", { name: "Review email" }));
+    await expect(name).toHaveAccessibleDescription("Use the full name. Enter a name.");
+    await userEvent.click(within(summary).getByRole("button", { name: "Enter an email address." }));
     await expect(email).toHaveFocus();
+    await userEvent.click(within(summary).getByRole("button", { name: "Enter a name." }));
+    await expect(name).toHaveFocus();
     await userEvent.type(name, "Alice");
     await waitFor(() => expect(name).not.toHaveAttribute("aria-invalid", "true"));
     await userEvent.type(email, "wrong");
-    await expect(email).toHaveAccessibleDescription("Enter an email address.");
+    await expect(email).toHaveAccessibleDescription(
+      "Use taken@example.test to try a server rejection. Enter an email address like name@example.test.",
+    );
     await userEvent.clear(email);
     await userEvent.type(email, "taken@example.test{Enter}");
-    await waitFor(() =>
-      expect(email).toHaveAccessibleDescription("This email is already registered."),
+    await waitFor(() => expect(summary).toHaveTextContent("This email is already registered."));
+    await waitFor(() => expect(summary).toHaveFocus());
+    await userEvent.click(
+      within(summary).getByRole("button", { name: "This email is already registered." }),
+    );
+    await expect(email).toHaveFocus();
+    await expect(email).toHaveAttribute("aria-invalid", "true");
+    await expect(email).toHaveAccessibleDescription(
+      "Use taken@example.test to try a server rejection. This email is already registered.",
     );
     await expect(name).toHaveValue("Alice");
     await expect(canvas.queryByRole("status", { name: "Saved details" })).toBeNull();
@@ -1113,13 +970,21 @@ export const ValidationRecovery: Story = {
     await userEvent.type(email, "alice@example.test");
     await userEvent.click(status);
     await userEvent.click(await page.findByRole("option", { name: "Assigned" }));
-    await userEvent.click(canvas.getByRole("button", { name: "Save details" }));
-    await waitFor(() => expect(owner).toHaveFocus());
-    await expect(owner).toHaveAccessibleDescription("Choose an owner for assigned work.");
+    await expect(owner).toHaveAttribute("aria-required", "true");
+    await userEvent.click(save);
+    await waitFor(() => expect(summary).toHaveFocus());
+    await userEvent.click(
+      within(summary).getByRole("button", { name: "Choose an owner for assigned work." }),
+    );
+    await expect(owner).toHaveFocus();
+    await expect(owner).toHaveAccessibleDescription(
+      "Required when status is Assigned. Choose an owner for assigned work.",
+    );
     // Removing a conditional requirement clears its stale error.
     await userEvent.click(status);
     await userEvent.click(await page.findByRole("option", { name: "Open" }));
     await waitFor(() => expect(owner).not.toHaveAttribute("aria-invalid", "true"));
+    await expect(owner).not.toHaveAttribute("aria-required", "true");
     await userEvent.click(canvas.getByRole("button", { name: "Focus status ref" }));
     await expect(status).toHaveFocus();
     await expect(status).toHaveAttribute("data-testid", "status-trigger");
@@ -1135,12 +1000,13 @@ export const ValidationRecovery: Story = {
     await expect(data.get("owner")).toBe("alice");
     await expect(data.get("external")).toBe("alice");
     await expect(data.get("custom")).toBe("REC-1");
-    await userEvent.click(canvas.getByRole("button", { name: "Save details" }));
+    await userEvent.click(save);
     await waitFor(() =>
       expect(canvas.getByRole("status", { name: "Saved details" })).toHaveTextContent(
         "Details saved",
       ),
     );
+    await expect(canvas.queryByRole("alert")).toBeNull();
     await userEvent.click(canvas.getByRole("button", { name: "Reset" }));
     await expect(name).toHaveValue("");
     await expect(email).toHaveValue("");

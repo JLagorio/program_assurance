@@ -11,15 +11,19 @@ Compose an input or textarea with icons, units and actions using shadcn's InputG
 
 ```tsx
 <Field>
-  <FieldLabel htmlFor="inputgroup">Retention</FieldLabel>
+  <FieldLabel>Retention</FieldLabel>
   <InputGroup>
-    <InputGroupInput id="inputgroup" type="number" defaultValue="90" />
+    <InputGroupInput type="number" defaultValue="90" />
     <InputGroupAddon align="inline-end">
       <InputGroupText>days</InputGroupText>
     </InputGroupAddon>
   </InputGroup>
 </Field>
 ```
+
+InputGroupInput inside a [Field](?path=/docs/components-field--docs) takes the label, hint and error with no ids, and the whole group draws the Field's invalid border.
+
+<Canvas of={Stories.BoundInField} />
 
 Replace `leading` and `trailing` props with InputGroupAddon children. Replace a direct Input/Textarea child with InputGroupInput/InputGroupTextarea. Set width through native style or the surrounding layout.
 
@@ -32,6 +36,12 @@ The actual input or textarea supplies focus, invalid, read-only and disabled sur
 <Canvas of={Stories.Units} />
 <Canvas of={Stories.Multiline} />
 <Canvas of={Stories.States} />
+
+## Narrow
+
+A keyboard hint, an InputGroupText holding a [Kbd](?path=/docs/components-kbd--docs), shows while the group is 256px or wider and steps aside below that, so the input keeps the room; units, prefixes and buttons stay at every width. A group with a hint measures itself as a size container, so give it a definite width (the layout's, `w-full` or a style width), not a shrink-to-fit parent. Squeezed narrower than its addons, the group clips them at its own edge and never paints over its neighbours, but the field is unusable at that width: a row that crowded takes the search as an icon button instead, as the [Shell's top nav](?path=/docs/layout-shell--docs) does below `md` (see Don't).
+
+<Canvas of={Stories.Narrow} />
 
 ## Accessibility
 
@@ -46,3 +56,7 @@ Group and Addon accept native div props and refs; Text accepts span props. Input
 ## Related
 
 [Input](?path=/docs/components-input--docs) · [Textarea](?path=/docs/components-textarea--docs) · [Combobox](?path=/docs/components-combobox--docs) · [shadcn InputGroup](https://ui.shadcn.com/docs/components/base/input-group)
+
+## Don't
+
+<Canvas of={Stories.Dont} />

@@ -1,0 +1,71 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { FileTrigger } from "../../components";
+import * as Stories from "./FileTrigger.stories";
+
+<Meta of={Stories} />
+
+# FileTrigger
+
+A [Button](?path=/docs/components-button--docs) that opens the browser's file picker and hands the chosen files to `onSelect`. The native file input is in the document, hidden, so it takes no space, no focus and no place in the accessibility tree; the button is the control, and the picker returns focus to it when it closes.
+
+Use it where the reader attaches a file from a compact spot: a form row, a composer, a toolbar. Where files can also be dropped, or where the files must be checked against a type or a size, use [DropZone](?path=/docs/components-dropzone--docs), which puts a FileTrigger inside a drop region and does the checking. Do not use `<Input type="file">`: its button loses its frame and the control reads as a line of text.
+
+<Canvas of={Stories.InAField} />
+
+## Choosing files
+
+- `accept` is the input's own attribute, as a string or a list: media types (`application/pdf`), wildcards (`image/*`) and extensions (`.csv`). The picker filters by it, but a reader can still pick another file, so check what you receive (DropZone does).
+- `multiple` lets the reader choose several files at once; one by default. The label follows: "Choose a file" or "Choose files" (the `chooseFile` and `chooseFiles` messages).
+- `onSelect` receives the files as an array once the picker closes with a choice. Cancelling calls nothing. The input is emptied after each choice, so choosing the same file again, after a removal or a failed upload, calls `onSelect` again.
+- `capture` offers the camera directly on a phone: `environment` the rear one, `user` the front.
+- `onClick` runs first; calling `preventDefault()` in it keeps the picker shut.
+- The files are the caller's: FileTrigger does not submit them with a form. Show them as [Attachment](?path=/docs/components-attachment--docs) rows and upload them.
+
+<Canvas of={Stories.ChosenFilesAsAttachments} />
+
+## In a Field
+
+Inside a [Field](?path=/docs/components-field--docs) the button is the Field's control, as Base UI's own controls are:
+
+- The FieldLabel points at it (`for`), so a click on the label opens the picker, as a native file input's label does.
+- It is named by the label and then its own words, "Signed agreement Choose a file", so a speech command can use what the reader sees. `required` on the Field adds "(required)" to the name; a button cannot carry `aria-required`.
+- The FieldDescription and FieldError describe it, and the Field's `invalid` reaches it as `aria-invalid`.
+- The Field's or a FieldSet's `disabled` disables it.
+
+An `aria-label` or `aria-labelledby` of your own replaces the composed name.
+
+## States
+
+Every Button prop applies. `isLoading` keeps focus and blocks the picker while a choice is being read; `disabledReason` keeps the button reachable and says why it is unavailable; `disabled` takes it out.
+
+<Canvas of={Stories.States} />
+
+In a [ButtonGroup](?path=/docs/components-buttongroup--docs) a FileTrigger is a segment like any Button: the hidden input is not counted, so the group rounds the trigger when it comes last.
+
+<Canvas of={Stories.InAButtonGroup} />
+
+## Accessibility
+
+- One tab stop: the button. The hidden input cannot be reached by Tab, is not read, and does not count as a second control.
+- Enter and Space open the picker; the browser's picker is keyboard operable and returns focus to the button.
+- Say the constraints next to the button in a FieldDescription ("PDF, up to 10 MB"), so they are read with it.
+- What happens after the choice is the caller's to say: add the files as rows the reader can reach, and announce the result through a status (the `announce` helper, or a `role="status"` line) if nothing else changes where focus is.
+
+## Props
+
+<ArgTypes of={FileTrigger} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+[DropZone](?path=/docs/components-dropzone--docs) · [Attachment](?path=/docs/components-attachment--docs) · [Button](?path=/docs/components-button--docs) · [Field](?path=/docs/components-field--docs). Reference: [React Aria FileTrigger](https://react-spectrum.adobe.com/react-aria/FileTrigger.html).
+
+## Don't
+
+<Canvas of={Stories.DoDont} />

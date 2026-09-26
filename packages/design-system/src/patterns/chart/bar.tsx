@@ -19,6 +19,7 @@ import {
   CardHead,
   Plot,
   PlotSkeleton,
+  ReferenceLabels,
   References,
   Swatch,
   TextureDefs,
@@ -35,6 +36,7 @@ import {
   grid,
   hasNegative,
   hasRefLabels,
+  heights,
   hoveredColor,
   isRange,
   marginFor,
@@ -50,8 +52,11 @@ import {
   tickValue,
   truncate,
   useFrame,
+  useFrameData,
+  useFrameReport,
   useMotion,
   usePicked,
+  usePlotSize,
   useTooltipMotion,
   valueDomain,
   type Active,
@@ -63,16 +68,17 @@ import {
   type ChartSeries,
   type ChartSize,
   type Formatter,
+  type FrameReport,
   type Texture,
 } from "./_shared";
 
 export type ChartBarProps = {
-  /** Plain records, in the order they are drawn. */
-  data: ChartDatum[];
-  /** The key that names each datum along the category axis. */
-  x: string;
-  /** One entry per value key. A series' own `format` wins over the plot's. */
-  series: ChartSeries[];
+  /** Plain records, in the order they are drawn. Inside a Frame, the Frame's `data` when unsaid. */
+  data?: ChartDatum[] | undefined;
+  /** The key that names each datum along the category axis. Inside a Frame, the Frame's `x` when unsaid. */
+  x?: string | undefined;
+  /** One entry per value key. A series' own `format` wins over the plot's. Inside a Frame, the Frame's `series` when unsaid. */
+  series?: ChartSeries[] | undefined;
   /** Stack the series in one bar per category, parts of a whole. */
   stacked?: boolean | undefined;
   /** Categories down the side, values across: for long names, or many categories. */
@@ -92,11 +98,11 @@ export type ChartBarProps = {
   texture?: boolean | undefined;
   /** Charts with the same id share their hover. The Frame's `syncId` sets it. */
   syncId?: string | undefined;
-  /** The plot's height. `medium` (200px) when unsaid. */
+  /** The plot's height. The Frame's when unsaid, else `medium` (200px); `large` in the expanded Dialog. */
   size?: ChartSize | undefined;
   /** A height in pixels when a layout must, in place of `size`. */
   height?: number | undefined;
-  /** The number format for the value axis, the tooltip and the labels. The Frame's, else the kit's. */
+  /** The number format for the value axis, the tooltip, the labels and the Frame's table. The Frame's, else the kit's. */
   format?: Formatter | undefined;
   /** The format for a category: a date, a code. */
   formatX?: CategoryFormatter | undefined;
@@ -204,9 +210,9 @@ const radiusFor = (value: unknown, stacked: boolean, horizontal: boolean): Radiu
  * focused category, chooses it: `onSelect` hears, and `details` opens a card on it.
  */
 export function ChartBar({
-  data,
-  x,
-  series,
+  data: dataProp,
+  x: xProp,
+  series: seriesProp,
   stacked,
   horizontal,
   labels = "none",
@@ -217,8 +223,8 @@ export function ChartBar({
   yLabel,
   texture: textureProp,
   syncId,
-  size,
-  height,
+  size: sizeProp,
+  height: heightProp,
   format: formatProp,
   formatX: formatXProp,
   reference,
@@ -230,7 +236,7 @@ export function ChartBar({
 }: ChartBarProps) {
   const { t } = useLedgerLocale();
 
-  const { name, hidden, highlighted, format, formatX, loading, sync, texture } = useFrame(
+  const { name, hidden, highlighted, format, formatX, loading, sync, texture, offstage } = useFrame(
     label,
     formatProp,
     formatXProp,
@@ -238,6 +244,21 @@ export function ChartBar({
     syncId,
     textureProp,
   );
+  const { data, x, series } = useFrameData(dataProp, xProp, seriesProp);
+  const { size, height } = usePlotSize(sizeProp, heightProp);
+  const all = useMemo(() => (line ? [...series, line] : series), [series, line]);
+  const report = useMemo<FrameReport>(
+    () => ({
+      series: all,
+      swatch: "square",
+      format,
+      formatX,
+      height: height ?? heights[size ?? "medium"],
+      table: { kind: "category", data, x, series: all, xLabel },
+    }),
+    [all, format, formatX, height, size, data, x, xLabel],
+  );
+  useFrameReport(report);
   const id = useId();
   const motion = useMotion();
   const tooltipMotion = useTooltipMotion();
@@ -269,6 +290,7 @@ export function ChartBar({
       ),
     [data, series, format, domain, yLabel],
   );
+  if (offstage) return null;
   if (loading)
     return (
       <PlotSkeleton
@@ -279,7 +301,6 @@ export function ChartBar({
         className={className}
       />
     );
-  const all = line ? [...series, line] : series;
   const lineTone = line ? (line.tone ?? categoricalTone(series.length)) : "brand";
   const colorOf = (s: ChartSeries, i: number) => chartColor(s.tone ?? categoricalTone(i));
   const hoveredOf = (s: ChartSeries, i: number) => hoveredColor(s.tone ?? categoricalTone(i));
@@ -512,6 +533,7 @@ export function ChartBar({
           />
         ) : null}
         <References reference={reference} horizontal={horizontal} />
+        <ReferenceLabels reference={reference} horizontal={horizontal} />
         {chooses ? <ActiveProbe target={active} /> : null}
       </BarChart>
     </Plot>

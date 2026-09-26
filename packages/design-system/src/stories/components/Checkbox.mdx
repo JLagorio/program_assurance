@@ -7,13 +7,16 @@ import * as Stories from "./Checkbox.stories";
 
 # Checkbox
 
-An independent boolean choice, using the shadcn Base UI root and indicator. The 16px control supplies the check or mixed-state dash; labels and descriptions are composed outside it.
+An independent boolean choice, using the shadcn Base UI root and indicator. The 16px control supplies the check or mixed-state dash; the label and hint come from a horizontal [Field](?path=/docs/components-field--docs), which ties them to the box with no ids.
 
 ```tsx
-<label className="inline-flex items-center gap-100">
+<Field orientation="horizontal">
   <Checkbox name="pii" value="yes" defaultChecked />
-  Handles PII
-</label>
+  <FieldContent>
+    <FieldLabel>Handles PII</FieldLabel>
+    <FieldDescription>The package includes records about a person.</FieldDescription>
+  </FieldContent>
+</Field>
 ```
 
 Use [RadioGroup](?path=/docs/components-radiogroup--docs) for one selected answer from visible choices, or [Switch](?path=/docs/components-switch--docs) for an on/off setting. The caller decides when to save a change.
@@ -24,17 +27,17 @@ Use [RadioGroup](?path=/docs/components-radiogroup--docs) for one selected answe
 
 Use boolean `checked` with `onCheckedChange(checked, details)`, or `defaultChecked` for local state. `details.cancel()` rejects a change. `disabled` prevents interaction and removes the control from the tab order; `readOnly` keeps it focusable without allowing changes.
 
-Mixed state uses a separate boolean `indeterminate` prop. A select-all control can derive `checked={allSelected}` and `indeterminate={someSelected && !allSelected}`, then update every child in `onCheckedChange`. [Table.Selection](?path=/docs/components-table--docs) uses the same two booleans.
-
-The existing Base UI `CheckboxGroup` can also own the selected values and derive a `parent` checkbox's mixed state. Import that grouping primitive from `@base-ui/react/checkbox-group` when using this composition:
+Mixed state uses a separate boolean `indeterminate` prop. [Table.Selection](?path=/docs/components-table--docs) derives it from the rows it selects. For a list of choices with select-all, use a [CheckboxGroup](?path=/docs/components-checkboxgroup--docs): it owns the ticked values and its CheckboxGroupSelectAll derives the checked and mixed states.
 
 <Canvas of={Stories.Parent} />
 
 ## Labels, Field and forms
 
-A wrapping label names the checkbox and toggles it when clicked. A sibling label uses `htmlFor` with the checkbox's `id`. Use `aria-label` for a control with no visible label. Put supporting text in an element referenced by `aria-describedby`.
+In a Field the FieldLabel names the box and toggles it when clicked, the FieldDescription and FieldError describe it, and the Field's `invalid`, `required` and `disabled` reach it; nothing needs an id. Outside a Field, a wrapping label or a sibling label with `htmlFor` and the checkbox's `id` names it, and `aria-describedby` links supporting text. Use `aria-label` only for a box with no visible label. Several related boxes belong in a [CheckboxGroup](?path=/docs/components-checkboxgroup--docs); requiring the group does not require every box. Native `required` on the box is a browser and Base UI constraint; the Field's `required` only announces and marks.
 
-Compose [Field](?path=/docs/components-field--docs) with FieldLabel and FieldDescription/FieldError. Associate the checkbox through `htmlFor`/`id` and `aria-describedby`; pass `aria-invalid` and `aria-required` explicitly. For several checkboxes, use FieldSet/FieldLegend and give each choice its own label. Requiring the group does not require every checkbox. Native `required` enables browser validation.
+Invalid is the danger border. The keyboard focus outline stays the focus colour on an invalid box, so focus is visible while the reader moves through a list of errors. A FieldSet's `disabled` disables the boxes inside it, which a native `<fieldset disabled>` alone does not.
+
+<Canvas of={Stories.InvalidAndFocused} />
 
 `name`, `value` and `form` control native submission. A checked checkbox submits its value (or `on` when omitted); an unchecked checkbox is omitted unless `uncheckedValue` is supplied. Native form reset is caller-owned in Base UI 1.7: restore controlled `checked` state in `onReset`.
 
@@ -60,4 +63,4 @@ Move label children into an external label and replace `description` with suppor
 
 ## Related
 
-[Field](?path=/docs/components-field--docs) · [Forms](?path=/docs/patterns-forms--docs) · [Table](?path=/docs/components-table--docs) · [shadcn Checkbox](https://ui.shadcn.com/docs/components/base/checkbox) · [Base UI Checkbox](https://base-ui.com/react/components/checkbox)
+[Field](?path=/docs/components-field--docs) · [CheckboxGroup](?path=/docs/components-checkboxgroup--docs) · [Forms](?path=/docs/patterns-forms--docs) · [Table](?path=/docs/components-table--docs) · [shadcn Checkbox](https://ui.shadcn.com/docs/components/base/checkbox) · [Base UI Checkbox](https://base-ui.com/react/components/checkbox)

@@ -44,7 +44,7 @@ export const HeatmapMatrix: Story = {
   render: () => (
     <Stack space="space.400">
       <Specimens title="Sequential · diverging · status, with values">
-        <Stack space="space.100">
+        <Stack space="space.100" className="min-w-0">
           <Chart.Heatmap
             rows={families}
             columns={heatMonths}
@@ -54,7 +54,7 @@ export const HeatmapMatrix: Story = {
           />
           <Chart.Scale scale="sequential" min="0" max="12" />
         </Stack>
-        <Stack space="space.100">
+        <Stack space="space.100" className="min-w-0">
           <Chart.Heatmap
             rows={phases}
             columns={heatMonths}
@@ -107,7 +107,7 @@ export const HeatmapMatrix: Story = {
   ),
 };
 
-/** How much, in one hue from light to dark, with the scale's key. The value is the tooltip's and the table's; a count inside a cell would need an ink per step. */
+/** How much, in one hue from light to dark, with the scale's key. The Frame offers the values two ways: Values prints each on its cell, over the colour, and Table lays the grid out as a table, a row per family and a column per month. */
 export const Sequential: Story = {
   render: () => (
     <Chart title="Findings by family and month" description="Opened in the month">
@@ -124,6 +124,39 @@ export const Sequential: Story = {
       </Stack>
     </Chart>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const grid = canvas.getByRole("table", { name: "Findings by family and month" });
+    const cell = canvas.getByTitle("SC, Jun: 12");
+    // At rest a colour scale keeps the value for a screen reader; Values prints it on the cell.
+    await expect(within(cell).getByText("12")).toHaveClass("sr-only");
+    const values = canvas.getByRole("button", { name: "Values" });
+    await expect(values).toHaveAttribute("aria-pressed", "false");
+    await userEvent.click(values);
+    await expect(values).toHaveAttribute("aria-pressed", "true");
+    await expect(within(cell).getByText("12")).not.toHaveClass("sr-only");
+    await expect(within(cell).getByText("12")).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Table" }));
+    const table = await canvas.findByRole("table", {
+      name: "Findings by family and month, as a table",
+    });
+    await expect(grid).not.toBeInTheDocument();
+    await expect(
+      within(table)
+        .getAllByRole("columnheader")
+        .map((h) => h.textContent),
+    ).toEqual(["Family", ...heatMonths]);
+    const rows = within(table).getAllByRole("row").slice(1);
+    await expect(rows).toHaveLength(families.length);
+    await expect(
+      within(rows[0]!)
+        .getAllByRole("cell")
+        .map((c) => c.textContent),
+    ).toEqual(["AC", ...(findingsByFamilyMonth["AC"] ?? []).map(String)]);
+    await userEvent.click(canvas.getByRole("button", { name: "Table" }));
+    // The reader's choice holds when the grid returns.
+    await expect(within(canvas.getByTitle("SC, Jun: 12")).getByText("12")).toBeVisible();
+  },
 };
 
 /** Above and below, in two hues around grey: schedule variance against the plan. Red is the negative arm because below the line is the problem. */
@@ -148,7 +181,7 @@ export const Diverging: Story = {
   ),
 };
 
-/** Status by place: the risk matrix, each cell in the tone its position earns (the Badge's fills), the count printed in the tone's text. */
+/** Status by place: the risk matrix, each cell in the tone its position earns (the Badge's fills), the count printed in the tone's text. Its values are always printed, so the Frame offers the table and no Values toggle. */
 export const Status: Story = {
   render: () => (
     <Chart title="Risk matrix" description="Open risks by likelihood and impact">
@@ -164,6 +197,11 @@ export const Status: Story = {
       />
     </Chart>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.queryByRole("button", { name: "Values" })).not.toBeInTheDocument();
+    await expect(canvas.getByRole("button", { name: "Table" })).toBeVisible();
+  },
 };
 
 /** The cells are buttons: a click, or Enter, opens the cell's card with the risks in it. */

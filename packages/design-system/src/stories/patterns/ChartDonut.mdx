@@ -7,7 +7,7 @@ import * as Stories from "./ChartDonut.stories";
 
 # Donut
 
-A ring of slices on a `color.chart.track`, with a number in the middle: one number against its whole, the parts around it. Half a ring is a gauge, a score against a scale with the number at its base. It sits inline, sized in pixels, beside a Stat or in a tile; in a [Chart](?path=/docs/patterns-chart-overview--docs) Frame it inherits the name and the legend's interaction. There is no pie: the number in the middle is what a pie could not say, and a ring of two slices for one number is a Stat.
+A ring of slices on a `color.chart.track`, with a number in the middle: one number against its whole, the parts around it. Half a ring is a gauge, a score against a scale with the number at its base. It sits inline, sized in pixels, beside a Stat or in a tile, and scales down in a narrower container; in a [Chart](?path=/docs/patterns-chart-overview--docs) Frame it inherits the name and the legend's interaction. There is no pie: the number in the middle is what a pie could not say, and a ring of two slices for one number is a Stat.
 
 <Canvas of={Stories.DonutMatrix} />
 
@@ -45,6 +45,10 @@ A ring of slices on a `color.chart.track`, with a number in the middle: one numb
 
 A gauge is half as tall as it is wide, plus 4px for the base. The label fits inside a ring of 120 or more; at 64 the number sits beside it.
 
+`size` is the most a ring takes. In a container narrower than that, a block, a grid tile or a flex row, the ring scales down with its thickness and keeps its ratio, as an image does; the number and the caption keep their type size. In a Frame's expanded Dialog the ring draws at 320px across at least, the `large` plot's height, its thickness in proportion.
+
+<Canvas of={Stories.Narrow} />
+
 ## States
 
 | State    | What changes                                                                                                                             |
@@ -57,11 +61,15 @@ A gauge is half as tall as it is wide, plus 4px for the base. The label fits ins
 
 <Canvas of={Stories.Details} />
 
+In a [Chart](?path=/docs/patterns-chart-overview--docs) Frame the ring needs nothing repeated: the Frame's legend keys its slices, a hover dims the others and a click hides one, and its Table toggle lays them out, a row per slice with its value and its share of the whole, headed by the Frame's `xLabel`. A slice hidden from the legend leaves the ring and stays in the table, which is the data.
+
+<Canvas of={Stories.Framed} />
+
 ## Modifiers
 
-- **`arc="half"`** for the gauge; **`size`** and **`thickness`** in pixels; **`texture`** for the patterns.
+- **`arc="half"`** for the gauge; **`size`** (the largest diameter) and **`thickness`** in pixels; **`texture`** for the patterns.
 - **`label`** and **`caption`** for the middle.
-- **`format`** for the tooltip and the card.
+- **`format`** for the tooltip, the card and the Frame's table. The Frame's, else the kit's.
 - **`onSelect`** and **`details`** as in States; the selection is `{ slice, share, index }`.
 - **`loading`** draws the skeleton; the Frame sets it from `status="loading"`.
 - **`name`** names the ring outside a Frame.
@@ -90,6 +98,7 @@ A gauge is half as tall as it is wide, plus 4px for the base. The label fits ins
 - **Named by `name` or the Frame**, the ring is a group and focusable; unnamed it is decoration beside its Stat, hidden from a screen reader so the number reads once.
 - **The number is text**, in the middle, not drawn: a screen reader reads it, and it never wears a chart colour.
 - **The legend carries the names**; a slice's tone reinforces its word. Beside a Stat, the legend is a `Chart.Legend`.
+- **The table is one toggle away** in a Frame: every slice with its value and its share, so the angles are never the only way to read the parts.
 - **A chosen slice's card is a dialog**, and focus returns to the ring when it closes. The slices themselves are not buttons, so a filter the ring drives is also a control on the page.
 - **Loading is `aria-busy`** and named "[the ring's name], loading".
 

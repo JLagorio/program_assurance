@@ -17,61 +17,97 @@ import * as Stories from "./Field.stories";
 
 # Field
 
-Compose labels, controls and validation messages with shadcn's Base UI Field parts and Ledger tokens. Field owns layout; the form owns values, validation and native associations.
-
-## Anatomy
+One control with its label, hint and error. Field is Base UI's Field underneath, so the parts tie themselves to the control: no ids, no `htmlFor`, no `aria-describedby` and no `aria-invalid` written by hand. The form still owns values and validation; the Field carries what the form decided.
 
 ```tsx
-const id = useId();
-<Field data-invalid={invalid}>
-  <FieldLabel htmlFor={id}>Owner</FieldLabel>
-  <Input id={id} aria-invalid={invalid} aria-describedby={`${id}-message`} />
-  {invalid ? (
-    <FieldError id={`${id}-message`} errors={errors} />
-  ) : (
-    <FieldDescription id={`${id}-message`}>Use the full name.</FieldDescription>
-  )}
-</Field>;
+<Field invalid={invalid} required>
+  <FieldLabel>Owner</FieldLabel>
+  <Input value={owner} onValueChange={setOwner} />
+  <FieldDescription>Use the full name.</FieldDescription>
+  <FieldError errors={errors} />
+</Field>
 ```
 
-`FieldSet` and `FieldLegend` group related controls. `FieldGroup` spaces fields; `FieldContent` groups text beside a control; `FieldTitle` supplies visual text when a wrapping label already provides the association. `FieldSeparator` divides sections, with optional text.
+The label names the control and its click focuses it; the hint and the error describe it, in that order; `invalid` reaches the control as `aria-invalid` and `data-invalid` and turns the label and the error to the danger colour; `required` announces the requirement and adds the label's asterisk, which is hidden from the accessible name. The same binding reaches Input, Textarea, InputGroupInput, the Select trigger, the Combobox input, Checkbox, RadioGroup and Switch.
+
+<Canvas of={Stories.EveryControl} />
+
+## Parts
+
+`FieldLabel`, `FieldDescription` and `FieldError` bind inside a Field and stay plain elements outside one. `FieldSet` and `FieldLegend` group related controls, and a RadioGroup inside a FieldSet is named by its legend. `FieldGroup` spaces fields; `FieldContent` stacks text beside a control; `FieldTitle` is visual text when a wrapping label already names the control, as in a choice card. `FieldSeparator` divides sections, with optional text; its rules stop on either side of the text, so it works on any surface.
 
 <Canvas of={Stories.Composition} />
 
-## Variants and states
+## States
 
-Field supports `vertical` (default), `horizontal` and `responsive` orientations. Responsive fields change direction inside a FieldGroup container. Mark the wrapper with `data-invalid` or `data-disabled` and pass the actual state to the control. An asterisk belongs in label content; `aria-required` describes the requirement, while native `required` enables browser validation.
+- **`invalid`** comes from the form library (TanStack Form: `isTouched && !isValid`). A FieldError that shows a message also marks the Field invalid, so `<FieldError errors={errors} />` is enough when the errors are already filtered. `data-invalid`, which earlier callers set by hand, is still read as `invalid`.
+- **`required`** is announced (`aria-required`) and marked; it is not a native constraint, so a form library that checks it is not second-guessed by the browser. Put native `required` on the control itself when Base UI or the browser should check it. `FieldLabel required={false}` hides the asterisk where most of a form is required and only the optional fields say so. A group Field requires the group, not each checkbox in it.
+- **`disabled`** disables the control and dims the label. A Field or a FieldSet inside a disabled Field is disabled too, so a disabled group's legend and choices follow it. `disabled` on a FieldSet reaches every control inside, including the Checkbox, Radio and Switch roots that a native `<fieldset disabled>` leaves live.
 
-Invalid labels and messages use the same error color; a focused invalid input retains its error border and a separate focus outline. Disabled labels use the disabled text token. A FieldLabel wrapping a Field becomes a choice card with hover, checked and keyboard-focus feedback; disabled choices keep a quiet surface. These styles do not disable a control or validate a value.
+<Canvas of={Stories.Disabled} />
 
-Labeled FieldSeparator rules stop on either side of the text instead of painting over the parent surface, so they work inside a page, Card or dialog without a background override.
+A focused invalid text field thickens its danger border to the 2px focus edge; a focused invalid Checkbox or Radio keeps its danger border with the focus outline around it, and a Switch swaps its danger outline for the focus outline, so focus is always visible. A FieldLabel wrapping a Field becomes a choice card with hover, checked and keyboard-focus feedback; disabled choices keep a quiet surface.
+
+## Validation
+
+With a form library, pass `invalid` and the messages. Validate on submit, then on change; focus the first invalid control after a failed submission, or an [ErrorSummary](?path=/docs/components-errorsummary--docs) when the form is long.
 
 <Canvas of={Stories.Validation} />
 
-FieldError accepts children or an `errors` array of message objects. It deduplicates messages and renders nothing for an empty result. Children take precedence.
+Without one, Base UI validates: native constraints on the control, `validate` on the Field for your own rules, `validationMode` for when (`onSubmit`, then on change, by default), and a FieldError with `match` for each message. A FieldError with no children shows Base UI's own message whenever the Field fails.
+
+<Canvas of={Stories.NativeValidation} />
+
+FieldError takes children or an `errors` array of message objects, drops duplicates and empty entries, and renders nothing when none remain; children win. It is not a live region: focus and the control's description carry it, and a form-level failure belongs in an Alert or an ErrorSummary.
 
 <Canvas of={Stories.Errors} />
 
+## Groups
+
+A group of choices is a Field around a FieldSet: the legend names the group, the Field's hint and error describe it, and `invalid` and `required` reach the RadioGroup (or the checkboxes of a [CheckboxGroup](?path=/docs/components-checkboxgroup--docs)) once; `disabled` reaches every choice. Each choice is its own horizontal Field with a FieldLabel, so it keeps its own name. A RadioGroup announces the requirement itself; a CheckboxGroup's legend says "(required)" to assistive technology, since a group cannot.
+
+```tsx
+<Field invalid={invalid} required>
+  <FieldSet>
+    <FieldLegend variant="label">Review frequency</FieldLegend>
+    <RadioGroup value={frequency} onValueChange={setFrequency}>
+      <Field orientation="horizontal">
+        <RadioGroupItem value="quarterly" />
+        <FieldLabel>Quarterly</FieldLabel>
+      </Field>
+    </RadioGroup>
+    <FieldError errors={errors} />
+  </FieldSet>
+</Field>
+```
+
 ## Accessibility
 
-Use `htmlFor` and a matching control `id` for individual fields. Reference hint/error IDs with `aria-describedby`, and pass `aria-invalid` to the control. Use FieldSet/FieldLegend for checkbox groups and explicitly name a RadioGroup with `aria-labelledby`. Choice controls keep their individual labels. A group requirement does not make every checkbox required.
+- The label names the control through `htmlFor` and `aria-labelledby`, and a Select or Combobox list inside the Field is named by it too. Ids are generated per instance, so a form can appear more than once.
+- Hint and error ids reach `aria-describedby` in the order they render; ids the caller already references are listed once.
+- Explicit ids, `htmlFor` and ARIA on the parts still win, and wrappers between Field and control do not break the binding.
+- DatePicker does not take the binding yet: give its trigger `id`, `aria-labelledby` and `aria-describedby`, as the Forms Pickers story does.
 
-Native associations work through wrappers and custom components that forward their props. Generate IDs with `useId` when a form can appear more than once. TanStack Form continues to own touched state, validation and submission; focus the first invalid control on failed submission.
+<Canvas of={Stories.ExplicitAssociations} />
+
+<Canvas of={Stories.DoDont} />
 
 ## Props
 
 <ArgTypes of={Field} />
+<ArgTypes of={FieldLabel} />
 <ArgTypes of={FieldError} />
+<ArgTypes of={FieldSet} />
 <ArgTypes of={FieldLegend} />
 
-Every part forwards the native attributes and ref of its element: Field/Group/Content/Title/Error/Separator use divs, FieldLabel a label, FieldDescription a paragraph, FieldSet a fieldset, and FieldLegend a legend.
+Every part forwards the native attributes and ref of its element: Field, FieldGroup, FieldContent, FieldTitle, FieldError and FieldSeparator are divs, FieldLabel a label, FieldDescription a paragraph, FieldSet a fieldset and FieldLegend a legend. Field and FieldSet take `render`.
 
 ### Migration
 
-Replace `label`, `hint`, `error`, `isRequired`, `isGroup` and `controlId` with composed parts and native attributes. `useFieldControl` and automatic child binding are removed. Move group content to FieldSet/FieldLegend; preserve the control's accessible name, description, invalid state and required announcement. Shadcn's Base UI Field uses semantic HTML; it is separate from the optional Base UI Field primitive.
+Hand-written ids, `aria-describedby`, `aria-invalid` and `data-invalid` keep working. To shorten a field, drop them: pass `invalid` and `required` to Field, and remove the label's hand-written asterisk. FieldError is no longer `role="alert"`; a test that finds it by that role finds it by its text or `data-slot="field-error"`.
 
 ## Related
 
-[Input](?path=/docs/components-input--docs), [Textarea](?path=/docs/components-textarea--docs), [Select](?path=/docs/components-select--docs), [Combobox](?path=/docs/components-combobox--docs), and [Forms](?path=/docs/patterns-forms--docs).
+[Input](?path=/docs/components-input--docs), [Textarea](?path=/docs/components-textarea--docs), [Select](?path=/docs/components-select--docs), [Combobox](?path=/docs/components-combobox--docs), [CheckboxGroup](?path=/docs/components-checkboxgroup--docs), [ErrorSummary](?path=/docs/components-errorsummary--docs) and [Forms](?path=/docs/patterns-forms--docs).
 
-Sources: [shadcn Field](https://ui.shadcn.com/docs/components/base/field), [implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/field.tsx), [TanStack integration](https://base-ui.com/react/handbook/forms#tanstack-form).
+Sources: [Base UI Field](https://base-ui.com/react/components/field), [Base UI Fieldset](https://base-ui.com/react/components/fieldset), [shadcn Field](https://ui.shadcn.com/docs/components/base/field), [TanStack integration](https://base-ui.com/react/handbook/forms#tanstack-form).

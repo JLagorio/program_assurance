@@ -133,7 +133,7 @@ export const StackMatrix: Story = {
 
 export const Space: Story = {
   render: () => (
-    <Inline space="space.400" alignBlock="start">
+    <Inline space="space.400" alignBlock="start" shouldWrap>
       {(["space.050", "space.100", "space.200", "space.300"] as const).map((s) => (
         <Stack key={s} space="space.100">
           <Label>{s}</Label>
@@ -152,7 +152,7 @@ export const Space: Story = {
 
 export const Alignment: Story = {
   render: () => (
-    <Inline space="space.400" alignBlock="start">
+    <Inline space="space.400" alignBlock="start" shouldWrap>
       {(["start", "center", "end", "stretch"] as const).map((a) => (
         <Stack key={a} space="space.100">
           <Label>{`alignInline=${a}`}</Label>

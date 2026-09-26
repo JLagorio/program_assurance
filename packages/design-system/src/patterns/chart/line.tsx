@@ -1,4 +1,4 @@
-import { useId, useRef, type ReactNode } from "react";
+import { useId, useMemo, useRef, type ReactNode } from "react";
 import {
   Area,
   CartesianGrid,
@@ -20,6 +20,7 @@ import {
   CardHead,
   Plot,
   PlotSkeleton,
+  ReferenceLabels,
   References,
   Swatch,
   TextureDefs,
@@ -37,6 +38,7 @@ import {
   grid,
   hasNegative,
   hasRefLabels,
+  heights,
   marginFor,
   marker,
   pointAnchor,
@@ -47,8 +49,11 @@ import {
   textureOf,
   tickValue,
   useFrame,
+  useFrameData,
+  useFrameReport,
   useMotion,
   usePicked,
+  usePlotSize,
   useTimeAxis,
   useTooltipMotion,
   valueDomain,
@@ -63,16 +68,17 @@ import {
   type ChartSeries,
   type ChartSize,
   type Formatter,
+  type FrameReport,
   type Texture,
 } from "./_shared";
 
 export type ChartLineProps = {
-  /** Plain records, in the order they are drawn. */
-  data: ChartDatum[];
-  /** The key that names each datum along the category axis: a label, or a Date on a time axis. */
-  x: string;
-  /** One entry per value key. A series' own `format` wins over the plot's. */
-  series: ChartSeries[];
+  /** Plain records, in the order they are drawn. Inside a Frame, the Frame's `data` when unsaid. */
+  data?: ChartDatum[] | undefined;
+  /** The key that names each datum along the category axis: a label, or a Date on a time axis. Inside a Frame, the Frame's `x` when unsaid. */
+  x?: string | undefined;
+  /** One entry per value key. A series' own `format` wins over the plot's. Inside a Frame, the Frame's `series` when unsaid. */
+  series?: ChartSeries[] | undefined;
   /** `category` spaces the points evenly and prints their labels; `time` reads `x` as dates, spaces the points by time, and picks the ticks by the span: hours, days, months or years. */
   scale?: "category" | "time" | undefined;
   /** `linear` joins the points; `smooth` eases between them without overshooting. */
@@ -98,11 +104,11 @@ export type ChartLineProps = {
   texture?: boolean | undefined;
   /** Charts with the same id share their hover. The Frame's `syncId` sets it. */
   syncId?: string | undefined;
-  /** The plot's height. `medium` (200px) when unsaid. */
+  /** The plot's height. The Frame's when unsaid, else `medium` (200px); `large` in the expanded Dialog. */
   size?: ChartSize | undefined;
   /** A height in pixels when a layout must, in place of `size`. */
   height?: number | undefined;
-  /** The number format for the value axis, the tooltip and the labels. The Frame's, else the kit's. */
+  /** The number format for the value axis, the tooltip, the labels and the Frame's table. The Frame's, else the kit's. */
   format?: Formatter | undefined;
   /** The format for a category. On a time axis the ticks choose their own; this formats the tooltip and the card. */
   formatX?: CategoryFormatter | undefined;
@@ -349,15 +355,40 @@ function Axes({
   );
 }
 
+/** What a Line or an Area tells its Frame: its series under their swatch, its formats, its height and its records for the table. */
+function useCategoryReport(
+  data: ChartDatum[],
+  x: string,
+  series: ChartSeries[],
+  xLabel: string | undefined,
+  swatch: "line" | "square",
+  format: Formatter,
+  formatX: CategoryFormatter,
+  size: ChartSize | undefined,
+  height: number | undefined,
+) {
+  return useMemo<FrameReport>(
+    () => ({
+      series,
+      swatch,
+      format,
+      formatX,
+      height: height ?? heights[size ?? "medium"],
+      table: { kind: "category", data, x, series, xLabel },
+    }),
+    [series, swatch, format, formatX, height, size, data, x, xLabel],
+  );
+}
+
 /** The category format a time axis' tooltip uses: the full date, at the unit the span needs. */
 const timeFormat = (time: ReturnType<typeof useTimeAxis>, formatX: CategoryFormatter): CategoryFormatter =>
   time ? (v) => time.full(typeof v === "number" ? v : new Date(v).getTime()) : formatX;
 
 /** A line per series, 2px, with a ringed marker on hover. A click in a point's column, or Enter on the focused point, chooses it. */
 export function ChartLine({
-  data,
-  x,
-  series,
+  data: dataProp,
+  x: xProp,
+  series: seriesProp,
   scale = "category",
   curve = "linear",
   dots,
@@ -371,8 +402,8 @@ export function ChartLine({
   yLabel,
   texture: textureProp,
   syncId,
-  size,
-  height,
+  size: sizeProp,
+  height: heightProp,
   format: formatProp,
   formatX: formatXProp,
   reference,
@@ -382,7 +413,7 @@ export function ChartLine({
   details,
   className,
 }: ChartLineProps) {
-  const { name, hidden, highlighted, format, formatX: fx, loading, sync } = useFrame(
+  const { name, hidden, highlighted, format, formatX: fx, loading, sync, offstage } = useFrame(
     label,
     formatProp,
     formatXProp,
@@ -390,12 +421,16 @@ export function ChartLine({
     syncId,
     textureProp,
   );
+  const { data, x, series } = useFrameData(dataProp, xProp, seriesProp);
+  const { size, height } = usePlotSize(sizeProp, heightProp);
+  useFrameReport(useCategoryReport(data, x, series, xLabel, "line", format, fx, size, height));
   const motion = useMotion();
   const tooltipMotion = useTooltipMotion();
   const time = useTimeAxis(data, x, scale === "time");
   const rows = time ? time.rows : data;
   const formatX = timeFormat(time, fx);
   const c = useCartesian({ data, rows, x, series, hidden, format, formatX, delta, onSelect, details, swatch: "line", textures: {} });
+  if (offstage) return null;
   if (loading)
     return <PlotSkeleton kind="line" name={name} size={size} height={height} className={className} />;
   const negative = hasNegative(data, series.map((s) => s.key));
@@ -468,6 +503,7 @@ export function ChartLine({
           <ChosenMarks data={rows} x={x} index={c.picked.item.index} series={series} hidden={hidden} />
         ) : null}
         <References reference={reference} time={Boolean(time)} />
+        <ReferenceLabels reference={reference} bands={bands} time={Boolean(time)} />
         {c.chooses ? <ActiveProbe target={c.active} /> : null}
       </ComposedChart>
     </Plot>
@@ -481,9 +517,9 @@ export type ChartAreaProps = ChartLineProps & {
 
 /** A line with a wash under it, one per series; stacked when asked. Chooses a point as a Line does. */
 export function ChartArea({
-  data,
-  x,
-  series,
+  data: dataProp,
+  x: xProp,
+  series: seriesProp,
   scale = "category",
   curve = "linear",
   dots,
@@ -498,8 +534,8 @@ export function ChartArea({
   yLabel,
   texture: textureProp,
   syncId,
-  size,
-  height,
+  size: sizeProp,
+  height: heightProp,
   format: formatProp,
   formatX: formatXProp,
   reference,
@@ -509,14 +545,11 @@ export function ChartArea({
   details,
   className,
 }: ChartAreaProps) {
-  const { name, hidden, highlighted, format, formatX: fx, loading, sync, texture } = useFrame(
-    label,
-    formatProp,
-    formatXProp,
-    loadingProp,
-    syncId,
-    textureProp,
-  );
+  const { name, hidden, highlighted, format, formatX: fx, loading, sync, texture, offstage } =
+    useFrame(label, formatProp, formatXProp, loadingProp, syncId, textureProp);
+  const { data, x, series } = useFrameData(dataProp, xProp, seriesProp);
+  const { size, height } = usePlotSize(sizeProp, heightProp);
+  useFrameReport(useCategoryReport(data, x, series, xLabel, "square", format, fx, size, height));
   const id = useId();
   const motion = useMotion();
   const tooltipMotion = useTooltipMotion();
@@ -526,6 +559,7 @@ export function ChartArea({
   const textures: Record<string, Texture> = {};
   if (texture) series.forEach((s, i) => (textures[s.key] = textureOf(i)));
   const c = useCartesian({ data, rows, x, series, hidden, format, formatX, delta, onSelect, details, swatch: "square", textures });
+  if (offstage) return null;
   if (loading)
     return <PlotSkeleton kind="area" name={name} size={size} height={height} className={className} />;
   const negative = hasNegative(data, series.map((s) => s.key));
@@ -616,6 +650,7 @@ export function ChartArea({
           <ChosenMarks data={rows} x={x} index={c.picked.item.index} series={series} hidden={hidden} />
         ) : null}
         <References reference={reference} time={Boolean(time)} />
+        <ReferenceLabels reference={reference} bands={bands} time={Boolean(time)} />
         {c.chooses ? <ActiveProbe target={c.active} /> : null}
       </ComposedChart>
     </Plot>

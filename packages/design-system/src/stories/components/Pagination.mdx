@@ -47,6 +47,11 @@ Root is a nav, Content a list and Item a list item. Link uses a real anchor with
 
 `isActive` sets `aria-current="page"` and the selected appearance. All links accept native anchor attributes, events and refs, including href, target and rel. Ellipsis is decorative.
 
+Previous and Next carry their words where the pagination has 384px of its own width and are arrows below it, named for a screen reader either way. The region measures itself, not the window, so the same pagination has words on a page and arrows in a 320px panel on the same screen. A pagination holding Previous or Next is a size container, so its width comes from where it sits, not from its links. It spans its container by default. At the end of a row, give it the rest of the row with `min-w-0 flex-1 justify-end`: its words show where that leaves 384px, and a narrower row shrinks it to arrows. Sized to its content instead (`w-auto`, an `auto` grid column), a pagination with words is 384px whatever its links need, so a longer list wraps inside it. Previous and Next read that width from their `Pagination` root; outside one they show arrows only. The list wraps rather than running past a narrow frame, and every link is at least 28px.
+
+<Canvas of={Stories.InANarrowPanel} />
+<Canvas of={Stories.AtTheEndOfARow} />
+
 For in-memory tables, compose Button inside PaginationItem with native disabled and aria-current attributes. The internal DataTable pagination pattern owns page calculation, empty results and row-range text, using those same parts.
 
 <Canvas of={Stories.InMemoryTable} />

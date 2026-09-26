@@ -1,0 +1,75 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { SearchField } from "../../components";
+import * as Stories from "./SearchField.stories";
+
+<Meta of={Stories} />
+
+# SearchField
+
+One search input: the search icon, the query, and a clear button while there is a query. It narrows a list as the reader types, or runs a search on Enter. [Toolbar](?path=/docs/patterns-toolbar--docs) uses it for its search.
+
+Use it wherever the reader finds or narrows records. Do not use it for a value the record keeps, such as a name or a reference: that is an [Input](?path=/docs/components-input--docs) in a [Field](?path=/docs/components-field--docs), which Escape and a clear button never erase. To pick one record from a list of options, use a [Combobox](?path=/docs/components-combobox--docs); to search the whole product, the [SearchDialog](?path=/docs/patterns-searchdialog--docs).
+
+<Canvas of={Stories.ClearAndEscape} />
+
+## Keys and the clear button
+
+| The reader               | What happens                                                                                                                                |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Types                    | `onValueChange` runs on every keystroke, as on Input.                                                                                       |
+| Presses Enter            | Nothing, unless there is an `onSubmit`, which receives the query. Enter never submits a form around the field.                              |
+| Presses Escape           | A query is cleared and focus stays in the field. With the field empty, Escape reaches whatever holds it: a dialog closes, a popover closes. |
+| Presses the clear button | The query is cleared and focus goes to the field. The button shows only while there is a query and the field can change.                    |
+
+Clearing sends the same input event typing does, so `onValueChange` receives `""`, native `onChange` runs, and a Field's dirty and filled state follow; `onClear` runs after it. A native form reset puts the default query back, and the clear button follows it. Enter or Escape that confirms or cancels an input method's composition is left to the input method, so cancelling a composition never erases the query. A caller's `onKeyDown` runs first, and `preventDefault()` in it skips the field's own handling of that key.
+
+Enter never submits a surrounding form, with or without `onSubmit`, so a live filter inside a dialog's form cannot save the dialog when the reader presses Enter to search. The form's own primary still submits it.
+
+<Canvas of={Stories.InsideAForm} />
+<Canvas of={Stories.RunsOnEnter} />
+<Canvas of={Stories.InADialog} />
+
+## Sizes and states
+
+`medium` (32px) in a form, beside a medium Button; `small` (28px) in a toolbar, beside small buttons. `className` and `style` go to the field's frame, where its width is set; every other prop, the ref included, goes to the input. The value can be controlled (`value` with `onValueChange`) or not (`defaultValue`).
+
+<Canvas of={Stories.States} />
+
+## In a Field
+
+Inside a [Field](?path=/docs/components-field--docs) the FieldLabel names the search, the FieldDescription and FieldError describe it, and the Field's `invalid`, `required` and `disabled` reach it, with no ids written by hand. A disabled or read-only field has no clear button.
+
+<Canvas of={Stories.BoundInField} />
+
+## Accessibility
+
+- **A searchbox.** The input is `type="search"`, so it has the searchbox role, and `enterKeyHint="search"` puts a search key on a phone's keyboard.
+- **Named.** By its FieldLabel, by `aria-label`, or else by its placeholder, and by the locale's "Search" when there is none. A placeholder that names what is searched ("Search controls") is enough in a toolbar; in a form, use a FieldLabel.
+- **The clear button** is named "Clear search" (the `clearSearch` message). It is not a Tab stop, because Escape does the same from the keyboard, and a touch screen reader reaches it by swiping. Under a coarse pointer it takes a 24px target. Pressing it keeps focus in the field.
+- **The icon is decorative**, hidden from assistive technology, and neither the frame nor the icon is a group: a screen reader meets one searchbox, not a searchbox inside unnamed groups.
+- **Results are the caller's to announce.** The field does not know how many records matched; the list or table it narrows owns that result.
+- **Landmark.** When this is the page's search, put it in a `<search>` element or a `<form role="search">`. Enter does not submit that form either, so run the search from `onSubmit` (or call the form's `requestSubmit()` there). A filter above a table is not a landmark.
+
+The words it writes come from the locale (`search`, `clearSearch`), so a `LedgerProvider` translates them. Its spacing is logical, so right to left the icon sits at the right and the clear button at the left.
+
+<Canvas of={Stories.Localized} />
+<Canvas of={Stories.RightToLeft} />
+
+## Props
+
+<ArgTypes of={SearchField} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+[Toolbar](?path=/docs/patterns-toolbar--docs) · [Input](?path=/docs/components-input--docs) · [InputGroup](?path=/docs/components-inputgroup--docs) · [Field](?path=/docs/components-field--docs) · [Combobox](?path=/docs/components-combobox--docs)
+
+## Don't
+
+<Canvas of={Stories.Dont} />

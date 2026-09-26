@@ -5,14 +5,31 @@ import { useLedgerLocale } from "../lib/locale";
 import { buttonVariants, type ButtonProps } from "./button";
 
 export type PaginationProps = ComponentProps<"nav">;
-export function Pagination({ className, ...props }: PaginationProps) {
+/* The width at which Previous and Next show their words: Tailwind's `@sm` container size. */
+const wordsFit = "24rem";
+/** The navigation region. It spans its container, and when it holds Previous and Next it measures
+    itself: their words show where the pagination has room, not where the window does. At the end
+    of a row, give it the rest of the row (`min-w-0 flex-1 justify-end`). Sized to its content
+    (`w-auto`, an `auto` grid column) a pagination with words is 384px whatever its links need, so
+    a longer list wraps inside it. */
+export function Pagination({ className, style, ...props }: PaginationProps) {
   const { t } = useLedgerLocale();
   return (
     <nav
       role="navigation"
       aria-label={t("pagination")}
       data-slot="pagination"
-      className={cn("mx-auto flex w-full justify-center", className)}
+      className={cn(
+        // Only a pagination with words is a container: a pager of icon buttons (the DataTable's)
+        // has nothing to measure for. A container does not measure its content, so where it is
+        // sized to its content it is the words' threshold wide (contain-intrinsic-inline-size)
+        // rather than nothing, whatever its list needs, and min-w-0 lets a row or a grid track
+        // narrower than that still shrink it to arrows.
+        "mx-auto flex w-full justify-center has-data-[slot=pagination-label]:@container/pagination has-data-[slot=pagination-label]:min-w-0",
+        className,
+      )}
+      // Acts only under the container's size containment, so the icon-only pager ignores it.
+      style={{ containIntrinsicInlineSize: wordsFit, ...style }}
       {...props}
     />
   );
@@ -22,7 +39,7 @@ export function PaginationContent({ className, ...props }: PaginationContentProp
   return (
     <ul
       data-slot="pagination-content"
-      className={cn("flex list-none items-center gap-025 p-0", className)}
+      className={cn("flex list-none flex-wrap items-center justify-center gap-025 p-0", className)}
       {...props}
     />
   );
@@ -65,7 +82,9 @@ export function PaginationPrevious({ className, text, ...props }: PaginationPrev
         data-icon="inline-start"
         className="size-icon-small rtl:rotate-180"
       />
-      <span className="hidden sm:block">{text ?? t("previous")}</span>
+      <span data-slot="pagination-label" className="hidden whitespace-nowrap @sm/pagination:block">
+        {text ?? t("previous")}
+      </span>
     </PaginationLink>
   );
 }
@@ -74,7 +93,9 @@ export function PaginationNext({ className, text, ...props }: PaginationNextProp
   const { t } = useLedgerLocale();
   return (
     <PaginationLink aria-label={t("nextPage")} className={cn("gap-075", className)} {...props}>
-      <span className="hidden sm:block">{text ?? t("next")}</span>
+      <span data-slot="pagination-label" className="hidden whitespace-nowrap @sm/pagination:block">
+        {text ?? t("next")}
+      </span>
       <ChevronRight aria-hidden data-icon="inline-end" className="size-icon-small rtl:rotate-180" />
     </PaginationLink>
   );

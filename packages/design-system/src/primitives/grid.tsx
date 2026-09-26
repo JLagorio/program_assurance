@@ -21,7 +21,7 @@ export type GridProps = {
   as?: LayoutElement | undefined;
   ref?: Ref<HTMLElement> | undefined;
   children?: ReactNode | undefined;
-  /** A grid-template-columns value, or one per breakpoint (`base` applies always, the others from that width up). Template strings stay strings; the gaps are tokens. */
+  /** A grid-template-columns value, or one per breakpoint (`base` applies always, the others from that width up). The breakpoints are the window's, for page layout; a grid inside a panel uses one intrinsic template, such as `repeat(auto-fit, minmax(min(100%, 144px), 1fr))`, which follows its own width. Template strings stay strings; the gaps are tokens. */
   templateColumns?: string | ResponsiveTemplate | undefined;
   /** A grid-template-rows value. */
   templateRows?: string | undefined;

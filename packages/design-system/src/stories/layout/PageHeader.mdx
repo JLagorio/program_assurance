@@ -14,6 +14,15 @@ One composable page header for collections and records. Two columns: Heading, wh
 
 Compose a Heading with a Title, an optional Lead and one primary action or Actions menu. A breadcrumb is the Lead through `render={<Breadcrumb />}`; a category line is a Lead with text. Record fields, owner/status editors and property strips belong in the work area or Aside, not in PageHeader or a preview header. Description is optional and wraps without hiding content behind a tooltip.
 
-Use PageHeader.Title once for the page's h1. Panel and dialog headings use their own h2 semantics. Actions sit at the end of the title's row while the row can give the title its measure (14rem) beside them; when it cannot, on a phone or in a narrow panel, they take the next row, right-aligned, and the title wraps at its full width. The same rule holds on a page, in a Shell.Panel and in a Sheet (the Stacked story). Keep action groups on one line; use a dropdown when several actions compete for space.
+Use PageHeader.Title once for the page's h1. Actions sit at the end of the title's row while the row can give the title its measure (14rem) beside them; when it cannot, on a phone or in a narrow panel, they take the next row, right-aligned, and the title wraps at its full width. The same rule holds on a page, in a Shell.Panel and in a Sheet (the Stacked story). Keep action groups on one line; use a dropdown when several actions compete for space.
 
-No part has props of its own: the root is a `header`, Heading and Actions are `div`s, Title an `h1`, Description a `p`, and Lead a `div` or the element given to `render`; each takes its element's native props and ref.
+## Title levels
+
+The Title is the h1 on a page. Inside a [HeadingLevelProvider](?path=/docs/primitives-heading--docs) it takes that level instead: a preview's inner record header, in a panel or a sheet whose outline starts at 2, renders the record's name as an h2 with the same type style. The content after that header goes one level below through a HeadingLevelProvider without `level`, so its Sections are h3s. `render` sets the element outright, `render={<h2 />}`, or a sheet's or a dialog's own title part where the surface needs its title for its accessible name. Never copy the Title's classes onto a raw heading: a change to the title's style would miss it.
+
+<Canvas of={Stories.TitleLevels} />
+
+No other part has props of its own: the root is a `header`, Heading and Actions are `div`s, Description a `p`, and Lead a `div` or the element given to `render`; each takes its element's native props and ref. Title takes `render` and its element's props.
+
+<ArgTypes of={PageHeader} />
+<ArgTypes of={PageHeader.Title} />

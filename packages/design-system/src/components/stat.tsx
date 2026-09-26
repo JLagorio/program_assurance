@@ -19,7 +19,7 @@ export type StatTileProps = StatProps & {
 };
 
 export type StatGridProps = ComponentProps<"div"> & {
-  /** Columns from the small breakpoint up, two below it. Six is three on a small screen. */
+  /** The most columns across, shown when the grid has room. The grid takes its columns from its own width, not the window's: each tile keeps at least 128px, so as the grid narrows six and five fold to three, every count folds to two (in a 320px panel and on a 320px phone), and it is one column below 257px. */
   cols?: 2 | 3 | 4 | 5 | 6 | undefined;
   /** `card` frames the row with a border and rounded corners; `band` runs edge to edge between two rules. */
   frame?: "card" | "band" | undefined;
@@ -82,15 +82,16 @@ function StatRoot({ label, value, tone = "neutral", className, ...props }: StatP
   );
 }
 
+// stat.css: the columns asked for when they fit, folding in balanced steps by the grid's own width.
 const gridCols: Record<2 | 3 | 4 | 5 | 6, string> = {
-  2: "sm:grid-cols-2",
-  3: "sm:grid-cols-3",
-  4: "sm:grid-cols-4",
-  5: "md:grid-cols-5",
-  6: "sm:grid-cols-3 lg:grid-cols-6",
+  2: "stat-grid-2",
+  3: "stat-grid-3",
+  4: "stat-grid-4",
+  5: "stat-grid-5",
+  6: "stat-grid-6",
 };
 
-/** A row of Stat.Tile cells separated by hairlines. `card` frames it; `band` runs edge to edge between two rules. The gutter is painted with the border token. */
+/** A row of Stat.Tile cells separated by hairlines. `card` frames it; `band` runs edge to edge between two rules. The gutter is painted with the border token. Its columns follow its own width, so it reads the same in a page, an aside or a panel. A parent that sizes it to its content (an items-start Stack, an Inline, a popover) makes it as wide as all its tiles side by side, up to the room it has: up to `cols` tiles that is one row, but more tiles than `cols` fold into `cols` wider tiles, so give that grid a width. */
 export function StatGrid({
   cols = 4,
   frame = "card",
@@ -103,7 +104,7 @@ export function StatGrid({
     <div
       {...props}
       className={cn(
-        "grid grid-cols-2 gap-px stagger-children",
+        "stat-grid stagger-children",
         frame === "card"
           ? "overflow-hidden rounded-large border border-default"
           : "border-y border-default",

@@ -1,9 +1,8 @@
-import { useLedgerLocale } from "../lib/locale";
-import { Check, Copy } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { cn } from "../lib/cn";
-import { IconButton } from "./button";
+import { useLedgerLocale } from "../lib/locale";
+import { CopyButton } from "./copy-button";
 
 /* Source shown as source: the code face, one row per line, a line-number gutter that stays put
    when the block scrolls sideways, and a cap on its height so a long document scrolls inside the
@@ -43,18 +42,25 @@ export function CodeBlock({
         role="group"
         aria-label={label ?? t("code")}
         tabIndex={0}
-        className="overflow-auto rounded-medium border border-default bg-surface-sunken outline-none focus-visible:outline-focused"
+        className={cn(
+          "overflow-auto rounded-medium border border-default bg-surface-sunken outline-none focus-visible:outline-focused",
+          // The Copy sits inside the frame: one line still holds it, and the lines can scroll out
+          // from under it.
+          copy !== undefined && "min-h-control-large",
+        )}
         style={{ maxHeight }}
       >
         <pre
           className={cn(
             "min-w-full py-050 font-code text-default",
             wrap ? "w-full whitespace-pre-wrap break-words" : "w-max",
+            copy !== undefined && "pe-500",
           )}
         >
           {lines.map((line, i) => (
             <div key={formatNumber(start + i, { useGrouping: false })} className="flex">
               <span
+                aria-hidden
                 className="sticky start-0 shrink-0 select-none border-e border-default bg-surface-sunken px-100 text-end text-subtlest tabular-nums"
                 style={{ width: `${Math.max(width, 3) + 2.5}ch` }}
               >
@@ -65,48 +71,12 @@ export function CodeBlock({
           ))}
         </pre>
       </div>
-      {copy !== undefined ? <CopyButton text={copy} /> : null}
+      {copy !== undefined ? (
+        // An opaque surface, so a line scrolled under the button never shows through it.
+        <span className="absolute end-050 top-050 rounded-medium bg-surface-sunken">
+          <CopyButton text={copy} label={t("copy")} variant="subtle" size="small" />
+        </span>
+      ) : null}
     </div>
-  );
-}
-
-/** Puts the text on the clipboard and says Copied for a moment. */
-function CopyButton({ text }: { text: string }) {
-  const { t } = useLedgerLocale();
-  const [copied, setCopied] = useState(false);
-  const [failed, setFailed] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(
-    () => () => {
-      if (timer.current) clearTimeout(timer.current);
-    },
-    [],
-  );
-  return (
-    <span className="absolute end-100 top-100">
-      <IconButton
-        variant="subtle"
-        size="small"
-        label={copied ? t("copied") : t("copy")}
-        icon={copied ? <Check className="icon-success" /> : <Copy />}
-        onClick={() => {
-          setFailed(false);
-          void Promise.resolve()
-            .then(() => navigator.clipboard.writeText(text))
-            .then(() => {
-              setCopied(true);
-              if (timer.current) clearTimeout(timer.current);
-              timer.current = setTimeout(() => setCopied(false), 1400);
-            })
-            .catch(() => {
-              setCopied(false);
-              setFailed(true);
-            });
-        }}
-      />
-      <span role="status" className="sr-only">
-        {failed ? t("copyFailed") : copied ? t("copied") : ""}
-      </span>
-    </span>
   );
 }

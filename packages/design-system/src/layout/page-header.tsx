@@ -2,11 +2,12 @@ import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import type { ComponentProps } from "react";
 import { cn } from "../lib/cn";
+import { headingTag, useHeadingLevel } from "../primitives/heading-level";
 
 export type PageHeaderProps = ComponentProps<"header">;
 export type PageHeaderLeadProps = useRender.ComponentProps<"div">;
 export type PageHeaderHeadingProps = ComponentProps<"div">;
-export type PageHeaderTitleProps = ComponentProps<"h1">;
+export type PageHeaderTitleProps = useRender.ComponentProps<"h1">;
 export type PageHeaderDescriptionProps = ComponentProps<"p">;
 export type PageHeaderActionsProps = ComponentProps<"div">;
 
@@ -37,14 +38,19 @@ export function Lead({ render, ref, className, ...props }: PageHeaderLeadProps) 
 export function Heading({ className, ...props }: PageHeaderHeadingProps) {
   return <div {...props} data-slot="page-header-heading" className={cn("min-w-0", className)} />;
 }
-export function Title({ className, ...props }: PageHeaderTitleProps) {
-  return (
-    <h1
-      {...props}
-      data-slot="page-header-title"
-      className={cn("min-w-0 break-words font-heading-small font-semibold text-default", className)}
-    />
-  );
+/** What names the page or the record: an h1 on a page. Inside a HeadingLevelProvider (a preview's body starts at 2) it takes that level, and `render` sets another element outright: `render={<h2 />}`, or a dialog's title part. */
+export function Title({ render, ref, className, ...props }: PageHeaderTitleProps) {
+  const level = useHeadingLevel();
+  return useRender({
+    defaultTagName: headingTag(level ?? 1),
+    render,
+    ref,
+    state: { slot: "page-header-title" },
+    props: mergeProps<"h1">(props, {
+      ...{ "data-slot": "page-header-title" },
+      className: cn("min-w-0 break-words font-heading-small font-semibold text-default", className),
+    }),
+  });
 }
 export function Description({ className, ...props }: PageHeaderDescriptionProps) {
   return (

@@ -42,7 +42,7 @@ A region with nothing in it says why, and offers the next step. The picture, the
 | `EmptyMedia`        | The picture. Holds an `EmptyIllustration`, or `variant="icon"` draws a Lucide icon in the neutral circle. Anything else fits: an avatar, a chart's ghost.                    |
 | `EmptyIllustration` | The kit's picture, on the surface tokens: a scene of ghost records the shape of what the region will hold, sometimes with a badge that says why it is empty. Twelve kinds, below. Decorative. |
 | `EmptyHeader`       | The title and its description, at a readable measure.                                                                                                                        |
-| `EmptyTitle`        | A heading in the default size, body text in compact.                                                                                                                         |
+| `EmptyTitle`        | A heading in the default size, at the contextual level (an h2 when nothing sets one); body text in a div in compact. `render` sets another element.                          |
 | `EmptyDescription`  | One or two lines: why there is nothing, what creates it.                                                                                                                     |
 | `EmptyContent`      | The actions, centred, wrapping. A second `EmptyContent` holds a quieter row: a link, suggested searches.                                                                     |
 
@@ -115,7 +115,11 @@ Empty has no states of its own. Loading is [Skeleton](?path=/docs/components-ske
 
 ## Accessibility
 
-The parts are divs with no automatic landmark or announcement. Give the root `role="region"` and `aria-labelledby` the title when the region is a page's main content; inside a table the cell is enough. The illustration and the icon circle are decorative: `EmptyIllustration` hides itself, and `EmptyMedia` takes `aria-hidden`. Text precedes the actions in reading order, so a screen reader hears why before what.
+The parts are divs with no automatic landmark or announcement, except the title. In the default size EmptyTitle is a real heading at the contextual level, so a page whose content is an Empty (a first run, a missing record, a route that failed) keeps it in the heading outline: an h2 under the page's h1 when nothing sets a level, one below a titled Section. Where the Empty is the page's only content and there is no PageHeader, give it the page's level with `render={<h1 />}`; where it must not be in the outline, `render={<div />}`. In compact, a rail's row, the title is body text. Give the root `role="region"` and `aria-labelledby` the title when the region is a page's main content; inside a table the cell is enough.
+
+<Canvas of={Stories.TitleLevel} />
+
+The illustration and the icon circle are decorative: `EmptyIllustration` hides itself, and `EmptyMedia` takes `aria-hidden`. Text precedes the actions in reading order, so a screen reader hears why before what.
 
 ## Props
 
@@ -127,7 +131,7 @@ The parts are divs with no automatic landmark or announcement. Give the root `ro
 <ArgTypes of={EmptyDescription} />
 <ArgTypes of={EmptyContent} />
 
-Every part accepts native div attributes, events, styles and refs. Icon children retain their own props, classes and refs.
+Every part accepts native div attributes, events, styles and refs; EmptyTitle takes its heading's and `render`. Icon children retain their own props, classes and refs.
 
 ### Migration
 

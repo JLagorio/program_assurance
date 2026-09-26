@@ -21,6 +21,7 @@ export {
 export {
   AlertDialog,
   AlertDialogAction,
+  AlertDialogBody,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -32,6 +33,7 @@ export {
   AlertDialogTitle,
   AlertDialogTrigger,
   type AlertDialogActionProps,
+  type AlertDialogBodyProps,
   type AlertDialogCancelProps,
   type AlertDialogContentProps,
   type AlertDialogDescriptionProps,
@@ -46,18 +48,37 @@ export {
 } from "./alert-dialog";
 export {
   Attachment,
+  AttachmentAction,
+  AttachmentActions,
+  AttachmentContent,
+  AttachmentDescription,
+  AttachmentGroup,
+  AttachmentLink,
+  AttachmentMedia,
+  AttachmentTitle,
+  AttachmentTrigger,
+  formatFileSize,
   type AttachmentActionProps,
   type AttachmentActionsProps,
   type AttachmentContentProps,
   type AttachmentDescriptionProps,
   type AttachmentGroupProps,
+  type AttachmentLinkProps,
   type AttachmentMediaProps,
   type AttachmentProps,
   type AttachmentSize,
   type AttachmentState,
   type AttachmentTitleProps,
   type AttachmentTriggerProps,
+  type FormatFileSizeOptions,
 } from "./attachment";
+export { FileTrigger, type FileTriggerProps } from "./file-trigger";
+export {
+  DropZone,
+  type DropZoneProps,
+  type FileRejection,
+  type FileRejectionReason,
+} from "./drop-zone";
 
 export {
   Badge,
@@ -83,6 +104,7 @@ export {
   BreadcrumbPage,
   BreadcrumbSeparator,
   type BreadcrumbItemProps,
+  type BreadcrumbListProps,
   type BreadcrumbProps,
 } from "./breadcrumb";
 export {
@@ -92,6 +114,14 @@ export {
   type ButtonProps,
   type IconButtonProps,
 } from "./button";
+export {
+  LinkButton,
+  LinkIconButton,
+  type LinkButtonProps,
+  type LinkButtonVariant,
+  type LinkIconButtonProps,
+} from "./link-button";
+export { CopyButton, type CopyButtonProps } from "./copy-button";
 export {
   ButtonGroup,
   ButtonGroupText,
@@ -108,6 +138,12 @@ export {
   type CalendarDayButtonProps,
 } from "./calendar";
 export { Checkbox, type CheckboxProps } from "./checkbox";
+export {
+  CheckboxGroup,
+  CheckboxGroupSelectAll,
+  type CheckboxGroupProps,
+  type CheckboxGroupSelectAllProps,
+} from "./checkbox-group";
 export {
   Card,
   CardHeader,
@@ -143,13 +179,20 @@ export {
   type EmptyDescriptionProps,
   type EmptyContentProps,
 } from "./empty";
+export {
+  ErrorSummary,
+  type ErrorSummaryIssue,
+  type ErrorSummaryProps,
+} from "./error-summary";
 export { FilterChip, type FilterChipProps } from "./chip";
 export { CodeBlock, type CodeBlockProps } from "./code-block";
 export {
   Collapsible,
   CollapsibleContent,
+  CollapsibleHeader,
   CollapsibleTrigger,
   type CollapsibleContentProps,
+  type CollapsibleHeaderProps,
   type CollapsibleProps,
   type CollapsibleTriggerProps,
 } from "./collapsible";
@@ -196,7 +239,37 @@ export {
 export type { ControlSize } from "./controls";
 export { DatePicker, type DatePickerProps } from "./date-picker";
 export {
+  DateRangePicker,
+  type DateRangePickerProps,
+  type DateRangePreset,
+  type DateRangeValue,
+} from "./date-range-picker";
+export {
+  DateLabel,
+  DateTime,
+  RelativeTime,
+  type DateLabelProps,
+  type DateLabelState,
+  type DateTimeFormat,
+  type DateTimeProps,
+  type DateTimeValue,
+  type RelativeTimeProps,
+} from "./date-time";
+export { DateTimeField, type DateTimeFieldProps } from "./date-time-field";
+export { TimeField, type TimeFieldHourCycle, type TimeFieldProps } from "./time-field";
+export {
+  Diff,
+  diffText,
+  type DiffLayout,
+  type DiffLine,
+  type DiffProps,
+  type DiffResult,
+  type DiffRow,
+  type DiffSegment,
+} from "./diff";
+export {
   Dialog,
+  DialogBody,
   DialogClose,
   DialogContent,
   DialogDescription,
@@ -206,6 +279,8 @@ export {
   DialogPortal,
   DialogTitle,
   DialogTrigger,
+  type DialogBodyProps,
+  type DialogWidth,
   type DialogCloseProps,
   type DialogContentProps,
   type DialogDescriptionProps,
@@ -234,6 +309,8 @@ export {
   type DrawerContentProps,
   DrawerHeader,
   type DrawerHeaderProps,
+  DrawerBody,
+  type DrawerBodyProps,
   DrawerFooter,
   type DrawerFooterProps,
   DrawerTitle,
@@ -283,11 +360,34 @@ export {
   type HoverCardProps,
   type HoverCardTriggerProps,
 } from "./hover-card";
+export { Icon, type IconColorToken, type IconProps, type IconSize } from "./icon";
 export { Id, type IdListProps, type IdProps } from "./id";
 
 export { Item, type ItemGroupProps, type ItemProps, type ItemSize } from "./item";
-export { Kbd, KbdGroup, type KbdGroupProps, type KbdProps } from "./kbd";
-export { KeyValue, type KeyValueProps } from "./key-value";
+export {
+  Kbd,
+  KbdGroup,
+  KbdShortcut,
+  formatShortcut,
+  getModifierKey,
+  shortcutKeys,
+  useFormatShortcut,
+  useModifierKey,
+  type FormatShortcutOptions,
+  type KbdGroupProps,
+  type KbdProps,
+  type KbdShortcutProps,
+  type ModifierKey,
+  type ShortcutKey,
+} from "./kbd";
+export {
+  KeyValue,
+  KeyValueGroup,
+  type KeyValueGroupProps,
+  type KeyValueLayout,
+  type KeyValueProps,
+} from "./key-value";
+export { List, ListItem, type ListItemProps, type ListProps, type ListSpacing } from "./list";
 export {
   Pagination,
   type PaginationProps,
@@ -388,6 +488,7 @@ export {
 export { Separator, type SeparatorProps } from "./separator";
 export {
   Sheet,
+  SheetBody,
   SheetClose,
   SheetContent,
   SheetDescription,
@@ -395,6 +496,8 @@ export {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  type SheetBodyProps,
+  type SheetWidth,
   type SheetCloseProps,
   type SheetContentProps,
   type SheetDescriptionProps,
@@ -475,10 +578,18 @@ export {
 } from "./tooltip";
 export { Tree, type TreeItemProps, type TreeProps, type TreeSize } from "./tree";
 export {
+  Truncate,
+  useIsTruncated,
+  type TruncateLines,
+  type TruncateProps,
+  type UseIsTruncatedOptions,
+} from "./truncate";
+export {
   Absent,
   Eyebrow,
   Fact,
   Prose,
+  type AbsentProps,
   type EyebrowProps,
   type FactGroupProps,
   type FactProps,
@@ -523,6 +634,10 @@ export {
   InputGroupInput,
   InputGroupTextarea,
 } from "./input-group";
+
+export { SearchField, type SearchFieldProps } from "./search-field";
+
+export { NumberField, type NumberFieldProps } from "./number-field";
 
 export {
   type ComboboxProps,

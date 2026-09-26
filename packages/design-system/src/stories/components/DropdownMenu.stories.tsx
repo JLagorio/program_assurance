@@ -331,12 +331,19 @@ export const Submenus: Story = {
     await waitFor(() => expect(copy).toHaveFocus());
     const sub = copy.closest('[role="menu"]')!;
     await expect(sub).toHaveAttribute("dir", "rtl");
-    await expect(sub).toHaveAttribute("data-side", "inline-end");
-    await waitFor(() =>
-      expect(sub.getBoundingClientRect().right).toBeLessThanOrEqual(
-        share.getBoundingClientRect().left + 4,
-      ),
-    );
+    // Inline-end is the left in RTL. Where the window leaves no room there (a phone), the submenu
+    // flips to stay on screen instead.
+    if (share.getBoundingClientRect().left >= sub.getBoundingClientRect().width + 32) {
+      await expect(sub).toHaveAttribute("data-side", "inline-end");
+      await waitFor(() =>
+        expect(sub.getBoundingClientRect().right).toBeLessThanOrEqual(
+          share.getBoundingClientRect().left + 4,
+        ),
+      );
+    } else {
+      await waitFor(() => expect(sub.getBoundingClientRect().left).toBeGreaterThanOrEqual(0));
+      await expect(sub.getBoundingClientRect().right).toBeLessThanOrEqual(window.innerWidth);
+    }
     await user.keyboard("{Escape}");
     await waitFor(() => expect(page.queryByRole("menuitem", { name: "Copy link" })).toBeNull());
     await expect(share).toHaveFocus();
@@ -417,6 +424,106 @@ function DialogDemo() {
     </>
   );
 }
+
+const publish = fn();
+
+/**
+ * `description` puts a second line under a label: what tells two similar actions apart. An action
+ * that cannot run takes `disabledReason`, which disables it and shows why on that line; the arrow
+ * keys still reach it and a screen reader reads the reason as its description. A disabled
+ * destructive item fades like any other, so it never looks ready to run.
+ */
+export const DescriptionsAndReasons: Story = {
+  name: "Descriptions and disabled reasons",
+  globals: { viewport: { value: "ledgerNarrow", isRotated: false } },
+  render: () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger render={<Button />}>Version actions</DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem description="Keeps the current version as the baseline">
+          <Plus />
+          Create draft
+        </DropdownMenuItem>
+        <DropdownMenuItem description="Starts again from the published version">
+          <Pencil />
+          Revert to published
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          disabledReason="Add content to this version before publishing it."
+          onClick={publish}
+        >
+          Publish version
+          <DropdownMenuShortcut>
+            <Kbd>P</Kbd>
+          </DropdownMenuShortcut>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive">Archive</DropdownMenuItem>
+        <DropdownMenuItem
+          variant="destructive"
+          disabledReason="A published version cannot be deleted."
+        >
+          Delete version
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ),
+  play: async ({ canvasElement }) => {
+    const doc = canvasElement.ownerDocument;
+    const canvas = within(canvasElement);
+    const body = within(doc.body);
+    const user = userEvent.setup({ document: doc });
+    publish.mockClear();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    const trigger = canvas.getByRole("button", { name: "Version actions" });
+    trigger.focus();
+    await user.keyboard("{ArrowDown}");
+    const menu = await body.findByRole("menu");
+    await waitFor(() => expect(menu).toBeVisible());
+    // The name is the label; the second line is the description.
+    const draft = within(menu).getByRole("menuitem", { name: "Create draft" });
+    await expect(draft).toHaveAccessibleDescription("Keeps the current version as the baseline");
+    await expect(
+      within(draft).getByText("Keeps the current version as the baseline"),
+    ).toBeVisible();
+    // The label and its line share one column after the icon.
+    const label = within(draft).getByText("Create draft");
+    const line = within(draft).getByText("Keeps the current version as the baseline");
+    await expect(line.getBoundingClientRect().left).toBe(label.getBoundingClientRect().left);
+    await expect(line.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+      label.getBoundingClientRect().bottom - 1,
+    );
+    // The unavailable action is reachable, announced and inert.
+    await user.keyboard("{ArrowDown}{ArrowDown}");
+    const unavailable = within(menu).getByRole("menuitem", { name: /^Publish version/ });
+    await waitFor(() => expect(unavailable).toHaveFocus());
+    await expect(unavailable).toHaveAttribute("aria-disabled", "true");
+    await expect(unavailable).toHaveAccessibleDescription(
+      "Add content to this version before publishing it.",
+    );
+    await user.keyboard("{Enter}");
+    await expect(publish).not.toHaveBeenCalled();
+    await expect(menu).toBeVisible();
+    // The reason stays readable on the disabled row; the label fades.
+    const reason = within(unavailable).getByText(
+      "Add content to this version before publishing it.",
+    );
+    await expect(getComputedStyle(reason).color).not.toBe(
+      getComputedStyle(within(unavailable).getByText("Publish version")).color,
+    );
+    // A disabled destructive item takes the disabled colour, not the danger colour.
+    const archive = within(menu).getByRole("menuitem", { name: "Archive" });
+    const deleting = within(menu).getByRole("menuitem", { name: "Delete version" });
+    await expect(getComputedStyle(deleting).color).not.toBe(getComputedStyle(archive).color);
+    await expect(getComputedStyle(deleting).color).toBe(getComputedStyle(unavailable).color);
+    // The descriptions wrap inside a narrow menu instead of widening it past the screen.
+    await expect(menu.getBoundingClientRect().right).toBeLessThanOrEqual(innerWidth);
+    await expect(menu.scrollWidth).toBeLessThanOrEqual(menu.clientWidth);
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    await waitFor(() => expect(trigger).toHaveFocus());
+  },
+};
 
 /** A long menu scrolls inside the available height; hover arrows scroll it and keyboard focus reveals the highlighted item. */
 export const Scrolling: Story = {

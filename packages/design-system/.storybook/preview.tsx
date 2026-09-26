@@ -6,7 +6,7 @@ import { LedgerProvider } from "../src/lib/locale";
 import "../src/styles/storybook.css";
 
 /**
- * Two toolbar axes, per the spec's Axes section.
+ * The toolbar axes: Design and Mode, per the spec's Axes section, and Frame (below).
  * Mode sets `data-color-mode` on <html>: light, dark, or system (attribute removed so the
  * prefers-color-scheme block in tokens.css decides). Design has one entry until a second
  * design exists; it is here so the toolbar shape does not change later.
@@ -27,6 +27,27 @@ const withMode: Decorator = (Story, ctx) => (
   </>
 );
 
+/**
+ * The Contrast axis sets `data-contrast-mode` on <html>: "no-preference" pins the standard
+ * contrast, "more" the increased one, and system removes the attribute so the
+ * prefers-contrast: more block in tokens.css decides.
+ */
+function ContrastSync({ contrast }: { contrast: string }) {
+  useEffect(() => {
+    const root = document.documentElement;
+    if (contrast === "system") delete root.dataset["contrastMode"];
+    else root.dataset["contrastMode"] = contrast;
+  }, [contrast]);
+  return null;
+}
+
+const withContrast: Decorator = (Story, ctx) => (
+  <>
+    <ContrastSync contrast={String(ctx.globals["contrast"] ?? "no-preference")} />
+    <Story />
+  </>
+);
+
 /** One tooltip provider per page, as the Shell mounts for a product: the second tooltip shows at once. */
 const withTooltips: Decorator = (Story) => (
   <LedgerProvider>
@@ -35,6 +56,28 @@ const withTooltips: Decorator = (Story) => (
     </TooltipProvider>
   </LedgerProvider>
 );
+
+/**
+ * The Frame axis puts the story in a 320px container on the canvas, standing in for a panel or a
+ * rail: a part responds to the space it is given, not the window. The dashed line is the frame's
+ * edge. A fullscreen story is page-level (a Shell, a page, a register that fills the window) and
+ * keeps the whole canvas. The storybook-contained test project renders every story this way.
+ */
+const withFrame: Decorator = (Story, ctx) =>
+  ctx.globals["frame"] === "contained" && ctx.parameters["layout"] !== "fullscreen" ? (
+    <div
+      data-ledger-frame="contained"
+      style={{
+        width: 320,
+        maxWidth: "100%",
+        outline: "1px dashed var(--ds-color-border-bold)",
+      }}
+    >
+      <Story />
+    </div>
+  ) : (
+    <Story />
+  );
 
 const preview: Preview = {
   parameters: {
@@ -84,6 +127,18 @@ const preview: Preview = {
         items: [{ value: "ledger", title: "Ledger" }],
       },
     },
+    frame: {
+      description: "Frame",
+      toolbar: {
+        title: "Frame",
+        icon: "sidebaralt",
+        dynamicTitle: true,
+        items: [
+          { value: "canvas", title: "Canvas" },
+          { value: "contained", title: "320px container" },
+        ],
+      },
+    },
     mode: {
       description: "Colour mode",
       toolbar: {
@@ -97,9 +152,22 @@ const preview: Preview = {
         ],
       },
     },
+    contrast: {
+      description: "Contrast",
+      toolbar: {
+        title: "Contrast",
+        icon: "contrast",
+        dynamicTitle: true,
+        items: [
+          { value: "no-preference", title: "Standard contrast" },
+          { value: "more", title: "Increased contrast" },
+          { value: "system", title: "Match system" },
+        ],
+      },
+    },
   },
-  initialGlobals: { design: "ledger", mode: "light" },
-  decorators: [withMode, withTooltips],
+  initialGlobals: { design: "ledger", mode: "light", contrast: "no-preference", frame: "canvas" },
+  decorators: [withFrame, withMode, withContrast, withTooltips],
 };
 
 export default preview;

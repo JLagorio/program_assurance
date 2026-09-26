@@ -1,0 +1,58 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Announcer } from "../..";
+import * as Stories from "./Announcer.stories";
+
+<Meta of={Stories} />
+
+# Announcer
+
+One channel for status messages a screen reader should hear while focus stays where it is: a result count after a search, a save, a page change. `announce(message, { politeness })` speaks through the page's two persistent live regions, and `Announcer` renders them, visually hidden.
+
+```tsx
+import { announce } from "@ledger/design-system";
+
+announce("3 of 24 records");
+announce("The file could not be uploaded. Try again.", { politeness: "assertive" });
+```
+
+<Canvas of={Stories.Playground} />
+
+## Where the regions come from
+
+Shell mounts one Announcer, so a product with a Shell has nothing to add. A product without one mounts `<Announcer />` once near its root. `announce` speaks through the newest Announcer mounted. With none mounted it creates the regions at the end of the body and speaks once they have settled, so a part can announce before the product mounts one. On the server `announce` does nothing, and `Announcer` renders its empty regions into the markup, so they are in the page before the first message.
+
+<Canvas of={Stories.WithoutAnAnnouncer} />
+
+## Politeness
+
+`polite`, the default, waits until the reader is idle: the outcome of a search, a filter, a save, a new page. `assertive` interrupts whatever is being read, so keep it for the one failure that stops the task. An error that belongs to a field stays beside the field; the form announces one summary.
+
+<Canvas of={Stories.Politeness} />
+
+## When to use it
+
+- A change that is visible but silent: a result count, a page range, a saved state, a new page after client-side navigation (Shell does this with `locationKey`).
+- A change whose visible form is far from focus, such as a count in the toolbar after typing in the search.
+
+Not for:
+
+- Text the reader is already focused on, or that a focus move will read. Moving focus is the announcement.
+- A toast. Toaster announces its own messages.
+- A persistent status the page shows, such as a Saving indicator beside a control. Keep that as visible text in the page; announce only the change.
+- A modal decision. Use AlertDialog.
+
+<Canvas of={Stories.Dont} />
+
+## Accessibility
+
+The regions are `role="log"` with `aria-live` and `aria-relevant="additions"`. Each message is a new line in its region, so the same words said twice are heard twice, and each line leaves after seven seconds, so the region never becomes a log a reader browses into. Base UI's modal dialogs keep `aria-live` regions exposed when they hide the page, so a message sent while one is open is still heard. Blank messages are dropped. Write the message as the sentence a sighted reader would take from the screen: "3 of 24 records", not "Search complete".
+
+<Canvas of={Stories.InADialog} />
+
+## Props
+
+<ArgTypes of={Announcer} />
+
+`Announcer` takes a div's native props and ref; it has no children. `announce(message: string, options?: { politeness?: "polite" | "assertive" })` returns nothing.
+
+The model is [React Aria's live announcer](https://github.com/adobe/react-spectrum/tree/main/packages/%40react-aria/live-announcer); see [WCAG 2.2 Understanding 4.1.3 Status Messages](https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html).

@@ -53,8 +53,15 @@ export function ToggleGroup<Value extends string = string>({
               ? (state) => ({ ...gap, ...style(state) })
               : { ...gap, ...style }
           }
+          // A row too narrow for every item wraps onto the next line, so each choice stays in
+          // view and in reach and nothing paints past the row. Three places keep one line. A
+          // joined group (spacing 0) is one control, and wrapping would break its borders and
+          // corners; in a narrower row it goes in a horizontal Scroller. In a table cell,
+          // wrapping would let an auto-sized column squeeze the group to one item a line; the
+          // cell keeps one line and the table's frame scrolls. Inside a horizontal Scroller (a
+          // saved-views strip), the Scroller scrolls it.
           className={classes(
-            "group/toggle-group flex w-fit flex-row items-center gap-[calc(var(--ds-space-050)*var(--gap))] rounded-medium data-[size=sm]:rounded-small data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch",
+            "group/toggle-group flex w-fit flex-row flex-wrap items-center gap-[calc(var(--ds-space-050)*var(--gap))] rounded-medium data-[size=sm]:rounded-small data-[spacing=0]:flex-nowrap data-[orientation=vertical]:flex-col data-[orientation=vertical]:flex-nowrap data-[orientation=vertical]:items-stretch [td_&]:flex-nowrap [th_&]:flex-nowrap [[data-slot=scroller][data-orientation=horizontal]_&]:flex-nowrap",
             className,
           )}
         >
@@ -89,7 +96,9 @@ export function ToggleGroupItem<Value extends string = string>({
       className={classes(
         cn(
           toggleVariants({ variant: resolvedVariant, size: resolvedSize }),
-          "focus:z-10 focus-visible:z-10",
+          // Relative, so a visually hidden label (an icon-only item's name) is positioned against
+          // the item and stays inside any scroller around the group.
+          "relative focus:z-10 focus-visible:z-10",
           joined && "rounded-none px-100",
           joined &&
             (horizontal

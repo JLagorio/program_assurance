@@ -36,11 +36,24 @@ Inspect 320 CSS pixel width, 200% text enlargement and 400% browser zoom. A dens
 
 `node scripts/ds-check.mjs` resolves public exports through the TypeScript compiler, counts executable story references, checks story coverage and documentation, and rejects a growing exception baseline. `node scripts/ds-public-api.mjs` prints the full public value/type inventory. A reference proves use, not correctness; interaction assertions establish behavior.
 
-The retired Shapes catalog no longer requires ActionBar or WorkPane stories. Their exports remain in the API baseline, which checks declarations rather than rendering or accessibility. Block and Inspector continue to render in existing integration stories. New component families still require stories and documentation.
+ActionBar and WorkPane have no stories (`RETIRED_STORY_EXPORTS` in `scripts/ds-check.mjs`), so no render, accessibility or layout check reaches them; their exports stay in the API baseline, which checks declarations. Inspector renders in the Shell integration stories. Every other family has stories and a page.
 
 Keep one family page with useful examples, generated props and relevant usage/accessibility guidance. There is no required heading set. Omit sections that add no information, and review the prose against the current examples and implementation. Keep migration guidance in one place and link to it from the changelog.
 
-`npm run test:a11y -w packages/design-system` runs every story in light and dark Chromium using Storybook’s built-in `test` tag. Each story gets a render check; its `play` function adds interaction assertions. Axe and unexpected-console checks run alongside them. Dark mode also checks reduced motion. A focused forced-colors project runs the existing Switch, RadioGroup, Tabs and Progress stories with system colors enabled.
+The package runs its stories through two scripts, from the repository root:
+
+```sh
+npm run test:a11y -w packages/design-system
+npm run test:layout -w packages/design-system
+# one file through both layout checks, from inside packages/design-system
+npx vitest run --project storybook-narrow --project storybook-contained src/stories/components/Badge.stories.tsx
+```
+
+`test:a11y` runs every story in light and dark Chromium using Storybook’s built-in `test` tag. Each story gets a render check; its `play` function adds interaction assertions. Axe and unexpected-console checks run alongside them. Dark mode also checks reduced motion. A focused forced-colors project runs the existing Switch, RadioGroup, Tabs and Progress stories with system colors enabled.
+
+`test:layout` renders every story twice more, without axe, once its web fonts have loaded: at a 390px phone (`storybook-narrow`) and in a 320px frame on the desktop canvas (`storybook-contained`, the toolbar's Frame: 320px container). A story fails when the page scrolls sideways, a word of four or more letters breaks across two lines, or anything paints past either edge of the frame outside a scroller. At phone width, visible content past the page's left edge fails too, because no one can scroll to it. A story whose overflow is its lesson (a Don't) is listed by id, with its reason, in `test/layout-allow.json`; a fixture that overflows because of a fixed width becomes fluid instead of being listed.
+
+Two things change how a story is measured, both visible in the story. `layout: "fullscreen"` is page-level and gets no frame, so the contained check skips it; the phone check still measures it. A story's `globals` render it at the width they pin: a phone pin is measured at that width in both checks (inside the 320px frame in the contained one), a desktop pin takes it off the phone width, and `frame: "canvas"` takes it out of the frame. Pin a width only for a play function that measures a layout existing at that width. Overlays positioned against the viewport (sheets, dialogs, toasts) are not measured for paint past an edge, but an open one's words are checked at phone width; check an overlay's fit in a render at phone width.
 
 Keep examples and their interaction tests in the same component’s `.stories.tsx` file. Add assertions to an existing example before introducing another render fixture. Use `fn()` from `storybook/test` for callbacks instead of rendering test counters or “check refs” buttons. Add a distinct story only for a distinct useful state or workflow. The Interactions panel shows the test steps; test-only controls do not belong in the component showcase.
 

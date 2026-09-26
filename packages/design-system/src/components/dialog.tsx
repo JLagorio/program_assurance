@@ -1,18 +1,53 @@
 import { Dialog as Primitive } from "@base-ui/react/dialog";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import { X } from "lucide-react";
-import type { ComponentProps } from "react";
+import type { ComponentProps, CSSProperties } from "react";
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
+import { HeadingLevelProvider } from "../primitives/heading-level";
 import { Button } from "./button";
+import {
+  OverlayPendingContext,
+  bodySlot,
+  overlaySurface,
+  pendingCloseRender,
+  pendingOpenChange,
+  useOverlayPending,
+  useReadOnlyScroller,
+  withStyle,
+} from "./overlay";
 
-export type DialogProps<Payload = unknown> = Primitive.Root.Props<Payload>;
-export function Dialog<Payload = unknown>(props: DialogProps<Payload>) {
+export type DialogProps<Payload = unknown> = Primitive.Root.Props<Payload> & {
+  /**
+   * A save or another command is in flight. Every request to close is cancelled before
+   * `onOpenChange` hears of it (Escape, the blanket, the close button, a DialogClose), the close
+   * controls are disabled (the built-in close button, and a close rendered as a kit Button, stay
+   * focusable with `aria-disabled`, so focus on them is kept), and the popup is
+   * `aria-busy`. An imperative close through `actionsRef`, or `open={false}`, still closes: end
+   * the pending state when the command settles. It does not disable the form; wrap the fields in
+   * `<FieldSet disabled={pending}>` and give the submit button `isLoading`. @default false
+   */
+  pending?: boolean | undefined;
+};
+export function Dialog<Payload = unknown>({
+  pending = false,
+  onOpenChange,
+  disablePointerDismissal,
+  ...props
+}: DialogProps<Payload>) {
   const { direction } = useLedgerLocale();
   return (
     <DirectionProvider direction={direction}>
-      <Primitive.Root {...props} />
+      <OverlayPendingContext.Provider value={pending}>
+        <Primitive.Root
+          {...props}
+          disablePointerDismissal={pending || disablePointerDismissal}
+          onOpenChange={pendingOpenChange(pending, onOpenChange)}
+        />
+      </OverlayPendingContext.Provider>
     </DirectionProvider>
   );
 }
@@ -38,18 +73,56 @@ export function DialogOverlay({ className, ...props }: DialogOverlayProps) {
   );
 }
 export type DialogCloseProps = Primitive.Close.Props;
-export function DialogClose(props: DialogCloseProps) {
-  return <Primitive.Close data-slot="dialog-close" {...props} />;
+/**
+ * Closes the dialog. Disabled while the Dialog is `pending`; rendered as a kit Button or IconButton
+ * it stays focusable then, with `aria-disabled`, so focus on it is kept.
+ */
+export function DialogClose({ disabled, render, ...props }: DialogCloseProps) {
+  const pending = useOverlayPending();
+  return (
+    <Primitive.Close
+      data-slot="dialog-close"
+      {...props}
+      render={pendingCloseRender(render, pending)}
+      disabled={pending || disabled}
+    />
+  );
 }
-export type DialogContentProps = Primitive.Popup.Props & { showCloseButton?: boolean | undefined };
+
+/** The dialog's width steps. Without `width` a dialog is `medium`. */
+export type DialogWidth = "small" | "medium" | "large" | "xlarge" | "fullscreen";
+// The kit's one place for these numbers; the popup keeps a 1rem gutter on every side.
+const dialogWidths: Record<DialogWidth, CSSProperties> = {
+  small: { maxWidth: 400 },
+  medium: { maxWidth: 520 },
+  large: { maxWidth: 760 },
+  xlarge: { maxWidth: 960 },
+  fullscreen: { maxWidth: "none", height: "calc(100dvh - 2rem)" },
+};
+
+export type DialogContentProps = Primitive.Popup.Props & {
+  /** Renders the close button at the top end. It is disabled, and keeps focus, while the Dialog is `pending`. @default true */
+  showCloseButton?: boolean | undefined;
+  /**
+   * The popup's width: `small` 400px for a short question, `medium` 520px for a form of a few
+   * fields, `large` 760px for a form in two columns or a table, `xlarge` 960px for a table beside
+   * a preview, `fullscreen` for a task that needs the whole window, with a 1rem gutter. Every step
+   * narrows to the window less the gutter. A `style.maxWidth` still wins. @default "medium"
+   */
+  width?: DialogWidth | undefined;
+};
 export function DialogContent({
   className,
   children,
   dir,
   showCloseButton = true,
+  width,
+  style,
   ...props
 }: DialogContentProps) {
   const { direction, t } = useLedgerLocale();
+  const pending = useOverlayPending();
+  const own = width ? { ...overlaySurface, ...dialogWidths[width] } : overlaySurface;
   return (
     <DirectionProvider direction={dir === "rtl" || dir === "ltr" ? dir : direction}>
       <DialogPortal>
@@ -57,13 +130,19 @@ export function DialogContent({
         <Primitive.Popup
           data-slot="dialog-content"
           dir={dir ?? direction}
+          {...(width ? { "data-width": width } : {})}
+          {...(pending ? { "aria-busy": true, "data-pending": "" } : {})}
           {...props}
+          style={withStyle(own, style)}
           className={classes(
-            "fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[520px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xxlarge bg-surface-overlay text-default shadow-overlay outline-none data-open:animate-dialog-in data-closed:animate-dialog-out",
+            // The popup scrolls as a fallback: a DialogBody normally takes the overflow, and in a
+            // short window (under 30rem) the header scrolls away with the body and the footer stays.
+            "fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[520px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto overscroll-none rounded-xxlarge bg-surface-overlay text-default shadow-overlay outline-none data-open:animate-dialog-in data-closed:animate-dialog-out",
             className,
           )}
         >
-          {children}
+          {/* The title is the dialog's h2; headings inside take the next level. */}
+          <HeadingLevelProvider level={3}>{children}</HeadingLevelProvider>
           {showCloseButton && (
             <DialogClose
               aria-label={t("close")}
@@ -71,6 +150,8 @@ export function DialogContent({
                 <Button
                   variant="subtle"
                   size="small"
+                  disabled={pending}
+                  focusableWhenDisabled
                   className="absolute end-150 top-100 size-control-small p-0"
                 />
               }
@@ -96,7 +177,34 @@ export function DialogHeader({ className, ...props }: DialogHeaderProps) {
     />
   );
 }
-export type DialogFooterProps = ComponentProps<"div"> & { showCloseButton?: boolean | undefined };
+export type DialogBodyProps = useRender.ComponentProps<"div">;
+/**
+ * The one scrolling region between DialogHeader and DialogFooter, with the dialog's inset. It
+ * takes the height the header and footer leave, at least 80px, and scrolls inside it; in a window
+ * under 30rem tall it grows to its content instead, so the whole popup scrolls as one with the
+ * footer held at the bottom. While it overflows with nothing to focus inside, it is a tab stop so
+ * the keyboard can scroll it. A form can sit inside it, with the submit button in the footer
+ * joined to it through `form`.
+ */
+export function DialogBody({ className, render, ref, ...props }: DialogBodyProps) {
+  const own = useReadOnlyScroller<HTMLDivElement>();
+  return useRender({
+    defaultTagName: "div",
+    render,
+    ref: ref ? [own, ref] : own,
+    props: mergeProps<"div">(props, {
+      ...bodySlot("dialog-body"),
+      className: cn(
+        "min-h-1000 min-w-0 flex-1 overflow-y-auto overscroll-none p-250 outline-none focus-visible:outline-field-focused [@media(max-height:30rem)]:flex-auto [@media(max-height:30rem)]:shrink-0 [@media(max-height:30rem)]:overflow-visible",
+        className,
+      ),
+    }),
+  });
+}
+export type DialogFooterProps = ComponentProps<"div"> & {
+  /** Adds a Close button after the children, disabled while the Dialog is `pending`. @default false */
+  showCloseButton?: boolean | undefined;
+};
 export function DialogFooter({
   className,
   children,
@@ -108,7 +216,7 @@ export function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "flex shrink-0 flex-wrap items-center justify-end gap-100 border-t border-default bg-surface-sunken px-250 py-150",
+        "sticky bottom-0 z-10 flex shrink-0 flex-wrap items-center justify-end gap-100 border-t border-default bg-surface-sunken px-250 py-150",
         className,
       )}
       {...props}

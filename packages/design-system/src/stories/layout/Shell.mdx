@@ -13,20 +13,43 @@ The persistent application frame, inspired by [Atlassian's navigation layout](ht
 
 Mount Shell once in a shared router layout. Place Banner, TopNav, SideNav and Main there. Child routes render Shell.Aside or Shell.Panel to contribute to the frame's stable region slots. Contributions preserve route React context and disappear when their route unmounts. They mount on the client after slot destinations exist.
 
-Every part renders one element and forwards its native props and its ref to it; AppLogo, Profile, SideNav.Item and Panel.Title take Base UI `render` where the element may change, so Profile is a menu's trigger through `render` and a side nav item is a router link. The SideNav.ToggleButton is a child of TopNav.Start and places itself; TopNav.End is a named group that renders its children as given, and a product that needs them to fold on a phone renders its own menu there.
+Every part renders one element and forwards its native props and its ref to it; AppLogo, Profile, SideNav.Item and Panel.Title take Base UI `render` where the element may change, so Profile is a menu's trigger through `render` and a side nav item is a router link. The SideNav.ToggleButton is a child of TopNav.Start and places itself; TopNav.Search goes in TopNav.Middle and opens the product's [SearchDialog](?path=/docs/patterns-searchdialog--docs); TopNav.End is a named group that renders its children as given, and its TopNav.Item children fold into one More menu when the top nav is narrow (see the end slot below).
 
 Aside contains supporting context. Panel contains dismissible selected-record or task content. With `title` (and `actions`) it renders its built-in header, close and resizer; without them compose Panel.Header, Panel.Title, Panel.Actions, Panel.Close, Panel.Body and Panel.Splitter yourself, as Composed panel shows, to change the heading's level, the labels or the padding. Panel.onClose is required either way and the Title names the landmark. From the `panel` breakpoint (`dimension.breakpoint.panel`, 80rem: 1280px at the default root size; see [Metrics](?path=/docs/tokens-metrics--docs)) the panel is the last column for the whole height of the window: the banner and the top nav stop at its edge, so opening it narrows everything and covers nothing. Below it the panel replaces the visible Main area under the top nav while retaining Main's state, and it returns focus on close. Global navigation remains available; use Sheet for modal work.
 
-Every default name (Banner, Top navigation, Side navigation, Main content, Page context, Details, Actions, Switch product, the toggle's two labels, the splitters' and the skip links') is a locale message, so a product translates them once with `LedgerLocaleProvider`; a `label` prop overrides one instance. The splitters take the arrow keys, Home for the minimum and End for the maximum. Left and Right move the handle in that physical direction, including right-to-left layouts. Restored widths retain the reader’s desktop preference: the current desktop layout is capped at half the viewport, and opening the shell on a phone does not overwrite that preference. Navigation still uses its 90vw overlay limit on phones.
+Every default name (Banner, Top navigation, Side navigation, Main content, Page context, Details, Actions, Search, More, Switch product, the toggle's two labels, the splitters' and the skip links') is a locale message, so a product translates them once with `LedgerLocaleProvider`; a `label` prop overrides one instance. The splitters take the arrow keys, Home for the minimum and End for the maximum. Left and Right move the handle in that physical direction, including right-to-left layouts. Restored widths retain the reader’s desktop preference: the current desktop layout caps them (see Main's minimum width below), and opening the shell on a phone does not overwrite that preference. Navigation still uses its 90vw overlay limit on phones.
 
 <Canvas of={Stories.PersistedWidths} />
 <Canvas of={Stories.RightToLeftSplitters} />
 
-SideNav retains its existing collapse, persistence, keyboard and resize behavior. Main uses document scrolling; Panel scrolls inside the available viewport. A register that is the page fills the rest of the window with DataTable `fill`: Main publishes its bottom inset as `--shell-inset-bottom`, and the layout otherwise owns placement, so content patterns do not add sticky rails or nested page frames.
+Main uses document scrolling; Panel scrolls inside the available viewport. A register that is the page fills the rest of the window with DataTable `fill`: Main publishes its bottom inset as `--shell-inset-bottom`, and the layout otherwise owns placement, so content patterns do not add sticky rails or nested page frames.
 
 Set `collapsedSideNav="icons"` on Shell to keep a 56px navigation rail when collapsed on desktop. The default, `"hidden"`, hides the side nav and retains the hover flyout. Supply meaningful icons for top-level items and expandable groups. In icon mode, destination names remain accessible and appear in tooltips on hover or focus; the active destination and profile avatar remain visible. Section headings and nested destinations are visually hidden. Custom SideNav.Header content, such as navigation search, is hidden in the rail and returns when expanded. Activating an expandable group expands the shell and opens that group. Hovering the toggle does not open a flyout in this mode. With the default app mark, the collapsed expand control occupies the mark’s existing position and appears on hover or keyboard focus. The mark is visible at rest, and the product name keeps its position through collapse and expansion. Phone navigation keeps its separate visible toggle. The splitter returns with the remembered width when expanded, and phone navigation continues to use the existing overlay. `shellScript` and `shellScriptFor` preserve the compact rail before hydration when collapse state is stored. See [Icon rail](?path=/story/layout-shell-icon-rail--desktop) for keyboard, RTL, phone and first-paint examples.
 
 `Shell.Panel.actions` places route-owned controls immediately before Close in the built-in header. Collection previews compose `Panel.Header`, `Panel.Actions` and `Panel.Close` for a navigation-only outer bar: previous/next through the displayed rows, a native full-record link and, for nested frames, Back. Put the visible record name and domain commands in a `PageHeader` at the beginning of `Panel.Body`, using an h2 and `PageHeader.Actions`. Give the panel an accessible `label` when its outer bar has no `Panel.Title`. The route owns row order, destinations and endpoint availability; Shell only supplies placement. The Record header narrow story exercises both headers at the minimum panel width.
+
+## Main's minimum width
+
+However the side nav and the panel are sized, Main keeps room for its content: one list column (`dimension.layout.list`) inside its desktop gutters (`space.300` each side), 388px with the default tokens. Each area is capped at half the viewport as before, and also where Main would fall under that minimum. The splitters stop there, and `aria-valuemax` says where, so End is the widest the area can be now. A remembered or default width that no longer fits is narrowed by the layout, not rewritten: when the panel opens beside a wide side nav, the panel's column gives way first, down to its own 240px minimum, and the side nav is capped so that the three always fit without a sideways scroll. The panel's column still opens and closes on the standard curve.
+
+<Canvas of={Stories.MainMinimum} />
+
+## Page changes
+
+Give Shell the router's location as `locationKey` (a pathname or a route id) and it handles a client-side page change at every width, without importing a router: it closes the phone overlay or the desktop flyout, moves focus to Main without scrolling, and announces the page's title through the [Announcer](?path=/docs/components-announcer--docs) it mounts. Focus stays where it is when it is on a control in the page that survived the change, such as a pager or a next-record link. Focus in a menu or a dialog outside the shell, such as a command palette, follows the popup's own return: when it hands focus back to its trigger in the top nav, or drops it, the shell takes it on to Main. The title is `document.title`, read once the new page has rendered, else Main's first h1; `getPageTitle` chooses other words or returns null to say nothing. Pass a key that changes with the page and not with a tab or a filter that writes to the URL, or a tab click would move focus to Main. Without `locationKey` the shell does none of this.
+
+```tsx
+const { pathname } = useLocation();
+<Shell locationKey={pathname}>…</Shell>;
+```
+
+<Canvas of={Stories.PageChange} />
+
+On a phone, choosing a link in the side nav closes the overlay and moves focus to Main even without `locationKey`, so the reader lands on the page they chose; a click that opens a new tab or window leaves it open. Set `closeOnNavigate={false}` on SideNav for links that change the page in place and should keep the overlay open; a change of `locationKey` still closes it. Any other close from inside the overlay (`useSideNav().collapse()`, Escape, the scrim) returns focus to the toggle, since the overlay stops accepting input as it closes. `onCollapse` reports a close caused by a page change with the trigger `"navigation"`.
+
+<Canvas of={Stories.PageChangePhone} />
+<Canvas of={Stories.DestinationPhone} />
+<Canvas of={Stories.KeepOpenPhone} />
 
 See [page composition](?path=/docs/layout-pages--docs) for route and tab examples.
 
@@ -41,6 +64,8 @@ The parts with props of their own. The others (SideNav.Header, Body and Footer, 
 <ArgTypes of={Shell.TopNav} />
 <ArgTypes of={Shell.TopNav.Start} />
 <ArgTypes of={Shell.TopNav.End} />
+<ArgTypes of={Shell.TopNav.Item} />
+<ArgTypes of={Shell.TopNav.Search} />
 <ArgTypes of={Shell.AppLogo} />
 <ArgTypes of={Shell.AppSwitcher} />
 <ArgTypes of={Shell.Profile} />
@@ -66,9 +91,40 @@ The parts with props of their own. The others (SideNav.Header, Body and Footer, 
 <ArgTypes of={Shell.Panel.Close} />
 <ArgTypes of={Shell.Panel.Splitter} />
 
-### The end slot on a phone
+### The end slot at narrow widths
 
-`TopNav.End` never shrinks, so what it holds decides the top nav's width. Give it `overflow`, one menu holding the same commands, and below the `md` breakpoint the menu stands in for the children (the Record rail at 390px story). Without it, keep the end items few enough for the narrowest window the product serves.
+`TopNav.End` never shrinks, so what it holds decides the top nav's width. Give each action or destination as a `TopNav.Item` (an icon, a `label`, and `onClick`, or `href` or a router link through `render` for a destination). When the top nav is narrower than 48rem, measured on the row itself so that a panel open beside it counts, the items leave the row for one More menu at End's end: the same icons and names, in the row's order, a destination still a link and an item with a `disabledReason` still saying why. Anything in End that is not an item stays in the row at every width, and so does an item marked `persistent`: keep the colour mode's ModeSwitch as a plain child, since a toggle group cannot become a menu row. An item that opens its own menu or popover is `persistent` and is the trigger through the trigger's `render` (`<DropdownMenuTrigger render={<Shell.TopNav.Item persistent … />} />`), since its popup anchors to the button in the row; an item forwards its native props and its ref to that button, so the trigger's wiring reaches it. Narrowed while an item has focus, focus moves to More, which now holds it, never to a persistent item beside it; widened while More has focus, it moves back to the first item that left. Budget the persistent children for the narrowest window the product serves.
+
+The fold reads the top nav's own width because the top nav is a size container (`container-type: inline-size`, named `topnav`). Inside Shell its width comes from the grid; a top nav placed outside a Shell needs a width from its parent, as a block or a stretched flex item, because it no longer takes one from its contents.
+
+<Canvas of={Stories.EndItemsFold} />
+
+`overflow` is the older, all-or-nothing spelling: below the `md` breakpoint one menu of the product's stands in for every child, the colour mode included (the Record rail at 390px story). Items inside an End with `overflow` never fold; `overflow` still decides.
+
+```tsx
+<Shell.TopNav.End>
+  <ModeSwitch />
+  <Shell.TopNav.Item icon={<CircleHelp />} label="Help" onClick={openHelp} />
+  <Shell.TopNav.Item icon={<Bell />} label="My work" render={<Link to="/work" />} />
+  <Shell.TopNav.Item icon={<Settings />} label="Settings" onClick={openSettings} />
+</Shell.TopNav.End>
+```
+
+### The search
+
+`TopNav.Search` is the top nav's way into the product's [SearchDialog](?path=/docs/patterns-searchdialog--docs). In a top nav at least 48rem wide it is a field-shaped button that reads its `label` and shows the shortcut's keys; narrower, a Search icon button with the label in its tooltip, so the middle slot never squeezes a field under the create action. Both are one button to assistive technology, named by `label`, with `aria-haspopup="dialog"` and `aria-keyshortcuts`, and both call `onOpen`. So does the shortcut, ⌘K on Apple platforms and Ctrl+K elsewhere (`shortcut`, `null` for none), from anywhere on the page; it ignores a held key's repeats, other modifiers and text still being composed, and does nothing while a dialog is open, so it never stacks a second dialog over a draft. The search is a button, not a text field: there is one search surface, the dialog, and nothing typed is lost when the row changes width. When the row narrows while the field has focus, focus moves to the icon. One key opens one dialog: `useCommandPalette` also binds ⌘K, and its shortcut cannot be changed, so a page with both gives TopNav.Search another `shortcut`, or `shortcut={null}`.
+
+```tsx
+const [open, setOpen] = useState(false);
+<Shell.TopNav.Middle>
+  <Shell.TopNav.Search label="Search records" onOpen={() => setOpen(true)} />
+</Shell.TopNav.Middle>;
+<SearchDialog open={open} onOpenChange={setOpen} results={records} onSelect={openRecord} />;
+```
+
+The [Search at 320px](?path=/story/layout-shell--narrow-search) story shows the row at a phone's width: the toggle, the switcher, the mark, Search, Create and More in one row.
+
+<Canvas of={Stories.SearchShortcut} />
 
 ### Narrow panel headers
 

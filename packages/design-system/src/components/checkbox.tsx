@@ -2,17 +2,26 @@ import { Checkbox as CheckboxPrimitive } from "@base-ui/react/checkbox";
 import { Check, Minus } from "lucide-react";
 
 import { classes } from "../lib/base-ui";
+import { useFieldControlState } from "./controls";
 
 export type CheckboxProps = CheckboxPrimitive.Root.Props;
 
+/**
+ * An independent yes or no. Inside a Field it takes the label, hint and error and the Field's
+ * `invalid`, `disabled` and `required`; inside a FieldSet or CheckboxGroup it follows their
+ * `disabled`. `parent` inside a CheckboxGroup with `allValues` makes it the select-all box.
+ */
 export function Checkbox({ className, ...props }: CheckboxProps) {
+  const field = useFieldControlState();
   return (
     <CheckboxPrimitive.Root
       data-slot="checkbox"
       {...props}
-      aria-required={props["aria-required"] ?? (props.required || undefined)}
+      disabled={props.disabled || field.disabled}
+      aria-required={props["aria-required"] ?? ((props.required ?? field.required) || undefined)}
       className={classes(
-        "peer relative flex size-200 shrink-0 items-center justify-center rounded-small border border-input bg-input text-inverse outline-none transition-colors duration-fast ease-standard after:absolute after:-inset-x-150 after:-inset-y-100 focus-visible:outline-focused aria-invalid:border-danger aria-invalid:outline-danger data-checked:border-brand data-checked:bg-brand-bold data-indeterminate:border-brand data-indeterminate:bg-brand-bold data-disabled:cursor-not-allowed data-disabled:opacity-disabled motion-reduce:transition-none",
+        // Invalid is the border; the focus outline stays the focus colour, so a focused invalid box still shows where focus is.
+        "peer relative flex size-200 shrink-0 items-center justify-center rounded-small border border-input bg-input text-inverse outline-none transition-colors duration-fast ease-standard after:absolute after:-inset-x-150 after:-inset-y-100 focus-visible:outline-focused aria-invalid:border-danger data-checked:border-brand data-checked:bg-brand-bold data-indeterminate:border-brand data-indeterminate:bg-brand-bold data-disabled:cursor-not-allowed data-disabled:opacity-disabled motion-reduce:transition-none",
         className,
       )}
     >

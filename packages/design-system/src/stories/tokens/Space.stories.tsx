@@ -15,21 +15,25 @@ export const Scale: Story = {
       }
     >
       <Group title="scale">
-        <div className="flex flex-col gap-100">
+        {/* Narrower than the four columns need (the sheet's own width, not the window's), a row is
+            the name and value, then the bar and the description under them. */}
+        <div className="@container flex flex-col gap-200 @xl:gap-100">
           {under("space")
             .filter((d) => !d.name.includes("negative"))
             .map((d) => (
               <div
                 key={d.name}
-                className="grid grid-cols-[120px_80px_minmax(0,1fr)_minmax(0,2fr)] items-center gap-300"
+                className="grid grid-cols-[120px_minmax(0,1fr)] items-center gap-x-300 gap-y-050 @xl:grid-cols-[120px_80px_minmax(0,1fr)_minmax(0,2fr)]"
               >
                 <span className="font-body text-default">{d.name}</span>
                 <Spec>{d.light}</Spec>
                 <div
-                  className="h-150 rounded-xsmall bg-brand-bold"
+                  className="col-span-full h-150 rounded-xsmall bg-brand-bold @xl:col-auto"
                   style={{ width: `var(${d.cssVar})` }}
                 />
-                <span className="font-body-small text-subtle">{d.description}</span>
+                <span className="col-span-full font-body-small text-subtle @xl:col-auto">
+                  {d.description}
+                </span>
               </div>
             ))}
         </div>

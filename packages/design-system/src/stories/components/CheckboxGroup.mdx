@@ -1,0 +1,68 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { CheckboxGroup, CheckboxGroupSelectAll } from "../../components";
+import * as Stories from "./CheckboxGroup.stories";
+
+<Meta of={Stories} />
+
+# CheckboxGroup
+
+Several choices that can each be true, under one legend. It is Base UI's CheckboxGroup rendered as a FieldSet: it owns the ticked values, names the group by its FieldLegend, and with `allValues` drives a select-all box.
+
+```tsx
+<CheckboxGroup defaultValue={["ac"]} allValues={["ac", "au", "cm"]}>
+  <FieldLegend variant="label">Control families</FieldLegend>
+  <CheckboxGroupSelectAll>Every family</CheckboxGroupSelectAll>
+  <Field orientation="horizontal">
+    <Checkbox value="ac" name="families" />
+    <FieldLabel>AC · Access control</FieldLabel>
+  </Field>
+  {/* … one horizontal Field per family */}
+</CheckboxGroup>
+```
+
+<Canvas of={Stories.Playground} />
+
+## When to use it
+
+- **Several independent answers** to one question: the channels to notify, the families to include, the parameters that apply.
+- **A list with select-all**, where the reader ticks most or all of the items.
+
+Use [RadioGroup](?path=/docs/components-radiogroup--docs) when only one answer can be true, [Checkbox](?path=/docs/components-checkbox--docs) on its own for a single yes or no, a [Switch](?path=/docs/components-switch--docs) for a setting that takes effect at once, and the selection column of a [DataTable](?path=/docs/patterns-data-table--docs) or a [PickerSheet](?path=/docs/patterns-pickersheet--docs) for choosing records from a long list.
+
+<Canvas of={Stories.DoDont} />
+
+## Values and select-all
+
+The group owns the ticked values as an array of the checkboxes' `value`s: `defaultValue` for local state, or `value` and `onValueChange(value, details)` when the form holds it; `details.cancel()` rejects a change. Each Checkbox takes a `value`, and a `name` for native submission, so `FormData.getAll(name)` returns the ticked values.
+
+`CheckboxGroupSelectAll` needs `allValues`, the value of every checkbox in the group. It is ticked when all are, mixed (`aria-checked="mixed"`, drawn with a dash) when some are, and a press ticks them all or clears them. Its label defaults to the locale's "Select all"; pass children to name what it selects. A disabled checkbox keeps its state when select-all changes the rest.
+
+<Canvas of={Stories.DefaultSelectAll} />
+
+## In a form
+
+A CheckboxGroup inside a Field takes the Field's hint and error and its `invalid` state, which marks every box; a required Field shows the asterisk on the legend and requires the group, not each box. No checkbox announces that requirement and a group cannot, so the legend adds the locale's "(required)" for assistive technology, hidden on screen. The form checks "at least one" itself. Put the FieldDescription and FieldError inside the group, after the legend.
+
+<Canvas of={Stories.InField} />
+
+`disabled` reaches every box, the select-all box included, and so does the `disabled` of a FieldSet or a Field around the group.
+
+<Canvas of={Stories.Disabled} />
+
+## Accessibility
+
+- The group is a `fieldset`, named by its FieldLegend. Start the children with the legend. In a required Field the name ends in "(required)".
+- Each box is its own Tab stop; Space ticks it. Give each one its own label: a horizontal Field with a FieldLabel needs no ids.
+- A hint or an error describes the group and each box in it.
+
+## Props
+
+<ArgTypes of={CheckboxGroup} />
+<ArgTypes of={CheckboxGroupSelectAll} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+[Checkbox](?path=/docs/components-checkbox--docs) · [Field](?path=/docs/components-field--docs) · [Forms](?path=/docs/patterns-forms--docs) · [Base UI Checkbox Group](https://base-ui.com/react/components/checkbox-group)

@@ -15,6 +15,24 @@ export {
 } from "./data-table";
 export { countRows, type Preset } from "./filter";
 export { HeaderMenu } from "./columns-menu";
+export { DataTableSort, type DataTableSortProps } from "./sort-menu";
+export {
+  sameTableQuery,
+  tableQueryFromSearch,
+  tableQueryParamNames,
+  tableQueryToSearch,
+  tableQueryToString,
+  type TableQuery,
+  type TableQueryParamOptions,
+  type TableQueryParams,
+  type TableQuerySearch,
+} from "./query";
+export {
+  readTableQuery,
+  tableQueryKey,
+  useTableQuery,
+  type TableQueryOptions,
+} from "./use-table-query";
 export { ColumnSortable, DragContext, RowSortable, useColumnDrag, useRowDrag } from "./reorder";
 export { toCsv, toRows, type ExportedRows } from "./to-rows";
 export { clearView, readView, resetView, viewKey, writeView } from "./view-store";
@@ -25,6 +43,8 @@ export {
   type DataTableFeatures,
   type DataTableMeta,
   type RowAction,
+  type StatusEntry,
+  type StatusMap,
 } from "./features";
 export {
   createDataTableColumnHelper,

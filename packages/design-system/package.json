@@ -21,11 +21,14 @@
     "./ledger.css": "./src/styles/ledger.css",
     "./base.css": "./src/styles/base.css",
     "./reset.css": "./src/styles/reset.css",
+    "./fonts.css": "./src/styles/fonts.css",
     "./tokens.css": "./src/generated/tokens.css",
     "./tokens.json": "./src/generated/tokens.figma.json",
     "./eslint": "./eslint-plugin/index.js",
     "./tokens.dtcg.light.json": "./src/generated/tokens.dtcg.light.json",
-    "./tokens.dtcg.dark.json": "./src/generated/tokens.dtcg.dark.json"
+    "./tokens.dtcg.dark.json": "./src/generated/tokens.dtcg.dark.json",
+    "./tokens.dtcg.light-contrast.json": "./src/generated/tokens.dtcg.light-contrast.json",
+    "./tokens.dtcg.dark-contrast.json": "./src/generated/tokens.dtcg.dark-contrast.json"
   },
   "scripts": {
     "build": "node build/dist.mjs",
@@ -39,6 +42,7 @@
     "test": "node --test \"test/**/*.test.mjs\"",
     "test:report": "CONTRAST_REPORT=1 node --test \"test/**/*.test.mjs\"",
     "test:a11y": "vitest run --project storybook-light --project storybook-dark --project storybook-forced-colors",
+    "test:layout": "vitest run --project storybook-narrow --project storybook-contained",
     "lint": "eslint .",
     "test:consumer": "node build/consumer-smoke.mjs"
   },
@@ -73,6 +77,7 @@
     "@dnd-kit/modifiers": "^9.0.0",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@fontsource-variable/geist": "^5.3.0",
     "@tanstack/react-table": "^9.2.4",
     "@tanstack/react-virtual": "^3.14.10",
     "class-variance-authority": "^0.7.1",

@@ -3,7 +3,7 @@ import { ArrowRight, ChevronDown, Download, Plus, Trash2 } from "lucide-react";
 import { createRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
-import { Button, buttonVariants } from "../../components";
+import { Button, LinkButton } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 
@@ -174,6 +174,131 @@ export const Loading: Story = {
   },
 };
 
+const publishAction = fn();
+const openTooltip = () => document.querySelector('[data-slot="tooltip-content"][data-open]');
+
+/**
+ * An action that truly cannot run says why. `disabledReason` keeps it in the tab order with
+ * `aria-disabled`: the reason is its accessible description, and it shows in a tooltip on hover,
+ * on keyboard focus and on a tap. A plain `disabled` button beside it leaves the tab order and
+ * explains nothing.
+ */
+export const DisabledWithAReason: Story = {
+  name: "Disabled with a reason",
+  render: () => (
+    <Inline space="space.100" alignBlock="center" shouldWrap>
+      <Button
+        variant="primary"
+        disabledReason="Add content to this version before publishing it."
+        onClick={publishAction}
+      >
+        Publish version
+      </Button>
+      <Button variant="subtle" disabledReason="Only an owner can archive a program.">
+        Archive
+      </Button>
+      <Button disabled>Duplicate</Button>
+    </Inline>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    publishAction.mockClear();
+    const publish = canvas.getByRole("button", { name: "Publish version" });
+    await expect(publish).toHaveAttribute("aria-disabled", "true");
+    await expect(publish).toHaveAttribute("data-disabled");
+    await expect(publish).not.toBeDisabled();
+    await expect(publish).toHaveAccessibleName("Publish version");
+    await expect(publish).toHaveAccessibleDescription(
+      "Add content to this version before publishing it.",
+    );
+    // Keyboard: Tab reaches it, the reason shows, and nothing runs.
+    await userEvent.tab();
+    await expect(publish).toHaveFocus();
+    await waitFor(() =>
+      expect(openTooltip()).toHaveTextContent("Add content to this version before publishing it."),
+    );
+    await userEvent.keyboard("{Enter} ");
+    await userEvent.click(publish);
+    await expect(publishAction).not.toHaveBeenCalled();
+    await expect(publish).toHaveFocus();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(openTooltip()).toBeNull());
+    // Touch: a tap shows the reason, which a hover-only tooltip never would.
+    await userEvent.pointer([{ keys: "[TouchA]", target: publish }]);
+    await waitFor(() =>
+      expect(openTooltip()).toHaveTextContent("Add content to this version before publishing it."),
+    );
+    await expect(publishAction).not.toHaveBeenCalled();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(openTooltip()).toBeNull());
+    // The subtle one keeps its disabled face under the pointer, and Tab reaches it too.
+    const archive = canvas.getByRole("button", { name: "Archive" });
+    await expect(archive).toHaveAccessibleDescription("Only an owner can archive a program.");
+    await userEvent.tab();
+    await expect(archive).toHaveFocus();
+    // A plain disabled button is skipped.
+    await userEvent.tab();
+    await expect(canvas.getByRole("button", { name: "Duplicate" })).not.toHaveFocus();
+  },
+};
+
+function PublishOnce() {
+  const [published, setPublished] = useState(false);
+  const [scanned, setScanned] = useState(false);
+  return (
+    <Inline space="space.100" alignBlock="center" shouldWrap>
+      <Button
+        variant="primary"
+        disabledReason={published ? "This version is already published." : undefined}
+        onClick={() => setPublished(true)}
+      >
+        Publish version
+      </Button>
+      <Button
+        disabledReason={scanned ? undefined : "The file is still being scanned."}
+        onFocus={() => setTimeout(() => setScanned(true), 50)}
+      >
+        Download file
+      </Button>
+    </Inline>
+  );
+}
+
+/**
+ * A reason that arrives or leaves while the button has focus changes nothing about where focus
+ * is: publishing makes Publish unavailable and keeps focus on it, with the reason in its tooltip,
+ * and a scan that finishes while the reader is on Download leaves them on an enabled Download.
+ */
+export const ReasonChangesWhileFocused: Story = {
+  name: "A reason that changes while focused",
+  render: () => <PublishOnce />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const publish = canvas.getByRole("button", { name: "Publish version" });
+    await userEvent.tab();
+    await expect(publish).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() =>
+      expect(canvas.getByRole("button", { name: "Publish version" })).toHaveAttribute(
+        "aria-disabled",
+        "true",
+      ),
+    );
+    await expect(canvas.getByRole("button", { name: "Publish version" })).toHaveFocus();
+    await waitFor(() =>
+      expect(openTooltip()).toHaveTextContent("This version is already published."),
+    );
+    await userEvent.keyboard("{Escape}");
+    await userEvent.tab();
+    await waitFor(() =>
+      expect(canvas.getByRole("button", { name: "Download file" })).not.toHaveAttribute(
+        "aria-disabled",
+      ),
+    );
+    await expect(canvas.getByRole("button", { name: "Download file" })).toHaveFocus();
+  },
+};
+
 /** Labelled actions in a header and footer, including a destructive confirmation. */
 export const Emphasis: Story = {
   render: () => (
@@ -201,15 +326,15 @@ const renderedAction = fn();
 const childAction = fn();
 const blockedAction = fn();
 
-/** Real links use the shared recipe; render composes controls that keep button semantics. */
+/** Navigation is a LinkButton, a real anchor; render composes controls that keep button semantics. */
 export const AsLink: Story = {
   name: "Navigation and composition",
   render: () => (
     <Stack space="space.300">
-      <Specimens title="Navigation: an anchor or router Link with buttonVariants">
-        <a href="#button-destination" className={buttonVariants({ variant: "primary" })}>
-          View requirements <ArrowRight aria-hidden className="size-icon-small" />
-        </a>
+      <Specimens title="Navigation: a LinkButton, an anchor or a router Link through render">
+        <LinkButton href="#button-destination" variant="primary" iconAfter={<ArrowRight />}>
+          View requirements
+        </LinkButton>
       </Specimens>
       <Specimens title="Composition: render an existing action control">
         <Button
@@ -284,6 +409,51 @@ export const AsLink: Story = {
     await userEvent.keyboard("{Enter} ");
     await expect(loading).toHaveFocus();
     await expect(blockedAction).not.toHaveBeenCalled();
+  },
+};
+
+/** The part keeps its drawn size and, where any pointer is coarse, takes a hit area of at least 24px. */
+const expectTouchTarget = async (element: HTMLElement) => {
+  await expect(element).toHaveClass("touch-target");
+  await expect(getComputedStyle(element).position).not.toBe("static");
+  if (matchMedia("(any-pointer: coarse)").matches) {
+    const area = getComputedStyle(element, "::before");
+    await expect(parseFloat(area.height)).toBeGreaterThanOrEqual(24);
+    await expect(parseFloat(area.width)).toBeGreaterThanOrEqual(24);
+  }
+};
+
+/**
+ * A link-styled action is as tall as its text, so a list of conditions keeps its rhythm. On a
+ * touch screen it takes an invisible hit area of at least 24px, centred on it; nothing moves.
+ */
+export const OnTouch: Story = {
+  globals: { viewport: { value: "ledgerPhone", isRotated: false } },
+  render: () => (
+    <Stack space="space.100">
+      {[
+        ["Success criterion", "Add"],
+        ["Linked findings", "Link a finding"],
+      ].map(([label, action]) => (
+        <Inline key={label} space="space.100" alignBlock="center" spread="space-between">
+          <Text size="small">{label}</Text>
+          <Button size="small" variant="link">
+            {action}
+          </Button>
+        </Inline>
+      ))}
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    for (const name of ["Add", "Link a finding"]) {
+      const action = canvas.getByRole("button", { name });
+      await expect(action.getBoundingClientRect().height).toBeLessThan(24);
+      await expectTouchTarget(action);
+    }
+    await expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+      document.documentElement.clientWidth,
+    );
   },
 };
 

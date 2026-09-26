@@ -16,6 +16,10 @@ An arrow appears only when the viewport overflows, only at an edge that can stil
 
 When a descendant receives keyboard focus, Scroller reveals it on its scrolling axis, including an item that was only partly visible. This moves its own viewport without scrolling the outer page; a nested Scroller handles its own focus reveal.
 
+A horizontal strip keeps its current item in view: the selected tab (`aria-selected`), the current step (`aria-current`) or the pressed view (`aria-pressed`). The first time the strip overflows (on its first layout, or once late fonts or labels widen it), and whenever it narrows, that item scrolls back in if it ended outside, clear of the arrows. Focus does not move. Once it has overflowed, a strip that widens, or whose content changes, stays where the reader put it.
+
+<Canvas of={Stories.KeepsCurrentInView} />
+
 ## Vertical
 
 Vertical scrollers scroll on hover unsaid: the arrow is a hover zone, hidden from assistive technology, and keyboard readers already move through the content. Menus use the `overlay` surface.

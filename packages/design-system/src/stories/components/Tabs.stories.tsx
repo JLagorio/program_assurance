@@ -65,7 +65,14 @@ export const ResponsiveWidths: Story = {
         await expect(tab.getBoundingClientRect().top).toBe(top);
         await expect(tab.getBoundingClientRect().height).toBe(32);
       }
-      if (width === 720) {
+      // The strip scrolls when its tabs need more room than its container gives it, whatever the
+      // window: the 720px frame fits on the canvas and scrolls on a phone or in a 320px panel.
+      const needed =
+        tabs.at(-1)!.getBoundingClientRect().right - tabs[0]!.getBoundingClientRect().left;
+      const fits = needed <= viewport.clientWidth + 1;
+      if (root.clientWidth >= 720) await expect(fits).toBe(true);
+      if (width === 280) await expect(fits).toBe(false);
+      if (fits) {
         await expect(viewport.scrollWidth).toBe(viewport.clientWidth);
         await expect(within(root).queryByRole("button", { name: /^Scroll/ })).toBeNull();
       } else {

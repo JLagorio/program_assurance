@@ -4,7 +4,7 @@ import { Meta } from "@storybook/addon-docs/blocks";
 
 # Writing stories
 
-The Storybook is the package's test suite and its documentation at once: every story renders in both colour modes with its play function and an axe pass (`npm run test:a11y`), every exported part must appear in one (`npm run ds:check`), and the family's MDX page draws its examples from the same file. The MCP tool `get-storybook-story-instructions` is the generic Storybook 9 guidance; this page is what this package adds to it.
+The Storybook is the package's test suite and its documentation at once: every story renders in both colour modes with its play function and an axe pass (`npm run test:a11y`) and again at a phone and in a narrow frame (`npm run test:layout`), every exported part must appear in one (`npm run ds:check`), and the family's MDX page draws its examples from the same file. The MCP tool `get-storybook-story-instructions` is the generic Storybook 9 guidance; this page is what this package adds to it.
 
 ## Shape of a stories file
 
@@ -41,11 +41,24 @@ export const Matrix: Story = { render: () => <Matrix rows={…} cols={…} rende
 - One playground covers the controls. Keep distinct regression cases as their own stories rather than folding them into the playground.
 - A `play` function on every interactive story: drive it with `userEvent`, assert the visible outcome with role and label queries on `canvas`, and assert `fn` callbacks were called. Wait for a menu to mount before asserting `aria-expanded`.
 - Render once. Josef switches the mode in the toolbar; a story never renders light and dark side by side.
+- A story's frame is fluid: a wrapper takes `maxWidth`, not `width`, so it fits a phone and a panel. Inside a row that sizes its children to their content (Specimens, an Inline), give the width together with `maxWidth: "100%"`. A layout inside a story responds to its container (`@container` with `@md:`), not the window (`md:`). Set Frame to 320px container in the toolbar to see a story in a narrow container.
+- A behaviour that exists only at a phone gets a story that pins `viewport` in its `globals` (`ledgerPhone` is 390px, `ledgerSmall` 340px), with a `play` that asserts it: no sideways scroll, the changed element visible, a folded item reachable. Pin only where the behaviour needs it: the layout checks measure a pinned story at the width it pins, not at theirs ([Testing and review](?path=/docs/guidance-testing-and-review--docs) says how).
+
+  ```tsx
+  export const Phone: Story = {
+    globals: { viewport: { value: "ledgerPhone", isRotated: false } },
+    play: async () => {
+      const page = document.documentElement;
+      await expect(page.scrollWidth).toBeLessThanOrEqual(page.clientWidth);
+    },
+  };
+  ```
 
 ## What fails a story
 
 - A console error. `test/storybook.setup.ts` fails any story that emits one.
 - An axe violation in either mode. Fix semantic and structural violations directly; a contrast or spacing violation is a design decision, so raise it instead.
+- Sideways scroll at a 390px phone, a word broken across two lines, or paint past a 320px frame (`npm run test:layout`). [Testing and review](?path=/docs/guidance-testing-and-review--docs) says what the check measures and when a story is exempt.
 - A stale `api/public-api.json`: `npm run ds:api:check` when declarations changed, `ds:api:update` when they changed on purpose.
 - Drift in `eslint-plugin/components.json` or `llms.txt`; the package build regenerates both.
 

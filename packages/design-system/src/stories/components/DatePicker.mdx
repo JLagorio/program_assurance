@@ -1,4 +1,4 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 import { DatePicker } from "../../components";
 import * as Stories from "./DatePicker.stories";
 
@@ -6,40 +6,79 @@ import * as Stories from "./DatePicker.stories";
 
 # DatePicker
 
-A single date stored as an ISO day (`yyyy-MM-dd`). This is Ledger’s form convenience built from [shadcn’s Popover + Calendar pattern](https://ui.shadcn.com/docs/components/base/date-picker); shadcn has no separate DatePicker root primitive.
+One calendar day in a form, held and reported as an ISO day (`"2026-09-18"`, the contract of `input type="date"`) and shown in the LedgerProvider's locale ("Sep 18, 2026"). A day has no time and no zone, so it never shifts between readers. It is Ledger's composition of [Popover](?path=/docs/components-popover--docs) and [Calendar](?path=/docs/components-calendar--docs), with Today and Clear under the month.
 
-## Anatomy
+Use it for a day: a due date, a planned completion, a milestone. For a moment in time (collected at, due at 5 PM) use [DateTimeField](?path=/docs/components-datetimefield--docs); for a time of day alone, [TimeField](?path=/docs/components-timefield--docs); for a range, [DateRangePicker](?path=/docs/components-daterangepicker--docs). An approximate or remembered date ("March 2024") is an [Input](?path=/docs/components-input--docs) with the format in its hint.
 
 ```tsx
-const id = useId();
 <Field>
-  <FieldLabel htmlFor={id}>Scheduled completion</FieldLabel>
-  <DatePicker id={id} name="due" value={due} onChange={setDue} />
-</Field>;
+  <FieldLabel>Scheduled completion</FieldLabel>
+  <DatePicker name="due" value={due} onValueChange={setDue} />
+  <FieldDescription>When the milestone is due.</FieldDescription>
+</Field>
 ```
 
-The visible control is Button composed through Base UI PopoverTrigger. A hidden input carries the ISO value for native submission. The popup contains Calendar and Today/Clear actions.
+<Canvas of={Stories.Open} />
 
-<Canvas of={Stories.Playground} />
+## Picking or typing
 
-## Variants and states
+`entry` chooses how the reader gives the day.
 
-Use `value`/`onChange` for controlled state or `defaultValue` for uncontrolled state. Selection reports an ISO day; clearing reports an empty string. `size` is small or medium. Disabled pickers cannot open and omit their hidden input from FormData.
+| `entry`          | What the reader sees                            | For                                                            |
+| ---------------- | ----------------------------------------------- | -------------------------------------------------------------- |
+| `pick` (default) | A button that reads the day and opens the month | A day the reader looks for: the next review, a due date        |
+| `type`           | A text field with a button that opens the month | A day the reader already knows: a signed date, a date of birth |
 
-A range uses Calendar inside an explicit Popover. Keep application-specific range behavior at that composition.
+A typed day is read in the provider's locale when the reader presses Tab or Enter, never while typing: "Sep 18, 2026", "9/18/2026" (en-US order), "18.9.2026" (de-DE), "2026-09-18" and "9/18" (this year) all read, in the locale's digits or Latin ones. The field then shows the day in the locale's words. Text that is not a day, or a day outside `min`, `max` or `isDateUnavailable`, stays as the reader typed it, the field reports `""` and says what fixes it under itself: "Enter a date such as Sep 25, 2026.", "Enter Sep 1, 2026 or later." Escape puts back the last day. Alt+Down opens the month from the text.
+
+The message is a FieldError inside the Field, so it describes the input and marks the Field invalid. `onEntryError` receives it (and `null` once the entry reads), for a form library that should show it in place of its own "Required.".
+
+<Canvas of={Stories.TypedEntry} />
+<Canvas of={Stories.TypedInGerman} />
+
+## Days the reader may not choose
+
+`min` and `max` are ISO days; `isDateUnavailable(iso)` returns `true` or the reason as a sentence ("Weekends are closed."). Those days are disabled in the month and their names carry the reason ("Saturday, September 19, 2026, Not available. Weekends are closed."); the month does not page before `min` or after `max`; when today may not be chosen, Today is disabled but stays in the tab order and says why ("The latest date is Dec 31, 2025."), as Button's `disabledReason`; a typed day outside them is an error that names the limit. Say the rule in the hint as well, where every reader sees it before choosing.
+
+`calendarProps` passes the month's own options: `captionLayout="dropdown"` for the year dropdown when the day is a year or more away, `startMonth` and `endMonth`, `showWeekNumber`, `fixedWeeks`.
+
+<Canvas of={Stories.MinMaxAndReasons} />
+<Canvas of={Stories.TodayUnavailable} />
+<Canvas of={Stories.YearDropdown} />
+
+## Values and forms
+
+Use `value` and `onValueChange` for controlled state or `defaultValue` for uncontrolled; `onChange` is the older spelling of `onValueChange`, deprecated and kept for one version. Choosing reports an ISO day and clearing reports `""`. A value that is not an ISO day warns once in the console: a timestamp is read as its day in the provider's zone, and anything else ("2026-02-30") as empty, so the field never shows one day and submits another. A hidden input carries the day under `name`, including for an owning form named by `form`; a disabled picker submits nothing. A native form reset restores an uncontrolled default; a controlled caller resets its own value.
+
+<Canvas of={Stories.NativeForm} />
 
 ## Accessibility
 
-Use FieldLabel with a stable ID, or give the button an aria-label. Native refs, onFocus, onBlur, ARIA and data attributes reach the visible trigger. Hint/error IDs belong in aria-describedby. A button cannot carry aria-required; announce required state in the label or hint and validate in the owning form.
+- Inside a Field the picker is the Field's control: the FieldLabel names it without ids, and the hint, the error and the Field's `invalid` and `disabled` reach it. Outside one, give it `aria-label`.
+- The picking button's name is its label, and it is described by the chosen day first, then the hint and the error, so a reader tabbing through a form hears the value without opening the month. The month is named after its field.
+- The month takes focus when it opens. Choosing, Clear and Escape return focus to the field, including inside a Dialog, which stays open.
+- A typed field is a text input and announces required; a button cannot carry `aria-required`, so the picking form says required in the label's asterisk and the form's check.
+- The month keeps the Calendar's keyboard: arrows by day and week, Page Up and Page Down by month, Shift with them by year, Home and End by week, one tab stop.
 
-Calendar receives initial focus when opened. Selection, Clear and Escape restore focus to the visible trigger. Base UI coordinates the popup within Dialog and Drawer. Native form reset closes the popup and restores an uncontrolled default; controlled callers reset their own value. External owning forms are supported through `form`.
+<Canvas of={Stories.InField} />
+<Canvas of={Stories.FocusIntegration} />
 
 ## Props
 
-The existing ISO value and form contracts are retained. Button now supplies the trigger’s native behavior and shared composition, while Ledger keeps field styling and localized date-only formatting. No timezone conversion is applied to the submitted day.
-
 <ArgTypes of={DatePicker} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+<Canvas of={Stories.DatePickerMatrix} />
 
 ## Related
 
-[Calendar](?path=/docs/components-calendar--docs), [Field](?path=/docs/components-field--docs), [Forms](?path=/docs/patterns-forms--docs), [Popover](?path=/docs/components-popover--docs).
+[Calendar](?path=/docs/components-calendar--docs) · [DateRangePicker](?path=/docs/components-daterangepicker--docs) · [DateTimeField](?path=/docs/components-datetimefield--docs) · [TimeField](?path=/docs/components-timefield--docs) · [DateTime](?path=/docs/components-datetime--docs) · [Field](?path=/docs/components-field--docs) · [Forms](?path=/docs/patterns-forms--docs)
+
+## Don't
+
+<Canvas of={Stories.Dont} />

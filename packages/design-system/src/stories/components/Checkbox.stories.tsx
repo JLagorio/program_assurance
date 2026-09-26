@@ -1,7 +1,6 @@
-import { CheckboxGroup } from "@base-ui/react/checkbox-group";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useId, createRef, useState } from "react";
-import { expect, fn, userEvent, within } from "storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import {
   FieldSet,
@@ -11,7 +10,10 @@ import {
   FieldError,
   Button,
   Checkbox,
+  CheckboxGroup,
+  CheckboxGroupSelectAll,
   Field,
+  FieldContent,
 } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
@@ -104,48 +106,24 @@ const families = [
 ] as const;
 
 function ParentDemo() {
-  const fieldId = useId();
-
   return (
-    <FieldSet
-      aria-labelledby={`${fieldId}-control-families-1-label`}
-      aria-describedby={`${fieldId}-control-families-1-message`}
-    >
-      <FieldLegend id={`${fieldId}-control-families-1-label`} variant="label">
-        {"Control families"}
-      </FieldLegend>
-      <CheckboxGroup
-        aria-describedby={`${fieldId}-control-families-1-message`}
-        aria-label="Selected control families"
-        defaultValue={["ac"]}
-        allValues={families.map(([key]) => key)}
-        className="grid gap-100"
-      >
-        <label className="inline-flex items-center gap-100">
-          <Checkbox
-            aria-describedby={`${fieldId}-control-families-1-message`}
-            inputRef={parentInputRef}
-            parent
-          />
-          Every family
-        </label>
-        <Stack space="space.100" className="ps-300">
-          {families.map(([key, label]) => (
-            <label key={key} className="inline-flex items-center gap-100">
-              <Checkbox aria-describedby={`${fieldId}-control-families-1-message`} value={key} />
-              {label}
-            </label>
-          ))}
-        </Stack>
-      </CheckboxGroup>
-      <FieldDescription id={`${fieldId}-control-families-1-message`}>
-        {"Choose which families to include in this review."}
-      </FieldDescription>
-    </FieldSet>
+    <CheckboxGroup defaultValue={["ac"]} allValues={families.map(([key]) => key)}>
+      <FieldLegend variant="label">Control families</FieldLegend>
+      <FieldDescription>Choose which families to include in this review.</FieldDescription>
+      <CheckboxGroupSelectAll inputRef={parentInputRef}>Every family</CheckboxGroupSelectAll>
+      <Stack space="space.100" className="ps-300">
+        {families.map(([key, label]) => (
+          <Field key={key} orientation="horizontal">
+            <Checkbox value={key} />
+            <FieldLabel>{label}</FieldLabel>
+          </Field>
+        ))}
+      </Stack>
+    </CheckboxGroup>
   );
 }
 
-/** Base UI CheckboxGroup derives a parent’s checked and mixed states from its selected children. */
+/** A CheckboxGroup derives the select-all box’s checked and mixed states from the ticked children. See [CheckboxGroup](?path=/docs/components-checkboxgroup--docs). */
 export const Parent: Story = {
   render: () => <ParentDemo />,
   play: async ({ canvasElement }) => {
@@ -311,7 +289,7 @@ export const InField: Story = {
     await userEvent.click(canvas.getByRole("button", { name: "Submit package" }));
     await expect(attestation).toHaveAttribute("aria-invalid", "true");
     await expect(attestation).toHaveAccessibleDescription("Review the evidence before submitting.");
-    await expect(canvas.getByRole("alert")).toHaveTextContent(
+    await expect(canvasElement.querySelector('[data-slot="field-error"]')).toHaveTextContent(
       "Review the evidence before submitting.",
     );
     await expect(canvas.getByRole("status")).toHaveTextContent(
@@ -342,7 +320,62 @@ export const InField: Story = {
     await userEvent.click(canvas.getByRole("button", { name: "Reset review" }));
     await expect(pii).not.toBeChecked();
     await expect(attestation).not.toBeChecked();
+    await expect(attestation).toHaveAccessibleDescription(
+      "Confirm the review before submitting the package.",
+    );
+    // Native `required` is also Base UI's constraint: a required box that was ticked and cleared
+    // stays reported until it is ticked again, whatever the form's own state says. A form that
+    // validates in its own code marks the Field `required` instead and leaves `required` off the box.
+    await userEvent.click(canvas.getByText("I have reviewed the evidence"));
     await expect(attestation).not.toHaveAttribute("aria-invalid", "true");
+  },
+};
+
+/**
+ * Inside a Field the box needs no ids: the label names it, the error describes it and `invalid`
+ * reaches it. Invalid is the danger border; focus keeps the focus outline, so a focused invalid
+ * box still shows where focus is.
+ */
+export const InvalidAndFocused: Story = {
+  name: "Invalid and focused",
+  render: () => (
+    <Stack space="space.150">
+      <Field orientation="horizontal" invalid required>
+        <Checkbox />
+        <FieldContent>
+          <FieldLabel>I have reviewed the evidence</FieldLabel>
+          <FieldError>Confirm the review before you submit.</FieldError>
+        </FieldContent>
+      </Field>
+      <Field orientation="horizontal">
+        <Checkbox />
+        <FieldLabel>Notify the owner</FieldLabel>
+      </Field>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const invalid = canvas.getByRole("checkbox", { name: "I have reviewed the evidence" });
+    const valid = canvas.getByRole("checkbox", { name: "Notify the owner" });
+    await expect(invalid).toHaveAttribute("aria-invalid", "true");
+    await expect(invalid).toHaveAttribute("aria-required", "true");
+    await expect(invalid).toHaveAccessibleDescription("Confirm the review before you submit.");
+    const danger = getComputedStyle(invalid).getPropertyValue("--ds-color-border-danger").trim();
+    await expect(getComputedStyle(invalid).borderColor).toBe(danger);
+    await expect(getComputedStyle(invalid).outlineStyle).toBe("none");
+    const ring = getComputedStyle(valid).getPropertyValue("--ds-color-border-focused").trim();
+    await expect(ring).not.toBe(danger);
+    for (const box of [invalid, valid]) {
+      // Keyboard focus, as Tab gives it; the option draws :focus-visible without a trusted key press.
+      box.focus({ focusVisible: true } as FocusOptions);
+      await expect(box).toHaveFocus();
+      await waitFor(() => {
+        expect(getComputedStyle(box).outlineStyle).toBe("solid");
+        expect(getComputedStyle(box).outlineColor).toBe(ring);
+      });
+    }
+    await expect(getComputedStyle(invalid).outlineStyle).toBe("none");
+    await expect(getComputedStyle(invalid).borderColor).toBe(danger);
   },
 };
 

@@ -13,7 +13,7 @@ import {
 } from "../../components";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { ExternalLink, MoreHorizontal, Plus } from "lucide-react";
-import { Stack, Text } from "../../primitives";
+import { HeadingLevelProvider, Stack, Text } from "../../primitives";
 
 const meta = {
   title: "Components/Item",
@@ -332,6 +332,15 @@ export const NativeIntegration: Story = {
     await expect(link).toHaveAttribute("id", "assessment-package-link");
     await expect(link).toHaveAttribute("href", "#package");
     const toggle = canvas.getByRole("button", { name: "Assessment package" });
+    // The chevron sits above the title's stretched link: a click or a tap on it reaches the
+    // chevron, never the record, and on a touch screen its hit area is 24px.
+    const chevron = toggle.getBoundingClientRect();
+    const hit = canvasElement.ownerDocument.elementFromPoint(
+      chevron.left + chevron.width / 2,
+      chevron.top + chevron.height / 2,
+    );
+    await expect(hit && toggle.contains(hit)).toBe(true);
+    await expect(toggle).toHaveClass("touch-target");
     await userEvent.click(toggle);
     await expect(toggle).toHaveAttribute("aria-expanded", "false");
     await userEvent.click(canvas.getByRole("button", { name: "Allow details" }));
@@ -347,5 +356,33 @@ export const NativeIntegration: Story = {
     await expect(canvas.getByRole("status")).toHaveTextContent("Downloaded");
     await userEvent.keyboard("{Enter}");
     await expect(canvas.getByRole("status")).toHaveTextContent("Opened record");
+  },
+};
+
+/** A group's title is a heading at the contextual level and names its list: an h3 when nothing sets one, an h2 in a region that starts its outline at 2 (a page's rail). A compact empty message stays body text. */
+export const GroupHeadingLevel: Story = {
+  name: "Group heading level",
+  render: () => (
+    <div style={{ maxWidth: 480 }}>
+      <Stack space="space.400">
+        <Item.Group title="Decisions" count={1}>
+          <Item id="DEC-12" title="Accept residual risk on legacy VPN" trailing="4 Sept" />
+        </Item.Group>
+        <HeadingLevelProvider level={2}>
+          <Item.Group title="Milestones" size="compact" empty="No milestones recorded." />
+          <Item.Group title="Reviews" size="compact">
+            <Item title="Quarterly access review" trailing="30 Sept" />
+          </Item.Group>
+        </HeadingLevelProvider>
+      </Stack>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("heading", { name: "Decisions" }).tagName).toBe("H3");
+    await expect(canvas.getByRole("heading", { name: "Milestones" }).tagName).toBe("H2");
+    await expect(canvas.getByRole("heading", { name: "Reviews" }).tagName).toBe("H2");
+    await expect(canvas.getByRole("list", { name: "Reviews" })).toBeVisible();
+    await expect(canvas.queryByRole("heading", { name: "No milestones recorded." })).toBeNull();
   },
 };

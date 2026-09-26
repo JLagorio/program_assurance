@@ -9,7 +9,11 @@
           "$extensions": {
             "ledger": {
               "dark": "{color.darkNeutral.200A}",
-              "introduced": "0.1.0"
+              "introduced": "0.1.0",
+              "contrast": {
+                "light": "{color.neutral.450A}",
+                "dark": "{color.darkNeutral.450A}"
+              }
             }
           }
         },
@@ -19,7 +23,11 @@
           "$extensions": {
             "ledger": {
               "dark": "{color.darkNeutral.300A}",
-              "introduced": "0.1.0"
+              "introduced": "0.1.0",
+              "contrast": {
+                "light": "{color.neutral.500A}",
+                "dark": "{color.darkNeutral.460A}"
+              }
             }
           }
         },
@@ -29,7 +37,11 @@
           "$extensions": {
             "ledger": {
               "dark": "{color.darkNeutral.400A}",
-              "introduced": "0.1.0"
+              "introduced": "0.1.0",
+              "contrast": {
+                "light": "{color.neutral.520A}",
+                "dark": "{color.darkNeutral.470A}"
+              }
             }
           }
         },
@@ -50,7 +62,11 @@
             "$extensions": {
               "ledger": {
                 "dark": "{color.darkNeutral.200A}",
-                "introduced": "0.1.0"
+                "introduced": "0.1.0",
+                "contrast": {
+                  "light": "{color.neutral.450A}",
+                  "dark": "{color.darkNeutral.450A}"
+                }
               }
             }
           },
@@ -60,7 +76,11 @@
             "$extensions": {
               "ledger": {
                 "dark": "{color.darkNeutral.300A}",
-                "introduced": "0.1.0"
+                "introduced": "0.1.0",
+                "contrast": {
+                  "light": "{color.neutral.500A}",
+                  "dark": "{color.darkNeutral.460A}"
+                }
               }
             }
           }
@@ -203,7 +223,11 @@
           "$extensions": {
             "ledger": {
               "dark": "{color.blue.1000}",
-              "introduced": "0.1.0"
+              "introduced": "0.1.0",
+              "contrast": {
+                "light": "{color.blue.475}",
+                "dark": "{color.blue.725}"
+              }
             }
           }
         },
@@ -213,7 +237,11 @@
           "$extensions": {
             "ledger": {
               "dark": "{color.blue.950}",
-              "introduced": "0.1.0"
+              "introduced": "0.1.0",
+              "contrast": {
+                "light": "{color.blue.500}",
+                "dark": "{color.blue.700}"
+              }
             }
           }
         },
@@ -223,7 +251,11 @@
           "$extensions": {
             "ledger": {
               "dark": "{color.blue.900}",
-              "introduced": "0.1.0"
+              "introduced": "0.1.0",
+              "contrast": {
+                "light": "{color.blue.550}",
+                "dark": "{color.blue.675}"
+              }
             }
           }
         },
@@ -924,7 +956,11 @@
         "$extensions": {
           "ledger": {
             "dark": "{color.darkNeutral.1000}",
-            "introduced": "0.1.0"
+            "introduced": "0.1.0",
+            "contrast": {
+              "light": "{color.neutral.1100}",
+              "dark": "{color.darkNeutral.1100}"
+            }
           }
         }
       },
@@ -934,7 +970,11 @@
         "$extensions": {
           "ledger": {
             "dark": "{color.darkNeutral.800}",
-            "introduced": "0.1.0"
+            "introduced": "0.1.0",
+            "contrast": {
+              "light": "{color.neutral.1000}",
+              "dark": "{color.darkNeutral.1100}"
+            }
           }
         }
       },
@@ -944,7 +984,11 @@
         "$extensions": {
           "ledger": {
             "dark": "{color.darkNeutral.700}",
-            "introduced": "0.1.0"
+            "introduced": "0.1.0",
+            "contrast": {
+              "light": "{color.neutral.800}",
+              "dark": "{color.darkNeutral.900}"
+            }
           }
         }
       },
@@ -974,7 +1018,11 @@
         "$extensions": {
           "ledger": {
             "dark": "{color.blue.300}",
-            "introduced": "0.1.0"
+            "introduced": "0.1.0",
+            "contrast": {
+              "light": "{color.blue.1100}",
+              "dark": "{color.blue.50}"
+            }
           }
         }
       },
@@ -1166,7 +1214,11 @@
         "$extensions": {
           "ledger": {
             "dark": "{color.darkNeutral.800}",
-            "introduced": "0.1.0"
+            "introduced": "0.1.0",
+            "contrast": {
+              "light": "{color.neutral.900}",
+              "dark": "{color.darkNeutral.1000}"
+            }
           }
         }
       },
@@ -1176,7 +1228,11 @@
         "$extensions": {
           "ledger": {
             "dark": "{color.darkNeutral.700}",
-            "introduced": "0.1.0"
+            "introduced": "0.1.0",
+            "contrast": {
+              "light": "{color.neutral.800}",
+              "dark": "{color.darkNeutral.900}"
+            }
           }
         }
       },
@@ -1206,7 +1262,11 @@
         "$extensions": {
           "ledger": {
             "dark": "{color.blue.400}",
-            "introduced": "0.1.0"
+            "introduced": "0.1.0",
+            "contrast": {
+              "light": "{color.blue.1000}",
+              "dark": "{color.blue.100}"
+            }
           }
         }
       },
@@ -1280,7 +1340,11 @@
         "$extensions": {
           "ledger": {
             "dark": "{color.darkNeutral.300A}",
-            "introduced": "0.1.0"
+            "introduced": "0.1.0",
+            "contrast": {
+              "light": "{color.neutral.450A}",
+              "dark": "{color.darkNeutral.450A}"
+            }
           }
         }
       },
@@ -1306,21 +1370,29 @@
       },
       "focused": {
         "$value": "{color.blue.500}",
-        "$description": "Use for focus rings of elements in a focus state.",
+        "$description": "Use for focus rings of elements in a focus state. Increased contrast darkens it in light and lightens it in dark, so a ring on a selected, pressed or highlighted fill keeps 3:1 against the fill as well as the surface.",
         "$extensions": {
           "ledger": {
             "dark": "{color.blue.300}",
-            "introduced": "0.1.0"
+            "introduced": "0.1.0",
+            "contrast": {
+              "light": "{color.blue.1000}",
+              "dark": "{color.blue.200}"
+            }
           }
         }
       },
       "input": {
         "$value": "{color.neutral.400}",
-        "$description": "Borders of form UI elements, such as text fields, checkboxes, and radio buttons. A light boundary by decision (2026-09-04): the input surface, the hover tint and the focus and danger borders carry the affordance.",
+        "$description": "Borders of form UI elements, such as text fields, checkboxes, and radio buttons. A light boundary by decision (2026-09-04): the input surface, the hover tint and the focus and danger borders carry the affordance. Increased contrast raises it to 3:1 on every surface.",
         "$extensions": {
           "ledger": {
             "dark": "{color.darkNeutral.500}",
-            "introduced": "0.1.0"
+            "introduced": "0.1.0",
+            "contrast": {
+              "light": "{color.neutral.600}",
+              "dark": "{color.darkNeutral.600}"
+            }
           }
         }
       },

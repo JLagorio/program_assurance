@@ -42,13 +42,19 @@ Story: Layout/Pages, Queue with panel; Patterns/PreviewNavigation.
 
 ## A create or edit form
 
-1. **Dialog** titled with the operation and the singular noun. The trigger, the title and the primary say the same words.
-2. **Field** groups over the controls, in a **Stack**; the first field takes focus.
-3. Validate on submit with the primary enabled. An error says what fixes it and the entered values stay.
-4. **DialogFooter** outside the scrolling field region: Cancel as a subtle Button, then the primary. The footer belongs to the form through `form` on the submit button.
-5. A dirty dismissal goes through an **AlertDialog**: Keep editing keeps the values, Discard closes. A pending save blocks dismissal and repeat submission.
+The default create and edit surface is a form dialog.
 
-Story: Patterns/Forms; Components/Dialog.
+1. **Dialog**, controlled: `open` and `onOpenChange` in the caller, opened from state by a Button whose words are the operation and the singular noun (Create task). The title and the primary say the same words.
+2. **DialogContent** with a `width` step (`medium` for a few fields, `large` for two columns) and `initialFocus` on the first field. Never `autoFocus`: inside a dialog opened from state it becomes where focus returns, and focus falls to the page on close. Base UI returns focus to the opener by itself.
+3. **DialogHeader** with **DialogTitle** and, when it helps, one line of **DialogDescription**.
+4. **DialogBody**, the one scroller, holding a `<form id noValidate onSubmit>`. Never make the form, a `fieldset` or a hand-written `div` the scroller.
+5. Inside the form, in a **Stack**: an **ErrorSummary** of the last submission's issues, then a **FieldSet** (`disabled` while pending) of **Field** groups: `invalid` and `required` on the Field, **FieldLabel**, the control, **FieldError** saying what fixes it.
+6. **DialogFooter**, outside the scroll: a **DialogClose** rendered as a subtle Button (Cancel), then the primary, `type="submit"` and joined to the form with `form`, `isLoading` while the save runs.
+7. **Validate on submit** with the primary enabled. On failure, the ErrorSummary takes focus and each item moves focus to its field; the entered values stay.
+8. **While the save runs**, set `pending` on the Dialog: Escape, the blanket, Close and Cancel do nothing and the popup is busy. Move focus to the submit button before the fields lock; it stays focusable while it loads. A failed save ends `pending`, keeps the dialog and the draft, and says what to change; a successful one closes it with `open={false}`.
+9. **A dirty dismissal** is cancelled in `onOpenChange` (`details.cancel()`) and asks through an **AlertDialog** nested in the DialogContent: Keep editing keeps the values and the dialog, Discard closes both.
+
+Stories: Components/Dialog, Form, Form save fails and Short window; Patterns/Forms for the fields and validation.
 
 ## Choosing records
 
@@ -65,8 +71,8 @@ Story: Patterns/Forms; Components/Dialog.
 
 ## A toolbar without a DataTable
 
-**Toolbar** over a plain **Table** or a list: the same slots, `filters` collapse into More when space runs out, search takes its own row on a phone. Story: Patterns/Toolbar, Constrained.
+**Toolbar** over a plain **Table** or a list: the same slots. When space runs out, `filters` and then the display controls fold into More; on a phone the row wraps into two in the same order, the search with the saved views, then More with the primary. Stories: Patterns/Toolbar, Constrained and Phone.
 
 ## Confirming a decision
 
-**AlertDialog** with a title that names the decision, one line of consequence, Cancel and the verb. It may open over the Dialog or Sheet that owns the decision.
+**AlertDialog** with a title that names the decision, one line of consequence, Cancel and the verb. It may open over the Dialog or Sheet that owns the decision. While the verb's command runs, `pending` holds it and the Action shows `isLoading`; close it when the command succeeds, and say what went wrong inside it when it fails. When the decision needs more than a line (the records a delete removes), put them in an **AlertDialogBody**.

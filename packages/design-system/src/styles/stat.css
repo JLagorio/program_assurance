@@ -1,0 +1,72 @@
+/* Stat.Grid: a row of tiles that takes its columns from its own width, not the window's, so the
+   same grid reads in a page, an aside or a 320px panel. A tile keeps at least 128px (two
+   space.800: a label, a heading-small number and a short note without a word per line), so two
+   tiles sit side by side in a 320px panel's body, padded space.200 or space.300, and on a 320px
+   phone. The grid shows the columns it asks for when they fit, then folds in balanced steps rather
+   than leaving a stray tile on a row of its own: six and five fold to three, and every count
+   folds to two, then one below two tiles' width (257px). The rows wrap and the tiles of a short
+   last row share it, so no empty cell shows the gutter paint. The one-pixel gap is the hairline;
+   the grid's background (the border token) shows through it.
+
+   Each step is a switch on the grid's width: (threshold - 100%) * 1000 is hugely positive below
+   the threshold and negative at or above it, so the clamp picks that step's basis or falls
+   through to the next. A basis leaves one pixel spare so rounding never pushes a tile down.
+
+   A tile also asks for its 128px when the grid is sized to its content (an items-start Stack, an
+   Inline, a popover, an auto grid track). The grid is then as wide as all its tiles side by side,
+   up to the room it has: up to `cols` tiles it stays across instead of folding around short
+   labels, and more tiles than `cols` fold into `cols` wider ones, so that grid needs a width.
+   Where the browser can say so, the floor is the larger of 128px and the tile's longest word, so
+   a long value takes a row of its own rather than spilling out of its tile. It is a floor, so a
+   grid under 128px clips the tile. */
+@utility stat-grid {
+  --stat-tile-min: calc(2 * var(--ds-space-800));
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+  & > * {
+    flex: 1 1
+      clamp(
+        calc((100% - var(--stat-cols, 4) * 1px) / var(--stat-cols, 4)),
+        calc(
+          (var(--stat-cols, 4) * var(--stat-tile-min) + (var(--stat-cols, 4) - 1) * 1px - 100%) *
+            1000
+        ),
+        clamp(
+          calc((100% - var(--stat-fold, 2) * 1px) / var(--stat-fold, 2)),
+          calc(
+            (var(--stat-fold, 2) * var(--stat-tile-min) + (var(--stat-fold, 2) - 1) * 1px - 100%) *
+              1000
+          ),
+          clamp(calc((100% - 2px) / 2), calc((2 * var(--stat-tile-min) + 1px - 100%) * 1000), 100%)
+        )
+      );
+    min-inline-size: var(--stat-tile-min);
+    /* Inside @supports: a declaration with var() is always parsed, so as a plain fallback line it
+       would replace the one above with auto where calc-size() is unknown. */
+    @supports (min-inline-size: calc-size(min-content, size)) {
+      min-inline-size: calc-size(min-content, max(size, var(--stat-tile-min)));
+    }
+  }
+}
+/* The most columns a grid asks for, and the step it folds to first. */
+@utility stat-grid-2 {
+  --stat-cols: 2;
+  --stat-fold: 2;
+}
+@utility stat-grid-3 {
+  --stat-cols: 3;
+  --stat-fold: 2;
+}
+@utility stat-grid-4 {
+  --stat-cols: 4;
+  --stat-fold: 2;
+}
+@utility stat-grid-5 {
+  --stat-cols: 5;
+  --stat-fold: 3;
+}
+@utility stat-grid-6 {
+  --stat-cols: 6;
+  --stat-fold: 3;
+}

@@ -23,7 +23,7 @@ export const GatesMatrix: Story = {
       cols={["label", "reason", "action"] as const}
       rowLabel="state"
       render={(row, col) => (
-        <Box style={{ width: 260 }}>
+        <Box style={{ maxWidth: 260 }}>
           <Gates>
             <Gates.Item
               met={row === "met"}
@@ -95,7 +95,7 @@ export const AllMet: Story = {
 /** The submit gates of a revision, in a rail: a title with the unmet count, then the list. */
 export const InRail: Story = {
   render: () => (
-    <Box style={{ width: 300 }}>
+    <Box style={{ maxWidth: 300 }}>
       <Stack space="space.100">
         <Inline space="space.100" alignBlock="baseline">
           <Text weight="medium">Submit gates</Text>
@@ -177,7 +177,7 @@ export const Dont: Story = {
         }
         doText="A list: the reader sees which two, and why."
         dont={
-          <Box style={{ width: 260 }}>
+          <Box style={{ maxWidth: 260 }}>
             <Stack space="space.075">
               <Progress
                 value={50}

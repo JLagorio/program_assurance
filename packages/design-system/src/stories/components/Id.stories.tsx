@@ -51,7 +51,7 @@ export const IdMatrix: Story = {
 /** In a table: the id column subtle, the name default; both tabular so the ids line up. */
 export const InRows: Story = {
   render: () => (
-    <div style={{ width: 520 }}>
+    <div style={{ maxWidth: 520 }}>
       <Table label="Controls">
         <thead>
           <tr>

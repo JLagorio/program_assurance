@@ -74,6 +74,10 @@ function readEdges(element: HTMLElement, orientation: ScrollerOrientation): Edge
 const sameEdges = (a: Edges, b: Edges) =>
   a.overflows === b.overflows && a.atStart === b.atStart && a.atEnd === b.atEnd;
 
+/** What a strip keeps in view when it narrows: the selected tab, the current step, the pressed view. */
+const currentItem =
+  '[aria-selected="true"], [aria-current]:not([aria-current="false"]), [aria-pressed="true"]';
+
 /** The arrow's thickness; the viewport keeps this much clear when arrows show. */
 const arrowSize = "var(--ds-space-300)";
 
@@ -162,11 +166,40 @@ export function Scroller({
       setEdges(noEdges);
       return undefined;
     }
+    const vertical = orientation === "vertical";
     const update = () =>
       setEdges((previous) => {
         const next = readEdges(viewport, orientation);
         return sameEdges(previous, next) ? previous : next;
       });
+    /** Scrolls the viewport the least distance that shows `target` whole, clear of `inset` at each edge. */
+    const reveal = (target: HTMLElement, inset = 0) => {
+      const bounds = viewport.getBoundingClientRect();
+      const item = target.getBoundingClientRect();
+      const style = getComputedStyle(viewport);
+      const start =
+        (vertical ? bounds.top + viewport.clientTop : bounds.left + viewport.clientLeft) +
+        Math.max(
+          inset,
+          parseFloat(vertical ? style.scrollPaddingTop : style.scrollPaddingLeft) || 0,
+        );
+      const end =
+        (vertical
+          ? bounds.top + viewport.clientTop + viewport.clientHeight
+          : bounds.left + viewport.clientLeft + viewport.clientWidth) -
+        Math.max(
+          inset,
+          parseFloat(vertical ? style.scrollPaddingBottom : style.scrollPaddingRight) || 0,
+        );
+      const itemStart = vertical ? item.top : item.left;
+      const itemEnd = vertical ? item.bottom : item.right;
+      // An item larger than the visible region cannot expose both edges; keep its position.
+      if (itemStart < start && itemEnd > end) return;
+      const distance = itemStart < start ? itemStart - start : itemEnd > end ? itemEnd - end : 0;
+      if (distance) {
+        viewport.scrollBy(vertical ? { top: distance } : { left: distance });
+      }
+    };
     const revealFocus = (event: FocusEvent) => {
       const target = event.target;
       if (
@@ -177,28 +210,39 @@ export function Scroller({
         return;
       }
       revealedFocusEvents.add(event);
-      const vertical = orientation === "vertical";
-      const bounds = viewport.getBoundingClientRect();
-      const item = target.getBoundingClientRect();
-      const style = getComputedStyle(viewport);
-      const start =
-        (vertical ? bounds.top + viewport.clientTop : bounds.left + viewport.clientLeft) +
-        (parseFloat(vertical ? style.scrollPaddingTop : style.scrollPaddingLeft) || 0);
-      const end =
-        (vertical
-          ? bounds.top + viewport.clientTop + viewport.clientHeight
-          : bounds.left + viewport.clientLeft + viewport.clientWidth) -
-        (parseFloat(vertical ? style.scrollPaddingBottom : style.scrollPaddingRight) || 0);
-      const itemStart = vertical ? item.top : item.left;
-      const itemEnd = vertical ? item.bottom : item.right;
-      // An item larger than the visible region cannot expose both edges; keep its position.
-      if (itemStart < start && itemEnd > end) return;
-      const distance = itemStart < start ? itemStart - start : itemEnd > end ? itemEnd - end : 0;
-      if (distance) {
-        viewport.scrollBy(vertical ? { top: distance } : { left: distance });
-      }
+      reveal(target);
     };
-    const sizes = new ResizeObserver(update);
+    // A strip keeps its current item in view: the first time it overflows (on its first layout, or
+    // once late fonts or labels widen it), and whenever it narrows (a window resize, a panel
+    // opening beside it), the selected tab, the current step or the pressed view scrolls back in
+    // if it ended outside. Nothing moves focus, and a strip that has overflowed before and only
+    // grows or changes its content is left where the reader put it.
+    let laidOutWidth = 0;
+    let overflowedBefore = false;
+    const keepCurrentInView = () => {
+      if (vertical) return;
+      const width = viewport.clientWidth;
+      const narrowed = width < laidOutWidth - 1;
+      laidOutWidth = width;
+      if (!readEdges(viewport, orientation).overflows) return;
+      const first = !overflowedBefore;
+      overflowedBefore = true;
+      if (!first && !narrowed) return;
+      const root = viewport.closest('[data-slot="scroller"]');
+      const current = Array.from(viewport.querySelectorAll<HTMLElement>(currentItem)).find(
+        (item) => item.closest('[data-slot="scroller"]') === root,
+      );
+      if (!current) return;
+      // The arrows may not have claimed their scroll padding yet on the first layout.
+      const arrows = window.matchMedia(hoverQuery).matches
+        ? parseFloat(getComputedStyle(viewport).getPropertyValue("--ds-space-300")) || 0
+        : 0;
+      reveal(current, arrows);
+    };
+    const sizes = new ResizeObserver(() => {
+      update();
+      keepCurrentInView();
+    });
     const observeChildren = () => {
       sizes.disconnect();
       sizes.observe(viewport);

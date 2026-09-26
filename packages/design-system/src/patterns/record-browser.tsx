@@ -14,6 +14,7 @@ import { Button, IconButton } from "../components/button";
 import { Checkbox } from "../components/checkbox";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -57,10 +58,14 @@ export function RecordBrowser<T extends { id: string }>({
 }: RecordBrowserProps<T>) {
   const dismissPreview = useRef<(() => void) | null>(null);
   const confirming = useRef(false);
+  // The confirmation in flight holds the dialog: the kit's pending lock disables Close and Cancel
+  // and cancels every dismissal while `onConfirm` runs.
+  const [saving, setSaving] = useState(false);
   // A fresh session on each open; changing search or closing a preview never clears selection.
   return (
     <Dialog
       open={open}
+      pending={saving}
       onOpenChange={(next, details) => {
         if (!next && confirming.current) {
           details.cancel();
@@ -80,6 +85,8 @@ export function RecordBrowser<T extends { id: string }>({
           onClose={onClose}
           dismissPreview={dismissPreview}
           confirming={confirming}
+          saving={saving}
+          setSaving={setSaving}
         />
       ) : null}
     </Dialog>
@@ -89,6 +96,8 @@ export function RecordBrowser<T extends { id: string }>({
 function RecordBrowserContent<T extends { id: string }>({
   dismissPreview,
   confirming,
+  saving,
+  setSaving,
   title,
   description,
   records,
@@ -106,10 +115,11 @@ function RecordBrowserContent<T extends { id: string }>({
 }: Omit<RecordBrowserProps<T>, "open"> & {
   dismissPreview: RefObject<(() => void) | null>;
   confirming: RefObject<boolean>;
+  saving: boolean;
+  setSaving: (saving: boolean) => void;
 }) {
   const { t } = useLedgerLocale();
   const [previewId, setPreviewId] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [internalSelection, setInternalSelection] = useState<Record<string, true>>({});
   const mounted = useRef(true);
@@ -118,8 +128,10 @@ function RecordBrowserContent<T extends { id: string }>({
     return () => {
       mounted.current = false;
       confirming.current = false;
+      // A session closed from outside while it confirmed leaves the next one unlocked.
+      setSaving(false);
     };
-  }, [confirming]);
+  }, [confirming, setSaving]);
   const rowSelection = useMemo(
     () =>
       selectedIds === undefined
@@ -228,18 +240,21 @@ function RecordBrowserContent<T extends { id: string }>({
         <DialogTitle>{title}</DialogTitle>
         <DialogDescription>{description}</DialogDescription>
       </DialogHeader>
-      {context ? (
-        <div className="shrink-0 border-b border-default px-250 py-150">{context}</div>
-      ) : null}
-      <div
+      <DialogBody
         data-record-browser-body=""
-        className="flex min-h-0 flex-1"
+        className="flex p-0"
         data-preview={preview ? "open" : undefined}
       >
         <div
           data-record-browser-results=""
           className="min-w-0 flex-1 overflow-y-auto overscroll-contain p-200"
         >
+          {/* The context scrolls with the results, so a short window keeps room for the rows. */}
+          {context ? (
+            <div data-record-browser-context="" className="pb-200">
+              {context}
+            </div>
+          ) : null}
           <DataTable
             table={table}
             onRowClick={openPreview}
@@ -330,7 +345,7 @@ function RecordBrowserContent<T extends { id: string }>({
             </label>
           </section>
         ) : null}
-      </div>
+      </DialogBody>
       {error ? (
         <p role="alert" className="shrink-0 px-250 py-100 font-body text-danger">
           {error}

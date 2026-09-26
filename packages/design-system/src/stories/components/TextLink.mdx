@@ -30,6 +30,8 @@ Omitted size inherits surrounding text. `small` and `medium` set the body scale;
 
 A real anchor retains Enter activation, copy-link and open-in-new-tab behavior. Space does not activate a link. Name the destination, such as “Full timeline”, rather than “Click here”. Add a persistent underline in prose where color alone would not distinguish the link.
 
+Where any pointer is coarse, a standalone link takes an invisible hit area at least 24px tall across its own words (the shared `touch-target-block` band), so a name in a row or a "See all" footer is easy to tap; the area is never wider than the link, even when a long name wraps. A link with its sentence's text beside it keeps its words as the target, so it takes no taps from the lines around it. A container that hides its overflow clips the area to its own box; a [KeyValue](?path=/docs/components-keyvalue--docs) value truncates across only, so a link in it keeps the whole area.
+
 <Canvas of={Stories.RenderComposition} />
 
 ## Props

@@ -1345,7 +1345,7 @@
       "focused": {
         "$type": "color",
         "$value": "{color.blue.300}",
-        "$description": "Use for focus rings of elements in a focus state.",
+        "$description": "Use for focus rings of elements in a focus state. Increased contrast darkens it in light and lightens it in dark, so a ring on a selected, pressed or highlighted fill keeps 3:1 against the fill as well as the surface.",
         "$extensions": {
           "ledger": {
             "introduced": "0.1.0"
@@ -1355,7 +1355,7 @@
       "input": {
         "$type": "color",
         "$value": "{color.darkNeutral.500}",
-        "$description": "Borders of form UI elements, such as text fields, checkboxes, and radio buttons. A light boundary by decision (2026-09-04): the input surface, the hover tint and the focus and danger borders carry the affordance.",
+        "$description": "Borders of form UI elements, such as text fields, checkboxes, and radio buttons. A light boundary by decision (2026-09-04): the input surface, the hover tint and the focus and danger borders carry the affordance. Increased contrast raises it to 3:1 on every surface.",
         "$extensions": {
           "ledger": {
             "introduced": "0.1.0"
@@ -2149,6 +2149,42 @@
           "alpha": 0.5
         },
         "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+      },
+      "450A": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [
+            0.22,
+            0.024,
+            258
+          ],
+          "alpha": 0.47
+        },
+        "$description": "Increased contrast: the resting neutral fill and the hairline, at 3:1 on every light surface.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "520A": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [
+            0.22,
+            0.024,
+            258
+          ],
+          "alpha": 0.52
+        },
+        "$description": "Increased contrast: the pressed neutral fill, as strong as a fill goes while text.subtle keeps 4.5:1 on it.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
       }
     },
     "darkNeutral": {
@@ -2396,9 +2432,80 @@
           "alpha": 0.5
         },
         "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+      },
+      "450A": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [
+            1,
+            0,
+            0
+          ],
+          "alpha": 0.34
+        },
+        "$description": "Increased contrast: the resting neutral fill and the hairline, at 3:1 on every dark surface.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "460A": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [
+            1,
+            0,
+            0
+          ],
+          "alpha": 0.355
+        },
+        "$description": "Increased contrast: the hovered neutral fill in dark.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "470A": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [
+            1,
+            0,
+            0
+          ],
+          "alpha": 0.37
+        },
+        "$description": "Increased contrast: the pressed neutral fill in dark, as strong as a fill goes while text keeps 4.5:1 on it.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
       }
     },
     "blue": {
+      "50": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [
+            0.99,
+            0.01,
+            254
+          ]
+        },
+        "$description": "Increased contrast: selected text in dark, on the 3:1 selected fills.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
       "100": {
         "$type": "color",
         "$value": {
@@ -2493,6 +2600,23 @@
         },
         "$description": "Draft ramp step. Tune in step 1."
       },
+      "475": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [
+            0.65,
+            0.165,
+            254
+          ]
+        },
+        "$description": "Increased contrast: the selected fill in light, at 3:1 on every light surface.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
       "500": {
         "$type": "color",
         "$value": {
@@ -2504,6 +2628,23 @@
           ]
         },
         "$description": "Draft ramp step. Tune in step 1."
+      },
+      "550": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [
+            0.61,
+            0.178,
+            254
+          ]
+        },
+        "$description": "Increased contrast: the pressed selected fill in light.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
       },
       "600": {
         "$type": "color",
@@ -2517,6 +2658,23 @@
         },
         "$description": "Draft ramp step. Tune in step 1."
       },
+      "675": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [
+            0.55,
+            0.19,
+            254
+          ]
+        },
+        "$description": "Increased contrast: the pressed selected fill in dark.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
       "700": {
         "$type": "color",
         "$value": {
@@ -2528,6 +2686,23 @@
           ]
         },
         "$description": "Draft ramp step. Tune in step 1."
+      },
+      "725": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [
+            0.525,
+            0.19,
+            254
+          ]
+        },
+        "$description": "Increased contrast: the selected fill in dark, at 3:1 on every dark surface.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
       },
       "800": {
         "$type": "color",
@@ -2610,6 +2785,23 @@
           ]
         },
         "$description": "Draft ramp step. Tune in step 1."
+      },
+      "1100": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [
+            0.2,
+            0.06,
+            254
+          ]
+        },
+        "$description": "Increased contrast: selected text in light, on the 3:1 selected fills.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
       }
     },
     "green": {
@@ -3590,6 +3782,203 @@
         "$description": "Tailwind's xl, 1280px: the panel breakpoint under its Tailwind name, for Grid's `xl` column count."
       }
     },
+    "container": {
+      "3xs": {
+        "$type": "dimension",
+        "$value": {
+          "value": 16,
+          "unit": "rem"
+        },
+        "$description": "Tailwind's container 3xs, 256px, restated so the `@3xs` variant reads a token. A card header puts its actions beside the title, and an input group shows its shortcut, from here.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "2xs": {
+        "$type": "dimension",
+        "$value": {
+          "value": 18,
+          "unit": "rem"
+        },
+        "$description": "Tailwind's container 2xs, 288px, restated so the `@2xs` variant reads a token. No part switches here yet.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "xs": {
+        "$type": "dimension",
+        "$value": {
+          "value": 20,
+          "unit": "rem"
+        },
+        "$description": "Tailwind's container xs, 320px, restated so the `@xs` variant reads a token. No part switches here yet.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "sm": {
+        "$type": "dimension",
+        "$value": {
+          "value": 24,
+          "unit": "rem"
+        },
+        "$description": "Tailwind's container sm, 384px, restated so the `@sm` variant reads a token. Pagination shows its Previous and Next words from here.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "md": {
+        "$type": "dimension",
+        "$value": {
+          "value": 28,
+          "unit": "rem"
+        },
+        "$description": "Tailwind's container md, 448px, restated so the `@md` variant reads a token. A field group sets label and control side by side from here. Not the viewport md, 48rem.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "lg": {
+        "$type": "dimension",
+        "$value": {
+          "value": 32,
+          "unit": "rem"
+        },
+        "$description": "Tailwind's container lg, 512px, restated so the `@lg` variant reads a token. No part switches here yet.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "xl": {
+        "$type": "dimension",
+        "$value": {
+          "value": 36,
+          "unit": "rem"
+        },
+        "$description": "Tailwind's container xl, 576px, restated so the `@xl` variant reads a token. Below it a side-by-side Diff stacks its halves and reads as the inline view.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "2xl": {
+        "$type": "dimension",
+        "$value": {
+          "value": 42,
+          "unit": "rem"
+        },
+        "$description": "Tailwind's container 2xl, 672px, restated so the `@2xl` variant reads a token. No part switches here yet.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "3xl": {
+        "$type": "dimension",
+        "$value": {
+          "value": 48,
+          "unit": "rem"
+        },
+        "$description": "Tailwind's container 3xl, 768px, restated so the `@3xl` variant reads a token. A WorkPane sets its list beside the detail from here, and the top nav shows its search as a field and keeps its foldable items out of More.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "4xl": {
+        "$type": "dimension",
+        "$value": {
+          "value": 56,
+          "unit": "rem"
+        },
+        "$description": "Tailwind's container 4xl, 896px, restated so the `@4xl` variant reads a token. No part switches here yet.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "5xl": {
+        "$type": "dimension",
+        "$value": {
+          "value": 64,
+          "unit": "rem"
+        },
+        "$description": "Tailwind's container 5xl, 1024px, restated so the `@5xl` variant reads a token. No part switches here yet.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "6xl": {
+        "$type": "dimension",
+        "$value": {
+          "value": 72,
+          "unit": "rem"
+        },
+        "$description": "Tailwind's container 6xl, 1152px, restated so the `@6xl` variant reads a token. No part switches here yet.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "7xl": {
+        "$type": "dimension",
+        "$value": {
+          "value": 80,
+          "unit": "rem"
+        },
+        "$description": "Tailwind's container 7xl, 1280px, restated so the `@7xl` variant reads a token. No part switches here yet.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "compact": {
+        "$type": "dimension",
+        "$value": {
+          "value": 25,
+          "unit": "rem"
+        },
+        "$description": "400px. Below it a region is compact: a header gives its actions a row of their own under the title, as the panel header does.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "split": {
+        "$type": "dimension",
+        "$value": {
+          "value": 50,
+          "unit": "rem"
+        },
+        "$description": "800px. From here a body shows two panes side by side; below it an open preview replaces the list, as in RecordBrowser.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      }
+    },
     "layout": {
       "sidenav": {
         "$type": "dimension",
@@ -4002,17 +4391,19 @@
       "body": {
         "$type": "fontFamily",
         "$value": [
+          "Geist Variable",
           "Geist",
           "Inter",
           "ui-sans-serif",
           "system-ui",
           "sans-serif"
         ],
-        "$description": "The one UI face. Identifiers, dates and numbers use it too."
+        "$description": "The one UI face. Identifiers, dates and numbers use it too. Geist Variable is the face fonts.css loads; Geist is the same family installed on the machine."
       },
       "heading": {
         "$type": "fontFamily",
         "$value": [
+          "Geist Variable",
           "Geist",
           "Inter",
           "ui-sans-serif",
@@ -4024,12 +4415,13 @@
       "code": {
         "$type": "fontFamily",
         "$value": [
+          "Geist Mono Variable",
           "Geist Mono",
           "JetBrains Mono",
           "ui-monospace",
           "monospace"
         ],
-        "$description": "Code blocks and data previews only. Never UI text."
+        "$description": "Code blocks and data previews only. Never UI text. Geist Mono Variable is the name the packaged mono face takes once fonts.css loads it."
       }
     },
     "weight": {

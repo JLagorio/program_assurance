@@ -17,6 +17,7 @@ export { PreviewSheet, type PreviewSheetProps } from "./preview-sheet";
 export { PreviewNavigation, type PreviewNavigationProps } from "./preview-navigation";
 export { RecordPicker, type PickerRecord, type RecordPickerProps } from "./record-picker";
 export { Related, type RelatedProps } from "./related";
+export { SearchDialog, type SearchDialogProps, type SearchResult } from "./search-dialog";
 export { TaskRow, type TaskRowProps } from "./task-row";
 
 export {

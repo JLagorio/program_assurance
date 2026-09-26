@@ -42,11 +42,12 @@ npm run lint -w packages/design-system
 npm test -w packages/design-system                # contrast, DTCG, locale, lint inventory, llms.txt, view state
 npm run ds:api:check                              # public API baseline; ds:api:update when declarations change
 npm run test:a11y -w packages/design-system       # every story, play and axe, light and dark
+npm run test:layout -w packages/design-system     # every story at a 390px phone and in a 320px frame
 npm run build -w packages/design-system           # dist/, then the app typecheck sees new exports
 npm run test:consumer -w packages/design-system
 ```
 
-Inside the package, `npx vitest run --project storybook-light -t "Button"` runs one family in one mode.
+Inside the package, `npx vitest run --project storybook-light -t "Button"` runs one family in one mode, and `npx vitest run --project storybook-narrow --project storybook-contained src/stories/<dir>/<Family>.stories.tsx` runs one file through both layout checks. What the layout checks measure and when a story may be exempt is on the Storybook's Guidance/Testing and review page.
 
 ## Verifying visually
 

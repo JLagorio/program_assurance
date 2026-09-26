@@ -63,6 +63,8 @@ export const CollectionTask: Story = {
     const first = await page.findByRole("dialog", { name: "Access review evidence" });
     const navigationHeader = first.querySelector('[data-slot="sheet-header"]') as HTMLElement;
     const recordHeader = first.querySelector('[data-slot="page-header"]') as HTMLElement;
+    // The record header opens the SheetBody, the sheet's one scroller.
+    await expect(recordHeader.closest('[data-slot="sheet-body"]')).not.toBeNull();
     await expect(within(navigationHeader).queryByRole("heading")).toBeNull();
     await expect(
       within(navigationHeader).queryByRole("button", { name: "Edit artifact" }),

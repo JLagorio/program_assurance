@@ -34,9 +34,11 @@ Tab enters and leaves the group as one stop. All four arrow keys move focus and 
 
 ## Labels, Field and forms
 
-Name the group with `aria-label` or `aria-labelledby`, which can point to a [FieldLegend](?path=/docs/components-field--docs) inside FieldSet. A wrapping label or a sibling label with `htmlFor` names each item and selects it when clicked. Put descriptions in ordinary elements and reference them with the item's `aria-describedby`.
+The short path is a Field around a FieldSet: the FieldLegend names the group, the Field's hint and error describe it, and its `invalid` and `required` reach the group once. Each item is a horizontal Field with a FieldLabel, so it keeps its own name and needs no id. Invalid is the item's danger border, set once on the group; a focused item keeps the focus outline.
 
-Compose FieldSet/FieldLegend and reference description/error IDs on the group with `aria-describedby`. Pass `aria-invalid` and `aria-required` explicitly. Pass `aria-invalid` to individual items when their indicators should show the error treatment. Native `required` on RadioGroup makes its hidden radio inputs participate in browser validation; `aria-required` supplies the accessible required state.
+<Canvas of={Stories.BoundInField} />
+
+Outside a Field, name the group with `aria-label` or `aria-labelledby`; inside a FieldSet the legend names it. A wrapping label or a sibling label with `htmlFor` names each item and selects it when clicked, and `aria-describedby` links supporting text. `aria-invalid` on the group marks every item. Native `required` on RadioGroup makes its hidden radio inputs take part in browser and Base UI validation; the Field's `required` only announces and marks. A FieldSet's `disabled` disables the items.
 
 `name` and `form` associate the hidden inputs with native submission. The selected item's value is submitted. Native form reset is caller-owned in Base UI 1.7: restore controlled `value` in the form's `onReset` handler.
 

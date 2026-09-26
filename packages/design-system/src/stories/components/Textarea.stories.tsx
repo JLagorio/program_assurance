@@ -299,7 +299,7 @@ export const Dont: Story = {
       <Stack space="space.400">
         <Pair
           do={
-            <div style={{ width: 260 }}>
+            <div style={{ maxWidth: 260 }}>
               <Field>
                 <FieldLabel
                   id={`${fieldId}-program-name-7-label`}
@@ -317,7 +317,7 @@ export const Dont: Story = {
           }
           doText="A one-line answer is an Input."
           dont={
-            <div style={{ width: 260 }}>
+            <div style={{ maxWidth: 260 }}>
               <Field>
                 <FieldLabel
                   id={`${fieldId}-program-name-8-label`}
@@ -338,7 +338,7 @@ export const Dont: Story = {
         />
         <Pair
           do={
-            <div style={{ width: 260 }}>
+            <div style={{ maxWidth: 260 }}>
               <Field>
                 <FieldLabel id={`${fieldId}-note-9-label`} htmlFor={`${fieldId}-note-9`}>
                   {"Note"}
@@ -354,7 +354,7 @@ export const Dont: Story = {
           }
           doText="Two rows for a note; the reader drags it taller when they need to."
           dont={
-            <div style={{ width: 260 }}>
+            <div style={{ maxWidth: 260 }}>
               <Field>
                 <FieldLabel id={`${fieldId}-note-10-label`} htmlFor={`${fieldId}-note-10`}>
                   {"Note"}
@@ -372,7 +372,7 @@ export const Dont: Story = {
         />
         <Pair
           do={
-            <div style={{ width: 300 }}>
+            <div style={{ maxWidth: 300 }}>
               <Field>
                 <FieldLabel id={`${fieldId}-function-11-label`} htmlFor={`${fieldId}-function-11`}>
                   {"Function"}
@@ -392,7 +392,7 @@ export const Dont: Story = {
           }
           doText="The hint carries the guidance; the placeholder is one example that goes away."
           dont={
-            <div style={{ width: 300 }}>
+            <div style={{ maxWidth: 300 }}>
               <Field>
                 <FieldLabel id={`${fieldId}-function-12-label`} htmlFor={`${fieldId}-function-12`}>
                   {"Function"}
@@ -431,5 +431,41 @@ export const Playground: Story = {
         />
       </Field>
     );
+  },
+};
+
+/**
+ * Textarea is Base UI's Field.Control on a textarea, so a Field binds it as it binds Input: the
+ * label, the hint and the error with no ids, and the Field's `invalid`, `required` and `disabled`.
+ */
+export const BoundInField: Story = {
+  name: "Bound in a Field",
+  render: () => (
+    <Stack space="space.200" className="w-layout-list max-w-full">
+      <Field invalid required>
+        <FieldLabel>Implementation statement</FieldLabel>
+        <Textarea rows={3} />
+        <FieldDescription>How the system meets the control.</FieldDescription>
+        <FieldError>Describe how the system meets the control.</FieldError>
+      </Field>
+      <Field disabled>
+        <FieldLabel>Previous statement</FieldLabel>
+        <Textarea rows={2} defaultValue="Access is reviewed each quarter." />
+      </Field>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const statement = canvas.getByRole("textbox", { name: "Implementation statement" });
+    await expect(statement.tagName).toBe("TEXTAREA");
+    await expect(statement).toHaveAttribute("data-slot", "textarea");
+    await expect(statement).toHaveAttribute("aria-invalid", "true");
+    await expect(statement).toHaveAttribute("aria-required", "true");
+    await expect(statement).toHaveAccessibleDescription(
+      "How the system meets the control. Describe how the system meets the control.",
+    );
+    await userEvent.type(statement, "Quarterly{Enter}review");
+    await expect(statement).toHaveValue("Quarterly\nreview");
+    await expect(canvas.getByRole("textbox", { name: "Previous statement" })).toBeDisabled();
   },
 };

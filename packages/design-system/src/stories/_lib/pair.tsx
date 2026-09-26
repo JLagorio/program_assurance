@@ -1,10 +1,13 @@
 import type { ReactNode } from "react";
 
-import { Box, Stack, Text } from "../../primitives";
+import { Box, Grid, Stack, Text } from "../../primitives";
 
 /**
  * A do beside a don't: the same intent built the right way and the wrong way, each with one line
  * that says why. The pairs are the page's "Don't" section; the ratchet asks every family for one.
+ * The halves sit side by side while each can have 280px of the pair's own width and stack when
+ * they cannot, so a pair follows the space it is given: a phone, a 320px panel or the canvas. It
+ * never widens the column it sits in (`min-w-0`): a wide example scrolls or wraps inside its half.
  */
 export function Pair({
   do: doNode,
@@ -18,14 +21,18 @@ export function Pair({
   dontText: string;
 }) {
   return (
-    <div className="grid grid-cols-1 gap-300 md:grid-cols-2">
+    <Grid
+      templateColumns="repeat(auto-fit, minmax(min(100%, 280px), 1fr))"
+      gap="space.300"
+      className="min-w-0"
+    >
       <Half tone="success" label="Do" text={doText}>
         {doNode}
       </Half>
       <Half tone="danger" label="Don't" text={dontText}>
         {dont}
       </Half>
-    </div>
+    </Grid>
   );
 }
 

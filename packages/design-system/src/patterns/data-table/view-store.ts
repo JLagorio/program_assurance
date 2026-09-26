@@ -6,10 +6,11 @@ export { readView, writeView, clearView, viewKey } from "./view-state";
 import type { DataTableInstance } from "./use-data-table";
 
 /*
- * The reader's view: column order, widths, visibility, pins, density and page size, per table, per browser. The URL
- * keeps the question (sort, filters, page); this keeps the layout. Read on mount and applied over
- * the author's defaults in one commit; written on every change of the four slices. A stored column
- * the table no longer has is dropped; a column the store does not know takes its default place.
+ * The reader's view: column order, widths, visibility, pins, density and page size, per table, per
+ * browser. This keeps the layout; `useTableQuery` keeps the question (search, sort, filters, page)
+ * in the URL or the session. Read on mount and applied over the author's defaults in one commit;
+ * written on every change of those slices. A stored column the table no longer has is dropped; a
+ * column the store does not know joins the order after the stored ones.
  */
 
 /** Reads the stored view on mount, applies it, and stores every change after that. */

@@ -33,6 +33,8 @@ jobs:
         run: npm run test:api && npm run ds:api:check -- --base-ref "$DS_BASE_REF"
       - name: All design-system stories pass render, interaction and accessibility checks
         run: npx playwright install --with-deps chromium && npm run test:a11y -w packages/design-system
+      - name: Every story fits a 390px phone and a 320px container without breaking words
+        run: npm run test:layout -w packages/design-system
       - name: The prototype typechecks and lints
         run: npx tsc --noEmit -p tsconfig.json && npx eslint .
       - name: App commands persist outcomes and recover from storage failures

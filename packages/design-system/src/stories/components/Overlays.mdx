@@ -30,20 +30,21 @@ Each part has its own page: [Tooltip](?path=/docs/components-tooltip--docs), [Ho
 ## Anatomy
 
 - **The anchored four** sit beside their trigger, 4 to 6px off it, flipping when there is no room, with Tooltip adding a small arrow. A Tooltip is the dark one, `color.background.neutral.bold` with inverse text; the other three are the overlay surface with a hairline border.
-- **The blanketed four** paint `color.blanket` over the page; nothing else paints it. Their surface is `elevation.surface.overlay` with `radius.xxlarge` (a Sheet has square corners, since it is an edge), a header with the title in `font.heading.xsmall`, a body that scrolls, a footer on `elevation.surface.sunken` with the buttons at the end.
+- **The blanketed four** paint `color.blanket` over the page; nothing else paints it. Their surface is `elevation.surface.overlay` with `radius.xxlarge` (a Sheet has square corners, since it is an edge), a header with the title in `font.heading.xsmall`, a body part that scrolls (DialogBody, SheetBody, DrawerBody, AlertDialogBody), and a footer on `elevation.surface.sunken` with the buttons at the end. The title is the overlay's h2; headings inside start at h3.
+- **Overlays record their surface.** The Dialog, Sheet, Drawer, AlertDialog, Popover and HoverCard popups set `utility.elevation.surface.current` to the overlay surface, so a sticky table header, a pinned cell or a scroll arrow inside paints the overlay's colour, not the page's.
 - **The close** is one shared icon button at the top end, `dimension.control.small`. AlertDialog and Drawer compose explicit action buttons; a Drawer’s optional swipe handle is decorative.
 
 ## Accessibility
 
 - **Focus moves in** when a blanketed overlay opens (Drawer focuses its popup by default; initialFocus can target an action or field) and **returns** to what opened it when it closes. The page behind is hidden from assistive technology and does not scroll.
 - **Escape closes** every overlay. An outside click closes the anchored ones and the blanket closes a Dialog, a Sheet and a Drawer; an AlertDialog ignores it.
-- **Pending holds.** The caller blocks `onOpenChange` while saving and disables repeated actions: Escape, the blanket and Close do nothing until the save returns.
+- **Pending holds.** `pending` on a Dialog, Sheet or AlertDialog cancels every request to close (Escape, the blanket, Close), disables the close controls while keeping them focusable (`aria-disabled`), so focus on one is kept, and marks the popup `aria-busy` until the command returns. A Drawer cancels in its own `onOpenChange`.
 - **A tooltip never holds a control**, a hover card never holds an action, a popover never holds a task the reader must finish.
 
 ## Style
 
 - **One blanket at a time.** An AlertDialog may open over a Sheet or a Dialog, for the decision the task ends in; that is the only stack. Independent stacked record workflows should navigate or replace the current frame. A selection workflow owns its internal preview.
-- **A sheet's next record is its next frame**, not a second sheet: the same surface, the chevron before the title, `onBack`, the stack in the URL so the browser's back agrees.
+- **A sheet's next record is its next frame**, not a second sheet: the same surface, a Back chevron before the title (PreviewSheet's and PickerSheet's `onBack`), the stack in the URL so the browser's back agrees.
 - **Anchored overlays stack on anything.** A Tooltip in a Dialog, a DropdownMenu in a Sheet, a Popover in a Drawer are fine; a Popover in a Popover is not.
 
 <Canvas of={Stories.Stacked} />
@@ -63,7 +64,7 @@ Each part has its own page: [Tooltip](?path=/docs/components-tooltip--docs), [Ho
 
 ## Sizes
 
-Choose the smallest surface that fits the task. Content must reflow at a 320 CSS pixel viewport; the body scrolls independently when a header and footer must remain available. Check long titles, translated buttons, and browser zoom. A large task with navigation belongs on a page.
+Choose the smallest surface that fits the task. Dialog and Sheet take a `width` step (`small`, `medium`, `large`, `xlarge`, `fullscreen`) rather than pixels, so tasks of the same kind open at the same size; AlertDialog has `size`. Popover and HoverCard keep a runtime `style.width`. Content must reflow at a 320 CSS pixel viewport: the body part scrolls between a fixed header and footer, and in a window under 30rem tall the whole popup scrolls with the footer held in view. Check long titles, translated buttons, and browser zoom. A large task with navigation belongs on a page.
 
 ## States
 
@@ -71,7 +72,7 @@ Closed, open, pending, failed and completed are separate states. Keep the surfac
 
 ## Modifiers
 
-Controlled modal surfaces accept `returnFocusRef` for asynchronous opening, a removed trigger, or a deliberate replacement target. Without it, they capture the active opener before moving focus into the surface. The target must remain connected and focusable after closing. `pending` prevents dismissal while supported saves are in flight.
+Modal content takes Base UI's `initialFocus` and `finalFocus`. Base UI returns focus to the element that had it before the surface opened; pass `finalFocus` when that element goes away with the task, and move focus to a first field with `initialFocus`, never with `autoFocus`, which becomes the return target instead. `pending` on Dialog, Sheet and AlertDialog prevents dismissal while a command is in flight.
 
 ## Related
 

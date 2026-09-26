@@ -2,11 +2,22 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { expect, userEvent, within } from "storybook/test";
 
-import { Button } from "../../components";
+import {
+  Button,
+  Checkbox,
+  Input,
+  RadioGroup,
+  RadioGroupItem,
+  Separator,
+  Switch,
+  ToggleGroup,
+  ToggleGroupItem,
+} from "../../components";
 import { MODE_STORAGE_KEY, ModeProvider, ModeSwitch, useMode, type ColorMode } from "../../mode";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Matrix, Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
+import { measure, settled, type Paint } from "../tokens/_contrast";
 
 const meta = {
   title: "Components/Mode",
@@ -142,5 +153,118 @@ export const ControlledOwnership: Story = {
       "true",
     );
     await expect(canvas.getByText(/^Choice:/)).toHaveTextContent(before ?? "");
+  },
+};
+
+/**
+ * Increased contrast is the document's second setting beside the mode: `prefers-contrast: more`
+ * turns it on, and `data-contrast-mode="more"` or `"no-preference"` on the root pins it. This story
+ * pins it on through the toolbar's Contrast; flip Contrast to Standard to compare, and Mode for dark.
+ * Field and choice boundaries, the hairline, and the pressed, selected and highlighted fills read
+ * 3:1 against the surface, and a focus ring on a selected fill 3:1 against the fill, measured in
+ * the browser.
+ */
+export const IncreasedContrast: Story = {
+  globals: { contrast: "more" },
+  render: () => (
+    <Stack space="space.300">
+      <Stack space="space.100">
+        <Text as="label" size="small" weight="medium" htmlFor="contrast-name">
+          Name
+        </Text>
+        <Input id="contrast-name" defaultValue="Quarterly review" />
+      </Stack>
+      <Inline space="space.300" alignBlock="center" shouldWrap>
+        <label className="inline-flex items-center gap-100">
+          <Checkbox />
+          Include archived
+        </label>
+        <label className="inline-flex items-center gap-100">
+          <Switch />
+          Notify me
+        </label>
+      </Inline>
+      <RadioGroup aria-label="Frequency" defaultValue="monthly" className="flex-row gap-300">
+        <label className="inline-flex items-center gap-100">
+          <RadioGroupItem value="monthly" />
+          Monthly
+        </label>
+        <label className="inline-flex items-center gap-100">
+          <RadioGroupItem value="quarterly" />
+          Quarterly
+        </label>
+      </RadioGroup>
+      <ToggleGroup aria-label="View" defaultValue={["table"]}>
+        <ToggleGroupItem value="table">Table</ToggleGroupItem>
+        <ToggleGroupItem value="board">Board</ToggleGroupItem>
+      </ToggleGroup>
+      <Separator />
+      <Stack space="space.050">
+        <Box
+          data-state-fill="selected"
+          padding="space.100"
+          backgroundColor="color.background.selected"
+          className="flex items-center gap-100 rounded-medium"
+        >
+          <Checkbox aria-label="Select row" defaultChecked />
+          <Text color="color.text.selected">Selected: the row the reader chose</Text>
+        </Box>
+        <Box
+          data-state-fill="highlighted"
+          padding="space.100"
+          backgroundColor="color.background.neutral.subtle.hovered"
+          className="rounded-medium"
+        >
+          <Text>Highlighted: the row the pointer or the keyboard is on</Text>
+        </Box>
+      </Stack>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(document.documentElement).toHaveAttribute("data-contrast-mode", "more");
+    // The root took the contrast as the story mounted; let the colour transitions finish first.
+    await settled(canvasElement);
+    const atLeast = async (el: Element, paint: Paint, min: number) =>
+      expect(
+        measure(el, paint),
+        `${el.getAttribute("data-slot") ?? el.tagName} ${paint}`,
+      ).toBeGreaterThanOrEqual(min);
+
+    await atLeast(canvas.getByRole("textbox", { name: "Name" }), "border", 3);
+    await atLeast(canvas.getByRole("checkbox", { name: "Include archived" }), "border", 3);
+    await atLeast(canvas.getByRole("radio", { name: "Quarterly" }), "border", 3);
+    await atLeast(canvas.getByRole("switch", { name: "Notify me" }), "background", 3);
+    const separator = canvasElement.querySelector('[data-slot="separator"]');
+    if (!separator) throw new Error("no separator");
+    await atLeast(separator, "border", 3);
+
+    // A pressed toggle is a fill at 3:1; pressing the other moves the fill with the state.
+    const table = canvas.getByRole("button", { name: "Table" });
+    const board = canvas.getByRole("button", { name: "Board" });
+    await expect(table).toHaveAttribute("aria-pressed", "true");
+    await atLeast(table, "background", 3);
+    await userEvent.click(board);
+    await settled(canvasElement);
+    await expect(board).toHaveAttribute("aria-pressed", "true");
+    await atLeast(board, "background", 3);
+
+    for (const state of ["Selected", "Highlighted"]) {
+      const text = canvas.getByText(new RegExp(`^${state}:`));
+      const fill = text.closest("[data-state-fill]");
+      if (!fill) throw new Error(`no ${state} fill`);
+      await atLeast(fill, "background", 3);
+      await atLeast(text, "text", 4.5);
+    }
+
+    // A control focused on a selected fill draws its ring on the fill, and the ring keeps 3:1
+    // against it as well as against the surface.
+    const rowCheckbox = canvas.getByRole("checkbox", { name: "Select row" });
+    for (let step = 0; step < 12 && document.activeElement !== rowCheckbox; step++)
+      await userEvent.tab();
+    await expect(rowCheckbox).toHaveFocus();
+    await expect(rowCheckbox).toHaveAttribute("aria-checked", "true");
+    await settled(canvasElement);
+    await atLeast(rowCheckbox, "outline", 3);
   },
 };

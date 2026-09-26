@@ -22,7 +22,7 @@ export const SeparatorMatrix: Story = {
   render: () => (
     <Stack space="space.400">
       <Specimens title="Horizontal, between two blocks in a Stack">
-        <Box style={{ width: 360 }}>
+        <Box style={{ width: "100%", maxWidth: 360 }}>
           <Stack space="space.200">
             <Text>What the control requires.</Text>
             <Separator />
@@ -47,7 +47,7 @@ export const SeparatorMatrix: Story = {
         </Inline>
       </Specimens>
       <Specimens title="Decorative, a rule under a heading: hidden from a screen reader">
-        <Box style={{ width: 360 }}>
+        <Box style={{ width: "100%", maxWidth: 360 }}>
           <Stack space="space.100">
             <Text weight="semibold">Evidence</Text>
             <Separator isDecorative />
@@ -167,7 +167,7 @@ const compositionEvents = {
 export const NativeComposition: Story = {
   render: () => (
     <Stack space="space.300">
-      <Box style={{ width: 360 }}>
+      <Box style={{ width: "100%", maxWidth: 360 }}>
         <Stack space="space.150">
           <Text weight="semibold">Evidence summary</Text>
           <Separator

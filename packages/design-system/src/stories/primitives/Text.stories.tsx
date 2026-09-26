@@ -1,5 +1,5 @@
-import { expect, userEvent, within } from "storybook/test";
-import { Input } from "../../components";
+import { expect, userEvent, waitFor, within } from "storybook/test";
+import { Input, TextLink } from "../../components";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Box, Grid, Heading, Inline, Stack, Text } from "../../primitives";
@@ -43,7 +43,7 @@ const colors = [
   "color.text.information",
 ] as const;
 
-/** The four sizes by the three weights; the text colours; alignment; one, two and three lines clamped; a paragraph at the reading measure; inverse on a bold fill without a colour. */
+/** The four sizes by the three weights; the text colours; alignment; one, two and three lines clamped, each showing the whole on hover; a paragraph at the reading measure; inverse on a bold fill without a colour. */
 export const TextMatrix: Story = {
   render: () => (
     <Stack space="space.300">
@@ -81,7 +81,7 @@ export const TextMatrix: Story = {
               </Text>
             ))}
         </Inline>
-        <Inline space="space.100">
+        <Inline space="space.100" shouldWrap>
           <Box
             backgroundColor="color.background.neutral.bold"
             paddingBlock="space.075"
@@ -102,7 +102,7 @@ export const TextMatrix: Story = {
       </Stack>
       <Stack space="space.100">
         <Label>align, in a 240px block</Label>
-        <Inline space="space.200" alignBlock="start">
+        <Inline space="space.200" alignBlock="start" shouldWrap>
           {(["start", "center", "end"] as const).map((a) => (
             <Box
               key={a}
@@ -120,7 +120,7 @@ export const TextMatrix: Story = {
       </Stack>
       <Stack space="space.100">
         <Label>maxLines 1 · 2 · 3, in a 240px block</Label>
-        <Inline space="space.200" alignBlock="start">
+        <Inline space="space.200" alignBlock="start" shouldWrap>
           {([1, 2, 3] as const).map((m) => (
             <Box
               key={m}
@@ -129,7 +129,7 @@ export const TextMatrix: Story = {
               className="rounded-medium"
               style={{ width: 240 }}
             >
-              <Text as="p" size="small" maxLines={m} title={long}>
+              <Text as="p" size="small" maxLines={m}>
                 {long}
               </Text>
             </Box>
@@ -224,13 +224,13 @@ export const Dont: Story = {
       />
       <Pair
         do={
-          <Box style={{ width: 320 }}>
+          <Box style={{ maxWidth: 320 }}>
             <Text as="p">{sample}</Text>
           </Box>
         }
         doText="Body copy is `medium`, the UI size, or `large` for a statement read at length."
         dont={
-          <Box style={{ width: 320 }}>
+          <Box style={{ maxWidth: 320 }}>
             <Text as="p" size="xsmall">
               {sample}
             </Text>
@@ -280,5 +280,93 @@ export const LabelAssociation: Story = {
     const input = canvas.getByRole("textbox", { name: "Display name" });
     await userEvent.click(canvas.getByText("Display name"));
     await expect(input).toHaveFocus();
+  },
+};
+
+/** The tooltip that shows a clamped Text in full, once it has opened. */
+const revealed = () =>
+  waitFor(() => {
+    const popup = document.querySelector<HTMLElement>('[data-slot="truncate-full-text"]');
+    expect(popup).not.toBeNull();
+    return popup!;
+  });
+
+/**
+ * A clamped Text shows the whole of itself while it is cut: on hover, and when the link it sits
+ * in takes keyboard focus. A Text that fits shows nothing, and a `title` of your own replaces
+ * the tooltip.
+ */
+export const MaxLinesReveal: Story = {
+  render: () => (
+    <Stack space="space.200">
+      <Box style={{ maxWidth: 240 }}>
+        <Text as="p" size="small" maxLines={2} data-testid="clamped">
+          {long}
+        </Text>
+      </Box>
+      <Box style={{ maxWidth: 240 }}>
+        <TextLink href="#sc-7">
+          <Text maxLines={1}>{sample}</Text>
+        </TextLink>
+      </Box>
+      <Box style={{ maxWidth: 240 }}>
+        <Text as="p" size="small" maxLines={1} title="Deny by default" data-testid="titled">
+          {sample}
+        </Text>
+      </Box>
+    </Stack>
+  ),
+  play: async ({ canvas }) => {
+    const clamped = canvas.getByTestId("clamped");
+    await expect(clamped.tagName).toBe("P");
+    await expect(clamped).toHaveClass("line-clamp-2", "font-body-small");
+    await expect(clamped.scrollHeight).toBeGreaterThan(clamped.clientHeight);
+    await userEvent.hover(clamped);
+    await expect(await revealed()).toHaveTextContent(long);
+    await userEvent.unhover(clamped);
+    await waitFor(() =>
+      expect(document.querySelector('[data-slot="truncate-full-text"]')).toBeNull(),
+    );
+    await userEvent.tab();
+    await expect(canvas.getByRole("link")).toHaveFocus();
+    await expect(await revealed()).toHaveTextContent(sample);
+    await userEvent.tab();
+    const titled = canvas.getByTestId("titled");
+    await expect(titled).toHaveAttribute("title", "Deny by default");
+    await userEvent.hover(titled);
+    await new Promise((resolve) => setTimeout(resolve, 450));
+    await expect(document.querySelector('[data-slot="truncate-full-text"]')).toBeNull();
+  },
+};
+
+const comment = `Reviewed with the system owner on 12 August.
+Two service accounts are exempt:
+  svc-backup
+  svc-monitor`;
+
+/** `preserveLineBreaks` keeps the breaks and the indentation typed into authored text: a comment, a note, a statement. */
+export const PreserveLineBreaks: Story = {
+  render: () => (
+    <Stack space="space.200">
+      <Box style={{ maxWidth: 360 }}>
+        <Text as="p" preserveLineBreaks data-testid="kept">
+          {comment}
+        </Text>
+      </Box>
+      <Box style={{ maxWidth: 360 }}>
+        <Text as="p" data-testid="run">
+          {comment}
+        </Text>
+      </Box>
+    </Stack>
+  ),
+  play: async ({ canvas }) => {
+    const kept = canvas.getByTestId("kept");
+    await expect(getComputedStyle(kept).whiteSpace).toBe("pre-wrap");
+    const lineHeight = parseFloat(getComputedStyle(kept).lineHeight);
+    await expect(kept.getBoundingClientRect().height).toBeGreaterThanOrEqual(lineHeight * 4 - 1);
+    await expect(canvas.getByTestId("run").getBoundingClientRect().height).toBeLessThan(
+      kept.getBoundingClientRect().height,
+    );
   },
 };

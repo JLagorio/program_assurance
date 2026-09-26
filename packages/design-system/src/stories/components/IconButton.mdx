@@ -7,7 +7,7 @@ import * as Stories from "./IconButton.stories";
 
 # IconButton
 
-A square [Button](?path=/docs/components-button--docs) with an icon, a required `label` and a tooltip. Name the action, such as “Search” or “Close.” Use a labelled Button when the icon alone would be unclear.
+A square [Button](?path=/docs/components-button--docs) with an icon, a required `label` and a tooltip. Name the action, such as “Search” or “Close.” Use a labelled Button when the icon alone would be unclear, a [LinkIconButton](?path=/docs/components-linkbutton--docs) when the icon goes somewhere (opening a record in a new tab), and a [CopyButton](?path=/docs/components-copybutton--docs) with `label` to copy a value.
 
 <Canvas of={Stories.IconButtonMatrix} />
 
@@ -30,13 +30,26 @@ Pass the icon element with `icon`. IconButton sizes it and hides it from assisti
 
 ## Composition and accessibility
 
-IconButton shares Button's native props, form behavior, refs and Base UI `render` support. The rendered component must forward props and refs to its DOM element. Use `nativeButton={false}` for a custom action that is not a native button. For navigation, use a real anchor or router Link with `buttonVariants`, as shown on the [Button page](?path=/docs/components-button--docs).
+IconButton shares Button's native props, form behavior, refs and Base UI `render` support. The rendered component must forward props and refs to its DOM element. Use `nativeButton={false}` for a custom action that is not a native button. For navigation, use [LinkIconButton](?path=/docs/components-linkbutton--docs), never an IconButton that navigates from `onClick`: a real link can be opened in a new tab.
 
-- The tooltip shows `label` on hover and focus. Escape closes it.
+`disabledReason` works as on Button: the action is disabled but focusable with `aria-disabled`, and one tooltip shows the label and then the reason, on hover, focus and a tap. The reason is the button's accessible description. With `isTooltipDisabled` the label's tooltip goes, and the reason still shows alone. A reason that comes or goes while the button has focus leaves focus on it.
+
+<Canvas of={Stories.DisabledWithAReason} />
+
+- The tooltip shows `label` on hover and when keyboard focus arrives. Escape closes it.
+- Focus that comes back from a popup the button opened, a menu closed with Escape or by choosing a command, or a dialog closed, leaves the tooltip shut, so one Escape closes the menu and the next reaches whatever holds the button.
+- A disclosure's content is not a popup, even inside a dialog, menu or listbox that also holds the button: focus that comes back from it, or from anywhere else in that surface, shows the tooltip.
 - `isTooltipDisabled` suppresses the tooltip when a parent supplies one or the label is already visible; the accessible name remains.
-- Tab reaches an enabled control; Enter and Space activate it. Disabled controls leave the normal tab order unless `focusableWhenDisabled` is set.
+- Tab reaches an enabled control; Enter and Space activate it. Disabled controls leave the normal tab order unless `disabledReason` or `focusableWhenDisabled` is set.
 - Loading sets `aria-busy`, blocks activation and retains focus. An explicitly disabled control stays disabled.
 - Keep sufficient space around compact controls; choose a larger labelled Button when a touch interaction needs a larger target.
+- A row that sizes the button down to 20px keeps a hit area of at least 24px, centred on it, where any pointer is coarse; the row keeps its height.
+
+<Canvas of={Stories.InADenseRow} />
+
+<Canvas of={Stories.OpensAMenu} />
+
+<Canvas of={Stories.InADialog} />
 
 ## Props
 
@@ -48,4 +61,4 @@ IconButton shares Button's native props, form behavior, refs and Base UI `render
 
 ## Related
 
-[Button](?path=/docs/components-button--docs) · [ButtonGroup](?path=/docs/components-buttongroup--docs) · [Tooltip](?path=/docs/components-tooltip--docs) · [Toggle](?path=/docs/components-toggle--docs) · [DropdownMenu](?path=/docs/components-dropdownmenu--docs)
+[Button](?path=/docs/components-button--docs) · [LinkButton](?path=/docs/components-linkbutton--docs) · [CopyButton](?path=/docs/components-copybutton--docs) · [ButtonGroup](?path=/docs/components-buttongroup--docs) · [Tooltip](?path=/docs/components-tooltip--docs) · [Toggle](?path=/docs/components-toggle--docs) · [DropdownMenu](?path=/docs/components-dropdownmenu--docs)

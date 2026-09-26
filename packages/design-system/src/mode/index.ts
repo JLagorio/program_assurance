@@ -22,4 +22,6 @@ export {
   type LedgerLocaleOptions,
   type LedgerDirection,
   type PluralForms,
+  type CalendarDay,
+  type WallTime,
 } from "../lib/locale";

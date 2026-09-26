@@ -152,7 +152,7 @@ export const Padding: Story = {
 /** The four surfaces. A sticky child inside any of them paints `utility.elevation.surface.current` and matches. */
 export const Surfaces: Story = {
   render: () => (
-    <Inline space="space.300" alignBlock="stretch">
+    <Inline space="space.300" alignBlock="stretch" shouldWrap>
       {surfaces.map((s) => (
         <Box key={s} backgroundColor={s} padding="space.200" className={surfaceFrame[s]}>
           <Stack space="space.100">

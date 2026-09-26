@@ -3,6 +3,7 @@ import { cloneElement, useRef, type ReactElement, type ReactNode } from "react";
 import { Fact, IconButton, Id } from "../components";
 import {
   Sheet,
+  SheetBody,
   SheetClose,
   SheetContent,
   SheetDescription,
@@ -112,7 +113,7 @@ export function PreviewSheet({
             }
           />
         </SheetHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
+        <SheetBody>
           <Stack space="space.250">
             <PageHeader>
               <PageHeader.Heading>
@@ -142,7 +143,7 @@ export function PreviewSheet({
             ) : null}
             {children}
           </Stack>
-        </div>
+        </SheetBody>
         {links ? (
           <SheetFooter>
             <div className="flex w-full min-w-0 flex-wrap items-center gap-200 font-body">

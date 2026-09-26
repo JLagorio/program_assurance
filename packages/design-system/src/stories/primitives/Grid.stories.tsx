@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, within } from "storybook/test";
 
 import { Box, Grid, Inline, Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
@@ -40,7 +41,7 @@ function Label({ children }: { children: string }) {
 
 function Frame({ children, width }: { children: React.ReactNode; width?: number }) {
   return (
-    <Box backgroundColor="elevation.surface.sunken" padding="space.100" className="rounded-medium" style={{ width }}>
+    <Box backgroundColor="elevation.surface.sunken" padding="space.100" className="rounded-medium" style={{ width, maxWidth: "100%" }}>
       {children}
     </Box>
   );
@@ -162,6 +163,45 @@ export const ResponsiveGrid: Story = {
       <Region label="rail" />
     </Grid>
   ),
+};
+
+const tileTemplate = "repeat(auto-fit, minmax(min(100%, 144px), 1fr))";
+const columnsOf = (grid: HTMLElement) =>
+  getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length;
+
+/** The responsive template follows the window, so inside a panel it keeps the page's columns. A part that lives in a panel lays out by its own width instead: one intrinsic template, `repeat(auto-fit, minmax(min(100%, 144px), 1fr))`, gives six columns on the page and two in a 320px panel on the same screen. */
+export const IntrinsicInAPanel: Story = {
+  render: () => (
+    <Stack space="space.300">
+      <Box style={{ maxWidth: 960 }}>
+        <Grid templateColumns={tileTemplate} gap="space.100" aria-label="On the page" role="group">
+          {Array.from({ length: 6 }, (_, i) => (
+            <Cell key={i} label={`Tile ${i + 1}`} />
+          ))}
+        </Grid>
+      </Box>
+      <Box style={{ maxWidth: 320 }}>
+        <Grid templateColumns={tileTemplate} gap="space.100" aria-label="In a panel" role="group">
+          {Array.from({ length: 6 }, (_, i) => (
+            <Cell key={i} label={`Tile ${i + 1}`} />
+          ))}
+        </Grid>
+      </Box>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = canvas.getByRole("group", { name: "On the page" });
+    const panel = canvas.getByRole("group", { name: "In a panel" });
+    // Columns of at least 144px with an 8px gap, at most one per tile.
+    const fits = (grid: HTMLElement) =>
+      Math.max(1, Math.min(6, Math.floor((grid.clientWidth + 8) / (144 + 8))));
+    await expect(columnsOf(page)).toBe(fits(page));
+    await expect(columnsOf(panel)).toBe(fits(panel));
+    await expect(columnsOf(panel)).toBeLessThanOrEqual(2);
+    const doc = canvasElement.ownerDocument.documentElement;
+    await expect(doc.scrollWidth).toBeLessThanOrEqual(doc.clientWidth);
+  },
 };
 
 const longToken = "evidence_2026_05_12_boundary_protection_firewall_ruleset_export_final.csv";

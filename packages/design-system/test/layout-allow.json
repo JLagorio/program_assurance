@@ -1,0 +1,8 @@
+{
+  "narrow": {
+    "primitives-grid--dont": "The Don't half shows `1fr 1fr` letting a long file name push its columns past the frame."
+  },
+  "contained": {
+    "primitives-grid--dont": "The Don't half shows `1fr 1fr` letting a long file name push its columns past the frame."
+  }
+}

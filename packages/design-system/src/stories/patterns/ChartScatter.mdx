@@ -37,7 +37,7 @@ A point per record on two value axes: where each thing sits on two measures at o
 
 ## Sizes
 
-`size` is the plot's height: `small` 120px, `medium` 200px, `large` 320px (the right one for a scatter that is a page's point), or `height` in pixels. Bubbles range from 64 to 900 square pixels whatever the plot's size.
+`size` is the plot's height: `small` 120px, `medium` 200px, `large` 320px (the right one for a scatter that is a page's point), or `height` in pixels. Unsaid, it is the Frame's; in the Frame's expanded Dialog it is `large`. Bubbles range from 64 to 900 square pixels whatever the plot's size.
 
 ## States
 
@@ -50,10 +50,11 @@ A point per record on two value axes: where each thing sits on two measures at o
 | Entering | The points arrive over `motion.duration.slow`.                                                                                                        |
 
 <Canvas of={Stories.Details} />
+<Canvas of={Stories.AsATable} />
 
 ## Modifiers
 
-- **`z`** for a bubble; **`name`** for the key that names a point.
+- **`z`** for a bubble, **`zLabel`** for what its size is called; **`name`** for the key that names a point.
 - **`groupBy`** and **`groups`** for the groups and their tones; **`tone`** for every point when there are none.
 - **`reference`**, **`xLabel`**, **`yLabel`**, **`format`**, **`formatX`** as on the other parts.
 - **`onSelect`** and **`details`** as in States; the selection is `{ datum, group, index }`.
@@ -83,6 +84,7 @@ A point per record on two value axes: where each thing sits on two measures at o
 ## Accessibility
 
 - **Named by the Frame**, or by `label`: the plot is a group and focusable. The arrow keys do not walk points (there is no category axis to walk), so the table is the keyboard's way in: one row per point, a column per axis.
+- **The table is one toggle away.** In a Frame the scatter lays its points out as the Frame's table twin and CSV: the point's `name` under "Point", its group's label under "Group", the Frame's `columns` with `place: "before"`, a column per axis headed by `xLabel`, `yLabel` and `zLabel`, then the columns after. The groups stay one column of words: the legend's groups never become a column each. The legend keys the groups when the Frame is given no `series`.
 - **A chosen point's card is a dialog**, and focus returns to the plot when it closes.
 - **Three groups keep every pair apart** under deutan and protan vision; the legend carries their names, and the tooltip and the card say the group in words.
 - **A point's hit area is 24px** whatever its size, so a small point still takes a click.

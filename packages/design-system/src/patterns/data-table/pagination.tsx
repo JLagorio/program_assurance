@@ -6,7 +6,13 @@ import {
   PaginationItem,
   PaginationEllipsis,
 } from "../../components/pagination";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/select";
 import { cn } from "../../lib/cn";
 import { useLedgerLocale } from "../../lib/locale";
 

@@ -19,7 +19,7 @@ Read `packages/design-system/AGENTS.md` first. It points at the rules; this skil
 Follow "Adding to the kit" in `docs/guides/component-library.md`, in order:
 
 1. Implement the part and update every consumer, including the app under `src/`. Tokens only, relative imports inside the package, package `cn`, optional props spelled `?: T | undefined`, parts exported by name.
-2. Exercise every named part in `<Family>.stories.tsx` with representative states and `play` assertions. One playground for the controls; keep distinct regression cases. Render once; the toolbar switches the mode.
+2. Exercise every named part in `<Family>.stories.tsx` with representative states and `play` assertions. One playground for the controls; keep distinct regression cases. Render once; the toolbar switches the mode. Every story passes the narrow and contained layout checks (a 390px phone and a 320px frame); frames and exemptions follow the Storybook's Guidance/Writing stories and Guidance/Testing and review pages. While iterating, run the family's file alone from inside the package: `npx vitest run --project storybook-narrow --project storybook-contained src/stories/<dir>/<Family>.stories.tsx`.
 3. Keep one accurate `<Family>.mdx` page with an example, `<ArgTypes of={Part} />` and the guidance that helps. No required heading set, no filler.
 4. Add a `CHANGELOG.md` entry that names the story showing the change.
 
@@ -31,6 +31,7 @@ npm run ds:check
 npm run typecheck -w packages/design-system && npm run lint -w packages/design-system && npm test -w packages/design-system
 npm run ds:api:check            # ds:api:update only when declarations changed on purpose
 npm run test:a11y -w packages/design-system
+npm run test:layout -w packages/design-system
 npm run build -w packages/design-system   # refreshes eslint-plugin/components.json and llms.txt
 npx tsc --noEmit -p tsconfig.json && npm run lint && npm run test:app
 npm run test:consumer -w packages/design-system

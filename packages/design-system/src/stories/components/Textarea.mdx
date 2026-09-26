@@ -10,21 +10,17 @@ Several lines of free text: a note, description or implementation statement. Thi
 ## Anatomy
 
 ```tsx
-<Field>
-  <FieldLabel htmlFor="textarea">Review note</FieldLabel>
-  <Textarea
-    id="textarea"
-    aria-describedby="textarea-help"
-    name="note"
-    value={note}
-    onChange={(event) => setNote(event.target.value)}
-    rows={4}
-  />
-  <FieldDescription id="textarea-help">
-    Explain the evidence supporting this decision.
-  </FieldDescription>
+<Field invalid={invalid} required>
+  <FieldLabel>Review note</FieldLabel>
+  <Textarea name="note" value={note} onChange={(event) => setNote(event.target.value)} rows={4} />
+  <FieldDescription>Explain the evidence supporting this decision.</FieldDescription>
+  <FieldError errors={errors} />
 </Field>
 ```
+
+Textarea is a native textarea on Base UI's Field.Control, so a [Field](?path=/docs/components-field--docs) binds it as it binds Input: label, hint and error with no ids, and the Field's `invalid`, `required` and `disabled`. It keeps the native textarea's props, events and ref.
+
+<Canvas of={Stories.BoundInField} />
 
 ## Variants and states
 
@@ -36,7 +32,7 @@ Several lines of free text: a note, description or implementation statement. Thi
 
 ## Accessibility
 
-Use FieldLabel with `htmlFor` and the textarea’s `id`, or another accessible name. Reference hint/error IDs with `aria-describedby`; pass invalid and required announcements explicitly. Keep labels and instructions visible. Native keyboard editing, selection and form submission remain available.
+In a Field the label, hint, error, invalid state and requirement reach the textarea without ids. Outside one, use a label with `htmlFor` and the textarea’s `id`, `aria-describedby` for hints, and `aria-invalid` and `aria-required` explicitly. Keep labels and instructions visible. Native keyboard editing, selection and form submission remain available.
 
 ## Props
 

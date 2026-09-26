@@ -35,8 +35,14 @@ const shadow = (value) =>
       };
     });
 
-/** Preserve source token paths and aliases. Each mode is a complete, independently importable document. */
+/**
+ * Preserve source token paths and aliases. Each mode is a complete, independently importable
+ * document: "light", "dark", and their increased-contrast twins "light-contrast" and
+ * "dark-contrast", where a token's `$extensions.ledger.contrast` value replaces the mode's own.
+ */
 export function exportDtcg(source, mode = "light") {
+  const base = mode.startsWith("dark") ? "dark" : "light";
+  const contrastMode = mode.endsWith("-contrast");
   const tokens = new Map();
   function collect(group, path = [], inherited) {
     const type = group.$type ?? inherited;
@@ -48,8 +54,10 @@ export function exportDtcg(source, mode = "light") {
       if (!key.startsWith("$")) collect(value, [...path, key], type);
   }
   collect(source);
+  const standard = (token) =>
+    base === "dark" ? (token.$extensions?.ledger?.dark ?? token.$value) : token.$value;
   const original = (token) =>
-    mode === "dark" ? (token.$extensions?.ledger?.dark ?? token.$value) : token.$value;
+    (contrastMode ? token.$extensions?.ledger?.contrast?.[base] : undefined) ?? standard(token);
   const resolve = (value, seen = new Set()) => {
     if (!ref(value)) return value;
     const name = value.slice(1, -1);
@@ -102,10 +110,12 @@ export function exportDtcg(source, mode = "light") {
         };
       }
     }
-    // The separate documents represent mode values; no vendor-only dark override is needed by readers.
+    // The separate documents represent mode values; no vendor-only dark or contrast override is
+    // needed by readers.
     if (extensions.ledger) {
       extensions.ledger = { ...extensions.ledger };
       delete extensions.ledger.dark;
+      delete extensions.ledger.contrast;
     }
     const parts = path.split(".");
     let group = out;

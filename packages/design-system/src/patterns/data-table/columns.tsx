@@ -8,7 +8,7 @@ import { Editable } from "../editable";
 import { Person } from "../../components/avatar";
 import { Table, type ListItem } from "../../components/table";
 import { Absent } from "../../components/typography";
-import type { RowAction } from "./features";
+import type { RowAction, StatusEntry, StatusMap } from "./features";
 import { createDataTableColumnHelper, type DataTableColumn } from "./use-data-table";
 
 /*
@@ -21,6 +21,9 @@ import { createDataTableColumnHelper, type DataTableColumn } from "./use-data-ta
 /** The minimum a column of each kind can shrink to. */
 /** A column's `width` also sets its minimum; a column with no width keeps the kind's minimum. */
 const minOf = (width: number | undefined, fallback: number) => width ?? fallback;
+
+/** The preview eye's slot, `space.300`: an id column that opens a preview is this much wider by default, so the id and its eye fit side by side. */
+const EYE = 24;
 
 export const minWidths = {
   id: 92,
@@ -74,6 +77,33 @@ const compare = (a: string | number, b: string | number) =>
   typeof a === "number" && typeof b === "number"
     ? a - b
     : String(a).localeCompare(String(b), undefined, { numeric: true });
+
+/**
+ * What a status column reads from its shared map: a value's entry, its label (the value itself
+ * when the map has none), and the order by rank, then by value, with unknown values last.
+ */
+export const statusOf = (statuses: StatusMap | undefined) => {
+  const order = statuses ? Object.keys(statuses) : [];
+  const entry = (value: unknown): StatusEntry | undefined =>
+    statuses && typeof value === "string" && Object.prototype.hasOwnProperty.call(statuses, value)
+      ? statuses[value]
+      : undefined;
+  const rank = (value: unknown) => {
+    const found = entry(value);
+    return found ? (found.rank ?? order.indexOf(String(value))) : Number.POSITIVE_INFINITY;
+  };
+  return {
+    entry,
+    rank,
+    label: (value: unknown) => entry(value)?.label ?? (isAbsent(value) ? "" : String(value)),
+    compare: (a: unknown, b: unknown) => {
+      const first = rank(a);
+      const second = rank(b);
+      if (first !== second) return first < second ? -1 : 1;
+      return compare(isAbsent(a) ? "" : String(a), isAbsent(b) ? "" : String(b));
+    },
+  };
+};
 
 /** A total under a number column: over the rows the filters leave, before pagination. */
 export type Footer = "sum" | "mean" | "min" | "max" | "count";
@@ -217,8 +247,8 @@ export function columnKinds<TData extends RowData>() {
     helper.accessor(read<TData>(key), {
       id: key,
       header,
-      size: width ?? minWidth ?? minWidths.id,
-      minSize: minOf(width, minWidth ?? minWidths.id),
+      size: width ?? minWidth ?? minWidths.id + (preview ? EYE : 0),
+      minSize: minOf(width, minWidth ?? minWidths.id + (preview ? EYE : 0)),
       enableSorting: sortable,
       sortFn: sortOf("alphanumeric", sortBy),
       filterFn: "matches",
@@ -329,23 +359,54 @@ export function columnKinds<TData extends RowData>() {
       resizable,
       cell,
       tone,
+      statuses,
       editable,
-    }: Shared<TData> & {
-      tone: (row: TData) => Tone;
-      /** The cell is an Editable.Select over `options`; the row is the record. */
-      editable?: (EditableOptions<TData> & { options: readonly string[] }) | undefined;
-    },
-  ) =>
-    helper.accessor(read<TData>(key), {
+    }: Shared<TData> &
+      (
+        | {
+            /** The row's tone. With `statuses`, it wins over the map's tone. */
+            tone: (row: TData) => Tone;
+            statuses?: StatusMap | undefined;
+          }
+        | {
+            tone?: ((row: TData) => Tone) | undefined;
+            /** The shared vocabulary: each value's label, tone and rank. The badge shows the label in the tone, the column sorts by rank (unknown values last), and the filter lists the labels in rank order. Export writes the label. */
+            statuses: StatusMap;
+          }
+      ) & {
+        /** The cell is an Editable.Select over `options`; the row is the record. */
+        editable?: (EditableOptions<TData> & { options: readonly string[] }) | undefined;
+      },
+  ) => {
+    const status = statusOf(statuses);
+    const toneFor = (row: TData, value: unknown) =>
+      tone ? tone(row) : (status.entry(value)?.tone ?? "neutral");
+    return helper.accessor(read<TData>(key), {
       id: key,
       header: header ?? key,
       ...(width === undefined ? {} : { size: width }),
       minSize: minOf(width, minWidth ?? minWidths.status),
       enableSorting: sortable,
-      sortFn: sortOf("alphanumeric", sortBy),
+      sortFn:
+        sortBy || !statuses
+          ? sortOf("alphanumeric", sortBy)
+          : (a: { original: TData }, b: { original: TData }) =>
+              status.compare(a.original[key], b.original[key]),
       filterFn: "matches",
       ...shared({ pin, hideable, resizable }),
-      meta: { priority, pin, kind: "status", align: "start", editable: Boolean(editable) },
+      meta: {
+        priority,
+        pin,
+        kind: "status",
+        align: "start",
+        editable: Boolean(editable),
+        ...(statuses
+          ? {
+              statuses,
+              export: ((row: TData) => status.label(row[key])) as (row: never) => string,
+            }
+          : {}),
+      },
       cell: ({ row, getValue }) => {
         if (cell) return cell(row.original);
         const v = getValue();
@@ -360,8 +421,8 @@ export function columnKinds<TData extends RowData>() {
               validate={editable.validate}
               render={(o) =>
                 o ? (
-                  <Badge variant="secondary" tone={tone({ ...row.original, [key]: o })}>
-                    {o}
+                  <Badge variant="secondary" tone={toneFor({ ...row.original, [key]: o }, o)}>
+                    {status.label(o)}
                   </Badge>
                 ) : (
                   <Absent />
@@ -372,12 +433,13 @@ export function columnKinds<TData extends RowData>() {
         return isAbsent(v) ? (
           <Absent />
         ) : (
-          <Badge variant="secondary" tone={tone(row.original)}>
-            {String(v)}
+          <Badge variant="secondary" tone={toneFor(row.original, v)}>
+            {status.label(v)}
           </Badge>
         );
       },
     });
+  };
 
   const person = (
     key: Key<TData>,

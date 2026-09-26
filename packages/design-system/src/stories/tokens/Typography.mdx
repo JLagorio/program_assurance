@@ -12,9 +12,27 @@ A type token is one font shorthand: family, weight, size, leading and its letter
 
 | Token | Value | Use |
 | --- | --- | --- |
-| `font.family.body` | Geist, Inter, system sans | Everything. Identifiers, dates and numbers use it too. |
+| `font.family.body` | Geist Variable, Geist, Inter, system sans | Everything. Identifiers, dates and numbers use it too. |
 | `font.family.heading` | Same as body | A token so a theme may split them. |
-| `font.family.code` | Geist Mono, JetBrains Mono, monospace | Code blocks and data previews only. Never UI text. |
+| `font.family.code` | Geist Mono Variable, Geist Mono, JetBrains Mono, monospace | Code blocks and data previews only. Never UI text. |
+
+## Loading the faces
+
+The package ships Geist. `fonts.css` brings Geist's variable font from `@fontsource-variable/geist`, a dependency of the package, under the SIL Open Font License: every weight from 100 to 900 in one file per script range, upright and italic, named "Geist Variable", which is the first name in the body and heading stacks. Import it once, beside the other stylesheets:
+
+```css
+@import "tailwindcss" source(none);
+@import "@ledger/design-system/reset.css";
+@import "@ledger/design-system/ledger.css";
+@import "@ledger/design-system/base.css";
+@import "@ledger/design-system/fonts.css";
+```
+
+The bundler copies the font files with the rest of the build, so the page needs no font service and no link in its head. Each face covers one script range (Latin, Latin Extended, Cyrillic, Vietnamese) and downloads only when text in that range and style is on screen. `font-display: swap` shows text at once in the fallback, Inter and then the system sans, and swaps to Geist when it arrives. Without `fonts.css` the stack still names Geist, so a machine that has it installed uses it, and every other machine falls back.
+
+The mono face is not packaged yet: `font.family.code` names Geist Mono Variable first, and until `fonts.css` ships it, code falls back to Geist Mono where installed, then JetBrains Mono and the system monospace.
+
+<Canvas of={Stories.PackagedFaces} />
 
 ## Scale
 

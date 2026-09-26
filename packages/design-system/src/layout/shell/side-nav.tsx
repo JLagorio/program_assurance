@@ -12,6 +12,7 @@ import {
   useState,
   type ComponentProps,
   type ComponentType,
+  type MouseEvent as ReactMouseEvent,
   type ReactElement,
   type ReactNode,
 } from "react";
@@ -64,19 +65,33 @@ export type SideNavProps = ComponentProps<"nav"> & {
   label?: string | undefined;
   /** The width on first render, between the resize bounds, while nothing has been dragged or remembered. */
   defaultWidth?: number | undefined;
+  /** Below the large breakpoint, choosing a link in the side nav closes the overlay and moves focus to Main, so the reader lands on the page they chose. On by default; turn it off for a side nav whose links change the page in place and should stay open (a change of Shell's `locationKey` still closes it). A modified click (a new tab or window) never closes it. */
+  closeOnNavigate?: boolean | undefined;
   onCollapse?: ((args: { trigger: SideNavTrigger }) => void) | undefined;
   onExpand?: ((args: { trigger: SideNavTrigger }) => void) | undefined;
+};
+
+/** A click that follows a link in this document: not a new tab, a new window or a download. */
+const followsLink = (event: ReactMouseEvent<HTMLElement>) => {
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+    return false;
+  const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
+  if (!link || !event.currentTarget.contains(link)) return false;
+  const target = link.getAttribute("target");
+  return (!target || target === "_self") && !link.hasAttribute("download");
 };
 
 export function SideNavRoot({
   id,
   label,
   defaultWidth,
+  closeOnNavigate = true,
   onCollapse,
   onExpand,
   className,
   children,
   ref,
+  onClick,
   onPointerEnter,
   onPointerLeave,
   ...props
@@ -150,6 +165,14 @@ export function SideNavRoot({
             : cn("hidden", (expanded || rail) && "lg:shell-sidenav lg:flex"),
           className,
         )}
+        onClick={(event) => {
+          onClick?.(event);
+          // Router links prevent the default to navigate themselves, so defaultPrevented is no
+          // opt-out here; closeOnNavigate is. Focus moves first: the overlay turns inert as it closes.
+          if (!closeOnNavigate || shell.isDesktop || !open || !followsLink(event)) return;
+          shell.focusPage();
+          shell.closeSideNav("navigation");
+        }}
         onPointerEnter={(event) => {
           onPointerEnter?.(event);
           if (peeking) shell.holdPeek();

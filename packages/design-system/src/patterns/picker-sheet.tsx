@@ -3,6 +3,7 @@ import { ChevronLeft, Search } from "lucide-react";
 import { type ReactNode } from "react";
 import {
   Sheet,
+  SheetBody,
   SheetContent,
   SheetDescription,
   SheetFooter,
@@ -133,9 +134,7 @@ export function PickerSheet({
             </div>
           </div>
         )}
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-200 py-150">
-          {children}
-        </div>
+        <SheetBody>{children}</SheetBody>
         <SheetFooter>
           <div className="flex w-full items-center justify-between gap-150">
             <span className="flex items-center gap-100 font-body-small text-subtle">

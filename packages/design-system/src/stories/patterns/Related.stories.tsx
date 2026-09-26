@@ -28,7 +28,7 @@ import {
   TextLink,
   Timeline,
 } from "../../components";
-import { Box, Inline, Stack, Text } from "../../primitives";
+import { Box, HeadingLevelProvider, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
 
@@ -444,13 +444,13 @@ export const Dont: Story = {
       />
       <Pair
         do={
-          <Box className="w-layout-rail">
+          <Box className="w-layout-rail max-w-full">
             <Related title="Risks" action={addAction} />
           </Box>
         }
         doText="Nothing linked is an empty state: the mark, a statement, and the way to add one in the header."
         dont={
-          <Box className="w-layout-rail">
+          <Box className="w-layout-rail max-w-full">
             <Card>
               <CardHeader>
                 <CardTitle>
@@ -469,7 +469,7 @@ export const Dont: Story = {
       />
       <Pair
         do={
-          <Box className="w-layout-rail">
+          <Box className="w-layout-rail max-w-full">
             <Related
               title="Linked findings"
               count={14}
@@ -485,7 +485,7 @@ export const Dont: Story = {
         }
         doText="Five rows and See all. The rail shows the handful the reader acts on; the record's tab lists them all."
         dont={
-          <Box className="w-layout-rail">
+          <Box className="w-layout-rail max-w-full">
             <Related title="Linked findings" count={14}>
               {many}
             </Related>
@@ -495,7 +495,7 @@ export const Dont: Story = {
       />
       <Pair
         do={
-          <Box className="w-layout-rail">
+          <Box className="w-layout-rail max-w-full">
             <Related title="Linked findings" count={2}>
               {findings}
             </Related>
@@ -503,7 +503,7 @@ export const Dont: Story = {
         }
         doText="A noun for the title; an id, a name and the state at the end, per row."
         dont={
-          <Box className="w-layout-rail">
+          <Box className="w-layout-rail max-w-full">
             <Related
               title="Findings the assessor linked to this control during the last campaign"
               count={2}
@@ -652,6 +652,8 @@ export const RecordNavigation: Story = {
     await expect(link).toHaveAttribute("id", "related-gateway");
     await expect(link).toHaveAttribute("data-record", "gateway");
     await expect(link).toHaveAttribute("href", "#gateway");
+    // The card's title link takes a 24px hit area on a touch screen.
+    await expect(link).toHaveClass("touch-target");
     await userEvent.click(canvas.getByRole("button", { name: "Focus record link" }));
     await expect(link).toHaveFocus();
     await userEvent.keyboard(" ");
@@ -677,5 +679,46 @@ export const RecordNavigation: Story = {
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
     await expect(canvas.getByRole("button", { name: "Preview gateway" })).toHaveFocus();
+  },
+};
+
+/** The card's title is a heading at the contextual level and names its list: an h3 when nothing sets one, an h2 in a page's rail that starts its outline at 2. A Related.Card paints the raised surface and records it as the current one, as Card does, so a child that matches its surface (`bg-surface-current`) paints the card's colour, not the page's. */
+export const HeadingLevelAndSurface: Story = {
+  name: "Heading level and surface",
+  render: () => (
+    <div style={{ maxWidth: 560 }}>
+      <Stack space="space.300">
+        <Related title="Linked findings" count={1}>
+          <Item title="Stale administrator accounts" link={<a href="#finding-12" />} />
+        </Related>
+        <HeadingLevelProvider level={2}>
+          <Related title="Systems" count={1} layout="cards">
+            <Related.Card
+              title="Telemetry gateway"
+              link={<a href="#gateway" />}
+              meta="Subsystem · Ground segment"
+            >
+              <span
+                data-testid="surface-match"
+                className="block rounded-small bg-surface-current p-050"
+              >
+                Matches the card
+              </span>
+            </Related.Card>
+          </Related>
+        </HeadingLevelProvider>
+      </Stack>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("heading", { name: "Linked findings" }).tagName).toBe("H3");
+    await expect(canvas.getByRole("heading", { name: "Systems" }).tagName).toBe("H2");
+    await expect(canvas.getByRole("list", { name: "Systems" })).toBeVisible();
+    const card = canvas.getByRole("link", { name: "Telemetry gateway" }).closest("li")!;
+    const match = canvas.getByTestId("surface-match");
+    await expect(getComputedStyle(match).backgroundColor).toBe(
+      getComputedStyle(card).backgroundColor,
+    );
   },
 };

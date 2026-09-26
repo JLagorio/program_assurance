@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import { cn } from "../lib/cn";
+import { headingTag, useHeadingLevel } from "../primitives/heading-level";
 import { Empty, EmptyHeader, EmptyTitle } from "./empty";
 import { Count } from "./badge";
 import { Id } from "./id";
@@ -99,9 +100,10 @@ function ItemRoot({
   const clickable = interactive || collapsible;
 
   const text = <span className="block truncate font-body text-default">{title}</span>;
+  // `static` keeps the overlay stretched over the row when the link is a positioned part (TextLink).
   const titleClass = cn(
     "block min-w-0 outline-none",
-    clickable && "after:absolute after:inset-0 focus-visible:after:outline-focused",
+    clickable && "static after:absolute after:inset-0 focus-visible:after:outline-focused",
     clickable && (flush ? "after:rounded-none" : "after:rounded-medium"),
   );
   const titleLink = useRender({
@@ -141,10 +143,12 @@ function ItemRoot({
       className="size-icon-small transition-transform duration-fast ease-standard group-data-open/item:rotate-90"
     />
   );
+  // The chevron sits over the title's stretched overlay (z-10 within the row), so it opens the row
+  // instead of following the link, with a 24px hit area on touch.
   const toggle = !collapsible ? null : interactive ? (
     <CollapsiblePrimitive.Trigger
       aria-labelledby={titleId}
-      className="relative inline-flex size-250 shrink-0 items-center justify-center rounded-small icon-subtle outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused"
+      className="relative z-10 inline-flex size-250 shrink-0 touch-target items-center justify-center rounded-small icon-subtle outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused"
     >
       {chevron}
     </CollapsiblePrimitive.Trigger>
@@ -157,7 +161,7 @@ function ItemRoot({
   const row = (
     <div
       className={cn(
-        "relative col-span-full grid grid-cols-subgrid items-start",
+        "relative isolate col-span-full grid grid-cols-subgrid items-start",
         flush ? "px-200" : "rounded-medium px-050",
         size === "compact" ? "py-050" : "py-100",
         clickable &&
@@ -239,7 +243,7 @@ export type ItemGroupProps = Omit<ComponentProps<"div">, "title"> & {
   children?: ReactNode;
   /** What to say when there are no rows: "No milestones recorded." */
   empty?: ReactNode;
-  /** A heading over the rows, semibold with a rule under it: "Milestones". It names the list. */
+  /** A heading over the rows, semibold with a rule under it: "Milestones". It names the list. The heading takes the contextual level, an h3 outside every HeadingLevelProvider. */
   title?: ReactNode;
   /** A Count after the title: how many rows. */
   count?: number | undefined;
@@ -268,6 +272,7 @@ export function ItemGroup({
   ...props
 }: ItemGroupProps) {
   const headingId = useId();
+  const HeadingTag = headingTag(useHeadingLevel() ?? 3);
   const has = Array.isArray(children) ? children.some(Boolean) : Boolean(children);
   const body =
     !has && empty ? (
@@ -301,9 +306,12 @@ export function ItemGroup({
           )}
         >
           {title ? (
-            <h3 id={headingId} className="min-w-0 truncate font-body font-semibold text-default">
+            <HeadingTag
+              id={headingId}
+              className="min-w-0 truncate font-body font-semibold text-default"
+            >
               {title}
-            </h3>
+            </HeadingTag>
           ) : null}
           {count !== undefined ? <Count value={count} /> : null}
           {trailing ? (

@@ -69,6 +69,24 @@
       "500A": {
         "$value": "oklch(0.22 0.024 258 / 0.5)",
         "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+      },
+      "450A": {
+        "$value": "oklch(0.22 0.024 258 / 0.47)",
+        "$description": "Increased contrast: the resting neutral fill and the hairline, at 3:1 on every light surface.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "520A": {
+        "$value": "oklch(0.22 0.024 258 / 0.52)",
+        "$description": "Increased contrast: the pressed neutral fill, as strong as a fill goes while text.subtle keeps 4.5:1 on it.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
       }
     },
     "darkNeutral": {
@@ -151,6 +169,33 @@
       "500A": {
         "$value": "oklch(1 0 0 / 0.5)",
         "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+      },
+      "450A": {
+        "$value": "oklch(1 0 0 / 0.34)",
+        "$description": "Increased contrast: the resting neutral fill and the hairline, at 3:1 on every dark surface.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "460A": {
+        "$value": "oklch(1 0 0 / 0.355)",
+        "$description": "Increased contrast: the hovered neutral fill in dark.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "470A": {
+        "$value": "oklch(1 0 0 / 0.37)",
+        "$description": "Increased contrast: the pressed neutral fill in dark, as strong as a fill goes while text keeps 4.5:1 on it.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
       }
     },
     "blue": {
@@ -235,6 +280,60 @@
         "$extensions": {
           "ledger": {
             "introduced": "0.6.0"
+          }
+        }
+      },
+      "50": {
+        "$value": "oklch(0.99 0.01 254)",
+        "$description": "Increased contrast: selected text in dark, on the 3:1 selected fills.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "475": {
+        "$value": "oklch(0.65 0.165 254)",
+        "$description": "Increased contrast: the selected fill in light, at 3:1 on every light surface.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "550": {
+        "$value": "oklch(0.61 0.178 254)",
+        "$description": "Increased contrast: the pressed selected fill in light.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "675": {
+        "$value": "oklch(0.55 0.19 254)",
+        "$description": "Increased contrast: the pressed selected fill in dark.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "725": {
+        "$value": "oklch(0.525 0.19 254)",
+        "$description": "Increased contrast: the selected fill in dark, at 3:1 on every dark surface.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "1100": {
+        "$value": "oklch(0.2 0.06 254)",
+        "$description": "Increased contrast: selected text in light, on the 3:1 selected fills.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
           }
         }
       }

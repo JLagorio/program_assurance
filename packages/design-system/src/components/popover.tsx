@@ -5,6 +5,7 @@ import type { ComponentProps } from "react";
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
+import { overlaySurface } from "./overlay";
 
 export type PopoverProps<Payload = unknown> = PopoverPrimitive.Root.Props<Payload>;
 
@@ -38,7 +39,10 @@ export function PopoverContent({
 }: PopoverContentProps) {
   const inheritedDirection = useDirection();
   const direction = dir === "ltr" || dir === "rtl" ? dir : inheritedDirection;
+  // The overlay surface is recorded as the current one, so a child that matches its surface
+  // (a sticky header, a pinned cell) paints the popup's colour.
   const defaults = {
+    ...overlaySurface,
     width: 288,
     maxWidth: "var(--available-width)",
     transformOrigin: "var(--transform-origin)",

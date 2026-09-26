@@ -28,6 +28,10 @@ The group and items support native attributes, refs, `render`, and state callbac
 
 <Canvas of={Stories.ViewsStory} />
 
+A spaced group wraps its items onto the next line when its row is too narrow for them, so every choice stays in view and in reach. A joined group, a group in a table cell and a group in a horizontal Scroller keep one line, and the table's frame or the Scroller scrolls. Put a joined group in a horizontal [Scroller](?path=/docs/components-scroller--docs) when its row can be narrower than its items.
+
+<Canvas of={Stories.NarrowRow} />
+
 ## Accessibility
 
 - The root has `role="group"`; each item is a button with `aria-pressed`. Name the group with `aria-label` or `aria-labelledby`, and give icon-only items an accessible name.

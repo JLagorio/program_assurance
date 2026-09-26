@@ -129,7 +129,7 @@ export const Dont: Story = {
       />
       <Pair
         do={
-          <div style={{ width: 480 }}>
+          <div style={{ maxWidth: 480 }}>
             <Alert tone="success" role="status">
               <AlertTitle>
                 <span aria-hidden="true" className="flex h-250 shrink-0 items-center">

@@ -132,7 +132,7 @@ export const Dont: Story = {
     <Stack space="space.400">
       <Pair
         do={
-          <Box style={{ width: 320 }} aria-busy>
+          <Box style={{ maxWidth: 320 }} aria-busy>
             <Stack space="space.150">
               <Skeleton shape="heading" width={200} />
               <Skeleton lines={3} />
@@ -141,7 +141,7 @@ export const Dont: Story = {
         }
         doText="A page or a section that is loading holds its shape: the reader knows what is coming and nothing jumps."
         dont={
-          <Box style={{ width: 320, height: 84 }} className="flex items-center justify-center">
+          <Box style={{ maxWidth: 320, height: 84 }} className="flex items-center justify-center">
             <Spinner size="large" />
           </Box>
         }
@@ -149,7 +149,7 @@ export const Dont: Story = {
       />
       <Pair
         do={
-          <Box style={{ width: 320 }} aria-busy>
+          <Box style={{ maxWidth: 320 }} aria-busy>
             <Inline space="space.150" alignBlock="center">
               <Skeleton shape="circle" width={24} />
               <Box className="flex-1">
@@ -160,7 +160,7 @@ export const Dont: Story = {
         }
         doText="The shape of what is coming: a circle where the avatar will be, lines where the text will."
         dont={
-          <Box style={{ width: 320 }}>
+          <Box style={{ maxWidth: 320 }}>
             <Skeleton shape="block" height={44} />
           </Box>
         }
@@ -168,7 +168,7 @@ export const Dont: Story = {
       />
       <Pair
         do={
-          <Box style={{ width: 320 }} aria-busy>
+          <Box style={{ maxWidth: 320 }} aria-busy>
             <Stack space="space.100">
               <Skeleton width={240} />
               <Skeleton width={180} />
@@ -177,7 +177,7 @@ export const Dont: Story = {
         }
         doText="Lines about as long as the text will be."
         dont={
-          <Box style={{ width: 320 }}>
+          <Box style={{ maxWidth: 320 }}>
             <Stack space="space.100">
               <Skeleton />
               <Skeleton />

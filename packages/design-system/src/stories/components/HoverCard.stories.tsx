@@ -107,11 +107,18 @@ export const HoverCardMatrix: Story = {
     await waitFor(() => expect(content.getBoundingClientRect().width).toBe(256));
     const rtl = await body.findByTestId("review-calendar-preview");
     const rtlTrigger = canvas.getByRole("link", { name: "Review calendar" });
-    await waitFor(() =>
-      expect(rtl.getBoundingClientRect().right).toBeLessThanOrEqual(
-        rtlTrigger.getBoundingClientRect().left,
-      ),
-    );
+    // Inline-end is the left in RTL. Where the window leaves no room there (a phone, a narrow
+    // frame), the card flips to stay on screen instead.
+    if (rtlTrigger.getBoundingClientRect().left >= rtl.getBoundingClientRect().width + 32) {
+      await waitFor(() =>
+        expect(rtl.getBoundingClientRect().right).toBeLessThanOrEqual(
+          rtlTrigger.getBoundingClientRect().left,
+        ),
+      );
+    } else {
+      await waitFor(() => expect(rtl.getBoundingClientRect().left).toBeGreaterThanOrEqual(0));
+      await expect(rtl.getBoundingClientRect().right).toBeLessThanOrEqual(window.innerWidth);
+    }
     const navigation = fn();
     const observeNavigation = (event: MouseEvent) => {
       if (event.target instanceof Node && trigger.contains(event.target)) {
@@ -157,7 +164,7 @@ const blockedOpen = fn();
 export const OnAnId: Story = {
   name: "On an id",
   render: () => (
-    <div style={{ width: 600, minHeight: 320 }}>
+    <div style={{ maxWidth: 600, minHeight: 320 }}>
       <Stack space="space.200">
         <Text weight="medium">Control register</Text>
         <HoverCard<(typeof rows)[number]>
@@ -174,7 +181,7 @@ export const OnAnId: Story = {
                 <thead>
                   <Table.Row>
                     <Table.Header width={120}>Id</Table.Header>
-                    <Table.Header>Control</Table.Header>
+                    <Table.Header minWidth={220}>Control</Table.Header>
                     <Table.Header width={160}>Owner</Table.Header>
                   </Table.Row>
                 </thead>
@@ -196,12 +203,17 @@ export const OnAnId: Story = {
                           {row.id}
                         </TextLink>
                       </Table.Cell>
-                      <Table.Cell>
+                      <Table.Cell
+                        title={row.preview ? row.name : `${row.name}. Open the record for details.`}
+                      >
                         {row.name}
                         {!row.preview ? (
-                          <Text size="small" color="color.text.subtle">
-                            Open the record for details.
-                          </Text>
+                          <>
+                            {" "}
+                            <Text size="small" color="color.text.subtle">
+                              Open the record for details.
+                            </Text>
+                          </>
                         ) : null}
                       </Table.Cell>
                       <Table.Cell>{row.owner}</Table.Cell>
@@ -250,6 +262,11 @@ export const OnAnId: Story = {
     await moveTo(trigger);
     const popup = await body.findByTestId("preview-CTRL-0412");
     await waitFor(() => expect(popup).toBeVisible());
+    // The card records the overlay surface as the current one for what sits on it.
+    const surface = popup.closest<HTMLElement>('[data-slot="hover-card-content"]');
+    await expect(surface?.style.getPropertyValue("--ds-utility-elevation-surface-current")).toBe(
+      "var(--ds-elevation-surface-overlay)",
+    );
     await moveTo(popup);
     await new Promise((resolve) => setTimeout(resolve, 120));
     await expect(popup).toBeVisible();

@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import { expect, waitFor } from "storybook/test";
+
 import { Chart } from "../..";
 import { Button, KeyValue } from "../../components";
 import { Box, Stack } from "../../primitives";
@@ -26,6 +28,9 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+/** The assessment's kickoff, a month before its window opens. */
+const kickoffDate = new Date(2026, 4, 4);
+
 const open = [{ key: "open", label: "Open", tone: "brand" as const }];
 const openPlan = [
   { key: "open", label: "Open", tone: "brand" as const },
@@ -37,7 +42,7 @@ export const LineMatrix: Story = {
   render: () => (
     <Stack space="space.400">
       <Specimens title="Plain · smooth with dots · end labels">
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Line
             data={byMonth}
             x="month"
@@ -46,7 +51,7 @@ export const LineMatrix: Story = {
             label="Findings over time"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Line
             data={byMonth}
             x="month"
@@ -57,7 +62,7 @@ export const LineMatrix: Story = {
             label="Findings over time"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Line
             data={byMonth}
             x="month"
@@ -69,7 +74,7 @@ export const LineMatrix: Story = {
         </Box>
       </Specimens>
       <Specimens title="A band, a limit and a milestone · baseline auto · a gap where the data was not there">
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Line
             data={byMonth}
             x="month"
@@ -83,7 +88,7 @@ export const LineMatrix: Story = {
             label="Open findings against the limit"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Line
             data={byMonth}
             x="month"
@@ -93,7 +98,7 @@ export const LineMatrix: Story = {
             label="Plan, cropped"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Line
             data={byMonthGaps}
             x="month"
@@ -105,7 +110,7 @@ export const LineMatrix: Story = {
         </Box>
       </Specimens>
       <Specimens title="A time axis with a date band and a milestone · a shared domain · deltas in the tooltip">
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Line
             data={byWeek}
             x="date"
@@ -119,7 +124,7 @@ export const LineMatrix: Story = {
             label="Findings by week"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Line
             data={byMonth}
             x="month"
@@ -129,7 +134,7 @@ export const LineMatrix: Story = {
             label="Open findings, to 40"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Line
             data={byMonth}
             x="month"
@@ -141,7 +146,7 @@ export const LineMatrix: Story = {
         </Box>
       </Specimens>
       <Specimens title="Emphasis (brand and neutral) · axis titles · loading">
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Line
             data={byAssessor}
             x="week"
@@ -150,7 +155,7 @@ export const LineMatrix: Story = {
             label="Reviews by assessor"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Line
             data={byMonth}
             x="month"
@@ -161,7 +166,7 @@ export const LineMatrix: Story = {
             label="Open findings"
           />
         </Box>
-        <Box style={{ width: 300 }}>
+        <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Line
             data={byMonth}
             x="month"
@@ -179,7 +184,7 @@ export const LineMatrix: Story = {
 /** Open and closed findings over nine months. Straight segments: the points are what was counted. */
 export const Lines: Story = {
   render: () => (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Findings over time"
         description="At the end of each month, this year"
@@ -198,7 +203,7 @@ export const Lines: Story = {
 /** A smooth curve with a marker on every point, for a series with few points where each is an event. The curve never overshoots the data. */
 export const Smooth: Story = {
   render: () => (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Open findings"
         description="Monthly count"
@@ -216,7 +221,7 @@ export const Smooth: Story = {
 /** A burndown: the open count against the plan, a band for the tolerable range, a limit in danger, a milestone on the category axis, and the last values printed. */
 export const Burndown: Story = {
   render: () => (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Open findings against the plan"
         description="The band is the tolerable range; the limit is the authorization condition"
@@ -245,7 +250,7 @@ export const Burndown: Story = {
 /** `baseline="auto"` crops the value axis to the data, for a trend where the change matters more than the size. The description says so, because a cropped axis exaggerates. */
 export const Cropped: Story = {
   render: () => (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Controls assessed"
         description="Cumulative; the axis starts at the first month's count"
@@ -269,7 +274,7 @@ export const Cropped: Story = {
 /** A missing value is a gap: April and July were not counted, and the line says so. `connectNulls` would draw across them and invent two months. */
 export const Gaps: Story = {
   render: () => (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Findings over time"
         description="The register was down in April and July"
@@ -288,7 +293,7 @@ export const Gaps: Story = {
 /** Real dates: `scale="time"` spaces the weeks by time and picks the ticks by the span (months here, days or years elsewhere); a band between two dates is the assessment window and a reference on a date is the milestone. */
 export const Dates: Story = {
   render: () => (
-    <Box style={{ width: 720 }}>
+    <Box style={{ maxWidth: 720 }}>
       <Chart
         title="Findings by week"
         description="Open and closed at the end of each week, March to August"
@@ -315,10 +320,222 @@ export const Dates: Story = {
   ),
 };
 
+/** In a narrow plot (here a 300px frame, a panel's width, and a 200px card) the labels above it share one row: the window's and the milestone's move apart rather than overlap, the milestone's keeping closest to its line, and none leaves the plot's width, so none sits on the axis ticks. Each stays over its mark, a window's middle over its window: where the row is too short for them so (the third chart and the card), the window's label shortens before a milestone's, with an ellipsis and its whole text as its title. At the plot's start a milestone's label begins at its line, and two milestones on one date share one label (the fourth chart); there the first milestone's label gives way to the second's, and the window's beside them shortens only as far as the row needs, still over its window. The labels inside the plot are drawn over the lines, ringed in the surface, so the plan line runs behind "Tolerable". */
+export const NarrowLabels: Story = {
+  render: () => (
+    <Stack space="space.400">
+      <Box style={{ maxWidth: 300 }}>
+        <Stack space="space.400">
+          <Chart title="Findings by week" series={findingSeries} swatch="line">
+            <Chart.Line
+              data={byWeek}
+              x="date"
+              scale="time"
+              series={findingSeries}
+              labels="end"
+              bands={[
+                {
+                  fromX: assessmentWindow.from,
+                  toX: assessmentWindow.to,
+                  label: "Assessment window",
+                },
+              ]}
+              reference={[{ x: authorizationDate, label: "ATO" }]}
+            />
+          </Chart>
+          <Chart title="Open findings against the plan" series={openPlan} swatch="line">
+            <Chart.Line
+              data={byMonth}
+              x="month"
+              series={openPlan}
+              labels="end"
+              bands={[{ from: 0, to: 8, label: "Tolerable" }]}
+              reference={[
+                { y: 15, label: "Limit", tone: "danger" },
+                { x: "Jun", label: "Milestone C" },
+              ]}
+            />
+          </Chart>
+          <Chart title="Assessment milestones" series={findingSeries} swatch="line">
+            <Chart.Line
+              data={byWeek}
+              x="date"
+              scale="time"
+              series={findingSeries}
+              bands={[
+                {
+                  fromX: assessmentWindow.from,
+                  toX: assessmentWindow.to,
+                  label: "Independent assessment window",
+                },
+              ]}
+              reference={[
+                { x: kickoffDate, label: "Kickoff" },
+                { x: authorizationDate, label: "ATO" },
+              ]}
+            />
+          </Chart>
+          <Chart title="Open findings from kickoff" series={open} swatch="line">
+            <Chart.Line
+              data={byMonth}
+              x="month"
+              series={open}
+              bands={[{ fromX: "Mar", toX: "May", label: "Assessment window" }]}
+              reference={[
+                { x: "Jan", label: "Kickoff" },
+                { x: "Feb", label: "SSP due" },
+                { x: "Jul", label: "Report" },
+                { x: "Jul", label: "ATO" },
+              ]}
+            />
+          </Chart>
+        </Stack>
+      </Box>
+      <Box style={{ maxWidth: 200 }}>
+        <Chart title="Findings in the window" series={findingSeries} swatch="line">
+          <Chart.Line
+            data={byWeek}
+            x="date"
+            scale="time"
+            series={findingSeries}
+            bands={[
+              {
+                fromX: assessmentWindow.from,
+                toX: assessmentWindow.to,
+                label: "Assessment window",
+              },
+            ]}
+            reference={[{ x: authorizationDate, label: "ATO" }]}
+          />
+        </Chart>
+      </Box>
+    </Stack>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const label = (text: string) =>
+      Array.from(canvasElement.querySelectorAll<SVGTextElement>("svg text")).find(
+        (t) => t.textContent === text,
+      );
+    await waitFor(() => {
+      expect(label("Assessment window")).toBeDefined();
+      expect(label("ATO")).toBeDefined();
+    });
+    const windowLabel = label("Assessment window")!.getBoundingClientRect();
+    const ato = label("ATO")!.getBoundingClientRect();
+    // One row, no overlap: the window's label ends before the milestone's begins.
+    await expect(windowLabel.right).toBeLessThanOrEqual(ato.left);
+    const figure = canvas.getByRole("figure", { name: "Findings by week" });
+    const frame = figure.getBoundingClientRect();
+    await expect(windowLabel.left).toBeGreaterThanOrEqual(frame.left - 0.5);
+    await expect(ato.right).toBeLessThanOrEqual(frame.right + 0.5);
+    // Inside the plot, a label is ringed in the surface and drawn over the lines.
+    const tolerable = label("Tolerable")!;
+    await expect(tolerable).toHaveAttribute("paint-order", "stroke");
+    const plan = canvas
+      .getByRole("figure", { name: "Open findings against the plan" })
+      .querySelector(".recharts-line");
+    await expect(
+      plan!.compareDocumentPosition(tolerable) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    // A row too short for all three: the window's label shortens, titled with its whole text, and
+    // stays over its band; the milestones' stay whole, and nothing overlaps or leaves the chart.
+    const crowded = canvas.getByRole("figure", { name: "Assessment milestones" });
+    const crowdedBox = crowded.getBoundingClientRect();
+    const shortened = await waitFor(() => {
+      const title = Array.from(crowded.querySelectorAll("svg g > title")).find(
+        (t) => t.textContent === "Independent assessment window",
+      );
+      expect(title).toBeDefined();
+      return title!.parentElement!.querySelector("text")!;
+    });
+    await expect(shortened.textContent).toMatch(/^Independent.*…$/);
+    const whole = ["Kickoff", "ATO"].map((text) =>
+      Array.from(crowded.querySelectorAll<SVGTextElement>("svg text")).find(
+        (t) => t.textContent === text,
+      ),
+    );
+    await expect(whole.every(Boolean)).toBe(true);
+    const boxes = [shortened, ...whole.map((t) => t!)]
+      .map((t) => t.getBoundingClientRect())
+      .sort((a, b) => a.left - b.left);
+    for (const [i, box] of boxes.entries()) {
+      await expect(box.left).toBeGreaterThanOrEqual(crowdedBox.left - 0.5);
+      await expect(box.right).toBeLessThanOrEqual(crowdedBox.right + 0.5);
+      if (i > 0) await expect(boxes[i - 1]!.right).toBeLessThanOrEqual(box.left);
+    }
+    // A window's label keeps its middle over its window, however narrow the plot.
+    for (const name of [
+      "Findings by week",
+      "Assessment milestones",
+      "Findings in the window",
+      "Open findings from kickoff",
+    ]) {
+      const figure = canvas.getByRole("figure", { name });
+      const text = await waitFor(() => {
+        // Its whole text is its title when it is shortened.
+        const found = Array.from(figure.querySelectorAll<SVGTextElement>("svg text")).find((t) =>
+          (
+            t.parentElement?.querySelector(":scope > title")?.textContent ?? t.textContent
+          )?.endsWith("window"),
+        );
+        expect(found).toBeDefined();
+        return found!.getBoundingClientRect();
+      });
+      const band = figure.querySelector(".recharts-reference-area")!.getBoundingClientRect();
+      const middle = (text.left + text.right) / 2;
+      await expect(middle).toBeGreaterThanOrEqual(band.left - 0.5);
+      await expect(middle).toBeLessThanOrEqual(band.right + 0.5);
+    }
+    // At the plot's start the milestone's label begins at its line, clear of the axis ticks, and
+    // two milestones on one date share one label.
+    const start = canvas.getByRole("figure", { name: "Open findings from kickoff" });
+    const shared = await waitFor(() => {
+      const found = Array.from(start.querySelectorAll<SVGTextElement>("svg text")).find(
+        (t) => t.textContent === "Report · ATO",
+      );
+      expect(found).toBeDefined();
+      return found!;
+    });
+    const lines = Array.from(start.querySelectorAll(".recharts-reference-line line")).map((l) =>
+      l.getBoundingClientRect(),
+    );
+    const plotTop = Math.min(...lines.map((l) => l.top));
+    const firstLine = Math.min(...lines.map((l) => l.left));
+    const top = Array.from(start.querySelectorAll<SVGTextElement>("svg text")).filter(
+      (t) =>
+        !t.closest(".recharts-cartesian-axis") && t.getBoundingClientRect().bottom <= plotTop + 1,
+    );
+    await expect(top).toContain(shared);
+    await expect(top.some((t) => t.textContent?.startsWith("Kic"))).toBe(true);
+    // The first milestone's label gives way to the second's; the window's beside them shortens
+    // only as far as the row needs, titled with its whole text, and nothing in the row overlaps.
+    const beside = top.find(
+      (t) => t.parentElement?.querySelector(":scope > title")?.textContent === "Assessment window",
+    );
+    await expect(beside?.textContent).toMatch(/^Assessment.*…$/);
+    const row = top.map((t) => t.getBoundingClientRect()).sort((a, b) => a.left - b.left);
+    for (const [i, box] of row.entries())
+      if (i > 0) await expect(row[i - 1]!.right).toBeLessThanOrEqual(box.left);
+    const ticks = Array.from(start.querySelectorAll(".recharts-cartesian-axis text")).map((t) =>
+      t.getBoundingClientRect(),
+    );
+    for (const label of top.map((t) => t.getBoundingClientRect())) {
+      await expect(label.left).toBeGreaterThanOrEqual(firstLine - 0.5);
+      for (const tick of ticks)
+        await expect(
+          label.right <= tick.left ||
+            tick.right <= label.left ||
+            label.bottom <= tick.top ||
+            tick.bottom <= label.top,
+        ).toBe(true);
+    }
+  },
+};
+
 /** `delta`: the tooltip and the card print each series' change from the point before, signed, beside the value. */
 export const Deltas: Story = {
   render: () => (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Findings over time"
         description="Hover a month for the change since the one before"
@@ -337,7 +554,7 @@ export const Deltas: Story = {
 /** A click anywhere in a month's column, or Enter on the focused point, opens the month's card: every series at that point, then the caller's facts. The chosen point is ringed on every line. */
 export const Details: Story = {
   render: () => (
-    <Box style={{ width: 640 }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Findings over time"
         description="Click a month"

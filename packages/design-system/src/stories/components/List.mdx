@@ -1,0 +1,68 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { List, ListItem } from "../../components";
+import * as Stories from "./List.stories";
+
+<Meta of={Stories} />
+
+# List
+
+Bulleted and numbered lists on one inset and two spacings: validation messages, conflicts, the steps of an instruction, the points of a narrative. The marker hangs in the inset, so each item's text lines up with the text above the list. It is a real `ul` or `ol`, so a screen reader says how many items there are.
+
+```tsx
+<List>
+  <List.Item>Choose a profile.</List.Item>
+  <List.Item>Add at least one system.</List.Item>
+</List>
+```
+
+<Canvas of={Stories.ListMatrix} />
+
+## When to use it
+
+- **Two or more short points** a reader should see as separate: what is missing before a program can be created, the conflicts in a selection.
+- **`ordered`** when the order matters (steps, a ranking, an order the text refers to); bullets otherwise.
+- **`spacing="loose"`** when items are sentences or wrap; `tight`, the default, for short lines.
+- **Not for records.** A list of records a reader opens or acts on is an [Item.Group](?path=/docs/components-item--docs), a [Timeline](?path=/docs/components-timeline--docs) or a DataTable.
+- **Not for facts.** Labelled values are [KeyValue](?path=/docs/components-keyvalue--docs) rows in a KeyValue.Group.
+- **Authored Markdown** renders its lists through this part: [Prose](?path=/docs/components-typography--docs) with `markdown`.
+
+<Canvas of={Stories.Semantics} />
+
+## Anatomy
+
+| Part      | What it is                                                                                                                    |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| List      | `ul` (`list-disc`, `space.200` inset) or `ol` with `ordered` (`list-decimal`, `space.300` inset, for two-digit numbers). The inset is logical: it moves to the right in a right-to-left locale. |
+| List.Item | `li`, `space.025` from its marker; it wraps and breaks a long word rather than running past the list.                         |
+| Spacing   | `space.025` between items when `tight`, `space.100` when `loose`.                                                            |
+
+The list takes its size and colour from where it sits: an Alert's description, a Field's error, a paragraph's size. `start` numbers an ordered list from where the text left off. A List inside a List.Item nests.
+
+<Canvas of={Stories.InAnAlert} />
+
+## Accessibility
+
+- **A list is announced as a list** with its count, and each item as one of that count. Bullets typed into text are read as characters.
+- **Markers are drawn by CSS**, so they are not read as words.
+- **Links in items** are TextLinks; an item that is a whole record is not a list item but an Item.
+
+## Props
+
+### List
+
+<ArgTypes of={List} />
+
+### List.Item
+
+<ArgTypes of={ListItem} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Don't
+
+<Canvas of={Stories.Dont} />

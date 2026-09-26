@@ -9,6 +9,12 @@
     "dark": "color.darkNeutral.200A",
     "lightResolved": "oklch(0.22 0.024 258 / 0.06)",
     "darkResolved": "oklch(1 0 0 / 0.07)",
+    "contrast": {
+      "light": "color.neutral.450A",
+      "dark": "color.darkNeutral.450A",
+      "lightResolved": "oklch(0.22 0.024 258 / 0.47)",
+      "darkResolved": "oklch(1 0 0 / 0.34)"
+    },
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-neutral"
@@ -23,6 +29,12 @@
     "dark": "color.darkNeutral.300A",
     "lightResolved": "oklch(0.22 0.024 258 / 0.1)",
     "darkResolved": "oklch(1 0 0 / 0.11)",
+    "contrast": {
+      "light": "color.neutral.500A",
+      "dark": "color.darkNeutral.460A",
+      "lightResolved": "oklch(0.22 0.024 258 / 0.5)",
+      "darkResolved": "oklch(1 0 0 / 0.355)"
+    },
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-neutral-hovered"
@@ -37,6 +49,12 @@
     "dark": "color.darkNeutral.400A",
     "lightResolved": "oklch(0.22 0.024 258 / 0.18)",
     "darkResolved": "oklch(1 0 0 / 0.18)",
+    "contrast": {
+      "light": "color.neutral.520A",
+      "dark": "color.darkNeutral.470A",
+      "lightResolved": "oklch(0.22 0.024 258 / 0.52)",
+      "darkResolved": "oklch(1 0 0 / 0.37)"
+    },
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-neutral-pressed"
@@ -51,6 +69,7 @@
     "dark": "transparent",
     "lightResolved": "transparent",
     "darkResolved": "transparent",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-neutral-subtle"
@@ -65,6 +84,12 @@
     "dark": "color.darkNeutral.200A",
     "lightResolved": "oklch(0.22 0.024 258 / 0.06)",
     "darkResolved": "oklch(1 0 0 / 0.07)",
+    "contrast": {
+      "light": "color.neutral.450A",
+      "dark": "color.darkNeutral.450A",
+      "lightResolved": "oklch(0.22 0.024 258 / 0.47)",
+      "darkResolved": "oklch(1 0 0 / 0.34)"
+    },
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-neutral-subtle-hovered"
@@ -79,6 +104,12 @@
     "dark": "color.darkNeutral.300A",
     "lightResolved": "oklch(0.22 0.024 258 / 0.1)",
     "darkResolved": "oklch(1 0 0 / 0.11)",
+    "contrast": {
+      "light": "color.neutral.500A",
+      "dark": "color.darkNeutral.460A",
+      "lightResolved": "oklch(0.22 0.024 258 / 0.5)",
+      "darkResolved": "oklch(1 0 0 / 0.355)"
+    },
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-neutral-subtle-pressed"
@@ -93,6 +124,7 @@
     "dark": "color.darkNeutral.1000",
     "lightResolved": "oklch(0.22 0.024 258)",
     "darkResolved": "oklch(0.945 0.008 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-neutral-bold"
@@ -107,6 +139,7 @@
     "dark": "color.darkNeutral.900",
     "lightResolved": "oklch(0.3 0.022 258)",
     "darkResolved": "oklch(0.86 0.012 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-neutral-bold-hovered"
@@ -121,6 +154,7 @@
     "dark": "color.darkNeutral.800",
     "lightResolved": "oklch(0.44 0.02 258)",
     "darkResolved": "oklch(0.81 0.015 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-neutral-bold-pressed"
@@ -135,6 +169,7 @@
     "dark": "color.blue.1000",
     "lightResolved": "oklch(0.97 0.022 254)",
     "darkResolved": "oklch(0.3 0.1 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-brand-subtlest"
@@ -149,6 +184,7 @@
     "dark": "color.blue.900",
     "lightResolved": "oklch(0.935 0.045 254)",
     "darkResolved": "oklch(0.38 0.145 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-brand-subtlest-hovered"
@@ -163,6 +199,7 @@
     "dark": "color.blue.850",
     "lightResolved": "oklch(0.905 0.065 254)",
     "darkResolved": "oklch(0.44 0.17 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-brand-subtlest-pressed"
@@ -177,6 +214,7 @@
     "dark": "color.blue.400",
     "lightResolved": "oklch(0.54 0.19 254)",
     "darkResolved": "oklch(0.73 0.145 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-brand-bold"
@@ -191,6 +229,7 @@
     "dark": "color.blue.300",
     "lightResolved": "oklch(0.49 0.185 254)",
     "darkResolved": "oklch(0.84 0.1 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-brand-bold-hovered"
@@ -205,6 +244,7 @@
     "dark": "color.blue.250",
     "lightResolved": "oklch(0.44 0.17 254)",
     "darkResolved": "oklch(0.905 0.065 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-brand-bold-pressed"
@@ -219,6 +259,7 @@
     "dark": "color.blue.100",
     "lightResolved": "oklch(0.3 0.1 254)",
     "darkResolved": "oklch(0.97 0.022 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-brand-boldest"
@@ -233,6 +274,7 @@
     "dark": "color.blue.200",
     "lightResolved": "oklch(0.38 0.145 254)",
     "darkResolved": "oklch(0.935 0.045 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-brand-boldest-hovered"
@@ -247,6 +289,7 @@
     "dark": "color.blue.250",
     "lightResolved": "oklch(0.44 0.17 254)",
     "darkResolved": "oklch(0.905 0.065 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-brand-boldest-pressed"
@@ -261,6 +304,12 @@
     "dark": "color.blue.1000",
     "lightResolved": "oklch(0.97 0.022 254)",
     "darkResolved": "oklch(0.3 0.1 254)",
+    "contrast": {
+      "light": "color.blue.475",
+      "dark": "color.blue.725",
+      "lightResolved": "oklch(0.65 0.165 254)",
+      "darkResolved": "oklch(0.525 0.19 254)"
+    },
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-selected"
@@ -275,6 +324,12 @@
     "dark": "color.blue.950",
     "lightResolved": "oklch(0.9525 0.0335 254.0)",
     "darkResolved": "oklch(0.34 0.1225 254.0)",
+    "contrast": {
+      "light": "color.blue.500",
+      "dark": "color.blue.700",
+      "lightResolved": "oklch(0.635 0.17 254)",
+      "darkResolved": "oklch(0.54 0.19 254)"
+    },
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-selected-hovered"
@@ -289,6 +344,12 @@
     "dark": "color.blue.900",
     "lightResolved": "oklch(0.935 0.045 254)",
     "darkResolved": "oklch(0.38 0.145 254)",
+    "contrast": {
+      "light": "color.blue.550",
+      "dark": "color.blue.675",
+      "lightResolved": "oklch(0.61 0.178 254)",
+      "darkResolved": "oklch(0.55 0.19 254)"
+    },
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-selected-pressed"
@@ -303,6 +364,7 @@
     "dark": "color.blue.400",
     "lightResolved": "oklch(0.54 0.19 254)",
     "darkResolved": "oklch(0.73 0.145 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-selected-bold"
@@ -317,6 +379,7 @@
     "dark": "color.blue.300",
     "lightResolved": "oklch(0.49 0.185 254)",
     "darkResolved": "oklch(0.84 0.1 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-selected-bold-hovered"
@@ -331,6 +394,7 @@
     "dark": "color.blue.200",
     "lightResolved": "oklch(0.38 0.145 254)",
     "darkResolved": "oklch(0.935 0.045 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-selected-bold-pressed"
@@ -345,6 +409,7 @@
     "dark": "color.red.1000",
     "lightResolved": "oklch(0.965 0.02 26)",
     "darkResolved": "oklch(0.28 0.09 26)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-danger"
@@ -359,6 +424,7 @@
     "dark": "color.red.900",
     "lightResolved": "oklch(0.935 0.04 26)",
     "darkResolved": "oklch(0.36 0.13 26)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-danger-hovered"
@@ -373,6 +439,7 @@
     "dark": "color.red.850",
     "lightResolved": "oklch(0.905 0.06 26)",
     "darkResolved": "oklch(0.42 0.155 26)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-danger-pressed"
@@ -387,6 +454,7 @@
     "dark": "color.red.900",
     "lightResolved": "oklch(0.935 0.04 26)",
     "darkResolved": "oklch(0.36 0.13 26)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-danger-subtler"
@@ -401,6 +469,7 @@
     "dark": "color.red.875",
     "lightResolved": "oklch(0.92 0.05 26.0)",
     "darkResolved": "oklch(0.39 0.1425 26.0)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-danger-subtler-hovered"
@@ -415,6 +484,7 @@
     "dark": "color.red.850",
     "lightResolved": "oklch(0.905 0.06 26)",
     "darkResolved": "oklch(0.42 0.155 26)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-danger-subtler-pressed"
@@ -429,6 +499,7 @@
     "dark": "color.red.800",
     "lightResolved": "oklch(0.84 0.1 26)",
     "darkResolved": "oklch(0.47 0.17 26)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-danger-subtle"
@@ -443,6 +514,7 @@
     "dark": "color.red.400",
     "lightResolved": "oklch(0.53 0.18 26)",
     "darkResolved": "oklch(0.73 0.15 26)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-danger-bold"
@@ -457,6 +529,7 @@
     "dark": "color.red.300",
     "lightResolved": "oklch(0.47 0.17 26)",
     "darkResolved": "oklch(0.84 0.1 26)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-danger-bold-hovered"
@@ -471,6 +544,7 @@
     "dark": "color.red.250",
     "lightResolved": "oklch(0.42 0.155 26)",
     "darkResolved": "oklch(0.905 0.06 26)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-danger-bold-pressed"
@@ -485,6 +559,7 @@
     "dark": "color.orange.1000",
     "lightResolved": "oklch(0.97 0.03 78)",
     "darkResolved": "oklch(0.31 0.07 54)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-warning"
@@ -499,6 +574,7 @@
     "dark": "color.orange.900",
     "lightResolved": "oklch(0.945 0.055 75)",
     "darkResolved": "oklch(0.39 0.095 56)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-warning-hovered"
@@ -513,6 +589,7 @@
     "dark": "color.orange.850",
     "lightResolved": "oklch(0.915 0.08 72)",
     "darkResolved": "oklch(0.45 0.11 58)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-warning-pressed"
@@ -527,6 +604,7 @@
     "dark": "color.orange.900",
     "lightResolved": "oklch(0.945 0.055 75)",
     "darkResolved": "oklch(0.39 0.095 56)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-warning-subtler"
@@ -541,6 +619,7 @@
     "dark": "color.orange.875",
     "lightResolved": "oklch(0.93 0.0675 73.5)",
     "darkResolved": "oklch(0.42 0.1025 57.0)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-warning-subtler-hovered"
@@ -555,6 +634,7 @@
     "dark": "color.orange.850",
     "lightResolved": "oklch(0.915 0.08 72)",
     "darkResolved": "oklch(0.45 0.11 58)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-warning-subtler-pressed"
@@ -569,6 +649,7 @@
     "dark": "color.orange.800",
     "lightResolved": "oklch(0.915 0.08 72)",
     "darkResolved": "oklch(0.5 0.12 60)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-warning-subtle"
@@ -583,6 +664,7 @@
     "dark": "color.orange.300",
     "lightResolved": "oklch(0.86 0.11 70)",
     "darkResolved": "oklch(0.86 0.11 70)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-warning-bold"
@@ -597,6 +679,7 @@
     "dark": "color.orange.400",
     "lightResolved": "oklch(0.78 0.14 68)",
     "darkResolved": "oklch(0.78 0.14 68)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-warning-bold-hovered"
@@ -611,6 +694,7 @@
     "dark": "color.orange.500",
     "lightResolved": "oklch(0.71 0.15 66)",
     "darkResolved": "oklch(0.71 0.15 66)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-warning-bold-pressed"
@@ -625,6 +709,7 @@
     "dark": "color.green.1000",
     "lightResolved": "oklch(0.965 0.02 162)",
     "darkResolved": "oklch(0.28 0.06 162)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-success"
@@ -639,6 +724,7 @@
     "dark": "color.green.900",
     "lightResolved": "oklch(0.935 0.04 162)",
     "darkResolved": "oklch(0.35 0.08 162)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-success-hovered"
@@ -653,6 +739,7 @@
     "dark": "color.green.850",
     "lightResolved": "oklch(0.9 0.06 162)",
     "darkResolved": "oklch(0.41 0.095 162)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-success-pressed"
@@ -667,6 +754,7 @@
     "dark": "color.green.900",
     "lightResolved": "oklch(0.935 0.04 162)",
     "darkResolved": "oklch(0.35 0.08 162)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-success-subtler"
@@ -681,6 +769,7 @@
     "dark": "color.green.875",
     "lightResolved": "oklch(0.9175 0.05 162.0)",
     "darkResolved": "oklch(0.38 0.0875 162.0)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-success-subtler-hovered"
@@ -695,6 +784,7 @@
     "dark": "color.green.850",
     "lightResolved": "oklch(0.9 0.06 162)",
     "darkResolved": "oklch(0.41 0.095 162)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-success-subtler-pressed"
@@ -709,6 +799,7 @@
     "dark": "color.green.800",
     "lightResolved": "oklch(0.84 0.09 162)",
     "darkResolved": "oklch(0.46 0.105 162)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-success-subtle"
@@ -723,6 +814,7 @@
     "dark": "color.green.400",
     "lightResolved": "oklch(0.52 0.115 162)",
     "darkResolved": "oklch(0.74 0.12 162)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-success-bold"
@@ -737,6 +829,7 @@
     "dark": "color.green.300",
     "lightResolved": "oklch(0.46 0.105 162)",
     "darkResolved": "oklch(0.84 0.09 162)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-success-bold-hovered"
@@ -751,6 +844,7 @@
     "dark": "color.green.250",
     "lightResolved": "oklch(0.41 0.095 162)",
     "darkResolved": "oklch(0.9 0.06 162)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-success-bold-pressed"
@@ -765,6 +859,7 @@
     "dark": "color.blue.1000",
     "lightResolved": "oklch(0.97 0.022 254)",
     "darkResolved": "oklch(0.3 0.1 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-information"
@@ -779,6 +874,7 @@
     "dark": "color.blue.900",
     "lightResolved": "oklch(0.935 0.045 254)",
     "darkResolved": "oklch(0.38 0.145 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-information-hovered"
@@ -793,6 +889,7 @@
     "dark": "color.blue.850",
     "lightResolved": "oklch(0.905 0.065 254)",
     "darkResolved": "oklch(0.44 0.17 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-information-pressed"
@@ -807,6 +904,7 @@
     "dark": "color.blue.900",
     "lightResolved": "oklch(0.935 0.045 254)",
     "darkResolved": "oklch(0.38 0.145 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-information-subtler"
@@ -821,6 +919,7 @@
     "dark": "color.blue.875",
     "lightResolved": "oklch(0.92 0.055 254.0)",
     "darkResolved": "oklch(0.41 0.1575 254.0)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-information-subtler-hovered"
@@ -835,6 +934,7 @@
     "dark": "color.blue.850",
     "lightResolved": "oklch(0.905 0.065 254)",
     "darkResolved": "oklch(0.44 0.17 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-information-subtler-pressed"
@@ -849,6 +949,7 @@
     "dark": "color.blue.800",
     "lightResolved": "oklch(0.84 0.1 254)",
     "darkResolved": "oklch(0.49 0.185 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-information-subtle"
@@ -863,6 +964,7 @@
     "dark": "color.blue.400",
     "lightResolved": "oklch(0.54 0.19 254)",
     "darkResolved": "oklch(0.73 0.145 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-information-bold"
@@ -877,6 +979,7 @@
     "dark": "color.blue.300",
     "lightResolved": "oklch(0.49 0.185 254)",
     "darkResolved": "oklch(0.84 0.1 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-information-bold-hovered"
@@ -891,6 +994,7 @@
     "dark": "color.blue.250",
     "lightResolved": "oklch(0.44 0.17 254)",
     "darkResolved": "oklch(0.905 0.065 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-information-bold-pressed"
@@ -905,6 +1009,7 @@
     "dark": "color.darkNeutral.300A",
     "lightResolved": "oklch(0.22 0.024 258 / 0.06)",
     "darkResolved": "oklch(1 0 0 / 0.11)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-disabled"
@@ -919,6 +1024,7 @@
     "dark": "color.darkNeutral.200",
     "lightResolved": "oklch(1 0 0)",
     "darkResolved": "oklch(0.213 0.016 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-input"
@@ -933,6 +1039,7 @@
     "dark": "color.darkNeutral.250",
     "lightResolved": "oklch(0.985 0.002 258)",
     "darkResolved": "oklch(0.232 0.017 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-input-hovered"
@@ -947,6 +1054,7 @@
     "dark": "color.darkNeutral.200",
     "lightResolved": "oklch(1 0 0)",
     "darkResolved": "oklch(0.213 0.016 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-input-pressed"
@@ -961,6 +1069,7 @@
     "dark": "color.darkNeutral.1000",
     "lightResolved": "oklch(1 0 0)",
     "darkResolved": "oklch(0.945 0.008 285)",
+    "contrast": null,
     "introduced": "0.6.0",
     "deprecated": null,
     "utility": "bg-input-thumb"
@@ -975,6 +1084,7 @@
     "dark": "color.darkNeutral.100",
     "lightResolved": "oklch(1 0 0)",
     "darkResolved": "oklch(0.196 0.015 285)",
+    "contrast": null,
     "introduced": "0.6.0",
     "deprecated": null,
     "utility": "bg-input-thumb-checked"
@@ -989,6 +1099,7 @@
     "dark": "oklch(1 0 0 / 0.16)",
     "lightResolved": "oklch(0 0 0 / 0.16)",
     "darkResolved": "oklch(1 0 0 / 0.16)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-inverse-subtle"
@@ -1003,6 +1114,7 @@
     "dark": "oklch(1 0 0 / 0.24)",
     "lightResolved": "oklch(0 0 0 / 0.24)",
     "darkResolved": "oklch(1 0 0 / 0.24)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-inverse-subtle-hovered"
@@ -1017,6 +1129,7 @@
     "dark": "oklch(1 0 0 / 0.32)",
     "lightResolved": "oklch(0 0 0 / 0.32)",
     "darkResolved": "oklch(1 0 0 / 0.32)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-inverse-subtle-pressed"
@@ -1031,6 +1144,7 @@
     "dark": "color.blue.900",
     "lightResolved": "oklch(0.935 0.045 254)",
     "darkResolved": "oklch(0.38 0.145 254)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "bg-accent-blue-subtler"
@@ -1045,6 +1159,7 @@
     "dark": "color.blue.400",
     "lightResolved": "oklch(0.49 0.185 254)",
     "darkResolved": "oklch(0.73 0.145 254)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "bg-accent-blue-bolder"
@@ -1059,6 +1174,7 @@
     "dark": "color.teal.900",
     "lightResolved": "oklch(0.935 0.036 192)",
     "darkResolved": "oklch(0.38 0.116 192)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "bg-accent-teal-subtler"
@@ -1073,6 +1189,7 @@
     "dark": "color.teal.400",
     "lightResolved": "oklch(0.49 0.148 192)",
     "darkResolved": "oklch(0.73 0.116 192)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "bg-accent-teal-bolder"
@@ -1087,6 +1204,7 @@
     "dark": "color.green.900",
     "lightResolved": "oklch(0.935 0.04 162)",
     "darkResolved": "oklch(0.35 0.08 162)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "bg-accent-green-subtler"
@@ -1101,6 +1219,7 @@
     "dark": "color.green.400",
     "lightResolved": "oklch(0.46 0.105 162)",
     "darkResolved": "oklch(0.74 0.12 162)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "bg-accent-green-bolder"
@@ -1115,6 +1234,7 @@
     "dark": "color.orange.900",
     "lightResolved": "oklch(0.945 0.055 75)",
     "darkResolved": "oklch(0.39 0.095 56)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "bg-accent-orange-subtler"
@@ -1129,6 +1249,7 @@
     "dark": "color.orange.400",
     "lightResolved": "oklch(0.5 0.12 60)",
     "darkResolved": "oklch(0.78 0.14 68)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "bg-accent-orange-bolder"
@@ -1143,6 +1264,7 @@
     "dark": "color.red.900",
     "lightResolved": "oklch(0.935 0.04 26)",
     "darkResolved": "oklch(0.36 0.13 26)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "bg-accent-red-subtler"
@@ -1157,6 +1279,7 @@
     "dark": "color.red.400",
     "lightResolved": "oklch(0.47 0.17 26)",
     "darkResolved": "oklch(0.73 0.15 26)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "bg-accent-red-bolder"
@@ -1171,6 +1294,7 @@
     "dark": "color.purple.900",
     "lightResolved": "oklch(0.935 0.041 300)",
     "darkResolved": "oklch(0.38 0.131 300)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "bg-accent-purple-subtler"
@@ -1185,6 +1309,7 @@
     "dark": "color.purple.400",
     "lightResolved": "oklch(0.49 0.167 300)",
     "darkResolved": "oklch(0.73 0.131 300)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "bg-accent-purple-bolder"
@@ -1199,6 +1324,12 @@
     "dark": "color.darkNeutral.1000",
     "lightResolved": "oklch(0.22 0.024 258)",
     "darkResolved": "oklch(0.945 0.008 285)",
+    "contrast": {
+      "light": "color.neutral.1100",
+      "dark": "color.darkNeutral.1100",
+      "lightResolved": "oklch(0.15 0.024 258)",
+      "darkResolved": "oklch(0.98 0.004 285)"
+    },
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "text-default"
@@ -1213,6 +1344,12 @@
     "dark": "color.darkNeutral.800",
     "lightResolved": "oklch(0.44 0.02 258)",
     "darkResolved": "oklch(0.81 0.015 285)",
+    "contrast": {
+      "light": "color.neutral.1000",
+      "dark": "color.darkNeutral.1100",
+      "lightResolved": "oklch(0.22 0.024 258)",
+      "darkResolved": "oklch(0.98 0.004 285)"
+    },
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "text-subtle"
@@ -1227,6 +1364,12 @@
     "dark": "color.darkNeutral.700",
     "lightResolved": "oklch(0.545 0.018 258)",
     "darkResolved": "oklch(0.66 0.02 285)",
+    "contrast": {
+      "light": "color.neutral.800",
+      "dark": "color.darkNeutral.900",
+      "lightResolved": "oklch(0.44 0.02 258)",
+      "darkResolved": "oklch(0.86 0.012 285)"
+    },
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "text-subtlest"
@@ -1241,6 +1384,7 @@
     "dark": "color.darkNeutral.400A",
     "lightResolved": "oklch(0.22 0.024 258 / 0.18)",
     "darkResolved": "oklch(1 0 0 / 0.18)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "text-disabled"
@@ -1255,6 +1399,7 @@
     "dark": "color.darkNeutral.100",
     "lightResolved": "oklch(1 0 0)",
     "darkResolved": "oklch(0.196 0.015 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "text-inverse"
@@ -1269,6 +1414,12 @@
     "dark": "color.blue.300",
     "lightResolved": "oklch(0.49 0.185 254)",
     "darkResolved": "oklch(0.84 0.1 254)",
+    "contrast": {
+      "light": "color.blue.1100",
+      "dark": "color.blue.50",
+      "lightResolved": "oklch(0.2 0.06 254)",
+      "darkResolved": "oklch(0.99 0.01 254)"
+    },
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "text-selected"
@@ -1283,6 +1434,7 @@
     "dark": "color.blue.400",
     "lightResolved": "oklch(0.54 0.19 254)",
     "darkResolved": "oklch(0.73 0.145 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "text-brand"
@@ -1297,6 +1449,7 @@
     "dark": "color.red.300",
     "lightResolved": "oklch(0.47 0.17 26)",
     "darkResolved": "oklch(0.84 0.1 26)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "text-danger"
@@ -1311,6 +1464,7 @@
     "dark": "color.red.200",
     "lightResolved": "oklch(0.36 0.13 26)",
     "darkResolved": "oklch(0.935 0.04 26)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "text-danger-bolder"
@@ -1325,6 +1479,7 @@
     "dark": "color.orange.300",
     "lightResolved": "oklch(0.5 0.12 60)",
     "darkResolved": "oklch(0.86 0.11 70)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "text-warning"
@@ -1339,6 +1494,7 @@
     "dark": "color.darkNeutral.100",
     "lightResolved": "oklch(0.22 0.024 258)",
     "darkResolved": "oklch(0.196 0.015 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "text-warning-inverse"
@@ -1353,6 +1509,7 @@
     "dark": "color.orange.200",
     "lightResolved": "oklch(0.39 0.095 56)",
     "darkResolved": "oklch(0.945 0.055 75)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "text-warning-bolder"
@@ -1367,6 +1524,7 @@
     "dark": "color.green.300",
     "lightResolved": "oklch(0.46 0.105 162)",
     "darkResolved": "oklch(0.84 0.09 162)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "text-success"
@@ -1381,6 +1539,7 @@
     "dark": "color.green.200",
     "lightResolved": "oklch(0.35 0.08 162)",
     "darkResolved": "oklch(0.935 0.04 162)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "text-success-bolder"
@@ -1395,6 +1554,7 @@
     "dark": "color.blue.300",
     "lightResolved": "oklch(0.49 0.185 254)",
     "darkResolved": "oklch(0.84 0.1 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "text-information"
@@ -1409,6 +1569,7 @@
     "dark": "color.blue.200",
     "lightResolved": "oklch(0.38 0.145 254)",
     "darkResolved": "oklch(0.935 0.045 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "text-information-bolder"
@@ -1423,6 +1584,7 @@
     "dark": "color.blue.200",
     "lightResolved": "oklch(0.38 0.145 254)",
     "darkResolved": "oklch(0.935 0.045 254)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "text-accent-blue"
@@ -1437,6 +1599,7 @@
     "dark": "color.teal.200",
     "lightResolved": "oklch(0.38 0.116 192)",
     "darkResolved": "oklch(0.935 0.036 192)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "text-accent-teal"
@@ -1451,6 +1614,7 @@
     "dark": "color.green.200",
     "lightResolved": "oklch(0.35 0.08 162)",
     "darkResolved": "oklch(0.935 0.04 162)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "text-accent-green"
@@ -1465,6 +1629,7 @@
     "dark": "color.orange.200",
     "lightResolved": "oklch(0.39 0.095 56)",
     "darkResolved": "oklch(0.945 0.055 75)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "text-accent-orange"
@@ -1479,6 +1644,7 @@
     "dark": "color.red.200",
     "lightResolved": "oklch(0.36 0.13 26)",
     "darkResolved": "oklch(0.935 0.04 26)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "text-accent-red"
@@ -1493,6 +1659,7 @@
     "dark": "color.purple.200",
     "lightResolved": "oklch(0.38 0.131 300)",
     "darkResolved": "oklch(0.935 0.041 300)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "text-accent-purple"
@@ -1507,6 +1674,7 @@
     "dark": "color.darkNeutral.1000",
     "lightResolved": "oklch(0.22 0.024 258)",
     "darkResolved": "oklch(0.945 0.008 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "icon-default"
@@ -1521,6 +1689,12 @@
     "dark": "color.darkNeutral.800",
     "lightResolved": "oklch(0.44 0.02 258)",
     "darkResolved": "oklch(0.81 0.015 285)",
+    "contrast": {
+      "light": "color.neutral.900",
+      "dark": "color.darkNeutral.1000",
+      "lightResolved": "oklch(0.3 0.022 258)",
+      "darkResolved": "oklch(0.945 0.008 285)"
+    },
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "icon-subtle"
@@ -1535,6 +1709,12 @@
     "dark": "color.darkNeutral.700",
     "lightResolved": "oklch(0.545 0.018 258)",
     "darkResolved": "oklch(0.66 0.02 285)",
+    "contrast": {
+      "light": "color.neutral.800",
+      "dark": "color.darkNeutral.900",
+      "lightResolved": "oklch(0.44 0.02 258)",
+      "darkResolved": "oklch(0.86 0.012 285)"
+    },
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "icon-subtlest"
@@ -1549,6 +1729,7 @@
     "dark": "color.darkNeutral.400A",
     "lightResolved": "oklch(0.22 0.024 258 / 0.18)",
     "darkResolved": "oklch(1 0 0 / 0.18)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "icon-disabled"
@@ -1563,6 +1744,7 @@
     "dark": "color.darkNeutral.100",
     "lightResolved": "oklch(1 0 0)",
     "darkResolved": "oklch(0.196 0.015 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "icon-inverse"
@@ -1577,6 +1759,12 @@
     "dark": "color.blue.400",
     "lightResolved": "oklch(0.54 0.19 254)",
     "darkResolved": "oklch(0.73 0.145 254)",
+    "contrast": {
+      "light": "color.blue.1000",
+      "dark": "color.blue.100",
+      "lightResolved": "oklch(0.3 0.1 254)",
+      "darkResolved": "oklch(0.97 0.022 254)"
+    },
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "icon-selected"
@@ -1591,6 +1779,7 @@
     "dark": "color.blue.400",
     "lightResolved": "oklch(0.54 0.19 254)",
     "darkResolved": "oklch(0.73 0.145 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "icon-brand"
@@ -1605,6 +1794,7 @@
     "dark": "color.red.500",
     "lightResolved": "oklch(0.53 0.18 26)",
     "darkResolved": "oklch(0.64 0.18 26)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "icon-danger"
@@ -1619,6 +1809,7 @@
     "dark": "color.orange.300",
     "lightResolved": "oklch(0.64 0.145 64)",
     "darkResolved": "oklch(0.86 0.11 70)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "icon-warning"
@@ -1633,6 +1824,7 @@
     "dark": "color.darkNeutral.100",
     "lightResolved": "oklch(0.22 0.024 258)",
     "darkResolved": "oklch(0.196 0.015 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "icon-warning-inverse"
@@ -1647,6 +1839,7 @@
     "dark": "color.green.500",
     "lightResolved": "oklch(0.58 0.125 162)",
     "darkResolved": "oklch(0.65 0.13 162)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "icon-success"
@@ -1661,6 +1854,7 @@
     "dark": "color.blue.500",
     "lightResolved": "oklch(0.585 0.185 254)",
     "darkResolved": "oklch(0.635 0.17 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "icon-information"
@@ -1675,6 +1869,12 @@
     "dark": "color.darkNeutral.300A",
     "lightResolved": "oklch(0.22 0.024 258 / 0.1)",
     "darkResolved": "oklch(1 0 0 / 0.11)",
+    "contrast": {
+      "light": "color.neutral.450A",
+      "dark": "color.darkNeutral.450A",
+      "lightResolved": "oklch(0.22 0.024 258 / 0.47)",
+      "darkResolved": "oklch(1 0 0 / 0.34)"
+    },
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "border-default"
@@ -1689,6 +1889,7 @@
     "dark": "color.darkNeutral.600",
     "lightResolved": "oklch(0.6 0.014 258)",
     "darkResolved": "oklch(0.55 0.02 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "border-bold"
@@ -1703,6 +1904,7 @@
     "dark": "color.darkNeutral.200A",
     "lightResolved": "oklch(0.22 0.024 258 / 0.06)",
     "darkResolved": "oklch(1 0 0 / 0.07)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "border-disabled"
@@ -1712,11 +1914,17 @@
     "cssVar": "--ds-color-border-focused",
     "type": "color",
     "group": "border",
-    "description": "Use for focus rings of elements in a focus state.",
+    "description": "Use for focus rings of elements in a focus state. Increased contrast darkens it in light and lightens it in dark, so a ring on a selected, pressed or highlighted fill keeps 3:1 against the fill as well as the surface.",
     "light": "color.blue.500",
     "dark": "color.blue.300",
     "lightResolved": "oklch(0.635 0.17 254)",
     "darkResolved": "oklch(0.84 0.1 254)",
+    "contrast": {
+      "light": "color.blue.1000",
+      "dark": "color.blue.200",
+      "lightResolved": "oklch(0.3 0.1 254)",
+      "darkResolved": "oklch(0.935 0.045 254)"
+    },
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "border-focused"
@@ -1726,11 +1934,17 @@
     "cssVar": "--ds-color-border-input",
     "type": "color",
     "group": "border",
-    "description": "Borders of form UI elements, such as text fields, checkboxes, and radio buttons. A light boundary by decision (2026-09-04): the input surface, the hover tint and the focus and danger borders carry the affordance.",
+    "description": "Borders of form UI elements, such as text fields, checkboxes, and radio buttons. A light boundary by decision (2026-09-04): the input surface, the hover tint and the focus and danger borders carry the affordance. Increased contrast raises it to 3:1 on every surface.",
     "light": "color.neutral.400",
     "dark": "color.darkNeutral.500",
     "lightResolved": "oklch(0.8 0.008 258)",
     "darkResolved": "oklch(0.42 0.02 285)",
+    "contrast": {
+      "light": "color.neutral.600",
+      "dark": "color.darkNeutral.600",
+      "lightResolved": "oklch(0.6 0.014 258)",
+      "darkResolved": "oklch(0.55 0.02 285)"
+    },
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "border-input"
@@ -1745,6 +1959,7 @@
     "dark": "color.darkNeutral.0",
     "lightResolved": "oklch(1 0 0)",
     "darkResolved": "oklch(0.176 0.014 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "border-inverse"
@@ -1759,6 +1974,7 @@
     "dark": "color.blue.400",
     "lightResolved": "oklch(0.54 0.19 254)",
     "darkResolved": "oklch(0.73 0.145 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "border-selected"
@@ -1773,6 +1989,7 @@
     "dark": "color.blue.400",
     "lightResolved": "oklch(0.54 0.19 254)",
     "darkResolved": "oklch(0.73 0.145 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "border-brand"
@@ -1787,6 +2004,7 @@
     "dark": "color.red.500",
     "lightResolved": "oklch(0.58 0.19 26)",
     "darkResolved": "oklch(0.64 0.18 26)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "border-danger"
@@ -1801,6 +2019,7 @@
     "dark": "color.red.800",
     "lightResolved": "oklch(0.84 0.1 26)",
     "darkResolved": "oklch(0.47 0.17 26)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "border-danger-subtle"
@@ -1815,6 +2034,7 @@
     "dark": "color.orange.500",
     "lightResolved": "oklch(0.64 0.145 64)",
     "darkResolved": "oklch(0.71 0.15 66)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "border-warning"
@@ -1829,6 +2049,7 @@
     "dark": "color.orange.800",
     "lightResolved": "oklch(0.86 0.11 70)",
     "darkResolved": "oklch(0.5 0.12 60)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "border-warning-subtle"
@@ -1843,6 +2064,7 @@
     "dark": "color.green.500",
     "lightResolved": "oklch(0.58 0.125 162)",
     "darkResolved": "oklch(0.65 0.13 162)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "border-success"
@@ -1857,6 +2079,7 @@
     "dark": "color.green.800",
     "lightResolved": "oklch(0.84 0.09 162)",
     "darkResolved": "oklch(0.46 0.105 162)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "border-success-subtle"
@@ -1871,6 +2094,7 @@
     "dark": "color.blue.500",
     "lightResolved": "oklch(0.585 0.185 254)",
     "darkResolved": "oklch(0.635 0.17 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "border-information"
@@ -1885,6 +2109,7 @@
     "dark": "color.blue.800",
     "lightResolved": "oklch(0.84 0.1 254)",
     "darkResolved": "oklch(0.49 0.185 254)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "border-information-subtle"
@@ -1899,6 +2124,7 @@
     "dark": "oklch(0.1 0.01 285 / 0.6)",
     "lightResolved": "oklch(0.22 0.024 258 / 0.5)",
     "darkResolved": "oklch(0.1 0.01 285 / 0.6)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-blanket"
@@ -1913,6 +2139,7 @@
     "dark": "color.darkNeutral.200A",
     "lightResolved": "oklch(0.22 0.024 258 / 0.06)",
     "darkResolved": "oklch(1 0 0 / 0.07)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-skeleton"
@@ -1927,6 +2154,7 @@
     "dark": "color.darkNeutral.100A",
     "lightResolved": "oklch(0.22 0.024 258 / 0.04)",
     "darkResolved": "oklch(1 0 0 / 0.04)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-skeleton-subtle"
@@ -1941,6 +2169,7 @@
     "dark": "color.blue.600",
     "lightResolved": "oklch(0.585 0.185 254)",
     "darkResolved": "oklch(0.585 0.185 254)",
+    "contrast": null,
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-brand"
@@ -1955,6 +2184,7 @@
     "dark": "color.blue.500",
     "lightResolved": "oklch(0.54 0.19 254)",
     "darkResolved": "oklch(0.635 0.17 254)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-brand-hovered"
@@ -1969,6 +2199,7 @@
     "dark": "color.darkNeutral.600",
     "lightResolved": "oklch(0.65 0.012 258)",
     "darkResolved": "oklch(0.55 0.02 285)",
+    "contrast": null,
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-neutral"
@@ -1983,6 +2214,7 @@
     "dark": "color.darkNeutral.700",
     "lightResolved": "oklch(0.6 0.014 258)",
     "darkResolved": "oklch(0.66 0.02 285)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-neutral-hovered"
@@ -1997,6 +2229,7 @@
     "dark": "color.blue.500",
     "lightResolved": "oklch(0.635 0.17 254)",
     "darkResolved": "oklch(0.635 0.17 254)",
+    "contrast": null,
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-information"
@@ -2011,6 +2244,7 @@
     "dark": "color.blue.400",
     "lightResolved": "oklch(0.585 0.185 254)",
     "darkResolved": "oklch(0.73 0.145 254)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-information-hovered"
@@ -2025,6 +2259,7 @@
     "dark": "color.green.600",
     "lightResolved": "oklch(0.58 0.125 162)",
     "darkResolved": "oklch(0.58 0.125 162)",
+    "contrast": null,
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-success"
@@ -2039,6 +2274,7 @@
     "dark": "color.green.500",
     "lightResolved": "oklch(0.52 0.115 162)",
     "darkResolved": "oklch(0.65 0.13 162)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-success-hovered"
@@ -2053,6 +2289,7 @@
     "dark": "color.orange.600",
     "lightResolved": "oklch(0.64 0.145 64)",
     "darkResolved": "oklch(0.64 0.145 64)",
+    "contrast": null,
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-warning"
@@ -2067,6 +2304,7 @@
     "dark": "color.orange.500",
     "lightResolved": "oklch(0.57 0.135 62)",
     "darkResolved": "oklch(0.71 0.15 66)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-warning-hovered"
@@ -2081,6 +2319,7 @@
     "dark": "color.red.600",
     "lightResolved": "oklch(0.58 0.19 26)",
     "darkResolved": "oklch(0.58 0.19 26)",
+    "contrast": null,
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-danger"
@@ -2095,6 +2334,7 @@
     "dark": "color.red.500",
     "lightResolved": "oklch(0.53 0.18 26)",
     "darkResolved": "oklch(0.64 0.18 26)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-danger-hovered"
@@ -2109,6 +2349,7 @@
     "dark": "color.darkNeutral.300",
     "lightResolved": "oklch(0.972 0.003 258)",
     "darkResolved": "oklch(0.243 0.018 285)",
+    "contrast": null,
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-track"
@@ -2123,6 +2364,7 @@
     "dark": "color.blue.600",
     "lightResolved": "oklch(0.585 0.185 254)",
     "darkResolved": "oklch(0.585 0.185 254)",
+    "contrast": null,
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-categorical-1"
@@ -2137,6 +2379,7 @@
     "dark": "color.blue.500",
     "lightResolved": "oklch(0.54 0.19 254)",
     "darkResolved": "oklch(0.635 0.17 254)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-categorical-1-hovered"
@@ -2151,6 +2394,7 @@
     "dark": "color.orange.600",
     "lightResolved": "oklch(0.64 0.145 64)",
     "darkResolved": "oklch(0.64 0.145 64)",
+    "contrast": null,
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-categorical-2"
@@ -2165,6 +2409,7 @@
     "dark": "color.orange.500",
     "lightResolved": "oklch(0.57 0.135 62)",
     "darkResolved": "oklch(0.71 0.15 66)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-categorical-2-hovered"
@@ -2179,6 +2424,7 @@
     "dark": "color.teal.600",
     "lightResolved": "oklch(0.585 0.148 192)",
     "darkResolved": "oklch(0.585 0.148 192)",
+    "contrast": null,
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-categorical-3"
@@ -2193,6 +2439,7 @@
     "dark": "color.teal.500",
     "lightResolved": "oklch(0.54 0.152 192)",
     "darkResolved": "oklch(0.635 0.136 192)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-categorical-3-hovered"
@@ -2207,6 +2454,7 @@
     "dark": "color.red.600",
     "lightResolved": "oklch(0.58 0.19 26)",
     "darkResolved": "oklch(0.58 0.19 26)",
+    "contrast": null,
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-categorical-4"
@@ -2221,6 +2469,7 @@
     "dark": "color.red.500",
     "lightResolved": "oklch(0.53 0.18 26)",
     "darkResolved": "oklch(0.64 0.18 26)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-categorical-4-hovered"
@@ -2235,6 +2484,7 @@
     "dark": "color.purple.600",
     "lightResolved": "oklch(0.585 0.167 300)",
     "darkResolved": "oklch(0.585 0.167 300)",
+    "contrast": null,
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-categorical-5"
@@ -2249,6 +2499,7 @@
     "dark": "color.purple.500",
     "lightResolved": "oklch(0.54 0.171 300)",
     "darkResolved": "oklch(0.635 0.153 300)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-categorical-5-hovered"
@@ -2263,6 +2514,7 @@
     "dark": "color.green.600",
     "lightResolved": "oklch(0.58 0.125 162)",
     "darkResolved": "oklch(0.58 0.125 162)",
+    "contrast": null,
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-categorical-6"
@@ -2277,6 +2529,7 @@
     "dark": "color.green.500",
     "lightResolved": "oklch(0.52 0.115 162)",
     "darkResolved": "oklch(0.65 0.13 162)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-categorical-6-hovered"
@@ -2291,6 +2544,7 @@
     "dark": "color.darkNeutral.600",
     "lightResolved": "oklch(0.65 0.012 258)",
     "darkResolved": "oklch(0.55 0.02 285)",
+    "contrast": null,
     "introduced": "0.2.0",
     "deprecated": null,
     "utility": "fill-chart-categorical-7"
@@ -2305,6 +2559,7 @@
     "dark": "color.darkNeutral.700",
     "lightResolved": "oklch(0.6 0.014 258)",
     "darkResolved": "oklch(0.66 0.02 285)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-categorical-7-hovered"
@@ -2319,6 +2574,7 @@
     "dark": "color.darkNeutral.600",
     "lightResolved": "oklch(0.65 0.012 258)",
     "darkResolved": "oklch(0.55 0.02 285)",
+    "contrast": null,
     "introduced": "0.2.0",
     "deprecated": "color.chart.categorical.7",
     "utility": "fill-chart-categorical-8"
@@ -2333,6 +2589,7 @@
     "dark": "color.blue.850",
     "lightResolved": "oklch(0.935 0.045 254)",
     "darkResolved": "oklch(0.44 0.17 254)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-sequential-1"
@@ -2347,6 +2604,7 @@
     "dark": "color.blue.700",
     "lightResolved": "oklch(0.84 0.1 254)",
     "darkResolved": "oklch(0.54 0.19 254)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-sequential-2"
@@ -2361,6 +2619,7 @@
     "dark": "color.blue.500",
     "lightResolved": "oklch(0.73 0.145 254)",
     "darkResolved": "oklch(0.635 0.17 254)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-sequential-3"
@@ -2375,6 +2634,7 @@
     "dark": "color.blue.400",
     "lightResolved": "oklch(0.585 0.185 254)",
     "darkResolved": "oklch(0.73 0.145 254)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-sequential-4"
@@ -2389,6 +2649,7 @@
     "dark": "color.blue.300",
     "lightResolved": "oklch(0.49 0.185 254)",
     "darkResolved": "oklch(0.84 0.1 254)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-sequential-5"
@@ -2403,6 +2664,7 @@
     "dark": "color.red.800",
     "lightResolved": "oklch(0.84 0.1 26)",
     "darkResolved": "oklch(0.47 0.17 26)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-diverging-negative"
@@ -2417,6 +2679,7 @@
     "dark": "color.red.500",
     "lightResolved": "oklch(0.53 0.18 26)",
     "darkResolved": "oklch(0.64 0.18 26)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-diverging-negative-bold"
@@ -2431,6 +2694,7 @@
     "dark": "color.darkNeutral.400",
     "lightResolved": "oklch(0.93 0.005 258)",
     "darkResolved": "oklch(0.295 0.018 285)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-diverging-midpoint"
@@ -2445,6 +2709,7 @@
     "dark": "color.blue.800",
     "lightResolved": "oklch(0.84 0.1 254)",
     "darkResolved": "oklch(0.49 0.185 254)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-diverging-positive"
@@ -2459,6 +2724,7 @@
     "dark": "color.blue.500",
     "lightResolved": "oklch(0.54 0.19 254)",
     "darkResolved": "oklch(0.635 0.17 254)",
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "fill-chart-diverging-positive-bold"
@@ -2473,6 +2739,7 @@
     "dark": null,
     "lightResolved": "oklch(1 0 0)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2487,6 +2754,7 @@
     "dark": null,
     "lightResolved": "oklch(0.985 0.002 258)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2501,6 +2769,7 @@
     "dark": null,
     "lightResolved": "oklch(0.972 0.003 258)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2515,6 +2784,7 @@
     "dark": null,
     "lightResolved": "oklch(0.93 0.005 258)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2529,6 +2799,7 @@
     "dark": null,
     "lightResolved": "oklch(0.8 0.008 258)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2543,6 +2814,7 @@
     "dark": null,
     "lightResolved": "oklch(0.65 0.012 258)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2557,6 +2829,7 @@
     "dark": null,
     "lightResolved": "oklch(0.6 0.014 258)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2571,6 +2844,7 @@
     "dark": null,
     "lightResolved": "oklch(0.545 0.018 258)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2585,6 +2859,7 @@
     "dark": null,
     "lightResolved": "oklch(0.44 0.02 258)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2599,6 +2874,7 @@
     "dark": null,
     "lightResolved": "oklch(0.3 0.022 258)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2613,6 +2889,7 @@
     "dark": null,
     "lightResolved": "oklch(0.22 0.024 258)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2627,6 +2904,7 @@
     "dark": null,
     "lightResolved": "oklch(0.15 0.024 258)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2641,6 +2919,7 @@
     "dark": null,
     "lightResolved": "oklch(0.22 0.024 258 / 0.04)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2655,6 +2934,7 @@
     "dark": null,
     "lightResolved": "oklch(0.22 0.024 258 / 0.06)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2669,6 +2949,7 @@
     "dark": null,
     "lightResolved": "oklch(0.22 0.024 258 / 0.1)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2683,6 +2964,7 @@
     "dark": null,
     "lightResolved": "oklch(0.22 0.024 258 / 0.18)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2697,7 +2979,38 @@
     "dark": null,
     "lightResolved": "oklch(0.22 0.024 258 / 0.5)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "color.neutral.450A",
+    "cssVar": "--ds-color-neutral-450a",
+    "type": "color",
+    "group": "palette",
+    "description": "Increased contrast: the resting neutral fill and the hairline, at 3:1 on every light surface.",
+    "light": "oklch(0.22 0.024 258 / 0.47)",
+    "dark": null,
+    "lightResolved": "oklch(0.22 0.024 258 / 0.47)",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "color.neutral.520A",
+    "cssVar": "--ds-color-neutral-520a",
+    "type": "color",
+    "group": "palette",
+    "description": "Increased contrast: the pressed neutral fill, as strong as a fill goes while text.subtle keeps 4.5:1 on it.",
+    "light": "oklch(0.22 0.024 258 / 0.52)",
+    "dark": null,
+    "lightResolved": "oklch(0.22 0.024 258 / 0.52)",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
     "deprecated": null,
     "utility": null
   },
@@ -2711,6 +3024,7 @@
     "dark": null,
     "lightResolved": "oklch(0.176 0.014 285)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2725,6 +3039,7 @@
     "dark": null,
     "lightResolved": "oklch(0.196 0.015 285)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2739,6 +3054,7 @@
     "dark": null,
     "lightResolved": "oklch(0.213 0.016 285)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2753,6 +3069,7 @@
     "dark": null,
     "lightResolved": "oklch(0.232 0.017 285)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2767,6 +3084,7 @@
     "dark": null,
     "lightResolved": "oklch(0.243 0.018 285)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2781,6 +3099,7 @@
     "dark": null,
     "lightResolved": "oklch(0.255 0.019 285)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2795,6 +3114,7 @@
     "dark": null,
     "lightResolved": "oklch(0.295 0.018 285)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2809,6 +3129,7 @@
     "dark": null,
     "lightResolved": "oklch(0.42 0.02 285)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2823,6 +3144,7 @@
     "dark": null,
     "lightResolved": "oklch(0.55 0.02 285)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2837,6 +3159,7 @@
     "dark": null,
     "lightResolved": "oklch(0.66 0.02 285)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2851,6 +3174,7 @@
     "dark": null,
     "lightResolved": "oklch(0.81 0.015 285)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2865,6 +3189,7 @@
     "dark": null,
     "lightResolved": "oklch(0.86 0.012 285)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2879,6 +3204,7 @@
     "dark": null,
     "lightResolved": "oklch(0.945 0.008 285)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2893,6 +3219,7 @@
     "dark": null,
     "lightResolved": "oklch(0.98 0.004 285)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2907,6 +3234,7 @@
     "dark": null,
     "lightResolved": "oklch(0.15 0.014 285)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2921,6 +3249,7 @@
     "dark": null,
     "lightResolved": "oklch(1 0 0 / 0.04)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2935,6 +3264,7 @@
     "dark": null,
     "lightResolved": "oklch(1 0 0 / 0.07)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2949,6 +3279,7 @@
     "dark": null,
     "lightResolved": "oklch(1 0 0 / 0.11)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2963,6 +3294,7 @@
     "dark": null,
     "lightResolved": "oklch(1 0 0 / 0.18)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -2977,7 +3309,68 @@
     "dark": null,
     "lightResolved": "oklch(1 0 0 / 0.5)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "color.darkNeutral.450A",
+    "cssVar": "--ds-color-dark-neutral-450a",
+    "type": "color",
+    "group": "palette",
+    "description": "Increased contrast: the resting neutral fill and the hairline, at 3:1 on every dark surface.",
+    "light": "oklch(1 0 0 / 0.34)",
+    "dark": null,
+    "lightResolved": "oklch(1 0 0 / 0.34)",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "color.darkNeutral.460A",
+    "cssVar": "--ds-color-dark-neutral-460a",
+    "type": "color",
+    "group": "palette",
+    "description": "Increased contrast: the hovered neutral fill in dark.",
+    "light": "oklch(1 0 0 / 0.355)",
+    "dark": null,
+    "lightResolved": "oklch(1 0 0 / 0.355)",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "color.darkNeutral.470A",
+    "cssVar": "--ds-color-dark-neutral-470a",
+    "type": "color",
+    "group": "palette",
+    "description": "Increased contrast: the pressed neutral fill in dark, as strong as a fill goes while text keeps 4.5:1 on it.",
+    "light": "oklch(1 0 0 / 0.37)",
+    "dark": null,
+    "lightResolved": "oklch(1 0 0 / 0.37)",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "color.blue.50",
+    "cssVar": "--ds-color-blue-50",
+    "type": "color",
+    "group": "palette",
+    "description": "Increased contrast: selected text in dark, on the 3:1 selected fills.",
+    "light": "oklch(0.99 0.01 254)",
+    "dark": null,
+    "lightResolved": "oklch(0.99 0.01 254)",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
     "deprecated": null,
     "utility": null
   },
@@ -2991,6 +3384,7 @@
     "dark": null,
     "lightResolved": "oklch(0.97 0.022 254)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3005,6 +3399,7 @@
     "dark": null,
     "lightResolved": "oklch(0.9525 0.0335 254.0)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": "0.6.0",
     "deprecated": null,
     "utility": null
@@ -3019,6 +3414,7 @@
     "dark": null,
     "lightResolved": "oklch(0.935 0.045 254)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3033,6 +3429,7 @@
     "dark": null,
     "lightResolved": "oklch(0.92 0.055 254.0)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": "0.6.0",
     "deprecated": null,
     "utility": null
@@ -3047,6 +3444,7 @@
     "dark": null,
     "lightResolved": "oklch(0.905 0.065 254)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3061,6 +3459,7 @@
     "dark": null,
     "lightResolved": "oklch(0.84 0.1 254)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3075,7 +3474,23 @@
     "dark": null,
     "lightResolved": "oklch(0.73 0.145 254)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "color.blue.475",
+    "cssVar": "--ds-color-blue-475",
+    "type": "color",
+    "group": "palette",
+    "description": "Increased contrast: the selected fill in light, at 3:1 on every light surface.",
+    "light": "oklch(0.65 0.165 254)",
+    "dark": null,
+    "lightResolved": "oklch(0.65 0.165 254)",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
     "deprecated": null,
     "utility": null
   },
@@ -3089,7 +3504,23 @@
     "dark": null,
     "lightResolved": "oklch(0.635 0.17 254)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "color.blue.550",
+    "cssVar": "--ds-color-blue-550",
+    "type": "color",
+    "group": "palette",
+    "description": "Increased contrast: the pressed selected fill in light.",
+    "light": "oklch(0.61 0.178 254)",
+    "dark": null,
+    "lightResolved": "oklch(0.61 0.178 254)",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
     "deprecated": null,
     "utility": null
   },
@@ -3103,7 +3534,23 @@
     "dark": null,
     "lightResolved": "oklch(0.585 0.185 254)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "color.blue.675",
+    "cssVar": "--ds-color-blue-675",
+    "type": "color",
+    "group": "palette",
+    "description": "Increased contrast: the pressed selected fill in dark.",
+    "light": "oklch(0.55 0.19 254)",
+    "dark": null,
+    "lightResolved": "oklch(0.55 0.19 254)",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
     "deprecated": null,
     "utility": null
   },
@@ -3117,7 +3564,23 @@
     "dark": null,
     "lightResolved": "oklch(0.54 0.19 254)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "color.blue.725",
+    "cssVar": "--ds-color-blue-725",
+    "type": "color",
+    "group": "palette",
+    "description": "Increased contrast: the selected fill in dark, at 3:1 on every dark surface.",
+    "light": "oklch(0.525 0.19 254)",
+    "dark": null,
+    "lightResolved": "oklch(0.525 0.19 254)",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
     "deprecated": null,
     "utility": null
   },
@@ -3131,6 +3594,7 @@
     "dark": null,
     "lightResolved": "oklch(0.49 0.185 254)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3145,6 +3609,7 @@
     "dark": null,
     "lightResolved": "oklch(0.44 0.17 254)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3159,6 +3624,7 @@
     "dark": null,
     "lightResolved": "oklch(0.41 0.1575 254.0)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": "0.6.0",
     "deprecated": null,
     "utility": null
@@ -3173,6 +3639,7 @@
     "dark": null,
     "lightResolved": "oklch(0.38 0.145 254)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3187,6 +3654,7 @@
     "dark": null,
     "lightResolved": "oklch(0.34 0.1225 254.0)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": "0.6.0",
     "deprecated": null,
     "utility": null
@@ -3201,7 +3669,23 @@
     "dark": null,
     "lightResolved": "oklch(0.3 0.1 254)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "color.blue.1100",
+    "cssVar": "--ds-color-blue-1100",
+    "type": "color",
+    "group": "palette",
+    "description": "Increased contrast: selected text in light, on the 3:1 selected fills.",
+    "light": "oklch(0.2 0.06 254)",
+    "dark": null,
+    "lightResolved": "oklch(0.2 0.06 254)",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
     "deprecated": null,
     "utility": null
   },
@@ -3215,6 +3699,7 @@
     "dark": null,
     "lightResolved": "oklch(0.965 0.02 162)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3229,6 +3714,7 @@
     "dark": null,
     "lightResolved": "oklch(0.935 0.04 162)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3243,6 +3729,7 @@
     "dark": null,
     "lightResolved": "oklch(0.9175 0.05 162.0)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": "0.6.0",
     "deprecated": null,
     "utility": null
@@ -3257,6 +3744,7 @@
     "dark": null,
     "lightResolved": "oklch(0.9 0.06 162)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3271,6 +3759,7 @@
     "dark": null,
     "lightResolved": "oklch(0.84 0.09 162)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3285,6 +3774,7 @@
     "dark": null,
     "lightResolved": "oklch(0.74 0.12 162)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3299,6 +3789,7 @@
     "dark": null,
     "lightResolved": "oklch(0.65 0.13 162)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3313,6 +3804,7 @@
     "dark": null,
     "lightResolved": "oklch(0.58 0.125 162)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3327,6 +3819,7 @@
     "dark": null,
     "lightResolved": "oklch(0.52 0.115 162)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3341,6 +3834,7 @@
     "dark": null,
     "lightResolved": "oklch(0.46 0.105 162)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3355,6 +3849,7 @@
     "dark": null,
     "lightResolved": "oklch(0.41 0.095 162)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3369,6 +3864,7 @@
     "dark": null,
     "lightResolved": "oklch(0.38 0.0875 162.0)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": "0.6.0",
     "deprecated": null,
     "utility": null
@@ -3383,6 +3879,7 @@
     "dark": null,
     "lightResolved": "oklch(0.35 0.08 162)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3397,6 +3894,7 @@
     "dark": null,
     "lightResolved": "oklch(0.28 0.06 162)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3411,6 +3909,7 @@
     "dark": null,
     "lightResolved": "oklch(0.97 0.03 78)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3425,6 +3924,7 @@
     "dark": null,
     "lightResolved": "oklch(0.945 0.055 75)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3439,6 +3939,7 @@
     "dark": null,
     "lightResolved": "oklch(0.93 0.0675 73.5)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": "0.6.0",
     "deprecated": null,
     "utility": null
@@ -3453,6 +3954,7 @@
     "dark": null,
     "lightResolved": "oklch(0.915 0.08 72)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3467,6 +3969,7 @@
     "dark": null,
     "lightResolved": "oklch(0.86 0.11 70)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3481,6 +3984,7 @@
     "dark": null,
     "lightResolved": "oklch(0.78 0.14 68)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3495,6 +3999,7 @@
     "dark": null,
     "lightResolved": "oklch(0.71 0.15 66)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3509,6 +4014,7 @@
     "dark": null,
     "lightResolved": "oklch(0.64 0.145 64)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3523,6 +4029,7 @@
     "dark": null,
     "lightResolved": "oklch(0.57 0.135 62)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3537,6 +4044,7 @@
     "dark": null,
     "lightResolved": "oklch(0.5 0.12 60)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3551,6 +4059,7 @@
     "dark": null,
     "lightResolved": "oklch(0.45 0.11 58)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3565,6 +4074,7 @@
     "dark": null,
     "lightResolved": "oklch(0.42 0.1025 57.0)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": "0.6.0",
     "deprecated": null,
     "utility": null
@@ -3579,6 +4089,7 @@
     "dark": null,
     "lightResolved": "oklch(0.39 0.095 56)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3593,6 +4104,7 @@
     "dark": null,
     "lightResolved": "oklch(0.31 0.07 54)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3607,6 +4119,7 @@
     "dark": null,
     "lightResolved": "oklch(0.965 0.02 26)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3621,6 +4134,7 @@
     "dark": null,
     "lightResolved": "oklch(0.935 0.04 26)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3635,6 +4149,7 @@
     "dark": null,
     "lightResolved": "oklch(0.92 0.05 26.0)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": "0.6.0",
     "deprecated": null,
     "utility": null
@@ -3649,6 +4164,7 @@
     "dark": null,
     "lightResolved": "oklch(0.905 0.06 26)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3663,6 +4179,7 @@
     "dark": null,
     "lightResolved": "oklch(0.84 0.1 26)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3677,6 +4194,7 @@
     "dark": null,
     "lightResolved": "oklch(0.73 0.15 26)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3691,6 +4209,7 @@
     "dark": null,
     "lightResolved": "oklch(0.64 0.18 26)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3705,6 +4224,7 @@
     "dark": null,
     "lightResolved": "oklch(0.58 0.19 26)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3719,6 +4239,7 @@
     "dark": null,
     "lightResolved": "oklch(0.53 0.18 26)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3733,6 +4254,7 @@
     "dark": null,
     "lightResolved": "oklch(0.47 0.17 26)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3747,6 +4269,7 @@
     "dark": null,
     "lightResolved": "oklch(0.42 0.155 26)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3761,6 +4284,7 @@
     "dark": null,
     "lightResolved": "oklch(0.39 0.1425 26.0)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": "0.6.0",
     "deprecated": null,
     "utility": null
@@ -3775,6 +4299,7 @@
     "dark": null,
     "lightResolved": "oklch(0.36 0.13 26)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3789,6 +4314,7 @@
     "dark": null,
     "lightResolved": "oklch(0.28 0.09 26)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3803,6 +4329,7 @@
     "dark": null,
     "lightResolved": "oklch(0.97 0.018 192)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3817,6 +4344,7 @@
     "dark": null,
     "lightResolved": "oklch(0.935 0.036 192)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3831,6 +4359,7 @@
     "dark": null,
     "lightResolved": "oklch(0.905 0.052 192)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3845,6 +4374,7 @@
     "dark": null,
     "lightResolved": "oklch(0.84 0.080 192)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3859,6 +4389,7 @@
     "dark": null,
     "lightResolved": "oklch(0.73 0.116 192)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3873,6 +4404,7 @@
     "dark": null,
     "lightResolved": "oklch(0.635 0.136 192)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3887,6 +4419,7 @@
     "dark": null,
     "lightResolved": "oklch(0.585 0.148 192)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3901,6 +4434,7 @@
     "dark": null,
     "lightResolved": "oklch(0.54 0.152 192)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3915,6 +4449,7 @@
     "dark": null,
     "lightResolved": "oklch(0.49 0.148 192)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3929,6 +4464,7 @@
     "dark": null,
     "lightResolved": "oklch(0.44 0.136 192)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3943,6 +4479,7 @@
     "dark": null,
     "lightResolved": "oklch(0.38 0.116 192)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3957,6 +4494,7 @@
     "dark": null,
     "lightResolved": "oklch(0.3 0.080 192)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3971,6 +4509,7 @@
     "dark": null,
     "lightResolved": "oklch(0.97 0.020 300)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3985,6 +4524,7 @@
     "dark": null,
     "lightResolved": "oklch(0.935 0.041 300)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -3999,6 +4539,7 @@
     "dark": null,
     "lightResolved": "oklch(0.905 0.059 300)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4013,6 +4554,7 @@
     "dark": null,
     "lightResolved": "oklch(0.84 0.090 300)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4027,6 +4569,7 @@
     "dark": null,
     "lightResolved": "oklch(0.73 0.131 300)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4041,6 +4584,7 @@
     "dark": null,
     "lightResolved": "oklch(0.635 0.153 300)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4055,6 +4599,7 @@
     "dark": null,
     "lightResolved": "oklch(0.585 0.167 300)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4069,6 +4614,7 @@
     "dark": null,
     "lightResolved": "oklch(0.54 0.171 300)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4083,6 +4629,7 @@
     "dark": null,
     "lightResolved": "oklch(0.49 0.167 300)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4097,6 +4644,7 @@
     "dark": null,
     "lightResolved": "oklch(0.44 0.153 300)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4111,6 +4659,7 @@
     "dark": null,
     "lightResolved": "oklch(0.38 0.131 300)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4125,6 +4674,7 @@
     "dark": null,
     "lightResolved": "oklch(0.3 0.090 300)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4139,6 +4689,7 @@
     "dark": null,
     "lightResolved": "24px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "h-control-xsmall"
@@ -4153,6 +4704,7 @@
     "dark": null,
     "lightResolved": "28px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "h-control-small"
@@ -4167,6 +4719,7 @@
     "dark": null,
     "lightResolved": "32px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "h-control-medium"
@@ -4181,6 +4734,7 @@
     "dark": null,
     "lightResolved": "36px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "h-control-large"
@@ -4195,6 +4749,7 @@
     "dark": null,
     "lightResolved": "36px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "h-row-compact"
@@ -4209,6 +4764,7 @@
     "dark": null,
     "lightResolved": "40px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "h-row"
@@ -4223,6 +4779,7 @@
     "dark": null,
     "lightResolved": "32px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "h-row-header"
@@ -4237,6 +4794,7 @@
     "dark": null,
     "lightResolved": "28px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "h-row-menu"
@@ -4251,6 +4809,7 @@
     "dark": null,
     "lightResolved": "14px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "size-icon-small"
@@ -4265,6 +4824,7 @@
     "dark": null,
     "lightResolved": "16px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "size-icon-medium"
@@ -4279,6 +4839,7 @@
     "dark": null,
     "lightResolved": "40rem",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4293,6 +4854,7 @@
     "dark": null,
     "lightResolved": "48rem",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4307,6 +4869,7 @@
     "dark": null,
     "lightResolved": "64rem",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4321,6 +4884,7 @@
     "dark": null,
     "lightResolved": "75rem",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4335,6 +4899,7 @@
     "dark": null,
     "lightResolved": "80rem",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4349,6 +4914,7 @@
     "dark": null,
     "lightResolved": "110rem",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4363,7 +4929,233 @@
     "dark": null,
     "lightResolved": "80rem",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "dimension.container.3xs",
+    "cssVar": "--ds-dimension-container-3xs",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "Tailwind's container 3xs, 256px, restated so the `@3xs` variant reads a token. A card header puts its actions beside the title, and an input group shows its shortcut, from here.",
+    "light": "16rem",
+    "dark": null,
+    "lightResolved": "16rem",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "dimension.container.2xs",
+    "cssVar": "--ds-dimension-container-2xs",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "Tailwind's container 2xs, 288px, restated so the `@2xs` variant reads a token. No part switches here yet.",
+    "light": "18rem",
+    "dark": null,
+    "lightResolved": "18rem",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "dimension.container.xs",
+    "cssVar": "--ds-dimension-container-xs",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "Tailwind's container xs, 320px, restated so the `@xs` variant reads a token. No part switches here yet.",
+    "light": "20rem",
+    "dark": null,
+    "lightResolved": "20rem",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "dimension.container.sm",
+    "cssVar": "--ds-dimension-container-sm",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "Tailwind's container sm, 384px, restated so the `@sm` variant reads a token. Pagination shows its Previous and Next words from here.",
+    "light": "24rem",
+    "dark": null,
+    "lightResolved": "24rem",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "dimension.container.md",
+    "cssVar": "--ds-dimension-container-md",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "Tailwind's container md, 448px, restated so the `@md` variant reads a token. A field group sets label and control side by side from here. Not the viewport md, 48rem.",
+    "light": "28rem",
+    "dark": null,
+    "lightResolved": "28rem",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "dimension.container.lg",
+    "cssVar": "--ds-dimension-container-lg",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "Tailwind's container lg, 512px, restated so the `@lg` variant reads a token. No part switches here yet.",
+    "light": "32rem",
+    "dark": null,
+    "lightResolved": "32rem",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "dimension.container.xl",
+    "cssVar": "--ds-dimension-container-xl",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "Tailwind's container xl, 576px, restated so the `@xl` variant reads a token. Below it a side-by-side Diff stacks its halves and reads as the inline view.",
+    "light": "36rem",
+    "dark": null,
+    "lightResolved": "36rem",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "dimension.container.2xl",
+    "cssVar": "--ds-dimension-container-2xl",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "Tailwind's container 2xl, 672px, restated so the `@2xl` variant reads a token. No part switches here yet.",
+    "light": "42rem",
+    "dark": null,
+    "lightResolved": "42rem",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "dimension.container.3xl",
+    "cssVar": "--ds-dimension-container-3xl",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "Tailwind's container 3xl, 768px, restated so the `@3xl` variant reads a token. A WorkPane sets its list beside the detail from here, and the top nav shows its search as a field and keeps its foldable items out of More.",
+    "light": "48rem",
+    "dark": null,
+    "lightResolved": "48rem",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "dimension.container.4xl",
+    "cssVar": "--ds-dimension-container-4xl",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "Tailwind's container 4xl, 896px, restated so the `@4xl` variant reads a token. No part switches here yet.",
+    "light": "56rem",
+    "dark": null,
+    "lightResolved": "56rem",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "dimension.container.5xl",
+    "cssVar": "--ds-dimension-container-5xl",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "Tailwind's container 5xl, 1024px, restated so the `@5xl` variant reads a token. No part switches here yet.",
+    "light": "64rem",
+    "dark": null,
+    "lightResolved": "64rem",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "dimension.container.6xl",
+    "cssVar": "--ds-dimension-container-6xl",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "Tailwind's container 6xl, 1152px, restated so the `@6xl` variant reads a token. No part switches here yet.",
+    "light": "72rem",
+    "dark": null,
+    "lightResolved": "72rem",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "dimension.container.7xl",
+    "cssVar": "--ds-dimension-container-7xl",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "Tailwind's container 7xl, 1280px, restated so the `@7xl` variant reads a token. No part switches here yet.",
+    "light": "80rem",
+    "dark": null,
+    "lightResolved": "80rem",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "dimension.container.compact",
+    "cssVar": "--ds-dimension-container-compact",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "400px. Below it a region is compact: a header gives its actions a row of their own under the title, as the panel header does.",
+    "light": "25rem",
+    "dark": null,
+    "lightResolved": "25rem",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
+    "deprecated": null,
+    "utility": null
+  },
+  {
+    "name": "dimension.container.split",
+    "cssVar": "--ds-dimension-container-split",
+    "type": "dimension",
+    "group": "dimension",
+    "description": "800px. From here a body shows two panes side by side; below it an open preview replaces the list, as in RecordBrowser.",
+    "light": "50rem",
+    "dark": null,
+    "lightResolved": "50rem",
+    "darkResolved": null,
+    "contrast": null,
+    "introduced": "0.7.0",
     "deprecated": null,
     "utility": null
   },
@@ -4377,6 +5169,7 @@
     "dark": null,
     "lightResolved": "228px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "w-layout-sidenav"
@@ -4391,6 +5184,7 @@
     "dark": null,
     "lightResolved": "48px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "h-layout-topnav"
@@ -4405,6 +5199,7 @@
     "dark": null,
     "lightResolved": "48px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "h-layout-banner"
@@ -4419,6 +5214,7 @@
     "dark": null,
     "lightResolved": "320px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "w-layout-panel"
@@ -4433,6 +5229,7 @@
     "dark": null,
     "lightResolved": "340px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "w-layout-list"
@@ -4447,6 +5244,7 @@
     "dark": null,
     "lightResolved": "272px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "w-layout-rail"
@@ -4461,6 +5259,7 @@
     "dark": null,
     "lightResolved": "720px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "max-w-layout-measure"
@@ -4475,6 +5274,7 @@
     "dark": "color.darkNeutral.100",
     "lightResolved": "oklch(1 0 0)",
     "darkResolved": "oklch(0.196 0.015 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-surface"
@@ -4489,6 +5289,7 @@
     "dark": "color.darkNeutral.200",
     "lightResolved": "oklch(0.985 0.002 258)",
     "darkResolved": "oklch(0.213 0.016 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-surface-hovered"
@@ -4503,6 +5304,7 @@
     "dark": "color.darkNeutral.250",
     "lightResolved": "oklch(0.972 0.003 258)",
     "darkResolved": "oklch(0.232 0.017 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-surface-pressed"
@@ -4517,6 +5319,7 @@
     "dark": "color.darkNeutral.-100",
     "lightResolved": "oklch(0.985 0.002 258)",
     "darkResolved": "oklch(0.15 0.014 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-surface-sunken"
@@ -4531,6 +5334,7 @@
     "dark": "color.darkNeutral.200",
     "lightResolved": "oklch(1 0 0)",
     "darkResolved": "oklch(0.213 0.016 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-surface-raised"
@@ -4545,6 +5349,7 @@
     "dark": "color.darkNeutral.250",
     "lightResolved": "oklch(0.985 0.002 258)",
     "darkResolved": "oklch(0.232 0.017 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-surface-raised-hovered"
@@ -4559,6 +5364,7 @@
     "dark": "color.darkNeutral.300",
     "lightResolved": "oklch(0.972 0.003 258)",
     "darkResolved": "oklch(0.243 0.018 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-surface-raised-pressed"
@@ -4573,6 +5379,7 @@
     "dark": "color.darkNeutral.250",
     "lightResolved": "oklch(1 0 0)",
     "darkResolved": "oklch(0.232 0.017 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-surface-overlay"
@@ -4587,6 +5394,7 @@
     "dark": "color.darkNeutral.300",
     "lightResolved": "oklch(0.985 0.002 258)",
     "darkResolved": "oklch(0.243 0.018 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-surface-overlay-hovered"
@@ -4601,6 +5409,7 @@
     "dark": "color.darkNeutral.350",
     "lightResolved": "oklch(0.972 0.003 258)",
     "darkResolved": "oklch(0.255 0.019 285)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-surface-overlay-pressed"
@@ -4615,6 +5424,7 @@
     "dark": "0 0 0 1px oklch(1 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.4)",
     "lightResolved": "0 0 0 1px oklch(0.22 0.024 258 / 0.08), 0 1px 2px oklch(0.22 0.024 258 / 0.06)",
     "darkResolved": "0 0 0 1px oklch(1 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.4)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "shadow-raised"
@@ -4629,6 +5439,7 @@
     "dark": "0 0 0 1px oklch(1 0 0 / 0.07), 0 6px 16px -4px oklch(0 0 0 / 0.55), 0 18px 40px -12px oklch(0 0 0 / 0.5)",
     "lightResolved": "0 0 0 1px oklch(0.22 0.024 258 / 0.08), 0 7px 32px oklch(0.22 0.024 258 / 0.14)",
     "darkResolved": "0 0 0 1px oklch(1 0 0 / 0.07), 0 6px 16px -4px oklch(0 0 0 / 0.55), 0 18px 40px -12px oklch(0 0 0 / 0.5)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "shadow-overlay"
@@ -4643,6 +5454,7 @@
     "dark": "0 0 8px oklch(0 0 0 / 0.5), 0 0 1px oklch(1 0 0 / 0.08)",
     "lightResolved": "0 0 8px oklch(0.22 0.024 258 / 0.16), 0 0 1px oklch(0.22 0.024 258 / 0.12)",
     "darkResolved": "0 0 8px oklch(0 0 0 / 0.5), 0 0 1px oklch(1 0 0 / 0.08)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "shadow-overflow"
@@ -4657,6 +5469,7 @@
     "dark": "elevation.surface.default",
     "lightResolved": "oklch(1 0 0)",
     "darkResolved": "oklch(1 0 0)",
+    "contrast": null,
     "introduced": "0.1.0",
     "deprecated": null,
     "utility": "bg-surface-current"
@@ -4666,11 +5479,12 @@
     "cssVar": "--ds-font-family-body",
     "type": "fontFamily",
     "group": "font",
-    "description": "The one UI face. Identifiers, dates and numbers use it too.",
-    "light": "[\"Geist\",\"Inter\",\"ui-sans-serif\",\"system-ui\",\"sans-serif\"]",
+    "description": "The one UI face. Identifiers, dates and numbers use it too. Geist Variable is the face fonts.css loads; Geist is the same family installed on the machine.",
+    "light": "[\"Geist Variable\",\"Geist\",\"Inter\",\"ui-sans-serif\",\"system-ui\",\"sans-serif\"]",
     "dark": null,
-    "lightResolved": "\"Geist\", \"Inter\", ui-sans-serif, system-ui, sans-serif",
+    "lightResolved": "\"Geist Variable\", \"Geist\", \"Inter\", ui-sans-serif, system-ui, sans-serif",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4681,10 +5495,11 @@
     "type": "fontFamily",
     "group": "font",
     "description": "Same face as body today; a token so a theme may split them.",
-    "light": "[\"Geist\",\"Inter\",\"ui-sans-serif\",\"system-ui\",\"sans-serif\"]",
+    "light": "[\"Geist Variable\",\"Geist\",\"Inter\",\"ui-sans-serif\",\"system-ui\",\"sans-serif\"]",
     "dark": null,
-    "lightResolved": "\"Geist\", \"Inter\", ui-sans-serif, system-ui, sans-serif",
+    "lightResolved": "\"Geist Variable\", \"Geist\", \"Inter\", ui-sans-serif, system-ui, sans-serif",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4694,11 +5509,12 @@
     "cssVar": "--ds-font-family-code",
     "type": "fontFamily",
     "group": "font",
-    "description": "Code blocks and data previews only. Never UI text.",
-    "light": "[\"Geist Mono\",\"JetBrains Mono\",\"ui-monospace\",\"monospace\"]",
+    "description": "Code blocks and data previews only. Never UI text. Geist Mono Variable is the name the packaged mono face takes once fonts.css loads it.",
+    "light": "[\"Geist Mono Variable\",\"Geist Mono\",\"JetBrains Mono\",\"ui-monospace\",\"monospace\"]",
     "dark": null,
-    "lightResolved": "\"Geist Mono\", \"JetBrains Mono\", ui-monospace, monospace",
+    "lightResolved": "\"Geist Mono Variable\", \"Geist Mono\", \"JetBrains Mono\", ui-monospace, monospace",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4713,6 +5529,7 @@
     "dark": null,
     "lightResolved": "400",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "font-regular"
@@ -4727,6 +5544,7 @@
     "dark": null,
     "lightResolved": "500",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "font-medium"
@@ -4741,6 +5559,7 @@
     "dark": null,
     "lightResolved": "600",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "font-semibold"
@@ -4755,6 +5574,7 @@
     "dark": null,
     "lightResolved": "0em",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4769,6 +5589,7 @@
     "dark": null,
     "lightResolved": "-0.004em",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4783,6 +5604,7 @@
     "dark": null,
     "lightResolved": "-0.008em",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4797,6 +5619,7 @@
     "dark": null,
     "lightResolved": "-0.015em",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4811,6 +5634,7 @@
     "dark": null,
     "lightResolved": "-0.02em",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4825,6 +5649,7 @@
     "dark": null,
     "lightResolved": "0.06em",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": null
@@ -4839,6 +5664,7 @@
     "dark": null,
     "lightResolved": "var(--ds-font-weight-regular) 15px/22px var(--ds-font-family-body)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "font-body-large"
@@ -4853,6 +5679,7 @@
     "dark": null,
     "lightResolved": "var(--ds-font-weight-regular) 12px/16px var(--ds-font-family-body)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "font-body-small"
@@ -4867,6 +5694,7 @@
     "dark": null,
     "lightResolved": "var(--ds-font-weight-regular) 11px/14px var(--ds-font-family-body)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "font-body-xsmall"
@@ -4881,6 +5709,7 @@
     "dark": null,
     "lightResolved": "var(--ds-font-weight-regular) 13px/18px var(--ds-font-family-body)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "font-body"
@@ -4895,6 +5724,7 @@
     "dark": null,
     "lightResolved": "var(--ds-font-weight-semibold) 28px/34px var(--ds-font-family-heading)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "font-heading-large"
@@ -4909,6 +5739,7 @@
     "dark": null,
     "lightResolved": "var(--ds-font-weight-semibold) 22px/28px var(--ds-font-family-heading)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "font-heading-medium"
@@ -4923,6 +5754,7 @@
     "dark": null,
     "lightResolved": "var(--ds-font-weight-medium) 20px/26px var(--ds-font-family-heading)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "font-heading-small"
@@ -4937,6 +5769,7 @@
     "dark": null,
     "lightResolved": "var(--ds-font-weight-medium) 15px/22px var(--ds-font-family-heading)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "font-heading-xsmall"
@@ -4951,6 +5784,7 @@
     "dark": null,
     "lightResolved": "var(--ds-font-weight-medium) 11px/14px var(--ds-font-family-heading)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "font-heading-xxsmall"
@@ -4965,6 +5799,7 @@
     "dark": null,
     "lightResolved": "var(--ds-font-weight-regular) 12px/18px var(--ds-font-family-code)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "font-code"
@@ -4979,6 +5814,7 @@
     "dark": null,
     "lightResolved": "70ms",
     "darkResolved": null,
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "duration-micro"
@@ -4993,6 +5829,7 @@
     "dark": null,
     "lightResolved": "110ms",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "duration-fast"
@@ -5007,6 +5844,7 @@
     "dark": null,
     "lightResolved": "150ms",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "duration-medium"
@@ -5021,6 +5859,7 @@
     "dark": null,
     "lightResolved": "240ms",
     "darkResolved": null,
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "duration-moderate"
@@ -5035,6 +5874,7 @@
     "dark": null,
     "lightResolved": "400ms",
     "darkResolved": null,
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "duration-slow"
@@ -5049,6 +5889,7 @@
     "dark": null,
     "lightResolved": "700ms",
     "darkResolved": null,
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "duration-slower"
@@ -5063,6 +5904,7 @@
     "dark": null,
     "lightResolved": "20ms",
     "darkResolved": null,
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": null
@@ -5077,6 +5919,7 @@
     "dark": null,
     "lightResolved": "cubic-bezier(0.2, 0, 0.38, 0.9)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "ease-standard"
@@ -5091,6 +5934,7 @@
     "dark": null,
     "lightResolved": "cubic-bezier(0, 0, 0.38, 0.9)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "ease-enter"
@@ -5105,6 +5949,7 @@
     "dark": null,
     "lightResolved": "cubic-bezier(0.2, 0, 1, 0.9)",
     "darkResolved": null,
+    "contrast": null,
     "introduced": "0.5.0",
     "deprecated": null,
     "utility": "ease-exit"
@@ -5119,6 +5964,7 @@
     "dark": null,
     "lightResolved": "0.4",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "opacity-disabled"
@@ -5133,6 +5979,7 @@
     "dark": null,
     "lightResolved": "0.2",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "opacity-loading"
@@ -5147,6 +5994,7 @@
     "dark": null,
     "lightResolved": "2px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "rounded-xsmall"
@@ -5161,6 +6009,7 @@
     "dark": null,
     "lightResolved": "3px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "rounded-small"
@@ -5175,6 +6024,7 @@
     "dark": null,
     "lightResolved": "5px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "rounded-medium"
@@ -5189,6 +6039,7 @@
     "dark": null,
     "lightResolved": "7px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "rounded-large"
@@ -5203,6 +6054,7 @@
     "dark": null,
     "lightResolved": "9px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "rounded-xlarge"
@@ -5217,6 +6069,7 @@
     "dark": null,
     "lightResolved": "12px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "rounded-xxlarge"
@@ -5231,6 +6084,7 @@
     "dark": null,
     "lightResolved": "9999px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "rounded-full"
@@ -5245,6 +6099,7 @@
     "dark": null,
     "lightResolved": "2px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "border-w-selected"
@@ -5259,6 +6114,7 @@
     "dark": null,
     "lightResolved": "2px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "border-w-focused"
@@ -5273,6 +6129,7 @@
     "dark": null,
     "lightResolved": "1px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "border-w-default"
@@ -5287,6 +6144,7 @@
     "dark": null,
     "lightResolved": "0px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "p-0 · gap-0 · m-0 · w-0 …"
@@ -5301,6 +6159,7 @@
     "dark": null,
     "lightResolved": "8px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "p-100 · gap-100 · m-100 · w-100 …"
@@ -5315,6 +6174,7 @@
     "dark": null,
     "lightResolved": "12px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "p-150 · gap-150 · m-150 · w-150 …"
@@ -5329,6 +6189,7 @@
     "dark": null,
     "lightResolved": "16px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "p-200 · gap-200 · m-200 · w-200 …"
@@ -5343,6 +6204,7 @@
     "dark": null,
     "lightResolved": "20px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "p-250 · gap-250 · m-250 · w-250 …"
@@ -5357,6 +6219,7 @@
     "dark": null,
     "lightResolved": "24px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "p-300 · gap-300 · m-300 · w-300 …"
@@ -5371,6 +6234,7 @@
     "dark": null,
     "lightResolved": "32px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "p-400 · gap-400 · m-400 · w-400 …"
@@ -5385,6 +6249,7 @@
     "dark": null,
     "lightResolved": "40px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "p-500 · gap-500 · m-500 · w-500 …"
@@ -5399,6 +6264,7 @@
     "dark": null,
     "lightResolved": "48px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "p-600 · gap-600 · m-600 · w-600 …"
@@ -5413,6 +6279,7 @@
     "dark": null,
     "lightResolved": "64px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "p-800 · gap-800 · m-800 · w-800 …"
@@ -5427,6 +6294,7 @@
     "dark": null,
     "lightResolved": "80px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "p-1000 · gap-1000 · m-1000 · w-1000 …"
@@ -5441,6 +6309,7 @@
     "dark": null,
     "lightResolved": "2px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "p-025 · gap-025 · m-025 · w-025 …"
@@ -5455,6 +6324,7 @@
     "dark": null,
     "lightResolved": "4px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "p-050 · gap-050 · m-050 · w-050 …"
@@ -5469,6 +6339,7 @@
     "dark": null,
     "lightResolved": "6px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "p-075 · gap-075 · m-075 · w-075 …"
@@ -5483,6 +6354,7 @@
     "dark": null,
     "lightResolved": "-8px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "m-negative-100 · mx-negative-100 · my-negative-100"
@@ -5497,6 +6369,7 @@
     "dark": null,
     "lightResolved": "-12px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "m-negative-150 · mx-negative-150 · my-negative-150"
@@ -5511,6 +6384,7 @@
     "dark": null,
     "lightResolved": "-16px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "m-negative-200 · mx-negative-200 · my-negative-200"
@@ -5525,6 +6399,7 @@
     "dark": null,
     "lightResolved": "-20px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "m-negative-250 · mx-negative-250 · my-negative-250"
@@ -5539,6 +6414,7 @@
     "dark": null,
     "lightResolved": "-24px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "m-negative-300 · mx-negative-300 · my-negative-300"
@@ -5553,6 +6429,7 @@
     "dark": null,
     "lightResolved": "-32px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "m-negative-400 · mx-negative-400 · my-negative-400"
@@ -5567,6 +6444,7 @@
     "dark": null,
     "lightResolved": "-2px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "m-negative-025 · mx-negative-025 · my-negative-025"
@@ -5581,6 +6459,7 @@
     "dark": null,
     "lightResolved": "-4px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "m-negative-050 · mx-negative-050 · my-negative-050"
@@ -5595,6 +6474,7 @@
     "dark": null,
     "lightResolved": "-6px",
     "darkResolved": null,
+    "contrast": null,
     "introduced": null,
     "deprecated": null,
     "utility": "m-negative-075 · mx-negative-075 · my-negative-075"

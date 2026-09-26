@@ -17,8 +17,16 @@ export { toneClasses, tones, type Tone } from "../lib/status-tone";
 type BadgeTone = Tone | "brand";
 type BadgeAppearance = "subtle" | "bold";
 
+/* A badge that is a link or a button takes a 24px hit area on a touch screen and stops clipping, so
+   the area can reach past the pill. A label badge stays unpositioned. */
+const interactiveBadge =
+  "[a]:relative [a]:touch-target [a]:overflow-visible [button]:relative [button]:touch-target [button]:overflow-visible";
+
 const badgeRecipe = cva(
-  "group/badge inline-flex w-fit shrink-0 items-center justify-center gap-050 overflow-hidden rounded-full border-w-default border-solid border-transparent font-medium whitespace-nowrap transition-all duration-fast ease-standard focus-visible:border-focused focus-visible:outline-focused aria-invalid:border-danger aria-invalid:outline-danger! [&>svg]:pointer-events-none [&>svg]:size-150!",
+  cn(
+    "group/badge inline-flex w-fit shrink-0 items-center justify-center gap-050 overflow-hidden rounded-full border-w-default border-solid border-transparent font-medium whitespace-nowrap transition-all duration-fast ease-standard focus-visible:border-focused focus-visible:outline-focused aria-invalid:border-danger aria-invalid:outline-danger! [&>svg]:pointer-events-none [&>svg]:size-150!",
+    interactiveBadge,
+  ),
   {
     variants: {
       variant: {

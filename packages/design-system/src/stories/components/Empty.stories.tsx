@@ -17,7 +17,8 @@ import {
   TextLink,
   type EmptyIllustrationKind,
 } from "../../components";
-import { Stack, Text } from "../../primitives";
+import { Section } from "../../layout";
+import { Grid, Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
 
 const meta = {
@@ -116,23 +117,55 @@ export const NoMatches: Story = {
 
 /** Every picture the kit draws, each with the region it is for. */
 const kinds: { kind: EmptyIllustrationKind; title: string; description: string }[] = [
-  { kind: "records", title: "No programs yet", description: "Nothing exists. The first action creates it." },
-  { kind: "search", title: "Nothing matches", description: "Something exists, but not under this search or filter." },
-  { kind: "done", title: "Nothing open", description: "The list is empty because the work is finished." },
-  { kind: "inbox", title: "Nothing assigned to you", description: "Work handed to you waits here." },
+  {
+    kind: "records",
+    title: "No programs yet",
+    description: "Nothing exists. The first action creates it.",
+  },
+  {
+    kind: "search",
+    title: "Nothing matches",
+    description: "Something exists, but not under this search or filter.",
+  },
+  {
+    kind: "done",
+    title: "Nothing open",
+    description: "The list is empty because the work is finished.",
+  },
+  {
+    kind: "inbox",
+    title: "Nothing assigned to you",
+    description: "Work handed to you waits here.",
+  },
   { kind: "locked", title: "No access", description: "This register is for the program's owners." },
-  { kind: "shield", title: "No controls allocated", description: "Requirements and controls, once mapped." },
+  {
+    kind: "shield",
+    title: "No controls allocated",
+    description: "Requirements and controls, once mapped.",
+  },
   { kind: "document", title: "No evidence yet", description: "Files, records and their versions." },
   { kind: "tasks", title: "No tasks yet", description: "The work to do, and who does it." },
-  { kind: "people", title: "No owners yet", description: "The people accountable for this record." },
-  { kind: "tree", title: "No systems yet", description: "Systems, their subsystems and components." },
+  {
+    kind: "people",
+    title: "No owners yet",
+    description: "The people accountable for this record.",
+  },
+  {
+    kind: "tree",
+    title: "No systems yet",
+    description: "Systems, their subsystems and components.",
+  },
   { kind: "chart", title: "Nothing to chart", description: "Metrics appear once records exist." },
-  { kind: "calendar", title: "Nothing scheduled", description: "Assessments, milestones and reviews." },
+  {
+    kind: "calendar",
+    title: "Nothing scheduled",
+    description: "Assessments, milestones and reviews.",
+  },
 ];
 
 export const Illustrations: Story = {
   render: () => (
-    <div className="grid grid-cols-1 gap-200 md:grid-cols-2 lg:grid-cols-3">
+    <Grid templateColumns="repeat(auto-fit, minmax(min(100%, 280px), 1fr))" gap="space.200">
       {kinds.map(({ kind, title, description }) => (
         <Empty key={kind}>
           <EmptyMedia aria-hidden>
@@ -149,7 +182,7 @@ export const Illustrations: Story = {
           </EmptyContent>
         </Empty>
       ))}
-    </div>
+    </Grid>
   ),
 };
 
@@ -232,6 +265,53 @@ export const Compact: Story = {
       </Empty>
     </div>
   ),
+};
+
+/** The title is a heading in the default size, at the contextual level: an h2 where nothing sets one (a register under the page's h1), one below a titled Section (an h3 here). `render` sets the element outright, an h1 where the Empty is a missing record's page. In compact, a rail's row, it is body text. */
+export const TitleLevel: Story = {
+  name: "Title level",
+  render: () => (
+    <Stack space="space.300">
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>No programs yet</EmptyTitle>
+          <EmptyDescription>Create one to define its systems and their work.</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+      <Section title="Evidence">
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>No evidence yet</EmptyTitle>
+          </EmptyHeader>
+        </Empty>
+      </Section>
+      <Empty frame="none">
+        <EmptyMedia aria-hidden>
+          <EmptyIllustration kind="search" />
+        </EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle render={<h1 />}>Task not found</EmptyTitle>
+          <EmptyDescription>It was deleted or never existed.</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+      <Empty size="compact">
+        <EmptyHeader>
+          <EmptyTitle>Nothing linked yet</EmptyTitle>
+        </EmptyHeader>
+      </Empty>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("heading", { name: "No programs yet" }).tagName).toBe("H2");
+    await expect(canvas.getByRole("heading", { name: "No evidence yet" }).tagName).toBe("H3");
+    await expect(canvas.getByRole("heading", { name: "Task not found" }).tagName).toBe("H1");
+    await expect(canvas.queryByRole("heading", { name: "Nothing linked yet" })).toBeNull();
+    // One style whatever the element: the rendered h1 keeps the default title's classes.
+    await expect(canvas.getByRole("heading", { name: "Task not found" }).className).toBe(
+      canvas.getByRole("heading", { name: "No programs yet" }).className,
+    );
+  },
 };
 
 /** Every shape at once, for the mode toggle: the hero on its frame, the twelve pictures, the icon, the compact row. */

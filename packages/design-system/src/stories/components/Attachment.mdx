@@ -1,28 +1,31 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
-import { Attachment } from "../../components";
+import { Attachment, AttachmentLink, AttachmentTitle, AttachmentTrigger } from "../../components";
 import * as Stories from "./Attachment.stories";
 
 <Meta of={Stories} />
 
 # Attachment
 
-One file or image with its name, metadata and optional actions. Experimental; owner: Ledger maintainers. A base component for file presentation. The application owns file selection, uploading, retries, removal and preview dialogs.
+One file or image with its name, metadata and optional actions. Experimental; owner: Ledger maintainers. A base component for file presentation. Choosing files is [FileTrigger](?path=/docs/components-filetrigger--docs) or [DropZone](?path=/docs/components-dropzone--docs); the application owns uploading, retries, removal and preview dialogs, and shows each file as an Attachment.
 
 ## Anatomy
 
 Compose only the parts the file needs:
 
-| Part                   | Responsibility                                                        |
-| ---------------------- | --------------------------------------------------------------------- |
-| Attachment             | Surface, size, orientation and upload state.                          |
-| Attachment.Media       | Icon or image preview.                                                |
-| Attachment.Content     | Groups the name, metadata and optional progress.                      |
-| Attachment.Title       | Truncated filename; native `title` can expose the full name on hover. |
-| Attachment.Description | File type, size, status or a wrapping failure explanation.            |
-| Attachment.Trigger     | Optional card-wide action button.                                     |
-| Attachment.Actions     | Independent controls above the trigger.                               |
-| Attachment.Action      | IconButton with a required `label` and `icon`.                        |
-| Attachment.Group       | Horizontally scrollable row.                                          |
+| Part                   | Responsibility                                                                                      |
+| ---------------------- | --------------------------------------------------------------------------------------------------- |
+| Attachment             | Surface, size, orientation and upload state.                                                        |
+| Attachment.Media       | Icon or image preview.                                                                              |
+| Attachment.Content     | Groups the name, metadata and optional progress.                                                    |
+| Attachment.Title       | Filename, cut in the middle so its end and extension stay in view; read whole.                      |
+| Attachment.Description | File type, size, status or a wrapping failure explanation.                                          |
+| Attachment.Trigger     | Optional card-wide action button: preview, download a file the page builds.                         |
+| Attachment.Link        | Optional card-wide link: a file the server holds (`href`, `download`), or a router link (`render`). |
+| Attachment.Actions     | Independent controls above the trigger or link.                                                     |
+| Attachment.Action      | IconButton with a required `label` and `icon`.                                                      |
+| Attachment.Group       | Horizontally scrollable row.                                                                        |
+
+Each part is also exported by name (`AttachmentTitle`, `AttachmentLink`, …) for its props table.
 
 ```tsx
 <Attachment>
@@ -31,7 +34,7 @@ Compose only the parts the file needs:
   </Attachment.Media>
   <Attachment.Content>
     <Attachment.Title>quarterly-report.pdf</Attachment.Title>
-    <Attachment.Description>PDF · 2.4 MB</Attachment.Description>
+    <Attachment.Description>PDF · {formatFileSize(file.size)}</Attachment.Description>
   </Attachment.Content>
   <Attachment.Trigger aria-label="Preview quarterly-report.pdf" onClick={openPreview} />
   <Attachment.Actions>
@@ -56,34 +59,35 @@ Compose only the parts the file needs:
 
 `idle` uses a dashed border; `uploading` and `processing` set `aria-busy`; `error` changes the border and description to danger; `done` is the default resting surface. These are caller-supplied states, with no internal transitions. Write the status or error in Description so color is never its only signal. Compose Spinner or Progress when useful; filename animation is not imposed. Spinner respects reduced motion.
 
+An upload in progress offers a Cancel named for the file ("Cancel uploading quarterly-report.pdf"); a failure offers a Retry and a Remove. When a result replaces the control that had focus (Cancel goes with the upload), move focus to the control that replaces it. `aria-busy` marks the work but announces nothing when it ends, so say each result through `announce` ("Uploaded quarterly-report.pdf.", "Cancelled the upload of quarterly-report.pdf."). [DropZone](?path=/docs/components-dropzone--docs) shows the whole flow.
+
 <Canvas of={Stories.UploadStates} />
 
-## Modifiers
+## Long names
 
-Native attributes, event handlers, `className`, `style` and refs reach each part's own element. Title and Description are spans; structural parts are divs. The root's native `title` remains a tooltip attribute. Set explicit `aria-busy` if the default busy mapping does not fit the composition.
+`Attachment.Title` cuts a plain-text name in the middle: the start ends in an ellipsis and the end, the extension and the ten characters before it, stays whole, so `acas-vulnerability-scan-ws-x90-2026-09-01.pdf` and `…-09-15.pdf` stay apart. Assistive technology reads the whole name once, and copying a selection inside the title gives the name as it is written. The kept end follows the name's own direction, so an English name on a right-to-left page still ends with its extension. `truncate="end"` cuts at the end instead; a Title whose children are elements always does. With a card-wide Trigger or Link over the card, a `title` on the Title is covered: put the full name in the Trigger's or Link's `title` for a pointer, as well as in its `aria-label`.
 
-Trigger is an action button with `type="button"` by default. Use `render` to compose a custom button that forwards its props and ref. For navigation or downloads, style an ordinary anchor with `buttonVariants` and the same overlay geometry. It retains native link keyboard behavior and browser actions. A native disabled Trigger represents an unavailable action. A root upload state does not disable actions automatically; removing or cancelling an upload may still be useful.
+<Canvas of={Stories.LongNames} />
 
-```tsx
-import { buttonVariants } from "@ledger/design-system";
+## Links and downloads
 
-<a
-  href={file.url}
-  download
-  aria-label={`Download ${file.name}`}
-  className={buttonVariants({
-    variant: "subtle",
-    className:
-      "absolute inset-0 z-10 h-full w-full rounded-medium bg-transparent p-0 hover:bg-transparent active:bg-transparent",
-  })}
-/>;
-```
+Trigger is an action button with `type="button"` by default; use `render` to compose a custom button that forwards its props and ref. For navigation or a file the server holds, use `Attachment.Link`: an anchor with the same overlay, which keeps native link behaviour (open in a new tab, copy the address, `download`) and takes `render` for a router link. A file the page builds (an export, a CSV) is a Trigger that calls `downloadBlob(blob, name)` or `downloadText(text, name, { type, bom })`; they click a hidden anchor and revoke the object URL 40 seconds later (`DOWNLOAD_REVOKE_DELAY`), never in the same task, which can cancel the save in Safari and Firefox. Pass `bom: true` for a CSV a reader will open in a spreadsheet.
 
-Existing `Attachment.Trigger asChild` navigation migrates to this anchor. Trigger follows Button's action contract, so links no longer pass through its button interaction behavior.
+The card takes the raised hover surface while its Trigger or Link is hovered (where the pointer can hover) and the pressed surface while it is pressed, so an interactive card looks different from a static one. A disabled Trigger does neither. Hovering an action in Actions leaves the card at rest.
+
+<Canvas of={Stories.LinksAndDownloads} />
+
+A card-wide anchor styled with `buttonVariants` and the overlay classes, as earlier pages showed, still works; `Attachment.Link` replaces it. Existing `Attachment.Trigger asChild` navigation migrates to `Attachment.Link`.
+
+## File sizes
+
+`formatFileSize(bytes, { locale })` says a byte count as a reader does: "512 bytes", "840 kB", "2.4 MB". Units are decimal (1 kB is 1,000 bytes), as their names mean and as macOS and iOS report sizes, with at most one decimal in the locale's numerals; pass `useLedgerLocale().locale` in a component. Express a limit in the same units (`50_000_000` for 50 MB) so the Description, a DropZone's refusal and the hint agree.
+
+<Canvas of={Stories.FileSizes} />
 
 ## Content
 
-Keep the filename recognizable, including its extension. Description supports multiple lines so failure reasons and recovery instructions remain visible. Place all interactive content in Actions when using the card-wide Trigger; avoid wrapping the whole card in a button or link. Actions accepts ordinary Button, IconButton, menus or links when its icon-button shortcut does not fit.
+Keep the filename recognizable, including its extension. Description supports multiple lines so failure reasons and recovery instructions remain visible. Place all interactive content in Actions when using the card-wide Trigger or Link; avoid wrapping the whole card in a button or link. Actions accepts ordinary Button, IconButton, menus or links when its icon-button shortcut does not fit.
 
 <Canvas of={Stories.WithActions} />
 
@@ -95,13 +99,25 @@ Ledger surface, border, text, spacing, icon, radius and focus tokens. Horizontal
 
 ## Accessibility
 
-Every Trigger needs `aria-label` or `aria-labelledby`; it is an empty overlay with no text of its own. Icon actions require a descriptive `label`, such as “Remove quarterly-report.pdf”. Trigger and actions are sibling controls with independent focus and activation. Put Trigger before Actions in the DOM for preview-then-actions tab order. Return focus to a surviving control after removal; the With Actions example offers Undo.
+Every Trigger and Link needs `aria-label` or `aria-labelledby`; it is an empty overlay with no text of its own. Icon actions require a descriptive `label`, such as “Remove quarterly-report.pdf”. The overlay and the actions are sibling controls with independent focus and activation. Put the Trigger or Link before Actions in the DOM for open-then-actions tab order. Return focus to a surviving control after removal; the With Actions example offers Undo.
 
-No live region is imposed. `aria-busy` identifies in-progress content but does not announce completion; the application can use a separate polite status region for upload results. Give Progress a label. Hide decorative icons explicitly. For a group containing no interactive attachments, add `tabIndex={0}`, `role="group"` and an accessible name to make horizontal scrolling available from the keyboard. Interactive attachments are reached by Tab, which scrolls them into view.
+No live region is imposed. `aria-busy` identifies in-progress content but does not announce completion; say upload results through `announce`, the page's polite status. Give Progress a label. Hide decorative icons explicitly. For a group containing no interactive attachments, add `tabIndex={0}`, `role="group"` and an accessible name to make horizontal scrolling available from the keyboard. Interactive attachments are reached by Tab, which scrolls them into view.
 
 ## Props
 
 <ArgTypes of={Attachment} />
+
+### Attachment.Title
+
+<ArgTypes of={AttachmentTitle} />
+
+### Attachment.Trigger
+
+<ArgTypes of={AttachmentTrigger} />
+
+### Attachment.Link
+
+<ArgTypes of={AttachmentLink} />
 
 All compound part prop types are exported. `Attachment.Action` accepts IconButton props; Trigger supports Button's native attributes, ref and `render` composition. The app's old shadcn copy uses different size and action APIs; import the Ledger component from `@ledger/design-system`.
 
@@ -112,8 +128,10 @@ All compound part prop types are exported. `Attachment.Action` accepts IconButto
 
 ## Related
 
-[Button](?path=/docs/components-button--docs), [Progress](?path=/docs/components-progress--docs), [Dialog](?path=/docs/components-dialog--docs), [Composer](?path=/docs/patterns-composer--docs). Reference: [shadcn Attachment](https://ui.shadcn.com/docs/components/base/attachment).
+[FileTrigger](?path=/docs/components-filetrigger--docs), [DropZone](?path=/docs/components-dropzone--docs), [Button](?path=/docs/components-button--docs), [Progress](?path=/docs/components-progress--docs), [Dialog](?path=/docs/components-dialog--docs), [Composer](?path=/docs/patterns-composer--docs). Reference: [shadcn Attachment](https://ui.shadcn.com/docs/components/base/attachment).
 
 ## Don't
 
 Do not build upload orchestration or infer preview behavior inside Attachment. Do not nest a remove button inside the card's trigger. Do not communicate upload failure through a red border alone, hide recovery copy with truncation, or force every group into a carousel with hidden scrollbars.
+
+<Canvas of={Stories.DoDont} />

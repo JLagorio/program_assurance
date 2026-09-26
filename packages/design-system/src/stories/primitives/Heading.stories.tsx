@@ -1,6 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, within } from "storybook/test";
 
-import { Box, Grid, Heading, Inline, Stack, Text } from "../../primitives";
+import {
+  Box,
+  Grid,
+  Heading,
+  HeadingLevelProvider,
+  Inline,
+  Stack,
+  Text,
+  useHeadingLevel,
+} from "../../primitives";
 import { Pair } from "../_lib/pair";
 
 const meta = {
@@ -26,7 +36,12 @@ export const HeadingMatrix: Story = {
     <Stack space="space.300">
       <Stack space="space.100">
         <Label>size, and the default element</Label>
-        <Grid templateColumns="88px minmax(0, 1fr)" rowGap="space.150" columnGap="space.200" alignItems="baseline">
+        <Grid
+          templateColumns="88px minmax(0, 1fr)"
+          rowGap="space.150"
+          columnGap="space.200"
+          alignItems="baseline"
+        >
           <Label>large · div</Label>
           <Heading size="large">298 / 372</Heading>
           <Label>medium · h1</Label>
@@ -54,12 +69,20 @@ export const HeadingMatrix: Story = {
       <Stack space="space.100">
         <Label>on a bold fill: inverse from the Box, no colour on the Heading</Label>
         <Inline space="space.100" shouldWrap>
-          <Box backgroundColor="color.background.brand.bold" padding="space.200" className="rounded-large">
+          <Box
+            backgroundColor="color.background.brand.bold"
+            padding="space.200"
+            className="rounded-large"
+          >
             <Heading size="small" as="div">
               12 systems in scope
             </Heading>
           </Box>
-          <Box backgroundColor="color.background.warning.bold" padding="space.200" className="rounded-large">
+          <Box
+            backgroundColor="color.background.warning.bold"
+            padding="space.200"
+            className="rounded-large"
+          >
             <Heading size="small" as="div">
               3 past due
             </Heading>
@@ -82,7 +105,8 @@ export const Headings: Story = {
         Schedule assessment
       </Heading>
       <Text size="small" color="color.text.subtlest">
-        Level is chosen by the page (as); size by the design. Large is a displayed number, never a title.
+        Level is chosen by the page (as); size by the design. Large is a displayed number, never a
+        title.
       </Text>
     </Stack>
   ),
@@ -164,6 +188,59 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+};
+
+/** The level a heading placed here takes, read from the context: what a part that renders a heading of its own sees. */
+function CurrentLevel() {
+  const level = useHeadingLevel();
+  return (
+    <Text size="small" color="color.text.subtlest">
+      {level === undefined ? "No provider: each part keeps its default" : `Level ${level} here`}
+    </Text>
+  );
+}
+
+/** The level from the context, the size from the design. A HeadingLevelProvider without `level` goes one below the surrounding level (2 under the page's title); with `level` it starts an outline. A Heading without `as` takes the contextual level, `as` still overrides it, and `large`, a displayed number, stays a div. */
+export const LevelFromContext: Story = {
+  name: "Level from context",
+  render: () => (
+    <Stack space="space.200">
+      <CurrentLevel />
+      <Heading size="medium">Boundary protection</Heading>
+      <HeadingLevelProvider>
+        <CurrentLevel />
+        <Heading size="small">Assessment results</Heading>
+        <HeadingLevelProvider>
+          <CurrentLevel />
+          <Heading size="xsmall">Schedule</Heading>
+          <Heading size="xsmall" as="div">
+            A title-styled line that is not in the outline
+          </Heading>
+          <Heading size="large">298 / 372</Heading>
+        </HeadingLevelProvider>
+      </HeadingLevelProvider>
+      <HeadingLevelProvider level={2}>
+        <CurrentLevel />
+        <Heading size="xsmall">A rail group, restarted at 2 by its region</Heading>
+      </HeadingLevelProvider>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("heading", { name: "Boundary protection" }).tagName).toBe("H1");
+    await expect(canvas.getByRole("heading", { name: "Assessment results" }).tagName).toBe("H2");
+    await expect(canvas.getByRole("heading", { name: "Schedule" }).tagName).toBe("H3");
+    await expect(
+      canvas.queryByRole("heading", { name: "A title-styled line that is not in the outline" }),
+    ).toBeNull();
+    await expect(canvas.queryByRole("heading", { name: "298 / 372" })).toBeNull();
+    await expect(canvas.getByText("298 / 372").tagName).toBe("DIV");
+    await expect(
+      canvas.getByRole("heading", { name: "A rail group, restarted at 2 by its region" }).tagName,
+    ).toBe("H2");
+    await expect(canvas.getByText("No provider: each part keeps its default")).toBeVisible();
+    await expect(canvas.getByText("Level 3 here")).toBeVisible();
+  },
 };
 
 export const Playground: Story = {};

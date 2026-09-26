@@ -19,6 +19,8 @@ import {
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "../../components/popover";
 import { ToggleGroup, ToggleGroupItem } from "../../components/toggle-group";
 import { Scroller, ScrollerArrow, ScrollerViewport } from "../../components/scroller";
+import { cn } from "../../lib/cn";
+import { statusOf } from "./columns";
 import { type DataTableInstance } from "./use-data-table";
 
 /*
@@ -39,10 +41,13 @@ function FacetBody({
   values,
   chosen,
   onChange,
+  labelOf = String,
 }: {
   values: [unknown, number][];
   chosen: unknown[];
   onChange: (next: unknown[]) => void;
+  /** The words for a value: a status map's label, the value itself unsaid. */
+  labelOf?: ((value: unknown) => string) | undefined;
 }) {
   const { formatNumber } = useLedgerLocale();
 
@@ -63,7 +68,7 @@ function FacetBody({
             }
           />
           <span className="flex select-none items-center gap-100">
-            <span>{String(value)}</span>
+            <span>{labelOf(value)}</span>
             <span className="tabular-nums font-body-small text-subtlest">
               {formatNumber(count)}
             </span>
@@ -143,6 +148,8 @@ function ColumnFilter<TData extends RowData>({
   const title = label ?? (typeof header === "string" ? header : columnId);
   const raw = column?.getFilterValue();
   const facetValues = column?.getFacetedUniqueValues();
+  const statuses = column?.columnDef.meta?.statuses;
+  const status = useMemo(() => (statuses ? statusOf(statuses) : undefined), [statuses]);
   const facets = useMemo(() => {
     if (
       !facetValues ||
@@ -155,8 +162,13 @@ function ColumnFilter<TData extends RowData>({
       return null;
     const values = [...facetValues.entries()].filter(([v]) => v != null && v !== "");
     if (kind === "text" && values.length > FACET_LIMIT) return null;
-    return values.sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0]), locale));
-  }, [facetValues, kind, locale]);
+    // A shared status map lists its values in its own order; otherwise the commonest first.
+    return values.sort((a, b) =>
+      status
+        ? status.compare(a[0], b[0])
+        : b[1] - a[1] || String(a[0]).localeCompare(String(b[0]), locale),
+    );
+  }, [facetValues, kind, locale, status]);
   if (!column) return null;
 
   let body: ReactNode;
@@ -191,11 +203,12 @@ function ColumnFilter<TData extends RowData>({
         values={facets}
         chosen={chosen}
         onChange={(next) => column.setFilterValue(next.length ? next : undefined)}
+        labelOf={status?.label}
       />
     );
     value =
       chosen.length === 1
-        ? String(chosen[0])
+        ? (status?.label ?? String)(chosen[0])
         : chosen.length > 1
           ? t("chosenCount", { count: formatNumber(chosen.length) })
           : undefined;
@@ -388,18 +401,26 @@ export function Presets<TData extends RowData>({
   const active = presets.find((p) => JSON.stringify(p.filters ?? []) === current);
   if (variant === "menu") {
     const count = active ? countRows(table, active.filters) : undefined;
+    const label = active?.label ?? t("view");
     return (
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
+            // Narrower than its content, the label gives way with an ellipsis and keeps its full
+            // text as a title (when it is text); the count and the chevron stay whole.
             <Button
               variant="secondary"
               size="small"
               iconAfter={<ChevronDown />}
               aria-label={ariaLabel ?? t("savedQuestions")}
-              className={className}
+              className={cn("min-w-0 max-w-full", className)}
             >
-              {active?.label ?? t("view")}
+              <span
+                className="min-w-0 truncate"
+                title={typeof label === "string" ? label : undefined}
+              >
+                {label}
+              </span>
               {count === undefined ? null : <Count value={count} />}
             </Button>
           }

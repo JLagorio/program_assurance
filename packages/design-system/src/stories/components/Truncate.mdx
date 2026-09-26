@@ -1,0 +1,79 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Truncate } from "../../components";
+import * as Stories from "./Truncate.stories";
+
+<Meta of={Stories} />
+
+# Truncate
+
+Text cut to one, two or three lines (`maxLines`, as on Text) with an ellipsis, and the whole of it in a tooltip while it is cut. The tooltip opens on hover, and on keyboard focus of the link or button the text sits in or of a control inside it, so a keyboard reader can see a long record name from the list. Nothing opens while the text fits. The full text never leaves the DOM, so a screen reader reads all of it; the tooltip is a visual copy and is hidden from assistive technology.
+
+```tsx
+<TextLink render={<Link to="/controls/ac-2" />}>
+  <Truncate>Automated temporary and emergency account management</Truncate>
+</TextLink>
+```
+
+<Canvas of={Stories.TruncateMatrix} />
+
+## When to use it
+
+- **A name in a row, a rail or a list** that must stay on its line: a record name in a register, a value in a KeyValue, a title in a narrow panel. KeyValue and a clamped [Text](?path=/docs/primitives-text--docs) (`maxLines`) already reveal themselves; use Truncate where neither applies.
+- **Not for a sentence.** A statement, an objective, an error or a notification wraps: give Text no `maxLines`, or KeyValue `wrap`. A tooltip is for a name that does not fit, not for reading.
+- **Not for a heading.** A page, section or dialog title wraps.
+- **An identifier or a hash** wraps anywhere rather than being cut, where the row allows it (KeyValue `wrap`).
+
+## How it reveals
+
+| The reader           | What happens                                                                                                           |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Hovers the text      | The tooltip opens after the tooltip provider's delay, only while the text is cut.                                      |
+| Tabs to its link     | A Truncate inside a link, button, tab, menu item, option or tree item opens as the host takes keyboard focus.          |
+| Tabs into it         | A Truncate that holds a control (a TextLink in a KeyValue value) opens as the control takes keyboard focus.            |
+| Presses Escape       | The tooltip closes; focus stays where it was.                                                                          |
+| Taps it              | Nothing opens: a touch has no hover. Where the whole name matters on a phone, let the row open the record, or wrap.     |
+| Uses a screen reader | The whole text is read in place. The tooltip is `aria-hidden`.                                                          |
+
+A `title` of your own replaces the tooltip rather than stacking a second one on it. `fullText` sets what the tooltip says when the element's own text is not the words to show.
+
+<Canvas of={Stories.RevealsOnKeyboardFocus} />
+
+## The element
+
+A `span` set as a block by default. `render` makes it another element with its own props (`<dd />`, `<p />`), which keeps its own display; the one-line clamp needs a block or a flex item to cut. One line clips across only (`overflow-x: clip`), so a focus ring and a touch area inside it reach above and below the line; two and three lines clamp, which clips both ways.
+
+<Canvas of={Stories.RenderedAs} />
+
+## useIsTruncated
+
+`useIsTruncated(ref, { maxLines })` reports whether an element you truncate yourself is cut right now. It measures after every render and whenever the element resizes or its text changes, so it follows a panel opening or a column resizing. Use it for a decision that depends on the cut (showing a "Show more", say); Truncate itself measures when it is about to reveal and needs no hook.
+
+<Canvas of={Stories.UseIsTruncatedHook} />
+
+## Accessibility
+
+- **The text is all there.** Truncation is CSS; a screen reader reads the whole, and the tooltip is not announced twice.
+- **Keyboard reaches it through the control it belongs to.** A plain truncated value with nothing focusable around it is not made a tab stop; where a keyboard reader needs it whole, wrap it.
+- **Touch has no reveal.** A truncated name in a list is fine when the row opens the record; anything a phone reader must read whole wraps.
+- **Right to left**, the ellipsis sits at the logical end (the RightToLeft story). Reduced motion removes the tooltip's fade.
+
+## Props
+
+<ArgTypes of={Truncate} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Text](?path=/docs/primitives-text--docs): `maxLines` clamps a Text and reveals it the same way.
+- [KeyValue](?path=/docs/components-keyvalue--docs): its label and value reveal themselves when cut.
+- [Tooltip](?path=/docs/components-tooltip--docs): the surface the reveal uses.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

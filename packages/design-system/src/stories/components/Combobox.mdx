@@ -13,9 +13,9 @@ Search and select predefined values using shadcn's Base UI Combobox composition.
 const frameworks = ["React", "Vue", "Svelte"];
 
 <Field>
-  <FieldLabel htmlFor="combobox">Framework</FieldLabel>
+  <FieldLabel>Framework</FieldLabel>
   <Combobox items={frameworks}>
-    <ComboboxInput id="combobox" placeholder="Choose a framework" showClear />
+    <ComboboxInput placeholder="Choose a framework" showClear />
     <ComboboxContent>
       <ComboboxEmpty>No frameworks found.</ComboboxEmpty>
       <ComboboxList>
@@ -47,7 +47,11 @@ For remote results, own loading/query state and pass `filter={null}` when the se
 
 ## Accessibility
 
-Connect FieldLabel to ComboboxInput with `htmlFor`/`id`; put description IDs, invalid state and required announcements on the editable input. Root’s `required` enables native constraint validation separately. Typing filters, arrows highlight, Enter selects, and Escape closes the popup before the surrounding dialog. Base UI controls focus and nested popup behavior.
+Inside a [Field](?path=/docs/components-field--docs) the FieldLabel names the input and the list, the hint and error describe the input, and the Field's `invalid`, `required` and `disabled` reach it, with no ids. Outside one, connect a label to ComboboxInput with `htmlFor`/`id` and put description ids, invalid state and required announcements on the input. Root’s `required` enables native constraint validation separately.
+
+<Canvas of={Stories.BoundInField} />
+
+Typing filters, arrows highlight, Enter selects, and Escape closes the popup before the surrounding dialog. Base UI controls focus and nested popup behavior.
 
 <Canvas of={Stories.InDialog} />
 

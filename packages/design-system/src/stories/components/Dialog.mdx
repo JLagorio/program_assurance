@@ -1,43 +1,131 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Dialog, DialogBody, DialogClose, DialogContent, DialogFooter } from "../../components";
 import * as Stories from "./Dialog.stories";
 
 <Meta of={Stories} />
 
 # Dialog
 
-Based on [shadcn’s Base UI source](https://ui.shadcn.com/docs/components/base/dialog) and [Base UI](https://base-ui.com/react/components/dialog). Ledger retains its tokens and application layouts.
-
-## Anatomy
-
-A modal task, composed from Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter and DialogClose. Content includes its portal, backdrop and optional close button; DialogPortal and DialogOverlay are available for custom composition.
-
-## Variants
+A focused task over the page: a create or edit form, a review, a choice that needs more than a sentence. Built on [Base UI Dialog](https://base-ui.com/react/components/dialog) with [shadcn’s composition](https://ui.shadcn.com/docs/components/base/dialog) and Ledger's tokens.
 
 <Canvas of={Stories.Form} />
 
-<Canvas of={Stories.PendingAndNestedPopup} />
+## When to use it
+
+- **A create or edit form**, titled with the operation: Create task, Edit member. The trigger, the title and the primary say the same words.
+- **A task the reader finishes or abandons** before going back to the page.
+
+Not for a decision that needs one sentence: that is an [AlertDialog](?path=/docs/components-alertdialog--docs). Not for a task at its button (a filter, a reason): that is a [Popover](?path=/docs/components-popover--docs). Not for work beside a list the reader keeps using: that is the Shell's panel. A modal edge panel is a [Sheet](?path=/docs/components-sheet--docs), and a phone's bottom sheet a [Drawer](?path=/docs/components-drawer--docs).
+
+## Anatomy
+
+```tsx
+<Dialog open={open} onOpenChange={setOpen} pending={pending}>
+  <DialogContent width="medium" initialFocus={firstField}>
+    <DialogHeader>
+      <DialogTitle>Create task</DialogTitle>
+      <DialogDescription>Describe the work.</DialogDescription>
+    </DialogHeader>
+    <DialogBody>
+      <form id={formId} noValidate onSubmit={submit}>
+        …fields
+      </form>
+    </DialogBody>
+    <DialogFooter>
+      <DialogClose render={<Button variant="subtle" />}>Cancel</DialogClose>
+      <Button type="submit" form={formId} variant="primary" isLoading={pending}>
+        Create task
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+```
+
+- **DialogContent** brings its portal, the blanket and a close button at the top end. It records the overlay surface as the current one, so a sticky header, a pinned cell or a scroll arrow inside paints the dialog's colour, not the page's.
+- **DialogHeader** holds the title and the description; the title is the dialog's h2, and headings inside the dialog start at h3.
+- **DialogBody** is the one scrolling region, with the dialog's inset. Put the form in it and the buttons in the footer; never make a `fieldset` or a hand-written `div` the scroller.
+- **DialogFooter** stays outside the scroll, with Cancel, a subtle button, before the primary.
+- DialogPortal and DialogOverlay are exported for a custom popup.
+
+## Widths
+
+`width` on DialogContent picks a step; do not set pixels in `style`.
+
+| `width`      | Size                           | For                                  |
+| ------------ | ------------------------------ | ------------------------------------ |
+| `small`      | 400px                          | A short question with a field or two |
+| `medium`     | 520px, the default             | A form of a few fields               |
+| `large`      | 760px                          | A form in two columns, or a table    |
+| `xlarge`     | 960px                          | A table beside a preview             |
+| `fullscreen` | The window, less a 1rem gutter | A task that needs the whole window   |
+
+Every step narrows to the window less the gutter, so a dialog on a phone is the phone's width. Choose the width by the task, so dialogs of the same kind open at the same size.
+
+<Canvas of={Stories.Widths} />
+
+## Scrolling and short windows
+
+The body takes the height the header and footer leave, at least 80px, and scrolls. Read-only content that overflows makes it a tab stop, named "Content, scrolls", so the keyboard can scroll what a pointer can.
 
 <Canvas of={Stories.Scrollable} />
 
-<Canvas of={Stories.CustomPortal} />
+In a window under 30rem tall (a landscape phone, or a laptop at 200% to 400% zoom) the popup becomes the one scroller: the header scrolls away with the body, the footer stays at the bottom, and every field and the primary can still be reached and seen.
+
+<Canvas of={Stories.LongForm} />
+
+<Canvas of={Stories.ZoomedWindow} />
+
+## Pending
+
+`pending` on the Dialog holds it while a save or another command runs. Every request to close is cancelled before `onOpenChange` hears of it (Escape, the blanket, the close button, any DialogClose), the close controls are disabled, the built-in close button and a DialogClose rendered as a kit Button stay focusable while they are (`aria-disabled`), and the popup is `aria-busy`. Close the dialog yourself when the command succeeds, with `open={false}`. `pending` does not disable the form: wrap the fields in `<FieldSet disabled={pending}>`, give the submit button `isLoading`, and move focus to that button before the fields lock, since it stays focusable while it loads.
+
+<Canvas of={Stories.PendingAndNestedPopup} />
+
+A failed save keeps the dialog and the draft, ends the pending state and says what to change.
+
+<Canvas of={Stories.FormSaveFails} />
 
 ## Accessibility
 
-Use a named title and a close control. Base UI owns focus trapping, Escape, outside dismissal and nested dialog coordination. Content exposes native initialFocus and finalFocus. A supplied description is associated automatically. For triggerless tasks opened by disappearing actions, supply a stable finalFocus target.
+- **A title names the dialog**; a DialogDescription, when there is one, describes it.
+- **Focus moves in and comes back.** The first field takes focus through `initialFocus` on DialogContent, never through `autoFocus` on the field: an `autoFocus` inside a dialog opened from state becomes the place focus returns to, and focus falls to the page when it closes. Base UI returns focus to the element that had it before the dialog opened; when that element goes away with the task, pass `finalFocus`.
+- **Base UI owns** the focus trap, Escape, the outside press and nested popups: a Select or a DatePicker inside closes on its own Escape first.
+- **One stack is allowed:** an AlertDialog over the Dialog that owns the decision, such as the discard prompt for a dirty draft. An independent record workflow replaces the dialog instead of stacking.
+
+## Content
+
+- The title is the operation and the singular noun; the primary says the same words, never OK, Submit or Save alone.
+- Validate on submit with the primary enabled. Errors say what fixes the field; an [ErrorSummary](?path=/docs/components-errorsummary--docs) lists them all when the form is longer than a few fields.
+- Button labels stay on one line.
 
 ## Props
 
-Root exposes the native generic Base UI contract, including controlled/uncontrolled state, trigger payloads, handles, modality and cancellable onOpenChange. Native refs, render and state-based styles/classes reach their matching parts. Content adds showCloseButton; Footer can add a close button too.
+<ArgTypes of={Dialog} />
 
-### Migration and API
+### DialogContent
 
-- Replace configured title, description and footer props with their explicit parts; body and aside layouts are ordinary children.
-- Replace onClose with onOpenChange. Cancel a close request through details.cancel() while saving, and disable the caller-composed Close control.
-- Move returnFocusRef to Content finalFocus, and width to Content style/className. Existing app dialogs retain their 520/860px widths and top placement.
-- The default Content is centered, 520px maximum, with bounded height. Ledger Header/Footer own their padding; place scrolling body padding in children.
+<ArgTypes of={DialogContent} />
+
+### DialogBody
+
+<ArgTypes of={DialogBody} />
+
+### DialogFooter
+
+<ArgTypes of={DialogFooter} />
+
+### DialogClose
+
+<ArgTypes of={DialogClose} />
+
+<Canvas of={Stories.Playground} />
+
+<Canvas of={Stories.ShortWindow} />
+
+<Canvas of={Stories.CustomPortal} />
 
 ## Related
 
-- [Sheet](?path=/docs/components-sheet--docs)
-- [AlertDialog](?path=/docs/components-alertdialog--docs)
-- [Command](?path=/docs/components-command--docs)
+- [Recipes](?path=/docs/guidance-recipes--docs): the form dialog recipe.
+- [Forms](?path=/docs/patterns-forms--docs): fields, validation and errors.
+- [AlertDialog](?path=/docs/components-alertdialog--docs), [Sheet](?path=/docs/components-sheet--docs), [Drawer](?path=/docs/components-drawer--docs), [Overlays](?path=/docs/components-overlays--docs).

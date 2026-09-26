@@ -25,18 +25,18 @@ export const TreemapMatrix: Story = {
   render: () => (
     <Stack space="space.400">
       <Specimens title="Four systems · small · one branch (its tone inherited)">
-        <Box style={{ width: 420 }}>
+        <Box style={{ width: "100%", maxWidth: 420 }}>
           <Chart.Treemap data={bySystem} size="small" label="Findings by system and component" />
         </Box>
-        <Box style={{ width: 240 }}>
+        <Box style={{ width: "100%", maxWidth: 240 }}>
           <Chart.Treemap data={bySystem} size="small" label="Findings by system and component" />
         </Box>
-        <Box style={{ width: 240 }}>
+        <Box style={{ width: "100%", maxWidth: 240 }}>
           <Chart.Treemap data={bySystem.slice(0, 1)} size="small" label="Findings in Payments" />
         </Box>
       </Specimens>
       <Specimens title="Loading">
-        <Box style={{ width: 420 }}>
+        <Box style={{ width: "100%", maxWidth: 420 }}>
           <Chart.Treemap
             data={bySystem}
             size="small"
@@ -46,7 +46,7 @@ export const TreemapMatrix: Story = {
         </Box>
       </Specimens>
       <Specimens title="Unnamed · decorative, with no tab stops">
-        <Box style={{ width: 240 }}>
+        <Box style={{ width: "100%", maxWidth: 240 }}>
           <Chart.Treemap data={bySystem.slice(0, 1)} size="small" onSelect={() => undefined} />
         </Box>
       </Specimens>
@@ -62,7 +62,7 @@ export const TreemapMatrix: Story = {
 /** Findings by system and component: each tile a leaf sized by count, each system a hue. A name shows when it fits; the rest is the tooltip's. */
 export const Systems: Story = {
   render: () => (
-    <Box style={{ width: 640, maxWidth: "100%" }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart
         title="Findings by system and component"
         description="Open findings, sized by count"
@@ -78,7 +78,7 @@ function Drilling() {
   const [system, setSystem] = useState<string | null>(null);
   const data = system ? bySystem.filter((s) => s.name === system) : bySystem;
   return (
-    <Box style={{ width: 640, maxWidth: "100%" }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart.Frame
         title="Findings by system and component"
         description={system ? `Components of ${system}` : "Click a tile for its system"}
@@ -125,8 +125,9 @@ export const Drilldown: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const page = within(canvasElement.ownerDocument.body);
-    // Enter the plotted actions through the real tab sequence after the legend.
-    canvas.getByRole("button", { name: "Network" }).focus();
+    // Enter the plotted actions through the real tab sequence after the legend and the Table toggle.
+    await expect(canvas.getByRole("button", { name: "Network" })).toBeVisible();
+    canvas.getByRole("button", { name: "Table" }).focus();
     await userEvent.tab();
     const tile = await canvas.findByRole("button", { name: "Payments, Ledger API: 18" });
     await expect(tile).toHaveFocus();
@@ -155,7 +156,7 @@ export const Drilldown: Story = {
 /** A click on a tile opens its card: the tile, its system and its value, then the caller's facts. */
 export const Details: Story = {
   render: () => (
-    <Box style={{ width: 640, maxWidth: "100%" }}>
+    <Box style={{ maxWidth: 640 }}>
       <Chart title="Findings by system and component" description="Click a tile" series={systems}>
         <Chart.Treemap
           data={bySystem}
@@ -192,6 +193,48 @@ export const Details: Story = {
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(page.queryByRole("dialog")).not.toBeInTheDocument());
     await expect(canvas.getByRole("button", { name: "Payments, Card vault: 11" })).toHaveFocus();
+  },
+};
+
+/** The Frame is given only its title: the legend keys the treemap's systems, and the Table toggle lays its leaves out one row each, a column per level named by `levels`, then the value. A system hidden from the legend stays in the table, which is the data. */
+export const AsATable: Story = {
+  render: () => (
+    <Box style={{ maxWidth: 640 }}>
+      <Chart
+        title="Findings by system and component"
+        description="Open findings, sized by count"
+        download={["csv"]}
+      >
+        <Chart.Treemap data={bySystem} levels={["System", "Component"]} />
+      </Chart>
+    </Box>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("button", { name: "Payments" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await userEvent.click(canvas.getByRole("button", { name: "Table" }));
+    const table = await canvas.findByRole("table", {
+      name: "Findings by system and component, as a table",
+    });
+    const headings = within(table)
+      .getAllByRole("columnheader")
+      .map((h) => h.textContent);
+    await expect(headings).toEqual(["System", "Component", "Value"]);
+    const rows = within(table).getAllByRole("row").slice(1);
+    await expect(rows).toHaveLength(9);
+    await expect(
+      within(rows[0]!)
+        .getAllByRole("cell")
+        .map((c) => c.textContent),
+    ).toEqual(["Payments", "Ledger API", "18"]);
+    await userEvent.click(canvas.getByRole("button", { name: "Network" }));
+    await expect(within(table).getAllByRole("row")).toHaveLength(10);
+    await userEvent.click(canvas.getByRole("button", { name: "Table" }));
+    await waitFor(() => expect(canvas.queryByRole("table")).not.toBeInTheDocument());
+    await expect(canvasElement.querySelector("[data-chart-plot]")).not.toBeNull();
   },
 };
 

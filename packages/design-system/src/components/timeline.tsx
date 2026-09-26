@@ -298,8 +298,9 @@ export function TimelineItem({
   const titleClass = cn(
     "block min-w-0 outline-none",
     horizontal && "max-w-full",
+    // `static` keeps the overlay stretched over the row when the link is a positioned part (TextLink).
     clickable &&
-      "after:absolute after:inset-0 after:rounded-medium focus-visible:after:outline-focused",
+      "static after:absolute after:inset-0 after:rounded-medium focus-visible:after:outline-focused",
   );
   const centred = horizontal && align === "center";
   const titleLink = useRender({

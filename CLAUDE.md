@@ -73,6 +73,8 @@ npm run lint -w packages/design-system
 npm test -w packages/design-system             # node --test test/**/*.test.mjs (contrast, DTCG, locale, lint inventory, view state)
 npm run test:a11y -w packages/design-system    # every story rendered + play + axe, light and dark, via vitest browser mode
 npx vitest run --project storybook-light -t "Button"   # (inside the package) one family in one mode
+npm run test:layout -w packages/design-system  # every story at a 390px phone and in a 320px frame; exemptions by id in test/layout-allow.json
+npx vitest run --project storybook-narrow --project storybook-contained src/stories/components/Badge.stories.tsx   # (inside the package) one file, both layout checks
 npm run build:tokens -w packages/design-system # tokens/ → src/generated/ (never hand-edit src/generated)
 npm run build:lint -w packages/design-system   # refresh eslint-plugin/components.json after changing exports
 npm run build -w packages/design-system        # dist/
@@ -81,7 +83,7 @@ npm run ds:check                               # every exported catalog part has
 npm run ds:api:check / ds:api:update           # public API baseline in packages/design-system/api/public-api.json
 ```
 
-CI (`.github/workflows/ci.yml`) runs, in order: tokens regenerate cleanly, `ds-check`, package typecheck/lint/test, API baseline, `test:a11y`, app typecheck + lint, `test:app`, `npm run build`, `test:consumer`, `npm pack`. Run the same set before calling a batch done.
+CI (`.github/workflows/ci.yml`) runs, in order: tokens regenerate cleanly, `ds-check`, package typecheck/lint/test, API baseline, `test:a11y`, `test:layout`, app typecheck + lint, `test:app`, `npm run build`, `test:consumer`, `npm pack`. Run the same set before calling a batch done.
 
 Storybook MCP (`.mcp.json`, `http://localhost:6007/mcp`) is available when the package Storybook is running; prefer its `stories-preview` / `test-run` tools for verifying kit changes.
 

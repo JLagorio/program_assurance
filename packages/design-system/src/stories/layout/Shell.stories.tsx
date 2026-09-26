@@ -9,19 +9,17 @@ import {
   ChevronRight,
   CircleHelp,
   ClipboardList,
-  Command as CommandIcon,
   FileCheck2,
   FlaskConical,
   Gauge,
   Library,
   MoreHorizontal,
   Plus,
-  Search,
   Settings,
   ShieldAlert,
   ShieldCheck,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import {
   Breadcrumb,
@@ -34,6 +32,7 @@ import {
   LedgerProvider,
   PageHeader,
   PreviewNavigation,
+  SearchDialog,
   Section,
   Shell,
   SHELL_STORAGE_KEY,
@@ -42,7 +41,9 @@ import {
   Stack,
   Tabs,
   TabsContent,
+  tokenValue,
   useSideNav,
+  type SearchResult,
 } from "../..";
 import {
   Avatar,
@@ -66,11 +67,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  getModifierKey,
   IconButton,
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-  InputGroupText,
   TabsList,
   TabsTrigger,
 } from "../../components";
@@ -164,19 +162,46 @@ function EndOverflow() {
   );
 }
 
+/** The end items: the colour mode, which stays in the row at every width, and three TopNav.Items. In an End without `overflow` the items fold into More when the top nav is narrower than 48rem; in an End with `overflow`, the older spelling, they stay and `overflow` stands in for all of them below `md`. */
 function EndItems() {
   return (
     <>
       <ModeSwitch />
-      {(
-        [
-          [CircleHelp, "Help"],
-          [Bell, "Notifications"],
-          [Settings, "Settings"],
-        ] as const
-      ).map(([Icon, label]) => (
-        <IconButton key={label} label={label} variant="subtle" icon={<Icon />} />
-      ))}
+      <Shell.TopNav.Item icon={<CircleHelp />} label="Help" onClick={() => undefined} />
+      <Shell.TopNav.Item icon={<Bell />} label="Notifications" onClick={() => undefined} />
+      <Shell.TopNav.Item icon={<Settings />} label="Settings" onClick={() => undefined} />
+    </>
+  );
+}
+
+/** What the top nav's search finds: the programs on the page, each known by its identifier. */
+const searchRecords: SearchResult[] = programs.map((p) => ({
+  id: `program-${p.id.toLowerCase()}`,
+  identifier: p.id,
+  title: p.title ?? p.id,
+  meta: p.phase,
+  group: "Programs",
+}));
+
+/** The top nav's search: Shell.TopNav.Search opens a SearchDialog over the page's records, from a press on the field (a top nav at least 48rem wide) or the icon (narrower), and from ⌘K or Ctrl+K. */
+function RecordSearch({
+  label = "Search records",
+  shortcut,
+}: {
+  label?: string | undefined;
+  shortcut?: string | null | undefined;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Shell.TopNav.Search label={label} shortcut={shortcut} onOpen={() => setOpen(true)} />
+      <SearchDialog
+        open={open}
+        onOpenChange={setOpen}
+        results={searchRecords}
+        onSelect={() => undefined}
+        placeholder="Search programs by name or identifier"
+      />
     </>
   );
 }
@@ -217,24 +242,7 @@ function Demo({
           />
         </Shell.TopNav.Start>
         <Shell.TopNav.Middle>
-          <InputGroup style={{ width: 480, maxWidth: "100%" }}>
-            <InputGroupInput
-              type="search"
-              placeholder="Search risks, controls, evidence…"
-              aria-label="Search"
-              className="h-control-small"
-            />
-            <InputGroupAddon>
-              <Search />
-            </InputGroupAddon>
-            <InputGroupAddon align="inline-end">
-              <InputGroupText>
-                <span className="flex items-center gap-025">
-                  <CommandIcon className="size-100" />K
-                </span>
-              </InputGroupText>
-            </InputGroupAddon>
-          </InputGroup>
+          <RecordSearch />
           <Button variant="primary" iconBefore={<Plus />}>
             Create
           </Button>
@@ -342,6 +350,29 @@ function Demo({
 export const Frame: Story = {
   render: () => <Demo />,
   play: async ({ canvasElement }) => {
+    // A top nav at least 48rem wide shows the search as a field with its shortcut; narrower, the
+    // icon button. Either is one button named "Search records" that opens the dialog.
+    const topNav = within(canvasElement).getByRole("banner", { name: "Top navigation" });
+
+    const search = within(topNav).getByRole("button", { name: "Search records" });
+    await expect(search).toHaveAttribute("aria-haspopup", "dialog");
+    await expect(search).toHaveAttribute(
+      "aria-keyshortcuts",
+      getModifierKey() === "meta" ? "Meta+K" : "Control+K",
+    );
+    const wide = topNav.getBoundingClientRect().width >= 768;
+    await expect(search).toHaveAttribute(
+      "data-shell-slot",
+      wide ? "topnav-search-field" : "topnav-search-button",
+    );
+    // The splitter resizes the side nav where it is a column beside the page, from `lg`; below
+    // `lg` the side nav is an overlay the toggle opens, and there is nothing to resize.
+    if (!window.matchMedia("(min-width: 64rem)").matches) {
+      await expect(
+        within(canvasElement).queryByRole("separator", { name: "Resize side navigation" }),
+      ).toBeNull();
+      return;
+    }
     const splitter = within(canvasElement).getByRole("separator", {
       name: "Resize side navigation",
     });
@@ -364,6 +395,226 @@ export const Frame: Story = {
     );
     await userEvent.keyboard("{Home}");
     await waitFor(() => expect(splitter).toHaveAttribute("aria-valuenow", "200"));
+  },
+};
+
+/** Below a 48rem top nav the search is an icon button that opens the SearchDialog, and from 48rem the field shows. At 320px the row holds the toggle, the switcher, the mark, Search, Create and More, none over another; ⌘K (Ctrl+K elsewhere) opens the same dialog, and focus returns to the button. */
+export const NarrowSearch: Story = {
+  name: "Search at 320px",
+  globals: { viewport: { value: "ledgerNarrow", isRotated: false } },
+  tags: ["narrow"],
+  render: () => <Demo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    await waitFor(() => expect(window.innerWidth).toBe(320));
+    const doc = canvasElement.ownerDocument.documentElement;
+    await expect(doc.scrollWidth).toBeLessThanOrEqual(doc.clientWidth);
+    const topNav = canvas.getByRole("banner", { name: "Top navigation" });
+    await expect(within(topNav).queryByRole("searchbox")).toBeNull();
+    const search = within(topNav).getByRole("button", { name: "Search records" });
+    await expect(search).toHaveAttribute("aria-haspopup", "dialog");
+    const create = within(topNav).getByRole("button", { name: "Create" });
+    const more = within(topNav).getByRole("button", { name: "More" });
+    const [s, c, m] = [search, create, more].map((el) => el.getBoundingClientRect());
+    await expect(s!.right).toBeLessThanOrEqual(c!.left);
+    await expect(c!.right).toBeLessThanOrEqual(m!.left);
+    await expect(m!.right).toBeLessThanOrEqual(window.innerWidth);
+    await expect(topNav.scrollWidth).toBeLessThanOrEqual(topNav.clientWidth);
+
+    await userEvent.click(search);
+    const dialog = await body.findByRole("dialog", { name: "Search" });
+    const input = within(dialog).getByRole("combobox", { name: "Search" });
+    await waitFor(() => expect(input).toHaveFocus());
+    await userEvent.type(input, "PRG-006");
+    const option = await within(dialog).findByRole("option");
+    await expect(option).toHaveTextContent("PRG-006");
+    await expect(option).toHaveTextContent("Payload integration");
+    await expect(input).toHaveAttribute("aria-activedescendant", option.id);
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(search).toHaveFocus());
+
+    const mod = getModifierKey() === "meta" ? "Meta" : "Control";
+    await userEvent.keyboard(`{${mod}>}k{/${mod}}`);
+    await body.findByRole("dialog", { name: "Search" });
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+  },
+};
+
+/** A top nav in a frame the play narrows, as an open panel narrows the row. The end items are the colour mode and three TopNav.Items; Settings is a destination. */
+function FoldDemo() {
+  const [opened, setOpened] = useState("");
+  return (
+    <Stack space="space.200">
+      <div data-testid="fold-frame" className="w-full rounded-medium border border-default">
+        <Shell.TopNav>
+          <Shell.TopNav.Start>
+            <Shell.AppLogo name="Equinox" render={<a href="#home" aria-label="Equinox home" />} />
+          </Shell.TopNav.Start>
+          <Shell.TopNav.Middle>
+            <RecordSearch />
+          </Shell.TopNav.Middle>
+          <Shell.TopNav.End>
+            <ModeSwitch />
+            {/* A menu's trigger stays in the row: its menu anchors to the button. */}
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={<Shell.TopNav.Item persistent icon={<Bell />} label="Notifications" />}
+              />
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setOpened("Notifications")}>
+                  Mark all as read
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Shell.TopNav.Item
+              icon={<CircleHelp />}
+              label="Help"
+              onClick={() => setOpened("Help")}
+            />
+            <Shell.TopNav.Item
+              icon={<Library />}
+              label="Library"
+              disabledReason="The library is being rebuilt."
+            />
+            <Shell.TopNav.Item icon={<Settings />} label="Settings" href="#settings" />
+          </Shell.TopNav.End>
+        </Shell.TopNav>
+      </div>
+      <Text color="color.text.subtle">{opened ? `Opened ${opened}.` : "Nothing opened yet."}</Text>
+    </Stack>
+  );
+}
+
+/** TopNav.End folds its TopNav.Items into one More menu when the top nav is narrower than 48rem, measured on the row itself, so a panel beside it folds them too; the colour mode, a plain child, and Notifications, a `persistent` item that is a menu's trigger, stay. More lists the items in the row's order, with their icons and names; a destination stays a link and an unavailable item still says why. Narrowed while an item or the search field has focus, focus moves to More (not to the persistent item before it) or to the search's icon instead of dropping to the page, and back to the first item that left when widened. */
+export const EndItemsFold: Story = {
+  name: "End items fold",
+  parameters: { layout: "padded" },
+  // Wide, so the play starts with the items in the row and narrows the frame itself.
+  globals: { viewport: { value: "ledgerWide", isRotated: false }, frame: "canvas" },
+  render: () => <FoldDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const frame = canvas.getByTestId("fold-frame");
+    const topNav = canvas.getByRole("banner", { name: "Top navigation" });
+    const actions = within(topNav).getByRole("group", { name: "Actions" });
+    const narrow = async () => {
+      frame.style.maxWidth = "560px";
+      await waitFor(() => expect(topNav.getBoundingClientRect().width).toBeLessThan(768));
+    };
+    await waitFor(() => expect(topNav.getBoundingClientRect().width).toBeGreaterThanOrEqual(768));
+    // Wide: every item in the row, and no More.
+    const help = within(actions).getByRole("button", { name: "Help" });
+    await expect(within(actions).getByRole("link", { name: "Settings" })).toHaveAttribute(
+      "href",
+      "#settings",
+    );
+    await expect(within(actions).queryByRole("button", { name: "More" })).toBeNull();
+    help.focus();
+    await narrow();
+    await waitFor(() =>
+      expect(within(actions).getByRole("button", { name: "More" })).toHaveFocus(),
+    );
+    frame.style.maxWidth = "";
+    await waitFor(() =>
+      expect(within(actions).getByRole("button", { name: "Help" })).toHaveFocus(),
+    );
+    within(topNav).getByRole("button", { name: "Search records" }).focus();
+    await narrow();
+    await waitFor(() => {
+      const icon = within(topNav).getByRole("button", { name: "Search records" });
+      expect(icon).toHaveAttribute("data-shell-slot", "topnav-search-button");
+      expect(icon).toHaveFocus();
+    });
+    // Narrow: the colour mode and the persistent trigger stay; the other items are More's rows, in
+    // the row's order.
+    await expect(within(actions).getByRole("group", { name: "Colour mode" })).toBeVisible();
+    const notifications = within(actions).getByRole("button", { name: "Notifications" });
+    await expect(notifications).toBeVisible();
+    // The trigger's props reach the item's button.
+    await expect(notifications).toHaveAttribute("aria-haspopup", "menu");
+    await expect(within(actions).queryByRole("button", { name: "Help" })).toBeNull();
+    await expect(within(actions).queryByRole("link", { name: "Settings" })).toBeNull();
+    await expect(topNav.scrollWidth).toBeLessThanOrEqual(topNav.clientWidth);
+    const more = within(actions).getByRole("button", { name: "More" });
+    await userEvent.click(more);
+    const menu = await body.findByRole("menu");
+    await waitFor(() => expect(more).toHaveAttribute("aria-expanded", "true"));
+
+    await expect(
+      within(menu)
+        .getAllByRole("menuitem")
+        .map((item) => item.textContent),
+    ).toEqual(["Help", expect.stringMatching(/^Library/), "Settings"]);
+    const library = within(menu).getByRole("menuitem", { name: "Library" });
+    await expect(library).toHaveAttribute("aria-disabled", "true");
+    await expect(library).toHaveAccessibleDescription("The library is being rebuilt.");
+    await expect(within(menu).getByRole("menuitem", { name: "Settings" })).toHaveAttribute(
+      "href",
+      "#settings",
+    );
+    await userEvent.click(within(menu).getByRole("menuitem", { name: "Help" }));
+    await expect(canvas.getByText("Opened Help.")).toBeVisible();
+    await waitFor(() => expect(more).toHaveFocus());
+
+    // The persistent item is a working trigger at the narrow width.
+    await userEvent.click(notifications);
+    const notices = await body.findByRole("menu");
+    await userEvent.click(within(notices).getByRole("menuitem", { name: "Mark all as read" }));
+    await expect(canvas.getByText("Opened Notifications.")).toBeVisible();
+    await waitFor(() => expect(notifications).toHaveFocus());
+  },
+};
+
+/** ⌘K on Apple platforms, Ctrl+K elsewhere, opens the search from anywhere on the page, and the field shows the keys. The shortcut ignores a held key's repeats, other modifiers, text still being composed and a key a control already handled, and does nothing while a dialog is open, so it never stacks a second dialog or closes the one the reader is in. */
+export const SearchShortcut: Story = {
+  name: "Search shortcut",
+  render: () => <Demo dialog />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const mod = getModifierKey() === "meta" ? "Meta" : "Control";
+    // A held key's repeat, a key that ends an input method's composition and a key a control
+    // inside the page already handled do not open the search.
+    const press = (init: KeyboardEventInit, target: EventTarget = document.body) =>
+      target.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: "k",
+          code: "KeyK",
+          bubbles: true,
+          cancelable: true,
+          ...(mod === "Meta" ? { metaKey: true } : { ctrlKey: true }),
+          ...init,
+        }),
+      );
+    press({ repeat: true });
+    press({ isComposing: true });
+    canvasElement.addEventListener("keydown", (event) => event.preventDefault(), { once: true });
+    press({}, canvasElement);
+    await userEvent.keyboard(`{${mod}>}{Shift>}k{/Shift}{/${mod}}`);
+    // Give a wrongly opened dialog time to render before saying there is none.
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    await expect(body.queryByRole("dialog")).toBeNull();
+    await userEvent.keyboard(`{${mod}>}k{/${mod}}`);
+    const dialog = await body.findByRole("dialog", { name: "Search" });
+    await waitFor(() =>
+      expect(within(dialog).getByRole("combobox", { name: "Search" })).toHaveFocus(),
+    );
+    // Pressed again inside the open dialog: still one dialog, still open.
+    await userEvent.keyboard(`{${mod}>}k{/${mod}}`);
+    await expect(body.getAllByRole("dialog")).toHaveLength(1);
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    // Over another dialog it does nothing.
+    await userEvent.click(canvas.getByRole("button", { name: "Archive the program" }));
+    await body.findByRole("dialog", { name: "Archive the program" });
+    await userEvent.keyboard(`{${mod}>}k{/${mod}}`);
+    await expect(body.queryByRole("dialog", { name: "Search" })).toBeNull();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
   },
 };
 
@@ -571,7 +822,7 @@ export const ShellMatrix: Story = {
         </Box>
       </Specimens>
       <Specimens title="App logo: plain, with a secondary name, as a link, as a switcher, with a mark of its own">
-        <Inline space="space.500" alignBlock="center">
+        <Inline space="space.500" rowSpace="space.200" alignBlock="center" shouldWrap>
           <Shell.AppLogo name="Equinox" />
           <Shell.AppLogo name="Equinox" secondaryName="Northwind Corp" />
           <Shell.AppLogo
@@ -607,10 +858,10 @@ export const ShellMatrix: Story = {
         </Inline>
       </Specimens>
       <Specimens title="Toggle button, app switcher, profile">
-        <Inline space="space.400" alignBlock="center">
+        <Inline space="space.400" rowSpace="space.200" alignBlock="center" shouldWrap>
           <Shell.SideNav.ToggleButton />
           <Shell.AppSwitcher />
-          <Box className="w-layout-sidenav">
+          <Box className="w-layout-sidenav max-w-full">
             <Shell.Profile
               avatar={
                 <Avatar
@@ -692,17 +943,7 @@ function RecordDemo() {
           />
         </Shell.TopNav.Start>
         <Shell.TopNav.Middle>
-          <InputGroup style={{ width: 480, maxWidth: "100%" }}>
-            <InputGroupInput
-              type="search"
-              placeholder="Search…"
-              aria-label="Search"
-              className="h-control-small"
-            />
-            <InputGroupAddon>
-              <Search />
-            </InputGroupAddon>
-          </InputGroup>
+          <RecordSearch shortcut={null} />
         </Shell.TopNav.Middle>
         <Shell.TopNav.End overflow={<EndOverflow />}>
           <EndItems />
@@ -1032,9 +1273,11 @@ export const Forwarding: Story = {
       "data-testid",
       "nav",
     );
-    // The end slot's children as given: the mode switch's three buttons and three icon buttons, no list around them.
+    // The end slot's children as given: the mode switch's three buttons and three icon buttons, no
+    // list around them. Below `md` its overflow replaces them with one menu button.
     const actions = canvas.getByRole("group", { name: "Actions" });
-    await expect(within(actions).getAllByRole("button")).toHaveLength(6);
+    const wide = window.matchMedia("(min-width: 48rem)").matches;
+    await expect(within(actions).getAllByRole("button")).toHaveLength(wide ? 6 : 1);
     await expect(actions.querySelector("li")).toBeNull();
     await expect(canvas.getByText("Toggle is a button")).toBeVisible();
     const profile = canvas.getByRole("button", { name: /Sarah Chen/ });
@@ -1426,6 +1669,11 @@ export const BodyHeaderAt340: Story = {
 
 const widthsStoryKey = `${SHELL_STORAGE_KEY}.widths-story`;
 
+/** Main's reserved minimum: one list column inside Main's desktop gutters, from the tokens. */
+const mainMinimum = () =>
+  Number.parseFloat(tokenValue("dimension.layout.list")) +
+  2 * Number.parseFloat(tokenValue("space.300"));
+
 function ResizableShellDemo({
   persist,
   direction = "ltr",
@@ -1510,23 +1758,34 @@ export const PersistedWidths: Story = {
       await waitFor(() => expect(nav.getBoundingClientRect().width).toBe(320));
       const panel = canvas.getByRole("complementary", { name: "Program details" });
       await waitFor(() => expect(panel.getBoundingClientRect().width).toBe(480));
+      // End on both: the side nav reaches half the window, and the panel takes what Main has
+      // beyond its minimum, so the page keeps room for its content.
+      const main = canvas.getByRole("main");
+      const mainMin = mainMinimum();
       const navSplitter = canvas.getByRole("separator", { name: "Resize side navigation" });
       navSplitter.focus();
       await userEvent.keyboard("{End}");
       const panelSplitter = canvas.getByRole("separator", { name: "Resize details" });
       panelSplitter.focus();
       await userEvent.keyboard("{End}");
-      await waitFor(() => expect(stored()).toMatchObject({ sideNavWidth: 720, panelWidth: 720 }));
+      const panelMax = 1440 - 720 - mainMin;
+      await waitFor(() =>
+        expect(stored()).toMatchObject({ sideNavWidth: 720, panelWidth: panelMax }),
+      );
+      await waitFor(() => expect(main.getBoundingClientRect().width).toBe(mainMin));
+      // A narrower window caps both for now and keeps both preferences for later.
       await page.viewport(1280, 900);
       await waitFor(() => {
         expect(nav.getBoundingClientRect().width).toBe(640);
-        expect(panel.getBoundingClientRect().width).toBe(640);
+        expect(panel.getBoundingClientRect().width).toBe(1280 - 640 - mainMin);
+        expect(main.getBoundingClientRect().width).toBe(mainMin);
       });
-      await expect(stored()).toMatchObject({ sideNavWidth: 720, panelWidth: 720 });
+      await expect(stored()).toMatchObject({ sideNavWidth: 720, panelWidth: panelMax });
       await page.viewport(1440, 900);
       await waitFor(() => {
         expect(nav.getBoundingClientRect().width).toBe(720);
-        expect(panel.getBoundingClientRect().width).toBe(720);
+        expect(panel.getBoundingClientRect().width).toBe(panelMax);
+        expect(main.getBoundingClientRect().width).toBe(mainMin);
       });
     } finally {
       await page.viewport(390, 844);
@@ -1593,5 +1852,314 @@ export const RecordRailPhone: Story = {
     await expect(aside.getBoundingClientRect().top - contentBottom).toBeLessThan(64);
     await expect(canvas.getByRole("button", { name: "More" })).toBeVisible();
     await expect(canvas.queryByRole("button", { name: "Help" })).toBeNull();
+  },
+};
+
+/** At 1440px with the side nav and the panel open, End on both splitters: each stops where Main would fall under its minimum, and says so in `aria-valuemax`. */
+export const MainMinimum: Story = {
+  name: "Main minimum",
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
+  render: () => <ResizableShellDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const main = canvas.getByRole("main");
+    const panel = await canvas.findByRole("complementary", { name: "Program details" });
+    await waitFor(() => expect(panel.getBoundingClientRect().width).toBe(480));
+    const mainMin = mainMinimum();
+    for (const label of ["Resize side navigation", "Resize details"]) {
+      const splitter = canvas.getByRole("separator", { name: label });
+      splitter.focus();
+      await userEvent.keyboard("{End}");
+      await waitFor(() =>
+        expect(main.getBoundingClientRect().width).toBeGreaterThanOrEqual(mainMin),
+      );
+      // End is the maximum the splitter announced.
+      await waitFor(() =>
+        expect(splitter.getAttribute("aria-valuenow")).toBe(splitter.getAttribute("aria-valuemax")),
+      );
+    }
+    await expect(main.getBoundingClientRect().width).toBe(mainMin);
+    await expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(window.innerWidth);
+    // Home gives the room back to the page.
+    const navSplitter = canvas.getByRole("separator", { name: "Resize side navigation" });
+    navSplitter.focus();
+    await userEvent.keyboard("{Home}");
+    await waitFor(() => expect(main.getBoundingClientRect().width).toBeGreaterThan(mainMin));
+  },
+};
+
+const pages = { programs: "Programs", campaigns: "Test campaigns", portfolio: "Portfolio" };
+type PageKey = keyof typeof pages;
+const pageOrder: PageKey[] = ["programs", "campaigns", "portfolio"];
+
+/** A product's router in miniature: the location is state, and each page sets the document's title after it renders, as a router's head management does. */
+function PageChangeDemo({ spokenTitle = false }: { spokenTitle?: boolean }) {
+  const [page, setPage] = useState<PageKey>("programs");
+  useEffect(() => {
+    const was = document.title;
+    return () => {
+      document.title = was;
+    };
+  }, []);
+  useEffect(() => {
+    document.title = `${pages[page]} — Equinox`;
+  }, [page]);
+  const next = pageOrder[(pageOrder.indexOf(page) + 1) % pageOrder.length] ?? "programs";
+  return (
+    <Shell
+      locationKey={page}
+      getPageTitle={spokenTitle ? (key) => pages[key as PageKey] : undefined}
+    >
+      <Shell.TopNav>
+        <Shell.TopNav.Start>
+          <Shell.SideNav.ToggleButton />
+          <Shell.AppLogo name="Equinox" render={<a href="#home" />} />
+        </Shell.TopNav.Start>
+        <Shell.TopNav.End>
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<Button variant="subtle" />}>Go to</DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {pageOrder.map((key) => (
+                <DropdownMenuItem key={key} onClick={() => setPage(key)}>
+                  {pages[key]}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </Shell.TopNav.End>
+      </Shell.TopNav>
+      <Shell.SideNav>
+        <Shell.SideNav.Body>
+          <Shell.SideNav.Section heading="Work">
+            {pageOrder.map((key) => (
+              <Shell.SideNav.Item
+                key={key}
+                icon={ClipboardList}
+                isActive={key === page}
+                href={`#${key}`}
+                onClick={(event) => {
+                  event.preventDefault();
+                  setPage(key);
+                }}
+              >
+                {pages[key]}
+              </Shell.SideNav.Item>
+            ))}
+          </Shell.SideNav.Section>
+        </Shell.SideNav.Body>
+      </Shell.SideNav>
+      <Shell.Main>
+        <PageHeader>
+          <PageHeader.Title>{pages[page]}</PageHeader.Title>
+          <PageHeader.Actions>
+            <Button onClick={() => setPage(next)}>Next page</Button>
+          </PageHeader.Actions>
+        </PageHeader>
+        <Stack space="space.100" className="pt-300">
+          {programs.map((p) => (
+            <Text key={p.id}>
+              {p.id} · {p.title}
+            </Text>
+          ))}
+        </Stack>
+      </Shell.Main>
+    </Shell>
+  );
+}
+
+const politeLines = (canvasElement: HTMLElement) =>
+  Array.from(
+    canvasElement.querySelectorAll('[data-slot="announcer"] [data-politeness="polite"] > div'),
+    (line) => line.textContent,
+  );
+
+/** `locationKey` from the router: a new page moves focus to Main without scrolling and announces the page's title. A control in the page that survives the change, such as a pager, keeps focus. */
+export const PageChange: Story = {
+  name: "Page change",
+  render: () => <PageChangeDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const main = canvas.getByRole("main");
+    // Shell mounts the page's live regions once.
+    await expect(canvasElement.querySelectorAll('[data-slot="announcer"]')).toHaveLength(1);
+    if (!window.matchMedia("(min-width: 64rem)").matches) return;
+    window.scrollTo(0, 240);
+    const scrolled = window.scrollY;
+    const nav = canvas.getByRole("navigation", { name: "Side navigation" });
+    await userEvent.click(within(nav).getByRole("link", { name: "Test campaigns" }));
+    await waitFor(() => expect(main).toHaveFocus());
+    await expect(window.scrollY).toBe(scrolled);
+    await waitFor(() => expect(politeLines(canvasElement)).toContain("Test campaigns — Equinox"));
+    // A pager inside the page survives the change, so focus stays on it.
+    const pager = canvas.getByRole("button", { name: "Next page" });
+    await userEvent.click(pager);
+    await waitFor(() =>
+      expect(canvas.getByRole("heading", { level: 1 })).toHaveTextContent("Portfolio"),
+    );
+    await expect(pager).toHaveFocus();
+    await waitFor(() => expect(politeLines(canvasElement)).toContain("Portfolio — Equinox"));
+    // A menu in the top nav hands focus back to its trigger as it closes; the shell takes it on to
+    // Main, so the reader does not start from the navigation again.
+    const goTo = canvas.getByRole("button", { name: "Go to" });
+    await userEvent.click(goTo);
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(await body.findByRole("menuitem", { name: "Programs" }));
+    await waitFor(() =>
+      expect(canvas.getByRole("heading", { level: 1 })).toHaveTextContent("Programs"),
+    );
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    await waitFor(() => expect(main).toHaveFocus());
+    await expect(goTo).not.toHaveFocus();
+    window.scrollTo(0, 0);
+  },
+};
+
+/** On a phone, choosing a destination in the overlay closes it and hands focus to Main; `getPageTitle` chooses the words. */
+export const PageChangePhone: Story = {
+  name: "Page change at 390px",
+  globals: { viewport: { value: "ledgerPhone", isRotated: false } },
+  render: () => <PageChangeDemo spokenTitle />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() => expect(window.innerWidth).toBe(390));
+    await userEvent.click(canvas.getByRole("button", { name: "Expand side navigation" }));
+    const nav = await canvas.findByRole("navigation", { name: "Side navigation" });
+    await waitFor(() => expect(nav).toHaveAttribute("data-overlay", "open"));
+    await userEvent.click(within(nav).getByRole("link", { name: "Test campaigns" }));
+    await waitFor(() => expect(canvas.getByRole("main")).toHaveFocus());
+    await waitFor(() =>
+      expect(canvas.queryByRole("navigation", { name: "Side navigation" })).toBeNull(),
+    );
+    await expect(canvas.getByRole("heading", { level: 1 })).toHaveTextContent("Test campaigns");
+    await waitFor(() => expect(politeLines(canvasElement)).toContain("Test campaigns"));
+    await expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(390);
+  },
+};
+
+/** Closes the side nav from product code, as a Done button inside the overlay would. */
+function CloseFromInside() {
+  const { collapse } = useSideNav();
+  return (
+    <Button variant="subtle" onClick={collapse}>
+      Done
+    </Button>
+  );
+}
+
+/** A phone shell without `locationKey`: the side nav alone decides what a chosen link does. */
+function DestinationDemo({ closeOnNavigate }: { closeOnNavigate?: boolean | undefined }) {
+  const [page, setPage] = useState<PageKey>("programs");
+  const [closes, setCloses] = useState<string[]>([]);
+  return (
+    <Shell>
+      <Shell.TopNav>
+        <Shell.TopNav.Start>
+          <Shell.SideNav.ToggleButton />
+          <Shell.AppLogo name="Equinox" render={<a href="#home" />} />
+        </Shell.TopNav.Start>
+      </Shell.TopNav>
+      <Shell.SideNav
+        closeOnNavigate={closeOnNavigate}
+        onCollapse={({ trigger }) => setCloses((was) => [...was, trigger])}
+      >
+        <Shell.SideNav.Body>
+          <Shell.SideNav.Section heading="Work">
+            {pageOrder.map((key) => (
+              <Shell.SideNav.Item
+                key={key}
+                icon={ClipboardList}
+                isActive={key === page}
+                href={`#${key}`}
+                onClick={(event) => {
+                  // A router link: a plain click navigates in place, a modified one is the browser's.
+                  event.preventDefault();
+                  if (!(event.ctrlKey || event.metaKey || event.shiftKey)) setPage(key);
+                }}
+              >
+                {pages[key]}
+              </Shell.SideNav.Item>
+            ))}
+          </Shell.SideNav.Section>
+        </Shell.SideNav.Body>
+        <Shell.SideNav.Footer>
+          <CloseFromInside />
+        </Shell.SideNav.Footer>
+      </Shell.SideNav>
+      <Shell.Main>
+        <PageHeader>
+          <PageHeader.Title>{pages[page]}</PageHeader.Title>
+        </PageHeader>
+        <Text className="pt-200">
+          Closed by: {closes.length ? closes.join(", ") : "nothing yet"}
+        </Text>
+      </Shell.Main>
+    </Shell>
+  );
+}
+
+const openPhoneNav = async (canvasElement: HTMLElement) => {
+  const canvas = within(canvasElement);
+  await waitFor(() => expect(window.innerWidth).toBe(390));
+  await userEvent.click(canvas.getByRole("button", { name: "Expand side navigation" }));
+  const nav = await canvas.findByRole("navigation", { name: "Side navigation" });
+  await waitFor(() => expect(nav).toHaveAttribute("data-overlay", "open"));
+  // Let the slide finish, so what follows (and the axe pass) sees the overlay at rest.
+  await Promise.all(nav.getAnimations().map((animation) => animation.finished));
+  return nav;
+};
+
+/** Without `locationKey`, on a phone: a link chosen in the overlay closes it and moves focus to Main, and `onCollapse` says `navigation`. A click that opens a new tab leaves it open, and a close from inside it by any other means, such as `useSideNav().collapse()`, returns focus to the toggle. */
+export const DestinationPhone: Story = {
+  name: "Destination at 390px",
+  globals: { viewport: { value: "ledgerPhone", isRotated: false } },
+  render: () => <DestinationDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const main = canvas.getByRole("main");
+    let nav = await openPhoneNav(canvasElement);
+    // A modified click belongs to the browser (a new tab): the overlay and the page stay.
+    within(nav)
+      .getByRole("link", { name: "Portfolio" })
+      .dispatchEvent(
+        new MouseEvent("click", { bubbles: true, cancelable: true, button: 0, ctrlKey: true }),
+      );
+    await expect(nav).toHaveAttribute("data-overlay", "open");
+    await expect(canvas.getByRole("heading", { level: 1 })).toHaveTextContent("Programs");
+    // A plain click: the page changes, the overlay closes and focus lands on Main.
+    await userEvent.click(within(nav).getByRole("link", { name: "Test campaigns" }));
+    await expect(main).toHaveFocus();
+    await waitFor(() =>
+      expect(canvas.queryByRole("navigation", { name: "Side navigation" })).toBeNull(),
+    );
+    await expect(canvas.getByRole("heading", { level: 1 })).toHaveTextContent("Test campaigns");
+    await expect(canvas.getByText("Closed by: navigation")).toBeVisible();
+    // Closed from inside by product code: focus goes back to the toggle, not to the body.
+    nav = await openPhoneNav(canvasElement);
+    await userEvent.click(within(nav).getByRole("button", { name: "Done" }));
+    await waitFor(() =>
+      expect(canvas.queryByRole("navigation", { name: "Side navigation" })).toBeNull(),
+    );
+    await expect(canvas.getByRole("button", { name: "Expand side navigation" })).toHaveFocus();
+    await expect(canvas.getByText("Closed by: navigation, hook")).toBeVisible();
+    await expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(390);
+  },
+};
+
+/** `closeOnNavigate={false}` for a side nav whose links change the page in place: the overlay stays open and focus stays on the link. */
+export const KeepOpenPhone: Story = {
+  name: "Keep open at 390px",
+  globals: { viewport: { value: "ledgerPhone", isRotated: false } },
+  render: () => <DestinationDemo closeOnNavigate={false} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const nav = await openPhoneNav(canvasElement);
+    const link = within(nav).getByRole("link", { name: "Test campaigns" });
+    await userEvent.click(link);
+    await waitFor(() =>
+      expect(canvas.getByRole("heading", { level: 1 })).toHaveTextContent("Test campaigns"),
+    );
+    await expect(nav).toHaveAttribute("data-overlay", "open");
+    await expect(link).toHaveFocus();
+    await expect(canvas.getByText("Closed by: nothing yet")).toBeVisible();
   },
 };

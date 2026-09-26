@@ -6,6 +6,17 @@ export { Grid, type GridProps, type ResponsiveTemplate } from "./grid";
 export { Bleed, type BleedProps } from "./bleed";
 export { Text, type TextProps } from "./text";
 export { Heading, type HeadingProps } from "./heading";
+export {
+  VisuallyHidden,
+  type VisuallyHiddenElement,
+  type VisuallyHiddenProps,
+} from "./visually-hidden";
+export {
+  HeadingLevelProvider,
+  useHeadingLevel,
+  type HeadingLevel,
+  type HeadingLevelProviderProps,
+} from "./heading-level";
 export type {
   SpaceToken,
   BleedToken,

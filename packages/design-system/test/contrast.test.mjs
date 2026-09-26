@@ -1,13 +1,19 @@
 // Contrast test on the token source. Every text-on-background pairing the mapping declares
 // must meet WCAG AA in both modes: 4.5:1 for text, 3:1 for icons, borders and bold fills.
+// Increased contrast adds two modes, light-contrast and dark-contrast: every pairing holds there
+// too, and field boundaries, hairlines and state fills reach 3:1 against the surface at rest.
 // Run: npm test -w @ledger/design-system
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { exportDtcg, validateDtcg } from "../build/dtcg.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const standardModes = ["light", "dark"];
+const contrastModes = ["light-contrast", "dark-contrast"];
+const modes = [...standardModes, ...contrastModes];
 
 /* ---- load + resolve the DTCG source ---- */
 const tree = {};
@@ -25,10 +31,14 @@ function node(dotted) {
   if (n && !("$value" in n) && n.default) n = n.default;
   return n;
 }
+/** A token's value in a mode: the contrast value first in a contrast mode, then the mode's own. */
 function value(dotted, mode) {
   const n = node(dotted);
   if (!n) throw new Error(`no token ${dotted}`);
-  let v = mode === "dark" ? (n.$extensions?.ledger?.dark ?? n.$value) : n.$value;
+  const base = mode.startsWith("dark") ? "dark" : "light";
+  const ledger = n.$extensions?.ledger;
+  const standard = base === "dark" ? (ledger?.dark ?? n.$value) : n.$value;
+  let v = (mode.endsWith("-contrast") ? ledger?.contrast?.[base] : undefined) ?? standard;
   while (typeof v === "string" && /^\{.+\}$/.test(v.trim())) v = value(v.trim().slice(1, -1), mode);
   return v;
 }
@@ -97,8 +107,8 @@ const surfaces = [
 const neutralFills = ["color.background.neutral", "color.background.neutral.subtle.hovered"];
 
 const cases = [];
-const add = (fg, bg, min, note = "", base = "elevation.surface") =>
-  cases.push({ fg, bg, min, note, base });
+const add = (fg, bg, min, note = "", base = "elevation.surface", only = modes) =>
+  cases.push({ fg, bg, min, note, base, modes: only });
 
 for (const t of ["color.text", "color.text.subtle", "color.text.subtlest"])
   for (const s of surfaces) add(t, s, 4.5);
@@ -201,9 +211,60 @@ for (const surface of surfaces) {
   add("color.border.focused", surface, 3);
 }
 
+// Increased contrast (the reader asked for more): the recorded low-contrast choices above stay the
+// default, and here every boundary and state reaches 3:1 against the surface it sits on at rest,
+// with the text and icons drawn on those fills keeping their own minimums. text.subtlest is held
+// to the surfaces, as in the standard modes, so a placeholder still reads apart from a value.
+const neutralStateFills = [
+  "color.background.neutral",
+  "color.background.neutral.hovered",
+  "color.background.neutral.pressed",
+  "color.background.neutral.subtle.hovered",
+  "color.background.neutral.subtle.pressed",
+];
+const selectedFills = [
+  "color.background.selected",
+  "color.background.selected.hovered",
+  "color.background.selected.pressed",
+];
+for (const surface of surfaces) {
+  add(
+    "color.border.input",
+    surface,
+    3,
+    "field and choice-control boundary",
+    surface,
+    contrastModes,
+  );
+  add("color.border", surface, 3, "hairline", surface, contrastModes);
+  for (const state of [...neutralStateFills, ...selectedFills]) {
+    add(state, surface, 3, "state fill against its resting surface", surface, contrastModes);
+    for (const text of ["color.text", "color.text.subtle"])
+      add(text, state, 4.5, "text on a state fill", surface, contrastModes);
+    for (const icon of ["color.icon", "color.icon.subtle"])
+      add(icon, state, 3, "icon on a state fill", surface, contrastModes);
+    // A control focused inside a selected or hovered row draws its ring on the fill.
+    add("color.border.focused", state, 3, "focus ring on a state fill", surface, contrastModes);
+  }
+  for (const state of selectedFills) {
+    add("color.text.selected", state, 4.5, "selected text on its fill", surface, contrastModes);
+    add("color.icon.selected", state, 3, "selected icon on its fill", surface, contrastModes);
+  }
+}
+for (const state of ["hovered", "pressed"])
+  add(
+    "color.border.input",
+    `color.background.input.${state}`,
+    3,
+    "field boundary",
+    undefined,
+    contrastModes,
+  );
+
 const results = [];
-for (const mode of ["light", "dark"]) {
+for (const mode of modes) {
   for (const c of cases) {
+    if (!c.modes.includes(mode)) continue;
     const bg = fill(c.bg, mode, c.base);
     const fg = c.fg.startsWith("color.background") ? fill(c.fg, mode, c.base) : ink(c.fg, mode, bg);
     results.push({ ...c, mode, ratio: ratio(fg, bg) });
@@ -214,16 +275,78 @@ const failures = results.filter((r) => r.ratio < r.min);
 if (process.env.CONTRAST_REPORT) {
   for (const r of results)
     console.log(
-      `${r.ratio < r.min ? "FAIL" : "ok  "} ${r.mode.padEnd(5)} ${r.ratio.toFixed(2).padStart(5)} ≥ ${r.min}  ${r.fg} on ${r.bg}`,
+      `${r.ratio < r.min ? "FAIL" : "ok  "} ${r.mode.padEnd(14)} ${r.ratio.toFixed(2).padStart(5)} ≥ ${r.min}  ${r.fg} on ${r.bg} over ${r.base}`,
     );
 }
 
-test(`contrast: ${results.length} pairings, both modes`, () => {
+test(`contrast: ${results.length} pairings, both modes, standard and increased contrast`, () => {
   const lines = failures.map(
     (r) =>
       `${r.mode} ${r.ratio.toFixed(2)} < ${r.min}: ${r.fg} on ${r.bg} over ${r.base}${r.note ? ` (${r.note})` : ""}`,
   );
   assert.equal(failures.length, 0, `\n${lines.join("\n")}\n`);
+});
+
+/* ---- the generated increased-contrast mode ---- */
+const contrastTokens = [];
+(function collect(n, p) {
+  if (n && typeof n === "object" && "$value" in n) {
+    if (n.$extensions?.ledger?.contrast) contrastTokens.push(p.filter((s) => s !== "default"));
+    return;
+  }
+  if (n && typeof n === "object")
+    for (const [k, v] of Object.entries(n)) if (!k.startsWith("$")) collect(v, [...p, k]);
+})(tree, []);
+const cssName = (segs) =>
+  `--ds-${segs.map((s) => s.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()).join("-")}`;
+const scope = (css, selector) => {
+  const start = css.indexOf(`${selector} {`);
+  return start === -1 ? "" : css.slice(start, css.indexOf("}", start));
+};
+
+test("tokens.css re-declares every contrast token in each scope that sets a mode or a contrast", () => {
+  const css = fs.readFileSync(path.join(root, "src/generated/tokens.css"), "utf8");
+  assert.ok(contrastTokens.length > 0);
+  assert.match(
+    css,
+    /@media \(prefers-contrast: more\) \{\n {2}:root:not\(\[data-contrast-mode="no-preference"\]\)/,
+  );
+  const scopes = [
+    ":root",
+    '[data-color-mode="light"]',
+    '[data-color-mode="dark"]',
+    '  :root:not([data-color-mode="light"])',
+    '[data-contrast-mode="more"]',
+    '[data-contrast-mode="no-preference"]',
+  ];
+  for (const segs of contrastTokens) {
+    const v = cssName(segs);
+    for (const selector of scopes)
+      assert.ok(
+        scope(css, selector).includes(`${v}: var(--ds-contrast-more,`),
+        `${v} in ${selector}`,
+      );
+    for (const selector of scopes.slice(0, 4))
+      assert.ok(scope(css, selector).includes(`${v}--more:`), `${v}--more in ${selector}`);
+  }
+});
+
+test("each contrast mode is a conformant DTCG document with the contrast values", () => {
+  const source = JSON.parse(
+    fs.readFileSync(path.join(root, "src/generated/tokens.figma.json"), "utf8"),
+  );
+  for (const mode of contrastModes) {
+    const exported = JSON.parse(
+      fs.readFileSync(path.join(root, `src/generated/tokens.dtcg.${mode}.json`), "utf8"),
+    );
+    assert.deepEqual(exported, exportDtcg(source, mode));
+    assert.ok(validateDtcg(exported) > 0);
+    assert.equal(
+      exported.color.border.input.$value,
+      source.color.border.input.$extensions.ledger.contrast[mode.replace("-contrast", "")],
+    );
+    assert.equal(exported.color.border.input.$extensions.ledger.contrast, undefined);
+  }
 });
 
 test("alpha compositing uses encoded sRGB before WCAG luminance", () => {

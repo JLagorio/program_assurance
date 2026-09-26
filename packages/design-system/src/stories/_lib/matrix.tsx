@@ -18,7 +18,7 @@ export function Matrix<R extends string, C extends string>({
   render: (row: R, col: C) => ReactNode;
 }) {
   return (
-    <div className="overflow-x-auto">
+    <div className="relative max-w-full overflow-x-auto">
       <table className="border-collapse text-left">
         <thead>
           <tr>

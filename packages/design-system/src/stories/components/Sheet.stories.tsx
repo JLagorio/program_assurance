@@ -4,11 +4,16 @@ import { expect, userEvent, waitFor, within } from "storybook/test";
 import {
   Button,
   Dialog,
+  DialogBody,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  Field,
+  FieldLabel,
+  Input,
   Sheet,
+  SheetBody,
   SheetClose,
   SheetContent,
   SheetDescription,
@@ -16,15 +21,20 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  type SheetWidth,
 } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
+import { Heading } from "../../primitives";
+
 const meta = {
   title: "Components/Sheet",
   component: Sheet,
+  subcomponents: { SheetContent, SheetBody, SheetFooter, SheetClose },
   parameters: { layout: "padded" },
 } satisfies Meta<typeof Sheet>;
 export default meta;
 type Story = StoryObj<typeof meta>;
+
 function Edges() {
   const [side, setSide] = useState<"top" | "right" | "bottom" | "left">("right");
   return (
@@ -43,13 +53,19 @@ function Edges() {
             <SheetTitle>Assessment record</SheetTitle>
             <SheetDescription>Current review details.</SheetDescription>
           </SheetHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto p-200">
+          <SheetBody className="pt-0">
+            <div
+              data-testid="sticky-label"
+              className="sticky top-0 bg-surface-current pb-100 pt-150"
+            >
+              <Heading size="xsmall">Evidence</Heading>
+            </div>
             {Array.from({ length: 25 }, (_, i) => (
               <p className="py-100" key={i}>
                 Evidence {i + 1}
               </p>
             ))}
-          </div>
+          </SheetBody>
           <SheetFooter>
             <SheetClose render={<Button />}>Done</SheetClose>
           </SheetFooter>
@@ -58,6 +74,12 @@ function Edges() {
     </>
   );
 }
+
+/**
+ * Four edges, with the body as the one scroller between a fixed header and footer. Headings in the
+ * body start one level below the sheet's title, and a sticky label painted with the current surface
+ * matches the sheet, not the page.
+ */
 export const EdgesAndScrolling: Story = {
   render: () => <Edges />,
   play: async ({ canvasElement }) => {
@@ -71,6 +93,10 @@ export const EdgesAndScrolling: Story = {
       await expect(getComputedStyle(popup).animationName).toBe(
         `ds-slide-in-${side === "right" ? "end" : side === "left" ? "start" : side}`,
       );
+      await expect(within(popup).getByRole("heading", { name: "Evidence" }).tagName).toBe("H3");
+      await expect(
+        getComputedStyle(within(popup).getByTestId("sticky-label")).backgroundColor,
+      ).toBe(getComputedStyle(popup).backgroundColor);
       await userEvent.click(within(popup).getByRole("button", { name: "Done" }));
       await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
     }
@@ -79,6 +105,132 @@ export const EdgesAndScrolling: Story = {
     );
   },
 };
+
+const widths: SheetWidth[] = ["small", "medium", "large", "xlarge", "fullscreen"];
+const expectedWidth: Record<SheetWidth, number> = {
+  small: 320,
+  medium: 420,
+  large: 760,
+  xlarge: 960,
+  fullscreen: Number.POSITIVE_INFINITY,
+};
+
+/**
+ * The five widths for a sheet at the start or end edge: `small` for filters, `medium` (the
+ * default) for a form, `large` for a table of about four columns, `xlarge` for a table beside a
+ * preview, and `fullscreen`, which covers the window. Each is capped by the window.
+ */
+export const Widths: Story = {
+  render: () => (
+    <div className="flex flex-wrap gap-100">
+      {widths.map((width) => (
+        <Sheet key={width}>
+          <SheetTrigger render={<Button />}>Open {width}</SheetTrigger>
+          <SheetContent side="end" width={width}>
+            <SheetHeader>
+              <SheetTitle>A {width} sheet</SheetTitle>
+            </SheetHeader>
+            <SheetBody>
+              <p className="font-body">The width is chosen by the task, never set in pixels.</p>
+            </SheetBody>
+            <SheetFooter>
+              <SheetClose render={<Button />}>Done</SheetClose>
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
+      ))}
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement),
+      body = within(canvasElement.ownerDocument.body);
+    for (const width of widths) {
+      await userEvent.click(canvas.getByRole("button", { name: `Open ${width}` }));
+      const popup = await body.findByRole("dialog", { name: `A ${width} sheet` });
+      await expect(popup).toHaveAttribute("data-width", width);
+      await waitFor(() =>
+        expect(popup.getBoundingClientRect().width).toBeCloseTo(
+          Math.min(expectedWidth[width], window.innerWidth),
+          0,
+        ),
+      );
+      await userEvent.keyboard("{Escape}");
+      await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    }
+  },
+};
+
+function PendingSheet() {
+  const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState(false);
+  return (
+    <Sheet open={open} pending={pending} onOpenChange={setOpen}>
+      <SheetTrigger render={<Button />}>Edit filters</SheetTrigger>
+      <SheetContent side="end" width="small">
+        <SheetHeader>
+          <SheetTitle>Edit filters</SheetTitle>
+        </SheetHeader>
+        <SheetBody>
+          <Field>
+            <FieldLabel>Name contains</FieldLabel>
+            <Input defaultValue="review" />
+          </Field>
+        </SheetBody>
+        <SheetFooter>
+          <SheetClose render={<Button variant="subtle" />}>Cancel</SheetClose>
+          <Button variant="primary" isLoading={pending} onClick={() => setPending(true)}>
+            Save filters
+          </Button>
+          {pending ? (
+            <Button variant="subtle" onClick={() => setPending(false)}>
+              Stop waiting
+            </Button>
+          ) : null}
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+/**
+ * `pending` on the root holds the sheet: Escape, the blanket, Close and SheetClose do nothing
+ * while the command runs, the built-in Close keeps focus, and the popup is busy.
+ */
+export const Pending: Story = {
+  render: () => <PendingSheet />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement),
+      body = within(canvasElement.ownerDocument.body);
+    const trigger = canvas.getByRole("button", { name: "Edit filters" });
+    await userEvent.click(trigger);
+    const popup = await body.findByRole("dialog", { name: "Edit filters" });
+    const sheet = within(popup);
+    await userEvent.click(sheet.getByRole("button", { name: "Save filters" }));
+    await expect(popup).toHaveAttribute("aria-busy", "true");
+    // Cancel is unavailable but keeps focus; pressing it does nothing.
+    const cancel = sheet.getByRole("button", { name: "Cancel" });
+    await expect(cancel).toHaveAttribute("aria-disabled", "true");
+    cancel.focus();
+    await userEvent.keyboard("{Enter}");
+    await expect(cancel).toHaveFocus();
+    const close = sheet.getByRole("button", { name: "Close" });
+    close.focus();
+    await expect(close).toHaveAttribute("aria-disabled", "true");
+    await userEvent.keyboard("{Enter}");
+    await expect(close).toHaveFocus();
+    await userEvent.keyboard("{Escape}");
+    await userEvent.click(
+      canvasElement.ownerDocument.querySelector<HTMLElement>('[data-slot="sheet-overlay"]')!,
+    );
+    await expect(popup).toBeVisible();
+    await userEvent.click(sheet.getByRole("button", { name: "Stop waiting" }));
+    await expect(popup).not.toHaveAttribute("aria-busy");
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(trigger).toHaveFocus());
+  },
+};
+
 export const NestedAndRTL: Story = {
   render: () => (
     <LedgerProvider direction="rtl">
@@ -88,17 +240,19 @@ export const NestedAndRTL: Story = {
           <SheetHeader>
             <SheetTitle>Record details</SheetTitle>
           </SheetHeader>
-          <div className="p-200">
+          <SheetBody>
             <Dialog>
               <DialogTrigger render={<Button />}>Edit record</DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Edit record</DialogTitle>
                 </DialogHeader>
-                <p className="p-200">Changes apply to this record.</p>
+                <DialogBody>
+                  <p>Changes apply to this record.</p>
+                </DialogBody>
               </DialogContent>
             </Dialog>
-          </div>
+          </SheetBody>
         </SheetContent>
       </Sheet>
     </LedgerProvider>
@@ -119,5 +273,42 @@ export const NestedAndRTL: Story = {
     );
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+  },
+};
+
+/** Every prop on SheetContent. */
+export const Playground: StoryObj<typeof SheetContent> = {
+  args: { side: "end", width: "medium", showCloseButton: true },
+  argTypes: {
+    side: { control: "inline-radio", options: ["start", "end", "top", "bottom"] },
+    width: { control: "inline-radio", options: widths },
+    showCloseButton: { control: "boolean" },
+  },
+  render: (args) => (
+    <Sheet>
+      <SheetTrigger render={<Button />}>Open sheet</SheetTrigger>
+      <SheetContent {...args}>
+        <SheetHeader>
+          <SheetTitle>Member details</SheetTitle>
+          <SheetDescription>Dana Whitfield</SheetDescription>
+        </SheetHeader>
+        <SheetBody>
+          <p className="font-body">Joined in March. Owns four open tasks.</p>
+        </SheetBody>
+        <SheetFooter>
+          <SheetClose render={<Button />}>Done</SheetClose>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement),
+      body = within(canvasElement.ownerDocument.body);
+    const trigger = canvas.getByRole("button", { name: "Open sheet" });
+    await userEvent.click(trigger);
+    const popup = await body.findByRole("dialog", { name: "Member details" });
+    await userEvent.click(within(popup).getByRole("button", { name: "Done" }));
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(trigger).toHaveFocus());
   },
 };

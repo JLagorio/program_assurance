@@ -12,7 +12,9 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  HeadingLevelProvider,
   PageHeader,
+  Section,
 } from "../..";
 
 const meta = {
@@ -131,5 +133,52 @@ export const Stacked: Story = {
     await expect(Math.round(action.right)).toBe(Math.round(header.right));
     await expect(title.width).toBeGreaterThan(200);
     await expect(action.right).toBeLessThanOrEqual(window.innerWidth);
+  },
+};
+
+/** The same Title at three levels. On a page it is the h1. In a preview or a panel body, which starts its outline at 2, it takes that level from the context and the content after it goes one below through a HeadingLevelProvider. `render` sets the element outright, for a surface with its own title part. The type style is the same in all three, so a preview never copies the Title's classes onto a raw heading. */
+export const TitleLevels: Story = {
+  name: "Title levels",
+  render: () => (
+    <div className="flex flex-col gap-400">
+      <PageHeader>
+        <PageHeader.Title>Access review</PageHeader.Title>
+      </PageHeader>
+      {/* A header inside a panel or a sheet is not a banner landmark; the page's is. */}
+      <HeadingLevelProvider level={2}>
+        <aside aria-label="Preview" className="flex flex-col gap-200">
+          <PageHeader>
+            <PageHeader.Title>Quarterly access review evidence</PageHeader.Title>
+            <PageHeader.Actions>
+              <Button size="small" variant="primary">
+                Edit artifact
+              </Button>
+            </PageHeader.Actions>
+          </PageHeader>
+          <HeadingLevelProvider>
+            <Section title="Versions">Three versions recorded.</Section>
+          </HeadingLevelProvider>
+        </aside>
+      </HeadingLevelProvider>
+      <section aria-label="Version review">
+        <PageHeader>
+          <PageHeader.Title render={<h2 />}>Recovery exercise evidence</PageHeader.Title>
+        </PageHeader>
+      </section>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = canvas.getByRole("heading", { name: "Access review" });
+    const preview = canvas.getByRole("heading", { name: "Quarterly access review evidence" });
+    const rendered = canvas.getByRole("heading", { name: "Recovery exercise evidence" });
+    await expect(page.tagName).toBe("H1");
+    await expect(preview.tagName).toBe("H2");
+    await expect(rendered.tagName).toBe("H2");
+    await expect(canvas.getByRole("heading", { name: "Versions" }).tagName).toBe("H3");
+    for (const title of [preview, rendered]) {
+      await expect(title).toHaveAttribute("data-slot", "page-header-title");
+      await expect(title.className).toBe(page.className);
+    }
   },
 };

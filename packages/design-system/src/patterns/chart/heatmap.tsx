@@ -1,17 +1,21 @@
 import { useLedgerLocale } from "../../lib/locale";
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useContext, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "../../lib/cn";
 import { toneClasses, type Tone } from "../../components/badge";
 import { Popover } from "../../components/popover";
 import {
   CardHead,
+  FrameContext,
   divergingColor,
   useChartFormat,
+  useFrameReport,
   sequentialColor,
   type ChartSize,
   type Formatter,
+  type FrameReport,
+  type TwinSource,
 } from "./_shared";
 
 /** One hue for how much, two for above and below, or a function that says which status tone a cell carries, from its value or its place. */
@@ -34,10 +38,11 @@ export type ChartHeatmapProps = {
   domain?: readonly [number, number] | undefined;
   /** The value that reads as nothing on a diverging scale. Zero when unsaid. */
   midpoint?: number | undefined;
-  /** Print the value in each cell. On for a status scale, where the tone's fill carries its text; off for a colour scale, where the tooltip and the table carry it, and where a printed value sits on a surface chip. */
+  /** Print the value in each cell. On for a status scale, where the tone's fill carries its text. On a colour scale a printed value sits on a surface chip; unsaid there, a Frame around the grid offers the reader a Values toggle that prints them, and the Frame's table twin carries them either way. `false` keeps them hidden and offers no toggle. */
   showValues?: boolean | undefined;
-  /** The cell's height: `small` 24px, `medium` 32px, `large` 40px. */
+  /** The cell's height: `small` 24px, `medium` 32px, `large` 40px. `large` in the expanded Dialog. */
   size?: ChartSize | undefined;
+  /** The value's format in the cells, the tooltip, the card and the table twin. The Frame's, else the kit's. */
   format?: Formatter | undefined;
   /** The grid's accessible name. It is a table. */
   label: string;
@@ -66,7 +71,7 @@ export function ChartHeatmap({
   domain,
   midpoint = 0,
   showValues,
-  size = "medium",
+  size: sizeProp = "medium",
   format: formatProp,
   label,
   rowLabel,
@@ -78,7 +83,9 @@ export function ChartHeatmap({
 }: ChartHeatmapProps) {
   const { t, direction } = useLedgerLocale();
   const { format: defaultFormat } = useChartFormat();
-  const format = formatProp ?? defaultFormat;
+  const frame = useContext(FrameContext);
+  const format = formatProp ?? frame?.format ?? defaultFormat;
+  const size = frame?.expanded ? "large" : sizeProp;
 
   const [picked, setPicked] = useState<HeatmapSelection | null>(null);
   const anchor = useRef<HTMLButtonElement | null>(null);
@@ -93,7 +100,38 @@ export function ChartHeatmap({
     return [Math.min(...nums), Math.max(...nums)];
   }, [values, domain]);
   const status = typeof scale === "function";
-  const printed = showValues ?? status;
+  const printed = showValues ?? (status || Boolean(frame?.values));
+  // The twin is the grid pivoted: a row per row, a column per column, every value printed.
+  const table = useMemo<TwinSource>(
+    () => ({
+      kind: "custom",
+      build: ({ xLabel }) => ({
+        columns: [
+          { label: rowLabel ?? xLabel ?? t("chartCategory"), numeric: false },
+          ...columns.map((c) => ({ label: c, numeric: true })),
+        ],
+        rows: rows.map((r, ri) => ({
+          key: r,
+          cells: [
+            { text: r, csv: r },
+            ...columns.map((_, ci) => {
+              const v = values[ri]?.[ci];
+              return typeof v === "number"
+                ? { text: format(v), csv: String(v) }
+                : { text: "", csv: "" };
+            }),
+          ],
+        })),
+      }),
+    }),
+    [rows, columns, values, rowLabel, t, format],
+  );
+  const report = useMemo<FrameReport>(
+    () => ({ format, table, values: !status && showValues === undefined }),
+    [format, table, status, showValues],
+  );
+  useFrameReport(report);
+  if (frame?.offstage) return null;
   const chooses = Boolean(onSelect || details);
   const paint = (v: number, r: string, c: string): Paint => {
     if (typeof scale === "function") return { className: toneClasses[scale(v, r, c)].subtle };
@@ -129,7 +167,8 @@ export function ChartHeatmap({
   };
   const head = "h-row-header px-050 pb-050 align-bottom font-body-xsmall font-medium text-subtlest";
   return (
-    <div className={cn("overflow-x-auto", className)}>
+    // Relative, so the cells' visually hidden values stay inside the scroller.
+    <div className={cn("relative overflow-x-auto", className)}>
       <table
         aria-label={loading ? t("loadingLabel", { label }) : label}
         aria-busy={loading || undefined}

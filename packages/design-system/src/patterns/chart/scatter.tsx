@@ -7,6 +7,7 @@ import {
   CardHead,
   Plot,
   PlotSkeleton,
+  ReferenceLabels,
   References,
   Swatch,
   Tick,
@@ -14,24 +15,35 @@ import {
   axisTitle,
   categoricalTone,
   chartColor,
+  extraCell,
+  extraColumn,
   formatValue,
   grid,
+  heights,
   overlay,
+  raw,
   rectAnchor,
   seriesClass,
+  splitColumns,
   surface,
   tickValue,
   useFrame,
+  useFrameReport,
   useMotion,
   usePicked,
+  usePlotSize,
   useTooltipMotion,
   type CategoryFormatter,
+  type ChartColumn,
   type ChartDatum,
   type ChartReference,
   type ChartSeries,
   type ChartSize,
   type ChartTone,
+  type ChartTwin,
   type Formatter,
+  type FrameReport,
+  type TwinSource,
 } from "./_shared";
 
 export type ChartScatterGroup = {
@@ -65,9 +77,12 @@ export type ChartScatterProps = {
   tone?: ChartTone | undefined;
   /** Lines across the plot: a limit on either axis, or both for quadrants. */
   reference?: ChartReference[] | undefined;
-  /** Axis titles, when the keys do not say enough. */
+  /** Axis titles, when the keys do not say enough. They head the table twin's axis columns too. */
   xLabel?: string | undefined;
   yLabel?: string | undefined;
+  /** What `z` is called in the tooltip, the card and the table twin: "Exposure". The key when unsaid. */
+  zLabel?: string | undefined;
+  /** The plot's height. The Frame's when unsaid, else `medium` (200px); `large` in the expanded Dialog. */
   size?: ChartSize | undefined;
   height?: number | undefined;
   format?: Formatter | undefined;
@@ -144,8 +159,9 @@ export function ChartScatter({
   reference,
   xLabel,
   yLabel,
-  size,
-  height,
+  zLabel,
+  size: sizeProp,
+  height: heightProp,
   format: formatProp,
   formatX: formatXProp,
   label,
@@ -156,12 +172,13 @@ export function ChartScatter({
 }: ChartScatterProps) {
   const { t } = useLedgerLocale();
 
-  const { name, hidden, highlighted, format, formatX, loading } = useFrame(
+  const { name, hidden, highlighted, format, formatX, loading, offstage } = useFrame(
     label,
     formatProp,
     formatXProp,
     loadingProp,
   );
+  const { size, height } = usePlotSize(sizeProp, heightProp);
   const motion = useMotion();
   const tooltipMotion = useTooltipMotion();
   const { picked, pick, clear } = usePicked<ScatterSelection>();
@@ -176,6 +193,47 @@ export function ChartScatter({
       }));
     return [{ key: "all", label: t("points"), tone, rows: data }];
   }, [data, groupBy, groups, tone, t]);
+  const grouped = Boolean(groupBy && groups?.length);
+  const legend = useMemo<ChartSeries[] | undefined>(
+    () => (grouped ? sets.map((s) => ({ key: s.key, label: s.label, tone: s.tone })) : undefined),
+    [grouped, sets],
+  );
+  const table = useMemo<TwinSource>(
+    () => ({
+      kind: "custom",
+      build: ({ columns }) =>
+        scatterTwin({
+          data,
+          sets,
+          grouped,
+          axes: [
+            { key: x, label: xLabel ?? x },
+            { key: y, label: yLabel ?? y },
+            ...(z ? [{ key: z, label: zLabel ?? z }] : []),
+          ],
+          nameKey,
+          nameLabel: t("point"),
+          groupLabel: t("chartGroup"),
+          columns,
+          format,
+          formatX,
+        }),
+    }),
+    [data, sets, grouped, x, y, z, xLabel, yLabel, zLabel, nameKey, t, format, formatX],
+  );
+  const report = useMemo<FrameReport>(
+    () => ({
+      series: legend,
+      swatch: "dot",
+      format,
+      formatX,
+      height: height ?? heights[size ?? "medium"],
+      table,
+    }),
+    [legend, format, formatX, height, size, table],
+  );
+  useFrameReport(report);
+  if (offstage) return null;
   if (loading)
     return (
       <PlotSkeleton kind="dots" name={name} size={size} height={height} className={className} />
@@ -183,7 +241,7 @@ export function ChartScatter({
   const axes: ChartSeries[] = [
     { key: x, label: xLabel ?? x },
     { key: y, label: yLabel ?? y },
-    ...(z ? [{ key: z, label: z }] : []),
+    ...(z ? [{ key: z, label: zLabel ?? z }] : []),
   ];
   const chooses = Boolean(onSelect || details);
   const axisRows = (datum: ChartDatum) =>
@@ -303,9 +361,74 @@ export function ChartScatter({
           />
         ))}
         <References reference={reference} />
+        <ReferenceLabels reference={reference} />
       </ScatterChart>
     </Plot>
   );
+}
+
+/**
+ * A scatter's table twin: one row per point drawn, in the data's order. The point's name and its
+ * group lead, then the Frame's columns placed before, a column per axis, and the columns after. The
+ * legend's groups are a column of words, not a column each.
+ */
+function scatterTwin({
+  data,
+  sets,
+  grouped,
+  axes,
+  nameKey,
+  nameLabel,
+  groupLabel,
+  columns,
+  format,
+  formatX,
+}: {
+  data: ChartDatum[];
+  sets: Group[];
+  grouped: boolean;
+  axes: { key: string; label: string }[];
+  nameKey: string | undefined;
+  nameLabel: string;
+  groupLabel: string;
+  columns: ChartColumn[] | undefined;
+  format: Formatter;
+  formatX: CategoryFormatter;
+}): ChartTwin {
+  // Each drawn point's group, looked up once: a point in no group is not drawn, so not a row.
+  const groupOf = new Map<ChartDatum, string>();
+  if (grouped) for (const s of sets) for (const d of s.rows) groupOf.set(d, s.label);
+  const rows = grouped ? data.filter((d) => groupOf.has(d)) : data;
+  const { before, after } = splitColumns(columns);
+  return {
+    columns: [
+      ...(nameKey ? [{ label: nameLabel, numeric: false }] : []),
+      ...(grouped ? [{ label: groupLabel, numeric: false }] : []),
+      ...before.map((c) => extraColumn(rows, c)),
+      ...axes.map((a) => ({ label: a.label, numeric: true })),
+      ...after.map((c) => extraColumn(rows, c)),
+    ],
+    rows: rows.map((d, i) => {
+      const title = nameKey ? String(d[nameKey] ?? "") : "";
+      const group = groupOf.get(d) ?? "";
+      return {
+        key: String(i),
+        cells: [
+          ...(nameKey ? [{ text: title, csv: title }] : []),
+          ...(grouped ? [{ text: group, csv: group }] : []),
+          ...before.map((c) => extraCell(d, c, format, formatX)),
+          ...axes.map((a, j) => {
+            const v = d[a.key];
+            return {
+              text: j === 0 && typeof v === "string" ? formatX(v) : formatValue(v, format),
+              csv: raw(v),
+            };
+          }),
+          ...after.map((c) => extraCell(d, c, format, formatX)),
+        ],
+      };
+    }),
+  };
 }
 
 /** A point's tooltip: its name and group, then each axis as name and value. */
