@@ -7,7 +7,7 @@ import * as Stories from "./Stat.stories";
 
 # Stat
 
-A number with its name. `Stat.Tile` is a label, a big tabular number and a one-line note, one cell of a `Stat.Grid`: the headline numbers at the top of a record, framed as a card, or a band between two sections. A bare `Stat` is the number over its label for an unframed row inside a Section. Zero reads muted.
+A number with its name. `Stat.Tile` is a label, a big tabular number and a one-line note, one cell of a `Stat.Grid`: the headline numbers at the top of a record, framed as a card, or a band between two sections. A tile with `link` is a count that opens the register it counts. A bare `Stat` is the number over its label for an unframed row inside a Section. Numbers are written in the reader's locale, and zero reads muted.
 
 <Canvas of={Stories.StatMatrix} />
 
@@ -18,6 +18,8 @@ A number with its name. `Stat.Tile` is a label, a big tabular number and a one-l
 | Label | `font.body.small` in `color.text.subtle`: what the number counts. Above the number in a Tile, below it in a bare Stat.                      |
 | Value | `font.heading.small` semibold, tabular. `color.text`, or the tone's text colour when the number is a status; zero in `color.text.subtlest`. |
 | Note  | `font.body.small` in `color.text.subtle`, one line under the value. Tile only.                                                              |
+| Trend | Beside the value, `space.150` from it: a Chart.Sparkline of the same count over time, from `trend`. Tile only.                              |
+| Link  | With `link`, the link fills the tile and holds the label, value, trend and note, so the whole tile is one target. Tile only.                |
 | Grid  | Two to six cells across, hairline gutters painted with `color.border`. `card` is bordered and rounded; `band` runs between two rules.       |
 
 ## Variants
@@ -25,9 +27,16 @@ A number with its name. `Stat.Tile` is a label, a big tabular number and a one-l
 | Variant               | Use                                                                                                    |
 | --------------------- | ------------------------------------------------------------------------------------------------------ |
 | `Stat.Tile` in a Grid | The headline numbers of a record or a screen: at the top as a card, or as a band between two sections. |
+| Linked `Stat.Tile`    | A dashboard count that opens its filtered register: "Open risks" opens the risk register, filtered.    |
 | `Stat`                | A summary row inside a Section, where a framed grid would be a card inside a card.                     |
 
-Not built, and why: no trend arrow, delta or sparkline ("+3 this week"), because a number on a record is a state, not a series, and a series is a [Chart](?path=/docs/patterns-chart-overview--docs); no icon in the tile; no tinted tile. The prototype has a stat with a bar under it on the dashboard and tinted counts on two pages, and both are parked as decisions rather than added here.
+<Canvas of={Stories.Linked} />
+
+A count whose history matters takes a sparkline in `trend`, beside the number; the number stays the value, and the note says what the line shows ("Down from 14 in January"). A series read for its values is a [Chart](?path=/docs/patterns-chart-overview--docs).
+
+<Canvas of={Stories.WithATrend} />
+
+Not built, and why: no delta or trend arrow ("+3 this week"), because a colour and an arrow for a change need a polarity the tile cannot know, and the note says it in words; no icon in the tile; no tinted tile, because the tone colours the number and a tinted tile would make every number read as a status; no link on a bare `Stat`, because a summary row inside a Section is read, not opened.
 
 ## Sizes
 
@@ -41,13 +50,18 @@ A parent that sizes the grid to its content (an items-start Stack, an Inline, a 
 
 ## States
 
-| State   | What changes                                                                     |
-| ------- | -------------------------------------------------------------------------------- |
-| Neutral | The number in `color.text`. The default, and most numbers.                       |
-| Toned   | The number in the tone's text colour, because the number is a status.            |
-| Zero    | The number in `color.text.subtlest`, whatever the tone: nothing is not a status. |
+| State       | What changes                                                                                                                                                 |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Neutral     | The number in `color.text`. The default, and most numbers.                                                                                                   |
+| Toned       | The number in the tone's text colour, because the number is a status.                                                                                        |
+| Zero        | The number in `color.text.subtlest`, whatever the tone: nothing is not a status.                                                                             |
+| Loading     | `isLoading`: a heading-sized Skeleton where the number goes, `aria-busy` on the tile and a hidden "Loading" after the label. The label stays; nothing moves. |
+| Unavailable | `value={<Absent label="Not available" />}` and a note that says what happened, "Could not load". The tile is not busy.                                       |
+| Linked      | `link`: `elevation.surface.hovered` under the pointer, `elevation.surface.pressed` while pressed, the label underlined, the focus ring inside the tile.      |
 
-A Stat does not hover, focus or disable. A tile that takes the reader somewhere is a link around the tile, and the tile does not change.
+A tile without a link does not hover, focus or disable. A tile that takes the reader somewhere takes `link`, never a link wrapped around it: the grid sizes its own children, so a wrapping link would stretch past the tile and its ring would be clipped by the frame. A linked tile holds no other control.
+
+<Canvas of={Stories.LoadingAndUnavailable} />
 
 ## Modifiers
 
@@ -59,36 +73,43 @@ A Stat does not hover, focus or disable. A tile that takes the reader somewhere 
 
 ## Content
 
+<Canvas of={Stories.NumbersInTheReadersLocale} />
+
 - **The label is a noun phrase**, under three words when it can be: "Open findings", "Re-tests owed", "Verified".
-- **The value is a number**, or a short string that reads as one: "80%", "41/80". Tabular, so a row of tiles aligns.
+- **The value is a number**, or a short string that reads as one: "80%", "41/80". Tabular, so a row of tiles aligns. Pass a number as a number: the tile writes it in the reader's locale from the LedgerProvider (1,234 in en-US, 1.234 in de-DE; en-US when there is no provider, never the machine's). A string shows as given.
+- **Never a word in the number's place.** Loading is `isLoading`; a number that could not load is an Absent with its reason and a note, not "Loading…", "…" or "Unavailable" in heading type.
 - **The note is one line** that qualifies the number: "298 of 372", "Oldest 12 days", "Nothing waiting on you". A note that decomposes a number belongs on the tile that holds the whole, not on a part.
 - **Zero's note says what the zero means.** "Nothing waiting on you" is worth more than a muted 0.
 
 ## Style
 
-| Element | Token                                                                                                             |
-| ------- | ----------------------------------------------------------------------------------------------------------------- |
-| Tile    | `elevation.surface` · `space.200` inline · `space.150` block · `space.025` between lines                          |
-| Value   | `font.heading.small` semibold · tabular · `color.text` / `color.text.<tone>` / `color.text.subtlest` at zero      |
-| Label   | `font.body.small` · `color.text.subtle`                                                                           |
-| Note    | `font.body.small` · `color.text.subtle`                                                                           |
-| Grid    | `gap-px` painted `color.border` · `card`: `color.border`, `radius.large` · `band`: `color.border` above and below |
-| Stat    | `space.100` block · `space.050` between value and label                                                           |
+| Element | Token                                                                                                               |
+| ------- | ------------------------------------------------------------------------------------------------------------------- |
+| Tile    | `elevation.surface` · `space.200` inline · `space.150` block · `space.025` between lines                            |
+| Value   | `font.heading.small` semibold · tabular · `color.text` / `color.text.<tone>` / `color.text.subtlest` at zero        |
+| Label   | `font.body.small` · `color.text.subtle`                                                                             |
+| Note    | `font.body.small` · `color.text.subtle`                                                                             |
+| Grid    | `gap-px` painted `color.border` · `card`: `color.border`, `radius.large` · `band`: `color.border` above and below   |
+| Link    | `elevation.surface.hovered` · `elevation.surface.pressed` · the focus ring inside the edge · `motion.duration.fast` |
+| Trend   | `space.150` from the number                                                                                         |
+| Stat    | `space.100` block · `space.050` between value and label                                                             |
 
-The toned value is Badge's text colour for the tone, so a danger count and a danger Indicator are the same red.
+The toned value is Badge's text colour for the tone, so a danger count and a danger Indicator are the same red. In forced colours the grid paints its hairlines in the text colour and each tile sits on the reader's canvas, so the cells stay apart.
 
 ## Accessibility
 
 - **Reading order is label then value in a Tile,** so a screen reader hears "Open findings, 17". A bare Stat reads value then label, "17, Open findings", which is how a summary row is scanned.
 - **Zero is muted, not disabled.** `color.text.subtlest` still passes the contrast test; the a11y gate runs the zero row of the matrix.
 - **The tone is not the only signal.** The label says what the number is, and the note says what it means; the colour ranks it.
-- **A grid is a `div`**, not a table or a list: the tiles are read in order and there is nothing to navigate.
+- **A grid is a `div`**, not a table or a list: the tiles are read in order and there is nothing to navigate. Name a grid of headline numbers with `role="group"` and `aria-label`.
+- **A linked tile is one link** whose name is the label, the number and the note: "Open risks, 4, Oldest 12 days, link". It is one Tab stop, Enter opens it, and its focus ring is drawn inside the tile, where the frame cannot clip it.
+- **A loading tile is busy**: `aria-busy` on the tile, the Skeleton hidden and a hidden "Loading" (the locale's `loading`) read after the label. Put `aria-busy` on the grid too while any of its numbers load.
 
 ## Props
 
-Stat, Stat.Tile and Stat.Grid forward native `div` props and refs to their outer elements. IDs, ARIA, data attributes and events are preserved; `className` merges with each part’s defaults. Styles override the Grid’s default gutter background and accept ordinary sizing on all three parts.
+Stat, Stat.Tile and Stat.Grid forward native `div` props and refs to their outer elements, and name themselves last with `data-slot` (`stat`, `stat-tile`, `stat-grid`; a tile's link is `stat-link`, its trend `stat-trend`). IDs, ARIA, data attributes and events are preserved; `className` merges with each part’s defaults. Styles override the Grid’s default gutter background and accept ordinary sizing on all three parts. With `link`, the ref still reaches the tile; the link element keeps its own props, ref and handlers (`link={<Link to="/risks" search={{ status: "open" }} />}`).
 
-Stat and Stat.Tile keep their configured `label`/`value`/`note` slots. Compose tiles through Stat.Grid’s children. Zero remains muted, and tones, responsive columns and frames retain their existing defaults.
+Stat and Stat.Tile keep their configured `label`/`value`/`note` slots. Compose tiles through Stat.Grid’s children. Zero remains muted, and tones, responsive columns and frames retain their existing defaults. Stat.Tile and Stat.Grid are also exported by name, as `StatTile` and `StatGrid`.
 
 <ArgTypes of={Stat} />
 

@@ -192,9 +192,13 @@ try {
   await expect(sheet().getByRole("heading", { name: "Add from library" })).toBeVisible();
   await sheet().getByRole("row").filter({ hasText: "corp-audit" }).first().click();
   await sheet().getByRole("button", { name: "Continue", exact: true }).click();
+  // The confirmation is its own Dialog, titled and submitted with the trigger's words; the picker
+  // has gone once it shows.
+  await expect(page.getByRole("dialog")).toHaveCount(1);
   await expect(
-    sheet().getByRole("heading", { name: /Apply Corporate audit policy/ }),
+    sheet().getByRole("heading", { name: "Add from library", exact: true }),
   ).toBeVisible();
+  await expect(sheet()).toContainText("Corporate audit policy");
   await expect(sheet().getByRole("table", { name: "What will be written" })).toContainText(
     controlA.code,
   );
@@ -208,9 +212,7 @@ try {
   await sheet()
     .getByLabel("Rationale", { exact: true })
     .fill("The ground segment is operated from Sierra Vista.");
-  await sheet()
-    .getByRole("button", { name: /^Apply to 1$/ })
-    .click();
+  await sheet().getByRole("button", { name: "Add from library", exact: true }).click();
   await expect(sheet()).toHaveCount(0);
   await expect(libraryTable).toContainText("Corporate audit policy");
   await expect(libraryTable).toContainText("Audit policy");
@@ -262,9 +264,8 @@ try {
     .click();
   await sheet().getByRole("row").filter({ hasText: "RQD-RETAIN" }).first().click();
   await sheet().getByRole("button", { name: "Continue", exact: true }).click();
-  await sheet()
-    .getByRole("button", { name: /Adopt and allocate to 1/ })
-    .click();
+  await expect(page.getByRole("dialog")).toHaveCount(1);
+  await sheet().getByRole("button", { name: "Add from library", exact: true }).click();
   await expect(sheet()).toHaveCount(0);
   const requirementsTable = page.getByRole("table", {
     name: "Allocated requirements",
@@ -353,9 +354,7 @@ try {
   await sheet()
     .getByLabel("Rationale", { exact: true })
     .fill("The ground segment carries the audit policy as its own element.");
-  await sheet()
-    .getByRole("button", { name: /^Apply to 1$/ })
-    .click();
+  await sheet().getByRole("button", { name: "Add from library", exact: true }).click();
   await expect(sheet()).toHaveCount(0);
   const created = await rows("systems", { parent_system_id: child.id });
   assert.equal(created.length, 1);

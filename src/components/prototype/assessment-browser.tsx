@@ -23,13 +23,15 @@ import { StatusBadge, LevelIndicator } from "@/components/app/status";
 import { campaignStatuses, impactLevels } from "@/lib/status";
 import { type DataRecord } from "@/lib/records";
 import { productCreateLabel, productRecordNoun } from "@/lib/product-records";
-import { RecordPreviewActions, RecordPreviewPanel } from "./record-preview";
+import { RecordPreviewActions, RecordPreviewPanel, useEndOnHide } from "./record-preview";
 import { AssessmentTable } from "./assessment-table";
 import { ProgramCollection } from "./program-shared";
 import { RelationName } from "./record-tools";
 import { DetailFacts, ModelForm, QueryState, SchemaLink, type FormTarget } from "./work-common";
 
-type AssessmentKind = "Campaigns" | "Events" | "Objectives" | "Scopes";
+/** The browser's tabs, in order; Scopes shows only within a program. */
+export const ASSESSMENT_TABS = ["Campaigns", "Events", "Objectives", "Scopes"] as const;
+export type AssessmentKind = (typeof ASSESSMENT_TABS)[number];
 type AssessmentRecordKind = Exclude<AssessmentKind, "Scopes">;
 const tables: Record<AssessmentRecordKind, FormTarget["table"]> = {
   Campaigns: "assessment_campaigns",
@@ -59,7 +61,16 @@ const day = (value: unknown) =>
   typeof value === "string" && value ? <DateTime value={value} format="date" /> : null;
 
 /** Campaigns, their events, their objectives and, within a program, its assessment scopes: registers under one tab strip, each on the kit's table with its own search, chips and create action. Choosing a campaign's event count opens its events with the Campaign chip already set. */
-export function AssessmentBrowser({ programId }: { programId?: string }) {
+export function AssessmentBrowser({
+  programId,
+  tab: routeTab,
+  onTabChange,
+}: {
+  programId?: string;
+  /** The tab, when the route keeps it in the URL; local otherwise. */
+  tab?: AssessmentKind | undefined;
+  onTabChange?: ((tab: AssessmentKind) => void) | undefined;
+}) {
   const workspace = useWorkspace();
   const { formatPlural } = useLedgerLocale();
   const campaigns = useRows("assessment_campaigns", programId ? { program_id: programId } : {});
@@ -70,10 +81,17 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
   const parties = useRows("parties");
   const systems = useRows("systems", programId ? { program_id: programId } : {});
   const scopes = useRows("scopes");
-  const [tab, setTab] = useState<AssessmentKind>("Campaigns");
+  const [localTab, setLocalTab] = useState<AssessmentKind>("Campaigns");
+  // Scopes belongs to a program's browser; elsewhere a stale "Scopes" reads as Campaigns.
+  const tab = routeTab && (programId || routeTab !== "Scopes") ? routeTab : localTab;
+  const setTab = (next: AssessmentKind) => {
+    setLocalTab(next);
+    onTabChange?.(next);
+  };
   const [campaignId, setCampaignId] = useState<string | null>(null);
   const [form, setForm] = useState<FormTarget | null>(null);
   const [selection, setSelection] = useState<FormTarget | null>(null);
+  useEndOnHide(() => setSelection(null));
   const [displayed, setDisplayed] = useState<Record<string, DataRecord[]>>({});
   // A campaign's event count opens the Events tab; its button leaves with the Campaigns panel, so
   // focus goes to the tab the reader is now on.
@@ -261,7 +279,7 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
     <Stack space="space.200">
       {form && <ModelForm target={form} onClose={() => setForm(null)} />}
       <Tabs value={tab} onValueChange={(value) => setTab(value as AssessmentKind)}>
-        <TabsList variant="line" activateOnFocus aria-label="Assessment collections">
+        <TabsList variant="line" aria-label="Assessment collections">
           {kinds.map((name) => (
             <TabsTrigger value={name} key={name} {...(name === "Events" ? { ref: eventsTab } : {})}>
               {name}
@@ -296,9 +314,9 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
                 "Schedule an assessment campaign to plan its events and record their objectives.",
               action: add("Campaigns", "medium"),
             }}
-            // The name's 200 and the status's 120 fit a phone's row together.
+            // The name's 180 minimum and the status's 120 fit a phone's row together.
             columns={[
-              { label: "Campaign", key: "title", width: 200 },
+              { label: "Campaign", key: "title" },
               ...(programId
                 ? []
                 : [{ label: "Program", key: "program" as const, width: 180, priority: 3 }]),
@@ -309,7 +327,7 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
                 width: 120,
                 priority: 1,
               },
-              { label: "Owner", key: "owner", width: 180, priority: 4 },
+              { label: "Owner", key: "owner", kind: "person", width: 180, priority: 4 },
               { label: "Starts", key: "starts_at", width: 120, priority: 2 },
               { label: "Ends", key: "ends_at", width: 120, priority: 5 },
               {
@@ -371,7 +389,7 @@ export function AssessmentBrowser({ programId }: { programId?: string }) {
               action: add("Events", "medium"),
             }}
             columns={[
-              { label: "Event", key: "title", width: 200 },
+              { label: "Event", key: "title" },
               { label: "Campaign", key: "campaign", width: 190, priority: 3 },
               { label: "Plan version", key: "plan", kind: "number", width: 135, priority: 5 },
               {

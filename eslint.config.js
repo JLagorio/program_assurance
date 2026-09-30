@@ -1,5 +1,8 @@
+import { readFileSync } from "node:fs";
+
 import js from "@eslint/js";
-import eslintPluginPrettier from "eslint-plugin-prettier/recommended";
+// Prettier runs as its own step (npm run format:check); this only turns off rules that would fight it.
+import eslintConfigPrettier from "eslint-config-prettier/flat";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
@@ -25,7 +28,16 @@ const REFERENCE_KITS = [
       "@/components/app/compositions",
       "@/components/ui/*",
       "@/components/reui/*",
+      // Lint-ignored like the kits, so an import from it would bring unlinted styling into a screen.
+      "@/components/examples",
+      "@/components/examples/*",
     ],
+    message: "Product code imports the kit from @ledger/design-system, not a reference kit.",
+  },
+  {
+    // The same lint-ignored folders by any other spelling: the bare folder (`@/components/ui`), a
+    // relative path (`../ui/button`) or one that climbs back into src/components.
+    regex: String.raw`(^|/)components/(ui|reui|examples)(/|$)|^\.\.?/(\.\./)*(ui|reui|examples)(/|$)`,
     message: "Product code imports the kit from @ledger/design-system, not a reference kit.",
   },
 ];
@@ -37,6 +49,29 @@ const DOMAIN_NEVER_IMPORTS_UI = {
     "^(@ledger/design-system(/.*)?|@/components(/(?!app/workspace$).*)?|@/routes(/.*)?|react-dom(/.*)?)$",
   message:
     "src/lib is domain code and never imports the UI. Move the rendering into src/components or src/routes and keep the rule, hook or command here.",
+};
+
+// Product sites that predate a rule, counted per rule and file; the counts may only shrink.
+const PRODUCT_ALLOW = JSON.parse(
+  readFileSync(new URL("./scripts/lint-allow.json", import.meta.url), "utf8"),
+);
+/** A rule at `severity`, with the product's allowance for it and any other options it takes. */
+const allowing = (name, severity = "error", extra = {}) => {
+  const options = { ...(PRODUCT_ALLOW[name] ? { allow: PRODUCT_ALLOW[name] } : {}), ...extra };
+  return Object.keys(options).length ? [severity, options] : severity;
+};
+
+// Where the kit's advice names a generic part and this app has its own, each finding of the rule
+// ends with the app's part (the rule's `note` option).
+const RECORD_LINK = "A record's name is RecordLink (src/components/prototype/record-preview.tsx).";
+const NOTES = {
+  "ledger/no-native-confirm": "In this app: useConfirmation (src/components/app/confirmation.tsx).",
+  "ledger/no-kit-shadow":
+    "In this app a status is StatusBadge and a level LevelIndicator (src/components/app/status.tsx).",
+  "ledger/no-plain-alert-role":
+    "In this app: useFormFeedback (src/components/app/form-feedback.ts).",
+  "ledger/prefer-text-link": RECORD_LINK,
+  "ledger/text-link-navigation": RECORD_LINK,
 };
 
 // The product: routes, app components, domain code and the router. Reference kits are not the product.
@@ -82,6 +117,10 @@ export default tseslint.config(
     ],
   },
   {
+    // A disable that silences nothing fails the run, so a fixed site loses its comment with its fix.
+    linterOptions: { reportUnusedDisableDirectives: "error" },
+  },
+  {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
@@ -112,6 +151,11 @@ export default tseslint.config(
     rules: {
       "ledger/product-responsive-table": "error",
       "ledger/product-line-tabs": "error",
+      // The preset warns; this product holds layout to the primitives and their props (TOO-13).
+      "ledger/use-primitives": allowing("ledger/use-primitives"),
+      ...Object.fromEntries(
+        Object.entries(NOTES).map(([name, note]) => [name, allowing(name, "error", { note })]),
+      ),
     },
   },
   {
@@ -123,5 +167,5 @@ export default tseslint.config(
       ],
     },
   },
-  eslintPluginPrettier,
+  eslintConfigPrettier,
 );

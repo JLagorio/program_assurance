@@ -82,7 +82,7 @@ export const Basic: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const nav = canvas.getByRole("navigation", { name: "breadcrumb" });
+    const nav = canvas.getByRole("navigation", { name: "Breadcrumb" });
     const list = canvas.getByRole("list", { name: "Record hierarchy" });
     const programs = canvas.getByRole("link", { name: "Programs" });
     const atlas = canvas.getByRole("link", { name: "Atlas payments platform" });
@@ -715,6 +715,18 @@ export const CollapsesToFit: Story = {
       frame.style.maxWidth = "320px";
       await waitFor(() => expect(trailState(nav).folded).toEqual(folded));
       await expect(more).toBeVisible();
+      // A level that folds while it holds focus hands focus to the ellipsis, which now lists it,
+      // without scrolling the page: the reader's place stays in the trail.
+      frame.style.maxWidth = "none";
+      await waitFor(() => expect(trailState(nav).folded).toEqual([]));
+      const middle = within(nav).getByRole("link", { name: "Atlas payments platform" });
+      middle.focus();
+      await expect(middle).toHaveFocus();
+      const scrolled = window.scrollY;
+      frame.style.maxWidth = "320px";
+      await waitFor(() => expect(trailState(nav).folded).toEqual(folded));
+      await waitFor(() => expect(more).toHaveFocus());
+      await expect(window.scrollY).toBe(scrolled);
     }
   },
 };
@@ -1075,7 +1087,8 @@ export const ComposedLevels: Story = {
     const nav = canvas.getByRole("navigation", { name: "Composed requirement hierarchy" });
     const list = within(nav).getByRole("list");
     const frame = canvas.getByTestId("composed-frame");
-    const badge = within(nav).getByText("Draft");
+    // The pill, not the label span inside it.
+    const badge = within(nav).getByText("Draft").closest<HTMLElement>('[data-slot="badge"]')!;
     const loops: string[] = [];
     const onError = (event: ErrorEvent) => {
       if (event.message.includes("ResizeObserver")) loops.push(event.message);
@@ -1152,7 +1165,7 @@ function InPlaceTrail({ label }: { label: string }) {
   const [level, setLevel] = useState(2);
   const levels = ["Programs", "Atlas payments platform", "Controls"];
   return (
-    <Stack space="space.200">
+    <Stack space="space.200" className="min-w-0">
       <Breadcrumb aria-label={label}>
         <BreadcrumbList>
           {level > 0 && (
@@ -1180,7 +1193,9 @@ function InPlaceTrail({ label }: { label: string }) {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <output aria-label="Selected level">Selected level: {levels[level]}</output>
+      <output aria-label="Selected level" className="min-w-0 break-words">
+        Selected level: {levels[level]}
+      </output>
       <div>
         <Button size="small" onClick={() => setLevel(2)}>
           Open Controls
@@ -1248,8 +1263,48 @@ export const BreadcrumbMatrix: Story = {
       <Specimens title='overflow="wrap": every level, each separator starting its line'>
         <LongTrail label="Wrapping example" />
       </Specimens>
+      <Specimens title="Right to left: the chevrons point along the reading direction">
+        <div dir="rtl" className="min-w-0">
+          <StandardTrail label="Right-to-left example" />
+        </div>
+      </Specimens>
     </Stack>
   ),
+};
+
+/**
+ * In a right-to-left page the trail reads from the right: the root at the start, the page at the
+ * end, and the default chevrons turn to point along the reading direction. It folds to its width
+ * the same way, the ellipsis after the root.
+ */
+export const RightToLeft: Story = {
+  name: "Right to left",
+  render: () => (
+    <div dir="rtl">
+      <Stack space="space.300">
+        <StandardTrail label="Right-to-left trail" />
+        <div style={{ maxWidth: 320 }}>
+          <DeepTrail label="Right-to-left folding trail" />
+        </div>
+      </Stack>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const nav = canvas.getByRole("navigation", { name: "Right-to-left trail" });
+    const root = within(nav).getByRole("link", { name: "Programs" }).getBoundingClientRect();
+    const page = within(nav).getByRole("link", { current: "page" }).getBoundingClientRect();
+    await expect(root.left).toBeGreaterThan(page.right);
+    for (const chevron of Array.from(
+      canvasElement.querySelectorAll('[data-slot="breadcrumb-separator"] > svg'),
+    ))
+      await expect(getComputedStyle(chevron).rotate).toBe("180deg");
+    const folding = canvas.getByRole("navigation", { name: "Right-to-left folding trail" });
+    const list = within(folding).getByRole("list");
+    await within(folding).findByRole("button", { name: "Show hidden levels" });
+    await expectOneLine(list);
+    await expect(trailState(folding).shown[0]).toBe("Programs");
+  },
 };
 
 export const AboveTitle: Story = {
@@ -1274,6 +1329,9 @@ export const AboveTitle: Story = {
     </Stack>
   ),
 };
+
+/** The console spy the Don't story watches for the one-current-page warning. */
+const dontWarnings: { said: string[] } = { said: [] };
 
 export const Dont: Story = {
   render: () => (
@@ -1342,10 +1400,28 @@ export const Dont: Story = {
         do={<RouterTrail label="Exact matching example" mode="exact" />}
         doText="A router link through render matches exactly, or the router renders BreadcrumbLink itself: only the page is the current page."
         dont={<RouterTrail label="Prefix matching mistake" mode="prefix" />}
-        dontText="A router link through render that matches by prefix marks Programs and the program as the current page too, and a screen reader says so on every level."
+        dontText="A router link through render that matches by prefix marks Programs and the program as the current page too, and a screen reader says so on every level. The trail says so once in the console."
       />
     </Stack>
   ),
+  beforeEach: () => {
+    const original = console.warn;
+    dontWarnings.said = [];
+    console.warn = (...args: unknown[]) => {
+      dontWarnings.said.push(String(args[0] ?? ""));
+      original.apply(console, args);
+    };
+    return () => {
+      console.warn = original;
+    };
+  },
+  play: async () => {
+    // The prefix-matching trail marks three levels as the current page; the kit says so once.
+    const said = dontWarnings.said;
+    await expect(
+      said.filter((text) => /marks 3 levels as the current page/.test(text)),
+    ).toHaveLength(1);
+  },
 };
 
 export const Playground: Story = {};

@@ -18,7 +18,6 @@ import {
   Inline,
   Stack,
   Tabs,
-  TabsContent,
   TabsList,
   TabsTrigger,
   Truncate,
@@ -46,6 +45,7 @@ import {
   RecordPreviewPanel,
   useDisplayedRecords,
   RecordLink,
+  useEndOnHide,
 } from "./record-preview";
 import { useRows } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
@@ -67,6 +67,7 @@ import { useSystemAssurance } from "./use-system-assurance";
 import { SystemControls } from "./system-baseline";
 import { SystemRequirements } from "./system-requirements";
 import { SystemEvidence } from "./system-evidence";
+import { RetainedTabPanels } from "./program-shared";
 
 const PREVIEW_TABS = ["Overview", "Controls", "Requirements", "Evidence"] as const;
 type PreviewTab = (typeof PREVIEW_TABS)[number];
@@ -99,26 +100,32 @@ function ElementPreview({
           </TabsTrigger>
         ))}
       </TabsList>
-      <TabsContent value={tab}>
-        <Stack space="space.250" className="pt-200">
-          {tab === "Overview" && <SystemAssuranceDetails row={row} rows={rows} onDrill={onDrill} />}
-          {tab === "Controls" && (
-            <SystemControls
-              systemId={row.id}
-              onAddFromLibrary={(controlId) => onAddFromLibrary({ controlId })}
-            />
-          )}
-          {tab === "Requirements" && (
-            <SystemRequirements
-              programId={programId}
-              systemId={row.id}
-              rows={rows}
-              onAddFromLibrary={() => onAddFromLibrary({ source: "requirement" })}
-            />
-          )}
-          {tab === "Evidence" && <SystemEvidence programId={programId} element={row} rows={rows} />}
-        </Stack>
-      </TabsContent>
+      <RetainedTabPanels tabs={PREVIEW_TABS} value={tab} space="space.250">
+        {(name) => (
+          <>
+            {name === "Overview" && (
+              <SystemAssuranceDetails row={row} rows={rows} onDrill={onDrill} />
+            )}
+            {name === "Controls" && (
+              <SystemControls
+                systemId={row.id}
+                onAddFromLibrary={(controlId) => onAddFromLibrary({ controlId })}
+              />
+            )}
+            {name === "Requirements" && (
+              <SystemRequirements
+                programId={programId}
+                systemId={row.id}
+                rows={rows}
+                onAddFromLibrary={() => onAddFromLibrary({ source: "requirement" })}
+              />
+            )}
+            {name === "Evidence" && (
+              <SystemEvidence programId={programId} element={row} rows={rows} />
+            )}
+          </>
+        )}
+      </RetainedTabPanels>
     </Tabs>
   );
 }
@@ -160,7 +167,7 @@ function ElementFrame({
         <RecordPreviewPanel
           title={drilled.name}
           label="Element preview"
-          defaultWidth={620}
+          defaultWidth={640}
           onClose={() => setDrilledId(null)}
           recordActions={actions(drilled)}
           navigation={
@@ -239,6 +246,7 @@ export function ProgramSystemsTree({
   );
   const [editing, setEditing] = useState<Editor | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
+  useEndOnHide(() => setPreviewId(null));
   const [libraryTargetId, setLibraryTargetId] = useState<string | null>(null);
   const [libraryOptions, setLibraryOptions] = useState<LibraryOptions>({});
   const [addingProduct, setAddingProduct] = useState(false);
@@ -262,9 +270,10 @@ export function ProgramSystemsTree({
   const columns = useMemo(
     () =>
       defineColumns<TreeRow>((c) => [
+        // The name takes the width the others leave, at least 220: a nested element keeps its words.
         c.id("name", {
           header: "Element",
-          width: 220,
+          minWidth: 220,
           hideable: false,
           priority: 0,
           preview: (row) => setPreviewId(row.id),
@@ -296,15 +305,16 @@ export function ProgramSystemsTree({
         }),
         c.text("code", {
           header: "Code",
-          width: 125,
+          width: 115,
           priority: 1,
           cell: (row) => <Id>{row.code}</Id>,
         }),
-        c.text("typeLabel", { header: "Type", width: 130, priority: 3 }),
+        c.text("typeLabel", { header: "Type", width: 115, priority: 3 }),
         ...impactDimensions.map((dimension) =>
           c.custom(dimension, {
             header: labelFor(dimension),
-            width: 90,
+            // Wide enough for "Moderate" beside its dot.
+            width: 96,
             priority: 4,
             sort: (row) => impactRank(row.impacts[dimension].value),
             text: (row) => impactDescription(row, dimension),
@@ -398,7 +408,10 @@ export function ProgramSystemsTree({
     data: rows,
     getRowId: (row) => row.id,
     label: "Program systems",
-    view: rootElementId ? "live-system-assurance-subtree-v3" : "live-program-system-assurance-v3",
+    view: {
+      id: rootElementId ? "live-system-assurance-subtree" : "live-program-system-assurance",
+      version: 3,
+    },
     resizable: true,
     reorderable: true,
     tree: {
@@ -517,7 +530,7 @@ export function ProgramSystemsTree({
         <RecordPreviewPanel
           title={preview.name}
           label="Element preview"
-          defaultWidth={620}
+          defaultWidth={640}
           onClose={() => setPreviewId(null)}
           recordActions={elementActions(preview)}
           navigation={

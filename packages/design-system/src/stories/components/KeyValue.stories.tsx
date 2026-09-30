@@ -1,8 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { createRef } from "react";
+import { createRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import { Badge, Absent, KeyValue, Person, TextLink } from "../../components";
+import { Editable } from "../../patterns";
 import { Box, Stack } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -16,7 +17,31 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** The tooltip that shows a cut label or value in full, once it has opened. */
+/** Whether the browser takes a clip margin, which lets a value clip with room for a focus ring. */
+const clipMargin = () => CSS.supports("overflow-clip-margin", "4px");
+
+/** How far a focus ring reaches past its control: outline-focused's width plus its offset. */
+const ringReach = () => {
+  const root = getComputedStyle(document.documentElement);
+  return (
+    parseFloat(root.getPropertyValue("--ds-border-width-focused")) +
+    parseFloat(root.getPropertyValue("--ds-space-025"))
+  );
+};
+
+/** The box a value paints inside: its own, grown by its clip margin. */
+const clipBox = (value: Element) => {
+  const rect = value.getBoundingClientRect();
+  const margin = parseFloat(getComputedStyle(value).overflowClipMargin) || 0;
+  return {
+    left: rect.left - margin,
+    right: rect.right + margin,
+    top: rect.top - margin,
+    bottom: rect.bottom + margin,
+  };
+};
+
+/** The tooltip that shows a cut value in full, once it has opened. */
 const revealed = () =>
   waitFor(() => {
     const popup = document.querySelector<HTMLElement>('[data-slot="truncate-full-text"]');
@@ -248,7 +273,12 @@ export const ControlInAValue: Story = {
     const value = link.closest("dd")!;
     const style = getComputedStyle(value);
     await expect(style.overflowX).toBe("clip");
-    await expect(style.overflowY).toBe("visible");
+    // Where the browser takes a clip margin the value clips on both axes, with the ring's reach
+    // all round; elsewhere it clips across only.
+    if (clipMargin()) {
+      await expect(style.overflowY).toBe("clip");
+      await expect(parseFloat(style.overflowClipMargin)).toBeGreaterThanOrEqual(ringReach());
+    } else await expect(style.overflowY).toBe("visible");
     await expect(style.textOverflow).toBe("ellipsis");
     await expect(style.whiteSpace).toBe("nowrap");
     await expect(value.scrollWidth).toBeGreaterThan(value.clientWidth);
@@ -269,9 +299,12 @@ export const ControlInAValue: Story = {
 
 /**
  * A composed value (a code and a title, a TextLink) reveals its whole text too: on hover, and
- * when the link inside takes keyboard focus. A label that is cut reveals itself the same way.
+ * when the link inside takes keyboard focus. A label is never cut: one longer than its column
+ * wraps to the next line, its first line on the value's baseline, so every reader, a touch screen
+ * included, reads the same label.
  */
 export const CutValueAndLabel: Story = {
+  name: "Cut value, whole label",
   render: () => (
     <Box style={{ maxWidth: 300 }} className="border-s border-default ps-200">
       <KeyValue label="Requirement">
@@ -295,9 +328,19 @@ export const CutValueAndLabel: Story = {
     );
     const label = canvas.getByText("Planned completion date");
     await expect(label.tagName).toBe("DT");
-    await expect(label.scrollWidth).toBeGreaterThan(label.clientWidth);
+    // All of the label shows, on more than one line, inside its column.
+    await expect(label.scrollWidth).toBeLessThanOrEqual(label.clientWidth + 1);
+    const line = parseFloat(getComputedStyle(label).lineHeight);
+    await expect(label.getBoundingClientRect().height).toBeGreaterThan(line * 1.5);
+    const date = canvas.getByText("12 Nov 2026");
+    // The value sits on the label's first line.
+    await expect(
+      Math.abs(date.getBoundingClientRect().top - label.getBoundingClientRect().top),
+    ).toBeLessThan(line / 2);
+    // Nothing is cut, so nothing opens on hover.
     await userEvent.hover(label);
-    await expect(await revealed()).toHaveTextContent("Planned completion date");
+    await new Promise((resolve) => setTimeout(resolve, 450));
+    await expect(document.querySelector('[data-slot="truncate-full-text"]')).toBeNull();
     await userEvent.unhover(label);
   },
 };
@@ -396,7 +439,7 @@ export const GroupInANarrowPanel: Story = {
   },
 };
 
-/** `columns` keeps label beside value at any width, as a rail of one-line rows needs; `stacked` always puts the label over the value. */
+/** `columns` keeps label beside value at any width, as a rail of one-line rows needs; `stacked` always puts the label over the value. The label column grows with the reader's text size: 104 at the default 16px is 130 at 20px. */
 export const GroupLayouts: Story = {
   render: () => (
     <Stack space="space.300">
@@ -421,7 +464,22 @@ export const GroupLayouts: Story = {
   play: async ({ canvas }) => {
     const columns = canvas.getByTestId("columns").querySelector<HTMLElement>("div")!;
     await expect(columns).toHaveAttribute("data-layout", "columns");
-    await expect(columns.style.gridTemplateColumns).toBe("104px minmax(0px, 1fr)");
+    // Drawn in rem: without a labelWidth, dimension.part.keyValueLabel (6.5rem, 104px at 16px).
+    await expect(columns.style.gridTemplateColumns).toBe(
+      "var(--ds-dimension-part-key-value-label) minmax(0, 1fr)",
+    );
+    const term = () => Math.round(columns.querySelector("dt")!.getBoundingClientRect().width);
+    await expect(term()).toBe(104);
+    // The label column grows with the reader's text size, as the label and the value do.
+    const root = document.documentElement;
+    const before = root.style.fontSize;
+    try {
+      root.style.fontSize = "20px";
+      await waitFor(() => expect(term()).toBe(130));
+    } finally {
+      root.style.fontSize = before;
+    }
+    await waitFor(() => expect(term()).toBe(104));
     const stacked = canvas.getByTestId("stacked").querySelector<HTMLElement>("div")!;
     await expect(stacked).toHaveAttribute("data-layout", "stacked");
     await expect(getComputedStyle(stacked).flexDirection).toBe("column");
@@ -453,5 +511,58 @@ export const GroupEndsAtTheValue: Story = {
     await expect(inner).toHaveAttribute("data-slot", "key-value");
     await expect(Array.from(inner.children).map((child) => child.tagName)).toEqual(["DT", "DD"]);
     await expect(within(inner).getByRole("term")).toHaveTextContent("Team");
+  },
+};
+
+function NextAction() {
+  const [value, setValue] = useState("Confirm the boundary diagram");
+  return (
+    <Editable.Text
+      label="Next action"
+      value={value}
+      onChange={setValue}
+      save={() => Promise.resolve()}
+    />
+  );
+}
+
+/**
+ * A control at either edge of a value keeps its whole focus ring, and an Editable's field keeps
+ * its sides: where the browser takes a clip margin, the value clips with the ring's reach all
+ * round instead of at its own edge.
+ */
+export const RingRoom: Story = {
+  name: "Ring room",
+  render: () => (
+    <Box style={{ maxWidth: 320 }} className="border-s border-default ps-200">
+      <KeyValue.Group>
+        <KeyValue label="Owner">
+          <TextLink href="#owner">Dana Whitfield</TextLink>
+        </KeyValue>
+        <KeyValue label="Next action">
+          <NextAction />
+        </KeyValue>
+      </KeyValue.Group>
+    </Box>
+  ),
+  play: async ({ canvas }) => {
+    const inside = (box: DOMRect, reach: number, clip: ReturnType<typeof clipBox>) => {
+      expect(box.left - reach).toBeGreaterThanOrEqual(clip.left - 0.5);
+      expect(box.right + reach).toBeLessThanOrEqual(clip.right + 0.5);
+      expect(box.top - reach).toBeGreaterThanOrEqual(clip.top - 0.5);
+      expect(box.bottom + reach).toBeLessThanOrEqual(clip.bottom + 0.5);
+    };
+    const link = canvas.getByRole("link", { name: "Dana Whitfield" });
+    await userEvent.tab();
+    await expect(link).toHaveFocus();
+    if (clipMargin())
+      inside(link.getBoundingClientRect(), ringReach(), clipBox(link.closest("dd")!));
+    // The Editable's field reaches past the value's text column by its bleed; it stays whole.
+    await userEvent.click(canvas.getByRole("button", { name: /Next action/ }));
+    const field = await canvas.findByRole("textbox", { name: "Next action" });
+    await expect(field).toHaveFocus();
+    if (clipMargin()) inside(field.getBoundingClientRect(), 0, clipBox(field.closest("dd")!));
+    await userEvent.keyboard("{Escape}");
+    await expect(canvas.getByRole("button", { name: /Next action/ })).toHaveFocus();
   },
 };

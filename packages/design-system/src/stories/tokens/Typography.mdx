@@ -36,13 +36,13 @@ The mono face is not packaged yet: `font.family.code` names Geist Mono Variable 
 
 ## Scale
 
-`font.body` is the UI size. Weight 600 belongs to page and record titles and nothing else.
+`font.body` is the UI size. Weight 600 marks a title (a page's, a record's, a section's, a panel's) and a Stat's figure, never running text.
 
 | Token | Utility | Size | Weight | Use |
 | --- | --- | --- | --- | --- |
-| `font.heading.large` | `font-heading-large` | 28/34 | semibold | Display: a stat value, a dashboard number. Not a page title. |
-| `font.heading.medium` | `font-heading-medium` | 22/28 | semibold | Page and record titles. The only semibold. |
-| `font.heading.small` | `font-heading-small` | 20/26 | medium | Section headings. |
+| `font.heading.large` | `font-heading-large` | 28/34 | semibold | Display: a figure bigger than a Stat's, the one title of a screen with nothing else (sign-in). Not a page or record title. |
+| `font.heading.medium` | `font-heading-medium` | 22/28 | semibold | A Heading `medium`: a page title set without PageHeader. |
+| `font.heading.small` | `font-heading-small` | 20/26 | medium | A section heading set with Heading; at semibold, PageHeader.Title, a preview's record title and a Stat's figure; an Empty's title. |
 | `font.heading.xsmall` | `font-heading-xsmall` | 15/22 | medium | Dialog and card titles. |
 | `font.heading.xxsmall` | `font-heading-xxsmall` | 11/14 | medium | Eyebrows, group headings, menu section labels. The component adds the uppercase. |
 | `font.body.large` | `font-body-large` | 15/22 | regular | Reading text and dialog body. |
@@ -78,6 +78,6 @@ Tracking tightens as size grows. Each composite carries its own step; there is n
 
 Control numbers, finding ids, package ids, hashes and STIG rule ids are wrapped in `Id`. It inherits the font, size and colour around it and adds tabular numerals; it exists for semantics and grep-ability. A table cell is one style, `font.body` regular in `color.text`; only Badge, Dot, Indicator or a status colour may differ (`ledger/cell-plain`). An Id is blue only inside a link or a button (`ledger/id-not-blue`).
 
-`base.css` sets `font-variant-numeric: tabular-nums` on every table. Add `tabular-nums` yourself for aligned numbers anywhere else: percentages, counts, dates in a column.
+`base.css` sets `font-variant-numeric: tabular-nums` on every table and its cells, and Table repeats it beside its type utility, since the `font` shorthand a type utility writes resets the numerals. A run inside a cell that sets its own size (a Text `size`) resets them too, so it takes Text's `numeric`. Anywhere else, aligned numbers take `numeric` on a Text or `tabular-nums` in a class: percentages, counts, dates in a column.
 
 <Canvas of={Stories.Specimen} />

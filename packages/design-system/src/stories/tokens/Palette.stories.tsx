@@ -13,6 +13,8 @@ const ramps: { key: string; title: string; on: "light" | "dark" }[] = [
   { key: "color.green", title: "Green — success", on: "light" },
   { key: "color.orange", title: "Orange — warning", on: "light" },
   { key: "color.red", title: "Red — danger", on: "light" },
+  { key: "color.teal", title: "Teal — accents and chart series only", on: "light" },
+  { key: "color.purple", title: "Purple — accents and chart series only", on: "light" },
 ];
 
 function Ramp({ prefix, on }: { prefix: string; on: "light" | "dark" }) {
@@ -40,7 +42,7 @@ export const Ramps: Story = {
   render: () => (
     <Page
       title="Palette"
-      lede="Tier 0. Six ramps with numbered step names, so the semantic-to-step mapping reads line for line. Alpha steps (100A–500A) are the hover, pressed and hairline fills. Every value is a draft; tune here, never in a semantic token."
+      lede="Tier 0. Eight ramps with numbered step names, so the semantic-to-step mapping reads line for line. Alpha steps (100A–500A) are the hover, pressed and hairline fills. Every value is a draft; tune here, never in a semantic token."
     >
       {ramps.map((r) => (
         <Group key={r.key} title={r.title}>

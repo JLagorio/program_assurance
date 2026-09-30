@@ -1,10 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { createRef } from "react";
-import { expect, fn, userEvent, within } from "storybook/test";
+import { createRef, useState, type MouseEvent } from "react";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
-import { Stat, tones } from "../../components";
+import { Absent, Stat, tones } from "../../components";
 import { Shell } from "../../layout";
+import { LedgerProvider } from "../../lib/locale";
+import { Chart } from "../../patterns";
 import { Box, Grid, Stack, Text } from "../../primitives";
+import { byMonth } from "../_lib/chart-data";
 import { Matrix, Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
 
@@ -101,11 +104,21 @@ export const StatMatrix: Story = {
         1,
       );
       await expect(firstRow(grid)).toHaveLength(expectedColumns(grid.clientWidth, cols));
+      await expect(grid).toHaveAttribute("data-slot", "stat-grid");
+      // The hairlines are the grid's background between its tiles. In forced colours, which
+      // replace every background with Canvas, the grid paints them in the text colour instead.
+      const tile = grid.firstElementChild as HTMLElement;
+      await expect(tile).toHaveAttribute("data-slot", "stat-tile");
+      const gutter = getComputedStyle(grid).backgroundColor;
+      await expect(gutter).not.toBe("rgba(0, 0, 0, 0)");
+      await expect(gutter).not.toBe(getComputedStyle(tile).backgroundColor);
+      if (matchMedia("(forced-colors: active)").matches)
+        await expect(gutter).toBe(getComputedStyle(tile).color);
     }
   },
 };
 
-/** The three frames: a card at the top of a record, a band between two sections, and bare Stats in a row of a Section. */
+/** The three frames: a card at the top of a record, a band between two sections, and bare Stats in a row of a Section. The bare row is a Grid whose columns follow its own width (as many 128px columns as fit), not the window's, like Stat.Grid. */
 const statRef = createRef<HTMLDivElement>();
 const tileRef = createRef<HTMLDivElement>();
 const gridRef = createRef<HTMLDivElement>();
@@ -144,7 +157,9 @@ export const Frames: Story = {
       </Stat.Grid>
       <Grid
         columnGap="space.400"
-        templateColumns={{ base: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" }}
+        templateColumns="repeat(auto-fit, minmax(min(100%, 8rem), 1fr))"
+        role="group"
+        aria-label="Summary row"
       >
         <Stat
           ref={statRef}
@@ -190,8 +205,17 @@ export const Frames: Story = {
     await expect(stat).toHaveClass("py-150");
     await expect(stat).not.toHaveClass("py-100");
     await expect(stat).toHaveStyle({ minWidth: "0px" });
+    await expect(stat).toHaveAttribute("data-slot", "stat");
+    await expect(grid).toHaveAttribute("data-slot", "stat-grid");
+    await expect(tile).toHaveAttribute("data-slot", "stat-tile");
     await userEvent.hover(stat);
     await expect(inspectStat).toHaveBeenCalledTimes(1);
+    // The bare row takes its columns from its own width: four across when each has 8rem.
+    const row = canvas.getByRole("group", { name: "Summary row" });
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const across = Math.max(1, Math.min(4, Math.floor((row.clientWidth + 32) / (8 * rem + 32))));
+    const tops = [...row.children].map((child) => (child as HTMLElement).offsetTop);
+    await expect(tops.filter((top) => top === tops[0])).toHaveLength(across);
   },
 };
 
@@ -376,6 +400,189 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+};
+
+/** A count that opens the register it counts: `link` fills the tile with the link, so the whole tile is one target, the tile stays the grid's child, and the focus ring is drawn inside its edge where the card frame cannot clip it. The link's name is the label, the number and the note. */
+export const Linked: Story = {
+  render: function Example() {
+    const [opened, setOpened] = useState("Nothing opened");
+    const open = (name: string) => (event: MouseEvent) => {
+      event.preventDefault();
+      setOpened(`Opened ${name}`);
+    };
+    return (
+      <Stack space="space.200" className="max-w-layout-measure">
+        <Stat.Grid cols={3} role="group" aria-label="Open work">
+          <Stat.Tile
+            label="Open tasks"
+            value={12}
+            note="3 due this week"
+            link={<a href="#tasks" onClick={open("tasks")} />}
+          />
+          <Stat.Tile
+            label="Open issues"
+            value={4}
+            tone="danger"
+            note="Oldest 12 days"
+            link={<a href="#issues" onClick={open("issues")} />}
+          />
+          <Stat.Tile
+            label="Open risks"
+            value={0}
+            note="Nothing open"
+            link={<a href="#risks" onClick={open("risks")} />}
+          />
+        </Stat.Grid>
+        <Text role="status">{opened}</Text>
+      </Stack>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const link = canvas.getByRole("link", { name: "Open tasks 12 3 due this week" });
+    const tile = link.parentElement!;
+    await expect(tile).toHaveAttribute("data-slot", "stat-tile");
+    await expect(link).toHaveAttribute("data-slot", "stat-link");
+    await expect(link).toHaveAttribute("href", "#tasks");
+    // The link fills its tile, so there is no band of gutter colour under it, and the tile is
+    // still the grid's child.
+    await expect(tile.parentElement).toHaveAttribute("data-slot", "stat-grid");
+    const outer = tile.getBoundingClientRect();
+    const inner = link.getBoundingClientRect();
+    await expect(Math.abs(outer.height - inner.height)).toBeLessThanOrEqual(1);
+    await expect(Math.abs(outer.width - inner.width)).toBeLessThanOrEqual(1);
+    // A zero stays muted inside a link.
+    await expect(
+      within(canvas.getByRole("link", { name: /^Open risks/ })).getByText("0"),
+    ).toHaveClass("text-subtlest");
+    // The keyboard reaches each tile in turn; the ring is drawn inside the tile's edge.
+    await userEvent.tab();
+    await expect(link).toHaveFocus();
+    await expect(parseFloat(getComputedStyle(link).outlineOffset)).toBeLessThan(0);
+    await userEvent.keyboard("{Enter}");
+    await expect(canvas.getByRole("status")).toHaveTextContent("Opened tasks");
+    await userEvent.tab();
+    await expect(canvas.getByRole("link", { name: /^Open issues/ })).toHaveFocus();
+    // A click anywhere on the tile, its note included, opens it.
+    await userEvent.click(
+      within(canvas.getByRole("link", { name: /^Open risks/ })).getByText("Nothing open"),
+    );
+    await expect(canvas.getByRole("status")).toHaveTextContent("Opened risks");
+  },
+};
+
+/** While the number loads, a Skeleton holds its place and the tile is `aria-busy`; the label stays. A number that could not load is an Absent with its reason, and the note says what happened. Neither is a word in the number's place. */
+export const LoadingAndUnavailable: Story = {
+  name: "Loading and unavailable",
+  render: () => (
+    <Box style={{ width: 600, maxWidth: "100%" }}>
+      <Stat.Grid cols={3} role="group" aria-label="Portfolio totals">
+        <Stat.Tile label="Programs" value={14} note="2 in authorization" />
+        <Stat.Tile label="Open risks" value={undefined} isLoading />
+        <Stat.Tile
+          label="Open findings"
+          value={<Absent label="Not available" />}
+          note="Could not load"
+        />
+      </Stat.Grid>
+      <Stack space="space.100" className="pt-200">
+        <Stat label="Objectives run" value={undefined} isLoading />
+      </Stack>
+    </Box>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const grid = canvas.getByRole("group", { name: "Portfolio totals" });
+    const loading = grid.children[1] as HTMLElement;
+    const unavailable = grid.children[2] as HTMLElement;
+    await expect(loading).toHaveAttribute("aria-busy", "true");
+    await expect(loading).toHaveTextContent("Open risks");
+    await expect(loading.querySelector('[data-slot="skeleton"]')).not.toBeNull();
+    // The placeholder is hidden; a screen reader hears the label, then "Loading".
+    await expect(within(loading).getByText("Loading")).toHaveClass("sr-only");
+    await expect(unavailable).not.toHaveAttribute("aria-busy");
+    await expect(unavailable).toHaveTextContent("Not available");
+    await expect(unavailable).toHaveTextContent("Could not load");
+    // The skeleton sits where the number goes: the loading tile is no taller than a loaded one.
+    await expect(loading.offsetHeight).toBeLessThanOrEqual(unavailable.offsetHeight + 1);
+    // It sits in the number's line, so the line keeps the number's height and nothing below it
+    // moves when the number arrives.
+    const numberLine = (tile: Element) => tile.children[1]!.getBoundingClientRect().height;
+    await expect(Math.abs(numberLine(loading) - numberLine(grid.children[0]!))).toBeLessThan(1);
+    const bare = canvasElement.querySelector<HTMLElement>('[data-slot="stat"]')!;
+    await expect(bare).toHaveAttribute("aria-busy", "true");
+    await expect(bare).toHaveTextContent("Objectives run");
+  },
+};
+
+/** A number is written in the reader's locale from the LedgerProvider (en-US when there is none, never the machine's), so 1234 reads 1,234 here and 1.234 in de-DE. A string, such as "80%", shows as given. */
+export const NumbersInTheReadersLocale: Story = {
+  name: "Numbers in the reader's locale",
+  render: () => (
+    <Stack space="space.300" className="max-w-layout-measure">
+      <Stat.Grid cols={3} role="group" aria-label="en-US">
+        <Stat.Tile label="Controls" value={1234} />
+        <Stat.Tile label="Coverage" value="80%" />
+        <Stat.Tile label="Open findings" value={0} />
+      </Stat.Grid>
+      <LedgerProvider locale="de-DE">
+        <Stat.Grid cols={3} role="group" aria-label="de-DE">
+          <Stat.Tile label="Maßnahmen" value={1234} />
+          <Stat.Tile label="Abdeckung" value="80 %" />
+          <Stat.Tile label="Offene Befunde" value={0} />
+        </Stat.Grid>
+      </LedgerProvider>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const us = within(canvas.getByRole("group", { name: "en-US" }));
+    await expect(us.getByText("1,234")).toBeInTheDocument();
+    await expect(us.getByText("80%")).toBeInTheDocument();
+    await expect(us.getByText("0")).toHaveClass("text-subtlest");
+    const de = within(canvas.getByRole("group", { name: "de-DE" }));
+    await expect(de.getByText("1.234")).toBeInTheDocument();
+    await expect(de.getByText("0")).toHaveClass("text-subtlest");
+  },
+};
+
+/** A trend beside the number: `trend` takes a Chart.Sparkline of the same count over time, `space.150` from it. The number stays the value, so it formats in the locale and a zero still reads muted; the note says what the line shows. */
+export const WithATrend: Story = {
+  name: "With a trend",
+  render: () => (
+    <Box style={{ maxWidth: 720 }}>
+      <Stat.Grid cols={3} role="group" aria-label="Findings over the year">
+        <Stat.Tile
+          label="Open findings"
+          value={5}
+          trend={<Chart.Sparkline data={byMonth} y="open" tone="danger" endDot />}
+          note="Down from 14 in January"
+        />
+        <Stat.Tile
+          label="Closed this year"
+          value={59}
+          trend={<Chart.Sparkline data={byMonth} y="closed" tone="success" appearance="bars" />}
+          note="Nine months"
+        />
+        <Stat.Tile
+          label="Overdue"
+          value={0}
+          trend={<Chart.Sparkline data={byMonth} y="plan" tone="neutral" appearance="area" />}
+          note="None since June"
+        />
+      </Stat.Grid>
+    </Box>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const grid = canvas.getByRole("group", { name: "Findings over the year" });
+    const tiles = [...grid.children] as HTMLElement[];
+    for (const tile of tiles)
+      await expect(tile.querySelector('[data-slot="stat-trend"]')).not.toBeNull();
+    // The value is the number alone, so zero is still muted beside its line.
+    await expect(within(tiles[2]!).getByText("0")).toHaveClass("text-subtlest");
+    await waitFor(() => expect(tiles[0]!.querySelector("svg")).not.toBeNull());
+  },
 };
 
 export const Playground: Story = {};

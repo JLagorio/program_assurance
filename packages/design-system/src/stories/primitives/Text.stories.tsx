@@ -370,3 +370,123 @@ export const PreserveLineBreaks: Story = {
     );
   },
 };
+
+/**
+ * A one-line clamp on the default `span`, inside a narrow block and inside a row: the span becomes
+ * a block of the frame's width and cuts with an ellipsis, so the page never scrolls sideways.
+ */
+export const OneLineOnASpan: Story = {
+  render: () => (
+    <Stack space="space.200">
+      <Box style={{ width: 200, maxWidth: "100%" }} data-testid="frame">
+        <Text maxLines={1} data-testid="cut">
+          {sample}
+        </Text>
+      </Box>
+      <Box style={{ width: 200, maxWidth: "100%" }}>
+        <Inline space="space.100" alignBlock="baseline">
+          <Text size="small" color="color.text.subtlest">
+            SC-7
+          </Text>
+          <Inline grow="fill">
+            <Text maxLines={1} data-testid="cut-in-row">
+              {sample}
+            </Text>
+          </Inline>
+        </Inline>
+      </Box>
+    </Stack>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const frame = canvas.getByTestId("frame");
+    for (const id of ["cut", "cut-in-row"]) {
+      const cut = canvas.getByTestId(id);
+      await expect(cut.tagName).toBe("SPAN");
+      await expect(getComputedStyle(cut).textOverflow).toBe("ellipsis");
+      await expect(cut.scrollWidth).toBeGreaterThan(cut.clientWidth);
+      await expect(cut.getBoundingClientRect().width).toBeLessThanOrEqual(
+        frame.getBoundingClientRect().width + 0.5,
+      );
+    }
+    const root = canvasElement.ownerDocument.documentElement;
+    await expect(root.scrollWidth).toBeLessThanOrEqual(root.clientWidth);
+  },
+};
+
+/**
+ * `numeric` sets tabular numerals: every digit one width, so counts in a column line up. A
+ * table's cells have them already, even under a type utility on the table itself.
+ */
+export const Numeric: Story = {
+  render: () => (
+    <Stack space="space.200">
+      <Stack space="space.050" alignInline="end" className="w-fit">
+        <Text size="small" numeric data-testid="numeric">
+          111
+        </Text>
+        <Text size="small" numeric>
+          102
+        </Text>
+        <Text size="small" data-testid="proportional">
+          111
+        </Text>
+      </Stack>
+      <table className="w-fit font-body">
+        <caption className="sr-only">Open items</caption>
+        <tbody>
+          <tr>
+            <th scope="row" className="pe-200 text-start font-regular">
+              Access control
+            </th>
+            <td className="text-end" data-testid="cell">
+              111
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" className="pe-200 text-start font-regular">
+              Audit
+            </th>
+            <td className="text-end">102</td>
+          </tr>
+        </tbody>
+      </table>
+    </Stack>
+  ),
+  play: async ({ canvas }) => {
+    await expect(getComputedStyle(canvas.getByTestId("numeric")).fontVariantNumeric).toContain(
+      "tabular-nums",
+    );
+    await expect(
+      getComputedStyle(canvas.getByTestId("proportional")).fontVariantNumeric,
+    ).not.toContain("tabular-nums");
+    await expect(getComputedStyle(canvas.getByTestId("cell")).fontVariantNumeric).toContain(
+      "tabular-nums",
+    );
+  },
+};
+
+const hash = "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08";
+
+/**
+ * A word longer than its line, an id, a hash or a URL, breaks where it would overflow, so it
+ * never widens its block or the page; the words around it break as usual.
+ */
+export const UnbrokenWord: Story = {
+  render: () => (
+    <Box style={{ width: 240, maxWidth: "100%" }} data-testid="frame">
+      <Text as="p" size="small" data-testid="long">
+        Evidence digest {hash} recorded for the boundary protection test.
+      </Text>
+    </Box>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const long = canvas.getByTestId("long");
+    await expect(getComputedStyle(long).overflowWrap).toBe("break-word");
+    await expect(long.scrollWidth).toBeLessThanOrEqual(long.clientWidth);
+    await expect(long.getBoundingClientRect().width).toBeLessThanOrEqual(
+      canvas.getByTestId("frame").getBoundingClientRect().width + 0.5,
+    );
+    const root = canvasElement.ownerDocument.documentElement;
+    await expect(root.scrollWidth).toBeLessThanOrEqual(root.clientWidth);
+  },
+};

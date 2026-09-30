@@ -14,7 +14,7 @@ The package is private: install the approved internal artifact, or a tarball mad
 npm install ./ledger-design-system-<version>.tgz
 ```
 
-The package ships `dist/` (ESM with declarations, from `npm run build`) and `src/`. A bundler that sets the `development` condition (Vite in dev) resolves to source; everything else resolves to dist. The stylesheets always come from `src`, because `ledger.css` scans the source for the classes your build needs.
+The package ships `dist/` (ESM with declarations, from `npm run build`) and `src/`. Every bundler and runtime resolves the package to dist, in development mode too. A workspace that wants the TypeScript source, so a kit edit hot-reloads, opts in with the package's named `@ledger/source` export condition: in its Vite dev server's `resolve.conditions`, added to Vite's `defaultClientConditions` or `defaultServerConditions` (a list there replaces the defaults), and in TypeScript's `customConditions`. The stylesheets always come from `src`, because `ledger.css` scans the source for the classes your build needs.
 
 ## CSS
 

@@ -372,6 +372,13 @@ export const Modal: Story = {
         overlaySurfaceVar,
       );
       if (slot) await expect(popup.querySelector(`[data-slot="${slot}"]`)).not.toBeNull();
+      // In forced colours the fill and shadow are replaced; a CanvasText outline keeps the edge.
+      if (window.matchMedia("(forced-colors: active)").matches) {
+        const edge = popup.closest<HTMLElement>(
+          '[data-slot="drawer-popup"], [data-slot$="dialog-content"], [data-slot="sheet-content"]',
+        )!;
+        await expect(getComputedStyle(edge).outlineStyle).toBe("solid");
+      }
       await userEvent.keyboard("{Escape}");
       await waitFor(() => expect(body.queryByRole(role)).toBeNull());
     }
@@ -407,50 +414,85 @@ function StackDemo() {
             </Stack>
           </SheetBody>
           <SheetFooter>
-            <>
-              <Button variant="danger" onClick={() => setConfirm(true)}>
-                Archive
-              </Button>
-              <Button variant="primary" onClick={() => setSheet(false)}>
-                Done
-              </Button>
-            </>
+            <Button variant="danger" onClick={() => setConfirm(true)}>
+              Archive
+            </Button>
+            <Button variant="primary" onClick={() => setSheet(false)}>
+              Done
+            </Button>
           </SheetFooter>
+          {/* Inside the Sheet that owns the decision, so only the top dialog dismisses. */}
+          <AlertDialog
+            open={confirm}
+            onOpenChange={(next) => {
+              if (!next) {
+                setConfirm(false);
+              }
+            }}
+          >
+            <AlertDialogContent initialFocus={alertCancelRef2}>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Archive this control?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  It leaves the register; its evidence and findings stay readable.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel ref={alertCancelRef2}>Keep control</AlertDialogCancel>
+                <AlertDialogAction
+                  variant="danger"
+                  onClick={() => {
+                    setConfirm(false);
+                    setSheet(false);
+                  }}
+                >
+                  Archive
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </SheetContent>
       </Sheet>
-      <AlertDialog
-        open={confirm}
-        onOpenChange={(next) => {
-          if (!next) {
-            setConfirm(false);
-          }
-        }}
-      >
-        <AlertDialogContent initialFocus={alertCancelRef2}>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Archive this control?</AlertDialogTitle>
-            <AlertDialogDescription>
-              It leaves the register; its evidence and findings stay readable.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel ref={alertCancelRef2}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              variant="danger"
-
-              onClick={() => {
-                setConfirm(false);
-                setSheet(false);
-              }}
-            >
-              Archive
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }
 
-/** The one stack the kit allows: an AlertDialog over a Sheet. Focus goes to Cancel and comes back to the sheet's button. */
-export const Stacked: Story = { render: () => <StackDemo /> };
+/**
+ * The one stack the kit allows: an AlertDialog over the Sheet that owns the decision, rendered
+ * inside it. The sheet dims under the prompt, in both modes, with no second blanket over the page;
+ * focus goes to Cancel and comes back to the sheet's button.
+ */
+export const Stacked: Story = {
+  render: () => <StackDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement),
+      body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Sheet, then a decision" }));
+    const sheet = await body.findByRole("dialog", { name: "CTRL-0412" });
+    const archive = within(sheet).getByRole("button", { name: "Archive" });
+    await expect(getComputedStyle(sheet, "::after").opacity).toBe("0");
+    await userEvent.click(archive);
+    const prompt = await body.findByRole("alertdialog", { name: "Archive this control?" });
+    await waitFor(() =>
+      expect(within(prompt).getByRole("button", { name: "Keep control" })).toHaveFocus(),
+    );
+    await expect(sheet).toHaveAttribute("data-nested-dialog-open");
+    await waitFor(() => expect(getComputedStyle(sheet, "::after").opacity).toBe("1"));
+    await expect(
+      canvasElement.ownerDocument.querySelectorAll(
+        '[data-slot="sheet-overlay"], [data-slot="alert-dialog-overlay"]',
+      ),
+    ).toHaveLength(1);
+    // The prompt stands apart from the sheet under it.
+    await expect(getComputedStyle(prompt).backgroundColor).not.toBe(
+      getComputedStyle(sheet, "::after").backgroundColor,
+    );
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("alertdialog")).toBeNull());
+    await waitFor(() => expect(archive).toHaveFocus());
+    await expect(sheet).not.toHaveAttribute("data-nested-dialog-open");
+    await waitFor(() => expect(getComputedStyle(sheet, "::after").opacity).toBe("0"));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+  },
+};

@@ -4,22 +4,26 @@ import type { ComponentProps } from "react";
 import { cn } from "../lib/cn";
 import { headingTag, useHeadingLevel } from "../primitives/heading-level";
 
-export type PageHeaderProps = ComponentProps<"header">;
+/** Native header props and ref; `render` sets the element. A `div` by default: the page's own header is not a banner landmark, and inside a dialog or a sheet a `header` would become one. */
+export type PageHeaderProps = useRender.ComponentProps<"header">;
 export type PageHeaderLeadProps = useRender.ComponentProps<"div">;
 export type PageHeaderHeadingProps = ComponentProps<"div">;
 export type PageHeaderTitleProps = useRender.ComponentProps<"h1">;
 export type PageHeaderDescriptionProps = ComponentProps<"p">;
 export type PageHeaderActionsProps = ComponentProps<"div">;
 
-/** Page identity and navigation/actions: what names the page, then its actions at the end of the row; when the row cannot give the title its measure beside them, they take the next row. Lead spans the header; Heading holds the Title and what sits under it. Record fields and editors belong in the work area or properties, never the header. */
-function PageHeaderRoot({ className, ...props }: PageHeaderProps) {
-  return (
-    <header
-      {...props}
-      data-slot="page-header"
-      className={cn("page-header flex min-w-0 flex-wrap items-start gap-150", className)}
-    />
-  );
+/** Page identity and navigation/actions: what names the page, then its actions at the end of the row; when the row cannot give the title its measure beside them, they take the next row. Lead spans the header; Heading holds the Title and what sits under it. Record fields and editors belong in the work area or properties, never the header. A `div`, never a landmark: the page's landmarks are the shell's; `render={<header />}` where a page wants the element. */
+function PageHeaderRoot({ render, ref, className, ...props }: PageHeaderProps) {
+  return useRender({
+    defaultTagName: "div",
+    render,
+    ref,
+    state: { slot: "page-header" },
+    props: mergeProps<"header">(props, {
+      ...{ "data-slot": "page-header" },
+      className: cn("page-header flex min-w-0 flex-wrap items-start gap-150", className),
+    }),
+  });
 }
 /** A line above the title across both columns: a breadcrumb (`render={<Breadcrumb />}`) or a category. */
 export function PageHeaderLead({ render, ref, className, ...props }: PageHeaderLeadProps) {
@@ -57,7 +61,7 @@ export function PageHeaderDescription({ className, ...props }: PageHeaderDescrip
     <p
       {...props}
       data-slot="page-header-description"
-      className={cn("pt-050 font-body text-subtle", className)}
+      className={cn("break-words pt-050 font-body text-subtle", className)}
     />
   );
 }

@@ -7,7 +7,13 @@ import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
 import { HeadingLevelProvider } from "../primitives/heading-level";
-import { bodySlot, overlaySurface, useReadOnlyScroller, withStyle } from "./overlay";
+import {
+  bodySlot,
+  overlaySurface,
+  useFooterClearance,
+  useReadOnlyScroller,
+  withStyle,
+} from "./overlay";
 
 type DrawerContextValue = {
   hasSnapPoints: boolean;
@@ -86,13 +92,7 @@ export function DrawerSwipeHandle({ className, ...props }: DrawerSwipeHandleProp
   );
 }
 export type DrawerContentProps = Primitive.Popup.Props;
-export function DrawerContent({
-  className,
-  children,
-  dir,
-  style,
-  ...props
-}: DrawerContentProps) {
+export function DrawerContent({ className, children, dir, style, ...props }: DrawerContentProps) {
   const context = useContext(DrawerContext);
   const { direction } = useLedgerLocale();
   if (!context) throw new Error("DrawerContent must be used within a Drawer.");
@@ -173,15 +173,21 @@ export function DrawerBody({ className, render, ref, ...props }: DrawerBodyProps
   });
 }
 export type DrawerFooterProps = ComponentProps<"div">;
-export function DrawerFooter({ className, ...props }: DrawerFooterProps) {
+/**
+ * The action row, held at the bottom. When the whole drawer scrolls (a window under 30rem tall),
+ * a control that takes focus scrolls clear of it rather than under it.
+ */
+export function DrawerFooter({ className, ref, ...props }: DrawerFooterProps) {
+  const clearance = useFooterClearance(ref);
   return (
     <div
       data-slot="drawer-footer"
       className={cn(
-        "sticky bottom-0 z-10 mt-auto flex shrink-0 flex-wrap items-center justify-end gap-100 border-t border-default bg-surface-sunken px-250 py-150",
+        "sticky bottom-0 z-10 mt-auto flex shrink-0 flex-wrap items-center justify-end gap-100 border-t border-default bg-surface-current px-250 py-150",
         className,
       )}
       {...props}
+      ref={clearance}
     />
   );
 }
@@ -190,7 +196,7 @@ export function DrawerTitle({ className, ...props }: DrawerTitleProps) {
   return (
     <Primitive.Title
       data-slot="drawer-title"
-      className={classes("font-heading-xsmall text-default", className)}
+      className={classes("font-heading-xsmall text-default break-words", className)}
       {...props}
     />
   );
@@ -200,7 +206,7 @@ export function DrawerDescription({ className, ...props }: DrawerDescriptionProp
   return (
     <Primitive.Description
       data-slot="drawer-description"
-      className={classes("font-body text-subtle", className)}
+      className={classes("font-body text-subtle break-words", className)}
       {...props}
     />
   );

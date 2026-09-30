@@ -1,9 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Findings } from "@/components/prototype/findings-views";
+import { FINDINGS_TABS, Findings, type FindingsTab } from "@/components/prototype/findings-views";
 export const Route = createFileRoute("/findings/")({
+  // The collection a reader chose survives a reload, Back and a shared link, and a link can open
+  // one (the Portfolio's assessment findings tile).
+  validateSearch: (search: Record<string, unknown>): { tab?: FindingsTab | undefined } => ({
+    tab: FINDINGS_TABS.find((tab) => tab === search["tab"]),
+  }),
   head: () => ({ meta: [{ title: "Findings & assets — Program Assurance" }] }),
   component: Page,
 });
 function Page() {
-  return <Findings />;
+  const { tab } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  return (
+    <Findings
+      tab={tab ?? "issues"}
+      onTabChange={(next) =>
+        void navigate({ search: { tab: next === "issues" ? undefined : next } })
+      }
+    />
+  );
 }

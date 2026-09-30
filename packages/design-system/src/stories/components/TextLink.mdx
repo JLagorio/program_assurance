@@ -21,14 +21,24 @@ The rendered component must forward merged props and its ref. Supply its label a
 
 ## Variants and states
 
-Omitted size inherits surrounding text. `small` and `medium` set the body scale; `weight="medium"` emphasizes a standalone destination. A link inside a sentence (a parent with its own text beside it, `data-in-text`) is underlined at rest, because its colour against the words beside it is about 2:1 in dark mode and colour alone would not mark it (WCAG 1.4.1); a standalone link underlines on hover. Keyboard focus adds the focus outline. Use plain text for unavailable destinations.
+Omitted size inherits surrounding text. `small` and `medium` set the body scale; `weight="medium"` emphasizes a standalone destination. A link inside a sentence (a parent with its own text beside it, `data-in-text`) is underlined at rest, because its colour against the words beside it is about 2:1 in dark mode, and about 1.5:1 inside small subtle text, so colour alone would not mark it (WCAG 1.4.1); a standalone link underlines on hover. The kit owns the underline: give a link in prose no class for it. Keyboard focus adds the focus outline. Use plain text for unavailable destinations.
 
 <Canvas of={Stories.TextLinkMatrix} />
 <Canvas of={Stories.InProse} />
 
+### Opening in a new tab
+
+`newTab` opens the destination in a new tab and says so: `target="_blank"` and `rel="noopener noreferrer"`, an external-link icon joined to the last word, and "(opens in a new tab)" read after the name (the locale's `opensInNewTab`). A `target` or `rel` of your own wins. Open a new tab only when the destination is outside the product, or when leaving the page would cost the reader their place: a draft, a wizard step, an open dialog. Everything else opens in place, and the reader chooses a new tab themselves. Never set `target="_blank"` without `newTab`, which would move the reader without warning.
+
+<Canvas of={Stories.NewTab} />
+
 ## Accessibility
 
-A real anchor retains Enter activation, copy-link and open-in-new-tab behavior. Space does not activate a link. Name the destination, such as “Full timeline”, rather than “Click here”. A link in prose carries its underline by itself; no class is needed.
+A real anchor retains Enter activation, copy-link and open-in-new-tab behavior. Space does not activate a link. Name the destination, such as “Full timeline”, rather than “Click here”. A link in prose carries its underline by itself; no class is needed. A `newTab` link's name ends with "(opens in a new tab)", so a screen reader hears where it will go before it goes; the icon is hidden.
+
+## Long content
+
+A link wraps with the text around it; its name is never truncated inside a sentence. A URL shown as the link's own words is an unbroken token: give the link `className="break-all"` so it wraps anywhere rather than widening its column. A record name in a row field (a table cell, an Item title, a KeyValue value) is cut by that field with an ellipsis and revealed on hover and keyboard focus: put the name in a [Truncate](?path=/docs/components-truncate--docs) inside the link where the field does not cut it itself. A `newTab` link in such a field sits inside the Truncate rather than holding one, so its icon is cut with the words instead of taking a line of its own.
 
 Where any pointer is coarse, a standalone link takes an invisible hit area at least 24px tall across its own words (the shared `touch-target-block` band), so a name in a row or a "See all" footer is easy to tap; the area is never wider than the link, even when a long name wraps. A link with its sentence's text beside it keeps its words as the target, so it takes no taps from the lines around it. A container that hides its overflow clips the area to its own box; a [KeyValue](?path=/docs/components-keyvalue--docs) value truncates across only, so a link in it keeps the whole area.
 

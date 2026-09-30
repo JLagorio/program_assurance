@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
 import { Linter } from "eslint";
 import tseslint from "typescript-eslint";
 import ledger from "../eslint-plugin/index.js";
+import { PART_TOKENS, PRESET_MAPS } from "../eslint-plugin/gate-rules.js";
+import { tokens } from "../src/generated/tokens.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
@@ -315,6 +317,166 @@ test("TOO-14 false negatives: memo and forwardRef shadows, footers, TextLink wit
   );
 });
 
+test("a link that opens a new tab says so: TextLink newTab, not a raw target (CNT-18)", () => {
+  const kitLink = 'import { TextLink, PreviewNavigation } from "@ledger/design-system";';
+  assert.deepEqual(
+    reports("prefer-text-link", [
+      '<a href="https://example.test" target="_blank" rel="noreferrer">Source</a>',
+      '<Link to="/x" target="_blank">Open</Link>',
+      `${kitLink} <TextLink href="/x" target="_blank">Open</TextLink>`,
+      `${kitLink} <TextLink render={<Link to="/x" target="_blank" />}>Open</TextLink>`,
+    ]),
+    [1, 1, 1, 1],
+  );
+  assert.deepEqual(
+    reports("prefer-text-link", [
+      `${kitLink} <TextLink href="/x" newTab>Open</TextLink>`,
+      `${kitLink} <TextLink newTab render={<Link to="/x" target="_blank" />}>Open</TextLink>`,
+      // A part that announces the new tab itself holds the link in a prop.
+      `${kitLink} <PreviewNavigation openLink={<Link to="/x" target="_blank" />} />`,
+      `${kitLink} <PreviewNavigation openLink={given ?? <Link to="/x" target="_blank" />} />`,
+      '<a href="/x">Same tab</a>',
+    ]),
+    [0, 0, 0, 0, 0],
+  );
+});
+
+test("a primitive's layout is its props, and text elements take no layout classes (PRM-7)", () => {
+  const kitLayout = 'import { Box, Grid, Inline, Stack } from "@ledger/design-system";';
+  assert.deepEqual(
+    reports("use-primitives", [
+      `${kitLayout} <Stack className="pt-200">x</Stack>`,
+      `${kitLayout} <Box className="px-150 gap-100">x</Box>`,
+      `${kitLayout} <Grid className="grid-cols-2">x</Grid>`,
+      `${kitLayout} <Inline className="flex">x</Inline>`,
+      '<p className="flex gap-100">x</p>',
+      '<label className="px-100">x</label>',
+      '<h2 className="grid">x</h2>',
+    ]),
+    [1, 1, 1, 1, 1, 1, 1],
+  );
+  assert.deepEqual(
+    reports("use-primitives", [
+      `${kitLayout} <Box padding="space.200" className="min-w-0">x</Box>`,
+      // A container query, responsive visibility and a breakpoint's spacing are what the props
+      // cannot key: padding, space and gap take one token.
+      `${kitLayout} <Grid className="grid-cols-1 @4xl:grid-cols-3">x</Grid>`,
+      `${kitLayout} <Inline className="hidden @3xl:flex">x</Inline>`,
+      `${kitLayout} <Box className="md:px-300">x</Box>`,
+      `${kitLayout} <Stack className="sm:gap-200">x</Stack>`,
+      `${kitLayout} <Grid className="gap-px">x</Grid>`,
+      // A local component that shares a primitive's name is not the kit's.
+      '<Stack className="pt-200">x</Stack>',
+      '<p className="text-subtle">x</p>',
+    ]),
+    [0, 0, 0, 0, 0, 0, 0, 0],
+  );
+  // The message names a prop the part has, with its value: only Box takes padding.
+  const message = (source) => lint(source, "use-primitives")[0]?.message ?? "";
+  assert.match(
+    message(`${kitLayout} <Stack className="pt-200">x</Stack>`),
+    /Wrap it in <Box paddingBlockStart="space\.200"> \(a Stack has no padding\)/,
+  );
+  assert.match(message(`${kitLayout} <Box className="pt-200">x</Box>`), /paddingBlockStart/);
+  assert.match(message(`${kitLayout} <Inline className="gap-100">x</Inline>`), /Use space/);
+  assert.match(
+    message(`${kitLayout} <Grid className="md:grid-cols-3">x</Grid>`),
+    /templateColumns/,
+  );
+});
+
+test("renamed props and values are reported on kit parts and fixed one to one", () => {
+  const kitParts =
+    'import { Card, Chart, DropdownMenuItem, Item, SelectTrigger, Switch, Tree } from "@ledger/design-system";';
+  const fixed = (source) =>
+    new Linter({ cwd: "/repo" }).verifyAndFix(
+      source,
+      {
+        files: ["**/*.tsx"],
+        languageOptions: {
+          parser: tseslint.parser,
+          parserOptions: { ecmaFeatures: { jsx: true } },
+        },
+        plugins: { ledger },
+        rules: { "ledger/no-deprecated-name": "error" },
+      },
+      { filename: "/repo/src/screen.tsx" },
+    ).output;
+  assert.deepEqual(
+    reports("no-deprecated-name", [
+      `${kitParts} <Switch size="sm" />`,
+      `${kitParts} <SelectTrigger size={"default"} />`,
+      `${kitParts} <Card size="sm" />`,
+      `${kitParts} <DropdownMenuItem variant="destructive">Remove</DropdownMenuItem>`,
+      `${kitParts} <Item.Group labelledBy="h" />`,
+      `${kitParts} <Chart.Donut label="75%" />`,
+      `${kitParts} <Chart.Scatter name="x" />`,
+      `${kitParts} <Chart.Frame status="loading" />`,
+      `${kitParts} <Chart.Area baseline={0} />`,
+      `${kitParts} <Tree.Item expanded />`,
+      // A removed page shape is reported where it is imported.
+      'import { ShowPage } from "@ledger/design-system";',
+      'import { controlBase } from "@ledger/design-system";',
+    ]),
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  );
+  assert.deepEqual(
+    reports("no-deprecated-name", [
+      `${kitParts} <Switch size="small" />`,
+      `${kitParts} <Card size="medium" />`,
+      `${kitParts} <DropdownMenuItem variant="danger">Remove</DropdownMenuItem>`,
+      `${kitParts} <Chart.Donut centerLabel="75%" />`,
+      // Local components that share a kit name keep their own props.
+      '<Switch size="sm" />',
+      "function Panel() { return null; } <Panel />",
+    ]),
+    [0, 0, 0, 0, 0, 0],
+  );
+  assert.match(fixed(`${kitParts} <Switch size="sm" />`), /<Switch size="small" \/>/);
+  assert.match(fixed(`${kitParts} <SelectTrigger size={"default"} />`), /size=\{"medium"\}/);
+  assert.match(fixed(`${kitParts} <Item.Group labelledBy="h" />`), /aria-labelledby="h"/);
+  assert.match(fixed(`${kitParts} <Tree.Item expanded />`), /<Tree\.Item isExpanded \/>/);
+});
+
+test("the structural list takes overflow-wrap and the chart library's classes, and no undefined layout class", () => {
+  assert.deepEqual(
+    reports("no-non-token-class", [
+      '<p className="wrap-anywhere">x</p>',
+      '<p className="wrap-break-word wrap-normal">x</p>',
+      '<text className="recharts-cartesian-axis-tick-value">x</text>',
+    ]),
+    [0, 0, 0],
+  );
+  assert.deepEqual(reports("no-non-token-class", ['<div className="grid-cols-main-rail" />']), [1]);
+});
+
+test("the product's lint allowances name real rules, files and positive counts", () => {
+  const allow = JSON.parse(
+    fs.readFileSync(path.join(here, "../../../scripts/lint-allow.json"), "utf8"),
+  );
+  for (const [name, files] of Object.entries(allow)) {
+    if (name === "about") continue;
+    assert.ok(ledger.rules[name.replace(/^ledger\//, "")], `${name} is a ledger rule`);
+    for (const [file, count] of Object.entries(files)) {
+      assert.ok(fs.existsSync(path.join(here, "../../..", file)), `${file} exists`);
+      assert.ok(Number.isInteger(count) && count > 0, `${name} ${file}: ${count}`);
+    }
+  }
+});
+
+test("the kit's suppressed reports name files that exist", () => {
+  const suppressions = JSON.parse(
+    fs.readFileSync(path.join(here, "../eslint-suppressions.json"), "utf8"),
+  );
+  for (const [file, rules] of Object.entries(suppressions)) {
+    assert.ok(fs.existsSync(path.join(here, "..", file)), `${file} exists`);
+    for (const [rule, { count }] of Object.entries(rules)) {
+      assert.ok(!rule.startsWith("ledger/"), `${rule}: ledger rules keep test/lint-allow.json`);
+      assert.ok(Number.isInteger(count) && count > 0, `${file} ${rule}: ${count}`);
+    }
+  }
+});
+
 test("the plugin's version is the package's, so an ESLint cache refreshes when rules change", () => {
   const { version } = JSON.parse(fs.readFileSync(path.join(here, "../package.json"), "utf8"));
   assert.equal(ledger.meta.version, version);
@@ -335,4 +497,193 @@ test("the gate rules are errors in the product preset and the kit's own where th
   assert.equal(kitRules["ledger/no-plain-alert-role"], undefined, "the kit renders its own alerts");
   for (const name of ["no-overlay-autofocus", "link-button-navigation", "overlay-width-preset"])
     assert.ok(kitRules[`ledger/${name}`], name);
+});
+
+/* ---------- batch 5: style follows the value, colours outside style ---------- */
+
+/** A kit file's findings of one rule under the package preset as the kit's lint scopes it,
+    without its allowances; `source` stands in for the file's own text when given. */
+function kitFindings(file, rule, source) {
+  const packageRoot = path.join(here, "..");
+  const config = [
+    {
+      files: ["**/*.{ts,tsx}"],
+      languageOptions: {
+        parser: tseslint.parser,
+        parserOptions: { ecmaFeatures: { jsx: true } },
+      },
+    },
+    ...ledger.configs.package.map((entry) => ({ files: ["src/**/*.{ts,tsx}"], ...entry })),
+    { files: ["src/**/*.{ts,tsx}"], rules: { [`ledger/${rule}`]: "error" } },
+  ];
+  const at = path.join(packageRoot, "src", file);
+  return new Linter({ cwd: packageRoot })
+    .verify(source ?? fs.readFileSync(at, "utf8"), config, { filename: at })
+    .filter(({ ruleId }) => ruleId === `ledger/${rule}`);
+}
+
+test("the Dialog and Sheet preset maps' widths and heights are the only style literals exempt, each in its own file", () => {
+  // The exemption is pinned: two maps, by file and name, and each is where it says.
+  assert.deepEqual(PRESET_MAPS, {
+    "components/dialog.tsx": "dialogWidths",
+    "components/sheet.tsx": "sheetWidths",
+  });
+  for (const [file, name] of Object.entries(PRESET_MAPS)) {
+    const source = fs.readFileSync(path.join(here, "../src", file), "utf8");
+    assert.match(source, new RegExp(`^const ${name}: Record<`, "m"), `${file} declares ${name}`);
+    assert.deepEqual(kitFindings(file, "no-style-design-value"), [], file);
+    // The same map is exempt in its own file by its own name, and reported in another file or
+    // under another name.
+    const map = (called) =>
+      `import type { CSSProperties } from "react"; const ${called}: Record<"small", CSSProperties> = { small: { maxWidth: 400 } };`;
+    assert.equal(kitFindings(file, "no-style-design-value", map(name)).length, 0, file);
+    assert.equal(kitFindings(file, "no-style-design-value", map(`${name}Copy`)).length, 1, file);
+    assert.equal(
+      kitFindings("components/popover.tsx", "no-style-design-value", map(name)).length,
+      1,
+      `${name} outside ${file}`,
+    );
+    // Only a step's widths and heights: a colour, a padding or a custom property in the map is
+    // read as anywhere else.
+    const dressed = `import type { CSSProperties } from "react"; const ${name}: Record<"small", CSSProperties> = { small: { maxWidth: 400, height: "calc(100dvh - 2rem)", color: "#f00", padding: 24, borderRadius: 12, "--glow": "tomato" } as CSSProperties };`;
+    assert.deepEqual(
+      kitFindings(file, "no-style-design-value", dressed).map(({ messageId }) => messageId),
+      ["colour", "spaceLength", "length", "customColour"],
+      file,
+    );
+  }
+});
+
+test("a viewport length is structure; a design value beside it is not", () => {
+  assert.deepEqual(
+    reports("no-style-design-value", [
+      '<div style={{ height: "100dvh", width: "90vw", minHeight: "100svh", maxWidth: "50vmin" }} />',
+      '<div style={{ top: "min(var(--ds-space-1000), 10dvh)" }} />',
+      "<div style={{ maxHeight: `calc(100dvh - ${top} - var(--ds-space-200))` }} />",
+    ]),
+    [0, 0, 0],
+  );
+  const [message] = lint(
+    '<div style={{ maxHeight: "calc(100dvh - 2rem)" }} />',
+    "no-style-design-value",
+  );
+  assert.match(message?.message ?? "", /a literal length \(2rem\)/);
+});
+
+test("a finding says where a literal came from, and names a token only by its role", () => {
+  const [indent] = lint(
+    "const INDENT = 16;\nexport const A = ({ offset }) => <div style={{ paddingInlineStart: offset + INDENT }} />;",
+    "no-style-design-value",
+  );
+  assert.match(indent.message, /\(16px, from INDENT on line 1\)/);
+  assert.match(indent.message, /On the spacing scale 16px is space\.200: token\("space\.200"\)\./);
+  // A width's role is not its property's, so no token of its value is named.
+  const [width] = lint("<div style={{ width: 288 }} />", "no-style-design-value");
+  assert.doesNotMatch(width.message, /token\(|dimension\./);
+  // A literal a call hands a helper is said where the call is, never as the component's const.
+  const [helper] = lint(
+    "const box = (w) => ({ width: w });\nexport const A = () => <div style={box(288)} />;",
+    "no-style-design-value",
+  );
+  assert.match(helper.message, /\(288px, from line 2\)/);
+});
+
+test("a factor is a count, named or written in place; a sum's named number and a unit's number are lengths", () => {
+  assert.deepEqual(
+    reports("no-style-design-value", [
+      // A count times a token-derived or a measured length (review p15).
+      'import { tokenLiterals } from "@ledger/design-system"; const ROW = Number.parseFloat(tokenLiterals["dimension.control.medium"]); const VISIBLE_ROWS = 8; export const L = () => <div style={{ maxHeight: VISIBLE_ROWS * ROW }} />;',
+      "const DAYS = 7; export const C = ({ cell }) => <div style={{ width: DAYS * cell }} />;",
+      "export const C = ({ depth }) => <div style={{ paddingInlineStart: depth * 16 }} />;",
+      "const INDENT = 16; export const C = ({ depth }) => <div style={{ paddingInlineStart: depth * INDENT }} />;",
+      // Every factor written: a literal.
+      "const DAYS = 7; const CELL = 32; export const C = () => <div style={{ width: DAYS * CELL }} />;",
+      // A number before a unit, in a template, a concatenation or through a helper.
+      "const W = 288; export const P = () => <div style={{ width: `${W}px` }} />;",
+      'export const P = () => <div style={{ width: 288 + "px" }} />;',
+      "const px = (n) => `${n}px`; export const P = () => <div style={{ width: px(288) }} />;",
+      // A sum's named number, and one written in it.
+      "const GAP = 8; export const P = ({ top }) => <div style={{ top: top + GAP }} />;",
+      "export const P = ({ top }) => <div style={{ top: top - 8 }} />;",
+    ]),
+    [0, 0, 0, 0, 1, 1, 1, 1, 1, 0],
+  );
+});
+
+test("each part token names its part and the files that draw it, and the kit reads it nowhere else", () => {
+  const partTokens = Object.keys(tokens).filter((name) => name.startsWith("dimension.part."));
+  assert.deepEqual(Object.keys(PART_TOKENS).sort(), partTokens.sort());
+  const src = path.join(here, "../src");
+  const files = (dir) =>
+    fs
+      .readdirSync(dir, { withFileTypes: true })
+      .flatMap((entry) =>
+        entry.isDirectory()
+          ? ["generated", "stories"].includes(entry.name)
+            ? []
+            : files(path.join(dir, entry.name))
+          : /\.tsx?$/.test(entry.name)
+            ? [path.join(dir, entry.name)]
+            : [],
+      );
+  const readers = new Map(partTokens.map((name) => [name, new Set()]));
+  for (const file of files(src)) {
+    const text = fs.readFileSync(file, "utf8");
+    for (const [, name] of text.matchAll(/token(?:Value)?\("(dimension\.part\.\w+)"\)/g))
+      readers.get(name)?.add(path.relative(src, file).split(path.sep).join("/"));
+  }
+  for (const [name, { part, files: homes }] of Object.entries(PART_TOKENS)) {
+    assert.ok(part, `${name} names its part`);
+    for (const home of homes) assert.ok(fs.existsSync(path.join(src, home)), `${home} exists`);
+    assert.deepEqual(
+      [...readers.get(name)].sort(),
+      [...homes].sort(),
+      `${name} is read in its files`,
+    );
+  }
+});
+
+test("a kit overlay sized by its own part token passes overlay-width-preset in that part's file only", () => {
+  const command =
+    'import { DialogContent } from "./dialog"; import { token } from "../generated/tokens"; export const A = () => <DialogContent style={{ maxWidth: token("dimension.part.command") }} />;';
+  assert.deepEqual(kitFindings("components/command.tsx", "overlay-width-preset", command), []);
+  // Another part's file, another token, or a part token outside the kit, is a width like any other.
+  assert.equal(kitFindings("patterns/example.tsx", "overlay-width-preset", command).length, 1);
+  assert.equal(
+    kitFindings(
+      "components/command.tsx",
+      "overlay-width-preset",
+      command.replace("dimension.part.command", "dimension.part.popover"),
+    ).length,
+    1,
+  );
+  // The part's own size prop falling back to its token: PreviewSheet's today.
+  assert.deepEqual(kitFindings("patterns/preview-sheet.tsx", "overlay-width-preset"), []);
+  assert.deepEqual(
+    reports("overlay-width-preset", [
+      'import { DialogContent, token } from "@ledger/design-system"; <DialogContent style={{ maxWidth: token("dimension.part.command") }} />',
+    ]),
+    [1],
+  );
+});
+
+test("no-raw-colour runs in both presets and in the kit's stories; a <style> element is reported in both", () => {
+  const recommended = Object.assign({}, ...ledger.configs.recommended.map((c) => c.rules));
+  assert.equal(recommended["ledger/no-raw-colour"], "error");
+  assert.equal(ledger.configs.package[0].rules["ledger/no-raw-colour"], "error");
+  for (const entry of ledger.configs.package.slice(1))
+    assert.equal(entry.rules?.["ledger/no-raw-colour"], undefined, `${entry.files} turns it off`);
+  assert.equal(recommended["ledger/no-style-design-value"], "error");
+  assert.ok(ledger.configs.package[0].rules["ledger/no-style-design-value"]);
+  assert.deepEqual(
+    reports("no-raw-colour", [
+      '<svg><rect fill="#f00" /></svg>',
+      'import { Bar } from "recharts"; <Bar dataKey="v" fill="rebeccapurple" />',
+      'const COLORS = ["#0088FE", "#00C49F"];',
+      '<rect fill={token("color.chart.brand")} stroke="currentColor" />',
+      "<DataTable fill={fill} />",
+      'const hues = ["blue", "teal"];',
+    ]),
+    [1, 1, 1, 0, 0, 0],
+  );
 });

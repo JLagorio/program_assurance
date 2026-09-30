@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
-import { expect, userEvent, within } from "storybook/test";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import {
   Button,
@@ -153,6 +153,102 @@ export const ControlledOwnership: Story = {
       "true",
     );
     await expect(canvas.getByText(/^Choice:/)).toHaveTextContent(before ?? "");
+  },
+};
+
+const storedKey = "ledger.story.mode-stored";
+
+function StoredChoice() {
+  return (
+    <Stack space="space.300">
+      <ModeProvider storageKey={storedKey}>
+        <Stack space="space.150">
+          <Inline space="space.100" alignBlock="center">
+            <Button size="small">Before the switch</Button>
+            <ModeSwitch />
+          </Inline>
+          <Resolved />
+        </Stack>
+      </ModeProvider>
+      {/* A second provider with the same key, as a settings page beside the top nav would be. */}
+      <ModeProvider storageKey={storedKey}>
+        <ModeSwitch aria-label="Appearance, second provider" showLabels />
+      </ModeProvider>
+    </Stack>
+  );
+}
+
+/**
+ * The switch reads the stored choice as an external store: a reader who chose Dark sees Dark
+ * pressed from the first client render, not System until the page settles, a choice made in
+ * another tab reaches this one through the storage event, and a second provider on the page with
+ * the same key follows a choice made through the first. The group is named Appearance and its
+ * items Light, Dark and System; Tab lands on the pressed one, and each icon's name shows in a
+ * tooltip.
+ */
+export const StoredAndShared: Story = {
+  name: "Stored, and shared across tabs",
+  beforeEach: () => {
+    localStorage.setItem(storedKey, "dark");
+    return () => localStorage.removeItem(storedKey);
+  },
+  render: () => <StoredChoice />,
+  play: async ({ canvasElement, globals }) => {
+    const canvas = within(canvasElement);
+    const root = document.documentElement;
+    try {
+      const group = canvas.getByRole("group", { name: "Appearance" });
+      const item = (name: string) => within(group).getByRole("button", { name });
+      await expect(item("Dark")).toHaveAttribute("aria-pressed", "true");
+      await expect(item("Light")).toHaveAttribute("aria-pressed", "false");
+      await expect(item("System")).toHaveAttribute("aria-pressed", "false");
+      // Tab lands on the pressed mode, and the icon's name shows.
+      canvas.getByRole("button", { name: "Before the switch" }).focus();
+      await userEvent.tab();
+      await expect(item("Dark")).toHaveFocus();
+      await waitFor(() =>
+        expect(
+          document.querySelector('[data-slot="tooltip-content"][data-open]'),
+        ).toHaveTextContent("Dark"),
+      );
+      await userEvent.keyboard("{ArrowRight}");
+      await expect(item("System")).toHaveFocus();
+      await waitFor(() =>
+        expect(
+          document.querySelector('[data-slot="tooltip-content"][data-open]'),
+        ).toHaveTextContent("System"),
+      );
+      await userEvent.keyboard("{Escape}");
+      // Another tab chooses Light: this one follows, pressed item and root alike.
+      localStorage.setItem(storedKey, "light");
+      window.dispatchEvent(new StorageEvent("storage", { key: storedKey, newValue: "light" }));
+      await waitFor(() => expect(item("Light")).toHaveAttribute("aria-pressed", "true"));
+      await expect(root).toHaveAttribute("data-color-mode", "light");
+      await expect(canvas.getByText(/^Choice:/)).toHaveTextContent("Choice: light");
+      // And back to System, which clears the stored key.
+      localStorage.removeItem(storedKey);
+      window.dispatchEvent(new StorageEvent("storage", { key: storedKey, newValue: null }));
+      await waitFor(() => expect(item("System")).toHaveAttribute("aria-pressed", "true"));
+      // A choice made through one provider reaches the other on the page with the same key.
+      const second = canvas.getByRole("group", { name: "Appearance, second provider" });
+      await expect(within(second).getByRole("button", { name: "System" })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+      await userEvent.click(item("Dark"));
+      await expect(localStorage.getItem(storedKey)).toBe("dark");
+      await waitFor(() =>
+        expect(within(second).getByRole("button", { name: "Dark" })).toHaveAttribute(
+          "aria-pressed",
+          "true",
+        ),
+      );
+    } finally {
+      // The toolbar owns the root's mode; the provider applied the stored one, so give it back.
+      const toolbar = String(globals["mode"] ?? "light");
+      if (toolbar === "system") delete root.dataset["colorMode"];
+      else root.dataset["colorMode"] = toolbar;
+    }
   },
 };
 

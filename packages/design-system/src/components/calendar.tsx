@@ -69,6 +69,14 @@ export function Calendar({
     ? (date: Date, options: Intl.DateTimeFormatOptions) =>
         date.toLocaleDateString(locale.code, options)
     : formatCalendarDate;
+  // A day column is 32px: a locale whose short names are whole words there (Arabic's "الأربعاء")
+  // heads its columns with the narrow form, and every header keeps the full name as its label.
+  const weekdayForm: "short" | "narrow" = Array.from({ length: 7 }, (_, day) =>
+    // 7 January 2024 is a Sunday; the seven days from it are one of each weekday.
+    calendarFormat(new Date(2024, 0, 7 + day), { weekday: "short" }),
+  ).some((name) => [...name].length > 4)
+    ? "narrow"
+    : "short";
   const dayLabel = (date: Date, modifiers: Modifiers) =>
     [
       calendarFormat(date, { dateStyle: "full" }),
@@ -118,7 +126,7 @@ export function Calendar({
       showOutsideDays={showOutsideDays}
       formatters={{
         formatCaption: (date) => calendarFormat(date, { month: "long", year: "numeric" }),
-        formatWeekdayName: (date) => calendarFormat(date, { weekday: "short" }),
+        formatWeekdayName: (date) => calendarFormat(date, { weekday: weekdayForm }),
         formatMonthDropdown: (date) => calendarFormat(date, { month: "long" }),
         formatYearDropdown: (date) => calendarFormat(date, { year: "numeric" }),
         formatDay: (date) => calendarFormat(date, { day: "numeric" }),
@@ -226,9 +234,10 @@ export type CalendarDayButtonProps = ComponentProps<typeof DayButton>;
 /** DayPicker owns selection and keyboard navigation; Button supplies the shared native button styling. */
 export function CalendarDayButton({ className, day, modifiers, ...props }: CalendarDayButtonProps) {
   const ref = useRef<HTMLButtonElement>(null);
+  const focused = Boolean(modifiers["focused"]);
   useEffect(() => {
-    if (modifiers["focused"]) ref.current?.focus();
-  }, [modifiers["focused"]]);
+    if (focused) ref.current?.focus();
+  }, [focused]);
   return (
     <Button
       ref={ref}

@@ -37,6 +37,7 @@ import {
 } from "../../components/kbd";
 import { LinkIconButton } from "../../components/link-button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../components/tooltip";
+import { useIsTruncated } from "../../components/truncate";
 import { cn } from "../../lib/cn";
 import { useLedgerLocale } from "../../lib/locale";
 import { mergeRefs, slot, useShell, useSideNavRail, useSkipLink } from "./context";
@@ -70,6 +71,7 @@ export type ShellTopNavEndProps = ComponentProps<"div"> & {
 
 export function TopNavRoot({ id, label, className, children, ...props }: ShellTopNavProps) {
   const { t } = useLedgerLocale();
+  const { sideNav } = useShell();
   const name = label ?? t("topNavigation");
   const skipId = useSkipLink(id, name);
   return (
@@ -78,6 +80,8 @@ export function TopNavRoot({ id, label, className, children, ...props }: ShellTo
       id={skipId}
       tabIndex={-1}
       aria-label={name}
+      // Under the phone side-nav overlay, which holds focus and has its own close.
+      inert={sideNav.modal || props.inert}
       data-slot="shell-topnav"
       className={cn(
         "shell-topnav @container/topnav flex items-stretch border-b border-default bg-surface outline-none",
@@ -565,7 +569,7 @@ export function AppLogo({
       ...slot("shell-app-logo"),
       "aria-label": name,
       className: cn(
-        "flex min-w-0 items-center gap-100 rounded-medium text-left outline-none focus-visible:outline-focused",
+        "flex min-w-0 items-center gap-100 rounded-medium text-start outline-none focus-visible:outline-focused",
         className,
       ),
       children: (
@@ -603,22 +607,31 @@ export function AppSwitcher({ label, variant = "subtle", ...props }: AppSwitcher
   );
 }
 
-export type ProfileProps = useRender.ComponentProps<"button"> & {
-  /** An Avatar, small. */
+/* `name` is the person's, not the button's form name: declared here alone, so the props table shows it. */
+export type ProfileProps = Omit<useRender.ComponentProps<"button">, "name"> & {
+  /** An Avatar, small. It is decoration beside the name: Profile hides it from assistive technology, so the button's name is the person's name and description, not their initials as well. */
   avatar: ReactNode;
+  /** The person's name, shown beside the avatar and first in the button's accessible name. Required. */
   name: string;
   /** Under the name, subtle: the job title, the team. */
   description?: string | undefined;
   /** @deprecated The person's job title, not the ARIA role: use `description`. */
   role?: string | undefined;
+  /** The trailing chevron that says the button opens a menu. By default it shows while the button opens a popup it announces (`aria-haspopup`, which a DropdownMenuTrigger sets through `render`), so a Profile that runs an action or opens a dialog has none; `true` or `false` decides. */
+  indicator?: boolean | undefined;
 };
 
-/** The person: avatar, name, description. In the side nav's footer. A button that opens the account menu with `onClick`, or a menu's trigger through `render`; a label without either. */
+/** Whether `aria-haspopup` says the button opens a menu or a list, which the chevron promises. */
+const opensMenu = (value: unknown) =>
+  value === true || value === "true" || value === "menu" || value === "listbox";
+
+/** The person: avatar, name, description. In the side nav's footer. A menu's trigger through `render` (the account menu), a button with `onClick`, or a label without either. A Profile that opens a dialog says so with `aria-haspopup="dialog"`. */
 export function Profile({
   avatar,
   name,
   description,
   role,
+  indicator,
   render,
   ref,
   className,
@@ -628,6 +641,10 @@ export function Profile({
   const interactive = Boolean(onClick || render);
   const detail = description ?? role;
   const rail = useSideNavRail();
+  const nameRef = useRef<HTMLSpanElement>(null);
+  // The name shows whole in a tooltip in the icon rail, and wherever the side nav's width cuts it.
+  const cut = useIsTruncated(nameRef, { enabled: interactive && !rail });
+  const chevron = interactive && (indicator ?? opensMenu(props["aria-haspopup"]));
   const element = useRender({
     defaultTagName: interactive ? "button" : "div",
     render,
@@ -638,21 +655,25 @@ export function Profile({
       type: interactive ? "button" : undefined,
       onClick,
       className: cn(
-        "flex w-full items-center gap-100 rounded-medium px-100 py-075 text-left",
+        "flex w-full items-center gap-100 rounded-medium px-100 py-075 text-start",
         interactive &&
           "outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered focus-visible:outline-focused",
         className,
       ),
       children: (
         <>
-          {avatar}
+          <span aria-hidden="true" data-slot="shell-profile-avatar" className="flex shrink-0">
+            {avatar}
+          </span>
           <span data-slot="shell-profile-label" className="flex min-w-0 flex-col">
-            <span className="block truncate font-body font-medium text-default">{name}</span>
+            <span ref={nameRef} className="block truncate font-body font-medium text-default">
+              {name}
+            </span>
             {detail ? (
               <span className="block truncate font-body-small text-subtle">{detail}</span>
             ) : null}
           </span>
-          {interactive ? (
+          {chevron ? (
             <ChevronDown
               aria-hidden
               data-slot="shell-sidenav-chevron"
@@ -664,7 +685,7 @@ export function Profile({
     }),
   });
   return (
-    <Tooltip disabled={!rail || !interactive}>
+    <Tooltip disabled={!interactive || (!rail && !cut)}>
       <TooltipTrigger render={element} />
       <TooltipContent side="inline-end">{name}</TooltipContent>
     </Tooltip>

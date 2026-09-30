@@ -17,22 +17,22 @@ On the body of a page: a header with the kind and "+ Add", a card per related re
 
 The header and the footer are the card's; the rows are [Item](?path=/docs/components-item--docs)s; the cards are `Related.Card`.
 
-| Part              | What it is                                                                                                                                                                                              |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Title             | The kind of record, a noun, a heading in `font.body` semibold at the contextual level (an h3 when nothing sets one): "Linked findings", "Systems", "Team".                                               |
-| Count             | After the title: how many are linked.                                                                                                                                                                   |
-| Action            | At the end of the header's line: one small button, "Add" or "Link" with a plus, or a TextLink. The way to add one; it stays when the card is empty.                                                     |
-| Row (`list`)      | An Item, flush: a mark or an id, the name as the link, and the state or the date at the end. The hairlines and the hover fill span the card; the text sits at its inset.                                |
-| Card (`cards`)    | A `Related.Card` in a grid: the mark, the name as the link, the status and the meta under it, the properties, the actions at the top end, a line of its own under.                                      |
-| Card · Leading    | The mark before the name, 32px, spanning the name and the meta line: a medium Avatar, square for a thing, round for a person.                                                                           |
-| Card · Title      | The record's name, `font.body` medium, one line. With `link`, the link, underlined on hover.                                                                                                            |
-| Card · Meta       | Under the name, `font.body.small` subtle: kind, path, owner.                                                                                                                                            |
-| Card · Status     | One Badge or Indicator at the start of the meta line.                                                                                                                                                   |
-| Card · Properties | Label and value pairs under the head, KeyValue rows with a 96px label: four fit, six is the most.                                                                                                       |
-| Card · Actions    | Icon buttons at the top end, their space kept so nothing shifts: open in a new tab, a menu with the rest. Hidden until hover or focus, always shown on a touch screen, kept shown while a menu is open. |
-| Card · Children   | A line of its own under the properties: a row of Badges, a sentence.                                                                                                                                    |
-| Footer            | Under the rows or the cards, after a rule: "See all 14" as a TextLink.                                                                                                                                  |
-| Empty             | Where the rows would be: a compact Empty with a link icon, the title, a line and an action, from `empty`.                                                                                               |
+| Part              | What it is                                                                                                                                                                                                                  |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Title             | The kind of record, a noun, a heading in `font.body` semibold at the contextual level (an h3 when nothing sets one): "Linked findings", "Systems", "Team". A long one wraps.                                                |
+| Count             | After the title: how many are linked.                                                                                                                                                                                       |
+| Action            | At the end of the header's line: one small button, "Add" or "Link" with a plus, or a TextLink. The way to add one; it stays when the card is empty.                                                                         |
+| Row (`list`)      | An Item, flush: a mark or an id, the name as the link, and the state or the date at the end. The hairlines and the hover fill span the card; the text sits at its inset.                                                    |
+| Card (`cards`)    | A `Related.Card` in a grid: the mark, the name as the link, the status and the meta under it, the properties, the actions at the top end, a line of its own under.                                                          |
+| Card · Leading    | The mark before the name, 32px, spanning the name and the meta line: a medium Avatar, square for a thing, round for a person.                                                                                               |
+| Card · Title      | The record's name, `font.body` medium, one line; a name that is cut shows in full on hover and on keyboard focus. With `link`, the link, underlined on hover.                                                               |
+| Card · Meta       | Under the name, `font.body.small` subtle: kind, path, owner.                                                                                                                                                                |
+| Card · Status     | One Badge or Indicator at the start of the meta line.                                                                                                                                                                       |
+| Card · Properties | Label and value pairs under the head, KeyValue rows with a 96px label: four fit, six is the most.                                                                                                                           |
+| Card · Actions    | Icon buttons at the top end, their space kept so nothing shifts: open in a new tab, a menu with the rest. Hidden until the card is hovered or focused, always shown on a touch screen, kept shown while their menu is open. |
+| Card · Children   | A line of its own under the properties: a row of Badges, a sentence.                                                                                                                                                        |
+| Footer            | Under the rows or the cards, after a rule: "See all 14" as a TextLink.                                                                                                                                                      |
+| Empty             | Where the rows would be: a compact Empty with a link icon, the title, a line and an action, from `empty`.                                                                                                                   |
 
 ## Variants
 
@@ -57,18 +57,18 @@ The size is the list's; every row in one card is the same height. A card in the 
 
 ## States
 
-| State           | What changes                                                                                                                      |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Hover on a card | `elevation.shadow.raised` under it; the actions appear; the name underlines under the pointer.                                    |
-| Focus in a card | The actions appear while anything in the card has focus, so a keyboard reaches them; the focus ring is on the name or the button. |
-| Touch           | The actions are always shown; there is no hover to reveal them.                                                                   |
-| A menu open     | The actions stay shown while the card's menu is open.                                                                             |
-| Hover on a row  | The Item's: `color.background.neutral.subtle.hovered` across the row.                                                             |
-| Empty           | The compact Empty where the rows would be; the header and its action stay.                                                        |
+| State           | What changes                                                                                                                         |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Hover on a card | `elevation.shadow.raised` under it; the actions appear; the name underlines under the pointer.                                       |
+| Focus in a card | The actions appear while anything in the card has focus, so a keyboard reaches them; the focus ring is on the name or the button.    |
+| Touch           | The actions are always shown where there is no hover or any pointer is coarse (a touch laptop too); there is nothing to reveal them. |
+| A menu open     | The actions stay shown while the card's menu is open, after the pointer and the focus have left the card.                            |
+| Hover on a row  | The Item's: `color.background.neutral.subtle.hovered` across the row.                                                                |
+| Empty           | The compact Empty where the rows would be; the header and its action stay.                                                           |
 
 ## Modifiers
 
-- **`title`**, **`count`**, **`action`**, **`footer`**, **`layout`**, **`size`**, **`empty`** as in Anatomy. `empty` is a string, the Empty's title, or the Empty's title, description, action and icon.
+- **`title`**, **`count`**, **`action`**, **`footer`**, **`layout`**, **`size`**, **`empty`** as in Anatomy. `empty` is a string, the Empty's title, or the Empty's title, description, action and icon. Without it the title is the locale's `relatedEmpty`, "Nothing linked yet" in en-US, so a LedgerProvider translates it. Children that render nothing (empty arrays, `false`, empty fragments) are nothing linked.
 - **The rows** take the Item's props: `id`, `leading`, `title`, `meta`, `trailing`, `link` or `onSelect`.
 - **The cards** take **`leading`**, **`title`**, **`link`**, **`meta`**, **`status`**, **`properties`**, **`actions`** and children.
 
@@ -101,7 +101,7 @@ The size is the list's; every row in one card is the same height. A card in the 
 ## Accessibility
 
 - **The heading takes the contextual level**: an h3 when nothing sets one, one below a titled Section, an h2 in a rail that starts its outline at 2 (`HeadingLevelProvider level={2}`). The rows or the cards are a list named by it: a screen reader hears "Systems, list, 3 items".
-- **The name is the link**, in a row and in a card, named by the record's name alone; the id, the status, the meta and the properties are read as the text beside it. A row's link is stretched over the row; a card's is the name, because the card has actions of its own, and where any pointer is coarse the name takes a hit area at least 24px tall.
+- **The name is the link**, in a row and in a card, named by the record's name alone; the id, the status, the meta and the properties are read as the text beside it, and a row's id and meta are its link's description. A row's link is stretched over the row, with its focus ring drawn inside the card's edge; a card's is the name, because the card has actions of its own, and where any pointer is coarse the name takes a hit area at least 24px tall.
 - **The actions are always in the tab order.** They are hidden by opacity, not removed, and they show while any of them has focus; a keyboard reader reaches "Open Ground segment in a new tab" and "More for Ground segment" after the name. On a touch screen they are always shown.
 - **Each action is a labelled icon button** that names the record: "Unlink" alone would be six identical buttons on a page of cards.
 - **The count is text**, read after the title; the footer's link says how many.
@@ -110,6 +110,12 @@ The size is the list's; every row in one card is the same height. A card in the 
 
 <Canvas of={Stories.HeadingLevelAndSurface} />
 
+<Canvas of={Stories.ActionsWhileAMenuIsOpen} />
+
+<Canvas of={Stories.NothingLinked} />
+
+<Canvas of={Stories.LongNames} />
+
 A Related.Card paints the raised surface and records it as the current one, as Card does, so a child that matches its surface with `bg-surface-current` (a sticky header, a fade at an edge) paints the card's colour rather than the page's.
 
 ## Props
@@ -117,6 +123,8 @@ A Related.Card paints the raised surface and records it as the current one, as C
 <ArgTypes of={Related} />
 
 ### Related.Card
+
+Also exported by name as `RelatedCard`, with `RelatedCardProps`, `RelatedEmpty` and `RelatedLayout`.
 
 <ArgTypes of={Related.Card} />
 

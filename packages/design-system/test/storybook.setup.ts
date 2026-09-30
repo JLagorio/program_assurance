@@ -3,7 +3,7 @@ import { commands } from "vitest/browser";
 
 import gatesAllow from "./gates-allow.json";
 import allowList from "./layout-allow.json";
-import { type Gate, gateHelp, runGate } from "./story-gates";
+import { type Gate, gateHelp, runGate, watchMotion } from "./story-gates";
 
 /**
  * Checks every story runs under, after its render and play function and once its web fonts have
@@ -28,8 +28,9 @@ import { type Gate, gateHelp, runGate } from "./story-gates";
  *
  * Every project also fails a story that logs a Base UI or React warning on console.warn (TOO-17).
  * The gate projects add one check each (test/story-gates.ts says what each measures): focus rings
- * in storybook-light, touch targets in storybook-touch, forced-colour states in
- * storybook-forced-colors, short windows in storybook-short and long content in storybook-long.
+ * in storybook-light, reduced motion in storybook-dark, touch targets in storybook-touch,
+ * forced-colour states in storybook-forced-colors, short windows in storybook-short and long
+ * content in storybook-long.
  * A gate counts its problems per story, and a story fails when it has more than its allowance in
  * test/gates-allow.json. The allowances record the stories that predated the gate; the list may
  * only shrink (scripts/check-allow-lists.mjs compares it with the base branch). Run a gate with
@@ -328,6 +329,7 @@ const framePast = (frame: Element): string | undefined => {
 let errors: unknown[][];
 let warnings: unknown[][];
 let restore: (() => void) | undefined;
+let stopWatching: (() => void) | undefined;
 beforeEach((ctx) => {
   // A play that needs a mouse (hover, an arrow shown only to a fine pointer) cannot pass on a
   // touch phone, and one that asserts a token colour cannot pass in forced colours: the gate
@@ -338,6 +340,8 @@ beforeEach((ctx) => {
     : undefined;
   const skip = skips?.[`${ctx.task.file.name.split("/").at(-1)}::${ctx.task.name}`];
   if (skip !== undefined) ctx.skip(skip);
+  // The motion gate also counts transitions that start while the story renders and plays.
+  if (gate === "motion") stopWatching = watchMotion();
   errors = [];
   warnings = [];
   const original = console.error.bind(console);
@@ -391,7 +395,12 @@ afterEach(async (ctx) => {
   await fontsSettled();
   visuallyHidden.reset();
   await layoutChecks(storyId);
-  await gateCheck(storyId);
+  try {
+    await gateCheck(storyId);
+  } finally {
+    stopWatching?.();
+    stopWatching = undefined;
+  }
 });
 
 async function layoutChecks(storyId: string | undefined) {

@@ -1,34 +1,56 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
 import * as Stories from "./Pages.stories";
 
 <Meta of={Stories} />
 
 # Page composition
 
-Mount the application shell once around the router outlet. Routes compose normal primitives and components inside Main and contribute optional Aside or Panel content. There are no collection-page or record-page wrapper APIs. A collection page is a PageHeader and a DataTable with `fill`, which takes the rest of the window, and `responsive`, which folds lower-priority fields into each row's More fields on a narrow screen instead of scrolling sideways, with a [Toolbar](?path=/docs/patterns-toolbar--docs) as its `toolbar`: the search first, filters, display controls such as Columns, and the one primary at the end. A tab whose only content is the collection starts with that Toolbar and table, with no heading or Section around it; see Register.
+Mount the application shell once around the router outlet. Routes compose normal primitives and components inside Main and contribute optional Aside or Panel content. There are no collection-page or record-page wrapper APIs. The stories here render the shapes the [Recipes](?path=/docs/guidance-recipes--docs) name, step by step.
 
-The record example brings the visual conventions together: an Actions menu beside the title, a descriptive method selector, a standard input, and inline status and owner editors. App and Storybook load Geist and Geist Mono. Select and Combobox share row spacing, persistent choice indicators and neutral keyboard highlights; descriptions grow the row instead of clipping.
+## A record
+
+The trail is `PageHeader.Lead` with the record's code as its last level, the name is the h1, and one Actions menu sits at the end of the title's row (a destination in it is a link item). Tabs follow when the record has more than one view. On Overview the body is Sections, a description is Prose, and the Details rail is the shell's Aside: an Inspector group named Details with the state, owner, identifiers and dates as KeyValue rows, the ones a reader changes in place as Editables. The rail belongs to Overview and leaves with it; a tab that is a register starts with its Toolbar and table, with no heading over them, and fills the work area.
 
 <Canvas of={Stories.Record} />
+
+## A register
+
+A page that is one collection: the name alone in the PageHeader, then a DataTable with `fill`, which takes the rest of the window, and `responsive`, which folds lower-priority fields into each row's More fields on a narrow screen instead of scrolling sideways. Its [Toolbar](?path=/docs/patterns-toolbar--docs) is the table's `toolbar`: the search first, the saved views in `views`, the filters, Columns, Settings and the collection's overflow as its children, and the one small primary at the end. The name is a TextLink to the record. A failed refresh keeps the rows under one Alert with Retry.
+
 <Canvas of={Stories.Register} />
+
+## A preview beside a register
+
+The eye on a row's first value opens a Shell.Panel named by its `label`, never by the record. Its outer header holds global navigation only: [PreviewNavigation](?path=/docs/patterns-previewnavigation--docs) (previous, next, the position said with the record's name through `recordLabel`, and a real open-in-new-tab link) in Panel.Actions, then Panel.Close. The body starts with an inner PageHeader whose Title is the record's name, an h2 because the body of an untitled panel starts its outline at 2, beside one small primary and a subtle overflow menu; the properties follow, then the record's Sections one level down through a HeadingLevelProvider. Previous and next walk the table's displayed rows (`displayedRows`), across pages, turning the table to the row's page (`showRow`). The register stays mounted underneath, so its search and a draft in the panel survive; Close and Escape return focus to the eye.
+
 <Canvas of={Stories.QueueWithPanel} />
 <Canvas of={Stories.CompactQueue} />
+
+## Filling the window
+
+`fill` on a DataTable is the `fill-window` utility with `useFillWindow`: the block measures its own offset from the top of the document and takes the rest of the window above Main's bottom inset, its header sticks to its frame, its rows scroll inside and its pagination sits at the bottom. It is never shorter than its toolbar's row, a header, six rows and the pagination; past that the page scrolls again. The height follows the dynamic viewport, so a phone's browser bar never hides the pagination. A Table's `fill` only takes the rest of a bounded column: to fill the window with one, give its parent the `fill-window` class and set the parent's `--fill-top` to the pixels `useFillWindow(ref)` returns for it. Use it for the register that is the page's one block, including a tab that is a register; a register below other content takes its natural height.
+
+## Focus and the sticky shell
+
+The page keeps what focus or an anchor scrolls into view clear of the sticky banner and top nav: the document's scroll padding is their height and `space.200` at the top, and `space.1000` at the bottom. It is the document's own padding, so a dialog, a sheet, a panel or a list that scrolls inside the page brings a focused row wholly into its own view. Below 30rem of height, where the banner and top nav scroll away, the padding is `space.200`.
+
+<Canvas of={Stories.FocusStaysInView} />
 
 ## Regions and behavior
 
 - **Main** contains the page header, filters, tabs and work area. Keep these visible controls in the route.
-- **Aside** provides supporting context, such as properties. It follows Main below the `aside` breakpoint (`dimension.breakpoint.aside`, 75rem: 1200px at the default root size) and sits beside it above that. When a Panel is also open, Aside follows Main until the `wide` breakpoint (110rem, 1760px). The breakpoints are tokens; [Metrics](?path=/docs/tokens-metrics--docs) lists them.
-- **Panel** holds a selected record or task. From the `panel` breakpoint (80rem, 1280px) it is a resizable column beside Main that runs the full height of the window; the banner and the top nav stop at its edge. Below that it replaces the visible work area under the top nav while Main stays mounted. Close or Escape returns focus to the opener when it still exists.
+- **Aside** provides supporting context, such as a record's Details. It follows Main below the `aside` breakpoint (`dimension.breakpoint.aside`, 75rem: 1200px at the default root size) and sits beside it above that, and from the large breakpoint while the side nav is collapsed. When a Panel is also open, Aside follows Main until the `wide` breakpoint (110rem, 1760px). The breakpoints are tokens; [Metrics](?path=/docs/tokens-metrics--docs) lists them.
+- **Panel** holds a selected record or task. From the large breakpoint (64rem, 1024px) it is a resizable column beside Main that runs the full height of the window under the banner; the top nav stops at its edge. Up to the `panel` breakpoint (80rem, 1280px) an open panel shows the side nav collapsed, so the register stays in view beside it, and closing the panel gives the side nav back as the reader left it. Below the large breakpoint it replaces the visible work area under the top nav while Main stays mounted. Close or Escape returns focus to the opener when it still exists.
 - **Sheet** is the modal surface for a workflow that needs focus containment. Compose it with the existing Base UI components.
 
 A route contributes at most one Aside and one Panel. Their portal destinations remain stable across route updates. Route React context travels with the contribution, and unmounting the route removes it. Slots appear after mounting; server rendering does not render portaled region content. The application restores its browser workspace before rendering routes.
 
 ## Tabs and accessibility
 
-Keep each tab's primary content inside its TabsContent. Supporting context is a separate labelled landmark and is conditional on the selected tab. Give pages one h1, panels an h2, and contextual regions meaningful names. Avoid placing modal semantics on a panel that leaves global navigation available.
+Keep each tab's primary content inside its TabsContent. Supporting context is a separate labelled landmark and is conditional on the selected tab. Give pages one h1, panels an h2, and contextual regions meaningful names. The PageHeader is not a landmark, so the top nav is the page's one banner. Avoid placing modal semantics on a panel that leaves global navigation available.
 
-The examples test route cleanup, retained context, tab relationships, queue state, resizing and focus return. Their example route buttons use a horizontal Scroller, so keyboard focus brings each route into view without widening the page on a phone. Responsive behavior is also checked in the application.
+The examples test route cleanup, retained context, tab relationships, queue state, preview order, resizing, focus return and the fill. Their example route buttons use a horizontal Scroller, so keyboard focus brings each route into view without widening the page on a phone. Responsive behavior is also checked in the application.
 
 ## Extending
 
-Compose a new route from Stack, Inline, Grid, PageHeader and the controls it needs. Add a pattern when a repeated interaction earns one—for example record selection, coordinated filtering, or calendar scheduling. Layout ownership stays in Shell.
+Compose a new route from Stack, Inline, Grid, PageHeader and the controls it needs. Add a pattern when a repeated interaction earns one, for example record selection, coordinated filtering or calendar scheduling. Layout ownership stays in Shell.

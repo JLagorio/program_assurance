@@ -1,9 +1,12 @@
 import { Avatar as Primitive } from "@base-ui/react/avatar";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import { createContext, useContext, type ComponentProps } from "react";
 import { token } from "../generated/tokens";
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { toneClasses, type Tone } from "./badge";
+import { Truncate } from "./truncate";
 
 /* The circle is a mark that a person is meant: initials by default, a photo when there is one, in
    five sizes. Colour is opt-in. Neutral is the default so a person never reads as a status; tinted,
@@ -85,8 +88,11 @@ const neutral = "border border-default bg-neutral text-subtle";
 const GroupContext = createContext(false);
 const RootContext = createContext<{ size: AvatarSize; radius: string } | null>(null);
 
-/** A 2px ring in the surface colour, so overlapping circles stay circles. */
-const ring = { boxShadow: `0 0 0 2px ${token("elevation.surface")}` } as const;
+/** A ring of `border.width.selected` (2px) in the surface colour, so overlapping circles stay
+    circles. */
+const ring = {
+  boxShadow: `0 0 0 ${token("border.width.selected")} ${token("elevation.surface")}`,
+} as const;
 
 export type AvatarProps = Primitive.Root.Props & {
   size?: AvatarSize | undefined;
@@ -99,11 +105,11 @@ export type AvatarProps = Primitive.Root.Props & {
 export type AvatarImageProps = Primitive.Image.Props;
 /** Native span props and ref, and Base UI's `delay`. Shows caller-supplied initials or other fallback content while the photo loads or fails. */
 export type AvatarFallbackProps = Primitive.Fallback.Props;
-/** Native div props and ref target the +n circle. */
-export type AvatarGroupCountProps = ComponentProps<"div">;
+/** Native div props and ref target the +n circle; `render` makes it a button, for a Popover or HoverCard trigger that lists the members it stands for. */
+export type AvatarGroupCountProps = useRender.ComponentProps<"div">;
 /** Native span props and ref target the mark on the circle's corner. */
 export type AvatarBadgeProps = ComponentProps<"span"> & {
-  /** What the mark says, in a status tone: `success` for present, `danger` for away, `neutral`, the default, for a mark that is not a status. */
+  /** The mark's tone: `neutral`, the default, for a mark that is not a status (a role, a lock); `success` for a verified or active person; `warning` for one who needs attention. Presence (online, away, busy) is not a status and is not drawn in a tone: say it in words beside the person. */
   tone?: Tone | undefined;
 };
 
@@ -111,10 +117,10 @@ export function AvatarImage({ className, alt = "", ...props }: AvatarImageProps)
   const root = useContext(RootContext);
   return (
     <Primitive.Image
-      data-slot="avatar-image"
       alt={alt}
-      className={classes(cn("size-full object-cover", root?.radius), className)}
       {...props}
+      className={classes(cn("size-full object-cover", root?.radius), className)}
+      data-slot="avatar-image"
     />
   );
 }
@@ -123,9 +129,9 @@ export function AvatarFallback({ className, children, ...props }: AvatarFallback
   const root = useContext(RootContext);
   return (
     <Primitive.Fallback
-      data-slot="avatar-fallback"
-      className={classes(cn("flex size-full items-center justify-center", root?.radius), className)}
       {...props}
+      className={classes(cn("flex size-full items-center justify-center", root?.radius), className)}
+      data-slot="avatar-fallback"
     >
       {children}
     </Primitive.Fallback>
@@ -147,9 +153,7 @@ export function AvatarBadge({ tone = "neutral", className, style, ...props }: Av
   const size = root?.size ?? "small";
   return (
     <span
-      data-slot="avatar-badge"
-      data-tone={tone}
-      data-size={size}
+      {...props}
       style={{ ...ring, ...style }}
       className={cn(
         "absolute end-0 bottom-0 z-10 inline-flex shrink-0 select-none items-center justify-center rounded-full [&>svg]:shrink-0",
@@ -157,7 +161,9 @@ export function AvatarBadge({ tone = "neutral", className, style, ...props }: Av
         badgeSizes[size],
         className,
       )}
-      {...props}
+      data-slot="avatar-badge"
+      data-tone={tone}
+      data-size={size}
     />
   );
 }
@@ -186,10 +192,7 @@ export function Avatar({
   return (
     <RootContext.Provider value={{ size, radius }}>
       <Primitive.Root
-        data-slot="avatar"
-        data-size={size}
-        data-variant={variant}
-        data-shape={shape}
+        {...props}
         className={(state) =>
           cn(
             "relative inline-flex shrink-0 select-none items-center justify-center",
@@ -212,40 +215,55 @@ export function Avatar({
             : {}),
           ...(typeof style === "function" ? style(state) : style),
         })}
-        {...props}
+        data-slot="avatar"
+        data-size={size}
+        data-variant={variant}
+        data-shape={shape}
       />
     </RootContext.Provider>
   );
 }
 
 export type AvatarGroupProps = ComponentProps<"div">;
+/** Overlapping avatars. The overlap is a quarter of the members' size, near enough on the spacing scale: 4px at xsmall, 6px at small, 8px at medium and large, 16px at xlarge. */
 export function AvatarGroup({ className, ...props }: AvatarGroupProps) {
   return (
     <GroupContext.Provider value={true}>
       <div
-        data-slot="avatar-group"
+        {...props}
         className={cn(
           // eslint-disable-next-line ledger/no-margin -- Overlap is the geometry of an avatar group.
-          "group/avatar-group flex items-center [&>*+*]:-ms-075",
+          "group/avatar-group flex items-center [&>*+*]:-ms-075 has-[[data-slot=avatar][data-size=xsmall]]:[&>*+*]:-ms-050 has-[[data-slot=avatar][data-size=medium]]:[&>*+*]:-ms-100 has-[[data-slot=avatar][data-size=large]]:[&>*+*]:-ms-100 has-[[data-slot=avatar][data-size=xlarge]]:[&>*+*]:-ms-200",
           className,
         )}
-        {...props}
+        data-slot="avatar-group"
       />
     </GroupContext.Provider>
   );
 }
-export function AvatarGroupCount({ className, style, ...props }: AvatarGroupCountProps) {
-  return (
-    <div
-      data-slot="avatar-group-count"
-      style={{ ...ring, ...style }}
-      className={cn(
-        "relative flex size-300 shrink-0 items-center justify-center rounded-full bg-surface-raised font-body-xsmall text-subtle group-has-[[data-size=medium]]/avatar-group:size-400 [&>svg]:size-icon-small",
+
+/* The +n circle takes its members' size and a type size under theirs, read from the group, so
+   it is never larger or smaller than the avatars it follows. As a button it takes the focus ring
+   and a 24px hit area on a touch screen, which the 16px circle beside xsmall avatars needs. */
+const groupCountSizes =
+  "size-300 font-body-xsmall group-has-[[data-slot=avatar][data-size=xsmall]]/avatar-group:size-200 group-has-[[data-slot=avatar][data-size=medium]]/avatar-group:size-400 group-has-[[data-slot=avatar][data-size=medium]]/avatar-group:font-body-small group-has-[[data-slot=avatar][data-size=large]]/avatar-group:size-500 group-has-[[data-slot=avatar][data-size=large]]/avatar-group:font-body group-has-[[data-slot=avatar][data-size=xlarge]]/avatar-group:size-800 group-has-[[data-slot=avatar][data-size=xlarge]]/avatar-group:font-body-large";
+
+/** The +n circle after the avatars a group shows: plain text, or with `render` a button that opens the names it stands for. */
+export function AvatarGroupCount({ className, style, render, ...props }: AvatarGroupCountProps) {
+  return useRender({
+    defaultTagName: "div",
+    render,
+    props: mergeProps<"div">(props, {
+      style: { ...ring, ...style },
+      className: cn(
+        "relative flex shrink-0 items-center justify-center rounded-full bg-surface-raised text-subtle outline-none [&>svg]:size-icon-small",
+        groupCountSizes,
+        "[button]:touch-target [button]:cursor-pointer [button]:hover:bg-surface-raised-hovered [button]:focus-visible:outline-focused",
         className,
-      )}
-      {...props}
-    />
-  );
+      ),
+      ...{ "data-slot": "avatar-group-count" },
+    }),
+  });
 }
 
 export type PersonProps = Omit<ComponentProps<"span">, "children"> & {
@@ -257,19 +275,20 @@ export type PersonProps = Omit<ComponentProps<"span">, "children"> & {
   variant?: AvatarVariant | undefined;
 };
 
-/** A person's avatar and visible name, composed from the public parts. */
+/** A person's avatar and visible name, composed from the public parts. The avatar is hidden beside the name; a name longer than its column ends in an ellipsis and shows whole on hover. */
 export function Person({ name, src, variant, className, ...props }: PersonProps) {
   return (
     <span
-      data-slot="person"
-      className={cn("flex min-w-0 items-center gap-075", className)}
       {...props}
+      className={cn("flex min-w-0 items-center gap-075", className)}
+      data-slot="person"
     >
       <Avatar aria-hidden="true" size="xsmall" variant={variant} hue={avatarHue(name)}>
         {src && <AvatarImage src={src} />}
         <AvatarFallback>{avatarInitials(name, 1)}</AvatarFallback>
       </Avatar>
-      <span className="truncate">{name}</span>
+      {/* A name cut by its column shows whole on hover and keyboard focus while it is cut. */}
+      <Truncate>{name}</Truncate>
     </span>
   );
 }

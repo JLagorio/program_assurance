@@ -2,7 +2,7 @@ import { Checkbox as CheckboxPrimitive } from "@base-ui/react/checkbox";
 import { Check, Minus } from "lucide-react";
 
 import { classes } from "../lib/base-ui";
-import { useFieldControlState } from "./controls";
+import { choiceControl, useFieldControlState } from "./controls";
 
 export type CheckboxProps = CheckboxPrimitive.Root.Props;
 
@@ -20,10 +20,9 @@ export function Checkbox({ className, ...props }: CheckboxProps) {
       disabled={props.disabled || field.disabled}
       aria-required={props["aria-required"] ?? ((props.required ?? field.required) || undefined)}
       className={classes(
-        // The boundary is color.border.bold, 3:1 against every surface, so an unticked box can be
-        // seen (WCAG 1.4.11). Invalid is the border; the focus outline stays the focus colour, so a
-        // focused invalid box still shows where focus is.
-        "peer relative flex size-200 shrink-0 items-center justify-center rounded-small border border-bold bg-input text-inverse outline-none transition-colors duration-fast ease-standard after:absolute after:-inset-x-150 after:-inset-y-100 focus-visible:outline-focused aria-invalid:border-danger data-checked:border-brand data-checked:bg-brand-bold data-indeterminate:border-brand data-indeterminate:bg-brand-bold data-disabled:cursor-not-allowed data-disabled:opacity-disabled motion-reduce:transition-none",
+        // The shared choice states: the 3:1 boundary, hover, invalid as the border with the focus
+        // outline kept in the focus colour, and read-only as a sunken box with a plain tick.
+        `${choiceControl} rounded-small`,
         className,
       )}
     >

@@ -5,6 +5,7 @@ import {
   avatarInitials,
   AvatarGroup,
   Badge,
+  Button,
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -13,7 +14,7 @@ import {
 } from "../../components";
 import { ChevronDown } from "lucide-react";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
-import { createRef } from "react";
+import { createRef, useRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
@@ -87,6 +88,49 @@ export const StepperMatrix: Story = {
       </Specimens>
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const states = canvas.getByRole("list", { name: "States" });
+    // A list whose markers are removed says it is a list, so WebKit keeps "3 of 6".
+    await expect(states).toHaveAttribute("role", "list");
+    // A strip that fits its container adds no tab stop around its steps; one that scrolls and
+    // holds no button is the stop, named after the list.
+    const viewport = states.parentElement!;
+    await expect(viewport).toHaveAttribute("data-slot", "scroller-viewport");
+    if (viewport.scrollWidth <= viewport.clientWidth) {
+      await expect(viewport).not.toHaveAttribute("tabindex");
+      await expect(viewport).not.toHaveAttribute("role");
+    } else {
+      await waitFor(() => expect(viewport).toHaveAttribute("tabindex", "0"));
+      await expect(viewport).toHaveAccessibleName("States, scrolls");
+    }
+    // The state is read first; the drawn number is not read.
+    const rmf = canvas.getByRole("list", { name: "RMF steps" });
+    const select = within(rmf).getByRole("button", { name: "Completed: Select" });
+    await expect(within(rmf).getByRole("button", { name: "Current: Implement" })).toBeVisible();
+    // A focused step's ring is drawn inside the strip, which clips.
+    select.focus();
+    await userEvent.keyboard("{Shift>}{Tab}{/Shift}{Tab}");
+    await expect(select).toHaveFocus();
+    await expect(getComputedStyle(select, "::after").outlineOffset).toBe("-2px");
+    // Down the page a step's ring stops above the next step's marker.
+    const setup = canvas.getByRole("list", { name: "Program setup" });
+    const program = within(setup).getByRole("button", { name: /Program/ });
+    program.focus();
+    await userEvent.keyboard("{Shift>}{Tab}{/Shift}{Tab}");
+    await expect(program).toHaveFocus();
+    const ring = getComputedStyle(program, "::after");
+    const reach =
+      program.closest("li")!.getBoundingClientRect().bottom -
+      parseFloat(ring.bottom) +
+      parseFloat(ring.outlineOffset) +
+      parseFloat(ring.outlineWidth);
+    // Each step draws a marker for either orientation; the one down the page is the one shown.
+    const next = [
+      ...setup.querySelectorAll("li")[1]!.querySelectorAll('[data-slot="stepper-marker"]'),
+    ].find((marker) => marker.getBoundingClientRect().height > 0)!;
+    await expect(reach).toBeLessThan(next.getBoundingClientRect().top);
+  },
 };
 
 /** Where a path is drawn: a milestone header on a record, and a wizard's rail. */
@@ -194,9 +238,13 @@ export const Paths: Story = {
     await userEvent.keyboard("{Enter}");
     await expect(guardStep).toHaveBeenCalledTimes(2);
     await expect(selectStep).toHaveBeenCalledTimes(3);
-    await expect(within(list).getByRole("button", { name: /MS-C/ }).closest("li")).toHaveAttribute(
-      "aria-current",
-      "step",
+    // The current step of a path the reader moves along is a button carrying the state itself.
+    const current = within(list).getByRole("button", { name: /MS-C/ });
+    await expect(current).toHaveAttribute("aria-current", "step");
+    await expect(current).toHaveAccessibleName("Current: MS-C 18 Sep · 10d out");
+    await expect(current.closest("li")).not.toHaveAttribute("aria-current");
+    await expect(within(list).getByRole("button", { name: /MS-E/ })).toHaveAccessibleName(
+      "Not started: MS-E 14 Jan",
     );
     const vertical = canvas.getByRole("list", { name: "Program setup" });
     await expect(vertical).toHaveAttribute("data-orientation", "vertical");
@@ -402,6 +450,21 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // A sentence on a step is cut to its one line, and shows whole while the pointer is on it.
+    const sentence = "Select the baseline and tailor the control set";
+    const label = canvas.getByText(sentence);
+    await expect(label).toHaveAttribute("data-slot", "truncate");
+    await expect(label.scrollWidth).toBeGreaterThan(label.clientWidth + 1);
+    await userEvent.hover(label);
+    await waitFor(() =>
+      expect(document.querySelector('[data-slot="truncate-full-text"]')).toHaveTextContent(
+        sentence,
+      ),
+    );
+    await userEvent.unhover(label);
+  },
 };
 
 export const Playground: Story = {};
@@ -425,5 +488,91 @@ export const Narrow: Story = {
     const viewport = list.parentElement!;
     await expect(viewport.scrollWidth).toBeGreaterThan(viewport.clientWidth);
     await expect(viewport.getBoundingClientRect().right).toBeLessThanOrEqual(window.innerWidth);
+    // Steps that only report hold nothing the keyboard reaches, so the overflowing strip is the
+    // stop: a group named after the list.
+    await waitFor(() => expect(viewport).toHaveAttribute("tabindex", "0"));
+    await expect(viewport).toHaveAttribute("role", "group");
+    await expect(viewport).toHaveAccessibleName("Authorization steps, scrolls");
+  },
+};
+
+const steps = ["Program", "Framework", "Systems", "Review"] as const;
+
+/** A wizard's rail beside its step. */
+function WizardDemo() {
+  const [index, setIndex] = useState(1);
+  const heading = useRef<HTMLHeadingElement>(null);
+  const go = (next: number, focusHeading: boolean) => {
+    setIndex(next);
+    if (focusHeading) requestAnimationFrame(() => heading.current?.focus());
+  };
+  return (
+    <Inline space="space.400" alignBlock="start" shouldWrap>
+      <Box style={{ width: 200, maxWidth: "100%" }}>
+        <Stepper label="Program setup" orientation="vertical" numbered>
+          {steps.map((step, i) => (
+            <Stepper.Item
+              key={step}
+              state={i < index ? "done" : i === index ? "current" : "upcoming"}
+              label={step}
+              // Every done step and the next one can be moved to.
+              {...(i < index || i === index + 1 ? { onSelect: () => go(i, false) } : {})}
+            />
+          ))}
+        </Stepper>
+      </Box>
+      <Stack space="space.200">
+        <h2
+          ref={heading}
+          tabIndex={-1}
+          className="font-heading-small outline-none focus-visible:outline-focused"
+        >
+          {steps[index]}
+        </h2>
+        <Text color="color.text.subtle">
+          Step {index + 1} of {steps.length}
+        </Text>
+        <Inline space="space.100">
+          <Button onClick={() => go(Math.max(0, index - 1), true)}>Back</Button>
+          <Button variant="primary" onClick={() => go(Math.min(steps.length - 1, index + 1), true)}>
+            Continue
+          </Button>
+        </Inline>
+      </Stack>
+    </Inline>
+  );
+}
+
+/**
+ * A wizard's rail: every done step and the next one can be moved to, and the current step stays a
+ * button, so the step the reader activates keeps focus as it becomes current. Continue and Back
+ * change the step from outside the rail, so they move focus to the new step's heading.
+ */
+export const Wizard: Story = {
+  render: () => <WizardDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const rail = canvas.getByRole("list", { name: "Program setup" });
+    const systems = within(rail).getByRole("button", { name: "Not started: Systems" });
+    // Upcoming steps with no way to them only report: no button, not a stop.
+    await expect(within(rail).queryByRole("button", { name: /Review/ })).toBeNull();
+    await userEvent.click(systems);
+    // The same element, now current, still has focus.
+    await expect(systems).toHaveFocus();
+    await expect(systems).toHaveAttribute("aria-current", "step");
+    await expect(systems).toHaveAccessibleName("Current: Systems");
+    await expect(within(rail).getByRole("button", { name: "Completed: Framework" })).toBeVisible();
+    // Activating the current step does nothing.
+    await userEvent.keyboard("{Enter}");
+    await expect(systems).toHaveFocus();
+    await expect(systems).toHaveAttribute("aria-current", "step");
+    // Continue moves focus to the step it opens.
+    await userEvent.click(canvas.getByRole("button", { name: "Continue" }));
+    const review = canvas.getByRole("heading", { name: "Review" });
+    await waitFor(() => expect(review).toHaveFocus());
+    await expect(within(rail).getByRole("button", { name: "Current: Review" })).toHaveAttribute(
+      "aria-current",
+      "step",
+    );
   },
 };

@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Absent, HeadingLevelProvider, Prose, Section, Stack } from "@ledger/design-system";
-import { RecordPreviewActions, RecordPreviewPanel } from "./record-preview";
+import { RecordPreviewActions, RecordPreviewPanel, useEndOnHide } from "./record-preview";
 import { useRows } from "@/lib/models";
 import type { DataRecord } from "@/lib/records";
+import { stepDeterminations } from "@/lib/status";
 import { EntitySection, ModelFacts, ModelTable, RelationName } from "./record-tools";
 import { VersionName } from "./work-common";
+import { StatusBadge } from "@/components/app/status";
 
 /** Recorded observations can exist before a formal assessment execution is pinned. */
 export function ObservationsRegister({
@@ -16,7 +18,18 @@ export function ObservationsRegister({
   fill?: boolean | undefined;
 }) {
   const observations = useRows("observations", programId ? { program_id: programId } : {});
+  // An observation made at a test step carries that step's result; only the determination is read.
+  const results = useRows("step_results", {}, { columns: ["id", "determination"] });
+  const resultOf = useMemo(
+    () => new Map((results.data ?? []).map((result) => [result.id, result.determination])),
+    [results.data],
+  );
+  const result = (row: DataRecord) =>
+    typeof row["step_result_id"] === "string"
+      ? (resultOf.get(row["step_result_id"]) ?? null)
+      : null;
   const [selected, setSelected] = useState<DataRecord | null>(null);
+  useEndOnHide(() => setSelected(null));
   const [displayed, setDisplayed] = useState<DataRecord[]>([]);
   // The preview reads the stored record, so a refreshed observation shows as it is now.
   const current =
@@ -28,7 +41,7 @@ export function ObservationsRegister({
     <>
       <ModelTable
         model="observations"
-        queries={[observations]}
+        queries={[observations, results]}
         selectedId={selected?.id}
         onDisplayedRowsChange={setDisplayed}
         rows={(observations.data ?? []) as DataRecord[]}
@@ -37,8 +50,16 @@ export function ObservationsRegister({
         view={programId ? "program-observations" : "observations"}
         columns={[
           { key: "title", label: "Observation" },
-          { key: "method", label: "Method" },
-          { key: "observed_at", label: "Observed" },
+          { key: "method", label: "Method", priority: 2 },
+          { key: "observed_at", label: "Observed", priority: 1 },
+          {
+            key: "result",
+            label: "Result",
+            statuses: stepDeterminations,
+            value: result,
+            width: 130,
+            priority: 3,
+          },
           ...(!programId
             ? [
                 {
@@ -121,12 +142,16 @@ export function ObservationsRegister({
                   {
                     key: "step_result_id",
                     label: "Step result",
-                    render: (row) =>
-                      row["step_result_id"] ? (
-                        "Recorded in a test run"
+                    render: (row) => {
+                      const determination = result(row);
+                      return determination ? (
+                        <StatusBadge statuses={stepDeterminations} value={determination} />
                       ) : (
-                        <Absent label="Not recorded" />
-                      ),
+                        <Absent
+                          label={row["step_result_id"] ? "No result recorded" : "Not recorded"}
+                        />
+                      );
+                    },
                   },
                 ]}
               />

@@ -7,6 +7,11 @@ export type ScrollAreaProps = Primitive.Root.Props & {
   /** Native attributes and ref for the element that actually scrolls. */
   viewportProps?: Primitive.Viewport.Props | undefined;
 };
+/**
+ * A bounded region that scrolls with the kit's own bar, which the reader can drag. The viewport is
+ * a tab stop while it overflows, so the keyboard scrolls it; its focus ring is drawn inside it,
+ * following the root's corners, since the root clips. Name it through `viewportProps`.
+ */
 export function ScrollArea({ className, children, dir, viewportProps, ...props }: ScrollAreaProps) {
   const { direction } = useLedgerLocale();
   return (
@@ -24,7 +29,7 @@ export function ScrollArea({ className, children, dir, viewportProps, ...props }
           data-slot="scroll-area-viewport"
           {...viewportProps}
           className={classes(
-            "size-full min-h-0 flex-1 rounded-[inherit] outline-none focus-visible:outline-focused",
+            "size-full min-h-0 flex-1 outline-none focus-visible:outline-field-focused",
             viewportProps?.className,
           )}
         >
@@ -37,6 +42,7 @@ export function ScrollArea({ className, children, dir, viewportProps, ...props }
   );
 }
 export type ScrollBarProps = Primitive.Scrollbar.Props;
+/** One bar: ScrollArea renders the vertical one; add `orientation="horizontal"` for a wide region. */
 export function ScrollBar({ className, orientation = "vertical", ...props }: ScrollBarProps) {
   return (
     <Primitive.Scrollbar

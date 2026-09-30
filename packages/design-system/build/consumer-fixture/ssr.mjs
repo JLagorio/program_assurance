@@ -480,7 +480,8 @@ for (const attribute of [
   'aria-checked="true"',
   'aria-readonly="true"',
   'aria-required="true"',
-  'data-size="sm"',
+  // The deprecated `sm` spelling reports the kit's size word.
+  'data-size="small"',
 ])
   assert.ok(switchRoot.includes(attribute), attribute);
 assert.match(switchRoot, /packed-checked/);
@@ -1075,17 +1076,19 @@ for (const attribute of [
   'title="Shortcut modifier"',
   'lang="en"',
   'dir="ltr"',
-  'aria-label="Command"',
 ])
   assert.ok(keyHtml.includes(attribute), attribute);
+// ARIA does not name a kbd: the glyph is hidden and one visually hidden name is read instead.
+assert.match(keyHtml, /<span aria-hidden="true">⌘<\/span><span class="sr-only">Command<\/span>/);
+assert.doesNotMatch(keyHtml, /aria-label=/);
 assert.ok(keyHtml.includes("vertical-align:middle"));
 assert.doesNotMatch(keyHtml, / label=|tabindex=/);
 assert.match(keyHtml, /⌘/);
 const explicitKeyHtml = renderToString(
   createElement(Kbd, { label: "Command", "aria-label": "Meta key" }, "⌘"),
 );
-assert.match(explicitKeyHtml, /aria-label="Meta key"/);
-assert.doesNotMatch(explicitKeyHtml, /aria-label="Command"/);
+assert.match(explicitKeyHtml, /class="sr-only">Meta key</);
+assert.doesNotMatch(explicitKeyHtml, /aria-label=|Command/);
 const chordHtml = renderToString(
   createElement(
     KbdGroup,
@@ -1096,8 +1099,10 @@ const chordHtml = renderToString(
 );
 const chordRoot = chordHtml.match(/^<kbd[^>]*>/)?.[0];
 assert.ok(chordRoot);
-for (const attribute of ['data-slot="kbd-group"', 'id="packed-chord"', 'aria-label="Command K"'])
+for (const attribute of ['data-slot="kbd-group"', 'id="packed-chord"'])
   assert.ok(chordRoot.includes(attribute), attribute);
+assert.doesNotMatch(chordRoot, /aria-label=/);
+assert.match(chordHtml, /<span class="sr-only">Command K<\/span><\/kbd>$/);
 assert.ok(chordRoot.includes("vertical-align:middle"));
 assert.equal(chordHtml.match(/data-slot="kbd"/g)?.length, 2);
 assert.equal(chordHtml.match(/id="packed-chord"/g)?.length, 1);
@@ -1366,7 +1371,8 @@ const cardHtml = renderToString(
     createElement(ledger.CardFooter, null, "Saved"),
   ),
 );
-assert.match(cardHtml, /data-slot="card" data-size="sm"/);
+// The deprecated `sm` spelling reports the kit's size word.
+assert.match(cardHtml, /data-slot="card" data-size="small"/);
 assert.match(
   cardHtml,
   /--ds-utility-elevation-surface-current:var\(--ds-elevation-surface-raised\)/,
@@ -1408,34 +1414,67 @@ assert.match(
   /aria-hidden="true"/,
 );
 assert.match(
-  renderToString(createElement(ledger.ToastProvider, null, createElement(ledger.ToastViewport, { "aria-label": "Exports" }))),
+  renderToString(
+    createElement(
+      ledger.ToastProvider,
+      null,
+      createElement(ledger.ToastViewport, { "aria-label": "Exports" }),
+    ),
+  ),
   /Exports/,
 );
 console.log("Packed Card, Empty, Spinner and Toaster native composition passed");
 
-const textLinkHtml = renderToString(createElement(ledger.TextLink, { render: createElement("a", { href: "/records", target: "_blank" }) }, "Records"));
+const textLinkHtml = renderToString(
+  createElement(
+    ledger.TextLink,
+    { render: createElement("a", { href: "/records", target: "_blank" }) },
+    "Records",
+  ),
+);
 assert.match(textLinkHtml, /href="\/records"/);
 assert.match(textLinkHtml, /target="_blank"/);
 assert.equal((textLinkHtml.match(/<a /g) || []).length, 1);
-const sideNavHtml = renderToString(createElement(ledger.Shell.SideNav.Item, { render: createElement("a", { href: "/records" }), isActive: true, badge: 3 }, "Records"));
+const sideNavHtml = renderToString(
+  createElement(
+    ledger.Shell.SideNav.Item,
+    { render: createElement("a", { href: "/records" }), isActive: true, badge: 3 },
+    "Records",
+  ),
+);
 assert.match(sideNavHtml, /aria-current="page"/);
 assert.match(sideNavHtml, /Records/);
 assert.match(sideNavHtml, />3</);
 assert.equal((sideNavHtml.match(/<a /g) || []).length, 1);
 console.log("Packed Base UI navigation and toast exports passed");
 
-const itemHtml = renderToString(createElement(ledger.Item, {
-  title: "Record", id: "REC-1", "data-record": "REC-1", tabIndex: -1,
-  style: { maxWidth: 640 }, link: createElement("a", { id: "record-destination", href: "/record" }),
-}));
+const itemHtml = renderToString(
+  createElement(ledger.Item, {
+    title: "Record",
+    id: "REC-1",
+    "data-record": "REC-1",
+    tabIndex: -1,
+    style: { maxWidth: 640 },
+    link: createElement("a", { id: "record-destination", href: "/record" }),
+  }),
+);
 assert.match(itemHtml, /<li[^>]*data-record="REC-1"/);
 assert.match(itemHtml, /grid-template-columns:/);
 assert.match(itemHtml, /max-width:640px/);
 assert.match(itemHtml, /<a[^>]*id="record-destination"/);
-const frameHtml = renderToString(createElement(ledger.Chart.Frame, {
-  title: "Report", id: "report-figure", "data-report": "coverage", tabIndex: -1,
-  style: { maxWidth: 800 },
-}, createElement("span", null, "Plot")));
+const frameHtml = renderToString(
+  createElement(
+    ledger.Chart.Frame,
+    {
+      title: "Report",
+      id: "report-figure",
+      "data-report": "coverage",
+      tabIndex: -1,
+      style: { maxWidth: 800 },
+    },
+    createElement("span", null, "Plot"),
+  ),
+);
 assert.match(frameHtml, /<figure[^>]*id="report-figure"/);
 assert.match(frameHtml, /data-report="coverage"/);
 assert.match(frameHtml, /max-width:800px/);
@@ -1612,11 +1651,7 @@ for (const id of [
   "native-banner",
   "native-banner-action",
 ]) {
-  assert.equal(
-    (displayHtml.match(new RegExp('id="' + id + '"', "g")) ?? []).length,
-    1,
-    id,
-  );
+  assert.equal((displayHtml.match(new RegExp('id="' + id + '"', "g")) ?? []).length, 1, id);
 }
 assert.match(displayHtml, /aria-label="Program setup"/);
 assert.doesNotMatch(displayHtml, /Default label/);
@@ -1627,17 +1662,11 @@ assert.match(displayHtml, /scroll-margin-top:32px/);
 assert.match(displayHtml, /data-metric="coverage"/);
 assert.match(displayHtml, /background-color:transparent/);
 assert.match(displayHtml, /text-subtlest[^>]*>0</);
-assert.match(
-  displayHtml,
-  /<dl[^>]*data-field="owner"[^>]*grid-template-columns:120px 1fr/,
-);
+assert.match(displayHtml, /<dl[^>]*data-field="owner"[^>]*grid-template-columns:120px 1fr/);
 assert.match(displayHtml, /<dt[^>]*>Owner<\/dt>/);
 // A cut value reveals itself through Truncate's tooltip, not a native title.
 assert.match(displayHtml, /<dd[^>]*data-slot="truncate"[^>]*>Dana<\/dd>/);
 assert.doesNotMatch(displayHtml, /<dd[^>]*title=/);
-assert.match(
-  displayHtml,
-  /role="region"[^>]*aria-label="Catalogue notice"[^>]*aria-live="off"/,
-);
+assert.match(displayHtml, /role="region"[^>]*aria-label="Catalogue notice"[^>]*aria-live="off"/);
 assert.match(displayHtml, /data-revision="5.2"[^>]*letter-spacing:0.01em/);
 console.log("Packed Stepper, Stat, KeyValue and Banner native props passed");

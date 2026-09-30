@@ -1,5 +1,6 @@
-import { PageHeader, Stack } from "@ledger/design-system";
+import { PageHeader } from "@ledger/design-system";
 import { createFileRoute } from "@tanstack/react-router";
+import { Page } from "@/components/app/shell";
 import { EvidenceBrowser } from "@/components/prototype/evidence-browser";
 
 export const Route = createFileRoute("/evidence")({
@@ -8,13 +9,13 @@ export const Route = createFileRoute("/evidence")({
 });
 function EvidencePage() {
   return (
-    <Stack space="space.200" className="min-w-0">
+    <Page>
       <PageHeader>
         <PageHeader.Heading>
           <PageHeader.Title>Evidence</PageHeader.Title>
         </PageHeader.Heading>
       </PageHeader>
       <EvidenceBrowser />
-    </Stack>
+    </Page>
   );
 }

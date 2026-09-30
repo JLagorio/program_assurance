@@ -12,7 +12,7 @@ Related views within one page, using [shadcn's Base UI Tabs](https://ui.shadcn.c
 
 ## Anatomy
 
-Compose `Tabs`, `TabsList`, `TabsTrigger` and `TabsContent`. Match each Trigger's `value` to its Content. Put counts, badges and icons in the Trigger's children. Name the List with `aria-label` or `aria-labelledby`.
+Compose `Tabs`, `TabsList`, `TabsTrigger` and `TabsContent`. Match each Trigger's `value` to its Content. Put counts, badges and icons in the Trigger's children: a count is a [Count](?path=/docs/components-count--docs) after the label, with the same `max` on every strip in a product (999 or 9999 for rows), and a state is a Badge. Name the List with `aria-label` or `aria-labelledby`. Keep a strip to the views a reader switches between; a long run of tabs is a sign that some belong in a Details section or a menu.
 
 ```tsx
 <Tabs defaultValue="controls">
@@ -31,15 +31,17 @@ Routes compose Tabs, TabsList and TabsContent directly; route state controls the
 
 ## Variants
 
-`TabsList` supports shadcn's `default` filled strip and `line` underline. Ledger retains its color, spacing and focus tokens; line tabs remain 32px tall on a border, with a 2px brand underline. One Base UI Indicator follows the selected tab, sliding and resizing over the moderate motion duration (240ms). The filled strip moves its raised selection surface in the same way. Horizontal line tabs fill the available width and align to the start. Their border continues across the container even when only a few tabs exist.
+`TabsList` supports shadcn's `default` filled strip and `line` underline. Ledger retains its color, spacing and focus tokens; line tabs remain 32px tall on a border, with a 2px brand underline. One Base UI Indicator follows the selected tab, sliding and resizing over the moderate motion duration (240ms). The filled strip moves its selected chip in the same way: the chip is outlined in `color.border.selected`, 3:1 against the track in both modes, since its fill alone is about 1.1:1. Horizontal line tabs fill the available width and align to the start. Their border continues across the container even when only a few tabs exist, and each tab's hit area reaches half way across the gap to its neighbour, so a click between two labels chooses the nearer tab.
 
-Horizontal line tabs use the kit's `ScrollArea` and horizontal `ScrollBar` inside a horizontal [Scroller](?path=/docs/components-scroller--docs), whose click arrows mark the overflowed edge for pointer readers and replace the scrollbar while they show; touch readers swipe with the bar. They stay on one row at every container width, including narrow preview panels. Touch, trackpad, scrollbar dragging and arrow-key focus can reach the overflowed tabs. Do not add `flex-wrap`, an overflow utility or another scroller to `TabsList`. Size the `Tabs` container when a bounded example is needed; the List handles its own width and scrolling.
+Horizontal tabs, filled or line, use the kit's `ScrollArea` and horizontal `ScrollBar` inside a horizontal [Scroller](?path=/docs/components-scroller--docs), whose click arrows mark the overflowed edge for pointer readers and replace the scrollbar while they show; touch readers swipe with the bar. They stay on one row at every container width, including narrow preview panels. Touch, trackpad, scrollbar dragging and arrow-key focus can reach the overflowed tabs, and the Scroller reveals the focused tab clear of its arrows. The selected tab stays in view as the strip narrows, and as counts arrive after the first layout until the reader scrolls the strip; a tab chosen from outside the strip scrolls into view. Do not add `flex-wrap`, an overflow utility or another scroller to `TabsList`. Size the `Tabs` container when a bounded example is needed; the List handles its own width and scrolling.
 
-The default filled strip fits its content. Record pages and previews explicitly use `variant="line"`; `activateOnFocus` remains an independent choice. Vertical lists retain their vertical layout and do not receive a horizontal scroller. The exported `tabsListVariants` recipe supplies list styling; the `TabsList` component also supplies the horizontal scrolling composition.
+The default filled strip fits its content and scrolls, from its start, in a container narrower than its tabs. Record pages and previews explicitly use `variant="line"`; `activateOnFocus` remains an independent choice. Vertical lists retain their vertical layout and do not receive a horizontal scroller. The exported `tabsListVariants` recipe supplies list styling; the `TabsList` component also supplies the horizontal scrolling composition.
 
 <Canvas of={Stories.Variants} />
 
 <Canvas of={Stories.ResponsiveWidths} />
+
+<Canvas of={Stories.LateCountsOnAPhone} />
 
 Set `orientation="vertical"` on Tabs for a vertical strip and Up/Down navigation. Direction follows LedgerProvider; `dir="ltr"` or `dir="rtl"` overrides both layout and keyboard direction.
 
@@ -47,7 +49,7 @@ Set `orientation="vertical"` on Tabs for a vertical strip and Up/Down navigation
 
 ## Accessibility
 
-Base UI owns the tablist, tab and tabpanel roles, selection, focus and panel associations. Keep a panel for the selected tab. Each strip is one Tab stop; arrows move within it and Home/End reach the ends. Focus wraps unless `loopFocus={false}` is set on the List.
+Base UI owns the tablist, tab and tabpanel roles, selection, focus and panel associations. Keep a panel for the selected tab. Each strip is one Tab stop; arrows move within it and Home/End reach the ends. Focus wraps unless `loopFocus={false}` is set on the List. A horizontal strip clips, so a focused tab draws its ring inside itself; a vertical strip draws it outside, as other controls do.
 
 Activation is **manual by default**: arrows move focus, then Enter or Space selects. `activateOnFocus` on the List selects as focus moves; use it when the panel can appear immediately. Disabled tabs remain arrow-focusable in the installed Base UI 1.7 contract and cannot activate.
 
@@ -65,7 +67,7 @@ In forced-colors mode, system-color outlines and underlines preserve the selecte
 
 ## Props
 
-The four parts expose their corresponding Base UI props, native refs, `render`, events, and state-based `className`/`style`. `TabsList` props and its ref still target the element with `role="tablist"`, inside the horizontal line scroller. The scroller adds no separate Tab stop; keyboard users enter the tablist and arrows or Home/End reveal the focused tab. Public types are `TabsProps`, `TabsListProps`, `TabsTriggerProps` and `TabsContentProps`.
+The four parts expose their corresponding Base UI props, native refs, `render`, events, and state-based `className`/`style`. `TabsList` props and its ref still target the element with `role="tablist"`, inside the horizontal scroller. The scroller adds no separate Tab stop; keyboard users enter the tablist and arrows or Home/End reveal the focused tab. Public types are `TabsProps`, `TabsListProps`, `TabsTriggerProps` and `TabsContentProps`.
 
 Root accepts `value`/`onValueChange` or `defaultValue`, including numeric values; `null` means no selection. `onValueChange(value, details)` can cancel user activation with `details.cancel()`. Uncontrolled selection falls back when a selected tab disappears or becomes disabled; those automatic notifications are not cancellable. For predictable server rendering, give an explicit enabled initial value.
 
@@ -75,7 +77,7 @@ Root accepts `value`/`onValueChange` or `defaultValue`, including numeric values
 
 ### TabsList
 
-`variant` is `default`, a filled strip, or `line`, an underline that spans the content and scrolls in one row. Each part names itself last with `data-slot` (`tabs`, `tabs-list`, `tabs-trigger`, `tabs-content`).
+`variant` is `default`, a filled strip, or `line`, an underline that spans the content; both scroll in one row when horizontal. Each part names itself last with `data-slot` (`tabs`, `tabs-list`, `tabs-trigger`, `tabs-content`).
 
 <ArgTypes of={TabsList} />
 
@@ -103,5 +105,5 @@ Root accepts `value`/`onValueChange` or `defaultValue`, including numeric values
 ## Related
 
 - [ToggleGroup](?path=/docs/components-togglegroup--docs): view options or filters over the same rows.
-- [Badge](?path=/docs/components-badge--docs): counts and state labels inside tabs.
+- [Count](?path=/docs/components-count--docs): a count inside a tab. [Badge](?path=/docs/components-badge--docs): a state label inside a tab.
 - [Pages](?path=/docs/layout-pages--docs): record page composition and controlled routing.

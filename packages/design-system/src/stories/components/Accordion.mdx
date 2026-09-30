@@ -1,4 +1,5 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../components";
 import * as Stories from "./Accordion.stories";
 
 <Meta of={Stories} />
@@ -20,6 +21,17 @@ Compose the flat `Accordion`, `AccordionItem`, `AccordionTrigger`, and `Accordio
 </Accordion>
 ```
 
+| Part             | What it is                                                                                                                                                                                                                                                                    |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Accordion        | The set: a column of items, `flex` and full width.                                                                                                                                                                                                                            |
+| AccordionItem    | One section, with a hairline between items.                                                                                                                                                                                                                                   |
+| AccordionTrigger | The heading and, inside it, the button: the title at the start and a chevron at the end that turns with `aria-expanded`. The row tint under the pointer reaches `space.100` before a title that sits flush with the content, and the chevron sits `space.100` inside the end. |
+| AccordionContent | The panel that folds, with `data-open` and the measured `--accordion-panel-height`, and a `space.200` box under the content inside it.                                                                                                                                        |
+
+`AccordionTrigger` renders the item's heading itself. `headerProps` reach that heading (a `className`, native attributes, a ref, or `render` for another element), and `icon` replaces the chevron with another mark, or `null` for none; a custom mark shows the state itself, from the trigger's `aria-expanded`. Every part's `className` is a string or Base UI's state function, and `AccordionContent`'s reaches the panel, not the box inside it.
+
+<Canvas of={Stories.Parts} />
+
 ## Variants and states
 
 <Canvas of={Stories.Examples} />
@@ -28,15 +40,38 @@ Use `value` with `onValueChange` for controlled state and `defaultValue` otherwi
 
 <Canvas of={Stories.ControlledAndRetained} />
 
+## When to use it
+
+- **A set that belongs together**, where the reader opens one section or several: the parts of a long form's help, the groups of a settings page.
+- **Not** for one titled block that folds: that is a [CollapsibleHeader](?path=/docs/components-collapsible--docs), a collapsible [Section](?path=/docs/layout-section--docs) on a page, or an [Inspector.Group](?path=/docs/patterns-inspector--docs) in a rail of facts.
+- **Not** for switching between views of one record: those are [Tabs](?path=/docs/components-tabs--docs).
+- **Not** for a row that discloses more of itself: Item's `isCollapsible` and Table's disclosure column own their chevrons.
+
 ## Accessibility
 
-Triggers are native buttons with Enter, Space, and normal Tab behavior. Base UI follows current APG guidance and does not add arrow-key roving focus. The trigger wrapper supplies the heading and associates every panel with its trigger.
+Triggers are native buttons with Enter, Space, and normal Tab behavior. Base UI follows current APG guidance and does not add arrow-key roving focus. The trigger wrapper supplies the heading and associates every panel with its trigger. The chevron is decoration, turned by the expanded state rather than by colour; under reduced motion it turns without moving and the panel opens without the fold.
 
-Each heading takes the contextual level from the nearest [HeadingLevelProvider](?path=/docs/primitives-heading--docs), titled Section or panel body, and is an h3 when nothing sets one. Wrap the Accordion in a HeadingLevelProvider for another level: `level={2}` where it is a page rail's first heading under the h1.
+Each heading takes the contextual level from the nearest [HeadingLevelProvider](?path=/docs/primitives-heading--docs), titled Section or panel body, and is an h3 when nothing sets one. Wrap the Accordion in a HeadingLevelProvider for another level: `level={2}` where it is a page rail's first heading under the h1. `headerProps.render` sets one item's element.
 
 <Canvas of={Stories.HeadingLevel} />
 
-Use Accordion for a set that belongs together; for one disclosure with a title, use [CollapsibleHeader](?path=/docs/components-collapsible--docs), or a collapsible [Section](?path=/docs/layout-section--docs) on a page.
+A panel clips only while it folds: settled open, its overflow is visible, so the focus ring of a link or a button at its edge shows whole. Each panel folds on its own measured height, so a Collapsible inside an open item eases rather than snapping (Components/Collapsible, Nested motion).
+
+## Props
+
+<ArgTypes of={Accordion} />
+
+### AccordionItem
+
+<ArgTypes of={AccordionItem} />
+
+### AccordionTrigger
+
+<ArgTypes of={AccordionTrigger} />
+
+### AccordionContent
+
+<ArgTypes of={AccordionContent} />
 
 ## Related
 

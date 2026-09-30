@@ -8,6 +8,7 @@ import {
   RecordPreviewPanel,
   recordDestination,
   useDisplayedRecords,
+  useEndOnHide,
 } from "./record-preview";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { EmptyMessage, QueryState, type QueryStatus } from "./work-common";
@@ -47,7 +48,7 @@ import {
   defineColumns,
   useDataTable,
 } from "@ledger/design-system";
-import { MoreHorizontal, TriangleAlert } from "lucide-react";
+import { FileText, ListChecks, MoreHorizontal, TriangleAlert } from "lucide-react";
 import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
 import { database, requireIdentity } from "@/lib/database";
@@ -516,6 +517,10 @@ function SspAssemblyPlan({
     effectiveBaselines: effectiveBaselines.data ?? [],
   });
   const [evidenceId, setEvidenceId] = useState<string>();
+  useEndOnHide(() => {
+    setSelectedId(undefined);
+    setEvidenceId(undefined);
+  });
   const navigate = useNavigate();
   const selected = rows.find((row) => row.id === selectedId);
   const editable = plan.state === "draft" && workspace.role !== "viewer";
@@ -1044,9 +1049,12 @@ function SspAssemblyPlan({
               <ProductCollection
                 table={requirementTable}
                 keepQuestion={false}
+                // A few rows in the preview, under its record header.
+                compact
                 searchLabel="Find supporting requirements"
                 empty={{
                   illustration: "shield",
+                  icon: <ListChecks />,
                   title: "No requirement support",
                   description: "No requirement support or allocated control mapping is recorded.",
                 }}
@@ -1056,9 +1064,11 @@ function SspAssemblyPlan({
               <ProductCollection
                 table={evidenceTable}
                 keepQuestion={false}
+                compact
                 searchLabel="Find supporting evidence"
                 empty={{
                   illustration: "document",
+                  icon: <FileText />,
                   title: "No supporting evidence",
                   description:
                     "No evidence is linked through this implementation or its related requirements.",

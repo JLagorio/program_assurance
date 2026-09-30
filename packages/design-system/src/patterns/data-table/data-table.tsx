@@ -25,11 +25,13 @@ import {
   useSyncExternalStore,
   type CSSProperties,
   type KeyboardEvent,
+  type MouseEvent,
   type ReactNode,
 } from "react";
 import { announce } from "../../lib/announce";
 import {
   fitFrame,
+  shareSlack,
   yieldPins,
   type FitColumn,
   type FrameFit,
@@ -46,6 +48,7 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLinkItem,
   DropdownMenuSeparator,
 } from "../../components/dropdown-menu";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "../../components/hover-card";
@@ -53,6 +56,7 @@ import { Id } from "../../components/id";
 import { TablePagination } from "./pagination";
 import { Skeleton } from "../../components/skeleton";
 import { PreviewEye, Table, headerTrailingWidth, previewValueClass } from "../../components/table";
+import { tokenLiterals } from "../../generated/tokens";
 import { cn } from "../../lib/cn";
 import { useFillWindow } from "../../lib/use-fill-window";
 import {
@@ -82,7 +86,8 @@ import type { DataTableInstance } from "./use-data-table";
  * one part here; nothing is a second table.
  */
 
-export type DataTableState = "ready" | "loading" | "empty" | "error";
+/** `refreshing` keeps the rows drawn while new ones load: the table is busy, and says so. */
+export type DataTableState = "ready" | "loading" | "refreshing" | "empty" | "error";
 
 /** What the empty state says when a search or a filter left nothing. Each part has a localized default; the default action clears the table's search and column filters. */
 export type DataTableFilteredEmpty = {
@@ -102,6 +107,14 @@ export type DataTableEmpty = {
   secondary?: ReactNode;
   /** The picture above the message. `records` by default; `false` for none. */
   illustration?: EmptyIllustrationKind | false | undefined;
+  /**
+   * `compact` for a collection of a few rows inside a record, a card or a rail: the message sits
+   * beside `icon` in one short row instead of the centred picture, and a search that leaves
+   * nothing says so the same way. `default` unsaid.
+   */
+  size?: "default" | "compact" | undefined;
+  /** The compact empty's icon, in the neutral circle. None unsaid. */
+  icon?: ReactNode;
   /** The narrowed state: shown instead of the above while a search, a column filter or the caller's `narrowed` is active. */
   filtered?: DataTableFilteredEmpty | undefined;
 };
@@ -128,8 +141,16 @@ export type DataTableProps<TData extends RowData> = {
   noun?: DataTableNoun | undefined;
   /** What the error state says. */
   error?: ReactNode;
-  /** The row opens something: the record, a peek. */
-  onRowClick?: ((row: TData) => void) | undefined;
+  /**
+   * The row opens something: the record, a peek. A click on a control or a link in the row, or one
+   * that ends a text selection, is not a row click. With Cmd, Ctrl or Shift, or the middle button,
+   * the row opens its link in a new tab instead: `rowHref`, else the first link in the row.
+   */
+  onRowClick?: ((row: TData, event: MouseEvent<HTMLTableRowElement>) => void) | undefined;
+  /** Where the row goes, for a new tab from a modifier or middle click. The first link in the row unsaid. */
+  rowHref?: ((row: TData) => string | undefined) | undefined;
+  /** How many skeleton rows a first load draws: the page size, at most ten, unsaid; `3` suits a collection of a few rows. */
+  loadingRows?: number | undefined;
   /** The table scrolls inside itself past this height; the header stays. */
   maxHeight?: number | undefined;
   /** The register is the page's one block: it takes the rest of the window, the rows scroll under the header, and the pagination sits at the bottom. Wins over `maxHeight`. */
@@ -184,12 +205,24 @@ function fittedHeaderWidth<T extends RowData>(
       : 0;
 }
 
-/** A fitted header's width, except the flexible column's: drawn without one, it takes the slack. */
+/** The custom property that carries a flexible column's share of the slack, set on the table's root. */
+const flexVar = (index: number) => `--ledger-table-flex-${index}`;
+
+/**
+ * A fitted header's width. The flexible columns share the slack: each but the last reads its share
+ * from a custom property the renderer sets from the frame's width, outside React, and the last is
+ * drawn without a width, so it takes the rest.
+ */
 function fittedHeaderStyle<T extends RowData>(
   header: Header<F, T, unknown>,
   layout: ResponsiveLayout,
 ): CSSProperties | undefined {
-  if (header.subHeaders.length === 0 && header.column.id === layout.flexible) return undefined;
+  const flex = header.subHeaders.length === 0 ? layout.flexible.indexOf(header.column.id) : -1;
+  if (flex === layout.flexible.length - 1 && flex >= 0) return undefined;
+  if (flex >= 0) {
+    const least = layout.widths.get(header.column.id) ?? 0;
+    return { width: `var(${flexVar(flex)}, ${least}px)`, minWidth: least };
+  }
   const width = fittedHeaderWidth(header, layout);
   return { width, minWidth: width };
 }
@@ -203,6 +236,31 @@ const rowLabelOf = <TData extends RowData>(row: Row<F, TData>): string | undefin
 /** A row's name for what is said about it: its label, the tree's label, else its id. */
 const rowSpokenName = <TData extends RowData>(row: Row<F, TData>): string =>
   rowLabelOf(row) ?? row.table.options.meta?.tree?.label(row.original as never) ?? row.id;
+
+/** Whether the table previews its rows: through `preview` on the hook, or an id column's `preview`. */
+const idPreviewMeta = <TData extends RowData>(table: Row<F, TData>["table"]) =>
+  table.getAllLeafColumns().find((c) => c.columnDef.meta?.preview)?.columnDef.meta;
+
+/**
+ * A row's preview: what its eye opens and whether its preview is the open one, from the hook's
+ * `preview` or the id column's. The handler is read when the eye is pressed, so a row that has not
+ * redrawn still opens with the caller's current one.
+ */
+function previewOf<TData extends RowData>(row: Row<F, TData>) {
+  const table = row.table;
+  const own = table.options.meta?.preview;
+  if (own)
+    return {
+      onPreview: () => row.table.options.meta?.preview?.onPreview(row.original as never),
+      isActive: own.activeId !== undefined && own.activeId !== null && own.activeId === row.id,
+    };
+  const meta = idPreviewMeta(table);
+  if (!meta?.preview) return undefined;
+  return {
+    onPreview: () => idPreviewMeta(row.table)?.preview?.(row.original as never),
+    isActive: meta.active ? meta.active(row.original as never) : false,
+  };
+}
 
 /** A column's name for what is said about it: its header text, else its id. */
 const columnSpokenName = <TData extends RowData>(column: Column<F, TData, unknown>): string =>
@@ -221,9 +279,6 @@ const LINK_KEEPS_RING =
 
 /** `Table.Selection` and `Table.Handle` are this wide; the detail chevron column matches them. */
 const NARROW = 32;
-
-const alignClass = (align: "start" | "end" | undefined) =>
-  align === "end" ? "text-right" : undefined;
 
 const sizeStyle = (
   header: Header<F, RowData, unknown>,
@@ -329,8 +384,9 @@ function drawPins(
   return drawn;
 }
 
-/** One level of a tree's indent, `space.200`, applied to the row's first value. */
-const INDENT = 16;
+/** One level of a tree's indent, `space.200`, applied to the row's first value: in pixels, which
+    Table.Id's `indent` takes. */
+const INDENT = Number.parseFloat(tokenLiterals["space.200"]);
 
 /** The disclosure column: the chevron and a hair either side, nothing reserved for the indent. */
 const DISCLOSURE = 28;
@@ -427,11 +483,10 @@ function HeaderCell<TData extends RowData>({
       ref={drag.setNodeRef}
       colSpan={visibleHeaders(header, layout)}
       hairline={!header.isPlaceholder}
-      className={cn(
-        alignClass(meta?.align),
-        !leaf && "text-center",
-        drag.isDragging && "bg-surface-hovered",
-      )}
+      // The heading sits where its figures do (end for a number, logical, so RTL mirrors it); a
+      // heading over a group of columns is centred over them.
+      align={leaf ? meta?.align : "center"}
+      className={cn(drag.isDragging && "bg-surface-hovered")}
       style={{
         ...(layout
           ? fittedHeaderStyle(header, layout)
@@ -454,6 +509,8 @@ function HeaderCell<TData extends RowData>({
               value: column.getSize(),
               min: resizeMin,
               max: resizeMax,
+              // Every handle says its column: "Resize Status", never eight "Resize column".
+              label: columnSpokenName(column),
               ...(hasMenu
                 ? {}
                 : {
@@ -557,16 +614,16 @@ function BodyCell<TData extends RowData>({
   const content = flexRender(cell.column.columnDef.cell, cell.getContext());
   const record = row.original as never;
   const pin = useContext(PinsContext).get(cell.column.id) ?? UNPINNED;
-  const idMeta =
-    previewAt === cell.column.id
-      ? cell.column.table.getAllLeafColumns().find((c) => c.columnDef.meta?.preview)?.columnDef.meta
-      : undefined;
-  const preview = idMeta?.preview
-    ? {
-        onPreview: () => idMeta.preview?.(record),
-        isActive: idMeta.active ? idMeta.active(record) : false,
-      }
-    : undefined;
+  const preview = previewAt === cell.column.id ? previewOf(row) : undefined;
+  // The eye says whose preview it opens: the row's label, the tree's, or the value beside it.
+  const shown = cell.getValue();
+  const eyeName =
+    rowLabelOf(row) ??
+    options?.tree?.label(row.original as never) ??
+    (typeof shown === "string" && shown ? shown : undefined);
+  const eyeLabel = preview && eyeName ? t("previewLabel", { label: eyeName }) : undefined;
+  // The cell that names its row, when the author says which.
+  const names = options?.rowHeader === cell.column.id;
 
   // A folded row's hint sits after its first value.
   const hint =
@@ -595,9 +652,10 @@ function BodyCell<TData extends RowData>({
   );
 
   if (meta?.kind === "id") {
-    // The glance opens in the table's one card; the row carries only its trigger. The trigger cuts
-    // itself at the id's width and draws its ring inside, so the id's ellipsis never takes it. A
-    // record link the id's `cell` draws (the register's name) does the same.
+    // The glance opens in the table's one card; the row carries only its trigger. It is the hover
+    // ladder's first rung, facts the preview and the record also hold, so it adds no tab stop of
+    // its own: a record link the id's `cell` draws (the register's name) opens it on focus, and
+    // cuts itself at the id's width with its ring inside, so the id's ellipsis never takes it.
     const glance = popups && meta.glance ? Boolean(meta.glance(record)) : false;
     return (
       <Table.Id
@@ -608,8 +666,10 @@ function BodyCell<TData extends RowData>({
               payload={{ rowId: row.id, columnId: cell.column.id }}
               render={
                 <span
-                  tabIndex={0}
-                  className="inline-block max-w-full overflow-x-clip text-ellipsis whitespace-nowrap align-top rounded-xsmall outline-none focus-visible:outline-field-focused"
+                  className={cn(
+                    "inline-block max-w-full overflow-x-clip text-ellipsis whitespace-nowrap align-top",
+                    LINK_KEEPS_RING,
+                  )}
                 >
                   <Id>{content}</Id>
                 </span>
@@ -625,6 +685,8 @@ function BodyCell<TData extends RowData>({
         edge={pin.edge}
         {...(indent ? { indent } : {})}
         {...(preview ? { onPreview: preview.onPreview } : {})}
+        {...(eyeLabel ? { label: eyeLabel } : {})}
+        {...(names ? { rowHeader: true } : {})}
         {...(preview
           ? { isActive: preview.isActive }
           : meta.active
@@ -663,7 +725,9 @@ function BodyCell<TData extends RowData>({
             <IconButton
               label={label ? t("rowActionsFor", { label }) : t("rowActions")}
               variant="subtle"
-              className="opacity-0 focus-visible:opacity-100 group-hover/row:opacity-100 data-popup-open:opacity-100 [@media(hover:none)]:opacity-100"
+              // The column is as wide as the button, and its cell cuts what overflows, so the
+              // ring is drawn inside the button's edge, where the cell cannot clip it.
+              className="opacity-0 focus-visible:opacity-100 focus-visible:outline-field-focused group-hover/row:opacity-100 data-popup-open:opacity-100 [@media(hover:none)]:opacity-100"
               icon={<MoreHorizontal />}
             />
           }
@@ -675,7 +739,9 @@ function BodyCell<TData extends RowData>({
   if (preview)
     return (
       <Table.Cell
-        className={cn(alignClass(meta?.align), meta?.wrap && "whitespace-normal")}
+        align={meta?.align}
+        {...(meta?.wrap ? { wrap: true } : {})}
+        {...(names ? { rowHeader: true } : {})}
         pinned={pin.pinned}
         offset={pin.offset}
         edge={pin.edge}
@@ -695,14 +761,20 @@ function BodyCell<TData extends RowData>({
           >
             {body}
           </span>
-          <PreviewEye onPreview={preview.onPreview} isActive={preview.isActive} />
+          <PreviewEye
+            onPreview={preview.onPreview}
+            isActive={preview.isActive}
+            {...(eyeLabel ? { label: eyeLabel } : {})}
+          />
         </span>
       </Table.Cell>
     );
 
   return (
     <Table.Cell
-      className={cn(alignClass(meta?.align), meta?.wrap ? "whitespace-normal" : LINK_KEEPS_RING)}
+      align={meta?.align}
+      {...(meta?.wrap ? { wrap: true } : { className: LINK_KEEPS_RING })}
+      {...(names ? { rowHeader: true } : {})}
       pinned={pin.pinned}
       offset={pin.offset}
       edge={pin.edge}
@@ -744,6 +816,63 @@ function enterMovesDown(event: KeyboardEvent<HTMLTableCellElement>) {
   if (target) requestAnimationFrame(() => target.focus());
 }
 
+/**
+ * One row's radio in a table that chooses one record (`selectable: "single"`). A native radio in a
+ * group named for the table, so the browser's own keys hold: Tab reaches the chosen row's radio
+ * (the first when none is chosen), the arrow keys move the choice from row to row, Space chooses.
+ * Drawn as the kit's RadioGroupItem; the label around it takes a touch-sized hit area.
+ */
+function ChoiceCell({
+  group,
+  checked,
+  disabled,
+  label,
+  onChoose,
+  pinned,
+  offset,
+  edge,
+}: DrawnPin & {
+  group: string;
+  checked: boolean;
+  disabled: boolean;
+  label: string;
+  onChoose: () => void;
+}) {
+  return (
+    <Table.Cell
+      className="max-w-none pe-0"
+      width={NARROW}
+      pinned={pinned}
+      offset={offset}
+      edge={edge}
+      onClick={(event) => event.stopPropagation()}
+    >
+      <label
+        className={cn(
+          "relative flex size-200 touch-target items-center justify-center",
+          disabled ? "cursor-not-allowed" : "cursor-pointer",
+        )}
+      >
+        <input
+          type="radio"
+          data-slot="table-choice"
+          name={group}
+          checked={checked}
+          disabled={disabled}
+          aria-label={label}
+          onChange={() => onChoose()}
+          className="peer size-200 shrink-0 cursor-pointer appearance-none rounded-full disabled:cursor-not-allowed border border-bold bg-input outline-none transition-colors duration-fast ease-standard focus-visible:outline-focused checked:border-brand checked:bg-brand-bold disabled:opacity-disabled motion-reduce:transition-none"
+        />
+        <span
+          aria-hidden
+          data-slot="table-choice-dot"
+          className="pointer-events-none absolute size-100 rounded-full bg-surface opacity-0 peer-checked:opacity-100"
+        />
+      </label>
+    </Table.Cell>
+  );
+}
+
 type BodyRowProps<TData extends RowData> = {
   row: Row<F, TData>;
   leading: Leading;
@@ -769,11 +898,39 @@ type BodyRowProps<TData extends RowData> = {
   onMoreToggle: (id: string) => void;
   virtualIndex?: number | undefined;
   onMeasure?: ((index: number, height: number) => void) | undefined;
-  onRowClick?: ((row: TData) => void) | undefined;
+  /** The row's place among every row, for `aria-rowindex` while only some rows are drawn. */
+  rowIndex?: number | undefined;
+  /** The name of the radio group a one-at-a-time table's rows share. */
+  choiceGroup: string;
+  /** The parent's one handler for a click on the row, the middle button's included. */
+  onRowClick?: ((row: Row<F, TData>, event: MouseEvent<HTMLTableRowElement>) => void) | undefined;
   onKeyDown?: ((event: KeyboardEvent<HTMLTableRowElement>) => void) | undefined;
   treeTabStop: boolean;
   onTreeFocus: (id: string) => void;
 };
+
+/** What in a row takes its own click: a control, a link, a form field. */
+const INTERACTIVE =
+  "a[href], button, input, select, textarea, label, summary, [role=button], [role=link], [role=checkbox], [role=radio], [role=switch], [role=menuitem], [role=option], [contenteditable=true]";
+
+/** The click was on something in the row that acts on its own, not on the row. */
+const onControl = (event: MouseEvent<HTMLElement>) => {
+  const target = event.target instanceof Element ? event.target : null;
+  const hit = target?.closest(INTERACTIVE);
+  return Boolean(hit && hit !== event.currentTarget && event.currentTarget.contains(hit));
+};
+
+/** The click ended a text selection in the row, as when a reader drags across a code to copy it. */
+const selectingText = (element: HTMLElement) => {
+  const selection = typeof window === "undefined" ? null : window.getSelection();
+  if (!selection || selection.isCollapsed || !selection.toString().trim()) return false;
+  const node = selection.anchorNode;
+  return Boolean(node && element.contains(node));
+};
+
+/** Where a modifier or middle click on the row goes: the author's `rowHref`, else the row's first link. */
+const rowLink = (element: HTMLElement, href: string | undefined) =>
+  href ?? element.querySelector<HTMLAnchorElement>("a[href]")?.href;
 
 /**
  * One row, memoized on what it shows. A thousand rows must not redraw because one checkbox changed:
@@ -803,6 +960,8 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
   onMoreToggle,
   virtualIndex,
   onMeasure,
+  rowIndex,
+  choiceGroup,
   onRowClick,
   onKeyDown,
   treeTabStop,
@@ -810,6 +969,7 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
 }: BodyRowProps<TData>) {
   const { t } = useLedgerLocale();
   const options = row.table.options.meta;
+  const single = Boolean(options?.singleSelection);
   const tree = Boolean(options?.tree);
   const detail = options?.detail;
   const drag = useRowDrag(row.id, leading.handle);
@@ -880,6 +1040,7 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
         style={drag.style}
         data-row-id={row.id}
         isSelected={isSelected}
+        {...(rowIndex === undefined ? {} : { "aria-rowindex": rowIndex })}
         className={cn(
           onRowClick && "cursor-pointer",
           isPinnedRow && "bg-surface-sunken",
@@ -896,9 +1057,25 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
               onKeyDown,
             }
           : {})}
-        {...(onRowClick ? { onClick: () => onRowClick(row.original) } : {})}
+        {...(onRowClick
+          ? {
+              onClick: (event: MouseEvent<HTMLTableRowElement>) => onRowClick(row, event),
+              onAuxClick: (event: MouseEvent<HTMLTableRowElement>) => {
+                if (event.button === 1) onRowClick(row, event);
+              },
+            }
+          : {})}
       >
-        {leading.selectable ? (
+        {leading.selectable && single ? (
+          <ChoiceCell
+            group={choiceGroup}
+            checked={isSelected}
+            disabled={!canSelect}
+            label={label ? t("selectNamed", { label }) : t("selectRow", { id: row.id })}
+            onChoose={() => row.toggleSelected(true)}
+            {...pins("selectable")}
+          />
+        ) : leading.selectable ? (
           <Table.Selection
             checked={isSelected}
             onCheckedChange={(next) => row.toggleSelected(next)}
@@ -1055,6 +1232,13 @@ function treeKeys<TData extends RowData>(
       case "End":
         focusAt(siblings[siblings.length - 1]);
         break;
+      case "Enter": {
+        // The row opens what its name opens: the name's link, else the row's own click.
+        const link = tr.querySelector<HTMLAnchorElement>("a[href]");
+        if (link) link.click();
+        else tr.click();
+        break;
+      }
       default:
         return;
     }
@@ -1065,6 +1249,8 @@ function treeKeys<TData extends RowData>(
 /** The empty state. With no records at all it stands alone on its dashed frame; under the header, the table's rules bound it, so it has no frame of its own. */
 function EmptyState({
   frame,
+  size = "default",
+  icon,
   illustration,
   title,
   description,
@@ -1073,6 +1259,9 @@ function EmptyState({
   className,
 }: {
   frame: "dashed" | "none";
+  /** `compact`: the message beside `icon` in one short row, for a collection of a few rows. */
+  size?: "default" | "compact" | undefined;
+  icon?: ReactNode;
   className?: string | undefined;
   illustration: EmptyIllustrationKind | false;
   title: string;
@@ -1081,8 +1270,14 @@ function EmptyState({
   secondary?: ReactNode;
 }) {
   return (
-    <Empty frame={frame} className={className}>
-      {illustration ? (
+    <Empty frame={frame} size={size} className={className}>
+      {size === "compact" ? (
+        icon ? (
+          <EmptyMedia variant="icon" aria-hidden>
+            {icon}
+          </EmptyMedia>
+        ) : null
+      ) : illustration ? (
         <EmptyMedia aria-hidden>
           <EmptyIllustration kind={illustration} />
         </EmptyMedia>
@@ -1166,18 +1361,52 @@ function RowActionsContent<TData extends RowData>({
     });
   };
   if (actions.length === 0 && !reorder) return null;
+  // The menu sizes to its longest label within the viewport; a group change draws a separator.
   return (
     <DropdownMenuContent align="end">
-      {actions.map((a) => (
-        <DropdownMenuItem
-          key={a.label}
-          onClick={a.onSelect}
-          {...(a.disabled ? { disabled: true } : {})}
-          {...(a.tone === "danger" ? { variant: "destructive" } : {})}
-        >
-          {a.label}
-        </DropdownMenuItem>
-      ))}
+      {actions.map((a, index) => {
+        const key = a.id ?? `${index}:${a.label}`;
+        const separator =
+          index > 0 && a.group !== actions[index - 1]?.group ? (
+            <DropdownMenuSeparator key={`${key}:separator`} />
+          ) : null;
+        // The icon leads and the words follow, as separate children, so a description line sits
+        // under the words and not under the icon.
+        const label = a.icon
+          ? [
+              <span key="icon" aria-hidden className="flex icon-subtle">
+                {a.icon}
+              </span>,
+              a.label,
+            ]
+          : a.label;
+        const unavailable = Boolean(a.disabled || a.disabledReason);
+        // A navigating action is a link, so a modifier or middle click opens it in a new tab;
+        // unavailable, it is an item that says why.
+        const item =
+          a.href && !unavailable ? (
+            <DropdownMenuLinkItem
+              key={key}
+              href={a.href}
+              {...(a.render ? { render: a.render } : {})}
+              {...(a.onSelect ? { onClick: a.onSelect } : {})}
+            >
+              {label}
+            </DropdownMenuLinkItem>
+          ) : (
+            <DropdownMenuItem
+              key={key}
+              {...(a.onSelect ? { onClick: a.onSelect } : {})}
+              {...(a.disabled ? { disabled: true } : {})}
+              {...(a.disabledReason ? { disabledReason: a.disabledReason } : {})}
+              {...(a.description ? { description: a.description } : {})}
+              {...(a.tone === "danger" ? { variant: "danger" as const } : {})}
+            >
+              {label}
+            </DropdownMenuItem>
+          );
+        return separator ? [separator, item] : item;
+      })}
       {reorder ? (
         <>
           {actions.length ? <DropdownMenuSeparator /> : null}
@@ -1244,6 +1473,8 @@ function DataTableRoot<TData extends RowData>({
   noun,
   error,
   onRowClick,
+  rowHref,
+  loadingRows,
   maxHeight,
   fill,
   responsive = false,
@@ -1252,6 +1483,8 @@ function DataTableRoot<TData extends RowData>({
   const { t, direction, formatNumber, formatPlural } = useLedgerLocale();
   const options = table.options.meta;
   const selectable = Boolean(table.options.enableRowSelection);
+  const single = Boolean(options?.singleSelection);
+  const choiceGroup = useId();
   const hasTree = Boolean(options?.tree) && !options?.tree?.guides;
   const handle = Boolean(options?.reorderRows);
   const detailColumn = Boolean(options?.detail) && options?.detailColumn !== false;
@@ -1286,18 +1519,29 @@ function DataTableRoot<TData extends RowData>({
   const grouped = headerGroups.length > 1;
   const fitKey = responsive
     ? JSON.stringify([
-        requestedColumns.map((column): FitColumn => ({
-          id: column.id,
-          width:
-            (column.columnDef.size !== undefined ||
+        requestedColumns.map((column): FitColumn => {
+          // The author's width, the reader's, or a pin's: the column is drawn that wide. An
+          // unsized column is drawn at least its minimum and takes a share of the spare width.
+          // A kind says whether the author gave a width; a column built by hand counts as sized.
+          const authored = column.columnDef.meta
+            ? Boolean(column.columnDef.meta.sized)
+            : column.columnDef.size !== undefined;
+          const sized =
+            authored ||
             table.state.columnSizing[column.id] !== undefined ||
-            column.getIsPinned()
-              ? column.getSize()
-              : (column.columnDef.minSize ?? 120)) + touchExtra(column, touch),
-          priority: column.columnDef.meta?.priority,
-          action: column.columnDef.meta?.kind === "actions",
-          pin: column.getIsPinned(),
-        })),
+            Boolean(column.getIsPinned());
+          const action = column.columnDef.meta?.kind === "actions";
+          return {
+            id: column.id,
+            width:
+              (sized ? column.getSize() : (column.columnDef.minSize ?? 120)) +
+              touchExtra(column, touch),
+            priority: column.columnDef.meta?.priority,
+            action,
+            pin: column.getIsPinned(),
+            flexible: !sized && !action,
+          };
+        }),
         lead,
         grouped,
       ])
@@ -1306,9 +1550,24 @@ function DataTableRoot<TData extends RowData>({
     const [columns, leadWidth, isGrouped] = JSON.parse(key) as [FitColumn[], number, boolean];
     return fitFrame(columns, width, leadWidth, { grouped: isGrouped });
   }, []);
+  // The flexible columns' shares of the slack, set as custom properties on the root, outside
+  // React: every pixel of a resize reaches them without drawing a row.
+  const shareOut = useCallback(
+    (key: string, width: number) => {
+      const element = root.current;
+      if (!element) return;
+      const { layout: fitted } = fitFor(key, width);
+      const [, leadWidth] = JSON.parse(key) as [FitColumn[], number, boolean];
+      const shares = shareSlack(fitted, width, leadWidth);
+      fitted.flexible.slice(0, -1).forEach((id, index) => {
+        element.style.setProperty(flexVar(index), `${shares.get(id) ?? 0}px`);
+      });
+    },
+    [fitFor],
+  );
   // The frame's width as last drawn. A resize redraws the table only when the fit it draws
   // changes: a column folds or returns, a pin gives way. In between, the slack goes to the
-  // flexible column through CSS, so a panel opening or a splitter drag costs no render.
+  // flexible columns through CSS, so a panel opening or a splitter drag costs no render.
   const drawnWidth = useRef(0);
   const latestFitKey = useRef(fitKey);
   const refit = useCallback(() => {
@@ -1318,11 +1577,13 @@ function DataTableRoot<TData extends RowData>({
     const width = element.clientWidth;
     const drawn = drawnWidth.current;
     // A frame hidden for a while (a tab panel, a closed panel) keeps the fit it last drew.
-    if (width === drawn || width === 0) return;
+    if (width === 0) return;
+    shareOut(key, width);
+    if (width === drawn) return;
     if (drawn > 0 && fitFor(key, drawn).key === fitFor(key, width).key) return;
     drawnWidth.current = width;
     setFrameWidth(width);
-  }, [fitFor]);
+  }, [fitFor, shareOut]);
   useLayoutEffect(() => {
     const element = root.current;
     if (!element || !responsive || typeof ResizeObserver === "undefined") return;
@@ -1351,9 +1612,18 @@ function DataTableRoot<TData extends RowData>({
     JSON.stringify(table.state.columnSizing),
     fit?.key ?? "",
   ].join(" ");
-  const idMeta = table.getAllLeafColumns().find((c) => c.columnDef.meta?.preview)?.columnDef.meta;
-  const active = idMeta?.active;
-  const previewAt = idMeta?.preview ? previewColumn(visibleColumns) : undefined;
+  // The preview is the hook's `preview`, or the id column's; either puts the eye on the first value.
+  const tablePreview = options?.preview;
+  const idMeta = idPreviewMeta(table);
+  const activeOf = (row: Row<F, TData>) =>
+    tablePreview
+      ? tablePreview.activeId !== undefined &&
+        tablePreview.activeId !== null &&
+        tablePreview.activeId === row.id
+      : idMeta?.active
+        ? idMeta.active(row.original as never)
+        : false;
+  const previewAt = tablePreview || idMeta?.preview ? previewColumn(visibleColumns) : undefined;
   const hintAt = tree ? previewColumn(visibleColumns) : undefined;
   const fixed = responsive || options?.layout === "fixed";
   // The leading columns are always pinned, so every start offset begins after them.
@@ -1428,11 +1698,34 @@ function DataTableRoot<TData extends RowData>({
   );
   const onKeyDown = tree ? treeKeyDown : undefined;
   const latestRowClick = useRef(onRowClick);
+  const latestRowHref = useRef(rowHref);
   useLayoutEffect(() => {
     latestRowClick.current = onRowClick;
+    latestRowHref.current = rowHref;
   });
-  const rowClick = useCallback((row: TData) => latestRowClick.current?.(row), []);
-  const rowClickHandler = onRowClick ? rowClick : undefined;
+  // One handler for every row. A click on a control or a link in the row is the control's, and
+  // one that ends a text selection copies rather than opens. Cmd, Ctrl, Shift or the middle
+  // button open the row's link in a new tab. Otherwise the row opens, or in a table that
+  // chooses one, is chosen.
+  const rowClick = useCallback((row: Row<F, TData>, event: MouseEvent<HTMLTableRowElement>) => {
+    const element = event.currentTarget;
+    if (onControl(event) || selectingText(element)) return;
+    const newTab = event.button === 1 || event.metaKey || event.ctrlKey || event.shiftKey;
+    if (newTab) {
+      const href = rowLink(element, latestRowHref.current?.(row.original));
+      if (href) {
+        event.preventDefault();
+        window.open(href, "_blank", "noopener");
+        return;
+      }
+    }
+    if (event.button !== 0) return;
+    const open = latestRowClick.current;
+    if (open) open(row.original, event);
+    else if (row.table.options.meta?.singleSelection && row.getCanSelect())
+      row.toggleSelected(true);
+  }, []);
+  const rowClickHandler = onRowClick || single ? rowClick : undefined;
   const [popups] = useState<SharedPopups>(() => ({
     actions: MenuPrimitive.createHandle<string>(),
     glance: PreviewCardPrimitive.createHandle<GlancePayload>(),
@@ -1493,16 +1786,53 @@ function DataTableRoot<TData extends RowData>({
   const treeTabStop = renderedRows.some((row) => row.id === focusedTreeRow)
     ? focusedTreeRow
     : renderedRows[0]?.id;
-  const showRows = state === "ready" && allRows.length > 0;
-  const isEmpty = state === "empty" || (state === "ready" && allRows.length === 0);
+  // Refreshing keeps the rows it has while new ones load.
+  const drawing = state === "ready" || state === "refreshing";
+  const busy = state === "loading" || state === "refreshing";
+  const showRows = drawing && allRows.length > 0;
+  const isEmpty = state === "empty" || (drawing && allRows.length === 0);
+  // A server page that comes back empty (rows deleted from the last page) is a page to leave, not
+  // an empty register: the toolbar, the header and the pager stay, with the way to the first page.
+  const stranded =
+    isEmpty &&
+    Boolean(table.options.manualPagination) &&
+    pageSize !== undefined &&
+    !groupBy &&
+    table.state.pagination.pageIndex > 0;
   // A search or a column filter narrowed the rows, or the caller did outside the table: either
   // way what is empty is the result, not the register, so the toolbar and the header stay.
   const searched = String(table.state.globalFilter ?? "") !== "";
   const filteredHere = table.state.columnFilters.length > 0 || searched;
-  const narrowed = filteredHere || narrowedOutside;
+  const narrowed = filteredHere || narrowedOutside || stranded;
+  const compact = empty?.size === "compact";
+  // After Clear filters, or Go to first page, the button that was pressed is gone with the empty
+  // state: focus goes to the search that asked, else to the first control of the rows now shown,
+  // else to the table's first control (a heading's sort, the toolbar), so it never falls to the page.
+  const refocus = () =>
+    requestAnimationFrame(() => {
+      const element = root.current;
+      if (!element) return;
+      const scope = element.closest<HTMLElement>('[role="dialog"]') ?? element;
+      const search =
+        element.querySelector<HTMLElement>('input[type="search"], [role="searchbox"]') ??
+        scope.querySelector<HTMLElement>('input[type="search"], [role="searchbox"]');
+      const control =
+        element.querySelector<HTMLElement>(
+          "tbody a[href], tbody button:not([disabled]), tbody input:not([disabled]), tbody [tabindex='0']",
+        ) ??
+        element.querySelector<HTMLElement>(
+          "a[href], button:not([disabled]), input:not([disabled]), [tabindex='0']",
+        );
+      (search ?? control ?? frame.current)?.focus();
+    });
   const clearFilters = () => {
     table.setColumnFilters([]);
     table.setGlobalFilter("");
+    refocus();
+  };
+  const firstPage = () => {
+    table.setPageIndex(0);
+    refocus();
   };
 
   // The result, said once the reader stops asking: after a search, a filter, a saved question or
@@ -1513,8 +1843,9 @@ function DataTableRoot<TData extends RowData>({
   const everyRow = table.getPreFilteredRowModel().rows.length;
   const pageCount = pageSize !== undefined && !groupBy ? table.getPageCount() : 1;
   const firstOnPage = pageSize !== undefined ? table.state.pagination.pageIndex * pageSize + 1 : 1;
-  const resultMessage =
-    isEmpty && narrowed
+  const resultMessage = stranded
+    ? t("tablePageEmpty")
+    : isEmpty && narrowed
       ? t("tableNoMatching", { noun: nounFor(0) })
       : pageSize !== undefined && pageCount > 1
         ? t("tableResultsRange", {
@@ -1555,6 +1886,14 @@ function DataTableRoot<TData extends RowData>({
     }, RESULT_STATUS_DELAY);
     return () => clearTimeout(timer);
   }, [settled, question, resultMessage, narrowedOutside]);
+  // A load the reader waits for is said once it outlasts a glance: "Findings, loading". A quick one
+  // is not, and the result that follows is said as above.
+  const loadingMessage = label ? t("loadingLabel", { label }) : t("loading");
+  useEffect(() => {
+    if (!busy) return;
+    const timer = setTimeout(() => announce(loadingMessage), RESULT_STATUS_DELAY);
+    return () => clearTimeout(timer);
+  }, [busy, loadingMessage]);
   const footerGroup = visibleColumns.some((c) => c.columnDef.footer !== undefined)
     ? table.getFooterGroups().find((g) => g.headers.every((h) => h.subHeaders.length === 0))
     : undefined;
@@ -1575,6 +1914,8 @@ function DataTableRoot<TData extends RowData>({
         <EmptyState
           className={fill ? "flex-1" : undefined}
           frame="dashed"
+          size={empty?.size}
+          icon={empty?.icon}
           illustration={empty?.illustration ?? "records"}
           title={empty?.title ?? t("nothingHere")}
           description={empty?.description}
@@ -1584,14 +1925,31 @@ function DataTableRoot<TData extends RowData>({
       </div>
     );
 
-  const drawRow = (row: Row<F, TData>, isPinnedRow = false, virtualIndex?: number) => (
+  // While only some rows are drawn (a virtual window, a server page), each drawn row says its place
+  // among all of them and the table says how many there are, header rows included.
+  const headerRows = headerGroups.length;
+  const serverPaged = Boolean(table.options.manualPagination) && pageSize !== undefined && !groupBy;
+  const partial = Boolean(virtual) || serverPaged;
+  const pageStart = serverPaged ? table.state.pagination.pageIndex * (pageSize ?? 0) : 0;
+  const rowCountAttribute = partial
+    ? headerRows +
+      (virtual ? topRows.length + rows.length + bottomRows.length : table.getRowCount())
+    : undefined;
+  const drawRow = (
+    row: Row<F, TData>,
+    isPinnedRow = false,
+    virtualIndex?: number,
+    position?: number,
+  ) => (
     <BodyRow
       key={row.id}
       row={row}
       leading={leading}
       isSelected={row.getIsSelected()}
       canSelect={row.getCanSelect()}
-      isActive={active ? active(row.original as never) : false}
+      isActive={activeOf(row)}
+      rowIndex={partial && position !== undefined ? headerRows + position + 1 : undefined}
+      choiceGroup={choiceGroup}
       isExpanded={row.getIsExpanded()}
       isDetailOpen={Boolean(options?.detailOpen?.(row.id))}
       columnsKey={columnsKey}
@@ -1623,7 +1981,7 @@ function DataTableRoot<TData extends RowData>({
   const states = (
     <>
       {state === "loading"
-        ? Array.from({ length: pageSize ?? 5 }, (_, i) => (
+        ? Array.from({ length: loadingRows ?? Math.min(pageSize ?? 5, 10) }, (_, i) => (
             <Table.Row key={i} isStatic>
               <Table.Cell colSpan={columnCount} className="max-w-none">
                 <Skeleton lines={1} />
@@ -1651,17 +2009,28 @@ function DataTableRoot<TData extends RowData>({
           >
             <EmptyState
               frame="none"
+              size={empty?.size}
+              icon={empty?.icon}
               illustration={empty?.filtered?.illustration ?? "search"}
-              title={empty?.filtered?.title ?? t("noMatches")}
+              title={stranded ? t("tablePageEmpty") : (empty?.filtered?.title ?? t("noMatches"))}
               description={
-                empty?.filtered?.description ?? (filteredHere ? t("noMatchesHint") : undefined)
+                stranded
+                  ? undefined
+                  : (empty?.filtered?.description ??
+                    (filteredHere ? t("noMatchesHint") : undefined))
               }
               action={
-                empty?.filtered?.action === undefined ? (
+                stranded ? (
+                  <Button size={compact ? "small" : undefined} onClick={firstPage}>
+                    {t("goToFirstPage")}
+                  </Button>
+                ) : empty?.filtered?.action === undefined ? (
                   // Clear filters clears what the table holds; narrowing outside it is the
                   // caller's to undo, with its own action.
                   filteredHere ? (
-                    <Button onClick={clearFilters}>{t("clearFilters")}</Button>
+                    <Button size={compact ? "small" : undefined} onClick={clearFilters}>
+                      {t("clearFilters")}
+                    </Button>
                   ) : null
                 ) : (
                   empty.filtered.action
@@ -1684,18 +2053,26 @@ function DataTableRoot<TData extends RowData>({
               density={options?.density ?? "default"}
               label={label}
               {...(fill ? { fill } : maxHeight === undefined ? {} : { maxHeight })}
-              {...(tree ? { role: "treegrid" } : options?.editable ? { role: "grid" } : {})}
-              {...(state === "loading" ? { "aria-busy": true } : {})}
+              // A tree is a treegrid, with its arrow keys. An editable table stays a table: Tab
+              // moves across its cells, so it does not claim a grid's arrow-key model.
+              {...(tree ? { role: "treegrid" } : {})}
+              {...(busy ? { "aria-busy": true } : {})}
+              {...(rowCountAttribute === undefined ? {} : { "aria-rowcount": rowCountAttribute })}
               className={cn("border-b border-default", fixed && "table-fixed")}
               style={minWidth === undefined ? undefined : { minWidth }}
             >
               <thead>
                 <ColumnSortable table={table}>
                   {headerGroups.map((group, i) => (
-                    <tr key={group.id}>
+                    <tr key={group.id} {...(partial ? { "aria-rowindex": i + 1 } : {})}>
                       {i === headerGroups.length - 1 ? (
                         <>
-                          {leading.selectable ? (
+                          {leading.selectable && single ? (
+                            // One at a time: no select-all, only the column's name.
+                            <Table.Header className="px-0" width={NARROW} {...pins("selectable")}>
+                              <span className="sr-only">{t("selection")}</span>
+                            </Table.Header>
+                          ) : leading.selectable ? (
                             <Table.Selection
                               header
                               checked={table.getIsAllPageRowsSelected()}
@@ -1749,7 +2126,7 @@ function DataTableRoot<TData extends RowData>({
                   {states}
                   {showRows ? (
                     <RowSortable table={table}>
-                      {topRows.map((row) => drawRow(row, true))}
+                      {topRows.map((row, at) => drawRow(row, true, undefined, pageStart + at))}
                       {virtual ? (
                         <>
                           {paddingTop > 0 ? (
@@ -1759,7 +2136,9 @@ function DataTableRoot<TData extends RowData>({
                           ) : null}
                           {items.map((item) => {
                             const row = rows[item.index];
-                            return row ? drawRow(row, false, item.index) : null;
+                            return row
+                              ? drawRow(row, false, item.index, topRows.length + item.index)
+                              : null;
                           })}
                           {paddingBottom > 0 ? (
                             <tr aria-hidden style={{ height: paddingBottom }}>
@@ -1768,9 +2147,18 @@ function DataTableRoot<TData extends RowData>({
                           ) : null}
                         </>
                       ) : (
-                        rows.map((row) => drawRow(row))
+                        rows.map((row, at) =>
+                          drawRow(row, false, undefined, pageStart + topRows.length + at),
+                        )
                       )}
-                      {bottomRows.map((row) => drawRow(row, true))}
+                      {bottomRows.map((row, at) =>
+                        drawRow(
+                          row,
+                          true,
+                          undefined,
+                          pageStart + topRows.length + rows.length + at,
+                        ),
+                      )}
                     </RowSortable>
                   ) : null}
                 </tbody>
@@ -1786,7 +2174,7 @@ function DataTableRoot<TData extends RowData>({
                       .map((header) => (
                         <Table.Cell
                           key={header.id}
-                          className={alignClass(header.column.columnDef.meta?.align)}
+                          align={header.column.columnDef.meta?.align}
                           colSpan={visibleHeaders(header, layout)}
                         >
                           {header.isPlaceholder || header.column.columnDef.footer === undefined
@@ -1805,9 +2193,32 @@ function DataTableRoot<TData extends RowData>({
     </ResponsiveLayoutContext.Provider>
   );
 
+  // The pager shows while there is a page to turn to, or a smaller page size to choose: never
+  // under a collection that fits the smallest page, where it would only say "1–1 of 1".
+  const smallestPage = Math.min(pageSize ?? 0, ...(options?.pageSizes ?? []));
+  const fitsOnePage = table.state.pagination.pageIndex === 0 && table.getRowCount() <= smallestPage;
+  const showPager =
+    pageSize !== undefined &&
+    !groupBy &&
+    state !== "loading" &&
+    (stranded || (!isEmpty && !fitsOnePage));
+
   return (
     <div {...rootProps} data-responsive={responsive || undefined}>
-      {toolbar ? <div className="shrink-0 pb-200">{toolbar}</div> : null}
+      {toolbar ? (
+        <div data-slot="data-table-toolbar" className="shrink-0 pb-200">
+          {toolbar}
+        </div>
+      ) : null}
+      {/* Refreshing: the rows stay, and a quiet bar over the header's top edge says more are coming. */}
+      {state === "refreshing" ? (
+        <div aria-hidden className="relative h-0">
+          <div
+            data-slot="data-table-refreshing"
+            className="absolute inset-x-0 top-0 z-30 h-025 animate-pulse rounded-full bg-brand-bold motion-reduce:animate-none"
+          />
+        </div>
+      ) : null}
       {/* A reorderable or resizable table says where a column moved, or how wide it now is, from its menu, in one polite status. */}
       {options?.reorderable || options?.resizable ? (
         <ColumnMoveStatus>{body}</ColumnMoveStatus>
@@ -1816,7 +2227,7 @@ function DataTableRoot<TData extends RowData>({
       )}
       <RowActionsMenu table={table} handle={popups.actions} />
       <GlanceCard table={table} handle={popups.glance} />
-      {pageSize !== undefined && !groupBy && state !== "loading" && !isEmpty ? (
+      {showPager ? (
         <TablePagination
           page={table.state.pagination.pageIndex + 1}
           pageCount={Math.max(1, table.getPageCount())}

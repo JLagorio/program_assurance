@@ -7,7 +7,13 @@ import {
   FieldLabel,
   Button,
   buttonVariants,
+  Calendar,
   Checkbox,
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   Field,
   IconButton,
   Popover,
@@ -164,8 +170,9 @@ export const PopoverMatrix: Story = {
     }
     const rtlDone = within(rtl).getByRole("button", { name: "Done" });
     await waitFor(() => expect(rtlDone).toHaveFocus());
+    // Tab from the only control passes through Base UI's focus guard, which hands focus back.
     await user.tab();
-    await expect(rtlDone).toHaveFocus();
+    await waitFor(() => expect(rtlDone).toHaveFocus());
     await user.keyboard("{Escape}");
     await waitFor(() => expect(body.queryByRole("dialog")).not.toBeInTheDocument());
     await expect(custom).toHaveFocus();
@@ -350,5 +357,162 @@ export const Options: Story = {
     await user.tab();
     await waitFor(() => expect(body.queryByRole("dialog")).not.toBeInTheDocument());
     await expect(canvas.getByRole("button", { name: "Export register" })).toHaveFocus();
+  },
+};
+
+/** A window of its own for a story, so it renders at that size in the Storybook and every project. */
+const windowOf = (width: number, height: number) => ({
+  parameters: {
+    viewport: {
+      options: {
+        ledgerWindow: {
+          name: `Window (${width} by ${height} CSS px)`,
+          styles: { width: `${width}px`, height: `${height}px` },
+        },
+      },
+    },
+  },
+  globals: { viewport: { value: "ledgerWindow", isRotated: false } },
+});
+
+function ShortWindowDemo() {
+  return (
+    <Dialog defaultOpen>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Schedule review</DialogTitle>
+        </DialogHeader>
+        <DialogBody>
+          <Popover>
+            <PopoverTrigger render={<Button />}>Choose a date</PopoverTrigger>
+            <PopoverContent
+              aria-label="Review date"
+              className="gap-0 p-0"
+              style={{ width: "auto" }}
+            >
+              <Calendar mode="single" defaultMonth={new Date(2026, 8, 1)} />
+            </PopoverContent>
+          </Popover>
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * A calendar in a Dialog on a landscape phone, 640 by 360 CSS px. The popover is capped at the
+ * height the window leaves on its side and scrolls within it, so the month caption and the
+ * previous and next buttons stay on screen.
+ */
+export const ShortWindow: Story = {
+  ...windowOf(640, 360),
+  render: () => <ShortWindowDemo />,
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    const user = userEvent.setup({ document: canvasElement.ownerDocument });
+    await expect(window.innerHeight).toBeLessThanOrEqual(360);
+    const dialog = await body.findByRole("dialog", { name: "Schedule review" });
+    await user.click(within(dialog).getByRole("button", { name: "Choose a date" }));
+    const popup = await body.findByRole("dialog", { name: "Review date" });
+    await waitFor(() => expect(popup).toBeVisible());
+    await waitFor(() => {
+      const box = popup.getBoundingClientRect();
+      expect(box.top).toBeGreaterThanOrEqual(0);
+      expect(box.bottom).toBeLessThanOrEqual(window.innerHeight);
+    });
+    await expect(getComputedStyle(popup).overflowY).toBe("auto");
+    // The month can still be changed: its buttons are in the popup's view, or scroll into it.
+    const previous = within(popup).getByRole("button", { name: /previous/i });
+    previous.scrollIntoView({ block: "nearest" });
+    const box = previous.getBoundingClientRect();
+    await expect(
+      previous.contains(
+        canvasElement.ownerDocument.elementFromPoint(
+          box.left + box.width / 2,
+          box.top + box.height / 2,
+        ),
+      ),
+    ).toBe(true);
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog", { name: "Review date" })).toBeNull());
+  },
+};
+
+const quarters = [
+  { id: "q1", label: "Q1", findings: 12 },
+  { id: "q2", label: "Q2", findings: 18 },
+  { id: "q3", label: "Q3", findings: 9 },
+];
+
+function AnchoredDemo() {
+  const [chosen, setChosen] = useState<{ id: string; element: HTMLElement } | null>(null);
+  const quarter = quarters.find((entry) => entry.id === chosen?.id);
+  return (
+    <Stack space="space.150" className="pt-1000">
+      <Text weight="medium">Findings by quarter</Text>
+      <Inline space="space.200" alignBlock="end">
+        {quarters.map((entry) => (
+          <button
+            key={entry.id}
+            type="button"
+            aria-label={`${entry.label}, ${entry.findings} findings`}
+            className="w-600 rounded-small bg-chart-categorical-1 focus-visible:outline-focused"
+            style={{ height: entry.findings * 6 }}
+            onClick={(event) => setChosen({ id: entry.id, element: event.currentTarget })}
+          />
+        ))}
+      </Inline>
+      <Popover
+        open={chosen !== null}
+        onOpenChange={(open) => {
+          if (!open) setChosen(null);
+        }}
+      >
+        <PopoverContent
+          anchor={chosen?.element ?? null}
+          side="top"
+          collisionPadding={8}
+          style={{ width: 200 }}
+        >
+          <PopoverTitle>{quarter?.label} findings</PopoverTitle>
+          <PopoverDescription>{quarter?.findings} findings were recorded.</PopoverDescription>
+          <PopoverClose render={<Button size="small" />}>Done</PopoverClose>
+        </PopoverContent>
+      </Popover>
+    </Stack>
+  );
+}
+
+/**
+ * A popover anchored to what the reader chose rather than to a trigger: `anchor` takes a chart
+ * mark, a cell or a virtual point, and `collisionPadding` keeps it off the window's edge. Focus
+ * returns to the mark on close.
+ */
+export const Anchored: Story = {
+  render: () => <AnchoredDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const user = userEvent.setup({ document: canvasElement.ownerDocument });
+    const mark = canvas.getByRole("button", { name: "Q2, 18 findings" });
+    await user.click(mark);
+    const popup = await body.findByRole("dialog", { name: "Q2 findings" });
+    await waitFor(() => expect(popup).toBeVisible());
+    // Above the mark where there is room, below it where there is not.
+    await waitFor(() => {
+      const box = popup.getBoundingClientRect();
+      const anchor = mark.getBoundingClientRect();
+      if (popup.getAttribute("data-side") === "top")
+        expect(box.bottom).toBeLessThanOrEqual(anchor.top);
+      else expect(box.top).toBeGreaterThanOrEqual(anchor.bottom);
+      // Over the mark, and kept `collisionPadding` off the window's edge.
+      const middle = anchor.left + anchor.width / 2;
+      expect(box.left).toBeLessThanOrEqual(middle);
+      expect(box.right).toBeGreaterThanOrEqual(middle);
+      expect(box.left).toBeGreaterThanOrEqual(8);
+    });
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog")).not.toBeInTheDocument());
+    await waitFor(() => expect(mark).toHaveFocus());
   },
 };

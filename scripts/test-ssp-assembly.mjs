@@ -183,7 +183,7 @@ try {
   await search.fill(implementedControl.code);
   await page
     .getByRole("table", { name: "SSP control assembly" })
-    .getByRole("button", { name: "Preview row", exact: true })
+    .getByRole("button", { name: /^Preview / })
     .first()
     .click();
   await expect(page.locator('[data-shell-area="panel"]')).toBeVisible();
@@ -208,7 +208,7 @@ try {
   await expect(page.getByText("Requirement-level support", { exact: true })).toBeVisible();
   await page
     .getByRole("table", { name: "SSP supporting evidence", exact: true })
-    .getByRole("button", { name: "Preview row", exact: true })
+    .getByRole("button", { name: /^Preview / })
     .click();
   const evidencePanel = page.locator('[data-shell-area="panel"]');
   await expect(evidencePanel).toHaveCount(1);
@@ -223,7 +223,7 @@ try {
 
   // The exact version's external reference, announced as opening in a new tab; never the latest.
   const reference = evidencePanel.getByRole("link", {
-    name: "https://example.invalid/ssp-test-v1 opens in a new tab",
+    name: "https://example.invalid/ssp-test-v1 (opens in a new tab)",
     exact: true,
   });
   await expect(reference).toBeVisible();
@@ -251,13 +251,13 @@ try {
     .toBe("Updated authored control narrative");
   await page
     .locator('[data-shell-area="panel"]')
-    .getByRole("button", { name: "Close details", exact: true })
+    .getByRole("button", { name: /^Close (details|.+ preview)$/ })
     .click();
 
   await search.fill(missingControl.code);
   await page
     .getByRole("table", { name: "SSP control assembly" })
-    .getByRole("button", { name: "Preview row", exact: true })
+    .getByRole("button", { name: /^Preview / })
     .first()
     .click();
   await expect(page.getByText("No implementation record", { exact: true })).toBeVisible();
@@ -294,7 +294,7 @@ try {
   );
   await page
     .locator('[data-shell-area="panel"]')
-    .getByRole("button", { name: "Close details", exact: true })
+    .getByRole("button", { name: /^Close (details|.+ preview)$/ })
     .click();
   await page.goto(`${origin}/programs/${program.id}/systems/${boundary.id}`);
   await page.getByRole("tab", { name: "SSP", exact: true }).click();
@@ -311,7 +311,7 @@ try {
   await page.getByPlaceholder("Find selected controls").fill(implementedControl.code);
   await page
     .getByRole("table", { name: "SSP control assembly" })
-    .getByRole("button", { name: "Preview row", exact: true })
+    .getByRole("button", { name: /^Preview / })
     .first()
     .click();
   assert.equal(
@@ -320,7 +320,7 @@ try {
   );
   await page
     .locator('[data-shell-area="panel"]')
-    .getByRole("button", { name: "Close details", exact: true })
+    .getByRole("button", { name: /^Close (details|.+ preview)$/ })
     .click();
 
   // A smaller current system baseline still differs from the SSP, despite having

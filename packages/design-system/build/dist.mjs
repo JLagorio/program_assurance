@@ -1,8 +1,8 @@
 // The publishable build: ESM JavaScript with declarations from tsc, then the stylesheets and the
 // token data copied beside them so the CSS entries' relative imports still resolve. `dist/` mirrors
 // `src/` minus the stories. The consumer's Tailwind scans the shipped `src/` for classes (ledger.css
-// says `@source "../"`), so the source stays in the tarball; a bundler with the `development`
-// condition uses it directly, everything else uses dist.
+// says `@source "../"`), so the source stays in the tarball; only the named `@ledger/source` export
+// condition resolves it as code, and every other condition, `development` included, uses dist.
 import ts from "typescript";
 import fs from "node:fs";
 import path from "node:path";

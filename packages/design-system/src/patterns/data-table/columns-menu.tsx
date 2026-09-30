@@ -182,7 +182,7 @@ export function Columns<TData extends RowData>({
           )
         }
       />
-      <DropdownMenuContent align="end" style={{ width: 220 }}>
+      <DropdownMenuContent align="end" style={{ minWidth: 220 }}>
         <DropdownMenuGroup>
           <DropdownMenuLabel>{t("show")}</DropdownMenuLabel>
           {columns.map((c) => (
@@ -230,7 +230,7 @@ export function Settings<TData extends RowData>({
           )
         }
       />
-      <DropdownMenuContent align="end" style={{ width: 220 }}>
+      <DropdownMenuContent align="end" style={{ minWidth: 220 }}>
         {setDensity ? (
           <>
             <DropdownMenuGroup>
@@ -373,7 +373,7 @@ export function HeaderMenu<TData extends RowData>({
             <IconButton
               label={t("columnMenu", { label: labelOf(column) })}
               variant="subtle"
-              className="size-250"
+              size="xxsmall"
               icon={<ChevronDown />}
               // Where nothing can hover the heading drops its up-down hint for a menu that sorts.
               {...(canSort ? { "data-column-menu": "" } : {})}
@@ -382,9 +382,11 @@ export function HeaderMenu<TData extends RowData>({
             />
           }
         />
-        <DropdownMenuContent align="end" style={{ width: 200 }}>
+        <DropdownMenuContent align="end" style={{ minWidth: 200 }}>
           {canSort ? (
+            // The sort's two choices are a named group of their own, apart from the actions below.
             <DropdownMenuRadioGroup
+              aria-label={t("sort")}
               value={sorted || ""}
               onValueChange={(value: string) => column.toggleSorting(value === "desc")}
             >

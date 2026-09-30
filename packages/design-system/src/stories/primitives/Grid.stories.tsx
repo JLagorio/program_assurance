@@ -23,10 +23,14 @@ function Cell({ label, truncate }: { label: string; truncate?: boolean }) {
   );
 }
 
+/* A region's label keeps to one line and cuts, with its reveal, where a column is narrower than
+   its words: the main column beside a 272px rail in a narrow frame. */
 function Region({ label }: { label: string }) {
   return (
     <Box backgroundColor="elevation.surface.sunken" padding="space.200" className="rounded-medium">
-      <Text size="small">{label}</Text>
+      <Text size="small" maxLines={1}>
+        {label}
+      </Text>
     </Box>
   );
 }

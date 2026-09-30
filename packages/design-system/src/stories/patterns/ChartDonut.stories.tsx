@@ -15,35 +15,36 @@ const coverage = [
   { key: "o", label: "Other than satisfied", value: 26, tone: "danger" as const },
   { key: "n", label: "Not assessed", value: 8, tone: "neutral" as const },
 ];
-const done = [
-  { key: "a", label: "Done", value: 3, tone: "success" as const },
-  { key: "b", label: "Left", value: 1, tone: "neutral" as const },
-];
-const posture = [
-  { key: "p", label: "Posture", value: 72, tone: "warning" as const },
-  { key: "r", label: "To 100", value: 28, tone: "neutral" as const },
-];
 
 const meta = {
   title: "Patterns/Chart/Donut",
   component: Chart.Donut,
   parameters: { layout: "padded" },
-  args: { slices: coverage, label: "80%", caption: "satisfied", name: "Control coverage" },
+  args: { slices: coverage, centerLabel: "80%", caption: "satisfied", name: "Control coverage" },
 } satisfies Meta<typeof Chart.Donut>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Every ring in both modes: 64, 120 and 160 across; a gauge; one slice on the track; loading. */
+/** The sectors a ring draws (the track's, then a slice's), not the room a hidden slice keeps. */
+const sectorsIn = (root: Element) => root.querySelectorAll("path.recharts-sector");
+
+/** Every ring in both modes: 64, 120 and 160 across; a gauge; one value on the track; loading. */
 export const DonutMatrix: Story = {
   render: () => (
     <Stack space="space.400">
       <Specimens title="64 · 120 with a number and a caption · 160 · a gauge">
-        <Chart.Donut size={64} thickness={8} name="Done" slices={done} />
-        <Chart.Donut label="80%" caption="satisfied" name="Coverage" slices={coverage} />
+        <Chart.Donut
+          size={64}
+          thickness={8}
+          name="Done"
+          slices={[{ key: "a", label: "Done", value: 3, tone: "success" }]}
+          max={4}
+        />
+        <Chart.Donut centerLabel="80%" caption="satisfied" name="Coverage" slices={coverage} />
         <Chart.Donut
           size={160}
           thickness={16}
-          label="5"
+          centerLabel="5"
           caption="open"
           name="Open findings"
           slices={[
@@ -55,16 +56,18 @@ export const DonutMatrix: Story = {
           arc="half"
           size={160}
           thickness={16}
-          label="72"
+          centerLabel="72"
           caption="posture"
           name="Risk posture"
-          slices={posture}
+          value={72}
+          max={100}
+          tone="warning"
         />
       </Specimens>
       <Specimens title="Textured · beside its textured legend">
         <Inline space="space.200" rowSpace="space.200" alignBlock="center" shouldWrap>
           <Chart.Donut
-            label="80%"
+            centerLabel="80%"
             caption="satisfied"
             name="Coverage, textured"
             slices={coverage}
@@ -73,35 +76,53 @@ export const DonutMatrix: Story = {
           <Chart.Legend series={statusSeries} texture />
         </Inline>
       </Specimens>
-      <Specimens title="One slice on the track · loading · a gauge loading">
-        <Chart.Donut
-          label="62%"
-          caption="assessed"
-          name="Assessed"
-          slices={[
-            { key: "a", label: "Assessed", value: 62, tone: "brand" },
-            { key: "r", label: "Left", value: 38, tone: "neutral" },
-          ]}
-        />
+      <Specimens title="One value on the track · loading · a gauge loading">
+        <Chart.Donut centerLabel="62%" caption="assessed" name="Assessed" value={62} max={100} />
         <Chart.Donut name="Coverage" slices={coverage} loading />
         <Chart.Donut
           arc="half"
           size={160}
           thickness={16}
           name="Risk posture"
-          slices={posture}
+          value={72}
+          max={100}
           loading
         />
       </Specimens>
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const textured = canvas.getByRole("img", { name: "Coverage, textured" });
+    // Every slice draws, and every fill that points at a pattern finds it in the document.
+    await waitFor(() => expect(sectorsIn(textured)).toHaveLength(1 + coverage.length));
+    for (const path of Array.from(canvasElement.querySelectorAll("path.recharts-sector"))) {
+      const fill = path.getAttribute("fill") ?? "";
+      const url = /^url\(#(.+)\)$/.exec(fill);
+      if (url) await expect(canvasElement.ownerDocument.getElementById(url[1]!)).not.toBeNull();
+    }
+    // A ring that chooses nothing is an image, and no part of it is a tab stop.
+    await expect(canvasElement.querySelectorAll('[data-chart-plot] [tabindex="0"]')).toHaveLength(
+      0,
+    );
+    // A score against a scale is a meter: its value, its range and its value in words.
+    const meter = canvas.getByRole("meter", { name: "Risk posture" });
+    await expect(meter).toHaveAttribute("aria-valuenow", "72");
+    await expect(meter).toHaveAttribute("aria-valuemax", "100");
+    await expect(meter).toHaveAttribute("aria-valuetext", "72 of 100");
+  },
 };
 
 /** A ring beside its Stat and its legend. The number in the middle is the point; the slices are the parts. */
 export const BesideStat: Story = {
   render: () => (
     <Inline space="space.300" rowSpace="space.200" alignBlock="center" shouldWrap>
-      <Chart.Donut label="80%" caption="satisfied" name="Control coverage" slices={coverage} />
+      <Chart.Donut
+        centerLabel="80%"
+        caption="satisfied"
+        name="Control coverage"
+        slices={coverage}
+      />
       <Stack space="space.050">
         <Stat label="Controls satisfied" value="298 of 372" />
         <Chart.Legend series={statusSeries} />
@@ -110,7 +131,7 @@ export const BesideStat: Story = {
   ),
 };
 
-/** Half a ring is a gauge: a score against a scale, the number at its base, the tone the score earns. No needle: the number is text. */
+/** Half a ring is a gauge: a score against a scale, the number at its base, the tone the score earns. `value` and `max` say it; the rest of the arc is the track, which neither hovers nor keys. No needle: the number is text. */
 export const Gauge: Story = {
   render: () => (
     <Inline space="space.600" rowSpace="space.300" alignBlock="end" shouldWrap>
@@ -118,33 +139,48 @@ export const Gauge: Story = {
         arc="half"
         size={200}
         thickness={20}
-        label="72"
+        centerLabel="72"
         caption="risk posture"
         name="Risk posture"
-        slices={posture}
+        value={72}
+        max={100}
+        tone="warning"
       />
       <Chart.Donut
         arc="half"
         size={200}
         thickness={20}
-        label="41"
+        centerLabel="41"
         caption="readiness"
         name="Readiness"
-        slices={[
-          { key: "p", label: "Readiness", value: 41, tone: "danger" },
-          { key: "r", label: "To 100", value: 59, tone: "neutral" },
-        ]}
+        value={41}
+        max={100}
+        tone="danger"
       />
     </Inline>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const readiness = canvas.getByRole("meter", { name: "Readiness" });
+    await expect(readiness).toHaveAttribute("aria-valuenow", "41");
+    await expect(readiness).toHaveAttribute("aria-valuetext", "41 of 100");
+    // The value's arc and the track: no remainder slice is drawn as if it were data.
+    await waitFor(() => expect(sectorsIn(readiness)).toHaveLength(2));
+    // The track is the whole, not data: the pointer passes through it, so no tooltip names it.
+    await expect(getComputedStyle(sectorsIn(readiness)[0]!).pointerEvents).toBe("none");
+    await expect(getComputedStyle(sectorsIn(readiness)[1]!).pointerEvents).not.toBe("none");
+    await expect(canvasElement.querySelectorAll('[data-chart-plot] [tabindex="0"]')).toHaveLength(
+      0,
+    );
+  },
 };
 
-/** A click on a slice opens its card: the slice, its value and its share of the whole, then the caller's facts. */
+/** A click on a slice, or Enter on it, opens its card: the slice, its value and its share of the whole, then the caller's facts. Each slice is a button and a tab stop; the ring itself is not. */
 export const Details: Story = {
   render: () => (
     <Inline space="space.300" rowSpace="space.200" alignBlock="center" shouldWrap>
       <Chart.Donut
-        label="80%"
+        centerLabel="80%"
         caption="satisfied"
         name="Control coverage"
         size={160}
@@ -165,6 +201,28 @@ export const Details: Story = {
       <Chart.Legend series={statusSeries} />
     </Inline>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    const plot = canvas.getByRole("group", { name: "Control coverage" });
+    // The slices are the tab stops, one each, named with their value and share.
+    await waitFor(() => expect(plot.querySelectorAll('[tabindex="0"]')).toHaveLength(4));
+    // The svg itself is none of them: every stop is a slice's button.
+    for (const stop of Array.from(plot.querySelectorAll('[tabindex="0"]')))
+      await expect(stop).toHaveAttribute("role", "button");
+    const partial = await within(plot).findByRole("button", { name: "Partial: 40, 11%" });
+    await expect(partial).toHaveAttribute("aria-haspopup", "dialog");
+    await expect(partial).toHaveAttribute("aria-expanded", "false");
+    partial.focus();
+    await userEvent.keyboard("{Enter}");
+    const dialog = await page.findByRole("dialog", { name: "Control coverage, details" });
+    await waitFor(() => expect(within(dialog).getByText("11% of 372")).toBeVisible());
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("dialog")).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(within(plot).getByRole("button", { name: "Partial: 40, 11%" })).toHaveFocus(),
+    );
+  },
 };
 
 /** `size` is the most a ring takes. In a container narrower than that it scales down, thickness and all, keeping its ratio; the number and caption keep their type size. Here a 200 gauge and a 160 ring share a 144px tile, and below, the same two sit in a grid of two tiles 260px across: a grid track or a flex row shrinks a ring as a block does. */
@@ -177,15 +235,17 @@ export const Narrow: Story = {
             arc="half"
             size={200}
             thickness={20}
-            label="72"
+            centerLabel="72"
             caption="posture"
             name="Risk posture"
-            slices={posture}
+            value={72}
+            max={100}
+            tone="warning"
           />
           <Chart.Donut
             size={160}
             thickness={16}
-            label="80%"
+            centerLabel="80%"
             caption="satisfied"
             name="Control coverage"
             slices={coverage}
@@ -203,7 +263,7 @@ export const Narrow: Story = {
         <Chart.Donut
           size={160}
           thickness={16}
-          label="80%"
+          centerLabel="80%"
           caption="satisfied"
           name="Control coverage, in a tile"
           slices={coverage}
@@ -212,10 +272,12 @@ export const Narrow: Story = {
           arc="half"
           size={200}
           thickness={20}
-          label="72"
+          centerLabel="72"
           caption="posture"
           name="Risk posture, in a tile"
-          slices={posture}
+          value={72}
+          max={100}
+          tone="warning"
         />
       </Grid>
     </Stack>
@@ -223,10 +285,10 @@ export const Narrow: Story = {
   play: async ({ canvas, canvasElement }) => {
     const tile = canvas.getByTestId("tile").getBoundingClientRect();
     const tiles = canvas.getByTestId("tiles");
-    const inTiles = Array.from(tiles.querySelectorAll<HTMLElement>('[role="group"]'));
-    const rings = Array.from(canvasElement.querySelectorAll<HTMLElement>('[role="group"]')).filter(
-      (r) => !inTiles.includes(r),
-    );
+    const plots = (root: Element) =>
+      Array.from(root.querySelectorAll<HTMLElement>("[data-chart-plot], [aria-busy]"));
+    const inTiles = plots(tiles);
+    const rings = plots(canvasElement).filter((r) => !inTiles.includes(r));
     await expect(rings).toHaveLength(3);
     for (const ring of rings) {
       const box = ring.getBoundingClientRect();
@@ -264,7 +326,7 @@ export const Narrow: Story = {
   },
 };
 
-/** In a Frame given only its title and `xLabel`: the legend keys the slices, a hover dims the others and a click hides one, and the Table toggle lays them out with each one's value and its share of the whole. A hidden slice leaves the ring and stays in the table, which is the data. */
+/** In a Frame given only its title and `xLabel`: the legend keys the slices, a hover dims the others and a click hides one, and the Table toggle lays them out with each one's value and its share of the whole. A hidden slice leaves the ring but keeps its place, so the others keep their angles and the track shows through; it stays in the table, which is the data. */
 export const Framed: Story = {
   render: () => (
     <Box style={{ maxWidth: 480 }}>
@@ -274,16 +336,29 @@ export const Framed: Story = {
         xLabel="Determination"
         download={["csv"]}
       >
-        <Chart.Donut label="80%" caption="satisfied" size={160} thickness={16} slices={coverage} />
+        <Chart.Donut
+          centerLabel="80%"
+          caption="satisfied"
+          size={160}
+          thickness={16}
+          slices={coverage}
+        />
       </Chart>
     </Box>
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     // The track's one sector, then a sector per slice shown.
-    const sectors = () => canvasElement.querySelectorAll(".recharts-pie-sector");
+    const sectors = () => sectorsIn(canvasElement);
     const dimmed = () => canvasElement.querySelectorAll("[data-chart-plot] .opacity-disabled");
     await waitFor(() => expect(sectors()).toHaveLength(5));
+    const satisfied = () => sectors()[1]?.getAttribute("d");
+    await waitFor(async () => {
+      const before = satisfied();
+      await new Promise((r) => setTimeout(r, 100));
+      expect(satisfied()).toBe(before);
+    });
+    const angles = satisfied();
     // A mouse over a legend item dims the other slices.
     await userEvent.hover(canvas.getByRole("button", { name: "Satisfied" }));
     await waitFor(() => expect(dimmed()).toHaveLength(3));
@@ -293,6 +368,8 @@ export const Framed: Story = {
       "false",
     );
     await waitFor(() => expect(sectors()).toHaveLength(4));
+    // The slices left keep their angles: Satisfied's arc is the one it drew before.
+    await waitFor(() => expect(satisfied()).toBe(angles));
     // The slice just hidden is still under the pointer; the slices left are not dimmed for it.
     await expect(dimmed()).toHaveLength(0);
     await userEvent.click(canvas.getByRole("button", { name: "Table" }));
@@ -308,15 +385,52 @@ export const Framed: Story = {
     ).toEqual(["Determination", "Value", "Share"]);
     const rows = within(table).getAllByRole("row").slice(1);
     await expect(rows).toHaveLength(4);
+    // The slice heads its row; its value and share are the row's cells.
+    await expect(within(rows[0]!).getByRole("rowheader")).toHaveTextContent("Satisfied");
     await expect(
       within(rows[0]!)
         .getAllByRole("cell")
         .map((c) => c.textContent),
-    ).toEqual(["Satisfied", "298", "80%"]);
-    await expect(within(rows[1]!).getAllByRole("cell")[0]).toHaveTextContent("Partial");
+    ).toEqual(["298", "80%"]);
+    await expect(within(rows[1]!).getByRole("rowheader")).toHaveTextContent("Partial");
     await userEvent.click(canvas.getByRole("button", { name: "Table" }));
     await userEvent.click(canvas.getByRole("button", { name: "Partial" }));
     await waitFor(() => expect(sectors()).toHaveLength(5));
+  },
+};
+
+/** A slice far smaller than the rest still draws: 3° at least, wider than the gaps either side, so it can be hovered and read. One of 372 would otherwise vanish under its separators. */
+export const SmallShare: Story = {
+  render: () => (
+    <Inline space="space.300" rowSpace="space.200" alignBlock="center" shouldWrap>
+      <Chart.Donut
+        size={160}
+        thickness={16}
+        centerLabel="371"
+        caption="current"
+        name="Accounts reviewed"
+        slices={[
+          { key: "c", label: "Current", value: 371, tone: "success" },
+          { key: "x", label: "Expired", value: 1, tone: "danger" },
+        ]}
+      />
+      <Chart.Legend
+        series={[
+          { key: "c", label: "Current", tone: "success" },
+          { key: "x", label: "Expired", tone: "danger" },
+        ]}
+      />
+    </Inline>
+  ),
+  play: async ({ canvasElement }) => {
+    const plot = within(canvasElement).getByRole("img", { name: "Accounts reviewed" });
+    await waitFor(() => expect(sectorsIn(plot)).toHaveLength(3));
+    // The expired slice sits just before the top, so its width is its arc: wider than the 2px
+    // separators either side (1 of 372 would be under 1.4px of arc).
+    await waitFor(() => {
+      const box = (sectorsIn(plot)[2] as SVGGraphicsElement).getBBox();
+      expect(box.width).toBeGreaterThan(3);
+    });
   },
 };
 
@@ -338,7 +452,7 @@ export const Dont: Story = {
         doText="One number is a Stat. The number is the chart."
         dont={
           <Chart.Donut
-            label="5"
+            centerLabel="5"
             name="Open findings"
             slices={[
               { key: "o", label: "Open", value: 5, tone: "danger" },
@@ -383,6 +497,37 @@ export const Dont: Story = {
           </Inline>
         }
         dontText="Five sources as slices. Which is bigger, ACAS or code scan? Five hues for a question the legend has to answer."
+      />
+      <Pair
+        do={
+          <Chart.Donut
+            arc="half"
+            size={160}
+            thickness={16}
+            centerLabel="72"
+            caption="posture"
+            name="Risk posture"
+            value={72}
+            max={100}
+            tone="warning"
+          />
+        }
+        doText="A score against its scale: `value` and `max`. The rest is the track, and a screen reader hears 72 of 100."
+        dont={
+          <Chart.Donut
+            arc="half"
+            size={160}
+            thickness={16}
+            centerLabel="72"
+            caption="posture"
+            name="Risk posture, with a remainder slice"
+            slices={[
+              { key: "p", label: "Posture", value: 72, tone: "warning" },
+              { key: "r", label: "To 100", value: 28, tone: "neutral" },
+            ]}
+          />
+        }
+        dontText="A made-up remainder slice. It hovers, sits in the legend and the table as if it were data, and hides the track."
       />
     </Stack>
   ),

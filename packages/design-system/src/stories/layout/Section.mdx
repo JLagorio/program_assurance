@@ -6,7 +6,9 @@ import * as Stories from "./Section.stories";
 
 # Section
 
-Optional presentation for a titled content region. `title`, `count`, `description` and `action` render the built-in header; leave `title` out and compose Section.Header, Section.Heading, Section.Title, Section.Description and Section.Actions yourself when the heading needs a badge or two actions. The Title names the region either way. Native section props and refs pass through every part. A rule is opt-in with `divided`.
+Optional presentation for a titled block of a page. `title`, `count`, `description` and `action` render the built-in header; leave `title` out and compose Section.Header, Section.Heading, Section.Title, Section.Description and Section.Actions yourself when the heading needs a badge or two actions. Native section props and refs pass through every part.
+
+The title is semibold at body size, and a one-line title sits centred on its action's row. A rule is opt-in with `divided`: it is drawn inside the header's end, `space.100` above the content, so the content starts clear of it and keeps its own flow.
 
 <Canvas of={Stories.Presentation} />
 <Canvas of={Stories.Composed} />
@@ -27,6 +29,12 @@ A Section's title takes the contextual heading level and its content one level b
 
 <Canvas of={Stories.Nested} />
 
+## Landmarks
+
+A titled Section at the top of its outline, its title an h2, is a region named by its title, so a page's landmark list names its main parts and stays shorter than its heading list. Everywhere else it is a titled block in the heading outline only: under another titled Section, in a titled panel, in a dialog or a sheet, and under a preview's record title. `landmark` decides it outright: `landmark` makes a nested Section a region a reader should be able to jump to, and `landmark={false}` keeps a page-level one out of the list. An untitled Section is never a landmark, whatever `landmark` says.
+
+<Canvas of={Stories.Landmarks} />
+
 ## Collapsible
 
 `isCollapsible` folds the content under the title: the collapsed Details section for provenance, counts and derivation a reader opens when they need them. The title and its count become a button inside the heading, a chevron after them turns while the content is open, and the action stays in the header, outside the heading. It is closed until `defaultOpen`, or controlled with `open` and `onOpenChange`. Closed content stays mounted and hidden until found, so a draft inside survives and find-in-page opens it. It needs `title`; compose a [CollapsibleHeader](?path=/docs/components-collapsible--docs) for a disclosure that is not a Section.
@@ -39,7 +47,8 @@ Use Stack or Grid directly when no titled region is needed. Section imposes no d
 
 ## Accessibility
 
-- A titled Section is a region named by its title. Untitled, it is a plain container, and `aria-labelledby` never points at a title that is not there.
+- A titled Section at the top of its outline is a region named by its title; nested, in a panel or under a record title it is a titled block, and `landmark` overrides either (see Landmarks). Untitled, it is a plain container, and `aria-labelledby` never points at a title that is not there.
+- `divided` is decoration: the rule carries no meaning of its own, and in forced colours it takes the system's border colour.
 - The level follows the outline, as above; check a new composition with a heading list, which should read as a map of the page.
 - A collapsible Section's button carries `aria-expanded`, and `aria-controls` while the content is open; Enter and Space toggle it and focus stays on it. The chevron is decoration and holds still under reduced motion.
 

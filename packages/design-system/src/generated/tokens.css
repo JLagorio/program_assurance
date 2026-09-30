@@ -118,7 +118,7 @@
   --ds-color-text-selected--standard: var(--ds-color-blue-800);
   --ds-color-text-selected--more: var(--ds-color-blue-1100);
   --ds-color-text-selected: var(--ds-contrast-more, var(--ds-color-text-selected--standard)) var(--ds-contrast-standard, var(--ds-color-text-selected--more));
-  --ds-color-text-brand: var(--ds-color-blue-700);
+  --ds-color-text-brand: var(--ds-color-blue-725);
   --ds-color-text-danger: var(--ds-color-red-800);
   --ds-color-text-danger-bolder: var(--ds-color-red-900);
   --ds-color-text-warning: var(--ds-color-orange-800);
@@ -157,7 +157,7 @@
   --ds-color-border: var(--ds-contrast-more, var(--ds-color-border--standard)) var(--ds-contrast-standard, var(--ds-color-border--more));
   --ds-color-border-bold: var(--ds-color-neutral-600);
   --ds-color-border-disabled: var(--ds-color-neutral-200a);
-  --ds-color-border-focused--standard: var(--ds-color-blue-500);
+  --ds-color-border-focused--standard: var(--ds-color-blue-600);
   --ds-color-border-focused--more: var(--ds-color-blue-1000);
   --ds-color-border-focused: var(--ds-contrast-more, var(--ds-color-border-focused--standard)) var(--ds-contrast-standard, var(--ds-color-border-focused--more));
   --ds-color-border-input--standard: var(--ds-color-neutral-400);
@@ -244,6 +244,7 @@
   --ds-color-dark-neutral-500: oklch(0.42 0.02 285);
   --ds-color-dark-neutral-600: oklch(0.55 0.02 285);
   --ds-color-dark-neutral-700: oklch(0.66 0.02 285);
+  --ds-color-dark-neutral-715: oklch(0.68 0.02 285);
   --ds-color-dark-neutral-800: oklch(0.81 0.015 285);
   --ds-color-dark-neutral-900: oklch(0.86 0.012 285);
   --ds-color-dark-neutral-1000: oklch(0.945 0.008 285);
@@ -384,6 +385,25 @@
   --ds-dimension-layout-list: 340px;
   --ds-dimension-layout-rail: 272px;
   --ds-dimension-layout-measure: 720px;
+  --ds-dimension-part-tooltip: 320px;
+  --ds-dimension-part-hover-card: 256px;
+  --ds-dimension-part-popover: 288px;
+  --ds-dimension-part-command: 560px;
+  --ds-dimension-part-menu: 128px;
+  --ds-dimension-part-submenu: 96px;
+  --ds-dimension-part-select: 9rem;
+  --ds-dimension-part-search: 240px;
+  --ds-dimension-part-steps: 420px;
+  --ds-dimension-part-skeleton-circle: 32px;
+  --ds-dimension-part-skeleton-block: 96px;
+  --ds-dimension-part-empty-measure: 400px;
+  --ds-dimension-part-key-value: 8rem;
+  --ds-dimension-part-key-value-label: 6.5rem;
+  --ds-dimension-part-code-block: 560px;
+  --ds-dimension-part-item-id: 72px;
+  --ds-dimension-part-filter: 220px;
+  --ds-dimension-part-table-search: 200px;
+  --ds-dimension-part-preview-sheet: 720px;
   --ds-elevation-surface: var(--ds-color-neutral-0);
   --ds-elevation-surface-hovered: var(--ds-color-neutral-100);
   --ds-elevation-surface-pressed: var(--ds-color-neutral-200);
@@ -440,6 +460,11 @@
   --ds-font-code: var(--ds-font-weight-regular) 0.75rem/1.125rem var(--ds-font-family-code);
   --ds-font-code-letter-spacing: var(--ds-font-letter-spacing-0);
   --ds-font-code-weight: var(--ds-font-weight-regular);
+  --ds-layer-chrome: 30;
+  --ds-layer-blanket: 40;
+  --ds-layer-overlay: 50;
+  --ds-layer-toast: 1000;
+  --ds-layer-tooltip: 1100;
   --ds-motion-duration-micro: 70ms;
   --ds-motion-duration-fast: 110ms;
   --ds-motion-duration-medium: 150ms;
@@ -604,7 +629,7 @@
   --ds-color-text-selected--standard: var(--ds-color-blue-800);
   --ds-color-text-selected--more: var(--ds-color-blue-1100);
   --ds-color-text-selected: var(--ds-contrast-more, var(--ds-color-text-selected--standard)) var(--ds-contrast-standard, var(--ds-color-text-selected--more));
-  --ds-color-text-brand: var(--ds-color-blue-700);
+  --ds-color-text-brand: var(--ds-color-blue-725);
   --ds-color-text-danger: var(--ds-color-red-800);
   --ds-color-text-danger-bolder: var(--ds-color-red-900);
   --ds-color-text-warning: var(--ds-color-orange-800);
@@ -643,7 +668,7 @@
   --ds-color-border: var(--ds-contrast-more, var(--ds-color-border--standard)) var(--ds-contrast-standard, var(--ds-color-border--more));
   --ds-color-border-bold: var(--ds-color-neutral-600);
   --ds-color-border-disabled: var(--ds-color-neutral-200a);
-  --ds-color-border-focused--standard: var(--ds-color-blue-500);
+  --ds-color-border-focused--standard: var(--ds-color-blue-600);
   --ds-color-border-focused--more: var(--ds-color-blue-1000);
   --ds-color-border-focused: var(--ds-contrast-more, var(--ds-color-border-focused--standard)) var(--ds-contrast-standard, var(--ds-color-border-focused--more));
   --ds-color-border-input--standard: var(--ds-color-neutral-400);
@@ -826,7 +851,7 @@
   --ds-color-text-subtle--standard: var(--ds-color-dark-neutral-800);
   --ds-color-text-subtle--more: var(--ds-color-dark-neutral-1100);
   --ds-color-text-subtle: var(--ds-contrast-more, var(--ds-color-text-subtle--standard)) var(--ds-contrast-standard, var(--ds-color-text-subtle--more));
-  --ds-color-text-subtlest--standard: var(--ds-color-dark-neutral-700);
+  --ds-color-text-subtlest--standard: var(--ds-color-dark-neutral-715);
   --ds-color-text-subtlest--more: var(--ds-color-dark-neutral-900);
   --ds-color-text-subtlest: var(--ds-contrast-more, var(--ds-color-text-subtlest--standard)) var(--ds-contrast-standard, var(--ds-color-text-subtlest--more));
   --ds-color-text-disabled: var(--ds-color-dark-neutral-400a);
@@ -854,7 +879,7 @@
   --ds-color-icon-subtle--standard: var(--ds-color-dark-neutral-800);
   --ds-color-icon-subtle--more: var(--ds-color-dark-neutral-1000);
   --ds-color-icon-subtle: var(--ds-contrast-more, var(--ds-color-icon-subtle--standard)) var(--ds-contrast-standard, var(--ds-color-icon-subtle--more));
-  --ds-color-icon-subtlest--standard: var(--ds-color-dark-neutral-700);
+  --ds-color-icon-subtlest--standard: var(--ds-color-dark-neutral-715);
   --ds-color-icon-subtlest--more: var(--ds-color-dark-neutral-900);
   --ds-color-icon-subtlest: var(--ds-contrast-more, var(--ds-color-icon-subtlest--standard)) var(--ds-contrast-standard, var(--ds-color-icon-subtlest--more));
   --ds-color-icon-disabled: var(--ds-color-dark-neutral-400a);
@@ -1057,7 +1082,7 @@
     --ds-color-text-subtle--standard: var(--ds-color-dark-neutral-800);
     --ds-color-text-subtle--more: var(--ds-color-dark-neutral-1100);
     --ds-color-text-subtle: var(--ds-contrast-more, var(--ds-color-text-subtle--standard)) var(--ds-contrast-standard, var(--ds-color-text-subtle--more));
-    --ds-color-text-subtlest--standard: var(--ds-color-dark-neutral-700);
+    --ds-color-text-subtlest--standard: var(--ds-color-dark-neutral-715);
     --ds-color-text-subtlest--more: var(--ds-color-dark-neutral-900);
     --ds-color-text-subtlest: var(--ds-contrast-more, var(--ds-color-text-subtlest--standard)) var(--ds-contrast-standard, var(--ds-color-text-subtlest--more));
     --ds-color-text-disabled: var(--ds-color-dark-neutral-400a);
@@ -1085,7 +1110,7 @@
     --ds-color-icon-subtle--standard: var(--ds-color-dark-neutral-800);
     --ds-color-icon-subtle--more: var(--ds-color-dark-neutral-1000);
     --ds-color-icon-subtle: var(--ds-contrast-more, var(--ds-color-icon-subtle--standard)) var(--ds-contrast-standard, var(--ds-color-icon-subtle--more));
-    --ds-color-icon-subtlest--standard: var(--ds-color-dark-neutral-700);
+    --ds-color-icon-subtlest--standard: var(--ds-color-dark-neutral-715);
     --ds-color-icon-subtlest--more: var(--ds-color-dark-neutral-900);
     --ds-color-icon-subtlest: var(--ds-contrast-more, var(--ds-color-icon-subtlest--standard)) var(--ds-contrast-standard, var(--ds-color-icon-subtlest--more));
     --ds-color-icon-disabled: var(--ds-color-dark-neutral-400a);

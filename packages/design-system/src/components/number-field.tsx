@@ -8,7 +8,7 @@ import { buttonVariants } from "./button";
 import {
   FieldStateContext,
   useFieldControlState,
-  controlHeight,
+  fieldControlHeight,
   type ControlSize,
 } from "./controls";
 
@@ -54,7 +54,7 @@ export type NumberFieldProps = Omit<
  * disabled and read-only. Base UI's hidden form input sits outside the group.
  */
 const frame =
-  "relative flex w-full min-w-0 items-center overflow-x-clip rounded-medium border border-input bg-input transition-colors duration-fast ease-standard hover:bg-input-hovered motion-reduce:transition-none has-[input:focus-visible]:border-focused has-[input:focus-visible]:bg-input-pressed has-[input:focus-visible]:outline-field-focused has-[input[aria-invalid=true]]:border-danger has-[input[aria-invalid=true]:focus-visible]:border-danger has-[input[aria-invalid=true]:focus-visible]:outline-field-danger has-[input:disabled]:border-disabled has-[input:disabled]:bg-disabled has-[input[readonly]]:bg-surface-sunken has-[input[readonly]]:hover:bg-surface-sunken";
+  "relative flex w-full min-w-0 items-center overflow-x-clip rounded-medium border border-input bg-input transition-colors duration-fast ease-standard hover:bg-input-hovered motion-reduce:transition-none has-[input:focus-visible]:border-focused has-[input:focus-visible]:bg-input-pressed has-[input:focus-visible]:outline-field-focused has-[input[aria-invalid=true]]:border-danger has-[input[aria-invalid=true]:focus-visible]:border-danger has-[input[aria-invalid=true]:focus-visible]:outline-field-danger has-[input:disabled]:border-disabled has-[input:disabled]:bg-disabled has-[input[readonly]]:border-dashed has-[input[readonly]]:bg-surface-sunken has-[input[readonly]]:hover:bg-surface-sunken";
 
 /** Only the props that are set: Base UI merges an explicit `undefined` over its own value, such as a Field's `aria-invalid`. */
 const defined = <T extends Record<string, unknown>>(props: T) =>
@@ -129,7 +129,7 @@ export function NumberField({
     >
       <NumberFieldPrimitive.Group
         data-slot="number-field-group"
-        className={cn(frame, controlHeight[size])}
+        className={cn(frame, fieldControlHeight[size])}
       >
         <NumberFieldPrimitive.Input
           ref={ref}

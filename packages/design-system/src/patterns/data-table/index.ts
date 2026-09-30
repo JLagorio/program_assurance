@@ -42,7 +42,14 @@ export {
   useRowDrag,
   type ColumnDragOptions,
 } from "./reorder";
-export { toCsv, toRows, type ExportedRows } from "./to-rows";
+export {
+  downloadCsv,
+  toCsv,
+  toRows,
+  type CsvOptions,
+  type ExportOptions,
+  type ExportedRows,
+} from "./to-rows";
 export { clearView, readView, resetView, viewKey, writeView } from "./view-store";
 export {
   dataTableFeatures,
@@ -56,6 +63,8 @@ export {
 } from "./features";
 export {
   createDataTableColumnHelper,
+  displayedRows,
+  showRow,
   useCellContext,
   useDataTable,
   useHeaderContext,
@@ -63,6 +72,7 @@ export {
   type DataTableColumn,
   type DataTableInstance,
   type DataTableOptions,
+  type DataTableView,
 } from "./use-data-table";
 export type {
   ColumnFiltersState,

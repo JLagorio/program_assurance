@@ -159,7 +159,10 @@ try {
   await organization().getByRole("button", { name: "Create organization", exact: true }).click();
   await expect(organization()).toBeHidden();
 
-  await page.getByRole("button", { name: "Preview row", exact: true }).first().click();
+  await page
+    .getByRole("button", { name: /^Preview / })
+    .first()
+    .click();
   await page
     .locator('[data-shell-area="panel"]')
     .getByRole("button", { name: "Edit organization", exact: true })

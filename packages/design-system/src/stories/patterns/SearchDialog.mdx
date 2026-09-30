@@ -64,8 +64,9 @@ The product's search: find a record of any type by its name or its identifier an
 - **Headings are groups.** Each heading labels its rows, so a screen reader hears "Risks, group" before a risk.
 - **Retry is described by the failure** and returns focus to the field, so the next keystroke searches.
 - **An unavailable row is reached, not skipped.** It is `aria-disabled`, its `disabledReason` is its description (not part of its name), and Enter or a press does nothing, as a DropdownMenuItem with a `disabledReason` behaves.
-- **One ⌘K per page.** TopNav.Search binds ⌘K (Ctrl+K elsewhere) by default, and so does `useCommandPalette`, whose shortcut cannot be changed. A page with both gives TopNav.Search another `shortcut`, or `shortcut={null}`, so one key does not open two dialogs.
-- **The highlighted row is outlined in forced colours**, not only tinted. Names and meta wrap inside the row; nothing is cut off.
+- **One ⌘K per page.** TopNav.Search binds ⌘K (Ctrl+K elsewhere) by default, and so does `useCommandPalette`. A page with both gives one of them another `shortcut`, or `shortcut={null}`, so one key does not open two dialogs.
+- **The field shows its focus.** Its row draws the field's focus ring while the field has focus. The dialog sits 80px from the top, or a tenth of the window's height where that is less, so a landscape phone keeps room for the results.
+- **The highlighted row keeps its mark in forced colours**: it is Highlight with HighlightText inside, and an unavailable row GrayText. Names and meta wrap inside the row; nothing is cut off.
 
 ## Props
 

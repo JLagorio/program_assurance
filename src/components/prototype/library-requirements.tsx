@@ -1,4 +1,5 @@
 import { StatusBadge } from "@/components/app/status";
+import { Page } from "@/components/app/shell";
 import { useWorkspace } from "@/components/app/workspace";
 import { useRow, useRows, type Row } from "@/lib/models";
 import { labelFor, type DataRecord, type RecordValue } from "@/lib/records";
@@ -101,7 +102,7 @@ export function RequirementLibraryIndex() {
           header: "Requirement definition",
           hideable: false,
           priority: 0,
-          width: 220,
+          minWidth: 200,
           cell: (row) => (
             <RecordLink table="requirement_definitions" record={row}>
               {row.title}
@@ -133,7 +134,7 @@ export function RequirementLibraryIndex() {
     </Button>
   );
   return (
-    <Stack space="space.200" className="animate-rise">
+    <Page>
       <PageHeader>
         <PageHeader.Heading>
           <PageHeader.Title>Requirements</PageHeader.Title>
@@ -222,7 +223,7 @@ export function RequirementLibraryIndex() {
           onClose={() => setSelected(null)}
         />
       )}
-    </Stack>
+    </Page>
   );
 }
 
@@ -385,7 +386,7 @@ export function RequirementLibraryRecord({
   const record = definition.data;
   return (
     <>
-      <Stack space="space.200" className="animate-rise">
+      <Page>
         <PageHeader>
           <RecordTrail current={record.title}>
             <TrailLink to="/library/requirements">Requirements</TrailLink>
@@ -505,7 +506,7 @@ export function RequirementLibraryRecord({
             />
           )}
         </QueryState>
-      </Stack>
+      </Page>
       {adoptionPreview && (
         <RecordSummaryPreview
           model="engineering_requirements"
@@ -530,17 +531,6 @@ export function RequirementLibraryRecord({
       )}
       <Shell.Aside label="Requirement definition details">
         <Stack space="space.200">
-          {versions.length > 1 && current && (
-            <LibrarySelect
-              label="Version"
-              value={current.id}
-              options={versions.map((revision) => ({
-                value: revision.id,
-                label: `Version ${revision.version_number} · ${statusLabel(revisionStates, revision.state)}`,
-              }))}
-              onChange={selectVersion}
-            />
-          )}
           <Inspector.Group title="Details">
             <KeyValue.Group layout="columns">
               <KeyValue label="Code">
@@ -548,7 +538,22 @@ export function RequirementLibraryRecord({
               </KeyValue>
               <KeyValue label="Version">
                 <QueryValue queries={[revisions]}>
-                  {() => current?.version_number ?? <Absent label="No versions" />}
+                  {() =>
+                    versions.length > 1 && current ? (
+                      <LibrarySelect
+                        inline
+                        label="Version"
+                        value={current.id}
+                        options={versions.map((revision) => ({
+                          value: revision.id,
+                          label: `${revision.version_number} · ${statusLabel(revisionStates, revision.state)}`,
+                        }))}
+                        onChange={selectVersion}
+                      />
+                    ) : (
+                      (current?.version_number ?? <Absent label="No versions" />)
+                    )
+                  }
                 </QueryValue>
               </KeyValue>
               <KeyValue label="State">
@@ -566,7 +571,11 @@ export function RequirementLibraryRecord({
                 {current ? labelFor(current.requirement_type) : <Absent label="Not recorded" />}
               </KeyValue>
               <KeyValue label="Published">
-                <DateTime value={current?.published_at ?? null} absentLabel="Not published" />
+                <DateTime
+                  value={current?.published_at ?? null}
+                  format="date"
+                  absentLabel="Not published"
+                />
               </KeyValue>
               <KeyValue label="Adopted by">
                 <QueryValue queries={[revisions, adoptions]}>

@@ -12,9 +12,10 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-function Block({ label, w = "w-800" }: { label: string; w?: string }) {
+/** A labelled block, 64px wide, or as wide as its label with `hug`. */
+function Block({ label, hug = false }: { label: string; hug?: boolean }) {
   return (
-    <Box backgroundColor="color.background.brand.subtlest" paddingBlock="space.050" paddingInline="space.100" className={`rounded-small ${w}`}>
+    <Box backgroundColor="color.background.brand.subtlest" paddingBlock="space.050" paddingInline="space.100" className={hug ? "rounded-small" : "rounded-small w-800"}>
       <Text size="xsmall" color="color.text.brand">
         {label}
       </Text>
@@ -67,8 +68,8 @@ export const StackMatrix: Story = {
               <Label>{a}</Label>
               <Frame>
                 <Stack space="space.050" alignInline={a}>
-                  <Block label="short" w="" />
-                  <Block label="a longer child" w="" />
+                  <Block label="short" hug />
+                  <Block label="a longer child" hug />
                 </Stack>
               </Frame>
             </Stack>
@@ -104,7 +105,7 @@ export const StackMatrix: Story = {
               <Stack space="space.050" className="h-full">
                 <Block label="hug" />
                 <Stack grow="fill" alignBlock="end">
-                  <Block label="fill, aligned end" w="" />
+                  <Block label="fill, aligned end" hug />
                 </Stack>
               </Stack>
             </Frame>
@@ -158,8 +159,8 @@ export const Alignment: Story = {
           <Label>{`alignInline=${a}`}</Label>
           <Frame>
             <Stack space="space.050" alignInline={a}>
-              <Block label="short" w="" />
-              <Block label="a longer child" w="" />
+              <Block label="short" hug />
+              <Block label="a longer child" hug />
             </Stack>
           </Frame>
         </Stack>

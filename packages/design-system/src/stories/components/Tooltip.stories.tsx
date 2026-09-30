@@ -1,11 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Copy, Download, Pencil, Pin } from "lucide-react";
+import { Copy, Download, Pencil, Pin, Search } from "lucide-react";
 import { createRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import {
   Button,
   Dialog,
+  DialogBody,
+  DialogClose,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   IconButton,
@@ -17,7 +20,7 @@ import {
 } from "../../components";
 
 import { LedgerProvider } from "../../lib/locale";
-import { Grid, Inline, Stack, Text } from "../../primitives";
+import { Grid, Inline, Text } from "../../primitives";
 
 const meta = {
   title: "Components/Tooltip",
@@ -140,10 +143,13 @@ export const TooltipMatrix: Story = {
   },
 };
 
-/** One shared delay group: the first hover waits; an adjacent tooltip opens immediately. */
+/**
+ * One shared delay group with TooltipProvider's defaults: the first hover waits 300ms; an adjacent
+ * tooltip opens at once. Keyboard focus opens one without the wait.
+ */
 export const IconButtons: Story = {
   render: () => (
-    <TooltipProvider delay={300} timeout={300}>
+    <TooltipProvider>
       <Inline space="space.100" className="p-800">
         <IconButton label="Edit" variant="subtle" icon={<Pencil />} />
         <IconButton label="Copy link" variant="subtle" icon={<Copy />} onClick={copy} />
@@ -170,6 +176,17 @@ export const IconButtons: Story = {
     await expect(doc.querySelectorAll('[data-slot="tooltip-content"][data-open]')).toHaveLength(1);
     const popup = popupIn(doc)!;
     await waitFor(() => expect(popup).toBeVisible());
+    // The tooltip's layer is layer.tooltip, above a toast (layer.toast), so a toast action's label shows.
+    const root = doc.defaultView!.getComputedStyle(doc.documentElement);
+    await expect(doc.defaultView!.getComputedStyle(popup.parentElement!).zIndex).toBe(
+      root.getPropertyValue("--ds-layer-tooltip").trim(),
+    );
+    await expect(Number(root.getPropertyValue("--ds-layer-tooltip"))).toBeGreaterThan(
+      Number(root.getPropertyValue("--ds-layer-toast")),
+    );
+    // In forced colours the dark fill and the shadow are gone; a CanvasText outline keeps the edge.
+    if (doc.defaultView!.matchMedia("(forced-colors: active)").matches)
+      await expect(doc.defaultView!.getComputedStyle(popup).outlineStyle).toBe("solid");
     await waitFor(() =>
       expect(doc.defaultView!.getComputedStyle(popup).pointerEvents).not.toBe("none"),
     );
@@ -198,55 +215,76 @@ export const IconButtons: Story = {
   },
 };
 
+/**
+ * A shortcut the trigger's name leaves out. `describe` on TooltipContent makes its words the
+ * trigger's accessible description, from a hidden copy that is on the page while the tooltip is
+ * closed; `aria-keyshortcuts` names the chord for assistive technology.
+ */
+export const Shortcut: Story = {
+  render: () => (
+    <div className="p-800">
+      <Tooltip>
+        <TooltipTrigger
+          aria-keyshortcuts="Meta+K Control+K"
+          render={<IconButton label="Search" icon={<Search />} isTooltipDisabled />}
+        />
+        <TooltipContent describe>
+          Search <Kbd>K</Kbd>
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const doc = canvasElement.ownerDocument;
+    const canvas = within(canvasElement);
+    const user = userEvent.setup({ document: doc });
+    const search = canvas.getByRole("button", { name: "Search" });
+    await expect(search).toHaveAttribute("aria-keyshortcuts", "Meta+K Control+K");
+    // Described while the tooltip is closed: the copy is on the page, not in the popup.
+    await expect(popupIn(doc)).toBeNull();
+    await waitFor(() => expect(search).toHaveAccessibleDescription("Search K"));
+    await user.tab();
+    await expect(search).toHaveFocus();
+    await waitFor(() => expect(popupIn(doc)).toHaveTextContent("Search K"));
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(popupIn(doc)).toBeNull());
+    await expect(search).toHaveAccessibleDescription("Search K");
+  },
+};
+
 function UnavailableDemo() {
   const [open, setOpen] = useState(false);
   return (
     <>
       <Button onClick={() => setOpen(true)}>Export options</Button>
-      <Dialog
-        open={open}
-        onOpenChange={(next) => {
-          if (!next) {
-            setOpen(false);
-          }
-        }}
-      >
-        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Export options</DialogTitle>
           </DialogHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
-            <Stack space="space.200">
-              <Text>Connect an export service to download a package.</Text>
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <span
-                      tabIndex={0}
-                      role="group"
-                      aria-label="Export unavailable: connect an export service"
-                      className="inline-flex self-start focus-visible:outline-focused"
-                    />
-                  }
-                >
-                  <Button disabled iconBefore={<Download />} title="Connect an export service">
-                    Export package
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">Connect an export service</TooltipContent>
-              </Tooltip>
-              <Button variant="subtle" onClick={() => setOpen(false)}>
-                Cancel
+          <DialogBody>
+            <Inline space="space.150" alignBlock="center" shouldWrap>
+              <Text>Download everything this program holds as one package.</Text>
+              <Button iconBefore={<Download />} disabledReason="Connect an export service first">
+                Export package
               </Button>
-            </Stack>
-          </div>
+            </Inline>
+          </DialogBody>
+          <DialogFooter>
+            <DialogClose render={<Button variant="subtle" />}>Cancel</DialogClose>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
   );
 }
 
-/** A disabled action keeps its explanation available on a focusable wrapper inside a dialog. */
+/**
+ * An action that truly cannot run, in a dialog: `disabledReason` on the Button keeps it in the Tab
+ * order with `aria-disabled` and says why in a tooltip on hover, focus or a tap, and in its
+ * accessible description. No wrapper and no `title`. Escape closes the tooltip first, then the
+ * dialog.
+ */
 export const Unavailable: Story = {
   render: () => <UnavailableDemo />,
   play: async ({ canvasElement }) => {
@@ -257,12 +295,13 @@ export const Unavailable: Story = {
     const opener = canvas.getByRole("button", { name: "Export options" });
     await user.click(opener);
     const dialog = await page.findByRole("dialog", { name: "Export options" });
-    const wrapper = within(dialog).getByRole("group", {
-      name: "Export unavailable: connect an export service",
-    });
-    await waitFor(() => expect(wrapper).toHaveFocus());
-    await expect(within(dialog).getByRole("button", { name: "Export package" })).toBeDisabled();
-    await waitFor(() => expect(popupIn(doc)).toBeVisible());
+    const exportButton = within(dialog).getByRole("button", { name: "Export package" });
+    await expect(exportButton).toHaveAttribute("aria-disabled", "true");
+    await expect(exportButton).not.toHaveAttribute("title");
+    await expect(exportButton).toHaveAccessibleDescription("Connect an export service first");
+    // The first control past the close button takes focus, and focus opens the reason.
+    await waitFor(() => expect(exportButton).toHaveFocus());
+    await waitFor(() => expect(popupIn(doc)).toHaveTextContent("Connect an export service first"));
     await expect(doc.body).toContainElement(popupIn(doc));
     await waitFor(() => {
       const popup = popupIn(doc)!;
@@ -274,7 +313,7 @@ export const Unavailable: Story = {
     await user.keyboard("{Escape}");
     await waitFor(() => expect(popupIn(doc)).toBeNull());
     await expect(dialog).toBeVisible();
-    await expect(wrapper).toHaveFocus();
+    await expect(exportButton).toHaveFocus();
     await user.keyboard("{Escape}");
     await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
     await waitFor(() => expect(opener).toHaveFocus());

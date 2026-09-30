@@ -106,71 +106,134 @@ export const TextareaMatrix: Story = {
   },
 };
 
-/** `rows` says how long an answer is expected: two for a note, four for a description, eight for a narrative. The reader can drag any of them taller. */
+/** `rows` says how long an answer is expected: two for a note, four for a description, eight for a narrative. The box is that many lines tall, and the reader can drag any of them taller. */
 export const Rows: Story = {
-  render: function FieldExample() {
-    const fieldId = useId();
-    return (
-      <Inline space="space.300" alignBlock="start">
-        <div style={{ width: 260 }}>
-          <Field>
-            <FieldLabel id={`${fieldId}-note-2-label`} htmlFor={`${fieldId}-note-2`}>
-              {"Note"}
-            </FieldLabel>
-            <Textarea
-              id={`${fieldId}-note-2`}
-              aria-labelledby={`${fieldId}-note-2-label`}
-              aria-describedby={`${fieldId}-note-2-message`}
-              rows={2}
-              placeholder="Re-checked after the patch window."
-            />
-            <FieldDescription id={`${fieldId}-note-2-message`}>
-              {"One or two lines for the next reader."}
-            </FieldDescription>
-          </Field>
-        </div>
-        <div style={{ width: 260 }}>
-          <Field>
-            <FieldLabel id={`${fieldId}-function-3-label`} htmlFor={`${fieldId}-function-3`}>
-              {"Function"}
-            </FieldLabel>
-            <Textarea
-              id={`${fieldId}-function-3`}
-              aria-labelledby={`${fieldId}-function-3-label`}
-              aria-describedby={`${fieldId}-function-3-message`}
-              rows={4}
-              defaultValue={value}
-            />
-            <FieldDescription id={`${fieldId}-function-3-message`}>
-              {"What it does for the mission."}
-            </FieldDescription>
-          </Field>
-        </div>
-        <div style={{ width: 300 }}>
-          <Field>
-            <FieldLabel
-              id={`${fieldId}-implementation-statement-4-label`}
-              htmlFor={`${fieldId}-implementation-statement-4`}
-            >
-              {"Implementation statement"}
-            </FieldLabel>
-            <Textarea
-              id={`${fieldId}-implementation-statement-4`}
-              aria-labelledby={`${fieldId}-implementation-statement-4-label`}
-              aria-describedby={`${fieldId}-implementation-statement-4-message`}
-              rows={8}
-              maxLength={2000}
-              defaultValue="Access to the radar processing segment is restricted to the flight-software role. Accounts are provisioned through the program's identity service, reviewed quarterly by the ISSO, and removed within one business day of a role change. The review record is attached as evidence."
-            />
-            <FieldDescription id={`${fieldId}-implementation-statement-4-message`}>
-              {
-                "How this system satisfies the control, in terms an assessor can verify. Up to 2,000 characters."
-              }
-            </FieldDescription>
-          </Field>
-        </div>
-      </Inline>
+  render: () => (
+    <Inline space="space.300" alignBlock="start" shouldWrap>
+      <div style={{ width: 260 }}>
+        <Field>
+          <FieldLabel>Note</FieldLabel>
+          <Textarea rows={2} placeholder="Re-checked after the patch window." />
+          <FieldDescription>One or two lines for the next reader.</FieldDescription>
+        </Field>
+      </div>
+      <div style={{ width: 260 }}>
+        <Field>
+          <FieldLabel>Function</FieldLabel>
+          <Textarea rows={4} defaultValue={value} />
+          <FieldDescription>What it does for the mission.</FieldDescription>
+        </Field>
+      </div>
+      <div style={{ width: 300 }}>
+        <Field>
+          <FieldLabel>Implementation statement</FieldLabel>
+          <Textarea
+            rows={8}
+            characterLimit={2000}
+            defaultValue="Access to the radar processing segment is restricted to the flight-software role. Accounts are provisioned through the program's identity service, reviewed quarterly by the ISSO, and removed within one business day of a role change. The review record is attached as evidence."
+          />
+          <FieldDescription>
+            How this system satisfies the control, in terms an assessor can verify.
+          </FieldDescription>
+        </Field>
+      </div>
+    </Inline>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const height = (name: string) =>
+      canvas.getByRole("textbox", { name }).getBoundingClientRect().height;
+    const line = parseFloat(
+      getComputedStyle(canvas.getByRole("textbox", { name: "Note" })).lineHeight,
     );
+    // Each extra row adds one line: the box's height follows `rows`, with no floor above it.
+    await expect(height("Function") - height("Note")).toBeCloseTo(2 * line, 0);
+    await expect(height("Implementation statement") - height("Function")).toBeCloseTo(4 * line, 0);
+  },
+};
+
+/**
+ * `autoResize` grows the box with its text, from `rows` lines to `maxRows`, where it starts to
+ * scroll, so a long statement is read without dragging a corner. Type, or paste a paragraph.
+ */
+export const AutoResize: Story = {
+  name: "Auto resize",
+  render: () => (
+    <div className="w-layout-list max-w-full">
+      <Field>
+        <FieldLabel>Rationale</FieldLabel>
+        <Textarea autoResize rows={2} maxRows={6} />
+        <FieldDescription>Why the control is tailored out, for the assessor.</FieldDescription>
+      </Field>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const box = canvas.getByRole("textbox", { name: "Rationale" });
+    const line = parseFloat(getComputedStyle(box).lineHeight);
+    const start = box.getBoundingClientRect().height;
+    await expect(getComputedStyle(box).resize).toBe("none");
+    await userEvent.click(box);
+    await userEvent.keyboard("One{Enter}Two{Enter}Three{Enter}Four");
+    await waitFor(() =>
+      expect(box.getBoundingClientRect().height - start).toBeCloseTo(2 * line, 0),
+    );
+    await userEvent.keyboard("{Enter}Five{Enter}Six{Enter}Seven{Enter}Eight");
+    // Six lines at most; the rest scrolls inside the box.
+    await waitFor(() =>
+      expect(box.getBoundingClientRect().height - start).toBeCloseTo(4 * line, 0),
+    );
+    await expect(box.scrollHeight).toBeGreaterThan(box.clientHeight);
+    await userEvent.clear(box);
+    await waitFor(() => expect(box.getBoundingClientRect().height).toBeCloseTo(start, 0));
+  },
+};
+
+const pasted =
+  "Access to the radar processing segment is restricted to the flight-software role. Accounts are provisioned through the program's identity service and reviewed each quarter.";
+
+/**
+ * `characterLimit` is a soft limit: the count under the box says how many characters are left,
+ * and past the limit how many too many, while the text stays whole. A paste longer than the limit
+ * keeps its tail, turns the count and the edge to the danger colour, and fails native validation
+ * with the count's words; the form's own check says what fixes it on submit.
+ */
+export const CharacterLimit: Story = {
+  name: "Character limit",
+  render: () => (
+    <div className="w-layout-list max-w-full">
+      <Field>
+        <FieldLabel>Summary</FieldLabel>
+        <Textarea rows={3} characterLimit={120} />
+        <FieldDescription>One or two sentences for the register.</FieldDescription>
+      </Field>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const box = canvas.getByRole<HTMLTextAreaElement>("textbox", { name: "Summary" });
+    await expect(box).toHaveAccessibleDescription(
+      "Up to 120 characters. 120 characters left One or two sentences for the register.",
+    );
+    await userEvent.click(box);
+    await userEvent.paste(pasted);
+    // Nothing is cut: the whole paste is kept.
+    await expect(box).toHaveValue(pasted);
+    const over = pasted.length - 120;
+    const count = canvasElement.querySelector('[data-slot="textarea-count"]')!;
+    await expect(count).toHaveTextContent(`${over} characters too many`);
+    await expect(box).toHaveAttribute("data-over-limit");
+    await expect(box.validity.customError).toBe(true);
+    await expect(box.validationMessage).toBe(`${over} characters too many`);
+    if (!matchMedia("(forced-colors: active)").matches) {
+      const danger = getComputedStyle(box).getPropertyValue("--ds-color-border-danger").trim();
+      await waitFor(() => expect(getComputedStyle(box).borderTopColor).toBe(danger));
+    }
+    await userEvent.clear(box);
+    await userEvent.type(box, "Restricted to the flight-software role.");
+    await expect(count).toHaveTextContent("81 characters left");
+    await expect(box).not.toHaveAttribute("data-over-limit");
+    await expect(box.validity.valid).toBe(true);
   },
 };
 

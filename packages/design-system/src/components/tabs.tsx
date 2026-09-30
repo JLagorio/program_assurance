@@ -4,6 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { createContext, useCallback, useContext, useLayoutEffect, useRef, useState } from "react";
 
 import { classes } from "../lib/base-ui";
+import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
 import { ScrollArea, ScrollBar } from "./scroll-area";
 import { Scroller, ScrollerArrow } from "./scroller";
@@ -51,52 +52,48 @@ export const tabsListVariants = cva(
 
 export type TabsListProps = TabsPrimitive.List.Props & VariantProps<typeof tabsListVariants>;
 
+/**
+ * The strip of tabs. A horizontal strip, filled or line, sits in a ScrollArea inside a horizontal
+ * Scroller: it stays on one row, scrolls when its tabs need more room than its container, keeps the
+ * selected tab in view and reveals the focused one, and draws each tab's focus ring inside the tab.
+ */
 export function TabsList({ className, variant = "default", children, ...props }: TabsListProps) {
   const { orientation, direction } = useContext(TabsLayoutContext);
   const [viewport, setViewport] = useState<HTMLElement | null>(null);
+  const horizontal = orientation === "horizontal";
+  const line = variant === "line";
   const list = (
     <TabsPrimitive.List
       {...props}
       data-slot="tabs-list"
       data-variant={variant}
-      className={classes(tabsListVariants({ variant }), className)}
+      className={classes(
+        // Inside the scroller the filled strip keeps its width and scrolls instead of spilling
+        // past both edges of a narrow container.
+        cn(tabsListVariants({ variant }), horizontal && !line && "max-w-none"),
+        className,
+      )}
     >
       {children}
       <TabsPrimitive.Indicator data-slot="tabs-indicator" />
     </TabsPrimitive.List>
   );
-  if (variant !== "line" || orientation !== "horizontal") return list;
+  if (!horizontal) return list;
+  // Base UI's roving focus prevents native scrolling; the Scroller reveals the focused tab in the
+  // viewport, clear of its arrows, and keeps the selected tab in view.
   return (
     <Scroller orientation="horizontal" viewport={viewport} className="w-full shrink-0">
       <ScrollArea
         data-slot="tabs-scroll-area"
         dir={direction}
         className="w-full min-w-0 shrink-0 data-[has-overflow-x]:pb-100"
-        viewportProps={{
-          ref: setViewport,
-          tabIndex: -1,
-          onFocusCapture: (event) => {
-            // Base UI's roving focus prevents native scrolling; reveal it in our viewport,
-            // clear of the Scroller's arrows (its scroll padding).
-            const element = event.currentTarget;
-            const style = getComputedStyle(element);
-            const viewport = element.getBoundingClientRect();
-            const focused = event.target.getBoundingClientRect();
-            const left = viewport.left + (parseFloat(style.scrollPaddingLeft) || 0);
-            const right = viewport.right - (parseFloat(style.scrollPaddingRight) || 0);
-            if (focused.left < left) {
-              element.scrollBy({ left: focused.left - left });
-            } else if (focused.right > right) {
-              element.scrollBy({ left: focused.right - right });
-            }
-          },
-        }}
+        viewportProps={{ ref: setViewport, tabIndex: -1 }}
       >
         {list}
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
-      <ScrollerArrow edge="start" className="border-b border-default" />
-      <ScrollerArrow edge="end" className="border-b border-default" />
+      <ScrollerArrow edge="start" className={line ? "border-b border-default" : undefined} />
+      <ScrollerArrow edge="end" className={line ? "border-b border-default" : undefined} />
     </Scroller>
   );
 }
@@ -109,7 +106,7 @@ export function TabsTrigger({ className, ...props }: TabsTriggerProps) {
       {...props}
       data-slot="tabs-trigger"
       className={classes(
-        "relative z-10 inline-flex h-full min-h-control-small flex-1 shrink-0 items-center justify-center gap-075 whitespace-nowrap rounded-small px-100 font-body font-medium text-subtle outline-none transition-colors duration-fast ease-standard hover:text-default focus-visible:outline-focused data-active:text-default data-disabled:pointer-events-none data-disabled:text-disabled group-data-[orientation=vertical]/tabs:w-full group-data-[orientation=vertical]/tabs:justify-start group-data-[variant=line]/tabs-list:h-control-medium group-data-[variant=line]/tabs-list:flex-none group-data-[variant=line]/tabs-list:rounded-none group-data-[variant=line]/tabs-list:px-050 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-icon-medium",
+        "relative z-10 inline-flex h-full min-h-control-small flex-1 shrink-0 items-center justify-center gap-075 whitespace-nowrap rounded-small px-100 font-body font-medium text-subtle outline-none transition-colors duration-fast ease-standard hover:text-default focus-visible:outline-focused data-active:text-default data-disabled:pointer-events-none data-disabled:text-disabled group-data-[orientation=vertical]/tabs:w-full group-data-[orientation=vertical]/tabs:justify-start group-data-[variant=line]/tabs-list:h-control-medium group-data-[variant=line]/tabs-list:flex-none group-data-[variant=line]/tabs-list:px-050 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-icon-medium",
         className,
       )}
     />

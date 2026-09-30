@@ -1,5 +1,5 @@
 import { useLedgerLocale } from "../../lib/locale";
-import { useId, useMemo, type ReactNode } from "react";
+import { useId, useMemo, type KeyboardEvent, type ReactNode } from "react";
 import {
   Cell,
   Pie,
@@ -7,7 +7,7 @@ import {
   ResponsiveContainer,
   Sector,
   Tooltip,
-  type PieSectorDataItem,
+  type PieSectorShapeProps,
 } from "recharts";
 
 import { token } from "../../generated/tokens";
@@ -16,7 +16,6 @@ import {
   CardHead,
   Plot,
   Swatch,
-  TextureDefs,
   TooltipContent,
   categoricalTone,
   chartColor,
@@ -28,6 +27,7 @@ import {
   surface,
   textureFill,
   textureOf,
+  useChartSurface,
   useFrame,
   useFrameReport,
   useMotion,
@@ -53,8 +53,19 @@ export type DonutSelection = { slice: DonutSlice; share: number; index: number }
 
 export type ChartDonutProps = {
   /** The parts, in order from the top, clockwise. */
-  slices: DonutSlice[];
+  slices?: DonutSlice[] | undefined;
+  /** One value against `max`, in place of `slices`: a gauge's score, a single share. It is one slice, named by the ring, in `tone`. */
+  value?: number | undefined;
+  /** The tone of `value`'s slice: the tone the score earns. `brand` when unsaid. */
+  tone?: ChartTone | undefined;
+  /** The whole the slices are parts of: the slices take their share of it, and the rest of the ring is the track. The slices' sum when unsaid. */
+  max?: number | undefined;
   /** The number in the middle: the total, the share, the one that matters. */
+  centerLabel?: ReactNode | undefined;
+  /**
+   * The number in the middle.
+   * @deprecated Use `centerLabel`. In the next version `label` names the ring, as it names every other plot; `ledger/no-deprecated-name` fixes it.
+   */
   label?: ReactNode | undefined;
   /** One word under the number: what it counts. */
   caption?: string | undefined;
@@ -70,35 +81,39 @@ export type ChartDonutProps = {
   name?: string | undefined;
   /** Every slice wears a pattern as well as its colour. The Frame's `texture` sets it. */
   texture?: boolean | undefined;
-  /** Draws the ring's skeleton in place of the slices. The Frame sets it from `status="loading"`. */
+  /** Draws the ring's skeleton in place of the slices. The Frame sets it from `state="loading"`. */
   loading?: boolean | undefined;
-  /** Called when a slice is clicked. */
+  /** Called when a slice is clicked, or activated with Enter or Space. */
   onSelect?: ((selection: DonutSelection) => void) | undefined;
   /** More about the chosen slice, in a card anchored to it. The card's head (the slice, its value and its share) is the kit's. */
   details?: ((selection: DonutSelection) => ReactNode) | undefined;
   className?: string | undefined;
 };
 
-type Sector = {
-  cx?: number;
-  cy?: number;
-  midAngle?: number;
-  innerRadius?: number;
-  outerRadius?: number;
-};
-
 const RADIAN = Math.PI / 180;
+/** The key of the ring's remainder under `max`: drawn as the track, never a slice. */
+const REST = "\u0000rest";
+/** The narrowest a slice is drawn, in degrees, when more than one shows: wider than its separators, so it can be hovered. */
+const MIN_ANGLE = 3;
 
-/** The keys with a value, so an optional prop is absent rather than `undefined`. */
-const defined = <T extends object>(o: T) =>
-  Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as {
-    [K in keyof T]: Exclude<T[K], undefined>;
-  };
+/** A sector of the ring as the Pie lays it out: a slice, one hidden from the legend, or the rest. */
+type Entry = {
+  key: string;
+  label: string;
+  value: number;
+  slice: DonutSlice | null;
+  /** Hidden from the Frame's legend: its angle stays, so the others keep theirs, and the track shows through. */
+  gap: boolean;
+};
 
 /** A ring of slices on a `color.chart.track` with a number in the middle; or half a ring, a gauge. A click on a slice chooses it. */
 export function ChartDonut({
-  slices,
-  label,
+  slices: slicesProp,
+  value,
+  tone: valueTone,
+  max,
+  centerLabel,
+  label: legacyLabel,
   caption,
   arc = "full",
   size: sizeProp = 120,
@@ -113,8 +128,28 @@ export function ChartDonut({
 }: ChartDonutProps) {
   const { t, formatNumber } = useLedgerLocale();
 
-  const { name, hidden, highlighted, format, formatX, loading, texture, offstage, expanded } =
-    useFrame(nameProp, formatProp, undefined, loadingProp, undefined, textureProp);
+  const {
+    name: frameName,
+    titleId,
+    hidden,
+    highlighted,
+    format,
+    formatX,
+    loading,
+    texture,
+    offstage,
+    expanded,
+  } = useFrame(nameProp, formatProp, undefined, loadingProp, undefined, textureProp);
+  const chooses = Boolean(onSelect || details);
+  const surfaceProps = useChartSurface({
+    name: frameName,
+    titleId,
+    chooses,
+    count: 0,
+    describe: () => "",
+  });
+  const name = surfaceProps.name;
+  const center = centerLabel ?? legacyLabel;
   // Expanded, the ring takes the room the Dialog gives a plot, thickness in proportion.
   const grow = expanded ? Math.max(1, heights.large / sizeProp) : 1;
   const size = sizeProp * grow;
@@ -123,9 +158,29 @@ export function ChartDonut({
   const motion = useMotion();
   const tooltipMotion = useTooltipMotion();
   const { picked, pick, clear } = usePicked<DonutSelection>();
+  const slices = useMemo<DonutSlice[]>(
+    () =>
+      slicesProp ??
+      (value !== undefined
+        ? [{ key: "value", label: frameName ?? t("value"), value, tone: valueTone ?? "brand" }]
+        : []),
+    [slicesProp, value, valueTone, frameName, t],
+  );
   const series: ChartSeries[] = slices.map((s) => ({ key: s.key, label: s.label }));
-  const shown = slices.filter((s) => !hidden.has(s.key));
-  const total = shown.reduce((n, s) => n + s.value, 0);
+  const sum = slices.reduce((n, s) => n + s.value, 0);
+  // The whole is `max`, else every slice's sum, the hidden ones included: hiding a slice from the
+  // legend leaves the others their angles, and a share is always of the same whole.
+  const whole = max !== undefined ? Math.max(max, sum) : sum;
+  const entries: Entry[] = [
+    ...slices.map((s) => ({
+      key: s.key,
+      label: s.label,
+      value: s.value,
+      slice: s,
+      gap: hidden.has(s.key),
+    })),
+    ...(whole > sum ? [{ key: REST, label: "", value: whole - sum, slice: null, gap: true }] : []),
+  ];
   const half = arc === "half";
   const outer = size / 2;
   const inner = outer - thickness;
@@ -139,7 +194,6 @@ export function ChartDonut({
   const share = (px: number) => `${(px / maxRadius) * 100}%`;
   const radii = { innerRadius: share(inner), outerRadius: share(outer) };
   const cy = half ? `${(outer / boxHeight) * 100}%` : "50%";
-  const chooses = Boolean(onSelect || details);
   const toneOf = (s: DonutSlice) => s.tone ?? categoricalTone(slices.indexOf(s));
   const textures: Record<string, Texture> = {};
   if (texture) slices.forEach((s, i) => (textures[s.key] = textureOf(i)));
@@ -147,6 +201,10 @@ export function ChartDonut({
     texture
       ? textureFill(id, s.key, textureOf(slices.indexOf(s)), chartColor(toneOf(s)))
       : chartColor(toneOf(s));
+  const shareText = (s: DonutSlice) =>
+    formatNumber(whole ? s.value / whole : 0, { style: "percent", maximumFractionDigits: 0 });
+  // A score against a scale with nothing to choose is a meter: its value, its range, its name.
+  const meter = !chooses && slices.length === 1 && max !== undefined && Boolean(name);
   const legend = useMemo<ChartSeries[]>(
     () =>
       slices.map((s, i) => ({ key: s.key, label: s.label, tone: s.tone ?? categoricalTone(i) })),
@@ -155,33 +213,30 @@ export function ChartDonut({
   const table = useMemo<TwinSource>(
     () => ({
       kind: "custom",
-      build: ({ xLabel }) => {
+      build: ({ xLabel }) => ({
+        columns: [
+          { label: xLabel ?? t("chartCategory"), numeric: false },
+          { label: t("value"), numeric: true },
+          { label: t("chartShare"), numeric: true },
+        ],
         // Every slice's share of the whole, whichever the legend hides: the table is the data.
-        const whole = slices.reduce((n, s) => n + s.value, 0);
-        return {
-          columns: [
-            { label: xLabel ?? t("chartCategory"), numeric: false },
-            { label: t("value"), numeric: true },
-            { label: t("chartShare"), numeric: true },
-          ],
-          rows: slices.map((s) => {
-            const part = whole ? s.value / whole : 0;
-            return {
-              key: s.key,
-              cells: [
-                { text: s.label, csv: s.label },
-                { text: format(s.value), csv: String(s.value) },
-                {
-                  text: formatNumber(part, { style: "percent", maximumFractionDigits: 0 }),
-                  csv: String(Number(part.toFixed(4))),
-                },
-              ],
-            };
-          }),
-        };
-      },
+        rows: slices.map((s) => {
+          const part = whole ? s.value / whole : 0;
+          return {
+            key: s.key,
+            cells: [
+              { text: s.label, csv: s.label },
+              { text: format(s.value), csv: String(s.value) },
+              {
+                text: formatNumber(part, { style: "percent", maximumFractionDigits: 0 }),
+                csv: String(Number(part.toFixed(4))),
+              },
+            ],
+          };
+        }),
+      }),
     }),
-    [slices, t, format, formatNumber],
+    [slices, whole, t, format, formatNumber],
   );
   const report = useMemo<FrameReport>(
     () => ({ series: legend, swatch: "square", format, height: boxHeight, table }),
@@ -217,6 +272,26 @@ export function ChartDonut({
         </svg>
       </div>
     );
+  const focusable = chooses && Boolean(name);
+  const choose = (index: number, sector: PieSectorShapeProps) => {
+    const entry = entries[index];
+    const s = entry?.slice;
+    if (!entry || !s || entry.gap) return;
+    const r = ((sector.innerRadius ?? inner) + (sector.outerRadius ?? outer)) / 2;
+    const a = -(sector.midAngle ?? 0) * RADIAN;
+    const selection = { slice: s, share: whole ? s.value / whole : 0, index: slices.indexOf(s) };
+    onSelect?.(selection);
+    if (details)
+      pick(
+        selection,
+        rectAnchor({
+          x: (sector.cx ?? outer) + r * Math.cos(a) - 4,
+          y: (sector.cy ?? outer) + r * Math.sin(a) - 4,
+          width: 8,
+          height: 8,
+        }),
+      );
+  };
   const card = picked ? (
     <>
       <CardHead
@@ -230,22 +305,111 @@ export function ChartDonut({
         title={picked.item.slice.label}
         subtitle={t("shareOfTotal", {
           share: formatNumber(picked.item.share, { style: "percent", maximumFractionDigits: 0 }),
-          total: format(total),
+          total: format(whole),
         })}
         value={format(picked.item.slice.value)}
       />
       {details?.(picked.item)}
     </>
   ) : null;
+  const visible = entries.filter((e) => !e.gap).length;
+  // How the ring's svg is named: a meter with its value and range; an image when nothing chooses;
+  // plain when its slices are the tab stops, the Plot's group carrying the name.
+  const chart: Record<string, unknown> = meter
+    ? {
+        accessibilityLayer: false,
+        role: "meter",
+        ...(titleId && !nameProp ? { "aria-labelledby": titleId } : { "aria-label": name }),
+        "aria-valuenow": slices[0]?.value,
+        "aria-valuemin": 0,
+        "aria-valuemax": whole,
+        "aria-valuetext": t("shareOfTotal", {
+          share: format(slices[0]?.value ?? 0),
+          total: format(whole),
+        }),
+      }
+    : chooses
+      ? { accessibilityLayer: false }
+      : surfaceProps.chart;
+  const renderSector = (p: PieSectorShapeProps, index: number) => {
+    const entry = entries[index];
+    const s = entry?.slice;
+    // A hidden slice and the rest keep their angle and draw nothing: the track shows through.
+    if (!entry || !s || entry.gap) return <g pointerEvents="none" />;
+    const chosen = picked ? picked.item.slice.key === s.key : false;
+    const sector = (
+      <Sector
+        cx={p.cx}
+        cy={p.cy}
+        innerRadius={p.innerRadius}
+        outerRadius={(p.outerRadius ?? outer) + (p.isActive || chosen ? 2 : 0)}
+        startAngle={p.startAngle}
+        endAngle={p.endAngle}
+        fill={p.isActive && !texture ? hoveredColor(toneOf(s)) : fillOf(s)}
+        stroke={surface()}
+        strokeWidth={visible > 1 ? 2 : 0}
+        {...(p.className ? { className: p.className } : {})}
+      />
+    );
+    if (!focusable) return sector;
+    const onKeyDown = (event: KeyboardEvent<SVGGElement>) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      event.stopPropagation();
+      choose(index, p);
+    };
+    return (
+      <g
+        data-chart-tile={s.key}
+        role="button"
+        tabIndex={0}
+        aria-label={t("chartPoint", {
+          category: s.label,
+          values: t("chartValueShare", { value: format(s.value), share: shareText(s) }),
+        })}
+        aria-haspopup={details ? "dialog" : undefined}
+        aria-expanded={details ? chosen : undefined}
+        className="group/slice outline-none"
+        onKeyDown={onKeyDown}
+      >
+        {sector}
+        {/* The keyboard's ring: an arc along the slice's inner edge, in the hole, where no other slice paints. */}
+        <Sector
+          data-slot="chart-mark-focus"
+          cx={p.cx}
+          cy={p.cy}
+          innerRadius={Math.max(0, (p.innerRadius ?? inner) - 5)}
+          outerRadius={Math.max(0, (p.innerRadius ?? inner) - 2)}
+          startAngle={p.startAngle}
+          endAngle={p.endAngle}
+          fill={token("color.border.focused")}
+          className="pointer-events-none opacity-0 group-focus-visible/slice:opacity-100"
+        />
+      </g>
+    );
+  };
   return (
     <Plot
       name={name}
       width={size}
       height={boxHeight}
       className={cn("inline-block shrink-0", className)}
+      semantics={chooses ? "wrapper" : "surface"}
       card={card}
       anchor={picked?.anchor}
       onClose={clear}
+      {...(texture
+        ? {
+            textures: {
+              id,
+              entries: slices.map((s, i) => ({
+                key: s.key,
+                color: chartColor(toneOf(s)),
+                texture: textureOf(i),
+              })),
+            },
+          }
+        : {})}
     >
       <>
         <ResponsiveContainer
@@ -253,10 +417,8 @@ export function ChartDonut({
           height="100%"
           initialDimension={{ width: size, height: boxHeight }}
         >
-          <PieChart
-            margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
-            accessibilityLayer={Boolean(name)}
-          >
+          <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }} {...chart}>
+            {/* The track is the whole, not data: the pointer passes through it and the tooltip never names it. */}
             <Pie
               data={[{ key: "track", value: 1 }]}
               dataKey="value"
@@ -266,68 +428,37 @@ export function ChartDonut({
               fill={token("color.chart.track")}
               stroke="none"
               isAnimationActive={false}
+              rootTabIndex={-1}
+              tooltipType="none"
+              className="pointer-events-none"
               {...angles}
             />
             <Pie
-              data={shown}
+              data={entries}
               dataKey="value"
               nameKey="label"
               cx="50%"
               cy={cy}
               {...radii}
               stroke={surface()}
-              strokeWidth={shown.length > 1 ? 2 : 0}
-              activeShape={(p: PieSectorDataItem) => {
-                const slice = shown.find((s) => s.label === (p as { name?: string }).name);
-                return (
-                  <Sector
-                    {...defined({
-                      cx: p.cx,
-                      cy: p.cy,
-                      innerRadius: p.innerRadius,
-                      outerRadius: (p.outerRadius ?? outer) + 2,
-                      startAngle: p.startAngle,
-                      endAngle: p.endAngle,
-                      fill: slice && !texture ? hoveredColor(toneOf(slice)) : p.fill,
-                      stroke: p.stroke,
-                      strokeWidth: p.strokeWidth,
-                      className: p.className,
-                    })}
-                  />
-                );
-              }}
+              strokeWidth={visible > 1 ? 2 : 0}
+              minAngle={visible > 1 ? MIN_ANGLE : 0}
+              rootTabIndex={-1}
+              shape={renderSector}
               {...motion}
               {...angles}
               {...(chooses
                 ? {
-                    onClick: (item: unknown, index: number) => {
-                      const s = shown[index];
-                      if (!s) return;
-                      const sec = item as Sector;
-                      const r = ((sec.innerRadius ?? inner) + (sec.outerRadius ?? outer)) / 2;
-                      const a = -(sec.midAngle ?? 0) * RADIAN;
-                      const selection = { slice: s, share: total ? s.value / total : 0, index };
-                      onSelect?.(selection);
-                      if (details)
-                        pick(
-                          selection,
-                          rectAnchor({
-                            x: (sec.cx ?? outer) + r * Math.cos(a) - 4,
-                            y: (sec.cy ?? outer) + r * Math.sin(a) - 4,
-                            width: 8,
-                            height: 8,
-                          }),
-                        );
-                    },
+                    onClick: (item: unknown, index: number) =>
+                      choose(index, item as PieSectorShapeProps),
                   }
                 : {})}
             >
-              {shown.map((s, i) => (
+              {entries.map((e) => (
                 <Cell
-                  key={s.key}
-                  fill={fillOf(s)}
-                  {...seriesClass(s.key, highlighted, chooses)}
-                  {...(picked ? markClass(picked.item.index === i) : {})}
+                  key={e.key}
+                  {...(e.slice ? seriesClass(e.key, highlighted, chooses && !e.gap) : {})}
+                  {...(picked && e.slice ? markClass(picked.item.slice.key === e.key) : {})}
                 />
               ))}
             </Pie>
@@ -345,15 +476,17 @@ export function ChartDonut({
             />
           </PieChart>
         </ResponsiveContainer>
-        {label !== undefined || caption ? (
+        {center !== undefined || caption ? (
           <div
+            // A meter says its value itself; the number would be heard twice.
+            aria-hidden={meter || undefined}
             className={cn(
               "pointer-events-none absolute inset-x-0 flex flex-col items-center text-center",
               half ? "bottom-0" : "inset-y-0 justify-center",
             )}
           >
-            {label !== undefined ? (
-              <span className="font-heading-xsmall text-default">{label}</span>
+            {center !== undefined ? (
+              <span className="font-heading-xsmall text-default">{center}</span>
             ) : null}
             {caption ? <span className="font-body-xsmall text-subtle">{caption}</span> : null}
           </div>

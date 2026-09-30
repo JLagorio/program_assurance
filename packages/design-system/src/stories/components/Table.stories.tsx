@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { TablePagination } from "../../patterns/data-table/pagination";
 
 import { Filter, Plus } from "lucide-react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { expect, fireEvent, userEvent, waitFor, within } from "storybook/test";
 
 import { Toolbar } from "../..";
@@ -10,14 +10,18 @@ import {
   Absent,
   Badge,
   Button,
+  DateTime,
   FilterChip,
+  Id,
   Indicator,
   Person,
   Table,
+  TextLink,
   type Tone,
   usePage,
   useSort,
 } from "../../components";
+import { LedgerProvider, useLedgerLocale } from "../../lib/locale";
 import { Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
 
@@ -35,6 +39,7 @@ type Row = {
   owner: string;
   status: { tone: Tone; label: string };
   severity: { tone: Tone; label: string };
+  /** An ISO day: the raw value the column sorts by, formatted only in the cell. */
   due: string;
   family: string;
 };
@@ -46,7 +51,7 @@ const rows: Row[] = [
     owner: "Dana Whitfield",
     status: { tone: "success", label: "Verified" },
     severity: { tone: "danger", label: "High" },
-    due: "14 Sep 2026",
+    due: "2026-09-14",
     family: "Finance",
   },
   {
@@ -55,7 +60,7 @@ const rows: Row[] = [
     owner: "Dana Whitfield",
     status: { tone: "information", label: "In review" },
     severity: { tone: "warning", label: "Medium" },
-    due: "18 Sep 2026",
+    due: "2026-09-18",
     family: "Finance",
   },
   {
@@ -64,7 +69,7 @@ const rows: Row[] = [
     owner: "Priya Natarajan",
     status: { tone: "danger", label: "Overdue" },
     severity: { tone: "danger", label: "High" },
-    due: "2 Sep 2026",
+    due: "2026-09-02",
     family: "Security",
   },
   {
@@ -73,7 +78,7 @@ const rows: Row[] = [
     owner: "Priya Natarajan",
     status: { tone: "warning", label: "Due soon" },
     severity: { tone: "warning", label: "Medium" },
-    due: "9 Sep 2026",
+    due: "2026-09-09",
     family: "Security",
   },
   {
@@ -82,128 +87,148 @@ const rows: Row[] = [
     owner: "Marcus Oyelaran",
     status: { tone: "neutral", label: "Draft" },
     severity: { tone: "neutral", label: "Low" },
-    due: "30 Sep 2026",
+    due: "2026-09-30",
     family: "Operations",
   },
 ];
 
+/** What each sortable column reads: raw values, never the formatted label. At module level, so the sort's memo holds. */
+const registerReaders = {
+  id: (r: Row) => r.id,
+  due: (r: Row) => r.due,
+};
+
+/** The text a cell's content paints, measured on its glyphs rather than its box. */
+const textBox = (el: Element) => {
+  const range = el.ownerDocument.createRange();
+  range.selectNodeContents(el);
+  return range.getBoundingClientRect();
+};
+/** A heading's label: the span that holds its text. */
+const headingLabel = (heading: HTMLElement) =>
+  heading.querySelector<HTMLElement>(":scope > span > span, :scope > span > button > span")!;
+
 function Register() {
-  const [sort, setSort] = useState<{ key: "id" | "due"; dir: "asc" | "desc" }>({
-    key: "id",
-    dir: "asc",
-  });
+  const sort = useSort(rows, registerReaders, { key: "id", dir: "asc" });
   const [selected, setSelected] = useState<Set<string>>(new Set(["CTRL-0418"]));
   const [preview, setPreview] = useState<string | null>("CTRL-0450");
+  const [opened, setOpened] = useState<string | null>(null);
   const [page, setPage] = useState(2);
   const [search, setSearch] = useState("");
-  const sorted = useMemo(
-    () =>
-      [...rows].sort(
-        (a, b) => (a[sort.key] < b[sort.key] ? -1 : 1) * (sort.dir === "asc" ? 1 : -1),
-      ),
-    [sort],
-  );
   const all = selected.size === rows.length;
   const some = selected.size > 0 && !all;
-  const toggleSort = (key: "id" | "due") =>
-    setSort((s) => ({ key, dir: s.key === key && s.dir === "asc" ? "desc" : "asc" }));
   return (
     <Stack space="space.0">
-      <Toolbar
-        search={search}
-        onSearch={setSearch}
-        placeholder="Search controls"
-        actions={
-          <Button variant="primary" size="small" iconBefore={<Plus />}>
-            New control
+      {/* The toolbar keeps its gap to the table, so the sticky header never covers its rings. */}
+      <Stack space="space.200">
+        <Toolbar
+          search={search}
+          onSearch={setSearch}
+          placeholder="Search controls"
+          actions={
+            <Button variant="primary" size="small" iconBefore={<Plus />}>
+              New control
+            </Button>
+          }
+          filters={
+            <>
+              <FilterChip label="Owner" value="Dana Whitfield" isActive />
+              <FilterChip label="Status" />
+            </>
+          }
+        >
+          <Button variant="subtle" size="small" iconBefore={<Filter />}>
+            More filters
           </Button>
-        }
-        filters={
-          <>
-            <FilterChip label="Owner" value="Dana Whitfield" isActive />
-            <FilterChip label="Status" />
-          </>
-        }
-      >
-        <Button variant="subtle" size="small" iconBefore={<Filter />}>
-          More filters
-        </Button>
-      </Toolbar>
-      <Table>
-        <thead>
-          <tr>
-            <Table.Selection
-              header
-              checked={all}
-              indeterminate={some}
-              onCheckedChange={(next) =>
-                setSelected(next ? new Set(rows.map((r) => r.id)) : new Set())
-              }
-              label="Select all"
-              pinned="start"
-            />
-            <Table.Header
-              sort={sort.key === "id" ? sort.dir : false}
-              onSort={() => toggleSort("id")}
-              pinned="start"
-              offset={32}
-              edge
-            >
-              Id
-            </Table.Header>
-            <Table.Header minWidth={200}>Control</Table.Header>
-            <Table.Header width={180}>Owner</Table.Header>
-            <Table.Header>Status</Table.Header>
-            <Table.Header>Severity</Table.Header>
-            <Table.Header
-              sort={sort.key === "due" ? sort.dir : false}
-              onSort={() => toggleSort("due")}
-            >
-              Due
-            </Table.Header>
-          </tr>
-        </thead>
-        <tbody>
-          {sorted.map((r) => (
-            <Table.Row key={r.id} isSelected={selected.has(r.id)} onClick={() => setPreview(r.id)}>
+        </Toolbar>
+        <Table label="Controls">
+          <thead>
+            <tr>
               <Table.Selection
-                checked={selected.has(r.id)}
+                header
+                checked={all}
+                indeterminate={some}
                 onCheckedChange={(next) =>
-                  setSelected((s) => {
-                    const n = new Set(s);
-                    if (next) n.add(r.id);
-                    else n.delete(r.id);
-                    return n;
-                  })
+                  setSelected(next ? new Set(rows.map((r) => r.id)) : new Set())
                 }
-                label={`Select ${r.id}`}
+                label="Select all"
                 pinned="start"
               />
-              <Table.Id
-                id={r.id}
-                isActive={preview === r.id}
-                onPreview={() => setPreview(r.id)}
+              <Table.Header
+                sort={sort.dir("id")}
+                onSort={() => sort.toggle("id")}
                 pinned="start"
                 offset={32}
                 edge
-              />
-              <Table.Cell>{r.name}</Table.Cell>
-              <Table.Cell>
-                <Person name={r.owner} />
-              </Table.Cell>
-              <Table.Cell>
-                <Badge variant="secondary" tone={r.status.tone}>
-                  {r.status.label}
-                </Badge>
-              </Table.Cell>
-              <Table.Cell>
-                <Indicator tone={r.severity.tone}>{r.severity.label}</Indicator>
-              </Table.Cell>
-              <Table.Cell className="tabular-nums">{r.due}</Table.Cell>
-            </Table.Row>
-          ))}
-        </tbody>
-      </Table>
+              >
+                Id
+              </Table.Header>
+              <Table.Header minWidth={200}>Control</Table.Header>
+              <Table.Header width={180}>Owner</Table.Header>
+              <Table.Header>Status</Table.Header>
+              <Table.Header>Severity</Table.Header>
+              <Table.Header sort={sort.dir("due")} onSort={() => sort.toggle("due")} width={120}>
+                Due
+              </Table.Header>
+            </tr>
+          </thead>
+          <tbody>
+            {sort.rows.map((r) => (
+              // The row's click follows the name's link, which is in the row as well: the click is
+              // never the only way to open the record.
+              <Table.Row key={r.id} isSelected={selected.has(r.id)} onClick={() => setOpened(r.id)}>
+                <Table.Selection
+                  checked={selected.has(r.id)}
+                  onCheckedChange={(next) =>
+                    setSelected((s) => {
+                      const n = new Set(s);
+                      if (next) n.add(r.id);
+                      else n.delete(r.id);
+                      return n;
+                    })
+                  }
+                  label={`Select ${r.id}`}
+                  pinned="start"
+                />
+                <Table.Id
+                  id={r.id}
+                  rowHeader
+                  isActive={preview === r.id}
+                  onPreview={() => setPreview(r.id)}
+                  pinned="start"
+                  offset={32}
+                  edge
+                />
+                <Table.Cell>
+                  <TextLink
+                    href={`#${r.id}`}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      setOpened(r.id);
+                    }}
+                  >
+                    {r.name}
+                  </TextLink>
+                </Table.Cell>
+                <Table.Cell>
+                  <Person name={r.owner} />
+                </Table.Cell>
+                <Table.Cell>
+                  <Badge variant="secondary" tone={r.status.tone}>
+                    {r.status.label}
+                  </Badge>
+                </Table.Cell>
+                <Table.Cell>
+                  <Indicator tone={r.severity.tone}>{r.severity.label}</Indicator>
+                </Table.Cell>
+                <Table.Cell>
+                  <DateTime value={r.due} focusable={false} />
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </tbody>
+        </Table>
+      </Stack>
       <TablePagination
         page={page}
         pageCount={28}
@@ -212,10 +237,14 @@ function Register() {
         pageSize={50}
         className="pt-150"
       />
+      <Text size="small" color="color.text.subtle">
+        Opened: {opened ?? "none"}
+      </Text>
     </Stack>
   );
 }
 
+/** A register by hand: the checkbox column, the pinned id as each row's header with the eye that previews it, the name as the link that opens the record (the row's click follows it), dates sorted by their ISO value and shown through DateTime. */
 export const RegisterStory: Story = {
   name: "Register",
   render: () => <Register />,
@@ -228,20 +257,70 @@ export const RegisterStory: Story = {
     await userEvent.click(all);
     for (const checkbox of canvas.getAllByRole("checkbox"))
       await expect(checkbox).not.toBeChecked();
+
+    // Each row's id is its header, and its eye is named after it.
+    await expect(canvas.getAllByRole("rowheader").map((cell) => cell.textContent)).toEqual(
+      rows.map((r) => r.id).sort(),
+    );
     const selection = canvas.getByRole("checkbox", { name: "Select CTRL-0412" });
     const row = selection.closest("tr")!;
-    const preview = within(row).getByRole("button", { name: "Preview row" });
+    const preview = within(row).getByRole("button", { name: "Preview CTRL-0412" });
+    await expect(preview).toHaveAttribute("aria-pressed", "false");
+
     await userEvent.click(selection);
     await expect(selection).toBeChecked();
     await expect(all).toBePartiallyChecked();
-    await expect(preview).not.toHaveAttribute("aria-pressed", "true");
     await fireEvent.click(
       selection.closest("td")!.querySelector<HTMLInputElement>('input[type="checkbox"]')!,
     );
     await expect(selection).not.toBeChecked();
-    await expect(preview).not.toHaveAttribute("aria-pressed", "true");
-    await userEvent.click(within(row).getByText("Segregation of duties, payables"));
+    // A click beside the box, anywhere in its cell, toggles it and never opens the record.
+    await fireEvent.click(selection.closest("td")!);
+    await expect(selection).toBeChecked();
+    await expect(canvas.getByText("Opened: none")).toBeInTheDocument();
+
+    // A chosen row under the pointer is one colour, its pinned cells included.
+    await userEvent.hover(within(row).getByText("Dana Whitfield"));
+    const pinnedId = within(row).getByRole("rowheader");
+    await waitFor(() =>
+      expect(getComputedStyle(pinnedId).backgroundColor).toBe(
+        getComputedStyle(row).backgroundColor,
+      ),
+    );
+
+    // The name is the record's link; the row's click follows it.
+    await expect(
+      within(row).getByRole("link", { name: "Segregation of duties, payables" }),
+    ).toHaveAttribute("href", "#CTRL-0412");
+    await userEvent.click(within(row).getByText("Dana Whitfield"));
+    await expect(canvas.getByText("Opened: CTRL-0412")).toBeInTheDocument();
+    await expect(preview).toHaveAttribute("aria-pressed", "false");
+
+    // The eye previews the row; the open row's eye has a ring as well as its fill.
+    await userEvent.click(preview);
     await expect(preview).toHaveAttribute("aria-pressed", "true");
+    await expect(getComputedStyle(preview).borderTopWidth).toBe("1px");
+    const resting = within(canvas.getByRole("table")).getByRole("button", {
+      name: "Preview CTRL-0450",
+    });
+    await expect(resting).toHaveAttribute("aria-pressed", "false");
+    await expect(getComputedStyle(resting).borderTopWidth).toBe("0px");
+
+    // Due sorts by the ISO day, not the label: 2, 9, 14, 18, 30 September.
+    const due = canvas.getByRole("columnheader", { name: "Due" });
+    await userEvent.click(within(due).getByRole("button"));
+    await expect(due).toHaveAttribute("aria-sort", "ascending");
+    await expect(canvas.getByRole("columnheader", { name: "Id" })).not.toHaveAttribute("aria-sort");
+    await expect(canvas.getAllByRole("rowheader").map((cell) => cell.textContent)).toEqual([
+      "CTRL-0450",
+      "CTRL-0451",
+      "CTRL-0412",
+      "CTRL-0418",
+      "CTRL-0472",
+    ]);
+    await userEvent.click(within(due).getByRole("button"));
+    await expect(due).toHaveAttribute("aria-sort", "descending");
+    await expect(canvas.getAllByRole("rowheader")[0]).toHaveTextContent("CTRL-0472");
   },
 };
 
@@ -253,7 +332,7 @@ function Grouped() {
   });
   const families = [...new Set(rows.map((r) => r.family))];
   return (
-    <Table>
+    <Table label="Controls by family">
       <thead>
         <tr>
           <Table.Header>Id</Table.Header>
@@ -307,7 +386,7 @@ export const RegisterPhone: Story = {
     await expect(name.getBoundingClientRect().width).toBeGreaterThanOrEqual(200);
 
     // The open row's id is whole, and ends before its eye.
-    const eye = within(table).getByRole("button", { name: "Preview row", pressed: true });
+    const eye = within(table).getByRole("button", { name: "Preview CTRL-0450", pressed: true });
     const slot = eye.closest<HTMLElement>('[data-slot="preview-eye"]')!;
     const id = slot.previousElementSibling as HTMLElement;
     await expect(id).toHaveTextContent("CTRL-0450");
@@ -349,11 +428,43 @@ export const RegisterPhone: Story = {
   },
 };
 
-export const Groups: Story = { render: () => <Grouped /> };
+/** Rows under headings. Each band is its rows' header (`th scope="rowgroup"`), and its chevron is named by the family while `aria-expanded` says whether it is open, so the name never flips. */
+export const Groups: Story = {
+  render: () => <Grouped />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const finance = canvas.getByRole("button", { name: "Finance" });
+    const operations = canvas.getByRole("button", { name: "Operations" });
+    await expect(finance).toHaveAttribute("aria-expanded", "true");
+    await expect(operations).toHaveAttribute("aria-expanded", "false");
+    await expect(finance.closest("th")).toHaveAttribute("scope", "rowgroup");
+    await expect(canvas.queryByText("Backup restore test")).toBeNull();
+
+    await userEvent.click(operations);
+    await expect(operations).toHaveAttribute("aria-expanded", "true");
+    await expect(operations).toHaveAccessibleName("Operations");
+    await expect(canvas.getByText("Backup restore test")).toBeVisible();
+
+    // A click anywhere on the band toggles it too.
+    await userEvent.click(canvas.getByText("Finance"));
+    await expect(finance).toHaveAttribute("aria-expanded", "false");
+    await expect(canvas.queryByText("Vendor master change approval")).toBeNull();
+    await userEvent.click(finance);
+    await expect(canvas.getByText("Vendor master change approval")).toBeVisible();
+  },
+};
 
 const listRows = [
-  { id: "CTRL-0412", name: "Segregation of duties", systems: ["Payments API", "Ledger", "Vault"] },
-  { id: "CTRL-0418", name: "Access review", systems: ["Directory"] },
+  {
+    id: "CTRL-0412",
+    name: "Segregation of duties",
+    systems: [
+      { name: "Payments API", status: <Indicator tone="danger">Not met</Indicator> },
+      { name: "Ledger" },
+      { name: "Vault" },
+    ],
+  },
+  { id: "CTRL-0418", name: "Access review", systems: [{ name: "Directory" }] },
 ];
 
 function ListLine() {
@@ -374,10 +485,12 @@ function ListLine() {
               <Table.Cell>
                 <Table.List
                   items={row.systems.map((system) => ({
-                    key: system,
-                    label: system,
+                    key: system.name,
+                    label: system.name,
                     meta: "Component",
+                    status: system.status,
                   }))}
+                  {...(row.systems.length > 1 ? { note: "Payments API has an open finding." } : {})}
                 />
               </Table.Cell>
             </Table.Row>
@@ -391,18 +504,32 @@ function ListLine() {
   );
 }
 
-/** A list line with nothing to open: hover or focus shows its card, and so does a click or a tap, so the whole list is reachable where nothing can hover. The tap opens the card and not the row. */
+/** A list line with nothing to open is a button: hover, focus, a click, Enter or a tap shows its card, so the whole list is reachable where nothing can hover, and the click does not open the row. "+2" is spoken "and 2 more", and every item with its meta and status, and the note, is the line's description, so a screen reader hears the list without the card. */
 export const ListLineStory: Story = {
   name: "List line without an opener",
   render: () => <ListLine />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const line = canvas.getByTitle("Payments API, Ledger, Vault");
+    const line = canvas.getByRole("button", { name: "Payments API and 2 more" });
+    await expect(line).not.toHaveAttribute("title");
+    // Read as the card shows it: each item with its meta and status, then the note.
+    const spoken = (el: HTMLElement) =>
+      (el.ownerDocument.getElementById(el.getAttribute("aria-describedby")!)?.textContent ?? "")
+        .replace(/\s+/g, " ")
+        .trim();
+    await expect(line).toHaveAccessibleDescription(/Payments API, Component, Not met ?\./);
+    await expect(spoken(line)).toBe(
+      "Payments API, Component, Not met.Ledger, Component.Vault, Component.Payments API has an open finding.",
+    );
+    await expect(canvas.getByRole("button", { name: "Directory" })).toHaveAccessibleDescription(
+      "Directory, Component.",
+    );
     await userEvent.click(line);
     const body = within(canvasElement.ownerDocument.body);
     await waitFor(() => expect(body.getByText("Vault")).toBeVisible());
     await expect(canvas.getByText("Row opened: none")).toBeInTheDocument();
     await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByText("Vault")).toBeNull());
   },
 };
 
@@ -436,15 +563,13 @@ export const FixedLayoutIds: Story = {
     const table = within(within(canvasElement).getByRole("table"));
     const idOf = (eye: HTMLElement) =>
       eye.closest<HTMLElement>('[data-slot="preview-eye"]')!.previousElementSibling as HTMLElement;
-    const open = table.getByRole("button", { name: "Preview row", pressed: true });
+    const open = table.getByRole("button", { name: "Preview CTRL-0450", pressed: true });
     await expect(idOf(open)).toHaveStyle({ paddingInlineEnd: "24px" });
     await expect(idOf(open).scrollWidth).toBeLessThanOrEqual(idOf(open).clientWidth);
     await expect(idOf(open).getBoundingClientRect().right - 24).toBeLessThanOrEqual(
       open.getBoundingClientRect().left,
     );
-    const rest = table
-      .getAllByRole("button", { name: "Preview row" })
-      .find((eye) => eye.getAttribute("aria-pressed") !== "true")!;
+    const rest = table.getByRole("button", { name: "Preview CTRL-0412" });
     // A pointer that can hover: the resting row's id has its whole width.
     if (window.matchMedia("(hover: hover)").matches)
       await expect(idOf(rest)).toHaveStyle({ paddingInlineEnd: "0px" });
@@ -486,17 +611,19 @@ const parts = [
     kind: "Component",
     depth: 2,
     children: 0,
-    controls: 72,
+    controls: 1072,
   },
 ];
 
 /**
- * A hierarchy with columns: the treegrid. The caller flattens and folds. Two shapes: `Table.Tree`
- * puts the chevron and the indent in the name cell; `Table.Disclosure` gives them a leading column
- * of their own, so the chevron stays leftmost however the columns are ordered. DataTable draws the
- * second.
+ * A hierarchy with columns, by hand: a plain table, reached by Tab, whose chevrons name their row.
+ * The caller flattens and folds. Two shapes: `Table.Tree` puts the chevron and the indent in the
+ * name cell; `Table.Disclosure` gives them a leading column of their own, so the chevron stays
+ * leftmost however the columns are ordered. DataTable's tree mode draws the second as a treegrid,
+ * with the arrow keys.
  */
-function TreeGrid({ leading = false }: { leading?: boolean }) {
+function Hierarchy({ leading = false }: { leading?: boolean }) {
+  const { formatNumber } = useLedgerLocale();
   const [open, setOpen] = useState(() => new Set(["SYS-01", "SUB-011"]));
   const toggle = (id: string) =>
     setOpen((prev) => {
@@ -505,16 +632,16 @@ function TreeGrid({ leading = false }: { leading?: boolean }) {
       else next.add(id);
       return next;
     });
-  const rows: typeof parts = [];
+  const shown: typeof parts = [];
   let hideBelow = Infinity;
   for (const p of parts) {
     if (p.depth > hideBelow) continue;
     hideBelow = Infinity;
-    rows.push(p);
+    shown.push(p);
     if (p.children && !open.has(p.id)) hideBelow = p.depth;
   }
   return (
-    <Table role="treegrid">
+    <Table label={leading ? "Parts, disclosure column" : "Parts"}>
       <thead>
         <tr>
           {leading ? (
@@ -524,20 +651,16 @@ function TreeGrid({ leading = false }: { leading?: boolean }) {
           ) : null}
           <Table.Header>Element</Table.Header>
           <Table.Header width={110}>Kind</Table.Header>
-          <Table.Header width={96} className="text-right">
+          <Table.Header width={96} align="end">
             Controls
           </Table.Header>
         </tr>
       </thead>
       <tbody>
-        {rows.map((p) => {
+        {shown.map((p) => {
           const expanded = open.has(p.id);
           return (
-            <Table.Row
-              key={p.id}
-              aria-level={p.depth + 1}
-              aria-expanded={p.children ? expanded : undefined}
-            >
+            <Table.Row key={p.id}>
               {leading ? (
                 <>
                   <Table.Disclosure
@@ -575,7 +698,7 @@ function TreeGrid({ leading = false }: { leading?: boolean }) {
                 </Table.Tree>
               )}
               <Table.Cell>{p.kind}</Table.Cell>
-              <Table.Cell className="text-right">{p.controls}</Table.Cell>
+              <Table.Cell align="end">{formatNumber(p.controls)}</Table.Cell>
             </Table.Row>
           );
         })}
@@ -583,20 +706,47 @@ function TreeGrid({ leading = false }: { leading?: boolean }) {
     </Table>
   );
 }
+
+/** The chevron names its row and its action, "Collapse Ground segment"; Tab reaches it and Enter or Space turns it, and focus stays on it under its new name. The Controls heading ends where its figures do. */
 export const TreeStory: Story = {
   name: "Tree",
   render: () => (
     <Stack space="space.300">
-      <TreeGrid />
-      <TreeGrid leading />
+      <Hierarchy />
+      <Hierarchy leading />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    for (const name of ["Parts", "Parts, disclosure column"]) {
+      const table = canvas.getByRole("table", { name });
+      // By hand a hierarchy is a plain table: no treegrid without its arrow keys.
+      await expect(table).not.toHaveAttribute("role");
+      const t = within(table);
+      const toggle = t.getByRole("button", { name: "Collapse Ground segment" });
+      toggle.focus();
+      await userEvent.keyboard("{Enter}");
+      await expect(toggle).toHaveAccessibleName("Expand Ground segment");
+      await expect(toggle).toHaveFocus();
+      await expect(t.queryByText("Mission control")).toBeNull();
+      await userEvent.keyboard(" ");
+      await expect(toggle).toHaveAccessibleName("Collapse Ground segment");
+      await expect(t.getByText("Mission control")).toBeVisible();
+      await expect(t.getByRole("button", { name: "Expand Antenna array" })).toBeVisible();
+
+      // The heading of a number column ends where its figures end.
+      const heading = t.getByRole("columnheader", { name: "Controls" });
+      const labelEnd = textBox(headingLabel(heading)).right;
+      for (const cell of t.getAllByRole("cell").filter((c) => /^[\d,]+$/.test(c.textContent!)))
+        await expect(Math.abs(textBox(cell).right - labelEnd)).toBeLessThanOrEqual(1);
+    }
+  },
 };
 
 function GroupStates() {
   const [open, setOpen] = useState(true);
   return (
-    <Table>
+    <Table label="Group states">
       <thead>
         <tr>
           <Table.Header width={110}>Id</Table.Header>
@@ -648,11 +798,11 @@ function GroupStates() {
   );
 }
 
-/** Every header, row, cell and id state, then a group open and closed. */
+/** Every header, row, cell and id state, then a group open and closed. In forced colours the chosen row keeps a Highlight edge and the open row's eye a Highlight fill, since both fills are tints the palette replaces. */
 export const TableMatrix: Story = {
   render: () => (
     <Stack space="space.300">
-      <Table>
+      <Table label="States">
         <thead>
           <tr>
             <Table.Selection
@@ -674,27 +824,27 @@ export const TableMatrix: Story = {
             <Table.Header sort={false} onSort={() => {}}>
               Sortable
             </Table.Header>
-            <Table.Header width={120} className="text-right">
-              Right, 120
+            <Table.Header width={120} align="end">
+              End, 120
             </Table.Header>
           </tr>
         </thead>
         <tbody>
           <Table.Row>
-            <Table.Selection checked={false} onCheckedChange={() => {}} label="Select" />
-            <Table.Id id="FND-2231" />
-            <Table.Cell>Plain row</Table.Cell>
+            <Table.Selection checked={false} onCheckedChange={() => {}} label="Select FND-2231" />
+            <Table.Id id={<TextLink href="#FND-2231">FND-2231</TextLink>} />
+            <Table.Cell>Plain row · the id as a link</Table.Cell>
             <Table.Cell>
               <Indicator tone="danger">CAT I</Indicator>
             </Table.Cell>
             <Table.Cell>
               <Person name="Dana Whitlock" />
             </Table.Cell>
-            <Table.Cell className="text-right">1,204</Table.Cell>
+            <Table.Cell align="end">1,204</Table.Cell>
           </Table.Row>
           <Table.Row isSelected>
-            <Table.Selection checked onCheckedChange={() => {}} label="Select" />
-            <Table.Id id="FND-2214" isActive />
+            <Table.Selection checked onCheckedChange={() => {}} label="Select FND-2214" />
+            <Table.Id id="FND-2214" isActive onPreview={() => {}} />
             <Table.Cell>Selected row · active id</Table.Cell>
             <Table.Cell>
               <Indicator tone="warning">CAT II</Indicator>
@@ -702,10 +852,15 @@ export const TableMatrix: Story = {
             <Table.Cell>
               <Person name="Grace Hoppel" />
             </Table.Cell>
-            <Table.Cell className="text-right">318</Table.Cell>
+            <Table.Cell align="end">318</Table.Cell>
           </Table.Row>
           <Table.Row isStatic>
-            <Table.Selection checked={false} onCheckedChange={() => {}} label="Select" disabled />
+            <Table.Selection
+              checked={false}
+              onCheckedChange={() => {}}
+              label="Select FND-2240"
+              disabled
+            />
             <Table.Id id="FND-2240" tone="subtle" />
             <Table.Cell>Static row · subtle id · disabled selection</Table.Cell>
             <Table.Cell>
@@ -713,17 +868,38 @@ export const TableMatrix: Story = {
                 Triaged
               </Badge>
             </Table.Cell>
-            <Table.Cell className="truncate">
+            <Table.Cell>
               A cell that is much too long for its column truncates with an ellipsis
             </Table.Cell>
-            <Table.Cell className="text-right text-danger">-12</Table.Cell>
+            <Table.Cell align="end" className="text-danger">
+              -12
+            </Table.Cell>
           </Table.Row>
         </tbody>
       </Table>
       <GroupStates />
-      <TreeGrid />
+      <Hierarchy />
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = canvas.getByRole("table", { name: "States" });
+    const selected = within(table)
+      .getByRole("checkbox", { name: "Select FND-2214" })
+      .closest("tr")!;
+    const eye = within(selected).getByRole("button", { name: "Preview FND-2214", pressed: true });
+    await expect(getComputedStyle(eye).borderTopStyle).toBe("solid");
+    // Figures line up: every cell takes tabular numerals from the table.
+    await expect(
+      getComputedStyle(within(table).getByText("Plain row · the id as a link")).fontVariantNumeric,
+    ).toBe("tabular-nums");
+    if (window.matchMedia("(forced-colors: active)").matches) {
+      await expect(getComputedStyle(selected).outlineStyle).toBe("solid");
+      await expect(getComputedStyle(selected).outlineColor).not.toBe(
+        getComputedStyle(selected.previousElementSibling!).outlineColor,
+      );
+    }
+  },
 };
 
 const risks = Array.from({ length: 23 }, (_, i) => ({
@@ -750,14 +926,19 @@ function SortedPaged() {
   const page = usePage(sort.rows, 8);
   return (
     <Stack space="space.150">
-      <Table>
+      <Table label="Risks">
         <thead>
           <tr>
             <Table.Header sort={sort.dir("id")} onSort={() => sort.toggle("id")} width={120}>
               Risk
             </Table.Header>
             <Table.Header>Title</Table.Header>
-            <Table.Header sort={sort.dir("score")} onSort={() => sort.toggle("score")} width={96}>
+            <Table.Header
+              sort={sort.dir("score")}
+              onSort={() => sort.toggle("score")}
+              width={96}
+              align="end"
+            >
               Score
             </Table.Header>
             <Table.Header sort={sort.dir("owner")} onSort={() => sort.toggle("owner")} width={160}>
@@ -770,7 +951,7 @@ function SortedPaged() {
             <Table.Row key={r.id}>
               <Table.Id id={r.id} />
               <Table.Cell>{r.title}</Table.Cell>
-              <Table.Cell className="tabular-nums">{r.score}</Table.Cell>
+              <Table.Cell align="end">{String(r.score)}</Table.Cell>
               <Table.Cell>{r.owner}</Table.Cell>
             </Table.Row>
           ))}
@@ -786,7 +967,38 @@ function SortedPaged() {
     </Stack>
   );
 }
-export const SortedAndPaged: Story = { name: "Sorted and paged", render: () => <SortedPaged /> };
+
+/** A sortable heading reports its direction in `aria-sort`, and only the sorted one does. An end-aligned heading leads with its arrow, so its word still ends over the figures. */
+export const SortedAndPaged: Story = {
+  name: "Sorted and paged",
+  render: () => <SortedPaged />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const score = canvas.getByRole("columnheader", { name: "Score" });
+    const risk = canvas.getByRole("columnheader", { name: "Risk" });
+    await expect(score).toHaveAttribute("aria-sort", "descending");
+    await expect(risk).not.toHaveAttribute("aria-sort");
+    // The arrow leads the end-aligned heading; the word ends over the column's figures.
+    const button = within(score).getByRole("button");
+    await expect(button.querySelector("svg")!.getBoundingClientRect().right).toBeLessThanOrEqual(
+      textBox(headingLabel(score)).left,
+    );
+    const figures = within(canvas.getByRole("table"))
+      .getAllByRole("cell")
+      .filter((cell) => /^\d+$/.test(cell.textContent!));
+    await expect(
+      Math.abs(textBox(headingLabel(score)).right - textBox(figures[0]!).right),
+    ).toBeLessThanOrEqual(1);
+
+    await userEvent.click(within(risk).getByRole("button"));
+    await expect(risk).toHaveAttribute("aria-sort", "ascending");
+    await expect(score).not.toHaveAttribute("aria-sort");
+    await expect(canvas.getAllByRole("row")[1]).toHaveTextContent("RSK-001");
+    await userEvent.click(within(risk).getByRole("button"));
+    await expect(risk).toHaveAttribute("aria-sort", "descending");
+    await expect(canvas.getAllByRole("row")[1]).toHaveTextContent("RSK-023");
+  },
+};
 
 const wideRows = Array.from({ length: 14 }, (_, i) => ({
   ...(rows[i % rows.length] as Row),
@@ -799,7 +1011,7 @@ function Frame() {
     <Table label="Controls" maxHeight={240} className="table-fixed">
       <thead>
         <tr>
-          <Table.Header pinned="start" edge width={120}>
+          <Table.Header pinned="start" edge="scrolled" width={120}>
             Id
           </Table.Header>
           <Table.Header width={260}>Control</Table.Header>
@@ -814,7 +1026,7 @@ function Frame() {
       <tbody>
         {wideRows.map((r) => (
           <Table.Row key={r.id}>
-            <Table.Id id={r.id} pinned="start" edge />
+            <Table.Id id={r.id} pinned="start" edge="scrolled" />
             <Table.Cell>{r.name}</Table.Cell>
             <Table.Cell>
               <Person name={r.owner} />
@@ -827,7 +1039,9 @@ function Frame() {
             <Table.Cell>
               <Indicator tone={r.severity.tone}>{r.severity.label}</Indicator>
             </Table.Cell>
-            <Table.Cell className="tabular-nums">{r.due}</Table.Cell>
+            <Table.Cell>
+              <DateTime value={r.due} focusable={false} />
+            </Table.Cell>
             <Table.Cell>{r.family}</Table.Cell>
             <Table.Cell>
               A note long enough to be cut by its column and shown whole on hover, since a plain
@@ -839,17 +1053,301 @@ function Frame() {
     </Table>
   );
 }
-export const FrameStory: Story = { name: "Frame", render: () => <Frame /> };
+
+/** The pinned id draws its edge only while the frame is scrolled sideways (`edge="scrolled"`), reading the frame's `data-scrolled-start`, and holds still while the rest scrolls under it. */
+export const FrameStory: Story = {
+  name: "Frame",
+  render: () => <Frame />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const frame = canvas.getByRole("table", { name: "Controls" }).parentElement!;
+    const pinned = canvas.getByRole("columnheader", { name: "Id" });
+    await waitFor(() => expect(frame).toHaveAttribute("data-scrolled-end"));
+    await expect(frame).not.toHaveAttribute("data-scrolled-start");
+    await expect(getComputedStyle(pinned, "::after").borderInlineEndWidth).toBe("0px");
+    const left = pinned.getBoundingClientRect().left;
+    frame.scrollLeft = 200;
+    fireEvent.scroll(frame);
+    await waitFor(() => expect(frame).toHaveAttribute("data-scrolled-start"));
+    await expect(getComputedStyle(pinned, "::after").borderInlineEndWidth).toBe("1px");
+    await expect(Math.round(pinned.getBoundingClientRect().left)).toBe(Math.round(left));
+    frame.scrollLeft = 0;
+    fireEvent.scroll(frame);
+    await waitFor(() => expect(frame).not.toHaveAttribute("data-scrolled-start"));
+  },
+};
+
+/** Two header rows: the column groups above, the headings under them. Each row sticks below the one above it, so once the rows scroll the group names stay over their columns. */
+export const TwoHeaderRows: Story = {
+  name: "Two header rows",
+  render: () => (
+    <Table label="Controls by area" maxHeight={220}>
+      <thead>
+        <tr>
+          <Table.Header colSpan={2} align="center">
+            Control
+          </Table.Header>
+          <Table.Header colSpan={2} align="center">
+            Ownership
+          </Table.Header>
+        </tr>
+        <tr>
+          <Table.Header width={110}>Id</Table.Header>
+          <Table.Header minWidth={200}>Name</Table.Header>
+          <Table.Header width={180}>Owner</Table.Header>
+          <Table.Header width={120}>Family</Table.Header>
+        </tr>
+      </thead>
+      <tbody>
+        {wideRows.map((r) => (
+          <Table.Row key={r.id}>
+            <Table.Id id={r.id} />
+            <Table.Cell>{r.name}</Table.Cell>
+            <Table.Cell>
+              <Person name={r.owner} />
+            </Table.Cell>
+            <Table.Cell>{r.family}</Table.Cell>
+          </Table.Row>
+        ))}
+      </tbody>
+    </Table>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const frame = canvas.getByRole("table", { name: "Controls by area" }).parentElement!;
+    const group = canvas.getByRole("columnheader", { name: "Ownership" });
+    const leaf = canvas.getByRole("columnheader", { name: "Owner" });
+    const top = () => frame.getBoundingClientRect().top;
+    frame.scrollTop = 160;
+    fireEvent.scroll(frame);
+    await waitFor(() =>
+      expect(Math.abs(group.getBoundingClientRect().top - top())).toBeLessThanOrEqual(1),
+    );
+    await expect(
+      Math.abs(leaf.getBoundingClientRect().top - group.getBoundingClientRect().bottom),
+    ).toBeLessThanOrEqual(1);
+    // The group's name sits over the middle of its columns.
+    const label = textBox(headingLabel(group));
+    const box = group.getBoundingClientRect();
+    await expect(Math.abs(label.left - box.left - (box.right - label.right))).toBeLessThanOrEqual(
+      2,
+    );
+  },
+};
+
+function Resizing() {
+  const [widths, setWidths] = useState({ name: 240, owner: 180 });
+  const resize = (key: keyof typeof widths, label: string) => ({
+    label,
+    onResizeStart: () => {},
+    onResizeReset: () => setWidths((w) => ({ ...w, [key]: key === "name" ? 240 : 180 })),
+    onResizeKeyboard: (change: number | "min" | "max") =>
+      setWidths((w) => ({
+        ...w,
+        [key]:
+          change === "min"
+            ? 120
+            : change === "max"
+              ? 400
+              : Math.min(400, Math.max(120, w[key] + change)),
+      })),
+    value: widths[key],
+    min: 120,
+    max: 400,
+  });
+  return (
+    <Table label="Resizable controls" className="table-fixed" style={{ width: "auto" }}>
+      <thead>
+        <tr>
+          <Table.Header width={110}>Id</Table.Header>
+          <Table.Header width={widths.name} resize={resize("name", "Control")}>
+            Control
+          </Table.Header>
+          <Table.Header width={widths.owner} resize={resize("owner", "Owner")}>
+            Owner
+          </Table.Header>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.slice(0, 3).map((r) => (
+          <Table.Row key={r.id}>
+            <Table.Id id={r.id} />
+            <Table.Cell>{r.name}</Table.Cell>
+            <Table.Cell>
+              <Person name={r.owner} />
+            </Table.Cell>
+          </Table.Row>
+        ))}
+      </tbody>
+    </Table>
+  );
+}
+
+/** A heading's resize handle is named after its column (`resize.label`), "Resize Control". The keyboard moves it with the arrow keys, Home and End, and it shows the kit's ring inside its edge with the guide beside it. DataTable wires the handle, and its column menu gives the pointer Wider, Narrower and Reset width. */
+export const ResizeHandles: Story = {
+  name: "Resize handles",
+  render: () => <Resizing />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const handle = canvas.getByRole("separator", { name: "Resize Control" });
+    await expect(canvas.getByRole("separator", { name: "Resize Owner" })).toBeInTheDocument();
+    await expect(handle).toHaveAttribute("aria-valuenow", "240");
+    await userEvent.click(canvas.getByRole("columnheader", { name: "Id" }));
+    for (let i = 0; i < 6 && canvasElement.ownerDocument.activeElement !== handle; i++)
+      await userEvent.tab();
+    await expect(handle).toHaveFocus();
+    await expect(getComputedStyle(handle).outlineStyle).toBe("solid");
+    await waitFor(() => expect(getComputedStyle(handle, "::after").opacity).toBe("1"));
+    await userEvent.keyboard("{ArrowRight}");
+    await expect(handle).toHaveAttribute("aria-valuenow", "248");
+    await userEvent.keyboard("{Home}");
+    await expect(handle).toHaveAttribute("aria-valuenow", "120");
+  },
+};
+
+/** A value that must be read whole wraps (`wrap`); a hash or URN inside it breaks anywhere as an `Id` with `break-all`, and a link in it wraps with the text. A heading that must be read whole wraps too, inside its sort button. A cell whose content is not a plain string, cut by its column, takes its text as its title when the pointer arrives. */
+export const WrapAndTitles: Story = {
+  name: "Wrapping and titles",
+  render: () => (
+    <Table label="Source imports" className="table-fixed" style={{ maxWidth: 640 }}>
+      <thead>
+        <tr>
+          <Table.Header width={72} align="end">
+            Order
+          </Table.Header>
+          <Table.Header width={200}>Source</Table.Header>
+          <Table.Header width={112} align="end" wrap sort={false} onSort={() => {}}>
+            Controls included
+          </Table.Header>
+          <Table.Header width={220}>Reference</Table.Header>
+        </tr>
+      </thead>
+      <tbody>
+        <Table.Row>
+          <Table.Cell align="end">1</Table.Cell>
+          <Table.Cell>
+            <Text>NIST SP 800-53 Rev 5 moderate baseline, tailored for the ground segment</Text>
+          </Table.Cell>
+          <Table.Cell align="end">287</Table.Cell>
+          <Table.Cell wrap>
+            <Id className="break-all">urn:uuid:5020259a-1767-5221-bb99-85c7c3a0f2d1</Id>
+          </Table.Cell>
+        </Table.Row>
+        <Table.Row>
+          <Table.Cell align="end">2</Table.Cell>
+          <Table.Cell>Organization overlay</Table.Cell>
+          <Table.Cell align="end">41</Table.Cell>
+          <Table.Cell wrap>Inherited from the program's control set and its tailoring</Table.Cell>
+        </Table.Row>
+        <Table.Row>
+          <Table.Cell align="end">3</Table.Cell>
+          <Table.Cell wrap>
+            <TextLink href="#base-profile">
+              Base profile · NIST SP 800-53 Rev 5 moderate · 5.1.1
+            </TextLink>
+          </Table.Cell>
+          <Table.Cell align="end">218</Table.Cell>
+          <Table.Cell wrap>
+            <Id className="break-all">urn:uuid:8a1c4be0-52d7-4f0e-9a51-3c0d7e61b2aa</Id>
+          </Table.Cell>
+        </Table.Row>
+      </tbody>
+    </Table>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = canvas.getByRole("table", { name: "Source imports" });
+    const reference = within(table)
+      .getAllByText(/^urn:uuid:/)[0]!
+      .closest("td")!;
+    // Wrapped, the whole value is on screen and the cell has no title to stand in for it.
+    await expect(reference).not.toHaveAttribute("title");
+    await expect(textBox(reference).height).toBeGreaterThan(20);
+    await expect(reference.scrollWidth).toBeLessThanOrEqual(reference.clientWidth);
+    // Cut, a cell of other content takes its text as its title on the pointer's arrival.
+    const source = within(table)
+      .getByText(/moderate baseline/)
+      .closest("td")!;
+    await expect(source).not.toHaveAttribute("title");
+    await userEvent.hover(source);
+    await expect(source).toHaveAttribute(
+      "title",
+      "NIST SP 800-53 Rev 5 moderate baseline, tailored for the ground segment",
+    );
+    // A plain string is its own title; one that fits keeps it too, as the whole it already is.
+    await expect(within(table).getByText("Organization overlay")).toHaveAttribute(
+      "title",
+      "Organization overlay",
+    );
+    // A link in a wrapping cell wraps with it: it is not cut to one line.
+    const link = within(table).getByRole("link", { name: /^Base profile/ });
+    await expect(getComputedStyle(link).whiteSpace).not.toBe("nowrap");
+    await expect(link.scrollWidth).toBeLessThanOrEqual(link.clientWidth + 1);
+    await expect(link.getClientRects().length).toBeGreaterThan(1);
+    // A wrapping heading grows its sort button with it, so no line of it spills out of the header.
+    const heading = within(table).getByRole("columnheader", { name: "Controls included" });
+    const button = within(heading).getByRole("button").getBoundingClientRect();
+    const words = textBox(headingLabel(heading));
+    await expect(words.height).toBeGreaterThan(20);
+    await expect(words.top).toBeGreaterThanOrEqual(button.top - 1);
+    await expect(words.bottom).toBeLessThanOrEqual(button.bottom + 1);
+    await expect(button.bottom).toBeLessThanOrEqual(heading.getBoundingClientRect().bottom + 1);
+  },
+};
+
+/** Right to left: the table mirrors. Text starts at the right, a number ends at the left, and each heading sits where its column's values do. */
+export const RightToLeft: Story = {
+  name: "Right to left",
+  render: () => (
+    <LedgerProvider direction="rtl">
+      <Table label="Controls, right to left" style={{ maxWidth: 520 }}>
+        <thead>
+          <tr>
+            <Table.Header width={120}>Id</Table.Header>
+            <Table.Header>Kind</Table.Header>
+            <Table.Header width={110} align="end">
+              Controls
+            </Table.Header>
+          </tr>
+        </thead>
+        <tbody>
+          {parts.slice(0, 3).map((p) => (
+            <Table.Row key={p.id}>
+              <Table.Id id={p.id} />
+              <Table.Cell>{p.kind}</Table.Cell>
+              <Table.Cell align="end">{String(p.controls)}</Table.Cell>
+            </Table.Row>
+          ))}
+        </tbody>
+      </Table>
+    </LedgerProvider>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = canvas.getByRole("table", { name: "Controls, right to left" });
+    const t = within(table);
+    const kind = textBox(headingLabel(t.getByRole("columnheader", { name: "Kind" })));
+    const controls = textBox(headingLabel(t.getByRole("columnheader", { name: "Controls" })));
+    for (const cell of t.getAllByRole("cell")) {
+      const box = textBox(cell);
+      if (/^\d+$/.test(cell.textContent!))
+        // A number ends at the column's left, under its heading's end.
+        await expect(Math.abs(box.left - controls.left)).toBeLessThanOrEqual(1);
+      else if (/^(System|Subsystem|Component)$/.test(cell.textContent!))
+        // Text starts at the column's right, under its heading's start.
+        await expect(Math.abs(box.right - kind.right)).toBeLessThanOrEqual(1);
+    }
+  },
+};
 
 function Scores({ align }: { align: "end" | "center" }) {
-  const cls = align === "end" ? "text-right tabular-nums" : "text-center";
   return (
     <Table label="Scores">
       <thead>
         <tr>
           <Table.Header width={110}>Risk</Table.Header>
           <Table.Header>Title</Table.Header>
-          <Table.Header width={90} className={cls}>
+          <Table.Header width={90} align={align}>
             Score
           </Table.Header>
         </tr>
@@ -859,7 +1357,7 @@ function Scores({ align }: { align: "end" | "center" }) {
           <Table.Row key={r.id}>
             <Table.Id id={r.id} />
             <Table.Cell>{r.title}</Table.Cell>
-            <Table.Cell className={cls}>{r.score}</Table.Cell>
+            <Table.Cell align={align}>{String(r.score)}</Table.Cell>
           </Table.Row>
         ))}
       </tbody>
@@ -937,7 +1435,7 @@ export const Dont: Story = {
     <Stack space="space.400">
       <Pair
         do={<Scores align="end" />}
-        doText="Numbers end, in tabular numerals, and so does their header."
+        doText={'Numbers end, in tabular numerals, and so does their header: align="end" on both.'}
         dont={<Scores align="center" />}
         dontText="Centred numbers. The digits never line up, so the eye cannot compare down the column."
       />

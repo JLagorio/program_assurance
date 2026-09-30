@@ -21,14 +21,24 @@
     text-rendering: optimizeLegibility;
   }
 
+  /* A word longer than its line (an id, a hash, a URL, a file name) breaks where it would
+     otherwise overflow, so it never widens a title, a description or the page. Only that word
+     breaks, and only when nothing else fits; a part that truncates sets nowrap and keeps its
+     ellipsis. It does not lower a flex item's or a table column's minimum size. */
   body {
     background-color: var(--ds-elevation-surface);
     color: var(--ds-color-text);
     font: var(--ds-font-body);
     letter-spacing: var(--ds-font-body-letter-spacing);
+    overflow-wrap: break-word;
   }
 
-  table {
+  /* Numbers in a table line up: tabular numerals on the table and on its cells, since a type
+     utility on the table (font-body) writes the font shorthand, which resets the numerals it
+     would pass down. A cell or a run inside it that sets its own type utility resets them too:
+     Table adds tabular-nums beside its type, and a run takes Text's numeric. */
+  table,
+  :where(th, td) {
     font-variant-numeric: tabular-nums;
   }
 }

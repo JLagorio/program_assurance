@@ -1,4 +1,11 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+  InputGroupTextarea,
+} from "../../components";
 import * as Stories from "./InputGroup.stories";
 
 <Meta of={Stories} />
@@ -25,13 +32,15 @@ InputGroupInput inside a [Field](?path=/docs/components-field--docs) takes the l
 
 <Canvas of={Stories.BoundInField} />
 
-Replace `leading` and `trailing` props with InputGroupAddon children. Replace a direct Input/Textarea child with InputGroupInput/InputGroupTextarea. Set width through native style or the surrounding layout.
+Addons are InputGroupAddon children, and the control is InputGroupInput or InputGroupTextarea, never a plain Input inside the frame (that draws a second border). Set the width through native style or the surrounding layout.
 
 ## Variants and states
 
 Addon alignment is `inline-start` (default), `inline-end`, `block-start` or `block-end`. Inline positions follow text direction. Block addons create a header or footer around the control. InputGroupButton supports `xs`, `sm`, `icon-xs` and `icon-sm`, with Ledger Button variants.
 
-The actual input or textarea supplies focus, invalid, read-only and disabled surface states. Disabling an addon button does not disable or dim the editable field. Focused invalid groups keep their error border and a separate focus outline, matching Input and Textarea.
+`align` places an addon; the DOM places it in the focus order. Write the control first and the addons after it: an addon takes its position from `align`, so an interactive addon aligned `inline-start` still follows the input in the Tab order, the order a screen reader meets them in.
+
+The input or textarea supplies the group's focus, invalid, read-only and disabled looks: focus is one continuous 2px edge around the whole group, in the error colour when the field is invalid, as on Input and Textarea; read-only is the sunken surface with a dashed edge. Disabling an addon button does not disable or dim the editable field.
 
 <Canvas of={Stories.Units} />
 <Canvas of={Stories.Multiline} />
@@ -45,13 +54,19 @@ A keyboard hint, an InputGroupText holding a [Kbd](?path=/docs/components-kbd--d
 
 ## Accessibility
 
-Label the control with Field or an explicit accessible name. Decorative icons use `aria-hidden`; explanatory text and actions remain available to assistive technology. Give icon buttons accessible names. Addon buttons are real keyboard stops and default to `type="button"`. Clicking non-interactive addon space focuses the input or textarea; custom click handlers can cancel this.
+Label the control with Field or an explicit accessible name. The group and its addons are not groups of their own to assistive technology: InputGroup takes `role="group"` only when it is given a name (`aria-label` or `aria-labelledby`), for a frame that holds several controls. Decorative icons use `aria-hidden`; explanatory text and actions remain available to assistive technology. Give icon buttons accessible names. Addon buttons are real keyboard stops and default to `type="button"`. Clicking non-interactive addon space focuses the input or textarea; custom click handlers can cancel this.
 
 <Canvas of={Stories.SearchBox} />
 
 ## Props
 
 Group and Addon accept native div props and refs; Text accepts span props. Input and Textarea parts preserve their control contracts and refs. Button preserves Ledger Button's native Base UI composition, loading and disabled behavior. There are no configured content slots.
+
+<ArgTypes of={InputGroup} />
+<ArgTypes of={InputGroupAddon} />
+<ArgTypes of={InputGroupButton} />
+<ArgTypes of={InputGroupInput} />
+<ArgTypes of={InputGroupTextarea} />
 
 ## Related
 

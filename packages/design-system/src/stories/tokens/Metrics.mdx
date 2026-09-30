@@ -47,6 +47,32 @@ The sizes, the stroke, the colour and the naming rules are on the [Icons](?path=
 | `dimension.layout.rail`    | 272px | `w-layout-rail`        | The rail beside a record: Shell.Aside and property groups.    |
 | `dimension.layout.measure` | 720px | `max-w-layout-measure` | The widest a run of prose grows.                              |
 
+## Parts
+
+A part's own size: a popup's width, a menu's narrowest, a placeholder's size. Each is read by its part through `token()` in the part's style, so it has no class. A product sizes a part through the part's props, or `style` where the part's page says so, and never picks one of these for its value: the popover's 288px is also the `@2xs` container size, but it changes with the popover, not with the container query.
+
+| Token                           | Value  | Part                   | Use                                                                                  |
+| ------------------------------- | ------ | ---------------------- | ------------------------------------------------------------------------------------ |
+| `dimension.part.tooltip`        | 320px  | Tooltip                | The widest it grows, within the room the window leaves.                              |
+| `dimension.part.hoverCard`      | 256px  | HoverCard              | Its width, within the room the window leaves.                                        |
+| `dimension.part.popover`        | 288px  | Popover                | Its width, within the room the window leaves.                                        |
+| `dimension.part.command`        | 560px  | CommandDialog          | The widest it grows.                                                                 |
+| `dimension.part.menu`           | 128px  | DropdownMenu           | Its narrowest, unless the trigger is wider.                                          |
+| `dimension.part.submenu`        | 96px   | DropdownMenu's submenu | Its narrowest.                                                                       |
+| `dimension.part.select`         | 9rem   | Select                 | Its list's narrowest, unless the trigger is wider.                                   |
+| `dimension.part.search`         | 240px  | Toolbar                | The widest its search field grows while it shares a row.                             |
+| `dimension.part.steps`          | 420px  | Stepper, Timeline      | The narrowest across, room for about four steps; narrower, the strip scrolls.        |
+| `dimension.part.skeletonCircle` | 32px   | Skeleton               | A circle's size, unless `width` gives another.                                       |
+| `dimension.part.skeletonBlock`  | 96px   | Skeleton               | A block's height, unless `height` gives another.                                     |
+| `dimension.part.emptyMeasure`   | 400px  | Empty                  | The measure of its title and description.                                            |
+| `dimension.part.keyValue`       | 8rem   | KeyValue               | In an `auto` group, the value's room before its label goes over it.                  |
+| `dimension.part.keyValueLabel`  | 6.5rem | KeyValue               | Its label column, 104px at the default text size, unless `labelWidth` gives another. |
+| `dimension.part.codeBlock`      | 560px  | CodeBlock              | The tallest it grows before it scrolls, unless `maxHeight` gives another.            |
+| `dimension.part.itemId`         | 72px   | Item                   | Its id column, unless `idWidth` gives another.                                       |
+| `dimension.part.filter`         | 220px  | DataTable.Filter       | Its popover's width, unless `width` gives another.                                   |
+| `dimension.part.tableSearch`    | 200px  | DataTable.Search       | Its field's width, unless `width` gives another.                                     |
+| `dimension.part.previewSheet`   | 720px  | PreviewSheet           | Its width, unless `width` gives another.                                             |
+
 ## Breakpoints
 
 | Token                        | Value  | Variant  | Use                                                                              |
@@ -59,7 +85,7 @@ The sizes, the stroke, the colour and the naming rules are on the [Icons](?path=
 | `dimension.breakpoint.wide`  | 110rem | `wide:`  | The aside sits beside Main even while a panel is open.                           |
 | `dimension.breakpoint.xl`    | 80rem  | `xl:`    | Tailwind's xl, the panel breakpoint under its Tailwind name for Grid's `xl` count. |
 
-One source for three readers: `layout.css` writes `@media (width >= theme(--breakpoint-panel))`, the shell reads `tokenValue("dimension.breakpoint.panel")` for `matchMedia`, and a class takes the variant. `sm`, `md`, `lg` and `xl` restate Tailwind's values so a class and a media query cannot drift apart.
+One source for three readers: `layout.css` writes `@media (width >= theme(--breakpoint-panel))`, the shell reads `tokenValue("dimension.breakpoint.panel")` for `matchMedia`, and a class takes the variant. `sm`, `md`, `lg` and `xl` restate Tailwind's values so a class and a media query cannot drift apart. Where `reset.css` is imported, it clears Tailwind's own breakpoints first, so these seven are the only ones: `2xl:` (Tailwind's 96rem) does not exist.
 
 ## Container sizes
 
@@ -86,6 +112,6 @@ In a stylesheet, a container query reads the same key: `layout.css` writes `@con
 
 <Canvas of={Stories.ContainerSizes} />
 
-`src/styles/layout.css` adds the few templates a class string cannot say, each reading these tokens: `grid-cols-main-rail`, `grid-cols-list-detail`, `sticky-rail`, `min-h-work`, `fill-window` and `shell-root`, the navigation grid. The shell sets `--shell-top` (banner plus top nav) so a sticky rail knows where to stop, and its main area sets `--shell-inset-bottom` so a filled register knows where to end. A rail in a scroller of its own reads `--rail-top` and `--rail-max-height` instead; a WorkPane in a dialog's body or a panel sets them to that scroller's top and height.
+`src/styles/layout.css` adds the few templates a class string cannot say, each reading these tokens: `grid-cols-list-detail`, `sticky-rail`, `min-h-work` and `fill-window`, and `shell.css` adds `shell-root`, the navigation grid. A record page's main column and rail are the Shell's Main and Aside, not a grid template. The shell sets `--shell-top` (banner plus top nav) so a sticky rail knows where to stop, and its main area sets `--shell-inset-bottom` so a filled register knows where to end. A rail in a scroller of its own reads `--rail-top` and `--rail-max-height` instead; a WorkPane in a dialog's body or a panel sets them to that scroller's top and height.
 
 <Canvas of={Stories.Dimension} />

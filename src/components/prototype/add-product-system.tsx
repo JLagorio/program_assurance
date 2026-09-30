@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { AlertCircle } from "lucide-react";
 import {
   Alert,
@@ -167,6 +167,20 @@ function VariantDialog({
   const submitRef = useRef<HTMLButtonElement>(null);
   const failureRef = useRef<HTMLDivElement>(null);
   const goingBack = useRef(false);
+  // While the choices load, Name is not drawn when the dialog opens: focus waits on the dialog, not
+  // on Close, and moves to Name as it draws, unless the reader has already moved it.
+  const popupRef = useRef<HTMLDivElement>(null);
+  const nameControl = feedback.ref("name");
+  const nameDrawn = useRef(false);
+  const nameRef = useCallback(
+    (node: HTMLElement | null) => {
+      nameControl(node);
+      if (!node || nameDrawn.current) return;
+      nameDrawn.current = true;
+      if (popupRef.current && document.activeElement === popupRef.current) node.focus();
+    },
+    [nameControl],
+  );
   const [draft] = useState(() => expandProductConfiguration(item, { profileKey: "" }));
   const [values, setValues] = useState<VariantValues>(() => {
     const defaults: VariantValues = {
@@ -308,7 +322,8 @@ function VariantDialog({
     >
       <DialogContent
         width="large"
-        initialFocus={() => feedback.node("name") ?? true}
+        ref={popupRef}
+        initialFocus={() => feedback.node("name") ?? popupRef.current ?? true}
         finalFocus={() => (goingBack.current ? false : opener?.isConnected ? opener : true)}
       >
         <DialogHeader>
@@ -343,7 +358,7 @@ function VariantDialog({
                       onChange={(name) => update({ name })}
                       required
                       error={errors.get("name")}
-                      controlRef={feedback.ref("name")}
+                      controlRef={nameRef}
                     />
                     <TextField
                       label="Code"

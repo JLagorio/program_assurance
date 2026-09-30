@@ -901,7 +901,7 @@
           "subtler": {
             "$type": "color",
             "$value": "{color.orange.200}",
-            "$description": "A orange tint that carries no meaning: an avatar, a tag. Pairs with color.text.accent.orange.",
+            "$description": "An orange tint that carries no meaning: an avatar, a tag. Pairs with color.text.accent.orange.",
             "$extensions": {
               "ledger": {
                 "introduced": "0.5.0"
@@ -911,7 +911,7 @@
           "bolder": {
             "$type": "color",
             "$value": "{color.orange.800}",
-            "$description": "A orange fill that carries no meaning, for color.text.inverse on it: a bold avatar, one end of a gradient.",
+            "$description": "An orange fill that carries no meaning, for color.text.inverse on it: a bold avatar, one end of a gradient.",
             "$extensions": {
               "ledger": {
                 "introduced": "0.5.0"
@@ -989,7 +989,7 @@
       "subtlest": {
         "$type": "color",
         "$value": "{color.neutral.700}",
-        "$description": "Use for tertiary text, such as metadata, breadcrumbs, placeholder and helper text.",
+        "$description": "Use for tertiary text, such as metadata, breadcrumbs, placeholder and helper text. 4.5:1 on every surface and on the resting selected fill, in both modes; not promised on a hovered or pressed fill.",
         "$extensions": {
           "ledger": {
             "introduced": "0.1.0"
@@ -1028,8 +1028,8 @@
       },
       "brand": {
         "$type": "color",
-        "$value": "{color.blue.700}",
-        "$description": "Use for text that reinforces our brand.",
+        "$value": "{color.blue.725}",
+        "$description": "Use for text that reinforces our brand, and for a link. 4.5:1 on every surface and on the selected fill at rest and under the pointer, so a record's name link in a chosen row stays readable.",
         "$extensions": {
           "ledger": {
             "introduced": "0.1.0"
@@ -1354,8 +1354,8 @@
       },
       "focused": {
         "$type": "color",
-        "$value": "{color.blue.500}",
-        "$description": "Use for focus rings of elements in a focus state. Increased contrast darkens it in light and lightens it in dark, so a ring on a selected, pressed or highlighted fill keeps 3:1 against the fill as well as the surface.",
+        "$value": "{color.blue.600}",
+        "$description": "Use for focus rings of elements in a focus state. 3:1 on every surface and, in both modes, on the neutral and selected fills a focused control sits inside (rest, hover and the selected press), so a ring inside a hovered or chosen row shows. Increased contrast darkens it in light and lightens it in dark, so a ring on any pressed fill keeps 3:1 too.",
         "$extensions": {
           "ledger": {
             "introduced": "0.1.0"
@@ -2318,6 +2318,23 @@
         },
         "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
       },
+      "715": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [
+            0.68,
+            0.02,
+            285
+          ]
+        },
+        "$description": "Tertiary text and its icons in dark: 4.5:1 on the resting selected fill as well as on every surface.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
       "800": {
         "$type": "color",
         "$value": {
@@ -2707,7 +2724,7 @@
             254
           ]
         },
-        "$description": "Increased contrast: the selected fill in dark, at 3:1 on every dark surface.",
+        "$description": "Brand and link text in light, 4.5:1 on the selected fill at rest and under the pointer. Increased contrast: the selected fill in dark, at 3:1 on every dark surface.",
         "$extensions": {
           "ledger": {
             "introduced": "0.7.0"
@@ -4046,6 +4063,255 @@
         },
         "$description": "The widest a run of prose grows: statements, notes, descriptions."
       }
+    },
+    "part": {
+      "tooltip": {
+        "$type": "dimension",
+        "$value": {
+          "value": 320,
+          "unit": "px"
+        },
+        "$description": "The widest a Tooltip grows; a narrower window caps it at the room it leaves.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "hoverCard": {
+        "$type": "dimension",
+        "$value": {
+          "value": 256,
+          "unit": "px"
+        },
+        "$description": "A HoverCard's width, within the room the window leaves.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "popover": {
+        "$type": "dimension",
+        "$value": {
+          "value": 288,
+          "unit": "px"
+        },
+        "$description": "A Popover's width, within the room the window leaves. The caller's style sets another.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "command": {
+        "$type": "dimension",
+        "$value": {
+          "value": 560,
+          "unit": "px"
+        },
+        "$description": "The widest a CommandDialog grows.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "menu": {
+        "$type": "dimension",
+        "$value": {
+          "value": 128,
+          "unit": "px"
+        },
+        "$description": "A DropdownMenu's narrowest, unless its trigger is wider; never past the window's edge.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "submenu": {
+        "$type": "dimension",
+        "$value": {
+          "value": 96,
+          "unit": "px"
+        },
+        "$description": "A DropdownMenu submenu's narrowest; never past the window's edge.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "select": {
+        "$type": "dimension",
+        "$value": {
+          "value": 9,
+          "unit": "rem"
+        },
+        "$description": "A Select's list at its narrowest, unless its trigger is wider: 144px at the default text size.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "search": {
+        "$type": "dimension",
+        "$value": {
+          "value": 240,
+          "unit": "px"
+        },
+        "$description": "The widest a Toolbar's search field grows while it shares its row with the other controls.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "steps": {
+        "$type": "dimension",
+        "$value": {
+          "value": 420,
+          "unit": "px"
+        },
+        "$description": "Room for about four steps. A horizontal Stepper or Timeline is at least this wide; in a narrower space its strip scrolls.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "skeletonCircle": {
+        "$type": "dimension",
+        "$value": {
+          "value": 32,
+          "unit": "px"
+        },
+        "$description": "A circle Skeleton's size, an avatar's or an icon's, unless its width gives another.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "skeletonBlock": {
+        "$type": "dimension",
+        "$value": {
+          "value": 96,
+          "unit": "px"
+        },
+        "$description": "A block Skeleton's height unless its height gives another.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "emptyMeasure": {
+        "$type": "dimension",
+        "$value": {
+          "value": 400,
+          "unit": "px"
+        },
+        "$description": "The widest an Empty's title and description grow, so the description wraps at a readable width.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "keyValue": {
+        "$type": "dimension",
+        "$value": {
+          "value": 8,
+          "unit": "rem"
+        },
+        "$description": "In an auto KeyValue.Group a row keeps its label beside the value while the value has this much room, 128px at the default text size, and puts the label over the value below it.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "keyValueLabel": {
+        "$type": "dimension",
+        "$value": {
+          "value": 6.5,
+          "unit": "rem"
+        },
+        "$description": "A KeyValue's label column, 104px at the default text size, unless labelWidth gives another. It is drawn in rem, so it grows with the reader's text size as the label does.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "codeBlock": {
+        "$type": "dimension",
+        "$value": {
+          "value": 560,
+          "unit": "px"
+        },
+        "$description": "The tallest a CodeBlock grows before it scrolls inside itself, unless its maxHeight gives another.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "itemId": {
+        "$type": "dimension",
+        "$value": {
+          "value": 72,
+          "unit": "px"
+        },
+        "$description": "An Item's id column, unless its idWidth gives another, so the ids of a list line up.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "filter": {
+        "$type": "dimension",
+        "$value": {
+          "value": 220,
+          "unit": "px"
+        },
+        "$description": "A DataTable column filter's popover width, unless its width gives another.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "tableSearch": {
+        "$type": "dimension",
+        "$value": {
+          "value": 200,
+          "unit": "px"
+        },
+        "$description": "A DataTable Search field's width, unless its width gives another; it never runs past its row.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "previewSheet": {
+        "$type": "dimension",
+        "$value": {
+          "value": 720,
+          "unit": "px"
+        },
+        "$description": "A PreviewSheet's width, about half the screen, unless its width gives another.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      }
     }
   },
   "elevation": {
@@ -4421,7 +4687,7 @@
       "semibold": {
         "$type": "fontWeight",
         "$value": 600,
-        "$description": "Page and record titles only."
+        "$description": "Titles (a page's, a record's, a section's, a panel's) and a Stat's figure. Never running text."
       }
     },
     "letterSpacing": {
@@ -4601,7 +4867,7 @@
             "unit": "px"
           }
         },
-        "$description": "Display: a stat value, a dashboard number. Not a page title.",
+        "$description": "Display: a figure bigger than a Stat's, or the one title of a screen with nothing else on it (sign-in). Not a page or record title.",
         "$extensions": {
           "org.ledger.css": {
             "sourceLineHeight": "2.125rem",
@@ -4624,7 +4890,7 @@
             "unit": "px"
           }
         },
-        "$description": "Page and record titles. The only semibold.",
+        "$description": "A Heading medium: a page title set without PageHeader. PageHeader.Title is font.heading.small at semibold.",
         "$extensions": {
           "org.ledger.css": {
             "sourceLineHeight": "1.75rem",
@@ -4647,7 +4913,7 @@
             "unit": "px"
           }
         },
-        "$description": "Section headings.",
+        "$description": "A section heading set with Heading; at semibold, the page and record title (PageHeader.Title) and a Stat's figure.",
         "$extensions": {
           "org.ledger.css": {
             "sourceLineHeight": "1.625rem",
@@ -4722,6 +4988,58 @@
         "org.ledger.css": {
           "sourceLineHeight": "1.125rem",
           "sourceLetterSpacing": "{font.letterSpacing.0}"
+        }
+      }
+    }
+  },
+  "layer": {
+    "chrome": {
+      "$type": "number",
+      "$value": 30,
+      "$description": "The Shell's banner and top nav, sticky over the page. A region's own sticky parts (a table's header, a pinned column, a sticky footer) stack inside Main, below it.",
+      "$extensions": {
+        "ledger": {
+          "introduced": "0.7.0"
+        }
+      }
+    },
+    "blanket": {
+      "$type": "number",
+      "$value": 40,
+      "$description": "The Shell's blanket under the side nav when it opens over the page on a narrow screen. A dialog's, sheet's or drawer's own blanket goes with its popup on layer.overlay, so it also covers an open side nav.",
+      "$extensions": {
+        "ledger": {
+          "introduced": "0.7.0"
+        }
+      }
+    },
+    "overlay": {
+      "$type": "number",
+      "$value": 50,
+      "$description": "Everything that opens over the page: the side nav and the panel as overlays, a popover, a menu, a listbox, a hover card, a dialog, a sheet, a drawer and their blankets. They portal to the body and stack among themselves by document order, so the one opened last is on top.",
+      "$extensions": {
+        "ledger": {
+          "introduced": "0.7.0"
+        }
+      }
+    },
+    "toast": {
+      "$type": "number",
+      "$value": 1000,
+      "$description": "The toast stack, above every overlay, so a notification is never behind the dialog that raised it.",
+      "$extensions": {
+        "ledger": {
+          "introduced": "0.7.0"
+        }
+      }
+    },
+    "tooltip": {
+      "$type": "number",
+      "$value": 1100,
+      "$description": "A tooltip, above everything, a toast's included: it names the control the pointer or the focus is on, wherever that control sits.",
+      "$extensions": {
+        "ledger": {
+          "introduced": "0.7.0"
         }
       }
     }
@@ -4872,7 +5190,7 @@
         "value": 2,
         "unit": "px"
       },
-      "$description": "Draft, on a 5px base. Checkbox, tiny chips."
+      "$description": "Draft, on a 5px base. Kbd, tiny chips."
     },
     "small": {
       "$type": "dimension",
@@ -4880,7 +5198,7 @@
         "value": 3,
         "unit": "px"
       },
-      "$description": "Draft. Badges, count chips, Kbd, skeleton, inline hit targets."
+      "$description": "Draft. Count chips, the checkbox, skeleton lines, inline hit targets."
     },
     "medium": {
       "$type": "dimension",
@@ -4888,7 +5206,7 @@
         "value": 5,
         "unit": "px"
       },
-      "$description": "Draft. Buttons, inputs, chips, menu items."
+      "$description": "Draft. Buttons, inputs, chips, tooltips, menu items."
     },
     "large": {
       "$type": "dimension",
@@ -4896,7 +5214,7 @@
         "value": 7,
         "unit": "px"
       },
-      "$description": "Draft. Cards, popovers."
+      "$description": "Draft. Cards, popovers, hover cards, menus and listboxes."
     },
     "xlarge": {
       "$type": "dimension",
@@ -4904,7 +5222,7 @@
         "value": 9,
         "unit": "px"
       },
-      "$description": "Draft. Dialogs, sheets."
+      "$description": "Draft. No part yet: a sheet runs flush to the window's edge, and a dialog is xxlarge."
     },
     "xxlarge": {
       "$type": "dimension",
@@ -4912,7 +5230,7 @@
         "value": 12,
         "unit": "px"
       },
-      "$description": "Draft. Large surfaces, spotlight cards."
+      "$description": "Draft. Dialogs, the command palette, a drawer's free edge, spotlight cards."
     },
     "full": {
       "$type": "dimension",

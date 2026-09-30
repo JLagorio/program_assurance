@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Download, RotateCcw } from "lucide-react";
 import { useRef, useState } from "react";
-import { expect, userEvent, waitFor, within } from "storybook/test";
+import { expect, spyOn, userEvent, waitFor, within } from "storybook/test";
 
 import { Chart, type ChartSelection } from "../..";
 import {
@@ -14,7 +14,15 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "../../components";
-import { Box, Grid, Grid as GridPrimitive, Inline, Stack, Text } from "../../primitives";
+import {
+  Box,
+  Grid,
+  Grid as GridPrimitive,
+  HeadingLevelProvider,
+  Inline,
+  Stack,
+  Text,
+} from "../../primitives";
 import {
   assessors,
   assessorsEmphasised,
@@ -92,7 +100,7 @@ export const ChartMatrix: Story = {
           </Chart>
         </Box>
       </Specimens>
-      <Specimens title="Frame · empty · error with a retry · a drill-down's path">
+      <Specimens title="Frame · empty · error with Try again beside it · a drill-down's path">
         <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart
             title="Findings over time"
@@ -109,11 +117,7 @@ export const ChartMatrix: Story = {
             state="error"
             statusText="The register did not answer."
             size="small"
-            actions={
-              <Button size="small" variant="subtle">
-                Retry
-              </Button>
-            }
+            onRetry={() => {}}
           >
             <Chart.Line data={byMonth} x="month" series={findingSeries} size="small" />
           </Chart>
@@ -287,6 +291,17 @@ export const Framed: Story = {
     await expect(figure).toHaveAttribute("data-report", "findings");
     await userEvent.click(canvas.getByRole("button", { name: "Focus chart" }));
     await expect(figure).toHaveFocus();
+    // A plot that chooses nothing is an image named by the title, with no tab stop; the figure is
+    // described by its line and its summary, and the summary is not read again in the caption.
+    const plot = within(figure).getByRole("img", { name: "Findings over time" });
+    await expect(plot).toHaveAttribute("data-chart-surface");
+    await expect(plot).not.toHaveAttribute("tabindex");
+    await expect(figure).toHaveAccessibleDescription(
+      "Open and closed at the end of each month, this year Open findings fell from 14 in January to 5 in September; closed findings peaked at 11 in May.",
+    );
+    await expect(within(figure).queryByText(/Open findings fell/)).not.toBeVisible();
+    // The tooltip the card stands down is recharts' own wrapper.
+    await expect(figure.querySelector(".recharts-tooltip-wrapper")).not.toBeNull();
     await userEvent.click(canvas.getByRole("button", { name: "Open" }));
     await expect(canvas.getByRole("button", { name: "Open" })).toHaveAttribute(
       "aria-pressed",
@@ -395,7 +410,14 @@ export const SaidOnce: Story = {
     await expect(
       rates.querySelector("[data-chart-plot]")?.getBoundingClientRect().height,
     ).toBeCloseTo(120, 0);
-    await waitFor(() => expect(within(rates).getAllByText("18%").length).toBeGreaterThan(0));
+    // In the Frame's format: the value axis prints percentages.
+    await waitFor(() =>
+      expect(
+        Array.from(rates.querySelectorAll(".recharts-yAxis-tick-labels text")).some((t) =>
+          /^\d+%$/.test(t.textContent ?? ""),
+        ),
+      ).toBe(true),
+    );
     await userEvent.click(within(rates).getByRole("button", { name: "Table" }));
     const rateTable = await within(rates).findByRole("table");
     await expect(within(rateTable).getAllByRole("row")[1]).toHaveTextContent("Jan18%");
@@ -473,7 +495,7 @@ function Following() {
   );
 }
 
-/** The Frame follows the part it holds. Swap the bars for a ring and the legend keys its slices, a series hidden from the bars stays hidden in the ring, and the table lays the ring out by slice. Swap the ring for figures, which are no part, and the legend and the Table toggle leave with it rather than describe a plot that is gone. */
+/** The Frame follows the part it holds. Swap the bars for a ring and the legend keys its slices, a series hidden from the bars stays hidden in the ring (and out of the bars' table), and the table lays the ring out by slice. Swap the ring for figures, which are no part, and the legend and the Table toggle leave with it rather than describe a plot that is gone. */
 export const FollowsItsPart: Story = {
   render: () => <Following />,
   play: async ({ canvasElement }) => {
@@ -486,18 +508,23 @@ export const FollowsItsPart: Story = {
       "false",
     );
     await userEvent.click(figure.getByRole("button", { name: "Table" }));
+    // The table shows what the legend shows: Partial, hidden, leaves it too (the CSV keeps it).
     await expect(headings()).toEqual([
       "Family",
       "Satisfied",
-      "Partial",
       "Other than satisfied",
       "Not assessed",
     ]);
+    // Each row is headed by its category.
+    await expect(figure.getAllByRole("rowheader")[0]).toHaveTextContent("AC");
     await userEvent.click(figure.getByRole("button", { name: "Table" }));
-    // The ring: the same keys, so Partial stays hidden; the track and three slices draw.
+    // The ring: the same keys, so Partial stays hidden; the track and the slices draw.
     await userEvent.click(figure.getByRole("button", { name: "Overall" }));
+    // The hidden slice keeps its place, so the others keep their angles.
     await waitFor(() =>
-      expect(canvasElement.querySelectorAll(".recharts-pie-sector")).toHaveLength(4),
+      expect(canvasElement.querySelectorAll(".recharts-pie-sector").length).toBeGreaterThanOrEqual(
+        4,
+      ),
     );
     await expect(figure.getByRole("button", { name: "Partial" })).toHaveAttribute(
       "aria-pressed",
@@ -664,16 +691,46 @@ export const Details: Story = {
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(page.queryByRole("dialog")).not.toBeInTheDocument());
     await waitFor(() => expect(plot).toHaveFocus());
-    await userEvent.keyboard("{ArrowRight}{Enter}");
+    // The plot is one tab stop named by the Frame's title and described by its keys; each step of
+    // the arrow keys is said in its live region, the category and every value, then the total.
+    await expect(plot).toHaveAccessibleName("Coverage by control family");
+    await expect(plot).toHaveAttribute("aria-roledescription", "chart");
+    await expect(plot).toHaveAttribute("data-chart-surface");
+    const live = canvasElement.querySelector('[data-slot="chart-live"]');
+    await expect(live).toHaveAttribute("aria-live", "polite");
+    await userEvent.keyboard("{Home}{ArrowRight}");
+    await waitFor(() =>
+      expect(live).toHaveTextContent(
+        "AU: Satisfied 18, Partial 4, Other than satisfied 3, Not assessed 1, total 26",
+      ),
+    );
+    // Enter chooses the category the live region said, though the pointer still rests on AC.
+    await userEvent.keyboard("{Enter}");
     const reopened = await page.findByRole("dialog", {
       name: "Coverage by control family, details",
     });
     await waitFor(() =>
-      expect(within(reopened).getByRole("button", { name: /^Open / })).toHaveFocus(),
+      expect(within(reopened).getByRole("button", { name: "Open AU" })).toHaveFocus(),
     );
     await userEvent.click(canvas.getByText("Coverage by control family"));
     await waitFor(() => expect(page.queryByRole("dialog")).not.toBeInTheDocument());
     await waitFor(() => expect(plot).toHaveFocus());
+    // Come back to by the keyboard, the plot is where it was left: said, shown and chosen there.
+    await userEvent.keyboard("{ArrowRight}");
+    await waitFor(() => expect(live).toHaveTextContent(/^CM: /));
+    await userEvent.tab();
+    await userEvent.tab({ shift: true });
+    await waitFor(() => expect(plot).toHaveFocus());
+    await waitFor(() =>
+      expect(canvasElement.querySelector(".recharts-tooltip-wrapper")).toHaveTextContent(/^CM/),
+    );
+    await userEvent.keyboard("{Enter}");
+    const again = await page.findByRole("dialog", { name: "Coverage by control family, details" });
+    await waitFor(() =>
+      expect(within(again).getByRole("button", { name: "Open CM" })).toHaveFocus(),
+    );
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("dialog")).not.toBeInTheDocument());
   },
 };
 
@@ -810,13 +867,24 @@ export const States: Story = {
         description="Error"
         state="error"
         statusText="The register did not answer."
-        actions={
-          <Button size="small" variant="subtle">
-            Retry
+        onRetry={() => {}}
+      >
+        <Chart.Line data={byMonth} x="month" series={findingSeries} />
+      </Chart>
+      <Chart
+        title="Findings this week"
+        description="Ready, with no records"
+        data={[]}
+        x="month"
+        series={findingSeries}
+        statusText="Nothing was opened or closed this week."
+        statusAction={
+          <Button size="small" variant="secondary">
+            Clear filters
           </Button>
         }
       >
-        <Chart.Line data={byMonth} x="month" series={findingSeries} />
+        <Chart.Line />
       </Chart>
     </Grid>
   ),
@@ -831,6 +899,22 @@ export const States: Story = {
     await expect(skeleton).toHaveAttribute("aria-hidden", "true");
     // The standard medium plot reserves 200px while its data loads.
     await expect(skeleton?.getBoundingClientRect().height).toBe(200);
+    // A failed plot is an alert, as a failed table is, with Try again beside its message.
+    const failed = canvas
+      .getAllByRole("figure", { name: "Findings over time" })
+      .find((f) => f.getAttribute("data-state") === "error")!;
+    const alert = within(failed).getByRole("alert");
+    await expect(alert).toHaveTextContent("The chart could not load");
+    await expect(within(alert).getByRole("button", { name: "Try again" })).toBeVisible();
+    // Ready with records that hold nothing says so, with its action, instead of drawing bare axes.
+    const empty = canvas.getByRole("figure", { name: "Findings this week" });
+    await expect(empty).toHaveAttribute("data-state", "empty");
+    await expect(within(empty).getByText("Nothing to show yet")).toBeVisible();
+    await expect(within(empty).getByRole("button", { name: "Clear filters" })).toBeVisible();
+    await expect(empty.querySelector(".recharts-surface")).toBeNull();
+    await expect(
+      failed.querySelector('[data-slot="chart-status"]')?.getBoundingClientRect().height,
+    ).toBeGreaterThanOrEqual(200);
   },
 };
 
@@ -991,9 +1075,61 @@ export const Downloads: Story = {
       </Chart>
     </Box>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    const create = spyOn(URL, "createObjectURL");
+    const click = spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    const blobs = () => create.mock.calls.map((call) => call[0] as Blob);
+    try {
+      await canvas.findByRole("img", { name: "Coverage by control family" });
+      await userEvent.click(canvas.getByRole("button", { name: "Download" }));
+      await userEvent.click(await page.findByRole("menuitem", { name: "Download CSV" }));
+      await waitFor(() => expect(click).toHaveBeenCalledTimes(1));
+      const anchor = click.mock.contexts[0] as HTMLAnchorElement;
+      await expect(anchor.download).toBe("coverage-by-control-family.csv");
+      const csv = blobs().at(-1)!;
+      await expect(csv.type).toBe("text/csv;charset=utf-8");
+      const bytes = new Uint8Array(await csv.arrayBuffer());
+      // A byte order mark for the spreadsheet, and CRLF between lines.
+      await expect(bytes.slice(0, 3)).toEqual(new Uint8Array([0xef, 0xbb, 0xbf]));
+      await expect(new TextDecoder().decode(bytes.slice(3))).toMatch(
+        /^Family,Satisfied,Partial,Other than satisfied,Not assessed\r\nAC,34,5,7,2\r\n/,
+      );
+      // The first menu finishes closing before the second opens, or its fading item is found.
+      await waitFor(() => expect(page.queryByRole("menu")).toBeNull());
+      await userEvent.click(canvas.getByRole("button", { name: "Download" }));
+      await userEvent.click(await page.findByRole("menuitem", { name: "Download PNG" }));
+      await waitFor(() => expect(click).toHaveBeenCalledTimes(2));
+      const png = blobs().at(-1)!;
+      await expect(png.type).toBe("image/png");
+      await expect(png.size).toBeGreaterThan(1000);
+      await expect((click.mock.contexts[1] as HTMLAnchorElement).download).toBe(
+        "coverage-by-control-family.png",
+      );
+      // The image holds the title and the legend above the plot: taller than the plot alone.
+      const image = await createImageBitmap(png);
+      const plot = canvasElement.querySelector("svg[data-chart-surface]")!.getBoundingClientRect();
+      await expect(image.height / 2).toBeGreaterThan(plot.height + 20);
+      await expect(canvas.queryByRole("alert")).not.toBeInTheDocument();
+      await waitFor(() => expect(page.queryByRole("menu")).not.toBeInTheDocument());
+      // With the table showing there is no plot to draw: the PNG item says what brings it back.
+      await userEvent.click(canvas.getByRole("button", { name: "Table" }));
+      await userEvent.click(canvas.getByRole("button", { name: "Download" }));
+      const pngItem = await page.findByRole("menuitem", { name: "Download PNG" });
+      await expect(pngItem).toHaveAttribute("aria-disabled", "true");
+      await expect(pngItem).toHaveAccessibleDescription("Show the chart to save it as an image.");
+      await userEvent.keyboard("{Escape}");
+      await waitFor(() => expect(page.queryByRole("menu")).not.toBeInTheDocument());
+      await userEvent.click(canvas.getByRole("button", { name: "Table" }));
+    } finally {
+      create.mockRestore();
+      click.mockRestore();
+    }
+  },
 };
 
-/** `texture` on the Frame: every series wears a pattern as well as its colour, in the plot, the legend, the tooltip and the card. For print, colour-vision loss and forced colours; the first series stays solid. */
+/** `texture` on the Frame: every series wears a pattern as well as its colour, in the plot, the legend, the tooltip, the card and the PNG. For print, colour-vision loss and forced colours; the first series stays solid. */
 export const Textured: Story = {
   render: () => (
     <GridPrimitive templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap="space.300">
@@ -1004,6 +1140,7 @@ export const Textured: Story = {
         texture
         data={byFamily}
         x="family"
+        download={["png"]}
       >
         <Chart.Bar data={byFamily} x="family" series={statusSeries} stacked />
       </Chart>
@@ -1021,7 +1158,7 @@ export const Textured: Story = {
   ),
 };
 
-/** At a narrow width the header wraps: the legend and the tools drop under the title, and the plot keeps its height. */
+/** At a narrow width the header wraps: the tools stay on the title's row, the legend takes the next from the start, and the plot keeps its height. */
 export const Narrow: Story = {
   render: () => (
     <Box style={{ maxWidth: 320 }}>
@@ -1038,6 +1175,42 @@ export const Narrow: Story = {
       </Chart>
     </Box>
   ),
+  play: async ({ canvasElement }) => {
+    const figure = within(canvasElement).getByRole("figure", {
+      name: "Coverage by control family",
+    });
+    const caption = figure
+      .querySelector('[data-slot="chart-frame-caption"]')!
+      .getBoundingClientRect();
+    const tools = figure.querySelector('[data-slot="chart-frame-tools"]')!.getBoundingClientRect();
+    const legend = figure.querySelector('[data-slot="chart-legend"]')!.getBoundingClientRect();
+    // The tools share the title's row; the legend starts the next row at the figure's start.
+    await expect(tools.top).toBeLessThan(caption.bottom);
+    await expect(legend.top).toBeGreaterThanOrEqual(caption.bottom - 1);
+    await expect(Math.abs(legend.left - figure.getBoundingClientRect().left)).toBeLessThan(8);
+  },
+};
+
+/** A dashboard's charts are in the page's outline: inside a HeadingLevelProvider or a titled Section the Frame's title is a heading at that level (`titleLevel` sets one outright); outside every one it is plain text. */
+export const Headings: Story = {
+  render: () => (
+    <HeadingLevelProvider level={2}>
+      <GridPrimitive templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap="space.300">
+        <Chart title="Open findings" series={open} data={byMonth} x="month" size="small">
+          <Chart.Line />
+        </Chart>
+        <Chart title="Closed findings" series={closed} data={byMonth} x="month" size="small">
+          <Chart.Bar />
+        </Chart>
+      </GridPrimitive>
+    </HeadingLevelProvider>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("heading", { level: 2, name: "Open findings" })).toBeVisible();
+    await expect(canvas.getByRole("heading", { level: 2, name: "Closed findings" })).toBeVisible();
+    await expect(canvas.getByRole("figure", { name: "Open findings" })).toBeVisible();
+  },
 };
 
 /** The mistakes the family is written to prevent, each beside the right way. Each kind's page has its own. */

@@ -36,6 +36,10 @@ App checks:
 ```sh
 npx tsc --noEmit -p tsconfig.json       # app typecheck (build the package first if src/ imports a new export; see below)
 npm run lint                            # eslint . (root config; the package lints itself)
+npm run format:check                    # prettier on the root configs, src/ and scripts/ (npm run format writes)
+npm run check:allow-lists               # lint, gate, screen and docs allow-lists (and inline ledger disables) only shrink
+npm run check:lint-changelog            # a change to the lint comes with a kit CHANGELOG entry
+npm run lint:corpus -- --check          # ledger findings on the repo may only fall; no new stock Tailwind class passes (--update, --digest)
 npm run test:app                        # vitest src/lib/**/*.test.ts + runtime-data-boundary check
 npx vitest run --config vitest.app.config.ts src/lib/system-tree.test.ts   # one app test file
 npm run build                           # ds-check → package build → vite build
@@ -76,14 +80,14 @@ npx vitest run --project storybook-light -t "Button"   # (inside the package) on
 npm run test:layout -w packages/design-system  # every story at a 390px phone and in a 320px frame; exemptions by id in test/layout-allow.json
 npx vitest run --project storybook-narrow --project storybook-contained src/stories/components/Badge.stories.tsx   # (inside the package) one file, both layout checks
 npm run build:tokens -w packages/design-system # tokens/ → src/generated/ (never hand-edit src/generated)
-npm run build:lint -w packages/design-system   # refresh eslint-plugin/components.json after changing exports
+npm run build:lint -w packages/design-system   # refresh eslint-plugin/components.json after changing exports or a part's props
 npm run build -w packages/design-system        # dist/
 npm run test:consumer -w packages/design-system # pack a tarball and import it from a throwaway consumer
 npm run ds:check                               # every exported catalog part has a story and an MDX page
 npm run ds:api:check / ds:api:update           # public API baseline in packages/design-system/api/public-api.json
 ```
 
-CI (`.github/workflows/ci.yml`) runs, in order: tokens regenerate cleanly, `ds-check`, package typecheck/lint/test, API baseline, `test:a11y`, `test:layout`, app typecheck + lint, `test:app`, `npm run build`, `test:consumer`, `npm pack`. Run the same set before calling a batch done.
+CI (`.github/workflows/ci.yml`) runs, in order: tokens regenerate cleanly, `ds-check`, `check:allow-lists`, `check:lint-changelog`, package typecheck/lint/test, `lint:corpus --check`, API baseline, `test:a11y`, `test:layout`, app typecheck + lint + format check, `test:app`, `npm run build`, `test:consumer`, `npm pack`. Run the same set before calling a batch done.
 
 Storybook MCP (`.mcp.json`, `http://localhost:6007/mcp`) is available when the package Storybook is running; prefer its `stories-preview` / `test-run` tools for verifying kit changes.
 
@@ -101,8 +105,8 @@ Storybook MCP (`.mcp.json`, `http://localhost:6007/mcp`) is available when the p
 ### Design system (`packages/design-system`)
 
 - Layers, bottom up: `tokens/` (source of truth, ledger-css-v1 JSON) → `src/generated/` (committed Style Dictionary output: `tokens.css`, `theme.css`, `utilities.css`, `tokens.ts`, `utilities.json`) → `src/primitives/` (Box, Stack, Inline, Flex, Grid, Bleed, Text, Heading; token-typed props, no margins) → `src/components/` (Base UI–backed controls and display parts) → `src/layout/` (Shell regions, PageHeader, Section, PageSkeleton) → `src/patterns/` (DataTable, pickers, Composer, Editable, Inspector, Chart, Forms) → `src/mode/`. Components and primitives never import patterns or layout. The package never imports application source.
-- Product code imports only the package root (`@ledger/design-system`) and never a file inside it; the `development` export condition maps to `src/index.ts`, otherwise `dist/`. The app's `tsconfig.json` sets `customConditions: ["development"]`, but `dist/` still needs a fresh package build before the app typecheck sees a newly added export.
-- Styling is tokens only. The package ships an ESLint plugin (`@ledger/design-system/eslint`) with a `package` preset for itself and a `recommended` preset that the root config applies to product files (`src/routes`, `src/components/app`, `src/components/prototype`, `src/lib`, `src/router.tsx`). Its rules reject arbitrary values, non-token classes, margins, `dark:` variants, deprecated tokens/names, `<colgroup>`, local copies of kit parts (`ledger/no-kit-shadow`, allowed only in `src/components/app/shell.tsx`) and a few more; see the table in `docs/guides/component-library.md`. A product config adds nothing about the kit.
+- Product code imports only the package root (`@ledger/design-system`) and never a file inside it; the package's named `@ledger/source` export condition maps to `src/index.ts`, and every other condition (the generic `development` included) to `dist/`. The app's `tsconfig.json` sets `customConditions: ["@ledger/source"]` and `vite.config.ts` adds the condition to the dev server's environments, so the typecheck and `npm run dev` read the kit's source and a kit edit hot-reloads; `vite build` bundles `dist/`, which needs a fresh package build to carry a newly added export.
+- Styling is tokens only. The package ships an ESLint plugin (`@ledger/design-system/eslint`) with a `package` preset for itself and a `recommended` preset that the root config applies to product files (`src/routes`, `src/components/app`, `src/components/prototype`, `src/lib`, `src/router.tsx`). Its rules reject arbitrary values, non-token classes, margins, `dark:` variants, deprecated tokens/names, `<colgroup>`, local copies of kit parts (`ledger/no-kit-shadow`, allowed only in `src/components/app/shell.tsx`), a comment that turns a ledger rule off (`ledger/no-inline-config`), a `className` on a kit part that the lint cannot read (`ledger/readable-classes`), a literal colour in an SVG or chart prop (`ledger/no-raw-colour`) and a few more; see the table on the Storybook's Guidance/Lint rules page (`packages/design-system/src/stories/docs/Lint.mdx`). A product config adds nothing about the kit.
 - Every exported catalog part needs a story that renders it in `<Family>.stories.tsx` and one `<Family>.mdx` page; `scripts/ds-check.mjs` enforces it and `scripts/ds-check.allow` may only shrink. Renames ship with an `@deprecated` alias for one version and a `ledger/no-deprecated-name` fixer. Optional props are spelled `?: T | undefined` (`exactOptionalPropertyTypes` is on in both tsconfigs).
 - Contribution checklist and versioning rules: "Adding to the kit" in `docs/guides/component-library.md`; changes go in `packages/design-system/CHANGELOG.md`.
 
@@ -121,7 +125,7 @@ supabase migration up --local --network-id program-assurance-local
 ## Conventions worth knowing
 
 - TypeScript is strict with `noUncheckedIndexedAccess`, `noPropertyAccessFromIndexSignature` (so `import.meta.env["VITE_X"]`), `exactOptionalPropertyTypes`, `noImplicitReturns`.
-- Prettier: 100 columns, double quotes, trailing commas. ESLint runs Prettier as a rule.
+- Prettier: 100 columns, double quotes, trailing commas. It runs as its own step, `npm run format:check`, not inside ESLint.
 - Do not use the Next.js `server-only` package; name server modules `*.server.ts`.
 - Procedures are skills, rules are here: `/ledger-add-part` walks the kit contribution checklist and `/verify-screen` the screen verification checklist; both point at the guides rather than restating them.
 - Feature docs live in `docs/` (`program-wizard.md`, `products.md`, `system-assurance-workflow.md`, `requirement-workspace.md`, `reference-seeding.md`, `demo-seed-mapping.md`). `docs/next.md` is the living list of what landed and which decisions are still open; update it when a batch lands. Design audits and plans are under `docs/guides/`.

@@ -12,19 +12,31 @@ A bounded scrolling region with an arrow at each edge that can still scroll. Sel
 
 `Scroller` is the bounded box: it sets `orientation`, how an arrow scrolls (`scrollOn`) and the `surface` the arrows sit on. `ScrollerViewport` is the element that scrolls; `render` substitutes a list (Combobox does), and `viewport` on the root points at an element the Scroller does not render (Tabs passes its ScrollArea viewport). `ScrollerArrow` renders one edge: `start` or `end`.
 
-An arrow appears only when the viewport overflows, only at an edge that can still scroll, and only where the pointer can hover (`hover: hover` and `pointer: fine`); touch readers swipe and see none. While arrows show they replace the native scrollbar, and the viewport keeps their thickness clear as scroll padding, so a focused or highlighted item scrolls out from under them.
+An arrow appears only when the viewport overflows, only at an edge that can still scroll, and only where the pointer can hover (`hover: hover` and `pointer: fine`); touch readers swipe and see none. While arrows show they replace the native scrollbar, and the viewport keeps their thickness clear as scroll padding, so a focused or highlighted item scrolls out from under them. The arrows paint the surface the Scroller sits on (`utility.elevation.surface.current`: the page, or the Card, Dialog or Sheet that records itself), or the `surface` you name.
 
 When a descendant receives keyboard focus, Scroller reveals it on its scrolling axis, including an item that was only partly visible. This moves its own viewport without scrolling the outer page; a nested Scroller handles its own focus reveal.
 
-A horizontal strip keeps its current item in view: the selected tab (`aria-selected`), the current step (`aria-current`) or the pressed view (`aria-pressed`). The first time the strip overflows (on its first layout, or once late fonts or labels widen it), and whenever it narrows, that item scrolls back in if it ended outside, clear of the arrows. Focus does not move. Once it has overflowed, a strip that widens, or whose content changes, stays where the reader put it.
+A horizontal strip keeps its current item in view: the selected tab (`aria-selected`), the current step (`aria-current`) or the pressed view (`aria-pressed`) scrolls back in if it ended outside, clear of the arrows. Until the reader scrolls, wheels, swipes, clicks, types or moves focus in the strip, that holds whenever the strip's size or content changes, so counts or labels that arrive after the first layout cannot push the current item out. After that only a strip that narrows (a window resize, a panel opening beside it) brings it back, and a strip that grows stays where the reader put it. A current item chosen from outside the strip, as a record's Overview does for its tabs, always scrolls in. Focus does not move.
 
 <Canvas of={Stories.KeepsCurrentInView} />
+
+## Focus
+
+The viewport clips on both axes, so every focus ring inside it is drawn inside its box, with the `outline-field-focused` geometry: an item's own outline, and a ring an item draws on a `::before` or `::after` overlay, as Stepper and Timeline steps do. A horizontal viewport also keeps `space.025` of padding, so a resting button's ring and shadow show whole. Do not add padding or an outline offset of your own for the ring.
+
+`ScrollerViewport` is a tab stop only when the keyboard needs it: while it overflows and holds nothing the keyboard can reach (no link, button or field, and no option, menu item, tab, tree item or grid cell that a composite moves focus to), it takes `tabIndex={0}` so the arrow keys can scroll it. It is then a group named by your `aria-label` or `aria-labelledby`, or "Content, scrolls" (the locale's `contentScrolls`) when it has none; your own `role` is kept. A strip that fits, or that holds a button, adds no stop. Pass `tabIndex` to decide yourself; a focusable viewport you did not name still takes the default name. Its own ring is drawn inside it as well.
+
+<Canvas of={Stories.KeyboardStop} />
 
 ## Vertical
 
 Vertical scrollers scroll on hover unsaid: the arrow is a hover zone, hidden from assistive technology, and keyboard readers already move through the content. Menus use the `overlay` surface.
 
 <Canvas of={Stories.Vertical} />
+
+A list more than five viewports tall keeps its native scrollbar and shows no arrows: at the hover speed it would take seconds to reach the end, and the reader can drag the bar instead.
+
+<Canvas of={Stories.LongList} />
 
 ## Horizontal
 
@@ -34,7 +46,9 @@ Horizontal scrollers step a page on click unsaid: the arrow is a labelled button
 
 ## Composition
 
-Select keeps Base UI's own scroll arrows, which step item by item and know the open method; they wear the Scroller arrow classes so the two cannot drift apart. Tabs sizes its arrows to the strip and gives them the strip's hairline. Do not add a second scroller, an overflow utility or a fade inside a part that already composes one.
+Select keeps Base UI's own scroll arrows, which step item by item and know the open method; they wear the Scroller arrow classes so the two cannot drift apart. Tabs sizes its arrows to the strip, and a line strip's arrows carry its hairline. Stepper, Timeline, Toolbar's saved views and DataTable's saved questions compose a horizontal Scroller. Do not add a second scroller, an overflow utility, a hand-drawn ring or a fade inside a part that already composes one.
+
+Which scroller to use is in [Choosing a part](?path=/docs/guidance-choosing-a-part--docs): native overflow for a region with nothing to add, ScrollArea for a visible bar the reader drags, Scroller for edge arrows over a list or a strip.
 
 ## Props
 

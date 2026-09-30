@@ -12,13 +12,15 @@ export type InputGroupProps = ComponentProps<"div">;
  * the input keeps the room. A group with a hint is a size container, so give it a definite width.
  */
 export function InputGroup({ className, ...props }: InputGroupProps) {
+  // A group only when it is named: an unnamed group around one control says nothing.
+  const named = props["aria-label"] !== undefined || props["aria-labelledby"] !== undefined;
   return (
     <div
       data-slot="input-group"
-      role="group"
+      {...(named ? { role: "group" } : {})}
       className={cn(
         "group/input-group relative flex h-control-medium w-full min-w-0 items-center overflow-x-clip rounded-medium border border-input bg-input transition-colors duration-fast ease-standard outline-none hover:bg-input-hovered has-[kbd]:@container/input-group",
-        "has-[[data-size=small]]:h-control-small has-[[data-slot=input-group-control]:focus-visible]:bg-input-pressed has-[[data-slot=input-group-control]:focus-visible]:border-focused has-[[data-slot=input-group-control]:focus-visible]:outline-field-focused has-[[data-slot=input-group-control][aria-invalid=true]]:border-danger has-[[data-slot=input-group-control][aria-invalid=true]:focus-visible]:border-danger has-[[data-slot=input-group-control][aria-invalid=true]:focus-visible]:outline-field-danger has-[[data-slot=input-group-control]:disabled]:border-disabled has-[[data-slot=input-group-control]:disabled]:bg-disabled has-[[data-slot=input-group-control][readonly]]:bg-surface-sunken has-[[data-slot=input-group-control][readonly]]:hover:bg-surface-sunken",
+        "has-[[data-size=small]]:h-control-small has-[[data-slot=input-group-control]:focus-visible]:bg-input-pressed has-[[data-slot=input-group-control]:focus-visible]:border-focused has-[[data-slot=input-group-control]:focus-visible]:outline-field-focused has-[[data-slot=input-group-control][aria-invalid=true]]:border-danger has-[[data-slot=input-group-control][aria-invalid=true]:focus-visible]:border-danger has-[[data-slot=input-group-control][aria-invalid=true]:focus-visible]:outline-field-danger has-[[data-slot=input-group-control]:disabled]:border-disabled has-[[data-slot=input-group-control]:disabled]:bg-disabled has-[[data-slot=input-group-control][readonly]]:border-dashed has-[[data-slot=input-group-control][readonly]]:bg-surface-sunken has-[[data-slot=input-group-control][readonly]]:hover:bg-surface-sunken",
         "has-[>textarea]:h-auto has-[>[data-align=block-start]]:h-auto has-[>[data-align=block-start]]:flex-col has-[>[data-align=block-end]]:h-auto has-[>[data-align=block-end]]:flex-col",
         className,
       )}
@@ -44,7 +46,6 @@ export function InputGroupAddon({
 }: InputGroupAddonProps) {
   return (
     <div
-      role="group"
       data-slot="input-group-addon"
       data-align={align}
       className={cn(
@@ -119,7 +120,9 @@ export function InputGroupInput({ className, ...props }: InputProps) {
     />
   );
 }
-export function InputGroupTextarea({ className, ...props }: TextareaProps) {
+/** A textarea in the group's frame. It takes `autoResize` and `maxRows`; a `characterLimit` count belongs under a plain Textarea, outside the frame. */
+export type InputGroupTextareaProps = Omit<TextareaProps, "characterLimit">;
+export function InputGroupTextarea({ className, ...props }: InputGroupTextareaProps) {
   return (
     <Textarea
       data-slot="input-group-control"

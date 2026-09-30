@@ -23,9 +23,10 @@ Use it for a point in time: evidence collected at, a response due at 5 PM, a sch
 
 The day is a typed [DatePicker](?path=/docs/components-datepicker--docs) input with its month, and the time a [TimeField](?path=/docs/components-timefield--docs) input with its stepping; each reads what the reader types in the locale, and the time shows the zone's short name. Where the field's container holds them they sit side by side; below 256px the time goes under the day.
 
-The field reports an instant once both halves read, and `""` while either is missing or not valid. `defaultTime` (an ISO time such as `"17:00"`) fills the time when the reader picks a day first. When focus leaves the field with one half filled, it says "Enter both a date and a time." A day and a wall time become an instant in the provider's zone: a time a daylight-saving change skips moves forward by the gap, and a time that happens twice takes the earlier moment.
+The field reports an instant once both halves read, and `""` while either is missing or not valid. `defaultTime` (an ISO time such as `"17:00"`) fills the time when the reader picks a day first. When focus leaves the field with one half filled, it says "Enter both a date and a time." Enter in either input with one half filled says the same and does not submit the form around the field, so focus stays where the reader is typing; so does Enter on a day or a time that does not read, or a moment outside the limits, with that message. With both halves read, Enter submits as in any text field. A day and a wall time become an instant in the provider's zone: a time a daylight-saving change skips moves forward by the gap, and a time that happens twice takes the earlier moment.
 
 <Canvas of={Stories.DefaultTimeAndIncomplete} />
+<Canvas of={Stories.EnterWithHalfAnEntry} />
 
 ## Limits
 

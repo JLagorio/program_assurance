@@ -1,0 +1,138 @@
+{
+  "about": "shadcn's theme names, which agents write from habit and which generate no CSS in Ledger, each with the Ledger class for the same job. `means` finishes \"shadcn's …\"; `use` holds one class, or two with `for` saying when each fits; `aside` is a sentence the finding adds; `states` names the class for the name under a state variant, `selected` (a selected, checked or pressed item) or `placeholder`; `suggest: false` keeps a class that does another job from being offered as a replacement. build/lint-data.mjs checks every entry (each name generates no CSS and is no Ledger class, each class is one utilities.json lists) and writes the table into src/generated/lint-values.json, where ledger/no-non-token-class reads it; build/lint-docs.mjs writes it onto the Coming from shadcn page. After an edit run npm run build:tokens, then npm run build:lint.",
+  "aliases": {
+    "bg-background": { "means": "page background", "use": ["bg-surface"] },
+    "bg-card": { "means": "card background", "use": ["bg-surface-raised"] },
+    "bg-popover": { "means": "popover background", "use": ["bg-surface-overlay"] },
+    "bg-primary": { "means": "primary background", "use": ["bg-brand-bold"] },
+    "bg-secondary": { "means": "secondary background", "use": ["bg-neutral"] },
+    "bg-muted": {
+      "means": "muted background",
+      "use": ["bg-neutral", "bg-surface-sunken"],
+      "for": ["a neutral fill", "a recessed region"],
+      "states": { "selected": "bg-selected" }
+    },
+    "bg-accent": {
+      "means": "hover background",
+      "use": ["bg-neutral-subtle-hovered"],
+      "aside": "Ledger's accent-* colours are hues with no meaning.",
+      "states": { "selected": "bg-selected" }
+    },
+    "bg-destructive": { "means": "destructive background", "use": ["bg-danger-bold"] },
+    "bg-foreground": { "means": "text colour as a fill", "use": ["bg-neutral-bold"] },
+    "bg-border": {
+      "means": "border colour as a fill",
+      "use": ["border-default"],
+      "aside": "A line between items is Separator, or a border side such as border-t.",
+      "suggest": false
+    },
+    "text-foreground": { "means": "text colour", "use": ["text-default"] },
+    "text-card-foreground": { "means": "text colour on a card", "use": ["text-default"] },
+    "text-popover-foreground": { "means": "text colour in a popover", "use": ["text-default"] },
+    "text-muted-foreground": {
+      "means": "secondary text colour",
+      "use": ["text-subtle"],
+      "states": { "placeholder": "text-subtlest" }
+    },
+    "text-primary": { "means": "primary colour as text", "use": ["text-brand"] },
+    "text-primary-foreground": {
+      "means": "text colour on the primary background",
+      "use": ["text-inverse"]
+    },
+    "text-secondary-foreground": {
+      "means": "text colour on the secondary background",
+      "use": ["text-default"]
+    },
+    "text-accent-foreground": {
+      "means": "text colour on a hovered item",
+      "use": ["text-default"],
+      "aside": "Ledger's accent-* colours are hues with no meaning.",
+      "states": { "selected": "text-selected" }
+    },
+    "text-destructive": { "means": "destructive text colour", "use": ["text-danger"] },
+    "text-destructive-foreground": {
+      "means": "text colour on the destructive background",
+      "use": ["text-inverse"]
+    },
+    "text-background": { "means": "page colour as text", "use": ["text-inverse"] },
+    "fill-foreground": {
+      "means": "text colour as an SVG fill",
+      "use": ["text-default"],
+      "aside": "An SVG takes its text colour through fill-current, beside a text-* token.",
+      "suggest": false
+    },
+    "border-border": { "means": "border colour", "use": ["border-default"] },
+    "border-primary": { "means": "primary colour as a border", "use": ["border-brand"] },
+    "border-destructive": { "means": "destructive border colour", "use": ["border-danger"] },
+    "border-ring": { "means": "focused border colour", "use": ["border-focused"] },
+    "ring-ring": {
+      "means": "focus ring colour",
+      "use": ["outline-focused", "outline-field-focused"],
+      "for": ["a control", "a field"]
+    },
+    "outline-ring": {
+      "means": "focus outline colour",
+      "use": ["outline-focused", "outline-field-focused"],
+      "for": ["a control", "a field"]
+    },
+    "ring-destructive": {
+      "means": "invalid ring colour",
+      "use": ["outline-danger", "outline-field-danger"],
+      "for": ["a control", "a field"]
+    },
+    "ring-offset-background": {
+      "means": "colour between a control and its focus ring",
+      "use": ["outline-focused"],
+      "aside": "The focus outline sets its own offset.",
+      "suggest": false
+    },
+    "bg-sidebar": {
+      "means": "sidebar background",
+      "use": ["bg-surface-sunken"],
+      "aside": "Shell.SideNav is the side navigation and sets its own colours."
+    },
+    "text-sidebar-foreground": {
+      "means": "sidebar text colour",
+      "use": ["text-default"],
+      "aside": "Shell.SideNav is the side navigation and sets its own colours."
+    },
+    "bg-sidebar-accent": {
+      "means": "sidebar hover background",
+      "use": ["bg-neutral-subtle-hovered"],
+      "aside": "Shell.SideNav is the side navigation and sets its own colours.",
+      "states": { "selected": "bg-selected" }
+    },
+    "text-sidebar-accent-foreground": {
+      "means": "text colour on a hovered sidebar item",
+      "use": ["text-default"],
+      "aside": "Shell.SideNav is the side navigation and sets its own colours.",
+      "states": { "selected": "text-selected" }
+    },
+    "bg-sidebar-primary": {
+      "means": "sidebar primary background",
+      "use": ["bg-brand-bold"],
+      "aside": "Shell.SideNav is the side navigation and sets its own colours."
+    },
+    "text-sidebar-primary-foreground": {
+      "means": "text colour on the sidebar primary background",
+      "use": ["text-inverse"],
+      "aside": "Shell.SideNav is the side navigation and sets its own colours."
+    },
+    "border-sidebar-border": {
+      "means": "sidebar border colour",
+      "use": ["border-default"],
+      "aside": "Shell.SideNav is the side navigation and sets its own colours."
+    },
+    "bg-sidebar-border": {
+      "means": "sidebar border colour as a fill",
+      "use": ["border-default"],
+      "aside": "A line between items is Separator, or a border side such as border-t.",
+      "suggest": false
+    },
+    "ring-sidebar-ring": {
+      "means": "sidebar focus ring colour",
+      "use": ["outline-focused"],
+      "aside": "Shell.SideNav is the side navigation and sets its own colours."
+    }
+  }
+}

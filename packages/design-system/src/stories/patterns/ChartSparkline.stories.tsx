@@ -35,7 +35,7 @@ export const SparklineMatrix: Story = {
           height={28}
         />
       </Specimens>
-      <Specimens title="Named, so it is a group with a tooltip · 160 by 40 · loading">
+      <Specimens title="Named, so it is an image with a tooltip · 160 by 40 · loading">
         <Chart.Sparkline
           data={byMonth}
           y="open"
@@ -51,50 +51,94 @@ export const SparklineMatrix: Story = {
   ),
 };
 
-/** Sparklines in tiles: the number carries the value, the line the trend, and a reference says what the limit is. */
+/** Sparklines in tiles, in the Stat's `trend` slot: the number carries the value, the line the trend, and a reference says what the limit is. The value stays a number, so it formats in the locale. */
 export const InTiles: Story = {
   render: () => (
     <Box style={{ maxWidth: 720 }}>
       <Stat.Grid cols={3}>
         <Stat.Tile
           label="Open findings"
-          value={
-            <Inline space="space.150" alignBlock="center">
-              <span>5</span>
-              <Chart.Sparkline data={byMonth} y="open" tone="danger" endDot />
-            </Inline>
-          }
+          value={5}
+          trend={<Chart.Sparkline data={byMonth} y="open" tone="danger" endDot />}
           note="Down from 14 in January"
         />
         <Stat.Tile
           label="Closed this year"
-          value={
-            <Inline space="space.150" alignBlock="center">
-              <span>59</span>
-              <Chart.Sparkline data={byMonth} y="closed" tone="success" appearance="bars" />
-            </Inline>
-          }
+          value={59}
+          trend={<Chart.Sparkline data={byMonth} y="closed" tone="success" appearance="bars" />}
           note="Nine months"
         />
         <Stat.Tile
           label="Plan"
-          value={
-            <Inline space="space.150" alignBlock="center">
-              <span>6</span>
-              <Chart.Sparkline
-                data={byMonth}
-                y="plan"
-                tone="neutral"
-                appearance="area"
-                reference={10}
-              />
-            </Inline>
+          value={6}
+          trend={
+            <Chart.Sparkline
+              data={byMonth}
+              y="plan"
+              tone="neutral"
+              appearance="area"
+              reference={10}
+            />
           }
           note="Against a limit of 10"
         />
       </Stat.Grid>
     </Box>
   ),
+};
+
+/** Control coverage, 96% to 99% over six months. */
+const coverage = [
+  { month: "Apr", covered: 0.96 },
+  { month: "May", covered: 0.965 },
+  { month: "Jun", covered: 0.97 },
+  { month: "Jul", covered: 0.968 },
+  { month: "Aug", covered: 0.982 },
+  { month: "Sep", covered: 0.99 },
+];
+const percent = (v: number) => `${Math.round(v * 1000) / 10}%`;
+
+/** `baseline`: a line or an area crops to its data (`auto`), so a trend on a high base still shows; bars start at zero, since a bar's length is its value. Forced to `zero`, the same line lies flat along the top. The tooltip names the value by `seriesLabel` and heads it with the month from `x`. */
+export const Baseline: Story = {
+  render: () => (
+    <Inline space="space.400" alignBlock="center">
+      <Chart.Sparkline
+        data={coverage}
+        y="covered"
+        x="month"
+        tone="success"
+        width={120}
+        height={32}
+        endDot
+        format={percent}
+        label="Coverage, cropped to its data"
+        seriesLabel="Covered"
+      />
+      <Chart.Sparkline
+        data={coverage}
+        y="covered"
+        x="month"
+        tone="success"
+        width={120}
+        height={32}
+        endDot
+        baseline="zero"
+        format={percent}
+        label="Coverage, from zero"
+        seriesLabel="Covered"
+      />
+    </Inline>
+  ),
+  play: async ({ canvas }) => {
+    const rise = (name: string) =>
+      canvas
+        .getByRole("img", { name })
+        .querySelector(".recharts-line-curve")!
+        .getBoundingClientRect().height;
+    // Cropped, the three points of rise fill the box; from zero they are a pixel or so.
+    await expect(rise("Coverage, cropped to its data")).toBeGreaterThan(20);
+    await expect(rise("Coverage, from zero")).toBeLessThan(4);
+  },
 };
 
 /** A sparkline per row: the trend column of a table, beside the number it belongs to. Unnamed, so a screen reader hears the number once. */
@@ -148,6 +192,7 @@ export const Narrow: Story = {
         <Chart.Sparkline
           data={byMonth}
           y="open"
+          x="month"
           tone="brand"
           width={160}
           height={40}
@@ -163,6 +208,7 @@ export const Narrow: Story = {
           <Chart.Sparkline
             data={byMonth}
             y="open"
+            x="month"
             tone="brand"
             width={160}
             height={40}
@@ -179,7 +225,10 @@ export const Narrow: Story = {
       ["row", "Open findings beside the number"],
     ] as const) {
       const cell = canvas.getByTestId(cellId).getBoundingClientRect();
-      const box = canvas.getByRole("group", { name }).getBoundingClientRect();
+      // Named, a sparkline is an image, and never a tab stop: its number is on the page.
+      const image = canvas.getByRole("img", { name });
+      await expect(image.querySelector("[tabindex='0']")).toBeNull();
+      const box = image.getBoundingClientRect();
       await expect(box.width).toBeLessThan(160);
       await expect(box.right).toBeLessThanOrEqual(cell.right + 0.5);
       await expect(box.height).toBe(40);

@@ -86,3 +86,68 @@ test("storage reads discard corrupt JSON and keep view keys isolated", () => {
     else delete globalThis.localStorage;
   }
 });
+
+test("a column added since the layout was stored takes the author's place, visibility and pin", () => {
+  const stored = parseStoredView({
+    v: 1,
+    known: ["id", "name", "status", "actions"],
+    order: ["status", "id", "name", "actions"],
+    sizing: {},
+    visibility: { name: true },
+    pinning: { start: ["id"], end: ["actions"] },
+  });
+  const restored = reconcileStoredView(stored, [
+    { id: "id" },
+    { id: "owner", visible: false },
+    { id: "name" },
+    { id: "due", pin: "start" },
+    { id: "status" },
+    { id: "actions", trailing: true },
+  ]);
+  // The reader's order stays; each new column sits after the column before it in the author's order.
+  assert.deepEqual(restored.order, ["status", "id", "owner", "name", "due", "actions"]);
+  // New and hidden by default stays hidden; a new author pin applies.
+  assert.equal(restored.visibility.owner, false);
+  assert.deepEqual(restored.pinning, { start: ["id", "due"], end: ["actions"] });
+});
+
+test("a column the reader cannot hide shows whatever the store says", () => {
+  const stored = parseStoredView({
+    v: 1,
+    order: [],
+    sizing: {},
+    visibility: { name: false, status: false },
+    pinning: { start: [], end: [] },
+  });
+  const restored = reconcileStoredView(stored, [{ id: "name", hideable: false }, { id: "status" }]);
+  assert.deepEqual(restored.visibility, { status: false });
+});
+
+test("a layout stored under another author version is discarded", () => {
+  const data = new Map();
+  const previous = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+  Object.defineProperty(globalThis, "localStorage", {
+    configurable: true,
+    value: {
+      getItem: (key) => data.get(key) ?? null,
+      setItem: (key, value) => data.set(key, value),
+      removeItem: (key) => data.delete(key),
+    },
+  });
+  try {
+    const { v: _v, ...layout } = valid;
+    writeView("versioned", layout);
+    assert.ok(readView("versioned"), "an unversioned layout reads as version 0");
+    assert.equal(readView("versioned", 2), null);
+    writeView("versioned", layout, 2);
+    assert.equal(readView("versioned", 2)?.author, 2);
+    assert.equal(readView("versioned"), null);
+    assert.equal(readView("versioned", 3), null);
+    // A malformed version is corrupt, not a version.
+    data.set(viewKey("versioned"), JSON.stringify({ ...valid, author: -1 }));
+    assert.equal(readView("versioned"), null);
+  } finally {
+    if (previous) Object.defineProperty(globalThis, "localStorage", previous);
+    else delete globalThis.localStorage;
+  }
+});

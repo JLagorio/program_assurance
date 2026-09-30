@@ -138,8 +138,12 @@ export function wizardIssues({
   productItems,
 }: {
   draft: ProgramWizardDraft;
-  /** The published records have loaded, so they can be checked against. */
-  ready: boolean;
+  /**
+   * The published records have loaded, so they can be checked against: `reference` the catalogs
+   * and profiles (the catalog step), `library` the component library and the product versions
+   * (the systems step). Each step continues once its own records are in.
+   */
+  ready: { reference: boolean; library: boolean };
   catalogs: readonly WizardCatalogOption[];
   profiles: readonly WizardProfileOption[];
   previews: ReadonlyMap<string, ProgramTailoringPreview>;
@@ -311,7 +315,7 @@ export function wizardIssues({
   if (draft.startsOn && draft.endsOn && draft.endsOn < draft.startsOn)
     program("endsOn", "Choose an end date on or after the start date.");
 
-  if (ready) {
+  if (ready.reference) {
     if (draft.catalogRevisionId && !catalogs.some((item) => item.id === draft.catalogRevisionId))
       catalogStep("catalog", "Choose a catalog edition that is still published.", 0);
     for (const profile of draft.profiles) {
@@ -329,6 +333,8 @@ export function wizardIssues({
       for (const message of previews.get(profile.key)?.errors ?? [])
         catalogStep(field, message, rank, prefix);
     }
+  }
+  if (ready.library) {
     draft.systems.forEach((item, index) => {
       const product = productItemFor(item, productItems);
       if (item.product && !product)

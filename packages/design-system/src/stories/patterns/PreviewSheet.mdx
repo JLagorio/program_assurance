@@ -16,31 +16,32 @@ The following specimen demonstrates generic metadata options and frame replaceme
 
 ## Anatomy
 
-| Slot                        | Purpose                                                                                                    |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| title                       | The inner PageHeader's h2; its SheetTitle also names the modal.                                            |
-| actions                     | Record commands in PageHeader.Actions beside the title; use small controls.                                |
-| id, status, subtitle, facts | Optional body metadata below the record header; absent content leaves no placeholder rows.                 |
-| onBack                      | Return to the previous frame from the outer header.                                                        |
-| navigation                  | Global controls in the outer header, normally PreviewNavigation with previous/next and a full-record link. |
-| openTo                      | Fallback full-record link in the outer header when navigation is absent.                                   |
-| links                       | Related destination links in the footer; no repeated full-record link.                                     |
-| children                    | The work area after the record header and metadata, in the sheet's SheetBody: its one scroller.            |
-| initialFocus, finalFocus    | Native Base UI focus targets for the consuming workflow.                                                   |
+| Slot                        | Purpose                                                                                                                                                            |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| title                       | The inner PageHeader's title, rendered as the SheetTitle: the h2 that names the modal. The body's sections sit one level below it.                                 |
+| actions                     | Record commands in PageHeader.Actions beside the title; use small controls.                                                                                        |
+| id, status, subtitle, facts | Optional body metadata below the record header; absent content leaves no placeholder rows.                                                                         |
+| onBack                      | Return to the previous frame: an arrow, "Back to previous record", at the start of the outer header, apart from previous and next.                                 |
+| backFocus                   | The control in the parent frame that opened this frame, where Back returns focus.                                                                                  |
+| navigation                  | Global controls in the outer header, normally PreviewNavigation with previous/next and a full-record link. With it, `openTo` may be left out.                      |
+| openTo                      | The full-record link in the outer header when navigation is absent. Empty children read "Open the full record" (`openTheFullRecord`); required without navigation. |
+| links                       | Related destination links in the footer; no repeated full-record link.                                                                                             |
+| children                    | The work area after the record header and metadata, in the sheet's SheetBody: its one scroller.                                                                    |
+| initialFocus, finalFocus    | Native Base UI focus targets for the consuming workflow.                                                                                                           |
 
 ## Variants and states
 
-Choose this surface when the current task benefits from containing focus; use Shell.Panel for selected work alongside a queue. Both support record actions in the inner record header. The sheet defaults to 720px and fits narrower screens. Keep commands concise: one small primary action and an overflow menu for additional commands.
+Choose this surface when the current task benefits from containing focus; use Shell.Panel for selected work alongside a queue. Both support record actions in the inner record header. The sheet defaults to 720px (`dimension.part.previewSheet`) and fits narrower screens. Keep commands concise: one small primary action and an overflow menu for additional commands.
 
 The outer header never repeats the visible record name or holds record commands. It contains Back when provided, collection navigation or the fallback full-record link, and Close. Supplying `navigation` suppresses `openTo`; include the full-record destination in that navigation. The footer, when present, contains related links only.
 
-The caller controls `open` and owns dismissal, in-progress work and the related-record stack. Back changes the frame; Close dismisses the sheet. Keep browser history aligned when that stack is represented in the URL.
+The caller controls `open` and owns dismissal, in-progress work and the related-record stack. Close and Escape dismiss the whole preview from any frame: `onClose` ends every frame, so the next open starts at the root, and focus returns to the control that opened the sheet. Back is the only way to pop one frame. It returns focus to `backFocus`, the control in the parent frame that opened the nested one; give that control a ref, which a parent frame rendered again still fills. Without `backFocus`, focus stays on Back while a deeper frame keeps one, else it goes to the parent frame's title. Keep browser history aligned when that stack is represented in the URL.
 
 <Canvas of={Stories.CompleteReview} />
 
 ## Accessibility
 
-Base UI provides the dialog semantics, modal focus containment, Escape dismissal and focus return. By default, PreviewSheet focuses its title so users encounter the identity before the record's structured content. Use `initialFocus` for an appropriate field in a task-oriented form, and `finalFocus` when completing work removes the opener. A short supplied subtitle becomes the description; an absent subtitle creates no empty description.
+Base UI provides the dialog semantics, modal focus containment, Escape dismissal and focus return. By default, PreviewSheet focuses its title so users encounter the identity before the record's structured content. Back and the navigation's buttons show their names in tooltips; Close is the X every Sheet closes with and, like Sheet's own, shows none, so Escape on it closes the sheet at once. The Back arrow turns in a right-to-left provider. Use `initialFocus` for an appropriate field in a task-oriented form, and `finalFocus` when completing work removes the opener. A short supplied subtitle becomes the description; an absent subtitle creates no empty description.
 
 The visible Close remains available in the outer header. Keep pending/unsaved-work handling in the caller, including dismissal guards where the actual workflow needs them. Navigation uses named anchors; record commands use buttons in the inner header.
 

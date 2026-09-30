@@ -2,7 +2,10 @@ import { useRender } from "@base-ui/react/use-render";
 import { Collapsible as CollapsiblePrimitive } from "@base-ui/react/collapsible";
 import { ChevronRight } from "lucide-react";
 import {
+  Children,
   createContext,
+  Fragment,
+  isValidElement,
   useContext,
   useId,
   type ComponentProps,
@@ -10,11 +13,13 @@ import {
   type ReactNode,
 } from "react";
 
+import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
 import { headingTag, useHeadingLevel } from "../primitives/heading-level";
 import { Empty, EmptyHeader, EmptyTitle } from "./empty";
 import { Count } from "./badge";
 import { Id } from "./id";
+import { Truncate, type TruncateLines } from "./truncate";
 
 /* Every row is six cells on one grid: toggle · leading · id · body · trailing ·
    actions. A group is the grid and each row a subgrid of it, so marks, ids and dates make columns
@@ -23,6 +28,15 @@ import { Id } from "./id";
    never inside it, so a row is one link or one button with separate stops after it. */
 
 const columns = "auto auto auto minmax(0, 1fr) auto auto";
+
+/** Whether children render anything: arrays and fragments are looked into, so a list fed from two mapped sources that are both empty has no rows. Not exported from the package. */
+export function hasRenderedChildren(children: ReactNode): boolean {
+  return Children.toArray(children).some((child) =>
+    isValidElement<{ children?: ReactNode }>(child) && child.type === Fragment
+      ? hasRenderedChildren(child.props.children)
+      : child !== "",
+  );
+}
 
 export type ItemSize = "default" | "compact";
 
@@ -33,13 +47,15 @@ export type ItemProps = Omit<ComponentProps<"li">, "id" | "title" | "onSelect"> 
   leading?: ReactNode;
   /** The record's id, in its own column so a list of ids lines up. */
   id?: ReactNode;
-  /** The id column's width, 72 by default. */
+  /** The id column's width in pixels, 72 by default (`dimension.part.itemId`). */
   idWidth?: number | undefined;
-  /** The row's name, one line. It truncates. The link or button of a row is this element, stretched over the row. */
+  /** The row's name, one line by default. A name that is cut shows in full in a tooltip on hover and on keyboard focus of the row. The link or button of a row is this element, stretched over the row. */
   title: ReactNode;
+  /** How many lines the title keeps before its ellipsis: 1 by default, 2 or 3 for a list of long names. */
+  maxTitleLines?: TruncateLines | undefined;
   /** A second line under the title, subtle: who, when, why. */
   description?: ReactNode;
-  /** Inline after the title, muted: the kind, the size, the state as a word. */
+  /** Inline after the title, muted: the kind, the size, the state as a word. It keeps its words while the title gives way, and is cut, with its reveal, only past half the line. */
   meta?: ReactNode;
   /** Right-aligned value or date, tabular. */
   trailing?: ReactNode;
@@ -55,7 +71,7 @@ export type ItemProps = Omit<ComponentProps<"li">, "id" | "title" | "onSelect"> 
     | undefined;
   /** Makes the title a button that stretches over the row. */
   onSelect?: (() => void) | undefined;
-  /** The row that is open beside the list. */
+  /** The row that is open beside the list: a selected fill, and `aria-current="true"` on the title's link or button, so a screen reader says which row is open. */
   isActive?: boolean | undefined;
   /** The children fold behind a chevron. A plain row opens on a click anywhere; a row that links or selects opens on the chevron. */
   isCollapsible?: boolean | undefined;
@@ -73,8 +89,9 @@ export type ItemProps = Omit<ComponentProps<"li">, "id" | "title" | "onSelect"> 
 function ItemRoot({
   leading,
   id,
-  idWidth = 72,
+  idWidth,
   title,
+  maxTitleLines = 1,
   description,
   meta,
   trailing,
@@ -99,42 +116,67 @@ function ItemRoot({
   const collapsible = Boolean(isCollapsible && children);
   const clickable = interactive || collapsible;
 
-  const text = <span className="block truncate font-body text-default">{title}</span>;
+  const idId = useId();
+  const metaId = useId();
+  const descriptionId = useId();
+  // The id, the meta and the description tell rows with one name apart, so the row's link or
+  // button carries them as its description.
+  const describedBy =
+    [id ? idId : null, meta ? metaId : null, description ? descriptionId : null]
+      .filter(Boolean)
+      .join(" ") || undefined;
+
+  // Above the stretched overlay (z-10 within the row), so hovering the name reveals it when cut;
+  // a click on it is still a click on the link or button it sits in.
+  const text = (
+    <Truncate
+      maxLines={maxTitleLines}
+      className={cn("font-body text-default", clickable && "relative z-10")}
+    >
+      {title}
+    </Truncate>
+  );
   // `static` keeps the overlay stretched over the row when the link is a positioned part (TextLink).
+  // A flush row spans its card edge to edge, so its ring is drawn inside the edge, where the card's
+  // clipping cannot cut its sides.
   const titleClass = cn(
     "block min-w-0 outline-none",
-    clickable && "static after:absolute after:inset-0 focus-visible:after:outline-focused",
-    clickable && (flush ? "after:rounded-none" : "after:rounded-medium"),
+    clickable && "static after:absolute after:inset-0",
+    clickable &&
+      (flush
+        ? "after:rounded-none focus-visible:after:outline-field-focused"
+        : "after:rounded-medium focus-visible:after:outline-focused"),
   );
+  const titleState = {
+    id: titleId,
+    className: titleClass,
+    children: text,
+    ...(interactive || collapsible ? { "aria-describedby": describedBy } : {}),
+    ...(isActive ? { "aria-current": "true" as const } : {}),
+  };
   const titleLink = useRender({
     defaultTagName: "a",
     render: link,
     enabled: Boolean(link),
     state: { slot: "item-link" },
-    props: { id: titleId, className: titleClass, children: text },
+    props: titleState,
   });
   const titleEl = link ? (
     titleLink
   ) : onSelect ? (
     <button
       type="button"
-      id={titleId}
+      {...titleState}
       onClick={onSelect}
-      className={cn(titleClass, "cursor-pointer text-left")}
-    >
-      {text}
-    </button>
+      className={cn(titleClass, "cursor-pointer text-start")}
+    />
   ) : collapsible ? (
     <CollapsiblePrimitive.Trigger
-      id={titleId}
-      className={cn(titleClass, "cursor-pointer text-left")}
-    >
-      {text}
-    </CollapsiblePrimitive.Trigger>
+      {...titleState}
+      className={cn(titleClass, "cursor-pointer text-start")}
+    />
   ) : (
-    <span id={titleId} className={titleClass}>
-      {text}
-    </span>
+    <span {...titleState} />
   );
 
   const chevron = (
@@ -175,21 +217,33 @@ function ItemRoot({
       </span>
       <span className={cn("flex h-250 items-center text-subtle", id && "pe-150")}>
         {id ? (
-          <span className="block truncate" style={{ width: idWidth }}>
+          <Truncate id={idId} style={{ width: idWidth ?? token("dimension.part.itemId") }}>
             <Id>{id}</Id>
-          </span>
+          </Truncate>
         ) : null}
       </span>
       <span className="flex min-w-0 flex-col gap-025">
         <span className="flex min-h-250 items-center">
-          <span className="flex min-w-0 items-baseline gap-100">
+          {/* The meta keeps its words and the title gives way first; the meta is cut only past
+              half the line, so a long one cannot crowd the title out. */}
+          <span className="flex w-full min-w-0 items-baseline gap-100">
             {titleEl}
             {meta ? (
-              <span className="min-w-0 truncate font-body-small text-subtle">{meta}</span>
+              <Truncate
+                id={metaId}
+                className="shrink-0 font-body-small text-subtle"
+                style={{ maxWidth: "50%" }}
+              >
+                {meta}
+              </Truncate>
             ) : null}
           </span>
         </span>
-        {description ? <span className="font-body-small text-subtle">{description}</span> : null}
+        {description ? (
+          <span id={descriptionId} className="font-body-small text-subtle">
+            {description}
+          </span>
+        ) : null}
       </span>
       <span
         className={cn(
@@ -244,7 +298,7 @@ export type ItemGroupProps = Omit<ComponentProps<"div">, "title"> & {
   children?: ReactNode;
   /** What to say when there are no rows: "No milestones recorded." */
   empty?: ReactNode;
-  /** A heading over the rows, semibold with a rule under it: "Milestones". It names the list. The heading takes the contextual level, an h3 outside every HeadingLevelProvider. */
+  /** A heading over the rows, semibold with a rule under it: "Milestones". It names the list, and a long one wraps. The heading takes the contextual level, an h3 outside every HeadingLevelProvider. */
   title?: ReactNode;
   /** A Count after the title: how many rows. */
   count?: number | undefined;
@@ -258,7 +312,7 @@ export type ItemGroupProps = Omit<ComponentProps<"div">, "title"> & {
   "aria-label"?: string | undefined;
   /**
    * The id of a heading outside the group that names it.
-   * @deprecated Use `aria-labelledby`, which now reaches the list; `ledger/no-deprecated-name` fixes it.
+   * @deprecated Use `aria-labelledby`, which reaches the list; `labelledBy` is kept for one version.
    */
   labelledBy?: string | undefined;
   /** Rows run edge to edge of the card they sit in: the hairlines and the hover fill span it, the text at `space.200`. For an Item.Group inside a Card or a Related. */
@@ -283,7 +337,7 @@ export function ItemGroup({
 }: ItemGroupProps) {
   const headingId = useId();
   const HeadingTag = headingTag(useHeadingLevel() ?? 3);
-  const has = Array.isArray(children) ? children.some(Boolean) : Boolean(children);
+  const has = hasRenderedChildren(children);
   const body =
     !has && empty ? (
       <div className={cn(flush ? "px-200" : "px-050", size === "compact" ? "py-050" : "py-100")}>
@@ -320,7 +374,7 @@ export function ItemGroup({
           {title ? (
             <HeadingTag
               id={headingId}
-              className="min-w-0 truncate font-body font-semibold text-default"
+              className="min-w-0 break-words font-body font-semibold text-default"
             >
               {title}
             </HeadingTag>

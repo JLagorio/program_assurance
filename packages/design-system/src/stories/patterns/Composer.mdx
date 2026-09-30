@@ -6,13 +6,13 @@ import * as Stories from "./Composer.stories";
 
 # Composer
 
-An experimental shared text composer for messages, comments and other short drafts. Ledger owns keyboard completion, submission progress and recovery. The consuming application owns recipients, permissions, persistence, suggestion identity and serialized text. Owner: Ledger maintainers; consumers own their adapters.
+A shared text composer for messages, comments and other short drafts. Ledger owns keyboard completion, submission progress and recovery. The consuming application owns recipients, permissions, persistence, suggestion identity and serialized text. Owner: Ledger maintainers; consumers own their adapters.
 
 <Canvas of={Stories.ComposerMatrix} />
 
 ## Anatomy
 
-A named textarea, optional leading marker, contextual fields above, instructions below, optional `actions` before the buttons (a second thing to do with the draft), optional cancel action, and primary submission action. Suggestions attach beneath the field; rejection produces a visible alert.
+A named textarea, optional leading marker, contextual fields above, instructions below, optional `actions` before the buttons (a second thing to do with the draft), optional cancel action, and primary submission action. Suggestions float under the field in the kit's positioner; a rejected send puts its message under the field.
 
 ## Variants
 
@@ -22,11 +22,17 @@ One composition, with optional suggestion and leading slots. No event taxonomy o
 
 ## Sizes
 
-Three initial textarea rows. The layout follows its container; the suggestion popup is bounded by the available width and scrolls when tall. Long option labels truncate visually while retaining their accessible text.
+Three initial textarea rows. The layout follows its container. The suggestion list is 280px wide and at most 240px tall, bounded by the width and the height the window leaves; it scrolls when taller. It is portaled, so a panel, dialog or card that clips its content cannot cut it, and it opens above the field where the window ends below it. Long option labels truncate visually while retaining their accessible text.
+
+<Canvas of={Stories.SuggestionsAtTheEdge} />
+
+Inside a Dialog, Sheet or Popover the list belongs to that overlay: choosing an option leaves it open, and Escape closes the list before the overlay.
+
+<Canvas of={Stories.SuggestionsInDialog} />
 
 ## States
 
-Empty drafts cannot submit. Nonempty drafts submit with the button or Ctrl/⌘ + Enter. While pending, the textarea is read-only and repeat submission and cancellation are blocked. Fulfillment clears the submitted draft; rejection retains it with a retry message. A newer controlled draft is retained when an earlier request resolves. A disabled composer cannot be edited or submitted.
+Empty drafts cannot submit. Nonempty drafts submit with the button or Ctrl/⌘ + Enter. While pending, the textarea is read-only and repeat submission and cancellation are blocked. Fulfillment clears the submitted draft and returns focus to the field for the next message; rejection retains the draft with its message under the field. A newer controlled draft is retained when an earlier request resolves. A disabled composer cannot be edited or submitted.
 
 <Canvas of={Stories.SaveRecovery} />
 
@@ -36,17 +42,21 @@ Empty drafts cannot submit. Nonempty drafts submit with the button or Ctrl/⌘ +
 
 `getSuggestions(text, caret)` returns UTF-16 replacement offsets and ordered options, or null. The caller provides unique option IDs, accessible labels, exact insertion strings, filtering and result limits. Invalid ranges are ignored. The adapter is synchronous; fetching remote candidates belongs to the caller. No rich-text document model is implied.
 
+`errorMessage` is the message after a rejected send, or a function of the rejection that returns it, to show the server's reason.
+
+<Canvas of={Stories.ServerReason} />
+
 ## Content
 
-Supply a descriptive `label` independently of placeholder text. Translate `submitLabel`, `cancelLabel`, `suggestionsLabel`, `errorMessage` and `hint`. Use stable identities when your product serializes references; a display name need not be an identity. Resolve `onSubmit` only when your application's promised save boundary succeeds; throw or reject on failure.
+Supply a descriptive `label` independently of placeholder text. `submitLabel`, `cancelLabel`, `suggestionsLabel`, `errorMessage` and `hint` default to the LedgerProvider's messages (Send, Cancel, Suggestions, "Could not send. Try again." and "Ctrl/⌘ + Enter to send"), so a translated provider translates them; pass your own words where the task names its action, such as Comment. The default keyboard hint is left out on a touch screen (a coarse primary pointer), which has no key to press it with; `hint={null}` shows none anywhere. Use stable identities when your product serializes references; a display name need not be an identity. Resolve `onSubmit` only when your application's promised save boundary succeeds; throw or reject on failure.
 
 ## Style
 
-Textarea and Button provide the control styling. Layout uses `space.100`; suggestions use the overlay surface, default border and overlay shadow. Pending and error states remain understandable without animation or color alone.
+Textarea and Button provide the control styling. Layout uses `space.100`; suggestions use the overlay surface, default border and overlay shadow, and the active option `color.background.neutral.subtle.hovered`. In forced colours the active option is Highlight with HighlightText. Pending and error states remain understandable without animation or color alone.
 
 ## Accessibility
 
-The textarea keeps focus while suggestions are navigated. Up/Down selects an option, Enter/Tab inserts it, and Escape closes the list without dismissing a containing overlay. IME confirmation does not insert or submit. Suggestions expose listbox/option semantics and an active descendant. Pointer selection returns focus to the textarea. Instructions and errors describe the textarea; rejection is announced through an alert. The completion key handling and save recovery run in both color modes.
+The textarea keeps focus while suggestions are navigated, and has `aria-haspopup="listbox"`, `aria-autocomplete="list"`, `aria-controls` and `aria-activedescendant` while the list is open. Up/Down selects an option, Enter or Tab inserts it, Shift+Tab leaves the field and closes the list, and Escape closes the list without dismissing a containing overlay. Because Tab inserts while the list is open, the list says so when it appears: a polite announcement gives the count and the keys ("2 suggestions. Up and Down to choose, Enter or Tab to insert."), and each move names the option and its place ("Delivery, 2 of 2"). IME confirmation does not insert or submit. Suggestions expose listbox and option semantics. Pointer selection returns focus to the textarea. Instructions and a rejected send's message describe the textarea, and the rejection is also announced at once. After a send lands, focus returns to the textarea, since Send is unavailable with an empty draft. The completion key handling and save recovery run in both color modes and in forced colours.
 
 ## Props
 
@@ -58,7 +68,7 @@ The textarea keeps focus while suggestions are navigated. Up/Down selects an opt
 
 - [Textarea](?path=/docs/components-textarea--docs) for plain multiline input.
 - [Timeline](?path=/docs/components-timeline--docs) for rendering events independently of the composer.
-- Application Activity.Composer adapts this contract to its people list and `@[Full Name]` format; those workflows remain in the application.
+- [Popover](?path=/docs/components-popover--docs), whose positioner places the suggestion list.
 
 ## Don't
 

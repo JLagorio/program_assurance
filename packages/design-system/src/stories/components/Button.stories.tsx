@@ -6,6 +6,7 @@ import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import { Button, LinkButton } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
+import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Components/Button",
@@ -80,6 +81,13 @@ export const Matrix: Story = {
       await expect(icon).toHaveAttribute("aria-hidden", "true");
       await expect(icon.getBoundingClientRect().width).toBe(14);
     }
+    // Forced colours remove the fill and the raised shadow that draw a bounded button's edge, so
+    // primary, secondary and danger keep a ButtonText outline; subtle and link have none to keep.
+    if (matchMedia("(forced-colors: active)").matches)
+      for (const variant of variants) {
+        const outline = getComputedStyle(canvas.getByTestId(`${variant}-medium`)).outlineStyle;
+        await expect(outline).toBe(variant === "subtle" || variant === "link" ? "none" : "solid");
+      }
   },
 };
 
@@ -171,6 +179,87 @@ export const Loading: Story = {
     );
     await expect(submit).not.toHaveAttribute("aria-busy");
     await expect(submit).toHaveFocus();
+  },
+};
+
+function RevisionFooter() {
+  const [saving, setSaving] = useState<string | null>(null);
+  const hold = (name: string) => () => {
+    setSaving(name);
+    setTimeout(() => setSaving(null), 1500);
+  };
+  return (
+    <Inline space="space.100" alignBlock="center" shouldWrap>
+      <Button
+        variant="primary"
+        isLoading={saving === "revision"}
+        loadingLabel="Saving requirement revision"
+        onClick={hold("revision")}
+      >
+        Create requirement revision
+      </Button>
+      <Button
+        iconBefore={<Download />}
+        isLoading={saving === "export"}
+        loadingLabel="Exporting the report"
+        onClick={hold("export")}
+      >
+        Export report
+      </Button>
+      <Button iconAfter={<ArrowRight />} isLoading={saving === "next"} onClick={hold("next")}>
+        Continue to review
+      </Button>
+    </Inline>
+  );
+}
+
+const politeRegion = () =>
+  document.querySelector<HTMLElement>('[data-slot="announcer-region"][data-politeness="polite"]');
+
+/**
+ * Loading never moves the footer: the spinner takes the leading icon's place, else the trailing
+ * icon's, else it sits over the label, which keeps its space and stays the name. `loadingLabel`
+ * says what started through the page's polite live region, since `aria-busy` alone is silent.
+ */
+export const LoadingKeepsItsWidth: Story = {
+  name: "Loading keeps its width and says so",
+  render: () => <RevisionFooter />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    for (const [name, spinnerSide] of [
+      ["Create requirement revision", "over"],
+      ["Export report", "inline-start"],
+      ["Continue to review", "inline-end"],
+    ] as const) {
+      const button = canvas.getByRole("button", { name });
+      const before = button.getBoundingClientRect();
+      await userEvent.click(button);
+      await expect(button).toHaveAttribute("aria-busy", "true");
+      await expect(button).toHaveFocus();
+      await expect(button).toHaveAccessibleName(name);
+      const during = button.getBoundingClientRect();
+      await expect(during.width).toBe(before.width);
+      await expect(during.height).toBe(before.height);
+      if (spinnerSide === "over") {
+        const spinner = button.querySelector('[data-slot="button-loading-spinner"] svg')!;
+        const box = spinner.getBoundingClientRect();
+        await expect(Math.abs(box.x + box.width / 2 - (during.x + during.width / 2))).toBeLessThan(
+          1,
+        );
+        await expect(
+          getComputedStyle(button.querySelector('[data-slot="button-loading-label"]')!).opacity,
+        ).toBe("0");
+      } else {
+        await expect(
+          button.querySelector(`[data-slot="spinner"][data-icon="${spinnerSide}"]`),
+        ).not.toBeNull();
+      }
+      await waitFor(() => expect(button).not.toHaveAttribute("aria-busy"), { timeout: 2500 });
+      await expect(button.getBoundingClientRect().width).toBe(before.width);
+    }
+    await waitFor(() =>
+      expect(politeRegion()).toHaveTextContent(/Saving requirement revision.*Exporting the report/),
+    );
   },
 };
 
@@ -453,6 +542,56 @@ export const OnTouch: Story = {
     }
     await expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
       document.documentElement.clientWidth,
+    );
+  },
+};
+
+/** The mistakes the page is written to prevent, each beside the right way. */
+export const Dont: Story = {
+  render: () => (
+    <Stack space="space.400">
+      <Pair
+        do={
+          <Inline space="space.100" alignBlock="center">
+            <Button variant="subtle">Cancel</Button>
+            <Button variant="primary">Create risk</Button>
+          </Inline>
+        }
+        doText="One primary for the region, named for what happens; the rest is secondary or subtle."
+        dont={
+          <Inline space="space.100" alignBlock="center">
+            <Button variant="primary">Save draft</Button>
+            <Button variant="primary">OK</Button>
+          </Inline>
+        }
+        dontText="Two primaries compete, and OK says nothing to a reader who lands on it."
+      />
+      <Pair
+        do={
+          <Button aria-describedby="saved-view-hint" iconAfter={<ChevronDown />}>
+            All programs
+          </Button>
+        }
+        doText="The visible words are the name; context goes in a description."
+        dont={
+          <Button aria-label="Saved questions" iconAfter={<ChevronDown />}>
+            All programs
+          </Button>
+        }
+        dontText="An aria-label that replaces the visible words: saying “click All programs” does nothing."
+      />
+      <Text id="saved-view-hint" size="small" color="color.text.subtle">
+        Saved view
+      </Text>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(
+      canvas.getByRole("button", { name: "All programs", description: "Saved view" }),
+    ).toBeVisible();
+    await expect(canvas.getByRole("button", { name: "Saved questions" })).toHaveTextContent(
+      "All programs",
     );
   },
 };

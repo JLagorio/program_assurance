@@ -68,21 +68,36 @@
     transform: translateY(var(--ds-space-075));
   }
 }
-/* Disclosure primitives expose their measured height as a custom property on the panel. Base UI
-   uses --accordion-panel-height; Collapsible uses --collapsible-panel-height. */
+/* DISCLOSURE: disclosure panels fold on their own measured height. Base UI writes it on the panel
+   as --accordion-panel-height (Accordion) or --collapsible-panel-height (Collapsible), and both
+   inherit, so a Collapsible inside an open Accordion item would read the item's `auto` and snap.
+   Each kit panel names its own (`data-collapse-panel`), and the fold reads --ds-collapse-height,
+   resolved on the panel itself; an untagged panel falls back to either. */
+[data-collapse-panel="accordion"] {
+  --ds-collapse-height: var(--accordion-panel-height);
+}
+[data-collapse-panel="collapsible"] {
+  --ds-collapse-height: var(--collapsible-panel-height);
+}
 @keyframes ds-collapse-open {
   from {
     height: 0;
     opacity: 0;
   }
   to {
-    height: var(--accordion-panel-height, var(--collapsible-panel-height));
+    height: var(
+      --ds-collapse-height,
+      var(--accordion-panel-height, var(--collapsible-panel-height))
+    );
     opacity: 1;
   }
 }
 @keyframes ds-collapse-close {
   from {
-    height: var(--accordion-panel-height, var(--collapsible-panel-height));
+    height: var(
+      --ds-collapse-height,
+      var(--accordion-panel-height, var(--collapsible-panel-height))
+    );
     opacity: 1;
   }
   to {
@@ -301,5 +316,76 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-pulse {
     animation: none;
+  }
+}
+
+/* OVERLAYS: the parent of the one stack. A Dialog or Sheet with a dialog open inside it (an
+   AlertDialog for the decision it owns) dims under the blanket colour, so its own buttons read as
+   inactive in both modes; Base UI draws no second blanket for the nested dialog. The layer is as
+   tall as the window and pinned to the popup's bottom edge, so it covers whatever part of the
+   popup shows, however far a short window has scrolled it, and adds no scroll height. It fades on
+   the motion tokens, and switches at once under reduced motion. */
+:is([data-slot="dialog-content"], [data-slot="sheet-content"])::after {
+  content: "";
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  flex-shrink: 0;
+  height: 100dvh;
+  margin-block-start: -100dvh;
+  background-color: var(--ds-color-blanket);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--ds-motion-duration-medium) var(--ds-motion-easing-standard);
+}
+:is([data-slot="dialog-content"], [data-slot="sheet-content"])[data-nested-dialog-open]::after {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is([data-slot="dialog-content"], [data-slot="sheet-content"])::after {
+    transition-duration: 0s;
+  }
+}
+
+/* FEEDBACK: an indeterminate Progress (value null) is a hatched bar the width of its track, drawn
+   in its tone's stripe colour over the track, so a wait never reads as a finished bar. The stripes
+   move one tile every motion.duration.slower; under reduced motion they stand still and the bar
+   stays hatched. It is unlayered so it overrides the tone's solid fill. */
+@keyframes ds-progress-stripes {
+  from {
+    background-position: var(--ds-space-100) 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+[data-slot="progress-indicator"][data-indeterminate] {
+  width: 100%;
+  background-color: transparent;
+  background-image: linear-gradient(
+    45deg,
+    currentColor 25%,
+    transparent 25% 50%,
+    currentColor 50% 75%,
+    transparent 75%
+  );
+  background-size: var(--ds-space-100) var(--ds-space-100);
+  animation: ds-progress-stripes var(--ds-motion-duration-slower) linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="progress-indicator"][data-indeterminate] {
+    animation: none;
+  }
+}
+
+/* FOUNDATIONS (TOK-15, G8-1): under reduced motion nothing turns, travels or resizes. A transition
+   on transform (a chevron turning, a sort arrow, a Switch's thumb) or on every property (a bar's
+   width) lands at once, wherever the part forgot motion-reduce:transition-none. A colour or an
+   opacity fade stays: it changes nothing's place. Unlayered, like the pulse stop above, so it wins
+   over the duration utility beside it. */
+@media (prefers-reduced-motion: reduce) {
+  .transition-transform,
+  .transition-all {
+    transition-duration: 0s;
   }
 }

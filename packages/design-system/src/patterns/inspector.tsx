@@ -1,17 +1,10 @@
-import { type ComponentProps, type ReactNode } from "react";
+import { Children, isValidElement, type ComponentProps, type ReactNode } from "react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleHeader,
   type CollapsibleProps,
 } from "../components/collapsible";
-
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "../components/accordion";
 
 import { KeyValue } from "../components/key-value";
 import { cn } from "../lib/cn";
@@ -30,38 +23,22 @@ export type InspectorProps = Omit<ComponentProps<"div">, "children"> & {
   footer?: ReactNode;
 };
 
-/** Reusable groups of properties. The surrounding layout owns positioning and scrolling. Each group's heading takes the contextual level: an h3 outside every HeadingLevelProvider, an h3 in a titled panel's body, an h2 in an Aside wrapped in `HeadingLevelProvider level={2}`. */
+/** Reusable groups of properties. The surrounding layout owns positioning and scrolling. Each group is an Inspector.Group, its rows one KeyValue.Group, and its heading takes the contextual level: an h3 outside every HeadingLevelProvider, an h3 in a titled panel's body, an h2 in an Aside wrapped in `HeadingLevelProvider level={2}`. */
 function InspectorRoot({ groups, footer, ...props }: InspectorProps) {
-  const body = (
-    <>
-      <Accordion defaultValue={groups.map((g) => g.title)} multiple className="border-b-0">
-        {groups.map((g, index) => (
-          <AccordionItem
-            value={g.title}
-            key={g.title}
-            className={index === 0 ? "border-t-0" : "border-t border-default"}
-          >
-            <AccordionTrigger>{g.title}</AccordionTrigger>
-            <AccordionContent>
-              <div className="pb-200">
-                <div className="flex flex-col">
-                  {g.rows.map((r) => (
-                    <KeyValue key={r.label} label={r.label}>
-                      {r.value}
-                    </KeyValue>
-                  ))}
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
-      {footer ? <div className="pt-150">{footer}</div> : null}
-    </>
-  );
   return (
     <div {...props} data-slot="inspector">
-      {body}
+      {groups.map((g) => (
+        <InspectorGroup key={g.title} title={g.title}>
+          <KeyValue.Group>
+            {g.rows.map((r) => (
+              <KeyValue key={r.label} label={r.label}>
+                {r.value}
+              </KeyValue>
+            ))}
+          </KeyValue.Group>
+        </InspectorGroup>
+      ))}
+      {footer ? <div className="pt-150">{footer}</div> : null}
     </div>
   );
 }
@@ -72,7 +49,7 @@ export type InspectorGroupProps = Omit<
 > & {
   /** The group's name, a noun for the kind of fact: "Ownership", "Exposure". */
   title: string;
-  /** KeyValue rows, a handful; a row of Badges; a short list. */
+  /** The facts: a KeyValue.Group of a handful of KeyValue rows; a row of Badges; a short list. KeyValues given directly, and nothing else, become one KeyValue.Group. */
   children: ReactNode;
   /** At the top end of the group, before the rows: an IconButton ("Edit properties") or a link button. */
   action?: ReactNode;
@@ -85,7 +62,7 @@ export type InspectorGroupProps = Omit<
   className?: string | undefined;
 };
 
-/** One group of facts on its own: a folding row, open by default, KeyValue rows as children. Native `div` props and the ref reach the group's root. Its title is a CollapsibleHeader, a button inside a heading at the contextual level (an h3 outside every provider), with a chevron that turns while the group is open. The action sits beside the title while the whole title fits beside it on one line; otherwise it takes the next row, at the end, rather than squeezing the title. */
+/** One group of facts on its own: a folding row, open by default, a KeyValue.Group of rows as its children (KeyValues given directly become one). Native `div` props and the ref reach the group's root. Its title is a CollapsibleHeader, a button inside a heading at the contextual level (an h3 outside every provider), with a chevron that turns while the group is open. The action sits beside the title while the whole title fits beside it on one line; otherwise it takes the next row, at the end, rather than squeezing the title. */
 export function InspectorGroup({
   title,
   children,
@@ -112,10 +89,20 @@ export function InspectorGroup({
       </div>
       <CollapsibleContent>
         <div className="pb-200">
-          <div className="flex flex-col">{children}</div>
+          <div className="flex flex-col">
+            {onlyKeyValues(children) ? <KeyValue.Group>{children}</KeyValue.Group> : children}
+          </div>
         </div>
       </CollapsibleContent>
     </Collapsible>
+  );
+}
+
+/** Whether the children are KeyValue rows and nothing else, so the group can make them one list. */
+function onlyKeyValues(children: ReactNode) {
+  const items = Children.toArray(children);
+  return (
+    items.length > 0 && items.every((child) => isValidElement(child) && child.type === KeyValue)
   );
 }
 

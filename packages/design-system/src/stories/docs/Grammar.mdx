@@ -31,7 +31,7 @@ Every token has one CSS variable, `--ds-<name with dashes>`, and most have one T
 
 ## Tiers
 
-1. **Palette.** Six ramps (neutral, dark neutral, blue, green, orange, red) with numbered step names, plus alpha steps for translucent fills. Never used directly.
+1. **Palette.** Eight ramps (neutral, dark neutral, blue, green, orange, red, teal, purple) with numbered step names, plus alpha steps for translucent fills. Never used directly.
 2. **Semantic.** Colour and elevation tokens that reference the ramps. Each has a light value and a dark value. This is the only tier a component reads for colour.
 3. **Typography, space, shape, dimension, motion.** Mode independent.
 4. **Component.** Where a component needs a value no semantic token gives it, the value is added to the tokens, not written in the component.
@@ -41,7 +41,7 @@ Every token has one CSS variable, `--ds-<name with dashes>`, and most have one T
 - **Surface.** `elevation.surface` is the page; `raised` is a card; `overlay` is a menu or dialog; `sunken` is a well. Box sets `utility.elevation.surface.current` when it paints a surface, so children can read the surface they sit on.
 - **Text.** `default` for content, `subtle` for secondary, `subtlest` for hints and captions, `disabled` for off. Status text (`success`, `warning`, `danger`, `information`) sits on the matching status background.
 - **Border.** `default` for hairlines, `bold` for emphasis, `input` for fields, `focused` and `selected` for those states.
-- **Type.** Composite tokens: `body` (13/18) for interface text, `body.small` (12/16) for captions, `body.xsmall` (11/14) for micro labels, `body.large` (15/22) for reading; three heading sizes; `code`.
+- **Type.** Composite tokens: `body` (13/18) for interface text, `body.small` (12/16) for captions, `body.xsmall` (11/14) for micro labels, `body.large` (15/22) for reading; five heading sizes, `heading.large` to `heading.xxsmall` (the Which token page says which title takes which); `code`.
 - **Space.** 0, 2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80. A name counts hundredths of an 8px step: `space.100` is 8px, `space.025` is 2px, `space.1000` is 80px.
 - **Radius.** `xsmall` 2, `small` 3, `medium` 5, `large` 7, `xlarge` 9, `xxlarge` 12, `full`. Which part takes which is the [Shape](?path=/docs/tokens-shape--docs) sheet's table.
 - **Metrics.** Controls are 24, 28, 32, 36 tall; a table row is 40, with `compact` 36, `header` 32 and `menu` 28; icons 14 and 16.

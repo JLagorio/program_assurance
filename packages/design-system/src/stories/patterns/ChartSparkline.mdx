@@ -7,7 +7,7 @@ import * as Stories from "./ChartSparkline.stories";
 
 # Sparkline
 
-A trend with no axes, no grid and no legend, beside the number it belongs to: in a Stat tile, in a table's trend column, after a count. The number carries the value; the sparkline carries the shape. A line by default, a wash or bars when asked, with an end dot for the last point and a hairline for a reference. Ninety-six by twenty-four pixels. Unnamed it is decoration; named, it is a plot with a tooltip.
+A trend with no axes, no grid and no legend, beside the number it belongs to: in a Stat tile, in a table's trend column, after a count. The number carries the value; the sparkline carries the shape. A line by default, a wash or bars when asked, with an end dot for the last point and a hairline for a reference. Ninety-six by twenty-four pixels. Unnamed it is decoration; named, it is an image with a tooltip.
 
 <Canvas of={Stories.SparklineMatrix} />
 
@@ -18,7 +18,7 @@ A trend with no axes, no grid and no legend, beside the number it belongs to: in
 | Line      | 1.5px in its tone, round joins; `area` adds the tone at 12% under it; `bars` is a column per point, 1px apart. |
 | End dot   | A 6px marker ringed in the surface on the last point: where the series is now.                                 |
 | Reference | A dashed hairline at a value in `color.chart.neutral`: last period, the limit.                                 |
-| Tooltip   | Only when named: the point's value and category.                                                               |
+| Tooltip   | Only when named: the point's value, called by `seriesLabel` (else the label), under its category from `x`.     |
 
 ## Variants
 
@@ -27,7 +27,7 @@ A trend with no axes, no grid and no legend, beside the number it belongs to: in
 | `appearance="line"` | The default: a count over time.                                                           |
 | `appearance="area"` | A count whose size matters, with a reference for the limit.                               |
 | `appearance="bars"` | A count per period, where each period is discrete: closed per month.                      |
-| In a tile           | Beside the value of a Stat.Tile, `space.150` from the number.                             |
+| In a tile           | In a Stat.Tile's `trend`, `space.150` from the number, which stays the value.             |
 | In a row            | The trend column of a Table, 80 by 20, unnamed, so a screen reader hears the number once. |
 
 <Canvas of={Stories.InTiles} />
@@ -45,25 +45,30 @@ A trend with no axes, no grid and no legend, beside the number it belongs to: in
 Anything larger is a [Line](?path=/docs/patterns-chart-line--docs) in a Frame, with axes. `width` is the most a sparkline takes: in a narrower cell, tile or row beside its number it narrows and keeps its height.
 
 <Canvas of={Stories.Narrow} />
+<Canvas of={Stories.Baseline} />
 
 ## States
 
-| State    | What changes                                                       |
-| -------- | ------------------------------------------------------------------ |
-| Hover    | Nothing, unless named: then a marker and the tooltip at the point. |
-| Loading  | A skeleton bar at the size, pulsing.                               |
-| Entering | The line draws in over `motion.duration.slow`.                     |
+| State   | What changes                                                       |
+| ------- | ------------------------------------------------------------------ |
+| Hover   | Nothing, unless named: then a marker and the tooltip at the point. |
+| Loading | A skeleton bar at the size, pulsing.                               |
+
+A sparkline draws in place, on mount and when its data changes: it sits in rows and tiles by the dozen, where an entrance per sparkline would cost a render per frame for each. A named one's tooltip still follows the pointer.
 
 A sparkline does not choose: nothing to click, nothing to open. The number beside it is the way to the record.
 
 ## Modifiers
 
 - **`appearance`**, **`tone`**, **`endDot`**, **`reference`** as in Anatomy.
-- **`x`** names the category key, for the tooltip of a named sparkline.
+- **`x`** names the category key, the heading of a named sparkline's tooltip; without it the tooltip prints the value alone.
+- **`baseline`**: `auto` crops the scale to the data, so a trend on a high base (96% to 99%, 340 to 360) still shows; `zero` starts it at zero. Unsaid, `auto` for a line or an area, `zero` for bars, whose length is their value.
+- **`seriesLabel`** is what the tooltip calls the value: "Covered". The label, else "Value", when unsaid.
 - **`width`**, **`height`** in pixels.
 - **`format`** for the tooltip.
 - **`label`** names it: "Open findings, nine months". Unsaid, it is decoration.
 - **`loading`** draws the skeleton; the Frame sets it from `state="loading"`.
+- Native props and a ref reach its box: an `id`, `data-*` for a test.
 
 ## Content
 
@@ -79,14 +84,14 @@ A sparkline does not choose: nothing to click, nothing to open. The number besid
 | Line      | `color.chart.<tone>` · 1.5px · round joins                 |
 | Wash      | `color.chart.<tone>` at 12%                                |
 | Bars      | `color.chart.<tone>` · `radius` 1px at the top · 1px apart |
-| End dot   | 6px · 2px `elevation.surface` ring                         |
+| End dot   | 6px · 2px ring in the surface it sits on                   |
 | Reference | `color.chart.neutral` · 1px dashed 3 2                     |
 | Skeleton  | `color.skeleton` · `radius.xsmall`                         |
 
 ## Accessibility
 
 - **Unnamed, it is `aria-hidden`** and not focusable: the number beside it is the fact, and a screen reader hears it once.
-- **Named, it is a group**, focusable, with the arrow keys moving the tooltip across the points, and it should sit where no number says the same thing.
+- **Named, it is an image** with that name, never a tab stop: the number beside it is on the page, and the tooltip is for the pointer. Name it only where no number says the same thing.
 - **Never the only carrier of a value.** If the shape matters enough to say, say it in the tile's note: "Down from 14 in January".
 - **The tone is not the meaning**: the number's word or Badge is.
 

@@ -40,7 +40,9 @@ export const toneClasses: Record<
     bold: "bg-warning-bold text-warning-inverse",
     text: "text-warning",
     icon: "icon-warning",
-    fill: "bg-warning-bold",
+    // A bar is a non-text element that holds 3:1 against its track; the bold warning fill is a
+    // light orange made to carry dark text and does not, so a warning bar is the chart's warning.
+    fill: "bg-chart-warning",
   },
   danger: {
     subtle: "bg-danger text-danger",

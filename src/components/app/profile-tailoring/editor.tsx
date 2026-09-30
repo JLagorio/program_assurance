@@ -18,8 +18,10 @@ import {
 import {
   Alert,
   AlertDescription,
+  AlertIcon,
   AlertTitle,
   Button,
+  Count,
   DataTable,
   DropdownMenu,
   DropdownMenuContent,
@@ -28,7 +30,6 @@ import {
   Fact,
   IconButton,
   Id,
-  Icon,
   KeyValue,
   List,
   Prose,
@@ -39,13 +40,12 @@ import {
   TabsList,
   TabsTrigger,
   TextLink,
-  VisuallyHidden,
   defineColumns,
   useDataTable,
   type Preset,
 } from "@ledger/design-system";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { AlertCircle, ExternalLink, MoreHorizontal, Plus } from "lucide-react";
+import { AlertCircle, MoreHorizontal, Plus, ShieldMinus, ShieldPlus } from "lucide-react";
 import { useId, useMemo, useRef, useState, type ComponentProps, type ReactNode } from "react";
 import { ControlPicker } from "./control-picker";
 import { parameterName } from "./names";
@@ -94,20 +94,12 @@ function TailoringLink({
     );
   return (
     <TextLink
+      newTab
       render={
-        <Link
-          {...recordDestination(table, record)}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(event) => event.stopPropagation()}
-        />
+        <Link {...recordDestination(table, record)} onClick={(event) => event.stopPropagation()} />
       }
     >
       {children}
-      <VisuallyHidden> (opens in a new tab)</VisuallyHidden>{" "}
-      <Icon color="color.icon.subtle">
-        <ExternalLink />
-      </Icon>
     </TextLink>
   );
 }
@@ -187,10 +179,11 @@ export function ProfileTailoringEditor({
       while (cursor && !seen.has(cursor)) {
         seen.add(cursor);
         const group = groups.get(cursor);
-        if (!group?.parent_group_id) return group?.source_id?.toUpperCase() ?? "—";
+        if (!group?.parent_group_id) return group?.source_id?.toUpperCase() ?? "";
         cursor = group.parent_group_id;
       }
-      return "—";
+      // No family recorded: the cell shows the kit's Absent.
+      return "";
     };
   }, [data.catalogGroups]);
   const decisionRows = (action: TailoringDecision["action"]) =>
@@ -223,14 +216,18 @@ export function ProfileTailoringEditor({
       defineColumns<EffectiveRow>((c) => [
         c.id("code", {
           header: "Control",
-          width: 120,
+          // As in the catalog: the code stays beside the title in a narrowed table, since titles
+          // repeat across families (AC-1 and AT-1 are both Policy and Procedures).
+          width: 112,
+          priority: 1,
+          pin: "start",
           hideable: false,
           preview: (row) => setPreviewControl(row.id),
           active: (row) => row.id === previewControl,
         }),
         c.text("title", {
           header: "Title",
-          minWidth: 220,
+          minWidth: 200,
           priority: 0,
           hideable: false,
           cell: (row) => (
@@ -239,10 +236,11 @@ export function ProfileTailoringEditor({
             </TailoringLink>
           ),
         }),
-        c.text("family", { header: "Family", width: 100 }),
+        c.text("family", { header: "Family", width: 100, priority: 3 }),
         c.status("source", {
           header: "Source",
           width: 130,
+          priority: 2,
           tone: (row) => (row.source === "Tailored in" ? "success" : "neutral"),
         }),
       ]),
@@ -334,7 +332,21 @@ export function ProfileTailoringEditor({
           </AlertDescription>
         </Alert>
       ) : null}
-      {preview.warnings.length ? (
+      {/* While tailoring, the warnings are about what the reader is deciding, so they stay in view;
+          on a saved profile they are notes on how it was made, folded like its Details. */}
+      {preview.warnings.length && editable ? (
+        <Alert tone="warning" role="note">
+          <AlertIcon />
+          <AlertTitle>Review before you continue</AlertTitle>
+          <AlertDescription>
+            <List>
+              {preview.warnings.map((warning) => (
+                <List.Item key={warning}>{warning}</List.Item>
+              ))}
+            </List>
+          </AlertDescription>
+        </Alert>
+      ) : preview.warnings.length ? (
         <Section title="Reference notes" count={String(preview.warnings.length)} isCollapsible>
           <List>
             {preview.warnings.map((warning) => (
@@ -345,8 +357,12 @@ export function ProfileTailoringEditor({
       ) : null}
       <Tabs value={tab} onValueChange={(value) => setTab(String(value))}>
         <TabsList variant="line" aria-label="Profile tailoring views">
-          <TabsTrigger value="Controls">Controls · {preview.counts.selected}</TabsTrigger>
-          <TabsTrigger value="Parameters">Parameters · {preview.counts.parameters}</TabsTrigger>
+          <TabsTrigger value="Controls">
+            Controls <Count value={preview.counts.selected} max={9999} />
+          </TabsTrigger>
+          <TabsTrigger value="Parameters">
+            Parameters <Count value={preview.counts.parameters} max={9999} />
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="Controls">
           <Stack space="space.200">
@@ -359,10 +375,12 @@ export function ProfileTailoringEditor({
               onRemove={removeDecision}
               emptyTitle="Nothing tailored out"
               emptyDescription="Every control the base profile selects stays in."
+              emptyIcon={<ShieldMinus />}
               action={
                 editable ? (
                   <Button
                     size="small"
+                    variant="primary"
                     iconBefore={<Plus />}
                     data-tailoring-primary={`${openerId}-controls`}
                     onClick={() => openControls(null, true)}
@@ -381,6 +399,7 @@ export function ProfileTailoringEditor({
               onRemove={removeDecision}
               emptyTitle="Nothing tailored in"
               emptyDescription="No control is added from the catalog beyond the base profile."
+              emptyIcon={<ShieldPlus />}
             />
             <Section title="Effective control set" count={String(preview.counts.selected)}>
               <ProductCollection
@@ -479,6 +498,7 @@ function DecisionTable({
   onRemove,
   emptyTitle,
   emptyDescription,
+  emptyIcon,
   action,
 }: {
   title: string;
@@ -489,6 +509,8 @@ function DecisionTable({
   onRemove: (controlId: string) => void;
   emptyTitle: string;
   emptyDescription: string;
+  /** The compact empty's icon: these are two of several collections on the tab. */
+  emptyIcon: ReactNode;
   action?: ReactNode;
 }) {
   const navigate = useNavigate();
@@ -505,13 +527,16 @@ function DecisionTable({
   const columns = defineColumns<(typeof items)[number]>((c) => [
     c.id("code", {
       header: "Control",
-      width: 120,
+      width: 112,
+      priority: 1,
+      pin: "start",
+      hideable: false,
       preview: setSelected,
       active: (row) => row.id === selected?.id,
     }),
     c.text("title", {
       header: "Title",
-      minWidth: 220,
+      minWidth: 200,
       priority: 0,
       hideable: false,
       cell: (row) => (
@@ -520,7 +545,7 @@ function DecisionTable({
         </TailoringLink>
       ),
     }),
-    c.text("rationale", { header: "Rationale", width: 360, wrap: true }),
+    c.text("rationale", { header: "Rationale", width: 360, wrap: true, priority: 2 }),
     ...(editable
       ? [
           c.actions((row) => [
@@ -549,7 +574,8 @@ function DecisionTable({
         onRowClick={(row) =>
           editable ? setSelected(row) : void navigate(recordDestination("controls", row))
         }
-        empty={{ illustration: "shield", title: emptyTitle, description: emptyDescription }}
+        compact
+        empty={{ icon: emptyIcon, title: emptyTitle, description: emptyDescription }}
       />
       {selected && (
         <RecordPreviewPanel

@@ -52,6 +52,7 @@ import {
 } from "@ledger/design-system";
 import { AlertCircle, LogOut } from "lucide-react";
 import { database, loadWorkspace, type Workspace } from "@/lib/database";
+import { useBrowserTitle } from "./browser-title";
 import { labelFor } from "@/lib/records";
 
 const seededUser = (() => {
@@ -102,6 +103,8 @@ export function Screen({
   /** The browser title while this screen stands in for the route: "Sign in". */
   title?: string | undefined;
 }) {
+  // The screen stands in for the route, so it names itself in place of the route's title.
+  useBrowserTitle(title ? [title] : null);
   return (
     <Inline
       as="main"
@@ -110,8 +113,6 @@ export function Screen({
       alignBlock="center"
       alignInline="center"
     >
-      {/* React places a rendered title in the document head; it stands above the route's. */}
-      {title && <title>{`${title} — Program Assurance`}</title>}
       <Box padding="space.400" className="w-full max-w-layout-measure">
         <Stack space="space.250">{children}</Stack>
       </Box>
@@ -509,13 +510,20 @@ function SignIn({ signedOut }: { signedOut: boolean }) {
               </Field>
             </Stack>
           </FieldSet>
-          <Button ref={submitButton} type="submit" variant="primary" isLoading={pending === "form"}>
+          <Button
+            ref={submitButton}
+            type="submit"
+            variant="primary"
+            isFullWidth
+            isLoading={pending === "form"}
+          >
             Sign in
           </Button>
           {seededUser && (
             <Button
               type="button"
               variant="secondary"
+              isFullWidth
               isLoading={pending === "seeded"}
               onClick={() => {
                 setEmail(seededUser.email);

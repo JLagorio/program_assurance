@@ -38,7 +38,9 @@ export function MetricsTrigger({
           variant={variant}
           iconBefore={<BarChart3 />}
           className={cn(
-            "data-open:bg-selected data-open:text-selected data-open:shadow-none data-open:hover:bg-selected-hovered data-open:active:bg-selected-pressed",
+            // Base UI marks an open Collapsible's trigger `data-panel-open`: the active look Group by
+            // and Filters take (activeTriggerClass), written out so each class is in the source.
+            "data-panel-open:bg-selected data-panel-open:text-selected data-panel-open:shadow-none data-panel-open:hover:bg-selected-hovered data-panel-open:active:bg-selected-pressed",
             className,
           )}
           {...props}

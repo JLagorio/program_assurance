@@ -24,16 +24,20 @@ Text cut to one, two or three lines (`maxLines`, as on Text) with an ellipsis, a
 - **Not for a heading.** A page, section or dialog title wraps.
 - **An identifier or a hash** wraps anywhere rather than being cut, where the row allows it (KeyValue `wrap`).
 
+## Long content
+
+The kit's rule for text longer than its room is the component library guide's Long content section (`docs/guides/component-library.md`), and Truncate is the reveal it relies on: where the rule lets a row's field cut its text, the field cuts through Truncate, KeyValue or a clamped Text, so the whole is always a hover or a focus away. The content pages (Badge, Count, Indicator, FilterChip, Id, TextLink, Typography, Fact, CodeBlock, Avatar, Attachment, DateTime and Diff) each say under Long content how their part applies the rule.
+
 ## How it reveals
 
-| The reader           | What happens                                                                                                           |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Hovers the text      | The tooltip opens after the tooltip provider's delay, only while the text is cut.                                      |
-| Tabs to its link     | A Truncate inside a link, button, tab, menu item, option or tree item opens as the host takes keyboard focus.          |
-| Tabs into it         | A Truncate that holds a control (a TextLink in a KeyValue value) opens as the control takes keyboard focus.            |
-| Presses Escape       | The tooltip closes; focus stays where it was.                                                                          |
-| Taps it              | Nothing opens: a touch has no hover. Where the whole name matters on a phone, let the row open the record, or wrap.     |
-| Uses a screen reader | The whole text is read in place. The tooltip is `aria-hidden`.                                                          |
+| The reader           | What happens                                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Hovers the text      | The tooltip opens after the tooltip provider's delay, only while the text is cut.                                   |
+| Tabs to its link     | A Truncate inside a link, button, tab, menu item, option or tree item opens as the host takes keyboard focus.       |
+| Tabs into it         | A Truncate that holds a control (a TextLink in a KeyValue value) opens as the control takes keyboard focus.         |
+| Presses Escape       | The tooltip closes; focus stays where it was.                                                                       |
+| Taps it              | Nothing opens: a touch has no hover. Where the whole name matters on a phone, let the row open the record, or wrap. |
+| Uses a screen reader | The whole text is read in place. The tooltip is `aria-hidden`.                                                      |
 
 A `title` of your own replaces the tooltip rather than stacking a second one on it. `fullText` sets what the tooltip says when the element's own text is not the words to show.
 

@@ -18,9 +18,9 @@ const valueMeasure = { maxWidth: "20ch" };
 
 /**
  * A filter the reader adds to a toolbar: dashed with a plus until it holds a value, then solid and
- * selected. On its own it is a toggle and says so through `aria-pressed`; as a Popover's trigger it
- * takes `aria-expanded` from the popover instead. One line at every width: it never shrinks below
- * its label, and a long value truncates.
+ * selected. On its own it is a yes-or-no toggle and says so through `aria-pressed`; a filter with
+ * values is a Popover's trigger and takes `aria-expanded` from the popover instead. One line at
+ * every width: it never shrinks below its label, and a long value truncates.
  */
 export function FilterChip({
   label,
@@ -45,6 +45,7 @@ export function FilterChip({
         className,
       )}
       {...rest}
+      data-slot="filter-chip"
     >
       {isActive ? null : (
         <span aria-hidden className="shrink-0">

@@ -1,17 +1,19 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { ScrollArea, ScrollBar } from "../../components";
 import * as Stories from "./ScrollArea.stories";
 
 <Meta of={Stories} />
 
 # ScrollArea
 
-Based on [shadcn’s Base UI source](https://ui.shadcn.com/docs/components/base/scroll-area) and [Base UI](https://base-ui.com/react/components/scroll-area). Ledger retains its tokens and application layouts.
+A bounded region that scrolls with the kit's own bar, which the reader can see and drag, on [Base UI ScrollArea](https://base-ui.com/react/components/scroll-area) in shadcn's ScrollArea and ScrollBar composition.
+
+Use it where the bar itself is the cue: a list in a resizable pane, a wide timeline in a card. A region with nothing to add scrolls with native overflow; a list or a strip that needs an arrow at each edge that can still scroll is a [Scroller](?path=/docs/components-scroller--docs). An overlay's scrolling content is its Body part (DialogBody, SheetBody), never a ScrollArea. [Choosing a part](?path=/docs/guidance-choosing-a-part--docs) has the whole table.
 
 ## Anatomy
 
-A bounded scrolling region following shadcn’s ScrollArea and ScrollBar composition. ScrollArea includes the viewport, a vertical scrollbar and corner. Add ScrollBar with orientation="horizontal" for horizontal overflow.
-
-## Variants
+`ScrollArea` renders the root, the viewport that scrolls, a vertical `ScrollBar` and the corner. Add `<ScrollBar orientation="horizontal" />` as a child for a region that scrolls sideways; overflow decides which bars show. Put sizing classes (a height, a maximum width, a border and radius) on `ScrollArea`.
 
 <Canvas of={Stories.Vertical} />
 
@@ -19,19 +21,30 @@ A bounded scrolling region following shadcn’s ScrollArea and ScrollBar composi
 
 ## Accessibility
 
-Base UI manages keyboard scrolling, scrollbar geometry and dragging. Its viewport becomes keyboard-reachable when it overflows. Use viewportProps to name the scrolling region and expose its native ref/events. Direction follows LedgerProvider or explicit dir.
+- **Keyboard.** The viewport is a tab stop while it overflows, so the arrow keys, Page Up and Page Down scroll it; a region that fits adds no stop. Base UI manages the bar's geometry and dragging.
+- **A name.** Name the region through `viewportProps`, with `role="region"` and an `aria-label` that says what scrolls ("Evidence list").
+- **Focus.** The root clips, so the viewport's focus ring is drawn inside it, following the root's corners.
+- **Direction** follows LedgerProvider or an explicit `dir`, for the layout and the bar alike.
+- **Forced colours.** The thumb is drawn in `CanvasText`, and `Highlight` under the pointer, so it stays visible when the system replaces the tokens.
 
 ## Props
 
-Root exposes Base UI ScrollArea props, native refs, render and state callbacks; viewportProps forwards the corresponding viewport contract. ScrollBar exposes native scrollbar props, including orientation and keepMounted. Bars appear when there is overflow, following the source behavior.
+`viewportProps` takes the viewport's native attributes and its ref: the element that actually scrolls, for a name, a role or a virtualizer. The root takes Base UI's ScrollArea props, including `render` and state-based `className` and `style`. ScrollBar takes `orientation` and `keepMounted`.
+
+<ArgTypes of={ScrollArea} />
+
+### ScrollBar
+
+<ArgTypes of={ScrollBar} />
 
 ### Migration and API
 
-- Replace label with viewportProps containing role="region" and aria-label. Put sizing classes on ScrollArea.
-- Replace root orientation="horizontal"/"both" with a horizontal ScrollBar child; overflow determines which bars are needed.
-- The old bar visibility shortcut and fixed hide delay are removed. Native state attributes and classes can style hovering/scrolling if needed.
+- Replace `label` with `viewportProps` holding `role="region"` and `aria-label`. Put sizing classes on ScrollArea.
+- Replace a root `orientation="horizontal"` or `"both"` with a horizontal ScrollBar child; overflow determines which bars are needed.
+- The bar visibility shortcut and fixed hide delay are gone. Base UI's state attributes (`data-hovering`, `data-scrolling`) style the bar when needed.
 
 ## Related
 
-- [Resizable](?path=/docs/components-resizable--docs)
-- [Table](?path=/docs/components-table--docs)
+- [Scroller](?path=/docs/components-scroller--docs): edge arrows for a list or a strip; line Tabs compose it over a ScrollArea.
+- [Resizable](?path=/docs/components-resizable--docs): a pane that holds a ScrollArea.
+- [Table](?path=/docs/components-table--docs): a table frame scrolls itself.

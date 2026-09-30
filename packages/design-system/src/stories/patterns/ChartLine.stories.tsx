@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { expect, waitFor } from "storybook/test";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 
-import { Chart } from "../..";
+import { Chart, LedgerProvider } from "../..";
 import { Button, KeyValue } from "../../components";
 import { Box, Stack } from "../../primitives";
 import {
@@ -181,7 +181,7 @@ export const LineMatrix: Story = {
   ),
 };
 
-/** Open and closed findings over nine months. Straight segments: the points are what was counted. */
+/** Open and closed findings over nine months. Straight segments: the points are what was counted. Hiding a series in the legend keeps the value axis where it was. */
 export const Lines: Story = {
   render: () => (
     <Box style={{ maxWidth: 640 }}>
@@ -198,6 +198,24 @@ export const Lines: Story = {
       </Chart>
     </Box>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const ticks = () =>
+      Array.from(canvasElement.querySelectorAll(".recharts-yAxis-tick-labels text")).map(
+        (t) => t.textContent,
+      );
+    await waitFor(() => expect(ticks().length).toBeGreaterThan(1));
+    const before = ticks();
+    const legendOpen = canvas.getByRole("button", { name: "Open" });
+    await userEvent.click(legendOpen);
+    await expect(legendOpen).toHaveAttribute("aria-pressed", "false");
+    await waitFor(() => expect(ticks()).toEqual(before));
+    // Shown again, and the pointer and focus leave the legend, so no series stays dimmed.
+    await userEvent.click(legendOpen);
+    await expect(legendOpen).toHaveAttribute("aria-pressed", "true");
+    await userEvent.unhover(legendOpen);
+    legendOpen.blur();
+  },
 };
 
 /** A smooth curve with a marker on every point, for a series with few points where each is an event. The curve never overshoots the data. */
@@ -318,6 +336,63 @@ export const Dates: Story = {
       </Chart>
     </Box>
   ),
+  play: async ({ canvasElement }) => {
+    const ticks = () =>
+      Array.from(canvasElement.querySelectorAll(".recharts-xAxis-tick-labels text")).map(
+        (t) => t.textContent ?? "",
+      );
+    // The first tick stays, and carries the year; months follow on their own.
+    await waitFor(() => expect(ticks()[0]).toBe("Apr 2026"));
+    await expect(ticks().length).toBeGreaterThanOrEqual(5);
+    await expect(ticks()[ticks().length - 1]).toMatch(/^Aug$/);
+  },
+};
+
+/** Two points on the first of each month, February to September, as instants at UTC midnight. */
+const monthStarts = Array.from({ length: 8 }, (_, i) => ({
+  date: new Date(Date.UTC(2026, 1 + i, 1)),
+  open: [14, 17, 15, 19, 12, 11, 9, 8][i],
+}));
+/** A findings trend over nineteen months, crossing a year. */
+const twoYears = Array.from({ length: 20 }, (_, i) => ({
+  date: new Date(Date.UTC(2025, 1 + i, 1)),
+  open: 30 - i,
+}));
+
+/** The time axis reads in the reader's zone: the ticks are the starts of months in New York, and none reads a month early (UTC midnight on the 1st is still the evening before there). Over nineteen months the ticks step by quarters from January, and the first tick and the one that starts 2026 carry the year. The second chart's labels are German. */
+export const Zones: Story = {
+  render: () => (
+    <Stack space="space.400">
+      <LedgerProvider timeZone="America/New_York">
+        <Box style={{ maxWidth: 640 }}>
+          <Chart title="Open findings, New York" series={open} data={monthStarts} x="date">
+            <Chart.Line scale="time" />
+          </Chart>
+        </Box>
+      </LedgerProvider>
+      <LedgerProvider locale="de-DE" timeZone="Europe/Berlin">
+        <Box style={{ maxWidth: 640 }}>
+          <Chart title="Offene Feststellungen" series={open} data={twoYears} x="date">
+            <Chart.Line scale="time" />
+          </Chart>
+        </Box>
+      </LedgerProvider>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const ticksOf = (name: string) =>
+      Array.from(
+        canvas.getByRole("figure", { name }).querySelectorAll(".recharts-xAxis-tick-labels text"),
+      ).map((t) => t.textContent ?? "");
+    await waitFor(() => expect(ticksOf("Open findings, New York")[0]).toBe("Feb 2026"));
+    await expect(ticksOf("Open findings, New York")).not.toContain("Jan");
+    await waitFor(() => expect(ticksOf("Offene Feststellungen").length).toBeGreaterThan(2));
+    const german = ticksOf("Offene Feststellungen");
+    await expect(german.length).toBeLessThanOrEqual(8);
+    await expect(german[0]).toMatch(/2025$/);
+    await expect(german.some((t) => /2026$/.test(t))).toBe(true);
+  },
 };
 
 /** In a narrow plot (here a 300px frame, a panel's width, and a 200px card) the labels above it share one row: the window's and the milestone's move apart rather than overlap, the milestone's keeping closest to its line, and none leaves the plot's width, so none sits on the axis ticks. Each stays over its mark, a window's middle over its window: where the row is too short for them so (the third chart and the card), the window's label shortens before a milestone's, with an ellipsis and its whole text as its title. At the plot's start a milestone's label begins at its line, and two milestones on one date share one label (the fourth chart); there the first milestone's label gives way to the second's, and the window's beside them shortens only as far as the row needs, still over its window. The labels inside the plot are drawn over the lines, ringed in the surface, so the plan line runs behind "Tolerable". */
@@ -503,7 +578,8 @@ export const NarrowLabels: Story = {
     const firstLine = Math.min(...lines.map((l) => l.left));
     const top = Array.from(start.querySelectorAll<SVGTextElement>("svg text")).filter(
       (t) =>
-        !t.closest(".recharts-cartesian-axis") && t.getBoundingClientRect().bottom <= plotTop + 1,
+        !t.closest(".recharts-cartesian-axis, .recharts-cartesian-axis-tick-labels") &&
+        t.getBoundingClientRect().bottom <= plotTop + 1,
     );
     await expect(top).toContain(shared);
     await expect(top.some((t) => t.textContent?.startsWith("Kic"))).toBe(true);
@@ -516,9 +592,9 @@ export const NarrowLabels: Story = {
     const row = top.map((t) => t.getBoundingClientRect()).sort((a, b) => a.left - b.left);
     for (const [i, box] of row.entries())
       if (i > 0) await expect(row[i - 1]!.right).toBeLessThanOrEqual(box.left);
-    const ticks = Array.from(start.querySelectorAll(".recharts-cartesian-axis text")).map((t) =>
-      t.getBoundingClientRect(),
-    );
+    const ticks = Array.from(
+      start.querySelectorAll(".recharts-cartesian-axis-tick-labels text"),
+    ).map((t) => t.getBoundingClientRect());
     for (const label of top.map((t) => t.getBoundingClientRect())) {
       await expect(label.left).toBeGreaterThanOrEqual(firstLine - 0.5);
       for (const tick of ticks)

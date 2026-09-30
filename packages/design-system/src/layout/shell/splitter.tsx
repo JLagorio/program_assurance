@@ -40,9 +40,15 @@ export function maxAreaWidth(area: HTMLElement, min: number) {
 export type ShellSplitterProps = {
   /** The accessible name; the handle is visually blank. Each splitter has a default. */
   label?: string | undefined;
+  /** A resize begins: a drag that moves sideways, or a key that changes the width. */
   onResizeStart?: ((args: { initialWidth: number }) => void) | undefined;
+  /** A resize ends: the pointer lets go, or the key's width is set. A key that changes nothing (Home at the minimum) reports neither. */
   onResizeEnd?: ((args: { initialWidth: number; finalWidth: number }) => void) | undefined;
 };
+
+/** One arrow press, `space.200`; with Shift, or Page Up and Page Down, four of them. */
+const STEP = 16;
+const LARGE_STEP = 64;
 
 /** A drag handle on an area's inner edge. `direction` is which way a drag grows the area: 1 for the side nav, -1 for the panel. */
 export function Splitter({
@@ -61,6 +67,7 @@ export function Splitter({
   direction: 1 | -1;
   edge: "start" | "end";
   setWidth: (w: number) => void;
+  /** Collapses the area: on a double-click and on Enter, the window-splitter pattern's optional key (the side nav). */
   onDoubleClick?: (() => void) | undefined;
   /** The area scrolls its own content (the panel): the handle holds still over the visible height instead of scrolling away with the content. */
   inScroller?: boolean | undefined;
@@ -72,11 +79,14 @@ export function Splitter({
   const [width, setMeasuredWidth] = useState(min);
   const [maxWidth, setMaxWidth] = useState(min);
   const [areaHeight, setAreaHeight] = useState<number | null>(null);
+  const [controls, setControls] = useState<string | undefined>(undefined);
   // The area is the nearest shell area, so a wrapper around the splitter does not become what it measures.
   const area = () => ref.current?.closest<HTMLElement>("[data-shell-area]") ?? null;
   useEffect(() => {
     const el = area();
     if (!el) return;
+    // The area's id is its skip link's target, so the separator can name what it resizes.
+    setControls(el.id || undefined);
     const update = () => {
       setMeasuredWidth(Math.round(el.getBoundingClientRect().width));
       setMaxWidth(maxAreaWidth(el, min));
@@ -94,6 +104,34 @@ export function Splitter({
       window.removeEventListener("resize", update);
     };
   }, [min]);
+  // A key's step lands at once: the grid's columns ease only when the panel opens or closes, so
+  // the shell root holds its transition for the frames that draw the new width (shell.css), and
+  // `aria-valuenow` says the new width as the key is pressed instead of trailing the animation.
+  const hold = useRef<{ root: HTMLElement; frame: number } | null>(null);
+  const holdStill = () => {
+    const root = ref.current?.closest<HTMLElement>('[data-slot="shell"]');
+    if (!root) return;
+    if (hold.current) cancelAnimationFrame(hold.current.frame);
+    root.setAttribute("data-shell-resizing", "");
+    const release = () => {
+      hold.current = null;
+      root.removeAttribute("data-shell-resizing");
+    };
+    hold.current = {
+      root,
+      frame: requestAnimationFrame(() => {
+        if (hold.current) hold.current.frame = requestAnimationFrame(release);
+      }),
+    };
+  };
+  useEffect(
+    () => () => {
+      if (!hold.current) return;
+      cancelAnimationFrame(hold.current.frame);
+      hold.current.root.removeAttribute("data-shell-resizing");
+    },
+    [],
+  );
   const measure = () => area()?.getBoundingClientRect().width ?? min;
   const clamp = (w: number) => {
     const el = area();
@@ -145,24 +183,43 @@ export function Splitter({
     setWidth(d.width);
     onResizeEnd?.({ initialWidth: d.width, finalWidth: d.width });
   };
-  // The window-splitter pattern: the arrows step, Home goes to the minimum, End to the maximum.
+  // The window-splitter pattern: the arrows step (Shift for a larger step), Page Up and Page Down
+  // grow and shrink by the larger step, Home goes to the minimum, End to the maximum, and Enter
+  // collapses the area where it can collapse.
   const onKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>) => {
-    const initialWidth = measure();
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.key === "Enter" && onDoubleClick) {
+      e.preventDefault();
+      onDoubleClick();
+      return;
+    }
+    const initialWidth = Math.round(measure());
+    const step = e.shiftKey ? LARGE_STEP : STEP;
     const target =
       e.key === "ArrowRight"
-        ? initialWidth + physicalDirection() * 16
+        ? initialWidth + physicalDirection() * step
         : e.key === "ArrowLeft"
-          ? initialWidth - physicalDirection() * 16
-          : e.key === "Home"
-            ? min
-            : e.key === "End"
-              ? Number.POSITIVE_INFINITY
-              : null;
+          ? initialWidth - physicalDirection() * step
+          : e.key === "PageUp"
+            ? initialWidth + LARGE_STEP
+            : e.key === "PageDown"
+              ? initialWidth - LARGE_STEP
+              : e.key === "Home"
+                ? min
+                : e.key === "End"
+                  ? Number.POSITIVE_INFINITY
+                  : null;
     if (target === null) return;
     e.preventDefault();
     const finalWidth = clamp(target);
+    // The key sets the width it lands on, which keeps a width the layout had narrowed (End beside
+    // a wide side nav) as the reader's own; only a change is reported as a resize.
+    const changed = finalWidth !== initialWidth;
+    if (changed) onResizeStart?.({ initialWidth });
+    holdStill();
     setWidth(finalWidth);
-    onResizeEnd?.({ initialWidth, finalWidth });
+    setMeasuredWidth(finalWidth);
+    if (changed) onResizeEnd?.({ initialWidth, finalWidth });
   };
 
   const handle = (
@@ -175,8 +232,10 @@ export function Splitter({
       aria-valuemax={Math.max(maxWidth, width)}
       aria-valuenow={width}
       aria-valuetext={t("pixelsWide", { width })}
+      aria-controls={controls}
       tabIndex={0}
       data-slot="shell-splitter"
+      data-dragging={dragging ? "" : undefined}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}

@@ -12,10 +12,10 @@ A page that is one collection.
 
 1. **PageHeader** with the name in `PageHeader.Heading` and `PageHeader.Title`. Nothing under the title.
 2. **DataTable** with `fill`, so the header sticks, the rows scroll inside and pagination sits at the bottom of the window. Frameless: the toolbar sits flush above and a hairline closes the last row.
-3. Its **Toolbar**: search first, saved views in `views`, filters in `filters`, Columns and Settings as children, one small primary in `actions`. The create action lives here, not in the page header.
+3. Its **Toolbar**: search first, saved views in `views`, filters in `filters`, Columns and Settings as children, one small primary in `actions`. The create action lives here, not in the page header. A secondary collection command such as Export goes in a labelled overflow menu beside Columns and Settings; the children fold into More when the row runs out of room.
 4. Columns from `defineColumns` by kind. A date column takes the raw value; the name is a **TextLink** to the record; the id column carries the preview eye.
 5. `responsive` on every product table, with the name at `priority: 0`. Lower-priority fields move into the row's More fields disclosure; nothing disappears.
-6. The empty states are DataTable's own: bare (illustration, title, one line, the same create action) and filtered (Clear filters).
+6. The empty states are DataTable's own: bare (illustration, title, one line, the same create action) and filtered (Clear filters). A first load keeps the toolbar over skeleton rows; a failed refresh keeps the rows under one **Alert** with Retry.
 
 Story: Layout/Pages, Register.
 
@@ -24,21 +24,22 @@ Story: Layout/Pages, Register.
 1. **PageHeader**: the breadcrumb in `PageHeader.Lead`, the name in `PageHeader.Title`, one primary or an Actions **DropdownMenu** in `PageHeader.Actions`. No back chevron, no sentence, no status badge, no second action row.
 2. **Tabs** with `TabsList variant="line"` when the record has more than one view.
 3. **Shell.Aside** beside the overview holding an **Inspector** group named Details: **KeyValue** rows for state, owner, identifiers and dates. A tab that is a register fills the work area without the rail.
-4. Body content in **Section**s. A single record is never a table; a description is **Prose**; linked records are **Related**.
+4. Body content in **Section**s. A single record is never a table; a description is **Prose**. Linked records the reader works through (searches, sorts, previews) are an embedded **DataTable**; a summary of them in a rail or a card, how many and the few that matter, is **Related**.
 5. A supported inline change is an **Editable**; a larger change is a Dialog (below).
-6. Missing record: an **Empty** with the search illustration, a title, a line and a route back.
+6. Missing record: an **Empty** with the search illustration, a title, a line and a route back. Loading and a failed load are different states from not found.
 
-Story: Layout/Pages, Record.
+Stories: Layout/Pages, Record; Components/Empty, Not found.
 
 ## A preview beside a register
 
-1. **Shell.Panel** opened by the row's eye. The collection stays mounted, so filters, sort and selection survive.
-2. The panel's outer header holds global navigation only: **PreviewNavigation** with previous, next, the announced position and a real open-in-new-tab link, then Close.
-3. The body starts with an inner **PageHeader**: the record's name as its h2 title, its actions in `PageHeader.Actions` (one small primary, the rest behind an overflow **DropdownMenu**).
-4. **KeyValue** properties below, then the record's sections at the panel's width; **Tabs** in one scrolling row if the preview has views.
-5. **PreviewSheet** replaces the panel only when the task must hold focus, such as a version review.
+1. **Shell.Panel** opened by the row's eye, named by its `label`. The collection stays mounted, so filters, sort and selection survive.
+2. The panel's outer header holds global navigation only, never the record's name: **PreviewNavigation** in `Panel.Actions`, then `Panel.Close`, and Back first when a nested frame is open. Previous and next walk the collection's filtered and sorted order across all its pages, not one table page; the application turns the table's page as Next crosses it. `recordLabel` has the status say which record arrived with its position ("Access review evidence, 2 of 6 records"); `openLink` is a real link that opens the full record in a new tab.
+3. The body starts with an inner **PageHeader**: the record's name as its **PageHeader.Title**, an h2 from the heading-level context or `render={<h2 />}`, and its actions in `PageHeader.Actions` (one small primary, the rest behind an overflow **DropdownMenu**).
+4. **KeyValue** properties below, then the record's sections at the panel's width; **Tabs** in one scrolling row if the preview has views. Long authored text is a labelled **Prose**.
+5. Close and Escape dismiss the whole preview, and the Shell returns focus to the control the reader last used in the collection. Back is the only way out of a nested frame, and returns focus to the control in the parent frame that opened it.
+6. **PreviewSheet** replaces the panel only when the task must hold focus, such as a version review.
 
-Story: Layout/Pages, Queue with panel; Patterns/PreviewNavigation.
+Stories: Layout/Pages, Queue with panel; Patterns/PreviewNavigation, In panel.
 
 ## A create or edit form
 
@@ -55,6 +56,24 @@ The default create and edit surface is a form dialog.
 9. **A dirty dismissal** is cancelled in `onOpenChange` (`details.cancel()`) and asks through an **AlertDialog** nested in the DialogContent: Keep editing keeps the values and the dialog, Discard closes both.
 
 Stories: Components/Dialog, Form, Form save fails and Short window; Patterns/Forms for the fields and validation.
+
+## A dashboard
+
+A page that answers "what needs attention" and sends the reader to the register that holds it.
+
+1. **PageHeader** with the name alone.
+2. A **Stat.Grid** (`frame="band"`) of **Stat.Tile**s. Each tile's `link` opens the register it counts, already filtered to that count (`tableQueryToSearch` writes the register's query); a linked tile holds no other control. `isLoading` holds a tile's place while its number loads.
+3. One **Section** per question, its `action` a View all link (TextLink or LinkButton) to the full register. Inside, the top few rows as a **DataTable** given only those rows, `responsive`, with no Toolbar and no `pageSize`, so it draws no Columns, Settings or pagination; its name column links to each record as a register's does.
+4. The recent activity as a **Timeline**, newest first, each item's subject a link and its time a **RelativeTime**.
+5. Each region loads, fails and empties on its own: a Skeleton while it loads, an Alert with Retry when it fails, a compact **Empty** when there is nothing to show.
+
+Stories: Components/Stat, Linked and Loading and unavailable; Components/Timeline.
+
+## Working through a list
+
+A long list the reader decides one record at a time (tailoring a catalog's controls, setting its parameters) is a **WorkPane**: the list beside the chosen record's detail when the pane is wide, and a drill-in when it is narrow, where choosing a row replaces the list with its detail and Back returns to the row. A list the reader scans, sorts and filters is a DataTable instead.
+
+Story: Patterns/WorkPane.
 
 ## Choosing records
 

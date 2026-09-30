@@ -1,6 +1,6 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Kbd, KbdShortcut } from "../../components";
+import { Kbd, KbdGroup, KbdShortcut } from "../../components";
 import * as Stories from "./Kbd.stories";
 
 <Meta of={Stories} />
@@ -80,10 +80,12 @@ with the keys' names ("Shift Command P"), so a screen reader never reads a glyph
 character name. Put `aria-keyshortcuts` (from `useFormatShortcut`) on the control the
 shortcut runs.
 
-On `Kbd`, `label` sets the glyph's `aria-label`; an explicit `aria-label` takes precedence.
-ARIA does not name an element with no role, so screen readers may read the glyph itself;
-for a glyph key, prefer `KbdShortcut`. The shortcut should remain understandable from its
-visible text and context.
+On `Kbd`, `label` gives a glyph its spoken name. ARIA names no `<kbd>`, so the glyph is
+hidden from assistive technology and one visually hidden word is read in its place: "Press ⌘
+K to search." is heard as "Press Command K to search.". `KbdGroup` takes `label` for the
+whole chord ("Command K"), read once in place of its caps. An `aria-label` on either is read
+the same way and takes precedence; it is never set on the element. For a shortcut that
+follows the platform, prefer `KbdShortcut`.
 
 Key names and word caps come from the locale's messages (`keyCommand`, `keyControl`,
 `keyCapControl` and the rest), so a German product shows Strg and says Steuerung.
@@ -95,6 +97,8 @@ All refs use `HTMLElement`. Parts expose `data-slot="kbd"`, `data-slot="kbd-grou
 `data-slot="kbd-shortcut"`; a shortcut also carries `data-modifier`, the platform it drew.
 
 <ArgTypes of={Kbd} />
+
+<ArgTypes of={KbdGroup} />
 
 <ArgTypes of={KbdShortcut} />
 
@@ -111,5 +115,5 @@ the platform, replace a hand-written `⌘` or `Ctrl` cap with `KbdShortcut keys=
 ## Related
 
 - [Tooltip](?path=/docs/components-tooltip--docs): show a shortcut beside an action's name.
-- [DropdownMenu](?path=/docs/components-dropdownmenu--docs): put a shortcut in an item's `DropdownMenuShortcut`.
+- [DropdownMenu](?path=/docs/components-dropdownmenu--docs): give an item its `shortcut`, drawn with KbdShortcut and said as `aria-keyshortcuts`.
 - [Command](?path=/docs/components-command--docs): keyboard hints in the palette.

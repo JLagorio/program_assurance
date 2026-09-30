@@ -8,13 +8,14 @@ import {
   useMemo,
   useRef,
   type ComponentProps,
+  type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
   type RefObject,
 } from "react";
 
 import { IconButton, type IconButtonProps } from "../../components/button";
 import { cn } from "../../lib/cn";
-import { useLandmarkTitle } from "../../lib/landmark-title";
+import { useLandmarkTitle, useRegisterTitle } from "../../lib/landmark-title";
 import { useLedgerLocale } from "../../lib/locale";
 import {
   HeadingLevelProvider,
@@ -44,17 +45,17 @@ export type ShellPanelFocusTarget =
 export type ShellPanelProps = Omit<ComponentProps<"aside">, "title"> & {
   /** The built-in header's heading, also the landmark's name. Give it, or compose Panel.Header, Panel.Title, Panel.Close and Panel.Body yourself. */
   title?: ReactNode | undefined;
-  /** The landmark's name while there is no title, "Details" by default. */
+  /** The landmark's name while there is no title, "Details" by default. Close and the splitter are named after it: "Close Requirement preview", "Resize Requirement preview"; without it, "Close details" and "Resize details". */
   label?: string | undefined;
   /** Route-owned controls immediately before Close in the built-in header. */
   actions?: ReactNode | undefined;
   onClose: () => void;
-  /** The width on first render, while nothing has been dragged or remembered. */
+  /** The width while this panel is open and the reader has not resized a panel: a width they dragged or keyed, or the browser remembered, outranks it. It is never remembered, so the next panel opens at its own default. At least 240px. */
   defaultWidth?: number | undefined;
   /**
    * Where focus goes when the panel opens, at every width, while focus is on the page, on the
    * opener or nowhere: the panel itself by default, an element inside it, or `false` to leave it
-   * where it is. Where the panel covers Main (below the panel breakpoint) it takes focus even with
+   * where it is. Where the panel covers Main (below the `lg` breakpoint) it takes focus even with
    * `false`, since focus cannot stay on a page that is hidden.
    */
   initialFocus?: ShellPanelFocusTarget | undefined;
@@ -105,7 +106,7 @@ export type ShellPanelHeaderProps = ComponentProps<"div">;
 export type ShellPanelTitleProps = useRender.ComponentProps<"h2">;
 export type ShellPanelActionsProps = ComponentProps<"div">;
 export type ShellPanelCloseProps = Omit<IconButtonProps, "icon" | "label"> & {
-  /** The button's name, "Close details" by default. */
+  /** The button's name: "Close" and the panel's `label`, or "Close details" when it has none. */
   label?: string | undefined;
 };
 export type ShellPanelBodyProps = ComponentProps<"div">;
@@ -116,15 +117,16 @@ const PanelContext = createContext<{
   setHasTitle: (present: boolean) => void;
   /** Whether a title names the panel, so its body's headings sit one level below it. */
   titled: boolean;
+  /** The panel's `label`, which Close and the splitter name themselves after. */
+  label: string | undefined;
 } | null>(null);
 
-/** Present while the Title is mounted, before paint, so the body's headings take their level in the same frame. */
-function useRegisterTitle(setHasTitle: ((present: boolean) => void) | undefined) {
-  useLayoutEffect(() => {
-    setHasTitle?.(true);
-    return () => setHasTitle?.(false);
-  }, [setHasTitle]);
-}
+/** Escape from a popup portalled out of the panel (a menu, a list) or from text still being composed is not the panel's to take. */
+const escapeIsElsewhere = (panel: HTMLElement, event: ReactKeyboardEvent) =>
+  event.nativeEvent.isComposing ||
+  !(event.target instanceof Node) ||
+  !panel.contains(event.target) ||
+  isEditable(event.target);
 
 /** A route-owned contribution to the persistent shell. Mount to open; unmount to close. */
 export function PanelRoot(props: ShellPanelProps) {
@@ -168,11 +170,11 @@ export function PanelSurface({
   const configured = title !== undefined || actions !== undefined;
   const titled = configured || hasTitle;
   const context = useMemo(
-    () => ({ onClose: () => closeRef.current(), titleId, setHasTitle, titled }),
-    [titleId, setHasTitle, titled],
+    () => ({ onClose: () => closeRef.current(), titleId, setHasTitle, titled, label }),
+    [titleId, setHasTitle, titled, label],
   );
   // The focus contract, at every width. On open, focus moves into the panel while it is on the
-  // page, on the opener or nowhere, so Escape and the next keys act in the preview; below the panel
+  // page, on the opener or nowhere, so Escape and the next keys act in the preview; below the `lg`
   // breakpoint the panel covers Main and always takes it. On close with focus inside, focus goes
   // back to the control the reader last used in Main. The opener is captured before the compact
   // layout hides Main; the shell tracks focus and pointer presses in Main, so a button a browser
@@ -225,11 +227,16 @@ export function PanelSurface({
       });
     };
   }, [slots]);
-  // The first width only, and only while nothing is set, so a drag or the browser's memory
-  // outranks it; before paint, so the column does not open at one width and jump to another.
+  // The width while this panel is open and the reader has not resized one: a fallback under a
+  // dragged or remembered width, never remembered itself, and gone when the panel closes, so the
+  // next panel opens at its own default. Before paint, so the column does not open at one width and
+  // jump to another.
+  const { setPanelDefaultWidth } = shell;
   useLayoutEffect(() => {
-    if (defaultWidth && shell.panel.width == null) shell.setPanelWidth(defaultWidth);
-  }, [defaultWidth, shell.panel.width, shell.setPanelWidth]);
+    if (!defaultWidth) return;
+    setPanelDefaultWidth(Math.max(Math.round(defaultWidth), PANEL_MIN));
+    return () => setPanelDefaultWidth(null);
+  }, [defaultWidth, setPanelDefaultWidth]);
   const labelled = configured || hasTitle;
   return (
     <aside
@@ -247,7 +254,11 @@ export function PanelSurface({
       )}
       onKeyDown={(event) => {
         onKeyDown?.(event);
-        if (event.key === "Escape" && !event.defaultPrevented && !isEditable(event.target)) {
+        if (
+          event.key === "Escape" &&
+          !event.defaultPrevented &&
+          !escapeIsElsewhere(event.currentTarget, event)
+        ) {
           event.preventDefault();
           closeRef.current();
         }
@@ -277,10 +288,32 @@ export function PanelSurface({
 }
 
 /** The title, actions and close share the top-nav-height bar; a narrow panel gives the title its own row. */
-export function PanelHeader({ className, ...props }: ShellPanelHeaderProps) {
+export function PanelHeader({ className, ref, ...props }: ShellPanelHeaderProps) {
+  const own = useRef<HTMLDivElement>(null);
+  // The header stays over the panel's content as it scrolls. Its measured height is the panel's
+  // scroll padding (shell.css), so a control that takes focus under it scrolls clear of it however
+  // the header wraps: a title on its own row in a narrow panel is about twice the bar's height.
+  useLayoutEffect(() => {
+    const header = own.current;
+    const panel = header?.closest<HTMLElement>('[data-slot="shell-panel"]');
+    if (!header || !panel) return;
+    const measure = () =>
+      panel.style.setProperty(
+        "--shell-panel-header",
+        `${Math.round(header.getBoundingClientRect().height)}px`,
+      );
+    measure();
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
+    observer?.observe(header);
+    return () => {
+      observer?.disconnect();
+      panel.style.removeProperty("--shell-panel-header");
+    };
+  }, []);
   return (
     <div
       {...props}
+      ref={mergeRefs(ref, own)}
       data-slot="shell-panel-header"
       className={cn(
         "sticky top-0 z-10 grid min-h-layout-topnav items-center gap-100 border-b border-default bg-surface px-200 py-100",
@@ -333,7 +366,10 @@ export function PanelClose({
     <IconButton
       {...props}
       data-slot="shell-panel-close"
-      label={label ?? t("closeDetails")}
+      label={
+        label ??
+        (panel?.label ? t("closePanelNamed", { label: panel.label }) : t("closeDetails"))
+      }
       variant={variant}
       size={size}
       onClick={(event) => {
@@ -365,11 +401,15 @@ export function PanelBody({ className, style, children, ...props }: ShellPanelBo
 /** Makes the panel resizable from its start edge. The built-in header renders one; composing the parts, render it as the panel's first child. It holds still over the panel's visible height while the content scrolls. */
 export function PanelSplitter({ label, ...props }: ShellSplitterProps) {
   const shell = useShell();
+  const panel = useContext(PanelContext);
   const { t } = useLedgerLocale();
   return (
     <Splitter
       {...props}
-      label={label ?? t("resizeDetails")}
+      label={
+        label ??
+        (panel?.label ? t("resizePanelNamed", { label: panel.label }) : t("resizeDetails"))
+      }
       min={PANEL_MIN}
       direction={-1}
       edge="start"

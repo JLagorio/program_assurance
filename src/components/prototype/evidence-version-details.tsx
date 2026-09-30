@@ -1,24 +1,22 @@
 import type { ReactNode, Ref } from "react";
-import { ExternalLink } from "lucide-react";
+import { Clock } from "lucide-react";
 import {
   Absent,
   DateTime,
   Empty,
   EmptyDescription,
   EmptyHeader,
-  EmptyIllustration,
   EmptyMedia,
   EmptyTitle,
-  Icon,
   Id,
-  Inline,
   KeyValue,
   Prose,
   Section,
   Stack,
-  Text,
   TextLink,
+  Timeline,
   formatFileSize,
+  useLedgerLocale,
 } from "@ledger/design-system";
 import { EvidenceFile } from "@/components/app/evidence-file";
 import { StatusBadge } from "@/components/app/status";
@@ -49,8 +47,9 @@ export function EvidenceFacts({ facts }: { facts: [string, ReactNode][] }) {
 }
 
 /**
- * An evidence version's external reference: a link that says it opens in a new tab when it is a
- * web address, and the reference as text when it is not.
+ * An evidence version's external reference: a link that opens in a new tab and says so when it is
+ * a web address, and the reference as text when it is not. An address shown as the link's words
+ * breaks anywhere, so a long one wraps inside its row.
  */
 export function ExternalReference({
   uri,
@@ -61,21 +60,51 @@ export function ExternalReference({
   children?: string | undefined;
 }) {
   if (!uri) return null;
-  if (!/^https?:\/\//i.test(uri)) return <>{uri}</>;
+  if (!/^https?:\/\//i.test(uri)) return <Id className="break-all">{uri}</Id>;
   return (
-    <TextLink href={uri} target="_blank" rel="noreferrer">
-      {children ?? uri}{" "}
-      <Icon label="opens in a new tab">
-        <ExternalLink />
-      </Icon>
+    <TextLink href={uri} newTab {...(children ? {} : { className: "break-all" })}>
+      {children ?? uri}
     </TextLink>
   );
 }
 
-/** A version's review decisions, newest first, with who decided, when and why. */
+/**
+ * A stored file's size as a reader says it, with the exact byte count beside it for a size that
+ * rounds: "2.5 MB (2,457,600 bytes)".
+ */
+export function FileSize({ bytes }: { bytes: number }) {
+  const { locale, formatPlural } = useLedgerLocale();
+  const size = formatFileSize(bytes, { locale });
+  if (bytes < 1000) return <>{size}</>;
+  return (
+    <>
+      {size} ({formatPlural(bytes, { one: "{count} byte", other: "{count} bytes" })})
+    </>
+  );
+}
+
+/** A decision's moment on the review feed: the day and minute in the reader's zone, in full on hover. */
+function useReviewTime() {
+  const { formatDate } = useLedgerLocale();
+  return (value: string | null) => {
+    if (!value) return { time: "Date not recorded" };
+    const instant = new Date(value);
+    return {
+      time: formatDate(instant, { dateStyle: "medium", timeStyle: "short" }),
+      timeTitle: formatDate(instant, { dateStyle: "full", timeStyle: "long" }),
+      dateTime: value,
+    };
+  };
+}
+
+/**
+ * A version's review decisions as a feed, newest first: each decision, who made it, when, and why.
+ * With none, the version is waiting on a reviewer, which is not the same as finished work.
+ */
 export function EvidenceReviews({ versionId }: { versionId: string }) {
   const reviews = useRows("evidence_reviews", { evidence_version_id: versionId });
   const parties = useRows("parties");
+  const reviewTime = useReviewTime();
   const sorted = [...(reviews.data ?? [])].sort((a, b) =>
     (b.reviewed_at ?? b.created_at).localeCompare(a.reviewed_at ?? a.created_at),
   );
@@ -83,32 +112,30 @@ export function EvidenceReviews({ versionId }: { versionId: string }) {
     <Section title="Reviews">
       <QueryState queries={[reviews, parties]}>
         {sorted.length ? (
-          <Stack space="space.200">
+          <Timeline label="Reviews" wrap>
             {sorted.map((review) => (
-              <Stack key={review.id} space="space.050">
-                <Inline space="space.100" alignBlock="center" shouldWrap>
-                  <StatusBadge statuses={evidenceReviewDecisions} value={review.decision} />
-                  <Text>
-                    {parties.data?.find((party) => party.id === review.reviewer_party_id)?.name ??
-                      "Unavailable reviewer"}
-                  </Text>
-                  <Text size="small" color="color.text.subtle">
-                    <DateTime value={review.reviewed_at} absentLabel="Review date not recorded" />
-                  </Text>
-                </Inline>
+              <Timeline.Item
+                key={review.id}
+                title={<StatusBadge statuses={evidenceReviewDecisions} value={review.decision} />}
+                meta={
+                  parties.data?.find((party) => party.id === review.reviewer_party_id)?.name ??
+                  "Unavailable reviewer"
+                }
+                {...reviewTime(review.reviewed_at)}
+              >
                 {review.rationale ? <Prose>{review.rationale}</Prose> : null}
-              </Stack>
+              </Timeline.Item>
             ))}
-          </Stack>
+          </Timeline>
         ) : (
           <Empty size="compact">
-            <EmptyMedia aria-hidden>
-              <EmptyIllustration kind="done" />
+            <EmptyMedia variant="icon" aria-hidden>
+              <Clock />
             </EmptyMedia>
             <EmptyHeader>
               <EmptyTitle>Not reviewed yet</EmptyTitle>
               <EmptyDescription>
-                Review decisions are recorded for this exact evidence version.
+                A reviewer records a decision for this exact evidence version.
               </EmptyDescription>
             </EmptyHeader>
           </Empty>
@@ -169,7 +196,7 @@ export function EvidenceVersionDetails({
             ["Media type", version.media_type],
             [
               "Size",
-              typeof version.byte_size === "number" ? formatFileSize(version.byte_size) : null,
+              typeof version.byte_size === "number" ? <FileSize bytes={version.byte_size} /> : null,
             ],
             ["SHA-256", version.sha256 ? <Id className="break-all">{version.sha256}</Id> : null],
           ]}

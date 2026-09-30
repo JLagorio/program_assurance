@@ -31,11 +31,11 @@ Bulleted and numbered lists on one inset and two spacings: validation messages, 
 
 ## Anatomy
 
-| Part      | What it is                                                                                                                    |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Part      | What it is                                                                                                                                                                                      |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | List      | `ul` (`list-disc`, `space.200` inset) or `ol` with `ordered` (`list-decimal`, `space.300` inset, for two-digit numbers). The inset is logical: it moves to the right in a right-to-left locale. |
-| List.Item | `li`, `space.025` from its marker; it wraps and breaks a long word rather than running past the list.                         |
-| Spacing   | `space.025` between items when `tight`, `space.100` when `loose`.                                                            |
+| List.Item | `li`, `space.025` from its marker; it wraps and breaks a long word rather than running past the list.                                                                                           |
+| Spacing   | `space.025` between items when `tight`, `space.100` when `loose`.                                                                                                                               |
 
 The list takes its size and colour from where it sits: an Alert's description, a Field's error, a paragraph's size. `start` numbers an ordered list from where the text left off. A List inside a List.Item nests.
 

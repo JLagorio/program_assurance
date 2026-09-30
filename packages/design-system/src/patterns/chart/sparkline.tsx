@@ -1,4 +1,5 @@
 import { useLedgerLocale } from "../../lib/locale";
+import type { ComponentProps } from "react";
 import {
   Area,
   Bar,
@@ -25,11 +26,11 @@ import {
   type Formatter,
 } from "./_shared";
 
-export type ChartSparklineProps = {
+type ChartSparklineOwnProps = {
   data: ChartDatum[];
   /** The value key. */
   y: string;
-  /** The category key, for the tooltip. Index order when unsaid. */
+  /** The category key, for the tooltip's heading. Without it the tooltip prints the value alone. */
   x?: string | undefined;
   /** `line` is a stroke; `area` adds a wash; `bars` is a column per point. */
   appearance?: "line" | "area" | "bars" | undefined;
@@ -38,6 +39,12 @@ export type ChartSparklineProps = {
   reference?: number | undefined;
   /** A ringed marker on the last point. */
   endDot?: boolean | undefined;
+  /**
+   * Where the scale starts. `auto`, for a line or an area, crops to the data, so a trend on a high
+   * base (96% to 99%, 340 to 360) still shows; `zero`, for bars, starts at zero, since a bar's
+   * length is its value. Unsaid, `auto` for a line or an area and `zero` for bars.
+   */
+  baseline?: "zero" | "auto" | undefined;
   /** The most it takes, in pixels: in a narrower container (a cell, a grid track, a flex row) it narrows and keeps its height. */
   width?: number | undefined;
   height?: number | undefined;
@@ -45,17 +52,27 @@ export type ChartSparklineProps = {
   format?: Formatter | undefined;
   /** The accessible name: "Open findings, nine months". Unsaid, the sparkline is decoration beside its number. */
   label?: string | undefined;
-  /** Draws a skeleton in the sparkline's place. The Frame sets it from `status="loading"`. */
+  /** What the tooltip calls the value: "Open". The label, else "Value", when unsaid. */
+  seriesLabel?: string | undefined;
+  /** Draws a skeleton in the sparkline's place. The Frame sets it from `state="loading"`. */
   loading?: boolean | undefined;
   className?: string | undefined;
 };
+
+/** The part's own props, and the native props and ref of its box. */
+export type ChartSparklineProps = ChartSparklineOwnProps &
+  Omit<ComponentProps<"div">, keyof ChartSparklineOwnProps | "children" | "role">;
 
 type DotProps = { cx?: number; cy?: number; index?: number };
 
 /** Recharts' animation off: the marks draw at their place on mount and on a change of data. */
 const still = { isAnimationActive: false } as const;
 
-/** A trend with no axes, for a cell or a Stat: the number beside it carries the value. */
+/**
+ * A trend with no axes, for a cell or a Stat: the number beside it carries the value. Named, it
+ * is an image with that name, and its tooltip follows the pointer; it is never a tab stop, since
+ * its number is on the page. Unnamed, it is decoration.
+ */
 export function ChartSparkline({
   data,
   y,
@@ -64,12 +81,15 @@ export function ChartSparkline({
   tone = "brand",
   reference,
   endDot,
+  baseline,
   width = 96,
   height = 24,
   format: formatProp,
   label,
+  seriesLabel,
   loading: loadingProp,
   className,
+  ...native
 }: ChartSparklineProps) {
   const { t } = useLedgerLocale();
 
@@ -84,8 +104,9 @@ export function ChartSparkline({
   const motion = still;
   const tooltipMotion = useTooltipMotion();
   const color = chartColor(tone);
-  const series: ChartSeries[] = [{ key: y, label: t("value"), tone }];
+  const series: ChartSeries[] = [{ key: y, label: seriesLabel ?? label ?? t("value"), tone }];
   const last = data.length - 1;
+  const fromZero = (baseline ?? (appearance === "bars" ? "zero" : "auto")) === "zero";
   if (offstage) return null;
   if (loading)
     return (
@@ -110,9 +131,11 @@ export function ChartSparkline({
   const active = name ? { r: 3, strokeWidth: 2, stroke: surface(), fill: color } : false;
   return (
     <div
-      role={name ? "group" : undefined}
+      {...native}
+      role={name ? "img" : undefined}
       aria-label={name}
       aria-hidden={name ? undefined : true}
+      data-slot="chart-sparkline"
       className={cn("relative inline-block w-fit max-w-full align-middle", className)}
     >
       <InlineSizer width={width} height={height} />
@@ -126,16 +149,23 @@ export function ChartSparkline({
           data={data}
           margin={{ top: 3, right: 3, bottom: 3, left: 3 }}
           barCategoryGap={1}
-          accessibilityLayer={Boolean(name)}
+          accessibilityLayer={false}
+          aria-hidden
         >
           <XAxis {...(x ? { dataKey: x } : {})} hide />
-          <YAxis domain={[0, "auto"]} hide />
+          <YAxis domain={fromZero ? [0, "auto"] : ["auto", "auto"]} hide />
           {name ? (
             <Tooltip
               cursor={false}
               {...tooltipMotion}
               content={
-                <TooltipContent series={series} swatch="line" format={format} formatX={formatX} />
+                <TooltipContent
+                  series={series}
+                  swatch="line"
+                  format={format}
+                  formatX={formatX}
+                  showLabel={Boolean(x)}
+                />
               }
             />
           ) : null}
@@ -161,6 +191,7 @@ export function ChartSparkline({
               fillOpacity={0.12}
               dot={dot as never}
               activeDot={active}
+              {...(fromZero ? {} : { baseValue: "dataMin" as const })}
               {...motion}
             />
           ) : (

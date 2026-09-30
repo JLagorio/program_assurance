@@ -51,9 +51,10 @@ Skeleton uses a native div, as the shadcn reference does. It has no `render` or 
 ## Accessibility and motion
 
 - `aria-hidden` defaults to `true` so placeholders do not announce meaningless shapes. Explicit native ARIA props can override the default.
-- Put `aria-busy` and any loading message on the region that is waiting; clear its busy state when content arrives.
-- Keep placeholders noninteractive. Use a nearby status message for meaningful loading information.
-- Shapes pulse while waiting. The existing reduced-motion stylesheet stops the pulse and keeps the layout in place.
+- **Say the wait in words.** `aria-busy` on the waiting region holds a screen reader's announcements; it says nothing itself. Give the region a line that names the wait, visible or visually hidden ("Loading the record"), and say it once as it starts, with a Spinner's `label` or `announce`, where the reader should hear it. Clear the busy state when the content arrives.
+- Keep placeholders noninteractive.
+- Shapes pulse while waiting. Under reduced motion the pulse stops and the layout stays.
+- In forced colours the shapes are GrayText, so a loading page is not blank.
 - Match the size and amount of expected content, then replace the placeholders when it arrives.
 
 ## Props
@@ -68,7 +69,7 @@ Skeleton uses a native div, as the shadcn reference does. It has no `render` or 
 
 ## Migration
 
-Existing shapes, line counts, dimensions and style overrides retain their behavior. Skeleton now forwards native attributes, events, children and refs and exposes `data-slot="skeleton"` on the outer div. Multiline refs point to the wrapper, not an individual line. No existing consumer changes are required.
+Shapes, line counts, dimensions and style overrides keep their meaning. Native attributes, events, children and refs reach the outer div, which carries `data-slot="skeleton"`; a multiline Skeleton's ref is its wrapper, not a line. A waiting region that used `aria-busy` alone adds a line that names the wait.
 
 ## Related
 
@@ -76,5 +77,7 @@ Existing shapes, line counts, dimensions and style overrides retain their behavi
 - [Spinner](?path=/docs/components-spinner--docs): progress for an action.
 - [Chart](?path=/docs/patterns-chart-overview--docs): loading layouts for plots.
 - [Empty](?path=/docs/components-empty--docs): a region with no content to load.
+
+## Don't
 
 <Canvas of={Stories.Dont} />

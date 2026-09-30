@@ -7,13 +7,17 @@ import * as Stories from "./DropdownMenu.stories";
 
 # DropdownMenu
 
-Actions and view options anchored to a button, using shadcn's Base UI Menu composition. Ledger supplies the menu surface, row geometry, colors and motion. A choice of one value in a form is a [Select](?path=/docs/components-select--docs), a searchable list of commands is a [Command](?path=/docs/components-command--docs), and a destination in a menu is a LinkItem, not an item that navigates from `onClick`.
+Actions and view options anchored to a button, using shadcn's Base UI Menu composition. Ledger supplies the menu surface, row geometry, colors and motion.
 
 ```tsx
 <DropdownMenu>
-  <DropdownMenuTrigger render={<Button variant="secondary" />}>Actions</DropdownMenuTrigger>
+  <DropdownMenuTrigger render={<Button variant="secondary" iconAfter={<ChevronDown />} />}>
+    Actions
+  </DropdownMenuTrigger>
   <DropdownMenuContent>
-    <DropdownMenuItem onClick={edit}>Edit</DropdownMenuItem>
+    <DropdownMenuItem onClick={edit} shortcut="Mod+E">
+      Edit
+    </DropdownMenuItem>
     <DropdownMenuSeparator />
     <DropdownMenuItem variant="danger" onClick={archive}>
       Archive
@@ -22,15 +26,44 @@ Actions and view options anchored to a button, using shadcn's Base UI Menu compo
 </DropdownMenu>
 ```
 
+## When to use
+
+- **Actions on one thing** that do not all earn a button: a record's Actions menu, a row's overflow, a More behind an icon button. The one primary action stays a button beside the menu.
+- **View options** that change how a collection reads: its columns, its sort, its density.
+- **Places to go** from one record: a labelled group of LinkItems, each a real link.
+
+Use something else when:
+
+- one value in a form is chosen: a [Select](?path=/docs/components-select--docs), or a [RadioGroup](?path=/docs/components-radiogroup--docs) for a few visible choices;
+- the reader types to find a command or a record: a [Command](?path=/docs/components-command--docs) list, the [CommandPalette](?path=/docs/patterns-commandpalette--docs) or the [SearchDialog](?path=/docs/patterns-searchdialog--docs);
+- a single action needs no menu: a Button;
+- the choice needs a sentence of explanation per option, or fields: a [Dialog](?path=/docs/components-dialog--docs).
+
+## Content
+
+- **A menu item is a verb and its object**: "Edit program", "Export as CSV", "Remove allocation". A LinkItem names the place: "Traceability matrix".
+- **Order by use**: the common action first, the rare ones after, and a destructive one last, after a separator, with `variant="danger"`.
+- **Group what belongs together** under a Label: the record's actions, then its Views. Keep checkbox and radio items in their own labelled Group, apart from actions, so an option that is off never reads as an action.
+- **One line per label.** A label wider than the window leaves ends in an ellipsis, so write the short form; say the difference between two similar actions in `description`, and why an action cannot run in `disabledReason`.
+- **The trigger says it opens a menu.** A labelled trigger carries a trailing ChevronDown (`render={<Button iconAfter={<ChevronDown />} />}`); an icon trigger such as More is a menu by its icon. A create action that asks how to create is a [ButtonGroup](?path=/docs/components-buttongroup--docs): the one create action, then a labelled icon menu for the other ways.
+
 ## Composition and states
 
 Root owns controlled or uncontrolled open state, modality, generic trigger payloads and cancellable `onOpenChange(open, details)`. Trigger defaults to a native button and composes existing buttons through `render`. Custom rendered components must accept merged props and refs; use `nativeButton={false}` only when replacing a button with a non-button action target.
 
-Content includes its portal and positioner. It defaults to bottom/start, with a 4px side offset and zero alignment offset. Its width fits its contents and is at least the trigger width or 128px, within the available viewport. A narrow trigger never forces action labels to wrap. It scrolls when the available space is smaller than its contents, inside a [Scroller](?path=/docs/components-scroller--docs) whose hover arrows mark each overflowed edge. Native `style`, `className`, `render` and refs target the popup; classes and styles accept state callbacks. Content's `dir` overrides Ledger's inherited positioning direction.
+Content includes its portal and positioner. It defaults to bottom/start, with a 4px side offset and zero alignment offset. Its width fits its contents and is at least the trigger width or 128px (`dimension.part.menu`), within the available viewport. Set no fixed `width`: the labels size the menu. A `minWidth` in `style` is capped at the available width, so it never pushes the menu off a phone. A narrow trigger never forces action labels to wrap. It scrolls when the available space is smaller than its contents, inside a [Scroller](?path=/docs/components-scroller--docs) whose hover arrows mark each overflowed edge. Native `style`, `className`, `render` and refs target the popup; classes and styles accept state callbacks. Content's `dir` overrides Ledger's inherited positioning direction.
 
-Use Group around related items and Label inside that Group. Items compose icons, text and Shortcut as children. An action that destroys or cannot be undone uses `variant="danger"`, the word Button uses, so a Delete button and the Delete item beside it say the same thing; a disabled danger item fades like any other, so it never looks ready to run. `variant="destructive"` is the deprecated spelling, kept for one version: it renders as `danger` and `ledger/no-deprecated-name` renames it. `inset` aligns labels and items without icons. The row uses Ledger's 28px menu height. Action labels stay on one line.
+Use Group around related items and Label first inside that Group; the Label names the Group. A Label outside any Group or RadioGroup names nothing: it still renders, in a group of its own, and says so once in the console. Items compose icons and text as children. An action that destroys or cannot be undone uses `variant="danger"`, the word Button uses, so a Delete button and the Delete item beside it say the same thing; a disabled danger item fades like any other, so it never looks ready to run. `variant="destructive"` is the deprecated spelling, kept for one version: it renders as `danger`; write `danger`. `inset` aligns labels and items without icons. The row uses Ledger's 28px menu height.
+
+Action labels stay on one line. The menu is as wide as its longest label within the window; where a label is still wider, it ends in an ellipsis at the menu's edge instead of being cut mid-word, and a pointer resting on it shows the whole label. Its accessible name is always the whole label.
+
+<Canvas of={Stories.ActionLabelWidths} />
+
+`shortcut` on an Item names the keys that run the same action from the page, written once for every platform as [KbdShortcut](?path=/docs/components-kbd--docs) takes them ("Mod+E", "Shift+D"). They are drawn at the end in the platform's glyphs and given to the item as `aria-keyshortcuts`, so the item's name stays its label ("Edit", not "Edit E"). Binding the keys stays with the caller. Shortcut, the part the prop draws, is hidden from assistive technology; other content at the end of a row that a reader needs, such as a count, passes `aria-hidden={false}` to it.
 
 <Canvas of={Stories.DropdownMenuMatrix} />
+
+<Canvas of={Stories.LabelOutsideAGroup} />
 
 ## Descriptions and disabled reasons
 
@@ -42,7 +75,7 @@ An action that cannot run takes `disabledReason` instead of `disabled`: the item
 
 ## Choices and closing
 
-Use CheckboxItem with `checked` and `onCheckedChange` for independent options. Use RadioGroup with `value` and `onValueChange`, and RadioItem with `value`, for exclusive options. A change callback's `details.cancel()` rejects the change. The installed Base UI radio value contract is not generic; callers can validate values against their own options.
+Use CheckboxItem with `checked` and `onCheckedChange` for independent options; a check marks one that is on. Use RadioGroup with `value` and `onValueChange`, and RadioItem with `value`, for exclusive options; a dot marks the chosen one. Put each kind in its own Group with a Label, apart from the actions and separated from them, so an unchecked option and a plain action never look alike. A change callback's `details.cancel()` rejects the change. The installed Base UI radio value contract is not generic; callers can validate values against their own options.
 
 Ordinary Item actions use `onClick` and close by default. CheckboxItem and RadioItem stay open by default; set `closeOnClick` when selecting should close the menu. Columns keep the menu open while toggling visibility; saved views and sorting close after a choice. Essential form values still belong in labeled form controls.
 
@@ -50,7 +83,7 @@ Ordinary Item actions use `onClick` and close by default. CheckboxItem and Radio
 
 ## Submenus and links
 
-Sub, SubTrigger and SubContent create a nested menu. SubContent defaults to start alignment, -3px alignment offset, zero side offset and a 96px minimum. Its logical `inline-end` side and chevron follow the locale. Escape closes the submenu first; Root's `closeParentOnEsc` can change that behavior.
+Sub, SubTrigger and SubContent create a nested menu. SubContent defaults to start alignment, -3px alignment offset, zero side offset and a 96px minimum (`dimension.part.submenu`). Its logical `inline-end` side and chevron follow the locale. Escape closes the submenu first; Root's `closeParentOnEsc` can change that behavior.
 
 LinkItem is Base UI's native anchor part. Give it `href`, or `render` a router Link, to retain navigation and modified clicks. It stays open by default; `closeOnClick` closes after navigation. Item with a rendered action button instead uses `nativeButton`. The public Portal part is available for custom Base UI compositions; Content already includes one.
 
@@ -58,7 +91,7 @@ LinkItem is Base UI's native anchor part. Give it `href`, or `render` a router L
 
 ## Accessibility and dialogs
 
-The trigger exposes `aria-haspopup="menu"` and expanded state. Items use `menuitem`, `menuitemcheckbox` or `menuitemradio`, with checked state where appropriate. Enter, Space or ArrowDown opens from the trigger; arrows, Home, End and typeahead navigate; Enter or Space activates an action. Disabled items remain focusable and announce their disabled state, but cannot activate; give them a `disabledReason` so the reason is announced with them. Root defaults to modal with looping keyboard navigation.
+The trigger exposes `aria-haspopup="menu"` and expanded state. Items use `menuitem`, `menuitemcheckbox` or `menuitemradio`, with checked state where appropriate; a Label names its Group. Enter, Space or ArrowDown opens from the trigger; arrows, Home, End and typeahead navigate; Enter or Space activates an action. Disabled items remain focusable and announce their disabled state, but cannot activate; give them a `disabledReason` so the reason is announced with them. An item's shortcut is `aria-keyshortcuts`, not part of its name. Root defaults to modal with looping keyboard navigation. In forced colours the highlighted row is Highlight and a disabled row GrayText.
 
 A row-action button must remain keyboard-reachable. Use `opacity-0 focus-visible:opacity-100 group-hover/row:opacity-100 data-popup-open:opacity-100` for visual concealment, rather than `visibility: hidden`, which removes it from keyboard navigation.
 
@@ -68,7 +101,7 @@ Content owns `finalFocus`. Ledger's modal wrappers resolve an activating menu it
 
 ## Migration and API
 
-Replace the configured `trigger` prop with Trigger's `render`; move placement and width into Content. Replace `DropdownMenu.Item`, `.Label` and `.Separator` with the flat exports. `onSelect` becomes `onClick` for actions; `isSelected` becomes CheckboxItem or RadioGroup state; `closeOnSelect` becomes `closeOnClick`; `tone="danger"` becomes `variant="danger"`; `trailing` becomes Shortcut children. Remove children-as-`close` callbacks: items close through Base UI, and Root exposes controlled state or `actionsRef` for imperative dismissal.
+Replace the configured `trigger` prop with Trigger's `render`; move placement and width into Content. Replace `DropdownMenu.Item`, `.Label` and `.Separator` with the flat exports. `onSelect` becomes `onClick` for actions; `isSelected` becomes CheckboxItem or RadioGroup state; `closeOnSelect` becomes `closeOnClick`; `tone="danger"` becomes `variant="danger"`; `trailing` becomes `shortcut`. Remove children-as-`close` callbacks: items close through Base UI, and Root exposes controlled state or `actionsRef` for imperative dismissal.
 
 See [shadcn Dropdown Menu](https://ui.shadcn.com/docs/components/base/dropdown-menu) and [Base UI Menu](https://base-ui.com/react/components/menu) for the native APIs. Content adds the four positioning props to Popup. Ledger adds token styling and locale/dialog integration; reference catalogs remain independently refreshable.
 

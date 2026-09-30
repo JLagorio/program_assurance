@@ -91,88 +91,57 @@ const valueRef = createRef<HTMLSpanElement>();
 const popupRef = createRef<HTMLDivElement>();
 const changed = fn();
 
-/** Default selected-item alignment, grouped choices and the native trigger contract. */
+/** Grouped choices, keyboard selection and the native trigger contract. */
 export const SelectMatrix: Story = {
   name: "Choices",
-  render: function FieldExample() {
-    const fieldId = useId();
-    return (
-      <Stack space="space.200" className="pt-600">
-        <Field>
-          <FieldLabel id={`${fieldId}-status-1-label`} htmlFor={`${fieldId}-status-1`}>
-            {"Status"}
-          </FieldLabel>
-          <Select items={statuses} defaultValue="review" onValueChange={changed}>
-            <SelectTrigger
-              id={`${fieldId}-status-1`}
-              aria-labelledby={`${fieldId}-status-1-label`}
-              aria-describedby={`${fieldId}-status-1-message`}
-              ref={triggerRef}
-              style={(s) => ({ width: 240, cursor: s.open ? "default" : "pointer" })}
-              className={(s) => (s.open ? "font-medium" : "font-regular")}
-              render={<button ref={renderedRef} data-native-target="status" />}
-            >
-              <SelectValue ref={valueRef} placeholder="Choose a status" />
-            </SelectTrigger>
-            <SelectContent
-              aria-labelledby={`${fieldId}-status-1-label`}
-              ref={popupRef}
-              style={(s) => ({ outlineOffset: s.open ? 4 : 0 })}
-            >
-              <SelectGroup>
-                <SelectLabel>Workflow</SelectLabel>
-                <StatusItems />
-              </SelectGroup>
-              <SelectSeparator />
-              <SelectItem value={null}>No status</SelectItem>
-            </SelectContent>
-          </Select>
-          <FieldDescription id={`${fieldId}-status-1-message`}>
-            {"The same status mark used on the record."}
-          </FieldDescription>
-        </Field>
-        <Field>
-          <FieldLabel
-            id={`${fieldId}-unavailable-status-2-label`}
-            htmlFor={`${fieldId}-unavailable-status-2`}
+  render: () => (
+    <Stack space="space.200" className="pt-600">
+      <Field>
+        <FieldLabel>Status</FieldLabel>
+        <Select items={statuses} defaultValue="review" onValueChange={changed}>
+          <SelectTrigger
+            ref={triggerRef}
+            style={(s) => ({ width: 240, cursor: s.open ? "default" : "pointer" })}
+            className={(s) => (s.open ? "font-medium" : "font-regular")}
+            render={<button ref={renderedRef} data-native-target="status" />}
           >
-            {"Unavailable status"}
-          </FieldLabel>
-          <Select disabled items={statuses} defaultValue="draft">
-            <SelectTrigger
-              id={`${fieldId}-unavailable-status-2`}
-              aria-labelledby={`${fieldId}-unavailable-status-2-label`}
-              size="small"
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent aria-labelledby={`${fieldId}-unavailable-status-2-label`}>
+            <SelectValue ref={valueRef} placeholder="Choose a status" />
+          </SelectTrigger>
+          <SelectContent ref={popupRef} style={(s) => ({ outlineOffset: s.open ? 4 : 0 })}>
+            <SelectGroup>
+              <SelectLabel>Workflow</SelectLabel>
               <StatusItems />
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field>
-          <FieldLabel
-            id={`${fieldId}-locked-status-3-label`}
-            htmlFor={`${fieldId}-locked-status-3`}
-          >
-            {"Locked status"}
-          </FieldLabel>
-          <Select readOnly items={statuses} defaultValue="approved">
-            <SelectTrigger
-              id={`${fieldId}-locked-status-3`}
-              aria-labelledby={`${fieldId}-locked-status-3-label`}
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent aria-labelledby={`${fieldId}-locked-status-3-label`}>
-              <StatusItems />
-            </SelectContent>
-          </Select>
-        </Field>
-      </Stack>
-    );
-  },
+            </SelectGroup>
+            <SelectSeparator />
+            <SelectItem value={null}>No status</SelectItem>
+          </SelectContent>
+        </Select>
+        <FieldDescription>The same status mark used on the record.</FieldDescription>
+      </Field>
+      <Field>
+        <FieldLabel>Unavailable status</FieldLabel>
+        <Select disabled items={statuses} defaultValue="draft">
+          <SelectTrigger size="small">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <StatusItems />
+          </SelectContent>
+        </Select>
+      </Field>
+      <Field>
+        <FieldLabel>Locked status</FieldLabel>
+        <Select readOnly items={statuses} defaultValue="approved">
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <StatusItems />
+          </SelectContent>
+        </Select>
+      </Field>
+    </Stack>
+  ),
   play: async ({ canvasElement }) => {
     const doc = canvasElement.ownerDocument,
       canvas = within(canvasElement),
@@ -296,14 +265,10 @@ function FormDemo() {
               aria-required={true}
               aria-invalid={Boolean(fieldError4)}
               aria-describedby={`${fieldId}-status-4-message`}
-              className="w-full"
             >
               <SelectValue placeholder="Choose a status" />
             </SelectTrigger>
-            <SelectContent
-              aria-labelledby={`${fieldId}-status-4-label`}
-              alignItemWithTrigger={false}
-            >
+            <SelectContent aria-labelledby={`${fieldId}-status-4-label`}>
               <StatusItems />
             </SelectContent>
           </Select>
@@ -332,14 +297,10 @@ function FormDemo() {
             <SelectTrigger
               id={`${fieldId}-delivery-channels-5`}
               aria-labelledby={`${fieldId}-delivery-channels-5-label`}
-              className="w-full"
             >
               <SelectValue placeholder="Choose channels" />
             </SelectTrigger>
-            <SelectContent
-              aria-labelledby={`${fieldId}-delivery-channels-5-label`}
-              alignItemWithTrigger={false}
-            >
+            <SelectContent aria-labelledby={`${fieldId}-delivery-channels-5-label`}>
               <SelectItem value={1}>Email</SelectItem>
               <SelectItem value={2}>In app</SelectItem>
             </SelectContent>
@@ -357,17 +318,10 @@ function FormDemo() {
             itemToStringValue={(v) => String(v.id)}
             isItemEqualToValue={(a, b) => a.id === b.id}
           >
-            <SelectTrigger
-              id={`${fieldId}-owner-6`}
-              aria-labelledby={`${fieldId}-owner-6-label`}
-              className="w-full"
-            >
+            <SelectTrigger id={`${fieldId}-owner-6`} aria-labelledby={`${fieldId}-owner-6-label`}>
               <SelectValue placeholder="Choose an owner" />
             </SelectTrigger>
-            <SelectContent
-              aria-labelledby={`${fieldId}-owner-6-label`}
-              alignItemWithTrigger={false}
-            >
+            <SelectContent aria-labelledby={`${fieldId}-owner-6-label`}>
               {owners.map((o) => (
                 <SelectItem key={o.id} value={o}>
                   {o.name}
@@ -385,7 +339,10 @@ function FormDemo() {
     </form>
   );
 }
-/** Native form values, required state, cancellation, multiple/object values and caller-owned reset. */
+/**
+ * Native form values, required state, cancellation, multiple/object values and caller-owned reset.
+ * Its ids and ARIA are explicit, and win over the Field's.
+ */
 export const InField: Story = {
   name: "Forms",
   render: () => <FormDemo />,
@@ -433,91 +390,65 @@ export const InField: Story = {
 
 /** Custom scroll-arrow composition for a bounded list, and the standard Content in RTL. */
 export const Scrolling: Story = {
-  render: function FieldExample() {
-    const fieldId = useId();
-    return (
-      <div style={{ maxWidth: 240 }}>
-        <Stack space="space.200">
-          <Field>
-            <FieldLabel
-              id={`${fieldId}-retention-period-7-label`}
-              htmlFor={`${fieldId}-retention-period-7`}
-            >
-              {"Retention period"}
-            </FieldLabel>
-            <Select<number>
-              defaultValue={12}
-              items={Object.fromEntries(
-                Array.from({ length: 30 }, (_, i) => [i + 1, `${i + 1} months`]),
-              )}
-            >
-              <SelectTrigger
-                id={`${fieldId}-retention-period-7`}
-                aria-labelledby={`${fieldId}-retention-period-7-label`}
-                size="small"
-                style={{ width: 200 }}
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectPrimitive.Portal>
-                <SelectPrimitive.Positioner sideOffset={4} alignItemWithTrigger={false}>
-                  <SelectPrimitive.Popup
-                    className={menuSurface}
-                    style={{ width: 200, maxHeight: 180 }}
-                  >
-                    <SelectScrollUpButton data-testid="scroll-up" />
-                    <SelectPrimitive.List
-                      aria-label="Retention period"
-                      style={{ maxHeight: 140, overflowY: "auto" }}
-                    >
-                      {Array.from({ length: 30 }, (_, i) => (
-                        <SelectItem key={i} value={i + 1}>
-                          {i + 1} months
-                        </SelectItem>
-                      ))}
-                    </SelectPrimitive.List>
-                    <SelectScrollDownButton data-testid="scroll-down" />
-                  </SelectPrimitive.Popup>
-                </SelectPrimitive.Positioner>
-              </SelectPrimitive.Portal>
-            </Select>
-          </Field>
-          <LedgerProvider direction="rtl">
-            <div dir="rtl">
-              <Field>
-                <FieldLabel
-                  id={`${fieldId}-standard-retention-8-label`}
-                  htmlFor={`${fieldId}-standard-retention-8`}
+  render: () => (
+    <div style={{ maxWidth: 240 }}>
+      <Stack space="space.200">
+        <Field>
+          <FieldLabel>Retention period</FieldLabel>
+          <Select<number>
+            defaultValue={12}
+            items={Object.fromEntries(
+              Array.from({ length: 30 }, (_, i) => [i + 1, `${i + 1} months`]),
+            )}
+          >
+            <SelectTrigger size="small" style={{ width: 200 }}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectPrimitive.Portal>
+              <SelectPrimitive.Positioner sideOffset={4} alignItemWithTrigger={false}>
+                <SelectPrimitive.Popup
+                  className={menuSurface}
+                  style={{ width: 200, maxHeight: 180 }}
                 >
-                  {"Standard retention"}
-                </FieldLabel>
-                <Select<number> defaultValue={12}>
-                  <SelectTrigger
-                    id={`${fieldId}-standard-retention-8`}
-                    aria-labelledby={`${fieldId}-standard-retention-8-label`}
-                    style={{ width: 200 }}
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent
-                    aria-labelledby={`${fieldId}-standard-retention-8-label`}
-                    alignItemWithTrigger={false}
-                    style={{ maxHeight: 180 }}
+                  <SelectScrollUpButton data-testid="scroll-up" />
+                  <SelectPrimitive.List
+                    aria-label="Retention period"
+                    style={{ maxHeight: 140, overflowY: "auto" }}
                   >
                     {Array.from({ length: 30 }, (_, i) => (
                       <SelectItem key={i} value={i + 1}>
-                        {i + 1}
+                        {i + 1} months
                       </SelectItem>
                     ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-            </div>
-          </LedgerProvider>
-        </Stack>
-      </div>
-    );
-  },
+                  </SelectPrimitive.List>
+                  <SelectScrollDownButton data-testid="scroll-down" />
+                </SelectPrimitive.Popup>
+              </SelectPrimitive.Positioner>
+            </SelectPrimitive.Portal>
+          </Select>
+        </Field>
+        <LedgerProvider direction="rtl">
+          <div dir="rtl">
+            <Field>
+              <FieldLabel>Standard retention</FieldLabel>
+              <Select<number> defaultValue={12}>
+                <SelectTrigger style={{ width: 200 }}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent style={{ maxHeight: 180 }}>
+                  {Array.from({ length: 30 }, (_, i) => (
+                    <SelectItem key={i} value={i + 1}>
+                      {i + 1}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          </div>
+        </LedgerProvider>
+      </Stack>
+    </div>
+  ),
   play: async ({ canvasElement }) => {
     const doc = canvasElement.ownerDocument,
       canvas = within(canvasElement),
@@ -561,8 +492,6 @@ export const Scrolling: Story = {
 };
 
 function DialogDemo() {
-  const fieldId = useId();
-
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -575,35 +504,22 @@ function DialogDemo() {
           }
         }}
       >
-        <DialogContent style={{ maxWidth: 520 }} className="top-200 translate-y-0 sm:top-600">
+        <DialogContent width="medium" className="top-200 translate-y-0 sm:top-600">
           <DialogHeader>
             <DialogTitle>Record status</DialogTitle>
           </DialogHeader>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
             <Field>
-              <FieldLabel id={`${fieldId}-status-9-label`} htmlFor={`${fieldId}-status-9`}>
-                {"Status"}
-              </FieldLabel>
+              <FieldLabel>Status</FieldLabel>
               <Select items={statuses} defaultValue="review">
-                <SelectTrigger
-                  id={`${fieldId}-status-9`}
-                  aria-labelledby={`${fieldId}-status-9-label`}
-                  aria-describedby={`${fieldId}-status-9-message`}
-                  className="w-full"
-                >
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent
-                  aria-labelledby={`${fieldId}-status-9-label`}
-                  align="start"
-                  alignItemWithTrigger={false}
-                >
+                <SelectContent>
                   <StatusItems />
                 </SelectContent>
               </Select>
-              <FieldDescription id={`${fieldId}-status-9-message`}>
-                {"Choose the next workflow status."}
-              </FieldDescription>
+              <FieldDescription>Choose the next workflow status.</FieldDescription>
             </Field>
           </div>
         </DialogContent>
@@ -651,7 +567,7 @@ export const Dialogs: Story = {
 
 /**
  * In a Field the trigger needs no ids: the label names it, the hint and the error describe it,
- * and the Field's `invalid`, `required` and `disabled` reach it.
+ * and the Field's `invalid`, `required` and `disabled` reach it. It fills the Field.
  */
 export const BoundInField: Story = {
   name: "Bound in a Field",
@@ -660,10 +576,10 @@ export const BoundInField: Story = {
       <Field invalid required>
         <FieldLabel>Status</FieldLabel>
         <Select items={{ open: "Open", closed: "Closed" }}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger>
             <SelectValue placeholder="Choose a status" />
           </SelectTrigger>
-          <SelectContent alignItemWithTrigger={false}>
+          <SelectContent>
             <SelectItem value="open">Open</SelectItem>
             <SelectItem value="closed">Closed</SelectItem>
           </SelectContent>
@@ -674,10 +590,10 @@ export const BoundInField: Story = {
       <Field disabled>
         <FieldLabel>Program</FieldLabel>
         <Select items={{ atlas: "Atlas payments" }} defaultValue="atlas">
-          <SelectTrigger className="w-full">
+          <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent alignItemWithTrigger={false}>
+          <SelectContent>
             <SelectItem value="atlas">Atlas payments</SelectItem>
           </SelectContent>
         </Select>
@@ -694,6 +610,8 @@ export const BoundInField: Story = {
     );
     const program = canvas.getByRole("combobox", { name: "Program" });
     await expect(program).toBeDisabled();
+    const field = status.closest<HTMLElement>('[data-slot="field"]')!;
+    await expect(status.getBoundingClientRect().width).toBe(field.getBoundingClientRect().width);
     await userEvent.click(status);
     const page = within(canvasElement.ownerDocument.body);
     // The open list is named by the Field's label too.
@@ -701,5 +619,226 @@ export const BoundInField: Story = {
     await userEvent.click(await page.findByRole("option", { name: "Closed" }));
     await expect(status).toHaveTextContent("Closed");
     await waitFor(() => expect(page.queryByRole("listbox")).not.toBeInTheDocument());
+  },
+};
+
+const systems = [
+  { value: "cn-109101", label: "CN-109101 · Mission Computer" },
+  {
+    value: "cn-109102",
+    label: "CN-109102 · Flight management system with the extended integrated display suite",
+  },
+  {
+    value: "digest",
+    label: "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+  },
+];
+
+/**
+ * The list opens below its trigger, from the trigger's start edge, at least as wide as the trigger
+ * and as wide as its longest option up to the measure; past that an option wraps, even an unbroken
+ * digest. `alignItemWithTrigger` opts into the list that opens over the trigger with the chosen
+ * option on the value.
+ */
+export const Placement: Story = {
+  render: () => (
+    // Clear of the frame's edge, so the list's collision padding does not shift it.
+    <div className="max-w-full ps-300" style={{ width: 264 }}>
+      <Stack space="space.300">
+        <Field>
+          <FieldLabel>System</FieldLabel>
+          <Select items={systems} defaultValue="cn-109101">
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {systems.map((system) => (
+                <SelectItem key={system.value} value={system.value}>
+                  {system.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field>
+          <FieldLabel>Workflow status</FieldLabel>
+          <Select items={statuses} defaultValue="approved">
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent alignItemWithTrigger>
+              <StatusItems />
+            </SelectContent>
+          </Select>
+        </Field>
+      </Stack>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const doc = canvasElement.ownerDocument,
+      canvas = within(canvasElement),
+      body = within(doc.body),
+      user = userEvent.setup({ document: doc });
+    const trigger = canvas.getByRole("combobox", { name: "System" });
+    await user.click(trigger);
+    const list = await body.findByRole("listbox", { name: "System" });
+    const popup = list.closest<HTMLElement>('[data-slot="select-content"]')!;
+    const mission = within(list).getByRole("option", { name: "CN-109101 · Mission Computer" });
+    await waitFor(() => expect(mission).toHaveFocus());
+    const t = trigger.getBoundingClientRect();
+    const viewport = doc.documentElement.clientWidth;
+    await waitFor(() => {
+      const p = popup.getBoundingClientRect();
+      // Below the trigger and from its start edge (shifted back only where the list is wider than
+      // the room after the trigger), never narrower than it.
+      expect(p.top).toBeGreaterThanOrEqual(t.bottom);
+      if (t.left + p.width <= viewport - 5) expect(Math.round(p.left)).toBe(Math.round(t.left));
+      else expect(p.right).toBeLessThanOrEqual(viewport);
+      expect(p.width).toBeGreaterThanOrEqual(t.width);
+    });
+    const p = popup.getBoundingClientRect();
+    await expect(p.width).toBeLessThanOrEqual(Math.min(720, doc.documentElement.clientWidth));
+    // Each option's text stays inside its row: a long label and an unbroken digest wrap.
+    for (const option of within(list).getAllByRole("option")) {
+      const text = option.querySelector<HTMLElement>('[data-slot="option-text"]')!;
+      const row = option.getBoundingClientRect();
+      await expect(text.getBoundingClientRect().right).toBeLessThanOrEqual(row.right);
+    }
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("listbox")).toBeNull());
+    const aligned = canvas.getByRole("combobox", { name: "Workflow status" });
+    await user.click(aligned);
+    const alignedList = await body.findByRole("listbox", { name: "Workflow status" });
+    const alignedPopup = alignedList.closest<HTMLElement>('[data-slot="select-content"]')!;
+    await waitFor(() =>
+      expect(alignedPopup.getBoundingClientRect().top).toBeLessThan(
+        aligned.getBoundingClientRect().bottom,
+      ),
+    );
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("listbox")).toBeNull());
+  },
+};
+
+/**
+ * In a Field the trigger fills it, as an Input does; outside one, in a toolbar or a rail, it fits
+ * its value. A value longer than the room truncates inside the trigger instead of widening it.
+ */
+export const Width: Story = {
+  render: () => (
+    <div className="max-w-full" style={{ width: 320 }}>
+      <Stack space="space.300">
+        <Field>
+          <FieldLabel>Profile</FieldLabel>
+          <Select
+            items={{
+              nist: "NIST SP 800-53 Rev 5.1.1 Security and Privacy Controls for Information Systems",
+            }}
+            defaultValue="nist"
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="nist">
+                NIST SP 800-53 Rev 5.1.1 Security and Privacy Controls for Information Systems
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+        <div data-testid="toolbar" className="flex items-center gap-100">
+          <Select items={{ all: "All", open: "Open" }} defaultValue="all">
+            <SelectTrigger aria-label="Show" size="small">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="open">Open</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </Stack>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const profile = canvas.getByRole("combobox", { name: "Profile" });
+    const field = profile.closest<HTMLElement>('[data-slot="field"]')!;
+    await expect(profile.getBoundingClientRect().width).toBe(field.getBoundingClientRect().width);
+    const value = profile.querySelector<HTMLElement>('[data-slot="select-value"]')!;
+    await expect(value.scrollWidth).toBeGreaterThan(value.clientWidth);
+    await expect(field.scrollWidth).toBeLessThanOrEqual(field.clientWidth);
+    const show = canvas.getByRole("combobox", { name: "Show" });
+    await expect(show.getBoundingClientRect().width).toBeLessThan(
+      canvas.getByTestId("toolbar").getBoundingClientRect().width / 2,
+    );
+  },
+};
+
+const baselines = [
+  { value: "low", label: "Low", description: "149 controls for a low-impact system" },
+  {
+    value: "moderate",
+    label: "Moderate",
+    description: "287 controls for a moderate-impact system",
+  },
+  {
+    value: "high",
+    label: "High",
+    reason: "Needs the privacy overlay, which this program has not adopted",
+  },
+];
+
+/**
+ * An option's description line tells similar options apart; `disabledReason` says why an option
+ * cannot be chosen, readable on the disabled row. Neither joins the option's name or the value on
+ * the closed trigger.
+ */
+export const Descriptions: Story = {
+  render: () => (
+    <div className="w-layout-list max-w-full">
+      <Field>
+        <FieldLabel>Baseline</FieldLabel>
+        <Select items={baselines} defaultValue="moderate">
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {baselines.map((baseline) => (
+              <SelectItem
+                key={baseline.value}
+                value={baseline.value}
+                description={baseline.description}
+                disabledReason={baseline.reason}
+              >
+                {baseline.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const doc = canvasElement.ownerDocument,
+      canvas = within(canvasElement),
+      body = within(doc.body),
+      user = userEvent.setup({ document: doc });
+    const trigger = canvas.getByRole("combobox", { name: "Baseline" });
+    await expect(trigger).toHaveTextContent(/^Moderate$/);
+    await user.click(trigger);
+    const moderate = await body.findByRole("option", { name: "Moderate" });
+    await expect(moderate).toHaveAccessibleDescription("287 controls for a moderate-impact system");
+    const high = body.getByRole("option", { name: "High" });
+    await expect(high).toHaveAttribute("aria-disabled", "true");
+    await expect(high).toHaveAccessibleDescription(
+      "Needs the privacy overlay, which this program has not adopted",
+    );
+    await waitFor(() => expect(moderate).toHaveFocus());
+    await user.keyboard("{ArrowDown}{Enter}");
+    // The disabled option is reached but not chosen.
+    await expect(trigger).toHaveTextContent(/^Moderate$/);
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("listbox")).toBeNull());
   },
 };

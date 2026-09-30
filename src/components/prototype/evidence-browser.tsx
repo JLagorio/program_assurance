@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState, type RefObject } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Button,
   DateTime,
@@ -16,7 +16,6 @@ import {
   Prose,
   Section,
   Stack,
-  formatFileSize,
   useDataTable,
 } from "@ledger/design-system";
 import {
@@ -25,6 +24,7 @@ import {
   RecordPreviewActions,
   recordDestination,
   useDisplayedRecords,
+  useEndOnHide,
 } from "./record-preview";
 import type { ReactNode } from "react";
 import { ProductCollection } from "./product-collection";
@@ -36,7 +36,12 @@ import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
 import { EvidenceFile } from "@/components/app/evidence-file";
 import { CreateEvidenceDialog } from "./create-evidence-dialog";
-import { EvidenceFacts, EvidenceReviews, ExternalReference } from "./evidence-version-details";
+import {
+  EvidenceFacts,
+  EvidenceReviews,
+  ExternalReference,
+  FileSize,
+} from "./evidence-version-details";
 import { RelationName } from "./record-tools";
 import { DetailFacts, ModelForm, type FormTarget } from "./work-common";
 
@@ -49,7 +54,8 @@ const latestReviewStatuses: StatusVocabulary = {
 type EvidenceRow = Row<"evidence_artifacts"> & {
   program: string;
   kind: string;
-  owner: string;
+  /** The owner's name; null when none is recorded. */
+  owner: string | null;
   version: string;
   collected: string | undefined;
   review: string;
@@ -64,6 +70,11 @@ export function EvidenceBrowser({ programId }: { programId?: string }) {
   const parties = useRows("parties");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
+  // A preview belongs to its tab: it ends when a program tab hides this register.
+  useEndOnHide(() => {
+    setSelectedId(null);
+    setSelectedVersionId(null);
+  });
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState<FormTarget | null>(null);
   const selected = artifacts.data?.find((row) => row.id === selectedId);
@@ -90,7 +101,7 @@ export function EvidenceBrowser({ programId }: { programId?: string }) {
           owner: artifact.owner_party_id
             ? (parties.data?.find((party) => party.id === artifact.owner_party_id)?.name ??
               "Unavailable person")
-            : "Not recorded",
+            : null,
           version: latest ? `Version ${latest.version_number}` : "No versions",
           collected: latest?.collected_at ?? undefined,
           review: review ? review.decision : "not_reviewed",
@@ -110,9 +121,10 @@ export function EvidenceBrowser({ programId }: { programId?: string }) {
   const columns = useMemo(
     () =>
       defineColumns<EvidenceRow>((c) => [
+        // A name with a minimum and no width shares the spare width with the other unsized fields.
         c.id("title", {
           header: "Artifact",
-          width: 220,
+          minWidth: 200,
           priority: 0,
           hideable: false,
           preview: openPreview,
@@ -125,9 +137,9 @@ export function EvidenceBrowser({ programId }: { programId?: string }) {
         }),
         ...(programId ? [] : [c.text("program", { header: "Program", width: 170 })]),
         c.text("kind", { header: "Kind", width: 120 }),
-        c.text("owner", { header: "Owner", width: 170 }),
+        c.person("owner", { header: "Owner", width: 170 }),
         c.text("version", { header: "Version", width: 105 }),
-        c.date("collected", { header: "Collected", width: 135 }),
+        c.date("collected", { header: "Collected", width: 120 }),
         c.status("review", {
           header: "Latest review",
           width: 150,
@@ -295,7 +307,8 @@ function EvidencePreview({
         c.id("version_number", {
           header: "Version",
           priority: 0,
-          width: 180,
+          // "Version 12" needs little room: a minimum leaves the State beside it in a narrow panel.
+          minWidth: 120,
           hideable: false,
           preview: (row) => setVersionId(row.id),
           active: (row) => row.id === versionId,
@@ -306,7 +319,7 @@ function EvidencePreview({
           ),
         }),
         c.status("state", { header: "State", width: 130, statuses: revisionStates }),
-        c.date("collected_at", { header: "Collected", width: 150 }),
+        c.date("collected_at", { header: "Collected", width: 120 }),
         c.text("storage_object_name", {
           header: "File",
           width: 180,
@@ -326,6 +339,8 @@ function EvidencePreview({
     columns,
     data: sorted,
     getRowId: (row) => row.id,
+    // Its controls say which version: "Preview Version 2", not a row's number or id.
+    rowLabel: (row) => `Version ${row.version_number}`,
     label: "Evidence versions",
   });
   const displayed = useDisplayedRecords(table);
@@ -391,6 +406,7 @@ function EvidencePreview({
         />
         <Section title="Versions">
           <ProductCollection
+            compact
             table={table}
             queries={[versions]}
             searchLabel="Find versions"
@@ -407,7 +423,6 @@ function EvidencePreview({
           <PreviewSheet
             open
             onClose={() => setVersionId(null)}
-            id={null}
             title={`${artifact.title} · Version ${current.version_number}`}
             navigation={
               <RecordPreviewActions
@@ -416,16 +431,6 @@ function EvidencePreview({
                 rows={displayed}
                 onSelect={(row) => setVersionId(row.id)}
               />
-            }
-            openTo={
-              <Link
-                to="/records/$collection/$recordId"
-                params={{ collection: "evidence_versions", recordId: current.id }}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Open the full record
-              </Link>
             }
             {...reopenFocus}
             actions={
@@ -561,7 +566,7 @@ function EvidenceVersion({ version }: { version: Row<"evidence_versions"> }) {
             ["Media type", version.media_type],
             [
               "Size",
-              typeof version.byte_size === "number" ? formatFileSize(version.byte_size) : null,
+              typeof version.byte_size === "number" ? <FileSize bytes={version.byte_size} /> : null,
             ],
             ["SHA-256", version.sha256 ? <Id className="break-all">{version.sha256}</Id> : null],
           ]}
@@ -701,6 +706,7 @@ function EvidenceSupport({ versionId }: { versionId: string }) {
   return (
     <Section title="Supports">
       <ProductCollection
+        compact
         table={table}
         queries={groups.map((group) => group.query)}
         searchLabel="Find relationships"

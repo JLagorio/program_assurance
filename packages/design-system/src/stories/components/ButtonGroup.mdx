@@ -20,11 +20,13 @@ Join related actions, split buttons or controls. Each child keeps its own behavi
 
 ButtonGroup joins the outer corners of children with `data-slot` attributes. ButtonGroupText adds a label, value or prefix. ButtonGroupSeparator adds a visible rule. Nested groups may separate related sets of actions.
 
+Use a ButtonGroup to join actions that belong together, a split action and its options, or a field and the action it takes. It adds no selection: one choice among several is a [ToggleGroup](?path=/docs/components-togglegroup--docs), and a row of unrelated actions is a toolbar or an `Inline`.
+
 <Canvas of={Stories.Composition} />
 
 ## Variants and states
 
-`orientation` accepts `horizontal` (default) or `vertical`. Horizontal joins use logical edges in RTL. Child controls choose their size, disabled state and loading behavior. The separator's orientation describes its own line; use a horizontal separator between vertically stacked controls.
+`orientation` accepts `horizontal` (default) or `vertical`. Horizontal joins use logical edges in RTL. Child controls choose their size, disabled state and loading behavior. Give ButtonGroupText the same `size` as the buttons beside it, `xsmall`, `small` or `medium` (the default, as on Button): it is never shorter than they are, so a vertical group's text keeps their height, and its content is centred. The separator's orientation describes its own line; use a horizontal separator between vertically stacked controls.
 
 <Canvas of={Stories.Orientations} />
 
@@ -41,10 +43,6 @@ ButtonGroupText supports Base UI `render`, including a native label with `htmlFo
 <ArgTypes of={ButtonGroupSeparator} />
 
 The root forwards native div attributes and refs. Text uses Base UI useRender/mergeProps; Separator uses the existing Base UI Separator. `buttonGroupVariants` exports the same orientation classes for composition.
-
-### Migration
-
-Rename `label` to `aria-label`. Compose text and separators with the flat exports. The root is now a div and accepts native props, refs and orientation.
 
 ## Related
 

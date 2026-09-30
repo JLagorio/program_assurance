@@ -1,7 +1,17 @@
 import { useId, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, fn, userEvent, within } from "storybook/test";
-import { FolderOpen, Link2, Paperclip, Plus, SlidersHorizontal, Upload } from "lucide-react";
+import {
+  CloudOff,
+  FolderOpen,
+  Link2,
+  MessageSquare,
+  Paperclip,
+  Plus,
+  RotateCcw,
+  SlidersHorizontal,
+  Upload,
+} from "lucide-react";
 
 import {
   Button,
@@ -14,6 +24,7 @@ import {
   EmptyIllustration,
   EmptyMedia,
   EmptyTitle,
+  LinkButton,
   TextLink,
   type EmptyIllustrationKind,
 } from "../../components";
@@ -184,6 +195,33 @@ export const Illustrations: Story = {
       ))}
     </Grid>
   ),
+  play: async ({ canvasElement }) => {
+    const scenes = canvasElement.querySelectorAll<HTMLElement>('[data-slot="empty-illustration"]');
+    await expect(scenes).toHaveLength(kinds.length);
+    const forced = matchMedia("(forced-colors: active)").matches;
+    for (const scene of scenes) {
+      const kind = scene.getAttribute("data-kind");
+      // Decorative: hidden from assistive technology, 128 by 84 whatever the kind.
+      await expect(scene).toHaveAttribute("aria-hidden", "true");
+      await expect(scene.getBoundingClientRect().width).toBe(128);
+      await expect(scene.getBoundingClientRect().height).toBe(84);
+      // The front surface paints over the surfaces behind it: what the point at its centre hits
+      // is the front surface or something drawn on it, never the page behind.
+      const front = scene.querySelector<HTMLElement>('[data-part="front"]');
+      await expect(front, `${kind} marks its front surface`).not.toBeNull();
+      front!.scrollIntoView({ block: "center" });
+      const box = front!.getBoundingClientRect();
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+      await expect(front!.contains(hit), `${kind}'s front surface is topmost`).toBe(true);
+      // In forced colours the scene keeps its drawing: an edge on the front surface.
+      if (forced) {
+        await expect(getComputedStyle(scene).forcedColorAdjust).toBe("none");
+        const style = getComputedStyle(front!);
+        if (style.borderTopStyle === "solid")
+          await expect(style.borderTopColor).not.toBe(style.backgroundColor);
+      }
+    }
+  },
 };
 
 /** An icon in the neutral circle instead of a picture, for a smaller region: a tab, a card body. */
@@ -265,6 +303,120 @@ export const Compact: Story = {
       </Empty>
     </div>
   ),
+  play: async ({ canvasElement }) => {
+    const [row] = canvasElement.querySelectorAll<HTMLElement>('[data-slot="empty"]');
+    const part = (slot: string) =>
+      row!.querySelector<HTMLElement>(`[data-slot="${slot}"]`)!.getBoundingClientRect();
+    // The icon takes the first column; the message and the action share the second, left-aligned.
+    await expect(part("empty-icon").right).toBeLessThanOrEqual(part("empty-header").left);
+    await expect(Math.abs(part("empty-content").left - part("empty-header").left)).toBeLessThan(1);
+    await expect(part("empty-content").top).toBeGreaterThanOrEqual(part("empty-header").bottom);
+    await expect(row!.querySelector('[data-slot="empty-icon"]')).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
+    // A compact title is body text, not a heading.
+    await expect(within(row!).queryByRole("heading")).toBeNull();
+  },
+};
+
+/** An unbroken code, hash or address in the title or the description wraps inside the message's measure, so the centred block never widens past its frame or the page. */
+export const LongContent: Story = {
+  name: "Long content",
+  render: () => (
+    <div style={{ maxWidth: 320 }}>
+      <Empty>
+        <EmptyMedia aria-hidden>
+          <EmptyIllustration kind="document" />
+        </EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle>No evidence for WS-X90_Expanded_Control_Set_Revision_Seven</EmptyTitle>
+          <EmptyDescription>
+            Nothing is filed under
+            sha256:4f1c9a2b7e0d3c6f8a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f6071 yet.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const frame = canvasElement.querySelector<HTMLElement>('[data-slot="empty"]')!;
+    const edges = frame.getBoundingClientRect();
+    for (const slot of ["empty-title", "empty-description"]) {
+      const node = frame.querySelector<HTMLElement>(`[data-slot="${slot}"]`)!;
+      const box = node.getBoundingClientRect();
+      await expect(box.left).toBeGreaterThanOrEqual(edges.left - 1);
+      await expect(box.right).toBeLessThanOrEqual(edges.right + 1);
+      await expect(node.scrollWidth).toBeLessThanOrEqual(node.clientWidth + 1);
+    }
+    const page = document.documentElement;
+    await expect(page.scrollWidth).toBeLessThanOrEqual(page.clientWidth);
+  },
+};
+
+/** A record that does not exist, where its page would be: the search picture, a title that names what is missing, why, and the route back. On a record page the title is the page's h1. */
+export const NotFound: Story = {
+  name: "Not found",
+  render: () => (
+    <Empty frame="none">
+      <EmptyMedia aria-hidden>
+        <EmptyIllustration kind="search" />
+      </EmptyMedia>
+      <EmptyHeader>
+        <EmptyTitle render={<h1 />}>Task not found</EmptyTitle>
+        <EmptyDescription>
+          It was deleted, or the link is wrong. Your tasks are still in My work.
+        </EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <LinkButton href="#my-work">Go to My work</LinkButton>
+      </EmptyContent>
+    </Empty>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("heading", { level: 1, name: "Task not found" })).toBeVisible();
+    // The way back is a link, not a button that navigates.
+    await expect(canvas.getByRole("link", { name: "Go to My work" })).toHaveAttribute(
+      "href",
+      "#my-work",
+    );
+  },
+};
+
+/** A page or a region that could not load and has nothing else to show: an icon, what failed, and Retry. Where other content stays on the page, the failure is an Alert beside it instead. */
+export const FailedToLoad: Story = {
+  name: "Failed to load",
+  render: function Example() {
+    const [tries, setTries] = useState(0);
+    return (
+      <Empty>
+        <EmptyMedia variant="icon" aria-hidden>
+          <CloudOff />
+        </EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle>The evidence could not be loaded</EmptyTitle>
+          <EmptyDescription>
+            {tries ? "It still could not be loaded. " : ""}Check the connection, then try again.
+            Nothing you entered is lost.
+          </EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <Button iconBefore={<RotateCcw />} onClick={() => setTries((n) => n + 1)}>
+            Try again
+          </Button>
+        </EmptyContent>
+      </Empty>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(
+      canvas.getByRole("heading", { name: "The evidence could not be loaded" }),
+    ).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Try again" }));
+    await expect(canvas.getByText(/It still could not be loaded/)).toBeVisible();
+  },
 };
 
 /** The title is a heading in the default size, at the contextual level: an h2 where nothing sets one (a register under the page's h1), one below a titled Section (an h3 here). `render` sets the element outright, an h1 where the Empty is a missing record's page. In compact, a rail's row, it is body text. */
@@ -383,6 +535,37 @@ export const Dont: Story = {
           </Empty>
         }
         dontText="Advice without an action, pointing at a control the reader has to find. A tab is not a way out of an empty table."
+      />
+      <Pair
+        do={
+          <Section title="Comments" action={<Button size="small">Create comment</Button>}>
+            <Empty size="compact">
+              <EmptyMedia variant="icon" aria-hidden>
+                <MessageSquare />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>No comments yet</EmptyTitle>
+              </EmptyHeader>
+            </Empty>
+          </Section>
+        }
+        doText="Where the Section's header already carries the create action, the compact Empty under it says what is missing and stops. One icon, one action on the page."
+        dont={
+          <Section title="Notes" action={<Button size="small">Create note</Button>}>
+            <Empty>
+              <EmptyMedia aria-hidden>
+                <EmptyIllustration kind="inbox" />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>No notes yet</EmptyTitle>
+              </EmptyHeader>
+              <EmptyContent>
+                <Button size="small">Create note</Button>
+              </EmptyContent>
+            </Empty>
+          </Section>
+        }
+        dontText="The same action twice, a tab stop apart, and a full scene in a section's row. The inbox picture is for work assigned to the reader, not for notes on a record."
       />
     </Stack>
   ),

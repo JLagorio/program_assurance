@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createRef } from "react";
-import { expect, within } from "storybook/test";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import { Badge, Dot, Id, Indicator, Table, tones } from "../../components";
-import { Box, Inline, Stack, Text } from "../../primitives";
+import { Box, Inline, Stack } from "../../primitives";
 import { Matrix as Grid } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
 
@@ -24,7 +24,7 @@ const labels = {
   danger: "High",
 } as const;
 
-/** Every tone as an Indicator, a bare Dot, and a Dot that says its name. */
+/** Every tone as an Indicator, a bare Dot, and a Dot that says its name. A Dot with a `label` is an image with that name; a bare Dot is hidden, and the words beside it carry the status. */
 export const IndicatorMatrix: Story = {
   render: () => (
     <Grid
@@ -35,13 +35,37 @@ export const IndicatorMatrix: Story = {
         col === "Indicator" ? (
           <Indicator tone={tone}>{labels[tone]}</Indicator>
         ) : col === "Dot" ? (
-          <Dot tone={tone} />
+          <Dot tone={tone} data-testid={`bare-${tone}`} />
         ) : (
           <Dot tone={tone} label={labels[tone]} />
         )
       }
     />
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    for (const tone of tones) {
+      // Named: an image a screen reader hears as the status.
+      const named = canvas.getByRole("img", { name: labels[tone] });
+      await expect(named).toHaveAttribute("data-slot", "dot");
+      await expect(named).toHaveAttribute("data-tone", tone);
+      await expect(named).not.toHaveAttribute("aria-hidden");
+      // Bare: hidden, no role, no name.
+      const bare = canvas.getByTestId(`bare-${tone}`);
+      await expect(bare).toHaveAttribute("aria-hidden", "true");
+      await expect(bare).not.toHaveAttribute("role");
+      await expect(bare).not.toHaveAttribute("aria-label");
+      // The Indicator's own Dot is hidden beside its word.
+      const indicator = canvas
+        .getAllByText(labels[tone])
+        .map((word) => word.closest('[data-slot="indicator"]'))
+        .find(Boolean);
+      await expect(indicator?.querySelector('[data-slot="dot"]')).toHaveAttribute(
+        "aria-hidden",
+        "true",
+      );
+    }
+  },
 };
 
 const rows = [
@@ -107,7 +131,7 @@ export const InRows: Story = {
   ),
 };
 
-/** An Indicator truncates its word when the column is narrower than it; the Dot never shrinks. */
+/** An Indicator truncates its word when the column is narrower than it, and shows the whole on hover while it is cut; the whole stays in the DOM for a screen reader. The Dot never shrinks. A word that fits reveals nothing. */
 export const Truncation: Story = {
   render: () => (
     <Stack space="space.150">
@@ -119,6 +143,31 @@ export const Truncation: Story = {
       </Box>
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const cut = canvas.getByText("Obligation not stated by the consumer");
+    const indicator = cut.closest<HTMLElement>('[data-slot="indicator"]')!;
+    await expect(cut.scrollWidth).toBeGreaterThan(cut.clientWidth);
+    await expect(getComputedStyle(cut).textOverflow).toBe("ellipsis");
+    await expect(indicator.getBoundingClientRect().right).toBeLessThanOrEqual(
+      indicator.parentElement!.getBoundingClientRect().right,
+    );
+    const dot = indicator.querySelector('[data-slot="dot"]')!.getBoundingClientRect();
+    await expect(dot.width).toBe(6);
+    await expect(indicator).toHaveTextContent("Obligation not stated by the consumer");
+    await userEvent.hover(cut);
+    await waitFor(() =>
+      expect(document.querySelector('[data-slot="truncate-full-text"]')).toHaveTextContent(
+        "Obligation not stated by the consumer",
+      ),
+    );
+    await userEvent.unhover(cut);
+    await waitFor(() =>
+      expect(document.querySelector('[data-slot="truncate-full-text"]')).toBeNull(),
+    );
+    const fits = canvas.getByText("Medium");
+    await expect(fits.scrollWidth).toBeLessThanOrEqual(fits.clientWidth);
+  },
 };
 
 /** The mistakes the page is written to prevent, each beside the right way. */
@@ -148,10 +197,10 @@ export const Dont: Story = {
         dontText="Two pills in a row. The eye cannot tell the rank from the state."
       />
       <Pair
-        do={<Dot tone="warning" label="Suspect" />}
-        doText="A Dot alone says its name, so a screen reader hears the status too."
-        dont={<Dot tone="warning" />}
-        dontText="A bare Dot in a cell. Colour alone, and nothing for a screen reader."
+        do={<Indicator tone="warning">Suspect</Indicator>}
+        doText="The status as its word, with the Dot beside it: every reader gets the word."
+        dont={<Dot tone="warning" label="Suspect" />}
+        dontText="A Dot alone in a cell. A label names it for a screen reader, but a sighted reader sees colour alone."
       />
       <Pair
         do={
@@ -181,9 +230,6 @@ export const Dont: Story = {
         }
         dontText="Low in success green. A low severity is not good news; it is a small problem."
       />
-      <Text size="xsmall" color="color.text.subtlest">
-        The bare Dot in the second pair is the don't, so it has no name on purpose.
-      </Text>
     </Stack>
   ),
 };

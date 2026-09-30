@@ -21,6 +21,7 @@ const meta = {
 } satisfies Meta<typeof Section>;
 export default meta;
 type Story = StoryObj<typeof meta>;
+/** The built-in header. A one-line title sits centred on its action's row, semibold at body size. `divided` draws the rule inside the header, `space.100` above the content, which keeps its own flow: inline content stays one line. */
 export const Presentation: Story = {
   render: () => (
     <Stack space="space.400">
@@ -28,10 +29,36 @@ export const Presentation: Story = {
         No files attached.
       </Section>
       <Section title="Activity" divided description="Recent changes to this record.">
-        Review requested by Alex Morgan.
+        Review requested by <Text weight="semibold">Alex Morgan</Text>.
       </Section>
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const center = (box: DOMRect) => (box.top + box.bottom) / 2;
+    const title = canvas.getByRole("heading", { name: "Evidence" });
+    await expect(getComputedStyle(title).fontWeight).toBe("600");
+    const action = canvas.getByRole("button", { name: "Attach file" });
+    await expect(
+      Math.abs(center(title.getBoundingClientRect()) - center(action.getBoundingClientRect())),
+    ).toBeLessThanOrEqual(1);
+    // The rule sits space.100 inside the header's end, so the content starts that far below it.
+    const activity = canvas.getByRole("region", { name: "Activity" });
+    const header = activity.querySelector<HTMLElement>('[data-slot="section-header"]')!;
+    const rule = getComputedStyle(header, "::after");
+    await expect(rule.borderBottomWidth).toBe("1px");
+    await expect(rule.bottom).toBe("8px");
+    const content = document.createRange();
+    content.setStartAfter(header);
+    content.setEndAfter(activity.lastChild!);
+    const lines = Array.from(content.getClientRects()).filter((rect) => rect.width > 0);
+    const ruleBottom = header.getBoundingClientRect().bottom - 8;
+    for (const line of lines) {
+      await expect(line.top).toBeGreaterThanOrEqual(ruleBottom + 8 - 0.5);
+      // Inline content keeps one line: the Section never turns its children into blocks.
+      await expect(Math.abs(line.top - (lines[0]?.top ?? 0))).toBeLessThanOrEqual(2);
+    }
+  },
 };
 
 /** The parts by hand, with a Badge beside the title and two actions. */
@@ -243,8 +270,44 @@ export const Nested: Story = {
     await expect(level("Statement")).toBe("H3");
     await expect(level("Rationale")).toBe("H4");
     await expect(level("Acceptance criteria")).toBe("H3");
+    // The page-level Section is the region; the Sections inside it are titled blocks.
     const outer = canvas.getByRole("region", { name: "Requirement details" });
-    await expect(within(outer).getByRole("region", { name: "Statement" })).toBeVisible();
+    await expect(within(outer).queryByRole("region", { name: "Statement" })).toBeNull();
+    await expect(canvas.queryByRole("region", { name: "Acceptance criteria" })).toBeNull();
+  },
+};
+
+/** Which Sections are landmarks. A titled Section at the top of its outline, its title an h2, is a region named by its title, so a page's landmark list is a short map of its parts. A Section under another, in a dialog or under a preview's record title is a titled block in the heading outline only. `landmark` decides it outright either way; an untitled Section is never one. */
+export const Landmarks: Story = {
+  render: () => (
+    <Stack space="space.400">
+      <Section title="Requirement details">
+        <Section title="Statement">The system enforces approved authorizations.</Section>
+        <Section title="Allocation" landmark>
+          Allocated to two systems.
+        </Section>
+      </Section>
+      <Section title="Reference notes" landmark={false}>
+        Two controls cite a withdrawn enhancement.
+      </Section>
+      <HeadingLevelProvider level={3}>
+        <Section title="Acceptance criteria">Two criteria recorded.</Section>
+      </HeadingLevelProvider>
+      <Section landmark data-testid="untitled">
+        No title, so no landmark.
+      </Section>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getAllByRole("region")).toHaveLength(2);
+    await expect(canvas.getByRole("region", { name: "Requirement details" })).toBeVisible();
+    await expect(canvas.getByRole("region", { name: "Allocation" })).toBeVisible();
+    for (const name of ["Statement", "Reference notes", "Acceptance criteria"]) {
+      await expect(canvas.getByRole("heading", { name })).toBeVisible();
+      await expect(canvas.queryByRole("region", { name })).toBeNull();
+    }
+    await expect(canvas.getByTestId("untitled")).not.toHaveAttribute("aria-labelledby");
   },
 };
 
@@ -331,6 +394,15 @@ export const Collapsible: Story = {
     await expect(getComputedStyle(notes).overflow).toBe("visible");
     link.focus();
     await expect(link).toHaveFocus();
+    // Divided and collapsible: the rule ends the header, and the content starts space.100 below
+    // it inside the fold, so a closed Section ends at its rule.
+    const notesHeader = notes.parentElement!.querySelector<HTMLElement>(
+      ':scope > [data-slot="section-header"]',
+    )!;
+    await expect(getComputedStyle(notesHeader, "::after").bottom).toBe("0px");
+    await expect(
+      canvas.getByText("Two controls cite a withdrawn enhancement.").getBoundingClientRect().top,
+    ).toBeGreaterThanOrEqual(notesHeader.getBoundingClientRect().bottom + 8 - 0.5);
   },
 };
 

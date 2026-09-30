@@ -1,0 +1,69 @@
+{
+  "src/components/typography.tsx": {
+    "no-control-regex": {
+      "count": 1
+    }
+  },
+  "src/patterns/data-table/use-data-table.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/stories/_lib/matrix.tsx": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "src/stories/components/Badge.stories.tsx": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "src/stories/components/Checkbox.stories.tsx": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    },
+    "no-extra-boolean-cast": {
+      "count": 1
+    }
+  },
+  "src/stories/components/DatePicker.stories.tsx": {
+    "no-extra-boolean-cast": {
+      "count": 1
+    }
+  },
+  "src/stories/components/Input.stories.tsx": {
+    "no-constant-condition": {
+      "count": 2
+    },
+    "no-extra-boolean-cast": {
+      "count": 3
+    }
+  },
+  "src/stories/components/InputGroup.stories.tsx": {
+    "no-constant-binary-expression": {
+      "count": 1
+    },
+    "no-constant-condition": {
+      "count": 1
+    },
+    "no-extra-boolean-cast": {
+      "count": 1
+    }
+  },
+  "src/stories/components/RadioGroup.stories.tsx": {
+    "no-extra-boolean-cast": {
+      "count": 1
+    }
+  },
+  "src/stories/components/Select.stories.tsx": {
+    "no-extra-boolean-cast": {
+      "count": 1
+    }
+  },
+  "src/stories/components/Textarea.stories.tsx": {
+    "no-extra-boolean-cast": {
+      "count": 1
+    }
+  }
+}

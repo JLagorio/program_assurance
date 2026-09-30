@@ -24,6 +24,9 @@
   display: flex;
   flex-wrap: wrap;
   gap: 1px;
+  /* The hairlines: the grid's own background shows through the one-pixel gaps. A caller's
+     `style` still replaces it. */
+  background-color: var(--ds-color-border);
   & > * {
     flex: 1 1
       clamp(
@@ -69,4 +72,19 @@
 @utility stat-grid-6 {
   --stat-cols: 6;
   --stat-fold: 3;
+}
+
+/* Forced colours replace every background with Canvas, so the gaps would vanish into the tiles.
+   The grid keeps its own colours and paints the gaps in the text colour; each tile takes the
+   system colours back, so it sits on Canvas and its words, link and focus ring follow the
+   reader's palette. */
+@media (forced-colors: active) {
+  [data-slot="stat-grid"] {
+    forced-color-adjust: none;
+    background-color: CanvasText;
+    border-color: CanvasText;
+  }
+  [data-slot="stat-grid"] > * {
+    forced-color-adjust: auto;
+  }
 }

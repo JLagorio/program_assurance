@@ -3,11 +3,11 @@ import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { ProductCollection } from "./product-collection";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
-import { AlertCircle, MoreHorizontal, Plus } from "lucide-react";
+import { MoreHorizontal, Plus } from "lucide-react";
 import {
+  Absent,
   Alert,
   AlertDescription,
-  AlertTitle,
   Button,
   defineColumns,
   Dialog,
@@ -26,19 +26,13 @@ import {
   IconButton,
   KeyValue,
   LinkButton,
+  Person,
   Prose,
   RecordBrowser,
   Stack,
   Text,
   toast,
   useDataTable,
-  Empty,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyMedia,
-  EmptyIllustration,
-  EmptyDescription,
-  EmptyContent,
 } from "@ledger/design-system";
 import { useWorkspace } from "@/components/app/workspace";
 import { useModelSave, useRow, useRows, type Row } from "@/lib/models";
@@ -56,6 +50,7 @@ import {
   recordDestination,
   useDisplayedRecords,
   useRemovalFocus,
+  useEndOnHide,
 } from "./record-preview";
 import { QueryState } from "./work-common";
 
@@ -64,7 +59,9 @@ type EvidenceChoice = {
   title: string;
   versionLabel: string;
   kind: string;
-  owner: string;
+  /** The owner's name; `null` with no owner recorded, or when the owner is not in the workspace. */
+  owner: string | null;
+  ownerMissing: boolean;
   context: string;
   state: string;
   collected: string | undefined;
@@ -72,14 +69,26 @@ type EvidenceChoice = {
   version: Row<"evidence_versions">;
 };
 
+/** The owner as a person, or what the lookup came to. */
+const ownerCell = (row: EvidenceChoice) =>
+  row.owner ? (
+    <Person name={row.owner} />
+  ) : row.ownerMissing ? (
+    <Text color="color.text.subtle">Not available</Text>
+  ) : (
+    <Absent label="Not recorded" />
+  );
+
+/** In the browser the artifact's name leads each row and carries the eye; its version follows. */
 const pickerColumns = defineColumns<EvidenceChoice>((c) => [
-  c.id("versionLabel", { header: "Version", width: 120, hideable: false }),
-  c.text("title", { header: "Artifact", minWidth: 260, hideable: false }),
+  c.text("title", { header: "Artifact", minWidth: 220, priority: 0, hideable: false }),
+  c.text("versionLabel", { header: "Version", width: 110, priority: 1 }),
   c.text("kind", { header: "Kind", width: 130 }),
   c.status("state", { header: "State", width: 115, statuses: revisionStates }),
-  c.text("owner", { header: "Owner", width: 165 }),
+  // Sized, so the spare width goes to the artifact's name rather than to a column of names.
+  c.person("owner", { header: "Owner", width: 160, cell: ownerCell }),
   c.text("context", { header: "Context", width: 150 }),
-  c.date("collected", { header: "Collected", width: 125 }),
+  c.date("collected", { header: "Collected" }),
 ]);
 
 const plural = (count: number, one: string, many = `${one}s`) =>
@@ -105,6 +114,8 @@ export function RequirementEvidence({
   const [surface, setSurface] = useState<"browse" | "create" | "prepare" | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [previewId, setPreviewId] = useState<string | null>(null);
+  // A preview belongs to its tab: it ends when the record's tab hides this collection.
+  useEndOnHide(() => setPreviewId(null));
   const [created, setCreated] = useState<CreateEvidenceResult | null>(null);
   const pendingCreated = useRef<CreateEvidenceResult | null>(null);
   const inFlight = useRef(false);
@@ -117,7 +128,9 @@ export function RequirementEvidence({
   const canUnlink = writable && !!collection?.can_delete;
   const contextValid = identity.data?.program_id === programId;
   const queries = [requirement, identity, links, artifacts, versions, parties];
-  const ready = queries.every((query) => query.data !== undefined && !query.error);
+  // Loaded once every query has data; a failed refresh keeps what was loaded.
+  const loaded = queries.every((query) => query.data !== undefined);
+  const loadFailed = queries.some((query) => query.data === undefined && query.isError);
   const requirementName = identity.data
     ? `${identity.data.code} · ${requirement.data?.title ?? ""}`
     : (requirement.data?.title ?? "This requirement");
@@ -135,9 +148,11 @@ export function RequirementEvidence({
             kind: labelFor(artifact.artifact_kind),
             state: version.state,
             owner: artifact.owner_party_id
-              ? (parties.data?.find((party) => party.id === artifact.owner_party_id)?.name ??
-                "Unavailable owner")
-              : "Not recorded",
+              ? (parties.data?.find((party) => party.id === artifact.owner_party_id)?.name ?? null)
+              : null,
+            ownerMissing:
+              !!artifact.owner_party_id &&
+              !parties.data?.some((party) => party.id === artifact.owner_party_id),
             context: artifact.program_id ? "This program" : "Workspace",
             collected: version.collected_at ?? undefined,
             artifact,
@@ -201,28 +216,24 @@ export function RequirementEvidence({
   const columns = useMemo(
     () =>
       defineColumns<EvidenceChoice>((c) => [
-        c.id("versionLabel", {
-          header: "Version",
-          width: 130,
-          priority: 1,
+        // The artifact's name is the row's identity: it opens the version and carries the eye.
+        c.id("title", {
+          header: "Artifact",
+          minWidth: 200,
+          priority: 0,
           hideable: false,
           preview: (row) => setPreviewId(row.id),
           active: (row) => row.id === previewId,
-        }),
-        c.text("title", {
-          header: "Artifact",
-          minWidth: 180,
-          priority: 0,
-          hideable: false,
           cell: (row) => (
             <RecordLink table="evidence_versions" record={row.version}>
               {row.title}
             </RecordLink>
           ),
         }),
+        c.text("versionLabel", { header: "Version", width: 110, priority: 1 }),
         c.text("kind", { header: "Kind", width: 135 }),
-        c.text("owner", { header: "Owner", width: 165 }),
-        c.date("collected", { header: "Collected", width: 130 }),
+        c.person("owner", { header: "Owner", width: 160, cell: ownerCell }),
+        c.date("collected", { header: "Collected" }),
         ...(canUnlink
           ? [
               c.actions((row: EvidenceChoice) => [
@@ -263,7 +274,7 @@ export function RequirementEvidence({
   }
   async function confirmLink(records: EvidenceChoice[]) {
     if (inFlight.current) return;
-    if (!writable || !contextValid || !ready)
+    if (!writable || !contextValid || !loaded)
       throw new Error("Reload this requirement before linking evidence.");
     inFlight.current = true;
     try {
@@ -281,8 +292,10 @@ export function RequirementEvidence({
       inFlight.current = false;
     }
   }
-  const unavailable = !ready
-    ? "The evidence is still loading."
+  const unavailable = !loaded
+    ? loadFailed
+      ? "The evidence could not be loaded. Retry loading it first."
+      : "The evidence is still loading."
     : !contextValid
       ? "Reload this requirement to add evidence to it."
       : undefined;
@@ -301,96 +314,87 @@ export function RequirementEvidence({
     </Button>
   ) : null;
   const previewLink = preview ? linkFor.get(preview.id) : undefined;
+  // With nothing eligible, the browser says why and what makes something to link.
+  const noneEligible = {
+    illustration: "document" as const,
+    title: publishedVersions.length
+      ? "All available evidence is already linked"
+      : "No published evidence available",
+    description: [
+      publishedVersions.length
+        ? `${plural(publishedVersions.length, "published version")} ${publishedVersions.length === 1 ? "is" : "are"} already linked to this requirement.`
+        : draftVersions.length
+          ? `${plural(draftVersions.length, "draft evidence version")} ${draftVersions.length === 1 ? "becomes" : "become"} available here once published.`
+          : "This program and the workspace have no published evidence versions to link.",
+      publishedVersions.length && draftVersions.length
+        ? `${plural(draftVersions.length, "more draft version")} ${draftVersions.length === 1 ? "is" : "are"} waiting for publication.`
+        : "",
+      draftsWithoutSource.length
+        ? `${draftsWithoutSource.length} of the drafts still ${draftsWithoutSource.length === 1 ? "needs" : "need"} an uploaded file or an external reference before publication.`
+        : "",
+    ]
+      .filter(Boolean)
+      .join(" "),
+    secondary: (
+      <LinkButton
+        variant="secondary"
+        render={
+          <Link to="/programs/$programId" params={{ programId }} search={{ tab: "Evidence" }} />
+        }
+      >
+        Open program evidence
+      </LinkButton>
+    ),
+  };
   return (
     <Stack space="space.150">
-      <QueryState queries={queries}>
-        <ProductCollection
-          table={table}
-          onRowClick={(row) => void navigate(recordDestination("evidence_versions", row.version))}
-          fill
-          searchLabel="Find linked evidence"
-          action={addEvidence}
-          empty={{
-            illustration: "document",
-            title: "No linked evidence",
-            description: "Choose published evidence versions that support this requirement.",
-            action: addEvidence,
-          }}
-        />
-      </QueryState>
-      {surface === "browse" && ready && !eligible.length ? (
-        <Dialog
-          open
-          onOpenChange={(open, details) => {
-            if (!open) {
-              details.cancel();
-              closeBrowser();
-            }
-          }}
-        >
-          <DialogContent width="medium">
-            <DialogHeader>
-              <DialogTitle>Add evidence</DialogTitle>
-              <DialogDescription>{requirementName}</DialogDescription>
-            </DialogHeader>
-            <DialogBody>
-              <Empty>
-                <EmptyMedia aria-hidden>
-                  <EmptyIllustration kind="document" />
-                </EmptyMedia>
-                <EmptyHeader>
-                  <EmptyTitle>
-                    {publishedVersions.length
-                      ? "All available evidence is already linked"
-                      : "No published evidence available"}
-                  </EmptyTitle>
-                  <EmptyDescription>
-                    {publishedVersions.length
-                      ? `${publishedVersions.length} published ${publishedVersions.length === 1 ? "version is" : "versions are"} already linked to this requirement.`
-                      : draftVersions.length
-                        ? `${plural(draftVersions.length, "draft evidence version")} in this program or the workspace ${draftVersions.length === 1 ? "becomes" : "become"} available here once published.`
-                        : "This program and the workspace have no published evidence versions to link."}
-                    {publishedVersions.length && draftVersions.length
-                      ? ` ${plural(draftVersions.length, "more draft version")} ${draftVersions.length === 1 ? "is" : "are"} waiting for publication.`
-                      : ""}
-                    {draftsWithoutSource.length
-                      ? ` ${draftsWithoutSource.length} of the drafts still ${draftsWithoutSource.length === 1 ? "needs" : "need"} an uploaded file or an external reference before publication.`
-                      : ""}
-                  </EmptyDescription>
-                </EmptyHeader>
-                <EmptyContent>
-                  <LinkButton
-                    variant="secondary"
-                    render={
-                      <Link
-                        to="/programs/$programId"
-                        params={{ programId }}
-                        search={{ tab: "Evidence" }}
-                      />
-                    }
-                  >
-                    Open program evidence
-                  </LinkButton>
-                </EmptyContent>
-              </Empty>
-            </DialogBody>
-            <DialogFooter>
-              <DialogClose render={<Button variant="subtle" />}>Close</DialogClose>
-              <Button variant="primary" onClick={() => setSurface("create")}>
-                Create evidence artifact
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      ) : surface === "browse" ? (
+      <ProductCollection
+        table={table}
+        queries={queries}
+        onRowClick={(row) => void navigate(recordDestination("evidence_versions", row.version))}
+        fill
+        searchLabel="Find linked evidence"
+        action={addEvidence}
+        empty={{
+          illustration: "document",
+          title: "No linked evidence",
+          description: "Choose published evidence versions that support this requirement.",
+          action: addEvidence,
+        }}
+      />
+      {writable ? (
+        // Mounted while the tab is, so the browser plays its exit; each opening starts afresh,
+        // with the chosen versions kept here across the create and prepare steps.
         <RecordBrowser
-          open
+          open={surface === "browse"}
           title="Add evidence"
           description="Search, preview, and select published versions to link to this requirement."
           records={eligible}
           columns={pickerColumns}
           filters={["kind", "owner", "context"]}
+          previewColumn="title"
+          searchPlaceholder="Search evidence"
           recordTitle={(row) => row.title}
+          recordLabel={(row) => `${row.title}, ${row.versionLabel.toLowerCase()}`}
+          recordCode={(row) => row.versionLabel}
+          state={loadFailed ? "error" : loaded ? "ready" : "loading"}
+          error={
+            <Stack space="space.100">
+              <span>The evidence could not be loaded.</span>
+              <span>
+                <Button
+                  size="small"
+                  isLoading={queries.some((query) => query.isFetching)}
+                  onClick={() => {
+                    for (const query of queries) if (query.isError) void query.refetch();
+                  }}
+                >
+                  Retry loading evidence
+                </Button>
+              </span>
+            </Stack>
+          }
+          empty={noneEligible}
           renderPreview={(row) => (
             <EvidenceVersionDetails artifact={row.artifact} version={row.version} />
           )}
@@ -406,13 +410,6 @@ export function RequirementEvidence({
                 Only this program’s evidence and unscoped workspace artifacts are available. Each
                 row is a specific version. Already linked versions are excluded.
               </Text>
-              {!ready ? (
-                <Alert variant="destructive" role="alert">
-                  <AlertCircle aria-hidden />
-                  <AlertTitle>The evidence could not be loaded completely</AlertTitle>
-                  <AlertDescription>Close the browser and reload the requirement.</AlertDescription>
-                </Alert>
-              ) : null}
             </Stack>
           }
           actions={

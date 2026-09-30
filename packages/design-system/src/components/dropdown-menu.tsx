@@ -1,17 +1,30 @@
 import { DirectionProvider, useDirection } from "@base-ui/react/direction-provider";
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
-import { Check, ChevronRight } from "lucide-react";
-import { Children, useId, type ComponentProps, type ReactNode } from "react";
+import { Check, ChevronRight, Circle } from "lucide-react";
+import {
+  Children,
+  createContext,
+  useContext,
+  useEffect,
+  useId,
+  type ComponentProps,
+  type CSSProperties,
+  type PointerEvent,
+  type ReactNode,
+} from "react";
 
+import { token } from "../generated/tokens";
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
 import { Stack } from "../primitives/stack";
+import { KbdShortcut, useFormatShortcut } from "./kbd";
 import {
   menuItem,
   menuItemDescription,
   menuItemDisabled,
   menuItemHighlighted,
+  menuItemLabel,
   menuLabel,
   menuSeparator,
   menuSurface,
@@ -44,6 +57,23 @@ export function DropdownMenuContent(props: DropdownMenuContentProps) {
   return <MenuContent {...props} slot="dropdown-menu-content" />;
 }
 
+/**
+ * A caller's minimum width never pushes the menu past the window's edge: CSS lets `min-width` win
+ * over `max-width`, so a length is capped at the available width. A keyword is left as it is.
+ */
+function withinWindow(value: CSSProperties["minWidth"]) {
+  if (typeof value === "number") return `min(var(--available-width), ${value}px)`;
+  if (typeof value === "string" && !/^[a-z-]+$/i.test(value))
+    return `min(var(--available-width), ${value})`;
+  return value;
+}
+
+function sized<Style extends CSSProperties | undefined>(defaults: CSSProperties, style: Style) {
+  const merged: CSSProperties = { ...defaults, ...style };
+  if (style?.minWidth !== undefined) merged.minWidth = withinWindow(style.minWidth);
+  return merged;
+}
+
 /** The popup a menu and a submenu share; `slot` names which it is, after the caller's props. */
 function MenuContent({
   slot,
@@ -61,7 +91,7 @@ function MenuContent({
   const direction = dir === "ltr" || dir === "rtl" ? dir : inheritedDirection;
   const defaults = {
     width: "max-content",
-    minWidth: "min(var(--available-width), max(var(--anchor-width), 128px))",
+    minWidth: `min(var(--available-width), max(var(--anchor-width), ${token("dimension.part.menu")}))`,
     maxWidth: "var(--available-width)",
     maxHeight: "var(--available-height)",
     transformOrigin: "var(--transform-origin)",
@@ -89,8 +119,8 @@ function MenuContent({
             )}
             style={
               typeof style === "function"
-                ? (state) => ({ ...defaults, ...style(state) })
-                : { ...defaults, ...style }
+                ? (state) => sized(defaults, style(state))
+                : sized(defaults, style)
             }
           >
             <Scroller orientation="vertical" surface="overlay">
@@ -105,16 +135,38 @@ function MenuContent({
   );
 }
 
+/** Whether a Label sits inside a group it can name: a Group or a RadioGroup. */
+const InGroup = createContext(false);
+
 export type DropdownMenuGroupProps = MenuPrimitive.Group.Props;
 export function DropdownMenuGroup(props: DropdownMenuGroupProps) {
-  return <MenuPrimitive.Group {...props} data-slot="dropdown-menu-group" />;
+  return (
+    <InGroup.Provider value>
+      <MenuPrimitive.Group {...props} data-slot="dropdown-menu-group" />
+    </InGroup.Provider>
+  );
 }
+
+const warned = new Set<string>();
 
 export type DropdownMenuLabelProps = MenuPrimitive.GroupLabel.Props & {
   inset?: boolean | undefined;
 };
+/**
+ * The heading of a Group, which it names. Outside a Group or a RadioGroup it has nothing to name:
+ * it still renders, in a group of its own, and says so once in the console.
+ */
 export function DropdownMenuLabel({ className, inset, ...props }: DropdownMenuLabelProps) {
-  return (
+  const inGroup = useContext(InGroup);
+  useEffect(() => {
+    if (inGroup) return;
+    const message =
+      "Ledger: a DropdownMenuLabel outside a DropdownMenuGroup or DropdownMenuRadioGroup names nothing. Put it first inside the Group of the items it names.";
+    if (warned.has(message)) return;
+    warned.add(message);
+    console.warn(message);
+  }, [inGroup]);
+  const label = (
     <MenuPrimitive.GroupLabel
       {...props}
       data-slot="dropdown-menu-label"
@@ -122,6 +174,7 @@ export function DropdownMenuLabel({ className, inset, ...props }: DropdownMenuLa
       className={classes(cn(menuLabel, "data-inset:ps-400"), className)}
     />
   );
+  return inGroup ? label : <MenuPrimitive.Group>{label}</MenuPrimitive.Group>;
 }
 
 const itemClasses = cn(
@@ -134,7 +187,7 @@ const itemClasses = cn(
 export type DropdownMenuItemVariant =
   | "default"
   | "danger"
-  /** @deprecated `destructive` is `danger`, the word Button and RowAction use; `ledger/no-deprecated-name` fixes it. */
+  /** @deprecated `destructive` is `danger`, the word Button and RowAction use; write `danger`. */
   | "destructive";
 
 export type DropdownMenuItemProps = MenuPrimitive.Item.Props & {
@@ -154,42 +207,84 @@ export type DropdownMenuItemProps = MenuPrimitive.Item.Props & {
    * reason.
    */
   disabledReason?: string | undefined;
+  /**
+   * The keys that run the same action from the page, written once for every platform: "Mod+E",
+   * "Shift+D". They are drawn at the end of the item in the platform's glyphs and given to the item
+   * as `aria-keyshortcuts`, so its name stays the label. Binding the keys stays with the caller.
+   */
+  shortcut?: string | undefined;
 };
 
-/**
- * With a description, the label and the line under it share one column, between the leading
- * content (an icon, an avatar) and the trailing content (a shortcut): the leading elements before
- * the first text, the text itself, and whatever follows the last text.
- */
 const isText = (node: unknown) => typeof node === "string" || typeof node === "number";
 
 /** The label's own words, which typeahead matches, so the line under it never joins them. */
 const labelText = (children: ReactNode) =>
   Children.toArray(children).filter(isText).join("").trim() || undefined;
 
-function withDescription(children: ReactNode, line: ReactNode, id: string) {
+/**
+ * The children around their words: the leading content before the first text (an icon, an
+ * avatar), the text itself, and whatever follows the last text (a shortcut, a count).
+ */
+function split(children: ReactNode) {
   const nodes = Children.toArray(children);
   const first = nodes.findIndex(isText);
+  if (first < 0) return undefined;
   const last = nodes.length - 1 - [...nodes].reverse().findIndex(isText);
-  const [lead, text, trail] =
-    first < 0
-      ? [[], nodes, []]
-      : [nodes.slice(0, first), nodes.slice(first, last + 1), nodes.slice(last + 1)];
+  return {
+    lead: nodes.slice(0, first),
+    text: nodes.slice(first, last + 1),
+    trail: nodes.slice(last + 1),
+  };
+}
+
+/** A label the menu's edge cuts short shows its whole text to a pointer resting on it. */
+function revealWhole(event: PointerEvent<HTMLElement>) {
+  const label = event.currentTarget;
+  if (label.scrollWidth > label.clientWidth + 1) label.title = label.textContent ?? "";
+  else label.removeAttribute("title");
+}
+
+function ItemLabel({ children }: { children: ReactNode }) {
+  return (
+    <span
+      data-slot="dropdown-menu-item-label"
+      className={menuItemLabel}
+      onPointerEnter={revealWhole}
+    >
+      {children}
+    </span>
+  );
+}
+
+/**
+ * An item's content: its words in one label that ends in an ellipsis where the menu meets the
+ * window's edge, and, with a description, the label and the line under it in one column between
+ * the leading content and the trailing content.
+ */
+function itemContent(children: ReactNode, line?: { node: ReactNode; id: string }) {
+  const parts = split(children);
+  if (!parts && !line) return children;
+  const { lead, text, trail } = parts ?? { lead: [], text: Children.toArray(children), trail: [] };
+  const label = parts ? <ItemLabel>{text}</ItemLabel> : <span>{text}</span>;
   return (
     <>
       {lead}
-      <Stack as="span" className="min-w-0 flex-1" data-slot="dropdown-menu-item-text">
-        <span>{text}</span>
-        {/* Hidden from the name; aria-describedby still reads it. */}
-        <span
-          id={id}
-          aria-hidden
-          data-slot="dropdown-menu-item-description"
-          className={menuItemDescription}
-        >
-          {line}
-        </span>
-      </Stack>
+      {line ? (
+        <Stack as="span" className="min-w-0 flex-1" data-slot="dropdown-menu-item-text">
+          {label}
+          {/* Hidden from the name; aria-describedby still reads it. */}
+          <span
+            id={line.id}
+            aria-hidden
+            data-slot="dropdown-menu-item-description"
+            className={menuItemDescription}
+          >
+            {line.node}
+          </span>
+        </Stack>
+      ) : (
+        label
+      )}
       {trail}
     </>
   );
@@ -201,11 +296,13 @@ export function DropdownMenuItem({
   variant: variantProp = "default",
   description,
   disabledReason,
+  shortcut,
   disabled,
   children,
   ...props
 }: DropdownMenuItemProps) {
   const descriptionId = useId();
+  const format = useFormatShortcut();
   const variant = variantProp === "destructive" ? "danger" : variantProp;
   const reason = disabledReason ? disabledReason : undefined;
   const line = reason ?? description;
@@ -224,15 +321,23 @@ export function DropdownMenuItem({
         ),
         className,
       )}
-      label={props.label ?? (hasLine ? labelText(children) : undefined)}
+      label={props.label ?? (hasLine || shortcut ? labelText(children) : undefined)}
       disabled={Boolean(disabled || reason)}
       aria-describedby={
         hasLine
           ? [props["aria-describedby"], descriptionId].filter(Boolean).join(" ")
           : props["aria-describedby"]
       }
+      aria-keyshortcuts={
+        props["aria-keyshortcuts"] ?? (shortcut ? format(shortcut, "aria") : undefined)
+      }
     >
-      {hasLine ? withDescription(children, line, descriptionId) : children}
+      {itemContent(children, hasLine ? { node: line, id: descriptionId } : undefined)}
+      {shortcut ? (
+        <DropdownMenuShortcut>
+          <KbdShortcut keys={shortcut} />
+        </DropdownMenuShortcut>
+      ) : null}
     </MenuPrimitive.Item>
   );
 }
@@ -241,14 +346,21 @@ export function DropdownMenuItem({
 export type DropdownMenuLinkItemProps = MenuPrimitive.LinkItem.Props & {
   inset?: boolean | undefined;
 };
-export function DropdownMenuLinkItem({ className, inset, ...props }: DropdownMenuLinkItemProps) {
+export function DropdownMenuLinkItem({
+  className,
+  inset,
+  children,
+  ...props
+}: DropdownMenuLinkItemProps) {
   return (
     <MenuPrimitive.LinkItem
       {...props}
       data-slot="dropdown-menu-link-item"
       data-inset={inset}
       className={classes(itemClasses, className)}
-    />
+    >
+      {itemContent(children)}
+    </MenuPrimitive.LinkItem>
   );
 }
 
@@ -273,7 +385,7 @@ export function DropdownMenuSubTrigger({
       data-inset={inset}
       className={classes(cn(itemClasses, "data-popup-open:bg-neutral-subtle-hovered"), className)}
     >
-      {children}
+      {itemContent(children)}
       <ChevronRight aria-hidden className="ms-auto rtl:rotate-180" />
     </MenuPrimitive.SubmenuTrigger>
   );
@@ -288,7 +400,7 @@ export function DropdownMenuSubContent({
   style,
   ...props
 }: DropdownMenuSubContentProps) {
-  const defaults = { width: "auto", minWidth: 96 };
+  const defaults = { width: "auto", minWidth: token("dimension.part.submenu") };
   return (
     <MenuContent
       {...props}
@@ -309,6 +421,7 @@ export function DropdownMenuSubContent({
 export type DropdownMenuCheckboxItemProps = MenuPrimitive.CheckboxItem.Props & {
   inset?: boolean | undefined;
 };
+/** An option that is on or off, with a check at the end while it is on. Keep checkbox items in a labelled Group of their own, apart from actions, so an unchecked one does not read as an action. */
 export function DropdownMenuCheckboxItem({
   className,
   children,
@@ -330,19 +443,24 @@ export function DropdownMenuCheckboxItem({
           <Check aria-hidden className="size-icon-small" />
         </MenuPrimitive.CheckboxItemIndicator>
       </span>
-      {children}
+      {itemContent(children)}
     </MenuPrimitive.CheckboxItem>
   );
 }
 
 export type DropdownMenuRadioGroupProps = MenuPrimitive.RadioGroup.Props;
 export function DropdownMenuRadioGroup(props: DropdownMenuRadioGroupProps) {
-  return <MenuPrimitive.RadioGroup {...props} data-slot="dropdown-menu-radio-group" />;
+  return (
+    <InGroup.Provider value>
+      <MenuPrimitive.RadioGroup {...props} data-slot="dropdown-menu-radio-group" />
+    </InGroup.Provider>
+  );
 }
 
 export type DropdownMenuRadioItemProps = MenuPrimitive.RadioItem.Props & {
   inset?: boolean | undefined;
 };
+/** One of a RadioGroup's exclusive options, with a dot at the end on the chosen one: a check is a CheckboxItem's, which is on or off by itself. */
 export function DropdownMenuRadioItem({
   className,
   children,
@@ -357,14 +475,14 @@ export function DropdownMenuRadioItem({
       className={classes(cn(itemClasses, "pe-500 data-checked:text-selected"), className)}
     >
       <span
-        className="pointer-events-none absolute end-100 flex items-center"
+        className="pointer-events-none absolute end-100 flex size-icon-small items-center justify-center"
         data-slot="dropdown-menu-radio-item-indicator"
       >
-        <MenuPrimitive.RadioItemIndicator>
-          <Check aria-hidden className="size-icon-small" />
+        <MenuPrimitive.RadioItemIndicator className="flex items-center">
+          <Circle aria-hidden className="size-100 fill-current" />
         </MenuPrimitive.RadioItemIndicator>
       </span>
-      {children}
+      {itemContent(children)}
     </MenuPrimitive.RadioItem>
   );
 }
@@ -381,9 +499,15 @@ export function DropdownMenuSeparator({ className, ...props }: DropdownMenuSepar
 }
 
 export type DropdownMenuShortcutProps = ComponentProps<"span">;
+/**
+ * A shortcut's keys at the end of an item, hidden from assistive technology so the item's name is
+ * its label: the item's `shortcut` prop draws one and says it as `aria-keyshortcuts`. Content at
+ * the end that is not a shortcut, such as a count, passes `aria-hidden={false}`.
+ */
 export function DropdownMenuShortcut({ className, ...props }: DropdownMenuShortcutProps) {
   return (
     <span
+      aria-hidden="true"
       {...props}
       data-slot="dropdown-menu-shortcut"
       className={cn("ms-auto shrink-0 font-body-xsmall text-subtle", className)}

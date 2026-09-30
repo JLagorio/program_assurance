@@ -16,8 +16,8 @@ Part-to-whole with a hierarchy: a tile per leaf, sized by value, in the tone of 
 | Part    | What it is                                                                                                                                           |
 | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Tile    | A leaf, `radius` 2px, in its branch's tone, with a 2px `elevation.surface` gap from its neighbours. Sized by value, 4:3 as far as the layout allows. |
-| Name    | The tile's name on an `elevation.surface` chip at 92% in `color.text`, when the tile is at least 64 by 28; cut with the whole in a title.            |
-| Tooltip | The tile's name and value, keyed by a square.                                                                                                        |
+| Name    | The tile's name on an `elevation.surface` chip at 92% in `color.text`, when the tile is at least 64 by 28; cut to fit, the whole in the tooltip.     |
+| Tooltip | The tile's name, the branch it sits in and its value, keyed by a square in its tone.                                                                 |
 | Card    | On a chosen tile: its name, its branch and its value, then the caller's facts.                                                                       |
 
 ## Variants
@@ -37,15 +37,17 @@ Part-to-whole with a hierarchy: a tile per leaf, sized by value, in the tone of 
 
 ## States
 
-| State    | What changes                                                                                                                 |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Hover    | The tooltip.                                                                                                                 |
-| Isolated | A branch hidden from the Frame's legend leaves the treemap; the rest re-tile. A hovered legend item dims the other branches. |
-| Chosen   | With `onSelect` or `details`: the tiles take the pointer, a click chooses one, the others dim; the card opens on the tile.   |
-| Loading  | Four skeleton tiles, pulsing, at the plot's height.                                                                          |
-| Entering | The tiles arrive over `motion.duration.slow`; a drill-down re-tiles the same way.                                            |
+| State    | What changes                                                                                                                    |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Hover    | The tooltip.                                                                                                                    |
+| Focused  | With `onSelect` or `details`, on the keyboard: a 2px ring in `color.border.focused` inside the tile, between two surface bands. |
+| Isolated | A branch hidden from the Frame's legend leaves the treemap; the rest re-tile. A hovered legend item dims the other branches.    |
+| Chosen   | With `onSelect` or `details`: the tiles take the pointer, a click chooses one, the others dim; the card opens on the tile.      |
+| Loading  | Four skeleton tiles, pulsing, at the plot's height.                                                                             |
+| Entering | The tiles arrive over `motion.duration.slow`; a drill-down re-tiles the same way.                                               |
 
 <Canvas of={Stories.Details} />
+<Canvas of={Stories.SameNames} />
 
 In a Frame the treemap's leaves are its table twin and its CSV: a row per leaf in the tree's order, a column per level holding the names on its way down, then its value. `levels` names the columns (`["System", "Component"]`); unsaid, the top level takes the Frame's `xLabel`, else "Group", and the leaves "Name". The legend keys the top-level branches when the Frame is given no `series`, and a branch hidden from it stays in the table, which is the data.
 
@@ -57,7 +59,8 @@ In a Frame the treemap's leaves are its table twin and its CSV: a row per leaf i
 - **`levels`** for the table twin's headings, one per level from the top.
 - **`format`** for the tooltip, the card and the Frame's table.
 - **`size`** or **`height`**: the Frame's when unsaid; `large` in the Frame's expanded Dialog.
-- **`onSelect`** and **`details`** as in States; the selection is `{ name, value, group }`, `group` being the top-level branch.
+- **`onSelect`** and **`details`** as in States; the selection is `{ name, value, group, path, id }`: `group` the top-level branch, `path` the names on the way down to the tile, and `id` the node's own when it has one. A chosen tile is matched by `id`, else by `path`, so two components of the same name in two systems stay apart.
+- **`id`** on a node, for a record's identity when names repeat.
 - **`loading`** draws the skeleton; the Frame sets it from `state="loading"`.
 - **`label`** names the plot outside a Frame.
 
@@ -70,18 +73,20 @@ In a Frame the treemap's leaves are its table twin and its CSV: a row per leaf i
 
 ## Style
 
-| Element  | Token                                                                                  |
-| -------- | -------------------------------------------------------------------------------------- |
-| Tile     | `color.chart.<tone>` · `radius` 2px · 2px `elevation.surface` gap                      |
-| Name     | `font.body.xsmall` · `color.text` on an `elevation.surface` chip at 92% · `radius` 2px |
-| Dimmed   | `opacity.disabled`, over `motion.duration.fast`                                        |
-| Skeleton | `color.skeleton` tiles                                                                 |
+| Element  | Token                                                                                                          |
+| -------- | -------------------------------------------------------------------------------------------------------------- |
+| Tile     | `color.chart.<tone>` · `radius` 2px · 2px `elevation.surface` gap                                              |
+| Name     | `font.body.xsmall` · `color.text` on an `elevation.surface` chip at 92% · `radius` 2px                         |
+| Dimmed   | `opacity.disabled`, over `motion.duration.fast`                                                                |
+| Focused  | 2px `color.border.focused` inset 2px in the tile, `elevation.surface` inside it; `Highlight` in forced colours |
+| Skeleton | `color.skeleton` tiles                                                                                         |
 
 ## Accessibility
 
-- **Named by the Frame**, or by `label`: the plot is a group. Interactive charts require one of these names. When `onSelect` or `details` is supplied, each leaf is a named button reachable with Tab; Enter and Space perform the same action as a click. Its accessible name includes the branch, full name and value, even when the visible label is shortened. Display-only tiles and unnamed, decorative plots add no tab stops.
+- **Named by the Frame**, or by `label`: a treemap that chooses nothing is an image (`role="img"`) with no tab stop, and the table carries its numbers; unnamed, it is decoration. When `onSelect` or `details` is supplied, the plot is a group and each leaf a named button reachable with Tab; Enter and Space perform the same action as a click. Its accessible name is the path and the value ("Payments, Ledger API: 18"), even when the visible label is shortened. One that chooses and has no name is named "Chart", with a warning in development.
+- **The keyboard's ring is drawn inside the tile**, the last thing it paints, so the next tile cannot cover it, the plot's edge cannot cut it, and its surface bands keep it apart from a tile of the same hue. The pointer's tooltip stands down while the keyboard is on a tile.
 - **Text never sits on a tile's colour**: the name is on a surface chip, in the text colour.
-- **Every tile has a title** with its whole name and value, whether or not the name fits.
+- **A tile that opens a card says so** (`aria-haspopup="dialog"`, `aria-expanded`).
 - **The table is one toggle away** in a Frame: every leaf, every level named, every value, so the areas are never the only way to read the sizes.
 - **A chosen tile's card is a dialog**, and focus returns to that tile when it closes, or the first available tile if it was removed.
 - **Keyboard drill-down preserves the chosen leaf's focus** when Recharts replaces its branch, or focuses the first available tile when that leaf no longer exists.

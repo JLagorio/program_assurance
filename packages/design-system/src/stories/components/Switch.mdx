@@ -7,67 +7,74 @@ import * as Stories from "./Switch.stories";
 
 # Switch
 
-An on/off setting built on Base UI with the shadcn composition API. The thumb is included; compose the setting's label and supporting text outside the switch.
-
-```tsx
-<label className="inline-flex items-center gap-100">
-  <Switch id="switch" aria-describedby="switch-help" defaultChecked />
-  Notify the owner
-</label>
-```
-
-<Canvas of={Stories.SwitchMatrix} />
-
-## Sizes and state
-
-| Size      | Track     | Thumb |
-| --------- | --------- | ----- |
-| `default` | 32 × 20px | 16px  |
-| `sm`      | 24 × 16px | 12px  |
-
-These dimensions use Ledger spacing tokens. The thumb moves toward the inline end when checked, follows RTL direction, and stops animating when reduced motion is requested.
-
-Use `defaultChecked` for local state or `checked` and `onCheckedChange(checked, details)` for controlled state. `details.cancel()` rejects a change. `disabled` blocks activation and removes the switch from the tab order; `readOnly` retains focusability while preventing state changes.
-
-The off track is `color.background.input.track`, 3:1 against every surface, with the thumb at 3:1 on it, so an off switch reads as a control and not a faint pill (WCAG 1.4.11). It is not `color.background.neutral`, the fill buttons and badges share. The thumb follows the Ledger color tokens even without the optional `base.css` document defaults. In forced-colors mode, system-color boundaries and contrasting thumbs keep both states visible.
-
-<Canvas of={Stories.Boundary} />
-
-## Labels, Field and forms
-
-In a [Field](?path=/docs/components-field--docs) the FieldLabel names the setting and toggles it when clicked, the FieldDescription and FieldError describe it, and the Field's `invalid`, `required` and `disabled` reach it, with no ids. Keep the name stable across on/off states.
+An on/off setting that takes effect the moment it moves, on Base UI with the shadcn composition. The thumb is included; the setting's label and hint come from a horizontal [Field](?path=/docs/components-field--docs), which ties them to the switch with no ids.
 
 ```tsx
 <Field orientation="horizontal">
   <Switch checked={notify} onCheckedChange={setNotify} />
   <FieldContent>
     <FieldLabel>Notify the owner</FieldLabel>
-    <FieldDescription>Send an email when a finding changes status.</FieldDescription>
+    <FieldDescription>Email the owner when a finding changes status.</FieldDescription>
   </FieldContent>
 </Field>
 ```
 
-Outside a Field, a wrapping `<label>` or a sibling `<label htmlFor={id}>` names it. An invalid switch draws the danger outline while it is not focused; keyboard focus replaces it with the focus outline. A FieldSet's `disabled` disables the switches inside it.
+<Canvas of={Stories.SwitchMatrix} />
+
+## When to use it
+
+- **Use a Switch** for a setting that applies at once: notifications, a digest, a display preference. The change saves itself and a status says so; there is no Save button.
+- **Not for a choice that waits for a form's primary.** Inside a form that is submitted together, the answer is a [Checkbox](?path=/docs/components-checkbox--docs).
+- **Not for one of several options.** That is a [RadioGroup](?path=/docs/components-radiogroup--docs), even when there are two.
+- **Not for a fact.** A setting the reader cannot change is a labelled property ([KeyValue](?path=/docs/components-keyvalue--docs)), or a read-only switch with a hint that says why; never a disabled switch left to explain itself.
+
+The [Forms](?path=/docs/patterns-forms--docs) page has the table of which control answers which question.
+
+<Canvas of={Stories.Settings} />
+
+## Sizes and state
+
+| Size     | Track     | Thumb |
+| -------- | --------- | ----- |
+| `medium` | 32 × 20px | 16px  |
+| `small`  | 24 × 16px | 12px  |
+
+`medium` is the default; `small` fits a dense row. `sm` and `default` are the shadcn spellings of `small` and `medium`, deprecated and still rendered the same. The thumb moves toward the inline end when checked, follows the locale's direction, and stops animating when reduced motion is requested.
+
+Use `defaultChecked` for local state or `checked` and `onCheckedChange(checked, details)` for controlled state. `details.cancel()` rejects a change. `disabled` blocks activation and removes the switch from the tab order; `readOnly` keeps it focusable while preventing changes. A read-only switch that is on takes the neutral fill instead of the brand one, and its hint says why it cannot change.
+
+## Labels, Field and forms
+
+In a Field the FieldLabel names the setting and toggles it when clicked, the FieldDescription and FieldError describe it, and the Field's `invalid`, `required` and `disabled` reach it, with no ids. Outside a Field, a wrapping `<label>` or a sibling `<label htmlFor={id}>` names it. A FieldSet's `disabled` disables the switches inside it.
 
 <Canvas of={Stories.BoundInField} />
 
-`name`, `value`, `uncheckedValue`, `form` and `required` configure the hidden checkbox used for native submission and validation. Without `uncheckedValue`, an unchecked switch contributes no entry. `aria-required` (or the Field's `required`) describes the requirement; use Switch's native `required` when browser and Base UI validation are intended.
+`name`, `value`, `uncheckedValue`, `form` and `required` configure the hidden checkbox used for native submission and validation, for a settings page that also posts its state. Without `uncheckedValue`, an unchecked switch contributes no entry. `aria-required` (or the Field's `required`) describes the requirement; use Switch's native `required` when browser and Base UI validation are intended. Native form reset is caller-owned in Base UI 1.7: restore controlled `checked` state in the form's `onReset` handler.
 
-In installed Base UI 1.7, native form reset is caller-owned: restore controlled `checked` state in the form's `onReset` handler.
+<Canvas of={Stories.NativeForm} />
 
-<Canvas of={Stories.Settings} />
+## Content
+
+- **Name the setting, not its state.** The label stays the same on and off ("Notify the owner"); the thumb shows the state.
+- **Say what "on" does**, in the positive: "Weekly digest", not "Turn off the weekly digest".
+- **Do not disable a switch to show a fact** (see When to use it).
+
+## Accessibility
+
+- The off track is `color.background.input.track`, 3:1 against every surface, with the thumb at 3:1 on it, so an off switch reads as a control and not a faint pill (WCAG 1.4.11). It is not `color.background.neutral`, the fill buttons and badges share. The thumb follows the Ledger colour tokens even without the optional `base.css` document defaults.
+- An invalid switch draws the danger outline while it is not focused; keyboard focus replaces it with the focus outline, so focus stays visible.
+- In forced colours, system-colour boundaries and contrasting thumbs keep both states visible.
+- Every switch needs a visible label, `aria-label` or `aria-labelledby`.
+
+<Canvas of={Stories.Boundary} />
 
 ## Native props and composition
 
 The default visible root is a `<span role="switch">`, with a hidden checkbox beside it. `ref` targets the visible root; `inputRef` and `id` target the hidden input. Native event handlers and state-based `className`/`style` callbacks apply to the root.
 
-For a native button root, pass `nativeButton` and `render={<button />}`. In that mode `id` targets the button, and refs and event handlers merge with those on the rendered element. Every switch needs a visible label, `aria-label`, or `aria-labelledby`.
+For a native button root, pass `nativeButton` and `render={<button />}`. In that mode `id` targets the button, and refs and event handlers merge with those on the rendered element.
 
 <Canvas of={Stories.InRows} />
-
-## Migration
-
-Replace label children and the `description` prop with a wrapping label, sibling label or Field. The track is now 32px wide by default instead of 40px; `sm` adds a 24px option. A root ref now receives the visible span by default, and `inputRef` accesses the form input. Native `checked`, `defaultChecked` and `onCheckedChange` usage remains supported.
 
 ## Props
 

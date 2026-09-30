@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { expect, userEvent, within } from "storybook/test";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import {
   avatarHue,
   AvatarFallback,
@@ -419,5 +419,196 @@ export const GroupNamedFromOutside: Story = {
     await expect(named.tagName).toBe("OL");
     await expect(canvas.getByTestId("named")).not.toHaveAttribute("aria-label");
     await expect(within(named).getByRole("listitem")).toHaveAttribute("data-slot", "item");
+  },
+};
+
+/** The row open beside the list says so: `isActive` fills it and puts `aria-current="true"` on its link or button. The id, the meta and the description are the row's accessible description, so two rows with one name read apart. */
+export const OpenRowAndDescription: Story = {
+  name: "Open row and description",
+  render: function Example() {
+    const [open, setOpen] = useState("ac-01_odp.01");
+    const rows = [
+      { id: "ac-01_odp.01", title: "personnel or roles", meta: "Assignment" },
+      { id: "ac-01_odp.02", title: "personnel or roles", meta: "Assignment" },
+      { id: "ac-01_odp.03", title: "frequency", meta: "Selection" },
+    ];
+    return (
+      <div style={{ maxWidth: 360 }}>
+        <Item.Group aria-label="Parameters" size="compact">
+          {rows.map((row) => (
+            <Item
+              key={row.id}
+              id={row.id}
+              idWidth={104}
+              title={row.title}
+              meta={row.meta}
+              description="Defined in the organization's policy"
+              onSelect={() => setOpen(row.id)}
+              isActive={open === row.id}
+            />
+          ))}
+        </Item.Group>
+      </div>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const [first, second, third] = canvas.getAllByRole("button");
+    await expect(first).toHaveAttribute("aria-current", "true");
+    await expect(second).not.toHaveAttribute("aria-current");
+    await expect(first).toHaveAccessibleName("personnel or roles");
+    await expect(first).toHaveAccessibleDescription(
+      "ac-01_odp.01 Assignment Defined in the organization's policy",
+    );
+    await expect(second).toHaveAccessibleDescription(/^ac-01_odp\.02/);
+    // Forced colours remove the selected fill, so the open row is outlined instead.
+    if (matchMedia("(forced-colors: active)").matches) {
+      const row = (control: HTMLElement) => control.closest("li")!.firstElementChild!;
+      await expect(getComputedStyle(row(first!)).outlineStyle).toBe("solid");
+      await expect(getComputedStyle(row(second!)).outlineStyle).toBe("none");
+    }
+    await userEvent.click(second!);
+    await expect(second).toHaveAttribute("aria-current", "true");
+    await expect(first).not.toHaveAttribute("aria-current");
+    await expect(third).not.toHaveAttribute("aria-current");
+  },
+};
+
+/** A group fed from several sources shows its `empty` when none of them has a row: empty arrays, `false` and empty fragments are nothing. */
+export const EmptyFromSeveralSources: Story = {
+  name: "Empty from several sources",
+  render: () => {
+    const decisions: string[] = [];
+    const reviews: string[] = [];
+    return (
+      <div style={{ maxWidth: 480 }}>
+        <Item.Group title="History" empty="Nothing recorded yet.">
+          {decisions.map((d) => (
+            <Item key={d} title={d} />
+          ))}
+          {reviews.length > 0 && reviews.map((r) => <Item key={r} title={r} />)}
+          <>
+            {reviews.map((r) => (
+              <Item key={r} title={r} />
+            ))}
+          </>
+        </Item.Group>
+      </div>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText("Nothing recorded yet.")).toBeInTheDocument();
+    await expect(canvas.queryByRole("list")).toBeNull();
+  },
+};
+
+const longName = "Router management plane accepts unencrypted telnet from the operations VLAN";
+
+/** Long names in a narrow list: a cut title shows in full in a tooltip on hover and when its row takes keyboard focus, and `maxTitleLines` gives a list of long names two or three lines. The group heading wraps. A short meta keeps its words while the title gives way, and a long one is cut at half the line. */
+export const LongNames: Story = {
+  name: "Long names",
+  render: () => (
+    <div style={{ width: 280, maxWidth: "100%" }}>
+      <Stack space="space.300">
+        <Item.Group title="Findings linked to the ground segment boundary" size="compact">
+          <Item id="FND-2231" title={longName} link={<a href="#fnd-2231" />} />
+          <Item id="FND-2214" title="SSH permits GSSAPI authentication" trailing="CAT II" />
+        </Item.Group>
+        <Item.Group aria-label="Two lines" size="compact">
+          <Item title={longName} maxTitleLines={2} onSelect={() => {}} />
+        </Item.Group>
+        <Item.Group aria-label="Meta beside a long name" size="compact">
+          <Item title={longName} meta="CAT I" link={<a href="#fnd-2240" />} />
+          <Item
+            title="Telnet enabled"
+            meta="Operations VLAN, management plane, all ground routers"
+            onSelect={() => {}}
+          />
+        </Item.Group>
+      </Stack>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const heading = canvas.getByRole("heading", {
+      name: "Findings linked to the ground segment boundary",
+    });
+    // The heading wraps rather than cutting its words.
+    await expect(heading.scrollWidth).toBeLessThanOrEqual(heading.clientWidth + 1);
+    const link = within(
+      canvas.getByRole("list", { name: "Findings linked to the ground segment boundary" }),
+    ).getByRole("link", { name: longName });
+    const title = link.querySelector<HTMLElement>('[data-slot="truncate"]')!;
+    await expect(title.scrollWidth).toBeGreaterThan(title.clientWidth);
+    // The name sits above the row's stretched overlay, so the pointer reaches it.
+    const box = title.getBoundingClientRect();
+    const hit = canvasElement.ownerDocument.elementFromPoint(
+      box.left + 8,
+      box.top + box.height / 2,
+    );
+    await expect(hit && title.contains(hit)).toBe(true);
+    const revealed = () =>
+      waitFor(() => {
+        const popup = document.querySelector<HTMLElement>('[data-slot="truncate-full-text"]');
+        expect(popup).not.toBeNull();
+        return popup!;
+      });
+    await userEvent.tab();
+    await expect(link).toHaveFocus();
+    await expect(await revealed()).toHaveTextContent(longName);
+    await userEvent.tab();
+    await waitFor(() =>
+      expect(document.querySelector('[data-slot="truncate-full-text"]')).toBeNull(),
+    );
+    // Two lines clamp the name, still in one row.
+    const twoLines = within(canvas.getByRole("list", { name: "Two lines" }))
+      .getByRole("button")
+      .querySelector<HTMLElement>('[data-slot="truncate"]')!;
+    await expect(twoLines).toHaveAttribute("data-max-lines", "2");
+    const line = parseFloat(getComputedStyle(twoLines).lineHeight);
+    await expect(twoLines.clientHeight).toBeGreaterThan(line * 1.5);
+    // A short meta keeps its words and the title gives way; a long meta stops at half the line.
+    const metaList = within(canvas.getByRole("list", { name: "Meta beside a long name" }));
+    const short = metaList.getByText("CAT I");
+    await expect(short.scrollWidth).toBeLessThanOrEqual(short.clientWidth + 1);
+    const cutTitle = metaList
+      .getByRole("link", { name: longName })
+      .querySelector<HTMLElement>('[data-slot="truncate"]')!;
+    await expect(cutTitle.scrollWidth).toBeGreaterThan(cutTitle.clientWidth);
+    const long = metaList.getByText("Operations VLAN, management plane, all ground routers");
+    const lineBox = long.parentElement!.getBoundingClientRect();
+    await expect(long.getBoundingClientRect().width).toBeLessThanOrEqual(lineBox.width / 2 + 1);
+    await expect(long.scrollWidth).toBeGreaterThan(long.clientWidth);
+  },
+};
+
+/** Right to left: the columns run from the right, the id first, and a title that is a button or a disclosure starts at its start edge, the right, as a link's does. */
+export const RightToLeft: Story = {
+  name: "Right to left",
+  render: () => (
+    <div dir="rtl" style={{ maxWidth: 420 }}>
+      <Item.Group aria-label="Right to left" size="compact">
+        <Item id="REQ-014" title="Boundary protection" meta="SC-7" onSelect={() => {}} />
+        <Item id="REQ-015" title="Session lock" isCollapsible>
+          Lock after fifteen minutes.
+        </Item>
+        <Item id="REQ-016" title="Audit review" link={<a href="#req-016" />} />
+      </Item.Group>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const list = within(within(canvasElement).getByRole("list", { name: "Right to left" }));
+    for (const name of ["Boundary protection", "Session lock", "Audit review"]) {
+      const control = list.getByRole(name === "Audit review" ? "link" : "button", { name });
+      const text = control.querySelector<HTMLElement>('[data-slot="truncate"]')!;
+      const row = control.closest("li")!;
+      const id = within(row).getByText(/^REQ-/);
+      // The title's text starts at its start edge, the right, after the id, the first column.
+      await expect(getComputedStyle(control).textAlign).toBe("start");
+      await expect(id.getBoundingClientRect().left).toBeGreaterThan(
+        text.getBoundingClientRect().right - 1,
+      );
+    }
   },
 };

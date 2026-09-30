@@ -1,10 +1,11 @@
+import { ControlProse, controlProseText, useControlPlaceholders } from "./library-controls";
 import { ProductCollection } from "./product-collection";
-import { RecordLink, useDisplayedRecords, useRemovalFocus } from "./record-preview";
+import { RecordLink, useDisplayedRecords, useRemovalFocus, useEndOnHide } from "./record-preview";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { QueryState, MissingRecord } from "./work-common";
 import { useConfirmation } from "@/components/app/confirmation";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
-import { ChoiceField, TextField } from "@/components/app/fields";
+import { ChoiceField, ComboboxField, TextField } from "@/components/app/fields";
 import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -19,12 +20,6 @@ import {
   AlertTitle,
   Badge,
   Button,
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
   Dialog,
   DialogBody,
   DialogClose,
@@ -38,10 +33,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   ErrorSummary,
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
   FieldSet,
   IconButton,
   Prose,
@@ -69,10 +60,64 @@ type Relationship = (typeof relationships)[number]["value"];
 const relationshipLabel = (value: string) =>
   relationships.find((item) => item.value === value)?.label ?? labelFor(value);
 type ControlChoice = { id: string; label: string };
+
+/** An OSCAL property's value by name, such as a part's `label` ("a."). */
+const propValue = (props: unknown, name: string) => {
+  if (!Array.isArray(props)) return undefined;
+  const prop: unknown = props.find(
+    (item: unknown) => !!item && typeof item === "object" && "name" in item && item.name === name,
+  );
+  return prop && typeof prop === "object" && "value" in prop && typeof prop.value === "string"
+    ? prop.value
+    : undefined;
+};
+
+/** A part and the parts above it that are loaded, from the top of the control down. */
+function ancestry(part: Row<"control_parts">, parts: readonly Row<"control_parts">[]) {
+  const chain: Row<"control_parts">[] = [];
+  let current: Row<"control_parts"> | undefined = part;
+  for (let depth = 0; current && depth < 8; depth++) {
+    chain.unshift(current);
+    const parentId: string | null = current.parent_part_id;
+    current = parentId ? parts.find((item) => item.id === parentId) : undefined;
+  }
+  return chain;
+}
+
+/**
+ * A statement part as the catalog numbers it: its labels from the top ("a.", then "a.1."), or its
+ * title or kind ("Statement") when it has none. Never the part's source id.
+ */
+function partName(part: Row<"control_parts">, parts: readonly Row<"control_parts">[]) {
+  const labels = ancestry(part, parts).flatMap((item) => propValue(item.props, "label") ?? []);
+  return labels.length ? labels.join("") : (part.title ?? labelFor(part.name));
+}
+
+/**
+ * The catalog's reading order: each part's position under every part above it, so an item's
+ * sub-items follow it ("d.", "d.1.", "d.2.", then "e.") rather than other items' sub-items.
+ */
+function byReadingOrder(parts: readonly Row<"control_parts">[]) {
+  const places = new Map(
+    parts.map((part) => [part.id, ancestry(part, parts).map((item) => item.ordinal)]),
+  );
+  return (a: Row<"control_parts">, b: Row<"control_parts">) => {
+    const first = places.get(a.id) ?? [];
+    const second = places.get(b.id) ?? [];
+    for (let index = 0; index < Math.max(first.length, second.length); index++) {
+      // A part comes before the parts under it.
+      const difference = (first[index] ?? -1) - (second[index] ?? -1);
+      if (difference) return difference;
+    }
+    return (a.source_id ?? "").localeCompare(b.source_id ?? "", undefined, { numeric: true });
+  };
+}
 type ExistingMapping = {
   link: Row<"requirement_control_links">;
   control?: ControlChoice | undefined;
   part?: Row<"control_parts"> | undefined;
+  /** The recorded part's control's parts, which number it. */
+  parts?: readonly Row<"control_parts">[] | undefined;
 };
 
 /** Load the complete ancestry of existing targets, including invalid legacy mappings. */
@@ -142,6 +187,7 @@ export function RequirementControlMappings({
     [links.data],
   );
   const parts = useMappingParts(targetIds);
+  const placeholders = useControlPlaceholders();
   const remove = useRemoveRequirementLink();
   const { confirm, confirmation } = useConfirmation();
   const [adding, setAdding] = useState(false);
@@ -189,6 +235,8 @@ export function RequirementControlMappings({
     ? "Choose an allocated system and a control from its effective profile."
     : "Allocate this requirement to a system before adding a system control mapping.";
   const [previewId, setPreviewId] = useState<string>();
+  // A preview belongs to its tab: it ends when the record's tab hides this collection.
+  useEndOnHide(() => setPreviewId(undefined));
   const rows = useMemo(
     () =>
       (links.data ?? []).map((link) => {
@@ -204,7 +252,9 @@ export function RequirementControlMappings({
           part,
           coverage: !link.control_part_id
             ? "Whole control"
-            : (part?.source_id ?? part?.title ?? "Target unavailable"),
+            : part
+              ? partName(part, parts.data ?? [])
+              : "Target unavailable",
           systemName: system ? `${system.code} · ${system.name}` : "Catalog reference",
           needsReview:
             !!link.control_part_id && (!part || !isControlStatement(part, parts.data ?? [])),
@@ -221,6 +271,7 @@ export function RequirementControlMappings({
     setEditing({
       link: row,
       part: row.part,
+      parts: parts.data,
       control: row.control ? { id: row.control.id, label: row.name } : undefined,
     });
   async function removeMapping(row: MappingRow) {
@@ -270,9 +321,13 @@ export function RequirementControlMappings({
             <Stack space="space.050">
               <span>{row.coverage}</span>
               {row.part?.prose && (
-                <Text as="p" size="small" className="whitespace-pre-wrap">
-                  {row.part.prose}
-                </Text>
+                <ControlProse
+                  text={row.part.prose}
+                  controlId={row.part.control_id}
+                  placeholders={placeholders}
+                  size="small"
+                  as="p"
+                />
               )}
               {row.needsReview && (
                 <>
@@ -327,7 +382,7 @@ export function RequirementControlMappings({
       ]),
     // edit and removeMapping read the row they are given.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [previewId, canEdit, canRemove, requirementCode],
+    [previewId, canEdit, canRemove, requirementCode, placeholders],
   );
   const table = useDataTable({
     columns,
@@ -342,7 +397,9 @@ export function RequirementControlMappings({
   const displayed = useDisplayedRecords(table);
   const preview = rows.find((row) => row.id === previewId);
   const unavailable = !ready
-    ? "The control mappings are still loading."
+    ? queries.some((query) => query.isError)
+      ? "The control mappings could not be loaded. Retry loading them first."
+      : "The control mappings are still loading."
     : !context.sources.length
       ? context.allocated
         ? "Adopt a resolved profile on an allocated system before mapping a control."
@@ -466,6 +523,8 @@ export function RequirementControlMappings({
   );
 }
 
+/** The most a mapping's rationale may hold. */
+const RATIONALE_LIMIT = 10000;
 /** The form's fields in the order they appear, which is the order their issues are listed in. */
 const mappingFields = ["system", "control", "statement", "relationship", "rationale"] as const;
 type MappingField = (typeof mappingFields)[number];
@@ -495,6 +554,7 @@ function MappingDialog({
 }) {
   const workspace = useWorkspace();
   const save = useModelSave("requirement_control_links");
+  const placeholders = useControlPlaceholders();
   const formId = useId();
   const feedback = useFormFeedback<MappingField>();
   const [open, setOpen] = useState(true);
@@ -524,14 +584,10 @@ function MappingDialog({
   const parts = useRows("control_parts", { control_id: controlId }, { enabled: !!controlId });
   const statements = (parts.data ?? [])
     .filter((part) => isControlStatement(part, parts.data ?? []))
-    .sort(
-      (a, b) =>
-        a.ordinal - b.ordinal ||
-        (a.source_id ?? "").localeCompare(b.source_id ?? "", undefined, { numeric: true }),
-    )
+    .sort(byReadingOrder(parts.data ?? []))
     .map((part) => ({
       id: part.id,
-      label: `${part.source_id ?? part.title ?? labelFor(part.name)} · ${part.prose}`,
+      name: partName(part, parts.data ?? []),
       part,
     }));
   const preserveTarget = !!initial && !targetDirty;
@@ -546,6 +602,20 @@ function MappingDialog({
   const selectedControl = selected.find((row) => row.control_id === controlId);
   const displayedControl =
     chosenControl ?? (initial?.control?.id === controlId ? initial.control : null);
+  // The recorded control stays named while it is not in the chosen system's profile; choosing it
+  // again still asks for one from the profile.
+  const controlOptions = [
+    ...availableControls.map((choice) => ({ value: choice.id, label: choice.label })),
+    ...(displayedControl && !chosenControl
+      ? [
+          {
+            value: displayedControl.id,
+            label: displayedControl.label,
+            detail: "Recorded; not in this system's profile",
+          },
+        ]
+      : []),
+  ];
   const chosenPart = statements.find((statement) => statement.id === partId);
   const duplicate = links.some(
     (link) =>
@@ -581,6 +651,14 @@ function MappingDialog({
           {
             field: "relationship" as const,
             message: "This control target already has that relationship for this system.",
+          },
+        ]
+      : []),
+    ...(rationale.length > RATIONALE_LIMIT
+      ? [
+          {
+            field: "rationale" as const,
+            message: "Shorten the rationale to 10,000 characters or fewer.",
           },
         ]
       : []),
@@ -715,7 +793,9 @@ function MappingDialog({
                   <AlertDescription>
                     Recorded target: {initial.control?.label ?? "Control unavailable"} —{" "}
                     {initial.link.control_part_id
-                      ? (initial.part?.source_id ?? "Target unavailable")
+                      ? initial.part
+                        ? partName(initial.part, initial.parts ?? [])
+                        : "Target unavailable"
                       : "Whole control"}
                     . Choose a system and a control from its effective profile to change it.
                   </AlertDescription>
@@ -750,110 +830,61 @@ function MappingDialog({
                     error={errors.get("system")}
                     controlRef={feedback.ref("system")}
                   />
-                  <Field invalid={errors.has("control") ? true : undefined} required>
-                    <FieldLabel>Control</FieldLabel>
-                    <Combobox
-                      items={availableControls}
-                      value={displayedControl}
-                      isItemEqualToValue={(item, value) => item.id === value.id}
-                      filter={(item, search) =>
-                        item.label
-                          .toLowerCase()
-                          .replace(/[^a-z0-9]/g, "")
-                          .includes(search.toLowerCase().replace(/[^a-z0-9]/g, ""))
-                      }
-                      onValueChange={(item) => {
-                        setTargetDirty(true);
-                        setControlId(item?.id ?? "");
-                        setPartId("");
-                        changed();
-                      }}
-                      autoHighlight
-                    >
-                      <ComboboxInput
-                        ref={feedback.ref("control")}
-                        placeholder="Find a control by code or title"
-                        showClear
-                      />
-                      <ComboboxContent>
-                        <ComboboxEmpty>
-                          No matching controls in this system's profile.
-                        </ComboboxEmpty>
-                        <ComboboxList>
-                          {(item: ControlChoice) => (
-                            <ComboboxItem key={item.id} value={item}>
-                              {item.label}
-                            </ComboboxItem>
-                          )}
-                        </ComboboxList>
-                      </ComboboxContent>
-                    </Combobox>
-                    {errors.has("control") ? (
-                      <FieldError>{errors.get("control")}</FieldError>
-                    ) : null}
-                  </Field>
-                  <Field
-                    invalid={errors.has("statement") ? true : undefined}
-                    disabled={!chosenControl || parts.isPending || !!parts.error}
-                  >
-                    <FieldLabel>Statement or item</FieldLabel>
-                    <Combobox
-                      items={statements}
-                      value={chosenPart ?? null}
-                      isItemEqualToValue={(item, value) => item.id === value.id}
-                      filter={(item, search) =>
-                        item.label.toLowerCase().includes(search.toLowerCase())
-                      }
-                      onValueChange={(item) => {
-                        setTargetDirty(true);
-                        setPartId(item?.id ?? "");
-                        changed();
-                      }}
-                    >
-                      <ComboboxInput
-                        ref={feedback.ref("statement")}
-                        placeholder={
-                          controlId && parts.isPending ? "Loading statements…" : "Whole control"
-                        }
-                        showClear
-                      />
-                      <ComboboxContent>
-                        <ComboboxEmpty>No matching statement prose for this control.</ComboboxEmpty>
-                        <ComboboxList>
-                          {(item: (typeof statements)[number]) => (
-                            <ComboboxItem
-                              key={item.id}
-                              value={item}
-                              className="items-start whitespace-normal"
-                            >
-                              <span>
-                                <span className="font-medium">
-                                  {item.part.source_id ??
-                                    item.part.title ??
-                                    labelFor(item.part.name)}
-                                </span>
-                                <span className="block whitespace-pre-wrap font-body-small">
-                                  {item.part.prose}
-                                </span>
-                              </span>
-                            </ComboboxItem>
-                          )}
-                        </ComboboxList>
-                      </ComboboxContent>
-                    </Combobox>
-                    <FieldDescription>
-                      {chosenPart ? (
-                        <span className="whitespace-pre-wrap">{chosenPart.part.prose}</span>
+                  <ComboboxField
+                    label="Control"
+                    value={controlId || null}
+                    options={controlOptions}
+                    onChange={(value) => {
+                      setTargetDirty(true);
+                      setControlId(value ?? "");
+                      setPartId("");
+                      changed();
+                    }}
+                    required
+                    placeholder="Find a control by code or title"
+                    noun="controls"
+                    emptyMessage="No matching controls in this system's profile."
+                    error={errors.get("control")}
+                    controlRef={feedback.ref("control")}
+                  />
+                  <ComboboxField
+                    label="Statement or item"
+                    value={partId || null}
+                    options={statements.map((statement) => ({
+                      value: statement.id,
+                      label: statement.name,
+                      detail: statement.part.prose
+                        ? controlProseText(statement.part.prose, controlId, placeholders)
+                        : statement.part.prose,
+                    }))}
+                    onChange={(value) => {
+                      setTargetDirty(true);
+                      setPartId(value ?? "");
+                      changed();
+                    }}
+                    disabled={!chosenControl}
+                    placeholder="Whole control"
+                    noun="statements"
+                    emptyMessage="No matching statement prose for this control."
+                    loading={!!controlId && parts.isPending && parts.fetchStatus !== "idle"}
+                    loadError={parts.error ? parts.error.message : undefined}
+                    onRetry={() => void parts.refetch()}
+                    description={
+                      chosenPart ? (
+                        <ControlProse
+                          text={chosenPart.part.prose ?? ""}
+                          controlId={controlId}
+                          placeholders={placeholders}
+                        />
                       ) : chosenControl && parts.isSuccess && !statements.length ? (
                         "This control has no recorded statement prose, so the mapping covers the whole control."
                       ) : (
                         "Leave it empty to map the whole control, or choose an item to narrow the coverage."
-                      )}
-                    </FieldDescription>
-                    {errors.has("statement") ? (
-                      <FieldError>{errors.get("statement")}</FieldError>
-                    ) : null}
-                  </Field>
+                      )
+                    }
+                    error={errors.get("statement")}
+                    controlRef={feedback.ref("statement")}
+                  />
                   <ChoiceField
                     label="Relationship"
                     value={relationship}
@@ -880,7 +911,8 @@ function MappingDialog({
                     }}
                     multiline
                     rows={3}
-                    maxLength={10000}
+                    characterLimit={RATIONALE_LIMIT}
+                    error={errors.get("rationale")}
                     controlRef={feedback.ref("rationale")}
                   />
                   <Text as="p" size="small" color="color.text.subtle">

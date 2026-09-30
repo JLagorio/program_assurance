@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { createRef } from "react";
+import { expect, within } from "storybook/test";
 
 import { Badge, Absent, Fact, Id, KeyValue, Person } from "../../components";
 import { Box, Heading, Inline, Stack } from "../../primitives";
@@ -161,6 +163,56 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+};
+
+const urn = "urn:uuid:0b9a3f4e-5c1d-4e7a-9f2b-8c6d1e0a7b3f";
+
+/** A value that runs long wraps under itself, and an unbroken one (a URN, a hash) breaks where it must, so the strip never pushes its header wider. The label keeps its line. */
+export const LongValue: Story = {
+  render: () => (
+    <Box style={{ width: 280 }} data-testid="frame">
+      <Fact.Group>
+        <Fact label="Source">{urn}</Fact>
+        <Fact label="Owner">Priya Natarajan-Oyelaran, Payables operations</Fact>
+      </Fact.Group>
+    </Box>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const frame = canvas.getByTestId("frame").getBoundingClientRect();
+    for (const value of [canvas.getByText(urn), canvas.getByText(/Priya Natarajan/)]) {
+      await expect(value.getBoundingClientRect().right).toBeLessThanOrEqual(frame.right + 0.5);
+      await expect(value.scrollWidth).toBeLessThanOrEqual(value.clientWidth + 1);
+    }
+    const label = canvas.getByText("Source");
+    await expect(label.getClientRects()).toHaveLength(1);
+  },
+};
+
+const factRef = createRef<HTMLDivElement>();
+const groupRef = createRef<HTMLDListElement>();
+
+/** Native props, a class and a ref reach the Fact's pair and the Group's `dl`, and each names itself last with `data-slot`. */
+export const NativeAttributes: Story = {
+  render: () => (
+    <Fact.Group ref={groupRef} id="control-facts" data-testid="facts">
+      <Fact ref={factRef} label="Owner" data-testid="owner" className="order-first">
+        Dana Whitfield
+      </Fact>
+    </Fact.Group>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const group = canvas.getByTestId("facts");
+    const owner = canvas.getByTestId("owner");
+    await expect(groupRef.current).toBe(group);
+    await expect(factRef.current).toBe(owner);
+    await expect(group.tagName).toBe("DL");
+    await expect(group).toHaveAttribute("data-slot", "fact-group");
+    await expect(group).toHaveAttribute("id", "control-facts");
+    await expect(owner).toHaveAttribute("data-slot", "fact");
+    await expect(owner).toHaveClass("order-first");
+  },
 };
 
 export const Playground: Story = {

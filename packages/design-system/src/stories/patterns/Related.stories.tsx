@@ -2,7 +2,7 @@ import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { ExternalLink, MoreHorizontal, Plus } from "lucide-react";
 import { useRef, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
-import { PreviewSheet, Related } from "../..";
+import { LedgerProvider, PreviewSheet, Related } from "../..";
 import {
   Avatar,
   AvatarFallback,
@@ -31,6 +31,21 @@ import {
 import { Box, HeadingLevelProvider, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
+
+/** A real pointer over the element, so CSS `:hover` applies in the browser tests; Storybook itself only dispatches the events. */
+async function nativeHover(target: HTMLElement) {
+  if (import.meta.env.MODE === "test" && "__vitest_browser__" in globalThis) {
+    const browser = await import("vitest/browser");
+    await browser.page.elementLocator(target).hover();
+    return true;
+  }
+  await userEvent.hover(target);
+  return false;
+}
+
+/** Whether the story runs where hover reveals the card actions: a fine pointer that hovers, and no coarse one. */
+const revealsOnHover = () =>
+  matchMedia("(hover: hover)").matches && !matchMedia("(any-pointer: coarse)").matches;
 
 const meta = {
   title: "Patterns/Related",
@@ -720,5 +735,146 @@ export const HeadingLevelAndSurface: Story = {
     await expect(getComputedStyle(match).backgroundColor).toBe(
       getComputedStyle(card).backgroundColor,
     );
+  },
+};
+
+/** A card's actions stay shown while their own menu is open, after the pointer has left and focus has moved into the menu, and hovering one card shows its actions alone. */
+export const ActionsWhileAMenuIsOpen: Story = {
+  name: "Actions while a menu is open",
+  render: () => (
+    <Stack space="space.300">
+      <Text as="p" size="small" data-testid="away">
+        Two linked systems.
+      </Text>
+      <Related title="Systems" count={2} layout="cards">
+        {systemCards.slice(0, 2)}
+      </Related>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    const trigger = canvas.getByRole("button", { name: "More for Ground segment" });
+    const actions = trigger.parentElement!;
+    const otherActions = canvas.getByRole("button", {
+      name: "More for Telemetry gateway",
+    }).parentElement!;
+    const hovers = await nativeHover(canvas.getByRole("link", { name: "Ground segment" }));
+    if (hovers && revealsOnHover()) {
+      await waitFor(() => expect(getComputedStyle(actions).opacity).toBe("1"));
+      // The other card is not hovered, so its actions stay hidden.
+      await expect(getComputedStyle(otherActions).opacity).toBe("0");
+    }
+    // The pointer leaves the card, then the keyboard opens the menu, which takes focus: neither
+    // hover nor focus is in the card, so only the open menu keeps the actions shown.
+    await nativeHover(canvas.getByTestId("away"));
+    trigger.focus();
+    await userEvent.keyboard("{Enter}");
+    await page.findByRole("menu");
+    await waitFor(() => expect(trigger).toHaveAttribute("aria-expanded", "true"));
+    await waitFor(() => expect(actions.contains(document.activeElement)).toBe(false));
+    await waitFor(() => expect(getComputedStyle(actions).opacity).toBe("1"));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("menu")).toBeNull());
+    await expect(trigger).toHaveFocus();
+  },
+};
+
+/** Nothing linked is the compact Empty. Its default title is the locale's `relatedEmpty`, so a provider translates it; lists fed from several sources that are all empty, arrays, `false` and fragments alike, count as nothing linked. */
+export const NothingLinked: Story = {
+  name: "Nothing linked",
+  render: () => {
+    const findingsFrom: string[] = [];
+    const risksFrom: string[] = [];
+    return (
+      <Inline space="space.300" alignBlock="start" shouldWrap>
+        <Box className="w-layout-rail max-w-full">
+          <Related title="Linked findings" action={addAction}>
+            {findingsFrom.map((f) => (
+              <Item key={f} title={f} />
+            ))}
+            {risksFrom.length > 0 && risksFrom.map((r) => <Item key={r} title={r} />)}
+            <>
+              {risksFrom.map((r) => (
+                <Item key={r} title={r} />
+              ))}
+            </>
+          </Related>
+        </Box>
+        <LedgerProvider locale="de-DE" messages={germanMessages}>
+          <Box className="w-layout-rail max-w-full">
+            <Related title="Verknüpfte Befunde" />
+          </Box>
+        </LedgerProvider>
+      </Inline>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText("Nothing linked yet")).toBeInTheDocument();
+    await expect(canvas.queryByRole("list", { name: "Linked findings" })).toBeNull();
+    await expect(canvas.getByText("Noch nichts verknüpft")).toBeInTheDocument();
+  },
+};
+
+const germanMessages = { relatedEmpty: "Noch nichts verknüpft" };
+
+/** Long names in a rail and on a page: the heading wraps; a row's or a card's name that is cut shows in full on hover and on keyboard focus of its link. A flush row's focus ring is drawn inside the card's edge, so the card's clipping cannot cut its sides. */
+export const LongNames: Story = {
+  name: "Long names",
+  render: () => (
+    <Stack space="space.300">
+      <Box className="w-layout-rail max-w-full">
+        <Related title="Findings linked to the ground segment boundary" count={2}>
+          {findings}
+        </Related>
+      </Box>
+      <Box style={{ width: 300, maxWidth: "100%" }}>
+        <Related title="Systems" count={1} layout="cards">
+          <Related.Card
+            title="Telemetry gateway and mission control ground network"
+            link={<a href="#gateway" />}
+            meta="Component · Ground segment / Mission control / Operations"
+          />
+        </Related>
+      </Box>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const heading = canvas.getByRole("heading", {
+      name: "Findings linked to the ground segment boundary",
+    });
+    await expect(heading.scrollWidth).toBeLessThanOrEqual(heading.clientWidth + 1);
+    const revealed = () =>
+      waitFor(() => {
+        const popup = document.querySelector<HTMLElement>('[data-slot="truncate-full-text"]');
+        expect(popup).not.toBeNull();
+        return popup!;
+      });
+    const gone = () =>
+      waitFor(() => expect(document.querySelector('[data-slot="truncate-full-text"]')).toBeNull());
+    // A flush row: its ring is inside the card, and a cut name reveals on keyboard focus.
+    await userEvent.tab();
+    const row = canvas.getByRole("link", {
+      name: "Router management plane accepts unencrypted telnet",
+    });
+    await expect(row).toHaveFocus();
+    await expect(parseFloat(getComputedStyle(row, "::after").outlineOffset)).toBeLessThan(0);
+    await expect(await revealed()).toHaveTextContent(
+      "Router management plane accepts unencrypted telnet",
+    );
+    // A card's name.
+    const card = canvas.getByRole("link", {
+      name: "Telemetry gateway and mission control ground network",
+    });
+    while (document.activeElement !== card) await userEvent.tab();
+    await waitFor(() =>
+      expect(document.querySelector('[data-slot="truncate-full-text"]')).toHaveTextContent(
+        "Telemetry gateway and mission control ground network",
+      ),
+    );
+    await userEvent.tab();
+    await gone();
   },
 };

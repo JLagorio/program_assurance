@@ -34,7 +34,7 @@ Inherits the surrounding Item.Group's default or compact density. There is no se
 
 ## Content
 
-Use a short action as the title, such as “Review draft.” Supply formatted date content and a machine-readable date where possible. Translate `completionLabel` to name the current action and its row; English defaults are “Complete: title” and “Reopen: title.” Keep status wording and owner identity in the application.
+Use a short action as the title, such as “Review draft.” Supply formatted date content and a machine-readable date where possible. The checkbox is named for the task, the title by default; `completionLabel` replaces that name when the title alone is ambiguous, and it stays the same as the row is completed and reopened. Keep status wording and owner identity in the application.
 
 ## Style
 
@@ -42,7 +42,7 @@ Item supplies the shared row grid and interactive hit areas. Checkbox supplies f
 
 ## Accessibility
 
-Completion is a named, controlled checkbox with Space-key operation. Completing a task does not activate its row navigation. Title and action buttons are independent keyboard stops, without nested interactive elements. Completed rows without a checkbox include screen-reader text from `completedLabel` (English default “Completed”), so the strike-through is not the only completion cue.
+Completion is a controlled checkbox with Space-key operation, named for the task (“Review draft, checkbox, checked”): the name stays the same and the checked state says whether it is done. Completing a task does not activate its row navigation. Title and action buttons are independent keyboard stops, without nested interactive elements. Completed rows without a checkbox are read with the locale’s `taskRowCompleted` (`{title}, completed`) or `completedLabel`, so the strike-through is not the only completion cue.
 
 ## Props
 
@@ -55,7 +55,7 @@ Completion is a named, controlled checkbox with Space-key operation. Completing 
 - [Item](?path=/docs/components-item--docs) for general rows and groups.
 - [Checkbox](?path=/docs/components-checkbox--docs) for independent boolean input.
 - [Badge](?path=/docs/components-badge--docs) for caller-owned status content.
-- The application's Task wrapper maps open/waiting/blocked/done, owner names and overdue presentation onto this contract. Create-task workflows remain in the application.
+- A product maps its own task states, owner names and overdue presentation onto `completed`, `assignee`, `due` and `status`; create-task workflows stay in the product.
 
 ## Don't
 

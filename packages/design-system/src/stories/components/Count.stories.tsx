@@ -12,6 +12,7 @@ import {
 
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import { LedgerProvider } from "../../lib/locale";
 import { Inline, Stack, Text } from "../../primitives";
 import { Matrix as Grid } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
@@ -27,22 +28,60 @@ type Story = StoryObj<typeof meta>;
 
 const appearances = ["default", "primary", "important", "added", "removed"] as const;
 
-/** Every appearance at one, two and three digits, and past the ceiling. */
+const cols = ["3", "12", "140", "1400 · max 999", "1400 · max 9999"] as const;
+
+/** Every appearance at one, two and three digits, past the default ceiling of 99 and past a ceiling of 999, and under a ceiling of 9999, where the number takes the locale's grouping. An added count carries a plus and a removed one a minus, so the two differ by more than their fill. */
 export const CountMatrix: Story = {
   render: () => (
     <Grid
       rows={appearances}
-      cols={["3", "12", "140", "1400 · max 999"] as const}
+      cols={cols}
       rowLabel="appearance"
       render={(appearance, col) => (
         <Count
           appearance={appearance}
           value={Number(col.split(" ")[0])}
-          {...(col.startsWith("1400") ? { max: 999 } : {})}
+          data-cell={`${appearance} ${col}`}
+          {...(col.includes("max") ? { max: Number(col.split("max ")[1]) } : {})}
         />
       )}
     />
   ),
+  play: async ({ canvasElement }) => {
+    const shown = ["3", "12", "99+", "999+", "1,400"];
+    const signs = { default: "", primary: "", important: "", added: "+", removed: "\u2212" };
+    for (const appearance of appearances)
+      for (const [i, col] of cols.entries()) {
+        const count = canvasElement.querySelector(`[data-cell="${appearance} ${col}"]`);
+        await expect(count).toHaveTextContent(`${signs[appearance]}${shown[i]}`, {
+          normalizeWhitespace: false,
+        });
+        await expect(count).toHaveAttribute("data-appearance", appearance);
+      }
+  },
+};
+
+/** Under a LedgerProvider the number reads in the reader's locale: 1.189 in German, and the ceiling too. */
+export const Locale: Story = {
+  render: () => (
+    <LedgerProvider locale="de-DE">
+      <Inline space="space.200" alignBlock="center">
+        <Inline space="space.100" alignBlock="center">
+          <Text weight="medium">Kontrollen</Text>
+          <Count value={1189} max={9999} data-testid="grouped" />
+        </Inline>
+        <Inline space="space.100" alignBlock="center">
+          <Text weight="medium">Ergebnisse</Text>
+          <Count value={14000} max={9999} data-testid="capped" />
+        </Inline>
+      </Inline>
+    </LedgerProvider>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByTestId("grouped")).toHaveTextContent("1.189");
+    await expect(canvas.getByTestId("capped")).toHaveTextContent("9.999+");
+  },
 };
 
 /** Named by what it sits beside: a section title, a tab, a related card. */
@@ -57,7 +96,7 @@ export const InContext: Story = {
         <Text weight="medium">Needs your attention</Text>
         <Count value={2} appearance="important" />
       </Inline>
-      <Inline space="space.100" alignBlock="center">
+      <Inline space="space.100" alignBlock="center" data-testid="rows-changed">
         <Text weight="medium">Rows changed</Text>
         <Count value={12} appearance="added" />
         <Count value={3} appearance="removed" />
@@ -83,6 +122,13 @@ export const InContext: Story = {
       </Collapsible>
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // Added and removed read apart in words and in forced colours, not by the fill alone.
+    await expect(canvas.getByTestId("rows-changed")).toHaveTextContent("Rows changed+12\u22123");
+    // A Count in a trigger is part of its name.
+    await expect(canvas.getByRole("button", { name: "Evidence 7" })).toBeInTheDocument();
+  },
 };
 
 /** The mistakes the page is written to prevent, each beside the right way. */

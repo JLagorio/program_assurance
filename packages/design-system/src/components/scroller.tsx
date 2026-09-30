@@ -21,8 +21,9 @@ export type ScrollerEdge = "start" | "end";
 export type ScrollerSurface = "default" | "overlay" | "raised";
 export type ScrollerActivation = "hover" | "click";
 
-type Edges = { overflows: boolean; atStart: boolean; atEnd: boolean };
-const noEdges: Edges = { overflows: false, atStart: true, atEnd: true };
+/** `long`: a vertical list too tall to cross by hovering; it keeps the native scrollbar instead. */
+type Edges = { overflows: boolean; atStart: boolean; atEnd: boolean; long: boolean };
+const noEdges: Edges = { overflows: false, atStart: true, atEnd: true, long: false };
 // The innermost Scroller owns focus reveal; a containing Scroller must not move it again.
 const revealedFocusEvents = new WeakSet<FocusEvent>();
 
@@ -68,11 +69,39 @@ function readEdges(element: HTMLElement, orientation: ScrollerOrientation): Edge
     overflows: scroll - size > 1,
     atStart: position <= 1,
     atEnd: position + size >= scroll - 1,
+    long: vertical && size > 0 && scroll > size * longList,
   };
 }
 
 const sameEdges = (a: Edges, b: Edges) =>
-  a.overflows === b.overflows && a.atStart === b.atStart && a.atEnd === b.atEnd;
+  a.overflows === b.overflows &&
+  a.atStart === b.atStart &&
+  a.atEnd === b.atEnd &&
+  a.long === b.long;
+
+/**
+ * Past this many viewports of content a vertical list keeps its native scrollbar and shows no
+ * arrows: at the hover speed, crossing five viewports of a 300px menu already takes three seconds.
+ */
+const longList = 5;
+
+/** What the keyboard reaches inside a viewport: a tab stop, or an item a composite moves focus to. */
+const reachable = [
+  "a[href]",
+  "button:not(:disabled)",
+  'input:not([type="hidden"]):not(:disabled)',
+  "select:not(:disabled)",
+  "textarea:not(:disabled)",
+  "summary",
+  "iframe",
+  '[contenteditable]:not([contenteditable="false"])',
+  '[tabindex]:not([tabindex="-1"])',
+  ...["option", "menuitem", "menuitemcheckbox", "menuitemradio", "treeitem", "tab", "gridcell"].map(
+    (role) => `[role="${role}"]`,
+  ),
+].join(", ");
+/** The attributes that change whether something inside can be reached, watched below a viewport. */
+const reachability = ["disabled", "tabindex", "href", "contenteditable", "hidden", "inert", "role"];
 
 /** What a strip keeps in view when it narrows: the selected tab, the current step, the pressed view. */
 const currentItem =
@@ -91,8 +120,10 @@ export const scrollerArrowVariants = cva(
     variants: {
       orientation: { vertical: "inset-x-0 h-300", horizontal: "inset-y-0 w-300" },
       edge: { start: "", end: "" },
+      /* `default` is the surface the Scroller sits on: the page, or the Card, Dialog or Sheet
+         that records itself as the current one. */
       surface: {
-        default: "bg-surface",
+        default: "bg-surface-current",
         overlay: "bg-surface-overlay",
         raised: "bg-surface-raised",
       },
@@ -134,7 +165,10 @@ export type ScrollerProps = ComponentProps<"div"> & {
    * strip). Unsaid, vertical scrollers hover and horizontal ones click.
    */
   scrollOn?: ScrollerActivation | undefined;
-  /** The surface the arrows sit on, so they cover the content they scroll. */
+  /**
+   * The surface the arrows sit on, so they cover the content they scroll. Unsaid, the surface the
+   * Scroller sits on (`utility.elevation.surface.current`).
+   */
   surface?: ScrollerSurface | undefined;
   /**
    * The element that scrolls when it is not a ScrollerViewport child, such as a ScrollArea's
@@ -212,64 +246,110 @@ export function Scroller({
       revealedFocusEvents.add(event);
       reveal(target);
     };
-    // A strip keeps its current item in view: the first time it overflows (on its first layout, or
-    // once late fonts or labels widen it), and whenever it narrows (a window resize, a panel
-    // opening beside it), the selected tab, the current step or the pressed view scrolls back in
-    // if it ended outside. Nothing moves focus, and a strip that has overflowed before and only
-    // grows or changes its content is left where the reader put it.
+    // A strip keeps its current item in view: the selected tab, the current step or the pressed
+    // view scrolls back in if it ended outside. Until the reader scrolls, wheels, touches, clicks,
+    // types or moves focus in the strip, that holds on every change of size, so counts that arrive
+    // after the first layout cannot push the current tab out; after that, only a strip that
+    // narrows (a window resize, a panel opening beside it) brings it back, and a strip that grows
+    // stays where the reader put it. A current item that changes (a tab chosen from outside the
+    // strip) always scrolls in. Nothing moves focus.
+    const root = viewport.closest<HTMLElement>('[data-slot="scroller"]') ?? viewport;
     let laidOutWidth = 0;
-    let overflowedBefore = false;
+    let readerMoved = false;
+    let current: HTMLElement | null = null;
+    const findCurrent = () =>
+      Array.from(viewport.querySelectorAll<HTMLElement>(currentItem)).find(
+        (item) => (item.closest('[data-slot="scroller"]') ?? viewport) === root,
+      ) ?? null;
     const keepCurrentInView = () => {
       if (vertical) return;
       const width = viewport.clientWidth;
       const narrowed = width < laidOutWidth - 1;
       laidOutWidth = width;
-      if (!readEdges(viewport, orientation).overflows) return;
-      const first = !overflowedBefore;
-      overflowedBefore = true;
-      if (!first && !narrowed) return;
-      const root = viewport.closest('[data-slot="scroller"]');
-      const current = Array.from(viewport.querySelectorAll<HTMLElement>(currentItem)).find(
-        (item) => item.closest('[data-slot="scroller"]') === root,
-      );
-      if (!current) return;
+      const item = findCurrent();
+      const changed = item !== current;
+      current = item;
+      if (!item || !readEdges(viewport, orientation).overflows) return;
+      if (readerMoved && !narrowed && !changed) return;
       // The arrows may not have claimed their scroll padding yet on the first layout.
       const arrows = window.matchMedia(hoverQuery).matches
         ? parseFloat(getComputedStyle(viewport).getPropertyValue("--ds-space-300")) || 0
         : 0;
-      reveal(current, arrows);
+      reveal(item, arrows);
     };
+    // Focus inside the strip stays in view when the strip changes size under it (a window resize,
+    // a side nav folding to its rail), as it was revealed when it arrived.
+    const keepFocusInView = () => {
+      const active = document.activeElement;
+      if (active instanceof HTMLElement && active !== viewport && viewport.contains(active))
+        reveal(active);
+    };
+    const readerActs = () => {
+      readerMoved = true;
+    };
+    const readerEvents = ["wheel", "pointerdown", "touchstart", "keydown", "focusin"] as const;
     // Measured on the next frame, not inside the observer: a list that shrinks below its height
     // drops the native scrollbar, its items widen by the scrollbar's width, and a second
     // notification in the same frame makes Chromium report a ResizeObserver loop.
     let frame = 0;
-    const sizes = new ResizeObserver(() => {
+    const schedule = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         update();
         keepCurrentInView();
+        keepFocusInView();
       });
-    });
+    };
+    const sizes = new ResizeObserver(schedule);
+    // The viewport and its direct children, the content that grows without a change of size of
+    // its own: only the difference is observed as children come and go, so filtering a long list
+    // does not observe every item again on each keystroke.
+    const sized = new Set<Element>();
     const observeChildren = () => {
-      sizes.disconnect();
-      sizes.observe(viewport);
-      for (const child of Array.from(viewport.children)) sizes.observe(child);
+      for (const child of sized) {
+        if (child.parentElement !== viewport) {
+          sizes.unobserve(child);
+          sized.delete(child);
+        }
+      }
+      for (const child of Array.from(viewport.children)) {
+        if (!sized.has(child)) {
+          sizes.observe(child);
+          sized.add(child);
+        }
+      }
     };
     const children = new MutationObserver(() => {
       observeChildren();
       update();
     });
+    // A current item chosen from outside the strip, as a record's Overview does for its tabs.
+    const selection = new MutationObserver(schedule);
+    // Rings inside the viewport are drawn inside their box (scroller.css), since it clips.
+    viewport.setAttribute("data-scroller-viewport", orientation);
     update();
+    sizes.observe(viewport);
     observeChildren();
     children.observe(viewport, { childList: true });
+    if (!vertical) {
+      selection.observe(viewport, {
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["aria-selected", "aria-current", "aria-pressed"],
+      });
+      for (const type of readerEvents) root.addEventListener(type, readerActs, { passive: true });
+    }
     viewport.addEventListener("scroll", update, { passive: true });
     viewport.addEventListener("focusin", revealFocus);
     return () => {
       viewport.removeEventListener("scroll", update);
       viewport.removeEventListener("focusin", revealFocus);
+      for (const type of readerEvents) root.removeEventListener(type, readerActs);
+      viewport.removeAttribute("data-scroller-viewport");
       cancelAnimationFrame(frame);
       sizes.disconnect();
       children.disconnect();
+      selection.disconnect();
     };
   }, [viewport, orientation]);
 
@@ -278,7 +358,7 @@ export function Scroller({
   useEffect(() => {
     if (!viewport) return undefined;
     const property = orientation === "vertical" ? "scrollPaddingBlock" : "scrollPaddingInline";
-    const active = edges.overflows && hoverable;
+    const active = edges.overflows && !edges.long && hoverable;
     viewport.style[property] = active ? arrowSize : "";
     if (active) viewport.setAttribute("data-scroller-arrows", "");
     else viewport.removeAttribute("data-scroller-arrows");
@@ -286,7 +366,7 @@ export function Scroller({
       viewport.style[property] = "";
       viewport.removeAttribute("data-scroller-arrows");
     };
-  }, [viewport, orientation, edges.overflows, hoverable]);
+  }, [viewport, orientation, edges.overflows, edges.long, hoverable]);
 
   const value = useMemo<ScrollerContextValue>(
     () => ({
@@ -307,7 +387,7 @@ export function Scroller({
         {...props}
         data-slot="scroller"
         data-orientation={orientation}
-        data-arrows={edges.overflows && hoverable ? "" : undefined}
+        data-arrows={edges.overflows && !edges.long && hoverable ? "" : undefined}
         className={cn(
           "group/scroller relative flex min-h-0 min-w-0 data-[orientation=vertical]:flex-col",
           className,
@@ -319,21 +399,62 @@ export function Scroller({
 
 export type ScrollerViewportProps = useRender.ComponentProps<"div">;
 
-/** The element that scrolls. `render` substitutes another scrolling element, such as a list. */
-export function ScrollerViewport({ className, render, ...props }: ScrollerViewportProps) {
-  const { orientation, setViewport } = useScroller("ScrollerViewport");
+/**
+ * The element that scrolls. `render` substitutes another scrolling element, such as a list.
+ *
+ * While it overflows and holds nothing the keyboard can reach (no link, button or field, and no
+ * item a list, menu or tree moves focus to), it is a tab stop, so the arrow keys can scroll it: a
+ * group named "Content, scrolls" unless the caller names it or gives it a role. A caller's own
+ * `tabIndex` decides instead; a focusable viewport the caller did not name still takes that name.
+ * Its focus ring, and every ring inside it, is drawn inside the box, since the viewport clips.
+ */
+export function ScrollerViewport({
+  className,
+  render,
+  tabIndex,
+  role,
+  "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
+  ...props
+}: ScrollerViewportProps) {
+  const { orientation, setViewport, viewport, edges } = useScroller("ScrollerViewport");
+  const { t } = useLedgerLocale();
+  const automatic = tabIndex === undefined;
+  // Assumed reachable until measured, so the first render adds no stop.
+  const [hasReachable, setHasReachable] = useState(true);
+  useEffect(() => {
+    if (!automatic || !viewport) return undefined;
+    const check = () => setHasReachable(viewport.querySelector(reachable) !== null);
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(viewport, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: reachability,
+    });
+    return () => observer.disconnect();
+  }, [automatic, viewport]);
+  const stop = automatic && edges.overflows && !hasReachable;
+  const focusable = stop || (tabIndex !== undefined && tabIndex >= 0);
+  const named = ariaLabel !== undefined || ariaLabelledBy !== undefined;
   return useRender({
     defaultTagName: "div",
     ref: setViewport,
     props: mergeProps<"div">(
       {
         className: cn(
-          "min-h-0 min-w-0 flex-1 outline-none",
+          "min-h-0 min-w-0 flex-1 outline-none focus-visible:outline-focused",
+          // A strip keeps the resting ring and shadow its buttons draw outside their box.
           orientation === "vertical"
             ? "overflow-x-hidden overflow-y-auto"
-            : "overflow-x-auto overflow-y-hidden",
+            : "overflow-x-auto overflow-y-hidden p-025",
           className,
         ),
+        tabIndex: stop ? 0 : tabIndex,
+        role: role ?? (focusable ? "group" : undefined),
+        "aria-label": ariaLabel ?? (focusable && !named ? t("contentScrolls") : undefined),
+        "aria-labelledby": ariaLabelledBy,
       },
       props,
     ),
@@ -370,7 +491,11 @@ export function ScrollerArrow({
   }, []);
   useEffect(() => stop, [stop]);
 
-  const visible = hoverable && edges.overflows && !(edge === "start" ? edges.atStart : edges.atEnd);
+  const visible =
+    hoverable &&
+    edges.overflows &&
+    !edges.long &&
+    !(edge === "start" ? edges.atStart : edges.atEnd);
   useEffect(() => {
     if (!visible) stop();
   }, [visible, stop]);

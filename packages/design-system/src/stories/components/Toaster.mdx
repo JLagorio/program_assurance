@@ -1,56 +1,115 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Toaster, ToastViewport } from "../../components";
 import * as Stories from "./Toaster.stories";
 
 <Meta of={Stories} />
 
 # Toaster
 
-Short feedback after an action. This family follows shadcn's Base UI Toast implementation, with Ledger surfaces, typography, motion and localized labels.
-
-## Anatomy
-
-Mount one Toaster near the application root. It composes ToastProvider, ToastPortal, ToastViewport and a stack of Toast / ToastContent / ToastTitle / ToastDescription / ToastAction / ToastClose parts. The default stack is at the bottom end edge, bounded on narrow screens.
-
-```tsx
-<Toaster />;
-// After the provider mounts, from a workflow:
-const id = toast.add({ title: "Evidence linked", type: "success" });
-toast.update(id, { description: "Bank reconciliation, July" });
-toast.close(id);
-```
-
-## Variants and states
-
-Set `type` to success, info, warning, error or loading for the standard icons. Toaster defaults to a 4000ms timeout and four visible toasts. Set `timeout: 0` for persistent feedback. Application errors explicitly use 8000ms; the native manager does not infer timeouts from type.
+Short feedback after the reader's own act, which needs nothing more from them: "Evidence linked", "Export ready". It appears at the bottom end of the screen, leaves on its own, and never holds the only copy of anything the reader needs. The family is Base UI's Toast, with Ledger's surfaces, type, motion, words and defaults.
 
 <Canvas of={Stories.Playground} />
 
-Supply `actionProps` with `children` and `onClick`. The action does not close automatically: call `close(id)` when it should dismiss. This lets an action update a toast or keep it visible while work continues.
+## Choosing between them
+
+| The message                                                  | Part                                                              |
+| ------------------------------------------------------------ | ----------------------------------------------------------------- |
+| The result of the reader's act, which needs nothing more     | A toast                                                           |
+| A failure the reader must act on, or a problem with a record | An [Alert](?path=/docs/components-alert--docs) beside what failed |
+| A problem with one field, or with a submitted form           | [FieldError](?path=/docs/components-field--docs), ErrorSummary    |
+| Something about the whole site, for every reader             | A [Banner](?path=/docs/components-banner--docs)                   |
+| A decision the reader must take before going on              | An [AlertDialog](?path=/docs/components-alertdialog--docs)        |
+
+A failure is a toast only when there is nowhere on the page to put it: the reader has moved on, or the work ran in the background.
+
+## Anatomy
+
+Mount one Toaster near the application root. It is the provider, the portal and the viewport, and draws each toast as Toast, ToastContent, the type's icon, ToastTitle, ToastDescription, ToastAction and ToastClose. The stack sits at the bottom end of the screen, `space.200` from its edges and at most 24rem wide.
+
+```tsx
+<Toaster />;
+// From a workflow, after the provider mounts:
+const id = toast.add({
+  title: "Evidence linked",
+  description: "Bank reconciliation, July",
+  type: "success",
+});
+toast.update(id, { description: "Bank reconciliation, August" });
+toast.close(id);
+```
+
+## Types and timing
+
+`type` picks the icon: `success`, `information` (or Base UI's `info`), `warning`, `danger` (or `error`) and `loading`. The kit's tone words are stored as Base UI's, so a `danger` toast draws the danger icon and reads `error` from the manager; `ToastType` is the union.
+
+| The toast           | Leaves                                                    |
+| ------------------- | --------------------------------------------------------- |
+| Any, by default     | After 5 seconds, the Toaster's `timeout`                  |
+| An error (`danger`) | After 8 seconds                                           |
+| One with an action  | Never on its own: when the reader acts on it or closes it |
+| A loading toast     | When its work settles; it has no timer                    |
+| `timeout: 0`        | Never on its own                                          |
+
+An explicit `timeout` always wins. Hovering or focusing the stack, and the window losing focus, pause every timer.
+
+<Canvas of={Stories.Defaults} />
+
+## Actions
+
+`actionProps` takes the action's `children` and `onClick`. The action does not close its toast: call `close(id)` when it should, which lets an action update the toast or keep it while work continues. A toast with an action stays until it is used or closed, since a keyboard or screen-reader reader reaches it only through F6. Every action in a toast also exists on the page: Undo beside the record, View in the list. The toast is a shortcut to it, never its only home.
 
 <Canvas of={Stories.WithAction} />
 
-`promise` replaces loading feedback with the resolved or rejected result and returns a promise with the original value. Await or handle its rejection as usual.
+`promise` shows the loading toast while the work runs and replaces it with the success or the error when it settles; it returns a promise of the original value and rethrows a rejection, so await or handle it as usual.
 
 <Canvas of={Stories.Working} />
 
+## Content
+
+- **The title says what happened**, in the past tense and the reader's words: "Evidence linked", "Package ready". Not "Success", not "Done!".
+- **At most one short line under it**, naming the record: "Bank reconciliation, July". A toast leaves before a paragraph is read; the detail belongs in the record.
+- **An error says what did not happen** ("Could not build the package") and, when the page can, points at where to fix it. The fix itself stays on the page.
+- **One action at most**, named for what it does: Undo, View.
+
+## Long content
+
+A title or a description wraps inside the toast, and a code or a hash breaks where it must. The title and the description can be selected and copied, so an error message or a record's code can be pasted into a ticket; a swipe that starts on the text does not dismiss the toast.
+
+## Stack and short windows
+
+Four toasts show at once, the newest in front and the others behind it; hovering or focusing the stack opens it. In a window under 30rem tall the Toaster keeps two, so the open stack stays inside the window, and a toast past the limit leaves the page.
+
+<Canvas of={Stories.Stack} />
+
 ## Accessibility
 
-Base UI owns announcements, timers, stack focus and swipe dismissal. F6 focuses the notification viewport; Shift+Tab from that viewport returns to the previous element. Hover and focus pause timers. Each default toast includes a localized Close button. Loading icons are decorative because the toast already announces the work.
-
-Keep essential record state in persistent page content. Toast portals participate in Base UI popup accessibility, including while a dialog is open.
+- **F6 moves focus to the stack**, and Shift+Tab from it returns to where the reader was. Each toast has a localised Close button, and the stack is a region named "Notifications".
+- **Toasts are announced politely**, after what the reader is hearing. Base UI's `priority: "high"` announces a toast at once, but hides it from assistive technology until the stack has focus, which leaves its Close and its action focusable under `aria-hidden`; the kit does not set it, and an urgent failure belongs in an Alert on the page.
+- **The loading icon is decorative**: the toast's title already says what is running.
+- **Keep what the reader needs on the page.** A toast leaves; anything the reader must read twice, act on or come back to is on the page as well. The stack works over an open dialog.
 
 <Canvas of={Stories.InDialog} />
 
 ## Props
 
-Toaster accepts native Provider props: `children`, `timeout`, `limit` and `toastManager`. It is state-only and has no DOM ref. For custom placement or presentation, compose the exported parts; ToastViewport owns native div props/ref, direction and accessible name. Styled parts retain native `render`, refs and class/style state callbacks. `createToastManager` isolates stacks, and `useToastManager` reads the nearest provider's toasts and actions.
+<ArgTypes of={Toaster} />
+
+<ArgTypes of={ToastViewport} />
+
+Toaster takes Base UI's provider props: `timeout` (5000), `limit` (4) and `toastManager`, and has no element of its own. For another placement or presentation, compose the exported parts under a `ToastProvider`: ToastViewport takes native div props, its ref, its direction and its accessible name, and every styled part keeps Base UI's `render`, ref and state callbacks for `className`. `createToastManager` makes a stack of its own, with the kit's defaults; `useToastManager` reads the nearest provider's toasts and methods, with the same defaults.
 
 <Canvas of={Stories.NativeOptions} />
 
-Migration: replace `toast.success(message, options)` with `toast.add({ title: message, type: "success", ...options })`; use `close` instead of `dismiss`, `timeout` instead of `duration`, zero instead of Infinity, and `actionProps.children` instead of `action.label`. The callable Sonner adapter and Sonner Toaster options are removed. Independent stacks use separate managers. A manager must have a mounted provider before feedback can be shown.
+### Migration
+
+`toast.success(message, options)` is `toast.add({ title: message, type: "success", ...options })`: `close` for `dismiss`, `timeout` for `duration`, `0` for `Infinity`, and `actionProps.children` for `action.label`. A manager needs a mounted provider before it shows anything.
 
 ## Related
 
 [Alert](?path=/docs/components-alert--docs), [Banner](?path=/docs/components-banner--docs), [AlertDialog](?path=/docs/components-alertdialog--docs), [Spinner](?path=/docs/components-spinner--docs).
 
-Sources: [shadcn Toast](https://ui.shadcn.com/docs/components/base/toast), [implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/toast.tsx), [Base UI Toast](https://base-ui.com/react/components/toast).
+Sources: [shadcn Toast](https://ui.shadcn.com/docs/components/base/toast), [implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/toast.tsx), [Base UI Toast](https://base-ui.com/react/components/toast), [WCAG 2.2.1 Timing Adjustable](https://www.w3.org/WAI/WCAG22/Understanding/timing-adjustable).
+
+## Don't
+
+<Canvas of={Stories.Dont} />

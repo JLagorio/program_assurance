@@ -154,6 +154,13 @@ export const IconOnly: Story = {
         variant="subtle"
       />
       <LinkIconButton href="#report" label="Open the report" icon={<FileText />} size="medium" />
+      <LinkIconButton
+        href="#ctrl-0413"
+        label="Open CTRL-0413"
+        icon={<ExternalLink />}
+        variant="subtle"
+        size="xxsmall"
+      />
     </Inline>
   ),
   play: async ({ canvasElement }) => {
@@ -173,6 +180,11 @@ export const IconOnly: Story = {
     const report = canvas.getByRole("link", { name: "Open the report" });
     await expect(report.getBoundingClientRect().width).toBe(32);
     await expect(getComputedStyle(report.querySelector("svg")!).width).toBe("16px");
+    // The row control: 20px square, a 24px hit area where any pointer is coarse.
+    const row = canvas.getByRole("link", { name: "Open CTRL-0413" });
+    await expect(row.getBoundingClientRect().width).toBe(20);
+    await expect(row.getBoundingClientRect().height).toBe(20);
+    await expect(row).toHaveClass("touch-target");
   },
 };
 

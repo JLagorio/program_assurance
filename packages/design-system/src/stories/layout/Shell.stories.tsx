@@ -27,6 +27,8 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
+  DataTable,
+  defineColumns,
   Id,
   Inspector,
   LedgerProvider,
@@ -42,8 +44,11 @@ import {
   Tabs,
   TabsContent,
   tokenValue,
+  Toolbar,
+  useDataTable,
   useSideNav,
   type SearchResult,
+  type SideNavChange,
 } from "../..";
 import {
   Avatar,
@@ -259,13 +264,7 @@ function Demo({
         <Shell.SideNav.Footer>
           <Shell.Profile
             avatar={
-              <Avatar
-                size="small"
-                role="img"
-                aria-label={"Sarah Chen"}
-                hue={avatarHue("Sarah Chen")}
-                title={"Sarah Chen"}
-              >
+              <Avatar size="small" hue={avatarHue("Sarah Chen")}>
                 <AvatarFallback>{avatarInitials("Sarah Chen", 2)}</AvatarFallback>
               </Avatar>
             }
@@ -366,6 +365,13 @@ export const Frame: Story = {
       "data-shell-slot",
       wide ? "topnav-search-field" : "topnav-search-button",
     );
+    // The profile is named by the person, not their initials as well; a button that runs an
+    // action has no menu chevron.
+    const profile = canvasElement.querySelector<HTMLElement>('[data-slot="shell-profile"]');
+    if (profile && profile.getClientRects().length > 0) {
+      await expect(profile).toHaveAccessibleName("Sarah Chen Compliance lead");
+      await expect(profile.querySelector('[data-slot="shell-sidenav-chevron"]')).toBeNull();
+    }
     // The splitter resizes the side nav where it is a column beside the page, from `lg`; below
     // `lg` the side nav is an overlay the toggle opens, and there is nothing to resize.
     if (!window.matchMedia("(min-width: 64rem)").matches) {
@@ -396,6 +402,15 @@ export const Frame: Story = {
     );
     await userEvent.keyboard("{Home}");
     await waitFor(() => expect(splitter).toHaveAttribute("aria-valuenow", "200"));
+    // The separator names the area it resizes, and Enter collapses the side nav, as a double-click
+    // does; focus goes to the toggle, which brings it back.
+    const nav = within(canvasElement).getByRole("navigation", { name: "Side navigation" });
+    await expect(splitter).toHaveAttribute("aria-controls", nav.id);
+    await userEvent.keyboard("{Enter}");
+    const toggle = within(canvasElement).getByRole("button", { name: "Expand side navigation" });
+    await waitFor(() => expect(toggle).toHaveFocus());
+    await userEvent.click(toggle);
+    await within(canvasElement).findByRole("separator", { name: "Resize side navigation" });
   },
 };
 
@@ -532,7 +547,7 @@ export const EndItemsFold: Story = {
     });
     // Narrow: the colour mode and the persistent trigger stay; the other items are More's rows, in
     // the row's order.
-    await expect(within(actions).getByRole("group", { name: "Colour mode" })).toBeVisible();
+    await expect(within(actions).getByRole("group", { name: "Appearance" })).toBeVisible();
     const notifications = within(actions).getByRole("button", { name: "Notifications" });
     await expect(notifications).toBeVisible();
     // The trigger's props reach the item's button.
@@ -619,7 +634,7 @@ export const SearchShortcut: Story = {
   },
 };
 
-/** A banner above the top nav and a panel beside the page. Both push the layout; neither covers it. The panel is the full height of the window: the banner and the top nav stop at its edge. */
+/** A banner above everything and a panel beside the page. Both push the layout; neither covers it. The banner spans the whole width; the panel runs the rest of the window's height beside the top nav, which stops at its edge, and its header sits level with the top nav. */
 export const WithBannerAndPanel: Story = {
   globals: { viewport: { value: "ledgerWide", isRotated: false } },
   render: () => <Demo banner panel />,
@@ -630,13 +645,21 @@ export const WithBannerAndPanel: Story = {
     });
     const banner = canvas.getByRole("region", { name: "Banner" });
     const topNav = canvas.getByRole("banner", { name: "Top navigation" });
+    const header = panel.querySelector<HTMLElement>('[data-slot="shell-panel-header"]')!;
     if (!window.matchMedia("(min-width: 80rem)").matches) return;
     await waitFor(() => {
       const box = panel.getBoundingClientRect();
-      expect(box.top).toBe(0);
-      expect(Math.abs(box.height - window.innerHeight)).toBeLessThanOrEqual(1);
-      expect(banner.getBoundingClientRect().right).toBeLessThanOrEqual(box.left + 1);
-      expect(topNav.getBoundingClientRect().right).toBeLessThanOrEqual(box.left + 1);
+      const bannerBox = banner.getBoundingClientRect();
+      const topNavBox = topNav.getBoundingClientRect();
+      const headerBox = header.getBoundingClientRect();
+      expect(bannerBox.top).toBe(0);
+      expect(Math.abs(bannerBox.right - box.right)).toBeLessThanOrEqual(1);
+      expect(Math.abs(box.top - bannerBox.bottom)).toBeLessThanOrEqual(1);
+      expect(Math.abs(box.bottom - window.innerHeight)).toBeLessThanOrEqual(1);
+      expect(topNavBox.right).toBeLessThanOrEqual(box.left + 1);
+      // The two header rules meet: the panel's header is the top nav's row, beside it.
+      expect(Math.abs(headerBox.top - topNavBox.top)).toBeLessThanOrEqual(1);
+      expect(Math.abs(headerBox.bottom - topNavBox.bottom)).toBeLessThanOrEqual(1);
     });
   },
 };
@@ -676,7 +699,7 @@ export const Shortcut: Story = {
   },
 };
 
-/** Visually hidden links come first in the tab order, one per area; each moves focus to its area. */
+/** Visually hidden links come first in the tab order, one per area; each moves focus to its area. The side nav's link is there only while the side nav shows beside the page (inline or as the icon rail): on a phone, or collapsed to hidden, there is no side nav to skip to. */
 export const SkipLinks: Story = {
   name: "Skip links",
   render: () => <Demo />,
@@ -684,7 +707,19 @@ export const SkipLinks: Story = {
     const canvas = within(canvasElement);
     const doc = canvasElement.ownerDocument;
     const nav = canvas.getByRole("navigation", { name: /skip to/i });
-    await expect(within(nav).getAllByRole("link")).toHaveLength(3);
+    const desktop = window.matchMedia("(min-width: 64rem)").matches;
+    await expect(within(nav).getAllByRole("link")).toHaveLength(desktop ? 3 : 2);
+    const sideNavLink = () => within(nav).queryByRole("link", { name: /skip to side navigation/i });
+    if (desktop) {
+      await expect(sideNavLink()).toBeInTheDocument();
+      // Collapsed to hidden, the side nav's link goes with it, and comes back on expand.
+      await userEvent.click(canvas.getByRole("button", { name: "Hide the side nav" }));
+      await waitFor(() => expect(sideNavLink()).toBeNull());
+      await userEvent.click(canvas.getByRole("button", { name: "Show the side nav" }));
+      await waitFor(() => expect(sideNavLink()).toBeInTheDocument());
+    } else {
+      await expect(sideNavLink()).toBeNull();
+    }
     // From the top of the document, the first Tab lands on the first skip link.
     if (doc.activeElement instanceof HTMLElement) doc.activeElement.blur();
     await userEvent.tab();
@@ -702,8 +737,12 @@ export const BannerToggle: Story = {
     const canvas = within(canvasElement);
     const topNav = canvas.getByRole("banner", { name: "Top navigation" });
     const banner = () => canvas.queryByRole("region", { name: "Banner" });
+    // One 48px line on a wide bar; on a phone the message wraps and the bar is taller.
+    const wide = window.matchMedia("(min-width: 42rem)").matches;
+    const height = () => banner()?.getBoundingClientRect().height ?? 0;
     await expect(banner()).toBeInTheDocument();
-    await waitFor(() => expect(topNav.getBoundingClientRect().top).toBe(48));
+    await waitFor(() => expect(topNav.getBoundingClientRect().top).toBe(height()));
+    if (wide) await expect(height()).toBe(48);
     await userEvent.click(canvas.getByRole("button", { name: "Drop the banner" }));
     await waitFor(() => {
       expect(banner()).not.toBeInTheDocument();
@@ -711,10 +750,10 @@ export const BannerToggle: Story = {
     });
     await userEvent.click(canvas.getByRole("button", { name: "Raise a banner" }));
     await waitFor(() => {
-      const region = banner();
-      expect(region).toBeInTheDocument();
-      expect(region?.getBoundingClientRect().height).toBe(48);
-      expect(topNav.getBoundingClientRect().top).toBe(48);
+      expect(banner()).toBeInTheDocument();
+      if (wide) expect(height()).toBe(48);
+      else expect(height()).toBeGreaterThanOrEqual(48);
+      expect(topNav.getBoundingClientRect().top).toBe(height());
     });
   },
 };
@@ -865,13 +904,7 @@ export const ShellMatrix: Story = {
           <Box className="w-layout-sidenav max-w-full">
             <Shell.Profile
               avatar={
-                <Avatar
-                  size="small"
-                  role="img"
-                  aria-label={"Sarah Chen"}
-                  hue={avatarHue("Sarah Chen")}
-                  title={"Sarah Chen"}
-                >
+                <Avatar size="small" hue={avatarHue("Sarah Chen")}>
                   <AvatarFallback>{avatarInitials("Sarah Chen", 2)}</AvatarFallback>
                 </Avatar>
               }
@@ -1282,6 +1315,10 @@ export const Forwarding: Story = {
     await expect(actions.querySelector("li")).toBeNull();
     await expect(canvas.getByText("Toggle is a button")).toBeVisible();
     const profile = canvas.getByRole("button", { name: /Sarah Chen/ });
+    // A menu's trigger: named by the person alone, with the chevron that says it opens a menu.
+    await expect(profile).toHaveAccessibleName("Sarah Chen Compliance lead");
+    await expect(profile).toHaveAttribute("aria-haspopup", "menu");
+    await expect(profile.querySelector('[data-slot="shell-sidenav-chevron"]')).not.toBeNull();
     await userEvent.click(profile);
     await within(canvasElement.ownerDocument.body).findByRole("menuitem", { name: "Sign out" });
     await waitFor(() => expect(profile).toHaveAttribute("aria-expanded", "true"));
@@ -1332,12 +1369,7 @@ function ForwardingExample() {
             render={
               <Shell.Profile
                 avatar={
-                  <Avatar
-                    size="small"
-                    role="img"
-                    aria-label="Sarah Chen"
-                    hue={avatarHue("Sarah Chen")}
-                  >
+                  <Avatar size="small" hue={avatarHue("Sarah Chen")}>
                     <AvatarFallback>{avatarInitials("Sarah Chen", 2)}</AvatarFallback>
                   </Avatar>
                 }
@@ -1512,6 +1544,10 @@ async function checkPanelHeaderWidth(canvasElement: HTMLElement, width: number, 
     expect(
       Math.abs((actionBox.top + actionBox.bottom) / 2 - (closeBox.top + closeBox.bottom) / 2),
     ).toBeLessThanOrEqual(1);
+    // The panel's scroll padding is the sticky header's height, however it wraps, and a gap.
+    expect(parseFloat(getComputedStyle(panel).scrollPaddingBlockStart)).toBe(
+      Math.round(header.getBoundingClientRect().height) + 16,
+    );
     if (width < 400) {
       expect(titleBox.width).toBeGreaterThanOrEqual(width - 36);
       expect(titleBox.bottom).toBeLessThanOrEqual(actionBox.top);
@@ -1625,7 +1661,10 @@ async function checkPanelRecordHeaderWidth(canvasElement: HTMLElement, width: nu
     within(navigation).queryByRole("button", { name: "Edit engineering requirement" }),
   ).toBeNull();
   await expect(navigation.querySelector('[data-slot="preview-navigation"]')).not.toBeNull();
-  await expect(within(navigation).getByRole("button", { name: "Close details" })).toBeVisible();
+  // Close is named after the panel's label.
+  await expect(
+    within(navigation).getByRole("button", { name: "Close Record preview" }),
+  ).toBeVisible();
   await expect(navigation.getBoundingClientRect().height).toBe(48);
 
   const actions = header.querySelector('[data-slot="page-header-actions"]') as HTMLElement;
@@ -1650,7 +1689,7 @@ async function checkPanelRecordHeaderWidth(canvasElement: HTMLElement, width: nu
     }
   });
   await expect(canvas.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-  await userEvent.click(within(panel).getByRole("button", { name: "Close details" }));
+  await userEvent.click(within(panel).getByRole("button", { name: "Close Record preview" }));
   await waitFor(() => expect(opener).toHaveFocus());
   await userEvent.click(opener);
 }
@@ -1856,6 +1895,45 @@ export const RecordRailPhone: Story = {
   },
 };
 
+/**
+ * Between the large breakpoint and the aside breakpoint (here 1100px) the rail follows the page
+ * while the side nav is expanded; collapsed, the side nav leaves the room the rail needs, and the
+ * rail sits beside Main with its divider the page's height.
+ */
+export const RecordRailLaptop: Story = {
+  name: "Record rail at 1100px",
+  parameters: {
+    viewport: {
+      options: {
+        shellLaptop: {
+          name: "Small laptop (1100 by 800)",
+          styles: { width: "1100px", height: "800px" },
+        },
+      },
+    },
+  },
+  globals: { viewport: { value: "shellLaptop", isRotated: false } },
+  render: () => <RecordDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() => expect(window.innerWidth).toBe(1100));
+    const main = canvas.getByRole("main");
+    const aside = canvas.getByRole("complementary", { name: "Record properties" });
+    const box = (el: HTMLElement) => el.getBoundingClientRect();
+    // Expanded: the rail follows the page.
+    await waitFor(() => expect(box(aside).top).toBeGreaterThanOrEqual(box(main).bottom - 1));
+    // Collapsed: beside Main, from the top of the page to its end.
+    await userEvent.click(canvas.getByRole("button", { name: "Collapse side navigation" }));
+    await waitFor(() => expect(box(aside).left).toBeGreaterThanOrEqual(box(main).right - 1));
+    await expect(Math.abs(box(aside).top - box(main).top)).toBeLessThanOrEqual(1);
+    await expect(box(aside).bottom).toBeGreaterThanOrEqual(box(main).bottom - 1);
+    await expect(box(main).width).toBeGreaterThanOrEqual(mainMinimum());
+    // Expanded again, it follows the page again.
+    await userEvent.click(canvas.getByRole("button", { name: "Expand side navigation" }));
+    await waitFor(() => expect(box(aside).top).toBeGreaterThanOrEqual(box(main).bottom - 1));
+  },
+};
+
 /** At 1440px with the side nav and the panel open, End on both splitters: each stops where Main would fall under its minimum, and says so in `aria-valuemax`. */
 export const MainMinimum: Story = {
   name: "Main minimum",
@@ -2047,10 +2125,40 @@ function CloseFromInside() {
   );
 }
 
+/** A dialog opened from inside the side nav, as an account's Settings would be. */
+function SettingsFromInside() {
+  return (
+    <Dialog>
+      <DialogTrigger render={<Button variant="subtle" />}>Settings</DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Settings</DialogTitle>
+          <DialogDescription>Opened from the side nav, over its overlay.</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <DialogClose render={<Button variant="subtle" />}>Close</DialogClose>
+          <DialogClose render={<Button variant="primary" />}>Save settings</DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 /** A phone shell without `locationKey`: the side nav alone decides what a chosen link does. */
-function DestinationDemo({ closeOnNavigate }: { closeOnNavigate?: boolean | undefined }) {
+function DestinationDemo({
+  closeOnNavigate,
+  settings = false,
+}: {
+  closeOnNavigate?: boolean | undefined;
+  settings?: boolean | undefined;
+}) {
   const [page, setPage] = useState<PageKey>("programs");
+  const [opens, setOpens] = useState<string[]>([]);
   const [closes, setCloses] = useState<string[]>([]);
+  // What SideNav's callbacks report: the cause, and "(desktop)" for a change that was not the
+  // phone overlay's, which a product would remember as the reader's preference.
+  const change = ({ trigger, isOverlay }: SideNavChange) =>
+    isOverlay ? trigger : `${trigger} (desktop)`;
   return (
     <Shell>
       <Shell.TopNav>
@@ -2061,7 +2169,8 @@ function DestinationDemo({ closeOnNavigate }: { closeOnNavigate?: boolean | unde
       </Shell.TopNav>
       <Shell.SideNav
         closeOnNavigate={closeOnNavigate}
-        onCollapse={({ trigger }) => setCloses((was) => [...was, trigger])}
+        onExpand={(args) => setOpens((was) => [...was, change(args)])}
+        onCollapse={(args) => setCloses((was) => [...was, change(args)])}
       >
         <Shell.SideNav.Body>
           <Shell.SideNav.Section heading="Work">
@@ -2084,13 +2193,15 @@ function DestinationDemo({ closeOnNavigate }: { closeOnNavigate?: boolean | unde
         </Shell.SideNav.Body>
         <Shell.SideNav.Footer>
           <CloseFromInside />
+          {settings ? <SettingsFromInside /> : null}
         </Shell.SideNav.Footer>
       </Shell.SideNav>
       <Shell.Main>
         <PageHeader>
           <PageHeader.Title>{pages[page]}</PageHeader.Title>
         </PageHeader>
-        <Text className="pt-200">
+        <Text className="pt-200">Opened by: {opens.length ? opens.join(", ") : "nothing yet"}</Text>
+        <Text className="pt-100">
           Closed by: {closes.length ? closes.join(", ") : "nothing yet"}
         </Text>
       </Shell.Main>
@@ -2126,9 +2237,13 @@ export const DestinationPhone: Story = {
       );
     await expect(nav).toHaveAttribute("data-overlay", "open");
     await expect(canvas.getByRole("heading", { level: 1 })).toHaveTextContent("Programs");
+    // The overlay's own opening and closing report `isOverlay` (no "(desktop)" here), so a product
+    // keeps the reader's desktop preference apart from them.
+    await expect(canvas.getByText("Opened by: toggle-button")).toBeVisible();
+    await expect(canvas.getByText("Closed by: nothing yet")).toBeVisible();
     // A plain click: the page changes, the overlay closes and focus lands on Main.
     await userEvent.click(within(nav).getByRole("link", { name: "Test campaigns" }));
-    await expect(main).toHaveFocus();
+    await waitFor(() => expect(main).toHaveFocus());
     await waitFor(() =>
       expect(canvas.queryByRole("navigation", { name: "Side navigation" })).toBeNull(),
     );
@@ -2140,8 +2255,12 @@ export const DestinationPhone: Story = {
     await waitFor(() =>
       expect(canvas.queryByRole("navigation", { name: "Side navigation" })).toBeNull(),
     );
-    await expect(canvas.getByRole("button", { name: "Expand side navigation" })).toHaveFocus();
+    await waitFor(() =>
+      expect(canvas.getByRole("button", { name: "Expand side navigation" })).toHaveFocus(),
+    );
     await expect(canvas.getByText("Closed by: navigation, hook")).toBeVisible();
+    // Each callback fires once per real change: two openings, two closings.
+    await expect(canvas.getByText("Opened by: toggle-button, toggle-button")).toBeVisible();
     await expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(390);
   },
 };
@@ -2165,6 +2284,438 @@ export const KeepOpenPhone: Story = {
   },
 };
 
+/** The phone overlay is modal: opening it moves focus to the current page's item, Tab and Shift+Tab go round inside it, and the top nav, Main and the skip links are inert. A dialog opened from inside it keeps its own Tab and Escape, and closing the dialog leaves the overlay open. Its own Close takes the place of the toggle it covers; Close, Escape and the blanket return focus to the toggle. */
+export const OverlayFocusPhone: Story = {
+  name: "Overlay focus at 390px",
+  globals: { viewport: { value: "ledgerPhone", isRotated: false } },
+  render: () => <DestinationDemo settings />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const doc = canvasElement.ownerDocument;
+    await waitFor(() => expect(window.innerWidth).toBe(390));
+    const toggle = canvas.getByRole("button", { name: "Expand side navigation" });
+    const topNav = canvasElement.querySelector<HTMLElement>('[data-slot="shell-topnav"]');
+    const main = canvasElement.querySelector<HTMLElement>('[data-slot="shell-main"]');
+    toggle.focus();
+    await userEvent.keyboard("{Enter}");
+    const nav = await canvas.findByRole("navigation", { name: "Side navigation" });
+    await waitFor(() => expect(nav).toHaveAttribute("data-overlay", "open"));
+    const current = within(nav).getByRole("link", { name: "Programs" });
+    await waitFor(() => expect(current).toHaveFocus());
+    // Everything else in the shell is inert while the overlay is open.
+    await expect(topNav).toHaveAttribute("inert");
+    await expect(main).toHaveAttribute("inert");
+    // The blanket closes the overlay on a press but is no control: hidden, out of the tab order.
+    const scrim = canvasElement.querySelector<HTMLElement>(".shell-scrim");
+    await expect(scrim).toHaveAttribute("aria-hidden", "true");
+    await expect(scrim).toHaveAttribute("tabindex", "-1");
+    // Tab goes round: the three links, Done, Settings, then the overlay's Close, and back to the
+    // first link.
+    const close = within(nav).getByRole("button", { name: "Close side navigation" });
+    const done = within(nav).getByRole("button", { name: "Done" });
+    const settings = within(nav).getByRole("button", { name: "Settings" });
+    await userEvent.tab();
+    await userEvent.tab();
+    await userEvent.tab();
+    await expect(done).toHaveFocus();
+    await userEvent.tab();
+    await expect(settings).toHaveFocus();
+    await userEvent.tab();
+    await expect(close).toHaveFocus();
+    await userEvent.tab({ shift: true });
+    await expect(settings).toHaveFocus();
+    for (let step = 0; step < 7; step += 1) {
+      await userEvent.tab();
+      await expect(nav.contains(doc.activeElement)).toBe(true);
+    }
+    // A dialog opened from inside the overlay keeps its own Tab, and its Escape closes only it.
+    settings.focus();
+    await userEvent.keyboard("{Enter}");
+    const dialog = await within(doc.body).findByRole("dialog", { name: "Settings" });
+    await waitFor(() => expect(dialog.contains(doc.activeElement)).toBe(true));
+    for (let step = 0; step < 3; step += 1) {
+      await userEvent.tab();
+      await expect(dialog.contains(doc.activeElement)).toBe(true);
+    }
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(within(doc.body).queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(settings).toHaveFocus());
+    await expect(nav).toHaveAttribute("data-overlay", "open");
+    // The overlay's Close hands focus back to the toggle, and the shell takes input again.
+    await userEvent.click(close);
+    await waitFor(() =>
+      expect(canvas.queryByRole("navigation", { name: "Side navigation" })).toBeNull(),
+    );
+    await waitFor(() => expect(toggle).toHaveFocus());
+    await expect(topNav).not.toHaveAttribute("inert");
+    await expect(main).not.toHaveAttribute("inert");
+    // Escape does the same.
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() => expect(current).toHaveFocus());
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(toggle).toHaveFocus());
+    await expect(canvas.getByText("Opened by: toggle-button, toggle-button")).toBeVisible();
+    await expect(canvas.getByText("Closed by: toggle-button, escape")).toBeVisible();
+  },
+};
+
+const besideKey = `${SHELL_STORAGE_KEY}.panel-beside-story`;
+
+/** A record register with the icon rail, in a shell that remembers the reader's side nav. */
+function PanelBesideMainDemo() {
+  const [open, setOpen] = useState(false);
+  return (
+    <Shell collapsedSideNav="icons" persist={besideKey}>
+      <Shell.TopNav>
+        <Shell.TopNav.Start>
+          <Shell.SideNav.ToggleButton />
+          <Shell.AppLogo name="Equinox" render={<a href="#home" />} />
+        </Shell.TopNav.Start>
+      </Shell.TopNav>
+      <Shell.SideNav>
+        <Shell.SideNav.Body>
+          <Nav />
+        </Shell.SideNav.Body>
+      </Shell.SideNav>
+      <Shell.Main>
+        <PageHeader>
+          <PageHeader.Heading>
+            <PageHeader.Title>Programs</PageHeader.Title>
+          </PageHeader.Heading>
+          <PageHeader.Actions>
+            <Button onClick={() => setOpen(true)}>Open details</Button>
+          </PageHeader.Actions>
+        </PageHeader>
+        <Stack space="space.100" className="pt-300">
+          {programs.slice(0, 8).map((p) => (
+            <Text key={p.id}>
+              {p.id} · {p.title}
+            </Text>
+          ))}
+        </Stack>
+      </Shell.Main>
+      {open ? (
+        <Shell.Panel title="Program details" onClose={() => setOpen(false)}>
+          <Text>Phase: Authorise. Owner: Sarah Chen.</Text>
+        </Shell.Panel>
+      ) : null}
+    </Shell>
+  );
+}
+
+/**
+ * Between the large breakpoint and the panel breakpoint (here 1200px) an open panel sits beside
+ * Main, and the side nav yields its width to its icon rail meanwhile, so the register stays in
+ * view. Closing the panel gives the side nav back as the reader left it, and the remembered
+ * preference never changes. A reader who expands the side nav while the panel is open keeps it
+ * expanded until the panel closes.
+ */
+export const PanelBesideMain: Story = {
+  name: "Panel beside Main at 1200px",
+  globals: { viewport: { value: "ledgerDesktop", isRotated: false } },
+  beforeEach: () => {
+    const previous = localStorage.getItem(besideKey);
+    localStorage.removeItem(besideKey);
+    return () => {
+      if (previous === null) localStorage.removeItem(besideKey);
+      else localStorage.setItem(besideKey, previous);
+    };
+  },
+  render: () => <PanelBesideMainDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() => expect(window.innerWidth).toBe(1200));
+    const nav = canvas.getByRole("navigation", { name: "Side navigation" });
+    const main = canvas.getByRole("main");
+    const width = (el: HTMLElement) => Math.round(el.getBoundingClientRect().width);
+    const stored = () => JSON.parse(localStorage.getItem(besideKey) ?? "{}");
+    const expanded = Number.parseFloat(tokenValue("dimension.layout.sidenav"));
+    await waitFor(() => expect(width(nav)).toBe(expanded));
+    await waitFor(() => expect(stored().collapsed).toBe(false));
+    const openPanel = async () => {
+      await userEvent.click(canvas.getByRole("button", { name: "Open details" }));
+      return canvas.findByRole("complementary", { name: "Program details" });
+    };
+    const closePanel = async (panel: HTMLElement) => {
+      await userEvent.click(within(panel).getByRole("button", { name: /^Close/ }));
+      await waitFor(() => expect(canvas.queryByRole("complementary")).toBeNull());
+    };
+    // The side nav folds to its icon rail and Main stays in view beside the panel.
+    let panel = await openPanel();
+    await waitFor(() => expect(nav).toHaveAttribute("data-collapsed", "icons"));
+    await waitFor(() => expect(width(nav)).toBe(56));
+    await expect(main).toBeVisible();
+    await waitFor(() =>
+      expect(main.getBoundingClientRect().right).toBeLessThanOrEqual(
+        panel.getBoundingClientRect().left + 1,
+      ),
+    );
+    await expect(width(main)).toBeGreaterThanOrEqual(mainMinimum());
+    // The toggle offers to expand it (over the mark, on hover or focus, as in the rail).
+    await expect(canvas.getByRole("button", { name: "Expand side navigation" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+    // The reader's preference is untouched.
+    await expect(stored().collapsed).toBe(false);
+    // Closing the panel gives the side nav back.
+    await closePanel(panel);
+    await waitFor(() => expect(width(nav)).toBe(expanded));
+    // Expanded while the panel is open, it stays expanded until the panel closes.
+    panel = await openPanel();
+    await waitFor(() => expect(width(nav)).toBe(56));
+    await userEvent.click(canvas.getByRole("button", { name: "Expand side navigation" }));
+    await waitFor(() => expect(width(nav)).toBe(expanded));
+    await expect(width(main)).toBeGreaterThanOrEqual(mainMinimum());
+    await closePanel(panel);
+    await expect(width(nav)).toBe(expanded);
+    await expect(stored().collapsed).toBe(false);
+    // The next panel yields again.
+    panel = await openPanel();
+    await waitFor(() => expect(width(nav)).toBe(56));
+    await closePanel(panel);
+    await waitFor(() => expect(width(nav)).toBe(expanded));
+  },
+};
+
+/** A side nav whose current page sits in a group, with a count and a label too long for it. */
+function CurrentPageDemo() {
+  return (
+    <Shell collapsedSideNav="icons" defaultSideNavCollapsed>
+      <Shell.TopNav>
+        <Shell.TopNav.Start>
+          <Shell.SideNav.ToggleButton />
+          <Shell.AppLogo name="Equinox" render={<a href="#home" />} />
+        </Shell.TopNav.Start>
+      </Shell.TopNav>
+      <Shell.SideNav defaultWidth={200}>
+        <Shell.SideNav.Body>
+          <Shell.SideNav.Section heading="Work">
+            <Shell.SideNav.Item icon={ShieldCheck} badge="3" href="#queue">
+              My queue
+            </Shell.SideNav.Item>
+            <Shell.SideNav.Item icon={ClipboardList} href="#programs">
+              Programs
+            </Shell.SideNav.Item>
+          </Shell.SideNav.Section>
+          <Shell.SideNav.Section heading="Risk">
+            <Shell.SideNav.Expandable icon={Bug} label="Findings and assets" isActive>
+              <Shell.SideNav.Item href="#findings" isActive>
+                Findings
+              </Shell.SideNav.Item>
+              <Shell.SideNav.Item href="#assets">Assets</Shell.SideNav.Item>
+            </Shell.SideNav.Expandable>
+            <Shell.SideNav.Item icon={ShieldAlert} href="#decisions">
+              Authorization decisions and waivers
+            </Shell.SideNav.Item>
+          </Shell.SideNav.Section>
+        </Shell.SideNav.Body>
+        <Shell.SideNav.Footer>
+          <Shell.Profile
+            avatar={
+              <Avatar size="small" hue={avatarHue("developer")}>
+                <AvatarFallback>{avatarInitials("developer", 1)}</AvatarFallback>
+              </Avatar>
+            }
+            name="developer@program-assurance.local"
+            description="Owner"
+            aria-haspopup="dialog"
+            onClick={() => undefined}
+          />
+        </Shell.SideNav.Footer>
+      </Shell.SideNav>
+      <Shell.Main>
+        <PageHeader>
+          <PageHeader.Heading>
+            <PageHeader.Title>Findings</PageHeader.Title>
+          </PageHeader.Heading>
+        </PageHeader>
+      </Shell.Main>
+    </Shell>
+  );
+}
+
+/**
+ * The current page stays visible wherever it is. In the icon rail a group that holds the current
+ * page takes the current colour, since its items are hidden, and an item with a count keeps the
+ * count in its name and shows a dot. Expanded, the group opens on the current page by default;
+ * closed, the group shows the current colour again. A label the side nav's width cuts shows its
+ * whole name in a tooltip, and so does the profile's name.
+ */
+export const CurrentPage: Story = {
+  name: "Current page",
+  globals: { viewport: { value: "ledgerDesktop", isRotated: false } },
+  render: () => <CurrentPageDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const doc = canvasElement.ownerDocument;
+    await waitFor(() => expect(window.innerWidth).toBe(1200));
+    const nav = canvas.getByRole("navigation", { name: "Side navigation" });
+    await waitFor(() => expect(nav).toHaveAttribute("data-collapsed", "icons"));
+    const group = within(nav).getByRole("button", { name: "Findings and assets" });
+    await expect(group).toHaveAttribute("data-current");
+    const queue = within(nav).getByRole("link", { name: "My queue 3" });
+    await expect(getComputedStyle(queue, "::after").content).not.toBe("none");
+    // Expanded: the group is open on its current item, which takes the current colour back.
+    await userEvent.click(canvas.getByRole("button", { name: "Expand side navigation" }));
+    await waitFor(() => expect(nav).not.toHaveAttribute("data-collapsed"));
+    await expect(group).toHaveAttribute("aria-expanded", "true");
+    await expect(group).not.toHaveAttribute("data-current");
+    await expect(within(nav).getByRole("link", { name: "Findings" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await expect(getComputedStyle(queue, "::after").content).toBe("none");
+    // Closed, the group holds the current page out of view and says so.
+    await userEvent.click(group);
+    await expect(group).toHaveAttribute("aria-expanded", "false");
+    await expect(group).toHaveAttribute("data-current");
+    // The next stop is the cut label; its tooltip gives the whole name.
+    await userEvent.tab();
+    const long = within(nav).getByRole("link", { name: "Authorization decisions and waivers" });
+    await expect(long).toHaveFocus();
+    await waitFor(() =>
+      expect(doc.querySelector('[data-slot="tooltip-content"][data-open]')).toHaveTextContent(
+        "Authorization decisions and waivers",
+      ),
+    );
+    // The profile's cut name shows whole too. It opens a dialog, so it has no menu chevron.
+    await userEvent.tab();
+    const profile = within(nav).getByRole("button", { name: /^developer@/ });
+    await expect(profile).toHaveFocus();
+    await expect(profile).toHaveAccessibleName("developer@program-assurance.local Owner");
+    await expect(profile.querySelector('[data-slot="shell-sidenav-chevron"]')).toBeNull();
+    await waitFor(() =>
+      expect(
+        [...doc.querySelectorAll('[data-slot="tooltip-content"][data-open]')].some((el) =>
+          el.textContent?.includes("developer@program-assurance.local"),
+        ),
+      ).toBe(true),
+    );
+  },
+};
+
+/** Expanding or collapsing the icon rail moves the top nav's start slot with the side nav, on the same curve: it eases between its own width and the side nav's instead of jumping to its end width on the first frame. */
+export const StartSlotMotion: Story = {
+  name: "Start slot motion",
+  globals: { viewport: { value: "ledgerDesktop", isRotated: false } },
+  render: () => <CurrentPageDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() => expect(window.innerWidth).toBe(1200));
+    const nav = canvas.getByRole("navigation", { name: "Side navigation" });
+    const start = canvasElement.querySelector<HTMLElement>('[data-slot="shell-topnav-start"]');
+    if (!start) throw new Error("No start slot");
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    await waitFor(() => expect(nav).toHaveAttribute("data-collapsed", "icons"));
+    const collapsedWidth = start.getBoundingClientRect().width;
+    for (const [label, from, to] of [
+      ["Expand side navigation", collapsedWidth, 200],
+      ["Collapse side navigation", 200, collapsedWidth],
+    ] as const) {
+      await userEvent.click(canvas.getByRole("button", { name: label }));
+      const widths: number[] = [];
+      const began = performance.now();
+      while (performance.now() - began < 350) {
+        await new Promise(requestAnimationFrame);
+        widths.push(start.getBoundingClientRect().width);
+      }
+      await waitFor(() =>
+        expect(Math.round(start.getBoundingClientRect().width)).toBe(Math.round(to)),
+      );
+      const [lo, hi] = [Math.min(from, to), Math.max(from, to)];
+      const between = widths.some((w) => w > lo + 0.5 && w < hi - 0.5);
+      await expect(between).toBe(!reduced);
+    }
+  },
+};
+
+/** On a phone the banner's message wraps instead of truncating, and the top nav starts under the banner's real height. */
+export const BannerPhone: Story = {
+  name: "Banner at 390px",
+  globals: { viewport: { value: "ledgerPhone", isRotated: false } },
+  render: () => <Demo banner />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() => expect(window.innerWidth).toBe(390));
+    const banner = canvas.getByRole("region", { name: "Banner" });
+    const topNav = canvas.getByRole("banner", { name: "Top navigation" });
+    await waitFor(() => expect(banner.getBoundingClientRect().height).toBeGreaterThan(48));
+    await waitFor(() =>
+      expect(
+        Math.abs(topNav.getBoundingClientRect().top - banner.getBoundingClientRect().bottom),
+      ).toBeLessThanOrEqual(1),
+    );
+    await expect(canvas.getByText(/evidence uploads lock after that/)).toBeVisible();
+    await expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(390);
+  },
+};
+
+/** A window under 30rem tall (a phone on its side, a page zoomed to 400%): the banner and the top nav scroll away with the page instead of pinning a share of the height. */
+export const ShortWindow: Story = {
+  name: "Short window",
+  parameters: {
+    viewport: {
+      options: {
+        shellLandscape: {
+          name: "Phone on its side (844 by 390)",
+          styles: { width: "844px", height: "390px" },
+        },
+      },
+    },
+  },
+  globals: { viewport: { value: "shellLandscape", isRotated: false } },
+  render: () => <Demo banner />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() => expect(window.innerHeight).toBe(390));
+    const banner = canvas.getByRole("region", { name: "Banner" });
+    const topNav = canvas.getByRole("banner", { name: "Top navigation" });
+    await expect(getComputedStyle(banner).position).toBe("static");
+    await expect(getComputedStyle(topNav).position).toBe("static");
+    try {
+      window.scrollTo(0, 600);
+      await waitFor(() => expect(topNav.getBoundingClientRect().bottom).toBeLessThanOrEqual(0));
+    } finally {
+      window.scrollTo(0, 0);
+    }
+  },
+};
+
+const defaultsKey = `${SHELL_STORAGE_KEY}.default-widths-story`;
+
+/** A SideNav's `defaultWidth` is the width until the reader resizes it, and is never remembered: a remembering shell stores only a width the reader dragged or keyed. */
+export const DefaultWidths: Story = {
+  name: "Default widths",
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
+  beforeEach: () => {
+    const previous = localStorage.getItem(defaultsKey);
+    const root = document.documentElement;
+    const nav = root.style.getPropertyValue("--shell-sidenav-stored");
+    localStorage.removeItem(defaultsKey);
+    root.style.removeProperty("--shell-sidenav-stored");
+    return () => {
+      if (previous === null) localStorage.removeItem(defaultsKey);
+      else localStorage.setItem(defaultsKey, previous);
+      root.style.setProperty("--shell-sidenav-stored", nav);
+    };
+  },
+  render: () => <ResizableShellDemo persist={defaultsKey} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const stored = () => JSON.parse(localStorage.getItem(defaultsKey) ?? "{}");
+    const nav = canvas.getByRole("navigation", { name: "Side navigation" });
+    await waitFor(() => expect(Math.round(nav.getBoundingClientRect().width)).toBe(320));
+    await waitFor(() => expect(stored().collapsed).toBe(false));
+    await expect(stored().sideNavWidth).toBeUndefined();
+    const splitter = canvas.getByRole("separator", { name: "Resize side navigation" });
+    splitter.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    await waitFor(() => expect(stored().sideNavWidth).toBe(336));
+    await expect(Math.round(nav.getBoundingClientRect().width)).toBe(336);
+  },
+};
+
 function PanelFocusDemo() {
   const [row, setRow] = useState<number | null>(null);
   return (
@@ -2181,7 +2732,7 @@ function PanelFocusDemo() {
               <PageHeader.Title>Findings</PageHeader.Title>
             </PageHeader.Heading>
           </PageHeader>
-          <Inline space="space.100">
+          <Inline space="space.100" shouldWrap>
             {[1, 2, 3].map((n) => (
               <Button key={n} onClick={() => setRow(n)}>
                 {`Preview finding ${n}`}
@@ -2193,7 +2744,16 @@ function PanelFocusDemo() {
       {row !== null && (
         <Shell.Panel title={`Finding ${row}`} onClose={() => setRow(null)}>
           <Stack space="space.100">
-            <Input aria-label="Filter evidence" />
+            <Input type="search" aria-label="Filter evidence" />
+            <DropdownMenu>
+              <DropdownMenuTrigger render={<Button size="small" iconAfter={<ChevronDown />} />}>
+                Evidence actions
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>Request evidence</DropdownMenuItem>
+                <DropdownMenuItem>Export evidence</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Text>{`Evidence for finding ${row}.`}</Text>
           </Stack>
         </Shell.Panel>
@@ -2204,9 +2764,9 @@ function PanelFocusDemo() {
 
 /**
  * The panel's focus contract on a wide screen, where it sits beside Main: opening it moves focus
- * into it (at every width, not only where it covers Main), Escape in a field inside it belongs to
- * the field, and closing it returns focus to the control the reader last used in Main, here the
- * third row's opener pressed while the first row's preview was open.
+ * into it (at every width, not only where it covers Main), Escape in a field or a menu inside it
+ * belongs to the field or the menu, and closing it returns focus to the control the reader last
+ * used in Main, here the third row's opener pressed while the first row's preview was open.
  */
 export const PanelFocus: Story = {
   name: "Panel focus",
@@ -2214,16 +2774,26 @@ export const PanelFocus: Story = {
   render: () => <PanelFocusDemo />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
     const first = canvas.getByRole("button", { name: "Preview finding 1" });
     first.focus();
     await userEvent.keyboard("{Enter}");
     const panel = await canvas.findByRole("complementary", { name: "Finding 1" });
     await waitFor(() => expect(panel).toHaveFocus());
-    const filter = within(panel).getByRole("textbox", { name: "Filter evidence" });
+    const filter = within(panel).getByRole("searchbox", { name: "Filter evidence" });
     await userEvent.click(filter);
     await userEvent.keyboard("AC-2{Escape}");
     await expect(canvas.getByRole("complementary", { name: "Finding 1" })).toBeInTheDocument();
     await expect(filter).toHaveFocus();
+    // Escape in a menu opened from the panel closes the menu, not the panel.
+    const actions = within(panel).getByRole("button", { name: "Evidence actions" });
+    await userEvent.click(actions);
+    await body.findByRole("menu");
+    await waitFor(() => expect(actions).toHaveAttribute("aria-expanded", "true"));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    await waitFor(() => expect(actions).toHaveFocus());
+    await expect(canvas.getByRole("complementary", { name: "Finding 1" })).toBeInTheDocument();
     // Another row's opener while the panel is open: the panel stays and shows that row.
     const third = canvas.getByRole("button", { name: "Preview finding 3" });
     await userEvent.click(third);
@@ -2240,5 +2810,360 @@ export const PanelFocus: Story = {
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(second).toHaveFocus());
     await expect(canvas.queryByRole("complementary")).not.toBeInTheDocument();
+  },
+};
+
+const panelWidthsKey = `${SHELL_STORAGE_KEY}.panel-widths-story`;
+const panelDefaults = { issue: 560, control: 640 } as const;
+const panelNames = { issue: "Operational issue preview", control: "Control preview" } as const;
+
+/** Two registers' previews with different default widths, in a shell that remembers widths. The splitter reports its resizes under the buttons. */
+function PanelWidthsDemo() {
+  const [open, setOpen] = useState<keyof typeof panelDefaults | null>(null);
+  const [resizes, setResizes] = useState<string[]>([]);
+  return (
+    <Shell persist={panelWidthsKey}>
+      <Shell.TopNav>
+        <Shell.TopNav.Start>
+          <Text>Program Assurance</Text>
+        </Shell.TopNav.Start>
+      </Shell.TopNav>
+      <Shell.Main>
+        <Stack space="space.200">
+          <PageHeader>
+            <PageHeader.Heading>
+              <PageHeader.Title>Findings</PageHeader.Title>
+            </PageHeader.Heading>
+          </PageHeader>
+          <Inline space="space.100" shouldWrap>
+            <Button onClick={() => setOpen("issue")}>Preview issue</Button>
+            <Button onClick={() => setOpen("control")}>Preview control</Button>
+          </Inline>
+          <Text color="color.text.subtle" data-testid="resizes">
+            {resizes.length ? resizes.join("; ") : "No resize yet."}
+          </Text>
+        </Stack>
+      </Shell.Main>
+      {open && (
+        <Shell.Panel
+          key={open}
+          label={panelNames[open]}
+          defaultWidth={panelDefaults[open]}
+          onClose={() => setOpen(null)}
+        >
+          <Shell.Panel.Splitter
+            onResizeStart={({ initialWidth }) => setResizes((r) => [...r, `start ${initialWidth}`])}
+            onResizeEnd={({ initialWidth, finalWidth }) =>
+              setResizes((r) => [...r, `end ${initialWidth} to ${finalWidth}`])
+            }
+          />
+          <Shell.Panel.Header>
+            <Shell.Panel.Close />
+          </Shell.Panel.Header>
+          <Shell.Panel.Body>
+            <Text>{`The ${panelNames[open].toLowerCase()} opens at ${panelDefaults[open]}px until the reader resizes a panel.`}</Text>
+          </Shell.Panel.Body>
+        </Shell.Panel>
+      )}
+    </Shell>
+  );
+}
+
+/** A system colour as the browser draws it now, for comparing with a computed colour in forced colours. */
+const systemColour = (name: string) => {
+  const probe = document.createElement("div");
+  probe.style.cssText = `background-color: ${name}; forced-color-adjust: none`;
+  document.body.append(probe);
+  const colour = getComputedStyle(probe).backgroundColor;
+  probe.remove();
+  return colour;
+};
+
+/** Two frames, so a width the shell set in a style has been laid out before it is measured. */
+const nextFrames = () =>
+  new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+/**
+ * A panel's `defaultWidth` is its own and is never remembered: the issue preview opens at 560px
+ * and the control preview at 640px, and nothing is stored. Close and the splitter are named after
+ * the panel's `label`, and the splitter names the panel it resizes (`aria-controls`). A key step
+ * or a drag lands at once, without the columns easing behind it: the arrows step 16px, with Shift
+ * or Page Up and Page Down 64px, Home and End go to the minimum and the maximum, and a key that
+ * changes nothing reports no resize. The width the reader chose is remembered and outranks every
+ * default from then on.
+ */
+export const PanelWidths: Story = {
+  name: "Panel widths",
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
+  beforeEach: () => {
+    const previous = localStorage.getItem(panelWidthsKey);
+    const root = document.documentElement;
+    const stored = root.style.getPropertyValue("--shell-panel-stored");
+    localStorage.removeItem(panelWidthsKey);
+    root.style.removeProperty("--shell-panel-stored");
+    return () => {
+      if (previous === null) localStorage.removeItem(panelWidthsKey);
+      else localStorage.setItem(panelWidthsKey, previous);
+      root.style.setProperty("--shell-panel-stored", stored);
+    };
+  },
+  render: () => <PanelWidthsDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const stored = () => JSON.parse(localStorage.getItem(panelWidthsKey) ?? "{}");
+    const width = (el: HTMLElement) => Math.round(el.getBoundingClientRect().width);
+    const open = async (which: keyof typeof panelDefaults) => {
+      await userEvent.click(
+        canvas.getByRole("button", {
+          name: which === "issue" ? "Preview issue" : "Preview control",
+        }),
+      );
+      return canvas.findByRole("complementary", { name: panelNames[which] });
+    };
+    const close = async (panel: HTMLElement, name: string) => {
+      await userEvent.click(within(panel).getByRole("button", { name: `Close ${name}` }));
+      await waitFor(() => expect(canvas.queryByRole("complementary")).toBeNull());
+    };
+
+    // Each panel opens at its own default, and neither default is stored.
+    const issue = await open("issue");
+    await waitFor(() => expect(width(issue)).toBe(560));
+    await expect(stored().panelWidth).toBeUndefined();
+    await close(issue, panelNames.issue);
+    const control = await open("control");
+    await waitFor(() => expect(width(control)).toBe(640));
+    await expect(stored().panelWidth).toBeUndefined();
+
+    const splitter = within(control).getByRole("separator", { name: "Resize Control preview" });
+    await expect(splitter).toHaveAttribute("aria-controls", control.id);
+    await expect(splitter).toHaveAttribute("aria-valuenow", "640");
+    const resizes = canvas.getByTestId("resizes");
+    // Read once: a probe added inside waitFor would wake its observer forever.
+    const highlight = systemColour("Highlight");
+
+    // A key step lands on the next frame, not after the columns' 240ms ease.
+    splitter.focus();
+    await userEvent.keyboard("{ArrowLeft}");
+    await expect(splitter).toHaveAttribute("aria-valuenow", "656");
+    await nextFrames();
+    await expect(width(control)).toBe(656);
+    await userEvent.keyboard("{Shift>}{ArrowLeft}{/Shift}");
+    await nextFrames();
+    await expect(width(control)).toBe(720);
+    await userEvent.keyboard("{PageDown}");
+    await nextFrames();
+    await expect(width(control)).toBe(656);
+    await userEvent.keyboard("{PageUp}");
+    await nextFrames();
+    await expect(width(control)).toBe(720);
+    await expect(resizes).toHaveTextContent(/end 656 to 720$/);
+    // In forced colours the focused band is drawn in Highlight.
+    if (window.matchMedia("(forced-colors: active)").matches)
+      await waitFor(() => expect(getComputedStyle(splitter).backgroundColor).toBe(highlight));
+    // End at the maximum changes nothing and reports nothing.
+    const reported = resizes.textContent;
+    await userEvent.keyboard("{End}");
+    await expect(resizes.textContent).toBe(reported);
+    await userEvent.keyboard("{Home}");
+    await nextFrames();
+    await expect(width(control)).toBe(240);
+    await waitFor(() => expect(stored().panelWidth).toBe(240));
+
+    // A drag follows the pointer: the width is the pointer's as soon as it moves.
+    const box = splitter.getBoundingClientRect();
+    const start = { clientX: box.x + box.width / 2, clientY: box.y + 200 };
+    const end = { ...start, clientX: start.clientX - 200 };
+    // One session, so the button is still held for the second call.
+    const user = userEvent.setup();
+    await user.pointer([
+      { target: splitter, keys: "[MouseLeft>]", coords: start },
+      { target: splitter, coords: end },
+    ]);
+    await nextFrames();
+    await expect(width(control)).toBe(440);
+    // In forced colours the band held by the pointer is drawn in Highlight.
+    if (window.matchMedia("(forced-colors: active)").matches)
+      await waitFor(() => expect(getComputedStyle(splitter).backgroundColor).toBe(highlight));
+    await user.pointer({ target: splitter, keys: "[/MouseLeft]", coords: end });
+    await waitFor(() => expect(stored().panelWidth).toBe(440));
+    await expect(resizes).toHaveTextContent(/end 240 to 440$/);
+
+    // The reader's width outranks the other panel's default.
+    await close(control, panelNames.control);
+    const again = await open("issue");
+    await waitFor(() => expect(width(again)).toBe(440));
+    await close(again, panelNames.issue);
+  },
+};
+
+/** A window 320 by 256, a phone on its side or a page zoomed to 400%: the panel's header scrolls away with its content instead of holding a share of the height, and Escape still closes the panel. */
+export const PanelShortWindow: Story = {
+  name: "Panel in a short window",
+  parameters: {
+    viewport: {
+      options: {
+        shellShort: { name: "Short (320 by 256)", styles: { width: "320px", height: "256px" } },
+      },
+    },
+  },
+  globals: { viewport: { value: "shellShort", isRotated: false } },
+  render: () => <PanelFocusDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() => expect(window.innerHeight).toBe(256));
+    const opener = canvas.getByRole("button", { name: "Preview finding 2" });
+    await userEvent.click(opener);
+    const panel = await canvas.findByRole("complementary", { name: "Finding 2" });
+    const header = panel.querySelector<HTMLElement>('[data-slot="shell-panel-header"]')!;
+    await expect(getComputedStyle(header).position).toBe("static");
+    // Nothing sticks over the content, so the scroll padding no longer reserves the header's height.
+    await expect(Number.parseFloat(getComputedStyle(panel).scrollPaddingBlockStart)).toBeLessThan(
+      header.getBoundingClientRect().height,
+    );
+    await waitFor(() => expect(panel).toHaveFocus());
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(opener).toHaveFocus());
+  },
+};
+
+/** A desktop window 1280 by 400 with a banner: the banner and the top nav scroll away, and the panel beside the page then holds the window's whole height, as the side nav does, instead of leaving the banner's height empty above it. */
+export const PanelShortWideWindow: Story = {
+  name: "Panel in a short wide window",
+  parameters: {
+    viewport: {
+      options: {
+        shellShortWide: {
+          name: "Short (1280 by 400)",
+          styles: { width: "1280px", height: "400px" },
+        },
+      },
+    },
+  },
+  globals: { viewport: { value: "shellShortWide", isRotated: false } },
+  render: () => <Demo banner panel />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const panel = await canvas.findByRole("complementary", {
+      name: "PRG-014 · Payload integration",
+    });
+    // The layout projects render it at a phone or in a frame, where the panel replaces Main.
+    if (!window.matchMedia("(min-width: 64rem) and (max-height: 29.99rem)").matches) return;
+    try {
+      window.scrollTo(0, 400);
+      await waitFor(() => {
+        const box = panel.getBoundingClientRect();
+        expect(Math.abs(box.top)).toBeLessThanOrEqual(1);
+        expect(Math.abs(box.bottom - window.innerHeight)).toBeLessThanOrEqual(1);
+      });
+    } finally {
+      window.scrollTo(0, 0);
+    }
+  },
+};
+
+type PanelEvidence = { id: string; name: string; state: string };
+const panelEvidence: PanelEvidence[] = [
+  { id: "EV-101", name: "Access review export", state: "Accepted" },
+  { id: "EV-102", name: "Joiner and leaver log", state: "In review" },
+  { id: "EV-103", name: "Privileged account list", state: "Accepted" },
+  { id: "EV-104", name: "Quarterly recertification", state: "Requested" },
+];
+const panelEvidenceColumns = defineColumns<PanelEvidence>((c) => [
+  c.id("id", { header: "ID", width: 96 }),
+  c.text("name", { header: "Evidence", minWidth: 180, priority: 0 }),
+  c.text("state", { header: "State", width: 120 }),
+]);
+
+/** A collection inside the panel, as a record preview's tab holds one: the toolbar's search, the rows. */
+function PanelEvidenceTable() {
+  const table = useDataTable({
+    columns: panelEvidenceColumns,
+    data: panelEvidence,
+    getRowId: (r) => r.id,
+    label: "Evidence",
+  });
+  return (
+    <DataTable
+      table={table}
+      responsive
+      toolbar={
+        <Toolbar
+          search={table.state.globalFilter}
+          onSearch={table.setGlobalFilter}
+          placeholder="Search evidence"
+        />
+      }
+      empty={{ title: "No evidence yet", description: "Requested evidence appears here." }}
+    />
+  );
+}
+
+/**
+ * A table's search inside the panel: Escape clears the query and leaves the panel open, and a
+ * second Escape in the empty field still belongs to the field. Escape from the panel's surface,
+ * outside any field, closes it and returns focus to the opener.
+ */
+export const PanelTable: Story = {
+  name: "Table in a panel",
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
+  render: function Render() {
+    const [open, setOpen] = useState(false);
+    return (
+      <Shell>
+        <Shell.TopNav>
+          <Shell.TopNav.Start>
+            <Text>Program Assurance</Text>
+          </Shell.TopNav.Start>
+        </Shell.TopNav>
+        <Shell.Main>
+          <Stack space="space.200">
+            <PageHeader>
+              <PageHeader.Heading>
+                <PageHeader.Title>Controls</PageHeader.Title>
+              </PageHeader.Heading>
+            </PageHeader>
+            <Inline space="space.100">
+              <Button onClick={() => setOpen(true)}>Preview AC-2</Button>
+            </Inline>
+          </Stack>
+        </Shell.Main>
+        {open && (
+          <Shell.Panel
+            title="AC-2 Account management"
+            defaultWidth={560}
+            onClose={() => setOpen(false)}
+          >
+            <PanelEvidenceTable />
+          </Shell.Panel>
+        )}
+      </Shell>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const opener = canvas.getByRole("button", { name: "Preview AC-2" });
+    opener.focus();
+    await userEvent.keyboard("{Enter}");
+    const panel = await canvas.findByRole("complementary", { name: "AC-2 Account management" });
+    await waitFor(() => expect(panel).toHaveFocus());
+    const search = within(panel).getByRole("searchbox", { name: "Search evidence" });
+    await userEvent.click(search);
+    await userEvent.keyboard("export");
+    await waitFor(() => expect(within(panel).queryByText("Joiner and leaver log")).toBeNull());
+    // The first Escape clears the query; the panel and the reader's place in it stay.
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(search).toHaveValue(""));
+    await expect(await within(panel).findByText("Joiner and leaver log")).toBeVisible();
+    await expect(search).toHaveFocus();
+    // The field is empty now: its Escape is still the field's, not the panel's.
+    await userEvent.keyboard("{Escape}");
+    await expect(
+      canvas.getByRole("complementary", { name: "AC-2 Account management" }),
+    ).toBeInTheDocument();
+    // Escape from the panel's surface, outside any field, closes it.
+    panel.focus();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(canvas.queryByRole("complementary")).toBeNull());
+    await waitFor(() => expect(opener).toHaveFocus());
   },
 };

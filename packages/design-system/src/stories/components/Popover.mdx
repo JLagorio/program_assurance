@@ -28,7 +28,15 @@ Root owns open state. Trigger and Close render native buttons by default; use `r
 
 Content includes the portal and positioner. Native props, `ref`, `render`, and state callbacks for `className` or `style` apply to the popup. Title and Description connect their content to the dialog's accessible name and description; Header supplies their layout. When no visible title fits, give Content an `aria-label`.
 
-Content paints the overlay surface and records it as the current one, so a child painted with `bg-surface-current` (a sticky list label, a pinned cell) matches the popover rather than the page. It defaults to 288px wide, `side="bottom"`, `sideOffset={4}`, `align="center"` and `alignOffset={0}`. Override width with `style={{ width: 300 }}` or match the trigger with `style={{ width: "var(--anchor-width)" }}`. The positioner handles collisions. Logical sides and alignment follow the Ledger locale; Content's `dir` can override it.
+Content paints the overlay surface and records it as the current one, so a child painted with `bg-surface-current` (a sticky list label, a pinned cell) matches the popover rather than the page. Its loose text is `font.body.small`; its fields set their own size. It defaults to 288px wide (`dimension.part.popover`), `side="bottom"`, `sideOffset={4}`, `align="center"` and `alignOffset={0}`. Override width with `style={{ width: 300 }}` or match the trigger with `style={{ width: "var(--anchor-width)" }}`. It is capped at the height the window leaves on its side (`var(--available-height)`) and scrolls within it, so a calendar or a long list of filters never opens past the window's edge; do not add a cap of your own. The positioner handles collisions. Logical sides and alignment follow the Ledger locale; Content's `dir` can override it.
+
+<Canvas of={Stories.ShortWindow} story={{ inline: false, height: "360px" }} />
+
+## Anchoring
+
+Content can sit against something other than its trigger: `anchor` takes an element, a ref or a virtual point, such as a chart mark or a table cell, and `collisionPadding`, `collisionBoundary`, `collisionAvoidance`, `sticky` and `positionMethod` pass to the positioner. A popover opened from state with an `anchor` needs no trigger; focus returns to what had it.
+
+<Canvas of={Stories.Anchored} />
 
 <Canvas of={Stories.PopoverMatrix} />
 
@@ -50,11 +58,9 @@ Use `defaultOpen` for local initial state, or `open` and `onOpenChange(open, det
 
 <Canvas of={Stories.Task} />
 
-## Migration and API
+## Props
 
-Replace the old `trigger` prop with `PopoverTrigger render`, move the body into `PopoverContent`, and replace `Popover.Close` with `PopoverClose render`. Move `label` to a Title or Content's `aria-label`; move placement and sizing onto Content. `width` becomes `style.width`, and `matchTriggerWidth` becomes `width: "var(--anchor-width)"`. State attributes follow Base UI, including `data-open`.
-
-The flat parts retain their upstream props: [Root](https://base-ui.com/react/components/popover#root), [Trigger](https://base-ui.com/react/components/popover#trigger), [Popup](https://base-ui.com/react/components/popover#popup), [Title](https://base-ui.com/react/components/popover#title), [Description](https://base-ui.com/react/components/popover#description), and [Close](https://base-ui.com/react/components/popover#close). Content additionally exposes the four positioning props above; Header accepts native div props. See [shadcn's composition examples](https://ui.shadcn.com/docs/components/base/popover).
+The flat parts retain their upstream props: [Root](https://base-ui.com/react/components/popover#root), [Trigger](https://base-ui.com/react/components/popover#trigger), [Popup](https://base-ui.com/react/components/popover#popup), [Title](https://base-ui.com/react/components/popover#title), [Description](https://base-ui.com/react/components/popover#description), and [Close](https://base-ui.com/react/components/popover#close). Content additionally takes the positioner's props above; Header accepts native div props. See [shadcn's composition examples](https://ui.shadcn.com/docs/components/base/popover).
 
 <ArgTypes of={PopoverContent} />
 

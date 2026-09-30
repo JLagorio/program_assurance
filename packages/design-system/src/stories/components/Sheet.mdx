@@ -5,6 +5,7 @@ import {
   SheetClose,
   SheetContent,
   SheetFooter,
+  SheetOverlay,
   SheetTrigger,
 } from "../../components";
 import * as Stories from "./Sheet.stories";
@@ -26,10 +27,11 @@ Not for work beside a list the reader keeps using: that is the Shell's panel, wh
 
 ## Anatomy
 
-- **SheetContent** brings its portal, the blanket and a close button at the top end (an IconButton named Close, with no tooltip), and slides from `side`: `right` by default, `left`, `top` or `bottom`, or `start` and `end`, which follow the reading direction. It records the overlay surface as the current one, so a sticky header or pinned cell inside matches the sheet.
-- **SheetHeader** holds the title (the sheet's h2; headings inside start at h3) and the description.
+- **SheetContent** brings its portal, the blanket and a close button at the top end (an IconButton named Close, with no tooltip, first in the Tab order where it is drawn, while the first field still takes focus on open), and slides from `side`: `right` by default, `left`, `top` or `bottom`, or `start` and `end`, which follow the reading direction. It records the overlay surface as the current one, so a sticky header or pinned cell inside matches the sheet.
+- **SheetHeader** holds the title (the sheet's h2; headings inside start at h3) and the description, which wrap an unbroken value.
 - **SheetBody** is the one scrolling region, with the sheet's inset. A toolbar row that should not scroll sits between the header and the body.
-- **SheetFooter** stays outside the scroll.
+- **SheetFooter** stays outside the scroll, on the sheet's own surface below a hairline. The header, the body and the footer share the sheet's `space.200` inline inset.
+- **SheetPortal** and **SheetOverlay** are exported for a custom popup, as Dialog's are.
 
 ## Widths
 
@@ -49,7 +51,7 @@ Each step is capped by the window. `large` and `xlarge` match Dialog's.
 
 ## Scrolling and short windows
 
-The body takes the height the header, any toolbar row and the footer leave, at least 80px, and scrolls. Read-only content that overflows makes it a tab stop, "Content, scrolls". In a window under 30rem tall the sheet scrolls as one: the header and any toolbar scroll away with the body, and the footer stays at the bottom, so a list is never squeezed to a single row.
+The body takes the height the header, any toolbar row and the footer leave, at least 80px, and scrolls. Read-only content that overflows makes it a tab stop, "Content, scrolls". In a window under 30rem tall the sheet scrolls as one: the header and any toolbar scroll away with the body, and the footer stays at the bottom, so a list is never squeezed to a single row. The footer keeps its height as the sheet's scroll padding, so a control that takes focus scrolls clear of it.
 
 ## Pending
 
@@ -59,8 +61,10 @@ The body takes the height the header, any toolbar row and the footer leave, at l
 
 ## Accessibility
 
-- **Give the sheet a title.** Base UI traps focus, handles Escape and nested dialogs, and returns focus to the opener, or to `finalFocus` when the opener went away. Move focus to a field with `initialFocus`, never `autoFocus`.
+- **Give the sheet a title.** Base UI traps focus, handles Escape and nested dialogs, and returns focus to the opener, or to `finalFocus` when the opener went away. A Sheet opened from state records the element that had focus as it opens, so focus comes back to it even when a field took focus as it mounted. Move focus to a field with `initialFocus`, never `autoFocus`.
 - **Keep a close control available**; the content includes one by default.
+- **The one stack.** An AlertDialog for the decision the sheet owns renders inside SheetContent; the sheet dims under it and the page keeps one blanket.
+- **Forced colours keep the edge**: the popup draws a CanvasText outline, and the blanket stays a veil of Canvas.
 
 <Canvas of={Stories.NestedAndRTL} />
 
@@ -90,7 +94,13 @@ Sheet is Base UI Dialog at an edge, so it takes the same root props, `open`, `de
 
 <ArgTypes of={SheetClose} />
 
+### SheetOverlay
+
+<ArgTypes of={SheetOverlay} />
+
 <Canvas of={Stories.Playground} />
+
+<Canvas of={Stories.CustomPortal} />
 
 ## Related
 

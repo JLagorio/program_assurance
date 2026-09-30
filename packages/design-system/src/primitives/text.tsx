@@ -7,7 +7,8 @@ import { cn } from "../lib/cn";
 import { classFor, type TextColorToken, type TextElement } from "./tokens";
 
 /* Text: `as` from the text elements; `size`, `weight`, `color` (inverse automatically inside a
-   Box with a bold background, inherited when nested), `align`, `maxLines`, `preserveLineBreaks`.
+   Box with a bold background, inherited when nested), `align`, `maxLines`, `preserveLineBreaks`,
+   `numeric`.
    The rules hold: running text neutral, colour functional, semibold for a heading and not a
    paragraph. No `style`. */
 
@@ -50,6 +51,11 @@ export type TextProps = {
    * instead of running it into one line: `white-space: pre-wrap`. A one-line clamp keeps none.
    */
   preserveLineBreaks?: boolean | undefined;
+  /**
+   * Tabular numerals: every digit the same width, so a count, a percentage or a date lines up with
+   * the one above it and does not jitter as it changes. A table's cells have them already.
+   */
+  numeric?: boolean | undefined;
   className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"span">, "children" | "className" | "color" | "style">;
 
@@ -62,6 +68,7 @@ export function Text({
   align: a,
   maxLines: m,
   preserveLineBreaks,
+  numeric,
   className,
   children,
   ...rest
@@ -77,6 +84,7 @@ export function Text({
     color && classFor(color),
     a && align[a],
     preserveLineBreaks && m !== 1 && "whitespace-pre-wrap",
+    numeric && "tabular-nums",
     className,
   );
   if (m)

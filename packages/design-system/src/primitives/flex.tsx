@@ -1,6 +1,7 @@
 import type { ComponentPropsWithoutRef, ElementType, ReactNode, Ref } from "react";
 
 import { cn } from "../lib/cn";
+import { elementClasses, shrinkClasses, type Shrink } from "./_elements";
 import { spaceClasses, type LayoutElement, type SpaceToken } from "./tokens";
 
 /* The general flex container behind Stack and Inline: direction row or column, gap, rowGap,
@@ -31,11 +32,13 @@ export type FlexProps = {
   /** Distribution on the main axis. */
   justifyContent?: keyof typeof justifyContent | undefined;
   wrap?: keyof typeof wrap | undefined;
+  /** As a flex item: `none` keeps its size when the row runs out of room, for a fixed label such as an id; the default lets it shrink. */
+  shrink?: Shrink | undefined;
   className?: string | undefined;
 } & Omit<ComponentPropsWithoutRef<"div">, "children" | "className" | "style">;
 
 /** The general flex container, for the layouts Stack and Inline do not express. */
-export function Flex({ as = "div", direction: d, gap, rowGap, columnGap, alignItems: a, justifyContent: j, wrap: w, className, children, ...rest }: FlexProps) {
+export function Flex({ as = "div", direction: d, gap, rowGap, columnGap, alignItems: a, justifyContent: j, wrap: w, shrink, className, children, ...rest }: FlexProps) {
   const Tag = as as ElementType;
   return (
     <Tag
@@ -48,6 +51,8 @@ export function Flex({ as = "div", direction: d, gap, rowGap, columnGap, alignIt
         a && alignItems[a],
         j && justifyContent[j],
         w && wrap[w],
+        shrink && shrinkClasses[shrink],
+        elementClasses(as),
         className,
       )}
       {...rest}

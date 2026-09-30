@@ -1,7 +1,7 @@
-import { expect, userEvent, waitFor, within } from "storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { Download, MoreHorizontal, Plus } from "lucide-react";
-import { useState } from "react";
+import { createRef, useState } from "react";
 import { DataTable, LedgerProvider, Toolbar, defineColumns, useDataTable } from "../..";
 import {
   Badge,
@@ -39,7 +39,7 @@ const meta = {
   title: "Patterns/Toolbar",
   component: Toolbar,
   parameters: { layout: "padded" },
-  args: { search: "", onSearch: () => {}, placeholder: "Search controls" },
+  args: { onSearch: fn(), placeholder: "Search controls" },
 } satisfies Meta<typeof Toolbar>;
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -118,7 +118,7 @@ export const ToolbarMatrix: Story = {
             <>
               <div style={{ width: 220 }}>
                 <Select<string> items={undefinedItems} defaultValue="ssp">
-                  <SelectTrigger className="w-full" size="sm" aria-label="Model">
+                  <SelectTrigger className="w-full" size="small" aria-label="Model">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -158,55 +158,69 @@ function LiveDemo() {
   );
   return (
     <div style={{ maxWidth: 560 }}>
-      <Toolbar
-        search={query}
-        onSearch={setQuery}
-        placeholder="Control or title"
-        actions={
-          <Text size="small" color="color.text.subtle">
-            {rows.length} of {controls.length} controls
-          </Text>
-        }
-        filters={
-          <>
-            <FilterChip label="Gaps" isActive={gaps} onClick={() => setGaps((v) => !v)} />
-          </>
-        }
-      ></Toolbar>
-      <Table label="Controls">
-        <thead>
-          <tr>
-            <Table.Header width={90}>Control</Table.Header>
-            <Table.Header>Title</Table.Header>
-            <Table.Header width={120}>Status</Table.Header>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((c) => (
-            <Table.Row key={c.id}>
-              <Table.Id id={c.id} />
-              <Table.Cell>{c.title}</Table.Cell>
-              <Table.Cell>
-                {c.gap ? (
-                  <Badge variant="secondary" tone="danger">
-                    Gap
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary" tone="success">
-                    Satisfied
-                  </Badge>
-                )}
-              </Table.Cell>
-            </Table.Row>
-          ))}
-        </tbody>
-      </Table>
+      <Stack space="space.200">
+        <Toolbar
+          search={query}
+          onSearch={setQuery}
+          placeholder="Control or title"
+          actions={
+            // Over a plain Table the caller says the result: the count is a polite status.
+            <span role="status">
+              <Text size="small" color="color.text.subtle">
+                {rows.length} of {controls.length} controls
+              </Text>
+            </span>
+          }
+          filters={
+            <>
+              <FilterChip label="Gaps" isActive={gaps} onClick={() => setGaps((v) => !v)} />
+            </>
+          }
+        ></Toolbar>
+        <Table label="Controls">
+          <thead>
+            <tr>
+              <Table.Header width={90}>Control</Table.Header>
+              <Table.Header>Title</Table.Header>
+              <Table.Header width={120}>Status</Table.Header>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((c) => (
+              <Table.Row key={c.id}>
+                <Table.Id id={c.id} />
+                <Table.Cell>{c.title}</Table.Cell>
+                <Table.Cell>
+                  {c.gap ? (
+                    <Badge variant="secondary" tone="danger">
+                      Gap
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary" tone="success">
+                      Satisfied
+                    </Badge>
+                  )}
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </tbody>
+        </Table>
+      </Stack>
     </div>
   );
 }
 
-/** Typing narrows the table under it, the chip narrows it again, and the count at the end says how many remain. */
-export const Live: Story = { render: () => <LiveDemo /> };
+/** Typing narrows the table under it, the chip narrows it again, and the count at the end says how many remain: over a plain Table it is the caller's polite status, so the result is heard as well as seen. */
+export const Live: Story = {
+  render: () => <LiveDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.type(canvas.getByRole("searchbox", { name: "Control or title" }), "AC");
+    await expect(canvas.getByRole("status")).toHaveTextContent("2 of 6 controls");
+    await userEvent.click(canvas.getByRole("button", { name: /Gaps/ }));
+    await expect(canvas.getByRole("status")).toHaveTextContent("1 of 6 controls");
+  },
+};
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
@@ -326,6 +340,7 @@ export const Dont: Story = {
   ),
 };
 
+/** The search is the toolbar's own here (`onSearch` without `search`), so typing shows in the field and Escape empties it. A caller that owns the query passes `search` as well. */
 export const Playground: Story = {
   render: (args) => (
     <Toolbar
@@ -338,11 +353,22 @@ export const Playground: Story = {
       }
     ></Toolbar>
   ),
+  play: async ({ args, canvasElement }) => {
+    const search = within(canvasElement).getByRole("searchbox", { name: "Search controls" });
+    await userEvent.type(search, "AC");
+    await expect(search).toHaveValue("AC");
+    await expect(args.onSearch).toHaveBeenLastCalledWith("AC");
+    await userEvent.keyboard("{Escape}");
+    await expect(search).toHaveValue("");
+  },
 };
 
 /** The toolbar in a story's canvas. */
 const toolbarOf = (canvasElement: HTMLElement) =>
   canvasElement.querySelector<HTMLElement>('[data-slot="toolbar"]')!;
+/** The saved-views control in the toolbar's views strip, whatever the views part names it. */
+const viewsTrigger = (toolbar: HTMLElement) =>
+  within(toolbar.querySelector<HTMLElement>('[data-slot="toolbar-views"]')!).getByRole("button");
 const middle = (element: Element) => {
   const box = element.getBoundingClientRect();
   return box.top + box.height / 2;
@@ -402,7 +428,7 @@ const desktopCanvas = {
   frame: "canvas",
 };
 
-/** As its container shrinks, the filters fold into More, then the display controls in `children` (Columns and Settings) follow under a divider, and the row wraps into two in the same order: the search with the saved views, then More with the action. The saved views and the action stay in the row. Filters keep their state through the fold, and the row takes everything back when the container widens. */
+/** As its container shrinks, the filters fold into More, then the display controls in `children` (Columns and Settings) follow under a divider, and the row wraps into two in the same order: the search with the saved views, then More with the action. The saved views and the action stay in the row. Filters keep their state through the fold, More counts the folded filter that applies (`activeFilters`), and the row takes everything back when the container widens. */
 export const Constrained: Story = {
   globals: desktopCanvas,
   render: () => {
@@ -423,6 +449,7 @@ export const Constrained: Story = {
             onSearch={setQuery}
             placeholder="Find controls"
             views={<Button size="small">Saved views</Button>}
+            activeFilters={Number(gaps)}
             actions={
               <Button size="small" variant="primary" iconBefore={<Plus />}>
                 New control
@@ -484,6 +511,9 @@ export const Constrained: Story = {
       await expect(display.getByRole("button", { name })).toBeVisible();
     await userEvent.click(within(popup).getByRole("button", { name: /Gaps/ }));
     await expect(canvas.getByText("Showing gaps")).toBeVisible();
+    // The folded filter that now applies shows on More, in its count and its name.
+    await expect(more).toHaveAccessibleName("More filters and display options, 1 applied");
+    await expect(more).toHaveTextContent(/^More\s*1$/);
     for (const name of ["Saved views", "New control"]) {
       await expect(within(popup).queryByRole("button", { name })).not.toBeInTheDocument();
     }
@@ -669,7 +699,7 @@ export const Phone: Story = {
     await waitFor(() => expect(rowCount(toolbar)).toBe(2));
     noSidewaysScroll();
     const search = canvas.getByRole("searchbox", { name: "Search suppliers" });
-    const savedViews = canvas.getByRole("button", { name: "Saved questions" });
+    const savedViews = viewsTrigger(toolbar);
     const more = canvas.getByRole("button", { name: "More filters and display options" });
     const primary = canvas.getByRole("button", { name: "Create organization" });
     await expect(sameRow(search, savedViews)).toBe(true);
@@ -756,7 +786,7 @@ export const PhoneLongPrimary: Story = {
     await waitFor(() => expect(rowCount(toolbar)).toBe(2));
     noSidewaysScroll();
     const search = canvas.getByRole("searchbox", { name: "Search operational issues" });
-    const savedViews = canvas.getByRole("button", { name: "Saved questions" });
+    const savedViews = viewsTrigger(toolbar);
     const more = canvas.getByRole("button", { name: "More filters and display options" });
     const primary = canvas.getByRole("button", { name: "Create operational issue" });
     await waitFor(() => expect(sameRow(search, savedViews)).toBe(true));
@@ -801,10 +831,7 @@ export const Frame: Story = {
     const more = canvas.getByRole("button", { name: "More filters and display options" });
     const primary = canvas.getByRole("button", { name: "Create organization" });
     await expect(
-      sameRow(
-        canvas.getByRole("searchbox", { name: "Search suppliers" }),
-        canvas.getByRole("button", { name: "Saved questions" }),
-      ),
+      sameRow(canvas.getByRole("searchbox", { name: "Search suppliers" }), viewsTrigger(toolbar)),
     ).toBe(true);
     await expect(sameRow(more, primary)).toBe(true);
     await viewsWhole(toolbar);
@@ -887,7 +914,7 @@ export const NarrowestFrame: Story = {
     const toolbar = toolbarOf(canvasElement);
     await waitFor(() => expect(toolbar).toHaveAttribute("data-rows", "2"));
     noSidewaysScroll();
-    const views = canvas.getByRole("button", { name: "Saved questions" });
+    const views = viewsTrigger(toolbar);
     const label = within(views).getByTitle("All records");
     const count = within(views).getByText("4", { exact: true });
     const chevron = views.querySelector('svg[data-icon="inline-end"]')!;
@@ -918,7 +945,7 @@ export const PanelMinimum: Story = {
     await waitFor(() => expect(toolbar).toHaveAttribute("data-rows", "2"));
     noSidewaysScroll();
     const search = canvas.getByRole("searchbox", { name: "Search operational issues" });
-    const savedViews = canvas.getByRole("button", { name: "Saved questions" });
+    const savedViews = viewsTrigger(toolbar);
     const more = canvas.getByRole("button", { name: "More filters and display options" });
     const primary = canvas.getByRole("button", { name: "Create operational issue" });
     await expect(sameRow(search, savedViews)).toBe(true);
@@ -1062,5 +1089,168 @@ export const InAForm: Story = {
     await expect(canvas.getByText("Not linked")).toBeVisible();
     await userEvent.click(canvas.getByRole("button", { name: "Link controls" }));
     await expect(canvas.getByText("Linked 1 time")).toBeVisible();
+  },
+};
+
+const toolbarRef = createRef<HTMLDivElement>();
+const typed = fn();
+/** Native div props and a ref reach the row: an id, data attributes, and a role and name, here a search landmark for the page's one register. The row keeps its own `data-slot`. With `onSearch` and no `search`, the toolbar owns the query: `defaultSearch` is the first one, and what the reader types shows as they type it. */
+export const NativeAttributes: Story = {
+  name: "Native attributes",
+  render: () => (
+    <Toolbar
+      ref={toolbarRef}
+      id="control-search"
+      role="search"
+      aria-label="Find controls"
+      data-testid="controls-toolbar"
+      data-slot="not-the-toolbar"
+      defaultSearch="AC"
+      onSearch={typed}
+      placeholder="Search controls"
+      filters={<FilterChip label="Gaps" />}
+      actions={
+        <Button size="small" variant="primary" iconBefore={<Plus />}>
+          New control
+        </Button>
+      }
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const row = canvas.getByRole("search", { name: "Find controls" });
+    await expect(toolbarRef.current).toBe(row);
+    await expect(row).toHaveAttribute("id", "control-search");
+    await expect(row).toHaveAttribute("data-testid", "controls-toolbar");
+    await expect(row).toHaveAttribute("data-slot", "toolbar");
+    const search = within(row).getByRole("searchbox", { name: "Search controls" });
+    await expect(search).toHaveValue("AC");
+    typed.mockClear();
+    await userEvent.type(search, "-2");
+    await expect(search).toHaveValue("AC-2");
+    await expect(typed).toHaveBeenLastCalledWith("AC-2");
+  },
+};
+
+function AppliedFilters() {
+  const [gaps, setGaps] = useState(true);
+  const [owner, setOwner] = useState<string | undefined>("Dana Whitfield");
+  const applied = Number(gaps) + Number(owner !== undefined);
+  return (
+    <Stack space="space.200">
+      <div data-testid="frame" style={{ maxWidth: "100%" }}>
+        <Toolbar
+          activeFilters={applied}
+          filters={
+            <>
+              <FilterChip label="Gaps" isActive={gaps} onClick={() => setGaps((on) => !on)} />
+              <FilterChip
+                label="Owner"
+                value={owner}
+                isActive={owner !== undefined}
+                onClick={() => setOwner((who) => (who ? undefined : "Dana Whitfield"))}
+              />
+            </>
+          }
+          actions={
+            <Button size="small" variant="primary" iconBefore={<Plus />}>
+              Create operational issue
+            </Button>
+          }
+        />
+      </div>
+      <Text size="small" color="color.text.subtle">
+        {applied === 0 ? "No filters applied" : `${applied} of 2 filters applied`}
+      </Text>
+    </Stack>
+  );
+}
+
+/** When the filters fold, More still says the list is narrowed: it shows how many filters apply and says so in its name, "More filters, 2 applied", from `activeFilters`. A filter changed inside More is measured there, so when its label shrinks and More closes, the filters come back to the row if they now fit; a filter that grows in the row folds back into More, and focus goes with it. */
+export const AppliedFiltersFolded: Story = {
+  name: "Applied filters, folded",
+  globals: desktopCanvas,
+  render: () => <AppliedFilters />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const toolbar = toolbarOf(canvasElement);
+    const frame = canvas.getByTestId("frame");
+    const owner = () => within(toolbar).getByRole("button", { name: /^Owner/ });
+    const strip = () => toolbar.querySelector<HTMLElement>('[data-slot="toolbar-filters"]')!;
+    const primary = canvas.getByRole("button", { name: "Create operational issue" });
+    const gap = parseFloat(getComputedStyle(toolbar).columnGap);
+    // The row's width with the owner chosen, and with it cleared.
+    const need = () =>
+      strip().getBoundingClientRect().width + gap + primary.getBoundingClientRect().width;
+    const withOwner = need();
+    await userEvent.click(owner());
+    await waitFor(() => expect(owner()).not.toHaveAttribute("aria-pressed", "true"));
+    const withoutOwner = need();
+    await expect(withOwner - withoutOwner).toBeGreaterThan(40);
+    await userEvent.click(owner());
+    await waitFor(() => expect(owner()).toHaveAttribute("aria-pressed", "true"));
+    // A frame that holds the filters without the owner's name, but not with it.
+    frame.style.width = `${Math.round((withOwner + withoutOwner) / 2)}px`;
+    // The owner chip folded under focus, so focus went to More, which counts what applies.
+    const more = await canvas.findByRole("button", { name: "More filters, 2 applied" });
+    await waitFor(() => expect(more).toHaveFocus());
+    await expect(more).toHaveTextContent(/^More\s*2$/);
+    await expect(canvas.getByText("2 of 2 filters applied")).toBeVisible();
+    // Clearing the owner inside More updates the count, and More holds the filters while open.
+    await userEvent.click(more);
+    const popup = await body.findByRole("dialog", { name: "Filters" });
+    const inMore = await waitFor(() => within(popup).getByRole("button", { name: /^Owner/ }));
+    await userEvent.click(inMore);
+    await waitFor(() =>
+      expect(canvas.getByRole("button", { name: "More filters, 1 applied" })).toBeInTheDocument(),
+    );
+    await frames();
+    await expect(openMore(canvasElement)).not.toBeNull();
+    // Closing More: the shorter filters fit, so the row takes them back and focus lands on the
+    // first control that came back.
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(canvas.queryByRole("button", { name: /^More/ })).toBeNull());
+    await waitFor(() =>
+      expect(within(toolbar).getByRole("button", { name: /^Gaps/ })).toHaveFocus(),
+    );
+    await expect(owner()).toBeVisible();
+    await expect(canvas.getByText("1 of 2 filters applied")).toBeVisible();
+    noSidewaysScroll();
+  },
+};
+
+/** A saved view that takes focus from the search shows its whole focus ring: the views strip scrolls sideways, but it does not cut off the ring of the control focused inside it. */
+export const FocusedView: Story = {
+  name: "A focused saved view",
+  render: () => (
+    <Toolbar
+      search=""
+      onSearch={() => {}}
+      placeholder="Search suppliers"
+      views={<Button size="small">All records</Button>}
+      actions={
+        <Button size="small" variant="primary" iconBefore={<Plus />}>
+          Create organization
+        </Button>
+      }
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("searchbox", { name: "Search suppliers" }));
+    await userEvent.tab();
+    const view = canvas.getByRole("button", { name: "All records" });
+    await expect(view).toHaveFocus();
+    const style = getComputedStyle(view);
+    await expect(style.outlineStyle).not.toBe("none");
+    // How far the ring's outer edge reaches past the button's border box.
+    const reach = parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset);
+    const ring = view.getBoundingClientRect();
+    const clip = view.closest('[data-slot="scroller-viewport"]')!.getBoundingClientRect();
+    await expect(ring.top - reach).toBeGreaterThanOrEqual(clip.top - 0.5);
+    await expect(ring.bottom + reach).toBeLessThanOrEqual(clip.bottom + 0.5);
+    await expect(ring.left - reach).toBeGreaterThanOrEqual(clip.left - 0.5);
+    await expect(ring.right + reach).toBeLessThanOrEqual(clip.right + 0.5);
   },
 };

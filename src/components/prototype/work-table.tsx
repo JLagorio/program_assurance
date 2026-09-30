@@ -1,6 +1,6 @@
 import { ProductCollection } from "./product-collection";
 import { RecordSummaryPreview } from "./record-summary-preview";
-import { RecordLink, useDisplayedRecords } from "./record-preview";
+import { RecordLink, useDisplayedRecords, useEndOnHide } from "./record-preview";
 import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -12,7 +12,7 @@ import {
   Stack,
   useDataTable,
 } from "@ledger/design-system";
-import { Plus } from "lucide-react";
+import { ListTodo, Plus } from "lucide-react";
 import { useRows, type Row } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
 import { LevelIndicator, StatusBadge } from "@/components/app/status";
@@ -21,12 +21,16 @@ import { CreateTaskDialog } from "./create-task-dialog";
 
 type TaskRow = Row<"tasks"> & {
   program: string;
-  assignees: string;
+  /** The people assigned, by name, in the order they were assigned. */
+  assignees: string[];
   due: string | undefined;
   role: string;
 };
 
 const ASSIGNED_TO_YOU = "Assigned to you";
+/** The Assigned to facet's value for a task nobody holds. */
+const UNASSIGNED = "Unassigned";
+const assigneeFacet = (row: TaskRow) => (row.assignees.length ? row.assignees : [UNASSIGNED]);
 const mineFilter = [{ id: "role", value: [ASSIGNED_TO_YOU] }];
 
 export function WorkTable({
@@ -52,6 +56,7 @@ export function WorkTable({
   const programs = useRows("programs");
   const [adding, setAdding] = useState(false);
   const [preview, setPreview] = useState<TaskRow | null>(null);
+  useEndOnHide(() => setPreview(null));
   const rows = useMemo<TaskRow[]>(
     () =>
       (tasks.data ?? []).map((task) => {
@@ -65,14 +70,10 @@ export function WorkTable({
           ...task,
           program:
             programs.data?.find((item) => item.id === task.program_id)?.name ?? "Not available",
-          assignees:
-            assigned
-              .map(
-                (item) =>
-                  parties.data?.find((party) => party.id === item.party_id)?.name ??
-                  "Not available",
-              )
-              .join(", ") || "Unassigned",
+          assignees: assigned.map(
+            (item) =>
+              parties.data?.find((party) => party.id === item.party_id)?.name ?? "Not available",
+          ),
           due: task.due_at ?? undefined,
           role: mine ? ASSIGNED_TO_YOU : "Other tasks",
         };
@@ -84,8 +85,8 @@ export function WorkTable({
       defineColumns<TaskRow>((c) => [
         c.id("title", {
           header: "Task",
-          // 200 and the status's 120 fit a phone's row together, so the status stays beside the name.
-          width: 200,
+          // Its 180 minimum and the status's 120 fit a phone's row together, so the status stays
+          // beside the name; past it the name shares the spare width.
           minWidth: 180,
           priority: 0,
           preview: setPreview,
@@ -98,7 +99,22 @@ export function WorkTable({
           ),
         }),
         c.status("status", { header: "Status", width: 120, priority: 1, statuses: taskStatuses }),
-        c.text("assignees", { header: "Assigned to", width: 180 }),
+        {
+          ...c.list("assignees", {
+            header: "Assigned to",
+            width: 180,
+            items: (row) => row.assignees.map((name, index) => ({ key: `${index}`, label: name })),
+            empty: () => <Absent label={UNASSIGNED} />,
+          }),
+          // Each person on their own in the facet, counted per task, and a task matches when it
+          // holds anyone chosen: never the pairs the rows hold. The search finds a task by any of
+          // its people.
+          enableGlobalFilter: true,
+          getUniqueValues: assigneeFacet,
+          filterFn: (row: { original: TaskRow }, _column: string, chosen: unknown) =>
+            Array.isArray(chosen) &&
+            chosen.some((name) => assigneeFacet(row.original).includes(String(name))),
+        },
         ...(programId ? [] : [c.text("program", { header: "Program", width: 180 })]),
         c.date("due", { header: "Due", width: 135, priority: 2 }),
         c.status("priority", {
@@ -160,12 +176,15 @@ export function WorkTable({
         table={table}
         fill={fill}
         noun={{ one: "task", other: "tasks" }}
+        // Inside a record or a program tab, beside other sections, the tasks are a few rows.
+        compact={!fill}
         onRowClick={(row) => void navigate({ to: "/tasks/$taskId", params: { taskId: row.id } })}
         empty={{
           illustration: "tasks",
+          icon: <ListTodo />,
           title: "No tasks yet",
           description: "Create a task and assign a person to start tracking work.",
-          action: create("medium"),
+          action: create(fill ? "medium" : "small"),
           ...(onlyMine
             ? {
                 filtered: {
@@ -215,7 +234,12 @@ export function WorkTable({
               label: "Status",
               render: (row) => <StatusBadge statuses={taskStatuses} value={row.status} />,
             },
-            { key: "assignees", label: "Assigned to" },
+            {
+              key: "assignees",
+              label: "Assigned to",
+              render: (row) =>
+                row.assignees.length ? row.assignees.join(", ") : <Absent label={UNASSIGNED} />,
+            },
             { key: "program", label: "Program" },
             {
               key: "due",

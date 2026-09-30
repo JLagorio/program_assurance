@@ -1,13 +1,15 @@
-import { InputGroupAddon, InputGroupInput, InputGroup } from "../../components/input-group";
 import { useLedgerLocale } from "../../lib/locale";
+import { parseIsoDay } from "../../lib/locale-format";
 import { type ColumnFiltersState, type RowData } from "@tanstack/react-table";
-import { ChevronDown, ListFilter, Search as SearchIcon } from "lucide-react";
-import { useMemo, useState, type ReactNode } from "react";
+import { ChevronDown, ListFilter } from "lucide-react";
+import { useId, useMemo, useState, type ReactNode } from "react";
 import { Count } from "../../components/badge";
 import { Button } from "../../components/button";
 import { Checkbox } from "../../components/checkbox";
 import { FilterChip } from "../../components/chip";
+import { DatePicker, dayFormat } from "../../components/date-picker";
 import { Input } from "../../components/input";
+import { SearchField } from "../../components/search-field";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -19,65 +21,112 @@ import {
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "../../components/popover";
 import { ToggleGroup, ToggleGroupItem } from "../../components/toggle-group";
 import { Scroller, ScrollerArrow, ScrollerViewport } from "../../components/scroller";
+import { token } from "../../generated/tokens";
 import { cn } from "../../lib/cn";
 import { statusOf } from "./columns";
+import { activeTriggerClass } from "./group-by";
 import { type DataTableInstance } from "./use-data-table";
 
 /*
  * Filters share one toolbar popover, or appear as individual chips. Their fields are built
- * from the column: the facet's values as checkboxes for a status, a person or a short text column;
- * a range for a number or a date; a text field for a long text column. The applied filter reads on
- * the chip. Search is the global filter. Presets are saved questions: a named set of column filters
- * with the count it would show.
+ * from the column: the facet's values as checkboxes for a status, a person, a short text column or
+ * a column of several values; a range for a number or a date; a text field for a long text column.
+ * The applied filter reads on the chip. Search is the global filter. Presets are saved questions: a
+ * named set of column filters with the count it would show.
  */
 
 /** Above this many distinct values a text column filters by substring rather than by checkbox. */
 const FACET_LIMIT = 30;
+/** Above this many values a facet takes a search field over its checkboxes. */
+const FACET_SEARCH_AT = 8;
 
 const asArray = (v: unknown): unknown[] =>
   Array.isArray(v) ? v : v == null || v === "" ? [] : [v];
+
+/** One value a facet offers. A server-filtered table passes its values, and their counts, as `options`: the rows it holds are one page, so their values are not every value there is. */
+export type FilterOption = {
+  /** The stored value the filter matches. */
+  value: string;
+  /** The words for it. The value itself, or a status map's label, unsaid. */
+  label?: string | undefined;
+  /** How many records hold it. Unsaid, no count shows. */
+  count?: number | undefined;
+};
 
 function FacetBody({
   values,
   chosen,
   onChange,
-  labelOf = String,
+  labelOf,
+  title,
 }: {
-  values: [unknown, number][];
+  values: [unknown, number | undefined][];
   chosen: unknown[];
   onChange: (next: unknown[]) => void;
   /** The words for a value: a status map's label, the value itself unsaid. */
-  labelOf?: ((value: unknown) => string) | undefined;
+  labelOf: (value: unknown) => string;
+  /** The column's name, for the search field over a long facet. */
+  title: string;
 }) {
-  const { formatNumber } = useLedgerLocale();
+  const { t, formatNumber, locale } = useLedgerLocale();
+  const [query, setQuery] = useState("");
 
+  if (values.length === 0)
+    return <p className="font-body-small text-subtle">{t("noFilterValues")}</p>;
   const has = (v: unknown) => chosen.some((c) => String(c) === String(v));
+  const needle = query.trim().toLocaleLowerCase(locale);
+  const shown = needle
+    ? values.filter(([value]) => labelOf(value).toLocaleLowerCase(locale).includes(needle))
+    : values;
   return (
-    <div className="flex flex-col gap-075">
-      {values.map(([value, count]) => (
-        <label
-          key={String(value)}
-          className="inline-flex items-center gap-100 font-body text-default"
-        >
-          <Checkbox
-            checked={has(value)}
-            onCheckedChange={(checked) =>
-              onChange(
-                checked ? [...chosen, value] : chosen.filter((c) => String(c) !== String(value)),
-              )
-            }
-          />
-          <span className="flex select-none items-center gap-100">
-            <span>{labelOf(value)}</span>
-            <span className="tabular-nums font-body-small text-subtlest">
-              {formatNumber(count)}
-            </span>
-          </span>
-        </label>
-      ))}
+    <div className="flex min-w-0 flex-col gap-100">
+      {/* A long facet takes a search, so a reader finds one person among forty without scrolling. */}
+      {values.length > FACET_SEARCH_AT ? (
+        <SearchField
+          size="small"
+          value={query}
+          onValueChange={(next) => setQuery(next)}
+          aria-label={t("searchFacet", { label: title })}
+          placeholder={t("search")}
+        />
+      ) : null}
+      {shown.length === 0 ? (
+        <p className="font-body-small text-subtle">{t("noMatchingValues")}</p>
+      ) : (
+        <div className="flex flex-col gap-075">
+          {shown.map(([value, count]) => (
+            <label
+              key={String(value)}
+              className="inline-flex items-center gap-100 font-body text-default"
+            >
+              <Checkbox
+                checked={has(value)}
+                onCheckedChange={(checked) =>
+                  onChange(
+                    checked
+                      ? [...chosen, value]
+                      : chosen.filter((c) => String(c) !== String(value)),
+                  )
+                }
+              />
+              <span className="flex min-w-0 select-none items-center gap-100">
+                <span className="min-w-0 break-words">{labelOf(value)}</span>
+                {count === undefined ? null : (
+                  <span className="tabular-nums font-body-small text-subtlest">
+                    {formatNumber(count)}
+                  </span>
+                )}
+              </span>
+            </label>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
+
+/** An end of a range as the field holds it: "" for an open end. */
+const fieldText = (v: unknown) => (v == null ? "" : String(v));
 
 function RangeBody({
   value,
@@ -92,30 +141,78 @@ function RangeBody({
   min?: number | undefined;
   max?: number | undefined;
 }) {
-  const { t } = useLedgerLocale();
+  const { t, formatNumber } = useLedgerLocale();
+  const reversedId = useId();
 
   const [from, to] = value;
-  const str = (v: unknown) => (v == null ? "" : String(v));
-  const parse = (v: string) => (v === "" ? undefined : type === "number" ? Number(v) : v);
+  const reversed =
+    from != null && to != null && from !== "" && to !== ""
+      ? type === "number"
+        ? Number(from) > Number(to)
+        : String(from) > String(to)
+      : false;
+  const invalid = reversed
+    ? { "aria-invalid": true as const, "aria-describedby": reversedId }
+    : {};
+  const message = reversed ? (
+    <p id={reversedId} className="font-body-small text-danger">
+      {t("rangeReversed")}
+    </p>
+  ) : null;
+  if (type === "date") {
+    // Two days from the kit's picker, each end open until chosen. The one limits the other, so a
+    // reader cannot pick an end before the start.
+    const start = fieldText(from);
+    const end = fieldText(to);
+    return (
+      <div className="flex min-w-0 flex-col gap-100">
+        <DatePicker
+          size="small"
+          value={start}
+          onValueChange={(iso) => onChange([iso || undefined, to])}
+          placeholder={t("from")}
+          aria-label={t("from")}
+          {...(parseIsoDay(end) ? { max: end } : {})}
+          className="w-full"
+        />
+        <DatePicker
+          size="small"
+          value={end}
+          onValueChange={(iso) => onChange([from, iso || undefined])}
+          placeholder={t("to")}
+          aria-label={t("to")}
+          {...(parseIsoDay(start) ? { min: start } : {})}
+          {...invalid}
+          className="w-full"
+        />
+        {message}
+      </div>
+    );
+  }
+  const parse = (v: string) => (v === "" ? undefined : Number(v));
   return (
-    <div className="flex items-center gap-100">
-      <Input
-        type={type}
-        value={str(from)}
-        onChange={(e) => onChange([parse(e.target.value), to])}
-        placeholder={min === undefined ? t("from") : String(min)}
-        aria-label={t("from")}
-        className="h-control-small"
-      />
-      <span className="text-subtle">–</span>
-      <Input
-        type={type}
-        value={str(to)}
-        onChange={(e) => onChange([from, parse(e.target.value)])}
-        placeholder={max === undefined ? t("to") : String(max)}
-        aria-label={t("to")}
-        className="h-control-small"
-      />
+    <div className="flex min-w-0 flex-col gap-100">
+      <div className="flex items-center gap-100">
+        <Input
+          type="number"
+          size="small"
+          value={fieldText(from)}
+          onChange={(e) => onChange([parse(e.target.value), to])}
+          placeholder={min === undefined ? t("from") : formatNumber(min)}
+          aria-label={t("from")}
+        />
+        <span className="text-subtle">–</span>
+        <Input
+          type="number"
+          size="small"
+          value={fieldText(to)}
+          onChange={(e) => onChange([from, parse(e.target.value)])}
+          placeholder={max === undefined ? t("to") : formatNumber(max)}
+          aria-label={t("to")}
+          {...invalid}
+        />
+      </div>
+      {message}
     </div>
   );
 }
@@ -124,7 +221,14 @@ type FilterProps<TData extends RowData> = {
   table: DataTableInstance<TData>;
   column: string;
   label?: string | undefined;
+  /** The popover's width in pixels, 220 by default (`dimension.part.filter`). */
   width?: number | undefined;
+  /**
+   * The values to offer, in this order, with their counts: for a table the server filters
+   * (`manual`), whose rows are one page. Unsaid, the facet is the values of the rows the table
+   * holds, counted after the search and the other filters.
+   */
+  options?: readonly FilterOption[] | undefined;
 };
 
 /** The chip that filters one column. The popover's body follows the column's kind. */
@@ -136,10 +240,11 @@ function ColumnFilter<TData extends RowData>({
   table,
   column: columnId,
   label,
-  width = 220,
+  width,
+  options,
   inline = false,
 }: FilterProps<TData> & { inline?: boolean }) {
-  const { t, formatNumber, locale } = useLedgerLocale();
+  const { t, formatNumber, formatDay, formatDayRange, locale } = useLedgerLocale();
 
   const column = table.getColumn(columnId);
   const [open, setOpen] = useState(false);
@@ -150,25 +255,43 @@ function ColumnFilter<TData extends RowData>({
   const facetValues = column?.getFacetedUniqueValues();
   const statuses = column?.columnDef.meta?.statuses;
   const status = useMemo(() => (statuses ? statusOf(statuses) : undefined), [statuses]);
+  // A column of several values per row (its `getUniqueValues` gives them) facets by each value, not
+  // by the combinations the rows hold.
+  const multiValued = typeof column?.columnDef.getUniqueValues === "function";
+  const labels = useMemo(
+    () =>
+      new Map(
+        (options ?? []).flatMap((o): [string, string][] =>
+          o.label === undefined ? [] : [[o.value, o.label]],
+        ),
+      ),
+    [options],
+  );
+  const labelOf = (value: unknown) =>
+    labels.get(String(value)) ?? (status ? status.label(value) : String(value));
+  const chosenKey = JSON.stringify(asArray(raw).map(String));
   const facets = useMemo(() => {
-    if (
-      !facetValues ||
-      kind === "number" ||
-      kind === "date" ||
-      kind === "list" ||
-      kind === "custom" ||
-      kind === "actions"
-    )
-      return null;
-    const values = [...facetValues.entries()].filter(([v]) => v != null && v !== "");
-    if (kind === "text" && values.length > FACET_LIMIT) return null;
-    // A shared status map lists its values in its own order; otherwise the commonest first.
+    if (kind === "number" || kind === "date" || kind === "custom" || kind === "actions") return null;
+    let values: [unknown, number | undefined][];
+    if (options) values = options.map((o) => [o.value, o.count]);
+    else {
+      if (!facetValues || (kind === "list" && !multiValued)) return null;
+      values = [...facetValues.entries()].filter(([v]) => v != null && v !== "");
+      if ((kind === "text" || kind === "list") && values.length > FACET_LIMIT) return null;
+    }
+    // A chosen value stays in the list, at 0, after the search or another filter removes its rows,
+    // so it can still be unchecked where it was checked.
+    const listed = new Set(values.map(([v]) => String(v)));
+    const missing = (JSON.parse(chosenKey) as string[]).filter((v) => !listed.has(v));
+    values = [...values, ...missing.map((v): [unknown, number | undefined] => [v, 0])];
+    // The order holds while the counts change: a status map's own order, the server's order, else
+    // alphabetical. Counts never reorder the list under the reader's pointer.
+    if (status) return values.sort((a, b) => status.compare(a[0], b[0]));
+    if (options) return values;
     return values.sort((a, b) =>
-      status
-        ? status.compare(a[0], b[0])
-        : b[1] - a[1] || String(a[0]).localeCompare(String(b[0]), locale),
+      String(a[0]).localeCompare(String(b[0]), locale, { numeric: true, sensitivity: "base" }),
     );
-  }, [facetValues, kind, locale, status]);
+  }, [facetValues, kind, locale, status, options, multiValued, chosenKey]);
   if (!column) return null;
 
   let body: ReactNode;
@@ -188,13 +311,24 @@ function ColumnFilter<TData extends RowData>({
       />
     );
     const [from, to] = range;
+    const set = (v: unknown) => v != null && v !== "";
+    // The chip says the range in the reader's words: "Sep 7 – 11, 2026", "≥ 5".
+    const words = (v: unknown) => {
+      if (kind === "number") return typeof v === "number" ? formatNumber(v) : String(v);
+      const day = typeof v === "string" ? parseIsoDay(v) : null;
+      return day ? formatDay(day, dayFormat) : String(v);
+    };
+    const fromDay = typeof from === "string" ? parseIsoDay(from) : null;
+    const toDay = typeof to === "string" ? parseIsoDay(to) : null;
     value =
-      from != null && to != null
-        ? `${from}–${to}`
-        : from != null
-          ? `≥ ${from}`
-          : to != null
-            ? `≤ ${to}`
+      set(from) && set(to)
+        ? fromDay && toDay && String(from) <= String(to)
+          ? formatDayRange(fromDay, toDay, dayFormat)
+          : `${words(from)}–${words(to)}`
+        : set(from)
+          ? `≥ ${words(from)}`
+          : set(to)
+            ? `≤ ${words(to)}`
             : undefined;
   } else if (facets) {
     const chosen = asArray(raw);
@@ -203,12 +337,13 @@ function ColumnFilter<TData extends RowData>({
         values={facets}
         chosen={chosen}
         onChange={(next) => column.setFilterValue(next.length ? next : undefined)}
-        labelOf={status?.label}
+        labelOf={labelOf}
+        title={title}
       />
     );
     value =
       chosen.length === 1
-        ? (status?.label ?? String)(chosen[0])
+        ? labelOf(chosen[0])
         : chosen.length > 1
           ? t("chosenCount", { count: formatNumber(chosen.length) })
           : undefined;
@@ -219,13 +354,13 @@ function ColumnFilter<TData extends RowData>({
         : "";
     body = (
       <Input
+        size="small"
         value={contains}
         onChange={(e) =>
           column.setFilterValue(e.target.value ? { contains: e.target.value } : undefined)
         }
         placeholder={t("contains", { label: title })}
         aria-label={t("contains", { label: title })}
-        className="h-control-small"
       />
     );
     value = contains || undefined;
@@ -245,7 +380,12 @@ function ColumnFilter<TData extends RowData>({
       <PopoverTrigger
         render={<FilterChip label={title} value={value} isActive={value !== undefined} />}
       />
-      <PopoverContent aria-label={title} align="start" style={{ width }}>
+      {/* A long facet scrolls inside the popover, which never runs past the window. */}
+      <PopoverContent
+        aria-label={title}
+        align="start"
+        style={{ width: width ?? token("dimension.part.filter") }}
+      >
         <div className="flex flex-col gap-100">
           {body}
           {value !== undefined ? (
@@ -265,10 +405,13 @@ function ColumnFilter<TData extends RowData>({
 export function Filters<TData extends RowData>({
   table,
   columns,
+  options,
   additionalFilters,
 }: {
   table: DataTableInstance<TData>;
   columns: readonly string[];
+  /** Each column's values, by column id, for a table the server filters: see Filter's `options`. */
+  options?: Readonly<Partial<Record<string, readonly FilterOption[]>>> | undefined;
   /** Filters owned by the caller, such as a URL-backed scope. Included in the count and Clear all. */
   additionalFilters?:
     | {
@@ -288,22 +431,15 @@ export function Filters<TData extends RowData>({
             size="small"
             iconBefore={<ListFilter />}
             iconAfter={<ChevronDown />}
-            className={
-              count
-                ? "bg-selected text-selected hover:bg-selected-hovered active:bg-selected-pressed shadow-none"
-                : undefined
-            }
+            className={count ? activeTriggerClass : undefined}
+            {...(count ? { "data-active-trigger": "" } : {})}
           >
             {t("filters")}
             {count ? ` (${formatNumber(count)})` : ""}
           </Button>
         }
       />
-      <PopoverContent
-        align="start"
-        className="overflow-y-auto"
-        style={{ maxHeight: "var(--available-height)" }}
-      >
+      <PopoverContent align="start">
         <div className="flex items-center justify-between gap-100">
           <PopoverTitle>{t("filters")}</PopoverTitle>
           <Button
@@ -321,7 +457,13 @@ export function Filters<TData extends RowData>({
         <div className="flex flex-col gap-200 pt-100">
           {additionalFilters?.content}
           {columns.map((column) => (
-            <ColumnFilter key={column} table={table} column={column} inline />
+            <ColumnFilter
+              key={column}
+              table={table}
+              column={column}
+              options={options?.[column]}
+              inline
+            />
           ))}
         </div>
       </PopoverContent>
@@ -329,29 +471,28 @@ export function Filters<TData extends RowData>({
   );
 }
 
-/** The global filter, as a search field. Text and id columns take part; numbers and dates do not. */
+/** The global filter, as a search field: a clear button while there is a query, and Escape clears it. Text and id columns take part; numbers and dates do not. */
 export function Search<TData extends RowData>({
   table,
   placeholder,
-  width = 200,
+  width,
 }: {
   table: DataTableInstance<TData>;
   placeholder?: string | undefined;
+  /** The field's width in pixels, 200 by default (`dimension.part.tableSearch`); it never runs past its row. */
   width?: number | undefined;
 }) {
   const { t } = useLedgerLocale();
 
   return (
-    <InputGroup style={{ width: width, maxWidth: "100%" }}>
-      <InputGroupInput
-        value={String(table.state.globalFilter ?? "")}
-        onChange={(e) => table.setGlobalFilter(e.target.value)}
-        placeholder={placeholder ?? t("search")}
-        aria-label={placeholder ?? t("search")}
-        className="h-control-small"
-      />
-      <InputGroupAddon>{<SearchIcon />}</InputGroupAddon>
-    </InputGroup>
+    <SearchField
+      size="small"
+      value={String(table.state.globalFilter ?? "")}
+      onValueChange={(next) => table.setGlobalFilter(next)}
+      placeholder={placeholder ?? t("search")}
+      aria-label={placeholder ?? t("search")}
+      style={{ width: width ?? token("dimension.part.tableSearch"), maxWidth: "100%" }}
+    />
   );
 }
 
@@ -376,26 +517,78 @@ export function countRows<TData extends RowData>(
     .flatRows.filter((row) => resolved.every((f) => f.fn(row, f.id, f.value))).length;
 }
 
+/** An empty end, an empty list and nothing at all are the same open question. */
+const isOpen = (v: unknown) => v == null || v === "" || (Array.isArray(v) && v.length === 0);
+
+/** Whether two filter values ask the same thing. A range is ordered; a facet is a set, so the order the reader checked its values in, or one value against a list of one, does not matter. */
+function sameValue(a: unknown, b: unknown, ordered: boolean): boolean {
+  if (isOpen(a) && isOpen(b)) return true;
+  if (ordered) {
+    if (!Array.isArray(a) || !Array.isArray(b)) return JSON.stringify(a) === JSON.stringify(b);
+    const length = Math.max(a.length, b.length);
+    return Array.from({ length }, (_, i) => i).every((i) =>
+      isOpen(a[i]) && isOpen(b[i]) ? true : Object.is(a[i], b[i]) || String(a[i]) === String(b[i]),
+    );
+  }
+  const set = (v: unknown) =>
+    Array.isArray(v) || (v !== null && typeof v === "object")
+      ? Array.isArray(v)
+        ? v.map(String).sort()
+        : [JSON.stringify(v)]
+      : [String(v)];
+  const left = set(a);
+  const right = set(b);
+  return left.length === right.length && left.every((v, i) => v === right[i]);
+}
+
+/** Whether the table's column filters are a preset's question, whatever order they were set in. */
+function sameQuestion<TData extends RowData>(
+  table: DataTableInstance<TData>,
+  preset: ColumnFiltersState,
+  current: ColumnFiltersState,
+) {
+  const asked = (filters: ColumnFiltersState) =>
+    new Map(filters.filter((f) => !isOpen(f.value)).map((f) => [f.id, f.value]));
+  const a = asked(preset);
+  const b = asked(current);
+  if (a.size !== b.size) return false;
+  return [...a].every(([id, value]) => {
+    if (!b.has(id)) return false;
+    const kind = table.getColumn(id)?.columnDef.meta?.kind;
+    return sameValue(value, b.get(id), kind === "number" || kind === "date");
+  });
+}
+
 /**
  * Each preset's count, counted once per set of rows and set of questions: not again on every
- * keystroke or selection, which leave both as they were.
+ * keystroke or selection, which leave both as they were. A server-filtered table passes its own.
  */
 function usePresetCounts<TData extends RowData>(
   table: DataTableInstance<TData>,
   presets: Preset[],
+  given: Readonly<Record<string, number>> | undefined,
 ): ReadonlyMap<string, number> {
   const rows = table.getPreFilteredRowModel();
   // The key only says when to count again; the count reads the presets themselves, whose values
   // (a number range's Infinity, an open end) a JSON round trip would change.
   const questions = JSON.stringify(presets.map((p) => [p.id, p.filters ?? []]));
+  const givenKey = given ? JSON.stringify(given) : "";
   return useMemo(
     () => {
       void rows;
       void questions;
+      void givenKey;
+      if (given)
+        return new Map(
+          presets.flatMap((p): [string, number][] => {
+            const count = given[p.id];
+            return count === undefined ? [] : [[p.id, count]];
+          }),
+        );
       return new Map(presets.map((p) => [p.id, countRows(table, p.filters)]));
     },
     // `presets` is left out on purpose: a new array with the same questions counts nothing new.
-    [table, rows, questions],
+    [table, rows, questions, givenKey],
   );
 }
 
@@ -403,111 +596,141 @@ function usePresetCounts<TData extends RowData>(
 function PresetMenuItems<TData extends RowData>({
   table,
   presets,
+  counts: given,
 }: {
   table: DataTableInstance<TData>;
   presets: Preset[];
+  counts: Readonly<Record<string, number>> | undefined;
 }) {
-  const counts = usePresetCounts(table, presets);
-  return presets.map((p) => (
-    <DropdownMenuRadioItem key={p.id} value={p.id} closeOnClick>
-      {p.label}
-      <DropdownMenuShortcut>
-        <span className="tabular-nums">{counts.get(p.id) ?? 0}</span>
-      </DropdownMenuShortcut>
-    </DropdownMenuRadioItem>
-  ));
+  const { formatNumber } = useLedgerLocale();
+  const counts = usePresetCounts(table, presets, given);
+  return presets.map((p) => {
+    const count = counts.get(p.id);
+    return (
+      <DropdownMenuRadioItem key={p.id} value={p.id} closeOnClick>
+        {p.label}
+        {count === undefined ? null : (
+          <DropdownMenuShortcut>
+            <span className="tabular-nums">{formatNumber(count)}</span>
+          </DropdownMenuShortcut>
+        )}
+      </DropdownMenuRadioItem>
+    );
+  });
 }
 
 /** The strip's questions, each with its count, counted once per set of rows. */
 function PresetStripItems<TData extends RowData>({
   table,
   presets,
+  counts: given,
 }: {
   table: DataTableInstance<TData>;
   presets: Preset[];
+  counts: Readonly<Record<string, number>> | undefined;
 }) {
-  const counts = usePresetCounts(table, presets);
-  return presets.map((p) => (
-    <ToggleGroupItem key={p.id} value={p.id}>
-      {p.label}
-      <Count value={counts.get(p.id) ?? 0} max={9999} />
-    </ToggleGroupItem>
-  ));
+  const { formatNumber } = useLedgerLocale();
+  const counts = usePresetCounts(table, presets, given);
+  return presets.map((p) => {
+    const count = counts.get(p.id);
+    return (
+      <ToggleGroupItem key={p.id} value={p.id}>
+        {p.label}
+        {count === undefined ? null : <Count value={formatNumber(count)} />}
+      </ToggleGroupItem>
+    );
+  });
 }
 
 /**
  * Saved questions, each with the count it would show. Choosing one replaces the column filters.
  * `strip` is a ToggleGroup on its own line above the table; `menu` is one small button in the
  * toolbar that reads the current question and opens the list, for a toolbar that also holds
- * search and filters.
+ * search and filters. The button is named by what it shows ("All programs 7"), and `aria-label`
+ * (the locale's "Saved questions" unsaid) describes it; on the strip it names the group.
  */
 export function Presets<TData extends RowData>({
   table,
   presets,
   variant = "strip",
+  counts,
   "aria-label": ariaLabel,
   className,
 }: {
   table: DataTableInstance<TData>;
   presets: Preset[];
   variant?: "strip" | "menu" | undefined;
+  /** Each preset's count, by id, for a table the server filters (`manual`): its rows are one page, so it cannot count them. Unsaid, the table counts its own rows. */
+  counts?: Readonly<Record<string, number>> | undefined;
   "aria-label"?: string | undefined;
   className?: string | undefined;
 }) {
-  const { t } = useLedgerLocale();
+  const { t, formatNumber } = useLedgerLocale();
+  const descriptionId = useId();
 
-  const current = JSON.stringify(table.state.columnFilters);
-  const active = presets.find((p) => JSON.stringify(p.filters ?? []) === current);
+  const current = table.state.columnFilters;
+  const active = presets.find((p) => sameQuestion(table, p.filters ?? [], current));
   // The trigger's count is the active question's; the rows it counts change only with the data.
   const rows = table.getPreFilteredRowModel();
   const activeFilters = active ? JSON.stringify(active.filters ?? []) : undefined;
+  const counted = counts !== undefined;
+  const activeGiven = active ? counts?.[active.id] : undefined;
   const activeCount = useMemo(
     () => {
       void rows;
-      void activeFilters;
-      return active ? countRows(table, active.filters) : undefined;
+      if (activeFilters === undefined || !active) return undefined;
+      if (counted) return activeGiven;
+      return countRows(table, active.filters);
     },
     // Keyed by the question's value, not the preset object: see usePresetCounts.
-    [table, rows, activeFilters],
+    [table, rows, activeFilters, counted, activeGiven],
   );
   if (variant === "menu") {
     const count = activeCount;
     const label = active?.label ?? t("view");
     return (
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            // Narrower than its content, the label gives way with an ellipsis and keeps its full
-            // text as a title (when it is text); the count and the chevron stay whole.
-            <Button
-              variant="secondary"
-              size="small"
-              iconAfter={<ChevronDown />}
-              aria-label={ariaLabel ?? t("savedQuestions")}
-              className={cn("min-w-0 max-w-full", className)}
-            >
-              <span
-                className="min-w-0 truncate"
-                title={typeof label === "string" ? label : undefined}
+      <>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              // Named by what it shows, so "click All programs" finds it and a screen reader hears
+              // the question and its count; what the button is for is its description. Narrower
+              // than its content, the label gives way with an ellipsis and keeps its full text as a
+              // title (when it is text); the count and the chevron stay whole.
+              <Button
+                variant="secondary"
+                size="small"
+                iconAfter={<ChevronDown />}
+                aria-describedby={descriptionId}
+                className={cn("min-w-0 max-w-full", className)}
               >
-                {label}
-              </span>
-              {count === undefined ? null : <Count value={count} />}
-            </Button>
-          }
-        />
-        <DropdownMenuContent align="start" style={{ width: 240 }}>
-          <DropdownMenuRadioGroup
-            value={active?.id ?? ""}
-            onValueChange={(id: string) => {
-              const preset = presets.find((p) => p.id === id);
-              if (preset) table.setColumnFilters(preset.filters ?? []);
-            }}
-          >
-            <PresetMenuItems table={table} presets={presets} />
-          </DropdownMenuRadioGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+                <span
+                  className="min-w-0 truncate"
+                  title={typeof label === "string" ? label : undefined}
+                >
+                  {label}
+                </span>
+                {count === undefined ? null : <Count value={formatNumber(count)} />}
+              </Button>
+            }
+          />
+          <DropdownMenuContent align="start" style={{ minWidth: 240 }}>
+            <DropdownMenuRadioGroup
+              aria-label={ariaLabel ?? t("savedQuestions")}
+              value={active?.id ?? ""}
+              onValueChange={(id: string) => {
+                const preset = presets.find((p) => p.id === id);
+                if (preset) table.setColumnFilters(preset.filters ?? []);
+              }}
+            >
+              <PresetMenuItems table={table} presets={presets} counts={counts} />
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <span id={descriptionId} hidden>
+          {ariaLabel ?? t("savedQuestions")}
+        </span>
+      </>
     );
   }
   // The strip keeps every question in one row; narrower than its row it scrolls, arrows where a pointer can hover.
@@ -525,7 +748,7 @@ export function Presets<TData extends RowData>({
             table.setColumnFilters(preset?.filters ?? []);
           }}
         >
-          <PresetStripItems table={table} presets={presets} />
+          <PresetStripItems table={table} presets={presets} counts={counts} />
         </ToggleGroup>
       </ScrollerViewport>
       <ScrollerArrow edge="start" />

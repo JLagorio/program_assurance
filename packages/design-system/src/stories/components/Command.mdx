@@ -1,15 +1,36 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import {
+  CommandCount,
+  CommandDialog,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+} from "../../components";
 import * as Stories from "./Command.stories";
 
 <Meta of={Stories} />
 
 # Command
 
-Based on [shadcn’s Base UI source](https://ui.shadcn.com/docs/components/base/command) and [cmdk](https://cmdk.paco.me). Ledger retains its tokens and application layouts.
+A list the reader filters from the keyboard: the parts behind the [CommandPalette](?path=/docs/patterns-commandpalette--docs) and the [RecordPicker](?path=/docs/patterns-recordpicker--docs). Based on [shadcn’s Base UI source](https://ui.shadcn.com/docs/components/base/command) and [cmdk](https://cmdk.paco.me), which does the filtering, the arrow keys and the roles; Ledger draws the rows as a menu's rows and adds what cmdk leaves out: an active descendant that follows the selection, the count spoken as it settles, and an empty sentence that waits while rows load. Finding a record of any type is the [SearchDialog](?path=/docs/patterns-searchdialog--docs), and choosing a value in a form is a [Combobox](?path=/docs/components-combobox--docs).
 
 ## Anatomy
 
-Keyboard-filtered actions using cmdk, as in shadcn’s Base UI implementation. CommandDialog uses the shared Base UI Dialog. Compose Command, CommandInput, CommandList, CommandGroup, CommandItem, CommandEmpty, CommandSeparator and CommandShortcut.
+Compose Command, CommandInput, CommandList, CommandGroup, CommandItem, CommandEmpty, CommandLoading, CommandSeparator, CommandShortcut, CommandFooter and CommandCount, in a CommandDialog or inline.
+
+| Part            | What it is                                                                                                                                                                                                        |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CommandInput    | A search icon, the field and a hint at the end: the Escape key by default, which is decoration; `null` for none; a CommandCount for a picker, which the field is then described by.                               |
+| CommandList     | The listbox, named "Results" by default (`label`), scrolling inside itself past 340px.                                                                                                                            |
+| CommandGroup    | Rows under a heading; the heading goes when every row under it is filtered out.                                                                                                                                   |
+| CommandItem     | One row: an icon if the rows are of kinds, the label, and at the end its `shortcut` or other trailing content. The selected row tints as a menu row does and, while the field has focus, draws the focus outline. |
+| CommandEmpty    | What the list says when no row shows. `noMatch` says what a query that matches nothing finds, where the children say the list has no rows. It never shows while a CommandLoading does.                            |
+| CommandLoading  | The kit's Spinner and "Searching…", beside the list while rows are fetched; give the list `aria-busy` while it shows.                                                                                             |
+| CommandShortcut | A shortcut's keys at the end of a row, hidden from assistive technology. CommandItem's `shortcut` draws one.                                                                                                      |
+| CommandCount    | "12 matches", in the locale's words and plural rules; `one` and `many` put other words after the number, and a word left out is the locale's.                                                                     |
+| CommandFooter   | The keys and what they do, and the count at the end.                                                                                                                                                              |
+| CommandDialog   | The list in a Dialog at the top of the window: 80px down, or a tenth of the window's height where that is less, and at most as tall as the space below.                                                           |
 
 ## Variants
 
@@ -17,28 +38,52 @@ Keyboard-filtered actions using cmdk, as in shadcn’s Base UI implementation. C
 
 <Canvas of={Stories.Palette} />
 
-CommandDialog keeps its 80px top inset and limits its height to the space below it. On short screens the command list scrolls while the search and footer remain visible.
+On short screens the command list scrolls while the search and footer remain visible, and the top inset gives way to a tenth of the window's height, so a landscape phone keeps room for the rows.
 
 <Canvas of={Stories.ShortViewport} />
 
 <Canvas of={Stories.Loading} />
 
+A picker counts its own kind of row: `one="record"` reads "1 record", and the other count keeps the locale's words.
+
+<Canvas of={Stories.CountWords} />
+
 ## Accessibility
 
-Give Command a descriptive `label` (cmdk uses it to name the search input), and give CommandDialog a title. cmdk handles filtering, disabled choices, option navigation and selection. Base UI Dialog handles focus, modality and dismissal. CommandSeparator is presentational within the listbox. Put CommandLoading alongside CommandList, with aria-busy on the list while fetching. Item onSelect owns the action and any palette closing. When showCloseButton is false, compose a DialogClose so touch and screen-reader users have a dismissal control; the palette and record picker make their Escape footer hint a close button.
+- **Name it.** Give Command a descriptive `label` (cmdk uses it to name the field), and CommandDialog a `title`. The title defaults to "Command palette" and is then read with "Search for a command to run."; a title of the caller's own is read with its own `description` or none.
+- **The active descendant follows the selection.** The field's `aria-activedescendant` names the selected row on open, after every keystroke and after every arrow, and is absent while no row shows, so a screen reader always hears the row Enter would choose.
+- **The count is spoken.** Once the query holds still for 600ms, the page's [Announcer](?path=/docs/components-announcer--docs) says "1 match" or the empty sentence. Nothing is said before a query or while a CommandLoading shows.
+- **A load is not an empty list.** While CommandLoading shows, CommandEmpty and the spoken count wait.
+- **A shortcut is not part of the name.** CommandItem's `shortcut` draws the keys and sets `aria-keyshortcuts`, so the row is "Export report", not "Export report Ctrl E". Give such a row a `value`, since cmdk otherwise matches its text content.
+- **The field shows its focus, and so does the row Enter would choose.** The field's row draws the field's focus ring while the field has focus, in a dialog and inline. Focus stays in the field, so the selected row, its active descendant, draws the same outline over its tint while the field has focus and gives it up when focus leaves; the row under the pointer keeps the tint alone.
+- **The rest is cmdk's and Base UI's.** cmdk handles filtering, disabled choices, option navigation and selection; Base UI Dialog handles focus, modality and dismissal. CommandSeparator is presentational within the listbox. Item `onSelect` owns the action and any palette closing. When `showCloseButton` is false, compose a DialogClose so touch and screen-reader users have a dismissal control; the palette and record picker make their Escape footer hint a close button.
+- **In forced colours** the selected row is Highlight and a disabled row GrayText.
+
+Every word the parts show comes from the locale's messages (`commandPaletteTitle`, `commandMatchOne`, `commandListLabel`, `searching` and the rest), so a localised product reads in one language.
 
 ## Props
 
-Command parts forward their native cmdk props and refs. CommandDialog accepts the native generic Dialog root contract plus title, description, className, style, showCloseButton and finalFocus. CommandLoading, CommandFooter and CommandCount retain their existing loading and result-count roles.
+Command parts forward their native cmdk props and refs. CommandDialog accepts the native generic Dialog root contract plus title, description, className, style, showCloseButton and finalFocus. CommandInput adds `hint`, CommandItem `shortcut` and CommandEmpty `noMatch`.
+
+<ArgTypes of={CommandInput} />
+
+<ArgTypes of={CommandItem} />
+
+<ArgTypes of={CommandEmpty} />
+
+<ArgTypes of={CommandCount} />
+
+<ArgTypes of={CommandDialog} />
 
 ### Migration and API
 
-- Replace Command.Input/List/Group/Item/etc. with flat exports. Put trailing content in children, using CommandShortcut for key hints.
+- Replace Command.Input/List/Group/Item/etc. with flat exports. Put a key hint in CommandItem's `shortcut`, and other trailing content in children.
 - Replace Command.Dialog with CommandDialog. Compose an explicit Command inside it; command filtering/value props belong on Command.
 - Replace onClose with onOpenChange and label with title on the dialog. Use style or className for palette width; finalFocus replaces returnFocusRef.
-- Command continues to use cmdk; its modal shell no longer imports Radix Dialog directly.
 
 ## Related
 
 - [Dialog](?path=/docs/components-dialog--docs)
-- [Combobox](?path=/docs/components-combobox--docs)
+- [CommandPalette](?path=/docs/patterns-commandpalette--docs)
+- [RecordPicker](?path=/docs/patterns-recordpicker--docs)
+- [Kbd](?path=/docs/components-kbd--docs)

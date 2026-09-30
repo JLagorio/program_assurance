@@ -33,7 +33,8 @@
   transition:
     transform var(--ds-motion-duration-slow) var(--ds-motion-easing-standard),
     opacity var(--ds-motion-duration-slow) var(--ds-motion-easing-standard),
-    height var(--ds-motion-duration-fast) var(--ds-motion-easing-standard);
+    height var(--ds-motion-duration-fast) var(--ds-motion-easing-standard),
+    visibility var(--ds-motion-duration-slow) var(--ds-motion-easing-standard);
   will-change: transform;
   &::after {
     content: "";
@@ -47,8 +48,11 @@
     height: var(--toast-height);
     transform: translateX(var(--toast-swipe-movement-x)) translateY(var(--offset-y));
   }
+  /* A toast past the limit fades out and then leaves the page: hidden, it takes no place in an
+     open stack's window and nothing reaches it. */
   &[data-limited] {
     opacity: 0;
+    visibility: hidden;
   }
   &[data-starting-style],
   &[data-ending-style]:not([data-limited]):not([data-swipe-direction]) {

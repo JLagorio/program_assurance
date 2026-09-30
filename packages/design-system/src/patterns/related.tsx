@@ -1,11 +1,13 @@
 import { useRender } from "@base-ui/react/use-render";
 import { Link2 } from "lucide-react";
-import { Children, useId, type ReactElement, type ReactNode } from "react";
+import { useId, type ReactElement, type ReactNode } from "react";
 
 import { Count } from "../components/badge";
-import { Item, type ItemSize } from "../components/item";
+import { hasRenderedChildren, Item, type ItemSize } from "../components/item";
 import { KeyValue } from "../components/key-value";
+import { Truncate } from "../components/truncate";
 import { cn } from "../lib/cn";
+import { useLedgerLocale } from "../lib/locale";
 import { headingTag, useHeadingLevel } from "../primitives/heading-level";
 import { Card, raisedSurface } from "../components/card";
 import {
@@ -37,7 +39,7 @@ export type RelatedEmpty =
     };
 
 export type RelatedProps = {
-  /** The kind of record linked, a noun: "Linked findings", "Systems", "Team". A heading at the contextual level, an h3 outside every HeadingLevelProvider. */
+  /** The kind of record linked, a noun: "Linked findings", "Systems", "Team". A heading at the contextual level, an h3 outside every HeadingLevelProvider; a long one wraps. */
   title: ReactNode;
   /** A Count after the title: how many are linked. */
   count?: number | undefined;
@@ -49,7 +51,7 @@ export type RelatedProps = {
   layout?: RelatedLayout | undefined;
   /** The list's row height, `compact` by default; `default` beside a page's body. */
   size?: ItemSize | undefined;
-  /** What to show when nothing is linked, drawn as a compact Empty with a link icon: "Nothing linked yet" by default. */
+  /** What to show when nothing is linked, drawn as a compact Empty with a link icon: the locale's `relatedEmpty`, "Nothing linked yet" in en-US, by default. */
   empty?: RelatedEmpty | undefined;
   className?: string | undefined;
   /** Item rows in the list layout; Related.Card in the cards layout. */
@@ -64,22 +66,27 @@ function RelatedRoot({
   footer,
   layout = "list",
   size = "compact",
-  empty = "Nothing linked yet",
+  empty,
   className,
   children,
 }: RelatedProps) {
+  const { t } = useLedgerLocale();
   const headingId = useId();
   const HeadingTag = headingTag(useHeadingLevel() ?? 3);
-  const has = Children.toArray(children).some(Boolean);
+  const has = hasRenderedChildren(children);
   const emptyProps: Exclude<RelatedEmpty, string> =
-    typeof empty === "string" ? { title: empty } : empty;
+    empty === undefined
+      ? { title: t("relatedEmpty") }
+      : typeof empty === "string"
+        ? { title: empty }
+        : empty;
   const emptyIcon = "icon" in emptyProps ? emptyProps.icon : <Link2 />;
   return (
     <Card className={cn("flex flex-col", className)}>
       <div className="flex items-center gap-100 border-b border-default px-200 py-100">
         <HeadingTag
           id={headingId}
-          className="min-w-0 truncate font-body font-semibold text-default"
+          className="min-w-0 break-words font-body font-semibold text-default"
         >
           {title}
         </HeadingTag>
@@ -120,7 +127,7 @@ function RelatedRoot({
         </ul>
       ) : (
         <div className="py-050">
-          <Item.Group labelledBy={headingId} size={size} flush>
+          <Item.Group aria-labelledby={headingId} size={size} flush>
             {children}
           </Item.Group>
         </div>
@@ -137,7 +144,7 @@ function RelatedRoot({
 export type RelatedCardProps = {
   /** The mark before the title, 32px: a medium Avatar, square for a thing and round for a person. It spans the title and the meta line. */
   leading?: ReactNode;
-  /** The record's name. With `link`, it is the link. */
+  /** The record's name, one line. With `link`, it is the link. A name that is cut shows in full in a tooltip on hover and on keyboard focus of the link. */
   title: ReactNode;
   /** A link element (a router's Link) that becomes the title. Leave it empty to use title; supplied children override the link text. */
   link?:
@@ -160,7 +167,7 @@ export type RelatedCardProps = {
 };
 
 /** One linked record as a card, in a Related with `layout="cards"`: the mark, the name as the link, the meta, one status, a few properties, and the actions that show on hover. It paints the raised surface and records it as the current one, as Card does, so a sticky or surface-matching child inside reads `bg-surface-current`. */
-function RelatedCard({
+export function RelatedCard({
   leading,
   title,
   link,
@@ -171,7 +178,7 @@ function RelatedCard({
   className,
   children,
 }: RelatedCardProps) {
-  const text = <span className="block truncate">{title}</span>;
+  const text = <Truncate>{title}</Truncate>;
   const titleClass = "block min-w-0 font-body font-medium text-default";
   const titleEl = useRender({
     defaultTagName: "span",
@@ -188,7 +195,7 @@ function RelatedCard({
   return (
     <li
       className={cn(
-        "group/card flex list-none flex-col gap-100 rounded-large border border-default bg-surface-raised p-150 transition-shadow duration-fast ease-standard animate-rise hover:shadow-raised",
+        "group/related-card flex list-none flex-col gap-100 rounded-large border border-default bg-surface-raised p-150 transition-shadow duration-fast ease-standard animate-rise hover:shadow-raised",
         className,
       )}
       style={raisedSurface}
@@ -200,14 +207,14 @@ function RelatedCard({
           {status || meta ? (
             <span className="flex min-w-0 items-center gap-100">
               {status ? <span className="flex shrink-0 items-center">{status}</span> : null}
-              {meta ? (
-                <span className="min-w-0 truncate font-body-small text-subtle">{meta}</span>
-              ) : null}
+              {meta ? <Truncate className="font-body-small text-subtle">{meta}</Truncate> : null}
             </span>
           ) : null}
         </div>
         {actions ? (
-          <span className="flex h-250 shrink-0 items-center gap-025 opacity-0 transition-opacity duration-fast ease-standard focus-within:opacity-100 group-hover/card:opacity-100 has-[[data-state=open]]:opacity-100 pointer-coarse:opacity-100">
+          // Shown while a menu of its own is open (Base UI marks the trigger `data-popup-open`), and
+          // always without hover: on a touch screen, and wherever any pointer is coarse.
+          <span className="flex h-250 shrink-0 items-center gap-025 opacity-0 transition-opacity duration-fast ease-standard focus-within:opacity-100 group-hover/related-card:opacity-100 has-[[data-popup-open]]:opacity-100 has-[[data-state=open]]:opacity-100 any-pointer-coarse:opacity-100 motion-reduce:transition-none [@media(hover:none)]:opacity-100">
             {actions}
           </span>
         ) : null}

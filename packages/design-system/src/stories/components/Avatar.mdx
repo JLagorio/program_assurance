@@ -1,11 +1,23 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import {
+  Avatar,
+  AvatarBadge,
+  AvatarFallback,
+  AvatarGroup,
+  AvatarGroupCount,
+  AvatarImage,
+  Person,
+} from "../../components";
 import * as Stories from "./Avatar.stories";
 
 <Meta of={Stories} />
 
 # Avatar
 
-Represent a person or entity with Base UI image loading and shadcn's flat Avatar parts. Ledger retains its sizes, shapes and accent treatments.
+A mark that a person, a team or a system is meant: initials by default, a photo when there is one, in five sizes, built on Base UI's Avatar and shadcn's flat parts. Use it beside a name (an owner, an assessor, a reviewer), as a group of the people on a record, or as the account in the side nav. A person's name in a row is a `Person`: the small avatar and the visible name.
+
+It is not a status: presence, health and verification are words beside the person, and a status is a [Badge](?path=/docs/components-badge--docs). It is not a picture of a record; a record's kind is an [Icon](?path=/docs/components-icon--docs).
 
 ## Anatomy
 
@@ -17,31 +29,119 @@ Represent a person or entity with Base UI image loading and shadcn's flat Avatar
 </Avatar>
 ```
 
-Compose overlapping avatars with `AvatarGroup` and `AvatarGroupCount`. The caller chooses members and writes the overflow count. `Person` remains the small avatar plus visible name used in record rows.
+| Part               | What it is                                                                                                       |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `Avatar`           | The circle or square. Base UI's Root, which tracks the photo's loading.                                          |
+| `AvatarImage`      | The photo, drawn only once it has loaded.                                                                        |
+| `AvatarFallback`   | The initials (or an icon) the caller writes, shown while the photo loads, when it fails, and when there is none. |
+| `AvatarBadge`      | A mark on the corner, ringed in the surface colour: a dot, or an icon from `medium` up.                          |
+| `AvatarGroup`      | Overlapping avatars; the overlap is a quarter of their size, near enough on the spacing scale.                   |
+| `AvatarGroupCount` | The +n circle after the avatars the group draws, at their size. With `render={<button />}`, it opens the rest.   |
+| `Person`           | An xsmall avatar, hidden, beside the person's visible name.                                                      |
 
-## Variants and states
+The caller chooses the members and writes the overflow count; there is no `max`.
 
-Sizes are `xsmall`, `small` (default), `medium`, `large` and `xlarge`. Shapes are `circle` and `square`; treatments are `neutral`, `tinted`, `bold` and `gradient`. Use `avatarHue(name)` when a person's accent should stay stable and `avatarInitials(name, count)` to produce fallback text.
+## Variants
+
+| `variant`  | Use                                                                                                       |
+| ---------- | --------------------------------------------------------------------------------------------------------- |
+| `neutral`  | The default. The fill of a Badge with a hairline, so a person never reads as a status.                    |
+| `tinted`   | A soft accent fill, the hue stable per person (`avatarHue(name)`), where several people sit side by side. |
+| `bold`     | A strong accent fill with inverse initials, for the one person a view is about.                           |
+| `gradient` | Two neighbouring accents, for the account in the shell.                                                   |
+
+Shapes are `circle` for a person and `square` for a team, a system or an organization. The accent colours carry no meaning; a hue only tells two people apart.
 
 <Canvas of={Stories.AvatarMatrix} />
+
 <Canvas of={Stories.People} />
 
-Base UI shows the fallback while the image loads or fails. `AvatarFallback.delay` can delay its appearance. Changing Image's `src` retries loading.
+## Sizes
+
+| `size`   | Box  | Initials | Use                                         |
+| -------- | ---- | -------- | ------------------------------------------- |
+| `xsmall` | 16px | one      | Beside a name in a row: `Person`.           |
+| `small`  | 24px | two      | The default. A group of reviewers in a row. |
+| `medium` | 32px | two      | A card, a rail, the account menu.           |
+| `large`  | 40px | two      | A record's owner in its header.             |
+| `xlarge` | 64px | two      | A person's own record.                      |
+
+In a group, the +n circle takes its members' size and a type size under theirs, and the overlap scales with them: 4px at xsmall, 6px at small, 8px at medium and large, 16px at xlarge.
+
+<Canvas of={Stories.GroupSizes} />
+
+## States
+
+Base UI shows the fallback while the image loads or fails. `AvatarFallback.delay` can delay its appearance so a fast photo never flashes initials. Changing Image's `src` retries loading. Once the photo has loaded, the circle takes the neutral paint behind it.
 
 <Canvas of={Stories.ImageLoading} />
 
+## Modifiers
+
+- **`size`**, **`shape`**, **`variant`** and **`hue`** on Avatar; `hue` matters only to `tinted`, `bold` and `gradient`.
+- **`avatarInitials(name, count)`** writes the fallback: one letter at xsmall, two above. **`avatarHue(name)`** gives a person the same hue everywhere.
+- **AvatarBadge `tone`**: `neutral`, the default, for a mark that is not a status (a lock, a role, an invite); `success` for a verified or active person; `warning` for one who needs attention.
+- **AvatarGroupCount `render`**: a button, for a Popover or HoverCard that lists the members the group does not draw.
+
+## Content
+
+- **Initials from the name as the person writes it**, one or two letters. Never a placeholder silhouette in place of a known name.
+- **Presence is its own vocabulary**, in words: "online", "away", "invited". Say it in the avatar's `aria-label` ("Dana Whitfield, online") or beside the name, never as a red or green dot alone. A tone on the corner is a status, and presence is not one.
+- **A group says who is in it.** Name the group ("Reviewers: Dana Whitfield, Grace Hoppel and three others"), and let the +n open the rest.
+
+## Long content
+
+An avatar holds one or two letters and never overflows. A `Person`'s name is a row field: longer than its column, it ends in an ellipsis and shows whole on hover while it is cut. The group does not count its room: where it would run past its container, the caller draws fewer avatars and a larger +n, and makes the +n a button whose Popover lists the hidden names.
+
+<Canvas of={Stories.HiddenMembers} />
+
 ## Accessibility
 
-Name an informative avatar with `role="img"` and `aria-label`, including meaningful presence information. When a visible name already identifies the person, set `aria-hidden="true"` on the avatar. A named group can hide its avatars and count when its accessible name already describes the entire group. Give Image an empty alt when the root supplies the name.
+- **Name an informative avatar** with `role="img"` and `aria-label`, including meaningful presence ("Dana Whitfield, online"). Give Image an empty `alt` when the root supplies the name.
+- **Hide an avatar beside its visible name** with `aria-hidden="true"`; `Person` does. A named group can hide its avatars and count when its own name describes the whole group.
+- **The +n as a button** is named for what it holds ("3 more reviewers"), opens with Enter or Space, and its Popover returns focus to it on Escape. It takes the focus ring and a 24px hit area where a pointer is coarse.
+- **Not colour alone.** A corner mark in a tone always has words beside it or in the avatar's name.
+- **Contrast:** tinted initials on their fill and inverse initials on the bold fill pass 4.5:1 in every accent, and the neutral paint is a Badge's; the contrast gate holds them.
 
 ## Props
 
-Root, Image and Fallback preserve their native Base UI props, refs, `render`, and state-based classes/styles. Badge accepts native span props and Ledger's `tone`. Group and GroupCount accept native div props. Ref targets follow each part.
+Root, Image and Fallback take their native Base UI props, refs, `render`, and state-based classes and styles. Badge takes a span's native props and `tone`; Group takes a div's; GroupCount a div's and `render`. Each part names itself last with its `data-slot` (`avatar`, `avatar-image`, `avatar-fallback`, `avatar-badge`, `avatar-group`, `avatar-group-count`, `person`), and Avatar reports `data-size`, `data-variant` and `data-shape`.
 
-Replace `Avatar name/src` with explicit Image and Fallback children; replace `isDecorative` with native `aria-hidden`. Replace `Avatar.Stack names/max` with caller-owned `AvatarGroup` children and `AvatarGroupCount`. There is one composition API.
+<ArgTypes of={Avatar} />
+
+### AvatarImage
+
+<ArgTypes of={AvatarImage} />
+
+### AvatarFallback
+
+<ArgTypes of={AvatarFallback} />
+
+### AvatarBadge
+
+<ArgTypes of={AvatarBadge} />
+
+### AvatarGroup
+
+<ArgTypes of={AvatarGroup} />
+
+### AvatarGroupCount
+
+<ArgTypes of={AvatarGroupCount} />
+
+### Person
+
+<ArgTypes of={Person} />
+
+### Playground
 
 <Canvas of={Stories.Playground} />
 
+<Controls of={Stories.Playground} />
+
 ## Related
 
-[shadcn Avatar](https://ui.shadcn.com/docs/components/base/avatar) · [Base UI Avatar](https://base-ui.com/react/components/avatar) · [Badge](?path=/docs/components-badge--docs)
+- [Badge](?path=/docs/components-badge--docs): a status, told in words.
+- [Icon](?path=/docs/components-icon--docs): the mark for a kind of record.
+- [Popover](?path=/docs/components-popover--docs), [HoverCard](?path=/docs/components-hovercard--docs): what the +n opens.
+- References: [shadcn Avatar](https://ui.shadcn.com/docs/components/base/avatar) · [Base UI Avatar](https://base-ui.com/react/components/avatar)

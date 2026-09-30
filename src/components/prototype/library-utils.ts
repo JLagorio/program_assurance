@@ -1,6 +1,7 @@
 import { useConfirmation } from "@/components/app/confirmation";
 import { useModelSave } from "@/lib/models";
 import { downloadText, toast } from "@ledger/design-system";
+import { useEffect, useRef, type RefObject } from "react";
 
 /** Saves the library's recorded rows as a JSON file, through the kit's download helper. */
 export function downloadLibraryRecords(name: string, records: unknown) {
@@ -49,4 +50,26 @@ export function usePublishVersion(
     return published;
   }
   return { publish, confirmation, isPending: save.isPending };
+}
+
+/** The control a version was chosen with: the rail's Version select, or the history's Open. */
+export type VersionChoice = "select" | "history";
+
+/**
+ * Keeps focus through a version change. Each version's page mounts afresh, so the control that
+ * chose the version goes with the old page; once the new one is drawn, focus goes to its twin there:
+ * the Version select, or the history's mark on the version now shown. A page that opens on Overview
+ * after a choice from the history has only the select. `chosen` lives above the version's page and
+ * says where the last choice came from; the new page reads it once and clears it.
+ */
+export function useVersionFocus(chosen: RefObject<VersionChoice | null>) {
+  const select = useRef<HTMLButtonElement>(null);
+  const shown = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const from = chosen.current;
+    chosen.current = null;
+    if (from === null) return;
+    ((from === "history" ? shown.current : null) ?? select.current)?.focus();
+  }, [chosen]);
+  return { select, shown };
 }

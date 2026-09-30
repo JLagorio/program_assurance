@@ -57,7 +57,7 @@ function turned(trigger: HTMLElement) {
   return getComputedStyle(icon).rotate === "180deg";
 }
 
-/** The groups as data, every one open, in the order the reader needs them, with a footer action under them. Each title is a button inside a heading at the contextual level, an h3 when nothing sets one. */
+/** The groups as data, every one open, in the order the reader needs them, with a footer action under them. Each title is a button inside a heading at the contextual level, an h3 when nothing sets one, and each group's rows are one definition list. */
 export const Groups: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
@@ -65,6 +65,15 @@ export const Groups: Story = {
       await expect(canvas.getByRole("heading", { name }).tagName).toBe("H3");
       await expect(canvas.getByRole("button", { name })).toHaveAttribute("aria-expanded", "true");
     }
+    // One list of pairs per group, not one list per fact.
+    const lists = canvasElement.querySelectorAll("dl");
+    await expect(lists).toHaveLength(2);
+    for (const list of lists) {
+      await expect(list).toHaveAttribute("data-slot", "key-value-group");
+      await expect(list.querySelectorAll(":scope > div > dt")).toHaveLength(2);
+    }
+    // Every group is an Inspector.Group, so both forms share the header, the keyboard and the fold.
+    await expect(canvasElement.querySelectorAll("[data-slot=inspector-group]")).toHaveLength(2);
     const schedule = canvas.getByRole("button", { name: "Schedule" });
     await userEvent.click(schedule);
     await expect(schedule).toHaveAttribute("aria-expanded", "false");
@@ -79,7 +88,7 @@ export const Groups: Story = {
 
 const editDetails = fn();
 
-/** Inspector.Group on its own: KeyValue rows as children, open by default, an action beside the title, and `defaultOpen={false}` for the collapsed Details a reader opens when they need provenance or derivation. The chevron turns while the group is open and holds still under reduced motion. */
+/** Inspector.Group on its own: its rows in a KeyValue.Group (KeyValues given directly become one), open by default, an action beside the title, and `defaultOpen={false}` for the collapsed Details a reader opens when they need provenance or derivation. The chevron turns while the group is open and holds still under reduced motion. */
 export const Group: Story = {
   render: () => (
     <div>
@@ -95,12 +104,14 @@ export const Group: Story = {
           />
         }
       >
-        <KeyValue label="Status">
-          <Badge variant="secondary" tone="success">
-            Active
-          </Badge>
-        </KeyValue>
-        <KeyValue label="Identifier">SYS-104</KeyValue>
+        <KeyValue.Group>
+          <KeyValue label="Status">
+            <Badge variant="secondary" tone="success">
+              Active
+            </Badge>
+          </KeyValue>
+          <KeyValue label="Identifier">SYS-104</KeyValue>
+        </KeyValue.Group>
       </Inspector.Group>
       <Inspector.Group title="Provenance" defaultOpen={false}>
         <KeyValue label="Source">NIST SP 800-53 Rev 5</KeyValue>
@@ -115,6 +126,9 @@ export const Group: Story = {
     const heading = canvas.getByRole("heading", { name: "Details" });
     await expect(heading.tagName).toBe("H3");
     await expect(heading).toContainElement(details);
+    // The rows are one definition list: a KeyValue.Group given, or KeyValues given directly.
+    const detailsGroup = details.closest<HTMLElement>("[data-slot=inspector-group]")!;
+    await expect(detailsGroup.querySelectorAll("dl")).toHaveLength(1);
     // The action is outside the heading, its own stop.
     await expect(
       within(heading).queryByRole("button", { name: "Edit details" }),
@@ -133,6 +147,10 @@ export const Group: Story = {
     await expect(provenance).toHaveAttribute("aria-expanded", "true");
     await waitFor(() => expect(canvas.getByText("NIST SP 800-53 Rev 5")).toBeVisible());
     await waitFor(() => expect(turned(provenance)).toBe(true));
+    const provenanceGroup = provenance.closest<HTMLElement>("[data-slot=inspector-group]")!;
+    const provenanceLists = provenanceGroup.querySelectorAll("dl");
+    await expect(provenanceLists).toHaveLength(1);
+    await expect(provenanceLists[0]).toHaveAttribute("data-slot", "key-value-group");
     // Settled open, the rows clip no longer, so a focus ring at their edge shows whole.
     const rows = canvas
       .getByText("NIST SP 800-53 Rev 5")
@@ -164,7 +182,9 @@ export const InARail: Story = {
               </Button>
             }
           >
-            <KeyValue label="Boundary">Ground segment</KeyValue>
+            <KeyValue.Group>
+              <KeyValue label="Boundary">Ground segment</KeyValue>
+            </KeyValue.Group>
           </Inspector.Group>
         </HeadingLevelProvider>
       </aside>
@@ -204,7 +224,9 @@ function ControlledGroup() {
           void details;
         }}
       >
-        <KeyValue label="Parent">REQ-12</KeyValue>
+        <KeyValue.Group>
+          <KeyValue label="Parent">REQ-12</KeyValue>
+        </KeyValue.Group>
         <Text size="small" color="color.text.subtle">
           Derived from the mission availability objective.
         </Text>
@@ -272,15 +294,19 @@ export const Dont: Story = {
       do={
         <HeadingLevelProvider level={2}>
           <Inspector.Group title="Details">
-            <KeyValue label="Owner">Dana Whitfield</KeyValue>
-            <KeyValue label="Due">30 Sept 2026</KeyValue>
+            <KeyValue.Group>
+              <KeyValue label="Owner">Dana Whitfield</KeyValue>
+              <KeyValue label="Due">30 Sept 2026</KeyValue>
+            </KeyValue.Group>
           </Inspector.Group>
           <Inspector.Group title="Provenance" defaultOpen={false}>
-            <KeyValue label="Source">NIST SP 800-53 Rev 5</KeyValue>
+            <KeyValue.Group>
+              <KeyValue label="Source">NIST SP 800-53 Rev 5</KeyValue>
+            </KeyValue.Group>
           </Inspector.Group>
         </HeadingLevelProvider>
       }
-      doText="Inspector.Group: a heading at the rail's level, a folding title, KeyValue rows, and provenance collapsed."
+      doText="Inspector.Group: a heading at the rail's level, a folding title, KeyValue rows in one KeyValue.Group, and provenance collapsed."
       dont={
         <Stack space="space.100">
           <Text weight="semibold">Details</Text>

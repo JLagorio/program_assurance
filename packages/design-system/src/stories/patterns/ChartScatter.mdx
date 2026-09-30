@@ -7,7 +7,7 @@ import * as Stories from "./ChartScatter.stories";
 
 # Scatter
 
-A point per record on two value axes: where each thing sits on two measures at once. Risks by likelihood and impact; findings by age and severity. Points fall into groups of a tone, three at most; a bubble's area follows a third value; two references make quadrants. Each point is a record, so a click opens its card. It lives in a [Chart](?path=/docs/patterns-chart-overview--docs) Frame.
+A point per record on two value axes: where each thing sits on two measures at once. Findings by how long they have been open and what they expose; systems by cost and open findings. Points fall into groups of a tone, three at most; a bubble's area follows a third value; two references make quadrants. Each point is a record, so a click opens its card. It lives in a [Chart](?path=/docs/patterns-chart-overview--docs) Frame.
 
 <Canvas of={Stories.ScatterMatrix} />
 
@@ -20,7 +20,7 @@ A point per record on two value axes: where each thing sits on two measures at o
 | Axes      | Both value axes, a hairline on the category side, ticks in `color.text.subtlest`, titles in `color.text.subtle` when the keys do not say enough. |
 | Grid      | Hairlines both ways, since both axes are values.                                                                                                 |
 | Reference | A dashed hairline at a value on either axis; one on each makes quadrants.                                                                        |
-| Tooltip   | The point's name and group, then each axis as name and value. Per point, not per column.                                                         |
+| Tooltip   | The point's name and group, then each axis as name and value in its format, then any other point at the same place. Per point, not per column.   |
 | Card      | On a chosen point: its name, group and axes, then the caller's facts and a way to the record.                                                    |
 
 ## Variants
@@ -41,22 +41,26 @@ A point per record on two value axes: where each thing sits on two measures at o
 
 ## States
 
-| State    | What changes                                                                                                                                          |
-| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Hover    | The tooltip at the point. No cursor band, since there is no category.                                                                                 |
-| Isolated | A group hidden from the Frame's legend leaves the plot.                                                                                               |
-| Chosen   | With `onSelect` or `details`: the points take the pointer, a click chooses one, the others dim and the chosen one gains a halo; the card opens on it. |
-| Loading  | Eight skeleton dots on two hairlines, pulsing, at the plot's height.                                                                                  |
-| Entering | The points arrive over `motion.duration.slow`.                                                                                                        |
+| State    | What changes                                                                                                                                                                                                        |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hover    | The tooltip at the point. No cursor band, since there is no category.                                                                                                                                               |
+| Isolated | A group hidden from the Frame's legend leaves the plot.                                                                                                                                                             |
+| Focused  | With `onSelect` or `details`, on the keyboard: a 2px ring in `color.border.focused` around the point, outside its surface ring.                                                                                     |
+| Chosen   | With `onSelect` or `details`: the points take the pointer, a click, Enter or Space chooses one, the others dim and the chosen one gains a halo; the card opens on it, and offers any other point at the same place. |
+| Loading  | Eight skeleton dots on two hairlines, pulsing, at the plot's height.                                                                                                                                                |
+| Entering | The points arrive over `motion.duration.slow`.                                                                                                                                                                      |
 
 <Canvas of={Stories.Details} />
+<Canvas of={Stories.SamePlace} />
 <Canvas of={Stories.AsATable} />
 
 ## Modifiers
 
-- **`z`** for a bubble, **`zLabel`** for what its size is called; **`name`** for the key that names a point.
+- **`z`** for a bubble, **`zLabel`** for what its size is called; **`nameKey`** for the key that names a point. `name` still names the key and is deprecated for `nameKey`, since `name` and `label` name the plot on every other part.
 - **`groupBy`** and **`groups`** for the groups and their tones; **`tone`** for every point when there are none.
-- **`reference`**, **`xLabel`**, **`yLabel`**, **`format`**, **`formatX`** as on the other parts.
+- **`xDomain`** and **`yDomain`** pin an axis' ends (a number or `"auto"` each); with both ends pinned the ticks are round steps across them, and **`xTicks`** and **`yTicks`** set them outright.
+- **`format`** for every axis without its own; **`formatX`**, **`formatY`** and **`formatZ`** for each axis, in its ticks, the tooltip, the card and the table.
+- **`reference`**, **`xLabel`**, **`yLabel`** as on the other parts.
 - **`onSelect`** and **`details`** as in States; the selection is `{ datum, group, index }`.
 - **`loading`** draws the skeleton; the Frame sets it from `state="loading"`.
 - **`label`** names the plot outside a Frame.
@@ -65,27 +69,30 @@ A point per record on two value axes: where each thing sits on two measures at o
 
 - **Both axes are measures.** A category on one axis is a Bar or a strip; two categories are a Heatmap.
 - **Three groups at most.** The first three hues validate against each other in every pairing; a fourth does not. Finer distinctions are the tooltip's or a filter's.
-- **Name the points** with `name`, so the tooltip and the card say which record.
+- **Name the points** with `nameKey`, so the tooltip, the card and a point's button say which record.
+- **Pin a bounded measure's axis**: a 0–100 score takes `yDomain={[0, 100]}`, so the plot does not run past the scale.
+- **Points that share a place are listed together**: the tooltip and the card name each, and the card offers the others. Where many share places, the data is a Heatmap.
 - **Title the axes** when the keys are not words the reader would say: "Likelihood", "Impact".
 - **A quadrant's meaning is in the description**, not drawn: "the lines split the register into quadrants".
 
 ## Style
 
-| Element   | Token                                                                     |
-| --------- | ------------------------------------------------------------------------- |
-| Point     | `color.chart.<tone>` · 8px · 2px `elevation.surface` ring · 24px hit area |
-| Bubble    | The same at 70% · area from 64 to 900 square pixels                       |
-| Grid      | `color.border` · 1px both ways                                            |
-| Reference | `color.chart.neutral` · 1px dashed 4 3                                    |
-| Chosen    | The point's tone: a halo 8px wider at 20%                                 |
-| Dimmed    | `opacity.disabled`, over `motion.duration.fast`                           |
-| Skeleton  | `color.skeleton` dots on `color.border` hairlines                         |
+| Element   | Token                                                                                   |
+| --------- | --------------------------------------------------------------------------------------- |
+| Point     | `color.chart.<tone>` · 8px · 2px `elevation.surface` ring · 24px hit area               |
+| Bubble    | The same at 70% · area from 64 to 900 square pixels                                     |
+| Grid      | `color.border` · 1px both ways                                                          |
+| Reference | `color.chart.neutral` · 1px dashed 4 3                                                  |
+| Chosen    | The point's tone: a halo 8px wider at 20%                                               |
+| Dimmed    | `opacity.disabled`, over `motion.duration.fast`                                         |
+| Focused   | 2px `color.border.focused` ring, 3px out from the point · `Highlight` in forced colours |
+| Skeleton  | `color.skeleton` dots on `color.border` hairlines                                       |
 
 ## Accessibility
 
-- **Named by the Frame**, or by `label`: the plot is a group and focusable. The arrow keys do not walk points (there is no category axis to walk), so the table is the keyboard's way in: one row per point, a column per axis.
+- **Named by the Frame**, or by `label`: a scatter that chooses nothing is an image (`role="img"`) with no tab stop, and the table is the way in: one row per point, a column per axis. When `onSelect` or `details` is set, the plot is a group and each point a named button and a tab stop ("POA-102, Open: Days open 212 d, Exposure $420K"); Enter and Space choose it as a click does. One that chooses and has no name is named "Chart", with a warning in development.
 - **The table is one toggle away.** In a Frame the scatter lays its points out as the Frame's table twin and CSV: the point's `name` under "Point", its group's label under "Group", the Frame's `columns` with `place: "before"`, a column per axis headed by `xLabel`, `yLabel` and `zLabel`, then the columns after. The groups stay one column of words: the legend's groups never become a column each. The legend keys the groups when the Frame is given no `series`.
-- **A chosen point's card is a dialog**, and focus returns to the plot when it closes.
+- **A chosen point's card is a dialog**: the point says it opens one (`aria-haspopup`, `aria-expanded`), and focus returns to that point when it closes.
 - **Three groups keep every pair apart** under deutan and protan vision; the legend carries their names, and the tooltip and the card say the group in words.
 - **A point's hit area is 24px** whatever its size, so a small point still takes a click.
 - **Loading is `aria-busy`** and named "[the plot's name], loading".

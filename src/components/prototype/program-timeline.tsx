@@ -9,8 +9,6 @@ import {
   Stack,
   Text,
   Timeline,
-  Truncate,
-  token,
 } from "@ledger/design-system";
 import { Check, CircleDashed, Clock3, Minus, TriangleAlert, X } from "lucide-react";
 import { lifecycleGateDate, programTimeline, type LifecycleGate } from "@/lib/program-timeline";
@@ -18,6 +16,7 @@ import { lifecycleGateStatuses, statusTone } from "@/lib/status";
 import { StatusBadge } from "@/components/app/status";
 import { EmptyMessage } from "./work-common";
 import { ProgramRecordDialog } from "./program-shared";
+import { useEndOnHide } from "./record-preview";
 
 function gateIcon(status: string) {
   if (["completed", "passed"].includes(status)) return <Check aria-hidden />;
@@ -41,7 +40,8 @@ function gateTime(gate: LifecycleGate) {
 
 /**
  * One strip of gates across the Overview. The kit Timeline scrolls itself where it is narrower
- * than its stages; each stage keeps a rail's width so its title and date stay readable.
+ * than its stages; each stage keeps at least a rail's width (`itemWidth="rail"`), so its title and
+ * date stay readable, and a cut title shows whole on hover and focus.
  */
 function GateRail({
   gates,
@@ -57,17 +57,11 @@ function GateRail({
       <Text size="small" color="color.text.subtle">
         {label}
       </Text>
-      <Timeline
-        label={label}
-        orientation="horizontal"
-        align="start"
-        size="large"
-        style={{ minWidth: `calc(${gates.length} * ${token("dimension.layout.rail")})` }}
-      >
+      <Timeline label={label} orientation="horizontal" align="start" size="large" itemWidth="rail">
         {gates.map((gate) => (
           <Timeline.Item
             key={gate.id}
-            title={<Truncate>{gate.title}</Truncate>}
+            title={gate.title}
             icon={gateIcon(gate.status)}
             tone={statusTone(lifecycleGateStatuses, gate.status)}
             time={gateTime(gate)}
@@ -92,6 +86,7 @@ export function ProgramTimeline({
   gates: LifecycleGate[];
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  useEndOnHide(() => setSelectedId(null));
   const selected = gates.find((gate) => gate.id === selectedId);
   const { sequenced, scheduled, unscheduled } = programTimeline(gates);
   const completed = gates.filter((gate) => ["completed", "passed"].includes(gate.status)).length;

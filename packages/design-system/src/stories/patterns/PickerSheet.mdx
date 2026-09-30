@@ -36,16 +36,16 @@ function AllocateRequirements() {
 
 Back is rendered only when `onBack` is supplied. The toolbar and its divider are omitted when `search`, `filters` and `toolbar` are all absent.
 
-| Part     | What it is                                                                                                                 |
-| -------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Back     | A chevron before the title on the second frame.                                                                            |
-| Title    | The task: "Allocate requirements".                                                                                         |
-| Subtitle | What the chosen rows will be attached to: "Flight computer · 14 allocated today".                                          |
-| Toolbar  | The search field and the FilterChips; on the second frame, the defaults row. It does not scroll, except in a short window. |
-| Body     | A SheetBody. Frame one: the DataTable with Table.Selection. Frame two: the chosen rows with editable cells.                |
-| Error    | `error`, a danger Alert above the footer's buttons, outside the scroll.                                                    |
-| Count    | At the start of the footer: "12 chosen of 28", "28 to choose from", with Clear beside it.                                  |
-| Actions  | At the end of the footer: a lesser button, Cancel, then the primary named in full.                                         |
+| Part     | What it is                                                                                                                                                                                                                  |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Back     | A chevron before the title on the second frame.                                                                                                                                                                             |
+| Title    | The task: "Allocate requirements".                                                                                                                                                                                          |
+| Subtitle | What the chosen rows will be attached to: "Flight computer · 14 allocated today".                                                                                                                                           |
+| Toolbar  | The kit's Toolbar: the search field, then the filters, which fold into More when the sheet is narrow; then the caller's `toolbar` row. On the second frame, the defaults row. It does not scroll, except in a short window. |
+| Body     | A SheetBody. Frame one: the DataTable with Table.Selection. Frame two: the chosen rows with editable cells.                                                                                                                 |
+| Error    | `error`, a danger Alert above the footer's buttons, outside the scroll.                                                                                                                                                     |
+| Count    | At the start of the footer, a polite status: "12 chosen of 28", "28 to choose from", or the chosen record's name for a single choice, with Clear beside it.                                                                 |
+| Actions  | At the end of the footer: a lesser button, Cancel (a subtle Button), then the primary named in full.                                                                                                                        |
 
 ## Variants
 
@@ -64,7 +64,9 @@ Pass the DataTable as `table` and give it the whole collection as `data`. The se
 
 ## Sizes
 
-`width` takes a Sheet step: `large`, 760px and room for a table of four columns, unsaid; `xlarge`, 960px, for more. A number of pixels still works; prefer a step. On a narrow screen the sheet takes the full width, and a `responsive` DataTable keeps the name and moves its lower-priority columns into each row's More fields. In a window under 30rem tall (a landscape phone, 400% zoom) the sheet scrolls as one: the header and the toolbar scroll away with the rows and the footer stays, so the list is never squeezed to a single row.
+`width` takes a Sheet step: `large`, 760px and room for a table of four columns, unsaid; `xlarge`, 960px, for more. A number of pixels still works; prefer a step. On a narrow screen the sheet takes the full width. Render the DataTable `responsive`, and give the column the reader chooses by (the name, the statement) `priority: 0` and a readable minimum of about 180 to 220px: the table then keeps it in the row and moves the lower-priority columns into each row's More fields instead of scrolling sideways. In a window under 30rem tall (a landscape phone, 400% zoom) the sheet scrolls as one: the header and the toolbar scroll away with the rows and the footer stays, so the list is never squeezed to a single row, and a row that takes focus scrolls clear of the footer.
+
+Past about a hundred candidates, give the table a `pageSize` (or `virtualize` it) so the sheet draws a page at a time; the selection still counts every chosen row across pages, and the header's select-all chooses the rows on the page, not the whole collection.
 
 <Canvas of={Stories.ShortWindow} />
 
@@ -74,6 +76,7 @@ Pass the DataTable as `table` and give it the whole collection as `data`. The se
 | -------------- | ------------------------------------------------------------------------------- |
 | Nothing chosen | The footer says what there is to choose from; the primary waits, disabled.      |
 | Some chosen    | The count and Clear; the primary is live and names the number.                  |
+| One chosen     | A table that chooses one (`selectable: "single"`): the chosen record's name.    |
 | Filtered       | The count says "of" the rows on offer; the selection is kept.                   |
 | No match       | The table's filtered empty with Clear filters; the selection is kept.           |
 | Pending        | `pending`: the sheet holds, the rows and toolbar are locked, the primary works. |
@@ -84,10 +87,14 @@ Pass the DataTable as `table` and give it the whole collection as `data`. The se
 
 <Canvas of={Stories.PendingAndFailure} />
 
+One record to choose is a table with `selectable: "single"`: a radio per row and no select-all. The footer names the chosen record by the table's `rowLabel` instead of counting it; `summary` overrides it.
+
+<Canvas of={Stories.SingleChoice} />
+
 ## Modifiers
 
 - **`table`** for the DataTable the search filters and the count reads.
-- **`search`**, **`filters`**, **`toolbar`** for the row that stays put.
+- **`search`**, **`filters`**, **`toolbar`** for the row that stays put: the search and the filters are the kit's Toolbar, so a narrow sheet folds the filters into More, and More counts the filters that apply.
 - **`selected`**, **`total`**, **`onClear`** for the footer's count when there is no `table`, or to override it; **`summary`** in place of the count, such as the chosen record's name for a single choice.
 - **`action`** (with `isLoading`), **`secondary`** for the footer's buttons; **`pending`** and **`error`** for the command; **`onBack`** for the second frame; **`width`**.
 - **`initialFocus`** and **`finalFocus`** as on SheetContent; **`onClose`** receives Base UI's details, whose `reason` says whether Escape, the blanket, or the close button or Cancel asked.
@@ -106,15 +113,15 @@ Pass the DataTable as `table` and give it the whole collection as `data`. The se
 | ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | Sheet   | Sheet's: `elevation.surface.overlay` · `elevation.shadow.overlay` · `color.blanket` behind                                             |
 | Toolbar | `space.200` inline · `space.100` block · `color.border` under · `space.100` between its rows                                           |
-| Search  | SearchField small, 240px                                                                                                               |
+| Search  | The Toolbar's search field, small                                                                                                      |
 | Body    | The DataTable without its own frame, edge to edge                                                                                      |
 | Footer  | `elevation.surface.sunken` · `color.border` above · `font.body.small` `color.text.subtle` count, tabular · `space.100` between buttons |
 
 ## Accessibility
 
 - **A dialog named by the task** and described by the subtitle; focus moves to the search field on open, or to `initialFocus` (a rationale field), and returns to the opener on close, or to `finalFocus` when choosing hands over to the next surface. Never `autoFocus` a field in the toolbar: it becomes where focus returns, and focus falls to the page on close.
-- **The table is the DataTable's**: a grid with the selection column's checkboxes named by the row, sortable headers that say their order.
-- **The count is live text**: it changes as rows are chosen and a screen reader reads it on request, not on every change.
+- **The table is the DataTable's**: the selection column's checkboxes, or a single choice's radios, are named by the table's `rowLabel` ("Select REQ-0101"); give the table a `rowLabel` whenever its row ids are database keys, since without one they say "Select row" and the id. Sortable headers say their order.
+- **The count is a polite status**: a screen reader hears it after each choice, once the page is quiet.
 - **The primary is disabled until something is chosen** and named with the number, so the reader hears what will happen to how many.
 - **Escape empties the search first**, then closes the sheet on either frame; the back chevron goes to the first frame with the selection kept.
 - **A failure is announced**: `error` is an Alert with `role="alert"`, where a sighted reader sees it too, beside the primary.
@@ -126,7 +133,7 @@ Pass the DataTable as `table` and give it the whole collection as `data`. The se
 
 ## Related
 
-- [Pages · Choosing many](?path=/docs/layout-pages--docs#choosing-many): the two frames, what the kit owns and what the caller owns, and the spec.
+- [Recipes · Choosing records](?path=/docs/guidance-recipes--docs#choosing-records): which picker for which choice, and what the kit owns and the caller owns.
 - [DataTable](?path=/docs/patterns-data-table--docs): frame one is a DataTable in the sheet.
 - [Sheet](?path=/docs/components-sheet--docs): the frame.
 - [RecordPicker](?path=/docs/patterns-recordpicker--docs): picking one record from a list.

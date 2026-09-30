@@ -1,4 +1,5 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Input } from "../../components";
 import * as Stories from "./Input.stories";
 
 <Meta of={Stories} />
@@ -26,7 +27,7 @@ Use `InputGroupInput` inside InputGroup when the field has addons. Input itself 
 
 ## Variants and states
 
-`medium` is 32px; `small` is 28px beside toolbar actions. Native `type`, `inputMode`, `readOnly`, `disabled`, `maxLength` and form attributes retain their meanings. The layout sets width. Disabled controls leave the tab order; read-only values remain focusable and copyable.
+`medium` is 32px; `small` is 28px beside toolbar actions. Native `type`, `inputMode`, `readOnly`, `disabled`, `maxLength` and form attributes retain their meanings. The layout sets width. Disabled controls leave the tab order; read-only values remain focusable and copyable. Read-only is the sunken surface with a dashed edge and no hover, so a value that cannot change never looks like a field under the pointer; a value never edited where it is shown is a [KeyValue](?path=/docs/components-keyvalue--docs), not a read-only Input. Prefer a soft limit to `maxLength` for anything pasted: `maxLength` cuts the paste off without a word, where a schema check on submit says what fixes it.
 
 Focus draws one continuous 2px edge over the field border, without a gap or a second ring. Invalid fields keep that edge in the error color. The field and its text stay in place when focus changes; InputGroup owns the edge when the input has addons.
 
@@ -43,6 +44,8 @@ Native `onChange` remains supported. Search clearing and application shortcuts a
 ## Props
 
 `InputProps` extends Base UI Input with Ledger's `size`. Refs and events target the native input; `render`, state callbacks for `className`/`style`, and `onValueChange(value, details)` are forwarded. A value change may be cancelled with `details.cancel()`.
+
+<ArgTypes of={Input} />
 
 <Canvas of={Stories.NativeComposition} />
 <Canvas of={Stories.Playground} />

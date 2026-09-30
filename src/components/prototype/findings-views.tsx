@@ -5,7 +5,7 @@ import {
   VersionName,
   type QueryStatus,
 } from "./work-common";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Absent,
   Inspector,
@@ -22,8 +22,9 @@ import {
   Text,
   VisuallyHidden,
 } from "@ledger/design-system";
-import { useRow, type Row } from "@/lib/models";
+import { useRow, useRows, type Row } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
+import { Page } from "@/components/app/shell";
 import type { DataRecord } from "@/lib/records";
 import { ObservationsRegister } from "./observations-register";
 import { RecordTrail, TrailLink } from "./record-trail";
@@ -38,16 +39,38 @@ function Described({ label, text }: { label: string; text: string | null | undef
   );
 }
 
-export function Findings() {
-  const [tab, setTab] = useState("issues");
+/** The Findings & assets tabs, in order, by the value the URL keeps. */
+export const FINDINGS_TABS = ["issues", "observations", "findings", "assets"] as const;
+export type FindingsTab = (typeof FINDINGS_TABS)[number];
+
+export function Findings({
+  tab: routeTab,
+  onTabChange,
+}: {
+  /** The tab, when the route keeps it in the URL; local otherwise. */
+  tab?: FindingsTab | undefined;
+  onTabChange?: ((tab: FindingsTab) => void) | undefined;
+} = {}) {
+  const [localTab, setLocalTab] = useState<FindingsTab>("issues");
+  // The assessors by name, so the Assessor column sorts, filters and searches by who they are.
+  const parties = useRows("parties", undefined, { columns: ["id", "name"] });
+  const partyNames = useMemo(
+    () => new Map((parties.data ?? []).map((party) => [party.id, party.name])),
+    [parties.data],
+  );
+  const tab = routeTab ?? localTab;
+  const setTab = (next: FindingsTab) => {
+    setLocalTab(next);
+    onTabChange?.(next);
+  };
   return (
-    <Stack space="space.200">
+    <Page>
       <PageHeader>
         <PageHeader.Heading>
           <PageHeader.Title>Findings & assets</PageHeader.Title>
         </PageHeader.Heading>
       </PageHeader>
-      <Tabs value={tab} onValueChange={setTab}>
+      <Tabs value={tab} onValueChange={(value) => setTab(value as FindingsTab)}>
         <TabsList variant="line" aria-label="Findings and asset collections">
           <TabsTrigger value="issues">Operational issues</TabsTrigger>
           <TabsTrigger value="observations">Observations</TabsTrigger>
@@ -63,7 +86,7 @@ export function Findings() {
             description="An operational issue tracks a problem found in operation until it is closed."
             columns={[
               // On a phone the status stays beside the name, then the severity.
-              { key: "title", label: "Operational issue", width: 200 },
+              { key: "title", label: "Operational issue" },
               {
                 key: "program_id",
                 label: "Program",
@@ -85,17 +108,20 @@ export function Findings() {
             title="Assessment findings"
             description="An assessment finding records a determination against a control statement or objective in an assessment's results."
             columns={[
-              { key: "title", label: "Assessment finding", width: 200 },
+              { key: "title", label: "Assessment finding" },
               { key: "determination", label: "Determination", priority: 1, width: 150 },
               {
                 key: "assessor_party_id",
                 label: "Assessor",
-                render: (row) => (
-                  <RelationName table="parties" id={row["assessor_party_id"] as string | null} />
-                ),
+                kind: "person",
+                value: (row) =>
+                  typeof row["assessor_party_id"] === "string"
+                    ? (partyNames.get(row["assessor_party_id"]) ?? null)
+                    : null,
               },
               { key: "determined_at", label: "Determined" },
             ]}
+            queries={[parties]}
           />
         </TabsContent>
         <TabsContent value="assets" keepMounted className="pt-200">
@@ -117,7 +143,7 @@ export function Findings() {
           />
         </TabsContent>
       </Tabs>
-    </Stack>
+    </Page>
   );
 }
 

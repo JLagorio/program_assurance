@@ -52,9 +52,10 @@ type Fields = {
 type Catalogue = (typeof catalogue)[number];
 type ChosenRow = Catalogue & Fields;
 
+// The statement is what the reader chooses by, so it keeps its place in a narrow sheet.
 const catalogueColumns = defineColumns<Catalogue>((c) => [
-  c.id("id", { header: "Requirement", width: 110 }),
-  c.text("text", { header: "Shall statement", sortable: false }),
+  c.id("id", { header: "Requirement", width: 110, priority: 1 }),
+  c.text("text", { header: "Shall statement", sortable: false, minWidth: 200, priority: 0 }),
   c.text("family", { header: "Family", width: 72 }),
   c.status("state", { header: "State", width: 96, tone: (r) => stateTone[r.state] }),
 ]);
@@ -94,8 +95,8 @@ function PickerStates() {
   const detailColumns = useMemo(
     () =>
       defineColumns<ChosenRow>((c) => [
-        c.id("id", { header: "Requirement", width: 110, sortable: false }),
-        c.text("text", { header: "Shall statement", sortable: false }),
+        c.id("id", { header: "Requirement", width: 110, sortable: false, priority: 1 }),
+        c.text("text", { header: "Shall statement", sortable: false, minWidth: 200, priority: 0 }),
         c.status("responsibility", {
           header: "Responsibility",
           width: 150,
@@ -180,9 +181,12 @@ function PickerStates() {
         >
           <DataTable
             table={choose}
+            responsive
             onRowClick={(r) => choose.getRow(r.id).toggleSelected()}
-            className="rounded-none border-0"
-            empty={{ title: "No requirements match", description: "Clear the search or a filter." }}
+            empty={{
+              title: "Every requirement is already allocated here",
+              description: "Add requirements to the library to allocate more.",
+            }}
           />
         </PickerSheet>
       ) : (
@@ -250,7 +254,7 @@ function PickerStates() {
           selected={chosen.size}
           action={{ label: `Allocate ${chosen.size} to Flight computer`, onClick: reset }}
         >
-          <DataTable table={details} className="rounded-none border-0" />
+          <DataTable table={details} responsive />
         </PickerSheet>
       )}
     </Stack>
@@ -268,9 +272,13 @@ export const PickerSheetStory: Story = {
     const dialog = within(await page.findByRole("dialog", { name: "Allocate requirements" }));
     await expect(dialog.queryByRole("button", { name: "Back" })).toBeNull();
     await expect(dialog.getByRole("searchbox", { name: "Search requirements" })).toHaveFocus();
-    await expect(dialog.getByText("28 to choose from")).toBeVisible();
+    await expect(dialog.getByRole("status")).toHaveTextContent("28 to choose from");
+    await expect(dialog.getByRole("button", { name: "Cancel" })).toHaveAttribute(
+      "data-button-variant",
+      "subtle",
+    );
     await userEvent.click(dialog.getByRole("checkbox", { name: "Select row REQ-0101" }));
-    await expect(dialog.getByText("1 chosen of 28")).toBeVisible();
+    await expect(dialog.getByRole("status")).toHaveTextContent("1 chosen of 28");
     // The selection survives a search: the count keeps it, "of" the rows on offer.
     await userEvent.type(dialog.getByRole("searchbox", { name: "Search requirements" }), "encrypt");
     await waitFor(() => expect(dialog.getByText("1 chosen of 4")).toBeVisible());
@@ -288,6 +296,19 @@ export const PickerSheetStory: Story = {
     await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
     await expect(opener).toHaveFocus();
   },
+};
+
+/**
+ * Escape until the sheet has closed: a focused control's tooltip takes the first Escape, as a
+ * tooltip should, and the sheet the next.
+ */
+const closeSheet = async (canvasElement: HTMLElement) => {
+  const body = within(canvasElement.ownerDocument.body);
+  for (let press = 0; press < 3 && body.queryByRole("dialog"); press++) {
+    await userEvent.keyboard("{Escape}");
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
 };
 
 /**
@@ -337,8 +358,7 @@ export const ShortWindow: Story = {
       await waitFor(() => expect(inView(focused, popup, footer)).toBe(true));
     }
     await expect(footer.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight + 1);
-    await userEvent.keyboard("{Escape}");
-    await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
+    await closeSheet(canvasElement);
   },
 };
 
@@ -373,7 +393,6 @@ function SearchTheTable() {
         <DataTable
           table={table}
           responsive
-          className="rounded-none border-0"
           empty={{
             title: "Every requirement is already allocated here",
             description: "Add requirements to the library to allocate more.",
@@ -469,7 +488,7 @@ function PendingPicker() {
           onClick: () => void allocate(),
         }}
       >
-        <DataTable table={table} responsive className="rounded-none border-0" />
+        <DataTable table={table} responsive />
       </PickerSheet>
     </Stack>
   );
@@ -600,6 +619,64 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+};
+
+function SingleChoicePicker() {
+  const [open, setOpen] = useState(false);
+  const table = useDataTable({
+    columns: catalogueColumns,
+    data: catalogue,
+    getRowId: (r) => r.id,
+    selectable: "single",
+    rowLabel: (r) => r.id,
+    label: "Requirements",
+  });
+  return (
+    <Stack space="space.200">
+      <Specimens title="PickerSheet">
+        <Button variant="secondary" onClick={() => setOpen(true)}>
+          Derive from a requirement
+        </Button>
+      </Specimens>
+      <PickerSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Derive from a requirement"
+        subtitle="Flight computer"
+        table={table}
+        search={{ placeholder: "Search requirements" }}
+        filters={<DataTable.Filter table={table} column="family" />}
+        action={{ label: "Derive requirement", onClick: () => setOpen(false) }}
+      >
+        <DataTable table={table} responsive />
+      </PickerSheet>
+    </Stack>
+  );
+}
+
+/**
+ * One record to choose: the table's `selectable: "single"` draws a radio per row, and the footer
+ * names the chosen record by the table's `rowLabel` instead of counting it. The search and the
+ * filter are the kit's Toolbar, so a narrow sheet folds the filter into More.
+ */
+export const SingleChoice: Story = {
+  name: "Single choice",
+  render: () => <SingleChoicePicker />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Derive from a requirement" }));
+    const popup = await page.findByRole("dialog", { name: "Derive from a requirement" });
+    const dialog = within(popup);
+    await expect(
+      popup.querySelector('[data-slot="picker-sheet-toolbar"] [data-slot="toolbar-filters"]'),
+    ).not.toBeNull();
+    await expect(dialog.getByRole("status")).toHaveTextContent("28 to choose from");
+    await userEvent.click(dialog.getByRole("radio", { name: "Select REQ-0103" }));
+    await expect(dialog.getByRole("status")).toHaveTextContent("REQ-0103");
+    await expect(dialog.getByRole("button", { name: "Derive requirement" })).toBeEnabled();
+    await closeSheet(canvasElement);
+  },
 };
 
 function ControlledSearchDemo() {

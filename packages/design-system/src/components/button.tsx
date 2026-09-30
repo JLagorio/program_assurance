@@ -1,8 +1,11 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import {
+  Children,
   cloneElement,
+  createElement,
   isValidElement,
   useCallback,
+  useEffect,
   useId,
   useLayoutEffect,
   useRef,
@@ -16,6 +19,7 @@ import {
   type SyntheticEvent,
 } from "react";
 
+import { announce } from "../lib/announce";
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { Stack } from "../primitives/stack";
@@ -28,7 +32,10 @@ export type ButtonSize = "xsmall" | "small" | "medium";
 type ButtonStyleProps = {
   /** Secondary is the default; primary emphasizes the main action. */
   variant?: ButtonVariant | undefined;
-  /** Medium is 32px, small 28px and xsmall 24px. Link treatment has natural height. */
+  /**
+   * Medium is 32px, small 28px and xsmall 24px. `variant="link"` ignores it: a link-styled action
+   * is as tall as its text.
+   */
   size?: ButtonSize | undefined;
   /** Paint the selected state and, on Button, set aria-pressed. */
   isSelected?: boolean | undefined;
@@ -83,8 +90,18 @@ export type ButtonProps = ButtonPrimitive.Props &
     iconBefore?: ReactElement | undefined;
     /** Decorative trailing icon. */
     iconAfter?: ReactElement | undefined;
-    /** Block activation and show a spinner while keeping focus unless explicitly disabled. */
+    /**
+     * Block activation and show a spinner while keeping focus unless explicitly disabled. The
+     * button keeps its width and its name: the spinner takes the leading icon's place, else the
+     * trailing icon's, else it sits over the label, which keeps its space.
+     */
     isLoading?: boolean | undefined;
+    /**
+     * What the pending work is, said once through the page's polite live region when loading
+     * starts, such as "Saving requirement revision". `aria-busy` alone is not announced by the
+     * major screen readers. Leave it out when something else on the page already says it.
+     */
+    loadingLabel?: string | undefined;
     /**
      * Why the action is unavailable, for an action that truly cannot run. The button is disabled
      * but stays in the tab order with `aria-disabled`, so the reader can reach it and learn why: the
@@ -97,6 +114,41 @@ export type ButtonProps = ButtonPrimitive.Props &
   };
 
 type TooltipOpenChange = NonNullable<TooltipProps["onOpenChange"]>;
+
+/** The words a Button shows as text: its string and number children, ignoring elements. */
+function visibleText(content: ReactNode) {
+  const words: string[] = [];
+  Children.forEach(content, (child) => {
+    if (typeof child === "string" || typeof child === "number") words.push(String(child));
+  });
+  return words.join(" ").replace(/\s+/g, " ").trim();
+}
+
+const warned = new Set<string>();
+/**
+ * An `aria-label` that leaves out the button's visible words breaks Label in Name (WCAG 2.5.3): a
+ * speech-input user says what they see and nothing answers. Said once per label, never thrown.
+ */
+function useLabelInName(label: unknown, shown: string) {
+  useEffect(() => {
+    if (typeof label !== "string" || !shown) return;
+    const fold = (text: string) => text.replace(/\s+/g, " ").trim().toLocaleLowerCase();
+    if (fold(label).includes(fold(shown))) return;
+    const message = `Ledger: the Button labelled "${label}" shows "${shown}", which its aria-label leaves out. Speech input says the visible words (WCAG 2.5.3, Label in Name): drop aria-label, or add context with aria-describedby.`;
+    if (warned.has(message)) return;
+    warned.add(message);
+    console.warn(message);
+  }, [label, shown]);
+}
+
+/** Says `label` through the polite live region when loading starts, not when it mounts loading. */
+function useLoadingAnnouncement(isLoading: boolean, label: string | undefined) {
+  const was = useRef(isLoading);
+  useEffect(() => {
+    if (isLoading && !was.current && label) announce(label);
+    was.current = isLoading;
+  }, [isLoading, label]);
+}
 
 /** Joins a caller's `aria-describedby` with the part's own description, keeping both. */
 function describedBy(own: string | undefined, added: string | undefined) {
@@ -216,6 +268,30 @@ function guardActivation<Props extends DOMAttributes<HTMLElement>>(props: Props)
   };
 }
 
+type KeyHandler = DOMAttributes<HTMLElement>["onKeyDown"];
+
+/*
+ * Base UI's focusable disabled button prevents the default of every key but Tab, Escape included,
+ * and a Shell.Panel or the side nav overlay leaves an Escape whose default is prevented to whatever
+ * handled it, so Escape on an unavailable, loading or reasoned button never closed the surface
+ * around it. Escape activates nothing, so the button's Base UI key handlers skip it: the
+ * render element's own handler runs first (it is merged last) and stops them for Escape.
+ */
+function keepEscape(handler: KeyHandler): NonNullable<KeyHandler> {
+  return (event) => {
+    handler?.(event);
+    if (event.key === "Escape")
+      (event as typeof event & { preventBaseUIHandler?: () => void }).preventBaseUIHandler?.();
+  };
+}
+
+/** The same for a render function's merged handlers, which run as one: Escape skips them. */
+function withoutEscape(handler: KeyHandler): NonNullable<KeyHandler> {
+  return (event) => {
+    if (event.key !== "Escape") handler?.(event);
+  };
+}
+
 /** Package-internal: marks an icon decorative and tags its side, for Button and LinkButton. */
 export function decorativeIcon(icon: ReactElement, position: "inline-start" | "inline-end") {
   return cloneElement(
@@ -253,6 +329,7 @@ function ButtonBase({
   iconBefore,
   iconAfter,
   isLoading,
+  loadingLabel,
   isSelected,
   isFullWidth,
   disabled = false,
@@ -271,21 +348,49 @@ function ButtonBase({
   const blocked = Boolean(disabled || isLoading || reason);
   const element = isValidElement<{ children?: ReactNode }>(render) ? render : undefined;
   const content = children === undefined ? element?.props.children : children;
+  useLabelInName(props["aria-label"], visibleText(content));
+  useLoadingAnnouncement(Boolean(isLoading), loadingLabel);
+  // Where the spinner goes, so the button never changes width: the leading icon's place, else the
+  // trailing icon's, else over the label, which keeps its space (and the name) but not its ink.
+  const spinnerAt = !isLoading ? undefined : iconBefore ? "start" : iconAfter ? "end" : "over";
+  // The spinner takes the text colour, so it follows the variant and forced colours alike.
+  const spinner = (side: "inline-start" | "inline-end") => (
+    <Spinner data-icon={side} isDecorative appearance="inherit" />
+  );
   const contents = (
     <>
-      {isLoading ? (
-        <Spinner
-          data-icon="inline-start"
-          isDecorative
-          appearance={
-            !isSelected && (variant === "primary" || variant === "danger") ? "inverse" : "subtle"
-          }
-        />
-      ) : iconBefore ? (
-        decorativeIcon(iconBefore, "inline-start")
+      {spinnerAt === "start"
+        ? spinner("inline-start")
+        : iconBefore
+          ? decorativeIcon(iconBefore, "inline-start")
+          : null}
+      {spinnerAt === "over" ? (
+        <span
+          data-slot="button-loading-label"
+          className={cn(
+            "inline-flex items-center opacity-0",
+            size === "xsmall" ? "gap-050" : "gap-075",
+          )}
+        >
+          {content}
+        </span>
+      ) : (
+        content
+      )}
+      {spinnerAt === "end"
+        ? spinner("inline-end")
+        : iconAfter
+          ? decorativeIcon(iconAfter, "inline-end")
+          : null}
+      {spinnerAt === "over" ? (
+        <span
+          aria-hidden
+          data-slot="button-loading-spinner"
+          className="pointer-events-none absolute inset-0 flex items-center justify-center"
+        >
+          <Spinner isDecorative appearance="inherit" className="size-icon-small" />
+        </span>
       ) : null}
-      {content}
-      {iconAfter ? decorativeIcon(iconAfter, "inline-end") : null}
       {/* The description is hidden: the name leaves it out, aria-describedby still reads it. */}
       {reason ? (
         <span id={reasonId} data-slot="button-disabled-reason" hidden>
@@ -294,17 +399,31 @@ function ButtonBase({
       ) : null}
     </>
   );
+  // Blocked but still in the tab order: aria-disabled rather than native disabled. Only while
+  // blocked, so an enabled button that may become unavailable carries no aria-disabled="false",
+  // and it keeps focus when it does, since it never turns native disabled.
+  const focusable =
+    blocked && (reason !== undefined || (focusableWhenDisabled ?? Boolean(isLoading && !disabled)));
   const composedRender: ButtonProps["render"] = element
     ? cloneElement(element, {
         ...(blocked ? guardActivation(element.props) : element.props),
+        ...(focusable
+          ? { onKeyDown: keepEscape((element.props as DOMAttributes<HTMLElement>).onKeyDown) }
+          : {}),
         children: contents,
       })
     : typeof render === "function" && blocked
       ? (renderProps, state) => {
           const result = render(renderProps, state) as ReactElement<DOMAttributes<HTMLElement>>;
-          return cloneElement(result, guardActivation(result.props));
+          return cloneElement(result, {
+            ...guardActivation(result.props),
+            ...(focusable ? { onKeyDown: withoutEscape(result.props.onKeyDown) } : {}),
+          });
         }
-      : render;
+      : render === undefined && focusable
+        ? // The same button Base UI would render, with the handler that lets Escape through.
+          createElement("button", { onKeyDown: keepEscape(undefined) })
+        : render;
 
   return (
     <ButtonPrimitive
@@ -313,21 +432,21 @@ function ButtonBase({
       aria-pressed={isSelected}
       aria-busy={isLoading || undefined}
       {...(blocked ? guardActivation(props) : props)}
+      data-button-variant={variant}
       ref={joinedRef}
       aria-describedby={describedBy(props["aria-describedby"], reason && reasonId)}
       disabled={blocked}
-      focusableWhenDisabled={
-        reason !== undefined || (focusableWhenDisabled ?? Boolean(isLoading && !disabled))
-      }
+      focusableWhenDisabled={focusable}
       className={classes(
         cn(
           buttonVariants({ variant, size, isSelected, isFullWidth }),
           iconInsets({
             variant,
             size,
-            hasIconBefore: Boolean(iconBefore || isLoading),
+            hasIconBefore: Boolean(iconBefore),
             hasIconAfter: Boolean(iconAfter),
           }),
+          spinnerAt === "over" && "relative",
           isLoading && "cursor-progress",
           reason && !isLoading && "cursor-not-allowed",
         ),
@@ -361,6 +480,27 @@ export function Button({
   );
 }
 
+/** The square sizes of an icon-only control: Button's three, and the 20px row control. */
+export type IconButtonSize = "xxsmall" | "xsmall" | ButtonSize;
+
+/**
+ * Package-internal: an icon-only control's square, for IconButton and LinkIconButton. `xxsmall` is
+ * the 20px row control (a table's disclosure or row action, a tree's twisty, a row's chevron),
+ * with the small radius the row's other controls use.
+ */
+export function squareSize(size: IconButtonSize) {
+  return {
+    // Base UI's button box sizes on Button's scale; xxsmall is xsmall's box drawn smaller.
+    base: size === "xxsmall" ? ("xsmall" as const) : size,
+    className: {
+      xxsmall: "size-250 rounded-small",
+      xsmall: "size-control-xsmall",
+      small: "size-control-small",
+      medium: "size-control-medium [&>svg]:size-icon-medium",
+    }[size],
+  };
+}
+
 export type IconButtonProps = Omit<
   ButtonProps,
   "children" | "iconBefore" | "iconAfter" | "isFullWidth" | "aria-label" | "variant" | "size"
@@ -370,8 +510,12 @@ export type IconButtonProps = Omit<
   /** Decorative icon, replaced by a spinner while loading. */
   icon: ReactElement;
   variant?: "primary" | "secondary" | "subtle" | undefined;
-  /** Small is 28px; medium is 32px with a larger icon. */
-  size?: "small" | "medium" | undefined;
+  /**
+   * Small is 28px, the default; medium 32px with a larger icon; xsmall 24px, beside an xsmall
+   * Button; xxsmall 20px, the row control in a table, tree or list row. Where any pointer is
+   * coarse each takes a hit area of at least 24px.
+   */
+  size?: IconButtonSize | undefined;
   /** Keep the accessible name while omitting the tooltip. A `disabledReason` still shows its own. */
   isTooltipDisabled?: boolean | undefined;
 };
@@ -442,12 +586,13 @@ export function IconButton({
     if (open && details.reason === "trigger-focus" && focusReturn.returning.current)
       details.cancel();
   };
+  const square = squareSize(size);
   const button = (
     <ButtonBase
       data-slot="icon-button"
       aria-label={label}
       iconBefore={icon}
-      size={size}
+      size={square.base}
       {...props}
       carry={carry}
       onBlurCapture={(event) => {
@@ -459,11 +604,8 @@ export function IconButton({
         if (hasTooltip) focusReturn.onFocusCapture(event);
       }}
       className={classes(
-        cn(
-          // A row or tree that sizes the button down to 20px still gets a 24px hit area on touch.
-          "relative shrink-0 touch-target p-0",
-          size === "medium" ? "size-control-medium [&>svg]:size-icon-medium" : "size-control-small",
-        ),
+        // A row or tree that sizes the button down to 20px still gets a 24px hit area on touch.
+        cn("relative shrink-0 touch-target p-0", square.className),
         className,
       )}
     />

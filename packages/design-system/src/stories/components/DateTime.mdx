@@ -36,6 +36,10 @@ The tooltip opens on hover and on keyboard focus, never on hover alone. A date s
 
 <Canvas of={Stories.FullValue} />
 
+## Long content
+
+A date is one line and never wraps or truncates: its words are short, and a cut date would say a different day. Where a column cannot hold the default format, choose a shorter `format` (`date` in place of `datetime`) rather than letting the column cut it; the tooltip carries the full value either way.
+
 ## RelativeTime
 
 Words from `Intl.RelativeTimeFormat` in the provider's locale: under a minute either way is "now"; then minutes, hours, days ("yesterday", "tomorrow"), weeks, months and years. The words follow the clock without a reload, updating when they would change. A fixed `now` stops the updates, for a test or a snapshot. A calendar day reads relative to the reader's today. `unitStyle` is `long`, `short` or `narrow`.

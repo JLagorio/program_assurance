@@ -26,15 +26,14 @@ A chip asks; a [Badge](?path=/docs/components-badge--docs) tells. A coordinated 
 
 FilterChip has one appearance. What varies is what a click does:
 
-| The question                                | Use                                                                                                                                                                                            |
-| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Yes or no about the rows: Gaps, Hide closed | A toggle: `isActive` flips, no value.                                                                                                                                                          |
-| A column with a value: Owner, Status, Due   | The trigger of a [Popover](?path=/docs/components-popover--docs); the DataTable's `Filter` builds one from the column (checkboxes, a range, a contains field) and the value reads on the chip. |
-| Three values the reader steps through       | A toggle that cycles, the value showing which. Past three, a popover.                                                                                                                          |
-| Exclusive choices: All, High, Medium        | A ToggleGroup, not chips.                                                                                                                                                                      |
-| A saved question with its count             | The DataTable's `Presets`, a ToggleGroup with Count children.                                                                                                                                  |
+| The question                                | Use                                                                                                                                                                                                                                                    |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Yes or no about the rows: Gaps, Hide closed | A toggle: `isActive` flips, no value.                                                                                                                                                                                                                  |
+| A column with a value: Owner, Status, Due   | The trigger of a [Popover](?path=/docs/components-popover--docs); the DataTable's `Filter` builds one from the column (checkboxes, a range, a contains field) and the value reads on the chip. One value from a few (an owner) is a popover of radios. |
+| Exclusive choices: All, High, Medium        | A ToggleGroup, not chips.                                                                                                                                                                                                                              |
+| A saved question with its count             | The DataTable's `Presets`, a ToggleGroup with Count children.                                                                                                                                                                                          |
 
-There is no remove cross on the chip: a click on an active toggle turns it off, and a popover chip has Clear. There is no chip with an icon, and no chip with a count: the rows a question would leave belong to a preset's Count.
+There is no remove cross on the chip: a click on an active toggle turns it off, and a popover chip has Clear. There is no chip with an icon, and no chip with a count: the rows a question would leave belong to a preset's Count. There is no toggle that cycles through values: it would stay pressed while its name changed from "Owner" to "Owner Dana Whitfield" to "Owner Priya Natarajan", so a screen reader could not tell which value is on or how to reach the next; a value is chosen in a popover.
 
 ## Sizes
 
@@ -43,6 +42,10 @@ One: `dimension.control.small` 28px, the Toolbar's height, `space.100` each side
 A chip is one line at every width, and it never shrinks below its plus and its label. A value longer than about twenty characters truncates with an ellipsis; its full text is the value's title and stays in the chip's accessible name. In a frame narrower than the chip, the value gives way first.
 
 <Canvas of={Stories.Narrow} />
+
+## Long content
+
+The label is one or two words and never truncates. The value is the only part that may: past about twenty characters, or when the frame is narrower than the chip, it ends in an ellipsis and keeps its full text as its title and in the chip's name. A chip never wraps onto a second line.
 
 <Canvas of={Stories.InToolbar} />
 
@@ -96,7 +99,9 @@ A chip is one line at every width, and it never shrinks below its plus and its l
 
 Native button props, including `ref`, pass through to the button. Refs target `HTMLButtonElement`;
 when composed with `PopoverTrigger render={<FilterChip label="Status" />}`, both parts' refs and
-event handlers reach the same button. The Popover owns opening, dismissal and focus return.
+event handlers reach the same button. The Popover owns opening, dismissal and focus return. The
+chip names itself last with `data-slot="filter-chip"`; its label and value are `filter-chip-label`
+and `filter-chip-value`.
 
 <ArgTypes of={FilterChip} />
 

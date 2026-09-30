@@ -69,7 +69,7 @@ An upload in progress offers a Cancel named for the file ("Cancel uploading quar
 
 <Canvas of={Stories.UploadStates} />
 
-## Long names
+## Long content
 
 `Attachment.Title` cuts a plain-text name in the middle: the start ends in an ellipsis and the end, the extension and the ten characters before it, stays whole, so `acas-vulnerability-scan-ws-x90-2026-09-01.pdf` and `…-09-15.pdf` stay apart. Assistive technology reads the whole name once, and copying a selection inside the title gives the name as it is written. The kept end follows the name's own direction, so an English name on a right-to-left page still ends with its extension. `truncate="end"` cuts at the end instead; a Title whose children are elements always does. With a card-wide Trigger or Link over the card, a `title` on the Title is covered: put the full name in the Trigger's or Link's `title` for a pointer, as well as in its `aria-label`.
 

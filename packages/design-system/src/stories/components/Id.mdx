@@ -1,6 +1,6 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Id } from "../../components";
+import { Id, IdList } from "../../components";
 import * as Stories from "./Id.stories";
 
 <Meta of={Stories} />
@@ -25,7 +25,7 @@ An identifier: CTRL-0412, AC-2(3), FND-2231, a hash. One typeface app-wide, so a
 | `Id`      | One id, in text, in a title, in a link, in a cell.                            |
 | `Id.List` | Several ids: the controls a requirement traces to, the CCIs a package covers. |
 
-Not built, and why: a monospace face (the old habit; the kit has one typeface and tabular numerals do the aligning); a copy button, because an id is selected like any word; a link inside the Id, because the link is outside it, a TextLink whose text is an Id.
+Not built, and why: a monospace face (the old habit; the kit has one typeface and tabular numerals do the aligning); a link inside the Id, because the link is outside it, a TextLink whose text is an Id; a copy button inside the Id. An id is not selected like a word: a double-click stops at its punctuation, so it takes "CTRL" or "0412" from CTRL-0412 and "2" from AC-2(3), and a reader drags across it instead. Where readers copy ids as part of the work, put a [CopyButton](?path=/docs/components-copybutton--docs) with a `label` beside the id, in the record's Details. Never `user-select: all`, which would take the whole cell, sentence or link with it.
 
 ## Sizes
 
@@ -49,6 +49,10 @@ None. An Id is text. The link around it hovers; the cell around it is selected; 
 - **A hash is an Id** too, with `break-all` so it wraps inside its column.
 - **Subtle beside a name, default alone.** In a row the id column is `color.text.subtle` and the name is `color.text`; in a sentence the Id takes the sentence's colour.
 
+## Long content
+
+An id, a hash, a URN and a URL are unbroken tokens, so they wrap anywhere: `break-all` on the Id, or the `wrap` of the cell or value it sits in. In a row field that truncates (a table cell, an Item's id), the row cuts it with an ellipsis and reveals the whole on hover and keyboard focus. An `Id.List` wraps between ids, never inside one.
+
 ## Style
 
 | Element | Token                                                              |
@@ -68,9 +72,13 @@ None. An Id is text. The link around it hovers; the cell around it is selected; 
 
 <ArgTypes of={Id} />
 
+Id takes a span's native props and a ref, and names itself last with `data-slot="id"`; Id.List takes the same on its run, with `data-slot="id-list"` and `data-empty` when there are none.
+
+<Canvas of={Stories.NativeAttributes} />
+
 ### Id.List
 
-<ArgTypes of={Id.List} />
+<ArgTypes of={IdList} />
 
 ### Playground
 

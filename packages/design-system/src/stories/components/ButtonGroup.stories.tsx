@@ -37,13 +37,20 @@ type Story = StoryObj<typeof meta>;
 
 export const Playground: Story = {};
 
+/**
+ * Both orientations at each size. ButtonGroupText takes the `size` of the buttons beside it, so a
+ * vertical group's text is as tall as they are rather than as tall as its words. The separator's
+ * rule runs across the group's line: vertical between side-by-side buttons, horizontal between
+ * stacked ones.
+ */
 export const Orientations: Story = {
   render: () => (
     <Matrix
       rows={["horizontal", "vertical"] as const}
-      cols={["small", "medium"] as const}
+      cols={["xsmall", "small", "medium"] as const}
       render={(orientation, size) => (
-        <ButtonGroup orientation={orientation} aria-label="Export">
+        <ButtonGroup orientation={orientation} aria-label={`Export, ${orientation}, ${size}`}>
+          <ButtonGroupText size={size}>Format</ButtonGroupText>
           <Button size={size}>Export</Button>
           <ButtonGroupSeparator
             orientation={orientation === "horizontal" ? "vertical" : "horizontal"}
@@ -57,6 +64,31 @@ export const Orientations: Story = {
       )}
     />
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    for (const orientation of ["horizontal", "vertical"])
+      for (const [size, height] of [
+        ["xsmall", 24],
+        ["small", 28],
+        ["medium", 32],
+      ] as const) {
+        const group = canvas.getByRole("group", { name: `Export, ${orientation}, ${size}` });
+        const text = within(group).getByText("Format");
+        const box = text.getBoundingClientRect();
+        await expect(box.height).toBe(height);
+        await expect(
+          within(group).getByRole("button", { name: "Export" }).getBoundingClientRect().height,
+        ).toBe(height);
+        await expect(getComputedStyle(text).justifyContent).toBe("center");
+        // The separator draws its own 1px rule: the group removes every later child's start edge.
+        const rule = getComputedStyle(
+          group.querySelector<HTMLElement>('[data-slot="button-group-separator"]')!,
+        );
+        await expect(
+          orientation === "horizontal" ? rule.borderInlineStartWidth : rule.borderTopWidth,
+        ).toBe("1px");
+      }
+  },
 };
 
 function CompositionDemo() {
@@ -105,7 +137,9 @@ function CompositionDemo() {
       </ButtonGroup>
       <ButtonGroup orientation="vertical" aria-label="Zoom">
         <IconButton label="Zoom in" icon={<Plus />} onClick={() => setZoom(zoom + 10)} />
-        <ButtonGroupText aria-live="polite">{zoom}%</ButtonGroupText>
+        <ButtonGroupText size="small" aria-live="polite">
+          {zoom}%
+        </ButtonGroupText>
         <IconButton
           label="Zoom out"
           icon={<Minus />}
@@ -140,6 +174,8 @@ export const Composition: Story = {
     await expect(canvas.getByRole("button", { name: "Zoom out" })).toBeDisabled();
     await userEvent.click(canvas.getByRole("button", { name: "Zoom in" }));
     await expect(canvas.getByText("110%")).toBeVisible();
+    // Between two 28px buttons the text is 28px too, not as short as its figure.
+    await expect(canvas.getByText("110%").getBoundingClientRect().height).toBe(28);
     await expect(canvas.getByRole("button", { name: "Zoom out" })).toBeEnabled();
   },
 };

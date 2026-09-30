@@ -21,9 +21,12 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import type { RowData } from "@tanstack/react-table";
 import { GripVertical } from "lucide-react";
-import { useId, useMemo, type CSSProperties, type ReactNode } from "react";
+import { useId, useMemo, useRef, type CSSProperties, type ReactNode } from "react";
 
+import { tokenLiterals } from "../../generated/tokens";
 import { cn } from "../../lib/cn";
+// Only a header or a row that can move follows the setting; the rest pass `false`.
+import { useReducedMotion } from "../../lib/use-reduced-motion";
 import type { DataTableInstance } from "./use-data-table";
 
 /*
@@ -44,10 +47,37 @@ const byKind: Modifier = (args) =>
     : restrictToHorizontalAxis(args);
 
 /* The sensors' options, made once: dnd-kit rebuilds its context when they change, and every row
-   and header that can drag reads that context, so new options on each render would redraw them all. */
+   and header that can drag reads that context, so new options on each render would redraw them all.
+   Under reduced motion the keyboard's moves scroll the frame at once rather than smoothly. */
 const POINTER_OPTIONS = { activationConstraint: { distance: 8 } };
 const KEYBOARD_OPTIONS = { coordinateGetter: sortableKeyboardCoordinates };
+const KEYBOARD_OPTIONS_REDUCED = {
+  coordinateGetter: sortableKeyboardCoordinates,
+  scrollBehavior: "auto" as const,
+};
 const MODIFIERS = [byKind];
+
+/* A header or a row slides aside on the motion tokens, not dnd-kit's own 200ms: `medium` and the
+   standard curve. Under reduced motion it moves at once, and nothing animates after a drop. */
+const SLIDE = {
+  duration: Number.parseFloat(tokenLiterals["motion.duration.medium"]),
+  easing: tokenLiterals["motion.easing.standard"],
+};
+const noLayoutAnimation = () => false;
+const sortableMotion = (reduced: boolean) =>
+  reduced
+    ? { transition: null, animateLayoutChanges: noLayoutAnimation }
+    : { transition: SLIDE };
+
+/** Where an item sits in its sortable set, from the set's own data: "3 of 8". */
+function positionIn(item: { data: { current?: Record<string, unknown> | undefined } } | null) {
+  const sortable = item?.data.current?.["sortable"] as
+    | { index?: unknown; items?: unknown }
+    | undefined;
+  const index = typeof sortable?.index === "number" ? sortable.index : -1;
+  const total = Array.isArray(sortable?.items) ? sortable.items.length : 0;
+  return index >= 0 && total > 0 ? { position: index + 1, total } : null;
+}
 
 /** What a drag says about an item: a row's label, a column's header text, else its id. */
 function spokenName<TData extends RowData>(
@@ -71,7 +101,11 @@ function spokenName<TData extends RowData>(
   return typeof header === "string" ? header : key;
 }
 
-/** The drag context. Wrap the Table with it; put ColumnSortable inside the thead and RowSortable inside the tbody. */
+/**
+ * The drag context. Wrap the Table with it; put ColumnSortable inside the thead and RowSortable
+ * inside the tbody. A table that is neither `reorderable` nor `reorderRows` gets its children
+ * alone: no drag context, no instructions and no live region, since nothing in it can move.
+ */
 export function DragContext<TData extends RowData>({
   table,
   children,
@@ -79,12 +113,43 @@ export function DragContext<TData extends RowData>({
   table: DataTableInstance<TData>;
   children: ReactNode;
 }) {
-  const { t } = useLedgerLocale();
+  const meta = table.options.meta;
+  if (!meta?.reorderable && !meta?.reorderRows) return <>{children}</>;
+  return <Draggable table={table}>{children}</Draggable>;
+}
+
+function Draggable<TData extends RowData>({
+  table,
+  children,
+}: {
+  table: DataTableInstance<TData>;
+  children: ReactNode;
+}) {
+  const { t, formatNumber } = useLedgerLocale();
   const id = useId();
+  const reduced = useReducedMotion();
+  // Where the drag was last said to be. A pick-up is first "over" its own place, which says
+  // nothing new, so "Picked up Finding." is heard rather than replaced.
+  const lastOver = useRef<string | number | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, POINTER_OPTIONS),
-    useSensor(KeyboardSensor, KEYBOARD_OPTIONS),
+    useSensor(KeyboardSensor, reduced ? KEYBOARD_OPTIONS_REDUCED : KEYBOARD_OPTIONS),
   );
+  /** Where the item would land, said as a place in the order: "Status moved to position 3 of 8." */
+  const landing = (
+    over: { data: { current?: Record<string, unknown> | undefined } } | null,
+    item: string,
+    phrase: "dragOverPosition" | "dragDroppedPosition",
+  ) => {
+    const place = positionIn(over);
+    return place
+      ? t(phrase, {
+          item,
+          position: formatNumber(place.position),
+          total: formatNumber(place.total),
+        })
+      : undefined;
+  };
   const kindOf = (item: { data: { current?: Record<string, unknown> | undefined } }) =>
     item.data.current?.["type"] as DragKind | undefined;
   const onDragEnd = ({ active, over }: DragEndEvent) => {
@@ -119,22 +184,31 @@ export function DragContext<TData extends RowData>({
         screenReaderInstructions: { draggable: t("dragInstructions") },
         // A row is said by its label and a column by its header, never by a raw id.
         announcements: {
-          onDragStart: ({ active }) =>
-            t("dragStarted", { item: spokenName(table, active.id, kindOf(active)) }),
-          onDragOver: ({ active, over }) =>
-            over
-              ? t("dragOver", {
-                  item: spokenName(table, active.id, kindOf(active)),
-                  target: spokenName(table, over.id, kindOf(active)),
-                })
-              : t("dragOutside", { item: spokenName(table, active.id, kindOf(active)) }),
-          onDragEnd: ({ active, over }) =>
-            over
-              ? t("dragDropped", {
-                  item: spokenName(table, active.id, kindOf(active)),
-                  target: spokenName(table, over.id, kindOf(active)),
-                })
-              : t("dragCanceled", { item: spokenName(table, active.id, kindOf(active)) }),
+          onDragStart: ({ active }) => {
+            lastOver.current = active.id;
+            return t("dragStarted", { item: spokenName(table, active.id, kindOf(active)) });
+          },
+          // Where it would land, as a place in the order ("Status moved to position 3 of 8."),
+          // else over which item.
+          onDragOver: ({ active, over }) => {
+            const item = spokenName(table, active.id, kindOf(active));
+            const previous = lastOver.current;
+            lastOver.current = over?.id ?? null;
+            if (!over) return t("dragOutside", { item });
+            if (over.id === previous) return undefined;
+            return (
+              landing(over, item, "dragOverPosition") ??
+              t("dragOver", { item, target: spokenName(table, over.id, kindOf(active)) })
+            );
+          },
+          onDragEnd: ({ active, over }) => {
+            const item = spokenName(table, active.id, kindOf(active));
+            if (!over) return t("dragCanceled", { item });
+            return (
+              landing(over, item, "dragDroppedPosition") ??
+              t("dragDropped", { item, target: spokenName(table, over.id, kindOf(active)) })
+            );
+          },
           onDragCancel: ({ active }) =>
             t("dragCanceled", { item: spokenName(table, active.id, kindOf(active)) }),
         },
@@ -214,10 +288,12 @@ export function useColumnDrag(
   { label, pointerOnly = false }: ColumnDragOptions = {},
 ) {
   const { t } = useLedgerLocale();
+  const reduced = useReducedMotion(enabled);
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
     id,
     data: { type: "column" satisfies DragKind },
     disabled: !enabled,
+    ...sortableMotion(reduced),
   });
   const style: CSSProperties | undefined = enabled
     ? {
@@ -246,6 +322,7 @@ export function useColumnDrag(
 
 /** What a draggable row needs: a ref and a style for the row, and the props for its Table.Handle. */
 export function useRowDrag(id: string, enabled: boolean) {
+  const reduced = useReducedMotion(enabled);
   const {
     setNodeRef,
     setActivatorNodeRef,
@@ -254,7 +331,12 @@ export function useRowDrag(id: string, enabled: boolean) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id, data: { type: "row" satisfies DragKind }, disabled: !enabled });
+  } = useSortable({
+    id,
+    data: { type: "row" satisfies DragKind },
+    disabled: !enabled,
+    ...sortableMotion(reduced),
+  });
   const style: CSSProperties | undefined = enabled
     ? {
         transform: CSS.Translate.toString(transform),

@@ -1,5 +1,5 @@
 import { useRender } from "@base-ui/react/use-render";
-import { Download, Hash, Maximize2, Table2 } from "lucide-react";
+import { ChartNoAxesColumn, Download, Hash, Maximize2, Table2, X } from "lucide-react";
 import {
   Fragment,
   useCallback,
@@ -14,8 +14,10 @@ import {
   type SetStateAction,
 } from "react";
 import { useLedgerLocale } from "../../lib/locale";
+import { downloadText } from "../../lib/download";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -24,6 +26,13 @@ import {
 
 import { cn } from "../../lib/cn";
 import {
+  Alert,
+  AlertAction,
+  AlertDescription,
+  AlertIcon,
+  AlertTitle,
+} from "../../components/alert";
+import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -31,7 +40,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "../../components/breadcrumb";
-import { IconButton } from "../../components/button";
+import { Button, IconButton } from "../../components/button";
 
 import {
   DropdownMenu,
@@ -39,10 +48,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../../components/dropdown-menu";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "../../components/empty";
 import { Skeleton } from "../../components/skeleton";
 import { Spinner } from "../../components/spinner";
 import { Table } from "../../components/table";
 import { Toggle } from "../../components/toggle";
+import { headingTag, useHeadingLevel, type HeadingLevel } from "../../primitives/heading-level";
 import {
   FrameContext,
   FrameReportContext,
@@ -83,7 +101,7 @@ export type ChartLegendProps = {
   className?: string | undefined;
 };
 
-/** Swatch and label per series. Inside a Frame the items are toggle buttons: a mouse hover or keyboard focus dims the other series, and a click hides or shows its own. */
+/** Swatch and label per series. Inside a Frame the items are toggle buttons: a mouse hover or keyboard focus dims the other series, and a click hides or shows its own; a hidden series' swatch hollows. */
 export function ChartLegend({ series, swatch = "square", texture, className }: ChartLegendProps) {
   const frame = useContext(FrameContext);
   const textured = texture ?? frame?.texture ?? false;
@@ -95,7 +113,10 @@ export function ChartLegend({ series, swatch = "square", texture, className }: C
   }));
   if (!frame)
     return (
-      <ul className={cn("flex flex-wrap items-center gap-x-200 gap-y-050", className)}>
+      <ul
+        data-slot="chart-legend"
+        className={cn("flex flex-wrap items-center gap-x-200 gap-y-050", className)}
+      >
         {items.map((it) => (
           <li key={it.key} className="flex items-center gap-075 font-body-small text-subtle">
             <Swatch color={it.color} shape={swatch} texture={it.texture} />
@@ -105,7 +126,10 @@ export function ChartLegend({ series, swatch = "square", texture, className }: C
       </ul>
     );
   return (
-    <ul className={cn("flex flex-wrap items-center gap-x-100 gap-y-050", className)}>
+    <ul
+      data-slot="chart-legend"
+      className={cn("flex flex-wrap items-center gap-x-100 gap-y-050", className)}
+    >
       {items.map((it) => {
         const off = frame.hidden.has(it.key);
         return (
@@ -157,15 +181,20 @@ export type ChartFrameState = "ready" | "loading" | "refreshing" | "empty" | "er
 export type ChartFrameProps = Omit<ComponentProps<"figure">, "title" | "children"> & {
   /** What the chart shows, as a noun phrase: "Coverage by control family". It names the plot to a screen reader. */
   title: string;
-  /** One line under the title: the period, the unit, the source. */
+  /**
+   * The title's heading level, so a dashboard's charts are in the page's outline. Unsaid, the level
+   * the surrounding HeadingLevelProvider or titled Section gives, and plain text outside every one.
+   */
+  titleLevel?: HeadingLevel | undefined;
+  /** One line under the title: the period, the unit, the source. With `summary`, the figure's description. */
   description?: ReactNode | undefined;
-  /** One sentence for a screen reader that says what the chart shows: "Open findings fell from 14 in January to 5 in September." The figure's description. Not shown. */
+  /** One sentence for a screen reader that says what the chart shows: "Open findings fell from 14 in January to 5 in September." Part of the figure's description. Not shown. */
   summary?: string | undefined;
   /** The levels drilled into so far, from the top: `[{ label: "All families", onSelect }, { label: "AC" }]`. A Breadcrumb under the title; every crumb but the last goes back. */
   path?: ChartCrumb[] | undefined;
   /** The series, for the legend and the table, and for a Bar, Line or Area inside that is given none. Unsaid, the legend keys what the part inside draws: its series, its groups, its slices or its branches. */
   series?: ChartSeries[] | undefined;
-  /** Where the legend sits. `top` when there are two or more series, `none` for one: the title names it. At a narrow width the header wraps and the legend drops under the title. */
+  /** Where the legend sits. `top` when there are two or more series, `none` for one: the title names it. At a narrow width the header wraps, the tools stay on the title's row and the legend starts on the next. */
   legend?: "top" | "bottom" | "none" | undefined;
   /** The legend's swatch: a square for bars and areas, a stroke for lines, a dot for points. Unsaid, the part inside says which. */
   swatch?: SwatchShape | undefined;
@@ -173,13 +202,13 @@ export type ChartFrameProps = Omit<ComponentProps<"figure">, "title" | "children
   texture?: boolean | undefined;
   /** Charts with the same id share their hover: the tooltip moves on all of them. For small multiples. */
   syncId?: string | undefined;
-  /** Controls at the end of the header: a range, a filter, a Retry. */
+  /** Controls at the end of the header: a range, a filter. A retry belongs beside the error, in `onRetry`. */
   actions?: ReactNode | undefined;
-  /** The files the reader can take away, as a Download menu in the header: the table twin as CSV, the plot as a PNG at twice the pixel density. */
+  /** The files the reader can take away, as a Download menu in the header: the table twin as a CSV for a spreadsheet, the plot as a PNG at twice the pixel density with the title and the legend above it. */
   download?: ("csv" | "png")[] | undefined;
   /** An Expand button in the header that opens the same chart in a large Dialog, the plot redrawn at `large`. */
   expandable?: boolean | undefined;
-  /** `loading` draws the plot's skeleton at its height; `refreshing` keeps the last plot, dimmed, with a spinner in the header; `empty` and `error` say so in the plot's place. The same word as DataTable's `state`. */
+  /** `loading` draws the plot's skeleton at its height; `refreshing` keeps the last plot, dimmed, with a spinner in the header; `empty` and `error` say so in the plot's place. The same word as DataTable's `state`. With `ready` and `data` that has no records, the Frame says it is empty. */
   state?: ChartFrameState | undefined;
   /**
    * The plot's state, under its old name. `state` wins when both are set.
@@ -189,6 +218,10 @@ export type ChartFrameProps = Omit<ComponentProps<"figure">, "title" | "children
   /** What an empty or failed plot says. "Nothing to show yet" and "The chart could not load" when unsaid. */
   statusTitle?: string | undefined;
   statusText?: string | undefined;
+  /** A failed plot's Try again, beside its message, as DataTable's error has. */
+  onRetry?: (() => void) | undefined;
+  /** An action beside an empty or failed plot's message: the create action, Clear filters. */
+  statusAction?: ReactNode | undefined;
   /** The records and the category key: what a Bar, Line or Area inside draws when it is given none, and what the table twin and the CSV lay out. Unsaid, the twin takes the part's own: every kind has one, one toggle away. */
   data?: ChartDatum[] | undefined;
   x?: string | undefined;
@@ -216,8 +249,9 @@ type ChartViewState = {
   setValues: Dispatch<SetStateAction<boolean>>;
 };
 
-/** The expanded Dialog's greatest width, in pixels: room for the plot at `large`. */
-const EXPANDED_WIDTH = 860;
+/** The svg a PNG is drawn from: a part's marked surface, else recharts' own. */
+const imageSource = (figure: HTMLElement | null) =>
+  figure?.querySelector<SVGSVGElement>("svg[data-chart-surface], svg.recharts-surface") ?? null;
 
 /**
  * The figure around a plot: title, description, the drill-down's path, legend, actions, the states,
@@ -245,9 +279,11 @@ function ChartFrameView({
 }: ChartFrameProps & { view: ChartViewState; inDialog?: boolean | undefined }) {
   const { t } = useLedgerLocale();
   const { format: defaultFormat, category: defaultCategory } = useChartFormat();
+  const contextLevel = useHeadingLevel();
 
   const {
     title,
+    titleLevel,
     description,
     summary,
     path,
@@ -263,6 +299,8 @@ function ChartFrameView({
     status: statusProp,
     statusTitle,
     statusText,
+    onRetry,
+    statusAction,
     data,
     x,
     xLabel,
@@ -275,12 +313,13 @@ function ChartFrameView({
     className,
     ...figureProps
   } = props;
-  const status: ChartFrameState = stateProp ?? statusProp ?? "ready";
   const id = useId();
   const figure = useRef<HTMLElement>(null);
   const { hidden, setHidden, showTable, setShowTable, values, setValues } = view;
   const [highlighted, setHighlighted] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [canImage, setCanImage] = useState(true);
+  const [imageFailed, setImageFailed] = useState(false);
   // What the part inside draws, and how many parts are mounted to say so.
   const [lastReport, setReport] = useState<FrameReport | null>(null);
   const [parts, setParts] = useState(0);
@@ -294,9 +333,16 @@ function ChartFrameView({
     }),
     [],
   );
-  // An empty or failed plot is set aside by the Frame and keeps its last report, so the header does
-  // not shift; a part the caller removes takes its legend, its table and its CSV with it.
-  const report = parts > 0 || status === "empty" || status === "error" ? lastReport : null;
+  const given: ChartFrameState = stateProp ?? statusProp ?? "ready";
+  // A part the caller removes takes its legend, its table and its CSV with it; while the Frame
+  // stands an empty or failed message in for the plot, the part stays mounted and drawing nothing.
+  const report = parts > 0 || given === "empty" || given === "error" ? lastReport : null;
+  const source = report?.table;
+  // Ready with records that hold nothing: an empty chart says so, rather than drawing bare axes.
+  const noRecords =
+    given === "ready" &&
+    (data !== undefined ? data.length === 0 : source?.kind === "category" && !source.data.length);
+  const status: ChartFrameState = noRecords ? "empty" : given;
   const series = seriesProp ?? report?.series;
   const swatch = swatchProp ?? report?.swatch ?? "square";
   // The legend's keys, as one string, so the toggle changes only when they do.
@@ -317,9 +363,12 @@ function ChartFrameView({
   );
   const loading = status === "loading";
   const showing = status === "ready" || status === "refreshing";
+  const standIn = status === "empty" || status === "error";
+  const titleId = `${id}-title`;
   const state = useMemo<FrameState>(
     () => ({
       name: title,
+      titleId,
       hidden,
       highlighted,
       highlight: setHighlighted,
@@ -336,10 +385,11 @@ function ChartFrameView({
       height,
       expanded: inDialog,
       values,
-      offstage: showTable && showing,
+      offstage: (showTable && showing) || standIn,
     }),
     [
       title,
+      titleId,
       hidden,
       highlighted,
       toggle,
@@ -357,13 +407,13 @@ function ChartFrameView({
       values,
       showTable,
       showing,
+      standIn,
     ],
   );
   const legendAt = legend ?? (series && series.length > 1 ? "top" : "none");
   // The table and the CSV print what the plot prints: the part's formats, else the Frame's.
   const twinFormat = report?.format ?? format;
   const twinFormatX = report?.formatX ?? formatX ?? defaultCategory;
-  const source = report?.table;
   const category =
     data && x && seriesProp?.length
       ? { data, x, series: seriesProp }
@@ -371,15 +421,19 @@ function ChartFrameView({
         ? { data: data ?? source.data, x: x ?? source.x, series: seriesProp ?? source.series }
         : null;
   const twin = category ? category.series.length > 0 : Boolean(source);
-  const buildTwin = (): ChartTwin | null => {
-    if (category)
+  /** The twin: every series for the CSV; on screen, the series the legend shows. */
+  const buildTwin = (onScreen: boolean): ChartTwin | null => {
+    if (category) {
+      const shown = onScreen ? category.series.filter((s) => !hidden.has(s.key)) : category.series;
       return categoryTwin({
         ...category,
+        series: shown.length ? shown : category.series,
         xLabel: xLabel ?? (source?.kind === "category" ? source.xLabel : undefined) ?? category.x,
         columns,
         format: twinFormat,
         formatX: twinFormatX,
       });
+    }
     if (source?.kind === "custom") return source.build({ xLabel, columns });
     return null;
   };
@@ -388,48 +442,104 @@ function ChartFrameView({
   const png = downloads?.includes("png");
   const valuesToggle = Boolean(report?.values);
   const saveCsv = () => {
-    const table = buildTwin();
+    const table = buildTwin(false);
     if (!table) return;
-    download(
-      fileName(title, "csv"),
-      new Blob([twinCsv(table)], {
-        type: "text/csv;charset=utf-8",
-      }),
-    );
+    // A byte order mark, so a spreadsheet reads accented and non-Latin names as they are.
+    downloadText(twinCsv(table), fileName(title, "csv"), {
+      type: "text/csv;charset=utf-8",
+      bom: true,
+    });
   };
   const savePng = async () => {
-    const svg = figure.current?.querySelector<SVGSVGElement>("svg.recharts-surface");
-    if (!svg) return;
-    download(fileName(title, "png"), await svgToPng(svg));
+    setImageFailed(false);
+    const root = figure.current;
+    const svg = imageSource(root);
+    if (!root || !svg) {
+      setCanImage(false);
+      return;
+    }
+    const titleEl = root.querySelector(`[id="${titleId}"]`);
+    const descriptionEl = root.querySelector(`[id="${id}-description"]`);
+    const legendEl = root.querySelector('[data-slot="chart-legend"]');
+    try {
+      const blob = await svgToPng(svg, 2, {
+        ...(titleEl ? { title: { text: title, element: titleEl } } : {}),
+        ...(descriptionEl?.textContent
+          ? { description: { text: descriptionEl.textContent, element: descriptionEl } }
+          : {}),
+        ...(legendEl && series && legendAt !== "none"
+          ? {
+              legend: {
+                element: legendEl,
+                keys: series
+                  .map((s, i) => ({
+                    key: s.key,
+                    label: s.label ?? s.key,
+                    color: chartColor(s.tone ?? categoricalTone(i)),
+                    shape: swatch,
+                  }))
+                  .filter((k) => !hidden.has(k.key)),
+              },
+            }
+          : {}),
+      });
+      download(fileName(title, "png"), blob);
+    } catch {
+      setImageFailed(true);
+    }
   };
   const tools = csv || png || expandable || twin || valuesToggle;
-  const shownTwin = twin && showTable && showing ? buildTwin() : null;
+  const shownTwin = twin && showTable && showing ? buildTwin(true) : null;
+  const level = inDialog ? undefined : (titleLevel ?? contextLevel);
+  const describedBy = [
+    description && !inDialog ? `${id}-description` : null,
+    summary ? `${id}-summary` : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
   const frameElement = useRender({
     defaultTagName: "figure",
     ref: figure,
     // Keep the caller's DOM ids, ref and handlers on the original figure only.
     render: (
       <figure
-        aria-labelledby={id}
-        {...(summary ? { "aria-describedby": `${id}-summary` } : {})}
+        aria-labelledby={titleId}
+        {...(describedBy ? { "aria-describedby": describedBy } : {})}
         className={cn("flex min-w-0 flex-col gap-150", className)}
         {...(!inDialog ? figureProps : {})}
         data-slot="chart-frame"
         data-state={status}
       >
-        <div className="flex flex-wrap items-start justify-between gap-x-200 gap-y-100">
-          <figcaption className="flex min-w-0 flex-col gap-025" style={{ flex: "1 1 200px" }}>
+        <div
+          data-slot="chart-frame-header"
+          className="flex flex-wrap items-start justify-between gap-x-200 gap-y-100"
+        >
+          <figcaption data-slot="chart-frame-caption" className="flex min-w-0 flex-col gap-025">
             <span className={cn("flex items-center gap-100", inDialog && "sr-only")}>
-              <span id={id} className="font-body font-medium text-default">
-                {title}
-              </span>
+              {level ? (
+                (() => {
+                  const Heading = headingTag(level);
+                  return (
+                    <Heading id={titleId} className="font-body font-medium text-default">
+                      {title}
+                    </Heading>
+                  );
+                })()
+              ) : (
+                <span id={titleId} className="font-body font-medium text-default">
+                  {title}
+                </span>
+              )}
               {status === "refreshing" ? <Spinner size="small" label={t("refreshing")} /> : null}
             </span>
             {description && !inDialog ? (
-              <span className="font-body-small text-subtle">{description}</span>
+              <span id={`${id}-description`} className="font-body-small text-subtle">
+                {description}
+              </span>
             ) : null}
             {summary ? (
-              <span id={`${id}-summary`} className="sr-only">
+              // The figure's description only: not read again in the caption's flow.
+              <span id={`${id}-summary`} hidden>
                 {summary}
               </span>
             ) : null}
@@ -456,95 +566,144 @@ function ChartFrameView({
               </Breadcrumb>
             ) : null}
           </figcaption>
-          {legendAt === "top" || actions || tools ? (
-            <div className="flex min-w-0 flex-wrap items-center justify-end gap-150">
+          {(legendAt === "top" && series) || actions ? (
+            <div
+              data-slot="chart-frame-extras"
+              className="flex min-w-0 flex-wrap items-center justify-end gap-150"
+            >
               {legendAt === "top" && series ? (
                 <ChartLegend series={series} swatch={swatch} />
               ) : null}
               {actions}
-              {tools ? (
-                <span className="flex flex-wrap items-center gap-050">
-                  {valuesToggle ? (
-                    <Toggle
-                      size="sm"
-                      pressed={values}
-                      onPressedChange={setValues}
-                      disabled={!showing}
-                    >
-                      <Hash className="size-icon-small" aria-hidden />
-                      {t("chartValues")}
-                    </Toggle>
-                  ) : null}
-                  {twin ? (
-                    // Its name stays "Table"; `aria-pressed` says whether the table shows.
-                    <Toggle
-                      size="sm"
-                      pressed={showTable}
-                      onPressedChange={setShowTable}
-                      disabled={!showing}
-                    >
-                      <Table2 className="size-icon-small" aria-hidden />
-                      {t("chartTable")}
-                    </Toggle>
-                  ) : null}
-                  {csv || png ? (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        render={
-                          <IconButton
-                            label={t("download")}
-                            icon={<Download />}
-                            variant="subtle"
-                            size="small"
-                            disabled={!showing}
-                          />
-                        }
-                      />
-                      <DropdownMenuContent align="end" style={{ width: 200 }}>
-                        {csv ? (
-                          <DropdownMenuItem onClick={saveCsv}>{t("downloadCsv")}</DropdownMenuItem>
-                        ) : null}
-                        {png ? (
-                          <DropdownMenuItem onClick={() => void savePng()} disabled={showTable}>
-                            {t("downloadPng")}
-                          </DropdownMenuItem>
-                        ) : null}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  ) : null}
-                  {expandable ? (
-                    <IconButton
-                      label={t("expand")}
-                      icon={<Maximize2 />}
-                      variant="subtle"
-                      size="small"
-                      disabled={!showing}
-                      onClick={() => setExpanded(true)}
-                    />
-                  ) : null}
-                </span>
-              ) : null}
             </div>
           ) : null}
+          {tools ? (
+            <span data-slot="chart-frame-tools" className="flex flex-wrap items-center gap-050">
+              {valuesToggle ? (
+                <Toggle size="sm" pressed={values} onPressedChange={setValues} disabled={!showing}>
+                  <Hash className="size-icon-small" aria-hidden />
+                  {t("chartValues")}
+                </Toggle>
+              ) : null}
+              {twin ? (
+                // Its name stays "Table"; `aria-pressed` says whether the table shows.
+                <Toggle
+                  size="sm"
+                  pressed={showTable}
+                  onPressedChange={setShowTable}
+                  disabled={!showing}
+                >
+                  <Table2 className="size-icon-small" aria-hidden />
+                  {t("chartTable")}
+                </Toggle>
+              ) : null}
+              {csv || png ? (
+                <DropdownMenu
+                  onOpenChange={(open) => {
+                    if (open) setCanImage(Boolean(imageSource(figure.current)));
+                  }}
+                >
+                  <DropdownMenuTrigger
+                    render={
+                      <IconButton
+                        label={t("download")}
+                        icon={<Download />}
+                        variant="subtle"
+                        size="small"
+                        disabled={!showing}
+                      />
+                    }
+                  />
+                  <DropdownMenuContent align="end">
+                    {csv ? (
+                      <DropdownMenuItem onClick={saveCsv}>{t("downloadCsv")}</DropdownMenuItem>
+                    ) : null}
+                    {png ? (
+                      <DropdownMenuItem
+                        onClick={() => void savePng()}
+                        disabled={showTable || !canImage}
+                        // The table stands in for the plot, so there is no image until the chart shows again.
+                        {...(showTable
+                          ? { disabledReason: t("chartImageInTable") }
+                          : !canImage
+                            ? { disabledReason: t("chartNoImage") }
+                            : {})}
+                      >
+                        {t("downloadPng")}
+                      </DropdownMenuItem>
+                    ) : null}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : null}
+              {expandable ? (
+                <IconButton
+                  label={t("expand")}
+                  icon={<Maximize2 />}
+                  variant="subtle"
+                  size="small"
+                  disabled={!showing}
+                  onClick={() => setExpanded(true)}
+                />
+              ) : null}
+            </span>
+          ) : null}
         </div>
+        {imageFailed ? (
+          <Alert tone="danger" role="alert">
+            <AlertIcon />
+            <AlertDescription>{t("chartImageFailed")}</AlertDescription>
+            <AlertAction>
+              <IconButton
+                label={t("close")}
+                icon={<X />}
+                variant="subtle"
+                size="small"
+                onClick={() => setImageFailed(false)}
+              />
+            </AlertAction>
+          </Alert>
+        ) : null}
         {loading ? (
           children || <Skeleton className="rounded-large" style={{ height: plotHeight }} />
-        ) : status === "empty" || status === "error" ? (
-          <div
-            role="status"
-            className="flex flex-col items-start justify-center gap-025 rounded-large border border-dashed border-default px-200"
-            style={{ height: plotHeight }}
-          >
-            <span
-              className={cn(
-                "font-body font-medium",
-                status === "error" ? "text-danger" : "text-default",
-              )}
+        ) : standIn ? (
+          <>
+            {/* The part stays, drawing nothing, so the Frame still hears when its records change. */}
+            <div hidden>{children}</div>
+            <div
+              data-slot="chart-status"
+              className="flex flex-col items-center justify-center"
+              style={{ minHeight: plotHeight }}
             >
-              {statusTitle ?? (status === "error" ? t("chartError") : t("nothingToShow"))}
-            </span>
-            {statusText ? <span className="font-body-small text-subtle">{statusText}</span> : null}
-          </div>
+              {status === "error" ? (
+                <Alert tone="danger" role="alert" className="w-full">
+                  <AlertIcon />
+                  <AlertTitle>{statusTitle ?? t("chartError")}</AlertTitle>
+                  {statusText ? <AlertDescription>{statusText}</AlertDescription> : null}
+                  {onRetry || statusAction ? (
+                    <AlertAction>
+                      {onRetry ? (
+                        <Button size="small" variant="secondary" onClick={onRetry}>
+                          {t("retry")}
+                        </Button>
+                      ) : null}
+                      {statusAction}
+                    </AlertAction>
+                  ) : null}
+                </Alert>
+              ) : (
+                <Empty size="compact">
+                  <EmptyMedia variant="icon" aria-hidden>
+                    <ChartNoAxesColumn />
+                  </EmptyMedia>
+                  <EmptyHeader>
+                    <EmptyTitle>{statusTitle ?? t("nothingToShow")}</EmptyTitle>
+                    {statusText ? <EmptyDescription>{statusText}</EmptyDescription> : null}
+                  </EmptyHeader>
+                  {statusAction ? <EmptyContent>{statusAction}</EmptyContent> : null}
+                </Empty>
+              )}
+            </div>
+          </>
         ) : showTable ? (
           // The table stands in for the plot. The part stays, drawing nothing, so the twin follows its data.
           <div hidden>{children}</div>
@@ -577,15 +736,12 @@ function ChartFrameView({
               }
             }}
           >
-            <DialogContent
-              style={{ maxWidth: EXPANDED_WIDTH }}
-              className="top-200 translate-y-0 sm:top-600"
-            >
+            <DialogContent width="xlarge" className="top-200 translate-y-0 sm:top-600">
               <DialogHeader>
                 <DialogTitle>{title}</DialogTitle>
                 <DialogDescription>{description}</DialogDescription>
               </DialogHeader>
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-none px-250 py-200">
+              <DialogBody>
                 {expanded ? (
                   <ChartFrameView
                     {...props}
@@ -597,7 +753,7 @@ function ChartFrameView({
                     className={undefined}
                   />
                 ) : null}
-              </div>
+              </DialogBody>
             </DialogContent>
           </Dialog>
         ) : null}
@@ -606,7 +762,7 @@ function ChartFrameView({
   );
 }
 
-/** The twin as a Table: each cell keeps its full width, so the table sizes to its content and scrolls in its own frame past the Frame's width, rather than clipping a word or a value. */
+/** The twin as a Table: the category heads each row (`th scope="row"`), and each cell keeps its full width, so the table sizes to its content and scrolls in its own frame past the Frame's width, rather than clipping a word or a value. */
 function TwinTable({ twin, label }: { twin: ChartTwin; label: string }) {
   return (
     <div>
@@ -626,6 +782,7 @@ function TwinTable({ twin, label }: { twin: ChartTwin; label: string }) {
               {r.cells.map((cell, i) => (
                 <Table.Cell
                   key={i}
+                  rowHeader={i === 0}
                   className={cn("max-w-none", twin.columns[i]?.numeric && "text-end tabular-nums")}
                 >
                   {cell.text}

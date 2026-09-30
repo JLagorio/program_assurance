@@ -8,7 +8,10 @@ import {
   FieldDescription,
   FieldError,
   Field,
+  FieldContent,
+  FieldGroup,
   FieldLabel,
+  FieldTitle,
   Button,
   RadioGroup,
   RadioGroupItem,
@@ -111,8 +114,11 @@ export const RadioGroupMatrix: Story = {
     await expect(indicator).toBeVisible();
     await expect(indicator.querySelector("span")!.getBoundingClientRect().width).toBe(8);
     if (matchMedia("(forced-colors: active)").matches) {
-      await expect(getComputedStyle(indicator.querySelector("span")!).backgroundColor).not.toBe(
-        getComputedStyle(quarterly).backgroundColor,
+      // The fill eases in with the shared choice transition.
+      await waitFor(() =>
+        expect(getComputedStyle(indicator.querySelector("span")!).backgroundColor).not.toBe(
+          getComputedStyle(quarterly).backgroundColor,
+        ),
       );
       await expect(getComputedStyle(quarterly).borderColor).not.toBe(
         getComputedStyle(quarterly).backgroundColor,
@@ -447,7 +453,8 @@ export const BoundInField: Story = {
     const forced = matchMedia("(forced-colors: active)").matches;
     const danger = getComputedStyle(monthly).getPropertyValue("--ds-color-border-danger").trim();
     const ring = getComputedStyle(monthly).getPropertyValue("--ds-color-border-focused").trim();
-    if (!forced) await expect(getComputedStyle(annually).borderColor).toBe(danger);
+    // The border eases to the danger colour with the shared choice transition.
+    if (!forced) await waitFor(() => expect(getComputedStyle(annually).borderColor).toBe(danger));
     // Keyboard focus, as Tab gives it; the option draws :focus-visible without a trusted key press.
     monthly.focus({ focusVisible: true } as FocusOptions);
     await waitFor(() => {
@@ -485,5 +492,157 @@ export const Boundary: Story = {
     await expect(getComputedStyle(radio).borderTopColor).toBe(
       getComputedStyle(canvas.getByTestId("bold-border")).borderTopColor,
     );
+  },
+};
+
+/**
+ * A read-only group keeps its answer and its Tab stop but drops the brand fill and the hover: each
+ * circle is sunken with a dashed edge, and the chosen one keeps a dark dot. The group's hint says
+ * why the answer cannot change.
+ */
+export const ReadOnly: Story = {
+  name: "Read-only",
+  render: () => (
+    <Stack space="space.300" className="w-layout-list max-w-full">
+      <Field>
+        <FieldSet>
+          <FieldLegend variant="label">Review frequency</FieldLegend>
+          <RadioGroup defaultValue="quarterly">
+            {(["Monthly", "Quarterly"] as const).map((label) => (
+              <Field key={label} orientation="horizontal">
+                <RadioGroupItem value={label.toLowerCase()} />
+                <FieldLabel>{label}</FieldLabel>
+              </Field>
+            ))}
+          </RadioGroup>
+        </FieldSet>
+      </Field>
+      <Field>
+        <FieldSet>
+          <FieldLegend variant="label">Impact level</FieldLegend>
+          <FieldDescription>Set by the system categorization.</FieldDescription>
+          <RadioGroup defaultValue="moderate" readOnly>
+            {(["Low", "Moderate"] as const).map((label) => (
+              <Field key={label} orientation="horizontal">
+                <RadioGroupItem value={label.toLowerCase()} />
+                <FieldLabel>{label}</FieldLabel>
+              </Field>
+            ))}
+          </RadioGroup>
+        </FieldSet>
+      </Field>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const impact = canvas.getByRole("radiogroup", { name: "Impact level" });
+    await expect(impact).toHaveAttribute("aria-readonly", "true");
+    await expect(impact).toHaveAccessibleDescription("Set by the system categorization.");
+    const fixed = within(impact).getByRole("radio", { name: "Moderate" });
+    const editable = canvas.getByRole("radio", { name: "Quarterly" });
+    fixed.focus();
+    await expect(fixed).toHaveFocus();
+    await userEvent.keyboard("{ArrowUp}");
+    await expect(fixed).toBeChecked();
+    if (matchMedia("(forced-colors: active)").matches) return;
+    const dot = (radio: HTMLElement) =>
+      getComputedStyle(radio.querySelector('[data-slot="radio-group-indicator"] > span')!);
+    await waitFor(() =>
+      expect(getComputedStyle(fixed).backgroundColor).not.toBe(
+        getComputedStyle(editable).backgroundColor,
+      ),
+    );
+    await expect(dot(fixed).backgroundColor).not.toBe(dot(editable).backgroundColor);
+    await expect(getComputedStyle(fixed).borderTopStyle).toBe("dashed");
+    await expect(getComputedStyle(editable).borderTopStyle).toBe("solid");
+  },
+};
+
+/**
+ * Choice cards: each option is a FieldLabel around a horizontal Field, so a press anywhere on the
+ * card chooses it. The FieldTitle names the radio and the FieldDescription describes it once; the
+ * card draws the one focus ring.
+ */
+export const ChoiceCard: Story = {
+  name: "Choice card",
+  render: () => (
+    <FieldSet className="w-layout-list max-w-full">
+      <FieldLegend variant="label">Baseline source</FieldLegend>
+      <RadioGroup defaultValue="inherit">
+        <FieldGroup>
+          <FieldLabel>
+            <Field orientation="horizontal">
+              <RadioGroupItem value="inherit" />
+              <FieldContent>
+                <FieldTitle>Use the inherited baseline</FieldTitle>
+                <FieldDescription>The boundary's controls apply as they are.</FieldDescription>
+              </FieldContent>
+            </Field>
+          </FieldLabel>
+          <FieldLabel>
+            <Field orientation="horizontal">
+              <RadioGroupItem value="adopt" />
+              <FieldContent>
+                <FieldTitle>Adopt a profile</FieldTitle>
+                <FieldDescription>Tailor its controls for this element.</FieldDescription>
+              </FieldContent>
+            </Field>
+          </FieldLabel>
+        </FieldGroup>
+      </RadioGroup>
+    </FieldSet>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const inherit = canvas.getByRole("radio", { name: "Use the inherited baseline" });
+    const adopt = canvas.getByRole("radio", { name: "Adopt a profile" });
+    await expect(adopt).toHaveAccessibleDescription("Tailor its controls for this element.");
+    await userEvent.click(canvas.getByText("Tailor its controls for this element."));
+    await expect(adopt).toBeChecked();
+    await expect(inherit).not.toBeChecked();
+    (adopt.ownerDocument.activeElement as HTMLElement | null)?.blur();
+    adopt.focus({ focusVisible: true } as FocusOptions);
+    const card = adopt.closest("label")!;
+    await waitFor(() => expect(getComputedStyle(card).outlineStyle).toBe("solid"));
+    await expect(getComputedStyle(adopt).outlineStyle).toBe("none");
+  },
+};
+
+/**
+ * A controlled group with no answer yet passes a value no item has (here ""), never `undefined`,
+ * so the group stays controlled from its first render and Clear can take the answer back.
+ */
+export const ControlledWithNoAnswer: Story = {
+  name: "Controlled with no answer",
+  render: function Example() {
+    const [frequency, setFrequency] = useState("");
+    return (
+      <Stack space="space.150" className="w-layout-list max-w-full">
+        <FieldSet>
+          <FieldLegend variant="label">Review frequency</FieldLegend>
+          <RadioGroup<string> value={frequency} onValueChange={setFrequency}>
+            {(["Monthly", "Quarterly"] as const).map((label) => (
+              <Field key={label} orientation="horizontal">
+                <RadioGroupItem value={label.toLowerCase()} />
+                <FieldLabel>{label}</FieldLabel>
+              </Field>
+            ))}
+          </RadioGroup>
+        </FieldSet>
+        <Inline space="space.100">
+          <Button size="small" onClick={() => setFrequency("")}>
+            Clear frequency
+          </Button>
+        </Inline>
+      </Stack>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    for (const radio of canvas.getAllByRole("radio")) await expect(radio).not.toBeChecked();
+    await userEvent.click(canvas.getByText("Quarterly"));
+    await expect(canvas.getByRole("radio", { name: "Quarterly" })).toBeChecked();
+    await userEvent.click(canvas.getByRole("button", { name: "Clear frequency" }));
+    for (const radio of canvas.getAllByRole("radio")) await expect(radio).not.toBeChecked();
   },
 };

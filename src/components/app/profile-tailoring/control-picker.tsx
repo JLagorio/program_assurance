@@ -33,11 +33,12 @@ import {
   Text,
   VisuallyHidden,
   WorkPane,
+  type WorkPaneView,
 } from "@ledger/design-system";
 import { type ComponentProps, useId, useMemo, useRef, useState, type RefObject } from "react";
 import { ChoiceField, TextField } from "../fields";
 import { ControlDetail } from "./control-detail";
-import { focusAfterConfirmation, useRevealDetail } from "./reveal-detail";
+import { focusAfterConfirmation, showOpenRow } from "./reveal-detail";
 import type { ReferenceData } from "./use-reference-data";
 
 const unrecorded = "The control rationale you entered has not been recorded.";
@@ -85,9 +86,13 @@ export function ControlPicker({
     initialControlId && !selectedControlIds.has(initialControlId) ? "all" : "selected",
   );
   const [selected, setSelected] = useState(initialControlId);
+  // Stacked, the pane shows the list or the chosen control; the filter and the count belong to
+  // the list, so they go with it.
+  const [paneView, setPaneView] = useState<WorkPaneView>(initialControlId ? "detail" : "list");
   const [editorDirty, setEditorDirty] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
-  const { detailRef, headingRef, arm, showRow } = useRevealDetail(selected);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const guard = useDraftGuard({ dirty: editorDirty, onClose, description: unrecorded });
   const { confirm, confirmation } = useConfirmation();
   const inCatalog = useMemo(
@@ -119,12 +124,13 @@ export function ControlPicker({
     [matching, filter, selectedControlIds, selected],
   );
   const control = data.controls.find((item) => item.id === selected);
+  /** Chooses a control, once an unrecorded rationale is let go; false keeps the reader on it. */
   async function select(controlId: string) {
-    if (controlId === selected) return;
-    if (editorDirty && !(await confirm(discardChanges(unrecorded)))) return;
+    if (controlId === selected) return true;
+    if (editorDirty && !(await confirm(discardChanges(unrecorded)))) return false;
     setEditorDirty(false);
-    arm();
     setSelected(controlId);
+    return true;
   }
   async function remove(target: Row<"controls">) {
     if (
@@ -157,7 +163,7 @@ export function ControlPicker({
         {...(finalFocus ? { finalFocus } : {})}
         initialFocus={() => {
           if (!initialControlId) return searchRef.current ?? true;
-          showRow(controls.findIndex((item) => item.id === initialControlId));
+          showOpenRow(bodyRef.current);
           return headingRef.current ?? true;
         }}
       >
@@ -170,8 +176,14 @@ export function ControlPicker({
           </DialogDescription>
         </DialogHeader>
         <DialogBody>
-          <Stack space="space.200">
-            <Inline space="space.200" alignBlock="end" shouldWrap>
+          <Stack ref={bodyRef} space="space.200" className="@container">
+            {/* The pane stacks under 48rem, the same width this container query reads. */}
+            <Inline
+              space="space.200"
+              alignBlock="end"
+              shouldWrap
+              className={paneView === "detail" && control ? "hidden @3xl:flex" : undefined}
+            >
               <div className="w-layout-rail max-w-full">
                 <ChoiceField
                   label="Show"
@@ -184,92 +196,92 @@ export function ControlPicker({
                 {controls.length} matching {controls.length === 1 ? "control" : "controls"}
               </Text>
             </Inline>
+            {/* Below its stacking width the pane is a drill-in: the list, then the chosen control
+                in its place with Back to controls. Only the search stays put over the rows. */}
             <WorkPane
               listWidth={300}
-              listLabel={
-                <>
-                  <VisuallyHidden>Catalog controls</VisuallyHidden>
-                  <SearchField
-                    ref={searchRef}
-                    size="small"
-                    aria-label="Search catalog controls"
-                    placeholder="Find a control"
-                    value={search}
-                    onValueChange={setSearch}
-                  />
-                </>
+              listLabel={<VisuallyHidden>Catalog controls</VisuallyHidden>}
+              listToolbar={
+                <SearchField
+                  ref={searchRef}
+                  size="small"
+                  aria-label="Search catalog controls"
+                  placeholder="Find a control"
+                  value={search}
+                  onValueChange={setSearch}
+                />
               }
+              view={paneView}
+              onViewChange={setPaneView}
+              backLabel="Back to controls"
               list={controls.map((item) => (
                 <WorkPane.Row
                   key={item.id}
                   id={item.code}
-                  title={
-                    <>
-                      {item.title}
-                      {item.id === selected ? <VisuallyHidden>(selected)</VisuallyHidden> : null}
-                    </>
-                  }
+                  title={item.title}
                   meta={
                     selectedControlIds.has(item.id) ? "In effective set" : "Outside effective set"
                   }
                   isActive={item.id === selected}
-                  onSelect={() => void select(item.id)}
+                  onSelect={() => select(item.id)}
                 />
               ))}
+              listEmpty={
+                <Empty size="compact">
+                  <EmptyHeader>
+                    <EmptyTitle>No control matches</EmptyTitle>
+                    <EmptyDescription>
+                      {outsideMatches > 0
+                        ? `${outsideMatches} more ${outsideMatches === 1 ? "matches" : "match"} outside what this list shows.`
+                        : "Change the search to find a catalog control."}
+                    </EmptyDescription>
+                  </EmptyHeader>
+                  <EmptyContent>
+                    {filter !== "all" && outsideMatches > 0 ? (
+                      <Button size="small" onClick={() => setFilter("all")}>
+                        Show all catalog controls
+                      </Button>
+                    ) : search ? (
+                      <Button
+                        size="small"
+                        onClick={() => {
+                          setSearch("");
+                          searchRef.current?.focus();
+                        }}
+                      >
+                        Clear search
+                      </Button>
+                    ) : null}
+                  </EmptyContent>
+                </Empty>
+              }
               detail={
-                <div ref={detailRef}>
-                  {control ? (
-                    <ControlDecisionEditor
-                      key={control.id}
-                      formId={formId}
-                      control={control}
-                      decisions={decisions}
-                      onChange={onChange}
-                      onRemove={remove}
-                      readOnly={readOnly}
-                      baseIds={baseControlIds}
-                      onDirty={setEditorDirty}
-                      headingRef={headingRef}
-                    />
-                  ) : controls.length ? (
-                    <Empty size="compact">
-                      <EmptyHeader>
-                        <EmptyTitle>No control chosen</EmptyTitle>
-                        <EmptyDescription>
-                          Choose a control to read its statement and record a decision.
-                        </EmptyDescription>
-                      </EmptyHeader>
-                    </Empty>
-                  ) : (
-                    <Empty size="compact">
-                      <EmptyHeader>
-                        <EmptyTitle>No control matches</EmptyTitle>
-                        <EmptyDescription>
-                          {outsideMatches > 0
-                            ? `${outsideMatches} more ${outsideMatches === 1 ? "matches" : "match"} outside what this list shows.`
-                            : "Change the search to find a catalog control."}
-                        </EmptyDescription>
-                      </EmptyHeader>
-                      <EmptyContent>
-                        {filter !== "all" && outsideMatches > 0 ? (
-                          <Button size="small" onClick={() => setFilter("all")}>
-                            Show all catalog controls
-                          </Button>
-                        ) : search ? (
-                          <Button
-                            size="small"
-                            onClick={() => {
-                              setSearch("");
-                              searchRef.current?.focus();
-                            }}
-                          >
-                            Clear search
-                          </Button>
-                        ) : null}
-                      </EmptyContent>
-                    </Empty>
-                  )}
-                </div>
+                control ? (
+                  <ControlDecisionEditor
+                    key={control.id}
+                    formId={formId}
+                    control={control}
+                    decisions={decisions}
+                    onChange={onChange}
+                    onRemove={remove}
+                    readOnly={readOnly}
+                    baseIds={baseControlIds}
+                    onDirty={setEditorDirty}
+                    headingRef={headingRef}
+                  />
+                ) : undefined
+              }
+              empty={
+                controls.length ? (
+                  <Empty size="compact">
+                    <EmptyHeader>
+                      <EmptyTitle>No control chosen</EmptyTitle>
+                      <EmptyDescription>
+                        Choose a control to read its statement and record a decision.
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                ) : undefined
               }
             />
           </Stack>

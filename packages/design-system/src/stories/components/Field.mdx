@@ -34,19 +34,26 @@ The label names the control and its click focuses it; the hint and the error des
 
 ## Parts
 
-`FieldLabel`, `FieldDescription` and `FieldError` bind inside a Field and stay plain elements outside one. `FieldSet` and `FieldLegend` group related controls, and a RadioGroup inside a FieldSet is named by its legend. `FieldGroup` spaces fields; `FieldContent` stacks text beside a control; `FieldTitle` is visual text when a wrapping label already names the control, as in a choice card. `FieldSeparator` divides sections, with optional text; its rules stop on either side of the text, so it works on any surface.
+`FieldLabel`, `FieldDescription` and `FieldError` bind inside a Field and stay plain elements outside one. `FieldSet` and `FieldLegend` group related controls, and a RadioGroup inside a FieldSet is named by its legend. `FieldGroup` spaces fields and is a size container, so a form's grid can collapse by the form's own width (see [Forms](?path=/docs/patterns-forms--docs), Layout); `FieldContent` stacks text beside a control; `FieldTitle` is a choice card's title, where a wrapping label makes the whole card choose: it names the control on its own, so the card's FieldDescription describes the control once instead of also becoming its name. `FieldSeparator` divides sections, with optional text; its rules stop on either side of the text, so it works on any surface.
 
 <Canvas of={Stories.Composition} />
 
 ## States
 
-- **`invalid`** comes from the form library (TanStack Form: `isTouched && !isValid`). A FieldError that shows a message also marks the Field invalid, so `<FieldError errors={errors} />` is enough when the errors are already filtered. `data-invalid`, which earlier callers set by hand, is still read as `invalid`.
+- **`invalid`** comes from the form library (TanStack Form: `isTouched && !isValid`). A FieldError that shows a message also marks the Field invalid, so `<FieldError errors={errors} />` is enough when the errors are already filtered. A hand-set `data-invalid` is read as `invalid`.
 - **`required`** is announced (`aria-required`) and marked; it is not a native constraint, so a form library that checks it is not second-guessed by the browser. Put native `required` on the control itself when Base UI or the browser should check it. `FieldLabel required={false}` hides the asterisk where most of a form is required and only the optional fields say so. A group Field requires the group, not each checkbox in it.
-- **`disabled`** disables the control and dims the label. A Field or a FieldSet inside a disabled Field is disabled too, so a disabled group's legend and choices follow it. `disabled` on a FieldSet reaches every control inside, including the Checkbox, Radio and Switch roots that a native `<fieldset disabled>` leaves live.
+- **`disabled`** disables the control and dims the label. A Field or a FieldSet inside a disabled Field is disabled too, so a disabled group's legend and choices follow it. `disabled` on a FieldSet reaches every control inside, including the Checkbox, Radio and Switch roots that a native `<fieldset disabled>` leaves live. The label also dims when its control is disabled on its own or by a native fieldset, and a disabled choice dims only its own label.
+- **Read-only** is the control's own `readOnly`: the sunken surface with a dashed edge and no hover on the text fields, Checkbox and Radio, and the neutral fill in place of the brand one on a Switch that is on. The label keeps its colour, since the value can still be read and copied. A value never edited where it is shown is a [KeyValue](?path=/docs/components-keyvalue--docs) instead.
 
 <Canvas of={Stories.Disabled} />
 
-A focused invalid text field thickens its danger border to the 2px focus edge; a focused invalid Checkbox or Radio keeps its danger border with the focus outline around it, and a Switch swaps its danger outline for the focus outline, so focus is always visible. A FieldLabel wrapping a Field becomes a choice card with hover, checked and keyboard-focus feedback; disabled choices keep a quiet surface.
+A focused invalid text field thickens its danger border to the 2px focus edge; a focused invalid Checkbox or Radio keeps its danger border with the focus outline around it, and a Switch swaps its danger outline for the focus outline, so focus is always visible.
+
+A FieldSet is a form's lock while it saves: `disabled` holds every field and choice inside it, and it adds no border, padding or content-sized minimum, so a wide table inside it scrolls or clips within its frame instead of widening a dialog. It stacks its children `space.100` apart; `className` changes the gap.
+
+<Canvas of={Stories.SavingLock} />
+
+A FieldLabel wrapping a horizontal Field becomes a choice card, with hover, the chosen state and one keyboard focus ring, drawn by the card rather than the control; a disabled card keeps a quiet surface. See the choice cards on [Checkbox](?path=/docs/components-checkbox--docs) and [RadioGroup](?path=/docs/components-radiogroup--docs).
 
 ## Validation
 
@@ -85,8 +92,9 @@ A group of choices is a Field around a FieldSet: the legend names the group, the
 
 - The label names the control through `htmlFor` and `aria-labelledby`, and a Select or Combobox list inside the Field is named by it too. Ids are generated per instance, so a form can appear more than once.
 - Hint and error ids reach `aria-describedby` in the order they render; ids the caller already references are listed once.
-- Explicit ids, `htmlFor` and ARIA on the parts still win, and wrappers between Field and control do not break the binding.
-- DatePicker does not take the binding yet: give its trigger `id`, `aria-labelledby` and `aria-describedby`, as the Forms Pickers story does.
+- Explicit ids, `htmlFor` and ARIA on the parts still win, and wrappers between Field and control do not break the binding. Hand-written ids, `aria-describedby`, `aria-invalid` and `data-invalid` keep working; a Field needs none of them.
+- The date and number fields (DatePicker, DateRangePicker, TimeField, DateTimeField, NumberField) and SearchField take the binding as Input does.
+- A Field is not a group of its own: it takes `role="group"` only when it is given a name (`aria-label` or `aria-labelledby`), so one control is not wrapped in an unnamed group.
 
 <Canvas of={Stories.ExplicitAssociations} />
 
@@ -99,12 +107,9 @@ A group of choices is a Field around a FieldSet: the legend names the group, the
 <ArgTypes of={FieldError} />
 <ArgTypes of={FieldSet} />
 <ArgTypes of={FieldLegend} />
+<ArgTypes of={FieldTitle} />
 
-Every part forwards the native attributes and ref of its element: Field, FieldGroup, FieldContent, FieldTitle, FieldError and FieldSeparator are divs, FieldLabel a label, FieldDescription a paragraph, FieldSet a fieldset and FieldLegend a legend. Field and FieldSet take `render`.
-
-### Migration
-
-Hand-written ids, `aria-describedby`, `aria-invalid` and `data-invalid` keep working. To shorten a field, drop them: pass `invalid` and `required` to Field, and remove the label's hand-written asterisk. FieldError is no longer `role="alert"`; a test that finds it by that role finds it by its text or `data-slot="field-error"`.
+Every part forwards the native attributes and ref of its element: Field, FieldGroup, FieldContent, FieldTitle, FieldError and FieldSeparator are divs, FieldLabel a label, FieldDescription a paragraph, FieldSet a fieldset and FieldLegend a legend. Field and FieldSet take `render`. A test finds a FieldError by its text or `data-slot="field-error"`, not by a live role.
 
 ## Related
 

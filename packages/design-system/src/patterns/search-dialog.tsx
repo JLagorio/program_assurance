@@ -129,6 +129,9 @@ function groupResults(rows: SearchResult[]): Group[] {
 /** How long the results must hold still before their count is spoken, so typing is not interrupted. */
 const ANNOUNCE_DELAY = 600;
 
+/** The top inset: 80px, or a tenth of the window where that is less, so a short window keeps room for the results. */
+const dialogTop = "min(var(--ds-space-1000), 10dvh)";
+
 /**
  * A search across the product's records, opened from the top nav's search (TopNav.Search) or ⌘K.
  * Rows show each record's identity: its identifier, its name, a line of meta and one badge. It
@@ -287,10 +290,11 @@ export function SearchDialog({
         showCloseButton={false}
         initialFocus={input}
         finalFocus={finalFocus}
-        className={cn("top-1000 translate-y-0", className)}
+        className={cn("translate-y-0", className)}
         style={{
+          top: dialogTop,
           maxWidth: 640,
-          maxHeight: "calc(100dvh - var(--ds-space-1000) - var(--ds-space-200))",
+          maxHeight: `calc(100dvh - ${dialogTop} - var(--ds-space-200))`,
           ...style,
         }}
       >
@@ -315,7 +319,10 @@ export function SearchDialog({
             autoHighlight="always"
             keepHighlight
           >
-            <div className="flex h-control-large shrink-0 items-center gap-100 border-b border-default px-150">
+            <div
+              data-slot="search-dialog-field"
+              className="flex h-control-large shrink-0 items-center gap-100 rounded-t-xxlarge border-b border-default px-150 focus-within:outline-field-focused"
+            >
               <Search aria-hidden className="size-icon-medium shrink-0 icon-subtle" />
               <Autocomplete.Input
                 ref={input}

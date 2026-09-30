@@ -294,7 +294,9 @@ try {
     await page.keyboard.press("Escape");
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await row(systems(), child.id).getByRole("button", { name: "Preview row", exact: true }).click();
+  await row(systems(), child.id)
+    .getByRole("button", { name: /^Preview / })
+    .click();
   for (const width of [1440, 390, 340]) {
     await page.setViewportSize({ width, height: 1000 });
     await systemPreviewFits(child.name);
@@ -305,11 +307,15 @@ try {
       await systemPreviewFits(child.name);
       await screenshot("system-preview-panel-240");
       await systemActionsFit("system-overflow-actions-panel-240");
-      await panel().getByRole("separator", { name: "Resize details", exact: true }).focus();
+      await panel()
+        .getByRole("separator", { name: /^Resize (details|.+ preview)$/ })
+        .focus();
       await page.keyboard.press("End");
     }
   }
-  await panel().getByRole("button", { name: "Close details", exact: true }).click();
+  await panel()
+    .getByRole("button", { name: /^Close (details|.+ preview)$/ })
+    .click();
   await tableFits(systems());
   const more = row(systems(), child.id).getByRole("button", {
     name: `More fields for ${child.code}`,
@@ -345,7 +351,7 @@ try {
   const originalOrder = await order();
   await tableFits(table);
   await row(table, requirements[1].id)
-    .getByRole("button", { name: "Preview row", exact: true })
+    .getByRole("button", { name: /^Preview / })
     .click();
   const requirementTabs = () =>
     panel().getByRole("tablist", { name: "Requirement sections", exact: true });
@@ -383,11 +389,15 @@ try {
       await expect(sorted).toHaveAttribute("aria-sort", "ascending");
       assert.deepEqual(await order(), originalOrder);
       await screenshot("requirement-preview-panel-240");
-      await panel().getByRole("separator", { name: "Resize details", exact: true }).focus();
+      await panel()
+        .getByRole("separator", { name: /^Resize (details|.+ preview)$/ })
+        .focus();
       await page.keyboard.press("End");
     }
   }
-  await panel().getByRole("button", { name: "Close details", exact: true }).click();
+  await panel()
+    .getByRole("button", { name: /^Close (details|.+ preview)$/ })
+    .click();
   for (const width of [1440, 390, 340, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     await tableFits(table);
@@ -403,7 +413,7 @@ try {
     await screenshot(`requirements-${width}`);
   }
   await row(table, requirements[1].id)
-    .getByRole("button", { name: "Preview row", exact: true })
+    .getByRole("button", { name: /^Preview / })
     .click();
   await expect(
     panel().getByRole("heading", { name: requirements[1].title, exact: true }),

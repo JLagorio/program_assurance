@@ -225,10 +225,12 @@ export function Field({
     [required, resolvedDisabled, registerError, labelId, registerLabel],
   );
   const resolvedInvalid = invalid ?? flag(dataInvalid) ?? (shownErrors > 0 ? true : undefined);
+  // A group only when it is named: the label already names the one control inside.
+  const named = props["aria-label"] !== undefined || props["aria-labelledby"] !== undefined;
   return (
     <FieldStateContext.Provider value={state}>
       <FieldPrimitive.Root
-        role="group"
+        {...(named ? { role: "group" } : {})}
         data-slot="field"
         data-orientation={orientation}
         {...(flag(dataDisabled) ? { "data-disabled": "" } : {})}
@@ -278,8 +280,11 @@ export function FieldLabel({ className, required, children, id, ...props }: Fiel
     [bound, registerLabel, labelId],
   );
   const classes = cn(
-    "group/field-label peer/field-label flex w-fit items-center gap-050 font-body-small font-medium text-subtle data-invalid:text-danger data-disabled:text-disabled group-data-disabled/field:text-disabled peer-disabled:cursor-not-allowed peer-disabled:text-disabled peer-aria-disabled:cursor-not-allowed peer-aria-disabled:text-disabled",
-    "has-[>[data-slot=field]]:w-full has-[>[data-slot=field]]:flex-col has-[>[data-slot=field]]:items-stretch has-[>[data-slot=field]]:rounded-medium has-[>[data-slot=field]]:border has-[>[data-slot=field]]:border-default has-[>[data-slot=field]]:p-150 has-[>[data-slot=field]]:transition-colors has-[>[data-slot=field]]:duration-fast has-[>[data-slot=field]]:ease-standard has-[>[data-slot=field]]:not-has-[:disabled,[aria-disabled=true]]:hover:bg-neutral-subtle-hovered has-[>[data-slot=field]]:has-[:focus-visible]:outline-focused has-[>[data-slot=field]]:has-data-checked:border-selected has-[>[data-slot=field]]:has-data-checked:bg-selected has-[>[data-slot=field]]:has-data-checked:not-has-[:disabled,[aria-disabled=true]]:hover:bg-selected-hovered has-[>[data-slot=field][data-invalid]]:border-danger",
+    // The label dims with its Field, and with a control disabled on its own or by a native
+    // fieldset: the control is a child of the Field (or the input of a group that is), so a
+    // disabled choice in a group dims only its own label.
+    "group/field-label peer/field-label flex w-fit items-center gap-050 font-body-small font-medium text-subtle data-invalid:text-danger data-disabled:text-disabled group-data-disabled/field:text-disabled group-has-[>:disabled,>[data-disabled],>*>[data-slot=input-group-control]:disabled,>*>[data-slot=input-group-control][data-disabled]]/field:text-disabled",
+    "has-[>[data-slot=field]]:w-full has-[>[data-slot=field]]:flex-col has-[>[data-slot=field]]:items-stretch has-[>[data-slot=field]]:rounded-medium has-[>[data-slot=field]]:border has-[>[data-slot=field]]:border-default has-[>[data-slot=field]]:p-150 has-[>[data-slot=field]]:transition-colors has-[>[data-slot=field]]:duration-fast has-[>[data-slot=field]]:ease-standard has-[>[data-slot=field]]:not-has-[:disabled,[aria-disabled=true]]:hover:bg-neutral-subtle-hovered has-[>[data-slot=field]]:has-[:focus-visible]:outline-focused has-[>[data-slot=field]]:**:data-[slot=checkbox]:outline-none has-[>[data-slot=field]]:**:data-[slot=radio-group-item]:outline-none has-[>[data-slot=field]]:**:data-[slot=switch]:outline-none has-[>[data-slot=field]]:has-data-checked:border-selected has-[>[data-slot=field]]:has-data-checked:bg-selected has-[>[data-slot=field]]:has-data-checked:not-has-[:disabled,[aria-disabled=true]]:hover:bg-selected-hovered has-[>[data-slot=field][data-invalid]]:border-danger",
     "has-[>[data-slot=field]]:has-[:disabled,[aria-disabled=true]]:border-disabled has-[>[data-slot=field]]:has-[:disabled,[aria-disabled=true]]:bg-disabled has-[>[data-slot=field]]:has-[:disabled,[aria-disabled=true]]:cursor-not-allowed",
     className,
   );
@@ -290,7 +295,7 @@ export function FieldLabel({ className, required, children, id, ...props }: Fiel
         <span
           aria-hidden="true"
           data-slot="field-required"
-          className="text-danger group-data-disabled/field-label:text-disabled"
+          className="text-danger group-data-disabled/field-label:text-disabled group-has-[>:disabled,>[data-disabled],>*>[data-slot=input-group-control]:disabled,>*>[data-slot=input-group-control][data-disabled]]/field:text-disabled"
         >
           *
         </span>
@@ -311,15 +316,44 @@ export function FieldLabel({ className, required, children, id, ...props }: Fiel
 }
 
 export type FieldTitleProps = ComponentProps<"div">;
-export function FieldTitle({ className, ...props }: FieldTitleProps) {
+/**
+ * A choice card's title, when a FieldLabel wrapping the card already makes a click anywhere on it
+ * choose. Inside the card's Field it names the control on its own (`aria-labelledby`), so the
+ * FieldDescription beside it describes the control once instead of also becoming its name.
+ */
+export function FieldTitle({ className, onClick, onPointerDown, ...props }: FieldTitleProps) {
+  const field = useContext(FieldStateContext);
+  const classes = cn(
+    "flex w-fit items-center gap-050 font-body-small font-medium text-subtle group-data-invalid/field:text-danger group-data-disabled/field:text-disabled",
+    className,
+  );
+  if (field)
+    return (
+      <FieldPrimitive.Label
+        data-slot="field-title"
+        nativeLabel={false}
+        render={<div />}
+        {...(props as FieldPrimitive.Label.Props)}
+        // The wrapping label chooses; the title only names. Base UI's own label handlers would
+        // move focus on press, so they are skipped; the caller's own handlers still run.
+        onClick={(event) => {
+          event.preventBaseUIHandler();
+          (onClick as FieldPrimitive.Label.Props["onClick"])?.(event);
+        }}
+        onPointerDown={(event) => {
+          event.preventBaseUIHandler();
+          (onPointerDown as FieldPrimitive.Label.Props["onPointerDown"])?.(event);
+        }}
+        className={classes}
+      />
+    );
   return (
     <div
-      data-slot="field-label"
-      className={cn(
-        "flex w-fit items-center gap-050 font-body-small font-medium text-subtle group-data-invalid/field:text-danger group-data-disabled/field:text-disabled",
-        className,
-      )}
+      data-slot="field-title"
+      className={classes}
       {...props}
+      {...(onClick ? { onClick } : {})}
+      {...(onPointerDown ? { onPointerDown } : {})}
     />
   );
 }
@@ -329,7 +363,9 @@ export type FieldDescriptionProps = ComponentProps<"p">;
 export function FieldDescription({ className, ...props }: FieldDescriptionProps) {
   const field = useContext(FieldStateContext);
   const classes = cn(
-    "font-body-small text-subtlest text-start group-has-data-checked/field-label:not-group-data-disabled/field:text-selected [&>a]:underline [&>a]:underline-offset-2 [&>a:hover]:text-default",
+    // On a chosen card's selected fill the hint keeps its neutral colour one step darker, so it
+    // reads as a hint and holds 4.5:1 on the fill.
+    "font-body-small text-subtlest text-start group-has-data-checked/field-label:not-group-data-disabled/field:text-subtle [&>a]:underline [&>a]:underline-offset-2 [&>a:hover]:text-default",
     className,
   );
   if (field)

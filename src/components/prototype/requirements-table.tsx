@@ -2,13 +2,15 @@ import { ProductCollection } from "./product-collection";
 import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Columns3, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
+  Absent,
   Alert,
   AlertDescription,
   Button,
   DataTable,
   Id,
+  Person,
   Stack,
   Text,
   defineColumns,
@@ -49,7 +51,9 @@ type RequirementView = {
   name: string;
   statement: string;
   requirementType: string | null;
+  /** The owner's name; `null` with no owner recorded, or when the owner is not in the workspace. */
   owner: string | null;
+  ownerMissing: boolean;
   allocations: Allocation[];
   controlSources: { id: string; label: string; relationship: string; needsReview: boolean }[];
   allocation: "Allocated" | "Unallocated" | "Details not recorded";
@@ -155,6 +159,7 @@ function AllocationsDetail({ row, programId }: { row: RequirementNode; programId
   return (
     <ProductCollection
       table={table}
+      compact
       keepQuestion={false}
       searchLabel="Find an allocation"
       empty={{
@@ -300,8 +305,9 @@ export function RequirementsTable({
           statement: revision?.statement ?? "Details not recorded",
           requirementType: revision ? labelFor(revision.requirement_type) : null,
           owner: revision?.owner_party_id
-            ? (partyById.get(revision.owner_party_id)?.name ?? "Owner unavailable")
+            ? (partyById.get(revision.owner_party_id)?.name ?? null)
             : null,
+          ownerMissing: !!revision?.owner_party_id && !partyById.has(revision.owner_party_id),
           allocations: targetRows,
           controlSources: sources,
           allocation: targetRows.length
@@ -398,7 +404,17 @@ export function RequirementsTable({
           ),
         }),
         c.text("requirementType", { header: "Type", width: 140 }),
-        c.text("owner", { header: "Owner", width: 160 }),
+        c.person("owner", {
+          header: "Owner",
+          cell: (row) =>
+            row.owner ? (
+              <Person name={row.owner} />
+            ) : row.ownerMissing ? (
+              <Text color="color.text.subtle">Not available</Text>
+            ) : (
+              <Absent label="Not recorded" />
+            ),
+        }),
         c.text("allocation", { header: "Allocation", width: 150 }),
         c.text("controlMapping", { header: "Control mapping", width: 160 }),
       ]),
@@ -408,6 +424,8 @@ export function RequirementsTable({
     columns,
     data: projection.rows,
     getRowId: (row) => row.id,
+    // The eye and the row's announcements name the requirement, not only its code.
+    rowLabel: (row) => `${row.code} · ${row.name}`,
     label: "Engineering requirements",
     view: "live-requirements-workspace",
     resizable: true,
@@ -449,7 +467,8 @@ export function RequirementsTable({
     statements,
   ];
   const error = queries.find((query) => query.error)?.error;
-  const loading = queries.some((query) => query.isPending);
+  // A query waiting on a failed one (the control statements) is not loading: it is not fetching.
+  const loading = queries.some((query) => query.isPending && query.fetchStatus !== "idle");
   const canCreate =
     workspace.role !== "viewer" &&
     workspace.collections.some(

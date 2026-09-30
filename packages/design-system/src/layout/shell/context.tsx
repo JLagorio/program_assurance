@@ -15,9 +15,10 @@ import { tokenValue } from "../../generated/tokens";
  * order: Banner, TopNav, SideNav, Main, Aside, Panel. Routes contribute Aside and Panel through
  * stable portal destinations; their content and state belong to the route.
  * The package owns the areas and their behaviour: the side nav collapses, resizes, flies out on
- * hover and overlays the page on a narrow viewport; the panel resizes, runs the full height of the
- * window beside the banner and the top nav, and replaces Main on compact screens; the banner
- * pushes everything down. The product owns what goes in them: the nav data, the router, the
+ * hover and overlays the page on a narrow viewport; the panel resizes, runs the height of the
+ * window under the banner beside the top nav from the large breakpoint (below the panel
+ * breakpoint the side nav yields to its icon rail while it is open), and replaces Main below the
+ * large breakpoint; the banner pushes everything down by its height. The product owns what goes in them: the nav data, the router, the
  * search, the actions, whatever fills the panel. Every part renders one element, forwards the
  * native props and the ref to it, and takes Base UI `render` where the element may change.
  */
@@ -30,8 +31,11 @@ export const SIDENAV_MIN = 200;
 export const PANEL_MIN = 240;
 /** The large breakpoint, `dimension.breakpoint.lg`: the side nav is inline from here and an overlay below. Read at call time, from the tokens the page loaded. */
 export const desktopQuery = () => `(width >= ${tokenValue("dimension.breakpoint.lg")})`;
-/** Below `dimension.breakpoint.panel` the panel replaces Main; from it the panel is a column beside the page, as layout.css says with `theme(--breakpoint-panel)`. */
-export const panelCompactQuery = () => `(width < ${tokenValue("dimension.breakpoint.panel")})`;
+/** Below `dimension.breakpoint.lg` the panel replaces Main; from it the panel is a column beside the page, as shell.css says with `theme(--breakpoint-lg)`. */
+export const panelCompactQuery = () => `(width < ${tokenValue("dimension.breakpoint.lg")})`;
+/** From `lg` to below `dimension.breakpoint.panel`, an open panel shows the side nav collapsed (the icon rail, or hidden), so Main keeps room beside the panel; from the panel breakpoint it stays as the reader left it. */
+export const panelNarrowQuery = () =>
+  `(width >= ${tokenValue("dimension.breakpoint.lg")}) and (width < ${tokenValue("dimension.breakpoint.panel")})`;
 /** Milliseconds the flyout stays open after the pointer leaves it. */
 export const PEEK_CLOSE_DELAY = 200;
 /** The main area, for the focus bookkeeping that returns focus to the page. */
@@ -118,7 +122,7 @@ export function followFocusToPage(root: HTMLElement | null): () => void {
 }
 
 export type SkipLink = { id: string; label: string; area?: string | undefined };
-/** What caused the side nav to collapse or expand, the argument of SideNav's onCollapse and onExpand. `navigation` is a destination chosen in the phone overlay, or a change of Shell's `locationKey`. */
+/** What caused the side nav to collapse or expand, the argument of SideNav's onCollapse and onExpand. `navigation` is a destination chosen in the phone overlay, or a change of Shell's `locationKey`; `viewport` is the phone overlay closing because the window grew past the large breakpoint. */
 export type SideNavTrigger =
   | "toggle-button"
   | "shortcut"
@@ -129,23 +133,43 @@ export type SideNavTrigger =
   | "viewport"
   | "navigation";
 
+/** What SideNav's onCollapse and onExpand receive: the cause, and whether the change was the phone overlay's (below the large breakpoint) rather than the desktop side nav's. Keep a remembered collapsed state from the calls where `isOverlay` is false. */
+export type SideNavChange = { trigger: SideNavTrigger; isOverlay: boolean };
+
 export type ShellApi = {
   isDesktop: boolean;
   shortcut: boolean;
   collapsedSideNav: "hidden" | "icons";
-  sideNav: { expanded: boolean; open: boolean; peeking: boolean; width: number | null };
+  /**
+   * `expanded` is what the desktop side nav shows now: the reader's preference, unless an open
+   * panel between `lg` and the panel breakpoint shows it collapsed (`yielded`). `modal` is the
+   * phone overlay open, while the rest of the shell is inert.
+   */
+  sideNav: {
+    expanded: boolean;
+    open: boolean;
+    peeking: boolean;
+    width: number | null;
+    yielded: boolean;
+    modal: boolean;
+  };
   panel: { width: number | null };
   expandSideNav: (trigger?: SideNavTrigger) => void;
   collapseSideNav: (trigger?: SideNavTrigger) => void;
   toggleSideNav: (trigger?: SideNavTrigger) => void;
-  openSideNav: () => void;
+  openSideNav: (trigger?: SideNavTrigger) => void;
   closeSideNav: (trigger?: SideNavTrigger) => void;
   peekSideNav: () => void;
   endPeek: (immediate?: boolean) => void;
   holdPeek: () => void;
   setSideNavWidth: (width: number | null) => void;
   setPanelWidth: (width: number | null) => void;
+  /** The width an area takes while the reader has not resized it: a `defaultWidth`, never remembered. `null` when its part unmounts. */
+  setSideNavDefaultWidth: (width: number | null) => void;
+  setPanelDefaultWidth: (width: number | null) => void;
   setBanner: (present: boolean) => void;
+  /** The banner area's measured height, so the top nav, the side nav and the panel sit under a banner that wraps. */
+  setBannerHeight: (height: number | null) => void;
   registerSkipLink: (link: SkipLink) => () => void;
   skipLinks: SkipLink[];
   /** Moves focus to the page after a destination is chosen; see `focusPage`. */
@@ -153,8 +177,8 @@ export type ShellApi = {
   /** The toggle button, so closing the overlay with Escape or the scrim returns focus to it. */
   toggle: RefObject<HTMLElement | null>;
   listeners: {
-    onCollapse?: ((args: { trigger: SideNavTrigger }) => void) | undefined;
-    onExpand?: ((args: { trigger: SideNavTrigger }) => void) | undefined;
+    onCollapse?: ((args: SideNavChange) => void) | undefined;
+    onExpand?: ((args: SideNavChange) => void) | undefined;
   };
 };
 
@@ -164,7 +188,14 @@ const detached: ShellApi = {
   isDesktop: true,
   shortcut: false,
   collapsedSideNav: "hidden",
-  sideNav: { expanded: true, open: false, peeking: false, width: null },
+  sideNav: {
+    expanded: true,
+    open: false,
+    peeking: false,
+    width: null,
+    yielded: false,
+    modal: false,
+  },
   panel: { width: null },
   expandSideNav: noop,
   collapseSideNav: noop,
@@ -176,7 +207,10 @@ const detached: ShellApi = {
   holdPeek: noop,
   setSideNavWidth: noop,
   setPanelWidth: noop,
+  setSideNavDefaultWidth: noop,
+  setPanelDefaultWidth: noop,
   setBanner: noop,
+  setBannerHeight: noop,
   registerSkipLink: () => noop,
   skipLinks: [],
   focusPage: noop,
@@ -211,15 +245,21 @@ export function mergeRefs<T>(...refs: (Ref<T> | undefined)[]) {
   };
 }
 
-/** The side nav from product code: is it showing, and open, close and toggle it. Use it inside a Shell. */
+/**
+ * The side nav from product code: is it showing, is it the phone overlay (below the large
+ * breakpoint, so products need not repeat the breakpoint), and open, close and toggle it. Use it
+ * inside a Shell.
+ */
 export function useSideNav() {
   const s = useShell();
   const { isDesktop, expandSideNav, openSideNav, collapseSideNav, closeSideNav, toggleSideNav } = s;
   const isExpanded = isDesktop ? s.sideNav.expanded : s.sideNav.open;
   return {
     isExpanded,
+    /** Below the large breakpoint the side nav is an overlay over the page; from it, a column. */
+    isOverlay: !isDesktop,
     expand: useCallback(
-      () => (isDesktop ? expandSideNav("hook") : openSideNav()),
+      () => (isDesktop ? expandSideNav("hook") : openSideNav("hook")),
       [isDesktop, expandSideNav, openSideNav],
     ),
     collapse: useCallback(

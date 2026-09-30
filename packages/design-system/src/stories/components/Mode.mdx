@@ -19,8 +19,8 @@ It is the one setting that belongs to the document. Row [density](?path=/docs/co
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Attribute      | `data-color-mode="light"` or `"dark"` on the root pins a mode; no attribute lets `prefers-color-scheme` decide. `tokens.css` and `base.css` read it.                                                                        |
 | Script         | `modeScript`: a string for the document head, above the stylesheet. It applies the stored choice before the first paint so nothing flashes. `modeScriptFor(key)` for another storage key.                                    |
-| Provider       | `ModeProvider`: owns the choice. On mount it reads storage and applies it (a no-op after the script); every change is stored and applied at once. `useMode()` returns `{ mode, setMode, resolved }`, `resolved` being what is on screen. |
-| Switch         | `ModeSwitch`: a ToggleGroup of three, sun, moon and monitor, `sm`. Icons only in chrome; `showLabels` in a settings form.                                                                                                |
+| Provider       | `ModeProvider`: owns the choice. It reads storage as an external store, so the switch shows the stored mode from the first client render (the server renders System), a second provider with the same key on the page hears a change, and a choice made in another tab reaches this one through the `storage` event. On mount it applies the stored mode (a no-op after the script); every change is stored and applied at once, and a choice storage refuses lives for the page. `useMode()` returns `{ mode, setMode, resolved }`, `resolved` being what is on screen. |
+| Switch         | `ModeSwitch`: a ToggleGroup of three, sun, moon and monitor, `sm`. Icons only in chrome, each with its name in a tooltip; `showLabels` in a settings form.                                                          |
 
 ## Variants
 
@@ -29,6 +29,8 @@ One control, in two forms. **Icons only**, in the top navigation's end, where th
 There is no two-state form. A light-or-dark toggle has no answer for a machine that changes at dusk, and it pins a choice the reader never made; system is the default and the third state.
 
 <Canvas of={Stories.ControlledStory} />
+
+<Canvas of={Stories.StoredAndShared} />
 
 ## Sizes
 
@@ -69,8 +71,8 @@ One: the ToggleGroup's `sm`, 28px, the height of the chrome it sits in.
 
 ## Accessibility
 
-- **The switch is a group of toggle buttons** named Appearance. Each button has `aria-pressed` and an accessible name, including Light, Dark and System when only icons are visible.
-- **Keyboard:** Tab enters and leaves the group as one stop; Left and Right move focus, and Space or Enter selects. The switch retains a selected mode when it is pressed again.
+- **The switch is a group of toggle buttons** named Appearance. Each button has `aria-pressed` and an accessible name, including Light, Dark and System when only icons are visible; icons only, each name also shows in a tooltip on hover and keyboard focus, as an IconButton's does.
+- **Keyboard:** Tab enters and leaves the group as one stop, and that stop is the pressed mode, so the reader lands on the current choice; Left and Right move focus, and Space or Enter selects. The switch retains a selected mode when it is pressed again.
 - **System honours the reader's machine,** including `prefers-color-scheme` set for a vision reason, so it is the default and never overridden by the product.
 - **Contrast is tested in both modes:** every pairing on the Colour sheet, and the a11y gate runs each matrix in the mode the toolbar sets.
 - **No flash:** the script marks the root before the first paint, so a reader who chose dark never sees a light page load.

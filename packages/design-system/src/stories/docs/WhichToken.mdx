@@ -88,20 +88,20 @@ Utilities take the same key on any spacing or sizing property: `p-200`, `gap-100
 
 ## Type
 
-| Token                  | Size  | For                                                                               |
-| ---------------------- | ----- | --------------------------------------------------------------------------------- |
-| `font.body`            | 13/18 | Controls, cells, tabs, inputs, menu items. The UI size.                           |
-| `font.body.large`      | 15/22 | Reading text, dialog body.                                                        |
-| `font.body.small`      | 12/16 | Table headers, field labels, badges, KeyValue; labels add `font.weight.medium`.   |
-| `font.body.xsmall`     | 11/14 | Eyebrow, counts, metadata.                                                        |
-| `font.heading.medium`  | 22/28 | Page and record titles. Semibold, as is `heading.large`.                          |
-| `font.heading.small`   | 20/26 | Section headings.                                                                 |
-| `font.heading.xsmall`  | 15/22 | Dialog and card titles.                                                           |
-| `font.heading.xxsmall` | 11/14 | Eyebrows, group headings, menu section labels (the component adds the uppercase). |
-| `font.heading.large`   | 28/34 | A stat value, a dashboard number. Not a page title.                               |
-| `font.code`            | 12/18 | Code blocks only.                                                                 |
+| Token                  | Size  | For                                                                                                                                                  |
+| ---------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `font.body`            | 13/18 | Controls, cells, tabs, inputs, menu items. The UI size.                                                                                              |
+| `font.body.large`      | 15/22 | Reading text, dialog body.                                                                                                                           |
+| `font.body.small`      | 12/16 | Table headers, field labels, badges, KeyValue; labels add `font.weight.medium`.                                                                      |
+| `font.body.xsmall`     | 11/14 | Metadata under a name, a hint beside a control, a chart's subtitle.                                                                                  |
+| `font.heading.small`   | 20/26 | Page and record titles (PageHeader.Title) and a Stat's figure, both at `font.weight.semibold`.                                                       |
+| `font.heading.xsmall`  | 15/22 | Dialog, sheet and card titles.                                                                                                                       |
+| `font.heading.xxsmall` | 11/14 | Eyebrows, group headings, menu section labels (the component adds the uppercase).                                                                    |
+| `font.heading.medium`  | 22/28 | A Heading `size="medium"`: a page title set without PageHeader. Semibold.                                                                            |
+| `font.heading.large`   | 28/34 | Display: a figure bigger than a Stat's, or the one title of a screen with nothing else on it, such as sign-in. Semibold. Not a page or record title. |
+| `font.code`            | 12/18 | Code blocks only.                                                                                                                                    |
 
-Prose never grows past `dimension.layout.measure`, 720px (`max-w-layout-measure`).
+A Section's title is `font.body` at `font.weight.semibold`, the size of the text it heads. Prose never grows past `dimension.layout.measure`, 720px (`max-w-layout-measure`).
 
 ## Sizes
 
@@ -118,6 +118,8 @@ Prose never grows past `dimension.layout.measure`, 720px (`max-w-layout-measure`
 | `dimension.layout.panel`   | 320px | The preview panel before the reader resizes it.                     |
 | `dimension.layout.sidenav` | 228px | The side nav, expanded.                                             |
 | `dimension.layout.topnav`  | 48px  | The top nav, and the banner above it.                               |
+
+`dimension.part.*` holds a part's own sizes, such as a popover's width or a menu's narrowest ([Metrics](?path=/docs/tokens-metrics--docs)). Each belongs to its part: size a part through its props, and never pick one of these for its value; `ledger/no-style-design-value` reports one read anywhere but its part.
 
 ## Radius
 

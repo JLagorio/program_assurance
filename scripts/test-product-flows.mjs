@@ -30,6 +30,8 @@ async function open(path, action, title) {
 async function choose(label, value) {
   await page.getByRole("dialog").getByRole("combobox", { name: label, exact: true }).click();
   await page.getByRole("option", { name: value, exact: true }).click();
+  // The list fades out after a choice; the next Select opens once it has gone.
+  await page.getByRole("listbox").waitFor({ state: "hidden" });
 }
 async function save(label) {
   const id = await page.getByRole("dialog").getAttribute("id");

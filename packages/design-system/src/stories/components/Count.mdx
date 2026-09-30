@@ -13,10 +13,10 @@ A number in a pill: unread items, rows in a group, results behind a filter, find
 
 ## Anatomy
 
-| Part   | What it is                                                                                             |
-| ------ | ------------------------------------------------------------------------------------------------------ |
-| Pill   | 20px tall, at least 20px wide, round, `space.075` at each end: the neutral fill or one of four others. |
-| Number | `font.body.small` medium, tabular, centred. Never a word.                                              |
+| Part   | What it is                                                                                                                                                                   |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pill   | 20px tall, at least 20px wide, round, `space.075` at each end: the neutral fill or one of four others.                                                                       |
+| Number | `font.body.small` medium, tabular, centred, in the reader's locale (1,189; 1.189 in German). Never a word. An added count carries a plus and a removed one a minus (U+2212). |
 
 ## Variants
 
@@ -25,8 +25,8 @@ A number in a pill: unread items, rows in a group, results behind a filter, find
 | `default`   | Rows in a group, results behind a filter, items in a section. The neutral fill.               |
 | `primary`   | The one count on the screen that must be seen: unread, new since you last looked. Brand fill. |
 | `important` | What needs attention now: overdue, blocked. Danger fill.                                      |
-| `added`     | Rows a change adds. Success fill, subtle.                                                     |
-| `removed`   | Rows a change removes. Danger fill, subtle.                                                   |
+| `added`     | Rows a change adds. Success fill, subtle, and a plus: +12.                                    |
+| `removed`   | Rows a change removes. Danger fill, subtle, and a minus: −3.                                  |
 
 Not built, and why: a corner placement on an avatar or an icon (a notification circle); the shell's navigation has no unread counts yet, and when it does the Count will sit after the item's label, not on its icon. No count in a tone's text colour without a fill; the number alone is a Stat.
 
@@ -36,14 +36,16 @@ One size, 20px, the height of a small Badge, so the two sit on one line. The wid
 
 ## States
 
-A Count has one state. A count of zero is usually not shown: a section with nothing in it says so in words, and the consumers that take a `count` hide it at zero.
+A Count has one state. Zero is a number: where the reader asks how many (a Section, a Related card, an Item group, a tab's rows), a 0 says "none" where no pill could mean "not counted", so Section, Related and Item.Group show a Count of 0. A Table.Group hides it, since an empty group has no rows to head. A section with nothing in it still says so in words, in its Empty.
 
 <Canvas of={Stories.InContext} />
 
+<Canvas of={Stories.Locale} />
+
 ## Modifiers
 
-- **`value`** as a number, or a string when the text is not a number the pill should cap ("12 of 40" is not a Count).
-- **`max`** for the ceiling: 99 by default; 999 or 9999 on a tab that counts rows.
+- **`value`** as a number, formatted in the reader's locale, or a string shown as given, when the text is not a number the pill should cap ("12 of 40" is not a Count).
+- **`max`** for the ceiling: 99 by default; 999 or 9999 on a tab that counts rows, one ceiling across a product. 9999 is the most a pill holds; a larger total is a Stat.
 - **`appearance`** as in Variants; `default` when unsaid.
 
 ## Content
@@ -51,6 +53,7 @@ A Count has one state. A count of zero is usually not shown: a section with noth
 - **A number.** Digits only; the word before it says what they count.
 - **Named by its label.** "Findings 3", "Evidence 7": the Count follows the label at `space.100`.
 - **Capped, not exact.** Past the ceiling the reader needs the order of magnitude; the exact number is a Stat.
+- **Long content.** A Count never truncates and never wraps: it caps at `max`. A number too long for a pill (an amount, a total past 9999) is a Stat or text.
 
 ## Style
 
@@ -68,7 +71,7 @@ A Count has one state. A count of zero is usually not shown: a section with noth
 
 - **It is text**, read in the flow after its label: "Findings, 3". The label names it; a Count on its own says only a number.
 - **`99+` is read as "99 plus"**, which is the meaning.
-- **The appearance is not the only signal.** An important count sits beside a label that says why; the red ranks it.
+- **Not colour alone.** An important count sits beside a label that says why; the red ranks it. An added or removed count carries its sign, so a screen reader hears "plus 12" and "minus 3", and forced colours, which drop the fills, keep the difference.
 - **Nothing to focus.** A Count inside a Tab or a Collapsible is part of that control's name.
 
 ## Props
@@ -89,7 +92,7 @@ Count takes a span's native props and a ref, and names itself last with `data-sl
 
 - [Badge](?path=/docs/components-badge--docs): the tone table, and which of Badge, Count, Indicator and Dot to use.
 - [Stat](?path=/docs/components-stat--docs): the exact number, big.
-- [Tabs](?path=/docs/components-tabs--docs), [Collapsible](?path=/docs/components-collapsible--docs), [Related](?path=/docs/patterns-related--docs): the controls that take a `count`.
+- [Section](?path=/docs/layout-section--docs), [Related](?path=/docs/patterns-related--docs), [Item](?path=/docs/components-item--docs) groups and [Table](?path=/docs/components-table--docs) groups take a `count`; a [Tabs](?path=/docs/components-tabs--docs) trigger or a [Collapsible](?path=/docs/components-collapsible--docs) trigger composes one after its label.
 
 ## Don't
 

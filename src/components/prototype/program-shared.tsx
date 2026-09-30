@@ -1,8 +1,10 @@
 import { ProductCollection } from "./product-collection";
 import {
+  Activity,
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -10,16 +12,19 @@ import {
 } from "react";
 import {
   Absent,
+  Box,
   Button,
   DataTable,
   HeadingLevelProvider,
   KeyValue,
   Section,
   Stack,
+  TabsContent,
   Text,
   defineColumns,
   useDataTable,
   type EmptyIllustrationKind,
+  type StackProps,
 } from "@ledger/design-system";
 import { Plus, Pencil } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
@@ -29,6 +34,7 @@ import {
   RecordPreviewPanel,
   recordDestination,
   useDisplayedRecords,
+  useEndOnHide,
 } from "./record-preview";
 import { useRows, type TableName } from "@/lib/models";
 import {
@@ -54,7 +60,7 @@ import {
   productCreateLabel,
   productRecordNoun,
 } from "@/lib/product-records";
-import { FactValue, RelationName } from "@/components/prototype/record-tools";
+import { FactValue, RelationName, defaultOrder } from "@/components/prototype/record-tools";
 
 export type ProgramTableName = Parameters<typeof useRows>[0];
 export type ProgramColumn = {
@@ -66,6 +72,71 @@ export type ProgramColumn = {
 };
 
 export { QueryState as ProgramQueryState } from "./work-common";
+
+/**
+ * A tab strip's panels, one per tab. Each is drawn the first time its tab is chosen and kept while
+ * another is shown, so a register keeps its rows, scroll, selection and question. A hidden panel's
+ * effects pause (React's Activity): it loads nothing, and its preview leaves the shell. Every panel
+ * starts `space.200` under the strip and stacks its blocks `space`. When a link inside a panel
+ * chooses another tab (an Overview tile, "Open schedule"), the panel it sat in hides and the
+ * browser drops its focus, so focus moves to the chosen tab, as a click on the tab leaves it.
+ */
+export function RetainedTabPanels<T extends string>({
+  tabs,
+  value,
+  space = "space.300",
+  children,
+}: {
+  tabs: readonly T[];
+  value: T;
+  space?: StackProps["space"];
+  /** A tab's content. */
+  children: (tab: T) => ReactNode;
+}) {
+  const [visited, setVisited] = useState<readonly T[]>([value]);
+  if (!visited.includes(value)) setVisited([...visited, value]);
+  const shownPanel = useRef<HTMLDivElement | null>(null);
+  const shownValue = useRef(value);
+  useEffect(() => {
+    if (shownValue.current === value) return;
+    shownValue.current = value;
+    const active = document.activeElement;
+    const dropped =
+      !active ||
+      active === document.body ||
+      !active.isConnected ||
+      !!active.closest("[role=tabpanel][hidden]") ||
+      active.checkVisibility?.() === false;
+    if (!dropped) return;
+    const labelledBy = shownPanel.current?.getAttribute("aria-labelledby");
+    const tab = labelledBy ? document.getElementById(labelledBy) : null;
+    tab?.focus();
+  }, [value]);
+  return (
+    <>
+      {tabs
+        .filter((tab) => tab === value || visited.includes(tab))
+        .map((tab) => (
+          <TabsContent
+            key={tab}
+            value={tab}
+            keepMounted
+            // Hidden in the same render the tab changes, so two panels never show for a frame.
+            hidden={tab !== value}
+            ref={tab === value ? shownPanel : undefined}
+          >
+            <Activity mode={tab === value ? "visible" : "hidden"}>
+              <Box paddingBlockStart="space.200">
+                <Stack space={space} className="min-w-0">
+                  {children(tab)}
+                </Stack>
+              </Box>
+            </Activity>
+          </TabsContent>
+        ))}
+    </>
+  );
+}
 export function ProgramEditor({
   table,
   existing,
@@ -98,6 +169,13 @@ type ProgramDialogTarget = {
   startEditing?: boolean;
   records: DataRecord[];
   readOnly?: boolean;
+  /**
+   * The collection's identity column, for a record with no name of its own: a link row is named
+   * by the record it links ("Dan Whitfield"), not by its type.
+   */
+  identity?: { key: string; read: (row: DataRecord) => unknown } | undefined;
+  /** The collection's column titles, so the preview names each fact in the table's words. */
+  labels?: Record<string, string> | undefined;
 };
 const ProgramDialogNavigation = createContext<{
   openRecord: (target: ProgramDialogTarget) => void;
@@ -216,6 +294,8 @@ function ProgramRecordDialogSurface({
   readOnly = false,
   records,
   onSelect,
+  identity,
+  labels,
 }: ProgramDialogTarget & { onClose: () => void; onSelect: (row: DataRecord) => void }) {
   const workspace = useWorkspace();
   const collection = workspace.collections.find((item) => item.name === table);
@@ -244,10 +324,16 @@ function ProgramRecordDialogSurface({
         }}
       />
     );
-  const fields = previewFields(collection, table, initialValues ?? {});
+  // A record with no name of its own, such as an assignment, borrows its collection's identity
+  // column, and that fact is not repeated under the title.
+  const borrowed = previewTitleKey(collection) ? undefined : identity?.read(row);
+  const borrowedName = typeof borrowed === "string" && borrowed.trim() ? borrowed : undefined;
+  const fields = previewFields(collection, table, initialValues ?? {}).filter(
+    (name) => !(borrowedName && name === identity?.key),
+  );
   return (
     <RecordPreviewPanel
-      title={previewTitle(row, collection, table)}
+      title={borrowedName ?? previewTitle(row, collection, table)}
       label={`${capitalize(productRecordNoun(table))} preview`}
       defaultWidth={640}
       onClose={onClose}
@@ -276,7 +362,7 @@ function ProgramRecordDialogSurface({
                 const relation = RELATION_KEY.test(name) ? relationOf(collection, name) : undefined;
                 const value = row[name];
                 return (
-                  <KeyValue key={name} label={factLabel(name)} wrap>
+                  <KeyValue key={name} label={labels?.[name] ?? factLabel(name)} wrap>
                     {relation && value ? (
                       <RelationName table={relation.target_table as TableName} id={String(value)} />
                     ) : LONG_TEXT.test(name) && typeof value === "string" && value ? (
@@ -337,29 +423,6 @@ const CHIP_KEYS = new Set(["role", "method", "kind"]);
 const DATE_KEYS = /_(at|on|date)$/;
 const NUMBER_KEYS = /_number$/;
 
-/**
- * The order a collection reads in before the reader sorts it, as ModelTable reads: the recorded
- * sequence, else the newest version, else the latest change. Never the order of the ids.
- */
-function readingOrder(rows: DataRecord[]) {
-  const sample = rows[0];
-  if (!sample) return rows;
-  const by = (key: string, direction: 1 | -1) =>
-    [...rows].sort((a, b) => {
-      const left = a[key];
-      const right = b[key];
-      if (left === right) return 0;
-      if (left === null || left === undefined) return 1;
-      if (right === null || right === undefined) return -1;
-      return (left < right ? -1 : 1) * direction;
-    });
-  if ("sequence_number" in sample) return by("sequence_number", 1);
-  if ("version_number" in sample) return by("version_number", -1);
-  if ("updated_at" in sample) return by("updated_at", -1);
-  if ("created_at" in sample) return by("created_at", -1);
-  return rows;
-}
-
 /** The record a collection belongs to, by the column it is filtered on, in the reader's words. */
 const collectionOwners: Record<string, string> = {
   program_id: "program",
@@ -388,9 +451,15 @@ export function ProgramCollection({
   prerequisite,
   fill,
   section = false,
+  owner: ownerName,
 }: {
   name: ProgramTableName;
   title: string;
+  /**
+   * What the collection belongs to, in the empty state's words ("for this program"), when its
+   * `filters` do not say: a collection narrowed by `where` names its owner here.
+   */
+  owner?: string | undefined;
   /** Name a collection only when the caller places several collections together. */
   section?: boolean;
   filters?: Record<string, string | number | null> | undefined;
@@ -413,11 +482,12 @@ export function ProgramCollection({
   const query = useRows(name, filters);
   const workspace = useWorkspace();
   const [selected, setSelected] = useState<DataRecord | null | undefined>(undefined);
+  useEndOnHide(() => setSelected(undefined));
   const activeId =
     dialogNavigation?.target?.table === name ? dialogNavigation.target.row?.id : selected?.id;
   const collection = workspace.collections.find((item) => item.name === name);
   const records = useMemo(
-    () => readingOrder(((query.data ?? []) as DataRecord[]).filter((row) => !where || where(row))),
+    () => defaultOrder(((query.data ?? []) as DataRecord[]).filter((row) => !where || where(row))),
     [query.data, where],
   );
   // Search, sort, and filters read the same derived values shown in cells. The dialog,
@@ -425,6 +495,19 @@ export function ProgramCollection({
   const byId = useMemo(() => new Map(records.map((row) => [row.id, row])), [records]);
   const byIdRef = useRef(byId);
   byIdRef.current = byId;
+  // The preview names its record and its facts in this collection's words. A related record's id
+  // is never a name: the identity column lends its words only through the value it displays.
+  const identityColumn = columns.find(({ key }) => key === "name" || key === "title") ?? columns[0];
+  const identity =
+    identityColumn && (identityColumn.value || !RELATION_KEY.test(identityColumn.key))
+      ? {
+          key: identityColumn.key,
+          read: identityColumn.value ?? ((row: DataRecord) => row[identityColumn.key]),
+        }
+      : undefined;
+  const labels = Object.fromEntries(columns.map((column) => [column.key, column.title]));
+  const previewWordsRef = useRef({ identity, labels });
+  previewWordsRef.current = { identity, labels };
   const rows = useMemo(
     () =>
       records.map((row) => {
@@ -460,6 +543,7 @@ export function ProgramCollection({
           initialValues: { ...filters, ...initialValues },
           readOnly,
           records: displayedRef.current,
+          ...previewWordsRef.current,
         });
       else setSelected(record);
     },
@@ -506,6 +590,8 @@ export function ProgramCollection({
             return c.status(column.key, {
               header,
               width: 140,
+              // The state a reader scans stays in the row after the name as a narrow frame folds.
+              priority: 2,
               statuses,
               ...(render
                 ? { cell }
@@ -582,9 +668,11 @@ export function ProgramCollection({
   // What the collection belongs to, named by the key it is filtered on: "for this system".
   const owner = dialogNavigation
     ? "record"
-    : (Object.keys(filters ?? {})
+    : (ownerName ??
+      Object.keys(filters ?? {})
         .map((key) => collectionOwners[key])
-        .find(Boolean) ?? "record");
+        .find(Boolean) ??
+      "record");
   const description =
     empty?.description ??
     (allowCreate
@@ -597,6 +685,8 @@ export function ProgramCollection({
       table={table}
       queries={[query]}
       fill={fill}
+      // A named collection sits beside others on its tab: the compact shape, as EntitySection.
+      compact={section}
       searchLabel={`Find ${noun}`}
       // A collection inside a preview answers the task at hand; its question ends with it.
       keepQuestion={!dialogNavigation}
@@ -618,7 +708,8 @@ export function ProgramCollection({
         title: empty?.title ?? `No ${noun} yet`,
         description,
         action: allowCreate ? (
-          <Button variant="primary" iconBefore={<Plus />} onClick={openCreate}>
+          // Small, as in the toolbar: ProductCollection draws it medium in a centred first-record empty.
+          <Button size="small" variant="primary" iconBefore={<Plus />} onClick={openCreate}>
             {createActionLabel}
           </Button>
         ) : undefined,
@@ -636,6 +727,8 @@ export function ProgramCollection({
           records={displayed}
           onSelect={setSelected}
           initialValues={{ ...filters, ...initialValues }}
+          identity={identity}
+          labels={labels}
           onClose={() => setSelected(undefined)}
         />
       )}

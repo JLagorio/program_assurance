@@ -13,17 +13,17 @@ A line per series over an ordered axis: a trend, a burndown, one measure against
 
 ## Anatomy
 
-| Part      | What it is                                                                                                                                                                                                                                         |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Line      | 2px in the series' tone, round caps and joins. `curve="smooth"` is a monotone curve through the same points.                                                                                                                                       |
-| Marker    | 8px across, ringed 2px in the surface so it reads over the line. On hover always; on every point with `dots`.                                                                                                                                      |
-| End label | The series' last value after its line, `font.body.xsmall` in `color.text.subtle`; labels that would collide are pushed apart by a line's height.                                                                                                   |
-| Gap       | A missing value breaks the line. `connectNulls` joins across it, for a gap that is not data.                                                                                                                                                       |
-| Band      | A 10% wash between two values (the tolerable range, labelled at its top edge) or between two categories or dates (an assessment window, labelled above its middle).                                                                                |
-| Reference | A dashed hairline at a value (a target, a limit) or at a category (a milestone), labelled at the end or above the plot.                                                                                                                            |
-| Axes      | The category axis with a hairline, or a time axis whose ticks are hours, days, months or years by the span; the value axis from zero, cropped to the data with `baseline="auto"`, or pinned with `domain`. A value below zero draws the zero line. |
-| Tooltip   | The category, every series at it keyed by a stroke, and with `delta` each change from the point before. The cursor is a `color.border.bold` hairline across the plot.                                                                              |
-| Chosen    | The chosen category ringed on every line, in each series' tone.                                                                                                                                                                                    |
+| Part      | What it is                                                                                                                                                                                                                                                                                                                                           |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Line      | 2px in the series' tone, round caps and joins. `curve="smooth"` is a monotone curve through the same points.                                                                                                                                                                                                                                         |
+| Marker    | 8px across, ringed 2px in the surface so it reads over the line. On hover always; on every point with `dots`.                                                                                                                                                                                                                                        |
+| End label | The series' last value after its line, `font.body.xsmall` in `color.text.subtle`; labels that would collide are pushed apart by a line's height, and one pushed off its line's end leads with a stroke of the series' colour, so it still says whose it is.                                                                                          |
+| Gap       | A missing value breaks the line. `connectNulls` joins across it, for a gap that is not data.                                                                                                                                                                                                                                                         |
+| Band      | A 10% wash between two values (the tolerable range, labelled at its top edge) or between two categories or dates (an assessment window, labelled above its middle).                                                                                                                                                                                  |
+| Reference | A dashed hairline at a value (a target, a limit) or at a category (a milestone), labelled at the end or above the plot.                                                                                                                                                                                                                              |
+| Axes      | The category axis with a hairline, or a time axis whose ticks are hours, days, months or years by the span, at the starts of those units in the reader's time zone; the value axis from zero, cropped to the data with `baseline="auto"`, or pinned with `domain`, whose ticks are round steps through zero. A value below zero draws the zero line. |
+| Tooltip   | The category, every series at it keyed by a stroke, and with `delta` each change from the point before. The cursor is a `color.border.bold` hairline across the plot.                                                                                                                                                                                |
+| Chosen    | The chosen category ringed on every line, in each series' tone.                                                                                                                                                                                                                                                                                      |
 
 ## Variants
 
@@ -50,21 +50,22 @@ A line per series over an ordered axis: a trend, a burndown, one measure against
 
 ## Sizes
 
-`size` is the plot's height: `small` 120px, `medium` 200px (the default), `large` 320px, or `height` in pixels; unsaid, the Frame's, and `large` in the Frame's expanded Dialog. Category ticks thin themselves to what fits, keeping the first; a time axis draws at most eight ticks, each at a unit's start; the right margin grows by 44px for end labels.
+`size` is the plot's height: `small` 120px, `medium` 200px (the default), `large` 320px, or `height` in pixels; unsaid, the Frame's, and `large` in the Frame's expanded Dialog. Category ticks thin themselves by the text they print, keeping the first. A time axis draws at most eight ticks, each at a unit's start, and keeps its first and its last as the width narrows: months step by one, two, three, six or twelve from January, so a quarter's tick is a quarter's start, and the first tick and every tick that starts a new year carry the year in full ("Feb 2025", "May", … "Jan 2026"), which a two-digit year would not ("Apr 26" reads as a day). Calendar days ("2026-09-04") read the same in every zone; instants are read in the reader's `timeZone`. The right margin holds the widest end label.
 
 The labels above the plot share one row: where a milestone's and a window's would overlap in a narrow plot, they move apart, the milestone's staying closest to its line, and milestones on one date share one label, joined with a middle dot. Each stays over its mark (a window's middle over its window) and within the plot's width, clear of the axis ticks; where the row is too short for them so, a window's label shortens before a milestone's wherever that makes room, each only as far as the row needs, with an ellipsis and its whole text as its title, and one with no room for three characters is left out. Labels inside the plot are drawn over the lines, ringed in the surface, so a line that crosses one runs behind the words.
 
 <Canvas of={Stories.NarrowLabels} />
+<Canvas of={Stories.Zones} />
 
 ## States
 
-| State    | What changes                                                                                                                                                                                                                             |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Hover    | A hairline across the plot at the category, a marker on every line there, the tooltip.                                                                                                                                                   |
-| Isolated | A series hidden from the Frame's legend leaves the plot; the axis keeps its domain.                                                                                                                                                      |
-| Chosen   | With `onSelect` or `details`: a click anywhere in a category's column, or Enter on the focused plot, chooses it. Every series is ringed there and the card opens on the point. The selection carries no series: a point is the category. |
-| Loading  | A skeleton line on a hairline, pulsing, at the plot's height.                                                                                                                                                                            |
-| Entering | The lines draw in over `motion.duration.slow`; a change of data moves them.                                                                                                                                                              |
+| State    | What changes                                                                                                                                                                                                                                      |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hover    | A hairline across the plot at the category, a marker on every line there, the tooltip.                                                                                                                                                            |
+| Hidden   | A series hidden from the Frame's legend leaves the plot and the table; the value axis keeps its scale, so the others do not jump.                                                                                                                 |
+| Chosen   | With `onSelect` or `details`: a click anywhere in a category's column, or Enter or Space on the focused plot, chooses it. Every series is ringed there and the card opens on the point. The selection carries no series: a point is the category. |
+| Loading  | A skeleton line on a hairline, pulsing, at the plot's height.                                                                                                                                                                                     |
+| Entering | The lines draw in over `motion.duration.slow`; a change of data moves them.                                                                                                                                                                       |
 
 <Canvas of={Stories.Details} />
 
@@ -77,7 +78,7 @@ The labels above the plot share one row: where a milestone's and a window's woul
 - **`data`**, **`x`**, **`series`**: Inside a Frame, `data`, `x` and `series` may be left to the Frame, and the Frame learns them from the part when they are given here instead: say them once, to either. The Frame's legend takes a Line's stroke swatch from it.
 - **`onSelect`** and **`details`** as in States; the selection is `{ datum, index }`.
 - **`loading`** draws the skeleton; the Frame sets it from `state="loading"`.
-- **`label`** names the plot outside a Frame.
+- **`label`** names the plot outside a Frame; native props and a ref reach the plot's box, and `aria-describedby` describes its svg.
 
 ## Content
 
@@ -92,7 +93,7 @@ The labels above the plot share one row: where a milestone's and a window's woul
 | Element   | Token                                                                           |
 | --------- | ------------------------------------------------------------------------------- |
 | Line      | `color.chart.<tone>` · 2px · round caps and joins                               |
-| Marker    | 8px · 2px `elevation.surface` ring                                              |
+| Marker    | 8px · 2px ring in the surface it sits on                                        |
 | End label | `font.body.xsmall` · `color.text.subtle` · tabular · 8px after the line         |
 | Band      | `color.chart.<tone>` at 10% · label `font.body.xsmall` in `color.text.subtlest` |
 | Reference | `color.chart.<tone>` · 1px dashed 4 3                                           |
@@ -105,7 +106,8 @@ The labels above the plot share one row: where a milestone's and a window's woul
 
 ## Accessibility
 
-- **Named by the Frame**, or by `label`: the plot is a group, focusable, the arrow keys move the tooltip across the categories, and Enter chooses one when the plot has `onSelect` or `details`. The card that opens is a dialog, and focus returns to the plot after.
+- **A plot that chooses is one tab stop.** With `onSelect` or `details`, the svg is named by the Frame's title (or `label`), with the role description "chart" and its keys as its description; Left and Right move between the points, Home and End go to the first and the last, and each step says the category and every visible value in a polite live region. Enter or Space chooses it; the card that opens is a dialog, and focus returns to the plot after.
+- **A plot that chooses nothing is an image**, named by the Frame's title, with no tab stop: the table twin carries its numbers.
 - **The table is the other copy** of the same numbers, one toggle away in the Frame.
 - **Two or more series have a legend**, and each end label is a number in the text colour, not the series colour.
 - **A gap is visible under every vision**: it is an absence, not a colour.

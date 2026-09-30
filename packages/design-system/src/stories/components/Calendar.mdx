@@ -25,7 +25,7 @@ Calendar's Dates stand for calendar days: the local year, month and day, never a
 
 ## Locale
 
-Under a LedgerProvider the month speaks its locale: `lang` on the root, the first day of the week (Monday in de-DE, Saturday in ar-EG, Sunday in en-US), the caption, weekday names and their spoken names, the day digits, the year dropdown and week numbers. A caller's own date-fns `locale`, `weekStartsOn`, `lang`, `labels` and `formatters` win. Two calendars on one page name their navigation apart through `labels.labelNav`, or the navigation landmark repeats.
+Under a LedgerProvider the month speaks its locale: `lang` on the root, the first day of the week (Monday in de-DE, Saturday in ar-EG, Sunday in en-US), the caption, weekday names and their spoken names (the short form heads each column, or the narrow one where the short names are whole words, as in Arabic, and the full name is always the spoken one), the day digits, the year dropdown and week numbers. A caller's own date-fns `locale`, `weekStartsOn`, `lang`, `labels` and `formatters` win. Two calendars on one page name their navigation apart through `labels.labelNav`, or the navigation landmark repeats.
 
 <Canvas of={Stories.Localized} />
 

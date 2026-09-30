@@ -1,5 +1,15 @@
 import { Calendar as CalendarIcon } from "lucide-react";
-import { useContext, useEffect, useId, useRef, useState, type FocusEvent, type Ref } from "react";
+import {
+  useContext,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type FocusEvent,
+  type KeyboardEvent,
+  type Ref,
+} from "react";
+import { flushSync } from "react-dom";
 
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
@@ -171,6 +181,9 @@ export function DateTimeField({
   const [incomplete, setIncomplete] = useState(false);
   const [open, setOpen] = useState(false);
   const own = useRef<string | null>(null);
+  // The value's day and time in the provider's zone, read when `iso` changes.
+  const outside = useRef({ day: dayOf(instant), time: timeOf(instant) });
+  outside.current = { day: dayOf(instant), time: timeOf(instant) };
   useEffect(() => {
     // Our own change is already in the drafts; any other one replaces them.
     if (own.current === iso) {
@@ -178,11 +191,10 @@ export function DateTimeField({
       return;
     }
     own.current = null;
-    setDraftDay(dayOf(instant));
-    setDraftTime(timeOf(instant));
+    setDraftDay(outside.current.day);
+    setDraftTime(outside.current.time);
     setRangeError(null);
     setIncomplete(false);
-    // `instant` follows `iso`, which is the dependency.
   }, [iso]);
 
   // The drafts as they are after this event's own commits, for the group's blur that follows them.
@@ -236,6 +248,10 @@ export function DateTimeField({
     timeInput.typed.error ??
     rangeError ??
     (incomplete ? t("dateTimeIncomplete") : null);
+  // Whether either half holds text that did not read, or the moment is outside the limits, as of
+  // this render (an Enter's own read renders synchronously before the hold below looks).
+  const unsettled = useRef(false);
+  unsettled.current = Boolean(dayEntry.error ?? timeInput.typed.error ?? rangeError);
   const reported = useRef<string | null>(null);
   useEffect(() => {
     if (reported.current === error) return;
@@ -306,6 +322,21 @@ export function DateTimeField({
     if (isDisabled) return;
     dayEntry.set(next ? dateToDay(next) : null);
     setOpen(false);
+  };
+  // Enter with only the day or only the time is not a moment, and neither is a day or a time that
+  // does not read or a moment outside the limits: the field says so and the form around it is not
+  // submitted, so the reader finishes the entry where they are. The Enter has already read the
+  // text it was pressed in.
+  const holdHalfEntry = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== "Enter" || event.defaultPrevented || event.nativeEvent.isComposing) return;
+    if (unsettled.current) {
+      event.preventDefault();
+      return;
+    }
+    const { day, time } = latest.current;
+    if (Boolean(day) === Boolean(time)) return;
+    event.preventDefault();
+    flushSync(() => setIncomplete(true));
   };
   const leaveGroup = (event: FocusEvent<HTMLDivElement>) => {
     if (open || event.currentTarget.contains(event.relatedTarget as Node | null)) return;
@@ -380,6 +411,7 @@ export function DateTimeField({
                     return;
                   }
                   dayEntry.inputProps.onKeyDown(event);
+                  holdHalfEntry(event);
                 }}
               />
               <InputGroupAddon align="inline-end">
@@ -412,6 +444,10 @@ export function DateTimeField({
           </Popover>
           <TimeInput
             {...timeInput}
+            onKeyDown={(event) => {
+              timeInput.onKeyDown(event);
+              holdHalfEntry(event);
+            }}
             id={timeId}
             size={size}
             disabled={isDisabled}

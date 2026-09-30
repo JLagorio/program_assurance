@@ -15,41 +15,45 @@ A few facts about one thing are a [KeyValue](?path=/docs/components-keyvalue--do
 
 ## Anatomy
 
-| Part       | What it is                                                                                                                                                                                                                                                        |
-| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Frame      | The wrapper that scrolls: sideways always, and down past `maxHeight`, so the header sticks to it and not to the page. While it is scrolled sideways it carries `data-scrolled-start` and `data-scrolled-end`, and the pinned column at the edge shows its border. |
-| Header     | `Table.Header`: `dimension.row.header` 32px, sticky at the top of the frame, `font.body.small` at `font.weight.medium` in `color.text.subtle` on the current surface, a hairline under. Sortable, it holds a button that reports `aria-sort` and shows the arrow. |
-| Row        | `Table.Row`: the record, `dimension.row` 40px with a hairline under. It lights on hover and paints `color.background.selected` when chosen; `isStatic` for a row that is not a record.                                                                            |
-| Cell       | `Table.Cell`: `space.150` each side, one line, truncated; a plain string is also the cell's title, so the whole shows on hover.                                                                                                                                   |
-| Id         | `Table.Id`: the id in `Id`, `color.text.brand` on the row's hover, with the eye at the end of the cell that opens the record in the preview. The id keeps clear of the eye, so it ends in an ellipsis before the eye, never under it. |
-| List       | `Table.List`: several values on one line, the first by name and the rest as a count, every one in a hover card with its meta line; the click is the row's preview when it has one, else it opens the card, so the list is reachable where nothing can hover. |
-| Selection  | `Table.Selection`: the checkbox column, 32px; in the header it chooses every row and reads mixed when only some are.                                                                                                                                              |
-| Group      | `Table.Group`: a band on the sunken surface with a chevron, a title and a Count, holding its rows in a `tbody`.                                                                                                                                                   |
-| Tree cell  | `Table.Tree`: the name cell of a treegrid, one `space.200` indent per level, the chevron on rows with children, a hint after the name.                                                                                                                            |
-| Disclosure | `Table.Disclosure`: the chevron as a leading cell of its own, centred, one narrow column whatever the depth. The disclosure is always the first column, never moves when a column is reordered, hidden or pinned, and never changes width as rows open and close; the indent belongs to the row's first value. What DataTable draws in tree mode. |
-| Detail row | `Table.Detail`: the row a record opens into, one cell across every column on the sunken surface.                                                                                                                                                                  |
-| Handle     | `Table.Handle`: the grip cell of a row that drags into a new order.                                                                                                                                                                                               |
+| Part       | What it is                                                                                                                                                                                                                                                                                                                                                                               |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frame      | The wrapper that scrolls: sideways always, and down past `maxHeight`, so the header sticks to it and not to the page. While it is scrolled sideways it carries `data-scrolled-start` and `data-scrolled-end`, and the pinned column at the edge shows its border. Its scroll padding covers the pinned columns and the sticky header, so the keyboard's focus is scrolled clear of them. |
+| Header     | `Table.Header`: `dimension.row.header` 32px, sticky at the top of the frame, `font.body.small` at `font.weight.medium` in `color.text.subtle` on the current surface, a hairline under. Sortable, it holds a button that reports `aria-sort` and shows the arrow. A heading in a second header row sticks below the row above it.                                                        |
+| Row        | `Table.Row`: the record, `dimension.row` 40px with a hairline under. It lights on hover and paints `color.background.selected` when chosen; `isStatic` for a row that is not a record.                                                                                                                                                                                                   |
+| Cell       | `Table.Cell`: `space.150` each side, one line, truncated; the whole shows on hover. `align` places its content, `wrap` lets it wrap, and `rowHeader` makes it the `th` that names its row.                                                                                                                                                                                               |
+| Id         | `Table.Id`: the id in `Id`, `color.text.brand` on the row's hover, with the eye at the end of the cell that opens the record in the preview, named after the id: "Preview CTRL-0412". The id keeps clear of the eye, so it ends in an ellipsis before the eye, never under it.                                                                                                           |
+| List       | `Table.List`: several values on one line, the first by name and the rest as a count ("+2", spoken "and 2 more"), every one in a hover card with its meta line and status. The line is a button: its click is the row's preview when it has one, else it opens the card, so the list is reachable where nothing can hover. The whole list is its description.                             |
+| Selection  | `Table.Selection`: the checkbox column, 32px; in the header it chooses every row and reads mixed when only some are. A click anywhere in the cell toggles the box.                                                                                                                                                                                                                       |
+| Group      | `Table.Group`: a band on the sunken surface with a chevron, a title and a Count, holding its rows in a `tbody`. The band is its rows' header, `th scope="rowgroup"`.                                                                                                                                                                                                                     |
+| Tree cell  | `Table.Tree`: the name cell of a hierarchy with columns, one `space.200` indent per level, the chevron on rows with children, a hint after the name.                                                                                                                                                                                                                                     |
+| Disclosure | `Table.Disclosure`: the chevron as a leading cell of its own, centred, one narrow column whatever the depth. The disclosure is always the first column, never moves when a column is reordered, hidden or pinned, and never changes width as rows open and close; the indent belongs to the row's first value. What DataTable draws in tree mode.                                        |
+| Detail row | `Table.Detail`: the row a record opens into, one cell across every column on the sunken surface.                                                                                                                                                                                                                                                                                         |
+| Handle     | `Table.Handle`: the grip cell of a row that drags into a new order.                                                                                                                                                                                                                                                                                                                      |
 
 ## Variants
 
 Table has one appearance. What varies is the parts a register takes:
 
-| The register                                          | Use                                                                                           |
-| ----------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| Records with nothing to sort, filter or page          | `Table` with `Table.Header`, `Table.Row`, `Table.Cell` and `Table.Id`.                        |
-| Rows the reader chooses for a batch action            | `Table.Selection` in the header and in each row; the bar above names the count and the verbs. |
-| Records under headings                                | `Table.Group`, one per heading, opened and closed.                                            |
-| A hierarchy with columns                              | `role="treegrid"`, `Table.Disclosure` as the leading cell (or `Table.Tree` as the name cell); the caller flattens and folds. |
-| A record that opens into more                         | `Table.Detail` under its row, a chevron in the row.                                           |
-| Rows in an order the reader sets                      | `Table.Handle` as the first cell.                                                             |
-| Sort, filters, pages, pinned columns, a thousand rows | `DataTable`.                                                                                  |
-| A few facts about one thing                           | `KeyValue`.                                                                                   |
+| The register                                          | Use                                                                                                                                                                                                                    |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Records with nothing to sort, filter or page          | `Table` with `Table.Header`, `Table.Row`, `Table.Cell` and `Table.Id`; the id or the name is the row header, and the name is the link to the record.                                                                   |
+| Rows the reader chooses for a batch action            | `Table.Selection` in the header and in each row; the bar above names the count and the verbs.                                                                                                                          |
+| Records under headings                                | `Table.Group`, one per heading, opened and closed.                                                                                                                                                                     |
+| A hierarchy with columns                              | A plain table with `Table.Disclosure` as the leading cell (or `Table.Tree` as the name cell); the caller flattens and folds, and Tab reaches each chevron. DataTable's tree mode is the treegrid, with the arrow keys. |
+| A record that opens into more                         | `Table.Detail` under its row, a chevron in the row.                                                                                                                                                                    |
+| Rows in an order the reader sets                      | `Table.Handle` as the first cell.                                                                                                                                                                                      |
+| Sort, filters, pages, pinned columns, a thousand rows | `DataTable`.                                                                                                                                                                                                           |
+| A few facts about one thing                           | `KeyValue`.                                                                                                                                                                                                            |
 
-There is no zebra striping: the hairline and the row's hover carry the eye across, and stripes fight the selected and the sunken surfaces. There is no radio selection of one row: the row's click opens the record, and one chosen row is that click. There is no expand-all chevron: a detail row loads what it needs when it opens, and opening every row at once gives that up. There is no row size prop; see Sizes.
+<Canvas of={Stories.RegisterStory} />
+
+A row's click follows a link that is also in the row, the record's name, and is never the only way to open the record: a keyboard, a screen reader, a middle click and a copied link all use the link. The checkbox and the eye keep their clicks from the row. A Toolbar above the table keeps `space.200` from it, so the sticky header never covers the toolbar's focus rings.
+
+There is no zebra striping: the hairline and the row's hover carry the eye across, and stripes fight the selected and the sunken surfaces. There is no radio selection of one row: the row's click opens the record, and one chosen row is that click. There is no expand-all chevron: a detail row loads what it needs when it opens, and opening every row at once gives that up.
 
 ## Sizes
 
-One row height, `dimension.row` 40px, and the header `dimension.row.header` 32px. The reader's density setting, beside the mode switch, resolves the row to `dimension.row.compact` 36px on every table at once; a table never takes a density prop, so two tables on a page never disagree. One density setting for the reader, not a row height per table.
+Rows are `dimension.row` 40px, and the header `dimension.row.header` 32px. A table's `density` sets its own rows: `compact` resolves them to `dimension.row.compact` 36px, for a picker's table by design or a register the reader has set so. It is a table's setting, never the document's, so two tables on a page each keep their own; a DataTable offers the reader Compact rows in its Columns menu. See [Density](?path=/docs/components-density--docs).
 
 Column widths are content. `width` in pixels on the header fixes a column (on the cells, in a table with no header row); one column takes the slack. `minWidth` gives a column a floor instead: give the name column one, 180 to 220, so in a narrow frame the table scrolls sideways under the pinned columns rather than squeezing the name to a sliver. The frame scrolls sideways when the columns are wider than the page, and a pinned column keeps its place.
 
@@ -59,18 +63,18 @@ Column widths are content. `width` in pixels on the header fixes a column (on th
 
 ## States
 
-| State              | What changes                                                                                                                           |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Header, sortable   | The up-down chevron appears on hover and on focus, and stays where nothing can hover unless a column menu that sorts sits beside it; the text turns `color.text`.                     |
-| Sorted             | The arrow up or down stays and the text is `color.text`; `aria-sort` says which.                                                       |
-| Row hover          | `color.background.surface.hovered`; the id turns `color.text.brand`; the eye appears in `color.icon.subtle`. Where nothing can hover, the eye is always there. |
-| Selected           | `color.background.selected`, `color.background.selected.hovered` on hover; `data-selected` on the row.                                 |
-| Active id          | The id in `color.text.brand` and the eye on `color.background.selected`: the row open in the preview.                                  |
-| Static             | No hover: a totals row, a form laid out as a table.                                                                                    |
-| Scrolled           | The frame carries `data-scrolled-start` or `-end`; the pinned column at the edge draws `color.border.bold` in place of `color.border`. |
-| Group open, closed | The chevron turns; closed, the rows are not rendered.                                                                                  |
-| Expanded           | In a treegrid, `aria-expanded` on the row; the chevron turns; the folded count goes.                                                   |
-| Disabled selection | The checkbox disabled; the row still opens.                                                                                            |
+| State              | What changes                                                                                                                                                                                               |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Header, sortable   | The up-down chevron appears on hover and on focus, and stays where nothing can hover unless a column menu that sorts sits beside it; the text turns `color.text`.                                          |
+| Sorted             | The arrow up or down stays and the text is `color.text`; `aria-sort` says which. An end-aligned heading leads with its arrow.                                                                              |
+| Row hover          | `color.background.surface.hovered`; the id turns `color.text.brand`; the eye appears in `color.icon.subtle`. Where nothing can hover, the eye is always there.                                             |
+| Selected           | `color.background.selected`, `color.background.selected.hovered` on hover, pinned cells included; `data-selected` on the row. In forced colours, a Highlight edge inside the row.                          |
+| Active id          | The id in `color.text.brand` and the eye on `color.background.selected` inside a `color.border.selected` ring, `aria-pressed`: the row open in the preview. The ring tells it apart where every eye shows. |
+| Static             | No hover, pinned cells included: a totals row, a form laid out as a table.                                                                                                                                 |
+| Scrolled           | The frame carries `data-scrolled-start` or `-end`; a pinned column with `edge="scrolled"` draws its `color.border` edge only then.                                                                         |
+| Group open, closed | The chevron turns and `aria-expanded` follows; closed, the rows are not rendered. The chevron's name stays the group's title.                                                                              |
+| Expanded           | The chevron turns and its name says the next action and the row, "Collapse Ground segment"; the folded count goes. In DataTable's treegrid the row carries `aria-expanded`.                                |
+| Disabled selection | The checkbox disabled; the row still opens.                                                                                                                                                                |
 
 Loading, empty and error belong to the DataTable, which keeps the header and draws skeleton rows, an Empty or the error inside the frame. A bare Table shows what it is given: an empty register is an [Empty](?path=/docs/components-empty--docs) in its Section, not a table with no rows.
 
@@ -79,13 +83,18 @@ Loading, empty and error belong to the DataTable, which keeps the header and dra
 - **`label`** names the table when no heading above does. A DataTable takes the same.
 - **`maxHeight`** makes the frame scroll down inside itself; the header sticks to the frame.
 - **`fill`** makes the frame take the rest of a bounded flex column and scroll inside it, the companion of Stack's `grow="fill"`; the DataTable's `fill` builds that column.
+- **`density`** on the table: `compact` for 36px rows.
+- **`align`** on a header and its column's cells: `start` (the default), `center` for a column-group heading, `end` for a number, which the cell draws in tabular numerals and the heading ends over. It is logical, so a right-to-left table mirrors it.
+- **`wrap`** on a cell or a header, for a value that must be read whole: it wraps instead of ending in an ellipsis. A hash or a URN inside it is an `Id` with `break-all`, so it breaks anywhere.
+- **`rowHeader`** on the one cell or `Table.Id` that names the row, the id or the name: it renders `th scope="row"`, drawn as a cell.
 - **`sort` and `onSort`** on a header. `useSort` gives a plain table `dir(key)` and `toggle(key)`; `usePage` with [Pagination](?path=/docs/components-pagination--docs) pages it.
-- **`sticky`, `pinned`, `offset`, `edge`** on a header and its cells: `pinned="start"` or `"end"`, `offset` the widths of the pinned columns before it, `edge` on the one that touches the middle. `sticky` is `pinned="start"` with no offset.
+- **`sticky`, `pinned`, `offset`, `edge`** on a header and its cells: `pinned="start"` or `"end"`, `offset` the widths of the pinned columns before it, `edge` on the one that touches the middle, `true` for its edge at rest and `"scrolled"` for the edge only while the frame is scrolled. `sticky` is `pinned="start"` with no offset.
 - **`width`** in pixels on the header, or on the cells of a table with no header row; **`minWidth`** for a floor the column keeps while it takes the slack above it.
-- **`resize` and `trailing`** on a header are the DataTable's: a handle on the trailing edge, and a control that shows on hover and focus, and always, beside the heading, where nothing can hover; there the column is drawn 24px wider for each 20px control (less the 2px between two), so the heading keeps its room. By hand only in a header the DataTable cannot draw.
+- **`resize` and `trailing`** on a header are the DataTable's: a handle on the trailing edge, named after the column, and a control that shows on hover and focus, and always, beside the heading, where nothing can hover; there the column is drawn 24px wider for each 20px control (less the 2px between two), so the heading keeps its room. An end-aligned heading keeps them at its start. By hand only in a header the DataTable cannot draw.
 - **`isSelected` and `isStatic`** on a row.
-- **`tone="subtle"`** on `Table.Id` where the id is not the link, in a grouped listing; `onPreview` and `isActive` for the eye.
-- **`role="treegrid"`** with `aria-level` and `aria-expanded` on the rows, and `Table.Disclosure` as the leading cell or `Table.Tree` as the name cell.
+- **`tone="subtle"`** on `Table.Id` where the id is not the link, in a grouped listing; `onPreview` and `isActive` for the eye, and `label` for its name when the id is not a plain string.
+
+`useSort` reads each sortable column through a function that returns the raw value: an ISO day or instant, a number, a Date or the text, never the label the cell formats, so 2 September sorts before 14 September. Text collates in the LedgerProvider's locale with numbers inside it read as numbers, and an absent value (`null`, `undefined`, `""`) sorts last in either direction. `usePage` clamps its page when the list shrinks.
 
 <Canvas of={Stories.SortedAndPaged} />
 
@@ -93,53 +102,66 @@ Loading, empty and error belong to the DataTable, which keeps the header and dra
 
 <Canvas of={Stories.TreeStory} />
 
+<Canvas of={Stories.ListLineStory} />
+
+<Canvas of={Stories.TwoHeaderRows} />
+
+<Canvas of={Stories.ResizeHandles} />
+
+<Canvas of={Stories.WrapAndTitles} />
+
+<Canvas of={Stories.RightToLeft} />
+
 ## Content
 
 - **Headers are one or two words**, sentence case, no trailing colon, no units when the cells carry them: Due, not "Due date:". A header that would wrap is a shorter word.
 - **The id first, the name second, actions last.**
-- **Text starts; a number ends**, in tabular numerals, and so does its header. A number never centres.
-- **A status is a Badge, a severity an Indicator, a person a Person**; a date is `d MMM yyyy`.
+- **Text starts; a number ends**, in tabular numerals, and so does its header: `align="end"` on both. A number never centres.
+- **A status is a Badge, a severity an Indicator, a person a Person**; a date is a [DateTime](?path=/docs/components-datetime--docs), in the reader's locale.
 - **An absent value is `Absent`**, never a blank, a dash typed by hand or "N/A".
-- **Cells hold one line.** A column that must wrap wraps as a column, and it is never the one sorted by eye. Long prose lives on the record.
+- **Cells hold one line.** A column that must wrap wraps as a column (`wrap`), and it is never the one sorted by eye. Long prose lives on the record.
 - **The register is named** by the Section above it, or by `label`.
 
 ## Style
 
-| Element     | Token                                                                                                                                                             |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Frame       | full width · scrolls sideways · scrolls down past `maxHeight` or, with `fill`, inside the height its column gives it                                              |
-| Header      | `dimension.row.header` 32px · `font.body.small` `font.weight.medium` `color.text.subtle` · `elevation.surface.current` · `color.border` under, the cell's own so it stays while the frame scrolls · `space.150` sides |
-| Sort button | `dimension.control.xsmall` · `radius.small` · arrow 12px · hover `color.text`                                                                                     |
-| Row         | `dimension.row` 40px, `dimension.row.compact` 36px · `color.border` hairline · hover `color.background.surface.hovered`                                           |
-| Selected    | `color.background.selected` · hover `color.background.selected.hovered`                                                                                           |
-| Cell        | `space.150` sides · `font.body` · one line, truncated                                                                                                             |
-| Id          | `Id` · hover and active `color.text.brand` · the eye `dimension.icon.small` in a 20px button over the cell's end, revealed on the row's hover, active on `color.background.selected` · `space.300` kept clear for it: always in a table laid out by its content, while it shows in a `table-fixed` one |
-| Group band  | `elevation.surface.sunken` · `font.body` `font.weight.medium` · `space.100` × `space.075` · hover `color.background.surface.hovered`                              |
-| Detail row  | `elevation.surface.sunken` · `space.200` × `space.150`                                                                                                            |
-| Tree indent | `space.200` 16px per level · a 20px chevron button                                                                                                                |
-| Touch       | The eye, the chevrons and the handle are 20px or smaller and take a 24px hit area wherever a pointer is coarse (`touch-target`); the layout does not move. A checkbox's hit area is 40 × 32px, in the header as in a row: the heading's ellipsis does not clip it |
-| Pinned edge | `color.border`, `color.border.bold` while the frame is scrolled                                                                                                   |
-| Motion      | `motion.duration.fast` on the row's colours and the chevrons' turn                                                                                                |
+| Element     | Token                                                                                                                                                                                                                                                                                                                                    |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frame       | full width · scrolls sideways · scrolls down past `maxHeight` or, with `fill`, inside the height its column gives it · scroll padding the width of the pinned columns and the height of the header                                                                                                                                       |
+| Table       | `font.body` · tabular numerals throughout                                                                                                                                                                                                                                                                                                |
+| Header      | `dimension.row.header` 32px · `font.body.small` `font.weight.medium` `color.text.subtle` · `elevation.surface.current` · `color.border` under, the cell's own so it stays while the frame scrolls · `space.150` sides                                                                                                                    |
+| Sort button | `dimension.control.xsmall`, its least height when the heading wraps · `radius.small` · arrow 12px · hover `color.text` · `space.050` ring room on the side away from the column's text                                                                                                                                                   |
+| Row         | `dimension.row` 40px, `dimension.row.compact` 36px · `color.border` hairline · hover `color.background.surface.hovered`                                                                                                                                                                                                                  |
+| Selected    | `color.background.selected` · hover `color.background.selected.hovered`                                                                                                                                                                                                                                                                  |
+| Cell        | `space.150` sides · `font.body` · one line, truncated · a link in it cut to the cell, its focus ring inside its edge                                                                                                                                                                                                                     |
+| Id          | `Id` · hover and active `color.text.brand` · the eye `dimension.icon.small` in a 20px button over the cell's end, revealed on the row's hover, active on `color.background.selected` in a `color.border.selected` ring · `space.300` kept clear for it: always in a table laid out by its content, while it shows in a `table-fixed` one |
+| Group band  | `elevation.surface.sunken` · `font.body` `font.weight.medium` · `space.100` × `space.075` · hover `color.background.surface.hovered`                                                                                                                                                                                                     |
+| Detail row  | `elevation.surface.sunken` · `space.200` × `space.150`                                                                                                                                                                                                                                                                                   |
+| Tree indent | `space.200` 16px per level · a 20px chevron button                                                                                                                                                                                                                                                                                       |
+| Resize      | an 8px handle on the heading's end · a `color.background.brand.bold` guide on hover, focus and drag · the focus ring inside the handle                                                                                                                                                                                                   |
+| Touch       | The eye, the chevrons and the handle are 20px or smaller and take a 24px hit area wherever a pointer is coarse (`touch-target`); the layout does not move. A checkbox's hit area is 40 × 32px, in the header as in a row: the heading's ellipsis does not clip it                                                                        |
+| Pinned edge | `color.border`: at rest with `edge`, only while the frame is scrolled with `edge="scrolled"`                                                                                                                                                                                                                                             |
+| Motion      | `motion.duration.fast` on the row's colours and the chevrons' turn; none under reduced motion                                                                                                                                                                                                                                            |
 
 ## Accessibility
 
-- **It is a table**: `table`, `thead`, `tbody`, `th`, `td`. `role="treegrid"` for a hierarchy with columns; `grid` only when cells are editable, which is the DataTable's editing mode.
+- **It is a table**: `table`, `thead`, `tbody`, `th`, `td`. `role="treegrid"` is DataTable's tree mode, which wires the arrow keys; `grid` only when cells are editable, which is the DataTable's editing mode. A hierarchy drawn by hand is a plain table, not a treegrid: a treegrid without its arrow keys is worse than none.
 - **The name.** `label` sets `aria-label` when no heading names the table.
+- **Row headers.** One cell per row, the id or the name, is `rowHeader`, so a screen reader announces the row's identity with every other cell and control in it. A group's band is its rows' `th scope="rowgroup"`.
 - **Sorting.** The header's button reports `aria-sort`; Space or Enter sorts; the chevron shows on hover and on focus, so a keyboard user sees which headers sort. On a pointer that can hover there is no persistent sign that a table sorts, which is why the chevron follows focus; where nothing can hover it is always shown, unless the column's menu, which sorts, is beside it.
-- **Keyboard.** Tab moves through the interactive elements in reading order: sort buttons, checkboxes, the eye, links. That is enough for a table; only a treegrid takes arrow keys, and the DataTable's tree mode wires them. A bare treegrid's caller does.
-- **Selection is a checkbox with a name**: "Select CTRL-0412", and the header's "Select all". The row's click opens the record and does not select.
-- **Every control is named.** The eye is "Preview row" with a Tooltip; the group's chevron says Expand or Collapse; the tree's names its row, "Expand Ground segment"; a detail row's chevron carries `aria-controls`.
-- **Truncated text is the cell's title**, so it shows whole on hover; the record has it in full.
-- **Not colour alone.** Hover and selection have the checkbox and the id's colour beside the fill; the sort has its arrow and `aria-sort`; the header text at `color.text.subtle` passes 4.5:1.
+- **Keyboard.** Tab moves through the interactive elements in reading order: sort buttons, checkboxes, the eye, chevrons, links. That is enough for a table; only a treegrid takes arrow keys, and only DataTable's tree mode is one. A focused control is scrolled clear of the pinned columns and the sticky header.
+- **Selection is a checkbox with a name**: "Select CTRL-0412", and the header's "Select all". The row's click opens the record and does not select; a click beside the box in its cell selects and does not open.
+- **Every control is named.** The eye is "Preview CTRL-0412", after the row, with a Tooltip; the group's chevron is named by its title and `aria-expanded` says whether it is open; the tree's names its row and its action, "Expand Ground segment"; a detail row's chevron carries `aria-controls`; a resize handle is named after its column, "Resize Control".
+- **A list line is a button** with the whole list as its description: each item, its meta and status, and the note, so the card is not the only way to them. "+2" is spoken "and 2 more".
+- **Truncated text shows whole on hover**: a plain string is the cell's title, and other content cut by its column takes its text as the title. A value that must be read whole wraps.
+- **Not colour alone.** Hover and selection have the checkbox and the id's colour beside the fill; the open row's eye has its ring; the sort has its arrow and `aria-sort`; the header text at `color.text.subtle` passes 4.5:1. In forced colours a chosen row keeps a Highlight edge and the open row's eye a Highlight fill.
 
 ## Props
 
-Table, Table.Header, Table.Row and Table.Cell accept native element props and refs. Table's ref targets the table; frameRef targets its scroll container and supports React 19 callback cleanup. Sorting, pinning and sizing keep their existing contracts. The frame tracks size changes in both itself and its table, so keyboard scroll access and pinned edges update when content grows or shrinks.
+Table, Table.Header, Table.Row and Table.Cell accept native element props and refs. Table's ref targets the table; frameRef targets its scroll container and supports React 19 callback cleanup. The frame tracks size changes in both itself and its table, so keyboard scroll access, pinned edges and the scroll padding update when content grows or shrinks.
 
 <Canvas of={Stories.DynamicFrame} />
 
 <Canvas of={Stories.FillFrame} />
-
 
 <ArgTypes of={Table} />
 
@@ -155,17 +177,45 @@ Table, Table.Header, Table.Row and Table.Cell accept native element props and re
 
 <ArgTypes of={Table.Cell} />
 
-### The other parts
+### Table.Id
 
-| Part              | Does                                                                                                                                                                                                   |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Table.Id`        | `id`, `onPreview`, `isActive`, `tone` (`brand` or `subtle`), `width`, and the pinned props. The row opens the record; the eye opens the same row in the preview. It shows on the row's hover, on focus in the cell, while that row's preview is open, and always where nothing can hover; the id keeps its 24px clear, so it ends in an ellipsis before the eye. |
-| `Table.Selection` | `header`, `checked` and `indeterminate` (booleans), `onCheckedChange(checked)`, `label`, `disabled`, `pinned`. The click does not reach the row.                                                        |
-| `Table.Group`     | `colSpan`, `open`, `onToggle`, `title`, `count`, `trailing`. It renders a `tbody`, so several stack in one Table.                                                                                      |
-| `Table.Tree`      | `depth`, `hasChildren`, `expanded`, `onToggle`, `label` (the row's plain name, for the chevron), `hint`. The Table takes `role="treegrid"`, each Row `aria-level` and, with children, `aria-expanded`. |
-| `Table.Disclosure` | `hasChildren`, `expanded`, `onToggle`, `label`, `width`, and the pinned props. One width for every depth, so the columns do not move as rows open and close; a leaf keeps the space, and the caller indents the row's first value. |
-| `Table.Detail`    | `id`, `colSpan`. The chevron that opens it carries `aria-controls` with this row's `id`.                                                                                                               |
-| `Table.Handle`    | `label`, `isDragging`; `ref` and the drag props come from the drag context. The cell is the handle, so the row's own controls keep their clicks.                                                       |
+<ArgTypes of={Table.Id} />
+
+### Table.List
+
+<ArgTypes of={Table.List} />
+
+### Table.Selection
+
+The click does not reach the row.
+
+<ArgTypes of={Table.Selection} />
+
+### Table.Group
+
+It renders a `tbody`, so several stack in one Table.
+
+<ArgTypes of={Table.Group} />
+
+### Table.Tree
+
+<ArgTypes of={Table.Tree} />
+
+### Table.Disclosure
+
+One width for every depth, so the columns do not move as rows open and close; a leaf keeps the space, and the caller indents the row's first value.
+
+<ArgTypes of={Table.Disclosure} />
+
+### Table.Detail
+
+<ArgTypes of={Table.Detail} />
+
+### Table.Handle
+
+`ref` and the drag props come from the drag context. The cell is the handle, so the row's own controls keep their clicks.
+
+<ArgTypes of={Table.Handle} />
 
 ### Playground
 
@@ -178,6 +228,7 @@ Table, Table.Header, Table.Row and Table.Cell accept native element props and re
 - [DataTable](?path=/docs/patterns-data-table--docs): the same parts with their state; where a register sorts, filters, pages or chooses.
 - [Toolbar](?path=/docs/patterns-toolbar--docs) above, [Pagination](?path=/docs/components-pagination--docs) below, [FilterChip](?path=/docs/components-filterchip--docs) in the toolbar.
 - [KeyValue](?path=/docs/components-keyvalue--docs): a few facts about one thing. [Tree](?path=/docs/components-tree--docs): a hierarchy without columns.
+- [Density](?path=/docs/components-density--docs): a table's row height.
 - [Empty](?path=/docs/components-empty--docs): a register with nothing in it.
 
 ## Don't

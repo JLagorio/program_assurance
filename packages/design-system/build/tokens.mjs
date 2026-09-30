@@ -8,7 +8,7 @@
 //   reset.css        @theme inline: removes Tailwind's default namespaces (a consumer opts in when fully migrated)
 //   utilities.css    one @utility per token, on its own property only (bg-*, text-*, icon-*, border-*, font-*, h-*, ...)
 //   tokens.ts        the name union, token(), tokenValue(), the utility allowlist
-//   merge-config.ts  tailwind-merge class groups for the generated utilities
+//   merge-config.ts  tailwind-merge class groups for the generated utilities, and the radius and spacing scales
 //   docs.json        name, description, light/dark values (reference and resolved), utility, metadata — for the Storybook sheets
 //   tokens.figma.json the merged DTCG source, for Figma / Tokens Studio
 //   classes.ts       token name → generated class, for primitive props (backgroundColor, color, size)
@@ -138,6 +138,9 @@ function utilityFor(token) {
     // `theme(--container-split)` in an @container query), written as its literal value.
     if (b === "container")
       return { kind: "theme", ns: "container", key: rest(p, 2), cls: null, literal: true };
+    // A part's own size (a popover's width, a menu's narrowest) is read by that part through
+    // token() in its style, so it has no class: a caller sizes a part through its props.
+    if (b === "part") return null;
     if (b === "icon") return { kind: "size", cls: `size-icon-${rest(p, 2)}` };
     if (b === "control")
       return {
@@ -265,6 +268,9 @@ const groups = {
   shadow: [],
   h: [],
   "min-h": [],
+  w: [],
+  "min-w": [],
+  "max-w": [],
   size: [],
   opacity: [],
   duration: [],
@@ -382,14 +388,16 @@ for (const token of all) {
       const minW = `min-w-${u.cls.slice(2)}`; // a control that grows with its content but never below square
       utilityBlocks.push(`@utility ${minW} {\n  min-width: var(${v});\n}`);
       allClasses.push(minW);
+      groups["min-w"].push(minW.slice(6));
       groups.h.push(u.cls.slice(2));
       groups.size.push(u.sizeCls.slice(5));
     } else {
       utilityBlocks.push(`@utility ${u.cls} {\n  ${u.prop}: var(${v});\n}`);
-      const [head, ...tail] = u.cls.split("-");
-      const key = u.cls.startsWith("border-w-") ? "border-w" : head;
-      const val = u.cls.startsWith("border-w-") ? u.cls.slice(9) : tail.join("-");
-      if (groups[key]) groups[key].push(val);
+      // The group is the class's prefix: a two-word one (border-w, max-w, min-w) before the first word.
+      const key =
+        ["border-w", "max-w", "min-w"].find((p) => u.cls.startsWith(`${p}-`)) ??
+        u.cls.split("-")[0];
+      if (groups[key]) groups[key].push(u.cls.slice(key.length + 1));
     }
   }
 
@@ -514,8 +522,10 @@ fs.writeFileSync(
   header("Tailwind theme: default namespaces removed so only token utilities exist") +
     `/* A consumer imports this once every class it uses is a token utility.
    After it, bg-blue-500, text-sm, font-medium (Tailwind's), rounded-md and p-4 no longer exist.
-   The container sizes (@md, @3xl) come back from theme.css, where each is a token. */
+   The breakpoints (md:, panel:, xl:) and the container sizes (@md, @3xl) come back from
+   theme.css, where each is a token; Tailwind's 2xl: breakpoint does not. */
 @theme inline {
+  --breakpoint-*: initial;
   --color-*: initial;
   --text-*: initial;
   --font-*: initial;
@@ -606,12 +616,23 @@ const groupEntries = Object.entries(groups)
     const prefix = k === "font-weight" ? "font" : k;
     return `    "${id}": [{ "${prefix}": ${JSON.stringify([...new Set(v)])} }],`;
   });
+// The theme scales reach every class group that reads them, the side radii (rounded-t-medium) and
+// the spacing keys on padding, gap, inset and sizing (p-200, w-400) included.
+const themeScales = {
+  radius: [...new Set(groups.rounded)],
+  spacing: [...new Set([...spaceKeys, ...negativeKeys].map(([, key]) => key))],
+};
 fs.writeFileSync(
   path.join(outDir, "merge-config.ts"),
   tsHeader +
-    `/** Pass to tailwind-merge's extendTailwindMerge so generated utilities merge as their real property groups. */
+    `/** Pass to tailwind-merge's extendTailwindMerge so generated utilities merge as their real property groups, and a consumer's className (w-full, min-w-0, rounded-t-none) wins over the kit's token class. */
 export const mergeConfig = {
   extend: {
+    theme: {
+${Object.entries(themeScales)
+  .map(([scale, keys]) => `      "${scale}": ${JSON.stringify(keys)},`)
+  .join("\n")}
+    },
     classGroups: {
 ${groupEntries.join("\n")}
     },

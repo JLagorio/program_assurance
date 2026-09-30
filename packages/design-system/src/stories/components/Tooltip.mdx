@@ -1,4 +1,5 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { TooltipContent, TooltipProvider } from "../../components";
 
 import * as Stories from "./Tooltip.stories";
 
@@ -6,52 +7,67 @@ import * as Stories from "./Tooltip.stories";
 
 # Tooltip
 
-A supplementary visual label on hover or keyboard focus, using shadcn's Base UI composition. IconButton already draws one from its `label`; only compose a separate tooltip when its content differs, such as a keyboard shortcut.
+A short visual label on hover or keyboard focus, using shadcn's Base UI composition. IconButton already draws one from its `label`; compose a separate tooltip only when its words differ, such as a keyboard shortcut.
 
 ```tsx
-<TooltipProvider delay={300} timeout={300}>
-  <Tooltip>
-    <TooltipTrigger render={<IconButton label="Search" icon={<Search />} isTooltipDisabled />} />
-    <TooltipContent>Search <Kbd>K</Kbd></TooltipContent>
-  </Tooltip>
-</TooltipProvider>
+<Tooltip>
+  <TooltipTrigger
+    aria-keyshortcuts="Meta+K Control+K"
+    render={<IconButton label="Search" icon={<Search />} isTooltipDisabled />}
+  />
+  <TooltipContent describe>
+    Search <Kbd>K</Kbd>
+  </TooltipContent>
+</Tooltip>
 ```
+
+<Canvas of={Stories.Shortcut} />
 
 ## Composition
 
-Root owns open state. Trigger renders a button by default; `render` composes an existing button, link or span with its native props, handlers and ref. It does not give a rendered link or span button semantics, and has no `nativeButton` prop. A custom trigger must accept merged props and its ref.
+Root owns open state. Trigger renders a button by default; `render` composes an existing button, link or span with its native props, handlers and ref. It does not give a rendered link or span button semantics, and has no `nativeButton` prop. A custom trigger must accept merged props and its ref, and brings its own focus ring: compose a kit Button, IconButton or TextLink rather than a bare element.
 
-Content includes the portal, positioner and decorative arrow. Native props, `ref`, `render`, and state callbacks for `className` and `style` target the popup. Placement defaults to top/center with `sideOffset={4}` and `alignOffset={0}`; those four positioning props belong on Content. Logical sides follow the Ledger locale or Content's explicit `dir`.
+Content includes the portal, positioner and decorative arrow. Native props, `ref`, `render`, and state callbacks for `className` and `style` target the popup. Placement defaults to top and centre with `sideOffset={4}` and `alignOffset={0}`. Content also takes the positioner's `anchor` (an element, a ref or a virtual point, for a tooltip that belongs to a cell or a chart mark rather than to its trigger), `collisionPadding`, `collisionBoundary`, `collisionAvoidance`, `sticky` and `positionMethod`. Logical sides follow the Ledger locale or Content's explicit `dir`.
 
-The surface retains Ledger's bold neutral fill, inverse text, small body text and spacing tokens. Its maximum width is 320px, constrained by available space; use native `style` to override it. The arrow uses Ledger's 8px size and small radius. Content stays inside an enclosing dialog's portal boundary so it remains visible and hoverable there.
+The surface is Ledger's bold neutral fill with inverse text in `font.body.small`, at most 320px wide (`dimension.part.tooltip`) within the available space; `style` overrides the width. The arrow is 8px with the small radius. In forced colours, where the fill and the shadow are replaced, the popup keeps a CanvasText outline. Content stays inside an enclosing dialog's portal boundary, so it remains visible and hoverable there. It sits on `layer.tooltip`, the top layer, above a toast, so a toast action's label shows over it.
 
 <Canvas of={Stories.TooltipMatrix} />
 
 ## Timing and interaction
 
-TooltipProvider shares hover timing across a group. Its shadcn default is `delay={0}`; Base UI's `timeout` defaults to 400ms. Shell and Storybook explicitly use `delay={300}` and `timeout={300}` to preserve the product's timing. Without a provider, Base UI uses a 600ms trigger delay and no shared group; no local fallback provider is created.
+TooltipProvider shares hover timing across a group: the first tooltip opens after `delay`, 300ms, and a neighbour opens at once for `timeout`, 300ms, after the last one closed. Shell mounts one, so every tooltip in an application shares it; a product without a Shell mounts one near its root. Outside any provider, Base UI waits 600ms and groups nothing.
 
-Trigger accepts `delay`, `closeDelay` and `closeOnClick`. An adjacent tooltip opens immediately during the provider's timeout. Keyboard focus opens without the hover delay. Pointer passage into the popup keeps it open; leaving both, moving focus away, clicking the trigger or pressing Escape dismisses it. Trigger clicks close by default; `closeOnClick={false}` changes that behavior. Touch retains the trigger's action without opening a hover tooltip.
+Keyboard focus opens a tooltip at once, without the hover delay. Trigger accepts `delay`, `closeDelay` and `closeOnClick`; a Trigger's own `delay` overrides the provider's. Moving the pointer into the popup keeps it open; leaving both, moving focus away, clicking the trigger or pressing Escape dismisses it. Trigger clicks close it by default; `closeOnClick={false}` keeps it. A tap runs the trigger's action without opening a hover tooltip.
 
 Use Root's `defaultOpen`, or controlled `open` with `onOpenChange(open, details)`. `details.cancel()` rejects a state change. Generic payloads let several triggers share one Root and provide content through its children function.
 
 <Canvas of={Stories.IconButtons} />
 
-## Accessibility and disabled actions
+## Accessibility
 
-Give the trigger its own accessible name and keep essential instructions visible. Base UI 1.7 does not automatically add `role="tooltip"` or `aria-describedby`; the popup is a visual supplement, not the control's accessible name or description. Keep controls and links out of the popup; use Popover for content the reader needs to interact with.
+- **A tooltip is visual only by default.** Base UI adds no `role="tooltip"` and no `aria-describedby`, so the trigger needs its own accessible name, and what the reader must know stays visible on the page.
+- **`describe` says its words too.** On TooltipContent it renders a visually hidden copy that is always on the page and makes it the trigger's accessible description, so a screen reader hears the shortcut or the qualifier the name leaves out. Use it when the tooltip adds words to the name; a tooltip that only repeats the name needs no `describe`.
+- **Name a shortcut with `aria-keyshortcuts`** on the trigger ("Meta+K Control+K"), as well as showing it with Kbd.
+- **Keep controls and links out of the popup**; content the reader interacts with belongs in a Popover.
+- **Inside a Dialog**, Escape closes an open tooltip first and keeps focus on its trigger; the next Escape can dismiss the dialog.
 
-Trigger's `disabled` disables tooltip interaction; it does not disable the rendered button. Put the native `disabled` prop on the rendered Button. To explain an unavailable action on hover and keyboard focus, render a focusable span around its disabled button, and expose the reason independently in text or the wrapper's accessible name. The application uses this composition in UnavailableAction.
+## Unavailable actions
 
-Inside a Dialog, Escape dismisses an open tooltip first while keeping focus on its trigger. A subsequent Escape can dismiss the dialog.
+Trigger's `disabled` stops the tooltip; it does not disable the rendered button. To explain an action that truly cannot run, give the Button or IconButton `disabledReason`: the button is disabled with `aria-disabled` but stays in the Tab order, the reason shows in a tooltip on hover, on keyboard focus and on a tap, and it becomes the button's accessible description. Do not wrap a disabled button in a focusable span, and do not put the reason in a `title`, which a disabled button never shows. Prefer an enabled action that explains itself on use, such as a submit that reports what is missing.
 
 <Canvas of={Stories.Unavailable} />
 
-## Migration and API
+## Props
 
-Move `content` into TooltipContent, the old child trigger into `TooltipTrigger render`, timing onto Trigger or Provider, and placement/styles onto Content. The old 260px maximum and 6px offset become 320px and 4px, with an arrow. Remove redundant outer tooltips around IconButton; use `isTooltipDisabled` when composing custom content.
+Props follow Base UI's [Provider](https://base-ui.com/react/components/tooltip#provider), [Root](https://base-ui.com/react/components/tooltip#root), [Trigger](https://base-ui.com/react/components/tooltip#trigger) and [Popup](https://base-ui.com/react/components/tooltip#popup), with the positioner's props on Content and Ledger's `describe`. See [shadcn Tooltip](https://ui.shadcn.com/docs/components/base/tooltip) for its source composition.
 
-Props follow Base UI's [Provider](https://base-ui.com/react/components/tooltip#provider), [Root](https://base-ui.com/react/components/tooltip#root), [Trigger](https://base-ui.com/react/components/tooltip#trigger) and [Popup](https://base-ui.com/react/components/tooltip#popup), with the four positioning props added to Content. See [shadcn Tooltip](https://ui.shadcn.com/docs/components/base/tooltip) for its source composition.
+### TooltipContent
+
+<ArgTypes of={TooltipContent} />
+
+### TooltipProvider
+
+<ArgTypes of={TooltipProvider} />
 
 ## Related
 

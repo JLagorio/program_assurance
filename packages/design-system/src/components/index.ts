@@ -13,8 +13,10 @@ export {
   AlertTitle,
   AlertDescription,
   AlertAction,
+  AlertIcon,
   type AlertActionProps,
   type AlertDescriptionProps,
+  type AlertIconProps,
   type AlertProps,
   type AlertTitleProps,
 } from "./alert";
@@ -153,6 +155,7 @@ export {
   CardContent,
   CardFooter,
   type CardProps,
+  type CardSize,
   type CardHeaderProps,
   type CardTitleProps,
   type CardDescriptionProps,
@@ -211,6 +214,9 @@ export {
   CommandSeparator,
   CommandShortcut,
   type CommandDialogProps,
+  type CommandEmptyProps,
+  type CommandInputProps,
+  type CommandItemProps,
   type CommandShortcutProps,
 } from "./command";
 export { controlBase, controlHeight } from "./controls";
@@ -362,7 +368,7 @@ export {
   type HoverCardTriggerProps,
 } from "./hover-card";
 export { Icon, type IconColorToken, type IconProps, type IconSize } from "./icon";
-export { Id, type IdListProps, type IdProps } from "./id";
+export { Id, IdList, type IdListProps, type IdProps } from "./id";
 
 export { Item, ItemGroup, type ItemGroupProps, type ItemProps, type ItemSize } from "./item";
 export {
@@ -450,6 +456,11 @@ export {
   type ResizablePanelProps,
   ResizableHandle,
   type ResizableHandleProps,
+  useResizableLayout,
+  type ResizablePanelGroupHandle,
+  type ResizablePanelHandle,
+  type ResizableLayout,
+  type ResizableLayoutStorage,
 } from "./resizable";
 export { ScrollArea, ScrollBar, type ScrollAreaProps, type ScrollBarProps } from "./scroll-area";
 export {
@@ -496,9 +507,13 @@ export {
   SheetDescription,
   SheetFooter,
   SheetHeader,
+  SheetOverlay,
+  SheetPortal,
   SheetTitle,
   SheetTrigger,
   type SheetBodyProps,
+  type SheetOverlayProps,
+  type SheetPortalProps,
   type SheetWidth,
   type SheetCloseProps,
   type SheetContentProps,
@@ -511,7 +526,14 @@ export {
 } from "./sheet";
 export { Skeleton, type SkeletonProps, type SkeletonShape } from "./skeleton";
 export { Spinner, type SpinnerProps, type SpinnerSize } from "./spinner";
-export { Stat, type StatGridProps, type StatProps, type StatTileProps } from "./stat";
+export {
+  Stat,
+  StatGrid,
+  StatTile,
+  type StatGridProps,
+  type StatProps,
+  type StatTileProps,
+} from "./stat";
 export {
   Stepper,
   type StepState,
@@ -519,7 +541,7 @@ export {
   type StepperOrientation,
   type StepperProps,
 } from "./stepper";
-export { Switch, type SwitchProps } from "./switch";
+export { Switch, type SwitchProps, type SwitchSize } from "./switch";
 export { Table, type TableProps, type TdProps, type ThProps } from "./table";
 export { usePage, useSort, type SortDir } from "./table-state";
 export {
@@ -541,6 +563,7 @@ export {
   type TimelineAlign,
   type TimelineGroupProps,
   type TimelineItemProps,
+  type TimelineItemWidth,
   type TimelineOrientation,
   type TimelineProps,
   type TimelineSize,
@@ -560,7 +583,12 @@ export {
   createToastManager,
   toast,
   useToastManager,
+  type ToastManager,
   type ToastOptions,
+  type ToastPromiseOptions,
+  type ToastProviderProps,
+  type ToastType,
+  type ToastUpdateOptions,
   type ToasterProps,
 } from "./toaster";
 export { Toggle, toggleVariants, type ToggleProps } from "./toggle";
@@ -592,6 +620,7 @@ export {
   Absent,
   Eyebrow,
   Fact,
+  FactGroup,
   Prose,
   type AbsentProps,
   type EyebrowProps,
@@ -637,6 +666,7 @@ export {
   InputGroupText,
   InputGroupInput,
   InputGroupTextarea,
+  type InputGroupTextareaProps,
 } from "./input-group";
 
 export { SearchField, type SearchFieldProps } from "./search-field";

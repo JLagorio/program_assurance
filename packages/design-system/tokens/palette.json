@@ -130,6 +130,15 @@
         "$value": "oklch(0.66 0.02 285)",
         "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
       },
+      "715": {
+        "$value": "oklch(0.68 0.02 285)",
+        "$description": "Tertiary text and its icons in dark: 4.5:1 on the resting selected fill as well as on every surface.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
       "800": {
         "$value": "oklch(0.81 0.015 285)",
         "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
@@ -321,7 +330,7 @@
       },
       "725": {
         "$value": "oklch(0.525 0.19 254)",
-        "$description": "Increased contrast: the selected fill in dark, at 3:1 on every dark surface.",
+        "$description": "Brand and link text in light, 4.5:1 on the selected fill at rest and under the pointer. Increased contrast: the selected fill in dark, at 3:1 on every dark surface.",
         "$extensions": {
           "ledger": {
             "introduced": "0.7.0"

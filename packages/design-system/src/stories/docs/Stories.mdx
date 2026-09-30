@@ -64,9 +64,10 @@ export const Variants: Story = { render: () => <Matrix rows={…} cols={…} ren
 
 ## What fails a story
 
-- A console error. `test/storybook.setup.ts` fails any story that emits one.
+- A console error, or a Base UI or React warning on `console.warn`. `test/storybook.setup.ts` fails any story that emits one.
 - An axe violation in either mode. Fix semantic and structural violations directly; a contrast or spacing violation is a design decision, so raise it instead.
 - Sideways scroll at a 390px phone, a word broken across two lines, or paint past a 320px frame (`npm run test:layout`). [Testing and review](?path=/docs/guidance-testing-and-review--docs) says what the check measures and when a story is exempt.
+- A gate: a focus ring its container clips, a selected item that disappears in forced colours, a control under 24px or shown only on hover on a touch phone, an overlay control out of view in a short window, or long text that overflows (`npm run test:a11y` and `npm run test:gates`). A story that predates a gate is listed with its count in `test/gates-allow.json`, which may only shrink.
 - A stale `api/public-api.json`: `npm run ds:api:check` when declarations changed, `ds:api:update` when they changed on purpose.
 - Drift in `eslint-plugin/components.json` or `llms.txt`; the package build regenerates both.
 

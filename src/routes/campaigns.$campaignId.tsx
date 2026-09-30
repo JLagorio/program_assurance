@@ -18,6 +18,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AssessmentCampaign } from "@/components/prototype/assessment-campaign";
 import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
 import { RelationName } from "@/components/prototype/record-tools";
+import { useRecordTitle } from "@/components/app/browser-title";
+import { Page, RecordPending } from "@/components/app/shell";
 import { StatusBadge } from "@/components/app/status";
 import { campaignStatuses } from "@/lib/status";
 import { useRow } from "@/lib/models";
@@ -30,6 +32,7 @@ export const Route = createFileRoute("/campaigns/$campaignId")({
     ),
   }),
   head: () => ({ meta: [{ title: "Assessment campaign — Program Assurance" }] }),
+  pendingComponent: RecordPending,
 });
 function CampaignDetail() {
   const { campaignId } = Route.useParams();
@@ -38,8 +41,9 @@ function CampaignDetail() {
   const navigate = useNavigate();
   const query = useRow("assessment_campaigns", campaignId);
   const campaign = query.data;
+  useRecordTitle("Assessment campaign", campaign?.title);
   return (
-    <Stack space="space.200" className="min-w-0">
+    <Page>
       <QueryState queries={[query]}>
         {campaign ? (
           <>
@@ -114,7 +118,6 @@ function CampaignDetail() {
                   to: "/campaigns/$campaignId",
                   params: { campaignId },
                   search: { tab: next },
-                  replace: true,
                 })
               }
             />
@@ -123,6 +126,6 @@ function CampaignDetail() {
           <MissingRecord backTo="/campaigns" kind="Assessment campaign" />
         )}
       </QueryState>
-    </Stack>
+    </Page>
   );
 }

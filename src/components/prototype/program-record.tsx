@@ -21,7 +21,6 @@ import {
   Shell,
   Stack,
   Tabs,
-  TabsContent,
   TabsList,
   TabsTrigger,
   Text,
@@ -42,6 +41,7 @@ import {
 } from "@/lib/status";
 import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
+import { Page } from "@/components/app/shell";
 import { ControlInspector } from "@/components/prototype/library-controls";
 import { ProgramSystemsTree } from "./program-systems-tree";
 import { SystemElementDialog } from "./system-element-dialog";
@@ -64,6 +64,7 @@ import {
   ProgramCollection,
   ProgramEditor,
   ProgramQueryState,
+  RetainedTabPanels,
   type ProgramTableName,
 } from "./program-shared";
 
@@ -76,6 +77,7 @@ function ProgramRecordFrame({
   facts = [],
   readOnly = false,
   renderEditor,
+  collection,
   trail,
   actions,
   properties,
@@ -90,7 +92,9 @@ function ProgramRecordFrame({
   facts?: string[];
   readOnly?: boolean;
   renderEditor?: ((onClose: () => void) => ReactNode) | undefined;
-  /** Levels between the program and this record, outermost first: TrailLinks to the containing elements. */
+  /** The program tab that holds this record's collection: the trail's level after the program. */
+  collection: { label: string; tab: "System" | "Controls" };
+  /** Levels between the collection and this record, outermost first: TrailLinks to the containing elements. */
   trail?: ReactNode[] | undefined;
   /** Header actions beside Edit. */
   actions?: ReactNode;
@@ -103,12 +107,19 @@ function ProgramRecordFrame({
   const [editing, setEditing] = useState(false);
   return (
     <>
-      <Stack space="space.250">
+      <Page>
         <PageHeader>
           <RecordTrail current={title}>
             <TrailLink to="/programs">Programs</TrailLink>
             <TrailLink to="/programs/$programId" params={{ programId }}>
               {program.data ? `${program.data.code} · ${program.data.name}` : "Program"}
+            </TrailLink>
+            <TrailLink
+              to="/programs/$programId"
+              params={{ programId }}
+              search={{ tab: collection.tab }}
+            >
+              {collection.label}
             </TrailLink>
             {trail}
           </RecordTrail>
@@ -150,7 +161,7 @@ function ProgramRecordFrame({
           ) : (
             <ProgramEditor table={table} existing={row} onClose={() => setEditing(false)} />
           ))}
-      </Stack>
+      </Page>
       {showProperties && (
         <Shell.Aside label="Record details">
           <Inspector.Group title="Details">
@@ -242,6 +253,7 @@ export function ProgramSystemRecord({
       row={system as DataRecord}
       title={system.name}
       showProperties={current === "Overview"}
+      collection={{ label: "System", tab: "System" }}
       trail={ancestors.map((ancestor) => (
         <TrailLink
           key={ancestor.id}
@@ -276,7 +288,12 @@ export function ProgramSystemRecord({
       )}
     >
       <ProgramQueryState queries={[query]} />
-      <Tabs value={current} onValueChange={(value) => select(systemTab(value) ?? "Overview")}>
+      {/* Keyed by the record: its tabs' retained state ends when another record opens. */}
+      <Tabs
+        key={system.id}
+        value={current}
+        onValueChange={(value) => select(systemTab(value) ?? "Overview")}
+      >
         <TabsList variant="line" aria-label="Element sections">
           {tabs.map((value) => (
             <TabsTrigger key={value} value={value}>
@@ -284,79 +301,81 @@ export function ProgramSystemRecord({
             </TabsTrigger>
           ))}
         </TabsList>
-        <TabsContent value={current}>
-          <Stack space="space.250" className="pt-200">
-            {current === "Overview" && (
-              <ProgramSystemsTree programId={programId} rootElementId={system.id} />
-            )}
-            {current === "Controls" && (
-              <SystemControls
-                systemId={system.id}
-                onAddFromLibrary={(controlId) => setAddingLibrary({ controlId })}
-              />
-            )}
-            {current === "Requirements" && (
-              <SystemRequirements
-                programId={programId}
-                systemId={system.id}
-                rows={assurance.rows}
-                onAddFromLibrary={() => setAddingLibrary({ source: "requirement" })}
-              />
-            )}
-            {current === "Library" &&
-              (row ? (
-                <SystemLibrary
-                  programId={programId}
-                  element={row}
-                  rows={assurance.rows}
-                  onAddFromLibrary={() => setAddingLibrary({})}
+        <RetainedTabPanels tabs={tabs} value={current} space="space.250">
+          {(name) => (
+            <>
+              {name === "Overview" && (
+                <ProgramSystemsTree programId={programId} rootElementId={system.id} />
+              )}
+              {name === "Controls" && (
+                <SystemControls
+                  systemId={system.id}
+                  onAddFromLibrary={(controlId) => setAddingLibrary({ controlId })}
                 />
-              ) : (
-                <ProgramQueryState queries={assurance.queries} />
-              ))}
-            {current === "Evidence" &&
-              (row ? (
-                <SystemEvidence programId={programId} element={row} rows={assurance.rows} />
-              ) : (
-                <ProgramQueryState queries={assurance.queries} />
-              ))}
-            {current === "Inventory" && (
-              <ProgramCollection
-                name="inventory_items"
-                fill
-                title="Deployed inventory"
-                filters={boundary ? { system_id: system.id } : { composition_node_id: system.id }}
-                initialValues={{
-                  system_id: system.boundary_system_id,
-                  composition_node_id: boundary ? null : system.id,
-                }}
-                columns={[
-                  { key: "asset_id", title: "Asset" },
-                  { key: "name", title: "Name" },
-                  { key: "manufacturer", title: "Manufacturer" },
-                  { key: "model", title: "Model" },
-                  { key: "serial_number", title: "Serial number" },
-                ]}
-              />
-            )}
-            {current === "SSP" && boundary && (
-              <>
-                <SspAssembly programId={programId} systemId={system.id} />
+              )}
+              {name === "Requirements" && (
+                <SystemRequirements
+                  programId={programId}
+                  systemId={system.id}
+                  rows={assurance.rows}
+                  onAddFromLibrary={() => setAddingLibrary({ source: "requirement" })}
+                />
+              )}
+              {name === "Library" &&
+                (row ? (
+                  <SystemLibrary
+                    programId={programId}
+                    element={row}
+                    rows={assurance.rows}
+                    onAddFromLibrary={() => setAddingLibrary({})}
+                  />
+                ) : (
+                  <ProgramQueryState queries={assurance.queries} />
+                ))}
+              {name === "Evidence" &&
+                (row ? (
+                  <SystemEvidence programId={programId} element={row} rows={assurance.rows} />
+                ) : (
+                  <ProgramQueryState queries={assurance.queries} />
+                ))}
+              {name === "Inventory" && (
                 <ProgramCollection
-                  name="ssp_revisions"
-                  section
-                  title="Security plan revisions"
-                  filters={{ system_id: system.id }}
+                  name="inventory_items"
+                  fill
+                  title="Deployed inventory"
+                  filters={boundary ? { system_id: system.id } : { composition_node_id: system.id }}
+                  initialValues={{
+                    system_id: system.boundary_system_id,
+                    composition_node_id: boundary ? null : system.id,
+                  }}
                   columns={[
-                    { key: "version_number", title: "Version" },
-                    { key: "state", title: "State" },
-                    { key: "description", title: "Description" },
+                    { key: "asset_id", title: "Asset" },
+                    { key: "name", title: "Name" },
+                    { key: "manufacturer", title: "Manufacturer" },
+                    { key: "model", title: "Model" },
+                    { key: "serial_number", title: "Serial number" },
                   ]}
                 />
-              </>
-            )}
-          </Stack>
-        </TabsContent>
+              )}
+              {name === "SSP" && boundary && (
+                <>
+                  <SspAssembly programId={programId} systemId={system.id} />
+                  <ProgramCollection
+                    name="ssp_revisions"
+                    section
+                    title="Security plan revisions"
+                    filters={{ system_id: system.id }}
+                    columns={[
+                      { key: "version_number", title: "Version" },
+                      { key: "state", title: "State" },
+                      { key: "description", title: "Description" },
+                    ]}
+                  />
+                </>
+              )}
+            </>
+          )}
+        </RetainedTabPanels>
       </Tabs>
       {addingChild && (
         <SystemElementDialog
@@ -559,6 +578,16 @@ export function ProgramComponentRecord({
       row={record as DataRecord}
       title={record.name}
       readOnly
+      collection={{ label: "System", tab: "System" }}
+      trail={[
+        <TrailLink
+          key={system.data.id}
+          to="/programs/$programId/systems/$scopeId"
+          params={{ programId, scopeId: system.data.id }}
+        >
+          {system.data.name}
+        </TrailLink>,
+      ]}
       properties={
         <KeyValue.Group>
           <KeyValue label="Code" wrap>
@@ -667,6 +696,7 @@ export function ProgramControlRecord({
       readOnly={plan.data?.state === "published"}
       row={row as DataRecord}
       title={control.data?.title ?? "Control implementation"}
+      collection={{ label: "Controls", tab: "Controls" }}
       actions={
         control.data && (
           <DropdownMenuItem onClick={() => setShowSource(true)}>

@@ -16,11 +16,21 @@ Item.Group renders an ordered list inside a div. Rows share a six-column grid: d
 
 ## Variants and states
 
-Use `link` to navigate, `onSelect` for an action, or neither for a plain row. `isActive` marks the selected record. A link takes precedence over onSelect. Secondary actions and disclosure buttons remain outside the title link/button.
+Use `link` to navigate, `onSelect` for an action, or neither for a plain row. `isActive` marks the row open beside the list: a selected fill (in forced colours, which remove the fill, a Highlight outline inside the row's edge), and `aria-current="true"` on its link or button. A link takes precedence over onSelect. Secondary actions and disclosure buttons remain outside the title link/button.
+
+The title is one line by default. A title, an id or a meta that is cut shows in full in a tooltip on hover, and a cut title also when its row's link or button takes keyboard focus. `maxTitleLines` gives a list of long names two or three lines before the ellipsis. Beside a meta, the title gives way first: a short meta ("CAT I") keeps its words, and a long one is cut only past half the line, so it cannot crowd the title out. A group heading wraps rather than cutting.
+
+<Canvas of={Stories.OpenRowAndDescription} />
+
+<Canvas of={Stories.LongNames} />
 
 `children` display below the row; add `isCollapsible` to fold them. Use `defaultOpen` or controlled `open` with Base UI's `onOpenChange(open, details)`. Call `details.cancel()` to reject a change.
 
-Group `size="compact"` reduces vertical padding. `flush` extends separators and hover backgrounds to the card edges. `idWidth` defaults to 72px; align it across related rows.
+Group `size="compact"` reduces vertical padding. `flush` extends separators and hover backgrounds to the card edges, and draws a row's focus ring inside its edge, so the card's clipping cannot cut its sides. `idWidth` defaults to 72px (`dimension.part.itemId`); align it across related rows.
+
+A group shows its `empty` when its children render nothing: empty arrays, `false` and empty fragments count as nothing, so a list fed from several mapped sources that are all empty shows its empty state.
+
+<Canvas of={Stories.EmptyFromSeveralSources} />
 
 <Canvas of={Stories.ItemMatrix} />
 <Canvas of={Stories.Nested} />
@@ -35,9 +45,13 @@ A group title names the list. It is a heading at the contextual level: an h3 whe
 
 <Canvas of={Stories.GroupNamedFromOutside} />
 
-Keep link titles descriptive; meta and trailing values are separate from the link's accessible name.
+Keep link titles descriptive; meta and trailing values are separate from the link's accessible name. The id, the meta and the description are the link's or button's accessible description, in that order, so rows that share a name ("personnel or roles") read apart: "personnel or roles, button, ac-01_odp.01 Assignment". The trailing value is not.
 
 <Canvas of={Stories.NativeIntegration} />
+
+In a right-to-left document the columns run from the right, the id first, and every title, a link, a button or a disclosure, starts at its start edge.
+
+<Canvas of={Stories.RightToLeft} />
 
 ## Props
 

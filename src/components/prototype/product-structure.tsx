@@ -231,7 +231,7 @@ export function ProductStructure({
           header: "Configurations",
           minWidth: 200,
           items: (row) => row.configurations,
-          empty: () => <Absent />,
+          empty: () => <Absent label="In no configuration" />,
         }),
         ...(canEdit
           ? [

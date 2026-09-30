@@ -67,7 +67,8 @@ const storybookProject = ({
 });
 
 // Storybook runs all stories by default: render checks plus any play functions, in both modes.
-// storybook-light also measures every focus stop's ring (the focus gate), and
+// storybook-light also measures every focus stop's ring (the focus gate), storybook-dark, which
+// asks for reduced motion, checks that nothing moves (the motion gate), and
 // storybook-forced-colors, which runs every story in forced colours, checks that a selected,
 // pressed, current or checked item stays distinct from its siblings. Three more gate projects
 // run without axe: storybook-touch (every story on a 390px touch phone: 24px targets by axe's
@@ -140,7 +141,7 @@ export default mergeConfig(
                 ? { "ledger/gate": "focus" }
                 : mode === "forced-colors"
                   ? { "ledger/gate": "forced-colors" }
-                  : {},
+                  : { "ledger/gate": "motion" },
           }),
         ),
         storybookProject({

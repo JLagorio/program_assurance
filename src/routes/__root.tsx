@@ -1,13 +1,15 @@
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import {
+  Asset,
   CatchBoundary,
   createRootRouteWithContext,
-  HeadContent,
   Link,
   Outlet,
   Scripts,
+  useHydrated,
   useLocation,
   useRouter,
+  useTags,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import {
@@ -29,14 +31,14 @@ import {
   ModeProvider,
   PageHeader,
   Section,
-  Stack,
   Text,
   Toaster,
   modeScript,
   shellScript,
 } from "@ledger/design-system";
-import { useState, type ReactNode } from "react";
-import { AppLayout } from "@/components/app/shell";
+import { useEffect, useState, type ReactNode } from "react";
+import { useScreenTitle } from "@/components/app/browser-title";
+import { AppLayout, Page } from "@/components/app/shell";
 import { Screen, WorkspaceProvider } from "@/components/app/workspace";
 import { APP_LOCALE, useReaderTimeZone } from "@/components/prototype/work-format";
 import appCss from "../styles.css?url";
@@ -63,7 +65,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 /** An address no route matches, inside the shell: a missing page, with a route back. */
 function PageNotFound() {
   return (
-    <Stack space="space.200">
+    <Page>
       <PageHeader>
         <PageHeader.Heading>
           <PageHeader.Title>Page not found</PageHeader.Title>
@@ -86,7 +88,7 @@ function PageNotFound() {
           </LinkButton>
         </EmptyContent>
       </Empty>
-    </Stack>
+    </Page>
   );
 }
 
@@ -128,7 +130,7 @@ function PageFailure({
   }
   const detail = messageOf(retryError ?? error);
   return (
-    <Stack space="space.300">
+    <Page>
       <PageHeader>
         <PageHeader.Heading>
           <PageHeader.Title>{title}</PageHeader.Title>
@@ -157,14 +159,14 @@ function PageFailure({
           </Text>
         </Section>
       )}
-    </Stack>
+    </Page>
   );
 }
 
 /** The root failed: the providers and the shell are gone, so the page stands alone. */
 function WorkspaceError(props: ErrorComponentProps) {
   return (
-    <Screen>
+    <Screen title="Workspace unavailable">
       <PageFailure {...props} title="Workspace unavailable" />
     </Screen>
   );
@@ -179,11 +181,48 @@ function RouteError(props: ErrorComponentProps) {
   );
 }
 
+const DEV_STYLES = "data-tanstack-router-dev-styles";
+
+/**
+ * The route-managed head tags, as the router's HeadContent renders them (in development it also
+ * drops the server's interim styles once the client has hydrated), with one title: the one a
+ * screen set through useBrowserTitle or useRecordTitle, else the deepest route's.
+ */
+function BrowserHead() {
+  const tags = useTags();
+  const nonce = useRouter().options.ssr?.nonce;
+  const hydrated = useHydrated();
+  const title = useScreenTitle();
+  const dropDevStyles = import.meta.env.DEV && hydrated;
+  useEffect(() => {
+    if (!dropDevStyles) return;
+    document.querySelectorAll(`link[${DEV_STYLES}]`).forEach((node) => node.remove());
+  }, [dropDevStyles]);
+  const shown = tags.filter(
+    (tag) => !(dropDevStyles && tag.tag === "link" && tag.attrs?.[DEV_STYLES] === true),
+  );
+  if (title && !shown.some((tag) => tag.tag === "title"))
+    shown.push({ tag: "title", children: title });
+  const nonceProps = nonce ? { nonce } : {};
+  return (
+    <>
+      {shown.map((tag) =>
+        tag.tag === "title" ? (
+          // One title element, whose words change in place.
+          <Asset key="title" {...tag} {...(title ? { children: title } : {})} {...nonceProps} />
+        ) : (
+          <Asset key={`tsr-meta-${JSON.stringify(tag)}`} {...tag} {...nonceProps} />
+        ),
+      )}
+    </>
+  );
+}
+
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <HeadContent />
+        <BrowserHead />
       </head>
       <body>
         {children}

@@ -7,30 +7,61 @@ import * as Stories from "./RadioGroup.stories";
 
 # RadioGroup
 
-One selected value from a set of visible choices, using the shadcn Base UI composition. `RadioGroupItem` includes the circular indicator; labels and supporting content are composed outside it.
+One answer from a set of visible choices, on the shadcn Base UI composition. `RadioGroupItem` draws the circle and its dot; the question and the options' labels come from a Field around a FieldSet, which ties them together with no ids and aligns each circle with its label's first line.
 
 ```tsx
-<RadioGroup aria-label="Frequency" defaultValue="quarterly">
-  <label className="inline-flex items-center gap-100">
-    <RadioGroupItem value="monthly" /> Monthly
-  </label>
-  <label className="inline-flex items-center gap-100">
-    <RadioGroupItem value="quarterly" /> Quarterly
-  </label>
-</RadioGroup>
+<Field invalid={invalid} required>
+  <FieldSet>
+    <FieldLegend variant="label">Review frequency</FieldLegend>
+    <RadioGroup value={frequency} onValueChange={setFrequency}>
+      <Field orientation="horizontal">
+        <RadioGroupItem value="monthly" />
+        <FieldLabel>Monthly</FieldLabel>
+      </Field>
+      <Field orientation="horizontal">
+        <RadioGroupItem value="quarterly" />
+        <FieldLabel>Quarterly</FieldLabel>
+      </Field>
+    </RadioGroup>
+    <FieldError errors={errors} />
+  </FieldSet>
+</Field>
 ```
 
 <Canvas of={Stories.RadioGroupMatrix} />
 
+## When to use it
+
+- **Use a RadioGroup** for one answer from two to about seven options the reader should see side by side: a frequency, an impact level, a decision such as Accept or Not applicable.
+- **Not two checkboxes that untick each other.** An either/or decision is a RadioGroup, so it is announced as one question and the arrow keys move between its answers.
+- **More options, or plain words**, belong in a [Select](?path=/docs/components-select--docs); a long or searchable list in a [Combobox](?path=/docs/components-combobox--docs).
+- **Not for a fact.** An answer the reader cannot change is a labelled property, or a read-only group with a hint that says why.
+
+The [Forms](?path=/docs/patterns-forms--docs) page has the table of which control answers which question.
+
 ## Selection and layout
 
-Use `defaultValue` for local state, or `value` and `onValueChange(value, details)` for controlled state. Selecting an item clears the previous selection; selecting it again keeps it selected. `details.cancel()` rejects a change. `disabled` blocks interaction; `readOnly` allows focus while keeping the selected value unchanged. Both props can apply to the group or an individual item.
+Use `defaultValue` for local state, or `value` and `onValueChange(value, details)` for controlled state. A controlled group with no answer yet passes a value no item has, such as `""`, never `undefined`: `undefined` leaves the group uncontrolled on its first render, and Base UI keeps that mode. Selecting an item clears the previous selection; selecting it again keeps it selected. `details.cancel()` rejects a change. `disabled` blocks interaction; `readOnly` allows focus while keeping the selected value unchanged. Both props can apply to the group or an individual item.
+
+<Canvas of={Stories.ControlledWithNoAnswer} />
 
 The indicator is a 16px circle with an 8px dot. The selected circle uses Ledger's brand fill and a contrasting dot. The group defaults to a grid with an 8px gap. Use classes such as `flex flex-row flex-wrap gap-200` for a horizontal layout; there is no `orientation` prop.
 
 Tab enters and leaves the group as one stop. All four arrow keys move focus and select, skipping disabled items and wrapping at the ends. Horizontal arrows follow the Ledger locale direction, which `dir` on the group can override. Space selects the focused item; Enter does not select it. Home/End and configurable focus wrapping are not part of the installed API.
 
 <Canvas of={Stories.Orientation} />
+
+## Read-only
+
+A read-only group keeps its answer and its Tab stop but not the brand fill or the hover: each circle is sunken with a dashed edge, and the chosen one keeps a dark dot. Put the reason in the group's FieldDescription ("Set by the system categorization."), which describes the group.
+
+<Canvas of={Stories.ReadOnly} />
+
+## Choice cards
+
+When each option needs a title and a line of explanation, wrap each option's horizontal Field in a FieldLabel: a press anywhere on the card chooses it, and the card shows hover, the chosen state and the one keyboard focus ring. The FieldTitle names the radio and the FieldDescription describes it once. See [Checkbox](?path=/docs/components-checkbox--docs#choice-cards) for the same card around a checkbox.
+
+<Canvas of={Stories.ChoiceCard} />
 
 ## Labels, Field and forms
 
@@ -44,19 +75,24 @@ Outside a Field, name the group with `aria-label` or `aria-labelledby`; inside a
 
 <Canvas of={Stories.InField} />
 
+## Content
+
+- **The legend asks the question; each label is one answer.** "Review frequency", then "Monthly", "Quarterly".
+- **Keep each answer's name stable**, and put what it means in its hint, not in a name that changes.
+- **Do not disable an option to show a fact**; say in the hint why an answer is not available.
+
+## Accessibility
+
+- Each radio's boundary is `color.border.bold`, 3:1 against every surface, so an unchosen option can be found (WCAG 1.4.11).
+- In forced colours, the selected radio keeps a contrasting system-colour dot and a visible boundary.
+
+<Canvas of={Stories.Boundary} />
+
 ## Native props and composition
 
 The group renders a div with `role="radiogroup"`. Each item renders a span with `role="radio"` and `aria-checked`, plus a hidden input. Item `ref` targets the visible control; `inputRef` and `id` target its hidden input. Group `inputRef` follows the selected input, or an enabled input when none is selected.
 
 `render` composes a custom element and merges props, classes, styles and refs. An item rendered as a button uses `nativeButton` with `render={<button />}`; its `id` then targets the visible button. `className` and `style` accept Base UI state callbacks.
-
-## Migration
-
-Replace `RadioGroup.Item` with `RadioGroupItem`. Move label children and `description` into external labels and description elements. Replace `orientation="horizontal"` with layout classes. Selection values and callbacks use Base UI's generic value API, including the cancellable event details argument.
-
-Each radio's boundary is `color.border.bold`, 3:1 against every surface, so an unchosen option can be found (WCAG 1.4.11). In forced-colors mode, the selected radio keeps a contrasting system-color dot and visible boundary.
-
-<Canvas of={Stories.Boundary} />
 
 ## Props
 

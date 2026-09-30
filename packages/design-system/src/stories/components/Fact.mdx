@@ -1,6 +1,6 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { Fact } from "../../components";
+import { Fact, FactGroup } from "../../components";
 import * as Stories from "./Fact.stories";
 
 <Meta of={Stories} />
@@ -29,13 +29,19 @@ Fact has one appearance. What varies is where the strip is:
 | In a Sheet's header    | The same, for the record the sheet shows.                             |
 | In a Glance            | Three or four, for the record previewed.                              |
 
-Not built, and why: a stacked label-over-value grid (the prototype draws one by hand on several pages), because that shape is a decision still open; a Fact that edits in place, because the value is an [Editable](?path=/docs/patterns-editable--docs) and the Fact only frames it.
+Not built, and why: a stacked label-over-value grid, which is [KeyValue.Group](?path=/docs/components-keyvalue--docs)'s `stacked` layout; a Fact that edits in place, because the value is an [Editable](?path=/docs/patterns-editable--docs) and the Fact only frames it.
 
 ## Sizes
 
-One size: the label `font.body.small`, the value `font.body`. The strip is as wide as its header and wraps when narrower; a fact never breaks across lines.
+One size: the label `font.body.small`, the value `font.body`. The strip is as wide as its header and wraps between facts when narrower, so each fact that fits keeps its line.
 
 <Canvas of={Stories.UnderHeader} />
+
+## Long content
+
+A fact is short by rule (one or two words, one value), but a value the data makes long does not push the strip wider: it wraps under itself, and an unbroken token (a URN, a hash, a URL) breaks where it must. The label never truncates and never wraps. A Fact never cuts its value; a value that needs a reveal is a KeyValue in the rail, where a row field truncates with one.
+
+<Canvas of={Stories.LongValue} />
 
 ## States
 
@@ -65,7 +71,7 @@ A Fact has one state. Its value may: a Badge is a state, a Person is a person, a
 
 - **A group is a definition list** and each Fact a `dt` and `dd`, so a screen reader hears "Owner, Dana Whitfield" as a pair. A Fact belongs inside a Fact.Group; the headers and sheets that take a `facts` slot wrap it.
 - **The strip is read in order**, so the order is the order of importance.
-- **An Absent is read as a dash**, which says "nothing here" in one character.
+- **An Absent needs a `label`** ("Not recorded", "None") where the empty value matters: a screen reader at its default punctuation level skips a bare dash, and the fact then sounds like a skipped one.
 - **Contrast:** the label in `color.text.subtle` passes 4.5:1; the gate runs the matrix.
 
 ## Props
@@ -74,7 +80,11 @@ A Fact has one state. Its value may: a Badge is a state, a Person is a person, a
 
 ### Fact.Group
 
-<ArgTypes of={Fact.Group} />
+<ArgTypes of={FactGroup} />
+
+Fact takes a div's native props and a ref, and Fact.Group a `dl`'s; each names itself last with `data-slot` (`fact`, `fact-group`).
+
+<Canvas of={Stories.NativeAttributes} />
 
 ### Playground
 

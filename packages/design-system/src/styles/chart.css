@@ -1,6 +1,7 @@
 /* Recharts under the kit. The chart parts set the paint and the marks inline from the tokens; these
    rules reach what a prop cannot: the layers' opacity transition when a legend dims them, the
-   tooltip's portal, and the wrapper's cursor. Nothing here names a number. */
+   tooltip's portal, the wrapper's cursor, the focus ring on the plot's svg and the Frame's header
+   at a narrow width. The only lengths named are the header's container steps. */
 .recharts-wrapper .recharts-layer,
 .recharts-wrapper .recharts-rectangle,
 .recharts-wrapper .recharts-sector,
@@ -13,17 +14,21 @@
 .recharts-wrapper .recharts-tooltip-wrapper {
   outline: none;
 }
-/* The tab stop is the svg. The kit's focus ring on the keyboard; nothing on a click, whatever the
-   browser's own heuristic says (the plot's wrapper says which through data-focus). */
-.recharts-wrapper .recharts-surface:focus {
+/* The tab stop is the svg: a part marks it `data-chart-surface`, else recharts' own. The kit's
+   focus ring on the keyboard; nothing on a click, whatever the browser's own heuristic says (the
+   plot's wrapper says which through data-focus). */
+.recharts-wrapper .recharts-surface:focus,
+[data-chart-surface]:focus {
   outline: none;
 }
-.recharts-wrapper .recharts-surface:focus-visible {
+.recharts-wrapper .recharts-surface:focus-visible,
+[data-chart-surface]:focus-visible {
   outline: var(--ds-border-width-focused) solid var(--ds-color-border-focused);
   outline-offset: var(--ds-space-025);
   border-radius: var(--ds-radius-small);
 }
-[data-focus="pointer"] .recharts-wrapper .recharts-surface:focus-visible {
+[data-focus="pointer"] .recharts-wrapper .recharts-surface:focus-visible,
+[data-focus="pointer"] [data-chart-surface]:focus-visible {
   outline: none;
 }
 /* While a chosen mark's card is open, the card says what the tooltip would: the tooltip stands
@@ -41,5 +46,29 @@
   .recharts-wrapper .recharts-sector,
   .recharts-wrapper .recharts-symbols {
     transition: none;
+  }
+}
+
+/* The Frame's header: the title, the legend and the actions, the tools. In a narrow Frame the
+   tools stay on the title's row and the legend and the actions take the next, from the start. */
+[data-slot="chart-frame-header"] {
+  container: chart-frame-header / inline-size;
+}
+[data-slot="chart-frame-caption"] {
+  flex: 1 1 theme(--container-3xs);
+}
+@container chart-frame-header (width < theme(--container-lg)) {
+  /* The title takes what the tools leave, never less than its longest word. */
+  [data-slot="chart-frame-caption"] {
+    flex-basis: 0;
+    min-width: min-content;
+  }
+  [data-slot="chart-frame-tools"] {
+    order: 1;
+  }
+  [data-slot="chart-frame-extras"] {
+    order: 2;
+    flex-basis: 100%;
+    justify-content: flex-start;
   }
 }

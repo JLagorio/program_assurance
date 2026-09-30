@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { createRef } from "react";
+import { expect, within } from "storybook/test";
 
 import { Id, Table, TextLink } from "../../components";
 import { Box, Inline, Stack, Text } from "../../primitives";
@@ -37,15 +39,68 @@ export const IdMatrix: Story = {
           </Id>
         </Box>
       </Specimens>
-      <Specimens title="Id.List: many, none, none with a word">
-        <Id.List
-          ids={["AC-2", "AC-2(1)", "AC-2(3)", "AC-3", "AC-6(1)", "AC-7", "AC-11", "AC-17"]}
-        />
-        <Id.List ids={[]} />
-        <Id.List ids={[]} empty="No controls" />
+      <Specimens title="Id.List: many, wrapping in 160px, none, none with a word">
+        <Box style={{ width: 160 }}>
+          <Id.List
+            data-testid="many"
+            ids={["AC-2", "AC-2(1)", "AC-2(3)", "AC-3", "AC-6(1)", "AC-7", "AC-11", "AC-17"]}
+          />
+        </Box>
+        <Id.List ids={[]} data-testid="none" />
+        <Id.List ids={[]} empty="No controls" data-testid="none-word" />
       </Specimens>
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const many = canvas.getByTestId("many");
+    const ids = Array.from(many.querySelectorAll<HTMLElement>('[data-slot="id"]'));
+    await expect(ids.map((id) => id.textContent)).toEqual([
+      "AC-2",
+      "AC-2(1)",
+      "AC-2(3)",
+      "AC-3",
+      "AC-6(1)",
+      "AC-7",
+      "AC-11",
+      "AC-17",
+    ]);
+    // The run wraps between ids, never inside one, and stays in its column.
+    const tops = new Set(ids.map((id) => Math.round(id.getBoundingClientRect().top)));
+    await expect(tops.size).toBeGreaterThan(1);
+    for (const id of ids) {
+      await expect(id.getClientRects()).toHaveLength(1);
+      await expect(id.getBoundingClientRect().right).toBeLessThanOrEqual(
+        many.getBoundingClientRect().right + 0.5,
+      );
+    }
+    // None: the muted dash, or the word the caller gives.
+    await expect(canvas.getByTestId("none")).toHaveTextContent("—");
+    await expect(canvas.getByTestId("none")).toHaveAttribute("data-empty");
+    await expect(canvas.getByTestId("none-word")).toHaveTextContent("No controls");
+  },
+};
+
+const idRef = createRef<HTMLSpanElement>();
+
+/** Native span props, a class and a ref reach the Id, and it names itself last with `data-slot="id"`; Id.List takes the same on its run. */
+export const NativeAttributes: Story = {
+  render: () => (
+    <Text>
+      Finding{" "}
+      <Id ref={idRef} data-testid="finding" title="Finding FND-2231" className="text-subtle">
+        FND-2231
+      </Id>{" "}
+      is open.
+    </Text>
+  ),
+  play: async ({ canvasElement }) => {
+    const id = within(canvasElement).getByTestId("finding");
+    await expect(idRef.current).toBe(id);
+    await expect(id).toHaveAttribute("data-slot", "id");
+    await expect(id).toHaveAttribute("title", "Finding FND-2231");
+    await expect(id).toHaveClass("tabular-nums", "text-subtle");
+  },
 };
 
 /** In a table: the id column subtle, the name default; both tabular so the ids line up. */

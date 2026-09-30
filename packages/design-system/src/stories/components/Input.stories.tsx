@@ -110,6 +110,19 @@ export const InputMatrix: Story = {
       />
     );
   },
+  play: async ({ canvasElement }) => {
+    // Read-only is its own look, a dashed edge on the sunken surface, in every column; the rest
+    // keeps a solid edge.
+    const rows = [...canvasElement.querySelectorAll<HTMLInputElement>("input")];
+    const readOnly = rows.filter((input) => input.readOnly);
+    const editable = rows.filter((input) => !input.readOnly && !input.disabled);
+    await expect(readOnly.length).toBeGreaterThan(0);
+    const edge = (input: HTMLElement) =>
+      getComputedStyle(input.closest<HTMLElement>('[data-slot="input-group"]') ?? input)
+        .borderTopStyle;
+    for (const input of readOnly) await expect(edge(input)).toBe("dashed");
+    for (const input of editable) await expect(edge(input)).toBe("solid");
+  },
 };
 
 function FormDemo() {

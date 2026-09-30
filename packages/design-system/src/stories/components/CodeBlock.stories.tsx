@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { createRef } from "react";
 import { expect, spyOn, userEvent, waitFor, within } from "storybook/test";
 
 import { CodeBlock, Textarea } from "../../components";
@@ -39,7 +40,11 @@ export const Code: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const block = canvas.getByRole("group", { name: "control.json" });
-    await expect(block).toHaveAttribute("tabindex", "0");
+    // A tab stop only while it has more to show: in a wide frame Tab goes straight to the Copy,
+    // on a phone the lines scroll sideways and the frame takes focus first.
+    const scrolls = block.scrollWidth > block.clientWidth + 1 || block.scrollHeight > block.clientHeight + 1;
+    if (scrolls) await expect(block).toHaveAttribute("tabindex", "0");
+    else await expect(block).not.toHaveAttribute("tabindex");
     // The gutter's numbers are not read out with the code.
     await expect(block.querySelector("pre > div > span")).toHaveAttribute("aria-hidden", "true");
     const write = spyOn(navigator.clipboard, "writeText").mockResolvedValue(undefined);
@@ -105,7 +110,7 @@ export const Wrapped: Story = {
   render: () => <CodeBlock lines={log} wrap label="Ingest log" className="max-w-layout-measure" />,
 };
 
-/** `maxHeight`: past it the block scrolls inside itself and the gutter scrolls with the lines. */
+/** `maxHeight`: past it the block scrolls inside itself and the gutter scrolls with the lines. A block with more than it shows is a tab stop, so the keyboard can scroll it. */
 export const Capped: Story = {
   render: () => (
     <CodeBlock
@@ -115,6 +120,47 @@ export const Capped: Story = {
       lines={Array.from({ length: 40 }, (_, i) => `user${String(i + 1).padStart(3, "0")}  admin=${i % 7 === 0 ? "yes" : "no"}  last-login=2026-08-${String((i % 28) + 1).padStart(2, "0")}`)}
     />
   ),
+  play: async ({ canvasElement }) => {
+    const block = within(canvasElement).getByRole("group", { name: "Roster" });
+    await waitFor(() => expect(block).toHaveAttribute("tabindex", "0"));
+    await userEvent.tab();
+    await expect(block).toHaveFocus();
+  },
+};
+
+const rule = JSON.stringify(
+  {
+    selection: { include: ["ac-2", "ac-2.3", "ac-6.1"], exclude: ["ac-2.5"] },
+    parameters: { "ac-2_prm_1": "90 days", "ac-6.1_prm_1": "security administrators" },
+  },
+  null,
+  2,
+);
+const codeRef = createRef<HTMLDivElement>();
+
+/** A value, not a file: `code` takes the text as one string and splits it at its line breaks, and `showLineNumbers={false}` drops the gutter, since a line number in a record's JSON points at nothing. `wrap` folds its long values. Native div props and the ref reach the outer box. */
+export const Value: Story = {
+  render: () => (
+    <CodeBlock
+      ref={codeRef}
+      code={rule}
+      showLineNumbers={false}
+      wrap
+      label="Tailoring rules"
+      data-testid="rules"
+      className="max-w-layout-measure"
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const root = canvas.getByTestId("rules");
+    await expect(codeRef.current).toBe(root);
+    await expect(root).toHaveAttribute("data-slot", "code-block");
+    const block = canvas.getByRole("group", { name: "Tailoring rules" });
+    await expect(block.querySelectorAll("pre > div")).toHaveLength(rule.split("\n").length);
+    await expect(block.querySelector("[aria-hidden]")).toBeNull();
+    await expect(block).toHaveTextContent('"ac-2_prm_1": "90 days"');
+  },
 };
 
 /** A few lines; from a start line; wide lines scrolling sideways with the gutter held; wrapped; capped; with a Copy. */

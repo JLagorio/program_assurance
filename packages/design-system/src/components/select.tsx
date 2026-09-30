@@ -1,20 +1,30 @@
 import { DirectionProvider, useDirection } from "@base-ui/react/direction-provider";
 import { Select as SelectPrimitive } from "@base-ui/react/select";
 import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import { useContext, useId, type ReactNode } from "react";
 
+import { token } from "../generated/tokens";
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
-import { controlBase, controlHeight, useFieldControlState, type ControlSize } from "./controls";
+import {
+  controlBase,
+  controlHeight,
+  FieldStateContext,
+  useFieldControlState,
+  type ControlSize,
+} from "./controls";
 import {
   menuChoiceSelected,
   menuItem,
+  menuItemDescription,
   menuItemDisabled,
   menuItemHighlighted,
   menuLabel,
   menuSeparator,
   menuSurface,
 } from "./menu";
+import { joinIds, wrapText } from "./option-text";
 import { scrollerArrowVariants } from "./scroller";
 
 export type SelectProps<
@@ -50,6 +60,10 @@ export type SelectTriggerProps = SelectPrimitive.Trigger.Props & {
   /** `medium`, 32px, by default; `small`, 28px, in a toolbar or a dense row, the same height as a small Input and Button. `sm` and `default` are the deprecated spellings of `small` and `medium`. */
   size?: SelectTriggerSize | undefined;
 };
+/**
+ * Inside a Field the trigger fills it, as Input and Combobox do; elsewhere (a toolbar, a filter, a
+ * rail) it fits its value. Either way it never grows past its container: a long value truncates.
+ */
 export function SelectTrigger({
   className,
   size: sizeProp = "medium",
@@ -57,6 +71,7 @@ export function SelectTrigger({
   ...props
 }: SelectTriggerProps) {
   const field = useFieldControlState();
+  const inField = useContext(FieldStateContext) !== null;
   const size: ControlSize = legacySizes[sizeProp] ?? (sizeProp as ControlSize);
   return (
     <SelectPrimitive.Trigger
@@ -68,7 +83,8 @@ export function SelectTrigger({
         cn(
           controlBase,
           controlHeight[size],
-          "flex w-fit items-center justify-between gap-100 text-start data-placeholder:text-subtlest data-readonly:bg-surface-sunken data-readonly:hover:bg-surface-sunken [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-icon-small",
+          inField ? "w-full" : "w-fit",
+          "flex min-w-0 max-w-full items-center justify-between gap-100 text-start data-placeholder:text-subtlest data-readonly:bg-surface-sunken data-readonly:hover:bg-surface-sunken [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-icon-small",
         ),
         className,
       )}
@@ -98,6 +114,12 @@ export type SelectContentProps = SelectPrimitive.Popup.Props &
     SelectPrimitive.Positioner.Props,
     "align" | "alignOffset" | "side" | "sideOffset" | "alignItemWithTrigger"
   >;
+/**
+ * The list opens below its trigger (above it where there is no room), starting at the trigger's
+ * edge, at least as wide as the trigger and as wide as its longest option up to the measure; a
+ * longer option wraps. `alignItemWithTrigger` opts into the list that opens over the trigger with
+ * the chosen option on the value.
+ */
 export function SelectContent({
   className,
   children,
@@ -105,18 +127,18 @@ export function SelectContent({
   dir,
   side = "bottom",
   sideOffset = 4,
-  align = "center",
+  align = "start",
   alignOffset = 0,
-  alignItemWithTrigger = true,
+  alignItemWithTrigger = false,
   ...props
 }: SelectContentProps) {
   const inheritedDirection = useDirection();
   const field = useFieldControlState();
   const direction = dir === "ltr" || dir === "rtl" ? dir : inheritedDirection;
   const defaults = {
-    width: "var(--anchor-width)",
-    minWidth: 144,
-    maxWidth: "var(--available-width)",
+    width: "max-content",
+    minWidth: `max(var(--anchor-width), ${token("dimension.part.select")})`,
+    maxWidth: "min(var(--available-width), var(--ds-dimension-layout-measure))",
     maxHeight: "var(--available-height)",
     transformOrigin: "var(--transform-origin)",
   };
@@ -129,7 +151,6 @@ export function SelectContent({
           align={align}
           alignOffset={alignOffset}
           alignItemWithTrigger={alignItemWithTrigger}
-
           className="isolate z-50"
         >
           <SelectPrimitive.Popup
@@ -191,11 +212,38 @@ export function SelectLabel({ className, ...props }: SelectLabelProps) {
   );
 }
 
-export type SelectItemProps = SelectPrimitive.Item.Props;
-export function SelectItem({ className, children, ...props }: SelectItemProps) {
+export type SelectItemProps = SelectPrimitive.Item.Props & {
+  /**
+   * A second line under the option, in smaller subtle text that wraps: what tells two similar
+   * options apart. It is the option's accessible description, not part of its name, and the closed
+   * trigger never shows it.
+   */
+  description?: ReactNode | undefined;
+  /**
+   * Why the option cannot be chosen. It disables the option, which the arrow keys still reach and a
+   * screen reader announces as unavailable, and shows the reason as the description line in place of
+   * `description`, readable on the disabled row. An empty string is no reason.
+   */
+  disabledReason?: string | undefined;
+};
+export function SelectItem({
+  className,
+  children,
+  description,
+  disabledReason,
+  disabled,
+  "aria-describedby": describedBy,
+  ...props
+}: SelectItemProps) {
+  const descriptionId = useId();
+  const reason = disabledReason ? disabledReason : undefined;
+  const line = reason ?? description;
+  const hasLine = line !== undefined && line !== null && line !== false && line !== "";
   return (
     <SelectPrimitive.Item
       {...props}
+      disabled={Boolean(disabled || reason)}
+      aria-describedby={hasLine ? joinIds(describedBy, descriptionId) : describedBy}
       data-slot="select-item"
       className={classes(
         cn(
@@ -208,9 +256,23 @@ export function SelectItem({ className, children, ...props }: SelectItemProps) {
         className,
       )}
     >
-      <SelectPrimitive.ItemText className="flex min-w-0 flex-1 items-center gap-100 whitespace-normal break-words">
-        {children}
-      </SelectPrimitive.ItemText>
+      <span className="flex min-w-0 flex-1 flex-col">
+        {/* Text runs sit in their own shrinkable span, so a long unbroken value wraps in the row. */}
+        <SelectPrimitive.ItemText className="flex min-w-0 items-center gap-100 whitespace-normal break-words">
+          {wrapText(children)}
+        </SelectPrimitive.ItemText>
+        {hasLine ? (
+          // Hidden from the name; aria-describedby still reads it.
+          <span
+            id={descriptionId}
+            aria-hidden
+            data-slot="select-item-description"
+            className={menuItemDescription}
+          >
+            {line}
+          </span>
+        ) : null}
+      </span>
       <SelectPrimitive.ItemIndicator
         render={<span className="pointer-events-none absolute end-100 flex items-center" />}
       >

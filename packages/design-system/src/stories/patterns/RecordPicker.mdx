@@ -7,45 +7,52 @@ import * as Stories from "./RecordPicker.stories";
 
 # RecordPicker
 
-Pick one record from a list: evidence to link, a requirement to derive from, a person to assign. A [Command](?path=/docs/components-command--docs) dialog whose rows are the id, the name with its meta under it and one badge at the end, with the count of matches in the field and the keys in the footer. Presentational: the caller supplies the records and gets the chosen one back, and the picker closes itself. For choosing many by attribute, the [PickerSheet](?path=/docs/patterns-pickersheet--docs); for choosing by name inside a form, a [Combobox](?path=/docs/components-combobox--docs).
+Pick one record from a list: evidence to link, a requirement to derive from, a person to assign. A [Command](?path=/docs/components-command--docs) dialog whose rows are the code, the name with its meta under it and one badge at the end, with the count of matches in the field and the keys in the footer. Presentational: the caller supplies the records and gets the chosen one back, and the picker closes itself. For choosing many by attribute, the [PickerSheet](?path=/docs/patterns-pickersheet--docs); for choosing by name inside a form, a [Combobox](?path=/docs/components-combobox--docs).
 
 <Canvas of={Stories.RecordPickerStory} />
 
 ## Anatomy
 
-| Part   | What it is                                                                  |
-| ------ | --------------------------------------------------------------------------- |
-| Field  | The search, focused on open, with the count of matches at its end.          |
-| Row    | The id in `color.text.subtle`; the name, the meta line under it; one badge. |
-| Empty  | "Nothing matches." when the query finds none.                               |
-| Footer | The keys: the arrows to move, Enter to choose, Escape to close.             |
+| Part   | What it is                                                                                        |
+| ------ | ------------------------------------------------------------------------------------------------- |
+| Field  | The search, focused on open, with the count of matches at its end, which describes it.            |
+| Error  | `error`, a danger Alert above the rows, with Try again when `onRetry` is given.                   |
+| Row    | The `code` (the `id` unsaid) in `color.text.subtle`; the name, the meta line under it; one badge. |
+| Empty  | `empty` when there are no records at all; `emptyHint` when the query finds none.                  |
+| Footer | The keys: the arrows to move, Enter to choose, Escape to close.                                   |
 
 <Canvas of={Stories.RecordPickerMatrix} story={{ inline: false, height: "480px" }} />
 
 ## Variants
 
-RecordPicker has one appearance. What varies is the record: with a badge for its state or freshness, without; with a meta line, without; with keywords that match the query and are never shown.
+RecordPicker has one appearance. What varies is the record: with a badge for its state or freshness, without; with a meta line, without; with keywords that match the query and are never shown. A record whose `id` is a database key carries a `code`, the identifier a person reads, and the key never reaches the screen.
 
 Not built, and why: picking several with checkboxes, because many are chosen by attribute in a PickerSheet; a "create new" row, because a record is created on its own page; groups by kind, because the records offered are one kind and the caller narrows them; a preview of the chosen record, because the row says enough to choose and the link on the record after says the rest.
 
 ## Sizes
 
-One: the Command dialog at its large width, 640px, the list at most 46% of the viewport's height so the field and the footer stay in view.
+One: the Command dialog at its large width, 640px, the list at most 46% of the viewport's height so the field and the footer stay in view. The code is bounded to 40% of the row, so a long identifier truncates, with its whole text as the title, before the name does.
 
 ## States
 
-| State    | What changes                                                      |
-| -------- | ----------------------------------------------------------------- |
-| Closed   | Not rendered.                                                     |
-| Open     | Over the page at the top, the field focused, every record listed. |
-| Filtered | The rows that match, the count in the field.                      |
-| None     | The empty sentence.                                               |
-| Chosen   | The picker closes and the caller has the record.                  |
+| State      | What changes                                                                                                 |
+| ---------- | ------------------------------------------------------------------------------------------------------------ |
+| Closed     | Not rendered.                                                                                                |
+| Open       | Over the page at the top, the field focused, every record listed.                                            |
+| Filtered   | The rows that match, the count in the field.                                                                 |
+| No match   | `emptyHint`, "Nothing matches" unsaid.                                                                       |
+| No records | `empty`, "Nothing to choose from" unsaid.                                                                    |
+| Loading    | `loading`: Searching… under any rows listed; the picker never says nothing matched.                          |
+| Failed     | `error` above the rows, said at once, with Try again when `onRetry` is given; with nothing listed, no count. |
+| Chosen     | The picker closes, focus goes back to the opener, and the caller has the record.                             |
+
+<Canvas of={Stories.States} />
 
 ## Modifiers
 
-- **`records`**: id, title, meta, badge, keywords.
-- **`title`**, **`placeholder`**, **`emptyHint`** as in Content.
+- **`records`**: id, code, title, meta, badge, keywords.
+- **`title`**, **`placeholder`**, **`description`**, **`empty`**, **`emptyHint`** as in Content.
+- **`loading`**, **`error`** and **`onRetry`** for records that arrive from a request.
 
 ## Content
 
@@ -54,6 +61,8 @@ One: the Command dialog at its large width, 640px, the list at most 46% of the v
 - **The meta is kind, source, date** in a few words: "Evidence · 12 Aug 2026".
 - **One badge**, the state or the freshness the choice turns on: Fresh, Stale, Draft.
 - **Keywords are for matching**, never shown: "dr disaster recovery" under "Backup restore drill".
+- **The description says what the picker finds**: "Find a record by its name or its identifier." unsaid.
+- **The two empties differ**: `empty` says there is nothing to choose and what makes something; `emptyHint` says the query missed and what to try.
 
 ## Style
 
@@ -68,10 +77,10 @@ One: the Command dialog at its large width, 640px, the list at most 46% of the v
 
 ## Accessibility
 
-- **A dialog named by the title**; focus moves to the field on open and returns to the opener on close.
-- **The list is a listbox** and each row an option named by its text: the id, the name, the meta and the badge, so "EV-0412 Firewall ruleset export Evidence 12 Aug 2026 Fresh".
+- **A dialog named by the title and described by `description`**; focus moves to the field on open, which is the dialog's first control, and returns to the opener on close, by Escape, by Enter on a record and by a click. Never `autoFocus` the field: it becomes where focus returns.
+- **The list is a listbox** and each row an option named by its text: the code (or the id), the name, the meta and the badge, so "EV-0412 Firewall ruleset export Evidence 12 Aug 2026 Fresh". With a `code`, a database key never reaches the name.
 - **The arrows move, Enter chooses, Escape closes**, and the footer says so with Kbd, each key named in full for a screen reader.
-- **The count of matches is text** in the field's hint, read with the field.
+- **The count of matches is text** in the field's hint, which describes the field, and it is said once the query holds still. A failure is said at once.
 
 ## Props
 

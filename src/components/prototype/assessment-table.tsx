@@ -33,10 +33,14 @@ export type AssessmentColumn<T> = {
   label: string;
   /** The cell, when the field's own drawing will not do (a link, a derived name). */
   value?: ((row: T) => ReactNode) | undefined;
+  /** A fixed width. The name takes `minWidth` instead, so it shares the spare width. */
   width?: number;
+  /** The readable minimum; the name's is 180. */
+  minWidth?: number | undefined;
   /** The field behind the cell. With it the column sorts and searches; a status or a type also filters. */
   key?: keyof T & string;
-  kind?: "text" | "status" | "date" | "number";
+  /** A person (an owner, an assessor) is drawn with their avatar, and faceted by name. */
+  kind?: "text" | "status" | "date" | "number" | "person";
   /** A status or level column's vocabulary from `@/lib/status`; the model's own map unsaid. */
   statuses?: StatusVocabulary | undefined;
   /** In a narrow container, lower numbers stay in the row longer; the name is 0. */
@@ -47,6 +51,8 @@ export type AssessmentEmpty = {
   title?: string;
   description?: string;
   illustration?: EmptyIllustrationKind | false;
+  /** A compact collection's icon, beside its one-line empty. */
+  icon?: ReactNode;
   action?: ReactNode;
 };
 
@@ -85,6 +91,7 @@ export function AssessmentTable<T extends { id: string }>({
   fill,
   queries,
   sort,
+  compact,
 }: {
   rows: T[];
   model?: TableName | undefined;
@@ -118,6 +125,9 @@ export function AssessmentTable<T extends { id: string }>({
   queries?: QueryStatus[] | undefined;
   /** The sort menu; off where the order is the meaning (steps in sequence). */
   sort?: boolean | undefined;
+  /** A few rows beside other content (a section of a tab, a preview): ProductCollection's
+   * compact form, with a one-line empty beside `empty.icon`. */
+  compact?: boolean | undefined;
 }) {
   const navigate = useNavigate();
   const [preview, setPreview] = useState<T | null>(null);
@@ -178,15 +188,16 @@ export function AssessmentTable<T extends { id: string }>({
           const cell = (row: T) => draw(raw(row));
           const size = {
             ...(column.width === undefined ? {} : { width: column.width }),
+            ...(column.minWidth === undefined ? {} : { minWidth: column.minWidth }),
             ...(column.priority === undefined ? {} : { priority: column.priority }),
           };
           const primary = index === primaryIndex;
           const first = primary ? { hideable: false as const, priority: 0 } : {};
           if (primary && model)
+            // A readable minimum, so the name shares the spare width with the unsized columns.
             return c.id(column.key ?? "id", {
               header: column.label,
               minWidth: 180,
-              width: 220,
               priority: 0,
               ...size,
               hideable: false,
@@ -232,6 +243,8 @@ export function AssessmentTable<T extends { id: string }>({
             return c.date(key, { header: column.label, ...drawn, ...size, ...first });
           if (kind === "number")
             return c.number(key, { header: column.label, ...drawn, ...size, ...first });
+          if (kind === "person")
+            return c.person(key, { header: column.label, ...drawn, ...size, ...first });
           return c.text(key, { header: column.label, cell, ...size, ...first });
         }),
         ...(onEdit
@@ -260,18 +273,18 @@ export function AssessmentTable<T extends { id: string }>({
   );
   const primaryColumn = columns[primaryIndex];
   const noun = model ? productRecordNoun(model) : label.toLowerCase();
+  // A row's name as the reader sees it ("Step 2", the title), never its id.
+  const nameOf = (record: T) => {
+    const drawn = primaryColumn?.value?.(record);
+    if (typeof drawn === "string" && drawn) return drawn;
+    const value = primaryColumn?.key ? record[primaryColumn.key] : undefined;
+    return isNothing(value) ? noun.charAt(0).toUpperCase() + noun.slice(1) : String(value);
+  };
   const table = useDataTable({
     columns: tableColumns,
     data,
     getRowId: (row) => row.id,
-    // The row's controls say its name as the reader sees it ("Step 2", the title), never its id.
-    rowLabel: (row: T) => {
-      const record = byIdRef.current.get(row.id) ?? row;
-      const drawn = primaryColumn?.value?.(record);
-      if (typeof drawn === "string" && drawn) return drawn;
-      const value = primaryColumn?.key ? record[primaryColumn.key] : undefined;
-      return isNothing(value) ? noun.charAt(0).toUpperCase() + noun.slice(1) : String(value);
-    },
+    rowLabel: (row: T) => nameOf(byIdRef.current.get(row.id) ?? row),
     label,
     pageSize: 20,
     resizable: true,
@@ -289,6 +302,7 @@ export function AssessmentTable<T extends { id: string }>({
         fill={fill}
         queries={queries ?? []}
         keepQuestion={keepQuestion ?? true}
+        compact={compact}
         {...(sort === undefined ? {} : { sort })}
         noun={{
           one: noun,
@@ -303,6 +317,7 @@ export function AssessmentTable<T extends { id: string }>({
           illustration: message.illustration ?? "records",
           title: message.title ?? `No ${label.toLowerCase()} yet`,
           description: message.description,
+          ...(message.icon ? { icon: message.icon } : {}),
           action: message.action ?? actions,
         }}
         searchLabel={search ?? `Find ${label.toLowerCase()}`}
@@ -317,6 +332,8 @@ export function AssessmentTable<T extends { id: string }>({
           readOnly={readOnly}
           onEdit={onEdit ? () => onEdit(byId.get(preview.id) ?? preview) : undefined}
           record={byId.get(preview.id) ?? preview}
+          // A drawn name (a step's "Step 2") titles the preview; a record with a name finds it.
+          {...(primaryColumn?.value ? { title: nameOf(byId.get(preview.id) ?? preview) } : {})}
           rows={displayed}
           onSelect={setPreview}
           onClose={() => setPreview(null)}

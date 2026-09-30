@@ -22,12 +22,12 @@ A [Line](?path=/docs/patterns-chart-line--docs) with a wash under it: the hue at
 
 ## Variants
 
-| Variant                                                                                                      | Use                                                                                                      |
-| ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| One series                                                                                                   | A count whose size matters: open findings, month by month. The wash gives it weight.                     |
-| `stacked`                                                                                                    | Parts of a whole over time: open and closed as parts of the month's total. The tooltip totals the stack. |
-| `texture`                                                                                                    | Each wash its pattern: four assessors stacked read apart in print.                                       |
-| `curve="smooth"`, `labels="end"`, `baseline="auto"`, `domain`, `scale="time"`, `delta`, `bands`, `reference` | As on a Line.                                                                                            |
+| Variant                                                                                   | Use                                                                                                                                                                           |
+| ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| One series                                                                                | A count whose size matters: open findings, month by month. The wash gives it weight.                                                                                          |
+| `stacked`                                                                                 | Parts of a whole over time: open and closed as parts of the month's total. The tooltip totals the stack, and each end label sits on its band's top with the band's own value. |
+| `texture`                                                                                 | Each wash its pattern: four assessors stacked read apart in print.                                                                                                            |
+| `curve="smooth"`, `labels="end"`, `domain`, `scale="time"`, `delta`, `bands`, `reference` | As on a Line.                                                                                                                                                                 |
 
 <Canvas of={Stories.Single} />
 <Canvas of={Stories.Stacked} />
@@ -37,12 +37,14 @@ A [Line](?path=/docs/patterns-chart-line--docs) with a wash under it: the hue at
 
 `size` is the plot's height: `small` 120px, `medium` 200px (the default), `large` 320px, or `height` in pixels; unsaid, the Frame's, and `large` in the Frame's expanded Dialog. As on a Line, `data`, `x` and `series` may be left to the Frame, or given here and learned by it.
 
+The value axis starts at zero, since a wash measures from it: a cropped wash exaggerates as a cropped bar does. There is no `baseline` here (the prop is ignored, and deprecated); a trend where the change matters more than the size is a [Line](?path=/docs/patterns-chart-line--docs) with `baseline="auto"`.
+
 ## States
 
 | State    | What changes                                                                                                                                                                            |
 | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Hover    | A hairline across the plot at the category, a marker on every line there, the tooltip.                                                                                                  |
-| Isolated | A series hidden from the Frame's legend leaves the plot; a stack closes up.                                                                                                             |
+| Hidden   | A series hidden from the Frame's legend leaves the plot and the table; a stack closes up, and the value axis keeps its scale.                                                           |
 | Chosen   | With `onSelect` or `details`: a click in a category's column, or Enter on the focused plot, chooses it; the card opens on the point. On an unstacked area every series is ringed there. |
 | Loading  | A skeleton line with a `color.skeleton.subtle` wash, pulsing, at the plot's height.                                                                                                     |
 | Entering | The areas draw in over `motion.duration.slow`.                                                                                                                                          |
@@ -52,7 +54,7 @@ A [Line](?path=/docs/patterns-chart-line--docs) with a wash under it: the hue at
 ## Modifiers
 
 - **`stacked`** for parts of a whole; **`texture`** for the patterns.
-- **`curve`**, **`dots`**, **`labels`**, **`baseline`**, **`bands`**, **`reference`**, **`connectNulls`**, **`xLabel`**, **`yLabel`**, **`format`**, **`formatX`**, **`onSelect`**, **`details`**, **`loading`**, **`label`** as on a Line.
+- **`curve`**, **`dots`**, **`labels`**, **`bands`**, **`reference`**, **`connectNulls`**, **`xLabel`**, **`yLabel`**, **`format`**, **`formatX`**, **`onSelect`**, **`details`**, **`loading`**, **`label`** as on a Line, and its native props and ref.
 
 ## Content
 
@@ -67,13 +69,13 @@ A [Line](?path=/docs/patterns-chart-line--docs) with a wash under it: the hue at
 | -------- | --------------------------------------------------------------------------------- |
 | Line     | `color.chart.<tone>` · 2px · round joins                                          |
 | Wash     | `color.chart.<tone>` at 12% · or its pattern: the colour at 30% under 1.5px marks |
-| Marker   | 8px · 2px `elevation.surface` ring                                                |
+| Marker   | 8px · 2px ring in the surface it sits on                                          |
 | Skeleton | `color.skeleton` path over a `color.skeleton.subtle` wash                         |
 | The rest | As on a Line                                                                      |
 
 ## Accessibility
 
-- **As a Line**: named by the Frame or `label`, focusable, arrow keys and Enter, the table one toggle away, a legend for two or more series, `aria-busy` while loading.
+- **As a Line**: named by the Frame or `label`; one tab stop with the arrow keys, Home, End, Enter and a live region when it chooses, an image with no tab stop when it does not; the table one toggle away, a legend for two or more series, `aria-busy` while loading.
 - **A stack's total is a column in the table**, since the top edge is the only place the plot shows it.
 - **The wash is decoration**: the line carries the value, so a wash at 12% that fails 3:1 against the surface costs nothing.
 

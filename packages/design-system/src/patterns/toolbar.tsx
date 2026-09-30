@@ -1,23 +1,32 @@
 import { Button } from "../components/button";
+import { Count } from "../components/badge";
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "../components/popover";
 import { Scroller, ScrollerArrow, ScrollerViewport } from "../components/scroller";
 import { SearchField } from "../components/search-field";
 import { Separator } from "../components/separator";
+import { token } from "../generated/tokens";
 import { useLedgerLocale } from "../lib/locale";
 import { MoreHorizontal } from "lucide-react";
 import {
+  type ComponentProps,
   type FocusEvent,
   type ReactNode,
   type RefObject,
+  useCallback,
   useLayoutEffect,
   useRef,
   useState,
 } from "react";
 import { cn } from "../lib/cn";
 
-export type ToolbarProps = {
+export type ToolbarProps = Omit<ComponentProps<"div">, "children" | "placeholder" | "onSearch"> & {
+  /** The query, when the caller owns it. Pair it with `onSearch`. */
   search?: string | undefined;
+  /** The first query, when the toolbar owns it: pass `onSearch` without `search`. */
+  defaultSearch?: string | undefined;
+  /** Called with the query as the reader types, clears or presses Escape. Without it there is no search field. */
   onSearch?: ((value: string) => void) | undefined;
+  /** What is searched: the field's placeholder and its accessible name. "Search" when unsaid. */
   placeholder?: string | undefined;
   /** Saved-view controls immediately after search. They stay visible and scroll inside their space. */
   views?: ReactNode;
@@ -25,6 +34,12 @@ export type ToolbarProps = {
   children?: ReactNode;
   /** Filters, after saved views. They are the first to move into More when the row cannot hold everything. */
   filters?: ReactNode;
+  /**
+   * How many filters apply, such as a DataTable's `table.state.columnFilters.length`. While the
+   * filters are folded, More shows the number and says it in its name ("More filters, 2 applied"),
+   * so a folded filter still shows the list is narrowed. Nothing shows at 0.
+   */
+  activeFilters?: number | undefined;
   /** The row's actions, last. They always stay visible with their full labels. */
   actions?: ReactNode;
   className?: string | undefined;
@@ -134,6 +149,24 @@ function naturalWidth(strip: HTMLElement | null) {
 }
 
 /**
+ * A folded group's width as one row, read inside More as it closes: the group is laid out as a
+ * row at max-content for one measurement and put back before paint. It reads the layout width,
+ * which the popover's animation does not scale, so a filter whose label grew or shrank in More is
+ * measured as the row would hold it.
+ */
+function rowWidth(group: HTMLElement) {
+  const { flexDirection, flexWrap, width } = group.style;
+  group.style.flexDirection = "row";
+  group.style.flexWrap = "nowrap";
+  group.style.width = "max-content";
+  const natural = group.offsetWidth;
+  group.style.flexDirection = flexDirection;
+  group.style.flexWrap = flexWrap;
+  group.style.width = width;
+  return natural;
+}
+
+/**
  * One row above a collection. It measures its container, including when a shell panel opens
  * beside it, and folds instead of stacking: filters move into More first, then the display
  * controls. When search, views, More and the actions still cannot share one row, the row wraps
@@ -141,26 +174,46 @@ function naturalWidth(strip: HTMLElement | null) {
  * end. When More and the actions cannot share the second row either, the actions take a line of
  * their own under More.
  */
-export function Toolbar({
-  search,
-  onSearch,
-  placeholder,
-  views,
-  children,
-  filters,
-  actions,
-  className,
-}: ToolbarProps) {
-  const { t } = useLedgerLocale();
-  const root = useRef<HTMLDivElement>(null);
+export function Toolbar(toolbarProps: ToolbarProps) {
+  const {
+    search,
+    defaultSearch,
+    onSearch,
+    placeholder,
+    views,
+    children,
+    filters,
+    activeFilters,
+    actions,
+    className,
+    ref,
+    ...props
+  } = toolbarProps;
+  // A caller that passes `search`, even while it is still undefined (a table's first global
+  // filter), owns the query; only a toolbar given no `search` at all keeps its own.
+  const keepsOwnQuery = !Object.hasOwn(toolbarProps, "search");
+  const { t, formatNumber } = useLedgerLocale();
+  const root = useRef<HTMLDivElement | null>(null);
+  const setRoot = useCallback(
+    (node: HTMLDivElement | null) => {
+      root.current = node;
+      if (typeof ref === "function") ref(node);
+      else if (ref) ref.current = node;
+    },
+    [ref],
+  );
   const viewRow = useRef<HTMLDivElement>(null);
   const filterRow = useRef<HTMLDivElement>(null);
   const displayRow = useRef<HTMLDivElement>(null);
   const actionRow = useRef<HTMLDivElement>(null);
   const popup = useRef<HTMLDivElement>(null);
-  // The last width each foldable group asked for while it was in the row, and the saved views'
-  // natural width, which does not depend on the container and is read again only when the views'
-  // content or fonts change (null until then).
+  // The folded groups inside More while it is open. A filter the reader changes there can change
+  // its width, so they are measured as More closes, while they are still on the page.
+  const foldedFilters = useRef<HTMLDivElement>(null);
+  const foldedDisplay = useRef<HTMLDivElement>(null);
+  // The last width each foldable group asked for while it was in the row or, folded, in More, and
+  // the saved views' natural width, which does not depend on the container and is read again only
+  // when the views' content or fonts change (null until then).
   const widths = useRef({ filters: 0, display: 0, more: 0, views: null as number | null });
   // Whether focus was last in More: its trigger, its popover or a menu opened from inside it.
   // Kept from focus events, because a closing popover can drop focus to the page before the
@@ -348,20 +401,33 @@ export function Toolbar({
     return trigger?.isConnected && focusInMore.current ? trigger : false;
   };
 
+  // More closes: what it held is measured as the row would hold it, before the row decides
+  // whether to take it back.
+  const closeMore = () => {
+    const cache = widths.current;
+    if (foldedFilters.current?.isConnected) cache.filters = rowWidth(foldedFilters.current);
+    if (foldedDisplay.current?.isConnected) cache.display = rowWidth(foldedDisplay.current);
+    setOpen(false);
+  };
+
   const displayInRow = !!children && !fold.display;
 
   // The search narrows as the reader types, so Enter does nothing: inside a dialog's form it never
-  // submits the form. Escape and the clear button empty it through `onSearch("")`.
+  // submits the form. Escape and the clear button empty it through `onSearch("")`. With `search`
+  // the caller owns the query; without it the field keeps what the reader types.
   const searchField = onSearch ? (
     <SearchField
+      // A caller that starts or stops passing `search` gets a new field rather than an input
+      // that switches between keeping its own value and showing the caller's.
+      key={keepsOwnQuery ? "own" : "caller"}
       size="small"
       className="min-w-0 flex-1"
       style={
         twoRows
           ? { flexBasis: fold.reserve ? `calc(100% - ${fold.reserve}px)` : "100%" }
-          : { maxWidth: 240 }
+          : { maxWidth: token("dimension.part.search") }
       }
-      value={search ?? ""}
+      {...(keepsOwnQuery ? { defaultValue: defaultSearch ?? "" } : { value: search ?? "" })}
       onValueChange={(value) => onSearch(value)}
       placeholder={placeholder ?? t("search")}
       aria-label={placeholder ?? t("search")}
@@ -395,18 +461,25 @@ export function Toolbar({
       </div>
     ) : null;
 
+  // A folded filter that applies still shows: More counts the applied filters and says so.
+  const applied = fold.filters && activeFilters && activeFilters > 0 ? activeFilters : 0;
+  const appliedCount = { count: formatNumber(applied) };
   const moreLabel = fold.display
     ? fold.filters
-      ? t("moreFiltersAndDisplay")
+      ? applied
+        ? t("moreFiltersAndDisplayApplied", appliedCount)
+        : t("moreFiltersAndDisplay")
       : t("moreDisplay")
-    : t("moreFilters");
+    : applied
+      ? t("moreFiltersApplied", appliedCount)
+      : t("moreFilters");
   const moreTitle = fold.filters
     ? fold.display
       ? t("filtersAndDisplay")
       : t("filters")
     : t("display");
   const moreControl = hasMore ? (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={(next) => (next ? setOpen(true) : closeMore())}>
       <PopoverTrigger
         {...trackFocus}
         render={
@@ -420,14 +493,15 @@ export function Toolbar({
         }
       >
         {t("more")}
+        {applied ? <Count value={applied} /> : null}
       </PopoverTrigger>
       <PopoverContent
         {...trackFocus}
         ref={popup}
         align="end"
         finalFocus={finalFocus}
-        className="overflow-y-auto"
-        style={{ maxHeight: "var(--available-height)" }}
+        // PopoverContent keeps a tall More inside the window and scrolls it (maxHeight
+        // var(--available-height), overflow-y-auto), so the toolbar adds neither.
         // A choice that closes a menu opened from inside More is done, and More closes with it, as a
         // parent menu would. A choice that keeps its menu open (a toggle, a submenu, an item that
         // does not close on click) keeps More open too.
@@ -437,13 +511,17 @@ export function Toolbar({
           if (!item || !menu || item.getAttribute("aria-disabled") === "true") return;
           // The menu acts on the choice first; a frame later it is open or it is not.
           requestAnimationFrame(() => {
-            if (!menu.isConnected || !menu.hasAttribute("data-open")) setOpen(false);
+            if (!menu.isConnected || !menu.hasAttribute("data-open")) closeMore();
           });
         }}
       >
         <PopoverTitle>{moreTitle}</PopoverTitle>
         {fold.filters ? (
-          <div data-slot="toolbar-filters" className="flex flex-col items-stretch gap-100">
+          <div
+            ref={foldedFilters}
+            data-slot="toolbar-filters"
+            className="flex flex-col items-stretch gap-100"
+          >
             {filters}
           </div>
         ) : null}
@@ -452,6 +530,7 @@ export function Toolbar({
             {fold.filters ? <Separator isDecorative /> : null}
             <div
               {...(fold.filters ? { role: "group", "aria-label": t("display") } : undefined)}
+              ref={foldedDisplay}
               data-slot="toolbar-display"
               className="flex flex-wrap items-center gap-100"
             >
@@ -499,9 +578,11 @@ export function Toolbar({
     ) : null;
 
   // One order at every width, so Tab and a screen reader read the same sequence on one row or two.
+  // The caller's attributes first, then the row's own identity and layout, which they cannot undo.
   return (
     <div
-      ref={root}
+      {...props}
+      ref={setRoot}
       data-slot="toolbar"
       data-rows={fold.rows}
       className={cn("flex min-w-0 items-center gap-100", twoRows && "flex-wrap", className)}

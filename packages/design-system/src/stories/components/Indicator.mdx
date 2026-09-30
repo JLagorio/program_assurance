@@ -7,23 +7,23 @@ import * as Stories from "./Indicator.stories";
 
 # Indicator
 
-A Dot with a word: severity or health beside a label, in a row or a rail. High, Medium, Low; Healthy, Degraded. Never a pill, so the status column stays the only pill in the row and the eye can tell the rank from the state. The Dot alone is a 6px circle in the tone's icon colour, tuned to read at small sizes, for a status in a spot too small for a word. A status indicator is usually an icon per state; this uses the Dot.
+A Dot with a word: severity or health beside a label, in a row or a rail. High, Medium, Low; Healthy, Degraded. Never a pill, so the status column stays the only pill in the row and the eye can tell the rank from the state. The Dot is a 6px circle in the tone's icon colour, tuned to read at small sizes; it marks a status whose word is visible beside it (a row's meta, a gate's name, a timeline entry) and is never the status alone, which would be colour alone. Where there is no room for the word, make room: an Indicator, not a bare Dot. A status indicator is usually an icon per state; this uses the Dot.
 
 <Canvas of={Stories.IndicatorMatrix} />
 
 ## Anatomy
 
-| Part | What it is                                                                                                                |
-| ---- | ------------------------------------------------------------------------------------------------------------------------- |
-| Dot  | 6px, round, `color.icon.<tone>`. It never shrinks.                                                                        |
-| Word | `font.body` after the Dot, `space.075` away: `color.text`, or `color.text.subtle` when the tone is neutral. It truncates. |
+| Part | What it is                                                                                                                                              |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dot  | 6px, round, `color.icon.<tone>`. It never shrinks.                                                                                                      |
+| Word | `font.body` after the Dot, `space.075` away: `color.text`, or `color.text.subtle` when the tone is neutral. It truncates, with the whole word on hover. |
 
 ## Variants
 
-| Variant     | Use                                                                                                        |
-| ----------- | ---------------------------------------------------------------------------------------------------------- |
-| `Indicator` | Severity or health with its word: a column in a table, a fact in a rail.                                   |
-| `Dot`       | The status alone: a cell 24px wide, a name in a tree, a mark in a timeline. With `label` it says its name. |
+| Variant     | Use                                                                                                                 |
+| ----------- | ------------------------------------------------------------------------------------------------------------------- |
+| `Indicator` | Severity or health with its word: a column in a table, a fact in a rail.                                            |
+| `Dot`       | The mark beside a status that is already written: a timeline entry, an unmet gate, a row whose meta says the state. |
 
 The tone is a rank, not a state: `danger` High, `warning` Medium, `neutral` Low, `success` Healthy, `information` Informational. Neutral mutes the word as well as the Dot, so a scale reads from loud to quiet. A record's state, Verified or Overdue, is a [Badge](?path=/docs/components-badge--docs).
 
@@ -32,6 +32,10 @@ Not built, and why: an icon per tone (failed, warning, in progress), because the
 ## Sizes
 
 One size. The Dot is 6px whatever the text beside it; the word is `font.body`, the row's size, and in a `font.body.small` line it takes that size from the parent. An Indicator is as wide as its word and truncates when the column is narrower.
+
+## Long content
+
+An Indicator is one line. A word longer than its column ("Obligation not stated by the consumer") ends in an ellipsis, and the whole shows in a tooltip on hover while it is cut, and on keyboard focus of the link or button it sits in; the whole stays in the DOM for a screen reader. The Dot never shrinks. Keep the words to the scale's rungs ("High", "Medium", "Low") so the cut is rare.
 
 <Canvas of={Stories.Truncation} />
 
@@ -44,7 +48,7 @@ An Indicator has one state and does not hover, focus or disable. The tone is the
 ## Modifiers
 
 - **`tone`** as in Variants; `neutral` when unsaid.
-- **Dot `label`** for a Dot with no text beside it: the status as a word, spoken and not shown.
+- **Dot `label`** makes the Dot an image with that name, for a screen reader, where the Dot must stand without its word. A sighted reader still sees colour alone, so it is the last resort: write the word, as an Indicator.
 - **`className`** for placement, never for colour.
 
 ## Content
@@ -65,7 +69,7 @@ The icon colours are Badge's, so a danger Dot and a danger Badge's text are one 
 ## Accessibility
 
 - **The word carries the rank**; the Dot reinforces it and is hidden from a screen reader, so "High" is read once.
-- **A Dot alone is colour alone.** Give it `label`: it becomes an image named "Suspect", and the cell is no longer silent. Without a label it is hidden, which is right only when text beside it says the same thing.
+- **A Dot alone is colour alone**, for every reader who sees it (WCAG 1.4.1). A status gets its word: an Indicator, or visible text beside the Dot. Without a label the Dot is hidden, which is right because that text says the same thing. A `label` names it for a screen reader only.
 - **Neutral is muted, not disabled.** `color.text.subtle` passes the contrast test; the gate runs every tone.
 - **Nothing to focus.** An Indicator is a span in the row's reading order.
 

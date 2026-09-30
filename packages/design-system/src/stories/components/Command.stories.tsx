@@ -5,6 +5,8 @@ import {
   Button,
   Command,
   CommandCount,
+  formatShortcut,
+  getModifierKey,
   CommandDialog,
   DialogClose,
   CommandEmpty,
@@ -25,6 +27,29 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 const inputRef = createRef<HTMLInputElement>();
+
+/** The polite region's current lines, wherever `announce` put them. */
+const spoken = () =>
+  [
+    ...document.querySelectorAll<HTMLElement>(
+      '[data-slot="announcer-region"][data-politeness="polite"]',
+    ),
+  ]
+    .map((region) => region.textContent ?? "")
+    .join(" ");
+
+/** The field names the selected row as its active descendant, and that row is in the list. */
+async function activeIsSelected(input: HTMLElement) {
+  await waitFor(() => {
+    const selected = input
+      .closest("[cmdk-root]")!
+      .querySelector<HTMLElement>('[cmdk-item][aria-selected="true"]');
+    expect(selected).not.toBeNull();
+    expect(input).toHaveAttribute("aria-activedescendant", selected!.id);
+    expect(input.ownerDocument.getElementById(selected!.id)).toBe(selected);
+  });
+}
+
 function Commands({
   onSelect,
   long = false,
@@ -45,7 +70,7 @@ function Commands({
           >
             Schedule assessment<CommandShortcut>A</CommandShortcut>
           </CommandItem>
-          <CommandItem value="export" onSelect={(value) => onSelect?.(value)}>
+          <CommandItem value="export" shortcut="Mod+E" onSelect={(value) => onSelect?.(value)}>
             Export report
           </CommandItem>
           <CommandItem value="archive" disabled>
@@ -78,6 +103,12 @@ function Commands({
     </>
   );
 }
+/**
+ * The field filters the rows as the reader types. Its `aria-activedescendant` names the selected
+ * row on open, after every keystroke and after every arrow, and the count (or the empty sentence)
+ * is spoken once the query holds still. A shortcut is drawn at the end of its row and given to the
+ * row as `aria-keyshortcuts`, so the row's name is its label. The field's row draws the focus ring.
+ */
 export const Filtering: Story = {
   render: () => (
     <Command label="Program commands" className="max-w-[480px] border border-default">
@@ -88,18 +119,74 @@ export const Filtering: Story = {
     const canvas = within(canvasElement),
       input = canvas.getByRole("combobox", { name: "Program commands" });
     await expect(inputRef.current).toBe(input);
+    await expect(canvas.getByRole("listbox", { name: "Results" })).toBeVisible();
+    // On open, before any key: the first row is selected and named.
+    await activeIsSelected(input);
+    // Shortcuts are hidden from the name and said as aria-keyshortcuts.
+    await expect(canvas.getByRole("option", { name: "Schedule assessment" })).toBeVisible();
+    await expect(canvas.getByRole("option", { name: "Export report" })).toHaveAttribute(
+      "aria-keyshortcuts",
+      formatShortcut("Mod+E", { modifier: getModifierKey(), as: "aria" }),
+    );
+    await userEvent.click(input);
+    const row = canvasElement.querySelector<HTMLElement>('[data-slot="command-input"]')!;
+    await expect(getComputedStyle(row).outlineStyle).toBe("solid");
+    // The selected row draws the focus outline over its tint while the field has focus, and
+    // gives it up when focus leaves, so the page never shows two rings.
+    const selectedRow = () =>
+      canvasElement.querySelector<HTMLElement>('[cmdk-item][aria-selected="true"]')!;
+    await expect(getComputedStyle(selectedRow()).outlineStyle).toBe("solid");
+    input.blur();
+    await waitFor(() => expect(getComputedStyle(selectedRow()).outlineStyle).toBe("none"));
+    input.focus();
     await userEvent.type(input, "review");
     await waitFor(() => expect(canvas.getAllByRole("option")).toHaveLength(1));
     await expect(canvas.getByRole("option")).toHaveTextContent("Schedule assessment");
+    await activeIsSelected(input);
+    await expect(canvas.getByText("1 match")).toBeVisible();
+    await waitFor(() => expect(spoken()).toContain("1 match"), { timeout: 3000 });
+    await userEvent.clear(input);
+    await userEvent.type(input, "exp");
+    await waitFor(() => expect(canvas.getAllByRole("option")).toHaveLength(1));
+    await activeIsSelected(input);
     await userEvent.clear(input);
     await userEvent.type(input, "no such action");
     await waitFor(() => expect(canvas.getByText("No commands found.")).toBeVisible());
+    await expect(input).not.toHaveAttribute("aria-activedescendant");
+    await waitFor(() => expect(spoken()).toContain("No commands found."), { timeout: 3000 });
     await userEvent.clear(input);
-    await userEvent.keyboard("{Home}{ArrowDown}{ArrowDown}");
+    await userEvent.keyboard("{Home}{ArrowDown}");
+    await activeIsSelected(input);
+    await expect(getComputedStyle(selectedRow()).outlineStyle).toBe("solid");
+    await userEvent.keyboard("{ArrowDown}");
     await expect(canvas.getByRole("option", { name: "Archive program" })).toHaveAttribute(
       "aria-disabled",
       "true",
     );
+    await activeIsSelected(input);
+  },
+};
+
+/** A CommandCount's own words follow the number, and a word it leaves out is the locale's. */
+export const CountWords: Story = {
+  name: "Count words",
+  render: () => (
+    <Command label="Records" className="max-w-[480px] border border-default">
+      <CommandInput aria-label="Search records" hint={<CommandCount one="record" />} />
+      <CommandList>
+        <CommandItem value="alpha">Alpha</CommandItem>
+        <CommandItem value="beta">Beta</CommandItem>
+      </CommandList>
+    </Command>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole("combobox", { name: "Records" });
+    await expect(canvas.getByText("2 matches")).toBeVisible();
+    await expect(input).toHaveAccessibleDescription("2 matches");
+    await userEvent.type(input, "alp");
+    await waitFor(() => expect(canvas.getByText("1 record")).toBeVisible());
+    await expect(input).toHaveAccessibleDescription("1 record");
   },
 };
 function PaletteDemo({ long = false }: { long?: boolean }) {
@@ -123,6 +210,7 @@ function PaletteDemo({ long = false }: { long?: boolean }) {
     </>
   );
 }
+/** CommandDialog over the page, named by its `title`. A title of the caller's own is read without the palette's sentence, which is the default title's. */
 export const Palette: Story = {
   render: () => <PaletteDemo />,
   play: async ({ canvasElement }) => {
@@ -130,9 +218,12 @@ export const Palette: Story = {
       body = within(canvasElement.ownerDocument.body),
       trigger = canvas.getByRole("button", { name: "Open command palette" });
     await userEvent.click(trigger);
-    const popup = within(await body.findByRole("dialog", { name: "Program commands" }));
+    const dialog = await body.findByRole("dialog", { name: "Program commands" });
+    await expect(dialog).not.toHaveAccessibleDescription("Search for a command to run.");
+    const popup = within(dialog);
     const input = popup.getByRole("combobox", { name: "Program commands" });
     await waitFor(() => expect(input).toHaveFocus());
+    await activeIsSelected(input);
     await userEvent.type(input, "export");
     await waitFor(() => expect(popup.getAllByRole("option")).toHaveLength(1));
     await userEvent.keyboard("{Enter}");
@@ -146,14 +237,28 @@ export const Palette: Story = {
     await waitFor(() => expect(trigger).toHaveFocus());
   },
 };
+/** While CommandLoading shows, the list is busy and CommandEmpty waits: a load in progress never says that nothing matched. */
 export const Loading: Story = {
   render: () => (
     <Command label="Remote commands">
       <CommandInput aria-label="Search remote commands" />
       <CommandList aria-busy="true" />
       <CommandLoading label="Loading commands">Searching programs</CommandLoading>
+      <CommandEmpty>No commands found.</CommandEmpty>
     </Command>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("progressbar", { name: "Loading commands" })).toBeVisible();
+    await expect(canvas.getByText("Searching programs")).toBeVisible();
+    await expect(canvas.queryByText("No commands found.")).toBeNull();
+    // The default Escape hint is decoration, hidden from assistive technology.
+    const input = canvas.getByRole("combobox", { name: "Remote commands" });
+    await expect(input).not.toHaveAttribute("aria-describedby");
+    await expect(
+      canvasElement.querySelector('[data-slot="kbd-shortcut"]')!.parentElement,
+    ).toHaveAttribute("aria-hidden", "true");
+  },
 };
 
 /** On a short screen the list scrolls while the search and visible Close remain in view. */
@@ -177,6 +282,8 @@ export const ShortViewport: Story = {
     const popup = within(dialog);
     const close = popup.getByRole("button", { name: "Close" });
     await waitFor(() => {
+      // The top inset gives way to a tenth of a short window, so the rows keep their room.
+      expect(dialog.getBoundingClientRect().top).toBeLessThanOrEqual(window.innerHeight / 10 + 1);
       expect(dialog.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight);
       const box = close.getBoundingClientRect();
       expect(box.bottom).toBeLessThanOrEqual(window.innerHeight);

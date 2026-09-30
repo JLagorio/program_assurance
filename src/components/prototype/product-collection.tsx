@@ -1,6 +1,14 @@
-import { MoreHorizontal } from "lucide-react";
-import { useCallback, type ReactNode } from "react";
+import { Inbox, MoreHorizontal } from "lucide-react";
 import {
+  Children,
+  cloneElement,
+  isValidElement,
+  useCallback,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  Button,
   DataTable,
   Toolbar,
   IconButton,
@@ -38,6 +46,17 @@ export type ProductCollectionProps<T extends { id: string }> = Omit<
    * table's `view` or this key, so it survives opening a record and coming back. Off (`false`) for
    * a table in a dialog, a sheet or a picker, whose question ends with the task. */
   keepQuestion?: boolean | string | undefined;
+  /**
+   * A collection of a few rows beside other content: a section of a record body, a preview's
+   * collection, one of several collections on a tab. Its empty is one short row beside
+   * `empty.icon` (an inbox unsaid) with the small create action, a first load draws three skeleton
+   * rows, and the toolbar keeps the search, the views, the filters, the create action and the
+   * commands. Sort shows once there are two rows to order, since a narrow frame folds columns
+   * into More fields; Columns shows once the reader hides a column from its heading's menu, and
+   * stays; Settings is left out. A register, or a tab whose only content is the collection,
+   * leaves it off.
+   */
+  compact?: boolean | undefined;
 };
 
 /** A query is loading while it fetches with nothing to show. A disabled query (TanStack keeps it
@@ -46,6 +65,16 @@ function isLoading(query: QueryStatus) {
   if (!query.isPending || query.data !== undefined) return false;
   const { fetchStatus } = query as QueryStatus & { fetchStatus?: unknown };
   return fetchStatus !== "idle";
+}
+
+/**
+ * The create action at the size of the empty that holds it: the toolbar's small Button becomes
+ * medium in a collection's centred first-record empty, as Empty's own action is. Anything else
+ * (a split button, a menu) is drawn as given.
+ */
+function heroSized(action: ReactNode): ReactNode {
+  if (!isValidElement<{ size?: unknown }>(action) || action.type !== Button) return action;
+  return action.props.size === "small" ? cloneElement(action, { size: "medium" }) : action;
 }
 
 /** Keeps the question in session storage; a component, so the caller can leave it out. */
@@ -70,19 +99,37 @@ export function ProductCollection<T extends { id: string }>({
   empty,
   sort = true,
   keepQuestion = true,
+  compact = false,
+  loadingRows,
   ...props
 }: ProductCollectionProps<T>) {
   const { table } = props;
   // A stable handler, so the toolbar's measuring effect does not restart on every render.
   const onSearch = useCallback((value: string) => table.setGlobalFilter(value), [table]);
+  // Once a compact collection has offered Columns it keeps it, so bringing the last hidden column
+  // back never takes the menu, and focus, from under the reader.
+  const [columnsOffered, setColumnsOffered] = useState(false);
   const failed = queries.filter((query) => query.isError);
   const failedWithoutRows = failed.some((query) => query.data === undefined);
   const loading = !failedWithoutRows && queries.some(isLoading);
   // A failure with nothing to show: the alert and Retry, no empty table under it.
   if (failedWithoutRows) return <QueryState queries={queries} />;
+  const createAction = empty?.action ?? action;
+  // Columns offers only what can be hidden: with nothing to hide it is left out. A compact
+  // collection offers it from the moment the reader hides a column from its heading's menu.
+  const hideable = table.getAllLeafColumns().filter((column) => column.getCanHide());
+  const anyHidden = hideable.some((column) => !column.getIsVisible());
+  if (compact && anyHidden && !columnsOffered) setColumnsOffered(true);
+  const showColumns = hideable.length > 0 && (!compact || anyHidden || columnsOffered);
+  // The sort menu is how a folded column is sorted, so a compact collection keeps it whenever it
+  // holds rows to order; one row has no order to choose.
+  const showSort = sort && (!compact || table.getCoreRowModel().rows.length > 1);
+  // With none of them the toolbar gets no children at all, so it draws no empty More.
+  const displayControls = showSort || showColumns || !compact || !!commands?.length;
   const collection = (
     <DataTable
       {...props}
+      {...(compact ? { loadingRows: loadingRows ?? 3 } : loadingRows ? { loadingRows } : {})}
       responsive
       state={loading ? "loading" : "ready"}
       empty={{
@@ -91,10 +138,11 @@ export function ProductCollection<T extends { id: string }>({
         title: empty?.title ?? "No records yet",
         description:
           empty?.description ??
-          (empty?.action || action
+          (createAction
             ? "Create a record to start this collection."
             : "Records will appear here when available."),
-        action: empty?.action ?? action,
+        action: compact ? createAction : heroSized(createAction),
+        ...(compact ? { size: "compact" as const, icon: empty?.icon ?? <Inbox /> } : {}),
       }}
       toolbar={
         <Toolbar
@@ -102,37 +150,42 @@ export function ProductCollection<T extends { id: string }>({
           onSearch={onSearch}
           placeholder={searchLabel}
           views={views}
-          filters={filters}
+          // An empty list of chips is no filters, so a narrow row draws no empty More.
+          filters={Children.toArray(filters).length ? filters : undefined}
           actions={action}
         >
-          {sort && <DataTable.Sort table={table} />}
-          <DataTable.Columns table={table} />
-          <DataTable.Settings table={table} />
-          {!!commands?.length && (
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <IconButton
-                    label="Collection actions"
-                    icon={<MoreHorizontal />}
-                    size="small"
-                    variant="secondary"
+          {displayControls ? (
+            <>
+              {showSort && <DataTable.Sort table={table} />}
+              {showColumns && <DataTable.Columns table={table} />}
+              {!compact && <DataTable.Settings table={table} />}
+              {!!commands?.length && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <IconButton
+                        label="Collection actions"
+                        icon={<MoreHorizontal />}
+                        size="small"
+                        variant="secondary"
+                      />
+                    }
                   />
-                }
-              />
-              <DropdownMenuContent align="end">
-                {commands.map((command) => (
-                  <DropdownMenuItem
-                    key={command.label}
-                    disabled={command.disabled}
-                    onClick={command.onSelect}
-                  >
-                    {command.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+                  <DropdownMenuContent align="end">
+                    {commands.map((command) => (
+                      <DropdownMenuItem
+                        key={command.label}
+                        disabled={command.disabled}
+                        onClick={command.onSelect}
+                      >
+                        {command.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </>
+          ) : null}
         </Toolbar>
       }
     />

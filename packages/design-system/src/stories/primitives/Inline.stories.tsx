@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { expect, userEvent, within } from "storybook/test";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Button, Input } from "../../components";
@@ -345,10 +345,16 @@ export const Playground: Story = {
 
 export const ListSemantics: Story = {
   render: () => (
-    <Inline as="ul" separator="/" aria-label="Related records" space="space.100">
-      <li>First record</li>
-      <li>Second record</li>
-    </Inline>
+    <Stack space="space.200">
+      <Inline as="ul" separator="/" aria-label="Related records" space="space.100">
+        <li>First record</li>
+        <li>Second record</li>
+      </Inline>
+      <Inline as="dl" separator="·" space="space.100" data-testid="pairs">
+        <dt>Owner</dt>
+        <dd>Priya Raman</dd>
+      </Inline>
+    </Stack>
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
@@ -356,5 +362,116 @@ export const ListSemantics: Story = {
     await expect(within(list).getAllByRole("listitem")).toHaveLength(2);
     await expect(Array.from(list.children).every((child) => child.tagName === "LI")).toBe(true);
     await expect(within(list).queryByText("/")).toBeNull();
+    const pairs = canvas.getByTestId("pairs");
+    await expect(Array.from(pairs.children).map((child) => child.tagName)).toEqual(["DT", "DD"]);
+  },
+};
+
+/**
+ * `grow="fill"` takes the room between a fixed start and end and may shrink below its content,
+ * so a one-line Text inside it cuts instead of pushing the row past its frame; `shrink="none"`
+ * keeps the id beside it whole.
+ */
+export const GrowFillTruncates: Story = {
+  render: () => (
+    <Frame width={240}>
+      <Inline space="space.100" alignBlock="center" data-testid="row">
+        <Box as="span" shrink="none" data-testid="id">
+          <Text size="small" color="color.text.subtlest">
+            SC-7
+          </Text>
+        </Box>
+        <Inline grow="fill" data-testid="fill">
+          <Text maxLines={1}>Boundary protection with deny by default and allow by exception</Text>
+        </Inline>
+        <Chip label="Open" />
+      </Inline>
+    </Frame>
+  ),
+  play: async ({ canvas }) => {
+    const row = canvas.getByTestId("row").getBoundingClientRect();
+    const fill = canvas.getByTestId("fill");
+    await expect(fill.getBoundingClientRect().right).toBeLessThanOrEqual(row.right + 0.5);
+    const text = fill.firstElementChild as HTMLElement;
+    await expect(text.scrollWidth).toBeGreaterThan(text.clientWidth);
+    const id = canvas.getByTestId("id");
+    const line = parseFloat(getComputedStyle(id.firstElementChild as HTMLElement).lineHeight);
+    await expect(id.getBoundingClientRect().height).toBeLessThan(line * 1.5);
+  },
+};
+
+/**
+ * A wrapping meta line with a separator: each fact keeps the dot after it on its own line, so no
+ * line starts with a dot, and the dot that would end a line is hidden.
+ */
+export const WrappedSeparator: Story = {
+  render: () => (
+    <Frame width={260}>
+      <Inline space="space.100" rowSpace="space.050" separator="·" shouldWrap data-testid="meta">
+        {[
+          "Due 12 Oct 2026",
+          "Owner Priya Raman",
+          "3 findings",
+          "Assessed 12 days ago",
+          "Moderate",
+        ].map((fact) => (
+          <Text key={fact} size="small" color="color.text.subtle">
+            {fact}
+          </Text>
+        ))}
+      </Inline>
+    </Frame>
+  ),
+  play: async ({ canvas }) => {
+    const meta = canvas.getByTestId("meta");
+    const pairs = Array.from(
+      meta.querySelectorAll<HTMLElement>(':scope > [data-slot="inline-item"]'),
+    );
+    await expect(pairs).toHaveLength(5);
+    const tops = new Set(pairs.map((pair) => Math.round(pair.getBoundingClientRect().top)));
+    await expect(tops.size).toBeGreaterThan(1);
+    await waitFor(() => expect(meta.querySelectorAll("[data-line-end]").length).toBeGreaterThan(0));
+    // Every separator is hidden exactly when it ends a line; the last child has none.
+    const misplaced = () =>
+      pairs.flatMap((pair, i) => {
+        const separator = pair.querySelector<HTMLElement>('[data-slot="inline-separator"]');
+        const next = pairs[i + 1];
+        if (!next) return separator ? [`${i}: a separator after the last child`] : [];
+        if (!separator) return [`${i}: no separator`];
+        const endsLine =
+          next.getBoundingClientRect().top >= pair.getBoundingClientRect().bottom - 0.5;
+        const shown = getComputedStyle(separator).visibility === "visible";
+        return shown === endsLine
+          ? [`${i}: ${shown ? "shown at a line end" : "hidden mid-line"}`]
+          : [];
+      });
+    await expect(misplaced()).toEqual([]);
+    for (const separator of meta.querySelectorAll('[data-slot="inline-separator"]'))
+      await expect(separator).toHaveAttribute("aria-hidden", "true");
+    // A child that changes its own size, with no render of the row and no change to the row's
+    // size (a name that loads, a date that updates itself, the face swapping in), moves the line
+    // breaks, and the marks follow. Fixed widths in the 244px line make the breaks exact, with
+    // 20px or more to spare: A B / C / D E, then A grows to A / B C / D E on the same three lines.
+    const children = pairs.map((pair) => pair.firstElementChild as HTMLElement);
+    const size = (widths: number[]) =>
+      children.forEach((child, i) => {
+        child.style.flex = "none";
+        child.style.width = `${widths[i]}px`;
+      });
+    const lines = () => {
+      const tops = pairs.map((pair) => Math.round(pair.getBoundingClientRect().top));
+      const order = [...new Set(tops)];
+      return tops.map((top) => order.indexOf(top));
+    };
+    size([60, 60, 120, 110, 60]);
+    await waitFor(() => expect(lines()).toEqual([0, 0, 1, 2, 2]));
+    await waitFor(() => expect(misplaced()).toEqual([]));
+    const height = meta.getBoundingClientRect().height;
+    size([200, 60, 120, 110, 60]);
+    await expect(lines()).toEqual([0, 1, 1, 2, 2]);
+    await expect(meta.getBoundingClientRect().height).toBe(height);
+    await waitFor(() => expect(misplaced()).toEqual([]));
+    for (const child of children) child.removeAttribute("style");
+    await waitFor(() => expect(misplaced()).toEqual([]));
   },
 };

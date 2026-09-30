@@ -111,11 +111,11 @@ function ChangesTable({ lines, version }: { lines: Line[]; version: number }) {
     columns: changeColumns,
     data: lines,
     getRowId: (line) => line.id,
+    // Each row's disclosure says whose change it opens: "Show details for AC-2 · Account management".
+    rowLabel: (line) => line.control,
     label: "Changes by control",
     detail: (line) => <LineChange line={line} version={version} />,
-    initialState: {
-      expanded: Object.fromEntries(lines.filter(changes).map((line) => [line.id, true])),
-    },
+    initialDetails: lines.filter(changes).map((line) => line.id),
   });
   return (
     <ProductCollection

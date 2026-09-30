@@ -47,15 +47,22 @@ export const TreemapMatrix: Story = {
       </Specimens>
       <Specimens title="Unnamed · decorative, with no tab stops">
         <Box style={{ width: "100%", maxWidth: 240 }}>
-          <Chart.Treemap data={bySystem.slice(0, 1)} size="small" onSelect={() => undefined} />
+          <Chart.Treemap data={bySystem.slice(0, 1)} size="small" />
         </Box>
       </Specimens>
     </Stack>
   ),
   play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
     const decorative = canvasElement.querySelector('[data-chart-plot][aria-hidden="true"]');
     await expect(decorative).not.toBeNull();
     await expect(decorative?.querySelectorAll('[tabindex="0"], [role="button"]')).toHaveLength(0);
+    // A named treemap that chooses nothing is an image of the data, with no tab stop.
+    const named = canvas.getByRole("img", { name: "Findings in Payments" });
+    await expect(named.querySelectorAll('[tabindex="0"], [role="button"]')).toHaveLength(0);
+    await expect(canvasElement.querySelectorAll('[data-chart-plot] [tabindex="0"]')).toHaveLength(
+      0,
+    );
   },
 };
 
@@ -153,7 +160,13 @@ export const Drilldown: Story = {
   },
 };
 
-/** A click on a tile opens its card: the tile, its system and its value, then the caller's facts. */
+/** Whether a tile's keyboard ring shows, and where it is drawn. */
+const ringOf = (tile: Element) => {
+  const ring = tile.querySelector<SVGGElement>('[data-slot="chart-mark-focus"]');
+  return { ring, shown: ring ? getComputedStyle(ring).opacity === "1" : false };
+};
+
+/** A click on a tile, or Enter on it, opens its card: the tile, its system and its value, then the caller's facts. The keyboard's ring is drawn inside the tile, so the next tile cannot paint over it and the plot's edge cannot cut it; the hover tooltip names the tile and its system. */
 export const Details: Story = {
   render: () => (
     <Box style={{ maxWidth: 640 }}>
@@ -185,14 +198,107 @@ export const Details: Story = {
     const canvas = within(canvasElement);
     const page = within(canvasElement.ownerDocument.body);
     const tile = await canvas.findByRole("button", { name: "Payments, Card vault: 11" });
+    await expect(tile).toHaveAttribute("aria-haspopup", "dialog");
+    // The pointer's tooltip: the tile's name and its system, then its value.
+    await userEvent.hover(tile.querySelector("rect")!);
+    const tooltip = await waitFor(() => {
+      const box = canvasElement.querySelector(".recharts-tooltip-wrapper");
+      expect(box?.textContent).toContain("Card vault");
+      return box!;
+    });
+    await expect(tooltip.textContent).toContain("Payments");
+    await expect(tooltip.textContent).toContain("11");
     await userEvent.click(tile);
     const dialog = await page.findByRole("dialog", { name: /Findings by system and component/ });
     await waitFor(() =>
       expect(within(dialog).getByRole("button", { name: "Open Card vault" })).toBeVisible(),
     );
+    await expect(tile).toHaveAttribute("aria-expanded", "true");
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(page.queryByRole("dialog")).not.toBeInTheDocument());
     await expect(canvas.getByRole("button", { name: "Payments, Card vault: 11" })).toHaveFocus();
+    // On the keyboard the ring shows on the first tile and on the last, wholly inside the plot.
+    const tiles = Array.from(
+      canvasElement.querySelectorAll<SVGGElement>('[data-chart-tile][tabindex="0"]'),
+    );
+    const svg = canvasElement.querySelector("[data-chart-plot] svg.recharts-surface")!;
+    // The tiles draw in from script, not CSS: measure once they hold still.
+    await waitFor(async () => {
+      const at = () => tiles.map((t) => t.getBoundingClientRect().left).join();
+      const before = at();
+      await new Promise((r) => setTimeout(r, 120));
+      expect(at()).toBe(before);
+    });
+    for (const t of [tiles[0]!, tiles[tiles.length - 1]!]) {
+      await userEvent.keyboard("{Shift}");
+      t.focus();
+      await waitFor(() => expect(ringOf(t).shown).toBe(true));
+      const bounds = svg.getBoundingClientRect();
+      const box = ringOf(t).ring!.getBoundingClientRect();
+      await expect(box.left).toBeGreaterThanOrEqual(bounds.left);
+      await expect(box.top).toBeGreaterThanOrEqual(bounds.top);
+      await expect(box.right).toBeLessThanOrEqual(bounds.right);
+      await expect(box.bottom).toBeLessThanOrEqual(bounds.bottom);
+      // The ring is the last thing the tile draws, and the tile's own box holds it.
+      await expect(t.lastElementChild).toBe(ringOf(t).ring);
+      // The pointer's tooltip stands down while the keyboard is on a tile.
+      await waitFor(() =>
+        expect(
+          canvasElement.querySelector<HTMLElement>(".recharts-tooltip-wrapper")?.style.visibility,
+        ).not.toBe("visible"),
+      );
+    }
+    await expect(ringOf(tiles[1]!).shown).toBe(false);
+  },
+};
+
+const twoCores = [
+  {
+    name: "Payments",
+    children: [
+      { name: "Core", value: 9 },
+      { name: "Gateway", value: 5 },
+    ],
+  },
+  {
+    name: "Network",
+    children: [
+      { name: "Core", value: 6 },
+      { name: "Edge", value: 4 },
+    ],
+  },
+];
+
+/** Two components called Core, in two systems. The selection carries the tile's `path` (and its `id`, when the node has one), so choosing one Core chooses that Core alone. */
+export const SameNames: Story = {
+  render: () => (
+    <Box style={{ maxWidth: 480 }}>
+      <Chart
+        title="Findings by system and component"
+        series={[{ key: "Payments" }, { key: "Network" }]}
+      >
+        <Chart.Treemap
+          data={twoCores}
+          size="medium"
+          details={(s) => <KeyValue label="Path">{s.path.join(" › ")}</KeyValue>}
+        />
+      </Chart>
+    </Box>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.click(await canvas.findByRole("button", { name: "Network, Core: 6" }));
+    const dialog = await page.findByRole("dialog");
+    await waitFor(() => expect(within(dialog).getByText("Network › Core")).toBeVisible());
+    // Only the chosen Core stays at full strength; the other Core dims with the rest.
+    const paymentsCore = canvas.getByRole("button", { name: "Payments, Core: 9" });
+    await expect(paymentsCore).toHaveClass("opacity-disabled");
+    await expect(canvas.getByRole("button", { name: "Network, Core: 6" })).not.toHaveClass(
+      "opacity-disabled",
+    );
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("dialog")).not.toBeInTheDocument());
   },
 };
 
@@ -225,11 +331,9 @@ export const AsATable: Story = {
     await expect(headings).toEqual(["System", "Component", "Value"]);
     const rows = within(table).getAllByRole("row").slice(1);
     await expect(rows).toHaveLength(9);
-    await expect(
-      within(rows[0]!)
-        .getAllByRole("cell")
-        .map((c) => c.textContent),
-    ).toEqual(["Payments", "Ledger API", "18"]);
+    await expect(Array.from(rows[0]!.querySelectorAll("th, td")).map((c) => c.textContent)).toEqual(
+      ["Payments", "Ledger API", "18"],
+    );
     await userEvent.click(canvas.getByRole("button", { name: "Network" }));
     await expect(within(table).getAllByRole("row")).toHaveLength(10);
     await userEvent.click(canvas.getByRole("button", { name: "Table" }));

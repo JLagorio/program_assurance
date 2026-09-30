@@ -13,10 +13,10 @@ The small text parts a record page is made of, beyond body copy and titles. `Eye
 
 ## Anatomy
 
-| Part    | What it is                                                                                                     |
-| ------- | -------------------------------------------------------------------------------------------------------------- |
-| Eyebrow | `font.heading.xxsmall`, uppercase, `color.text.subtle`; a tone colours it. A `div`, or the element `as` names. |
-| Absent  | An em dash in `color.text.subtlest`, the size of its line. With `label`, the dash is `aria-hidden` and the label is [VisuallyHidden](?path=/docs/primitives-visuallyhidden--docs) text beside it. |
+| Part    | What it is                                                                                                                                                                                                                               |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Eyebrow | `font.heading.xxsmall`, uppercase, `color.text.subtle`; a tone colours it. A `div`, or the element `as` names.                                                                                                                           |
+| Absent  | An em dash in `color.text.subtlest`, the size of its line. With `label`, the dash is `aria-hidden` and the label is [VisuallyHidden](?path=/docs/primitives-visuallyhidden--docs) text beside it.                                        |
 | Prose   | An optional Eyebrow, then the text in `font.body` (or `font.body.large` with `size="large"`) and `color.text`: `space.050` under the Eyebrow, `space.075` above a labelled Prose, `space.100` between paragraphs (`space.150` at large). |
 
 ## Variants
@@ -71,15 +71,23 @@ None. The three are text. The tone on an Eyebrow or a Prose is a colour for a ca
 - **Prose keeps the author's paragraphs.** Pass the text as written; do not split it into several Prose to get paragraphs, and do not add `<br>`s.
 - **The dash means nothing here.** "N/A" means not applicable, "Unknown" means unknown; those are values and are written as words.
 
+## Long content
+
+- **Prose always wraps.** It never truncates and never clamps: authored text is read whole. An unbroken token in it (a URL, a hash, an id) breaks where it must, so it never pushes its column wider. A long statement in a record body takes `size="large"` at the measure.
+- **An Eyebrow is one to three words** and does not wrap in practice; a longer name is a heading.
+- **Absent is one character** and has nothing to cut.
+
+<Canvas of={Stories.ProseLongContent} />
+
 ## Style
 
-| Element | Token                                                                                     |
-| ------- | ----------------------------------------------------------------------------------------- |
-| Eyebrow | `font.heading.xxsmall` · uppercase · `color.text.subtle` · `color.text.<tone>` when toned |
-| Absent  | `color.text.subtlest` · the line's font                                                   |
+| Element | Token                                                                                                                                                                                                       |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Eyebrow | `font.heading.xxsmall` · uppercase · `color.text.subtle` · `color.text.<tone>` when toned                                                                                                                   |
+| Absent  | `color.text.subtlest` · the line's font                                                                                                                                                                     |
 | Prose   | `font.body` or `font.body.large` · `color.text` · `space.050` under the eyebrow · `space.075` above · `space.100` or `space.150` between paragraphs · inline code `font.code` on `elevation.surface.sunken` |
 
-The eyebrow moved from `color.text.subtlest` to `color.text.subtle` in this walk: a label is secondary text, and the prototype had written forty-five of its own eyebrows in subtle against eight in subtlest. The Shell's section headings and the Preview eyebrow took the step with it.
+An eyebrow is `color.text.subtle`, as all secondary text is; the Shell's section headings and the preview eyebrow take the same colour.
 
 ## Accessibility
 
@@ -94,6 +102,10 @@ The eyebrow moved from `color.text.subtlest` to `color.text.subtle` in this walk
 ### Eyebrow
 
 <ArgTypes of={Eyebrow} />
+
+Eyebrow takes its element's native props and a ref, whichever `as` names, and names itself last with `data-slot="eyebrow"`. Absent and Prose take a span's and a div's.
+
+<Canvas of={Stories.EyebrowNativeAttributes} />
 
 ### Absent
 

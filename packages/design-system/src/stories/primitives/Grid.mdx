@@ -23,13 +23,13 @@ Columns and rows on a template. The template is a string, the CSS value itself, 
 
 ## Variants
 
-| Grid            | Use                                                                                                                                                      |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Equal columns   | `repeat(n, minmax(0, 1fr))`: cards, stats, fields of a form.                                                                                             |
-| Label and value | `104px 1fr` as a `dl`: the facts of a rail, a settings list. KeyValue draws one row of it.                                                               |
-| Main and rail   | `minmax(0, 1fr) 272px`: the record page's body and its rail, at `dimension.layout.rail`. The Shell's `grid-cols-main-rail` is this with the rail's rule. |
-| Named areas     | `templateAreas` with `templateRows`: a head over two columns, a form with a full-width row.                                                              |
-| Responsive      | One template per breakpoint of the window: one column, two from `md`, main and rail from `lg`.                                                           |
+| Grid            | Use                                                                                                                                                               |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Equal columns   | `repeat(n, minmax(0, 1fr))`: cards, stats, fields of a form.                                                                                                      |
+| Label and value | `104px 1fr` as a `dl`: the facts of a rail, a settings list. KeyValue draws one row of it.                                                                        |
+| Main and rail   | `minmax(0, 1fr) 272px`: a body and a rail at `dimension.layout.rail` inside a region. A record page's rail is the Shell's Aside, which places itself beside Main. |
+| Named areas     | `templateAreas` with `templateRows`: a head over two columns, a form with a full-width row.                                                                       |
+| Responsive      | One template per breakpoint of the window: one column, two from `md`, main and rail from `lg`.                                                                    |
 
 Not built, and why: a column count per breakpoint as a number (the template says the widths as well as the count, and `repeat(3, minmax(0, 1fr))` is one string); a page grid with gutters and margins (the Shell's areas and the page's gutter tokens do this, and a page here is a form or a register, not a magazine); `justifyItems` and `alignContent` (no layout here has needed them, and a cell that sits differently carries its own class); `templateAreas` as an array of rows (one string is the CSS value, and the reader can paste it).
 
@@ -54,6 +54,7 @@ The widths a template names come from the layout tokens where one exists: `dimen
 - **`gap`**, **`rowGap`**, **`columnGap`**: tokens.
 - **`alignItems`**: `start`, `center`, `end`, `baseline`, `stretch`. **`justifyContent`**: the six distributions and `stretch`.
 - **`autoFlow`**: `dense` to fill holes in a grid of spanning cells.
+- **`shrink`**: `none` keeps the Grid's size when its parent row runs out of room.
 - **`as`**: `dl` for pairs, `ul` for a list of cards; the layout elements.
 
 ## Content
@@ -99,7 +100,7 @@ The widths a template names come from the layout tokens where one exists: `dimen
 - [Flex](?path=/docs/primitives-flex--docs): a row or a column distributed, without widths.
 - [KeyValue](?path=/docs/components-keyvalue--docs): one row of the label and value grid.
 - [Stat](?path=/docs/components-stat--docs): `Stat.Grid`, a grid of tiles with the grid's own rules.
-- [Pages](?path=/docs/layout-pages--docs): the record page's main column and rail, on `grid-cols-main-rail`.
+- [Pages](?path=/docs/layout-pages--docs): the record page's main column and rail, which the Shell's Main and Aside lay out.
 - [Space](?path=/docs/tokens-space--docs) and [Metrics](?path=/docs/tokens-metrics--docs): the gaps and the layout widths.
 
 ## Don't

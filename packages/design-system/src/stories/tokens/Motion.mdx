@@ -6,7 +6,7 @@ import * as Stories from "./Motion.stories";
 
 # Motion
 
-Fast and quiet: six durations by the size of the move, three curves by whether the thing arrives, leaves or stays, and one stagger step for a set arriving together. Nothing in a component names a number; every transition and animation reads a token, and every one collapses under `prefers-reduced-motion`. This is a task-focused product and every move is a productive one: there is no expressive set, no bounce, no stretch.
+Fast and quiet: six durations by the size of the move, three curves by whether the thing arrives, leaves or stays, and one stagger step for a set arriving together. Nothing in a component names a number; every transition and animation reads a token. Under `prefers-reduced-motion` nothing moves: what would arrive, travel, turn or resize is simply there, and only a colour or an opacity still fades. This is a task-focused product and every move is a productive one: there is no expressive set, no bounce, no stretch.
 
 <Canvas of={Stories.Specimens} />
 
@@ -45,10 +45,12 @@ A side panel leaves on the standard curve, not the exit curve, because it stays 
 | A menu, a popover, a hover card, a select list | medium · enter | fast · exit | `animate-enter`, `animate-exit` |
 | A dialog, an alert dialog, the command palette | moderate · enter | medium · exit | `animate-dialog-in`, `animate-dialog-out` |
 | The blanket under them | slower · enter | medium · exit | `animate-dim-in`, `animate-dim-out` |
-| A sheet, the panel below the large breakpoint, the side nav's flyout | moderate · enter | medium · standard | `animate-slide-in-end`, `animate-slide-out-end`, and `-start` |
+| A sheet | moderate · enter | medium · standard | `animate-slide-in-end`, `animate-slide-out-end`, and `-start`, `-top`, `-bottom` |
+| The side nav opening over the page, and its blanket | moderate · standard | moderate · standard | the Shell's overlay, on the motion tokens |
 | A Collapsible section, alone or in a Group | medium · enter | medium · exit | `animate-collapse-open`, `animate-collapse-close` |
-| A page's content, the panel at the large breakpoint, a Stat tile, a Related card | moderate · enter | | `animate-rise` |
+| A page's content, a Stat tile, a Related card | moderate · enter | | `animate-rise` |
 | The panel's column opening or closing the page | moderate · standard | | `shell-root`'s grid transition |
+| The side nav collapsing to its icon rail or expanding | moderate · standard | | the side nav's width transition |
 | A set of tiles or cards arriving | one stagger step apart | | `stagger-children` on the parent |
 | A chart's marks | slow | | Patterns/Chart |
 
@@ -66,7 +68,18 @@ A set that arrives together arrives one thing at a time: `stagger-children` on t
 
 ## Reduced motion
 
-Under `prefers-reduced-motion: reduce` every animation runs in 0.01ms, every stagger is 0, the shell's grid does not transition, and a skeleton's pulse stops. A spinner keeps turning, because the turning is the message. A chart draws its marks in place (`src/styles/chart.css` and the Chart's motion hook read the same query).
+Under `prefers-reduced-motion: reduce`:
+
+- Every `animate-*` entrance and exit runs in 0.01ms, and every stagger is 0: a menu, a dialog, a sheet, a section or a page is there at once.
+- A transition on transform or on every property lands at once (`motion.css` sets `transition-transform` and `transition-all` to 0s): a chevron, a sort arrow, a Switch's thumb, a bar's width.
+- The Shell's grid, the side nav's width and the tabs' indicator do not transition; the side nav and its blanket appear over the page without sliding; a row or a column dragged in a DataTable moves at once.
+- A skeleton's pulse and a spinner's turn stop. The spinner keeps its status label, so the wait is still announced; an indeterminate Progress stays hatched and still.
+- A chart draws its marks in place (`src/styles/chart.css` and the Chart's motion hook read the same query).
+- A colour or an opacity fade (`transition-colors`, `transition-opacity`) keeps its duration: it changes nothing's place.
+
+A part that moves adds `motion-reduce:transition-none` or reads the same query; the rule in `motion.css` covers the transform and every-property transitions a part leaves unguarded. The Preference story below checks an entrance, an exit, a slide, a turn, a colour fade and the spinner, with and without the preference.
+
+<Canvas of={Stories.Preference} />
 
 ## Don't
 

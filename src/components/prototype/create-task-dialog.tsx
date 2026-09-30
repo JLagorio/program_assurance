@@ -23,14 +23,19 @@ import {
   FieldLabel,
   FieldSet,
   Grid,
-  KeyValue,
   Stack,
   Text,
   toast,
-  useLedgerLocale,
 } from "@ledger/design-system";
-import { ChoiceField, ComboboxField, TextField } from "@/components/app/fields";
-import { unsettledMoment, useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
+import {
+  ChoiceField,
+  ComboboxField,
+  ContextValue,
+  PartyField,
+  TextField,
+} from "@/components/app/fields";
+import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
+import { causeText } from "@/components/app/sentence";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { useWorkspace } from "@/components/app/workspace";
 import { useRow, useRows } from "@/lib/models";
@@ -126,7 +131,6 @@ export function CreateTaskDialog({
   const submitRef = useRef<HTMLButtonElement>(null);
   const failureRef = useRef<HTMLDivElement>(null);
   const feedback = useFormFeedback<TaskField>();
-  const { t } = useLedgerLocale();
   const { confirm, confirmation } = useConfirmation();
   const guard = useDraftGuard({
     dirty,
@@ -231,12 +235,9 @@ export function CreateTaskDialog({
       setEarly(true);
       return;
     }
-    // Enter inside the due field submits before the field has checked a half-typed moment.
-    const unsettled = !due && !dueEntryError && unsettledMoment(feedback.node("due"));
-    if (unsettled) submitRef.current?.focus();
-    const attempt = unsettled
-      ? validate(values, [{ field: "due", message: t("dateTimeIncomplete") }, ...extra])
-      : check;
+    // The due field holds Enter on a half-typed moment and reports it as its entry error, as it
+    // does when focus leaves it, so `check` already counts it.
+    const attempt = check;
     if (!feedback.report(attempt.issues) || !attempt.data) return;
     // The fields lock while the save runs; the primary stays focusable while it loads.
     submitRef.current?.focus();
@@ -249,7 +250,7 @@ export function CreateTaskDialog({
     } catch (cause) {
       setFailure({
         title: "The task was not created",
-        message: `${cause instanceof Error ? cause.message : "The request failed."} Your details are kept, and creating it again will not make a duplicate.`,
+        message: `${causeText(cause)} Your details are kept, and creating it again will not make a duplicate.`,
       });
       guard.finish();
     }
@@ -262,7 +263,7 @@ export function CreateTaskDialog({
       toast.add({
         type: "error",
         title: "Task created",
-        description: `The next view could not be opened. ${cause instanceof Error ? cause.message : ""}`,
+        description: `The next view could not be opened. ${causeText(cause, "")}`.trim(),
       });
     } finally {
       onClose();
@@ -299,7 +300,7 @@ export function CreateTaskDialog({
                 <Alert variant="destructive" role="alert">
                   <AlertCircle aria-hidden />
                   <AlertTitle>The choices could not be loaded</AlertTitle>
-                  <AlertDescription>{loadError.message}</AlertDescription>
+                  <AlertDescription>{causeText(loadError)}</AlertDescription>
                   <AlertAction>
                     <Button
                       size="small"
@@ -351,7 +352,6 @@ export function CreateTaskDialog({
                       changed();
                     }}
                     required
-                    maxLength={1000}
                     placeholder="What needs doing"
                     error={errors.get("title")}
                     controlRef={feedback.ref("title")}
@@ -361,10 +361,12 @@ export function CreateTaskDialog({
                     templateColumns={{ base: "minmax(0,1fr)", sm: "repeat(2,minmax(0,1fr))" }}
                   >
                     {programId || workstreamId ? (
-                      <KeyValue label="Program" wrap>
-                        {contextProgram?.name ??
-                          (programs.isPending ? "Loading…" : "Unavailable program")}
-                      </KeyValue>
+                      <ContextValue
+                        label="Program"
+                        value={contextProgram?.name}
+                        query={programs}
+                        noun="program"
+                      />
                     ) : (
                       <ComboboxField
                         label="Program"
@@ -375,17 +377,22 @@ export function CreateTaskDialog({
                         }))}
                         onChange={(value) => void chooseProgram(value)}
                         required
-                        disabled={!programs.data}
+                        noun="programs"
+                        loading={programs.isPending && !programs.isError}
+                        loadError={programs.isError}
+                        onRetry={() => void programs.refetch()}
                         placeholder="Choose a program"
                         error={errors.get("program")}
                         controlRef={feedback.ref("program")}
                       />
                     )}
                     {workstreamId ? (
-                      <KeyValue label="Workstream" wrap>
-                        {contextWorkstream.data?.title ??
-                          (contextWorkstream.isPending ? "Loading…" : "Unavailable workstream")}
-                      </KeyValue>
+                      <ContextValue
+                        label="Workstream"
+                        value={contextWorkstream.data?.title}
+                        query={contextWorkstream}
+                        noun="workstream"
+                      />
                     ) : (
                       <ComboboxField
                         label="Workstream"
@@ -398,7 +405,13 @@ export function CreateTaskDialog({
                           setChosenWorkstream(value);
                           changed();
                         }}
-                        disabled={!effectiveProgramId || !workstreams.data}
+                        disabled={!effectiveProgramId}
+                        noun="workstreams"
+                        loading={
+                          !!effectiveProgramId && workstreams.isPending && !workstreams.isError
+                        }
+                        loadError={workstreams.isError}
+                        onRetry={() => void workstreams.refetch()}
                         placeholder="Choose a workstream"
                         description={!effectiveProgramId ? "Choose a program first." : undefined}
                         error={errors.get("workstream")}
@@ -414,24 +427,21 @@ export function CreateTaskDialog({
                       changed();
                     }}
                     multiline
-                    maxLength={10000}
+                    autoResize
                     error={errors.get("description")}
                     controlRef={feedback.ref("description")}
                   />
-                  <ComboboxField
+                  <PartyField
                     label="Responsible assignee"
                     value={assignee}
-                    options={(parties.data ?? []).map((party) => ({
-                      value: party.id,
-                      label: party.name,
-                      detail: party.email,
-                    }))}
+                    parties={parties.data ?? []}
                     onChange={(value) => {
                       setAssignee(value);
                       changed();
                     }}
-                    disabled={!parties.data}
-                    placeholder="Choose a person or organization"
+                    loading={parties.isPending && !parties.isError}
+                    loadError={parties.isError}
+                    onRetry={() => void parties.refetch()}
                     description="Leave unassigned or choose a real party from this workspace."
                     error={errors.get("assignee")}
                     controlRef={feedback.ref("assignee")}

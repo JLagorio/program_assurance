@@ -1,0 +1,47 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { ActionBar } from "../../patterns";
+import * as Stories from "./ActionBar.stories";
+
+<Meta of={Stories} />
+
+# ActionBar
+
+A work surface's header pinned above the work: the trail ending in the record's id, the title with a few words of context, the record's state axes as facts, and the actions that change that state. It is composed from [PageHeader](?path=/docs/layout-pageheader--docs)'s parts, so it keeps PageHeader's wrap rule.
+
+No product screen uses it. A record page's header is PageHeader, with its state in the Details rail ([Inspector](?path=/docs/patterns-inspector--docs)). A screen that needs its state axes pinned above the work raises it before starting a new use.
+
+<Canvas of={Stories.Blocked} />
+
+## Anatomy
+
+| Part    | What it is                                                                                                                                      |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Trail   | `crumbs`, the parents as BreadcrumbItems with separators between them; the bar appends `id` as the current crumb.                               |
+| Title   | `title`, the page's h1, with `context` after it: the scope, the owner.                                                                          |
+| States  | `states`, one fact per axis under the title: the first a Badge, the headline; the rest an Indicator. A state with a `control` shows it instead. |
+| Actions | `actions`, the verbs that change the state, one primary, beside the title or on the next row when the title needs its measure.                  |
+| Reasons | Under the actions, each blocked action's reason, "Mark satisfied: 2 findings still open".                                                       |
+| Tabs    | `tabs`, the strip under the bar.                                                                                                                |
+
+## States
+
+An action with `blocked` stays in the row, disabled, with its reason written under it: hiding it would hide the rule. A blocked action is still a Tab stop (`aria-disabled`), and its reason is its accessible description, so a keyboard or screen-reader user reaches it and hears why it cannot run. When every action can run, nothing is written under the row.
+
+<Canvas of={Stories.Ready} />
+
+## Accessibility
+
+- **One h1**, the title. The trail is a breadcrumb navigation whose last crumb, the id, is the current page.
+- **A blocked action is reachable.** It keeps its place in the tab order with `aria-disabled`, does nothing when pressed, and is described by its reason.
+- **State is words.** Each axis is a label and a value; the tone is never the only signal.
+
+## Props
+
+<ArgTypes of={ActionBar} />
+
+## Related
+
+- [PageHeader](?path=/docs/layout-pageheader--docs): the header of every record page.
+- [Inspector](?path=/docs/patterns-inspector--docs): where a record's state, owner and dates sit on a record page.
+- [Button](?path=/docs/components-button--docs): `disabledReason` for a single action that cannot run, explained in a tooltip.

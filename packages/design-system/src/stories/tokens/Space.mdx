@@ -6,7 +6,7 @@ import * as Stories from "./Space.stories";
 
 # Space and layout
 
-Space is tier 3 and mode independent. A name is the value in quarter-rems: `space.100` is 8px, `space.200` is 16px. Product code reaches it through primitive props (`<Stack space="space.200">`); the package reaches it through the regenerated spacing utilities (`gap-100`, `p-150`, `px-200`). Tailwind's numeric scale is reset: `p-4` does not exist and `ledger/no-non-token-class` reports it.
+Space is tier 3 and mode independent. A name counts steps of 8px, a hundred to a step: `space.100` is 8px (0.5rem), `space.200` is 16px, `space.050` is 4px, `space.025` is 2px. Product code reaches it through primitive props (`<Stack space="space.200">`); the package reaches it through the regenerated spacing utilities (`gap-100`, `p-150`, `px-200`). Tailwind's numeric scale is reset: `p-4` does not exist and `ledger/no-non-token-class` reports it.
 
 ## Scale
 

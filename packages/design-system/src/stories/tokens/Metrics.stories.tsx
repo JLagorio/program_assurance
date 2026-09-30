@@ -54,6 +54,19 @@ export const Dimension: Story = {
           ))}
         </div>
       </Group>
+      <Group title="dimension.part">
+        {/* A part's own size, read by that part: listed, not drawn, since a popup's width is wider
+            than a phone. */}
+        <ul className="flex flex-col gap-150">
+          {under("dimension.part").map((d) => (
+            <li key={d.name} className="flex flex-col gap-025">
+              <span className="font-body text-default">{d.name}</span>
+              <Spec>{d.light}</Spec>
+              <span className="font-body-small text-subtle">{d.description}</span>
+            </li>
+          ))}
+        </ul>
+      </Group>
       <Group title="motion">
         {/* Rows stack where the sheet, not the window, is too narrow for the columns. */}
         <div className="@container flex flex-col gap-150 @lg:gap-050">

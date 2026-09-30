@@ -1,13 +1,19 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import {
+  ComboboxChip,
+  ComboboxContent,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxStatus,
+} from "../../components";
 import * as Stories from "./Combobox.stories";
 
 <Meta of={Stories} />
 
 # Combobox
 
-Search and select predefined values using shadcn's Base UI Combobox composition. Root owns selection, filtering, popup state and form serialization. ComboboxInput composes the shared InputGroup and its trigger/clear controls.
-
-## Anatomy
+Search for a value and choose it, with shadcn's Base UI Combobox composition. Root owns the selection, filtering, popup state and form serialization. ComboboxInput composes the shared InputGroup with its chevron and clear controls.
 
 ```tsx
 const frameworks = ["React", "Vue", "Svelte"];
@@ -15,7 +21,7 @@ const frameworks = ["React", "Vue", "Svelte"];
 <Field>
   <FieldLabel>Framework</FieldLabel>
   <Combobox items={frameworks}>
-    <ComboboxInput placeholder="Choose a framework" showClear />
+    <ComboboxInput placeholder="Choose a framework" />
     <ComboboxContent>
       <ComboboxEmpty>No frameworks found.</ComboboxEmpty>
       <ComboboxList>
@@ -30,40 +36,120 @@ const frameworks = ["React", "Vue", "Svelte"];
 </Field>;
 ```
 
-Root renders no DOM wrapper. Content includes Portal, Positioner and Popup. List renders filtered items inside a [Scroller](?path=/docs/components-scroller--docs), so long results show hover arrows at each overflowed edge. Group, Label, Collection and Separator compose categorized results.
+Root renders no DOM wrapper. Content includes Portal, Positioner and Popup, as wide as the input group (or the `anchor`, such as the chips container). List renders the filtered items inside a [Scroller](?path=/docs/components-scroller--docs): hover arrows at each overflowed edge, and the native scrollbar for a list too long to cross by hovering. Group, Label, Collection and Separator compose categorized results.
+
+<Canvas of={Stories.Defaults} />
+
+## When to use it
+
+Use a Combobox when the reader finds the value by typing: records by name or identifier (a person, a system, a control), or any list longer than a dozen options. The choice table under [Forms](?path=/docs/patterns-forms--docs) decides between the choice controls:
+
+- A fixed set of a few known values is a [Select](?path=/docs/components-select--docs), even inside a form full of comboboxes; a Combobox for four priorities makes the reader type where a glance would do.
+- Two or three options the reader should compare are a [RadioGroup](?path=/docs/components-radiogroup--docs).
+- Choosing many records by their attributes, with a table to compare them, is a [PickerSheet](?path=/docs/patterns-pickersheet--docs); one record from one kind outside a form is a [RecordPicker](?path=/docs/patterns-recordpicker--docs).
+- Finding a record to open is the [SearchDialog](?path=/docs/patterns-searchdialog--docs), and running a command is the [CommandPalette](?path=/docs/patterns-commandpalette--docs).
 
 ## Variants and states
 
+Typing highlights the first match, so Enter chooses it (`autoHighlight` is on; pass `autoHighlight={false}` to leave the highlight to the arrow keys). ComboboxInput's `showTrigger` (on) draws the chevron and `showClear` (off) the clear button; children of ComboboxInput follow them in the input group, for a composition of your own.
+
 <Canvas of={Stories.Searchable} />
+
+Group, Label and Separator draw the same section headings and hairlines as the Select's. `description` on ComboboxItem adds a second line that tells similar options apart; it is the option's accessible description, never part of its name, and filtering never reads it. An option that cannot be chosen takes `disabledReason`: it stays reachable with the arrow keys, is announced as unavailable, and shows the reason as its description line, readable on the faded row.
+
 <Canvas of={Stories.Groups} />
 
-For multiple selection, use an array value with ComboboxChips, ComboboxValue, ComboboxChip and ComboboxChipsInput. Chips include removal controls unless `showRemove={false}`. Use `useComboboxAnchor()` to anchor the popup to the whole chips container.
+For multiple selection, use an array value with ComboboxChips, ComboboxValue, ComboboxChip and ComboboxChipsInput. Each chip has a remove button named "Remove" and the chip's words ("Remove React"); `label` on the chip supplies the words when its children are not plain text, and `showRemove={false}` leaves the button to your own ComboboxChipRemove. Use `useComboboxAnchor()` to hang the popup from the whole chips container.
 
 <Canvas of={Stories.Multiple} />
 
-For remote results, own loading/query state and pass `filter={null}` when the server filters. ComboboxStatus presents loading feedback outside the list of options. Disabled options cannot be selected; read-only selection stays submitted without allowing changes.
+## Long lists
+
+A list the reader crosses by typing does not need every option in the page. Two ways, neither a new part:
+
+- `limit` on Root mounts the first matches only. ComboboxStatus with `total` (the number of matches before the cut) says "Showing 50 of 312. Type to narrow the list." while the list shows fewer, and says nothing once every match fits. Filter with your own `filter` function and count with the same one, so the count and the list agree.
+- A virtualized list: Root takes `virtualized` and `filteredItems`, ComboboxList is the scroll element (pass its `ref` to the virtualizer), and each ComboboxItem takes its `index`, `aria-setsize` and `aria-posinset`. Scroll the virtualizer to the highlighted index in `onItemHighlighted`. The arrow keys walk the whole set.
+
+<Canvas of={Stories.LongList} />
+
+<Canvas of={Stories.Virtualized} />
+
+## Loading, failure and more results
+
+Own the query and the request, and pass `filter={null}` when the server filters. Each state is said in the popup, outside the options:
+
+- Loading is a ComboboxStatus message ("Loading people…") with `aria-busy` on ComboboxList; ComboboxEmpty stays empty while the request runs, so a search in progress never reads as no results.
+- A failed request says so in ComboboxStatus ("The search could not load people.") with a Try again button under it, which Tab reaches from the input. ComboboxEmpty stays empty: a failure is never "No results".
+- A server that returns one page of matches passes its total to ComboboxStatus `total`.
+
+ComboboxStatus is a polite live region, so each of these is announced as it changes.
 
 <Canvas of={Stories.AsyncResults} />
 
+<Canvas of={Stories.FailedSearch} />
+
+## Content
+
+- The placeholder says the action and the noun: "Choose a framework", "Search people". It never says "Optional" or repeats the label; the Field marks a required field.
+- The empty text names what was not found: "No people found.", not "No results".
+- Option text is the record's name, with its identifier first where the reader knows records by it ("AC-2 · Account management"). Put the difference between similar options in `description`.
+
 ## Accessibility
 
-Inside a [Field](?path=/docs/components-field--docs) the FieldLabel names the input and the list, the hint and error describe the input, and the Field's `invalid`, `required` and `disabled` reach it, with no ids. Outside one, connect a label to ComboboxInput with `htmlFor`/`id` and put description ids, invalid state and required announcements on the input. Root’s `required` enables native constraint validation separately.
+Inside a [Field](?path=/docs/components-field--docs) the FieldLabel names the input, the chevron and the list, the hint and error describe the input, and the Field's `invalid`, `required` and `disabled` reach it, with no ids. Outside one, give ComboboxInput `aria-labelledby` (the id of its visible label) or `aria-label`; the chevron and the list take the same name. A label joined by `htmlFor` alone names only the input: the chevron is then "Show options" and the list "Options". Root's `required` enables native constraint validation separately.
+
+The chevron is Base UI's trigger: it is not a tab stop, since the arrow keys open the list from the input, so Tab moves from the input to the next field. Typing filters, the arrow keys highlight, Enter chooses, and Escape closes the popup before the surrounding dialog. While the list is open, Base UI hides the rest of the page from assistive technology so a screen reader stays in the combobox.
 
 <Canvas of={Stories.BoundInField} />
 
-Typing filters, arrows highlight, Enter selects, and Escape closes the popup before the surrounding dialog. Base UI controls focus and nested popup behavior.
+Opened while its dialog is still arriving, the list takes the field's layout width, not its width in the dialog's entrance scale, so filtering during the entrance resizes nothing.
 
 <Canvas of={Stories.InDialog} />
 
+## A searchable trigger
+
+A value that shows as text until the reader edits it (the Editable searched list) puts ComboboxTrigger in the page and ComboboxInput inside the popup, with `showTrigger={false}`. The trigger is then the tab stop and the combobox, and the popup is as wide as the trigger; a style width on Content wins.
+
+```tsx
+<Combobox items={people} value={owner} onValueChange={setOwner}>
+  <ComboboxTrigger aria-label="Owner">{owner}</ComboboxTrigger>
+  <ComboboxContent aria-label="Owner">
+    <ComboboxInput aria-label="Owner" placeholder="Search" showTrigger={false} />
+    <ComboboxEmpty>No people found.</ComboboxEmpty>
+    <ComboboxList>
+      {(person: string) => <ComboboxItem value={person}>{person}</ComboboxItem>}
+    </ComboboxList>
+  </ComboboxContent>
+</Combobox>
+```
+
 ## Props
 
-`ComboboxProps<Value, Multiple>` is the generic Base UI root contract, with Ledger locale/direction defaults. Root's `value` is one value/null or an array; `onValueChange(value, details)` supports cancellation. Use `name`, `form`, `inputRef`, serialization and equality callbacks on Root. The installed Base UI version is 1.7; reset controlled selections in the owning form's `onReset`.
-
-ComboboxInput forwards native input refs, events, render composition, classes and styles; Ledger retains small/medium sizing. `showTrigger` defaults true and `showClear` defaults false. Its children follow the control addons. Content forwards popup props plus positioning, `portalContainer` and `keepMounted`; the latter two preserve existing advanced integrations. Clear, ChipRemove and Status are additional flat native parts.
-
-Replace `Combobox options/onChange` and `Combobox.Root` with the single root API. Move placeholder, ref, blur and input ARIA to ComboboxInput. Replace the old separate InputGroup/Trigger composition with ComboboxInput, and use ComboboxChipsInput inside chips. Layout owns widths. NativeSelect has been removed; use Select for choices that do not need search.
+`ComboboxProps<Value, Multiple>` is the generic Base UI root contract, with Ledger's locale and direction defaults and `autoHighlight` on. Root's `value` is one value or `null`, or an array; `onValueChange(value, details)` supports cancellation. Use `name`, `form`, `inputRef`, serialization and equality callbacks on Root. With Base UI 1.7, reset controlled selections in the owning form's `onReset`. Explicit ids and ARIA on the input and the list win over the Field's.
 
 <Canvas of={Stories.NativeForms} />
+
+ComboboxInput forwards native input refs, events, render composition, classes and styles, and takes the control scale's `small` and `medium`. Content forwards popup props plus positioning, `portalContainer` and `keepMounted`. Clear, ChipRemove and Status are flat native parts.
+
+### ComboboxInput
+
+<ArgTypes of={ComboboxInput} />
+
+### ComboboxContent
+
+<ArgTypes of={ComboboxContent} />
+
+### ComboboxItem
+
+<ArgTypes of={ComboboxItem} />
+
+### ComboboxStatus
+
+<ArgTypes of={ComboboxStatus} />
+
+### ComboboxChip
+
+<ArgTypes of={ComboboxChip} />
 
 ## Related
 

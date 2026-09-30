@@ -1,10 +1,11 @@
 import { ProductRecordDialog } from "./product-record-dialog";
 import { DetailFacts, MissingRecord } from "./work-common";
 import { useCallback, useRef, useState, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useBlocker } from "@tanstack/react-router";
+import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import {
   Absent,
-  DateTime,
+  Box,
   Diff,
   Empty,
   EmptyContent,
@@ -15,6 +16,7 @@ import {
   EmptyTitle,
   Inspector,
   Shell,
+  Skeleton,
   Id,
   Button,
   KeyValue,
@@ -28,6 +30,8 @@ import {
   Text,
   TextLink,
   Timeline,
+  VisuallyHidden,
+  useLedgerLocale,
 } from "@ledger/design-system";
 import { Plus } from "lucide-react";
 import { StatusBadge } from "@/components/app/status";
@@ -43,7 +47,7 @@ import { RequirementControlMappings } from "./requirement-control-mappings";
 import { RequirementAllocations } from "./requirement-allocations";
 import { RequirementForm, type RequirementEditState } from "./requirement-form";
 import { AddRequirementDetailsDialog } from "./add-requirement-details-dialog";
-import { ProgramCollection, ProgramQueryState } from "./program-shared";
+import { ProgramCollection, ProgramQueryState, RetainedTabPanels } from "./program-shared";
 
 export const REQUIREMENT_TABS = [
   "Overview",
@@ -54,6 +58,10 @@ export const REQUIREMENT_TABS = [
   "Edit history",
 ] as const;
 export type RequirementTab = (typeof REQUIREMENT_TABS)[number];
+/** The tabs drawn as retained panels; Overview, which holds the inline editor, has its own. */
+const RETAINED_TABS: readonly RequirementTab[] = REQUIREMENT_TABS.filter(
+  (value) => value !== "Overview",
+);
 
 export function requirementTab(value: unknown): RequirementTab | undefined {
   if (value === "Statement") return "Overview";
@@ -90,18 +98,49 @@ export function RequirementRecordContent({
   const [localTab, setLocalTab] = useState<RequirementTab>("Overview");
   const [lockedRecord, setLockedRecord] = useState<Row<"requirement_revisions"> | null>(null);
   const activeRef = useRef<Row<"requirement_revisions"> | undefined>(undefined);
+  const editState = useRef<RequirementEditState | null>(null);
   const onEditStateChange = useCallback((state: RequirementEditState) => {
+    editState.current = state;
     setLockedRecord(state.dirty || state.busy ? (activeRef.current ?? null) : null);
   }, []);
+  // The record guards the form's unsaved change rather than the form: the Overview panel stays
+  // mounted while another tab shows, and the change it keeps is asked about from any tab.
+  const { confirm, confirmation } = useConfirmation();
+  // Set while a tab change is on its way through the router, which is not leaving the record.
+  const switchingTab = useRef(false);
+  useBlocker({
+    shouldBlockFn: async ({ current, next }) => {
+      if (switchingTab.current && current.pathname === next.pathname) {
+        switchingTab.current = false;
+        return false;
+      }
+      const state = editState.current;
+      if (!state || (!state.busy && !state.dirty)) return false;
+      if (state.busy) return true;
+      if (!(await confirm(discardChanges("Your unsaved change to this requirement will be lost."))))
+        return true;
+      state.discard();
+      return false;
+    },
+    enableBeforeUnload: () => !!editState.current?.busy || !!editState.current?.dirty,
+  });
   const [creating, setCreating] = useState(false);
   const [editingIdentity, setEditingIdentity] = useState(false);
   const ordered = [...(revisions.data ?? [])].sort((a, b) => b.version_number - a.version_number);
   const active = lockedRecord ?? ordered[0];
   activeRef.current = active;
   const currentTab = requirementTab(tab) ?? localTab;
+  // Overview is drawn the first time it is chosen, as the retained panels are.
+  const [overviewShown, setOverviewShown] = useState(currentTab === "Overview");
+  if (!overviewShown && currentTab === "Overview") setOverviewShown(true);
   const changeTab = (next: RequirementTab) => {
+    // The panels are retained, so a change kept on Overview survives the switch: no prompt.
+    switchingTab.current = true;
     setLocalTab(next);
     onTabChange?.(next);
+    requestAnimationFrame(() => {
+      switchingTab.current = false;
+    });
   };
   const collection = workspace.collections.find((item) => item.name === "requirement_revisions");
   const canWrite =
@@ -167,71 +206,92 @@ export function RequirementRecordContent({
                 </TabsTrigger>
               ))}
             </TabsList>
-            <TabsContent value={currentTab}>
-              <Stack space="space.250" className="pt-200">
-                {currentTab === "Overview" && (
-                  <>
+            {/* Overview is kept mounted and its effects keep running while another tab shows:
+                a save sent as the reader leaves the row for another tab settles on that row,
+                and a draft kept there is still reported to the guard above. The retained
+                panels below pause their effects while hidden, which a row's save cannot
+                survive. */}
+            {overviewShown ? (
+              <TabsContent value="Overview" keepMounted>
+                <Box paddingBlockStart="space.200">
+                  <Stack space="space.250" className="min-w-0">
+                    {/* Keyed by the revision row, not its revision number: a save must not
+                        remount the form, which would drop the focus on the row that saved. The
+                        form takes a newer revision itself once nothing is unsaved. */}
                     <RequirementForm
-                      key={`${active.id}/${active.revision}`}
+                      key={active.id}
                       requirementId={requirementId}
                       source={active}
                       readOnly={!canEdit}
                       onStateChange={onEditStateChange}
                     />
                     <RequirementHierarchy revisionId={active.id} programId={programId} />
-                  </>
-                )}
-                {currentTab === "Control mappings" && (
-                  <RequirementControlMappings
-                    programId={programId}
-                    requirementId={requirementId}
-                    contentId={active.id}
-                    readOnly={!canEdit}
-                  />
-                )}
-                {currentTab === "Allocation" && (
-                  <RequirementAllocations
-                    programId={programId}
-                    requirementId={requirementId}
-                    contentId={active.id}
-                    readOnly={!canEdit}
-                  />
-                )}
-                {currentTab === "Verification" && (
-                  <ProgramCollection
-                    fill
-                    name="requirement_verifications"
-                    title="Verification procedures"
-                    filters={{ requirement_revision_id: active.id }}
-                    columns={[
-                      {
-                        key: "procedure_revision_id",
-                        title: "Procedure",
-                        render: (row) => (
-                          <RelationName
-                            table="procedure_revisions"
-                            id={String(row["procedure_revision_id"])}
-                          />
-                        ),
-                      },
-                      { key: "rationale", title: "Rationale" },
-                    ]}
-                    canCreate={!!canEdit}
-                    readOnly={!canEdit}
-                  />
-                )}
-                {currentTab === "Evidence" && (
-                  <RequirementEvidence
-                    programId={programId}
-                    requirementRevisionId={active.id}
-                    readOnly={!canEdit}
-                  />
-                )}
-                {currentTab === "Edit history" && (
-                  <RequirementActivity programId={programId} revisions={ordered} />
-                )}
-              </Stack>
-            </TabsContent>
+                  </Stack>
+                </Box>
+              </TabsContent>
+            ) : null}
+            {/* A panel per tab, kept once visited: a tab's search, filters and page survive a
+                round trip through the others. */}
+            <RetainedTabPanels tabs={RETAINED_TABS} value={currentTab} space="space.250">
+              {(value) => {
+                switch (value) {
+                  case "Overview":
+                    return null;
+                  case "Control mappings":
+                    return (
+                      <RequirementControlMappings
+                        programId={programId}
+                        requirementId={requirementId}
+                        contentId={active.id}
+                        readOnly={!canEdit}
+                      />
+                    );
+                  case "Allocation":
+                    return (
+                      <RequirementAllocations
+                        programId={programId}
+                        requirementId={requirementId}
+                        contentId={active.id}
+                        readOnly={!canEdit}
+                      />
+                    );
+                  case "Verification":
+                    return (
+                      <ProgramCollection
+                        fill
+                        name="requirement_verifications"
+                        title="Verification procedures"
+                        filters={{ requirement_revision_id: active.id }}
+                        columns={[
+                          {
+                            key: "procedure_revision_id",
+                            title: "Procedure",
+                            render: (row) => (
+                              <RelationName
+                                table="procedure_revisions"
+                                id={String(row["procedure_revision_id"])}
+                              />
+                            ),
+                          },
+                          { key: "rationale", title: "Rationale" },
+                        ]}
+                        canCreate={!!canEdit}
+                        readOnly={!canEdit}
+                      />
+                    );
+                  case "Evidence":
+                    return (
+                      <RequirementEvidence
+                        programId={programId}
+                        requirementRevisionId={active.id}
+                        readOnly={!canEdit}
+                      />
+                    );
+                  case "Edit history":
+                    return <RequirementActivity programId={programId} revisions={ordered} />;
+                }
+              }}
+            </RetainedTabPanels>
           </Tabs>
           {!preview && currentTab === "Overview" && (
             <Shell.Aside label="Requirement details">
@@ -268,6 +328,7 @@ export function RequirementRecordContent({
           onClose={() => setEditingIdentity(false)}
         />
       )}
+      {confirmation}
       {creating && (
         <AddRequirementDetailsDialog
           programId={programId}
@@ -302,8 +363,44 @@ function RequirementActivity({
 }) {
   const query = useRows("activity_events", { program_id: programId });
   const parties = useRows("parties");
+  const { formatDate } = useLedgerLocale();
   const revisionMap = new Map(revisions.map((revision) => [revision.id, revision]));
   const partyName = new Map((parties.data ?? []).map((party) => [party.id, party.name]));
+  /** A person named in an entry: their name, or what the lookup came to, never a guess. */
+  const person = (id: string) => {
+    const name = partyName.get(id);
+    if (name) return name;
+    if (parties.data === undefined && parties.error)
+      return <Text color="color.text.subtle">Could not load</Text>;
+    if (parties.data === undefined)
+      return (
+        <>
+          <Skeleton shape="line" width={96} />
+          <VisuallyHidden>Loading</VisuallyHidden>
+        </>
+      );
+    return <Text color="color.text.subtle">Not available</Text>;
+  };
+  /**
+   * The day and the minute in the reader's zone, and the ISO value as the `<time>`. The full
+   * moment, with its weekday and zone, is the tooltip and what a screen reader hears after it.
+   */
+  const eventTime = (value: string) => {
+    const instant = new Date(value);
+    return {
+      time: formatDate(instant, { dateStyle: "medium", timeStyle: "short" }),
+      timeTitle: formatDate(instant, {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZoneName: "short",
+      }),
+      dateTime: value,
+    };
+  };
   /** The fields whose value changed; an entry whose values all stayed the same says nothing. */
   const changedFields = (event: DataRecord) => {
     const changes = event["changes"];
@@ -324,72 +421,70 @@ function RequirementActivity({
     .sort((a, b) => String(b["occurred_at"]).localeCompare(String(a["occurred_at"])));
   const diffValue = (field: string, value: unknown) => {
     if (value === null || value === undefined || value === "") return <Absent label="Empty" />;
-    if (field === "ownerPartyId") return partyName.get(String(value)) ?? "Unavailable owner";
+    if (field === "ownerPartyId") return person(String(value));
     return field === "requirementType" ? labelFor(String(value)) : String(value);
   };
-  if (query.isPending || query.error || parties.error)
-    return <ProgramQueryState queries={[query, parties]} />;
-  if (!events.length)
-    return (
-      <Empty>
-        <EmptyMedia aria-hidden>
-          <EmptyIllustration kind="records" />
-        </EmptyMedia>
-        <EmptyHeader>
-          <EmptyTitle>No edits recorded yet</EmptyTitle>
-          <EmptyDescription>
-            Changes to the title, statement, acceptance criteria, rationale, type and owner appear
-            here.
-          </EmptyDescription>
-        </EmptyHeader>
-      </Empty>
-    );
+  // A failed refresh keeps the entries the reader has, under QueryState's one alert; a failed
+  // lookup of a name says so in its place.
   return (
-    <Timeline label="Edit history" size="small" wrap>
-      {events.map((event) => {
-        const entries = changedFields(event);
-        const actor = event["actor_party_id"];
-        const occurredAt = String(event["occurred_at"]);
-        return (
-          <Timeline.Item
-            key={event.id}
-            title={`${event["event_type"] === "created" ? "Added" : "Edited"} ${entries.map(([field]) => (changeLabels[field] ?? labelFor(field)).toLowerCase()).join(", ")}`}
-            description={
-              !event["source_requirement_revision_id"] && typeof event["description"] === "string"
-                ? event["description"]
-                : undefined
-            }
-            meta={
-              typeof actor === "string"
-                ? (partyName.get(actor) ?? (parties.data ? "Unavailable person" : "Loading…"))
-                : "Actor not recorded"
-            }
-            time={<DateTime value={occurredAt} focusable={false} />}
-          >
-            <Stack space="space.100">
-              {entries.map(([field, change]) => {
-                const label = changeLabels[field] ?? labelFor(field);
-                // Authored paragraphs compare as a Diff; a title, a type or an owner is one value.
-                return proseChanges.has(field) ? (
-                  <Diff
-                    key={field}
-                    before={textValue(change["before"])}
-                    after={textValue(change["after"])}
-                    beforeLabel="Before"
-                    afterLabel="After"
-                    label={`${label}, before and after this edit`}
-                  />
-                ) : (
-                  <KeyValue key={field} label={label} wrap>
-                    {diffValue(field, change["before"])} → {diffValue(field, change["after"])}
-                  </KeyValue>
-                );
-              })}
-            </Stack>
-          </Timeline.Item>
-        );
-      })}
-    </Timeline>
+    <ProgramQueryState queries={[query, parties]}>
+      {events.length ? (
+        <Timeline label="Edit history" size="small" wrap>
+          {events.map((event) => {
+            const entries = changedFields(event);
+            const actor = event["actor_party_id"];
+            return (
+              <Timeline.Item
+                key={event.id}
+                title={`${event["event_type"] === "created" ? "Added" : "Edited"} ${entries.map(([field]) => (changeLabels[field] ?? labelFor(field)).toLowerCase()).join(", ")}`}
+                description={
+                  !event["source_requirement_revision_id"] &&
+                  typeof event["description"] === "string"
+                    ? event["description"]
+                    : undefined
+                }
+                meta={typeof actor === "string" ? person(actor) : "Actor not recorded"}
+                {...eventTime(String(event["occurred_at"]))}
+              >
+                <Stack space="space.100">
+                  {entries.map(([field, change]) => {
+                    const label = changeLabels[field] ?? labelFor(field);
+                    // Authored paragraphs compare as a Diff; a title, a type or an owner is one value.
+                    return proseChanges.has(field) ? (
+                      <Diff
+                        key={field}
+                        before={textValue(change["before"])}
+                        after={textValue(change["after"])}
+                        beforeLabel="Before"
+                        afterLabel="After"
+                        label={`${label}, before and after this edit`}
+                      />
+                    ) : (
+                      <KeyValue key={field} label={label} wrap>
+                        {diffValue(field, change["before"])} → {diffValue(field, change["after"])}
+                      </KeyValue>
+                    );
+                  })}
+                </Stack>
+              </Timeline.Item>
+            );
+          })}
+        </Timeline>
+      ) : (
+        <Empty>
+          <EmptyMedia aria-hidden>
+            <EmptyIllustration kind="records" />
+          </EmptyMedia>
+          <EmptyHeader>
+            <EmptyTitle>No edits recorded yet</EmptyTitle>
+            <EmptyDescription>
+              Changes to the title, statement, acceptance criteria, rationale, type and owner appear
+              here.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      )}
+    </ProgramQueryState>
   );
 }
 
@@ -402,24 +497,24 @@ function RequirementHierarchy({
 }) {
   const relationships = useRows("requirement_decompositions");
   const contents = useRows("requirement_revisions");
-  if (relationships.isPending || relationships.error || contents.isPending || contents.error)
+  // Only a load with nothing to show replaces the section: a failed refresh keeps the links the
+  // reader has, under QueryState's alert.
+  if (relationships.data === undefined || contents.data === undefined)
     return <ProgramQueryState queries={[relationships, contents]} />;
-  const links = requirementIdentityLinks(relationships.data ?? [], contents.data ?? []);
+  const links = requirementIdentityLinks(relationships.data, contents.data);
   const currentParents = links.filter((link) => link.child_requirement_revision_id === revisionId);
   const currentChildren = links.filter(
     (link) => link.parent_requirement_revision_id === revisionId,
   );
-  if (!currentParents.length && !currentChildren.length) return null;
+  if (!currentParents.length && !currentChildren.length)
+    return <ProgramQueryState queries={[relationships, contents]} />;
   return (
     <Section title="Requirement hierarchy">
-      <Stack space="space.150">
+      <ProgramQueryState queries={[relationships, contents]} />
+      {/* One label column for every link, wide enough for "Parent requirement". */}
+      <KeyValue.Group labelWidth={144}>
         {currentParents.map((parent) => (
-          <KeyValue
-            key={parent.parentRequirementId}
-            label="Parent requirement"
-            labelWidth={144}
-            wrap
-          >
+          <KeyValue key={parent.parentRequirementId} label="Parent requirement" wrap>
             <RequirementRevisionLink
               programId={programId}
               revisionId={parent.parent_requirement_revision_id}
@@ -434,7 +529,7 @@ function RequirementHierarchy({
             />
           </KeyValue>
         ))}
-      </Stack>
+      </KeyValue.Group>
     </Section>
   );
 }
@@ -448,10 +543,22 @@ function RequirementRevisionLink({
 }) {
   const revision = useRow("requirement_revisions", revisionId);
   const requirement = useRow("engineering_requirements", revision.data?.engineering_requirement_id);
-  if (revision.isPending || (revision.data && requirement.isPending))
-    return <Text color="color.text.subtle">Loading requirement…</Text>;
+  // Three outcomes, as RelationName: a line while it loads, "Could not load" when the lookup
+  // fails, "Not available" when the requirement is missing or outside this program.
+  if (
+    (revision.data === undefined && revision.isError) ||
+    (revision.data && requirement.data === undefined && requirement.isError)
+  )
+    return <Text color="color.text.subtle">Could not load</Text>;
+  if (revision.data === undefined || (revision.data && requirement.data === undefined))
+    return (
+      <>
+        <Skeleton shape="line" width={160} />
+        <VisuallyHidden>Loading requirement</VisuallyHidden>
+      </>
+    );
   if (!revision.data || !requirement.data || requirement.data.program_id !== programId)
-    return <Text color="color.text.subtle">Requirement unavailable</Text>;
+    return <Text color="color.text.subtle">Not available</Text>;
   return (
     <TextLink
       render={

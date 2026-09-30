@@ -894,7 +894,7 @@
         "orange": {
           "subtler": {
             "$value": "{color.orange.200}",
-            "$description": "A orange tint that carries no meaning: an avatar, a tag. Pairs with color.text.accent.orange.",
+            "$description": "An orange tint that carries no meaning: an avatar, a tag. Pairs with color.text.accent.orange.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.orange.900}",
@@ -904,7 +904,7 @@
           },
           "bolder": {
             "$value": "{color.orange.800}",
-            "$description": "A orange fill that carries no meaning, for color.text.inverse on it: a bold avatar, one end of a gradient.",
+            "$description": "An orange fill that carries no meaning, for color.text.inverse on it: a bold avatar, one end of a gradient.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.orange.400}",
@@ -990,10 +990,10 @@
       },
       "subtlest": {
         "$value": "{color.neutral.700}",
-        "$description": "Use for tertiary text, such as metadata, breadcrumbs, placeholder and helper text.",
+        "$description": "Use for tertiary text, such as metadata, breadcrumbs, placeholder and helper text. 4.5:1 on every surface and on the resting selected fill, in both modes; not promised on a hovered or pressed fill.",
         "$extensions": {
           "ledger": {
-            "dark": "{color.darkNeutral.700}",
+            "dark": "{color.darkNeutral.715}",
             "introduced": "0.1.0",
             "contrast": {
               "light": "{color.neutral.800}",
@@ -1037,8 +1037,8 @@
         }
       },
       "brand": {
-        "$value": "{color.blue.700}",
-        "$description": "Use for text that reinforces our brand.",
+        "$value": "{color.blue.725}",
+        "$description": "Use for text that reinforces our brand, and for a link. 4.5:1 on every surface and on the selected fill at rest and under the pointer, so a record's name link in a chosen row stays readable.",
         "$extensions": {
           "ledger": {
             "dark": "{color.blue.400}",
@@ -1237,7 +1237,7 @@
         "$description": "Use for icons paired with color.text.subtlest.",
         "$extensions": {
           "ledger": {
-            "dark": "{color.darkNeutral.700}",
+            "dark": "{color.darkNeutral.715}",
             "introduced": "0.1.0",
             "contrast": {
               "light": "{color.neutral.800}",
@@ -1379,8 +1379,8 @@
         }
       },
       "focused": {
-        "$value": "{color.blue.500}",
-        "$description": "Use for focus rings of elements in a focus state. Increased contrast darkens it in light and lightens it in dark, so a ring on a selected, pressed or highlighted fill keeps 3:1 against the fill as well as the surface.",
+        "$value": "{color.blue.600}",
+        "$description": "Use for focus rings of elements in a focus state. 3:1 on every surface and, in both modes, on the neutral and selected fills a focused control sits inside (rest, hover and the selected press), so a ring inside a hovered or chosen row shows. Increased contrast darkens it in light and lightens it in dark, so a ring on any pressed fill keeps 3:1 too.",
         "$extensions": {
           "ledger": {
             "dark": "{color.blue.300}",

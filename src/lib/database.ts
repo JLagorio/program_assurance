@@ -152,13 +152,11 @@ export async function getRecord(workspace: Workspace, collection: Collection, id
     .select("*")
     .eq("id", id)
     .setHeader("Authorization", `Bearer ${token}`)
-    .single();
-  if (error)
-    throw new Error(
-      error.code === "PGRST116"
-        ? "This record does not exist or is not accessible in your workspace."
-        : error.message,
-    );
+    // No row is an answer, not a failed request: `single()` makes PostgREST reply 406, which the
+    // browser logs as a failed resource on every missing-record page.
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("This record does not exist or is not accessible in your workspace.");
   return data as DataRecord;
 }
 export async function saveRecord(

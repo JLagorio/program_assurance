@@ -14,6 +14,8 @@ import {
   CheckboxGroupSelectAll,
   Field,
   FieldContent,
+  FieldGroup,
+  FieldTitle,
 } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
@@ -401,6 +403,142 @@ export const Boundary: Story = {
     if (matchMedia("(forced-colors: active)").matches) return;
     await expect(getComputedStyle(box).borderTopColor).toBe(
       getComputedStyle(canvas.getByTestId("bold-border")).borderTopColor,
+    );
+  },
+};
+
+/**
+ * A read-only box keeps its answer and its Tab stop but drops the brand fill and the hover: a
+ * sunken box with the tick in the text colour. Its hint says why the value cannot change, and
+ * describes the box, so a reader who reaches it hears the reason. An editable box answers the
+ * pointer with a hover fill.
+ */
+export const ReadOnly: Story = {
+  name: "Read-only",
+  render: () => (
+    <FieldGroup className="w-layout-list max-w-full">
+      <Field orientation="horizontal">
+        <Checkbox defaultChecked />
+        <FieldLabel>Encrypt at rest</FieldLabel>
+      </Field>
+      <Field orientation="horizontal">
+        <Checkbox />
+        <FieldLabel>Safety-critical</FieldLabel>
+      </Field>
+      <Field orientation="horizontal">
+        <Checkbox defaultChecked readOnly />
+        <FieldContent>
+          <FieldLabel>Handles PII</FieldLabel>
+          <FieldDescription>Set by the system categorization.</FieldDescription>
+        </FieldContent>
+      </Field>
+      <Field orientation="horizontal">
+        <Checkbox readOnly />
+        <FieldContent>
+          <FieldLabel>Cross-domain</FieldLabel>
+          <FieldDescription>Set by the system categorization.</FieldDescription>
+        </FieldContent>
+      </Field>
+    </FieldGroup>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const editable = canvas.getByRole("checkbox", { name: "Encrypt at rest" });
+    const open = canvas.getByRole("checkbox", { name: "Safety-critical" });
+    const fixed = canvas.getByRole("checkbox", { name: "Handles PII" });
+    const fixedOff = canvas.getByRole("checkbox", { name: "Cross-domain" });
+    await expect(fixed).toHaveAttribute("aria-readonly", "true");
+    await expect(fixed).toHaveAccessibleDescription("Set by the system categorization.");
+    // Still a Tab stop, so the reason stays reachable.
+    open.focus();
+    await userEvent.tab();
+    await expect(fixed).toHaveFocus();
+    await userEvent.keyboard(" ");
+    await expect(fixed).toBeChecked();
+    if (matchMedia("(forced-colors: active)").matches) return;
+    const style = (element: HTMLElement) => getComputedStyle(element);
+    await waitFor(() =>
+      expect(style(fixed).backgroundColor).not.toBe(style(editable).backgroundColor),
+    );
+    await expect(style(fixed).color).not.toBe(style(editable).color);
+    await expect(style(fixed).borderTopColor).toBe(style(fixedOff).borderTopColor);
+  },
+};
+
+/**
+ * A choice card: a FieldLabel around a horizontal Field, so a press anywhere on the card chooses.
+ * The FieldTitle names the box and the FieldDescription describes it once; the card draws the one
+ * focus ring and the box none. A chosen card takes the selected fill and its hint stays neutral.
+ */
+export const ChoiceCard: Story = {
+  name: "Choice card",
+  render: () => (
+    <FieldGroup className="w-layout-list max-w-full">
+      <FieldLabel>
+        <Field orientation="horizontal">
+          <Checkbox defaultChecked />
+          <FieldContent>
+            <FieldTitle>Require a second reviewer</FieldTitle>
+            <FieldDescription>A colleague confirms the determination.</FieldDescription>
+          </FieldContent>
+        </Field>
+      </FieldLabel>
+      <FieldLabel>
+        <Field orientation="horizontal">
+          <Checkbox />
+          <FieldContent>
+            <FieldTitle>Keep archived evidence</FieldTitle>
+            <FieldDescription>Superseded versions stay on the record.</FieldDescription>
+          </FieldContent>
+        </Field>
+      </FieldLabel>
+    </FieldGroup>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const reviewer = canvas.getByRole("checkbox", { name: "Require a second reviewer" });
+    const archived = canvas.getByRole("checkbox", { name: "Keep archived evidence" });
+    await expect(reviewer).toHaveAccessibleDescription("A colleague confirms the determination.");
+    await expect(archived).toHaveAccessibleDescription("Superseded versions stay on the record.");
+    // A press on the hint, far from the box, still chooses.
+    await userEvent.click(canvas.getByText("Superseded versions stay on the record."));
+    await expect(archived).toBeChecked();
+    await userEvent.click(canvas.getByText("Keep archived evidence"));
+    await expect(archived).not.toBeChecked();
+    const card = archived.closest("label")!;
+    // Keyboard focus, as Tab gives it: the card draws the ring, the box inside draws none.
+    (archived.ownerDocument.activeElement as HTMLElement | null)?.blur();
+    archived.focus({ focusVisible: true } as FocusOptions);
+    await waitFor(() => expect(getComputedStyle(card).outlineStyle).toBe("solid"));
+    await expect(getComputedStyle(archived).outlineStyle).toBe("none");
+    if (matchMedia("(forced-colors: active)").matches) return;
+    const hint = canvas.getByText("A colleague confirms the determination.");
+    const selectedText = getComputedStyle(hint).getPropertyValue("--ds-color-text-selected").trim();
+    await expect(getComputedStyle(hint).color).not.toBe(selectedText);
+  },
+};
+
+/**
+ * Outside a Field a plain label still works: the box is inline, so the text follows it on the same
+ * line instead of dropping under it.
+ */
+export const InAPlainLabel: Story = {
+  name: "In a plain label",
+  render: () => (
+    <div className="w-layout-panel max-w-full">
+      <label>
+        <Checkbox /> Seed AC-2 on the payments platform
+      </label>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const box = canvas.getByRole("checkbox", { name: "Seed AC-2 on the payments platform" });
+    await expect(getComputedStyle(box).display).toBe("inline-flex");
+    // One line: the label is no taller than a line of text beside the box.
+    const label = box.closest("label")!;
+    await expect(label.getBoundingClientRect().height).toBeLessThan(
+      box.getBoundingClientRect().height * 2,
     );
   },
 };

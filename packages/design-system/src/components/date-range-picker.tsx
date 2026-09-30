@@ -17,8 +17,8 @@ import { Button } from "./button";
 import { Calendar, CalendarAnnounceContext } from "./calendar";
 import {
   FieldStateContext,
-  controlBase,
-  controlHeight,
+  fieldControl,
+  fieldControlHeight,
   useFieldControlState,
   type ControlSize,
 } from "./controls";
@@ -243,8 +243,8 @@ export function DateRangePicker({
               {...(ariaInvalid ? { "aria-invalid": true } : {})}
               id={triggerId}
               className={cn(
-                controlBase,
-                controlHeight[size],
+                fieldControl,
+                fieldControlHeight[size],
                 "flex items-center justify-start gap-100 text-start font-regular shadow-none",
                 className,
               )}

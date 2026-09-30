@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, within } from "storybook/test";
+
 import { Gates } from "../..";
 import { Button, Progress, ProgressValue, TextLink } from "../../components";
 
@@ -33,7 +35,7 @@ export const GatesMatrix: Story = {
               action={
                 col === "action" ? (
                   <Button size="small" variant="link">
-                    Add
+                    Add success criterion
                   </Button>
                 ) : undefined
               }
@@ -59,7 +61,7 @@ export const GatesStory: Story = {
           reason="Nothing decides that it is met."
           action={
             <Button size="small" variant="link">
-              Add
+              Add success criterion
             </Button>
           }
         />
@@ -72,6 +74,20 @@ export const GatesStory: Story = {
       </Gates>
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const items = within(canvas.getByRole("list")).getAllByRole("listitem");
+    await expect(items).toHaveLength(4);
+    // The state is spoken before each label; the check and the Dot are not read.
+    await expect(items[0]).toHaveTextContent(/^Met: Owner$/);
+    await expect(items[2]).toHaveTextContent(/^Not met: Success criterion/);
+    await expect(canvasElement.querySelectorAll("svg:not([aria-hidden='true'])")).toHaveLength(0);
+    // The action is the one stop, named for the gate it meets.
+    await expect(within(items[2]!).getByRole("button")).toHaveAccessibleName(
+      "Add success criterion",
+    );
+    await expect(within(items[3]!).queryByRole("button")).toBeNull();
+  },
 };
 
 /** A phase whose exit criteria are all met: every row a check, muted, with the one finding worth reading. */
@@ -90,6 +106,11 @@ export const AllMet: Story = {
       </Gates>
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const items = within(canvasElement).getAllByRole("listitem");
+    await expect(items).toHaveLength(4);
+    for (const item of items) await expect(item).toHaveTextContent(/^Met: /);
+  },
 };
 
 /** The submit gates of a revision, in a rail: a title with the unmet count, then the list. */
@@ -98,12 +119,14 @@ export const InRail: Story = {
     <Box style={{ maxWidth: 300 }}>
       <Stack space="space.100">
         <Inline space="space.100" alignBlock="baseline">
-          <Text weight="medium">Submit gates</Text>
+          <Text weight="medium" id="submit-gates">
+            Submit gates
+          </Text>
           <Text size="small" color="color.text.subtle">
             2 unmet
           </Text>
         </Inline>
-        <Gates>
+        <Gates aria-labelledby="submit-gates">
           <Gates.Item met label="Baseline chosen" reason="Moderate, from the categorization." />
           <Gates.Item met label="Every tailoring decision has a reason" />
           <Gates.Item
@@ -112,7 +135,7 @@ export const InRail: Story = {
             reason="Two overlays disagree on AC-2(3)."
             action={
               <TextLink size="small" render={<a href="#overlays" />}>
-                Resolve
+                Resolve overlays
               </TextLink>
             }
           />
@@ -126,6 +149,16 @@ export const InRail: Story = {
       </Stack>
     </Box>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // The heading above names the list, so a screen reader announces "Submit gates, list, 4 items".
+    const list = canvas.getByRole("list", { name: "Submit gates" });
+    await expect(within(list).getAllByRole("listitem")).toHaveLength(4);
+    await expect(within(list).getByRole("link", { name: "Resolve overlays" })).toHaveAttribute(
+      "href",
+      "#overlays",
+    );
+  },
 };
 
 /** The mistakes the page is written to prevent, each beside the right way. */
@@ -202,7 +235,7 @@ export const Dont: Story = {
               reason="Nothing decides that it is met."
               action={
                 <Button size="small" variant="link">
-                  Add
+                  Add success criterion
                 </Button>
               }
             />
@@ -213,7 +246,7 @@ export const Dont: Story = {
             />
           </Gates>
         }
-        doText="One link action, on the gate the reader can meet from here."
+        doText="One link action named for its gate, on the gate the reader can meet from here."
         dont={
           <Gates>
             <Gates.Item

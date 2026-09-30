@@ -18,11 +18,21 @@ A group of toggle buttons with shared selection and keyboard navigation. Compose
 
 <Canvas of={Stories.ToggleGroupMatrix} />
 
+## Choosing between them
+
+| Need                                                                                                              | Part                                                                                                   |
+| ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| One choice among two to five, all shown, that changes the view at once: Table or Board, a period, the colour mode | ToggleGroup                                                                                            |
+| Several independent on/off options side by side: Bold, Italic, Underline                                          | ToggleGroup with `multiple`, or a row of [Toggle](?path=/docs/components-toggle--docs)                 |
+| One choice submitted with a form, or more than a handful of options                                               | [RadioGroup](?path=/docs/components-radiogroup--docs) or [Select](?path=/docs/components-select--docs) |
+| Switching between panels of content                                                                               | [Tabs](?path=/docs/components-tabs--docs)                                                              |
+| Related actions joined into one control                                                                           | [ButtonGroup](?path=/docs/components-buttongroup--docs)                                                |
+
 ## Selection and layout
 
-Selection is an array in both modes. By default, at most one item can be pressed; pressing it again clears the selection. Add `multiple` to allow several pressed items. A pressed item takes Toggle's pressed look, the selected fill with a 1px `color.border.selected` edge that follows a joined group's corners, so the current view never looks like a hovered one; in forced colours it is Highlight. `defaultValue` initializes local state; `value` and `onValueChange(values, details)` control it. Call `details.cancel()` to reject a change, such as clearing a required view.
+Selection is an array in both modes. By default, at most one item can be pressed; pressing it again clears the selection. Add `multiple` to allow several pressed items. A pressed item takes Toggle's pressed look, the selected fill with a 1px `color.border.selected` edge that follows a joined group's corners, so the current view never looks like a hovered one; in forced colours it is Highlight. `defaultValue` initializes local state; `value` and `onValueChange(values, details)` control it. Call `details.cancel()` to reject a change, such as clearing a required view: one choice that must stay active ignores or cancels an empty selection. The API is Base UI's array with `multiple`, not Radix's `type="single"`.
 
-Group `variant` and `size` pass to its items. Variants are `default` and `outline`; sizes are `sm` (28px), `default` (32px) and `lg` (36px). Default `spacing={2}` leaves an 8px gap; `spacing={0}` joins the items. `orientation="vertical"` stacks them and changes arrow navigation.
+Group `variant` and `size` pass to its items. Variants are `default` and `outline`; sizes are `sm` (28px), `default` (32px) and `lg` (36px), Toggle's. Default `spacing={2}` leaves an 8px gap; `spacing={0}` joins the items. `orientation="vertical"` stacks them and changes arrow navigation.
 
 The group and items support native attributes, refs, `render`, and state callbacks for `className` and `style`. Use `disabled` on an item or the whole group to block selection.
 
@@ -35,16 +45,12 @@ A spaced group wraps its items onto the next line when its row is too narrow for
 ## Accessibility
 
 - The root has `role="group"`; each item is a button with `aria-pressed`. Name the group with `aria-label` or `aria-labelledby`, and give icon-only items an accessible name.
-- Tab enters and leaves the group as one stop. Arrow keys move focus; Enter or Space changes selection. Disabled items are skipped.
+- Tab enters and leaves the group as one stop. In a single-select group with a pressed item, that stop is the pressed item, as in a radio group, so the reader lands on the current choice; otherwise, and in a `multiple` group, it is the first enabled item. Arrow keys move focus; Enter or Space changes selection; Tab from any item leaves the group, and coming back lands on the pressed item again. A value changed from outside moves the stop with it. Disabled items are skipped.
 - Horizontal arrows follow the Ledger locale direction; `dir` on the group overrides it. Vertical groups use Up and Down. Home and End reach the first and last enabled items.
 - Focus wraps by default. Set `loopFocus={false}` to stop at the ends.
-- Add [Tooltip](?path=/docs/components-tooltip--docs) explicitly when an icon needs a visible explanation.
+- An icon-only item has no visible name, so give it a [Tooltip](?path=/docs/components-tooltip--docs) with its name, as ModeSwitch does: `<Tooltip><TooltipTrigger render={<ToggleGroupItem value="dark">…</ToggleGroupItem>} /><TooltipContent>Dark</TooltipContent></Tooltip>`.
 
-## Migration
-
-Replace `items` with `ToggleGroupItem` children, scalar `value` with an array, and `onChange` with `onValueChange`. The old required single-selection rule now belongs to the consumer: ignore or cancel an empty selection when one choice must remain active. `small` becomes `sm`; `medium` becomes `default`. Counts are explicit Count children, and icons are ordinary children. `isIconOnly` and automatic item tooltips are removed.
-
-This uses the installed Base UI array API with `multiple`; it does not use Radix's `type="single"` or `type="multiple"` API.
+<Canvas of={Stories.TabStopOnThePressedItem} />
 
 ## Props
 

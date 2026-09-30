@@ -1,0 +1,63 @@
+{
+  "about": "Literal lengths in the kit's stylesheets (src/styles/*.css) that no token of the same value and role holds yet, per file and literal as written, each with the reason it stays. test/css-tokens.test.mjs holds the counts exact: a literal routed through its token is deleted here, and a new one fails. The list only shrinks (scripts/check-allow-lists.mjs compares it with the base branch).",
+  "src/styles/drawer.css": {
+    "24rem": {
+      "count": 1,
+      "reason": "The widest a side drawer grows beside its 75vw, from shadcn's Base UI drawer geometry. No role token holds it: 24rem is dimension.container.sm, a container threshold of another role."
+    },
+    "2px": {
+      "count": 4,
+      "reason": "A closed drawer travels 2px past the window's edge, so its hairline and its shadow leave with it. An offset of the drawer's own geometry, which no token's role holds: space.025 is a gap."
+    }
+  },
+  "src/styles/layout.css": {
+    "14rem": {
+      "count": 1,
+      "reason": "The page header's heading measure, about twenty characters of heading-small a line, before its actions wrap under it. A part's own size with no role token yet."
+    },
+    "12rem": {
+      "count": 1,
+      "reason": "The section header's heading measure, about twenty-five characters of body text a line, before its actions take the next row. A part's own size with no role token yet."
+    },
+    "30rem": {
+      "count": 1,
+      "reason": "A short window, under 30rem tall (a phone on its side, a page zoomed to 400%), where the banner and the top nav scroll away with the page. The breakpoint tokens are widths, and no height breakpoint holds this role yet."
+    },
+    "320px": {
+      "count": 1,
+      "reason": "The record browser's preview column at its narrowest beside the results. A part's own size with no role token yet: 320px is also dimension.container.xs and dimension.part.tooltip, which are other roles."
+    }
+  },
+  "src/styles/shell.css": {
+    "400px": {
+      "count": 1,
+      "reason": "The width under which the panel header gives its actions a row of their own. Its role's token, dimension.container.compact, is 25rem, which scales with the reader's text size where 400px does not, so reading it would change the header at a larger default text size; the query keeps its value and unit until that change is decided."
+    },
+    "30rem": {
+      "count": 3,
+      "reason": "A short window, under 30rem tall (a phone on its side, a page zoomed to 400%), where the banner and the top nav scroll away with the page. The breakpoint tokens are widths, and no height breakpoint holds this role yet."
+    }
+  },
+  "src/styles/stat.css": {
+    "2px": {
+      "count": 1,
+      "reason": "Two hairlines: a two-tile row's basis leaves the width of its two one-pixel gaps, as the steps above leave var(--stat-cols) * 1px. The gap is the hairline the grid's background shows through, structure rather than a spacing value."
+    }
+  },
+  "src/styles/toast.css": {
+    "24rem": {
+      "count": 1,
+      "reason": "The widest the toast stack grows, from shadcn's Base UI toast geometry. A part's own size with no role token yet: 24rem is dimension.container.sm, a container threshold of another role."
+    }
+  },
+  "src/styles/touch.css": {
+    "1rem": {
+      "count": 1,
+      "reason": "The text a field keeps on a coarse pointer, the body size at the default text size, set as the floor iOS needs rather than as a type token."
+    },
+    "16px": {
+      "count": 1,
+      "reason": "iOS Safari zooms the page into a focused field whose text is under 16px. The floor is the browser's threshold, not a design value."
+    }
+  }
+}

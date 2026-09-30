@@ -1,4 +1,12 @@
-import { useCallback, useSyncExternalStore, type ComponentProps } from "react";
+import {
+  Children,
+  cloneElement,
+  isValidElement,
+  useCallback,
+  useSyncExternalStore,
+  type ComponentProps,
+  type ReactNode,
+} from "react";
 
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
@@ -8,7 +16,11 @@ import { defaultMessages, type LedgerMessages } from "../lib/locale-format";
    the keyboard's (⌘ ⇧ ⌥ ↵ esc), and a glyph a screen reader would not say is given its name. */
 
 export type KbdProps = ComponentProps<"kbd"> & {
-  /** A glyph's spoken name, such as "Command" for ⌘. Explicit aria-label takes precedence. */
+  /**
+   * A glyph's spoken name, such as "Command" for ⌘. The glyph is hidden from assistive technology
+   * and one visually hidden word says the name in its place, since ARIA does not name a `<kbd>`.
+   * An `aria-label` is read the same way and takes precedence.
+   */
   label?: string | undefined;
 };
 
@@ -16,20 +28,67 @@ const cap =
   "inline-flex h-200 min-w-200 items-center justify-center rounded-xsmall border border-default bg-surface-sunken px-050 font-body-xsmall font-medium text-subtle";
 
 /** A key as it appears on the keyboard: a cap in `elevation.surface.sunken` with a hairline. */
-function KbdRoot({ label, className, ...props }: KbdProps) {
-  return <kbd data-slot="kbd" aria-label={label} className={cn(cap, className)} {...props} />;
+function KbdRoot({ label, "aria-label": ariaLabel, className, children, ...props }: KbdProps) {
+  const name = ariaLabel ?? label;
+  return (
+    <kbd data-slot="kbd" className={cn(cap, name && "relative", className)} {...props}>
+      {name ? (
+        <>
+          <span aria-hidden="true">{children}</span>
+          <span className="sr-only">{name}</span>
+        </>
+      ) : (
+        children
+      )}
+    </kbd>
+  );
 }
 
-export type KbdGroupProps = ComponentProps<"kbd">;
+export type KbdGroupProps = ComponentProps<"kbd"> & {
+  /**
+   * The chord's spoken name, such as "Command K". The caps are hidden from assistive technology
+   * and the name is read once in their place. An `aria-label` is read the same way and takes
+   * precedence.
+   */
+  label?: string | undefined;
+};
+
+/** Hides a chord's caps from assistive technology, which hears the chord's name instead. */
+const hidden = (children: ReactNode) =>
+  Children.map(children, (child) =>
+    isValidElement<{ "aria-hidden"?: boolean | "true" | "false" | undefined }>(child) ? (
+      cloneElement(child, { "aria-hidden": true })
+    ) : child === null || child === undefined || typeof child === "boolean" ? (
+      child
+    ) : (
+      <span aria-hidden="true">{child}</span>
+    ),
+  );
 
 /** A chord: the caps of one shortcut, `space.050` apart. */
-export function KbdGroup({ className, ...props }: KbdGroupProps) {
+export function KbdGroup({
+  label,
+  "aria-label": ariaLabel,
+  className,
+  children,
+  ...props
+}: KbdGroupProps) {
+  const name = ariaLabel ?? label;
   return (
     <kbd
       data-slot="kbd-group"
-      className={cn("inline-flex items-center gap-050", className)}
+      className={cn("inline-flex items-center gap-050", name && "relative", className)}
       {...props}
-    />
+    >
+      {name ? (
+        <>
+          {hidden(children)}
+          <span className="sr-only">{name}</span>
+        </>
+      ) : (
+        children
+      )}
+    </kbd>
   );
 }
 

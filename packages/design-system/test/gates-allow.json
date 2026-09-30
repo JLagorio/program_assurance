@@ -4,9 +4,6 @@
     "about": "Plays that cannot pass in a gate project, by story file and name: a mouse-only assertion on the touch phone, a token colour asserted in forced colours.",
     "touch": {
       "DropdownMenu.stories.tsx::Scrolling": "The play asserts the scroll arrows, which show only to a hover pointer; on a touch phone the list scrolls natively.",
-      "Scroller.stories.tsx::Horizontal": "The play asserts the scroll arrows, which show only to a hover pointer; on a touch phone the list scrolls natively.",
-      "Scroller.stories.tsx::Vertical": "The play asserts the scroll arrows, which show only to a hover pointer; on a touch phone the list scrolls natively.",
-      "Tabs.stories.tsx::Responsive Widths": "The play asserts the scroll arrows, which show only to a hover pointer; on a touch phone the list scrolls natively.",
       "DataTable.stories.tsx::Column width from its menu": "The play asserts column widths measured with a fine pointer; on touch the row actions show without hover and the table reserves their width.",
       "DataTable.stories.tsx::Stored Views Matrix": "The play asserts column widths measured with a fine pointer; on touch the row actions show without hover and the table reserves their width.",
       "Grid.stories.tsx::Dont": "The Don't overflows the page on purpose (layout-allow.json exempts it at 390px).",
@@ -17,16 +14,15 @@
       "Badge.stories.tsx::States": "The play asserts a token colour, which forced colours replace with a system colour.",
       "Banner.stories.tsx::Banners": "The play asserts a token colour, which forced colours replace with a system colour.",
       "Checkbox.stories.tsx::Invalid and focused": "The play asserts a token colour, which forced colours replace with a system colour.",
-      "DropdownMenu.stories.tsx::Descriptions and disabled reasons": "The play asserts a token colour, which forced colours replace with a system colour.",
       "Field.stories.tsx::Composition": "The play asserts a token colour, which forced colours replace with a system colour.",
       "Field.stories.tsx::Validation": "The play asserts a token colour, which forced colours replace with a system colour.",
       "InputGroup.stories.tsx::Bound in a Field": "The play asserts a token colour, which forced colours replace with a system colour.",
       "Stat.stories.tsx::Frames": "The play asserts a token colour, which forced colours replace with a system colour.",
-      "Pages.stories.tsx::Record": "The play asserts that the rail and the page differ in fill, which forced colours make one Canvas.",
       "Mode.stories.tsx::Increased Contrast": "The play measures contrast between tokens, which forced colours replace with system colours.",
       "Color.stories.tsx::Increased Contrast": "The play measures contrast between tokens, which forced colours replace with system colours.",
       "Color.stories.tsx::Text": "The token sheet paints swatches in both modes for axe to measure; forced colours replace their colours.",
-      "Palette.stories.tsx::Ramps": "The token sheet paints swatches in both modes for axe to measure; forced colours replace their colours."
+      "Palette.stories.tsx::Ramps": "The token sheet paints swatches in both modes for axe to measure; forced colours replace their colours.",
+      "Pages.stories.tsx::Record": "The play asserts that the rail and the page differ in fill, which forced colours make one Canvas."
     }
   },
   "focus": {
@@ -35,85 +31,35 @@
       "components-attachment--group": 1,
       "components-keyvalue--control-in-a-value": 1,
       "components-keyvalue--cut-value-and-label": 1,
-      "components-progress--stacked-coverage": 2,
-      "components-resizable--collapsible": 1,
-      "components-resizable--panes": 1,
-      "components-resizable--persisted": 1,
-      "components-resizable--vertical": 1,
-      "components-scrollarea--horizontal-and-rtl": 1,
-      "components-scrollarea--vertical": 1,
-      "components-stepper--dont": 1,
-      "components-stepper--paths": 5,
-      "components-stepper--stepper-matrix": 2,
-      "components-tabs--links": 1,
-      "components-tabs--motion": 2,
-      "components-tabs--orientation": 1,
-      "components-tabs--responsive-widths": 3,
-      "components-tabs--variants": 1,
-      "components-timeline--people": 3,
-      "components-timeline--runs": 6,
-      "components-togglegroup--narrow-row": 2,
-      "layout-pages--compact-queue": 4,
-      "layout-pages--queue-with-panel": 4,
-      "layout-pages--record": 3,
-      "layout-pages--register": 4,
-      "layout-shell--record-rail": 1,
-      "layout-shell--record-rail-phone": 1,
-      "patterns-chart-donut--beside-stat": 2,
-      "patterns-chart-donut--details": 2,
-      "patterns-chart-donut--dont": 4,
-      "patterns-chart-donut--donut-matrix": 12,
-      "patterns-chart-donut--framed": 2,
-      "patterns-chart-donut--gauge": 4,
-      "patterns-chart-donut--narrow": 8,
-      "patterns-chart-donut--playground": 2,
-      "patterns-chart-overview--legends": 2,
-      "patterns-chart-treemap--details": 4,
-      "patterns-chart-treemap--drilldown": 4,
-      "patterns-data-table--columns-without-a-menu": 1,
-      "patterns-data-table--data-table-matrix": 1,
-      "patterns-data-table--moving-columns-narrow": 12,
+      "patterns-data-table--moving-columns-narrow": 6,
       "patterns-data-table--name-link-focus": 4,
-      "patterns-data-table--pinned-columns": 9,
-      "patterns-data-table--pinned-narrow": 9,
-      "patterns-data-table--register-narrow": 16,
-      "patterns-data-table--register-story": 1,
+      "patterns-data-table--register-narrow": 8,
       "patterns-data-table--render-budget": 11,
       "patterns-data-table--responsive-containers": 3,
       "patterns-data-table--responsive-grouped-headers": 2,
       "patterns-data-table--responsive-virtual-rows": 16,
-      "patterns-data-table--row-controls-phone": 12,
-      "patterns-data-table--saved-view": 9,
+      "patterns-data-table--row-controls-phone": 6,
       "patterns-data-table--sort-menu-folded": 6,
-      "patterns-toolbar--constrained": 1,
-      "patterns-toolbar--frame": 1,
-      "patterns-toolbar--narrowest-frame": 5,
-      "patterns-toolbar--panel-minimum": 5,
-      "patterns-toolbar--phone": 5,
-      "patterns-toolbar--phone-long-primary": 5
+      "patterns-toolbar--narrowest-frame": 4,
+      "patterns-toolbar--panel-minimum": 4,
+      "patterns-toolbar--phone": 4,
+      "patterns-toolbar--phone-long-primary": 4
     }
   },
   "touch": {
     "about": "Stories with controls under 24px or shown only on hover on a touch phone when the gate landed (audit TOO-8, TOO-9, responsive-2026-09-24 #10).",
     "stories": {
-      "components-collapsible--independent-and-disabled": 1,
       "components-inputgroup--dont": 1
     }
   },
   "forced-colors": {
     "about": "Stories whose selected, pressed, current or checked items looked like their siblings in forced colours when the gate landed (audit TOO-7, STR-9).",
-    "stories": {
-      "components-stepper--dont": 1
-    }
+    "stories": {}
   },
   "short": {
     "about": "Overlay stories with controls out of view when focused, or a title nothing scrolls to, at 320x256 when the gate landed (audit G5).",
     "stories": {
-      "components-datepicker--native-form": 2,
-      "components-daterangepicker--dont": 3,
-      "components-drawer--snap-points": 2,
-      "patterns-forms--layout": 3,
-      "patterns-forms--pickers": 2
+      "components-drawer--snap-points": 2
     }
   },
   "long": {
@@ -126,27 +72,18 @@
       "components-attachment--playground": 1,
       "components-attachment--upload-states": 4,
       "components-attachment--with-actions": 1,
-      "components-badge--conditional-icons": 1,
-      "components-badge--one-bold": 1,
       "components-badge--render-link": 1,
-      "components-banner--dont": 1,
-      "components-breadcrumb--breadcrumb-matrix": 2,
       "components-fact--fact-matrix": 3,
-      "components-keyvalue--group-layouts": 4,
-      "components-tabs--motion": 3,
-      "components-tabs--variants": 2,
-      "components-textarea--rows": 5,
+      "components-tabs--motion": 1,
       "components-textlink--in-prose": 1,
-      "components-timeline--activity": 5,
-      "components-timeline--dont": 16,
-      "components-timeline--log": 4,
-      "components-timeline--native-attributes": 1,
-      "components-timeline--people": 6,
-      "components-timeline--playground": 3,
-      "components-timeline--releases": 17,
-      "components-timeline--runs": 2,
-      "components-timeline--timeline-matrix": 13,
+      "components-timeline--log": 3,
+      "components-timeline--people": 1,
+      "components-timeline--timeline-matrix": 1,
       "patterns-taskrow--task-row-matrix": 2
     }
+  },
+  "motion": {
+    "about": "Stories where something still moved under reduced motion when the gate landed (audit G8-8). None did; a story that moves under reduced motion fails.",
+    "stories": {}
   }
 }

@@ -11,17 +11,22 @@ A row with one gap. Children sit start to end with one space token between them,
 
 <Canvas of={Stories.InlineMatrix} />
 
+<Canvas of={Stories.WrappedSeparator} />
+
+<Canvas of={Stories.GrowFillTruncates} />
+
 ## Anatomy
 
-| Part      | What it is                                                                                                                                            |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Container | A flex row: a `div`, a `span`, a list or a list item, as `as` names. `display="inline-flex"` keeps it inline-level.                                   |
-| Space     | `space`, one token between every pair of children on the inline axis; `rowSpace` between rows when wrapping, `space` if unset.                        |
-| Alignment | `alignBlock`, where the children sit on the block axis: `start`, `center`, `end`, `baseline`, `stretch`; `alignInline`, where they sit along the row. |
-| Spread    | `spread="space-between"`: a label at the start and a count at the end.                                                                                |
-| Separator | A string or node drawn between children, `aria-hidden`: the dot of a meta line, the slash of a path.                                                  |
-| Wrap      | `shouldWrap`, rows of chips; off, the children overflow.                                                                                              |
-| Grow      | `grow="fill"` takes the parent's inline space; `hug` is as wide as the children.                                                                      |
+| Part      | What it is                                                                                                                                                                                              |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Container | A flex row: a `div`, a `span`, a list or a list item, as `as` names. `display="inline-flex"` keeps it inline-level.                                                                                     |
+| Space     | `space`, one token between every pair of children on the inline axis; `rowSpace` between rows when wrapping, `space` if unset.                                                                          |
+| Alignment | `alignBlock`, where the children sit on the block axis: `start`, `center`, `end`, `baseline`, `stretch` (the default, the browser's for a flex row); `alignInline`, where they sit along the row.       |
+| Spread    | `spread="space-between"`: a label at the start and a count at the end.                                                                                                                                  |
+| Separator | A string or node drawn between children, `aria-hidden`: the dot of a meta line, the slash of a path. In a wrapping row each child keeps the separator after it, and the one that ends a line is hidden. |
+| Wrap      | `shouldWrap`, rows of chips; off, the children overflow.                                                                                                                                                |
+| Grow      | `grow="fill"` takes the free space along the parent's main axis and may shrink below its content; `hug` is as big as the children.                                                                      |
+| Shrink    | `shrink="none"` keeps the row's size when its parent runs out of room.                                                                                                                                  |
 
 ## Variants
 
@@ -54,12 +59,13 @@ When wrapping, `rowSpace` is one step tighter than `space`: `space.100` across, 
 ## Modifiers
 
 - **`space`** and **`rowSpace`**.
-- **`alignBlock`**: `center` for controls of one height; `baseline` for text of two sizes, a title beside its id; `start` for a mark beside two lines.
+- **`alignBlock`**: `center` for controls of one height; `baseline` for text of two sizes, a title beside its id; `start` for a mark beside two lines. Left off, it is `stretch`: every child is as tall as the tallest.
 - **`alignInline`**: `start`, `center`, `end`, where the children sit along the row when it is wider than they are.
 - **`spread`**: `space-between`.
 - **`shouldWrap`**.
-- **`separator`**: a string or a node. Not with `as="ul"`, `"ol"` or `"dl"`.
-- **`grow`**: `fill` for the Inline that takes the space between a fixed start and a fixed end.
+- **`separator`**: a string or a node. With `shouldWrap`, each child and the separator after it wrap as one, so no line starts with a separator, and a separator that ends a line is hidden. Not with `as="ul"`, `"ol"` or `"dl"`: there it is dropped, and the console says so once.
+- **`grow`**: `fill` for the Inline that takes the space between a fixed start and a fixed end. It drops the automatic minimum width, so a one-line Text inside it cuts with an ellipsis instead of pushing the row past its frame.
+- **`shrink`**: `none` for the fixed part beside a filling one, an id or a count, so it never wraps inside itself.
 - **`display`**: `inline-flex` for a row that sits in a run of text.
 - **`as`**: `span` in text; `ul`, `ol`, `li` for a list; the layout elements.
 - **No `style`.** A row of a fixed width sits in a Box with the width.
@@ -78,7 +84,7 @@ When wrapping, `rowSpace` is one step tighter than `space`: `space.100` across, 
 | Space     | `space.*`, as `gap-x-*`; `rowSpace` as `gap-y-*`                       |
 | Alignment | `items-*` for `alignBlock`, `justify-*` for `alignInline` and `spread` |
 | Separator | The children's font and colour; the row's `space` on each side         |
-| Grow      | `flex-1` for `fill`                                                    |
+| Grow      | `flex-1 min-w-0 min-h-0` for `fill`; `shrink-0` for `shrink="none"`    |
 
 ## Accessibility
 

@@ -4,9 +4,8 @@ Ledger is the product design system. It is a package, `@ledger/design-system`, a
 `packages/design-system`, and the prototype is its first consumer. Its Storybook is the contract:
 maintained catalog components are exercised in stories, each family has a documentation page, and
 `npm run build` checks that coverage. Matrices are useful when variants need comparison.
-This guide says how the package is shaped and how a screen uses it. The reasoning lives in the specs
-under `docs/superpowers/specs/`, and the parts document themselves in the package's Storybook
-(`npm run storybook` inside the package, port 6007).
+This guide says how the package is shaped and how a screen uses it. The parts document themselves
+in the package's Storybook (`npm run storybook` inside the package, port 6007).
 
 ## Layers
 
@@ -26,7 +25,7 @@ Editable, Gates, Toolbar and the Chart recipe family live in `src/patterns/`. Th
 
 Stepper, Timeline, Stat, Attachment, Banner, CodeBlock and KeyValue remain components. They describe a step sequence, event feed, metric, file, message, code display or fact; they do not own a wizard, upload service or record workflow. Composing small parts alone does not make a component a pattern.
 
-Inspector, ActionBar and WorkPane live with the patterns; Block is replaced by the layout Section. Inspector has its own page. ActionBar and WorkPane have no stories or page (`RETIRED_STORY_EXPORTS` in `scripts/ds-check.mjs`), so no render, accessibility or layout check reaches them: the application's control and parameter pickers use WorkPane, and nothing uses ActionBar. Do not start a new use of either; a screen that needs one raises it first.
+Inspector, ActionBar and WorkPane live with the patterns, each with its stories and page. WorkPane is the list-and-detail pane the application's control and parameter pickers use: side by side when wide, a drill-in with Back to the row when narrow. Nothing uses ActionBar; a screen that needs a pinned work header raises it before starting a use.
 
 The application's components and routes assemble these. A domain concept with one visual
 representation (a status, a record link, an identifier) gets one application component that binds
@@ -96,8 +95,41 @@ interactions between options and intentional visual differences in the same comp
 Port source with relative imports and package `cn`; never import application source into the
 package. Use Ledger tokens for styling and keep the existing layer boundaries.
 
+A part that renders a heading takes its level from the heading-level context and never fixes
+one: Heading, PageHeader.Title, Section.Title, Shell.Panel.Title, CollapsibleHeader,
+AccordionTrigger, Inspector.Group, Item.Group, Related, EmptyTitle, ErrorSummary, a Timeline
+group's title and Chart.Frame's title read it, and fall back to their own default where no
+`HeadingLevelProvider` is above them. A titled Section and Shell.Panel.Body give what they hold the
+next level. Dialog, Sheet and AlertDialog content start an outline of their own: the title is its
+h2 and the headings inside take 3. A portal or a rail of your own that starts an outline wraps its
+content in a provider with `level`. CardTitle is a div, which chooses no level, until `render`
+makes it a heading, and its page says so. A new part with a heading reads the context, and takes
+`render` for another element.
+
+A part that clips its content (`overflow: hidden`, a truncating cell, a collapsing panel) keeps
+the focus ring of what it holds whole: it leaves `space.050` of ring room in its padding, or its
+focusable children draw the inset ring, `outline-field-focused`. The storybook-light gate fails a
+tab stop whose ring its container cuts by half or more.
+
 Patterns assemble repeated interactions, such as record selection or inline editing. Options
 for one component, such as Badge's status tone, size and icon, belong on that component.
+
+### Long content
+
+Real content is longer than a fixture. Every part holds an 80-character identifier, a German
+label and a title twice its usual length without scrolling the page sideways or cutting a word
+with no way to read it.
+
+- Identifiers, hashes, URLs and paths break anywhere (`break-all` on the value, as on an Id that
+  holds a hash, never on its label), so they wrap in a narrow rail.
+- Titles, headings, errors, alerts and notifications always wrap; they never truncate.
+- Only a row's field truncates (a table cell, a list row's meta, a rail's value, a tab's label),
+  and a truncated text always has its reveal: Truncate and KeyValue give the whole text when
+  they cut it, and `useIsTruncated` tells a part of your own when it has.
+- A file name truncates in the middle, so its extension stays, as Attachment does.
+- A part's stories include one with long values; the storybook-long gate lengthens every text in
+  the families that show titles, values and stamps, and fails on sideways scroll, paint past the
+  frame, or text cut with no ellipsis.
 
 Family pages in Storybook own each component's current API, defaults, integration examples and migration guidance. Keep shared rules here; keep release changes in the [changelog](../../packages/design-system/CHANGELOG.md). The [handoff](design-system-migration-handoff.md) records completed migration work and remaining integration risks.
 
@@ -113,9 +145,18 @@ Family pages in Storybook own each component's current API, defaults, integratio
 - **No domain words in the kit.** Severity, finding, control and requirement live in routes and
   `lib`. The kit knows tones, identifiers and values.
 - **Extend components deliberately.** Keep native DOM names and composition behavior,
-  and add useful product options to the same component. Existing Ledger axes retain their documented meanings
-  until migrated: sizes include `xsmall`, `small`, `medium`, `large`; tones describe
-  `neutral`, `information`, `success`, `warning`, `danger`, and `brand` where supported.
+  and add useful product options to the same component. Tones describe `neutral`,
+  `information`, `success`, `warning`, `danger`, and `brand` where supported.
+- **One size scale.** `size` names a step on one scale, `xxsmall` to `xlarge`, and a part offers
+  only the steps it draws. A control's height follows `dimension.control`: xsmall 24px, small
+  28px, medium 32px, large 36px. Button defaults to `medium`; IconButton defaults to `small` and adds
+  `xxsmall` for a row control, so an IconButton beside a default Button takes `size="medium"`.
+  Input, Select, Combobox and the date and time fields take `small` or `medium`. A `link`
+  variant Button ignores `size`: it is as tall as its text. `compact` names a
+  density, not a size (Item, Empty). Card, Switch and SelectTrigger still accept shadcn's `sm`
+  and `default` as deprecated spellings for one version; AlertDialogContent's `default` and `sm`,
+  Toggle's `sm`, `default` and `lg`, and InputGroup's `xs` and `sm` are those parts' own spellings
+  until they move onto the scale.
 
 ## What the lint enforces
 
@@ -127,7 +168,7 @@ Every rule, what it reports, what to write instead and which preset turns it on 
 Storybook's [Lint rules](../../packages/design-system/src/stories/docs/Lint.mdx) page (Guidance/Lint
 rules, also in `packages/design-system/llms.txt`). Change that table with the rule.
 
-The kit's own structural utilities, defined on tokens in `src/styles/`, pass `ledger/no-non-token-class` by name; the `structural` list in `eslint-plugin/index.js` holds them all. The ones that carry a responsive or touch rule:
+The kit's own structural utilities, defined on tokens in `src/styles/`, pass `ledger/no-non-token-class` by name: the token build reads every `@utility` the kit's CSS declares into `src/generated/lint.json`, so a new one needs no edit to the lint. Run `npm run build:tokens -w packages/design-system` after changing a stylesheet and commit the regenerated files; until then the class rules report the lint data as stale, at line 1 of each file. The ones that carry a responsive or touch rule:
 
 - `page-header` (layout.css): PageHeader's row; the heading keeps a 14rem measure, and actions that do not fit beside it take the next row, at the end.
 - `section-header` (layout.css): Section.Header's row, on the same rule at body size with a 12rem measure, or the heading's own width when that is shorter.
@@ -145,11 +186,11 @@ The root route mounts `AppLayout` once around its outlet. Routes compose `PageHe
 
 Control and requirement content lives in `src/components/prototype/`; `record-preview.tsx` owns shared application preview navigation and destinations. Full-record routes and collection previews consume the same feature content, editors and action rules; each caller supplies its header and properties placement. Routes own `PageHeader`, `Shell.Aside` and `Shell.Panel`. Keep domain workflow out of the design-system package. Record names are full-record links; the eye opens the preview. Selected record, control scope and work tab live in route search parameters so Back, Forward and refresh reproduce the view. Tabs use separate `keepMounted` panels to retain drafts while changing tabs; changing records or leaving the view ends the local editing session.
 
-Aside follows Main below 1200px and sits beside it above that. A Panel is inline from 1280px, the full height of the window, with the banner and the top nav stopping at its edge; below that it replaces the visible work area under the top nav while Main remains mounted. With both regions present, Aside follows Main until 1760px. Main uses document scrolling; Panel scrolls within the available viewport. Resizing, Escape, visible close and focus return belong to Panel. Use Base UI Sheet when the task needs modal focus containment.
+Aside follows Main below the `aside` breakpoint (1200px) and sits beside it above that. A Panel is the last column from the large breakpoint (1024px), the height of the window under the banner, with the top nav stopping at its edge. Between the large and the `panel` breakpoint (1280px) an open panel shows the side nav collapsed, as its icon rail or hidden, and gives it back as the reader left it on close, without touching the stored preference. Below the large breakpoint the panel replaces the visible work area under the top nav while Main remains mounted. With both regions present, Aside follows Main until the `wide` breakpoint (1760px). Main uses document scrolling; Panel scrolls within the available viewport. Resizing, Escape, visible close and focus return belong to Panel. Use Base UI Sheet when the task needs modal focus containment. The Shell page in the Storybook holds the full placement rules and their stories.
 
-A collection preview's outer panel bar is navigation only: it composes `Shell.Panel.Header`, `Panel.Actions` holding [PreviewNavigation](../../packages/design-system/src/stories/patterns/PreviewNavigation.mdx) (previous, next, the announced position and an open-in-new-tab link to the full record), Back for a nested frame, and `Panel.Close`. The record's visible name and its actions are an inner `PageHeader` at the start of `Panel.Body`, its title an h2. Navigation follows the table's current filtered, sorted and expanded rows. For linking many related records, use [RecordBrowser](../../packages/design-system/src/stories/patterns/RecordBrowser.mdx): a large dialog with table search, filters, multi-selection and an internal preview. Application adapters supply eligible records and relationship rules. Previewing is independent of selecting; confirmation links the selection, including records hidden by a filter or another page.
+A collection preview's outer panel bar is navigation only: it composes `Shell.Panel.Header`, `Panel.Actions` holding [PreviewNavigation](../../packages/design-system/src/stories/patterns/PreviewNavigation.mdx) (previous, next, the announced position and an open-in-new-tab link to the full record), Back for a nested frame, and `Panel.Close`. The record's visible name and its actions are an inner `PageHeader` at the start of `Panel.Body`, its title an h2. PreviewNavigation takes the position over every filtered, sorted row rather than one page, and `recordLabel` so its announcement names the record; which rows it walks and what Close and Back do in this application are the [product pattern contract](product-patterns.md)'s Collection previews. For linking many related records, use [RecordBrowser](../../packages/design-system/src/stories/patterns/RecordBrowser.mdx): a large dialog with table search, filters, multi-selection and an internal preview. Application adapters supply eligible records and relationship rules. Previewing is independent of selecting; confirmation links the selection, including records hidden by a filter or another page.
 
-`IndexPage`, `ShowPage`, `RecordHeader`, `PreviewRail`, `PreviewSplit`, the standalone `Panel` frame and `Block` are removed. One composable `PageHeader` accepts native props and refs; record fields and editing stay outside the header. `Section` is an optional titled presentation region with an opt-in rule. Disclosure uses Collapsible. RecordPicker, PreviewSheet, DataTable and Composer remain reusable interactions.
+One composable `PageHeader` accepts native props and refs; record fields and editing stay outside the header. `Section` is an optional titled presentation region with an opt-in rule. Disclosure uses Collapsible. RecordPicker, PreviewSheet, DataTable and Composer remain reusable interactions.
 
 The [Pages guide](../../packages/design-system/src/stories/layout/Pages.mdx) holds the layout examples and records the conventions: meaningful headings, task-based tabs, real navigation links, explicit dismissal, preserved in-progress work and responsive focus behavior. Keyboard and modal behavior follow WAI-ARIA and Base UI; visual composition follows the task and available space.
 
@@ -189,8 +230,13 @@ The [Pages guide](../../packages/design-system/src/stories/layout/Pages.mdx) hol
    packed-consumer fixture when exports, packaging or consumer integration change.
 
 `npm run ds:check` checks executable component coverage and family-page presence. Coverage
-exceptions in `scripts/ds-check.allow` may only shrink. Review documentation against the
-implementation and examples; the coverage check does not verify prose accuracy.
+exceptions in `scripts/ds-check.allow` may only shrink. It fails when a compound's member is a
+function its module does not export, so docgen gives it no props table, and when a family page
+renders no `<ArgTypes>` for its stories' component. It reports, without failing yet, the families
+with no page showing generated props, and counts the catalog parts the application imports
+(`npm run ds:check -- --usage` lists the rest): a part the prototype never renders is a part it
+does not test. Review documentation against the implementation and examples; the coverage check
+does not verify prose accuracy.
 
 ## Versioning and publishing
 
@@ -236,13 +282,10 @@ Screens import the package's documented APIs.
 
 ## Where the thinking is
 
-- `docs/superpowers/specs/2026-09-02-token-architecture.md`: the token grammar, the build, the
-  primitives, the lint, and the sequence of steps with what landed when.
-- `docs/superpowers/specs/2026-09-02-ui-patterns-audit.md`: the audit of the spine surfaces, the
-  decisions, and the patterns flagged after it.
-- `docs/superpowers/specs/2026-09-02-picker-sheet.md`: choosing many from hundreds.
-- `docs/superpowers/specs/2026-09-02-navigation-system.md`: the shell on Atlassian's grammar, what was
-  left out, and the prototype's cutover plan.
+- The Storybook's Guidance pages: the token grammar, which token and which part to choose, the
+  recipes, the lint rules, and testing and review.
+- `docs/guides/ledger-audit-2026-09-24/README.md`: the family-by-family audit of the kit and its
+  use in the application, with its decisions.
 - `docs/next.md`: the living list of what is next and what is waiting on a decision.
 - `packages/design-system/AGENTS.md`: the entry point for a coding agent working on the package; it points here, at the Storybook's Guidance/Agents page and at the checks. `packages/design-system/llms.txt` is the Storybook as one generated file.
 

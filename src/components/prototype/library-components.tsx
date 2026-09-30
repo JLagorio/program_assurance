@@ -1,4 +1,5 @@
 import { StatusBadge } from "@/components/app/status";
+import { Page } from "@/components/app/shell";
 import { useWorkspace } from "@/components/app/workspace";
 import { useRow, useRows, type Row } from "@/lib/models";
 import { productCreateLabel, productRecordNoun } from "@/lib/product-records";
@@ -6,7 +7,6 @@ import { labelFor, type DataRecord, type RecordValue } from "@/lib/records";
 import { implementationStatuses, revisionStates, statusLabel } from "@/lib/status";
 import {
   Absent,
-  Badge,
   Button,
   Count,
   DataTable,
@@ -16,7 +16,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Icon,
   Id,
   Inspector,
   KeyValue,
@@ -24,9 +23,7 @@ import {
   Prose,
   Shell,
   Stack,
-  Table,
   Tabs,
-  TabsContent,
   TabsList,
   TabsTrigger,
   Text,
@@ -34,22 +31,24 @@ import {
   toast,
   useDataTable,
   useLedgerLocale,
-  VisuallyHidden,
 } from "@ledger/design-system";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ChevronDown, ExternalLink, Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ChevronDown, Plus } from "lucide-react";
+import { useMemo, useRef, useState, type RefObject } from "react";
 import { ControlInspector, type ControlSummary } from "./library-controls";
-import { LibrarySelect, QueryValue } from "./library-shared";
+import { LibrarySelect, QueryValue, VersionHistory } from "./library-shared";
 import {
   canAuthorLibrary,
   downloadLibraryRecords,
   nextVersionNumber,
   usePublishVersion,
+  useVersionFocus,
+  type VersionChoice,
 } from "./library-utils";
 import { ProductCollection } from "./product-collection";
 import { ProductRecordDialog } from "./product-record-dialog";
-import { recordDestination, RecordLink, useDisplayedRecords } from "./record-preview";
+import { RetainedTabPanels } from "./program-shared";
+import { recordDestination, RecordLink, useDisplayedRecords, useEndOnHide } from "./record-preview";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { RecordTrail, TrailLink } from "./record-trail";
 import { EmptyMessage, MissingRecord, QueryState } from "./work-common";
@@ -116,7 +115,7 @@ export function ComponentLibraryIndex() {
           header: "Component definition",
           hideable: false,
           priority: 0,
-          width: 220,
+          minWidth: 200,
           cell: (row) => (
             <RecordLink table="component_definitions" record={row}>
               {row.name}
@@ -125,7 +124,7 @@ export function ComponentLibraryIndex() {
         }),
         c.text("types", { header: "Type", width: 170 }),
         c.text("categoryLabel", { header: "Category", width: 180 }),
-        c.number("version", { header: "Latest version", width: 120 }),
+        c.number("version", { header: "Latest version", width: 140 }),
         c.number("controls", { header: "Controls", width: 100 }),
         c.status("status", { header: "State", width: 130, statuses: revisionStates }),
       ]),
@@ -135,6 +134,8 @@ export function ComponentLibraryIndex() {
     data: rows,
     columns,
     getRowId: (row) => row.id,
+    // The row's controls are named by code and name, also once a narrow frame folds the ID.
+    rowLabel: (row) => `${row.code} · ${row.name}`,
     label: "Reusable component library",
     view: "live-component-library",
     resizable: true,
@@ -148,7 +149,7 @@ export function ComponentLibraryIndex() {
     </Button>
   );
   return (
-    <Stack space="space.200" className="animate-rise">
+    <Page>
       <PageHeader>
         <PageHeader.Heading>
           <PageHeader.Title>Components</PageHeader.Title>
@@ -247,7 +248,7 @@ export function ComponentLibraryIndex() {
           onClose={() => setSelected(null)}
         />
       )}
-    </Stack>
+    </Page>
   );
 }
 
@@ -290,6 +291,8 @@ export function ComponentLibraryRecord({
     "Programs can add it from the library once it is published.",
   );
   const [selectedVersion, setSelectedVersion] = useState(initialVersion ?? "");
+  // Which control chose the version, so the new version's page gives focus to its twin.
+  const versionChoice = useRef<VersionChoice | null>(null);
   const [edit, setEdit] = useState<EditTarget | null>(null);
   const versions = useMemo(
     () => [...(revisions.data ?? [])].sort((a, b) => b.version_number - a.version_number),
@@ -348,7 +351,7 @@ export function ComponentLibraryRecord({
     );
   const record = definition.data;
   return (
-    <Stack space="space.200" className="animate-rise">
+    <Page>
       <PageHeader>
         <RecordTrail current={record.name}>
           <TrailLink to="/library/components">Components</TrailLink>
@@ -426,6 +429,7 @@ export function ComponentLibraryRecord({
             revision={current}
             versions={versions}
             onVersion={selectVersion}
+            versionChoice={versionChoice}
             editable={editable}
             tab={tab}
             onTab={changeTab}
@@ -449,7 +453,7 @@ export function ComponentLibraryRecord({
           />
         )}
       </QueryState>
-    </Stack>
+    </Page>
   );
 }
 
@@ -476,6 +480,7 @@ function ComponentRevision({
   revision,
   versions,
   onVersion,
+  versionChoice,
   editable,
   tab,
   onTab,
@@ -484,12 +489,15 @@ function ComponentRevision({
   revision: Row<"component_definition_revisions">;
   versions: Row<"component_definition_revisions">[];
   onVersion: (id: string) => void;
+  /** Where the last version choice came from, which this page's focus reads once it is drawn. */
+  versionChoice: RefObject<VersionChoice | null>;
   editable: boolean;
   tab: ComponentTab;
   onTab: (tab: ComponentTab) => void;
 }) {
   const navigate = useNavigate();
   const locale = useLedgerLocale();
+  const versionFocus = useVersionFocus(versionChoice);
   const components = useRows("defined_components", {
     component_definition_revision_id: revision.id,
   });
@@ -510,6 +518,16 @@ function ComponentRevision({
   const [edit, setEdit] = useState<EditTarget | null>(null);
   const [inspected, setInspected] = useState<ControlSummary | null>(null);
   const [readingControl, setReadingControl] = useState<ControlSummary | null>(null);
+  // A preview belongs to the tab it was opened from: choosing another tab ends it.
+  const [previewTab, setPreviewTab] = useState(tab);
+  if (previewTab !== tab) {
+    setPreviewTab(tab);
+    setStructurePreview(null);
+    setUsePreview(null);
+    setClaimPreview(null);
+    setInspected(null);
+    setReadingControl(null);
+  }
   const canEdit = editable && revision.state === "draft";
   const componentIds = useMemo(
     () => new Set(components.data?.map((component) => component.id)),
@@ -599,6 +617,7 @@ function ComponentRevision({
     data: claimRows,
     columns,
     getRowId: (row) => row.id,
+    rowLabel: (row) => (row.code ? `${row.code} ${row.title}` : row.title),
     label: "Reusable control implementations",
     view: "live-component-controls",
     resizable: true,
@@ -632,7 +651,7 @@ function ComponentRevision({
           header: "Component",
           hideable: false,
           priority: 0,
-          width: 240,
+          minWidth: 200,
           preview: setStructurePreview,
           active: (row) => row.id === structurePreview?.id,
           cell: (row) => (
@@ -664,6 +683,7 @@ function ComponentRevision({
     data: structureRows,
     columns: structureColumns,
     getRowId: (row) => row.id,
+    rowLabel: (row) => row.name,
     label: "Component structure",
     view: "component-definition-structure",
     resizable: true,
@@ -743,6 +763,7 @@ function ComponentRevision({
     data: useRowsForTable,
     columns: useColumns,
     getRowId: (row) => row.id,
+    rowLabel: (row) => row.name,
     label: "Program component uses",
     view: "component-definition-program-uses",
     resizable: true,
@@ -809,179 +830,166 @@ function ComponentRevision({
             </TabsTrigger>
           ))}
         </TabsList>
-        <TabsContent value={tab}>
-          {tab === "Overview" && (
-            <Stack space="space.200" className="max-w-layout-measure">
-              <Prose label="Description">
-                {definition.description || <Absent label="Not recorded" />}
-              </Prose>
-              {authored.map(([label, text]) =>
-                text ? (
-                  <Prose key={label} label={label}>
-                    {text}
-                  </Prose>
-                ) : null,
-              )}
-            </Stack>
-          )}
-          {tab === "Controls" && (
-            <ProductCollection
-              action={createImplementationAction("small")}
-              table={table}
-              queries={[implementations, controls, components]}
-              onRowClick={(claim) =>
-                void navigate(recordDestination("defined_component_implementations", claim))
-              }
-              empty={{
-                illustration: "shield",
-                title: "No control implementations",
-                description: canEdit
-                  ? noComponents
-                    ? "Add a component in Structure, then author its control implementations."
-                    : "Author how this version's components implement their controls."
-                  : "The control implementations authored for this version appear here.",
-                action: createImplementationAction("medium"),
-              }}
-              fill
-              searchLabel="Find control implementations"
-              filters={
-                <>
-                  <DataTable.Filter table={table} column="component" />
-                  <DataTable.Filter table={table} column="implementation_status" />
-                </>
-              }
-            />
-          )}
-          {tab === "Structure" && (
-            <ProductCollection
-              table={structureTable}
-              queries={[components]}
-              fill
-              onRowClick={(row) => void navigate(recordDestination("defined_components", row))}
-              empty={{
-                illustration: "tree",
-                title: "No components yet",
-                description: canEdit
-                  ? "Create a component to author this version's reusable implementation content."
-                  : "The components this version defines appear here.",
-                action: createComponentAction("medium"),
-              }}
-              searchLabel="Find components"
-              filters={<DataTable.Filter table={structureTable} column="typeLabel" />}
-              action={createComponentAction("small")}
-            />
-          )}
-          {tab === "Versions" && (
-            <Table label="Component versions">
-              <thead>
-                <tr>
-                  <Table.Header>Version</Table.Header>
-                  <Table.Header>State</Table.Header>
-                  <Table.Header>Published</Table.Header>
-                  <Table.Header>
-                    <VisuallyHidden>Open</VisuallyHidden>
-                  </Table.Header>
-                </tr>
-              </thead>
-              <tbody>
-                {versions.map((version) => {
-                  const shown = version.id === revision.id;
-                  return (
-                    <Table.Row
-                      key={version.id}
-                      isSelected={shown}
-                      {...(shown ? { "aria-current": "true" as const } : {})}
-                    >
-                      <Table.Cell>{version.version_number}</Table.Cell>
-                      <Table.Cell>
-                        <StatusBadge
-                          statuses={revisionStates}
-                          value={version.state}
-                          size="xsmall"
-                        />
-                      </Table.Cell>
-                      <Table.Cell>
-                        <DateTime value={version.published_at} absentLabel="Not published" />
-                      </Table.Cell>
-                      <Table.Cell>
-                        {shown ? (
-                          <Badge variant="secondary" tone="information" size="xsmall">
-                            Viewing
-                          </Badge>
-                        ) : (
-                          <Button
-                            variant="subtle"
-                            size="small"
-                            onClick={() => onVersion(version.id)}
-                          >
-                            Open version {version.version_number}
-                          </Button>
-                        )}
-                      </Table.Cell>
-                    </Table.Row>
-                  );
-                })}
-              </tbody>
-            </Table>
-          )}
-          {tab === "Programs" && (
-            <ProductCollection
-              table={usesTable}
-              queries={[components, uses, systems, programs]}
-              fill
-              onRowClick={(row) => void navigate(recordDestination("system_components", row))}
-              empty={{
-                illustration: "tree",
-                title: "No program uses yet",
-                description:
-                  "A program's use appears here once it adds this component version from the library.",
-              }}
-              searchLabel="Find component instances"
-              filters={<DataTable.Filter table={usesTable} column="programName" />}
-            />
-          )}
-          {(tab === "Requirements" || tab === "Evidence") && (
-            <QueryState queries={[components, uses]}>
-              <ComponentTraceability key={tab} kind={tab} uses={currentUses} />
-            </QueryState>
-          )}
-        </TabsContent>
+        {/* Each tab keeps its panel once drawn, so a register keeps its rows, question and place. */}
+        <RetainedTabPanels tabs={componentTabs} value={tab} space="space.200">
+          {(name) => {
+            switch (name) {
+              case "Overview":
+                return (
+                  <Stack space="space.200" className="max-w-layout-measure">
+                    <Prose label="Description">
+                      {definition.description || <Absent label="Not recorded" />}
+                    </Prose>
+                    {authored.map(([label, text]) =>
+                      text ? (
+                        <Prose key={label} label={label}>
+                          {text}
+                        </Prose>
+                      ) : null,
+                    )}
+                  </Stack>
+                );
+              case "Controls":
+                return (
+                  <ProductCollection
+                    action={createImplementationAction("small")}
+                    table={table}
+                    queries={[implementations, controls, components]}
+                    onRowClick={(claim) =>
+                      void navigate(recordDestination("defined_component_implementations", claim))
+                    }
+                    empty={{
+                      illustration: "shield",
+                      title: "No control implementations",
+                      description: canEdit
+                        ? noComponents
+                          ? "Add a component in Structure, then author its control implementations."
+                          : "Author how this version's components implement their controls."
+                        : "The control implementations authored for this version appear here.",
+                      action: createImplementationAction("medium"),
+                    }}
+                    fill
+                    searchLabel="Find control implementations"
+                    filters={
+                      <>
+                        <DataTable.Filter table={table} column="component" />
+                        <DataTable.Filter table={table} column="implementation_status" />
+                      </>
+                    }
+                  />
+                );
+              case "Structure":
+                return (
+                  <ProductCollection
+                    table={structureTable}
+                    queries={[components]}
+                    fill
+                    onRowClick={(row) =>
+                      void navigate(recordDestination("defined_components", row))
+                    }
+                    empty={{
+                      illustration: "tree",
+                      title: "No components yet",
+                      description: canEdit
+                        ? "Create a component to author this version's reusable implementation content."
+                        : "The components this version defines appear here.",
+                      action: createComponentAction("medium"),
+                    }}
+                    searchLabel="Find components"
+                    filters={<DataTable.Filter table={structureTable} column="typeLabel" />}
+                    action={createComponentAction("small")}
+                  />
+                );
+              case "Versions":
+                return (
+                  <VersionHistory
+                    label="Component versions"
+                    versions={versions}
+                    shownId={revision.id}
+                    shownRef={versionFocus.shown}
+                    onVersion={(id) => {
+                      versionChoice.current = "history";
+                      onVersion(id);
+                    }}
+                  />
+                );
+              case "Programs":
+                return (
+                  <ProductCollection
+                    table={usesTable}
+                    queries={[components, uses, systems, programs]}
+                    fill
+                    onRowClick={(row) => void navigate(recordDestination("system_components", row))}
+                    empty={{
+                      illustration: "tree",
+                      title: "No program uses yet",
+                      description:
+                        "A program's use appears here once it adds this component version from the library.",
+                    }}
+                    searchLabel="Find component instances"
+                    filters={<DataTable.Filter table={usesTable} column="programName" />}
+                  />
+                );
+              case "Requirements":
+              case "Evidence":
+                return (
+                  <QueryState queries={[components, uses]}>
+                    <ComponentTraceability kind={name} uses={currentUses} />
+                  </QueryState>
+                );
+            }
+          }}
+        </RetainedTabPanels>
       </Tabs>
       {tab === "Overview" && (
         <Shell.Aside label="Component details">
           <Stack space="space.200">
-            {versions.length > 1 && (
-              <LibrarySelect
-                label="Version"
-                value={revision.id}
-                options={versions.map((version) => ({
-                  value: version.id,
-                  label: `Version ${version.version_number} · ${statusLabel(revisionStates, version.state)}`,
-                }))}
-                onChange={onVersion}
-              />
-            )}
             <Inspector.Group title="Details">
               <KeyValue.Group layout="columns">
                 <KeyValue label="Code">
                   <Id>{definition.code}</Id>
                 </KeyValue>
-                <KeyValue label="Category">{labelFor(definition.category)}</KeyValue>
-                <KeyValue label="Version">{revision.version_number}</KeyValue>
+                <KeyValue label="Category" wrap>
+                  {labelFor(definition.category)}
+                </KeyValue>
+                <KeyValue label="Version">
+                  {versions.length > 1 ? (
+                    <LibrarySelect
+                      inline
+                      label="Version"
+                      value={revision.id}
+                      options={versions.map((version) => ({
+                        value: version.id,
+                        label: `${version.version_number} · ${statusLabel(revisionStates, version.state)}`,
+                      }))}
+                      triggerRef={versionFocus.select}
+                      onChange={(id) => {
+                        versionChoice.current = "select";
+                        onVersion(id);
+                      }}
+                    />
+                  ) : (
+                    revision.version_number
+                  )}
+                </KeyValue>
                 <KeyValue label="State">
                   <StatusBadge statuses={revisionStates} value={revision.state} />
                 </KeyValue>
                 <KeyValue label="Published">
-                  <DateTime value={revision.published_at} absentLabel="Not published" />
+                  <DateTime
+                    value={revision.published_at}
+                    format="date"
+                    absentLabel="Not published"
+                  />
                 </KeyValue>
                 {revision.effective_from && (
                   <KeyValue label="Effective from">
-                    <DateTime value={revision.effective_from} />
+                    <DateTime value={revision.effective_from} format="date" />
                   </KeyValue>
                 )}
                 {revision.review_due && (
                   <KeyValue label="Review due">
-                    <DateTime value={revision.review_due} />
+                    <DateTime value={revision.review_due} format="date" />
                   </KeyValue>
                 )}
                 <KeyValue label="Components">
@@ -1197,6 +1205,11 @@ function ComponentTraceability({
   );
   const [requirementPreview, setRequirementPreview] = useState<RequirementLine | null>(null);
   const [evidencePreview, setEvidencePreview] = useState<EvidenceLine | null>(null);
+  // A preview belongs to its tab: it ends when the tab hides this collection.
+  useEndOnHide(() => {
+    setRequirementPreview(null);
+    setEvidencePreview(null);
+  });
   const relevant = useMemo(() => {
     const useIds = new Set(uses.map((use) => use.id));
     return (contributions.data ?? []).filter((row) => useIds.has(row.system_component_id));
@@ -1304,7 +1317,7 @@ function ComponentTraceability({
           active: (row) => row.id === evidencePreview?.id,
         }),
         c.status("state", { header: "State", width: 130, statuses: revisionStates }),
-        c.date("collected_at", { header: "Collected", width: 130 }),
+        c.date("collected_at", { header: "Collected", width: 120 }),
       ]),
     [evidencePreview?.id],
   );
@@ -1312,6 +1325,7 @@ function ComponentTraceability({
     data: evidenceRows,
     columns: evidenceColumns,
     getRowId: (row) => row.id,
+    rowLabel: (row) => `${row.title} version ${row.version_number}`,
     label: "Evidence traced to this component",
     view: "component-definition-evidence",
     resizable: true,
@@ -1430,12 +1444,8 @@ type EvidenceLine = Row<"evidence_versions"> & { title: string };
 function EvidenceLocation({ version }: { version: Row<"evidence_versions"> }) {
   if (version.external_uri && /^https?:\/\//.test(version.external_uri))
     return (
-      <TextLink href={version.external_uri} target="_blank" rel="noopener noreferrer">
-        {version.external_uri}{" "}
-        <Icon>
-          <ExternalLink />
-        </Icon>
-        <VisuallyHidden> (opens in a new tab)</VisuallyHidden>
+      <TextLink href={version.external_uri} newTab className="break-all">
+        {version.external_uri}
       </TextLink>
     );
   if (version.external_uri) return <Id>{version.external_uri}</Id>;

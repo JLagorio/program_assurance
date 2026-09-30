@@ -1,12 +1,23 @@
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
+import { ExternalLink } from "lucide-react";
 
 import { cn } from "../lib/cn";
+import { useLedgerLocale } from "../lib/locale";
+import { VisuallyHidden } from "../primitives/visually-hidden";
+import { Icon } from "./icon";
 
 export type TextLinkProps = useRender.ComponentProps<"a"> & {
   /** Left unset, the link takes the surrounding size. */
   size?: "small" | "medium" | undefined;
   weight?: "regular" | "medium" | undefined;
+  /**
+   * Opens the destination in a new tab and says so: `target="_blank"`, `rel="noopener noreferrer"`,
+   * an external-link icon after the last word, and "(opens in a new tab)" read after the name.
+   * For a destination outside the product, or one that would cost the reader their place (a
+   * draft, a wizard step, a dialog). A `target` or `rel` of your own wins.
+   */
+  newTab?: boolean | undefined;
 };
 
 const sizes = { small: "font-body-small", medium: "font-body" };
@@ -30,8 +41,34 @@ function markInText(node: HTMLElement | null) {
   node.toggleAttribute("data-in-text", inText);
 }
 
-/** A native anchor; compose a router link with render. Actions use Button variant="link". */
-export function TextLink({ render, size, weight, className, ...props }: TextLinkProps) {
+/** A native anchor; compose a router link with render. Actions use Button variant="link". `newTab` opens it in a new tab and says so. */
+export function TextLink({
+  render,
+  size,
+  weight,
+  newTab = false,
+  className,
+  children,
+  ...props
+}: TextLinkProps) {
+  const { t } = useLedgerLocale();
+  // The icon is joined to the last word (U+2060 forbids a break before it), so a wrapping link
+  // never leaves the icon alone on a line. Joiner and icon are hidden from the link's name; the
+  // words after them are for a screen reader only.
+  const content = newTab ? (
+    <>
+      {children}
+      <span data-slot="text-link-new-tab" aria-hidden="true" className="whitespace-nowrap ps-025">
+        {"\u2060"}
+        <Icon className="align-middle">
+          <ExternalLink />
+        </Icon>
+      </span>
+      <VisuallyHidden> {t("opensInNewTab")}</VisuallyHidden>
+    </>
+  ) : (
+    children
+  );
   return useRender({
     defaultTagName: "a",
     render,
@@ -48,6 +85,8 @@ export function TextLink({ render, size, weight, className, ...props }: TextLink
           weight && weights[weight],
           className,
         ),
+        ...(newTab ? { target: "_blank", rel: "noopener noreferrer" } : {}),
+        ...(children !== undefined || newTab ? { children: content } : {}),
       },
       props,
     ),

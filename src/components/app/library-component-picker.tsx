@@ -44,17 +44,13 @@ export function LibraryComponentPicker({
   const chosen = items.find((item) => item.id === chosenId) ?? null;
   const table = useDataTable({
     columns,
-    selectable: true,
-    enableMultiRowSelection: false,
-    state: { rowSelection: chosenId ? { [chosenId]: true } : {} },
-    onRowSelectionChange: (update) => {
-      const next =
-        typeof update === "function" ? update(chosenId ? { [chosenId]: true } : {}) : update;
-      setChosenId(Object.keys(next).find((id) => next[id]) ?? null);
-    },
+    // One record: a radio per row, and a click on the row chooses it.
+    selectable: "single",
+    value: chosenId,
+    onValueChange: setChosenId,
     data: rows,
     getRowId: (row) => row.id,
-    rowLabel: (row) => `${row.definitionCode} ${row.definitionName}`,
+    rowLabel: (row) => `${row.definitionCode} · ${row.definitionName}`,
     label: "Library components",
     view: "library-component-picker",
   });
@@ -68,9 +64,10 @@ export function LibraryComponentPicker({
       width="xlarge"
       table={table}
       search={{ placeholder: "Search the library" }}
-      summary={chosen ? `${chosen.componentName} chosen` : undefined}
+      // The primary repeats the trigger and the title; the footer names the choice, the subtitle
+      // where it goes, so the label stays short enough for one line on a phone.
       action={{
-        label: chosen ? `Add ${chosen.componentName} under ${parentLabel}` : "Add component",
+        label: "Add from library",
         onClick: () => {
           if (chosen) {
             handingOff.current = true;
@@ -84,7 +81,6 @@ export function LibraryComponentPicker({
         responsive
         table={table}
         state={pending ? "loading" : "ready"}
-        onRowClick={(row) => setChosenId(row.id)}
         empty={{
           illustration: "records",
           title: "Nothing published to add",

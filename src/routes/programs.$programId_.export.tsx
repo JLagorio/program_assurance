@@ -1,21 +1,15 @@
-import { StatusBadge } from "@/components/app/status";
+import { useRecordTitle } from "@/components/app/browser-title";
+import { Page, RecordPending } from "@/components/app/shell";
 import { QueryValue } from "@/components/prototype/library-shared";
 import { ProgramQueryState } from "@/components/prototype/program-shared";
-import { RelationName } from "@/components/prototype/record-tools";
+import { ProgramDetailsAside } from "@/components/prototype/program-workspace";
 import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
 import { MissingRecord } from "@/components/prototype/work-common";
 import { useRow, useRows } from "@/lib/models";
-import { programStatuses } from "@/lib/status";
 import {
   Button,
-  DateTime,
-  Id,
-  Inspector,
-  KeyValue,
   PageHeader,
   Section,
-  Shell,
-  Stack,
   Stat,
   downloadText,
   toast,
@@ -26,6 +20,7 @@ import { Download } from "lucide-react";
 
 export const Route = createFileRoute("/programs/$programId_/export")({
   head: () => ({ meta: [{ title: "Program — Program Assurance" }] }),
+  pendingComponent: RecordPending,
   component: ProgramExport,
 });
 
@@ -33,6 +28,7 @@ function ProgramExport() {
   const { programId } = Route.useParams();
   const locale = useLedgerLocale();
   const program = useRow("programs", programId);
+  useRecordTitle("Program", program.data?.name);
   const systems = useRows("systems", { program_id: programId });
   const requirements = useRows("engineering_requirements", { program_id: programId });
   const plans = useRows("ssp_revisions");
@@ -100,7 +96,7 @@ function ProgramExport() {
   if (!program.data) return <ProgramQueryState queries={[program]} />;
   const record = program.data;
   return (
-    <Stack space="space.250">
+    <Page>
       <PageHeader>
         <RecordTrail current="Program transfer">
           <TrailLink to="/programs">Programs</TrailLink>
@@ -122,30 +118,7 @@ function ProgramExport() {
           </Button>
         </PageHeader.Actions>
       </PageHeader>
-      <Shell.Aside label="Program details">
-        <Inspector.Group title="Details">
-          <KeyValue.Group>
-            <KeyValue label="Status">
-              <StatusBadge statuses={programStatuses} value={record.status} />
-            </KeyValue>
-            <KeyValue label="Code">
-              <Id>{record.code}</Id>
-            </KeyValue>
-            <KeyValue label="Sponsor">
-              <RelationName table="parties" id={record.sponsor_party_id} />
-            </KeyValue>
-            <KeyValue label="Starts">
-              <DateTime value={record.starts_on} absentLabel="Not recorded" />
-            </KeyValue>
-            <KeyValue label="Ends">
-              <DateTime value={record.ends_on} absentLabel="Not recorded" />
-            </KeyValue>
-            <KeyValue label="Updated">
-              <DateTime value={record.updated_at} format="date" />
-            </KeyValue>
-          </KeyValue.Group>
-        </Inspector.Group>
-      </Shell.Aside>
+      <ProgramDetailsAside program={record} />
       {failed && (
         <ProgramQueryState
           queries={queries.filter((query) => query.isError)}
@@ -170,6 +143,6 @@ function ProgramExport() {
           ))}
         </Stat.Grid>
       </Section>
-    </Stack>
+    </Page>
   );
 }

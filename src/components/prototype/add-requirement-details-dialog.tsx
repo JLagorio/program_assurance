@@ -272,7 +272,9 @@ export function AddRequirementDetailsDialog({
                     value={fields.ownerPartyId}
                     parties={roster}
                     onChange={(value) => change("ownerPartyId", value)}
-                    disabled={!parties.data}
+                    loading={parties.isPending && !parties.isError}
+                    loadError={parties.isError}
+                    onRetry={() => void parties.refetch()}
                     placeholder="Choose owner"
                     error={errors.get("ownerPartyId")}
                     controlRef={feedback.ref("ownerPartyId")}

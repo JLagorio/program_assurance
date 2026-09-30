@@ -1,10 +1,10 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { AlertCircle } from "lucide-react";
 import {
   Alert,
   AlertAction,
   AlertDescription,
+  AlertIcon,
   AlertTitle,
   Button,
   Dialog,
@@ -241,7 +241,7 @@ export function SystemElementDialog({
             <Stack space="space.200">
               {parties.error ? (
                 <Alert variant="destructive" role="alert">
-                  <AlertCircle aria-hidden />
+                  <AlertIcon />
                   <AlertTitle>The owners could not be loaded</AlertTitle>
                   <AlertDescription>{parties.error.message}</AlertDescription>
                   <AlertAction>
@@ -258,7 +258,7 @@ export function SystemElementDialog({
               ) : null}
               {failure ? (
                 <Alert ref={failureRef} variant="destructive" role="alert">
-                  <AlertCircle aria-hidden />
+                  <AlertIcon />
                   <AlertTitle>
                     {baseline ? "The system was not saved" : "The system was not created"}
                   </AlertTitle>

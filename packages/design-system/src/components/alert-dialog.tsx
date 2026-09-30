@@ -2,7 +2,7 @@ import { AlertDialog as Primitive } from "@base-ui/react/alert-dialog";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
-import type { ComponentProps } from "react";
+import { useMemo, type ComponentProps } from "react";
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
@@ -10,10 +10,15 @@ import { HeadingLevelProvider } from "../primitives/heading-level";
 import { Button, type ButtonProps } from "./button";
 import {
   OverlayPendingContext,
+  OverlayRootContext,
   bodySlot,
   overlaySurface,
   pendingCloseRender,
   pendingOpenChange,
+  useBlanketPress,
+  useFooterClearance,
+  useOpener,
+  useOpenerFocus,
   useOverlayPending,
   useReadOnlyScroller,
   withStyle,
@@ -34,11 +39,16 @@ export function AlertDialog<Payload = unknown>({
   ...props
 }: AlertDialogProps<Payload>) {
   const { direction } = useLedgerLocale();
+  const opener = useOpener(props.open);
+  // The blanket never dismisses an alert dialog, so a press on it always keeps focus.
+  const root = useMemo(() => ({ opener, holdsBlanket: true }), [opener]);
   return (
     <DirectionProvider direction={direction}>
-      <OverlayPendingContext.Provider value={pending}>
-        <Primitive.Root {...props} onOpenChange={pendingOpenChange(pending, onOpenChange)} />
-      </OverlayPendingContext.Provider>
+      <OverlayRootContext.Provider value={root}>
+        <OverlayPendingContext.Provider value={pending}>
+          <Primitive.Root {...props} onOpenChange={pendingOpenChange(pending, onOpenChange)} />
+        </OverlayPendingContext.Provider>
+      </OverlayRootContext.Provider>
     </DirectionProvider>
   );
 }
@@ -51,11 +61,17 @@ export function AlertDialogPortal(props: AlertDialogPortalProps) {
   return <Primitive.Portal {...props} />;
 }
 export type AlertDialogOverlayProps = Primitive.Backdrop.Props;
-export function AlertDialogOverlay({ className, ...props }: AlertDialogOverlayProps) {
+/** The blanket. A press on it never dismisses the dialog, and keeps focus where the reader has it. */
+export function AlertDialogOverlay({ className, onMouseDown, ...props }: AlertDialogOverlayProps) {
+  const press = useBlanketPress();
   return (
     <Primitive.Backdrop
       data-slot="alert-dialog-overlay"
       {...props}
+      onMouseDown={(event) => {
+        press?.(event);
+        onMouseDown?.(event);
+      }}
       className={classes(
         "fixed inset-0 z-50 bg-blanket data-open:animate-dim-in data-closed:animate-dim-out",
         className,
@@ -73,10 +89,12 @@ export function AlertDialogContent({
   size = "default",
   dir,
   style,
+  finalFocus,
   ...props
 }: AlertDialogContentProps) {
   const { direction } = useLedgerLocale();
   const pending = useOverlayPending();
+  const returnFocus = useOpenerFocus();
   return (
     <DirectionProvider direction={dir === "rtl" || dir === "ltr" ? dir : direction}>
       <AlertDialogPortal>
@@ -87,6 +105,7 @@ export function AlertDialogContent({
           dir={dir ?? direction}
           {...(pending ? { "aria-busy": true, "data-pending": "" } : {})}
           {...props}
+          finalFocus={finalFocus === undefined ? returnFocus : finalFocus}
           style={withStyle(overlaySurface, style)}
           className={classes(
             "group/alert-dialog-content fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[440px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto overscroll-none rounded-xxlarge bg-surface-overlay text-default shadow-overlay outline-none data-[size=sm]:max-w-[320px] data-open:animate-dialog-in data-closed:animate-dialog-out",
@@ -174,15 +193,21 @@ export function AlertDialogBody({ className, render, ref, ...props }: AlertDialo
   });
 }
 export type AlertDialogFooterProps = ComponentProps<"div">;
-export function AlertDialogFooter({ className, ...props }: AlertDialogFooterProps) {
+/**
+ * The answers, held at the bottom. When the whole popup scrolls (a window under 30rem tall), a
+ * control that takes focus scrolls clear of them rather than under them.
+ */
+export function AlertDialogFooter({ className, ref, ...props }: AlertDialogFooterProps) {
+  const clearance = useFooterClearance(ref);
   return (
     <div
       data-slot="alert-dialog-footer"
       className={cn(
-        "sticky bottom-0 z-10 flex shrink-0 flex-wrap items-center justify-end gap-100 border-t border-default bg-surface-sunken px-250 py-150",
+        "sticky bottom-0 z-10 flex shrink-0 flex-wrap items-center justify-end gap-100 border-t border-default bg-surface-current px-250 py-150",
         className,
       )}
       {...props}
+      ref={clearance}
     />
   );
 }
@@ -192,7 +217,7 @@ export function AlertDialogTitle({ className, ...props }: AlertDialogTitleProps)
     <Primitive.Title
       data-slot="alert-dialog-title"
       {...props}
-      className={classes("font-heading-xsmall text-default", className)}
+      className={classes("font-heading-xsmall text-default break-words", className)}
     />
   );
 }
@@ -202,7 +227,7 @@ export function AlertDialogDescription({ className, ...props }: AlertDialogDescr
     <Primitive.Description
       data-slot="alert-dialog-description"
       {...props}
-      className={classes("font-body text-subtle", className)}
+      className={classes("font-body text-subtle break-words", className)}
     />
   );
 }

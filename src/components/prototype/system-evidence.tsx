@@ -7,11 +7,12 @@ import {
 } from "./record-preview";
 import { ProductCollection } from "./product-collection";
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
-import { AlertCircle, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import {
   Absent,
   Alert,
   AlertDescription,
+  AlertIcon,
   AlertTitle,
   Button,
   DataTable,
@@ -577,7 +578,7 @@ function DecideEvidenceUse({ line, onClose }: { line: Line; onClose: () => void 
             <Stack space="space.200">
               {failure ? (
                 <Alert ref={failureRef} variant="destructive" role="alert">
-                  <AlertCircle aria-hidden />
+                  <AlertIcon />
                   <AlertTitle>The decision was not recorded</AlertTitle>
                   <AlertDescription>{failure}</AlertDescription>
                 </Alert>

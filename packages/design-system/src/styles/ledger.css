@@ -9,6 +9,8 @@
    separately, when your code uses only token utilities. reset.css must be imported BEFORE this
    file: a namespace reset wipes everything defined in that namespace so far, mappings included. */
 @source "../";
+/* The lint data (build/lint-data.mjs) spells class names the kit never renders. */
+@source not "../generated/lint*.json";
 @import "../generated/theme.css";
 @import "../generated/tokens.css";
 @import "../generated/utilities.css";

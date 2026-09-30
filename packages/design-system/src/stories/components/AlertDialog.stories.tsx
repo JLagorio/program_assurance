@@ -86,6 +86,10 @@ export const ConfirmationAndPending: Story = {
     await userEvent.click(overlay);
     await expect(popup).toHaveAttribute("data-open");
     await waitFor(() => expect(popup).toBeVisible());
+    // The blanket never dismisses it, and a press on it leaves focus on Cancel.
+    await expect(cancelRef.current).toHaveFocus();
+    if (window.matchMedia("(forced-colors: active)").matches)
+      await expect(getComputedStyle(popup).outlineStyle).toBe("solid");
     await userEvent.click(content.getByRole("button", { name: "Archive" }));
     await expect(popup).toHaveAttribute("aria-busy", "true");
     await userEvent.keyboard("{Escape}");
@@ -187,6 +191,48 @@ export const WithBody: Story = {
     region.scrollTop = region.scrollHeight;
     await expect(footer.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight);
     await userEvent.click(within(popup).getByRole("button", { name: "Keep drafts" }));
+    await waitFor(() => expect(body.queryByRole("alertdialog")).toBeNull());
+  },
+};
+
+/**
+ * A question that names a record by its code: the title and the description wrap the unbroken
+ * value inside the popup, and the popup never scrolls sideways.
+ */
+export const LongValues: Story = {
+  render: () => (
+    <AlertDialog>
+      <AlertDialogTrigger render={<Button />}>Create program</AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            Create WS-X90_Expanded_Control_Set_2026-09-24_rev-0b9a3f4e?
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            It starts from requirement_allocations_requirement_id_system_id_revision_key.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Keep editing</AlertDialogCancel>
+          <AlertDialogAction render={<AlertDialogCancel />}>Create program</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement),
+      body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Create program" }));
+    const popup = await body.findByRole("alertdialog");
+    await waitFor(() => expect(popup).toBeVisible());
+    const edge = popup.getBoundingClientRect();
+    for (const slot of ["alert-dialog-title", "alert-dialog-description"]) {
+      const text = popup.querySelector<HTMLElement>(`[data-slot="${slot}"]`)!;
+      await expect(text.scrollWidth).toBeLessThanOrEqual(text.clientWidth + 1);
+      await expect(text.getBoundingClientRect().right).toBeLessThanOrEqual(edge.right);
+    }
+    await expect(popup.scrollWidth).toBeLessThanOrEqual(popup.clientWidth + 1);
+    await userEvent.click(within(popup).getByRole("button", { name: "Keep editing" }));
     await waitFor(() => expect(body.queryByRole("alertdialog")).toBeNull());
   },
 };

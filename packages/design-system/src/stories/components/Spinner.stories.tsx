@@ -1,29 +1,45 @@
 import { useLayoutEffect, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect, fn, userEvent, within } from "storybook/test";
-import { Button, Spinner } from "../../components";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
+import { Button, Skeleton, Spinner, type SpinnerProps } from "../../components";
+import { Stack } from "../../primitives";
+import { Pair } from "../_lib/pair";
 
 const meta = {
   title: "Components/Spinner",
   component: Spinner,
   parameters: { layout: "padded" },
-  args: { size: "small", ref: fn() },
+  args: { size: "small" },
 } satisfies Meta<typeof Spinner>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Playground: Story = {
-  render: (args) => (
+/* The ref is set inside a component of the story's own, not in its args or its returned tree: the
+   docs page prints a story's elements as its source, and reading a ref from an element is a
+   React 19 error. */
+const spinnerRef = fn();
+function SavingRow(props: SpinnerProps) {
+  return (
     <div className="flex items-center gap-150">
-      <Spinner {...args} aria-label="Saving changes" strokeWidth={3} data-operation="save" />
+      <Spinner
+        {...props}
+        ref={spinnerRef}
+        aria-label="Saving changes"
+        strokeWidth={3}
+        data-operation="save"
+      />
       <span>Saving changes…</span>
       <Button isLoading>Save</Button>
     </div>
-  ),
-  play: async ({ args, canvasElement }) => {
+  );
+}
+
+export const Playground: Story = {
+  render: (args) => <SavingRow {...args} />,
+  play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const spinner = canvas.getByRole("status", { name: "Saving changes" });
-    await expect(args.ref).toHaveBeenCalledWith(spinner);
+    await expect(spinnerRef).toHaveBeenCalledWith(spinner);
     await expect(spinner.tagName.toLowerCase()).toBe("svg");
     await expect(spinner).toHaveAttribute("stroke-width", "3");
     await expect(spinner).toHaveAttribute("data-operation", "save");
@@ -99,4 +115,73 @@ export const Delay: Story = {
     await expect(canvas.queryByRole("status")).toBeNull();
     await expect(await canvas.findByRole("status")).toBeVisible();
   },
+};
+
+function Saving() {
+  const [saving, setSaving] = useState(false);
+  return (
+    <div className="flex flex-wrap items-center gap-150">
+      <Button onClick={() => setSaving(true)}>Save requirement</Button>
+      {saving ? (
+        <>
+          <Spinner label="Saving the requirement" />
+          <Button isLoading>Export</Button>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+/** A status inserted with its name already set is announced by almost no screen reader, so a Spinner says its name once, politely, through the kit's live regions when it appears. A decorative one, such as a loading Button's, says nothing: its control carries the busy state. */
+export const Announced: Story = {
+  render: () => <Saving />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const said = () =>
+      [...document.querySelectorAll('[data-slot="announcer-region"][data-politeness="polite"]')]
+        .map((region) => region.textContent ?? "")
+        .join(" ");
+    await userEvent.click(canvas.getByRole("button", { name: "Save requirement" }));
+    await expect(canvas.getByRole("status", { name: "Saving the requirement" })).toBeVisible();
+    await waitFor(() => expect(said()).toContain("Saving the requirement"));
+    // The Button's own spinner is decorative: hidden, and not said.
+    const exporting = canvas.getByRole("button", { name: "Export" });
+    await expect(exporting.querySelector('[data-slot="spinner"]')).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
+    await expect(said()).not.toContain("Loading");
+  },
+};
+
+/** The mistakes the page is written to prevent, each beside the right way. */
+export const Dont: Story = {
+  render: () => (
+    <Stack space="space.400">
+      <Pair
+        do={<Button isLoading>Upload evidence</Button>}
+        doText="The button that started the work shows it: `isLoading` keeps its label, its width and the keyboard's focus, and says it is busy."
+        dont={<Button disabled>Uploading…</Button>}
+        dontText="A disabled button whose label changes. Focus drops to the page for the whole upload, and a screen reader hears nothing until it ends."
+      />
+      <Pair
+        do={
+          <div style={{ maxWidth: 320 }} aria-busy>
+            <span className="sr-only">Loading the section</span>
+            <Stack space="space.150">
+              <Skeleton shape="heading" width={200} />
+              <Skeleton lines={3} />
+            </Stack>
+          </div>
+        }
+        doText="Content on its way holds its shape with a Skeleton; the spinner is for an action."
+        dont={
+          <div style={{ maxWidth: 320, height: 96 }} className="flex items-center justify-center">
+            <Spinner size="large" />
+          </div>
+        }
+        dontText="A large spinner where a register will be. Nothing says what is coming, and the page jumps when it arrives."
+      />
+    </Stack>
+  ),
 };

@@ -9,9 +9,10 @@ import { AppLogo, AppSwitcher, Mark, Profile, TopNav } from "./top-nav";
  * order: Banner, TopNav, SideNav, Main, Aside, Panel. Routes contribute Aside and Panel through
  * stable portal destinations; their content and state belong to the route.
  * The package owns the areas and their behaviour: the side nav collapses, resizes, flies out on
- * hover and overlays the page on a narrow viewport; the panel resizes, runs the full height of the
- * window beside the banner and the top nav, and replaces Main on compact screens; the banner
- * pushes everything down. The product owns what goes in them: the nav data, the router, the
+ * hover and overlays the page on a narrow viewport; the panel resizes, runs the height of the
+ * window under the banner beside the top nav from the large breakpoint (below the panel
+ * breakpoint the side nav yields to its icon rail while it is open), and replaces Main below the
+ * large breakpoint; the banner pushes everything down by its height. The product owns what goes in them: the nav data, the router, the
  * search, the actions, whatever fills the panel. Every part renders one element, forwards the
  * native props and the ref to it, and takes Base UI `render` where the element may change.
  */
@@ -29,7 +30,7 @@ export const Shell = Object.assign(ShellRoot, {
 });
 
 export { useSideNav };
-export type { SideNavTrigger } from "./context";
+export type { SideNavChange, SideNavTrigger } from "./context";
 export type { ShellSplitterProps } from "./splitter";
 export type { ShellAsideProps, ShellBannerProps, ShellMainProps, ShellProps } from "./root";
 export type {

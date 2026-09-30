@@ -146,6 +146,8 @@ try {
   for (const label of ["Confidentiality", "Integrity", "Availability"]) {
     await variant.getByRole("combobox", { name: label, exact: true }).click();
     await page.getByRole("option", { name: "Low", exact: true }).click();
+    // The list fades out after a choice; the next Select opens once it has gone.
+    await page.getByRole("listbox").waitFor({ state: "hidden" });
   }
   await variant
     .getByRole("textbox", { name: "Categorization rationale", exact: true })

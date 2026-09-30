@@ -41,6 +41,7 @@ import { LedgerProvider } from "../../lib/locale";
 import { Inline, Stack, Text } from "../../primitives";
 import { Pair } from "../_lib/pair";
 import { interact } from "../_lib/interact";
+import { displayedRows, showRow } from "../..";
 
 const meta = {
   title: "Patterns/Data table",
@@ -210,10 +211,10 @@ export const RegisterStory: Story = {
     await userEvent.click(page!);
     for (const checkbox of table.getAllByRole("checkbox")) await expect(checkbox).not.toBeChecked();
 
-    // Row actions remain reachable without hovering the row.
+    // Row actions remain reachable without hovering the row. The id's glance is a hover card with
+    // no tab stop of its own, so the row's next stop after its checkbox is its actions.
     const actions = table.getAllByRole("button", { name: "Row actions" })[0]!;
     firstRow!.focus();
-    await userEvent.tab(); // Record glance.
     await userEvent.tab();
     await expect(actions).toHaveFocus();
     await expect(actions).toHaveStyle({ opacity: "1" });
@@ -264,6 +265,8 @@ export const LiveFilters: Story = {
     };
     const initial = await openFilter();
     await expect(initial.queryByRole("checkbox")).toBeNull();
+    // An empty facet says so, rather than opening a blank popover.
+    await expect(initial.getByText("No values to filter by")).toBeVisible();
     await closeFilter();
     await userEvent.click(canvas.getByRole("button", { name: "Load findings" }));
     const loaded = await openFilter();
@@ -271,7 +274,7 @@ export const LiveFilters: Story = {
     await expect(loaded.getByRole("checkbox", { name: "Overdue 1" })).toBeVisible();
     await expect(loaded.getByRole("checkbox", { name: "Verified 1" })).toBeVisible();
     await closeFilter();
-    const search = canvas.getByRole("textbox", { name: "Search live findings" });
+    const search = canvas.getByRole("searchbox", { name: "Search live findings" });
     await userEvent.type(search, "FND-2200");
     const narrowed = await openFilter();
     await expect(narrowed.getAllByRole("checkbox")).toHaveLength(1);
@@ -311,17 +314,18 @@ function MetricsExample() {
         }
       />
       <DataTable.MetricsContent className="px-200 py-100">
-        <div className="grid grid-cols-2 gap-200 sm:grid-cols-3">
-          <Stat label="Total findings" value={findings.length} />
-          <Stat
+        {/* Stat.Grid takes its columns from its own width, not the window's. */}
+        <Stat.Grid cols={3}>
+          <Stat.Tile label="Total findings" value={findings.length} />
+          <Stat.Tile
             label="Verified"
             value={findings.filter((finding) => finding.status === "Verified").length}
           />
-          <Stat
+          <Stat.Tile
             label="Open items"
             value={findings.reduce((total, finding) => total + finding.open, 0)}
           />
-        </div>
+        </Stat.Grid>
         <Text size="small" color="color.text.subtle">
           Across all findings. Search and filters only change the rows below.
         </Text>
@@ -334,6 +338,21 @@ function MetricsExample() {
 export const MetricsStory: Story = {
   name: "Metrics",
   render: () => <MetricsExample />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const trigger = canvas.getByRole("button", { name: "Metrics" });
+    const closed = getComputedStyle(trigger);
+    const [closedFill, closedText] = [closed.backgroundColor, closed.color];
+    await userEvent.click(trigger);
+    await expect(trigger).toHaveAttribute("aria-expanded", "true");
+    await waitFor(() => expect(canvas.getByRole("region", { name: "Metrics" })).toBeVisible());
+    // Open, it takes the active look Group by and Filters take: the selected fill and words.
+    await expect(trigger).toHaveAttribute("data-panel-open");
+    await waitFor(() => expect(getComputedStyle(trigger).backgroundColor).not.toBe(closedFill));
+    await expect(getComputedStyle(trigger).color).not.toBe(closedText);
+    await userEvent.click(trigger);
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  },
 };
 
 /** Wide enough to scroll: the id and the name pinned at the start, actions at the end, and every column resizable, reorderable by its grip, hideable from the Columns menu or its own. The layout is the reader's and is kept under a view name. */
@@ -1185,12 +1204,21 @@ function Details() {
     data: findings.slice(0, 6),
     getRowId: (r) => r.id,
     detail: (r) => <Items finding={r} />,
-    initialState: { expanded: { "FND-2201": true } },
+    initialDetails: ["FND-2201"],
   });
   return <DataTable table={table} />;
 }
 
-export const DetailRows: Story = { name: "Detail rows", render: () => <Details /> };
+export const DetailRows: Story = {
+  name: "Detail rows",
+  render: () => <Details />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // `initialDetails` opens FND-2201's detail at first, and only that one.
+    await expect(canvas.getByRole("table", { name: "FND-2201 items" })).toBeVisible();
+    await expect(canvas.queryByRole("table", { name: "FND-2200 items" })).toBeNull();
+  },
+};
 
 /** Rows under a band per family, each opened and closed as one; the family column leaves the row. */
 function Grouped() {
@@ -1215,9 +1243,8 @@ function GroupByExample() {
     label: "Grouped findings",
     selectable: true,
     pageSize: 8,
+    // `groupBy` is the grouping, and each new grouping opens its groups.
     groupBy: groupBy || undefined,
-    state: { grouping: groupBy ? [groupBy] : [] },
-    initialState: { expanded: true },
   });
   return (
     <DataTable.Metrics>
@@ -1276,11 +1303,15 @@ export const GroupByStory: Story = {
     await expect(canvas.getByRole("button", { name: "Group by" })).toHaveFocus();
     await expect(canvas.getByRole("checkbox", { name: "Select row FND-2200" })).toBeChecked();
     await expect(search).toHaveValue("Segregation");
+    // Three rows fit the smallest page: there is no pager to turn until the search clears.
     await expect(
-      canvas.getByRole("navigation", { name: "Grouped findings pagination" }),
-    ).toBeVisible();
+      canvas.queryByRole("navigation", { name: "Grouped findings pagination" }),
+    ).toBeNull();
 
     await userEvent.clear(search);
+    await expect(
+      await canvas.findByRole("navigation", { name: "Grouped findings pagination" }),
+    ).toBeVisible();
     await userEvent.click(canvas.getByRole("button", { name: "Filters" }));
     const status = within(await body.findByRole("group", { name: "Status" }));
     await userEvent.click(status.getByRole("checkbox", { name: /^Verified\b/ }));
@@ -1468,6 +1499,9 @@ export const EditingStory: Story = {
   render: () => <Editing />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    // Editing keeps the table a table: Tab moves across, and it claims no grid arrow keys.
+    await expect(canvas.getByRole("table", { name: "Findings" })).toBeVisible();
+    await expect(canvas.queryByRole("grid")).toBeNull();
     const cells = canvas.getAllByRole("button", { name: /^Finding:/ });
     await userEvent.click(cells[0]!);
     const input = canvas.getByRole("textbox", { name: "Finding" });
@@ -1613,6 +1647,8 @@ export const StatesStory: Story = {
     await userEvent.click(canvas.getByRole("button", { name: "Clear filters" }));
     await expect(canvas.getByLabelText("Search findings")).toHaveValue("");
     await waitFor(() => expect(canvas.queryByText("Nothing matches")).toBeNull());
+    // The pressed button went with the empty state; focus is back in the search that asked.
+    await waitFor(() => expect(canvas.getByLabelText("Search findings")).toHaveFocus());
     await expect(canvas.getAllByRole("row").length).toBeGreaterThan(2);
   },
 };
@@ -1987,7 +2023,7 @@ export const KeyboardResizeMatrix: Story = {
     const canvas = within(canvasElement);
     const body = within(canvasElement.ownerDocument.body);
     // The handle is for the pointer and no tab stop; the keyboard sizes the column from its menu.
-    const handle = canvas.getAllByRole("separator", { name: "Resize column" })[0]!;
+    const handle = canvas.getAllByRole("separator", { name: /^Resize / })[0]!;
     await expect(handle).not.toHaveAttribute("tabindex");
     const header = handle.closest("th")!;
     const before = parseFloat(header.style.width);
@@ -2093,12 +2129,12 @@ function ResponsiveRegister() {
   const table = useDataTable({
     data: findings.slice(0, 3),
     columns: defineColumns<Finding>((c) => [
-      c.id("id", { header: "Code", width: 100, priority: 1, pin: "start" }),
+      // Pinned in one place, the initial state below, which orders the band: the name, then the code.
+      c.id("id", { header: "Code", width: 100, priority: 1 }),
       c.custom("name", {
         header: "Finding",
         minWidth: 200,
         priority: 0,
-        pin: "start",
         sort: (row) => row.name,
         text: (row) => row.name,
         cell: (row) => row.name,
@@ -2441,7 +2477,7 @@ export const RowControlsPhone: Story = {
     // eye shows, and the name beside it ends in an ellipsis before it.
     const open = () =>
       within(table)
-        .getByRole("button", { name: "Preview row", pressed: true })
+        .getByRole("button", { name: /^Preview /, pressed: true })
         .closest<HTMLElement>('[data-slot="preview-eye"]')!;
     await waitFor(() =>
       expect(open().previousElementSibling).toHaveTextContent(longFindings[0]!.name),
@@ -2467,9 +2503,9 @@ export const RowControlsPhone: Story = {
 
     // Another row's eye moves the preview, and the room follows it.
     const second = within(table.querySelectorAll<HTMLElement>("tr[data-row-id]")[1]!);
-    await userEvent.click(second.getByRole("button", { name: "Preview row" }));
+    await userEvent.click(second.getByRole("button", { name: /^Preview / }));
     await waitFor(() =>
-      expect(second.getByRole("button", { name: "Preview row" })).toHaveAttribute(
+      expect(second.getByRole("button", { name: /^Preview / })).toHaveAttribute(
         "aria-pressed",
         "true",
       ),
@@ -3001,7 +3037,7 @@ export const QuestionInUrl: Story = {
 
     // Ask: a search and a sort, each written to the URL as it changes.
     const table = await findTable();
-    await userEvent.type(canvas.getByRole("textbox", { name: "Search findings" }), "Backup");
+    await userEvent.type(canvas.getByRole("searchbox", { name: "Search findings" }), "Backup");
     await waitFor(() => expect(location()).toBe("/findings?q=Backup"));
     await userEvent.click(within(headerNamed(table, "Due")!).getByRole("button", { name: "Due" }));
     await waitFor(() => expect(location()).toBe("/findings?q=Backup&sort=-due"));
@@ -3012,7 +3048,7 @@ export const QuestionInUrl: Story = {
     await userEvent.click(canvas.getByRole("button", { name: "Back" }));
     const back = await findTable();
     await waitFor(() =>
-      expect(canvas.getByRole("textbox", { name: "Search findings" })).toHaveValue("Backup"),
+      expect(canvas.getByRole("searchbox", { name: "Search findings" })).toHaveValue("Backup"),
     );
     await expect(headerNamed(back, "Due")).toHaveAttribute("aria-sort", "descending");
     await expect(location()).toBe("/findings?q=Backup&sort=-due");
@@ -3020,7 +3056,7 @@ export const QuestionInUrl: Story = {
     // A shared link lands on the open register: its question replaces the reader's.
     await userEvent.click(canvas.getByRole("button", { name: "Follow a shared link" }));
     await waitFor(() =>
-      expect(canvas.getByRole("textbox", { name: "Search findings" })).toHaveValue(""),
+      expect(canvas.getByRole("searchbox", { name: "Search findings" })).toHaveValue(""),
     );
     await waitFor(() =>
       expect(
@@ -3031,7 +3067,7 @@ export const QuestionInUrl: Story = {
     await expect(location()).toBe(overdueLink);
     await userEvent.click(canvas.getByRole("button", { name: "Back" }));
     await waitFor(() =>
-      expect(canvas.getByRole("textbox", { name: "Search findings" })).toHaveValue("Backup"),
+      expect(canvas.getByRole("searchbox", { name: "Search findings" })).toHaveValue("Backup"),
     );
   },
 };
@@ -3044,7 +3080,7 @@ export const QuestionInLaggingUrl: Story = {
     const canvas = within(canvasElement);
     const location = () => canvas.getByTestId("location").textContent ?? "";
     await canvas.findByRole("table", { name: "Findings, asked in the URL" });
-    const field = canvas.getByRole("textbox", { name: "Search findings" });
+    const field = canvas.getByRole("searchbox", { name: "Search findings" });
 
     // A letter every 50ms: the route gives back "B" while the reader is typing the fourth letter.
     await userEvent.type(field, "Backup", { delay: 50 });
@@ -3148,7 +3184,7 @@ export const StatusMapStory: Story = {
     );
 
     // The search finds a status by the words its badge shows, not only by the stored value.
-    const search = canvas.getByRole("textbox", { name: "Search work" });
+    const search = canvas.getByRole("searchbox", { name: "Search work" });
     await userEvent.type(search, "in review");
     await waitFor(() => expect(order()).toEqual(["WRK-104"]));
     await userEvent.clear(search);
@@ -3250,10 +3286,10 @@ export const RenderBudget: Story = {
     await expect(redrawn()).toEqual(["FND-2202"]);
 
     // A preview step redraws the row it leaves and the row it opens.
-    await userEvent.click(within(table).getAllByRole("button", { name: "Preview row" })[1]!);
+    await userEvent.click(within(table).getAllByRole("button", { name: /^Preview / })[1]!);
     await settle();
     drawnRows.clear();
-    await userEvent.click(within(table).getAllByRole("button", { name: "Preview row" })[4]!);
+    await userEvent.click(within(table).getAllByRole("button", { name: /^Preview / })[4]!);
     await settle();
     await expect(redrawn()).toEqual(["FND-2201", "FND-2204"]);
 
@@ -3600,7 +3636,7 @@ export const ColumnsWithoutAMenu: Story = {
     await expect(grip).not.toHaveAttribute("aria-hidden");
     await expect(grip.tabIndex).toBe(0);
     // No menu sizes it, so the handle takes the arrow keys.
-    const handle = within(header).getByRole("separator", { name: "Resize column" });
+    const handle = within(header).getByRole("separator", { name: "Resize Finding" });
     await expect(handle.tabIndex).toBe(0);
     const before = Number(handle.getAttribute("aria-valuenow"));
     handle.focus();
@@ -3610,5 +3646,1241 @@ export const ColumnsWithoutAMenu: Story = {
     await waitFor(() =>
       expect(handle.getAttribute("aria-valuenow")).toBe(handle.getAttribute("aria-valuemin")),
     );
+  },
+};
+
+/*
+ * Facets that hold. A column of several values per row gives them through `getUniqueValues`, so
+ * its facet lists each value once, counted per row that holds it, and a row matches when it holds
+ * any value chosen. A value the reader chose stays in its list, at 0, when the search or another
+ * filter removes its rows. The order is the status's or the alphabet's, never the counts', and a
+ * facet of more than eight values takes a search.
+ */
+type Assignment = {
+  id: string;
+  title: string;
+  status: "Open" | "Blocked" | "Done";
+  assignees: string[];
+};
+
+const assigneeNames = [
+  "Ada Byron",
+  "Alan Turing",
+  "Barbara Liskov",
+  "Donald Knuth",
+  "Edsger Dijkstra",
+  "Frances Allen",
+  "Grace Hopper",
+  "John Backus",
+  "Ken Thompson",
+  "Margaret Hamilton",
+  "Radia Perlman",
+  "Tim Berners-Lee",
+];
+const assignmentStates: Assignment["status"][] = ["Open", "Blocked", "Done"];
+
+/** Twelve tasks, two people each, so every person holds exactly two tasks. */
+const assignments: Assignment[] = Array.from({ length: 12 }, (_, i) => ({
+  id: `TSK-${String(i + 1).padStart(2, "0")}`,
+  title: names[i % names.length] ?? "",
+  status: assignmentStates[i % 3] ?? "Open",
+  assignees: [assigneeNames[i] ?? "", assigneeNames[(i + 5) % 12] ?? ""],
+}));
+
+const assignmentColumns = defineColumns<Assignment>((c) => [
+  c.id("id"),
+  c.text("title", { header: "Task", minWidth: 200 }),
+  c.status("status", {
+    header: "Status",
+    width: 120,
+    tone: (r) => (r.status === "Blocked" ? "danger" : r.status === "Done" ? "success" : "neutral"),
+  }),
+  {
+    ...c.list("assignees", {
+      header: "Assigned to",
+      width: 200,
+      items: (r) => r.assignees.map((label) => ({ key: label, label })),
+    }),
+    // Each person on their own, not the pairs the rows hold.
+    getUniqueValues: (r: Assignment) => r.assignees,
+    filterFn: (row, _column, chosen: unknown) =>
+      Array.isArray(chosen) && chosen.some((name) => row.original.assignees.includes(String(name))),
+  },
+]);
+
+function AssignmentFacets() {
+  const table = useDataTable({
+    columns: assignmentColumns,
+    data: assignments,
+    getRowId: (r) => r.id,
+    label: "Tasks by assignee",
+  });
+  return (
+    <DataTable
+      table={table}
+      toolbar={
+        <Inline space="space.100" alignBlock="center" shouldWrap>
+          <DataTable.Search table={table} placeholder="Search tasks" />
+          <DataTable.Filter table={table} column="status" />
+          <DataTable.Filter table={table} column="assignees" width={260} />
+        </Inline>
+      }
+    />
+  );
+}
+
+export const FacetsStory: Story = {
+  name: "Facets that hold",
+  render: () => <AssignmentFacets />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const table = canvas.getByRole("table", { name: "Tasks by assignee" });
+    const rows = () => table.querySelectorAll("tbody tr[data-row-id]").length;
+    /** Each checkbox's words and count, in the order the facet lists them. */
+    const listed = (popup: { getAllByRole: (role: "checkbox") => HTMLElement[] }) =>
+      popup.getAllByRole("checkbox").map((box) => box.closest("label")?.textContent ?? "");
+    const open = async (label: string) => {
+      await userEvent.click(filterChip(canvasElement, label));
+      const popup = await body.findByRole("dialog", { name: label });
+      await waitFor(() => expect(popup).toBeVisible());
+      return within(popup);
+    };
+    const close = async () => {
+      await userEvent.keyboard("{Escape}");
+      await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    };
+
+    // Each person once, counted per task that holds them, in the alphabet's order.
+    let people = await open("Assigned to");
+    const boxes = people.getAllByRole("checkbox");
+    await expect(boxes).toHaveLength(12);
+    await expect(boxes[0]).toHaveAccessibleName("Ada Byron 2");
+    await expect(boxes[11]).toHaveAccessibleName("Tim Berners-Lee 2");
+    // Twelve values take a search; a search that finds none says so, and Escape clears it first.
+    const find = people.getByRole("searchbox", { name: "Search Assigned to" });
+    await userEvent.type(find, "zz");
+    await expect(people.getByText("No values match")).toBeVisible();
+    await userEvent.keyboard("{Escape}");
+    await expect(find).toHaveValue("");
+    await expect(people.getAllByRole("checkbox")).toHaveLength(12);
+    await userEvent.type(find, "grace");
+    await expect(people.getAllByRole("checkbox")).toHaveLength(1);
+    await userEvent.keyboard("{Escape}");
+    await expect(find).toHaveValue("");
+    await close();
+
+    // Status Done, then a search that finds no done task: nothing remains.
+    const status = await open("Status");
+    await expect(listed(status)).toEqual(["Blocked4", "Done4", "Open4"]);
+    await userEvent.click(status.getByRole("checkbox", { name: "Done 4" }));
+    await close();
+    await waitFor(() => expect(rows()).toBe(4));
+    const search = canvas.getByRole("searchbox", { name: "Search tasks" });
+    await userEvent.type(search, "Incident");
+    await waitFor(() => expect(rows()).toBe(0));
+
+    // Done is still listed, checked, at 0, so it can be unchecked where it was checked.
+    const kept = await open("Status");
+    const done = kept.getByRole("checkbox", { name: "Done 0" });
+    await expect(done).toBeChecked();
+    await expect(listed(kept)).toEqual(["Done0", "Open1"]);
+    await userEvent.click(done);
+    await close();
+    await waitFor(() => expect(rows()).toBe(1));
+
+    // A row matches when it holds a chosen person: with the search cleared, both of Grace's tasks.
+    people = await open("Assigned to");
+    await userEvent.click(people.getByRole("checkbox", { name: "Grace Hopper 1" }));
+    await close();
+    await userEvent.clear(search);
+    await waitFor(() => expect(rows()).toBe(2));
+    await expect(filterChip(canvasElement, "Assigned to")).toHaveTextContent("Grace Hopper");
+  },
+};
+
+/** The date range is two of the kit's day pickers, each end open until chosen, the one limiting the other; the chip says the range in the reader's words. A number range says so when its start comes after its end. */
+function RangeFilters() {
+  const table = useDataTable({
+    columns,
+    data: findings,
+    getRowId: (r) => r.id,
+    label: "Findings by range",
+    initialState: {
+      columnFilters: [
+        { id: "due", value: ["2026-03-01", "2026-05-31"] },
+        { id: "open", value: [90, 10] },
+      ],
+    },
+  });
+  return (
+    <DataTable
+      table={table}
+      toolbar={
+        <Inline space="space.100" alignBlock="center" shouldWrap>
+          <DataTable.Filter table={table} column="due" />
+          <DataTable.Filter table={table} column="open" />
+        </Inline>
+      }
+    />
+  );
+}
+
+export const RangeFiltersStory: Story = {
+  name: "Date and number ranges",
+  render: () => <RangeFilters />,
+  play: async ({ canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    // The chip reads the range as the cells read their dates, not as ISO text.
+    const due = filterChip(canvasElement, "Due");
+    await expect(due).toHaveTextContent(/Mar 1\s*–\s*May 31, 2026/);
+    await expect(filterChip(canvasElement, "Open items")).toHaveTextContent("90–10");
+
+    await userEvent.click(due);
+    const range = within(await body.findByRole("dialog", { name: "Due" }));
+    const from = range.getByRole("button", { name: "From" });
+    await expect(from).toHaveTextContent("Mar 1, 2026");
+    await expect(range.getByRole("button", { name: "To" })).toHaveTextContent("May 31, 2026");
+    // The day picker opens over the filter; Escape closes the month first, then the filter.
+    await userEvent.click(from);
+    await waitFor(() => expect(body.getAllByRole("dialog")).toHaveLength(2));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.getAllByRole("dialog")).toHaveLength(1));
+    await expect(body.getByRole("dialog", { name: "Due" })).toBeVisible();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+
+    // A start after the end is flagged at the end, in words.
+    await userEvent.click(filterChip(canvasElement, "Open items"));
+    const open = within(await body.findByRole("dialog", { name: "Open items" }));
+    const to = open.getByRole("spinbutton", { name: "To" });
+    await expect(to).toHaveAttribute("aria-invalid", "true");
+    await expect(to).toHaveAccessibleDescription("The start comes after the end.");
+    await userEvent.clear(to);
+    await userEvent.type(to, "100");
+    await waitFor(() => expect(to).not.toHaveAttribute("aria-invalid"));
+    await expect(open.queryByText("The start comes after the end.")).toBeNull();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+  },
+};
+
+/*
+ * The saved-question menu. The trigger is named by what it shows, the question and its count, so
+ * "click All findings" finds it, and "Saved questions" is its description. A question matches the
+ * table's filters however they were set: the values in another order, or one value on its own.
+ */
+const manyFindings = makeFindings(150);
+const menuPresets = [
+  { id: "all", label: "All findings" },
+  {
+    id: "active",
+    label: "Draft or in review",
+    filters: [{ id: "status", value: ["Draft", "In review"] }],
+  },
+  { id: "overdue", label: "Overdue", filters: [{ id: "status", value: "Overdue" }] },
+];
+
+function QuestionMenu() {
+  const table = useDataTable({
+    columns,
+    data: manyFindings,
+    getRowId: (r) => r.id,
+    pageSize: 10,
+    label: "Findings by saved question",
+  });
+  return (
+    <DataTable
+      table={table}
+      toolbar={
+        <Inline space="space.100" alignBlock="center" shouldWrap>
+          <DataTable.Presets table={table} presets={menuPresets} variant="menu" />
+          <DataTable.Filter table={table} column="status" />
+        </Inline>
+      }
+    />
+  );
+}
+
+export const SavedQuestionMenu: Story = {
+  name: "Saved question menu",
+  render: () => <QuestionMenu />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const count = (...states: Finding["status"][]) =>
+      manyFindings.filter((f) => states.includes(f.status)).length;
+    // The visible words are the name; the count is whole, not 99+.
+    const trigger = canvas.getByRole("button", { name: "All findings 150" });
+    await expect(trigger).toHaveAccessibleDescription("Saved questions");
+
+    // In review, then Draft, from the chip: the question "Draft or in review" still matches.
+    await userEvent.click(filterChip(canvasElement, "Status"));
+    const status = within(await body.findByRole("dialog", { name: "Status" }));
+    await userEvent.click(status.getByRole("checkbox", { name: /^In review/ }));
+    await userEvent.click(status.getByRole("checkbox", { name: /^Draft/ }));
+    await expect(
+      canvas.getByRole("button", {
+        name: `Draft or in review ${count("Draft", "In review")}`,
+      }),
+    ).toBeVisible();
+    // One value on its own is the question that names it as a string.
+    await userEvent.click(status.getByRole("checkbox", { name: /^In review/ }));
+    await userEvent.click(status.getByRole("checkbox", { name: /^Draft/ }));
+    await userEvent.click(status.getByRole("checkbox", { name: /^Overdue/ }));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    const overdue = canvas.getByRole("button", { name: `Overdue ${count("Overdue")}` });
+    await expect(overdue).toHaveAccessibleDescription("Saved questions");
+
+    // The menu lists every question, checks the one in force, and replaces the filters.
+    await userEvent.click(overdue);
+    await expect(await body.findByRole("menuitemradio", { name: /^Overdue/ })).toBeChecked();
+    await userEvent.click(body.getByRole("menuitemradio", { name: /^All findings/ }));
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    await expect(canvas.getByRole("button", { name: "All findings 150" })).toHaveFocus();
+  },
+};
+
+/*
+ * Server facets and counts. A table the server filters holds one page of rows, so it cannot count
+ * what the other pages hold: the server's values and counts reach the facet as `options`, and each
+ * saved question's count reaches the presets as `counts`.
+ */
+const serverStatusOptions = statuses.map((status) => ({
+  value: status,
+  count: serverRows.filter((row) => row.status === status).length,
+}));
+const serverPresets = [
+  { id: "all", label: "All findings" },
+  { id: "overdue", label: "Overdue", filters: [{ id: "status", value: "Overdue" }] },
+];
+const serverPresetCounts = {
+  all: serverRows.length,
+  overdue: serverRows.filter((row) => row.status === "Overdue").length,
+};
+
+function ServerFaceted() {
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 8 });
+  const [result, setResult] = useState<{ rows: Finding[]; total: number } | null>(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let live = true;
+    setLoading(true);
+    void fakeServer({ sorting: [], columnFilters, globalFilter: "", pagination }).then((r) => {
+      if (!live) return;
+      setResult(r);
+      setLoading(false);
+    });
+    return () => {
+      live = false;
+    };
+  }, [columnFilters, pagination]);
+  const table = useDataTable({
+    label: "Findings with server facets",
+    columns,
+    data: result?.rows ?? [],
+    getRowId: (r) => r.id,
+    pageSize: 8,
+    manual: { filtering: true, pagination: true },
+    rowCount: result?.total ?? 0,
+    state: { columnFilters, pagination },
+    onColumnFiltersChange: setColumnFilters,
+    onPaginationChange: setPagination,
+  });
+  return (
+    <div aria-busy={loading}>
+      <DataTable
+        table={table}
+        state={loading && !result ? "loading" : "ready"}
+        toolbar={
+          <Inline space="space.100" alignBlock="center" shouldWrap>
+            <DataTable.Presets
+              table={table}
+              presets={serverPresets}
+              counts={serverPresetCounts}
+              variant="menu"
+            />
+            <DataTable.Filter table={table} column="status" options={serverStatusOptions} />
+          </Inline>
+        }
+      />
+    </div>
+  );
+}
+
+export const ServerFacets: Story = {
+  name: "Server facets and counts",
+  render: () => <ServerFaceted />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const table = canvas.getByRole("table", { name: "Findings with server facets" });
+    const settled = () =>
+      waitFor(() => expect(table.closest("[aria-busy]")).toHaveAttribute("aria-busy", "false"));
+    await settled();
+    // Every status the server holds, with the server's counts, though the page holds eight rows.
+    await expect(canvas.getByRole("button", { name: "All findings 240" })).toBeVisible();
+    await userEvent.click(filterChip(canvasElement, "Status"));
+    const status = within(await body.findByRole("dialog", { name: "Status" }));
+    await expect(
+      status.getAllByRole("checkbox").map((box) => box.closest("label")?.textContent),
+    ).toEqual(serverStatusOptions.map((option) => `${option.value}${option.count}`));
+    await userEvent.click(status.getByRole("checkbox", { name: /^Overdue/ }));
+    await userEvent.keyboard("{Escape}");
+    await settled();
+    await expect(
+      canvas.getByRole("button", { name: `Overdue ${serverPresetCounts.overdue}` }),
+    ).toBeVisible();
+  },
+};
+
+/** Previous and Next stay focusable at the first and last page (aria-disabled), so a reader who pages to the end by keyboard keeps their place. */
+function Paged() {
+  const table = useDataTable({
+    columns,
+    data: findings,
+    getRowId: (r) => r.id,
+    pageSize: 8,
+    label: "Paged findings",
+  });
+  return <DataTable table={table} />;
+}
+
+export const PagingKeepsFocus: Story = {
+  name: "Paging keeps focus",
+  render: () => <Paged />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const previous = canvas.getByRole("button", { name: "Previous page" });
+    const next = canvas.getByRole("button", { name: "Next page" });
+    await expect(previous).toHaveAttribute("aria-disabled", "true");
+    await expect(previous.tabIndex).toBe(0);
+    const current = (page: number) =>
+      waitFor(() =>
+        expect(canvas.getByRole("button", { name: `Page ${page}` })).toHaveAttribute(
+          "aria-current",
+          "page",
+        ),
+      );
+    next.focus();
+    await userEvent.keyboard("{Enter}");
+    await current(2);
+    await userEvent.keyboard("{Enter}");
+    await current(3);
+    // The last page: Next says it cannot go on, and keeps focus.
+    await expect(next).toHaveAttribute("aria-disabled", "true");
+    await expect(next).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    await current(3);
+    await expect(next).toHaveFocus();
+    await expect(previous).not.toHaveAttribute("aria-disabled");
+  },
+};
+
+/** A table that can reorder speaks a drag as a place in the order, by the column's header ("Finding moved to position 3 of 3."). Its headers slide on the motion tokens, and not at all under reduced motion. A table that cannot reorder mounts no drag context and no live region. */
+function DragSpoken() {
+  const table = useDataTable({
+    columns: menulessColumns,
+    data: findings.slice(0, 3),
+    getRowId: (r) => r.id,
+    label: "Findings by drag",
+    reorderable: true,
+    columnMenu: false,
+  });
+  const still = useDataTable({
+    columns: menulessColumns,
+    data: findings.slice(0, 3),
+    getRowId: (r) => r.id,
+    label: "Findings that stay put",
+  });
+  return (
+    <Stack space="space.300">
+      <DataTable table={table} />
+      <DataTable table={still} />
+    </Stack>
+  );
+}
+
+export const DragSaysThePlace: Story = {
+  name: "Drag says the place",
+  render: () => <DragSpoken />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const doc = canvasElement.ownerDocument;
+    const table = canvas.getByRole("table", { name: "Findings by drag" });
+    // Only the table that can reorder has a drag context, and so a live region.
+    await expect(doc.querySelectorAll('[id^="DndLiveRegion"]')).toHaveLength(1);
+    const spoken = () => doc.querySelector('[id^="DndLiveRegion"]')?.textContent ?? "";
+    const grip = within(table).getByRole("button", { name: "Reorder Finding column" });
+    grip.focus();
+    await userEvent.keyboard(" ");
+    await waitFor(() => expect(spoken()).toContain("Picked up Finding."));
+    await userEvent.keyboard("{ArrowRight}");
+    await waitFor(() => expect(spoken()).toContain("Finding moved to position 3 of 3."));
+    // The header the column passes slides on the tokens, or not at all under reduced motion.
+    const owner = headerNamed(table, "Owner")!;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+      await expect(owner.style.transition).toBe("");
+    else {
+      // motion.duration.medium on the standard curve, not dnd-kit's own 200ms ease.
+      await expect(owner.style.transition).toMatch(/transform 150ms cubic-bezier/);
+      await expect(owner.style.transition).not.toContain("200ms");
+    }
+    await userEvent.keyboard(" ");
+    await waitFor(() => expect(spoken()).toContain("Finding dropped at position 3 of 3."));
+    await waitFor(() =>
+      expect(
+        within(table)
+          .getAllByRole("columnheader")
+          .map((header) => header.textContent?.trim() ?? "")
+          .at(-1),
+      ).toContain("Finding"),
+    );
+  },
+};
+
+/* ------------------------------------------------------------------------------------------------
+ * DTCORE: one at a time, the slack, refreshing and a stranded page, the compact empty, row actions
+ * that navigate, export and totals, the table's own preview, rows that open like links, versioned
+ * views, the selection in the toolbar slot, days in the reader's zone, and a virtual window.
+ * --------------------------------------------------------------------------------------------- */
+
+/** One record from a list, as a picker chooses it: `selectable: "single"` draws a radio per row and no select-all; a click on the row chooses it, and the arrow keys move the choice. The rows are keyed by their own `id` without a `getRowId`. */
+function ChoosingOne() {
+  const [chosen, setChosen] = useState<string | null>(null);
+  const table = useDataTable({
+    columns,
+    data: findings.slice(0, 6),
+    selectable: "single",
+    value: chosen,
+    onValueChange: setChosen,
+    label: "Findings to link",
+  });
+  return (
+    <Stack space="space.150">
+      <DataTable table={table} />
+      <Text size="small" color="color.text.subtle">
+        {chosen ? `Chosen: ${chosen}` : "Nothing chosen"}
+      </Text>
+    </Stack>
+  );
+}
+
+export const ChoosingOneStory: Story = {
+  name: "Choosing one",
+  render: () => <ChoosingOne />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = within(canvas.getByRole("table", { name: "Findings to link" }));
+    // No select-all and no checkboxes: one radio per row, named by the row's own id.
+    await expect(table.queryByRole("checkbox")).toBeNull();
+    await expect(table.getAllByRole("radio")).toHaveLength(6);
+    // A click on the row chooses it; choosing is not opening.
+    await userEvent.click(table.getByText(names[2]!));
+    await expect(table.getByRole("radio", { name: "Select row FND-2202" })).toBeChecked();
+    await expect(canvas.getByText("Chosen: FND-2202")).toBeVisible();
+    // The browser's own radio keys: the arrow moves the choice to the next row.
+    table.getByRole("radio", { name: "Select row FND-2202" }).focus();
+    await userEvent.keyboard("{ArrowDown}");
+    await expect(table.getByRole("radio", { name: "Select row FND-2203" })).toBeChecked();
+    await expect(table.getByRole("radio", { name: "Select row FND-2202" })).not.toBeChecked();
+    await expect(canvas.getByText("Chosen: FND-2203")).toBeVisible();
+  },
+};
+
+const slackColumns = defineColumns<Finding>((c) => [
+  c.id("id", { width: 120, priority: 0 }),
+  c.text("name", { header: "Finding", minWidth: 160 }),
+  c.status("status", { header: "Status", width: 120, tone: (r) => statusTone[r.status] }),
+  c.text("family", { header: "Family", minWidth: 120 }),
+]);
+/** A name drawn by the id kind: with a `minWidth` and no `width` it grows with the other unsized columns. */
+const slackNamedColumns = defineColumns<Finding>((c) => [
+  c.id("name", { header: "Named finding", minWidth: 200, priority: 0 }),
+  c.status("status", { header: "Status", width: 120, tone: (r) => statusTone[r.status] }),
+  c.text("family", { header: "Family", minWidth: 100 }),
+]);
+
+/** A responsive table that fits: the author's widths hold, and the spare width goes to the columns the author left unsized, in proportion to their minimums. With every column sized, the identity takes it. An id with only a `minWidth` is a name, and grows. */
+function UnsizedSlack() {
+  const [width, setWidth] = useState(1100);
+  const table = useDataTable({
+    columns: slackColumns,
+    data: findings.slice(0, 5),
+    getRowId: (r) => r.id,
+    label: "Findings, fitted",
+  });
+  const named = useDataTable({
+    columns: slackNamedColumns,
+    data: findings.slice(0, 3),
+    getRowId: (r) => r.id,
+    label: "Findings, named by the id",
+  });
+  return (
+    <Stack space="space.150">
+      <Inline space="space.100" shouldWrap>
+        <Button size="small" onClick={() => setWidth(1100)}>
+          1100 wide
+        </Button>
+        <Button size="small" onClick={() => setWidth(700)}>
+          700 wide
+        </Button>
+      </Inline>
+      <div data-testid="slack-frame" style={{ width, maxWidth: "100%" }}>
+        <Stack space="space.200">
+          <DataTable responsive table={table} />
+          <DataTable responsive table={named} />
+        </Stack>
+      </div>
+    </Stack>
+  );
+}
+
+export const UnsizedColumnsTakeTheSlack: Story = {
+  name: "Unsized columns take the slack",
+  render: () => <UnsizedSlack />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const frame = canvas.getByTestId("slack-frame");
+    const table = canvas.getByRole("table", { name: "Findings, fitted" });
+    const width = (name: string) => headerNamed(table, name)?.getBoundingClientRect().width ?? 0;
+    if (frame.clientWidth < 1100) return;
+    // The id keeps the author's 120; Finding and Family share the rest, each above its minimum.
+    await waitFor(() => expect(width("Finding")).toBeGreaterThan(400));
+    await expect(Math.round(width("ID"))).toBe(120);
+    await expect(width("Family")).toBeGreaterThan(300);
+    await expect(width("Finding") / width("Family")).toBeCloseTo(160 / 120, 1);
+    // An id with only a minimum is a name: it shares the slack as the unsized text does.
+    const named = canvas.getByRole("table", { name: "Findings, named by the id" });
+    const namedWidth = (name: string) =>
+      headerNamed(named, name)?.getBoundingClientRect().width ?? 0;
+    await waitFor(() => expect(namedWidth("Named finding")).toBeGreaterThan(400));
+    await expect(Math.round(namedWidth("Status"))).toBe(120);
+    await expect(namedWidth("Named finding") / namedWidth("Family")).toBeCloseTo(2, 1);
+    await userEvent.click(canvas.getByRole("button", { name: "700 wide" }));
+    await waitFor(() => expect(width("Finding")).toBeLessThan(300));
+    await expect(Math.round(width("ID"))).toBe(120);
+    await expect(width("Finding")).toBeGreaterThanOrEqual(160);
+    await expect(width("Family")).toBeGreaterThanOrEqual(120);
+  },
+};
+
+/** A server table: while it refreshes the rows stay under `aria-busy` and a quiet bar, and a load the reader waits for is said; a page that comes back empty keeps the toolbar, the header and the pager, with the way to the first page. */
+function RefreshingPage() {
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 5 });
+  const [total, setTotal] = useState(12);
+  const [refreshing, setRefreshing] = useState(false);
+  const from = pagination.pageIndex * pagination.pageSize;
+  const rows = findings.slice(0, total).slice(from, from + pagination.pageSize);
+  const table = useDataTable({
+    columns,
+    data: rows,
+    getRowId: (r) => r.id,
+    label: "Findings on the server",
+    pageSize: 5,
+    pageSizes: [5],
+    manual: { pagination: true },
+    rowCount: total,
+    state: { pagination },
+    onPaginationChange: setPagination,
+  });
+  return (
+    <Stack space="space.150">
+      <Inline space="space.100" shouldWrap>
+        <Button size="small" onClick={() => setRefreshing((now) => !now)}>
+          {refreshing ? "Finish refreshing" : "Refresh"}
+        </Button>
+        <Button size="small" onClick={() => setTotal(10)}>
+          Delete the last two
+        </Button>
+      </Inline>
+      <DataTable
+        table={table}
+        state={refreshing ? "refreshing" : "ready"}
+        toolbar={
+          <Toolbar
+            search={table.state.globalFilter}
+            onSearch={table.setGlobalFilter}
+            placeholder="Search the server"
+          />
+        }
+      />
+    </Stack>
+  );
+}
+
+export const RefreshingAndAStrandedPage: Story = {
+  name: "Refreshing and a stranded page",
+  render: () => <RefreshingPage />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = canvas.getByRole("table", { name: "Findings on the server" });
+    // Only a page is drawn, so the table says how many rows there are and where each one is.
+    await expect(table).toHaveAttribute("aria-rowcount", "13");
+    await expect(table.querySelector("tbody tr")).toHaveAttribute("aria-rowindex", "2");
+    await userEvent.click(canvas.getByRole("button", { name: "Refresh" }));
+    await expect(table).toHaveAttribute("aria-busy", "true");
+    await expect(within(table).getByText("FND-2200")).toBeVisible();
+    await waitFor(() =>
+      expect(politeLines(canvasElement)).toContain("Findings on the server, loading"),
+    );
+    await userEvent.click(canvas.getByRole("button", { name: "Finish refreshing" }));
+    await waitFor(() => expect(table).not.toHaveAttribute("aria-busy"));
+    // The last page, then its rows go: the page is left, not the register.
+    await userEvent.click(canvas.getByRole("button", { name: "Page 3" }));
+    await waitFor(() => expect(within(table).getByText("FND-2210")).toBeVisible());
+    await expect(table.querySelector("tbody tr")).toHaveAttribute("aria-rowindex", "12");
+    await userEvent.click(canvas.getByRole("button", { name: "Delete the last two" }));
+    await expect(await canvas.findByText("Nothing on this page")).toBeVisible();
+    await expect(canvas.getByRole("searchbox", { name: "Search the server" })).toBeVisible();
+    await expect(
+      canvas.getByRole("navigation", { name: "Findings on the server pagination" }),
+    ).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Go to first page" }));
+    await waitFor(() => expect(within(table).getByText("FND-2200")).toBeVisible());
+    await waitFor(() =>
+      expect(canvas.getByRole("searchbox", { name: "Search the server" })).toHaveFocus(),
+    );
+  },
+};
+
+/** A collection of a few rows inside a record: `empty.size: "compact"` says there is nothing in one short row beside its icon, a search that finds nothing says so the same way, and a collection that fits the smallest page has no pager. */
+const compactColumns = defineColumns<Finding>((c) => [
+  c.id("id"),
+  c.text("name", { header: "Finding", minWidth: 200 }),
+  c.status("status", { header: "Status", width: 120, tone: (r) => statusTone[r.status] }),
+]);
+
+function CompactCollection() {
+  const [data, setData] = useState<Finding[]>([]);
+  const table = useDataTable({
+    columns: compactColumns,
+    data,
+    getRowId: (r) => r.id,
+    label: "Linked findings",
+    pageSize: 20,
+  });
+  return (
+    <div style={{ maxWidth: 560 }}>
+      <Stack space="space.150">
+        <Inline space="space.100" shouldWrap>
+          <Button size="small" onClick={() => setData(findings.slice(0, 2))}>
+            Link two findings
+          </Button>
+        </Inline>
+        <DataTable
+          table={table}
+          loadingRows={3}
+          toolbar={
+            <Toolbar
+              search={table.state.globalFilter}
+              onSearch={table.setGlobalFilter}
+              placeholder="Search linked findings"
+            />
+          }
+          empty={{
+            size: "compact",
+            icon: <FileText />,
+            title: "No findings linked",
+            description: "Link the findings this control answers.",
+            action: <Button size="small">Link finding</Button>,
+          }}
+        />
+      </Stack>
+    </div>
+  );
+}
+
+export const CompactEmpty: Story = {
+  name: "Compact empty",
+  render: () => <CompactCollection />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const empty = canvasElement.querySelector('[data-slot="empty"]');
+    await expect(empty).toHaveAttribute("data-size", "compact");
+    await expect(canvas.getByText("No findings linked")).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Link two findings" }));
+    const table = await canvas.findByRole("table", { name: "Linked findings" });
+    await expect(within(table).getByText("FND-2201")).toBeVisible();
+    // Two rows fit the smallest page: no "1–2 of 2" pager under them.
+    await expect(
+      canvas.queryByRole("navigation", { name: "Linked findings pagination" }),
+    ).toBeNull();
+    const search = canvas.getByRole("searchbox", { name: "Search linked findings" });
+    await userEvent.type(search, "zz-nothing");
+    await expect(await canvas.findByText("Nothing matches")).toBeVisible();
+    await expect(
+      canvasElement.querySelector('[data-slot="empty"][data-size="compact"]'),
+    ).not.toBeNull();
+    await userEvent.click(canvas.getByRole("button", { name: "Clear filters" }));
+    await waitFor(() => expect(search).toHaveFocus());
+    await expect(search).toHaveValue("");
+  },
+};
+
+const navigatingColumns = defineColumns<Finding>((c) => [
+  c.id("id"),
+  c.text("name", { header: "Finding", minWidth: 200 }),
+  c.actions((r) => [
+    { label: "Open finding", href: `#/findings/${r.id}`, icon: <FileText /> },
+    {
+      label: "Include every element (12 missing)",
+      description: "Adds the elements this finding skips.",
+      onSelect: () => {},
+    },
+    { label: "Reassign", onSelect: () => {}, disabledReason: "Only the owner can reassign." },
+    { label: "Close finding", tone: "danger", group: "danger", onSelect: () => {} },
+  ]),
+]);
+
+/** Row actions that navigate are links (open in a new tab with a modifier or the middle button), actions that act are buttons; each takes an icon, a line under its label, the reason it is unavailable, and a group, with a separator between groups. The menu is as wide as its longest label. */
+function NavigatingActions() {
+  const table = useDataTable({
+    columns: navigatingColumns,
+    data: findings.slice(0, 3),
+    getRowId: (r) => r.id,
+    label: "Findings with their actions",
+  });
+  return <DataTable table={table} />;
+}
+
+export const RowActionsThatNavigate: Story = {
+  name: "Row actions that navigate",
+  render: () => <NavigatingActions />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getAllByRole("button", { name: "Row actions" })[0]!);
+    const open = await body.findByRole("menuitem", { name: "Open finding" });
+    await expect(open.tagName).toBe("A");
+    await expect(open).toHaveAttribute("href", "#/findings/FND-2200");
+    const long = body.getByRole("menuitem", { name: "Include every element (12 missing)" });
+    // The label is whole: the menu sizes to it.
+    const label = [...long.querySelectorAll("span")].find((el) =>
+      el.textContent?.startsWith("Include"),
+    );
+    if (label) await expect(label.scrollWidth).toBeLessThanOrEqual(label.clientWidth + 1);
+    await expect(body.getByRole("menuitem", { name: "Reassign" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    await expect(body.getByRole("separator")).toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+  },
+};
+
+type Unit = { id: string; name: string; note: string; controls: number; parts?: Unit[] };
+const units: Unit[] = [
+  {
+    id: "u1",
+    name: '=HYPERLINK("https://example.test")',
+    note: "-5",
+    controls: 4,
+    parts: [
+      { id: "u1a", name: "Main board", note: "@sum", controls: 3 },
+      { id: "u1b", name: "I/O board", note: "+1", controls: 2 },
+    ],
+  },
+  { id: "u2", name: "Ground station", note: "ok", controls: 6 },
+];
+const unitColumns = defineColumns<Unit>((c) => [
+  c.text("name", { header: "Unit", sortable: false }),
+  c.text("note", { header: "Note", width: 120, sortable: false }),
+  c.number("controls", { header: "Controls", width: 110, sortable: false, footer: "sum" }),
+]);
+
+/** Export and totals take the rows the filters leave, whatever is open: a folded part is exported, with each row's level, and the total does not move as a row opens. A value a spreadsheet would run as a formula is written as text; a plain number stays a number. */
+function ExportAndTotals() {
+  const table = useDataTable({
+    columns: unitColumns,
+    data: units,
+    getRowId: (r) => r.id,
+    label: "Units, exported",
+    tree: { children: (r) => r.parts, label: (r) => r.name },
+  });
+  return (
+    <Stack space="space.150">
+      <DataTable table={table} />
+      <output data-testid="unit-export" className="block whitespace-pre-wrap break-all">
+        {toCsv(table)}
+      </output>
+    </Stack>
+  );
+}
+
+export const ExportAndTotalsStory: Story = {
+  name: "Export and totals",
+  render: () => <ExportAndTotals />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = canvas.getByRole("treegrid", { name: "Units, exported" });
+    const csv = () => canvas.getByTestId("unit-export").textContent ?? "";
+    const total = () => table.querySelector("tfoot")?.textContent?.replace(/\D/g, "") ?? "";
+    // The parts are folded, and still exported, each with its level.
+    await expect(within(table).queryByText("Main board")).toBeNull();
+    await expect(csv()).toContain("Level,Unit,Note,Controls");
+    await expect(csv()).toContain("2,Main board,'@sum,3");
+    await expect(csv()).toContain("2,I/O board,+1,2");
+    await expect(csv()).toContain('1,"\'=HYPERLINK(""https://example.test"")",-5,4');
+    // The total counts the rows with no parts: 3 + 2 + 6, open or folded.
+    await expect(total()).toBe("11");
+    await userEvent.click(within(table).getByRole("button", { name: /^Expand / }));
+    await expect(within(table).getByText("Main board")).toBeVisible();
+    await expect(total()).toBe("11");
+  },
+};
+
+/** The preview held by the table (`preview` on the hook), so the columns stay at module level: the eye opens it and the open row reads active; `rowHeader` makes the id name its row. Previous and next walk every row the search and filters leave, across pages (`displayedRows`), and `showRow` turns the table to the row's page. */
+function TablePreview() {
+  const [open, setOpen] = useState<Finding | null>(null);
+  const table = useDataTable({
+    columns,
+    data: findings,
+    getRowId: (r) => r.id,
+    label: "Findings with a preview",
+    pageSize: 8,
+    rowHeader: "id",
+    preview: { onPreview: setOpen, activeId: open?.id },
+  });
+  const order = displayedRows(table);
+  const at = open ? order.findIndex((row) => row.id === open.id) : -1;
+  const step = (by: number) => {
+    const next = order[at + by];
+    if (!next) return;
+    setOpen(next.original);
+    showRow(table, next.id);
+  };
+  return (
+    <Stack space="space.150">
+      <DataTable table={table} />
+      {open ? (
+        <Inline space="space.100" alignBlock="center" shouldWrap>
+          <Text size="small">
+            Previewing {open.id}, {at + 1} of {order.length}
+          </Text>
+          <Button size="small" onClick={() => step(-1)} disabled={at <= 0}>
+            Previous record
+          </Button>
+          <Button size="small" onClick={() => step(1)} disabled={at >= order.length - 1}>
+            Next record
+          </Button>
+        </Inline>
+      ) : null}
+    </Stack>
+  );
+}
+
+export const PreviewHeldByTheTable: Story = {
+  name: "Preview held by the table",
+  render: () => <TablePreview />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = within(canvas.getByRole("table", { name: "Findings with a preview" }));
+    // Each eye names its record, and the id names its row for a screen reader.
+    const eyes = table.getAllByRole("button", { name: /^Preview FND-/ });
+    await expect(eyes).toHaveLength(8);
+    await expect(table.getAllByRole("rowheader")).toHaveLength(8);
+    await userEvent.click(eyes[7]!);
+    await expect(canvas.getByText("Previewing FND-2207, 8 of 24")).toBeVisible();
+    await expect(eyes[7]).toHaveAttribute("aria-pressed", "true");
+    // Next crosses the page: the table turns to the row it steps onto.
+    await userEvent.click(canvas.getByRole("button", { name: "Next record" }));
+    await expect(canvas.getByText("Previewing FND-2208, 9 of 24")).toBeVisible();
+    await waitFor(() => expect(table.getByText("FND-2208")).toBeVisible());
+    await expect(table.queryByText("FND-2200")).toBeNull();
+    await userEvent.click(canvas.getByRole("button", { name: "Previous record" }));
+    await waitFor(() => expect(table.getByText("FND-2207")).toBeVisible());
+  },
+};
+
+const openingColumns = defineColumns<Finding>((c) => [
+  c.id("id"),
+  c.text("name", {
+    header: "Finding",
+    minWidth: 220,
+    cell: (r) => <TextLink href={`#/findings/${r.id}`}>{r.name}</TextLink>,
+  }),
+  c.status("status", { header: "Status", width: 120, tone: (r) => statusTone[r.status] }),
+]);
+
+/** A row opens as its name's link does: a plain click opens the record, Cmd, Ctrl or Shift or the middle button opens the name's link in a new tab, and a click that ends a text selection does nothing. A focused tree row opens on Enter. */
+function OpeningRows() {
+  const [opened, setOpened] = useState("nothing");
+  const table = useDataTable({
+    columns: openingColumns,
+    data: findings.slice(0, 3),
+    getRowId: (r) => r.id,
+    label: "Findings that open",
+  });
+  const tree = useDataTable({
+    columns: partColumns,
+    data: system,
+    getRowId: (r) => r.id,
+    label: "Parts that open",
+    tree: { children: (r) => r.parts, label: (r) => r.name },
+  });
+  return (
+    <Stack space="space.200">
+      <DataTable table={table} onRowClick={(r) => setOpened(r.id)} />
+      <DataTable table={tree} onRowClick={(r) => setOpened(r.name)} />
+      <Text size="small" color="color.text.subtle">
+        Opened: {opened}
+      </Text>
+    </Stack>
+  );
+}
+
+export const RowsOpenLikeLinks: Story = {
+  name: "Rows open like links",
+  render: () => <OpeningRows />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = within(canvas.getByRole("table", { name: "Findings that open" }));
+    const idCell = table.getByText("FND-2200");
+    const opens: string[] = [];
+    const original = window.open;
+    window.open = ((url?: string | URL) => {
+      opens.push(String(url));
+      return null;
+    }) as typeof window.open;
+    try {
+      // A modifier click, or the middle button, opens the name's link in a new tab, not the
+      // record in place.
+      fireEvent.click(idCell, { ctrlKey: true });
+      await expect(opens).toHaveLength(1);
+      await expect(opens[0]).toContain("#/findings/FND-2200");
+      fireEvent(idCell, new MouseEvent("auxclick", { bubbles: true, button: 1 }));
+      await expect(opens).toHaveLength(2);
+      await expect(canvas.getByText("Opened: nothing")).toBeVisible();
+      // A click that ends a text selection copies; it does not open.
+      const selection = window.getSelection();
+      selection?.selectAllChildren(idCell);
+      fireEvent.click(idCell);
+      await expect(canvas.getByText("Opened: nothing")).toBeVisible();
+      selection?.removeAllRanges();
+      await userEvent.click(idCell);
+      await expect(canvas.getByText("Opened: FND-2200")).toBeVisible();
+    } finally {
+      window.open = original;
+    }
+    // Enter on a focused tree row opens it, as its click does.
+    const tree = canvas.getByRole("treegrid", { name: "Parts that open" });
+    const row = tree.querySelector<HTMLElement>('tr[tabindex="0"]')!;
+    row.focus();
+    await userEvent.keyboard("{Enter}");
+    await expect(canvas.getByText("Opened: Flight computer")).toBeVisible();
+  },
+};
+
+const versionedView = "data-table-example-versioned";
+const versionedColumns = defineColumns<Finding>((c) => [
+  c.id("id"),
+  c.text("name", { header: "Finding" }),
+  c.status("status", { header: "Status", width: 120, tone: (r) => statusTone[r.status] }),
+  c.person("owner", { header: "Owner" }),
+]);
+
+/** A stored layout carries the author's version: raising `view.version` retires every older layout, and a column added since the layout was stored takes the author's defaults (here Owner, hidden). */
+function VersionedTable({ version }: { version: number }) {
+  const table = useDataTable({
+    columns: versionedColumns,
+    data: findings.slice(0, 3),
+    getRowId: (r) => r.id,
+    label: "Findings, versioned",
+    view: { id: versionedView, version },
+    initialState: { columnVisibility: { owner: false } },
+  });
+  return <DataTable table={table} />;
+}
+
+function VersionedViews() {
+  // The reader's layout under version 1, stored before Owner joined the table: Status hidden.
+  useState(() => {
+    writeView(
+      versionedView,
+      {
+        known: ["id", "name", "status"],
+        order: [],
+        sizing: {},
+        visibility: { status: false },
+        pinning: { start: [], end: [] },
+      },
+      1,
+    );
+    return true;
+  });
+  const [version, setVersion] = useState(1);
+  return (
+    <Stack space="space.150">
+      <Inline space="space.100" shouldWrap>
+        <Button size="small" isSelected={version === 1} onClick={() => setVersion(1)}>
+          Version 1
+        </Button>
+        <Button size="small" isSelected={version === 2} onClick={() => setVersion(2)}>
+          Version 2
+        </Button>
+      </Inline>
+      <VersionedTable version={version} />
+    </Stack>
+  );
+}
+
+export const VersionedViewsStory: Story = {
+  name: "Versioned views",
+  render: () => <VersionedViews />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = canvas.getByRole("table", { name: "Findings, versioned" });
+    const headings = () =>
+      within(table)
+        .getAllByRole("columnheader")
+        .map((header) => header.textContent?.trim() ?? "");
+    // Version 1: the reader's layout holds, and the new Owner column keeps the author's hidden.
+    await waitFor(() => expect(headings()).not.toContain("Status"));
+    await expect(headings()).not.toContain("Owner");
+    await expect(headings()).toContain("Finding");
+    // Version 2: every older layout is discarded; the author's layout draws.
+    await userEvent.click(canvas.getByRole("button", { name: "Version 2" }));
+    await waitFor(() => expect(headings()).toContain("Status"));
+    await expect(headings()).not.toContain("Owner");
+    await expect(readView(versionedView, 2)).not.toBeNull();
+  },
+};
+
+/** While rows are chosen the SelectionBar takes the toolbar's place, so the rows stay where they were. It says the count as it changes and how many of the chosen rows the search or filters hide, since its verbs act on all of them; Clear hands focus to the select-all. */
+function SelectionInTheToolbar() {
+  const table = useDataTable({
+    columns,
+    data: findings,
+    getRowId: (r) => r.id,
+    selectable: true,
+    pageSize: 8,
+    label: "Findings to act on",
+  });
+  const chosen = Object.values(table.state.rowSelection).some(Boolean);
+  return (
+    <Stack space="space.150">
+      <Inline space="space.100" shouldWrap>
+        <Button size="small" onClick={() => table.setGlobalFilter("Backup")}>
+          Show only backups
+        </Button>
+      </Inline>
+      <DataTable
+        table={table}
+        toolbar={
+          chosen ? (
+            <DataTable.SelectionBar
+              table={table}
+              actions={<Button size="small">Reassign</Button>}
+            />
+          ) : (
+            <Toolbar
+              search={table.state.globalFilter}
+              onSearch={table.setGlobalFilter}
+              placeholder="Search findings to act on"
+            />
+          )
+        }
+      />
+    </Stack>
+  );
+}
+
+export const SelectionInTheToolbarStory: Story = {
+  name: "Selection in the toolbar",
+  render: () => <SelectionInTheToolbar />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = within(canvas.getByRole("table", { name: "Findings to act on" }));
+    const second = table.getByRole("checkbox", { name: "Select row FND-2201" });
+    const before = second.getBoundingClientRect().top;
+    await userEvent.click(table.getByRole("checkbox", { name: "Select row FND-2200" }));
+    const bar = await canvas.findByRole("region", { name: "Selection" });
+    // The bar replaced the toolbar: the rows barely move under the pointer.
+    await expect(Math.abs(second.getBoundingClientRect().top - before)).toBeLessThan(20);
+    await userEvent.click(second);
+    await expect(within(bar).getByText("2 selected")).toBeVisible();
+    await waitFor(() => expect(politeLines(canvasElement)).toContain("2 selected"));
+    // The chosen rows leave the view, and the bar says so.
+    await userEvent.click(canvas.getByRole("button", { name: "Show only backups" }));
+    await expect(
+      within(bar).getByText("2 selected, 2 hidden by the search or filters"),
+    ).toBeVisible();
+    await userEvent.click(within(bar).getByRole("button", { name: "Clear" }));
+    await waitFor(() =>
+      expect(table.getByRole("checkbox", { name: "Select all rows on this page" })).toHaveFocus(),
+    );
+  },
+};
+
+type Stamped = { id: string; name: string; at: string };
+const stamped: Stamped[] = [
+  { id: "E-1", name: "Evening of the 24th in Los Angeles", at: "2026-09-25T02:00:00+00:00" },
+  { id: "E-2", name: "Noon on the 24th", at: "2026-09-24T19:00:00Z" },
+  { id: "E-3", name: "The 23rd", at: "2026-09-23T12:00:00Z" },
+  { id: "E-4", name: "A calendar day", at: "2026-09-24" },
+];
+const stampedColumns = defineColumns<Stamped>((c) => [
+  c.id("id"),
+  c.text("name", { header: "Event", minWidth: 220 }),
+  c.date("at", { header: "At", format: "medium", width: 200 }),
+]);
+
+function ZonedDaysTable() {
+  const table = useDataTable({
+    columns: stampedColumns,
+    data: stamped,
+    getRowId: (r) => r.id,
+    label: "Events on 24 September",
+    initialState: { columnFilters: [{ id: "at", value: ["2026-09-24", "2026-09-24"] }] },
+  });
+  return <DataTable table={table} />;
+}
+
+/** A date range filter reads each instant on the day it falls on in the reader's time zone, both ends inclusive: in Los Angeles, 02:00 UTC on the 25th is the evening of the 24th. */
+export const DaysInTheReadersZone: Story = {
+  name: "Days in the reader's zone",
+  render: () => (
+    <LedgerProvider timeZone="America/Los_Angeles">
+      <ZonedDaysTable />
+    </LedgerProvider>
+  ),
+  play: async ({ canvasElement }) => {
+    const table = within(
+      within(canvasElement).getByRole("table", { name: "Events on 24 September" }),
+    );
+    await expect(table.getByText("E-1")).toBeVisible();
+    await expect(table.getByText("E-2")).toBeVisible();
+    await expect(table.getByText("E-4")).toBeVisible();
+    await expect(table.queryByText("E-3")).toBeNull();
+  },
+};
+
+/** A virtual window draws a few of three hundred rows; the table says there are three hundred and each drawn row says its place. */
+function VirtualWindow() {
+  const rows = useMemo(() => makeFindings(300), []);
+  const table = useDataTable({
+    columns,
+    data: rows,
+    getRowId: (r) => r.id,
+    label: "Findings, a window",
+    virtualize: true,
+  });
+  return <DataTable table={table} maxHeight={320} />;
+}
+
+export const AVirtualWindow: Story = {
+  name: "A virtual window",
+  render: () => <VirtualWindow />,
+  play: async ({ canvasElement }) => {
+    const table = within(canvasElement).getByRole("table", { name: "Findings, a window" });
+    await expect(table).toHaveAttribute("aria-rowcount", "301");
+    await waitFor(() =>
+      expect(table.querySelector("tbody tr[data-row-id]")).toHaveAttribute("aria-rowindex", "2"),
+    );
+    await expect(table.querySelectorAll("tbody tr[data-row-id]").length).toBeLessThan(300);
   },
 };

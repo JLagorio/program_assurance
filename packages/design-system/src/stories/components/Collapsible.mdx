@@ -17,7 +17,7 @@ One independent disclosure: content the reader opens when they need it. Based on
 
 `Collapsible` holds the state, `CollapsibleContent` the content that folds, and one of two triggers opens it:
 
-- **`CollapsibleHeader`**, the disclosure header: the trigger inside a heading, the title at the start and a chevron at the end that turns while the content is open, the row tint under the pointer and the focus ring on the keyboard. Use it whenever the disclosure has a title: a rail's group, a block of details, a folded list.
+- **`CollapsibleHeader`**, the disclosure header: the trigger inside a heading, the title at the start and a chevron at the end that turns while the content is open, the row tint under the pointer and the focus ring on the keyboard. The tint reaches `space.100` before a title that sits flush with the content under it, so the title lines up with the rows and the tint still reads as a row; the chevron sits `space.100` inside the end. Use it whenever the disclosure has a title: a rail's group, a block of details, a folded list.
 - **`CollapsibleTrigger`**, the bare trigger with no heading and no chevron, for a trigger that is something else already (a Button through `render`, a row's own control).
 
 ```tsx
@@ -39,7 +39,7 @@ The header's heading takes the contextual level from the nearest [HeadingLevelPr
 
 ## When to use it
 
-- **CollapsibleHeader** for a titled block the reader may not need: provenance, counts, derivation, reference notes. On a page, a collapsible [Section](?path=/docs/layout-section--docs) (`collapsible`) is the same header with the Section's count, description and action; in a rail of facts, [Inspector.Group](?path=/docs/patterns-inspector--docs).
+- **CollapsibleHeader** for a titled block the reader may not need: provenance, counts, derivation, reference notes. On a page, a collapsible [Section](?path=/docs/layout-section--docs) (`isCollapsible`) is the same header with the Section's count, description and action; in a rail of facts, [Inspector.Group](?path=/docs/patterns-inspector--docs).
 - **Not** a subtle Button with a chevron as the trigger: it sits outside the outline and its chevron does not turn. **Not** a native `<details>`: its marker and motion are the browser's.
 - **Not** for a coordinated set where opening one closes another: that is an [Accordion](?path=/docs/components-accordion--docs). **Not** for a row that discloses more of itself: Item's `isCollapsible` and Table's disclosure column own their chevrons.
 
@@ -53,11 +53,13 @@ The header's heading takes the contextual level from the nearest [HeadingLevelPr
 
 ## Accessibility
 
-Base UI owns expanded state, trigger/panel association, disabled behavior and keyboard activation: Tab reaches the trigger, Enter and Space toggle it, and focus stays on it. CollapsibleHeader's trigger is a button inside a heading, so the block is in the heading outline and its state is announced ("Provenance, collapsed, button"); the chevron is decoration, turned by the same state rather than by colour. Under reduced motion the chevron turns without moving and the content opens without the fold. Retained closed panels stay hidden and unfocusable. `hiddenUntilFound` lets supported browser find-in-page reveal closed content. Nested disclosures keep independent state.
+Base UI owns expanded state, trigger/panel association, disabled behavior and keyboard activation: Tab reaches the trigger, Enter and Space toggle it, and focus stays on it. CollapsibleHeader's trigger is a button inside a heading, so the block is in the heading outline and its state is announced ("Provenance, collapsed, button"); the chevron is decoration, turned by the same state rather than by colour. Under reduced motion the chevron turns without moving and the content opens without the fold. Retained closed panels stay hidden and unfocusable. `hiddenUntilFound` lets supported browser find-in-page reveal closed content. Nested disclosures keep independent state, and each folds on its own measured height: a Collapsible inside an open Accordion item eases open instead of snapping to the item's settled height.
+
+<Canvas of={Stories.NestedMotion} />
 
 ## Props
 
-The parts expose native Base UI props, refs, `render`, state classes and styles, and a cancellable `onOpenChange`. Content uses the measured `--collapsible-panel-height` for Ledger motion and respects reduced motion. It clips only while it folds: settled open, its overflow is visible, so the focus ring of a link or a button at its edge shows whole. CollapsibleHeader passes its props, its ref and `render` to the trigger; its children are the title.
+The parts expose native Base UI props, refs, `render`, state classes and styles, and a cancellable `onOpenChange`. Content uses the measured `--collapsible-panel-height` for Ledger motion, through its own `--ds-collapse-height` so an ancestor disclosure's height never reaches it, and respects reduced motion. It clips only while it folds: settled open, its overflow is visible, so the focus ring of a link or a button at its edge shows whole. CollapsibleHeader passes its props, its ref and `render` to the trigger; its children are the title.
 
 <ArgTypes of={Collapsible} />
 <ArgTypes of={CollapsibleHeader} />
@@ -71,9 +73,10 @@ The Root carries `data-open` and `data-closed`; the trigger carries `data-panel-
 ### Migration and API
 
 - Replace Collapsible.Trigger/Content with the flat exports. Replace asChild with render and forceMount with keepMounted.
-- Use data-open/data-closed on the Root and data-panel-open on the trigger instead of Radix data-state selectors. Item, Section, Stepper, Inspector and DataTable metrics use the same Base UI disclosure behavior.
+- Use data-open/data-closed on the Root and data-panel-open on the trigger instead of Radix data-state selectors. Item's disclosure, a collapsible Section, Inspector.Group and DataTable's Metrics are built on the same Base UI Collapsible; a Stepper step's details are a Collapsible placed in it.
 - A Details block built from a subtle Button and a ChevronDown moves to CollapsibleHeader, or to a collapsible Section on a page.
-- The unused LegacyAccordion/LegacyCollapsible adapters are removed; use the current flat Accordion and Collapsible parts.
+- `Collapsible.Group` is an [Accordion](?path=/docs/components-accordion--docs) with `multiple` and an AccordionItem per section; `ledger/no-deprecated-name` names it. A Collapsible's `title` and `count` are a CollapsibleHeader's children, and `headingLevel` is the heading-level context: wrap the disclosure in a HeadingLevelProvider.
+- Use the flat Accordion and Collapsible parts; there are no Legacy adapters.
 
 ## Related
 

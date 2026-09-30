@@ -15,11 +15,11 @@ It is one of two ways to write a fact. A [Fact](?path=/docs/components-fact--doc
 
 ## Anatomy
 
-| Part  | What it is                                                                                                                             |
-| ----- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Label | `dt` in the label column, `labelWidth` wide (104 by default, or the group's), `font.body` in `color.text.subtle`. A label that is cut shows in full in a tooltip on hover. |
-| Value | `dd` in the rest, `font.body` in `color.text`: text, a Badge, a Person, a TextLink, an Absent. Truncates unless `wrap`, which also breaks an unbroken identifier or timestamp inside the rail (the Unbroken story). A cut value, plain or composed (a code and a title, a TextLink), shows its whole text in a tooltip on hover and when a control inside it takes keyboard focus, through [Truncate](?path=/docs/components-truncate--docs). It truncates across only, so a control in the value keeps its focus ring and touch area above and below the row (the Control In A Value story). |
-| Row   | `space.050` above and below, `space.150` between label and value, baselines aligned.                                                   |
+| Part  | What it is                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Label | `dt` in the label column, `labelWidth` wide (104 by default, or the group's), `font.body` in `color.text.subtle`. A label longer than its column wraps to the next line, its first line on the value's baseline; it is never cut (the Cut Value, Whole Label story).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Value | `dd` in the rest, `font.body` in `color.text`: text, a Badge, a Person, a TextLink, an Absent. Truncates unless `wrap`, which also breaks an unbroken identifier or timestamp inside the rail (the Unbroken story). A cut value, plain or composed (a code and a title, a TextLink), shows its whole text in a tooltip on hover and when a control inside it takes keyboard focus, through [Truncate](?path=/docs/components-truncate--docs). It truncates across only, so a control in the value keeps its focus ring and touch area above and below the row (the Control In A Value story); where the browser takes a clip margin it clips with the ring's reach, `space.050`, all round, so a control at either edge keeps its whole ring and an Editable's field its sides (the Ring Room story). |
+| Row   | `space.050` above and below, `space.150` between label and value, baselines aligned.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
 ## Variants
 
@@ -40,11 +40,11 @@ Not built, and why: an editable value, because that is an [Editable](?path=/docs
 
 One `dl` for a rail, an inspector group or a row's More fields. Its KeyValues become its rows (a `div` holding the `dt` and `dd`, which HTML allows), share its `labelWidth` through context, and follow its `layout`:
 
-| `layout`         | Rows                                                                                                                                                       |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `layout`         | Rows                                                                                                                                                                                                                                                                                                                                                 |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `auto` (default) | Label beside value while the value has at least 8rem beside the label; label over value when the group is narrower (a phone, a narrow panel). Every row changes together, because every row has the same width and the same label and value bases. It is intrinsic layout (a wrapping row), so it responds to the group's own width, not the window. |
-| `columns`        | Label beside value at any width: a rail of one-line rows.                                                                                                  |
-| `stacked`        | Label over value, always.                                                                                                                                  |
+| `columns`        | Label beside value at any width: a rail of one-line rows.                                                                                                                                                                                                                                                                                            |
+| `stacked`        | Label over value, always; each takes the row's width, so a long value truncates in it.                                                                                                                                                                                                                                                               |
 
 A row's own `labelWidth` overrides the group's; give the width to the group once instead. A screen reader hears one list of pairs instead of one list per fact. The group ends at each value: a KeyValue inside a value (a peek's facts, a HoverCard's) is its own definition list again (the Group Ends At The Value story).
 
@@ -58,7 +58,7 @@ A row's own `labelWidth` overrides the group's; give the width to the group once
 
 ## Sizes
 
-One size, `font.body`. The row is as wide as its rail; the label column is `labelWidth`, the same for every row in one rail, and the value takes the rest. The Glance uses 88, a rail 104; a rail with long labels ("Authorizing official") sets 160 on its KeyValue.Group.
+One size, `font.body`. The row is as wide as its rail; the label column is `labelWidth`, the same for every row in one rail, and the value takes the rest. The Glance uses 88, a rail 104; a rail with long labels ("Authorizing official") sets 160 on its KeyValue.Group. The width is in pixels at the default text size and is drawn in rem, so the column grows with the reader's text size as the label does: 104 is 130 at 20px (the Group Layouts story). Without a `labelWidth` the column is `dimension.part.keyValueLabel`, 6.5rem.
 
 <Canvas of={Stories.InRail} />
 
@@ -75,6 +75,7 @@ A KeyValue has one state. Its value may: a Badge is a state, a TextLink hovers. 
 ## Content
 
 - **The label is a noun**, one or two words, no colon: "Owner", "Last verified", "Next due". The column is the colon.
+- **Keep a label to one line at its width**: about 14 characters in the default 104 column, about 20 at 160. A longer label wraps rather than being cut, so nothing is lost, but a rail of two-line labels reads slowly: give the KeyValue.Group a `labelWidth` that fits its longest label ("Authorizing official" takes 160), or shorten the label. Three lines means the label is a sentence; say it in the value or a description.
 - **The value is one thing.** Two facts are two rows.
 - **Nothing there is an Absent**, not an empty row and not "N/A", which is a different fact.
 - **The order is the order the reader asks:** who, how often, when last, when next, then the rest.
@@ -90,18 +91,21 @@ A KeyValue has one state. Its value may: a Badge is a state, a TextLink hovers. 
 ## Accessibility
 
 - **It is a definition list**: `dl`, `dt`, `dd`, so a screen reader hears "Owner, Dana Whitfield" as a pair. In a KeyValue.Group a rail is one list of pairs.
-- **A cut label or value shows its whole text** in a tooltip on hover, and a cut value on keyboard focus of a control inside it. The tooltip is a visual copy: the full text is in the DOM and read by a screen reader. A value that matters whole takes `wrap`, so no one has to hover; a touch screen has no hover.
-- **A control in the value stays whole on the block axis.** The value clips only sideways (`overflow-x: clip` with the ellipsis), so an [Editable](?path=/docs/patterns-editable--docs) or a [TextLink](?path=/docs/components-textlink--docs) keeps its focus ring and, where a pointer is coarse, a touch area at least 24px tall.
+- **The label is never cut.** It wraps inside its column, so a sighted reader, a screen reader and a touch reader all read the same label.
+- **A cut value shows its whole text** in a tooltip on hover and on keyboard focus of a control inside it. The tooltip is a visual copy: the full text is in the DOM and read by a screen reader. A value that matters whole takes `wrap`, so no one has to hover; a touch screen has no hover.
+- **A control in the value keeps its ring and its touch area.** The value clips with the ellipsis across and leaves the block axis visible, so an [Editable](?path=/docs/patterns-editable--docs) or a [TextLink](?path=/docs/components-textlink--docs) keeps its focus ring and, where a pointer is coarse, a touch area at least 24px tall. Where the browser takes a clip margin (Chromium and Firefox; Chromium needs the clip on both axes for one), the value clips on both axes with the ring's reach, `space.050`, all round, which holds the ring and the 24px touch area on its 20px line. A value cut at its end still cuts the ring of a link that runs past it there.
 - **The label is text, not a heading.** A rail's sections are headed by an Eyebrow or a Collapsible; the label names one fact.
 - **Contrast:** the label in `color.text.subtle` passes 4.5:1; the gate runs the matrix.
 
 <Canvas of={Stories.ControlInAValue} />
 
+<Canvas of={Stories.RingRoom} />
+
 <Canvas of={Stories.CutValueAndLabel} />
 
 ## Props
 
-Native props and refs target the row's root: the `dl` on its own, the row `div` inside a KeyValue.Group. Use IDs, data attributes and event handlers directly; `className` merges with the default row classes, and caller `style` can override the columns computed from `labelWidth`. The inner `dt`/`dd`, wrapping behavior and the reveal of a cut label or value are preserved.
+Native props and refs target the row's root: the `dl` on its own, the row `div` inside a KeyValue.Group. Use IDs, data attributes and event handlers directly; `className` merges with the default row classes, and caller `style` can override the columns computed from `labelWidth`. The inner `dt`/`dd`, the wrapping label and the reveal of a cut value are preserved.
 
 <ArgTypes of={KeyValue} />
 
@@ -121,7 +125,7 @@ Native `dl` props, a ref and `render` target the group's list.
 
 - [Fact](?path=/docs/components-fact--docs): the inline pair, and the strip under a title.
 - [Typography](?path=/docs/components-typography--docs): `Eyebrow` to head a group of rows, `Prose` for a paragraph, `Absent` for nothing.
-- [Truncate](?path=/docs/components-truncate--docs): the reveal a cut label or value uses.
+- [Truncate](?path=/docs/components-truncate--docs): the reveal a cut value uses.
 - [Glance](?path=/docs/patterns-glance--docs), [Panel](?path=/docs/layout-shell--docs): where rails of KeyValues live.
 
 ## Don't

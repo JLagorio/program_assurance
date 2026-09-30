@@ -25,12 +25,12 @@ function CollectionReview() {
       <PreviewSheet
         open={open}
         onClose={() => setOpen(false)}
-        id={null}
         title={names[index]}
         navigation={
           <PreviewNavigation
             position={index + 1}
             total={names.length}
+            recordLabel={names[index]}
             onPrevious={index > 0 ? () => setIndex(index - 1) : undefined}
             onNext={index < names.length - 1 ? () => setIndex(index + 1) : undefined}
             openLink={
@@ -38,7 +38,6 @@ function CollectionReview() {
             }
           />
         }
-        openTo={<a href={`#evidence-${index + 1}`}>Open evidence record</a>}
         actions={
           <Button size="small" variant="primary">
             Edit artifact
@@ -53,6 +52,9 @@ function CollectionReview() {
   );
 }
 
+const openTooltip = () => document.querySelector('[data-slot="tooltip-content"][data-open]');
+
+/** A version review in a collection: PreviewNavigation in the outer header carries the full-record link, so `openTo` is left out, and the status names the record as it steps. */
 export const CollectionTask: Story = {
   render: () => <CollectionReview />,
   play: async ({ canvasElement }) => {
@@ -70,9 +72,16 @@ export const CollectionTask: Story = {
       within(navigationHeader).queryByRole("button", { name: "Edit artifact" }),
     ).toBeNull();
     await expect(within(navigationHeader).getByRole("button", { name: "Close" })).toBeVisible();
-    await expect(
-      within(recordHeader).getByRole("heading", { name: "Access review evidence" }),
-    ).toHaveFocus();
+    // The record's name is PageHeader.Title rendered as the sheet's title: the h2 that names the
+    // modal, with the body's sections one level below.
+    const recordTitle = within(recordHeader).getByRole("heading", {
+      name: "Access review evidence",
+      level: 2,
+    });
+    await expect(recordTitle).toHaveFocus();
+    await expect(recordTitle).toHaveAttribute("data-slot", "page-header-title");
+    await expect(first).toHaveAttribute("aria-labelledby", recordTitle.id);
+    await expect(within(first).getByRole("heading", { name: "Details", level: 3 })).toBeVisible();
     await expect(
       within(first).getAllByRole("heading", { name: "Access review evidence" }),
     ).toHaveLength(1);
@@ -83,14 +92,24 @@ export const CollectionTask: Story = {
     ).not.toBeNull();
     await expect(within(first).getAllByRole("link")).toHaveLength(1);
     await expect(first.querySelector('[data-slot="sheet-footer"]')).toBeNull();
-    await expect(within(first).getByRole("button", { name: "Previous record" })).toBeDisabled();
-    await userEvent.click(within(first).getByRole("button", { name: "Next record" }));
+    await expect(within(first).getByRole("button", { name: "Previous record" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    const nextButton = within(first).getByRole("button", { name: "Next record" });
+    await userEvent.click(nextButton);
     const next = page.getByRole("dialog", { name: "Recovery exercise evidence" });
-    await expect(within(next).getByRole("button", { name: "Next record" })).toBeDisabled();
+    // At the last record Next stays focused and unavailable; Escape still dismisses the sheet.
+    await expect(nextButton).toHaveAttribute("aria-disabled", "true");
+    await expect(nextButton).toHaveFocus();
     await expect(
       within(next).getByRole("link", { name: "Open full record in new tab" }),
     ).toHaveAttribute("href", "#evidence-2");
-    await expect(within(next).getByRole("status")).toHaveTextContent("2 of 2 records");
+    await expect(within(next).getByRole("status")).toHaveTextContent(
+      "Recovery exercise evidence, 2 of 2 records",
+    );
+    await userEvent.unhover(nextButton);
+    await waitFor(() => expect(openTooltip()).toBeNull());
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(opener).toHaveFocus());
   },
@@ -99,6 +118,10 @@ export const CollectionTask: Story = {
 function PreviewSheetStates() {
   const [open, setOpen] = useState<"plain" | "full" | "stack" | null>(null);
   const [depth, setDepth] = useState(0);
+  // The control in the parent frame that opened the nested one, where Back returns focus.
+  const [openedFrom, setOpenedFrom] = useState<string | null>(null);
+  const backTo = useRef<HTMLButtonElement>(null);
+  // Close and Escape dismiss the whole preview: every frame goes, and the next open starts at the root.
   const close = () => {
     setOpen(null);
     setDepth(0);
@@ -106,7 +129,14 @@ function PreviewSheetStates() {
   const stacked = open === "stack" && depth > 0;
   const requirementCell = (id: string) =>
     open === "stack" ? (
-      <Button variant="link" onClick={() => setDepth(1)}>
+      <Button
+        ref={id === openedFrom ? backTo : undefined}
+        variant="link"
+        onClick={() => {
+          setOpenedFrom(id);
+          setDepth(1);
+        }}
+      >
         <Id>{id}</Id>
       </Button>
     ) : (
@@ -131,6 +161,7 @@ function PreviewSheetStates() {
         open={open !== null}
         onClose={close}
         onBack={stacked ? () => setDepth(0) : undefined}
+        backFocus={stacked ? backTo : undefined}
         id={stacked ? "REQ-0118" : "CMP-0113"}
         title={stacked ? "The gateway shall encrypt telemetry in transit" : "Telemetry gateway"}
         subtitle={
@@ -243,7 +274,7 @@ function PreviewSheetStates() {
     </Stack>
   );
 }
-/** Facts only; with a second link and actions; the compact header with status and facts, and a requirement opened a frame deeper with the back chevron. Open one. */
+/** Facts only; with a second link and actions; the compact header with status and facts, and a requirement opened a frame deeper. Back pops that frame and returns focus to the requirement that opened it; Close and Escape dismiss the whole preview from any frame. Open one. */
 export const PreviewSheetStory: Story = {
   name: "Preview sheet",
   render: () => <PreviewSheetStates />,
@@ -271,7 +302,7 @@ export const PreviewSheetStory: Story = {
         ),
       );
     }
-    await expect(page.queryByRole("button", { name: "Back" })).toBeNull();
+    await expect(page.queryByRole("button", { name: "Back to previous record" })).toBeNull();
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
     await expect(canvas.getByRole("button", { name: "Facts only" })).toHaveFocus();
@@ -300,8 +331,20 @@ export const PreviewSheetStory: Story = {
     const nestedDialog = page.getByRole("dialog", {
       name: "The gateway shall encrypt telemetry in transit",
     });
+    // The link that opened the frame went with the parent frame: the new frame's title takes focus.
+    await waitFor(() =>
+      expect(
+        within(nestedDialog).getByRole("heading", {
+          name: "The gateway shall encrypt telemetry in transit",
+        }),
+      ).toHaveFocus(),
+    );
     const nestedHeader = nestedDialog.querySelector('[data-slot="sheet-header"]') as HTMLElement;
-    await expect(within(nestedHeader).getByRole("button", { name: "Back" })).toBeVisible();
+    const back = within(nestedHeader).getByRole("button", { name: "Back to previous record" });
+    await expect(back).toBeVisible();
+    // Back is an arrow at the start of the bar, apart from previous and next, and it follows the
+    // reading direction.
+    await expect(back.querySelector("svg")).toHaveClass("lucide-arrow-left");
     await expect(within(nestedHeader).queryByText("REQ-0118")).toBeNull();
     await expect(within(nestedHeader).queryByText("Verified")).toBeNull();
     await expect(within(nestedDialog).getByText("REQ-0118")).toBeVisible();
@@ -309,13 +352,25 @@ export const PreviewSheetStory: Story = {
     await expect(
       within(nestedDialog).getByText("Requirement · Derived · Dan Whitlock"),
     ).toHaveAttribute("id", nestedDialog.getAttribute("aria-describedby"));
-    await userEvent.click(page.getByRole("button", { name: "Back" }));
+    // Back pops one frame and returns focus to the control in the parent frame that opened it.
+    await userEvent.click(back);
     await expect(page.getByRole("dialog", { name: "Telemetry gateway" })).toBeVisible();
-    await expect(page.queryByRole("button", { name: "Back" })).toBeNull();
-    await expect(page.getByRole("dialog")).toContainElement(
-      canvasElement.ownerDocument.activeElement as HTMLElement,
-    );
+    await expect(page.queryByRole("button", { name: "Back to previous record" })).toBeNull();
+    await waitFor(() => expect(page.getByRole("button", { name: "REQ-0118" })).toHaveFocus());
+    // Escape from a nested frame dismisses the whole preview, and the next open starts at the root.
+    await userEvent.keyboard("{Enter}");
+    await expect(
+      await page.findByRole("dialog", { name: "The gateway shall encrypt telemetry in transit" }),
+    ).toBeVisible();
     await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
+    await expect(opener).toHaveFocus();
+    await userEvent.click(opener);
+    await expect(await page.findByRole("dialog", { name: "Telemetry gateway" })).toBeVisible();
+    await expect(page.queryByRole("button", { name: "Back to previous record" })).toBeNull();
+    // Close does the same as Escape.
+    await userEvent.click(await page.findByRole("button", { name: "REQ-0121" }));
+    await userEvent.click(within(page.getByRole("dialog")).getByRole("button", { name: "Close" }));
     await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
     await expect(opener).toHaveFocus();
   },

@@ -11,8 +11,12 @@ import {
   AvatarGroupCount,
   Person,
   Button,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
   avatarInitials,
   avatarHue,
+  type AvatarSize,
 } from "../../components";
 import { Inline, Stack } from "../../primitives";
 import { Matrix } from "../_lib/matrix";
@@ -148,4 +152,95 @@ export const ImageLoading: Story = {
     await expect(avatar.querySelector('[data-slot="avatar-fallback"]')).toBeNull();
   },
 };
+const sizes = ["xsmall", "small", "medium", "large", "xlarge"] as const satisfies AvatarSize[];
+const reviewers = ["Dana Whitfield", "Grace Hoppel", "Priya Natarajan"];
+const overlaps = { xsmall: 4, small: 6, medium: 8, large: 8, xlarge: 16 } as const;
+
+/** A group at every size: the +n circle is as large as the avatars it follows, with type a step under theirs, and the overlap is about a quarter of their size. */
+export const GroupSizes: Story = {
+  render: () => (
+    <Stack space="space.200">
+      {sizes.map((size) => (
+        <AvatarGroup
+          key={size}
+          role="group"
+          aria-label={`Reviewers at ${size}: ${reviewers.join(", ")} and two others`}
+          data-testid={`group-${size}`}
+        >
+          {reviewers.map((name) => (
+            <Avatar key={name} size={size} aria-hidden="true" variant="tinted" hue={avatarHue(name)}>
+              <AvatarFallback>{avatarInitials(name, size === "xsmall" ? 1 : 2)}</AvatarFallback>
+            </Avatar>
+          ))}
+          <AvatarGroupCount aria-hidden="true">+2</AvatarGroupCount>
+        </AvatarGroup>
+      ))}
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    for (const size of sizes) {
+      const group = canvas.getByTestId(`group-${size}`);
+      const [first, second] = Array.from(
+        group.querySelectorAll<HTMLElement>('[data-slot="avatar"]'),
+        (el) => el.getBoundingClientRect(),
+      );
+      const count = group.querySelector('[data-slot="avatar-group-count"]')!.getBoundingClientRect();
+      await expect(count.width).toBe(first!.width);
+      await expect(count.height).toBe(first!.height);
+      await expect(Math.round(first!.right - second!.left)).toBe(overlaps[size]);
+    }
+  },
+};
+
+const hidden = ["Marcus Oyelaran", "Ines Albrecht", "Tomás Ruiz"];
+
+/** The members the group does not draw, a click or a key away: the +n circle is a button (`render`) that opens a Popover listing them, and it is named for what it holds. */
+export const HiddenMembers: Story = {
+  render: () => (
+    <AvatarGroup role="group" aria-label="Reviewers">
+      {reviewers.map((name) => (
+        <Avatar key={name} size="small" role="img" aria-label={name} variant="tinted" hue={avatarHue(name)}>
+          <AvatarFallback>{avatarInitials(name)}</AvatarFallback>
+        </Avatar>
+      ))}
+      <Popover>
+        <PopoverTrigger
+          render={
+            <AvatarGroupCount
+              render={<button type="button" />}
+              aria-label={`${hidden.length} more reviewers`}
+            />
+          }
+        >
+          +{hidden.length}
+        </PopoverTrigger>
+        <PopoverContent aria-label="More reviewers" style={{ width: 240 }}>
+          <Stack space="space.100" as="ul">
+            {hidden.map((name) => (
+              <li key={name}>
+                <Person name={name} variant="tinted" />
+              </li>
+            ))}
+          </Stack>
+        </PopoverContent>
+      </Popover>
+    </AvatarGroup>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const more = canvas.getByRole("button", { name: "3 more reviewers" });
+    await expect(more).toHaveAttribute("data-slot", "avatar-group-count");
+    await expect(more.tagName).toBe("BUTTON");
+    more.focus();
+    await userEvent.keyboard("{Enter}");
+    const list = await body.findByRole("dialog", { name: "More reviewers" });
+    for (const name of hidden) await expect(within(list).getByText(name)).toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(more).toHaveFocus());
+  },
+};
+
 export const Playground: Story = {};

@@ -26,7 +26,7 @@ Follow "Adding to the kit" in `docs/guides/component-library.md`, in order:
 ## Checks, in CI order
 
 ```sh
-npm run build:tokens -w packages/design-system && git diff --exit-code -- packages/design-system/src/generated
+npm run build:tokens -w packages/design-system && git diff --exit-code -- packages/design-system/src/generated && ! git ls-files --others --exclude-standard -- packages/design-system/src/generated | grep .
 npm run ds:check
 npm run typecheck -w packages/design-system && npm run lint -w packages/design-system && npm test -w packages/design-system
 npm run ds:api:check            # ds:api:update only when declarations changed on purpose

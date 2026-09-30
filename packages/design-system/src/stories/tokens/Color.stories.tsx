@@ -70,7 +70,7 @@ export const Elevation: Story = {
   render: () => (
     <Page
       title="Elevation"
-      lede="Surfaces pair with shadows: raised with shadow.raised, overlay with shadow.overlay. In dark, surfaces climb in lightness instead of casting more shadow. utility.elevation.surface.current is set by surface-owning components and read by sticky and masking children."
+      lede="Surfaces pair with shadows: raised with shadow.raised, overlay with shadow.overlay. In dark, surfaces climb in lightness instead of casting more shadow. utility.elevation.surface.current is set by surface-owning components and read by sticky and masking children. The layers say which surface stacks over which."
     >
       <Group title="surface">
         <TokenTable
@@ -82,6 +82,9 @@ export const Elevation: Story = {
       </Group>
       <Group title="opacity">
         <TokenTable rows={under("opacity")} />
+      </Group>
+      <Group title="layer · the stacking order, lowest first">
+        <TokenTable rows={under("layer")} />
       </Group>
     </Page>
   ),

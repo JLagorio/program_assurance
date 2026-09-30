@@ -14,19 +14,22 @@ How the form controls go together: which control answers which question, how a f
 
 ## Variants
 
-| The answer                                               | The control                                                                                                       |
-| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| One line of free text: a name, an email, a number        | [Input](?path=/docs/components-input--docs), with `type` for the value's kind.                                    |
-| Several lines: a note, a description, a narrative        | [Textarea](?path=/docs/components-textarea--docs), with `rows` for the expected length.                           |
-| A search box, a number with a unit                       | [InputGroup](?path=/docs/components-inputgroup--docs) around the Input.                                           |
-| One answer from visible choices                          | [RadioGroup](?path=/docs/components-radiogroup--docs).                                                            |
-| One of four to a dozen plain words                       | [Select](?path=/docs/components-select--docs).                                                                    |
-| One of a short list whose options carry a Dot or a Badge | [Select](?path=/docs/components-select--docs).                                                                    |
-| One of many, or names the reader would type              | [Combobox](?path=/docs/components-combobox--docs).                                                                |
-| Several things that can each be true                     | A [CheckboxGroup](?path=/docs/components-checkboxgroup--docs) of Checkboxes under a FieldLegend.                  |
-| An on/off setting                                        | [Switch](?path=/docs/components-switch--docs), with an external label or Field.                                   |
-| A day to schedule                                        | [DatePicker](?path=/docs/components-datepicker--docs). A remembered date is an Input with the format in the hint. |
-| A record: a person, a control, a requirement             | Combobox, or a [RecordPicker](?path=/docs/patterns-recordpicker--docs) when the choice needs more than a row.     |
+| The answer                                               | The control                                                                                                                                                      |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| One line of free text: a name, an email, a number        | [Input](?path=/docs/components-input--docs), with `type` for the value's kind.                                                                                   |
+| Several lines: a note, a description, a narrative        | [Textarea](?path=/docs/components-textarea--docs), with `rows` for the expected length, `autoResize` for a long one and `characterLimit` for a stored limit.     |
+| A search                                                 | [SearchField](?path=/docs/components-searchfield--docs).                                                                                                         |
+| A number, with a unit or a format                        | [NumberField](?path=/docs/components-numberfield--docs); a fixed unit beside an Input is an [InputGroup](?path=/docs/components-inputgroup--docs).               |
+| One answer from visible choices                          | [RadioGroup](?path=/docs/components-radiogroup--docs).                                                                                                           |
+| One of four to a dozen plain words                       | [Select](?path=/docs/components-select--docs).                                                                                                                   |
+| One of a short list whose options carry a Dot or a Badge | [Select](?path=/docs/components-select--docs).                                                                                                                   |
+| One of many, or names the reader would type              | [Combobox](?path=/docs/components-combobox--docs).                                                                                                               |
+| Several things that can each be true                     | A [CheckboxGroup](?path=/docs/components-checkboxgroup--docs) of Checkboxes under a FieldLegend.                                                                 |
+| An on/off setting that applies at once                   | [Switch](?path=/docs/components-switch--docs), in a horizontal Field. Inside a submitted form it is a Checkbox.                                                  |
+| A day to schedule                                        | [DatePicker](?path=/docs/components-datepicker--docs). A remembered date is an Input with the format in the hint.                                                |
+| A moment: a day and a time                               | [DateTimeField](?path=/docs/components-datetimefield--docs), in the reader's zone. A time of day alone is a [TimeField](?path=/docs/components-timefield--docs). |
+| A period                                                 | [DateRangePicker](?path=/docs/components-daterangepicker--docs).                                                                                                 |
+| A record: a person, a control, a requirement             | Combobox, or a [RecordPicker](?path=/docs/patterns-recordpicker--docs) when the choice needs more than a row.                                                    |
 
 <Canvas of={Stories.Pickers} />
 
@@ -47,9 +50,9 @@ Compose each [Field](?path=/docs/components-field--docs) from a FieldLabel, the 
 
 - **Labels above by default.** Horizontal and responsive fields support compact choices and settings rows.
 - **Each field as wide as its answer.** In a six-column Grid, an acronym takes two columns, a name four, an owner three, a description the row. A field wider than its answer lies about the answer.
-- **One column on a narrow screen.** The Grid collapses; the order stays.
+- **One column in a narrow form.** Put the Grid in a FieldGroup, a size container, and give each cell the whole row until the form is 28rem wide: `col-span-6 @md/field-group:col-span-2`. The form collapses by its own width, in a phone, a narrow dialog or a panel, not by the window's; the order stays. A two-column pair is `grid-cols-1 @md/field-group:grid-cols-2` on the same container.
 - **`space.200`** (16px) between fields, **`space.300`** (24px) between sections, **`space.100`** (8px) between the choices of a group.
-- **The first field takes focus** in a dialog or a sheet that exists to fill the form (`autoFocus`). On a page, nothing does.
+- **The first field takes focus** in a dialog or a sheet that exists to fill the form, through `initialFocus` on its content, never `autoFocus`, which leaves focus nowhere when the surface closes. On a page, nothing does.
 
 <Canvas of={Stories.Layout} />
 
@@ -63,7 +66,7 @@ Compose each [Field](?path=/docs/components-field--docs) from a FieldLabel, the 
 
 - **TanStack Form owns state.** Create the form with `useForm`, bind each control through a `form.Field` render prop, and submit a native `<form>` with `form.handleSubmit()`.
 - **Validate with Zod, on submit, then on change.** The main example uses `onDynamic` with `revalidateLogic({ mode: "submit", modeAfterSubmission: "change" })`: nothing is marked until the first submission, then each field clears as the reader repairs it. One validation slot avoids stale messages from another mode. A product that validates on blur passes `mode: "blur"`. The Required on submit example uses only `onSubmit`, which does not update as the reader repairs a value.
-- **Keep the primary available for incomplete values.** Disable it while submitting, using `form.Subscribe`; show success only after persistence completes. The examples save locally for demonstration.
+- **Keep the primary available for incomplete values.** While the form submits, the primary shows `isLoading` (read with `form.Subscribe`) and is never also `disabled`, so it keeps focus; a surface around the form holds itself with `pending`. Show success only after persistence completes. The examples save locally for demonstration.
 - **Mark the field, say what fixes it.** Pass `invalid` to the Field and the messages to FieldError; the control is marked and described by them. After a failed submission, focus the first invalid control; when the form is long or spans steps, show an ErrorSummary above it instead, which takes focus and lists every issue.
 - **Reset deliberately.** Use `form.reset()` for an explicit Reset action. Preserve the draft after a server failure.
 
@@ -162,10 +165,6 @@ Bind Input, and Textarea with `value`, `onBlur={field.handleBlur}` and `onChange
 The recovery example combines native inputs, an InputGroup, a custom input, Select and Combobox. TanStack owns editable values and metadata; native form submission also includes a control associated from outside the form. A failed submission shows an ErrorSummary, which takes focus and leads to each field. The Zod schema requires an owner only for Assigned status, so changing that status clears the obsolete error and the Field's `required` follows it. A local async validator simulates a server rejection for `taken@example.test`; the rejected value is kept until the reader changes it, because TanStack clears a submit-time error on the field's next blur. Reset clears the draft and validation state.
 
 <Canvas of={Stories.ValidationRecovery} />
-
-### Migrating from useRequired
-
-`useRequired` is removed. Use TanStack's `useForm` and `form.Field`, schema validators, and `revalidateLogic({ mode: "submit", modeAfterSubmission: "change" })` for required checks that update as the user repairs a submission. Use `form.reset()` for Reset, and `onSubmitInvalid` with a form-scoped invalid-control lookup, an explicit ref, or an ErrorSummary for focus. Return field errors from `onSubmitAsync` for server validation. Package examples import TanStack directly.
 
 ## Don't
 

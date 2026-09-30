@@ -45,7 +45,7 @@ const panel = () => page.locator('[data-shell-area="panel"]');
 const header = () => panel().locator("[data-record-preview-header]");
 const chrome = () => panel().locator('[data-slot="shell-panel-header"]');
 const eye = (id) =>
-  page.locator(`tr[data-row-id="${id}"]`).getByRole("button", { name: "Preview row", exact: true });
+  page.locator(`tr[data-row-id="${id}"]`).getByRole("button", { name: /^Preview / });
 async function check(title, primary, more = false) {
   await expect(panel()).toHaveCount(1);
   await expect(header().getByRole("heading", { name: title, exact: true })).toHaveCount(1);
@@ -63,7 +63,9 @@ async function check(title, primary, more = false) {
 /** Close every preview frame, a nested one first, so the collection behind it takes input. */
 async function closePreview() {
   for (let frame = 0; frame < 3 && (await panel().count()); frame++)
-    await chrome().getByRole("button", { name: "Close details", exact: true }).click();
+    await chrome()
+      .getByRole("button", { name: /^Close (details|.+ preview)$/ })
+      .click();
   await expect(panel()).toHaveCount(0);
 }
 async function cancelDialog() {
@@ -265,7 +267,9 @@ try {
     await expect(
       header().getByRole("button", { name: "Edit procedure step", exact: true }),
     ).toHaveCount(0);
-    await chrome().getByRole("button", { name: "Close details", exact: true }).click();
+    await chrome()
+      .getByRole("button", { name: /^Close (details|.+ preview)$/ })
+      .click();
 
     await page.goto(`${origin}/packages/${pkg.id}`);
     const versionsTable = page.getByRole("table", { name: /^package versions$/i });
@@ -295,7 +299,9 @@ try {
     await check("Version 2", "Edit authorization package version");
     await chrome().getByRole("button", { name: "Previous record", exact: true }).click();
     await check("Version 1", "Edit authorization package version");
-    await chrome().getByRole("button", { name: "Close details", exact: true }).click();
+    await chrome()
+      .getByRole("button", { name: /^Close (details|.+ preview)$/ })
+      .click();
     await expect(eye(pkgVersion.id)).toBeFocused();
     console.log(
       `PASS campaign procedure/revision, published step protection + package header/edit/cancel/navigation at ${width}px`,

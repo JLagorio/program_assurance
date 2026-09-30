@@ -1,11 +1,13 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { SelectContent, SelectItem, SelectTrigger } from "../../components";
 import * as Stories from "./Select.stories";
 
 <Meta of={Stories} />
 
 # Select
 
-Choose predefined values with shadcn's Base UI Select parts. Ledger supplies control geometry, menu styling, locale direction and Field integration. Use Combobox when the list needs filtering.
+Choose one value, or a few, from a short list the reader does not need to search, with shadcn's Base UI Select parts. Ledger supplies the control geometry, the menu styling, locale direction and the Field binding.
 
 ```tsx
 const statuses = { draft: "Draft", review: "In review" };
@@ -13,7 +15,7 @@ const statuses = { draft: "Draft", review: "In review" };
 <Field>
   <FieldLabel>Status</FieldLabel>
   <Select name="status" items={statuses} defaultValue="draft">
-    <SelectTrigger className="w-full">
+    <SelectTrigger>
       <SelectValue placeholder="Choose a status" />
     </SelectTrigger>
     <SelectContent>
@@ -24,54 +26,98 @@ const statuses = { draft: "Draft", review: "In review" };
 </Field>;
 ```
 
+## When to use it
+
+Use a Select for a fixed set of four to a dozen values the reader recognises on sight: a status, a priority, a kind, a revision. The choice table under [Forms](?path=/docs/patterns-forms--docs) decides between the choice controls:
+
+- Two or three options the reader should compare at a glance are a [RadioGroup](?path=/docs/components-radiogroup--docs), which shows every option at once.
+- A long list, or records the reader finds by typing a name or an identifier, is a [Combobox](?path=/docs/components-combobox--docs).
+- An on/off setting is a [Switch](?path=/docs/components-switch--docs) or a [Checkbox](?path=/docs/components-checkbox--docs).
+- Actions and view options behind a button are a [DropdownMenu](?path=/docs/components-dropdownmenu--docs), never a Select whose change runs a command.
+
 ## Composition and states
 
-Root owns selected values, open state, form props and modality. Trigger owns native button props, refs, render composition, layout and size, on the control scale Input, Combobox and Button share: `medium` is 32px, the default, and `small` is 28px, for a toolbar or a dense row. `data-size` says the same word, so InputGroup's rule keyed on `small` finds a small Select. `sm` and `default` are the deprecated shadcn spellings, kept for one version and renamed by `ledger/no-deprecated-name`. It fits its contents by default; use `className="w-full"` in a form or native `style` for a fixed width. Value owns the placeholder and displayed value.
+Root owns the selected value, the open state, the form props and modality. Trigger owns the native button props, refs, render composition, layout and size, on the control scale Input, Combobox and Button share: `medium` is 32px, the default, and `small` is 28px, for a toolbar or a dense row. `data-size` says the same word, so InputGroup's rule keyed on `small` finds a small Select. `sm` and `default` are the deprecated shadcn spellings, kept for one version and renamed by `ledger/no-deprecated-name`. Value owns the placeholder and the displayed value.
 
-Supply Root's `items` label map/array, object-value label conversion, or Value's children to format the selected value. Item children alone do not label the closed trigger. A label can contain the same Dot or Badge shown on the record. Group and Label identify sections; Separator divides them.
+Supply Root's `items` label map or array, object-value label conversion, or Value's children to format the selected value. Item children alone do not label the closed trigger. A label can contain the same Dot or Badge shown on the record. Group and Label identify sections; Separator divides them.
 
-`disabled` prevents interaction and omits the value from submission. `readOnly` keeps the value submitted and the trigger focusable while preventing selection. Item's `disabled` state prevents activation but remains reachable with arrows. For decorated option children, provide Item's plain-text `label` for typeahead. Classes, styles, render props and refs follow each Base UI part's native contract.
+`disabled` prevents interaction and omits the value from submission. `readOnly` keeps the value submitted and the trigger focusable while preventing selection. Item's `disabled` prevents activation and stays reachable with the arrow keys. For decorated option children, give Item a plain-text `label` for typeahead. Classes, styles, render props and refs follow each Base UI part's native contract.
 
 <Canvas of={Stories.SelectMatrix} />
 
+Inside a [Field](?path=/docs/components-field--docs) the trigger fills the Field, as Input and Combobox do. Elsewhere (a toolbar, a filter row, a rail) it fits its value. Either way it never grows past its container: a value longer than the room truncates inside the trigger, and the whole value is in the open list. A class or style width on Trigger wins.
+
+<Canvas of={Stories.Width} />
+
+## Positioning and scrolling
+
+Content includes Portal, Positioner, Popup, List and both scroll arrows. The list opens below its trigger, or above it where there is no room below, from the trigger's start edge with a 4px gap. It is at least as wide as the trigger (and at least 144px, `dimension.part.select`), and as wide as its longest option up to the 720px measure and the room in the viewport; past that an option wraps inside its row, including an unbroken identifier or digest, and never runs under the check mark. Near the edge of the window the list shifts back so it stays whole. Native style, className, render and ref props target Popup; `finalFocus` controls focus return.
+
+`alignItemWithTrigger` opts into the list that opens over its trigger with the chosen option on the value, where space and the input device allow it. Use it only for a compact trigger whose list is short, since it covers the field's label and the fields around it; the side and alignment offsets apply only when it falls back to opening below. Content's `dir` overrides the inherited positioning direction as well as the text direction.
+
+<Canvas of={Stories.Placement} />
+
+The inner List owns bounded scrolling so the hover arrows work in both placements. ScrollUpButton and ScrollDownButton wrap Base UI's hover scroll arrows, with their native props and refs, and wear the [Scroller](?path=/docs/components-scroller--docs) arrow look across the popup's inner box. They appear when the list can scroll and are omitted for touch input. Content includes them; the example composes them directly for a custom list geometry, beside the standard Content in right to left.
+
+<Canvas of={Stories.Scrolling} />
+
+## Descriptions and disabled reasons
+
+`description` on SelectItem adds a second line under the option, in smaller subtle text that wraps inside the list: what tells two similar options apart ("287 controls for a moderate-impact system"). The line is the option's accessible description, not part of its name, so typeahead finds the label alone and the closed trigger shows only the label.
+
+An option that cannot be chosen takes `disabledReason` instead of `disabled`: the option is disabled, the arrow keys still reach it, a screen reader announces it as unavailable and reads the reason, and the reason shows as its description line, readable on the faded row. Write what would make it available. A tooltip cannot do this job in a list, and a disabled option without a reason leaves the reader guessing. A list where most options are unavailable is the wrong control; say what is missing beside the field instead.
+
+<Canvas of={Stories.Descriptions} />
+
 ## Forms and selection
 
-Inside a [Field](?path=/docs/components-field--docs) the FieldLabel names the trigger and the open list, the hint and error describe the trigger, and the Field's `invalid`, `required` and `disabled` reach it, with no ids. Outside one, connect a label to Trigger with `htmlFor`/`id` and put `aria-describedby`, `aria-invalid` and `aria-required` on Trigger. Root’s `required` enables native constraint validation; the Field's `required` only announces. Native form props (`name`, `form`, `autoComplete`, `inputRef`) belong on Root. Root’s ID supplies the default trigger ID; an explicit Trigger ID takes precedence. `inputRef` targets the hidden form input.
+Inside a [Field](?path=/docs/components-field--docs) the FieldLabel names the trigger and the open list, the hint and error describe the trigger, and the Field's `invalid`, `required` and `disabled` reach it, with no ids. Clicking the label opens the list, as clicking the trigger does, because the trigger is a button the label activates. Outside a Field, connect a label to Trigger with `htmlFor` and `id`, and put `aria-describedby`, `aria-invalid` and `aria-required` on Trigger. Root's `required` enables native constraint validation; the Field's `required` only announces. Native form props (`name`, `form`, `autoComplete`, `inputRef`) belong on Root. Root's id supplies the default trigger id; an explicit Trigger id takes precedence. `inputRef` targets the hidden form input.
 
-Single selection accepts a value or `null`; `onValueChange(value, details)` can reject a change with `details.cancel()`. Cancellation preserves the value, but an item activation still closes a single-select popup. Add a `null` item when the reader needs to clear from the list. Value's placeholder appears when no value is selected.
+Single selection accepts a value or `null`; `onValueChange(value, details)` can reject a change with `details.cancel()`. Cancellation keeps the value, and an item activation still closes a single-select popup. Add a `null` item when the reader needs to clear from the list. Value's placeholder appears when no value is selected.
 
-`multiple` uses arrays and keeps the list open while toggling options. FormData contains one entry per selected value under the same name. Object values can supply `itemToStringLabel`, `itemToStringValue` and `isItemEqualToValue` for display, submission and identity. Root preserves generic single/multiple inference; Item and Value use the installed Base UI value contracts.
+`multiple` uses arrays and keeps the list open while the reader toggles options. FormData holds one entry per selected value under the same name. Object values supply `itemToStringLabel`, `itemToStringValue` and `isItemEqualToValue` for display, submission and identity. Root keeps generic single and multiple inference; Item and Value use the installed Base UI value contracts.
 
-With installed Base UI 1.7, form reset is caller-owned: reset controlled values in the form's `onReset`. The example covers required values, cancelled changes, multiple numeric values and object identity.
+With Base UI 1.7, form reset is caller-owned: reset controlled values in the form's `onReset`. The example covers required values, cancelled changes, multiple numeric values and object identity.
 
 <Canvas of={Stories.InField} />
 
 <Canvas of={Stories.BoundInField} />
 
-## Positioning and scrolling
+## Content
 
-Content includes Portal, Positioner, Popup, List and both scroll arrows. It defaults to trigger width, a 144px minimum, bottom/center placement, a 4px side offset and zero alignment offset. Native style/className/render/ref props target Popup; `finalFocus` controls focus return.
-
-Following shadcn, `alignItemWithTrigger` defaults to true: when space and input modality allow it, the selected item overlaps and aligns with the trigger value. Side/alignment offsets apply in fallback positioning or when `alignItemWithTrigger={false}`. Existing consumers explicitly retain below-trigger placement with that setting. Content's `dir` overrides inherited positioning direction as well as text direction.
-
-The inner List owns bounded scrolling so hover arrows work in both alignment modes with Base UI 1.7. ScrollUpButton and ScrollDownButton wrap Base UI's hover scroll arrows, including their native props and refs, and wear the [Scroller](?path=/docs/components-scroller--docs) arrow look across the popup's inner box. They appear when scrolling is available and are omitted for touch input. Content includes them automatically; the example composes them directly for custom list geometry, beside the standard Content in RTL.
-
-<Canvas of={Stories.Scrolling} />
+- The placeholder says the action and the noun: "Choose a status", "Choose a revision". It never says "Select…", "Optional" or repeats the label; the Field marks a required field.
+- Option labels are short nouns in sentence case, the words the record shows. Put the difference between two similar options in `description`, not in a longer label.
+- Order options by meaning (the workflow order of statuses, severity from high to low), and alphabetically only when they have no order of their own.
+- A "No status" option is a `null` item at the end, after a separator, and only where clearing is allowed.
 
 ## Accessibility and dialogs
 
-Trigger is a native button with combobox semantics, expanded state and a listbox association. Options announce selected and disabled state. Enter, Space and ArrowDown open; arrows, Home and End move focus; typing matches labels; Enter/Space select. Closed single-select typeahead changes the selected value. Keep a visible Field label or an explicit accessible name on Trigger. Name Content’s list with `aria-label` or `aria-labelledby` when a specific list name is needed. These name the listbox as well as passing through to Popup.
+Trigger is a native button with combobox semantics, an expanded state and a listbox association. Options announce their selected and disabled states. Enter, Space and ArrowDown open; the arrow keys, Home and End move focus; typing matches labels; Enter and Space select. Closed single-select typeahead changes the selected value. Keep a visible Field label or an explicit accessible name on Trigger. Inside a Field the list is named by the label; name Content's list with `aria-label` or `aria-labelledby` where another name is needed. These name the listbox as well as passing through to Popup.
 
-Base UI coordinates nested Select, Dialog and Drawer popups. Escape dismisses Select before the dialog, returning focus to the trigger. Closing the dialog then returns to its opener.
+Base UI coordinates nested Select, Dialog and Drawer popups. Escape dismisses the Select before the dialog and returns focus to the trigger; closing the dialog then returns to its opener.
 
 <Canvas of={Stories.Dialogs} />
 
 ## Migration and API
 
-Replace the configured root with Select, SelectTrigger, SelectValue and SelectContent. Move trigger refs, ARIA, size, styles and event handlers to Trigger; replace `width` with native style; `size` keeps `small` and `medium`. Move the placeholder to Value. Replace compound Item/Group/Separator with flat exports and put SelectLabel inside SelectGroup. Supply labels through `items` or Value; handle nullable single values explicitly.
+Replace a configured root with Select, SelectTrigger, SelectValue and SelectContent. Move trigger refs, ARIA, size, styles and event handlers to Trigger; `size` takes `small` and `medium`. Move the placeholder to Value. Replace compound Item, Group and Separator with the flat exports and put SelectLabel inside SelectGroup. Supply labels through `items` or Value, and handle nullable single values explicitly.
 
-The implementation follows [shadcn Select](https://ui.shadcn.com/docs/components/base/select) and [Base UI Select](https://base-ui.com/react/components/select), using the installed Base UI version. Content adds shadcn's five positioning props to Popup; Ledger adds token styling and locale/Field/dialog integration.
+The implementation follows [shadcn Select](https://ui.shadcn.com/docs/components/base/select) and [Base UI Select](https://base-ui.com/react/components/select), on the installed Base UI version. Content adds five positioning props to Popup; Ledger adds token styling and the locale, Field and dialog integration.
+
+## Props
+
+### SelectTrigger
+
+<ArgTypes of={SelectTrigger} />
+
+### SelectContent
+
+<ArgTypes of={SelectContent} />
+
+### SelectItem
+
+<ArgTypes of={SelectItem} />
 
 ## Related
 
-[Combobox](?path=/docs/components-combobox--docs) · [Field](?path=/docs/components-field--docs) · [Forms](?path=/docs/patterns-forms--docs) · [DropdownMenu](?path=/docs/components-dropdownmenu--docs)
+[Combobox](?path=/docs/components-combobox--docs) · [RadioGroup](?path=/docs/components-radiogroup--docs) · [Field](?path=/docs/components-field--docs) · [Forms](?path=/docs/patterns-forms--docs) · [DropdownMenu](?path=/docs/components-dropdownmenu--docs)

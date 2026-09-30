@@ -23,6 +23,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 const linkClick = fn((event: MouseEvent<HTMLAnchorElement>) => event.preventDefault());
 const linkRef = createRef<HTMLAnchorElement>();
+/** Real links with the current page marked by its own state: `aria-current="page"`, a semibold figure and a bar in the selected colour, not a raised fill. The ellipsis says "More pages" to a screen reader. */
 export const Links: Story = {
   render: () => (
     <Pagination aria-label="Control pages">
@@ -71,6 +72,19 @@ export const Links: Story = {
       "?page=1",
     );
     await expect(within(nav).queryByRole("button")).toBeNull();
+    // The current page: heavier than its neighbours and underlined by a 2px bar.
+    const other = within(nav).getByRole("link", { name: "Page 3" });
+    await expect(Number(getComputedStyle(active).fontWeight)).toBeGreaterThan(
+      Number(getComputedStyle(other).fontWeight),
+    );
+    const bar = getComputedStyle(active, "::after");
+    await expect(bar.height).toBe("2px");
+    await expect(bar.backgroundColor).not.toBe(getComputedStyle(other, "::after").backgroundColor);
+    await expect(getComputedStyle(other, "::after").content).toBe("none");
+    // The skipped pages are named, not only drawn.
+    await expect(nav.querySelector('[data-slot="pagination-ellipsis"]')!.textContent).toContain(
+      "More pages",
+    );
     linkClick.mockClear();
     active.focus();
     await userEvent.keyboard(" ");
@@ -242,23 +256,39 @@ function InMemoryDemo() {
     </div>
   );
 }
+/** A pager of buttons over local state. At the first or last page the arrow stays focusable with `aria-disabled`, so a reader who presses Next to the end keeps focus on it. */
 export const InMemoryTable: Story = {
   render: () => <InMemoryDemo />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByRole("button", { name: "Previous page" })).toBeDisabled();
-    await userEvent.click(canvas.getByRole("button", { name: "Next page" }));
+    const previous = canvas.getByRole("button", { name: "Previous page" });
+    const next = canvas.getByRole("button", { name: "Next page" });
+    await expect(previous).toHaveAttribute("aria-disabled", "true");
+    await userEvent.click(next);
     await expect(canvas.getByRole("status")).toHaveTextContent("Rows 9–16");
     await expect(canvas.getByRole("button", { name: "Page 2" })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    await userEvent.click(canvas.getByRole("button", { name: "Page 3" }));
-    await expect(canvas.getByRole("button", { name: "Next page" })).toBeDisabled();
+    // By keyboard to the last page: Next becomes unavailable and keeps focus.
+    next.focus();
+    await userEvent.keyboard("{Enter}");
     await expect(canvas.getByRole("status")).toHaveTextContent("Rows 17–23");
+    await expect(next).toHaveAttribute("aria-disabled", "true");
+    await expect(next).toHaveFocus();
+    // Pressing it again does nothing.
+    await userEvent.keyboard("{Enter}");
+    await expect(canvas.getByRole("status")).toHaveTextContent("Rows 17–23");
+    await expect(next).toHaveFocus();
     await userEvent.click(canvas.getByRole("button", { name: "Filter to no rows" }));
-    await expect(canvas.getByRole("button", { name: "Next page" })).toBeDisabled();
-    await expect(canvas.getByRole("button", { name: "Previous page" })).toBeDisabled();
+    await expect(canvas.getByRole("button", { name: "Next page" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    await expect(canvas.getByRole("button", { name: "Previous page" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
     await expect(canvas.getByRole("status")).toHaveTextContent("No matching rows");
   },
 };
@@ -278,4 +308,61 @@ export const ManyPages: Story = {
       ))}
     </div>
   ),
+};
+
+/** Previous and Next with words of the caller's own, for a feed read newest first: the words are also their names, so a speech user says what they see. Below 384px the words give way to arrows and the names stay. */
+export const OwnWords: Story = {
+  name: "Words of your own",
+  render: () => (
+    <Pagination aria-label="Activity pages">
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious href="?before=2026-09-20" text="Newer" />
+        </PaginationItem>
+        <PaginationItem>
+          <PaginationNext href="?after=2026-09-12" text="Older" />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  ),
+  play: async ({ canvasElement }) => {
+    const nav = within(canvasElement).getByRole("navigation", { name: "Activity pages" });
+    await expect(within(nav).getByRole("link", { name: "Newer" })).toHaveAttribute(
+      "href",
+      "?before=2026-09-20",
+    );
+    await expect(within(nav).getByRole("link", { name: "Older" })).toHaveAttribute(
+      "href",
+      "?after=2026-09-12",
+    );
+  },
+};
+
+const navRef = createRef<HTMLElement>();
+/** Native nav props and a ref reach the region, and the region keeps its own identity: a caller's `data-slot` does not replace it, and its name defaults to "Pagination" until the caller names it. */
+export const NativeAttributes: Story = {
+  name: "Native attributes",
+  render: () => (
+    <Pagination ref={navRef} id="evidence-pages" data-testid="evidence-pages" data-slot="pager">
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationLink href="?page=1" aria-label="Page 1" isActive>
+            1
+          </PaginationLink>
+        </PaginationItem>
+        <PaginationItem>
+          <PaginationLink href="?page=2" aria-label="Page 2">
+            2
+          </PaginationLink>
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  ),
+  play: async ({ canvasElement }) => {
+    const nav = within(canvasElement).getByRole("navigation", { name: "Pagination" });
+    await expect(navRef.current).toBe(nav);
+    await expect(nav).toHaveAttribute("id", "evidence-pages");
+    await expect(nav).toHaveAttribute("data-testid", "evidence-pages");
+    await expect(nav).toHaveAttribute("data-slot", "pagination");
+  },
 };

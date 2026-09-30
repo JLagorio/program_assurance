@@ -1,6 +1,6 @@
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useId, useRef, useState, type FormEvent } from "react";
+import { useId, useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import {
   AlertDialog,
@@ -53,6 +53,9 @@ type Story = StoryObj<typeof meta>;
 /** Long enough to see the pending state, short enough for a play function. */
 const SAVE_MS = 600;
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const forcedColours = () => window.matchMedia("(forced-colors: active)").matches;
+/** The dimming a Dialog or Sheet takes under a dialog opened inside it. */
+const dimming = (popup: HTMLElement) => getComputedStyle(popup, "::after");
 
 type Draft = { title: string; notes: string };
 const emptyDraft: Draft = { title: "", notes: "" };
@@ -217,6 +220,17 @@ export const Form: Story = {
     await expect(popup).toHaveAccessibleDescription("Describe the work. You can assign it later.");
     const title = dialog.getByRole("textbox", { name: "Title" });
     await waitFor(() => expect(title).toHaveFocus());
+    // Close comes first in the Tab order, where it is drawn, and the first field still takes focus.
+    const closeButton = dialog.getByRole("button", { name: "Close" });
+    await expect(
+      closeButton.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    await userEvent.tab({ shift: true });
+    await expect(closeButton).toHaveFocus();
+    await userEvent.tab();
+    await expect(title).toHaveFocus();
+    // In forced colours the fill and shadow are gone; a CanvasText outline keeps the edge.
+    if (forcedColours()) await expect(getComputedStyle(popup).outlineStyle).toBe("solid");
     // Submitting empty: the summary takes focus, names the fix and leads back to the field.
     await userEvent.click(dialog.getByRole("button", { name: "Create task" }));
     const summary = await dialog.findByRole("alert");
@@ -231,11 +245,20 @@ export const Form: Story = {
     );
     await waitFor(() => expect(title).toHaveFocus());
     await userEvent.type(title, "Quarterly review");
-    // A dirty dismissal asks first; Keep editing keeps the draft and the dialog.
+    // A dirty dismissal asks first; the dialog under the prompt dims, so its primary reads as out
+    // of play, with no second blanket over the page. Keep editing keeps the draft and the dialog.
+    await expect(dimming(popup).opacity).toBe("0");
     await userEvent.keyboard("{Escape}");
     const prompt = await body.findByRole("alertdialog", { name: "Discard this task?" });
+    await waitFor(() => expect(popup).toHaveAttribute("data-nested-dialog-open"));
+    await waitFor(() => expect(dimming(popup).opacity).toBe("1"));
+    await expect(dimming(popup).backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
+    await expect(
+      canvasElement.ownerDocument.querySelector('[data-slot="alert-dialog-overlay"]'),
+    ).toBeNull();
     await userEvent.click(within(prompt).getByRole("button", { name: "Keep editing" }));
     await waitFor(() => expect(body.queryByRole("alertdialog")).toBeNull());
+    await waitFor(() => expect(dimming(popup).opacity).toBe("0"));
     await expect(title).toHaveValue("Quarterly review");
     // Pending: busy, Close disabled but still focusable, every dismissal ignored.
     await userEvent.click(dialog.getByRole("button", { name: "Create task" }));
@@ -417,10 +440,12 @@ export const PendingAndNestedPopup: Story = {
     await userEvent.keyboard("{Enter}");
     await expect(popupElement).toBeVisible();
     await expect(close).toHaveFocus();
+    // A press on the blanket leaves the pending dialog open and keeps focus where it was.
     await userEvent.click(
       canvasElement.ownerDocument.querySelector<HTMLElement>('[data-slot="dialog-overlay"]')!,
     );
     await expect(popupElement).toBeVisible();
+    await expect(close).toHaveFocus();
     await userEvent.click(popup.getByRole("button", { name: "Finish saving" }));
     await expect(popupElement).not.toHaveAttribute("aria-busy");
     await userEvent.click(popup.getByRole("button", { name: "Cancel" }));
@@ -452,7 +477,9 @@ export const Scrollable: Story = {
             </p>
           ))}
         </DialogBody>
-        <DialogFooter showCloseButton />
+        <DialogFooter showCloseButton>
+          <DialogClose render={<Button variant="primary" />}>Publish changes</DialogClose>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   ),
@@ -482,6 +509,14 @@ export const Scrollable: Story = {
     await waitFor(() => expect(scroller.scrollTop).toBeGreaterThan(0));
     const footer = popup.querySelector<HTMLElement>('[data-slot="dialog-footer"]')!;
     await expect(footer.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight);
+    // The footer's Close comes before the primary, and the footer is the dialog's own surface,
+    // divided from the body by its hairline.
+    const [footerClose, publish] = within(footer).getAllByRole("button");
+    await expect(footerClose).toHaveAccessibleName("Close");
+    await expect(publish).toHaveAccessibleName("Publish changes");
+    await expect(getComputedStyle(footer).backgroundColor).toBe(
+      getComputedStyle(popup).backgroundColor,
+    );
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
   },
@@ -622,6 +657,112 @@ export const ShortWindow: Story = { ...LongForm, ...shortWindow(844, 390), play:
 
 /** The long form at 400% zoom, 320 by 256 CSS px: still operable, with the footer in view. */
 export const ZoomedWindow: Story = { ...LongForm, ...shortWindow(320, 256), play: shortWindowPlay };
+
+/** A field that takes focus as it mounts, as `autoFocus` does; the kit still returns focus to the opener. */
+function NameField() {
+  const ref = useRef<HTMLInputElement>(null);
+  useLayoutEffect(() => ref.current?.focus(), []);
+  return (
+    <Field>
+      <FieldLabel>Name</FieldLabel>
+      <Input ref={ref} defaultValue="Quarterly review" />
+    </Field>
+  );
+}
+
+function RenameFromState() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Rename record</Button>
+      {open ? (
+        <Dialog open onOpenChange={(next) => setOpen(next)}>
+          <DialogContent width="small">
+            <DialogHeader>
+              <DialogTitle>Rename record</DialogTitle>
+            </DialogHeader>
+            <DialogBody>
+              <NameField />
+            </DialogBody>
+            <DialogFooter>
+              <DialogClose render={<Button variant="subtle" />}>Cancel</DialogClose>
+              <DialogClose render={<Button variant="primary" />}>Rename record</DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      ) : null}
+    </>
+  );
+}
+
+/**
+ * A dialog mounted from state, with `open` true from its first render, whose field takes focus as
+ * it mounts. The Dialog records the opener as it opens, so Escape, Cancel and the primary all
+ * return focus to it rather than to the page. Prefer `initialFocus` on DialogContent for the first
+ * field; `finalFocus` still wins when the opener goes away with the task.
+ */
+export const FocusReturnFromState: Story = {
+  render: () => <RenameFromState />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement),
+      body = within(canvasElement.ownerDocument.body);
+    const opener = canvas.getByRole("button", { name: "Rename record" });
+    for (const close of ["{Escape}", "Cancel", "Rename record"]) {
+      await userEvent.click(opener);
+      const popup = await body.findByRole("dialog", { name: "Rename record" });
+      await waitFor(() =>
+        expect(within(popup).getByRole("textbox", { name: "Name" })).toHaveFocus(),
+      );
+      if (close === "{Escape}") await userEvent.keyboard(close);
+      else await userEvent.click(within(popup).getByRole("button", { name: close }));
+      await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+      await waitFor(() => expect(opener).toHaveFocus());
+    }
+  },
+};
+
+const longValue = "WS-X90_Expanded_Control_Set_2026-09-24_rev-0b9a3f4e5c1d4e7a9f2b8c6d1e0a7b3f";
+
+/**
+ * A title and a description that hold an unbroken value, such as a record's code or a server's
+ * error, wrap inside the popup instead of running past its edge.
+ */
+export const LongValues: Story = {
+  render: () => (
+    <Dialog>
+      <DialogTrigger render={<Button />}>Import control set</DialogTrigger>
+      <DialogContent width="small">
+        <DialogHeader>
+          <DialogTitle>Import {longValue}</DialogTitle>
+          <DialogDescription>
+            The import stopped at constraint
+            requirement_allocations_requirement_id_system_id_revision_key.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogBody>
+          <p className="font-body">Nothing was imported. Check the file and try again.</p>
+        </DialogBody>
+        <DialogFooter showCloseButton />
+      </DialogContent>
+    </Dialog>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement),
+      body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Import control set" }));
+    const popup = await body.findByRole("dialog", { name: `Import ${longValue}` });
+    await waitFor(() => expect(popup).toBeVisible());
+    const edge = popup.getBoundingClientRect();
+    for (const slot of ["dialog-title", "dialog-description"]) {
+      const text = popup.querySelector<HTMLElement>(`[data-slot="${slot}"]`)!;
+      await expect(text.scrollWidth).toBeLessThanOrEqual(text.clientWidth + 1);
+      await expect(text.getBoundingClientRect().right).toBeLessThanOrEqual(edge.right);
+    }
+    await expect(popup.scrollWidth).toBeLessThanOrEqual(popup.clientWidth + 1);
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+  },
+};
 
 /** Use the exposed portal and backdrop with a Base UI popup for a custom surface. */
 export const CustomPortal: Story = {

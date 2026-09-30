@@ -34,6 +34,8 @@ import { AlertCircle, ChevronDown, History, MessageSquare } from "lucide-react";
 import { useModelSave, useRow, useRows } from "@/lib/models";
 import { labelFor, type DataRecord } from "@/lib/records";
 import { taskPriorities, taskStatuses } from "@/lib/status";
+import { useRecordTitle } from "@/components/app/browser-title";
+import { Page, RecordPending } from "@/components/app/shell";
 import { useWorkspace } from "@/components/app/workspace";
 import { LevelIndicator, StatusBadge } from "@/components/app/status";
 import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
@@ -49,6 +51,7 @@ import {
 export const Route = createFileRoute("/tasks/$taskId")({
   component: TaskRoute,
   head: () => ({ meta: [{ title: "Task — Program Assurance" }] }),
+  pendingComponent: RecordPending,
 });
 function TaskRoute() {
   const { taskId } = Route.useParams();
@@ -87,6 +90,7 @@ function TaskDetail({ taskId }: { taskId: string }) {
   const eventTime = useEventTime();
   const taskQuery = useRow("tasks", taskId);
   const task = taskQuery.data;
+  useRecordTitle("Task", task?.title);
   const parties = useRows("parties");
   const comments = useRows("comments", { task_id: taskId });
   const activity = useRows("activity_events", { task_id: taskId });
@@ -135,7 +139,7 @@ function TaskDetail({ taskId }: { taskId: string }) {
       </Button>
     ) : undefined;
   return (
-    <Stack space="space.200" className="min-w-0">
+    <Page>
       {form && <ModelForm target={form} onClose={() => setForm(null)} />}
       <QueryState queries={[taskQuery]}>
         {task ? (
@@ -201,35 +205,35 @@ function TaskDetail({ taskId }: { taskId: string }) {
                   <Absent label="No note recorded" />
                 )}
               </Section>
-              <Section title="Assignments">
-                <ProgramCollection
-                  name="task_assignments"
-                  title="Assignments"
-                  filters={{ task_id: task.id }}
-                  initialValues={{ task_id: task.id }}
-                  columns={[
-                    {
-                      key: "party_id",
-                      title: "Person",
-                      value: (row) =>
-                        parties.data?.find((party) => party.id === row["party_id"])?.name ?? null,
-                      render: (row) => (
-                        <RelationName table="parties" id={row["party_id"] as string | null} />
-                      ),
-                    },
-                    {
-                      key: "assignment_role",
-                      title: "Role",
-                      value: (row) => labelFor(String(row["assignment_role"])),
-                    },
-                  ]}
-                  empty={{
-                    title: "No assignments yet",
-                    description: "Assign a person to record their responsibility for this task.",
-                    illustration: "people",
-                  }}
-                />
-              </Section>
+              {/* One of the record's collections: the compact shape, under its own heading. */}
+              <ProgramCollection
+                name="task_assignments"
+                title="Assignments"
+                section
+                filters={{ task_id: task.id }}
+                initialValues={{ task_id: task.id }}
+                columns={[
+                  {
+                    key: "party_id",
+                    title: "Person",
+                    value: (row) =>
+                      parties.data?.find((party) => party.id === row["party_id"])?.name ?? null,
+                    render: (row) => (
+                      <RelationName table="parties" id={row["party_id"] as string | null} />
+                    ),
+                  },
+                  {
+                    key: "assignment_role",
+                    title: "Role",
+                    value: (row) => labelFor(String(row["assignment_role"])),
+                  },
+                ]}
+                empty={{
+                  title: "No assignments yet",
+                  description: "Assign a person to record their responsibility for this task.",
+                  illustration: "people",
+                }}
+              />
               <Section title="Comments" action={commentAction}>
                 <QueryState queries={[comments]} retryLabel="Retry loading comments">
                   {comments.data?.length ? (
@@ -334,6 +338,6 @@ function TaskDetail({ taskId }: { taskId: string }) {
           <MissingRecord backTo="/work" kind="Task" />
         )}
       </QueryState>
-    </Stack>
+    </Page>
   );
 }

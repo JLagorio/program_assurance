@@ -1,29 +1,56 @@
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { AlertCircle, ChevronLeft, X } from "lucide-react";
 import {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type ReactNode,
   type RefObject,
 } from "react";
+import { Alert, AlertDescription } from "../components/alert";
 import { Button, IconButton } from "../components/button";
 import { Checkbox } from "../components/checkbox";
 import {
   Dialog,
   DialogBody,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "../components/dialog";
+import type { EmptyIllustrationKind } from "../components/empty";
+import { useReadOnlyScroller } from "../components/overlay";
+import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
-import { DataTable, useDataTable, type DataTableColumn } from "./data-table";
+import {
+  DataTable,
+  displayedRows,
+  showRow,
+  useDataTable,
+  type DataTableColumn,
+  type DataTableState,
+} from "./data-table";
+import { PreviewNavigation } from "./preview-navigation";
 import { Toolbar } from "./toolbar";
+
+/** What the browser says when there is nothing it could link: no eligible records at all. */
+export type RecordBrowserEmpty = {
+  /** "Nothing to choose from" unsaid. */
+  title?: string | undefined;
+  /** One line: why there is nothing, and what makes something. "No records can be linked here yet." unsaid. */
+  description?: string | undefined;
+  /** The step that makes a record to link. The browser's `actions` unsaid; `null` for none. */
+  action?: ReactNode;
+  /** A quieter step beside it: a link to where the records are made. */
+  secondary?: ReactNode;
+  /** The picture above the message. `records` unsaid; `false` for none. */
+  illustration?: EmptyIllustrationKind | false | undefined;
+};
 
 export type RecordBrowserProps<T extends { id: string }> = {
   open: boolean;
@@ -34,21 +61,66 @@ export type RecordBrowserProps<T extends { id: string }> = {
   columns: readonly DataTableColumn<T>[];
   /** Filterable column IDs. The table owns sorting, search, filters and selection. */
   filters?: readonly string[];
-  /** Human-readable name for the preview heading and its accessible controls. */
+  /** The record's name as the preview's heading. */
   recordTitle: (record: T) => ReactNode;
+  /**
+   * The record's name as text, never a database key: it names the row's checkbox and eye ("Select
+   * Firewall ruleset export"), the preview's Select checkbox, and what is said as the preview
+   * steps. `recordTitle` when that returns a string unsaid, else the record's id: give it whenever
+   * `recordTitle` returns markup or the ids are keys.
+   */
+  recordLabel?: ((record: T) => string) | undefined;
+  /** A readable identifier over the preview's name, such as "EVD-001". Nothing unsaid; never a database key. */
+  recordCode?: ((record: T) => ReactNode) | undefined;
+  /**
+   * The column that names the record: it leads the row and its cell carries the preview eye. Give
+   * it `priority: 0` too, so a narrow browser keeps it in the row. Unsaid, the columns keep their
+   * order and the eye sits on the first column that holds a value.
+   */
+  previewColumn?: string | undefined;
   /** Record content stays inside this dialog; do not render another modal here. */
   renderPreview: (record: T) => ReactNode;
   onConfirm: (records: T[]) => void | Promise<void>;
   confirmLabel: string;
-  /** Optional context, such as the relationship target. */
+  /** Optional context, such as the relationship target. It scrolls with the results. */
   context?: ReactNode;
-  /** Permanent actions, such as creating a new record. */
+  /** Permanent actions, such as creating a new record. The empty state offers them too. */
   actions?: ReactNode;
+  /** The search field's placeholder and name, what is searched: "Search evidence". "Search records" unsaid. */
+  searchPlaceholder?: string | undefined;
+  /**
+   * Where the records are: `loading` draws skeleton rows under the toolbar, `refreshing` keeps the
+   * rows while new ones arrive, `error` says `error` in place of the rows. `ready` unsaid.
+   */
+  state?: Exclude<DataTableState, "empty"> | undefined;
+  /** What a failed load says, with `state="error"`: what went wrong and what to do. */
+  error?: ReactNode;
+  /**
+   * With no eligible records at all (a load that is done and found none), what the browser says in
+   * place of the table, with `actions` as its step. A search or a filter that matches nothing is
+   * the table's own filtered state, with Clear filters.
+   */
+  empty?: RecordBrowserEmpty | undefined;
   /** Own selection across related workflows that temporarily close the browser. */
   selectedIds?: readonly string[] | undefined;
   /** Reports selection changes. Pair with selectedIds for controlled selection. */
   onSelectionChange?: ((ids: string[]) => void) | undefined;
 };
+
+/** A column's id as the table knows it: its `id`, else its accessor key. */
+const columnId = (column: { id?: string | undefined }) =>
+  column.id ??
+  ("accessorKey" in column && typeof column.accessorKey === "string"
+    ? column.accessorKey
+    : undefined);
+
+/**
+ * The results take the height the dialog leaves them: the toolbar and the pagination stay in view
+ * and the rows scroll under the sticky header inside the table's frame, never less than a header
+ * and a row. A window under 30rem tall scrolls the whole dialog instead (DialogBody).
+ */
+const fillResults =
+  "flex min-h-0 flex-1 flex-col [&>[data-slot=table-container]]:min-h-1000 [&>[data-slot=table-container]]:flex-1 [&>[data-slot=table-container]]:overflow-auto";
 
 /** Search, compare, preview and select records before confirming a relationship. */
 export function RecordBrowser<T extends { id: string }>({
@@ -61,7 +133,21 @@ export function RecordBrowser<T extends { id: string }>({
   // The confirmation in flight holds the dialog: the kit's pending lock disables Close and Cancel
   // and cancels every dismissal while `onConfirm` runs.
   const [saving, setSaving] = useState(false);
-  // A fresh session on each open; changing search or closing a preview never clears selection.
+  // One session per opening. The key changes as the browser opens, so each opening starts afresh;
+  // the last session stays drawn through the exit animation and leaves once it has ended.
+  const [session, setSession] = useState({ open, key: open ? 1 : 0, shown: open });
+  if (session.open !== open)
+    setSession({
+      open,
+      key: open ? session.key + 1 : session.key,
+      shown: open || session.shown,
+    });
+  useLayoutEffect(() => {
+    if (open) return;
+    // A session closed from outside while it confirmed leaves the next one unlocked.
+    confirming.current = false;
+    setSaving(false);
+  }, [open]);
   return (
     <Dialog
       open={open}
@@ -78,10 +164,15 @@ export function RecordBrowser<T extends { id: string }>({
         }
         if (!next) onClose();
       }}
+      onOpenChangeComplete={(next) => {
+        if (!next) setSession((current) => (current.open ? current : { ...current, shown: false }));
+      }}
     >
-      {open ? (
+      {session.shown ? (
         <RecordBrowserContent
+          key={session.key}
           {...props}
+          live={open}
           onClose={onClose}
           dismissPreview={dismissPreview}
           confirming={confirming}
@@ -94,6 +185,7 @@ export function RecordBrowser<T extends { id: string }>({
 }
 
 function RecordBrowserContent<T extends { id: string }>({
+  live,
   dismissPreview,
   confirming,
   saving,
@@ -104,34 +196,54 @@ function RecordBrowserContent<T extends { id: string }>({
   columns,
   filters = [],
   recordTitle,
+  recordLabel,
+  recordCode,
+  previewColumn,
   renderPreview,
   onConfirm,
   confirmLabel,
   context,
   actions,
+  searchPlaceholder,
+  state,
+  error,
+  empty,
   selectedIds,
   onSelectionChange,
   onClose,
 }: Omit<RecordBrowserProps<T>, "open"> & {
+  live: boolean;
   dismissPreview: RefObject<(() => void) | null>;
   confirming: RefObject<boolean>;
   saving: boolean;
   setSaving: (saving: boolean) => void;
 }) {
-  const { t } = useLedgerLocale();
+  const { t, formatNumber } = useLedgerLocale();
   const [previewId, setPreviewId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [linkError, setLinkError] = useState<string | null>(null);
   const [internalSelection, setInternalSelection] = useState<Record<string, true>>({});
   const mounted = useRef(true);
+  // Whether this session is the open one: a late completion from a session the application closed
+  // neither closes nor updates anything.
+  const open = useRef(live);
+  useLayoutEffect(() => {
+    open.current = live;
+  }, [live]);
   useLayoutEffect(() => {
     mounted.current = true;
     return () => {
       mounted.current = false;
-      confirming.current = false;
-      // A session closed from outside while it confirmed leaves the next one unlocked.
-      setSaving(false);
     };
-  }, [confirming, setSaving]);
+  }, []);
+  // The readable name, read when it is needed, so the table's options stay stable.
+  const labelSource = useRef({ recordLabel, recordTitle });
+  labelSource.current = { recordLabel, recordTitle };
+  const labelOf = useCallback((record: T) => {
+    const { recordLabel: label, recordTitle: heading } = labelSource.current;
+    if (label) return label(record);
+    const shown = heading(record);
+    return typeof shown === "string" || typeof shown === "number" ? String(shown) : record.id;
+  }, []);
   const rowSelection = useMemo(
     () =>
       selectedIds === undefined
@@ -140,8 +252,9 @@ function RecordBrowserContent<T extends { id: string }>({
     [selectedIds, internalSelection],
   );
   const previewHeading = useRef<HTMLHeadingElement>(null);
-  const previewBody = useRef<HTMLDivElement>(null);
+  const previewBody = useReadOnlyScroller<HTMLDivElement>();
   const dialogRef = useRef<HTMLDivElement>(null);
+  // The row whose preview is being read, so closing the preview returns focus to its eye.
   const openerId = useRef<string | null>(null);
   const hadPreview = useRef(false);
   const headingId = useId();
@@ -149,25 +262,15 @@ function RecordBrowserContent<T extends { id: string }>({
     openerId.current = record.id;
     setPreviewId(record.id);
   }, []);
-  const previewColumns = useMemo(
-    () =>
-      columns.map((column) =>
-        column.meta?.kind === "id"
-          ? {
-              ...column,
-              meta: {
-                ...column.meta,
-                preview: openPreview,
-                active: (record: T) => record.id === previewId,
-              },
-            }
-          : column,
-      ),
-    [columns, openPreview, previewId],
-  );
+  // The column that names the record leads the row, so its cell carries the eye.
+  const orderedColumns = useMemo(() => {
+    if (previewColumn === undefined) return columns;
+    const named = columns.find((column) => columnId(column) === previewColumn);
+    return named ? [named, ...columns.filter((column) => column !== named)] : columns;
+  }, [columns, previewColumn]);
   const table = useDataTable({
     data: records,
-    columns: previewColumns,
+    columns: orderedColumns,
     getRowId: (record) => record.id,
     selectable: true,
     state: { rowSelection },
@@ -179,10 +282,21 @@ function RecordBrowserContent<T extends { id: string }>({
     pageSize: 20,
     label: title,
     density: "compact",
+    rowLabel: labelOf,
+    preview: { onPreview: openPreview, activeId: previewId },
   });
   const preview = records.find((record) => record.id === previewId);
-  const rows = table.getRowModel().rows;
-  const index = rows.findIndex((row) => row.id === previewId);
+  // Previous and next walk every row the search and filters leave, in the table's order, on every
+  // page: a step onto another page turns the table to it.
+  const displayed = displayedRows(table);
+  const index = previewId === null ? -1 : displayed.findIndex((row) => row.id === previewId);
+  const step = (delta: -1 | 1) => {
+    const target = displayed[index + delta];
+    if (!target) return;
+    showRow(table, target.id);
+    openerId.current = target.id;
+    setPreviewId(target.id);
+  };
   const selected = table.getSelectedRowModel().flatRows.map((row) => row.original);
   const closePreview = () => {
     // Keep focus in the dialog before removing the focused preview subtree. Otherwise
@@ -191,7 +305,7 @@ function RecordBrowserContent<T extends { id: string }>({
     setPreviewId(null);
     requestAnimationFrame(() => {
       const opener = dialogRef.current?.querySelector<HTMLElement>(
-        `[data-row-id="${CSS.escape(openerId.current ?? "")}"] button[aria-label="${CSS.escape(t("previewRow"))}"]`,
+        `[data-row-id="${CSS.escape(openerId.current ?? "")}"] [data-slot="preview-eye"] button`,
       );
       const fallback = dialogRef.current?.querySelector<HTMLElement>("input[type=search]");
       (opener ?? fallback)?.focus();
@@ -207,25 +321,30 @@ function RecordBrowserContent<T extends { id: string }>({
     if (previewId && !hadPreview.current) previewHeading.current?.focus();
     hadPreview.current = !!previewId;
     if (previewBody.current) previewBody.current.scrollTop = 0;
-  }, [previewId]);
+  }, [previewId, previewBody]);
   const confirm = async () => {
     if (!selected.length || confirming.current) return;
     confirming.current = true;
     setSaving(true);
-    setError(null);
+    setLinkError(null);
+    const current = () => mounted.current && open.current;
     try {
       await onConfirm(selected);
-      if (mounted.current) onClose();
+      if (current()) onClose();
     } catch (cause) {
-      if (mounted.current)
-        setError(cause instanceof Error ? cause.message : "The records could not be linked.");
+      if (current())
+        setLinkError(
+          cause instanceof Error && cause.message ? cause.message : t("recordBrowserFailed"),
+        );
     } finally {
-      if (mounted.current) {
+      if (current()) {
         confirming.current = false;
         setSaving(false);
       }
     }
   };
+  const previewLabel = preview ? labelOf(preview) : "";
+  const code = preview ? recordCode?.(preview) : null;
   return (
     <DialogContent
       ref={dialogRef}
@@ -245,28 +364,38 @@ function RecordBrowserContent<T extends { id: string }>({
         className="flex p-0"
         data-preview={preview ? "open" : undefined}
       >
+        {/* While the confirmation runs, the choice it is linking cannot change. */}
         <div
           data-record-browser-results=""
-          className="min-w-0 flex-1 overflow-y-auto overscroll-contain p-200"
+          className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overscroll-contain p-200"
+          inert={saving}
+          aria-busy={saving || undefined}
         >
           {/* The context scrolls with the results, so a short window keeps room for the rows. */}
           {context ? (
-            <div data-record-browser-context="" className="pb-200">
+            <div data-record-browser-context="" className="shrink-0 pb-200">
               {context}
             </div>
           ) : null}
           <DataTable
             table={table}
+            responsive
+            className={fillResults}
             onRowClick={openPreview}
+            state={state}
+            error={error}
             empty={{
-              title: "No matching records",
-              description: "Try another search or clear a filter.",
+              title: empty?.title ?? t("recordBrowserEmptyTitle"),
+              description: empty?.description ?? t("recordBrowserEmptyDescription"),
+              action: empty?.action !== undefined ? empty.action : actions,
+              secondary: empty?.secondary,
+              illustration: empty?.illustration,
             }}
             toolbar={
               <Toolbar
                 search={String(table.state.globalFilter ?? "")}
                 onSearch={(value) => table.setGlobalFilter(value)}
-                placeholder="Search records"
+                placeholder={searchPlaceholder ?? t("recordBrowserSearch")}
                 filters={
                   filters.length ? (
                     <>
@@ -276,6 +405,7 @@ function RecordBrowserContent<T extends { id: string }>({
                     </>
                   ) : undefined
                 }
+                activeFilters={table.state.columnFilters.length}
                 actions={actions}
               >
                 <DataTable.Columns table={table} />
@@ -287,37 +417,41 @@ function RecordBrowserContent<T extends { id: string }>({
           <section
             aria-labelledby={headingId}
             data-record-browser-preview=""
-            className="flex min-h-0 min-w-0 flex-col border-s border-default bg-surface"
+            className="flex min-h-0 min-w-0 flex-col border-s border-default bg-surface-current"
           >
             <div className="flex shrink-0 items-center gap-050 border-b border-default px-200 py-150">
-              <span className="min-w-0 flex-1 font-body font-semibold">{preview.id}</span>
+              {/* In place of the results, the way back leads; beside them, it is the X at the end. */}
               <IconButton
-                label="Previous preview"
-                icon={<ChevronLeft />}
+                label={t("recordBrowserBack")}
+                icon={<ChevronLeft className="rtl:rotate-180" />}
                 variant="subtle"
-                disabled={index <= 0}
-                onClick={() => setPreviewId(rows[index - 1]?.id ?? null)}
+                isTooltipDisabled
+                data-record-browser-back=""
+                className="@split:hidden"
+                onClick={closePreview}
+              />
+              <span className="min-w-0 flex-1 truncate font-body-small text-subtle">{code}</span>
+              {/* The kit's navigation, without a full-record link: the preview belongs to the task. */}
+              <PreviewNavigation
+                position={index + 1}
+                total={displayed.length}
+                recordLabel={previewLabel}
+                onPrevious={() => step(-1)}
+                onNext={() => step(1)}
               />
               <IconButton
-                label="Next preview"
-                icon={<ChevronRight />}
-                variant="subtle"
-                disabled={index < 0 || index >= rows.length - 1}
-                onClick={() => setPreviewId(rows[index + 1]?.id ?? null)}
-              />
-              <IconButton
-                label="Back to results"
+                label={t("recordBrowserBack")}
                 icon={<X />}
                 variant="subtle"
+                data-record-browser-back=""
+                className="hidden @split:inline-flex"
                 onClick={closePreview}
               />
             </div>
             <div
               ref={previewBody}
-              tabIndex={0}
-              role="group"
-              aria-label="Record details"
-              className="min-h-0 overflow-y-auto overscroll-contain p-200 outline-none focus-visible:outline-focused"
+              data-record-browser-preview-body=""
+              className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-200 outline-none focus-visible:outline-focused"
             >
               <h3
                 id={headingId}
@@ -329,9 +463,15 @@ function RecordBrowserContent<T extends { id: string }>({
               </h3>
               {renderPreview(preview)}
             </div>
-            <label className="mt-auto flex shrink-0 cursor-pointer items-center gap-100 border-t border-default px-200 py-150 font-body">
+            <label
+              className={cn(
+                "flex shrink-0 items-center gap-100 border-t border-default px-200 py-150 font-body",
+                saving ? "cursor-not-allowed" : "cursor-pointer",
+              )}
+            >
               <Checkbox
                 checked={!!table.state.rowSelection[preview.id]}
+                disabled={saving}
                 onCheckedChange={(checked) =>
                   table.setRowSelection((selection) => {
                     const next = { ...selection };
@@ -341,29 +481,39 @@ function RecordBrowserContent<T extends { id: string }>({
                   })
                 }
               />
-              Select {preview.id}
+              {t("selectNamed", { label: previewLabel })}
             </label>
           </section>
         ) : null}
       </DialogBody>
-      {error ? (
-        <p role="alert" className="shrink-0 px-250 py-100 font-body text-danger">
-          {error}
-        </p>
+      {linkError ? (
+        <div className="shrink-0 px-250 py-100">
+          <Alert tone="danger" role="alert">
+            <AlertCircle aria-hidden />
+            <AlertDescription>{linkError}</AlertDescription>
+          </Alert>
+        </div>
       ) : null}
+      {/* Under 30rem tall the footer keeps a focused control clear of itself (DialogFooter). */}
       <DialogFooter>
-        <div className="me-auto flex items-center gap-100 font-body-small text-subtle">
-          <span role="status">{selected.length} selected</span>
+        <div className="me-auto flex min-w-0 items-center gap-100 font-body-small text-subtle">
+          <span role="status" className="truncate">
+            {t("selectedCount", { count: formatNumber(selected.length) })}
+          </span>
           {selected.length ? (
-            <Button variant="link" size="small" onClick={() => table.resetRowSelection()}>
-              Clear selection
+            <Button
+              variant="link"
+              size="small"
+              disabled={saving}
+              focusableWhenDisabled
+              onClick={() => table.resetRowSelection()}
+            >
+              {t("recordBrowserClearSelection")}
             </Button>
           ) : null}
         </div>
         <div className="ms-auto flex shrink-0 items-center gap-100">
-          <Button disabled={saving} onClick={onClose}>
-            Cancel
-          </Button>
+          <DialogClose render={<Button variant="subtle" />}>{t("cancel")}</DialogClose>
           <Button
             variant="primary"
             disabled={!selected.length}
@@ -371,7 +521,7 @@ function RecordBrowserContent<T extends { id: string }>({
             onClick={() => void confirm()}
           >
             {confirmLabel}
-            {selected.length ? ` (${selected.length})` : ""}
+            {selected.length ? ` (${formatNumber(selected.length)})` : ""}
           </Button>
         </div>
       </DialogFooter>

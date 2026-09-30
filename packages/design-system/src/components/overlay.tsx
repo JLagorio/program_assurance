@@ -2,10 +2,14 @@ import {
   cloneElement,
   createContext,
   isValidElement,
+  useCallback,
   useContext,
   useEffect,
   useRef,
   type CSSProperties,
+  type MouseEvent,
+  type Ref,
+  type RefObject,
 } from "react";
 
 import { useLedgerLocale } from "../lib/locale";
@@ -83,6 +87,146 @@ export const bodySlot = (name: string) => ({ "data-slot": name });
 
 const tabbable =
   'a[href], area[href], button:not(:disabled), input:not([type="hidden"]):not(:disabled), select:not(:disabled), textarea:not(:disabled), iframe, audio[controls], video[controls], [contenteditable]:not([contenteditable="false"]), [tabindex]:not([tabindex="-1"])';
+
+/**
+ * The first element in `root` the keyboard reaches, leaving out `skip`: a control with a negative
+ * `tabIndex`, one under `inert` or `hidden`, one that is not rendered, an unchecked radio whose
+ * group has a checked one, and Base UI's focus guards are passed over.
+ */
+export function firstTabbable(root: HTMLElement, skip?: Element | null) {
+  for (const element of root.querySelectorAll<HTMLElement>(tabbable)) {
+    if (element === skip || element.tabIndex < 0) continue;
+    if (element.closest("[inert], [hidden], [data-base-ui-focus-guard]")) continue;
+    if (typeof element.checkVisibility === "function" && !element.checkVisibility()) continue;
+    if (
+      element instanceof HTMLInputElement &&
+      element.type === "radio" &&
+      !element.checked &&
+      element.name &&
+      root.querySelector(`input[type="radio"][name="${CSS.escape(element.name)}"]:checked`)
+    )
+      continue;
+    return element;
+  }
+  return null;
+}
+
+/**
+ * A blanketed overlay's default `initialFocus` when its close button comes first in the DOM (so Tab
+ * meets it where it is drawn, at the top end): the first control after it, as Base UI would choose
+ * without the button, or the popup on a touch screen, as Base UI does. With nothing else to focus,
+ * the close button.
+ */
+export function focusPastClose(close: RefObject<HTMLElement | null>) {
+  return (interaction: string) => {
+    const button = close.current;
+    const popup = button?.parentElement;
+    if (!button || !popup) return true;
+    if (interaction === "touch") return popup;
+    return firstTabbable(popup, button) ?? button;
+  };
+}
+
+/**
+ * The element that had focus when a controlled overlay opened, read while the overlay renders
+ * open for the first time, before a field inside it can take focus. Base UI returns focus to the
+ * element that had it when its popup mounted, so a field with `autoFocus` becomes that element and
+ * focus falls to the page when it goes away; the overlays return to this one instead, while it is
+ * still on the page and can take focus. `finalFocus` still wins.
+ */
+export function useOpener(open: boolean | undefined) {
+  const opener = useRef<HTMLElement | null>(null);
+  const wasOpen = useRef(false);
+  if (open && !wasOpen.current && typeof document !== "undefined") {
+    const active = document.activeElement;
+    opener.current = active instanceof HTMLElement && active !== document.body ? active : null;
+  }
+  wasOpen.current = Boolean(open);
+  return opener;
+}
+
+/**
+ * What a blanketed overlay's root tells its content: the opener it recorded, and whether a press on
+ * the blanket leaves the overlay open (pending, `disablePointerDismissal`, or an AlertDialog).
+ */
+export type OverlayRoot = { opener: RefObject<HTMLElement | null>; holdsBlanket: boolean };
+export const OverlayRootContext = createContext<OverlayRoot | null>(null);
+
+/** Returns focus to the recorded opener while it is connected and enabled, else Base UI's default. */
+export function useOpenerFocus() {
+  const root = useContext(OverlayRootContext);
+  return () => {
+    const element = root?.opener.current;
+    if (!element || !element.isConnected || element.matches(":disabled")) return true;
+    return element;
+  };
+}
+
+/**
+ * The blanket's `onMouseDown` while a press on it leaves the overlay open: the press would take
+ * focus from the control the reader is on and drop it to the page. Base UI still hears the press.
+ */
+export function useBlanketPress() {
+  const root = useContext(OverlayRootContext);
+  return root?.holdsBlanket
+    ? (event: MouseEvent) => {
+        event.preventDefault();
+      }
+    : undefined;
+}
+
+/** The overlay scrollers a sticky footer sticks to. */
+const footerScroller =
+  '[data-slot="dialog-content"], [data-slot="alert-dialog-content"], [data-slot="sheet-content"], [data-slot="drawer-content"]';
+
+/**
+ * A sticky footer's ref, joined to the caller's. In a window under 30rem tall the whole popup
+ * scrolls under its footer, so the popup keeps the footer's measured height (two rows when its
+ * buttons wrap) as its `scroll-padding-block-end`: a control that takes focus scrolls clear of the
+ * footer instead of under it. Where the body is the scroller, the popup has nothing to scroll and
+ * the padding does nothing.
+ */
+export function useFooterClearance<Element extends HTMLElement>(
+  theirs: Ref<Element> | undefined,
+): (footer: Element | null) => () => void {
+  return useCallback(
+    (footer: Element | null): (() => void) => {
+      const release = joinRef(theirs, footer);
+      const popup = footer?.parentElement?.closest<HTMLElement>(footerScroller);
+      if (!footer || !popup || typeof ResizeObserver === "undefined") return release;
+      const measure = () => {
+        popup.style.scrollPaddingBlockEnd = `${footer.offsetHeight}px`;
+      };
+      measure();
+      const observer = new ResizeObserver(measure);
+      observer.observe(footer);
+      return () => {
+        observer.disconnect();
+        popup.style.scrollPaddingBlockEnd = "";
+        release();
+      };
+    },
+    [theirs],
+  );
+}
+
+/** Sets a caller's ref, and returns what undoes it, as a React 19 ref cleanup would. */
+function joinRef<Element>(theirs: Ref<Element> | undefined, element: Element | null): () => void {
+  if (typeof theirs === "function") {
+    const cleanup = theirs(element);
+    return typeof cleanup === "function"
+      ? () => {
+          cleanup();
+        }
+      : () => {
+          theirs(null);
+        };
+  }
+  if (theirs) theirs.current = element;
+  return () => {
+    if (theirs) theirs.current = null;
+  };
+}
 
 /** The attributes that make a control reachable or not, watched below the body. */
 const reachability = ["disabled", "tabindex", "href", "contenteditable", "hidden", "inert"];

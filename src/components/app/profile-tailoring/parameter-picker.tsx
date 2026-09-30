@@ -45,6 +45,7 @@ import {
   Text,
   VisuallyHidden,
   WorkPane,
+  type WorkPaneView,
 } from "@ledger/design-system";
 import { AlertCircle } from "lucide-react";
 import {
@@ -58,7 +59,7 @@ import {
 } from "react";
 import { ChoiceField, TextField } from "../fields";
 import { parameterName } from "./names";
-import { focusAfterConfirmation, useRevealDetail } from "./reveal-detail";
+import { focusAfterConfirmation, showOpenRow } from "./reveal-detail";
 import type { ReferenceData } from "./use-reference-data";
 
 const unrecorded = "The parameter override you entered has not been recorded.";
@@ -102,9 +103,13 @@ export function ParameterPicker({
   const formId = useId();
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(initialParameterId);
+  // Stacked, the pane shows the list or the chosen parameter; the count belongs to the list, so it
+  // goes with it.
+  const [paneView, setPaneView] = useState<WorkPaneView>(initialParameterId ? "detail" : "list");
   const [dirty, setDirty] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
-  const { detailRef, headingRef, arm, showRow } = useRevealDetail(selected);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const guard = useDraftGuard({ dirty, onClose, description: unrecorded });
   const { confirm, confirmation } = useConfirmation();
   const query = search.trim().toLowerCase();
@@ -118,12 +123,13 @@ export function ParameterPicker({
       )
     : preview.parameters;
   const parameter = preview.parameters.find((item) => item.parameter.id === selected);
+  /** Chooses a parameter, once an unrecorded override is let go; false keeps the reader on it. */
   async function select(parameterId: string) {
-    if (parameterId === selected) return;
-    if (dirty && !(await confirm(discardChanges(unrecorded)))) return;
+    if (parameterId === selected) return true;
+    if (dirty && !(await confirm(discardChanges(unrecorded)))) return false;
     setDirty(false);
-    arm();
     setSelected(parameterId);
+    return true;
   }
   async function remove(item: WizardParameterPreview) {
     if (
@@ -155,7 +161,7 @@ export function ParameterPicker({
         {...(finalFocus ? { finalFocus } : {})}
         initialFocus={() => {
           if (!initialParameterId) return searchRef.current ?? true;
-          showRow(shown.findIndex((item) => item.parameter.id === initialParameterId));
+          showOpenRow(bodyRef.current);
           return headingRef.current ?? true;
         }}
       >
@@ -168,101 +174,104 @@ export function ParameterPicker({
           </DialogDescription>
         </DialogHeader>
         <DialogBody>
-          <Stack space="space.200">
-            <Text size="small" color="color.text.subtle">
+          <Stack ref={bodyRef} space="space.200" className="@container">
+            {/* The pane stacks under 48rem, the same width this container query reads. */}
+            <Text
+              size="small"
+              color="color.text.subtle"
+              className={paneView === "detail" && parameter ? "hidden @3xl:block" : undefined}
+            >
               {query
                 ? `${shown.length} matching ${shown.length === 1 ? "parameter" : "parameters"} of ${preview.parameters.length} in the effective set`
                 : `${shown.length} ${shown.length === 1 ? "parameter" : "parameters"} in the effective set`}
             </Text>
+            {/* Below its stacking width the pane is a drill-in: the list, then the chosen parameter
+                in its place with Back to parameters. Only the search stays put over the rows. */}
             <WorkPane
               listWidth={300}
-              listLabel={
-                <>
-                  <VisuallyHidden>Parameters</VisuallyHidden>
-                  <SearchField
-                    ref={searchRef}
-                    size="small"
-                    aria-label="Search parameters"
-                    placeholder="Find a parameter"
-                    value={search}
-                    onValueChange={setSearch}
-                  />
-                </>
+              listLabel={<VisuallyHidden>Parameters</VisuallyHidden>}
+              listToolbar={
+                <SearchField
+                  ref={searchRef}
+                  size="small"
+                  aria-label="Search parameters"
+                  placeholder="Find a parameter"
+                  value={search}
+                  onValueChange={setSearch}
+                />
               }
+              view={paneView}
+              onViewChange={setPaneView}
+              backLabel="Back to parameters"
               list={shown.map((item) => (
                 <WorkPane.Row
                   key={item.parameter.id}
                   id={item.parameter.source_id}
-                  title={
-                    <>
-                      {parameterName(item.parameter, item.choices)}
-                      {item.parameter.id === selected ? (
-                        <VisuallyHidden>(selected)</VisuallyHidden>
-                      ) : null}
-                    </>
-                  }
+                  title={parameterName(item.parameter, item.choices)}
                   meta={
                     item.origin === "unset"
                       ? "No recorded value"
                       : `${originLabel[item.origin]} · ${item.values.join("; ")}`
                   }
                   isActive={item.parameter.id === selected}
-                  onSelect={() => void select(item.parameter.id)}
+                  onSelect={() => select(item.parameter.id)}
                 />
               ))}
+              listEmpty={
+                <Empty size="compact">
+                  <EmptyHeader>
+                    <EmptyTitle>No parameter matches</EmptyTitle>
+                    <EmptyDescription>
+                      {query
+                        ? "No parameter of the effective set has that id or name."
+                        : "The effective control set uses no parameters."}
+                    </EmptyDescription>
+                  </EmptyHeader>
+                  {query ? (
+                    <EmptyContent>
+                      <Button
+                        size="small"
+                        onClick={() => {
+                          setSearch("");
+                          searchRef.current?.focus();
+                        }}
+                      >
+                        Clear search
+                      </Button>
+                    </EmptyContent>
+                  ) : null}
+                </Empty>
+              }
               detail={
-                <div ref={detailRef}>
-                  {parameter ? (
-                    <ParameterEditor
-                      key={parameter.parameter.id}
-                      formId={formId}
-                      item={parameter}
-                      decisions={decisions}
-                      parameters={parameters}
-                      onChange={onChange}
-                      onRemove={remove}
-                      readOnly={readOnly}
-                      data={data}
-                      catalogRevisionId={catalogRevisionId}
-                      baseResolutionId={baseResolutionId}
-                      onDirty={setDirty}
-                      headingRef={headingRef}
-                    />
-                  ) : shown.length ? (
-                    <Empty size="compact">
-                      <EmptyHeader>
-                        <EmptyTitle>No parameter chosen</EmptyTitle>
-                        <EmptyDescription>
-                          Choose a parameter to read its source definition and set its values.
-                        </EmptyDescription>
-                      </EmptyHeader>
-                    </Empty>
-                  ) : (
-                    <Empty size="compact">
-                      <EmptyHeader>
-                        <EmptyTitle>No parameter matches</EmptyTitle>
-                        <EmptyDescription>
-                          {query
-                            ? "No parameter of the effective set has that id or name."
-                            : "The effective control set uses no parameters."}
-                        </EmptyDescription>
-                      </EmptyHeader>
-                      {query ? (
-                        <EmptyContent>
-                          <Button
-                            size="small"
-                            onClick={() => {
-                              setSearch("");
-                              searchRef.current?.focus();
-                            }}
-                          >
-                            Clear search
-                          </Button>
-                        </EmptyContent>
-                      ) : null}
-                    </Empty>
-                  )}
-                </div>
+                parameter ? (
+                  <ParameterEditor
+                    key={parameter.parameter.id}
+                    formId={formId}
+                    item={parameter}
+                    decisions={decisions}
+                    parameters={parameters}
+                    onChange={onChange}
+                    onRemove={remove}
+                    readOnly={readOnly}
+                    data={data}
+                    catalogRevisionId={catalogRevisionId}
+                    baseResolutionId={baseResolutionId}
+                    onDirty={setDirty}
+                    headingRef={headingRef}
+                  />
+                ) : undefined
+              }
+              empty={
+                shown.length ? (
+                  <Empty size="compact">
+                    <EmptyHeader>
+                      <EmptyTitle>No parameter chosen</EmptyTitle>
+                      <EmptyDescription>
+                        Choose a parameter to read its source definition and set its values.
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                ) : undefined
               }
             />
           </Stack>
@@ -414,7 +423,8 @@ function ParameterEditor({
                 <Id>{parameter.source_id}</Id>
               </KeyValue>
               {control ? (
-                <KeyValue label="Control">
+                // The title runs long, and a cut value holds no control to reveal it on touch.
+                <KeyValue label="Control" wrap>
                   <Id>{control.code}</Id> {control.title}
                 </KeyValue>
               ) : null}

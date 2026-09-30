@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import type { ReactNode } from "react";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import { Glance } from "../..";
 import {
@@ -104,6 +105,18 @@ export const GlanceStory: Story = {
       ))}
     </Inline>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const trigger = canvas.getByRole("link", { name: "CN-0300" });
+    // Keyboard focus on the trigger opens the glance, which adds no stop of its own.
+    await userEvent.tab();
+    await expect(trigger).toHaveFocus();
+    await waitFor(() => expect(body.getByText("Tactical edge")).toBeVisible(), { timeout: 3000 });
+    await expect(trigger).toHaveFocus();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByText("Tactical edge")).toBeNull());
+  },
 };
 
 /** The three record types at the card's width: an Indicator or a Badge as the status, four facts, three, a title of two lines. */
@@ -115,9 +128,25 @@ export const GlanceMatrix: Story = {
       ))}
     </Inline>
   ),
+  play: async ({ canvasElement }) => {
+    const cards = [...canvasElement.querySelectorAll<HTMLElement>('[data-slot="glance"]')];
+    await expect(cards).toHaveLength(3);
+    const [element, , control] = cards;
+    // Reading order: id, status, title, meta, then the facts; nothing in it takes focus.
+    await expect(element).toHaveTextContent(
+      /^CN-0300v2 pending approvalTactical edgeSubsystem · Atlas payments platformClass/,
+    );
+    await expect(within(control!).getAllByRole("term")).toHaveLength(3);
+    for (const card of cards)
+      await expect(card.querySelectorAll("a, button, input, [tabindex]")).toHaveLength(0);
+  },
 };
 
+/** At most four facts show; the rest belong to the peek. */
 export const Playground: Story = {
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).getAllByRole("term")).toHaveLength(4);
+  },
   render: (args) => (
     <GlanceCard>
       <Glance

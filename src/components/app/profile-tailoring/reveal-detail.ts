@@ -1,47 +1,13 @@
-import { useEffect, useRef } from "react";
-
 /**
- * Whether a WorkPane shows its detail under the list (a narrow dialog) rather than beside it.
- * Stacked, a chosen row's detail starts after the whole list.
+ * When a tailoring dialog opens on a chosen row and its WorkPane lists and details side by side,
+ * scroll the list to that row, so the reader sees where the detail sits in the list. Stacked, the
+ * pane opens on the detail itself (its view starts at `detail`) and Back returns to the row, so
+ * nothing scrolls. Call it once the dialog has drawn, from its `initialFocus`.
  */
-function stackedBelowList(detail: HTMLElement | null) {
-  const aside = detail?.closest('[data-slot="work-pane"]')?.querySelector("aside");
-  if (!detail || !aside) return false;
-  return detail.getBoundingClientRect().top >= aside.getBoundingClientRect().bottom - 1;
-}
-
-/**
- * The tailoring dialogs' interim for a stacked WorkPane (the kit's stacked behaviour is an open
- * decision, D5): after the reader chooses a row, when the detail sits under the list, bring the
- * detail into view and move focus to its heading, so choosing is never a click that seems to do
- * nothing. Side by side, focus stays on the list. `arm()` before changing `chosen`; put
- * `detailRef` on the detail's wrapper and `headingRef` on its first heading (`tabIndex={-1}`).
- */
-export function useRevealDetail(chosen: unknown) {
-  const detailRef = useRef<HTMLDivElement>(null);
-  const headingRef = useRef<HTMLHeadingElement>(null);
-  const armed = useRef(false);
-  useEffect(() => {
-    if (!armed.current) return;
-    armed.current = false;
-    if (!stackedBelowList(detailRef.current)) return;
-    headingRef.current?.scrollIntoView({ block: "start" });
-    headingRef.current?.focus({ preventScroll: true });
-  }, [chosen]);
-  return {
-    detailRef,
-    headingRef,
-    arm: () => {
-      armed.current = true;
-    },
-    /** Side by side, scroll the list to the open row (the `index`th); stacked, the heading shows the detail. */
-    showRow: (index: number) => {
-      const detail = detailRef.current;
-      if (!detail || index < 0 || stackedBelowList(detail)) return;
-      const aside = detail.closest('[data-slot="work-pane"]')?.querySelector("aside");
-      aside?.querySelectorAll('[data-slot="item"]')[index]?.scrollIntoView({ block: "nearest" });
-    },
-  };
+export function showOpenRow(within: HTMLElement | null) {
+  within
+    ?.querySelector('[data-slot="work-pane"][data-layout="split"] [aria-current="true"]')
+    ?.scrollIntoView({ block: "nearest" });
 }
 
 /**

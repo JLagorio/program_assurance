@@ -32,14 +32,19 @@ async function linked(revisionId) {
     client.from("requirement_evidence").select().eq("requirement_revision_id", revisionId),
   );
 }
+/** A cell by the record name it starts with: a name cell also holds the row's preview eye. */
+function nameCell(scope, name) {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return scope.getByRole("cell", { name: new RegExp(`^${escaped}(\\s|$)`) });
+}
 function picker() {
   return page.getByRole("dialog", { name: "Add evidence", exact: true });
 }
 async function chooseEvidence(title) {
-  await picker().getByRole("searchbox", { name: "Search records", exact: true }).fill(title);
+  await picker().getByRole("searchbox", { name: "Search evidence", exact: true }).fill(title);
   const row = picker()
     .getByRole("row")
-    .filter({ has: page.getByRole("cell", { name: title, exact: true }) });
+    .filter({ has: nameCell(page, title) });
   await row.getByRole("checkbox").check();
 }
 try {
@@ -130,7 +135,7 @@ try {
     .getByRole("row")
     .filter({ has: page.getByRole("link", { name: parent.current.title, exact: true }) });
   await parentRow.getByText(parent.code, { exact: true }).waitFor();
-  await parentRow.getByRole("button", { name: "Preview row", exact: true }).click();
+  await parentRow.getByRole("button", { name: /^Preview / }).click();
   await page.getByRole("heading", { name: parent.current.title, exact: true }).waitFor();
   assert.equal(new URL(page.url()).searchParams.get("requirementId"), parent.id);
   assert.equal(await search.inputValue(), "REQ-0");
@@ -152,8 +157,8 @@ try {
   );
   const evidenceRow = picker()
     .getByRole("row")
-    .filter({ has: page.getByRole("cell", { name: artifact.title, exact: true }) });
-  await evidenceRow.getByRole("button", { name: "Preview row", exact: true }).click();
+    .filter({ has: nameCell(page, artifact.title) });
+  await evidenceRow.getByRole("button", { name: /^Preview / }).click();
   await picker().getByRole("heading", { name: artifact.title, exact: true }).waitFor();
   assert.equal(
     await page.getByRole("dialog").count(),
@@ -201,12 +206,12 @@ try {
   // The newly published version returns already chosen beside the earlier choice.
   await picker().getByText("2 selected", { exact: true }).waitFor();
   await picker()
-    .getByRole("searchbox", { name: "Search records", exact: true })
+    .getByRole("searchbox", { name: "Search evidence", exact: true })
     .fill("New linked evidence");
   assert.ok(
     await picker()
       .getByRole("row")
-      .filter({ has: page.getByRole("cell", { name: "New linked evidence", exact: true }) })
+      .filter({ has: nameCell(page, "New linked evidence") })
       .getByRole("checkbox")
       .isChecked(),
     "The published version is chosen in the browser",
@@ -233,7 +238,7 @@ try {
   assert.ok(saved.every((row) => row.claim === null && row.applicability_rationale === null));
   await page.goto(`${origin}/programs/${program.id}/requirements/${parent.id}?tab=Evidence`);
   await page.getByRole("heading", { name: parent.current.title, exact: true }).waitFor();
-  await page.getByRole("cell", { name: "New linked evidence", exact: true }).waitFor();
+  await nameCell(page, "New linked evidence").waitFor();
   await page.getByRole("tab", { name: "Overview", exact: true }).click();
   await page.getByText(parent.current.statement, { exact: true }).waitFor();
   await page.goto(`${origin}/programs/${program.id}?tab=Requirements&requirementId=${parent.id}`);
@@ -245,7 +250,7 @@ try {
   await page.getByRole("tab", { name: "Evidence", exact: true }).last().click();
   await page.reload();
   await page.getByRole("heading", { name: parent.current.title, exact: true }).waitFor();
-  await page.getByRole("cell", { name: "New linked evidence", exact: true }).waitFor();
+  await nameCell(page, "New linked evidence").waitFor();
   const fullPagePromise = context.waitForEvent("page");
   await page.getByRole("link", { name: "Open full record in new tab", exact: true }).click();
   const fullPage = await fullPagePromise;
@@ -253,14 +258,14 @@ try {
   await fullPage.getByRole("heading", { name: parent.current.title, exact: true }).waitFor();
   assert.equal(new URL(fullPage.url()).searchParams.get("revisionId"), null);
   assert.equal(new URL(fullPage.url()).searchParams.get("tab"), "Evidence");
-  await fullPage.getByRole("cell", { name: "New linked evidence", exact: true }).waitFor();
+  await nameCell(fullPage, "New linked evidence").waitFor();
   await fullPage.reload();
   await fullPage.getByRole("heading", { name: parent.current.title, exact: true }).waitFor();
   assert.equal(
     await fullPage.getByRole("combobox", { name: "Requirement revision", exact: true }).count(),
     0,
   );
-  await fullPage.getByRole("cell", { name: "New linked evidence", exact: true }).waitFor();
+  await nameCell(fullPage, "New linked evidence").waitFor();
   await fullPage.close();
   assert.equal(
     (

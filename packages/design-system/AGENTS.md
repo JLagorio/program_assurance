@@ -26,7 +26,8 @@ Look it up. A prop exists when the family's `.mdx` page or its `ArgTypes` shows 
 - Base UI: spread `data-slot` inside `mergeProps`, pass refs through `useRender`, and wait for a menu to mount before asserting `aria-expanded` in a play function.
 - `scripts/ds-check.allow` at the repo root may only shrink.
 - A rename ships with an `@deprecated` alias for one version and a `ledger/no-deprecated-name` fixer.
-- After changing exports, `npm run build:lint` refreshes `eslint-plugin/components.json`; after changing a story or page, `npm run build:llms` refreshes `llms.txt`. Package tests fail on drift in either.
+- After changing exports or a part's props, `npm run build:lint` refreshes `eslint-plugin/components.json`, which holds each part's styling props for `ledger/readable-classes`; after changing a story or page, `npm run build:llms` refreshes `llms.txt`. Package tests fail on drift in either.
+- A `ledger/<rule>` finding names what to write instead; apply it or its editor suggestion. The rule's page is its `meta.docs.url`, `eslint-plugin/docs/<rule>.md` (in the Storybook, Guidance/Lint rules reference). Fix the code rather than silencing the rule: an allowance or an `eslint-disable` only ever shrinks.
 
 ## Adding or changing a part
 
@@ -35,7 +36,7 @@ Follow the four steps under "Adding to the kit" in the component library guide, 
 ## Checks, in CI order
 
 ```sh
-npm run build:tokens -w packages/design-system && git diff --exit-code -- packages/design-system/src/generated
+npm run build:tokens -w packages/design-system && git diff --exit-code -- packages/design-system/src/generated && ! git ls-files --others --exclude-standard -- packages/design-system/src/generated | grep .
 npm run ds:check                                  # repo root: every exported part has a story and a page
 npm run typecheck -w packages/design-system
 npm run lint -w packages/design-system

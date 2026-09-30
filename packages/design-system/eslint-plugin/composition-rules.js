@@ -1,60 +1,25 @@
 // Observable, local composition errors. Cross-file workflow behavior belongs in browser tests.
-const tag = (node) =>
-  node.type === "JSXIdentifier"
-    ? node.name
-    : node.type === "JSXMemberExpression"
-      ? `${tag(node.object)}.${tag(node.property)}`
-      : "";
+import { classSites } from "./class-sites.js";
+import { kitPartOf, partNameOf } from "./identity.js";
+import { defineRules } from "./report.js";
+
 const attribute = (node, name) =>
   node.attributes.find((item) => item.type === "JSXAttribute" && item.name.name === name);
 const literal = (node) => {
   if (node?.type === "JSXExpressionContainer") return literal(node.expression);
   return node?.type === "Literal" ? node.value : undefined;
 };
-function kitNames() {
-  const aliases = new Map();
-  return {
-    import(node) {
-      if (node.source.value !== "@ledger/design-system") return;
-      for (const item of node.specifiers) {
-        if (item.type === "ImportSpecifier") aliases.set(item.local.name, item.imported.name);
-        if (item.type === "ImportNamespaceSpecifier") aliases.set(item.local.name, "");
-      }
-    },
-    name(node) {
-      const [root, ...parts] = tag(node).split(".");
-      return [aliases.get(root) ?? root, ...parts].filter(Boolean).join(".");
-    },
-  };
-}
-const rule = (description, create) => ({
-  meta: { type: "problem", docs: { description }, schema: [] },
-  create,
-});
-
-function binding(context, node, name) {
-  let scope = context.sourceCode.getScope(node);
-  while (scope && !scope.set.has(name)) scope = scope.upper;
-  return scope?.set.get(name);
-}
+/**
+ * The name the behaviour rules (text-link-navigation, dialog-footer-order) judge a tag by, since
+ * the defect is the same in any part of that name (identity.js): an alias or a namespace member of
+ * the kit is the kit's name, a look-alike or another package's part keeps its name as written, and
+ * a parameter or a local that shadows an outer name is no part ("").
+ */
+const kitNames = (context) => ({ name: (node) => partNameOf(context, node) });
 
 // Product policies apply to the actual kit import, including aliases and namespace imports.
-// A same-named local component or a shadowed parameter is not a kit component.
-function importedKitName(context, node) {
-  const [root, ...parts] = tag(node).split(".");
-  const imported = binding(context, node, root)?.defs.find(
-    (definition) =>
-      definition.type === "ImportBinding" &&
-      definition.parent.source.value === "@ledger/design-system" &&
-      definition.parent.importKind !== "type" &&
-      definition.node.importKind !== "type",
-  );
-  if (!imported) return "";
-  const specifier = imported.node;
-  if (specifier.type === "ImportNamespaceSpecifier") return parts.join(".");
-  if (specifier.type !== "ImportSpecifier") return "";
-  return [specifier.imported.name ?? specifier.imported.value, ...parts].join(".");
-}
+// A same-named local component or a shadowed parameter is not a kit component (identity.js).
+const importedKitName = kitPartOf;
 
 function unwrap(node) {
   while (
@@ -83,54 +48,17 @@ function explicitProp(node, name, value) {
   return prop.value === null ? value === true : literal(unwrap(prop.value)) === value;
 }
 
-function staticClasses(context, node, seen = new Set()) {
-  node = unwrap(node);
-  if (!node || seen.has(node)) return [];
-  seen.add(node);
-  const read = (child) => staticClasses(context, child, seen);
-  if (node.type === "Literal") return typeof node.value === "string" ? [node.value] : [];
-  if (node.type === "TemplateLiteral")
-    return [
-      ...node.quasis.map((part) => part.value.cooked ?? ""),
-      ...node.expressions.flatMap(read),
-    ];
-  if (node.type === "ConditionalExpression")
-    return [...read(node.consequent), ...read(node.alternate)];
-  if (node.type === "LogicalExpression") return [...read(node.left), ...read(node.right)];
-  if (node.type === "ArrayExpression") return node.elements.flatMap(read);
-  if (node.type === "ObjectExpression")
-    return node.properties.flatMap((property) =>
-      property.type === "Property"
-        ? property.computed || property.key.type === "Literal"
-          ? read(property.key)
-          : [property.key.name]
-        : read(property.argument),
-    );
-  if (node.type === "CallExpression") return node.arguments.flatMap(read);
-  if (node.type === "ArrowFunctionExpression" || node.type === "FunctionExpression")
-    return read(node.body);
-  if (node.type === "BlockStatement")
-    return node.body.flatMap((statement) =>
-      statement.type === "ReturnStatement" ? read(statement.argument) : [],
-    );
-  if (node.type === "Identifier") {
-    const definitions = binding(context, node, node.name)?.defs;
-    if (definitions?.length === 1 && definitions[0].parent?.kind === "const")
-      return read(definitions[0].node.init);
-  }
-  return [];
-}
-
 function tabLayoutOverride(context, node) {
-  const className = attribute(node, "className");
-  const forbiddenClass = staticClasses(context, className?.value)
-    .flatMap((value) => value.split(/\s+/))
+  // Its className, through a const, a map, a helper or a spread too (class-sites.js).
+  const sites = classSites(context).classSitesOf(node);
+  const forbiddenClass = sites
+    .flatMap((site) => site.strings.flatMap(({ text }) => text.split(/\s+/)))
     .find((value) =>
       /^(flex-wrap(?:-reverse)?|(?:min-|max-)?w-fit|overflow(?:-[xy])?-.+)$/.test(
         value.split(":").at(-1).replace(/^!|!$/g, ""),
       ),
     );
-  if (forbiddenClass) return { node: className, value: forbiddenClass };
+  if (forbiddenClass) return { node: sites[0].at, value: forbiddenClass };
   const style = attribute(node, "style");
   const expression = unwrap(style?.value);
   if (expression?.type !== "ObjectExpression") return null;
@@ -144,7 +72,7 @@ function tabLayoutOverride(context, node) {
       (name === "flexWrap" && ["wrap", "wrap-reverse"].includes(value)) ||
       (["width", "minWidth", "maxWidth"].includes(name) && value === "fit-content")
     )
-      return { node: property, value: name };
+      return { node: property, value: name, style: true };
   }
   return null;
 }
@@ -152,11 +80,40 @@ function tabLayoutOverride(context, node) {
 /** Footers whose Cancel comes before the primary, and the parts that dismiss. */
 const FOOTERS = /^(Dialog|AlertDialog|Sheet|Drawer)Footer$/;
 const CLOSES = /^(Dialog|Sheet|Drawer)Close$|^AlertDialogCancel$/;
+/** What each footer's cancel dismisses, as a finding names it. */
+const SURFACE = { Dialog: "dialog", AlertDialog: "alert dialog", Sheet: "sheet", Drawer: "drawer" };
 
-export const compositionRules = {
-  "product-responsive-table": rule(
-    "Product DataTable instances explicitly enable responsive column adaptation.",
-    (context) => ({
+/** A JSX opening element's tag as written: `DataTable`, `Kit.TabsList`. */
+const tagOf = (context, opening) => context.sourceCode.getText(opening.name);
+
+/**
+ * How an element writes a prop a product rule needs set to one literal, as a finding says it:
+ * `leaves variant to a prop spread` when a spread follows it or stands in for it, `sets
+ * variant="default"` or `sets responsive={false}` as written (a long expression by its name alone),
+ * and `missing` when neither is there.
+ */
+function propState(context, node, name, missing) {
+  const index = node.attributes.findLastIndex(
+    (item) => item.type === "JSXAttribute" && item.name.name === name,
+  );
+  const spread = node.attributes
+    .slice(index + 1)
+    .some((item) => item.type === "JSXSpreadAttribute");
+  if (spread) return `leaves ${name} to a prop spread`;
+  if (index < 0) return missing;
+  const written = context.sourceCode.getText(node.attributes[index]).replace(/\s+/g, " ");
+  return written.length <= 40 ? `sets ${written}` : `sets ${name} from an expression`;
+}
+
+export const compositionRules = defineRules({
+  "product-responsive-table": {
+    description: "Product DataTable instances explicitly enable responsive column adaptation.",
+    messages: {
+      // `state` is how the prop is written (propState).
+      responsive:
+        "<{{tag}}> {{state}}, so a narrow frame scrolls it sideways instead of folding lower-priority columns into More fields. Write responsive after any prop spreads.{{note}}",
+    },
+    create: (context) => ({
       JSXOpeningElement(node) {
         if (
           importedKitName(context, node.name) !== "DataTable" ||
@@ -165,93 +122,128 @@ export const compositionRules = {
           return;
         context.report({
           node,
-          message:
-            "Product DataTable must enable responsive columns. Add responsive after any prop spreads.",
+          messageId: "responsive",
+          data: {
+            tag: tagOf(context, node),
+            state: propState(context, node, "responsive", "leaves responsive off"),
+          },
         });
       },
     }),
-  ),
-  "product-line-tabs": rule(
-    "Product tabs use the full-width line variant and the kit's single-row scroller.",
-    (context) => ({
+  },
+  "product-line-tabs": {
+    description: "Product tabs use the full-width line variant and the kit's single-row scroller.",
+    messages: {
+      // `state` is how the prop is written (propState).
+      variant:
+        '<{{tag}}> {{state}}. Product tabs are the line variant, whose underline spans the content width: write variant="line" after any prop spreads.{{note}}',
+      // `subject` is the class ("flex-wrap") or the style property (style.overflowX).
+      override:
+        "{{subject}} on <{{tag}}> changes how the tab strip wraps, sizes or scrolls, which the kit owns: one row that scrolls, under a line across the content width. Drop it.{{note}}",
+    },
+    create: (context) => ({
       JSXOpeningElement(node) {
         if (importedKitName(context, node.name) !== "TabsList") return;
+        const tag = tagOf(context, node);
         if (!explicitProp(node, "variant", "line"))
           context.report({
             node,
-            message: 'Product TabsList uses variant="line" after any prop spreads.',
+            messageId: "variant",
+            data: { tag, state: propState(context, node, "variant", "takes the default variant") },
           });
         const override = tabLayoutOverride(context, node);
         if (override)
           context.report({
             node: override.node,
-            message: `Remove ${override.value} from TabsList. The kit owns its full-width border and single-row scrolling.`,
+            messageId: "override",
+            data: {
+              tag,
+              value: override.value,
+              subject: override.style ? `style.${override.value}` : `"${override.value}"`,
+            },
           });
       },
     }),
-  ),
-  "no-native-confirm": rule("Use an in-app AlertDialog for a decision.", (context) => ({
-    CallExpression(node) {
-      const callee = node.callee;
-      let native = false;
-      if (callee.type === "MemberExpression") {
-        const name = callee.computed ? literal(callee.property) : callee.property.name;
-        native =
-          name === "confirm" &&
-          callee.object.type === "Identifier" &&
-          ["window", "globalThis", "self"].includes(callee.object.name);
-      } else if (callee.type === "Identifier" && callee.name === "confirm") {
-        let scope = context.sourceCode.getScope(node);
-        while (scope && !scope.set.has("confirm")) scope = scope.upper;
-        native = !scope || scope.set.get("confirm").defs.length === 0;
-      }
-      if (native)
-        context.report({
-          node,
-          message:
-            "Use AlertDialog for confirmation; preserve cancellation, drafts and pending guards.",
-        });
+  },
+  "no-native-confirm": {
+    description: "Use an in-app AlertDialog for a decision.",
+    messages: {
+      // `call` is the call as the browser's global names it: window.confirm(), confirm().
+      confirm:
+        "{{call}} opens the browser's own dialog, which blocks the page and cannot show a pending state, keep a draft or say that the command failed. Ask in an AlertDialog: AlertDialogCancel first as the safe answer, then an AlertDialogAction named for the command.{{note}}",
     },
-  })),
-  "text-link-navigation": rule("TextLink renders navigation; actions use Button.", (context) => {
-    const names = kitNames();
-    return {
-      ImportDeclaration: names.import,
-      JSXOpeningElement(node) {
-        if (names.name(node.name) !== "TextLink") return;
-        const render = attribute(node, "render");
-        if (
-          !render &&
-          !attribute(node, "href") &&
-          !node.attributes.some((item) => item.type === "JSXSpreadAttribute")
-        ) {
+    create: (context) => ({
+      CallExpression(node) {
+        const callee = node.callee;
+        let native = false;
+        if (callee.type === "MemberExpression") {
+          const name = callee.computed ? literal(callee.property) : callee.property.name;
+          native =
+            name === "confirm" &&
+            callee.object.type === "Identifier" &&
+            ["window", "globalThis", "self"].includes(callee.object.name);
+        } else if (callee.type === "Identifier" && callee.name === "confirm") {
+          let scope = context.sourceCode.getScope(node);
+          while (scope && !scope.set.has("confirm")) scope = scope.upper;
+          native = !scope || scope.set.get("confirm").defs.length === 0;
+        }
+        if (native)
           context.report({
             node,
-            message:
-              "TextLink needs a destination: an href, or a router link in render. An action that reads as text is a Button.",
-          });
-          return;
-        }
-        const element = render?.value?.expression;
-        if (element?.type !== "JSXElement") return;
-        const rendered = names.name(element.openingElement.name);
-        // Custom router components are allowed; their ref/anchor contract is verified in browser tests.
-        if (
-          /^[a-z]/.test(rendered) ? rendered !== "a" : ["Button", "IconButton"].includes(rendered)
-        )
-          context.report({
-            node: render,
-            message: "TextLink must render an anchor or a router link. Use Button for an action.",
+            messageId: "confirm",
+            data: {
+              call:
+                callee.type === "MemberExpression"
+                  ? `${callee.object.name}.confirm()`
+                  : "confirm()",
+            },
           });
       },
-    };
-  }),
-  "dialog-footer-order": rule(
-    "Cancel precedes the primary action in a dialog footer.",
-    (context) => {
-      const names = kitNames();
+    }),
+  },
+  "text-link-navigation": {
+    description: "TextLink renders navigation; actions use Button.",
+    messages: {
+      destination:
+        "TextLink needs a destination: an href, or a router link in render. An action that reads as text is a Button.{{note}}",
+      anchor: "TextLink must render an anchor or a router link. Use Button for an action.{{note}}",
+    },
+    create(context) {
+      const names = kitNames(context);
       return {
-        ImportDeclaration: names.import,
+        JSXOpeningElement(node) {
+          if (names.name(node.name) !== "TextLink") return;
+          const render = attribute(node, "render");
+          if (
+            !render &&
+            !attribute(node, "href") &&
+            !node.attributes.some((item) => item.type === "JSXSpreadAttribute")
+          ) {
+            context.report({ node, messageId: "destination" });
+            return;
+          }
+          const element = render?.value?.expression;
+          if (element?.type !== "JSXElement") return;
+          const rendered = names.name(element.openingElement.name);
+          // Custom router components are allowed; their ref/anchor contract is verified in browser tests.
+          if (
+            /^[a-z]/.test(rendered) ? rendered !== "a" : ["Button", "IconButton"].includes(rendered)
+          )
+            context.report({ node: render, messageId: "anchor" });
+        },
+      };
+    },
+  },
+  "dialog-footer-order": {
+    description: "Cancel precedes the primary action in a dialog footer.",
+    messages: {
+      // `tag` is the late cancel as written, `footer` the footer, `surface` what it closes.
+      order:
+        "<{{tag}}> dismisses the {{surface}} but comes after the primary action in <{{footer}}>. Put it first: the safe answer leads, and the primary ends the footer, where a keyboard reader reaches it last.{{note}}",
+    },
+    create(context) {
+      const names = kitNames(context);
+      return {
         JSXElement(node) {
           if (!FOOTERS.test(names.name(node.openingElement.name))) return;
           const buttons = [];
@@ -286,15 +278,20 @@ export const compositionRules = {
           node.children.forEach(visit);
           const firstPrimary = buttons.findIndex((button) => button.primary);
           if (firstPrimary < 0) return;
+          const footer = names.name(node.openingElement.name);
           for (const [index, button] of buttons.entries())
             if (button.cancel && index > firstPrimary)
               context.report({
                 node: button.node,
-                message:
-                  "Place Cancel, or the close part, before the primary action in the footer.",
+                messageId: "order",
+                data: {
+                  tag: tagOf(context, button.node.openingElement),
+                  footer: tagOf(context, node.openingElement),
+                  surface: SURFACE[/^(\w+?)Footer$/.exec(footer)[1]],
+                },
               });
         },
       };
     },
-  ),
-};
+  },
+});

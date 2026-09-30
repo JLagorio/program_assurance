@@ -3,7 +3,6 @@ import { AlertCircle, ChevronLeft } from "lucide-react";
 import { type ReactNode } from "react";
 import { Alert, AlertDescription } from "../components/alert";
 import { Button, IconButton } from "../components/button";
-import { SearchField } from "../components/search-field";
 import {
   Sheet,
   SheetBody,
@@ -19,6 +18,7 @@ import {
 } from "../components/sheet";
 import { useLedgerLocale } from "../lib/locale";
 import type { DataTableInstance } from "./data-table";
+import { Toolbar } from "./toolbar";
 
 /** Why the sheet asked to close, from Base UI: `reason` is `escape-key`, `outside-press` or `close-press` (the close button or Cancel). */
 export type PickerSheetCloseDetails = Parameters<NonNullable<SheetProps["onOpenChange"]>>[1];
@@ -68,7 +68,7 @@ export type PickerSheetProps<TData extends RowData = RowData> = {
   table?: DataTableInstance<TData> | undefined;
   /** The search field in the toolbar. With `table` it filters the table; without, the caller filters the rows. */
   search?: PickerSheetSearch | undefined;
-  /** FilterChips after the search field. */
+  /** Filters after the search field, such as `DataTable.Filter`s. They fold into the toolbar's More when the sheet is too narrow for them. */
   filters?: ReactNode;
   /** A row under search and filters that does not scroll: a default applied to every chosen row. */
   toolbar?: ReactNode;
@@ -76,7 +76,10 @@ export type PickerSheetProps<TData extends RowData = RowData> = {
   selected?: number | undefined;
   /** How many rows are on offer after search and filters. From `table` unsaid. */
   total?: number | undefined;
-  /** The footer's read-out in place of the count: the chosen record's name, for a single choice. */
+  /**
+   * The footer's read-out in place of the count. A `table` that chooses one record
+   * (`selectable: "single"`) reads the chosen row's `rowLabel` unsaid.
+   */
   summary?: ReactNode;
   /** Clears the selection; a link in the footer beside the count. From `table` unsaid. */
   onClear?: (() => void) | undefined;
@@ -125,6 +128,19 @@ const onOfferIn = <TData extends RowData>(table: DataTableInstance<TData>) =>
   table.options.rowCount ??
   table.getFilteredRowModel().flatRows.filter((row) => row.getCanSelect()).length;
 
+/** The chosen record's name, in a table that chooses one: its `rowLabel`, else nothing. */
+const chosenNameIn = <TData extends RowData>(table: DataTableInstance<TData>) => {
+  const meta = table.options.meta;
+  if (!meta?.singleSelection || !meta.rowLabel) return undefined;
+  const id = Object.keys(table.state.rowSelection).find((key) => table.state.rowSelection[key]);
+  if (id === undefined) return undefined;
+  try {
+    return meta.rowLabel(table.getRow(id, true).original as never);
+  } catch {
+    return undefined;
+  }
+};
+
 export function PickerSheet<TData extends RowData = RowData>({
   open,
   initialFocus,
@@ -155,6 +171,7 @@ export function PickerSheet<TData extends RowData = RowData>({
   const onClear = onClearProp ?? (table ? () => table.resetRowSelection() : undefined);
   const summary =
     summaryProp ??
+    (selected === 1 && table ? chosenNameIn(table) : undefined) ??
     (selected === 0
       ? total !== undefined
         ? formatPlural(total, {
@@ -175,6 +192,7 @@ export function PickerSheet<TData extends RowData = RowData>({
   };
   const searchName = search?.placeholder ?? t("search");
   const hasToolbar = Boolean(search || filters || toolbar);
+  const activeFilters = table ? table.state.columnFilters.length : undefined;
   const step = typeof width === "string" ? width : undefined;
   return (
     <Sheet
@@ -208,7 +226,10 @@ export function PickerSheet<TData extends RowData = RowData>({
             )}
             <div className="flex min-w-0 flex-1 flex-col gap-025">
               <SheetTitle>{title}</SheetTitle>
-              <SheetDescription>{subtitle}</SheetDescription>
+              {/* Without a subtitle the sheet has no description, rather than an empty one. */}
+              {subtitle !== undefined && subtitle !== null && subtitle !== false ? (
+                <SheetDescription>{subtitle}</SheetDescription>
+              ) : null}
             </div>
           </div>
         </SheetHeader>
@@ -219,26 +240,22 @@ export function PickerSheet<TData extends RowData = RowData>({
             inert={pending}
           >
             <div className="flex flex-col gap-100">
+              {/* The kit's Toolbar: the search, then the filters, which fold into More. */}
               {search || filters ? (
-                <div className="flex flex-wrap items-center gap-100">
-                  {search ? (
-                    <SearchField
-                      size="small"
-                      value={query}
-                      onValueChange={setQuery}
-                      placeholder={searchName}
-                      aria-label={searchName}
-                      style={{ width: 240, maxWidth: "100%" }}
-                    />
-                  ) : null}
-                  {filters}
-                </div>
+                <Toolbar
+                  {...(search
+                    ? { search: query, onSearch: setQuery, placeholder: searchName }
+                    : {})}
+                  filters={filters}
+                  activeFilters={activeFilters}
+                />
               ) : null}
               {toolbar}
             </div>
           </div>
         )}
         <SheetBody inert={pending}>{children}</SheetBody>
+        {/* Under 30rem tall the footer keeps a focused row clear of itself (SheetFooter). */}
         <SheetFooter>
           {error ? (
             <Alert variant="destructive" role="alert" className="w-full">
@@ -251,7 +268,9 @@ export function PickerSheet<TData extends RowData = RowData>({
               data-slot="picker-sheet-count"
               className="flex min-w-0 items-center gap-100 font-body-small text-subtle"
             >
-              <span className="tabular-nums">{summary}</span>
+              <span role="status" className="min-w-0 truncate tabular-nums">
+                {summary}
+              </span>
               {selected > 0 && onClear ? (
                 <Button
                   variant="link"
@@ -266,7 +285,7 @@ export function PickerSheet<TData extends RowData = RowData>({
             </span>
             <span className="ms-auto flex flex-wrap items-center justify-end gap-100">
               {secondary}
-              <SheetClose render={<Button />}>{t("cancel")}</SheetClose>
+              <SheetClose render={<Button variant="subtle" />}>{t("cancel")}</SheetClose>
               <Button
                 variant="primary"
                 disabled={selected === 0 || Boolean(action.disabled)}

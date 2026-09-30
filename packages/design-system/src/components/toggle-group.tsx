@@ -2,19 +2,44 @@ import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { Toggle as TogglePrimitive } from "@base-ui/react/toggle";
 import { ToggleGroup as ToggleGroupPrimitive } from "@base-ui/react/toggle-group";
 import type { VariantProps } from "class-variance-authority";
-import { createContext, useContext, type CSSProperties } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useLayoutEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+} from "react";
 
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
 import { toggleVariants, type ToggleProps } from "./toggle";
 
-const ToggleGroupContext = createContext<
-  VariantProps<typeof toggleVariants> & {
-    spacing: number;
-    orientation: "horizontal" | "vertical";
-  }
->({ size: "default", variant: "default", spacing: 2, orientation: "horizontal" });
+type ToggleGroupContextValue = VariantProps<typeof toggleVariants> & {
+  spacing: number;
+  orientation: "horizontal" | "vertical";
+  /** A single-select group's pressed value, whose item holds the group's one tab stop. */
+  pressed: string | undefined;
+  /** Whether an enabled item holds that value, so the stop can move to it. */
+  stopClaimed: boolean;
+  /** The pressed item says it is there, and enabled; the cleanup takes the claim back. */
+  claimStop: () => () => void;
+  /** Focus is inside the group, where Base UI's roving stop follows it. */
+  focusInside: boolean;
+};
+
+const ToggleGroupContext = createContext<ToggleGroupContextValue>({
+  size: "default",
+  variant: "default",
+  spacing: 2,
+  orientation: "horizontal",
+  pressed: undefined,
+  stopClaimed: false,
+  claimStop: () => () => undefined,
+  focusInside: false,
+});
 
 export type ToggleGroupProps<Value extends string = string> = ToggleGroupPrimitive.Props<Value> &
   VariantProps<typeof toggleVariants> & {
@@ -31,15 +56,50 @@ export function ToggleGroup<Value extends string = string>({
   dir,
   style,
   children,
+  value,
+  defaultValue,
+  onValueChange,
+  multiple,
+  onFocus,
+  onBlur,
   ...props
 }: ToggleGroupProps<Value>) {
   const { direction } = useLedgerLocale();
   const keyboardDirection = dir === "ltr" || dir === "rtl" ? dir : direction;
   const gap = { "--gap": spacing } as CSSProperties;
+  // The group's value as Base UI holds it: the controlled value, or a copy of the uncontrolled one
+  // that follows every change the group accepts.
+  const [uncontrolled, setUncontrolled] = useState<readonly Value[]>(defaultValue ?? []);
+  const current = value ?? uncontrolled;
+  // A single-select group is a set of choices like a radio group: Tab lands on the pressed item,
+  // not the first, so the reader starts on the current choice (APG radio group). Base UI keeps
+  // the stop on the first item; the pressed item takes it once it is known to be there and enabled.
+  const pressed = !multiple && current.length === 1 ? current[0] : undefined;
+  const [claims, setClaims] = useState(0);
+  const claimStop = useCallback(() => {
+    setClaims((count) => count + 1);
+    return () => setClaims((count) => count - 1);
+  }, []);
+  // While focus is inside, Base UI's roving stop follows it, so Tab from any item leaves the
+  // group; once focus leaves, the stop goes back to the pressed item.
+  const [focusInside, setFocusInside] = useState(false);
+  const context = useMemo(
+    () => ({
+      variant,
+      size,
+      spacing,
+      orientation,
+      pressed,
+      stopClaimed: claims > 0,
+      claimStop,
+      focusInside,
+    }),
+    [variant, size, spacing, orientation, pressed, claims, claimStop, focusInside],
+  );
 
   return (
     <DirectionProvider direction={keyboardDirection}>
-      <ToggleGroupContext.Provider value={{ variant, size, spacing, orientation }}>
+      <ToggleGroupContext.Provider value={context}>
         <ToggleGroupPrimitive
           data-slot="toggle-group"
           data-variant={variant}
@@ -48,6 +108,23 @@ export function ToggleGroup<Value extends string = string>({
           dir={dir ?? direction}
           orientation={orientation}
           {...props}
+          {...(value !== undefined ? { value } : {})}
+          {...(defaultValue !== undefined ? { defaultValue } : {})}
+          {...(multiple !== undefined ? { multiple } : {})}
+          onValueChange={(next, details) => {
+            onValueChange?.(next, details);
+            if (!details.isCanceled && value === undefined) setUncontrolled(next);
+          }}
+          onFocus={(event) => {
+            onFocus?.(event);
+            setFocusInside(true);
+          }}
+          onBlur={(event) => {
+            onBlur?.(event);
+            const next = event.relatedTarget;
+            if (!(next instanceof Node) || !event.currentTarget.contains(next))
+              setFocusInside(false);
+          }}
           style={
             typeof style === "function"
               ? (state) => ({ ...gap, ...style(state) })
@@ -85,6 +162,13 @@ export function ToggleGroupItem<Value extends string = string>({
   const resolvedSize = context.size || size;
   const joined = context.spacing === 0;
   const horizontal = context.orientation === "horizontal";
+  const { claimStop } = context;
+  const holdsValue = context.pressed !== undefined && props.value === context.pressed;
+  const isStop = holdsValue && !props.disabled;
+  useLayoutEffect(() => (isStop ? claimStop() : undefined), [isStop, claimStop]);
+  // Once the pressed item has claimed the stop, it is the one item Tab reaches from outside; arrow
+  // keys still move focus to every item, and inside the group Base UI's stop follows focus.
+  const tabIndex = context.stopClaimed && !context.focusInside ? (isStop ? 0 : -1) : undefined;
 
   return (
     <TogglePrimitive
@@ -92,6 +176,7 @@ export function ToggleGroupItem<Value extends string = string>({
       data-variant={resolvedVariant}
       data-size={resolvedSize}
       data-spacing={context.spacing}
+      {...(tabIndex !== undefined ? { tabIndex } : {})}
       {...props}
       className={classes(
         cn(

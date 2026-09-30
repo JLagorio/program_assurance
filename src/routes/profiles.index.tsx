@@ -1,3 +1,4 @@
+import { Page } from "@/components/app/shell";
 import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
 import { canAuthorLibrary } from "@/components/prototype/library-utils";
@@ -13,7 +14,6 @@ import {
   DataTable,
   defineColumns,
   PageHeader,
-  Stack,
   useDataTable,
   useLedgerLocale,
 } from "@ledger/design-system";
@@ -102,9 +102,10 @@ function ProfilesIndex() {
             </RecordLink>
           ),
         }),
+        // Wide enough for a shared reference's identifier (NIST-SP-800-53B-MODERATE) in full.
         c.id("code", {
           header: "Identifier",
-          width: 150,
+          width: 210,
           preview: setSelected,
           active: (row) => row.id === selected?.id,
         }),
@@ -128,7 +129,7 @@ function ProfilesIndex() {
   const canCreate = canAuthorLibrary(workspace.role);
   const displayed = useDisplayedRecords(table);
   return (
-    <Stack className="animate-rise" space="space.200">
+    <Page>
       <PageHeader>
         <PageHeader.Heading>
           <PageHeader.Title>Profiles</PageHeader.Title>
@@ -233,6 +234,6 @@ function ProfilesIndex() {
           onClose={() => setSelected(null)}
         />
       )}
-    </Stack>
+    </Page>
   );
 }

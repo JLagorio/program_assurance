@@ -8,9 +8,11 @@ import {
   DataTable,
   DateTime,
   FilterChip,
+  Id,
   Inline,
   Inspector,
   KeyValue,
+  List,
   Prose,
   Stack,
   Text,
@@ -24,6 +26,7 @@ import {
   RecordPreviewPanel,
   recordDestination,
   useDisplayedRecords,
+  useEndOnHide,
 } from "./record-preview";
 import { Plus } from "lucide-react";
 import { StatusBadge } from "@/components/app/status";
@@ -91,6 +94,8 @@ export function SystemLibrary({
   const controls = useRows("controls");
   const [includeInside, setIncludeInside] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // A preview belongs to its tab: it ends when the system's Library tab hides.
+  useEndOnHide(() => setSelectedId(null));
   const [reviewing, setReviewing] = useState<LibraryUseRow | null>(null);
   const data = useMemo<Line[]>(
     () =>
@@ -166,7 +171,7 @@ export function SystemLibrary({
           width: 150,
           cell: (row) => (
             <Inline space="space.075" alignBlock="center">
-              <span>{row.version ?? <Absent />}</span>
+              {row.version ? <Text>{row.version}</Text> : <Absent label="Not recorded" />}
               {row.updateAvailable && (
                 <Badge variant="secondary" size="xsmall" tone="warning">
                   v{row.updateAvailable.version} available
@@ -175,14 +180,14 @@ export function SystemLibrary({
             </Inline>
           ),
         }),
-        c.date("appliedAt", { header: "Applied", width: 130 }),
+        c.date("appliedAt", { header: "Applied", width: 120 }),
         c.text("source", {
           header: "Source",
           width: 200,
           cell: (row) =>
             includeInside && row.elementId !== element.id ? (
               <Stack space="space.0" className="min-w-0">
-                <span>{row.source}</span>
+                <Text>{row.source}</Text>
                 <Text size="xsmall" color="color.text.subtle">
                   on {row.elementCode}
                 </Text>
@@ -193,8 +198,9 @@ export function SystemLibrary({
         }),
         c.number("changedHere", {
           header: "Changed here",
-          width: 120,
-          cell: (row) => (row.changedHere ? String(row.changedHere) : <Absent />),
+          width: 140,
+          cell: (row) =>
+            row.changedHere ? String(row.changedHere) : <Absent label="Nothing changed here" />,
         }),
         c.text("rationale", { header: "Rationale", minWidth: 220, wrap: true }),
         c.text("updateFlag", { header: "Update", width: 140 }),
@@ -285,7 +291,7 @@ export function SystemLibrary({
       {selected && (
         <RecordPreviewPanel
           title={selected.name}
-          label="Library use"
+          label="Library use preview"
           defaultWidth={560}
           onClose={() => setSelectedId(null)}
           recordActions={
@@ -319,7 +325,9 @@ export function SystemLibrary({
                 {selected.category && (
                   <KeyValue label="Category">{labelFor(selected.category)}</KeyValue>
                 )}
-                <KeyValue label="Version">{selected.version ?? <Absent />}</KeyValue>
+                <KeyValue label="Version">
+                  {selected.version ?? <Absent label="Not recorded" />}
+                </KeyValue>
                 <KeyValue label="Source">{selected.source}</KeyValue>
                 <KeyValue label="Element">{selected.elementCode}</KeyValue>
                 <KeyValue label="Applied">
@@ -335,44 +343,41 @@ export function SystemLibrary({
             </Inspector.Group>
             {selected.kind === "Component definition" && (
               <Inspector.Group title={`Narratives · ${selectedContributions.length}`}>
-                <Stack space="space.075">
-                  {selectedContributions.map((contribution) => {
-                    const origin = implementations.data?.find(
-                      (row) => row.id === contribution.library_implementation_id,
-                    );
-                    const control = controls.data?.find((row) => row.id === origin?.control_id);
-                    const changed = !!origin && origin.description !== contribution.description;
-                    return (
-                      <Inline
-                        key={contribution.id}
-                        space="space.100"
-                        alignBlock="center"
-                        shouldWrap
-                      >
-                        <span className="font-body-small font-medium">
-                          {control?.code ?? "Control"}
-                        </span>
-                        <StatusBadge
-                          statuses={implementationStatuses}
-                          value={contribution.implementation_status}
-                          size="xsmall"
-                        />
-                        {changed && (
-                          <Badge variant="secondary" size="xsmall" tone="warning">
-                            Changed here
-                          </Badge>
-                        )}
-                      </Inline>
-                    );
-                  })}
-                  {!selectedContributions.length && (
-                    <EmptyMessage
-                      compact
-                      title="No narratives seeded"
-                      description="When it was applied, its controls were excluded, outside the SSP selection, or the boundary had no draft SSP."
-                    />
-                  )}
-                </Stack>
+                {selectedContributions.length ? (
+                  // One line per seeded narrative: its control, its status and whether it changed here.
+                  <List>
+                    {selectedContributions.map((contribution) => {
+                      const origin = implementations.data?.find(
+                        (row) => row.id === contribution.library_implementation_id,
+                      );
+                      const control = controls.data?.find((row) => row.id === origin?.control_id);
+                      const changed = !!origin && origin.description !== contribution.description;
+                      return (
+                        <List.Item key={contribution.id}>
+                          <Inline space="space.100" alignBlock="center" shouldWrap>
+                            <Id>{control?.code ?? "Control"}</Id>
+                            <StatusBadge
+                              statuses={implementationStatuses}
+                              value={contribution.implementation_status}
+                              size="xsmall"
+                            />
+                            {changed && (
+                              <Badge variant="secondary" size="xsmall" tone="warning">
+                                Changed here
+                              </Badge>
+                            )}
+                          </Inline>
+                        </List.Item>
+                      );
+                    })}
+                  </List>
+                ) : (
+                  <EmptyMessage
+                    compact
+                    title="No narratives seeded"
+                    description="When it was applied, its controls were excluded, outside the SSP selection, or the boundary had no draft SSP."
+                  />
+                )}
               </Inspector.Group>
             )}
           </Stack>

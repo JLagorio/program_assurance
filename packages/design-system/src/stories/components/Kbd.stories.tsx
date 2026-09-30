@@ -40,6 +40,15 @@ const keyRef = createRef<HTMLElement>();
 const groupRef = createRef<HTMLElement>();
 const editAction = fn();
 
+/** What a screen reader reads, in reading order: the text outside `aria-hidden`, element by element. */
+const spoken = (node: Node): string =>
+  node.nodeType === Node.TEXT_NODE
+    ? (node.textContent ?? "")
+    : node instanceof Element && node.getAttribute("aria-hidden") === "true"
+      ? ""
+      : [...node.childNodes].map(spoken).join(" ");
+const said = (node: Node) => spoken(node).replace(/\s+/g, " ").trim();
+
 /** Letters, named glyphs, grouped shortcuts, and key hints in a sentence, tooltip and menu. */
 export const KbdMatrix: Story = {
   render: () => (
@@ -93,7 +102,7 @@ export const KbdMatrix: Story = {
         </Kbd.Group>
       </Specimens>
       <Specimens title="In a sentence, a tooltip, a menu">
-        <Text size="small" color="color.text.subtle">
+        <Text size="small" color="color.text.subtle" data-testid="sentence">
           Press{" "}
           <KbdGroup>
             <Kbd label="Command">⌘</Kbd>
@@ -117,7 +126,7 @@ export const KbdMatrix: Story = {
         </Tooltip>
         <DropdownMenu>
           <DropdownMenuTrigger render={<Button size="small">Actions</Button>} />
-          <DropdownMenuContent style={{ width: 200 }}>
+          <DropdownMenuContent>
             <DropdownMenuItem onClick={editAction}>
               Edit
               <DropdownMenuShortcut>
@@ -150,7 +159,9 @@ export const KbdMatrix: Story = {
     const aliasGroup = canvas.getByTitle("Control bracket shortcut");
     await expect(aliasGroup.tagName).toBe("KBD");
     await expect(aliasGroup).toHaveAttribute("data-slot", "kbd-group");
-    await expect(aliasGroup).toHaveAttribute("aria-label", "Control left bracket");
+    // ARIA names no <kbd>: a group's name is read in place of its caps, which are hidden.
+    await expect(aliasGroup).not.toHaveAttribute("aria-label");
+    await expect(said(aliasGroup)).toBe("Control left bracket");
     await expect(aliasGroup.querySelectorAll('[data-slot="kbd"]')).toHaveLength(2);
     await expect(aliasGroup).toHaveTextContent("Ctrl[");
     await expect(keyRef.current).toBe(key);
@@ -171,11 +182,20 @@ export const KbdMatrix: Story = {
     await expect(key).toHaveTextContent("K");
     await expect(key).not.toHaveAttribute("aria-label");
     await expect(group).toHaveAttribute("data-shortcut", "search");
-    await expect(group).toHaveAttribute("aria-label", "Command K");
-    await expect(group.children).toHaveLength(2);
-    await expect(within(group).getByLabelText("Command")).toHaveTextContent("⌘");
-    await expect(canvas.getByTitle("Meta key")).toHaveAttribute("aria-label", "Meta");
-    await expect(canvas.getByLabelText("Enter")).toHaveTextContent("↵");
+    await expect(said(group)).toBe("Command K");
+    await expect(group.querySelectorAll(':scope > [data-slot="kbd"]')).toHaveLength(2);
+    // A glyph with a label is hidden and its name read in its place; an aria-label wins.
+    const meta = canvas.getByTitle("Meta key");
+    await expect(meta).toHaveTextContent("⌘");
+    await expect(said(meta)).toBe("Meta");
+    const enter = [...canvasElement.querySelectorAll<HTMLElement>('[data-slot="kbd"]')].find(
+      (cap) => cap.textContent?.startsWith("↵"),
+    )!;
+    await expect(said(enter)).toBe("Enter");
+    for (const kbd of canvasElement.querySelectorAll("kbd"))
+      await expect(kbd).not.toHaveAttribute("aria-label");
+    // "Press ⌘ K to search." is heard as the keys' names, never "place of interest sign".
+    await expect(said(canvas.getByTestId("sentence"))).toBe("Press Command K to search.");
 
     for (const cap of canvasElement.querySelectorAll<HTMLElement>('[data-slot="kbd"]')) {
       await expect(cap.getBoundingClientRect().height).toBe(16);

@@ -1,4 +1,12 @@
-import { Fragment, useMemo, type ComponentProps, type ReactElement, type ReactNode } from "react";
+import {
+  Fragment,
+  useMemo,
+  type ComponentProps,
+  type HTMLAttributes,
+  type ReactElement,
+  type ReactNode,
+  type Ref,
+} from "react";
 
 import { cn } from "../lib/cn";
 import type { TextElement } from "../primitives";
@@ -10,7 +18,7 @@ import { TextLink } from "./text-link";
 /* Small text parts that recur across rails, headers and cards. For body copy and titles, the
    Text and Heading primitives. */
 
-export type EyebrowProps = {
+export type EyebrowProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
   /** One to three words, set in uppercase by the component: a section's name, a record's kind, a callout's label. */
   children: ReactNode;
   /** A colour for a callout's label; `neutral`, the default, is the subtle text colour. */
@@ -20,19 +28,29 @@ export type EyebrowProps = {
   /** An id, so a list can be labelled by its eyebrow. */
   id?: string | undefined;
   className?: string | undefined;
+  ref?: Ref<HTMLElement> | undefined;
 };
 
-/** Uppercase micro-label on the xxsmall heading token. A tone colours it for a callout. */
-export function Eyebrow({ children, tone = "neutral", as = "div", id, className }: EyebrowProps) {
-  const Comp = as;
+/** Uppercase micro-label on the xxsmall heading token. A tone colours it for a callout. Native props and the ref reach its element. */
+export function Eyebrow({
+  children,
+  tone = "neutral",
+  as = "div",
+  className,
+  ref,
+  ...props
+}: EyebrowProps) {
+  const Comp = as as "div";
   return (
     <Comp
-      id={id}
+      {...props}
+      ref={ref as Ref<HTMLDivElement> | undefined}
       className={cn(
         "font-heading-xxsmall uppercase",
         tone === "neutral" ? "text-subtle" : toneClasses[tone].text,
         className,
       )}
+      data-slot="eyebrow"
     >
       {children}
     </Comp>
@@ -505,7 +523,9 @@ export function Prose({
   ...props
 }: ProseProps) {
   const sizing = proseSizes[size];
-  const paragraph = cn(sizing.text, "whitespace-pre-line text-default");
+  // A long unbroken token (a URL, a hash, an id) breaks where it must, so authored text never
+  // pushes its column wider.
+  const paragraph = cn(sizing.text, "whitespace-pre-line break-words text-default");
   const text = markdown === undefined ? textOf(children) : null;
   const blocks = useMemo(
     () =>
@@ -544,33 +564,42 @@ export function Prose({
   );
 }
 
-export type FactProps = {
+export type FactProps = Omit<ComponentProps<"div">, "children"> & {
   /** The fact's name, one or two words: "Owner", "Frequency". */
   label: string;
   /** The value: a word, a number, a Person, a Badge, an Absent. */
   children: ReactNode;
+  className?: string | undefined;
 };
 
-/** Inline `label value` pair. Renders dt/dd; a row of them is a Fact.Group. */
-function FactRoot({ label, children }: FactProps) {
+/** Inline `label value` pair. Renders dt/dd; a row of them is a Fact.Group. A value that runs long wraps, and a long unbroken one (an id, a URL) breaks where it must. Native div props and the ref reach the pair. */
+function FactRoot({ label, children, className, ...props }: FactProps) {
   return (
-    <div className="flex min-w-0 items-baseline gap-075">
+    <div
+      {...props}
+      className={cn("flex min-w-0 items-baseline gap-075", className)}
+      data-slot="fact"
+    >
       <dt className="shrink-0 font-body-small text-subtle">{label}</dt>
-      <dd className="min-w-0 font-body font-medium text-default">{children}</dd>
+      <dd className="min-w-0 break-words font-body font-medium text-default">{children}</dd>
     </div>
   );
 }
 
-export type FactGroupProps = {
+export type FactGroupProps = Omit<ComponentProps<"dl">, "children"> & {
   /** Fact children, the ones the reader acts on. At most six under a header. */
   children: ReactNode;
   className?: string | undefined;
 };
 
-/** The facts strip: a wrapping row of Facts on one baseline. Under a record header it holds at most six; the rest belong in the rail. */
-export function FactGroup({ children, className }: FactGroupProps) {
+/** The facts strip: a wrapping row of Facts on one baseline. Under a record header it holds at most six; the rest belong in the rail. Native dl props and the ref reach the list. */
+export function FactGroup({ children, className, ...props }: FactGroupProps) {
   return (
-    <dl className={cn("flex flex-wrap items-baseline gap-x-300 gap-y-075", className)}>
+    <dl
+      {...props}
+      className={cn("flex flex-wrap items-baseline gap-x-300 gap-y-075", className)}
+      data-slot="fact-group"
+    >
       {children}
     </dl>
   );

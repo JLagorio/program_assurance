@@ -66,6 +66,8 @@ const tabs = () => page.getByRole("tablist", { name: "Element sections", exact: 
 async function choose(dialog, label, value) {
   await dialog.getByRole("combobox", { name: label, exact: true }).click();
   await page.getByRole("option", { name: value, exact: true }).click();
+  // The list fades out after a choice; the next Select opens once it has gone.
+  await page.getByRole("listbox").waitFor({ state: "hidden" });
 }
 /** A published reference profile; `title` is its stable record's short name, the one the product shows. */
 async function publishedProfile(level) {
@@ -307,7 +309,9 @@ try {
     page.getByRole("heading", { level: 1, name: scoped.name, exact: true }),
   ).toBeVisible();
   await page.goto(`${origin}/programs/${program.id}?tab=System`);
-  await row(scoped).getByRole("button", { name: "Preview row", exact: true }).click();
+  await row(scoped)
+    .getByRole("button", { name: /^Preview / })
+    .click();
   await expect(panel()).toBeVisible();
   // The preview carries the record's sections as one named line tab strip, starting on Overview.
   const previewTabs = panel().getByRole("tablist", {
@@ -361,7 +365,7 @@ try {
     panel().getByRole("button", { name: "Back to previous record", exact: true }),
   ).toHaveCount(0);
   await expect(panel().getByRole("button", { name: leaf.name, exact: true })).toBeFocused();
-  await expect(row(scoped).getByRole("button", { name: "Preview row", exact: true })).toBeVisible();
+  await expect(row(scoped).getByRole("button", { name: /^Preview / })).toBeVisible();
   // Edit lives in the preview's header.
   await panel().getByRole("button", { name: "Edit system", exact: true }).click();
   const edit = page.getByRole("dialog", { name: "Edit system", exact: true });

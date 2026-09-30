@@ -13,7 +13,9 @@ import {
 } from "@/components/prototype/record-preview";
 import { EmptyMessage, QueryState } from "@/components/prototype/work-common";
 import { useRows, type Row } from "@/lib/models";
+import { labelFor } from "@/lib/records";
 import { cciStatuses, referenceResolutionStatuses } from "@/lib/status";
+import { Page } from "@/components/app/shell";
 import { StatusBadge } from "@/components/app/status";
 import {
   Absent,
@@ -21,7 +23,6 @@ import {
   Count,
   DataTable,
   DateTime,
-  Icon,
   Id,
   Inline,
   Inspector,
@@ -44,7 +45,6 @@ import {
   useDataTable,
 } from "@ledger/design-system";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ExternalLink } from "lucide-react";
 import { useMemo, useState } from "react";
 
 const catalogTabs = ["Controls", "CCIs", "Sources"] as const;
@@ -124,7 +124,7 @@ function CatalogPage() {
   }, [selections.data, resolutions.data, profileRevisions.data, profiles.data]);
   const controls = allControls;
   return (
-    <Stack className="animate-rise" space="space.200">
+    <Page>
       <PageHeader>
         <PageHeader.Heading>
           <PageHeader.Title>Catalog</PageHeader.Title>
@@ -137,12 +137,11 @@ function CatalogPage() {
           setControl(null);
           void navigate({
             search: (previous) => ({ ...previous, tab: next === "Controls" ? undefined : next }),
-            replace: true,
           });
         }}
         className="gap-150"
       >
-        <TabsList variant="line" activateOnFocus aria-label="Catalog views">
+        <TabsList variant="line" aria-label="Catalog views">
           {catalogTabs.map((name) => (
             <TabsTrigger key={name} value={name}>
               {name}
@@ -209,9 +208,12 @@ function CatalogPage() {
           onSelect={setControl}
         />
       )}
-    </Stack>
+    </Page>
   );
 }
+
+/** What a CCI with no recorded type shows, and the Type filter's value for it. */
+const NO_TYPE = "Not recorded";
 
 function CciTable() {
   const items = useRows("cci_items");
@@ -232,13 +234,16 @@ function CciTable() {
       if (!controlsByItem.has(itemId)) controlsByItem.set(itemId, new Set());
       controlsByItem.get(itemId)!.add(control.code);
     }
-    const typesByItem = new Map<string, string[]>();
-    for (const type of types.data ?? [])
-      typesByItem.set(type.cci_item_id, [...(typesByItem.get(type.cci_item_id) ?? []), type.type]);
+    // Each item's types in words, in a stable order: a CCI can be policy and technical at once.
+    const typesByItem = new Map<string, Set<string>>();
+    for (const type of types.data ?? []) {
+      if (!typesByItem.has(type.cci_item_id)) typesByItem.set(type.cci_item_id, new Set());
+      typesByItem.get(type.cci_item_id)!.add(labelFor(type.type));
+    }
     return (items.data ?? []).map((item) => ({
       ...item,
       controls: [...(controlsByItem.get(item.id) ?? [])].join(", "),
-      types: typesByItem.get(item.id)?.join(", ") ?? "Not recorded",
+      types: [...(typesByItem.get(item.id) ?? [])].sort((a, b) => a.localeCompare(b)),
     }));
   }, [items.data, references.data, links.data, controls.data, types.data]);
   const columns = useMemo(
@@ -259,7 +264,22 @@ function CciTable() {
         }),
         c.text("definition", { header: "Definition", hideable: false }),
         c.text("controls", { header: "Mapped controls", width: 180 }),
-        c.text("types", { header: "Type", width: 132 }),
+        {
+          ...c.list("types", {
+            header: "Type",
+            width: 132,
+            items: (row) => row.types.map((type) => ({ key: type, label: type })),
+          }),
+          // The Type filter offers each type on its own, and a CCI of both is found under either;
+          // one with none is found under Not recorded, as its cell says.
+          getUniqueValues: (row: (typeof rows)[number]) =>
+            row.types.length ? row.types : [NO_TYPE],
+          filterFn: (row, _column, chosen: unknown) =>
+            Array.isArray(chosen) &&
+            chosen.some((value) =>
+              (row.original.types.length ? row.original.types : [NO_TYPE]).includes(String(value)),
+            ),
+        },
         c.status("status", { header: "Source status", width: 130, statuses: cciStatuses }),
         c.date("published_on", { header: "Published", width: 125 }),
       ]),
@@ -397,11 +417,8 @@ function SourcesList() {
               <KeyValue.Group>
                 <KeyValue label="Authority">{source.authority}</KeyValue>
                 <KeyValue label="Source" wrap>
-                  <TextLink href={source.source_uri} target="_blank" rel="noopener noreferrer">
-                    {sourceName(source.source_uri)}{" "}
-                    <Icon label="opens in a new tab">
-                      <ExternalLink />
-                    </Icon>
+                  <TextLink href={source.source_uri} newTab>
+                    {sourceName(source.source_uri)}
                   </TextLink>
                 </KeyValue>
                 {source.rights && (

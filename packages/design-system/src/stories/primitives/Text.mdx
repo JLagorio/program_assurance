@@ -7,13 +7,17 @@ import * as Stories from "./Text.stories";
 
 # Text
 
-Body text on the body ramp. The size is a composite type token, so the family, the size, the leading and the tracking always agree; the weight is one of three; the colour is a text token, or inherited, so a Text inside a bold Box is inverse without being told. `as`, `size`, `weight`, `color`, `align`, `maxLines` (which shows the whole text while it is cut), `preserveLineBreaks`, and a colour that inverts inside a bold fill. `font.body` at 13px is the UI size; `small` at 12px is a label's and a hint's. The rules on colour and weight: running text is neutral, colour is functional, semibold is for a heading and not a paragraph.
+Body text on the body ramp. The size is a composite type token, so the family, the size, the leading and the tracking always agree; the weight is one of three; the colour is a text token, or inherited, so a Text inside a bold Box is inverse without being told. `as`, `size`, `weight`, `color`, `align`, `maxLines` (which shows the whole text while it is cut), `preserveLineBreaks`, `numeric`, and a colour that inverts inside a bold fill. `font.body` at 13px is the UI size; `small` at 12px is a label's and a hint's. The rules on colour and weight: running text is neutral, colour is functional, semibold is for a heading and not a paragraph.
 
 <Canvas of={Stories.TextMatrix} />
 
 <Canvas of={Stories.MaxLinesReveal} />
 
 <Canvas of={Stories.PreserveLineBreaks} />
+
+<Canvas of={Stories.OneLineOnASpan} />
+
+<Canvas of={Stories.UnbrokenWord} />
 
 ## Anatomy
 
@@ -25,6 +29,7 @@ Body text on the body ramp. The size is a composite type token, so the family, t
 | Colour  | A `color.text` token, or inherited: `color.text` from the page, `color.text.inverse` from a bold Box.                            |
 | Clamp   | `maxLines` 1, 2 or 3, with an ellipsis, and the whole text in a tooltip while it is cut (through [Truncate](?path=/docs/components-truncate--docs)). A one-line clamp makes an inline element (`span`, `strong`, `em`, `small`, `label`) a block, so it has a box to cut. |
 | Breaks  | `preserveLineBreaks` keeps the line breaks and spaces of authored text (`white-space: pre-wrap`).                                  |
+| Numerals | `numeric` sets tabular numerals, every digit one width, for a count or a date that lines up with the one above it.               |
 
 ## Variants
 
@@ -54,6 +59,7 @@ The UI size is 13, a point under the usual 14, because a register's rows are the
 - **`size`**, **`weight`**, **`color`**, **`align`**, **`maxLines`**, **`as`** as in Anatomy.
 - **`color`** is left off where the text should follow its surface: inside a bold Box, inside a Button.
 - **`maxLines`** is 1, 2 or 3. A longer clamp is a Section with a "Show more". While the text is cut, hovering it, or focusing the link or button it sits in with the keyboard, shows the whole in a tooltip; nothing opens while it fits. A `title` of your own replaces the tooltip.
+- **`numeric`** for numbers that are compared down a column or change in place: a count, a percentage, a date in a list. A table's cells have tabular numerals already.
 - **`preserveLineBreaks`** for authored text read as written: a comment, a note, a statement with its line breaks. A one-line clamp keeps none. Several paragraphs, or Markdown, are a [Prose](?path=/docs/components-typography--docs).
 - **No `style`.** A width for a label column is a Box's, or a Grid's template.
 
@@ -64,6 +70,7 @@ The UI size is 13, a point under the usual 14, because a register's rows are the
 - **Sentence case, one idea per sentence.** A description ends with a full stop; a label and a meta line do not.
 - **Emphasis is a weight, and rare.** One word in `medium`; never a sentence in `semibold`.
 - **A title is a Heading.** A Text in `large` `semibold` is not in the outline and is not on the heading ramp.
+- **A long word breaks.** An id, a hash, a URL or a file name longer than its line breaks where it would overflow (`base.css` sets `overflow-wrap: break-word` on the body), so it never widens its block or the page; a row field that should stay on one line takes `maxLines={1}` instead, with its reveal.
 - **The reading measure.** A paragraph at `large` or `medium` is capped at `dimension.layout.measure`, 720px, by its parent.
 
 ## Style
@@ -74,6 +81,7 @@ The UI size is 13, a point under the usual 14, because a register's rows are the
 | Weight  | `font.weight.regular` · `.medium` · `.semibold`                                                    |
 | Colour  | `color.text` · `.subtle` · `.subtlest` · `.disabled` · `.brand` · `.selected` · `.danger` · `.warning` · `.success` · `.information` · `.inverse` · `.warning.inverse` |
 | Clamp   | one line clipped across (`overflow-x: clip`, ellipsis); `line-clamp-2`, `line-clamp-3`              |
+| Numerals | `tabular-nums` for `numeric`                                                                       |
 | Measure | `dimension.layout.measure`, set by the parent                                                       |
 
 ## Accessibility

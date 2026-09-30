@@ -1,4 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { RecordPending } from "@/components/app/shell";
+import { useRecordTitle } from "@/components/app/browser-title";
+import { useRow } from "@/lib/models";
 import {
   ProgramWorkspace,
   programTab,
@@ -7,6 +10,7 @@ import {
 import { requirementTab, type RequirementTab } from "@/components/prototype/requirement-record";
 export const Route = createFileRoute("/programs/$programId")({
   head: () => ({ meta: [{ title: "Program — Program Assurance" }] }),
+  pendingComponent: RecordPending,
   validateSearch: (
     search: Record<string, unknown>,
   ): {
@@ -25,6 +29,8 @@ export const Route = createFileRoute("/programs/$programId")({
 });
 function ProgramRecord() {
   const { programId } = Route.useParams();
+  const record = useRow("programs", programId);
+  useRecordTitle("Program", record.data?.name);
   const { tab, requirementId, requirementTab } = Route.useSearch();
   return (
     <ProgramWorkspace

@@ -7,19 +7,20 @@ import * as Stories from "./CommandPalette.stories";
 
 # CommandPalette
 
-A ⌘K palette over a page or a record: a field at the top, the commands under headings, a shortcut at the end of the ones that have one, the keys in the footer. Choosing a command closes the palette and runs it. The commands are plain objects the caller supplies, so the palette stays presentational and every page can reuse it; `useCommandPalette` holds the open state and toggles it on ⌘K or Ctrl+K anywhere on the page. It runs a command; it does not find a record, which is the [RecordPicker](?path=/docs/patterns-recordpicker--docs), and it does not search the product, which is the [SearchDialog](?path=/docs/patterns-searchdialog--docs) behind the top nav's search.
+A ⌘K palette over a page or a record: a field at the top, the commands under headings, a shortcut at the end of the ones that have one, the keys in the footer. Choosing a command closes the palette and runs it. The commands are plain objects the caller supplies, so the palette stays presentational and every page can reuse it; `useCommandPalette` holds the open state and toggles it on ⌘K on Apple platforms and Ctrl+K elsewhere, anywhere on the page. It runs a command; it does not pick a record, which is the [RecordPicker](?path=/docs/patterns-recordpicker--docs), and it does not search the product, which is the [SearchDialog](?path=/docs/patterns-searchdialog--docs) behind the top nav's search.
 
 <Canvas of={Stories.CommandPaletteStory} />
 
 ## Anatomy
 
-| Part    | What it is                                                                    |
-| ------- | ----------------------------------------------------------------------------- |
-| Field   | "Type a command…", focused on open.                                           |
-| Heading | The group's name, over its commands: Record, Go to, Preferences.              |
-| Command | A verb and its object; the shortcut or hint at the end in `font.body.xsmall`. |
-| Empty   | "No commands match."                                                          |
-| Footer  | The keys: the arrows to move, Enter to run, Escape to close.                  |
+| Part    | What it is                                                                                        |
+| ------- | ------------------------------------------------------------------------------------------------- |
+| Field   | "Type a command…" (`placeholder`), focused on open, with the field's focus ring on its row.       |
+| Heading | The group's name, over its commands: Record, Go to, Preferences.                                  |
+| Command | A verb and its object; a `hint` and the `shortcut`'s keys at the end in `font.body.xsmall`.       |
+| Empty   | "No commands match." (`noResults`).                                                               |
+| Failure | An Alert above the commands, with Try again when `onRetry` is given.                              |
+| Footer  | The keys: the arrows to move, Enter to run (`chooseHint`), Escape to close (a button, for touch). |
 
 <Canvas of={Stories.CommandPaletteMatrix} story={{ inline: false, height: "420px" }} />
 
@@ -31,47 +32,58 @@ Not built, and why: search across records in the palette, because a record is fo
 
 ## Sizes
 
-One: the Command dialog at its medium width, 560px, over the page at the top.
+One: the Command dialog at its medium width, 560px (`dimension.part.command`), over the page at the top.
 
 ## States
 
-| State    | What changes                                                    |
-| -------- | --------------------------------------------------------------- |
-| Closed   | Not rendered. ⌘K opens it.                                      |
-| Open     | Over the page at the top, the field focused, every group shown. |
-| Filtered | The commands that match, under their headings; empty groups go. |
-| None     | The empty sentence.                                             |
-| Run      | The palette closes, then the command runs.                      |
+| State    | What changes                                                                                                 |
+| -------- | ------------------------------------------------------------------------------------------------------------ |
+| Closed   | Not rendered. ⌘K opens it.                                                                                   |
+| Open     | Over the page at the top, the field focused, every group shown.                                              |
+| Filtered | The commands whose label, heading or hint match, best first, under their headings; empty groups go.          |
+| None     | The empty sentence.                                                                                          |
+| Loading  | `loading`: Searching… under any commands listed, the list busy; never the empty sentence.                    |
+| Failed   | `error` (`true` for the default words) above the commands listed, with Try again; said at once, assertively. |
+| Run      | The palette closes, then the command runs.                                                                   |
+
+<Canvas of={Stories.MatchesLabelsNotIds} story={{ inline: false, height: "360px" }} />
+
+<Canvas of={Stories.LoadingAndFailure} story={{ inline: false, height: "320px" }} />
+
+<Canvas of={Stories.Failure} story={{ inline: false, height: "360px" }} />
 
 ## Modifiers
 
-- **`commands`**: id, group, label, hint, run. Commands with the same group in sequence share a heading.
-- **`placeholder`** for the field.
-- **`useCommandPalette`** returns `open` and `setOpen`, and binds ⌘K and Ctrl+K while mounted.
+- **`commands`**: id, group, label, shortcut, hint, run. Commands with the same group in sequence share a heading. The `id` is identity only: it is never shown and never matched, so a UUID there cannot make a short query match every command.
+- **`title`**, **`description`**, **`placeholder`**, **`noResults`** and **`chooseHint`** relabel the dialog, the field, the empty sentence and Enter's verb; every default comes from the locale.
+- **`loading`**, **`error`** and **`onRetry`** for commands that arrive late or fail.
+- **`useCommandPalette({ shortcut })`** returns `open` and `setOpen`, and binds `shortcut` ("Mod+K" by default; `null` for none) while mounted.
 
 ## Content
 
 - **A command is a verb and its object**: "Record an assessment", "Export the SSP", "Switch the colour mode". Never a noun alone.
 - **The headings are kinds of command**: "Record" for what the record does, "Go to" for places, "Preferences" for the reader's own.
-- **The hint is the shortcut** when there is one, in the platform's glyphs; otherwise nothing.
+- **A shortcut goes in `shortcut`**, written once for every platform ("Shift+E"), and is drawn in the platform's glyphs. `hint` is for other words the reader hears with the label, such as a count.
 - **The page's verbs first**, the places after, the preferences last.
 
 ## Style
 
-| Element | Token                                                                                                        |
-| ------- | ------------------------------------------------------------------------------------------------------------ |
-| Dialog  | CommandDialog: `radius.xxlarge` · `elevation.surface.overlay` · `elevation.shadow.overlay` · `color.blanket` |
-| Heading | CommandGroup's: `font.body.xsmall` · `color.text.subtle`                                                     |
-| Command | CommandItem: `dimension.control.medium` · `color.background.selected` when selected                          |
-| Hint    | `font.body.xsmall` · `color.text.subtle` · at the end                                                        |
-| Footer  | CommandFooter: `elevation.surface.sunken` · `font.body.xsmall` · Kbd for each key                            |
+| Element | Token                                                                                                                                                                                  |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dialog  | CommandDialog: `radius.xxlarge` · `elevation.surface.overlay` · `elevation.shadow.overlay` · `color.blanket`                                                                           |
+| Field   | CommandInput: `dimension.control.large` · `color.border` below · `color.border.focused` ring while focused                                                                             |
+| Heading | CommandGroup's: `font.heading.xxsmall` uppercase · `color.text.subtlest`                                                                                                               |
+| Command | CommandItem: `dimension.control.medium` · `radius.medium` · `color.background.neutral.subtle.hovered` when selected, with the `color.border.focused` outline while the field has focus |
+| Hint    | `font.body.xsmall` · `color.text.subtle` · at the end                                                                                                                                  |
+| Footer  | CommandFooter: `elevation.surface.sunken` · `font.body.xsmall` · KbdShortcut for each key                                                                                              |
 
 ## Accessibility
 
-- **A dialog named "Command palette"**; focus moves to the field on open and returns to where it was on close.
-- **The list is a listbox** with the headings as group labels, so a screen reader hears "Record, group, Record an assessment, A".
-- **The arrows move, Enter runs, Escape closes**, and the footer says so with Kbd, each key named in full.
-- **⌘K and Ctrl+K both open it**, so the shortcut works on every platform; which glyph the page shows is the product's call, parked in docs/next.md.
+- **A dialog named by `title`**, "Command palette" by default, read with its `description`; focus moves to the field on open and returns to where it was on close.
+- **The list is a listbox** with the headings as group labels, so a screen reader hears "Record, group, Record an assessment". A command's shortcut is its `aria-keyshortcuts`, not part of its name.
+- **The active descendant follows the selection**, on open, after every keystroke and after every arrow, and the count of matches is spoken once the query holds still (see [Command](?path=/docs/components-command--docs)).
+- **The arrows move, Enter runs, Escape closes**, and the footer says so with KbdShortcut, each key named in full.
+- **The shortcut follows the platform**: ⌘K on Apple platforms, Ctrl+K elsewhere, so Ctrl+K keeps its text-editing meaning on a Mac. It is ignored on a held key's repeats, with another modifier held, while composing text, when a handler has already taken the key, and while another dialog is open, so it never stacks a modal on a draft. One ⌘K per page: beside TopNav.Search, give one of the two another `shortcut` or `null`.
 - **Running closes first**, so a command that opens a dialog does not stack one over the other.
 
 ## Props
@@ -80,7 +92,9 @@ One: the Command dialog at its medium width, 560px, over the page at the top.
 
 ### useCommandPalette
 
-The palette's open state, toggled by ⌘K or Ctrl+K anywhere on the page. Returns `{ open, setOpen }`.
+The palette's open state, toggled by its shortcut anywhere on the page. Takes `{ shortcut }`, "Mod+K" by default and `null` for none; returns `{ open, setOpen }`.
+
+<Canvas of={Stories.CommandPaletteStory} />
 
 ## Related
 

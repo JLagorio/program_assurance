@@ -1,7 +1,7 @@
 import { useConfirmation } from "@/components/app/confirmation";
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { Boxes, ExternalLink, MoreHorizontal, Plus } from "lucide-react";
+import { Boxes, MoreHorizontal, Plus } from "lucide-react";
 import {
   Absent,
   Badge,
@@ -11,8 +11,8 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  ErrorSummary,
   Grid,
-  Icon,
   IconButton,
   Id,
   Inline,
@@ -30,8 +30,6 @@ import {
   Text,
   TextLink,
   Tree,
-  Truncate,
-  VisuallyHidden,
 } from "@ledger/design-system";
 import type { Row } from "@/lib/models";
 import { elementTypeForComponent, type LibraryComponentItem } from "@/lib/library-items";
@@ -120,8 +118,13 @@ export function ElementsStep({
   nodeFor: (field: string) => HTMLElement | null;
 }) {
   const { confirm, confirmation } = useConfirmation();
+  // The pickers stay mounted through their exit, so it animates and focus returns; each opening is
+  // a new session (the key), so a choice never carries over.
   const [adding, setAdding] = useState<Adding>(null);
+  const [addingOpen, setAddingOpen] = useState(false);
+  const [addingSession, setAddingSession] = useState(0);
   const [pickingProduct, setPickingProduct] = useState(false);
+  const [productSession, setProductSession] = useState(0);
   const [expanded, setExpanded] = useState<Set<string>>(
     () => new Set(draft.systems.map((system) => system.key)),
   );
@@ -133,8 +136,13 @@ export function ElementsStep({
   const returnTo = useRef<HTMLElement | null>(null);
   const closedRow = useRef<string | null>(null);
   const opener = useRef<HTMLElement | null>(null);
-  const newTab = useId();
   const focusNext = useRef<string | null>(null);
+  // The row's issues from its last Done, when there were several: listed above the Sheet's fields.
+  const [sheetSummary, setSheetSummary] = useState<{
+    key: string;
+    issues: WizardIssue[];
+    attempt: number;
+  } | null>(null);
   useEffect(() => {
     const field = focusNext.current;
     focusNext.current = null;
@@ -273,6 +281,8 @@ export function ElementsStep({
     fresh.current.delete(key);
     returnTo.current = null;
     closedRow.current = key;
+    // A reopened row starts on the field the reader chose; the list from the last Done has gone.
+    setSheetSummary(null);
     if (blank !== undefined && blank === JSON.stringify(target)) {
       if (editing.elementKey && system) {
         patchSystem(system.key, {
@@ -292,10 +302,20 @@ export function ElementsStep({
     if (!editing) return;
     const key = editing.elementKey ?? editing.systemKey;
     setValidated((previous) => new Set(previous).add(key));
-    const first = issues.find((issue) => sameTarget(issue, editing) && !issue.row);
-    if (first) {
+    const found = issues.filter((issue) => sameTarget(issue, editing) && !issue.row);
+    if (found.length > 1) {
+      // Several: the list above the fields takes focus and leads to each one.
+      setSheetSummary((previous) => ({
+        key,
+        issues: found,
+        attempt: (previous?.attempt ?? 0) + 1,
+      }));
+      return;
+    }
+    setSheetSummary(null);
+    if (found.length === 1) {
       // Focus once the field shows its error, so the error describes it when focus arrives.
-      focusNext.current = first.field;
+      focusNext.current = found[0]!.field;
       return;
     }
     fresh.current.delete(key);
@@ -323,19 +343,25 @@ export function ElementsStep({
       added: parentSystem.elements.length - inherited,
     };
   }
-  /** The row's second line: what it needs once checked, otherwise what it adopts or brings. */
-  function hint(target: SheetTarget, otherwise: string) {
+  /**
+   * The muted text after a row's name: its code, then what it needs once checked, otherwise what it
+   * adopts or brings. It yields its width to the name and is read as the row's description.
+   */
+  function hint(target: SheetTarget, code: string, otherwise: string) {
     const found = rowIssues(target);
-    if (!found.length)
-      return (
-        <Text as="span" size="xsmall" color="color.text.subtle" className="min-w-0 flex-1 truncate">
-          {otherwise}
-        </Text>
-      );
-    return (
-      <Text as="span" size="xsmall" color="color.text.danger" className="min-w-0 flex-1 truncate">
+    const text = found.length ? (
+      <Text as="span" color="color.text.danger">
         {found.length === 1 ? found[0]!.message : `${found.length} details to complete`}
       </Text>
+    ) : (
+      otherwise
+    );
+    if (!code) return found.length || otherwise ? text : undefined;
+    return (
+      <>
+        <Id>{code}</Id>
+        {found.length || otherwise ? <> · {text}</> : null}
+      </>
     );
   }
   function rowMenu(parentSystem: SystemWizardDraft, item: ElementWizardDraft | null) {
@@ -371,7 +397,11 @@ export function ElementsStep({
             Add component
           </DropdownMenuItem>
           <DropdownMenuItem
-            onClick={() => setAdding({ systemKey: parentSystem.key, parentKey: item?.key ?? null })}
+            onClick={() => {
+              setAdding({ systemKey: parentSystem.key, parentKey: item?.key ?? null });
+              setAddingSession((session) => session + 1);
+              setAddingOpen(true);
+            }}
           >
             Add from library…
           </DropdownMenuItem>
@@ -419,27 +449,26 @@ export function ElementsStep({
             onToggle={() => toggle(item.key)}
             isSelected={editing?.elementKey === item.key}
             onSelect={() => onEditingChange({ systemKey: parentSystem.key, elementKey: item.key })}
+            hint={hint({ systemKey: parentSystem.key, elementKey: item.key }, item.code, brings)}
             trailing={
-              <>
-                {item.productElementId ? (
-                  <Badge size="xsmall" variant="secondary" tone="information">
-                    Product
-                  </Badge>
-                ) : null}
-                {meta ? (
-                  <Badge size="xsmall" variant="secondary" tone="information">
-                    Library
-                  </Badge>
-                ) : null}
-                {rowMenu(parentSystem, item)}
-              </>
+              item.productElementId || meta ? (
+                <>
+                  {item.productElementId ? (
+                    <Badge size="xsmall" variant="secondary" tone="information">
+                      Product
+                    </Badge>
+                  ) : null}
+                  {meta ? (
+                    <Badge size="xsmall" variant="secondary" tone="information">
+                      Library
+                    </Badge>
+                  ) : null}
+                </>
+              ) : undefined
             }
+            actions={rowMenu(parentSystem, item)}
           >
-            <Truncate className="font-body">{item.name || "Unnamed element"}</Truncate>
-            {item.code ? (
-              <Id className="truncate font-body-xsmall text-subtle">{item.code}</Id>
-            ) : null}
-            {hint({ systemKey: parentSystem.key, elementKey: item.key }, brings)}
+            {item.name || "Unnamed element"}
           </Tree.Item>,
           ...(expanded.has(item.key) ? elementRows(parentSystem, item.key, depth + 1) : []),
         ];
@@ -474,7 +503,10 @@ export function ElementsStep({
             size="small"
             variant="secondary"
             iconBefore={<Boxes />}
-            onClick={() => setPickingProduct(true)}
+            onClick={() => {
+              setProductSession((session) => session + 1);
+              setPickingProduct(true);
+            }}
           >
             Create system from product
           </Button>
@@ -508,20 +540,15 @@ export function ElementsStep({
               onToggle={() => toggle(item.key)}
               isSelected={editing?.systemKey === item.key && !editing.elementKey}
               onSelect={() => onEditingChange({ systemKey: item.key, elementKey: null })}
+              hint={hint({ systemKey: item.key, elementKey: null }, item.code, adopts)}
               trailing={
-                <>
-                  <Badge size="xsmall" variant="secondary" tone="information">
-                    {item.product ? "Variant" : "System"}
-                  </Badge>
-                  {rowMenu(item, null)}
-                </>
+                <Badge size="xsmall" variant="secondary" tone="information">
+                  {item.product ? "Variant" : "System"}
+                </Badge>
               }
+              actions={rowMenu(item, null)}
             >
-              <Truncate className="font-body">{item.name || "Unnamed system"}</Truncate>
-              {item.code ? (
-                <Id className="truncate font-body-xsmall text-subtle">{item.code}</Id>
-              ) : null}
-              {hint({ systemKey: item.key, elementKey: null }, adopts)}
+              {item.name || "Unnamed system"}
             </Tree.Item>,
             ...(expanded.has(item.key) ? elementRows(item, null, 1) : []),
           ];
@@ -573,257 +600,270 @@ export function ElementsStep({
             </SheetDescription>
           </SheetHeader>
           <SheetBody>
-            <VisuallyHidden id={newTab}>Opens in a new tab</VisuallyHidden>
-            {system && !element ? (
-              <Stack space="space.200">
-                <Section title="Identity">
-                  <Stack space="space.150">
-                    <TextField
-                      label="Name"
-                      value={system.name}
-                      onChange={(name) => patchSystem(system.key, { name })}
-                      required
-                      error={errorFor(wizardField.system(system.key, "name"))}
-                      controlRef={controlRef(wizardField.system(system.key, "name"))}
-                    />
-                    <TextField
-                      label="Code"
-                      value={system.code}
-                      onChange={(code) => patchSystem(system.key, { code })}
-                      required
-                      description="Your stable identifier for this record."
-                      error={errorFor(wizardField.system(system.key, "code"))}
-                      controlRef={controlRef(wizardField.system(system.key, "code"))}
-                    />
-                    <TextField
-                      label="Function"
-                      value={system.description}
-                      onChange={(description) => patchSystem(system.key, { description })}
-                      multiline
-                      description="What it does for the mission."
-                      error={errorFor(wizardField.system(system.key, "description"))}
-                      controlRef={controlRef(wizardField.system(system.key, "description"))}
-                    />
-                    <ChoiceField
-                      label="Type"
-                      value={system.type}
-                      onChange={(type) =>
-                        patchSystem(system.key, { type: type as SystemWizardDraft["type"] })
-                      }
-                      options={systemTypes}
-                      required
-                      error={errorFor(wizardField.system(system.key, "type"))}
-                      controlRef={controlRef(wizardField.system(system.key, "type"))}
-                    />
-                    <PartyField
-                      label="System owner"
-                      value={system.ownerPartyId}
-                      onChange={(ownerPartyId) => patchSystem(system.key, { ownerPartyId })}
-                      parties={parties}
-                      error={errorFor(wizardField.system(system.key, "ownerPartyId"))}
-                      controlRef={controlRef(wizardField.system(system.key, "ownerPartyId"))}
-                    />
-                  </Stack>
-                </Section>
-                <Section title="Categorization">
-                  <Stack space="space.150">
-                    <Grid
-                      gap="space.150"
-                      templateColumns={{
-                        base: "minmax(0,1fr)",
-                        sm: "repeat(3,minmax(0,1fr))",
-                      }}
-                    >
-                      {objectives.map((objective) => (
-                        <ChoiceField
-                          key={objective}
-                          label={objective[0]!.toUpperCase() + objective.slice(1)}
-                          value={system[objective]}
-                          options={impacts}
-                          required
-                          onChange={(value) =>
-                            patchSystem(system.key, {
-                              [objective]: value as SystemWizardDraft[typeof objective],
-                            })
-                          }
-                          error={errorFor(wizardField.system(system.key, objective))}
-                          controlRef={controlRef(wizardField.system(system.key, objective))}
-                        />
-                      ))}
-                    </Grid>
-                    <TextField
-                      label="Categorization rationale"
-                      value={system.categorizationRationale}
-                      onChange={(categorizationRationale) =>
-                        patchSystem(system.key, { categorizationRationale })
-                      }
-                      required
-                      multiline
-                      description="Explain the impact of a loss of confidentiality, integrity, or availability."
-                      error={errorFor(wizardField.system(system.key, "categorizationRationale"))}
-                      controlRef={controlRef(
-                        wizardField.system(system.key, "categorizationRationale"),
-                      )}
-                    />
-                  </Stack>
-                </Section>
-                <Section title="Baseline">
-                  <Stack space="space.100">
-                    <ChoiceField
-                      label="Program profile"
-                      value={system.profileKey}
-                      options={programProfiles}
-                      onChange={(profileKey) =>
-                        patchSystem(system.key, { profileKey: profileKey ?? "" })
-                      }
-                      required
-                      description={
-                        programProfiles.length
-                          ? "The program profile this system adopts. Categorization suggests one; the choice is always explicit."
-                          : "Choose at least one base profile in the Catalog & profiles step first."
-                      }
-                      error={errorFor(wizardField.system(system.key, "profileKey"))}
-                      controlRef={controlRef(wizardField.system(system.key, "profileKey"))}
-                    />
-                    {suggestion && suggestedLabel && system.profileKey !== suggestion.key ? (
-                      <Stack space="space.050">
-                        <Text as="p" size="small" color="color.text.subtle">
-                          Suggested from categorization ({suggestion.level}): {suggestedLabel}
-                        </Text>
-                        <Button
-                          size="small"
-                          variant="subtle"
-                          onClick={() => patchSystem(system.key, { profileKey: suggestion.key })}
-                        >
-                          Use suggestion
-                        </Button>
-                      </Stack>
-                    ) : null}
-                  </Stack>
-                </Section>
-                {system.product && editingProduct ? (
-                  <Inspector.Group title="From a product">
-                    <KeyValue.Group labelWidth={160}>
-                      <KeyValue label="Product" wrap>
-                        {editingProduct.item ? (
-                          <TextLink
-                            render={
-                              <Link
-                                to="/library/products/$productKey"
-                                params={{ productKey: editingProduct.item.productId }}
-                                search={{ version: editingProduct.item.revisionId }}
-                              />
+            <Stack space="space.200">
+              {sheetSummary && sheetSummary.key === (editing?.elementKey ?? editing?.systemKey) ? (
+                <ErrorSummary
+                  focusKey={sheetSummary.attempt}
+                  // Less what the reader has fixed since: a removal is not announced.
+                  issues={sheetSummary.issues
+                    .filter((issue) => issues.some((current) => current.field === issue.field))
+                    .map((issue) => ({
+                      id: issue.field,
+                      message: issue.message,
+                      target: () => nodeFor(issue.field),
+                    }))}
+                />
+              ) : null}
+              {system && !element ? (
+                <Stack space="space.200">
+                  <Section title="Identity">
+                    <Stack space="space.150">
+                      <TextField
+                        label="Name"
+                        value={system.name}
+                        onChange={(name) => patchSystem(system.key, { name })}
+                        required
+                        error={errorFor(wizardField.system(system.key, "name"))}
+                        controlRef={controlRef(wizardField.system(system.key, "name"))}
+                      />
+                      <TextField
+                        label="Code"
+                        value={system.code}
+                        onChange={(code) => patchSystem(system.key, { code })}
+                        required
+                        description="Your stable identifier for this record."
+                        error={errorFor(wizardField.system(system.key, "code"))}
+                        controlRef={controlRef(wizardField.system(system.key, "code"))}
+                      />
+                      <TextField
+                        label="Function"
+                        value={system.description}
+                        onChange={(description) => patchSystem(system.key, { description })}
+                        multiline
+                        description="What it does for the mission."
+                        error={errorFor(wizardField.system(system.key, "description"))}
+                        controlRef={controlRef(wizardField.system(system.key, "description"))}
+                      />
+                      <ChoiceField
+                        label="Type"
+                        value={system.type}
+                        onChange={(type) =>
+                          patchSystem(system.key, { type: type as SystemWizardDraft["type"] })
+                        }
+                        options={systemTypes}
+                        placeholder="Choose a system type"
+                        required
+                        error={errorFor(wizardField.system(system.key, "type"))}
+                        controlRef={controlRef(wizardField.system(system.key, "type"))}
+                      />
+                      <PartyField
+                        label="System owner"
+                        value={system.ownerPartyId}
+                        onChange={(ownerPartyId) => patchSystem(system.key, { ownerPartyId })}
+                        parties={parties}
+                        error={errorFor(wizardField.system(system.key, "ownerPartyId"))}
+                        controlRef={controlRef(wizardField.system(system.key, "ownerPartyId"))}
+                      />
+                    </Stack>
+                  </Section>
+                  <Section title="Categorization">
+                    <Stack space="space.150">
+                      <Grid
+                        gap="space.150"
+                        templateColumns={{
+                          base: "minmax(0,1fr)",
+                          sm: "repeat(3,minmax(0,1fr))",
+                        }}
+                      >
+                        {objectives.map((objective) => (
+                          <ChoiceField
+                            key={objective}
+                            label={objective[0]!.toUpperCase() + objective.slice(1)}
+                            value={system[objective]}
+                            options={impacts}
+                            required
+                            onChange={(value) =>
+                              patchSystem(system.key, {
+                                [objective]: value as SystemWizardDraft[typeof objective],
+                              })
                             }
-                            target="_blank"
-                            aria-describedby={newTab}
+                            error={errorFor(wizardField.system(system.key, objective))}
+                            controlRef={controlRef(wizardField.system(system.key, objective))}
+                          />
+                        ))}
+                      </Grid>
+                      <TextField
+                        label="Categorization rationale"
+                        value={system.categorizationRationale}
+                        onChange={(categorizationRationale) =>
+                          patchSystem(system.key, { categorizationRationale })
+                        }
+                        required
+                        multiline
+                        description="Explain the impact of a loss of confidentiality, integrity, or availability."
+                        error={errorFor(wizardField.system(system.key, "categorizationRationale"))}
+                        controlRef={controlRef(
+                          wizardField.system(system.key, "categorizationRationale"),
+                        )}
+                      />
+                    </Stack>
+                  </Section>
+                  <Section title="Baseline">
+                    <Stack space="space.100">
+                      <ChoiceField
+                        label="Program profile"
+                        value={system.profileKey}
+                        options={programProfiles}
+                        placeholder="Choose a program profile"
+                        onChange={(profileKey) =>
+                          patchSystem(system.key, { profileKey: profileKey ?? "" })
+                        }
+                        required
+                        description={
+                          programProfiles.length
+                            ? "The program profile this system adopts. Categorization suggests one; the choice is always explicit."
+                            : "Choose at least one base profile in the Catalog & profiles step first."
+                        }
+                        error={errorFor(wizardField.system(system.key, "profileKey"))}
+                        controlRef={controlRef(wizardField.system(system.key, "profileKey"))}
+                      />
+                      {suggestion && suggestedLabel && system.profileKey !== suggestion.key ? (
+                        <Stack space="space.050">
+                          <Text as="p" size="small" color="color.text.subtle">
+                            Suggested from categorization ({suggestion.level}): {suggestedLabel}
+                          </Text>
+                          <Button
+                            size="small"
+                            variant="subtle"
+                            onClick={() => patchSystem(system.key, { profileKey: suggestion.key })}
                           >
-                            {editingProduct.item.productName}
-                            <Icon>
-                              <ExternalLink />
-                            </Icon>
-                          </TextLink>
-                        ) : (
-                          "No longer published"
-                        )}
-                      </KeyValue>
-                      <KeyValue label="Configuration" wrap>
-                        {editingProduct.item?.configurationName ?? <Absent />}
-                      </KeyValue>
-                      <KeyValue label="Version">
-                        {editingProduct.item ? `v${editingProduct.item.version}` : <Absent />}
-                      </KeyValue>
-                      <KeyValue label="Elements inherited">{editingProduct.inherited}</KeyValue>
-                      <KeyValue label="Removed">{editingProduct.removed}</KeyValue>
-                      <KeyValue label="Added">{editingProduct.added}</KeyValue>
-                    </KeyValue.Group>
-                  </Inspector.Group>
-                ) : null}
-              </Stack>
-            ) : null}
-            {system && element ? (
-              <Stack space="space.200">
-                <Section title="Identity">
-                  <Stack space="space.150">
-                    <ElementIdentityFields
-                      value={element}
-                      onChange={(patch) => patchElement(system.key, element.key, patch)}
-                      typeLocked={
-                        element.library
-                          ? "from the component"
-                          : element.productElementId
-                            ? "from the product"
-                            : undefined
-                      }
-                      descriptionLabel="Function"
-                      errors={{
-                        name: errorFor(wizardField.element(system.key, element.key, "name")),
-                        code: errorFor(wizardField.element(system.key, element.key, "code")),
-                        description: errorFor(
-                          wizardField.element(system.key, element.key, "description"),
-                        ),
-                        type: errorFor(wizardField.element(system.key, element.key, "type")),
-                      }}
-                      controlRef={(field) =>
-                        controlRef(wizardField.element(system.key, element.key, field))
-                      }
-                    />
-                  </Stack>
-                </Section>
-                {element.productElementId ? (
-                  <Inspector.Group title="From a product">
-                    <KeyValue.Group labelWidth={160}>
-                      <KeyValue label="Product element" wrap>
-                        {editingProductElement
-                          ? `${editingProductElement.code} · ${editingProductElement.name}`
-                          : "No longer published"}
-                      </KeyValue>
-                      <KeyValue label="Product" wrap>
-                        {editingProduct?.item ? (
-                          `${editingProduct.item.productName} v${editingProduct.item.version} · ${editingProduct.item.configurationName}`
-                        ) : (
-                          <Absent />
-                        )}
-                      </KeyValue>
-                    </KeyValue.Group>
-                  </Inspector.Group>
-                ) : null}
-                {element.library ? (
-                  <Stack space="space.150">
-                    <Inspector.Group title="From the library">
+                            Use suggestion
+                          </Button>
+                        </Stack>
+                      ) : null}
+                    </Stack>
+                  </Section>
+                  {system.product && editingProduct ? (
+                    <Inspector.Group title="From a product">
                       <KeyValue.Group labelWidth={160}>
-                        <KeyValue label="Definition" wrap>
-                          {editingMeta?.definition?.definitionName ?? "No longer published"}
+                        <KeyValue label="Product" wrap>
+                          {editingProduct.item ? (
+                            // A new tab, so reading the product never leaves the draft.
+                            <TextLink
+                              newTab
+                              render={
+                                <Link
+                                  to="/library/products/$productKey"
+                                  params={{ productKey: editingProduct.item.productId }}
+                                  search={{ version: editingProduct.item.revisionId }}
+                                />
+                              }
+                            >
+                              {editingProduct.item.productName}
+                            </TextLink>
+                          ) : (
+                            "No longer published"
+                          )}
+                        </KeyValue>
+                        <KeyValue label="Configuration" wrap>
+                          {editingProduct.item?.configurationName ?? <Absent />}
                         </KeyValue>
                         <KeyValue label="Version">
-                          {editingMeta?.definition?.version ?? <Absent />}
+                          {editingProduct.item ? `v${editingProduct.item.version}` : <Absent />}
                         </KeyValue>
-                        <KeyValue label="Claimed controls">{editingMeta?.claims ?? 0}</KeyValue>
-                        <KeyValue label="Will seed">{editingMeta?.seed ?? 0}</KeyValue>
-                        <KeyValue label="Not in baseline">
-                          {(editingMeta?.claims ?? 0) - (editingMeta?.seed ?? 0)}
+                        <KeyValue label="Elements inherited">{editingProduct.inherited}</KeyValue>
+                        <KeyValue label="Removed">{editingProduct.removed}</KeyValue>
+                        <KeyValue label="Added">{editingProduct.added}</KeyValue>
+                      </KeyValue.Group>
+                    </Inspector.Group>
+                  ) : null}
+                </Stack>
+              ) : null}
+              {system && element ? (
+                <Stack space="space.200">
+                  <Section title="Identity">
+                    <Stack space="space.150">
+                      <ElementIdentityFields
+                        value={element}
+                        onChange={(patch) => patchElement(system.key, element.key, patch)}
+                        typeLocked={
+                          element.library
+                            ? "from the component"
+                            : element.productElementId
+                              ? "from the product"
+                              : undefined
+                        }
+                        descriptionLabel="Function"
+                        errors={{
+                          name: errorFor(wizardField.element(system.key, element.key, "name")),
+                          code: errorFor(wizardField.element(system.key, element.key, "code")),
+                          description: errorFor(
+                            wizardField.element(system.key, element.key, "description"),
+                          ),
+                          type: errorFor(wizardField.element(system.key, element.key, "type")),
+                        }}
+                        controlRef={(field) =>
+                          controlRef(wizardField.element(system.key, element.key, field))
+                        }
+                      />
+                    </Stack>
+                  </Section>
+                  {element.productElementId ? (
+                    <Inspector.Group title="From a product">
+                      <KeyValue.Group labelWidth={160}>
+                        <KeyValue label="Product element" wrap>
+                          {editingProductElement
+                            ? `${editingProductElement.code} · ${editingProductElement.name}`
+                            : "No longer published"}
+                        </KeyValue>
+                        <KeyValue label="Product" wrap>
+                          {editingProduct?.item ? (
+                            `${editingProduct.item.productName} v${editingProduct.item.version} · ${editingProduct.item.configurationName}`
+                          ) : (
+                            <Absent />
+                          )}
                         </KeyValue>
                       </KeyValue.Group>
                     </Inspector.Group>
-                    <TextField
-                      label="Rationale"
-                      value={element.library.rationale}
-                      onChange={(rationale) =>
-                        patchElement(system.key, element.key, {
-                          library: { ...element.library!, rationale },
-                        })
-                      }
-                      required
-                      multiline
-                      description="Why this library component applies here."
-                      error={errorFor(wizardField.element(system.key, element.key, "rationale"))}
-                      controlRef={controlRef(
-                        wizardField.element(system.key, element.key, "rationale"),
-                      )}
-                    />
-                  </Stack>
-                ) : null}
-              </Stack>
-            ) : null}
+                  ) : null}
+                  {element.library ? (
+                    <Stack space="space.150">
+                      <Inspector.Group title="From the library">
+                        <KeyValue.Group labelWidth={160}>
+                          <KeyValue label="Definition" wrap>
+                            {editingMeta?.definition?.definitionName ?? "No longer published"}
+                          </KeyValue>
+                          <KeyValue label="Version">
+                            {editingMeta?.definition?.version ?? <Absent />}
+                          </KeyValue>
+                          <KeyValue label="Claimed controls">{editingMeta?.claims ?? 0}</KeyValue>
+                          <KeyValue label="Will seed">{editingMeta?.seed ?? 0}</KeyValue>
+                          <KeyValue label="Not in baseline">
+                            {(editingMeta?.claims ?? 0) - (editingMeta?.seed ?? 0)}
+                          </KeyValue>
+                        </KeyValue.Group>
+                      </Inspector.Group>
+                      <TextField
+                        label="Rationale"
+                        value={element.library.rationale}
+                        onChange={(rationale) =>
+                          patchElement(system.key, element.key, {
+                            library: { ...element.library!, rationale },
+                          })
+                        }
+                        required
+                        multiline
+                        description="Why this library component applies here."
+                        error={errorFor(wizardField.element(system.key, element.key, "rationale"))}
+                        controlRef={controlRef(
+                          wizardField.element(system.key, element.key, "rationale"),
+                        )}
+                      />
+                    </Stack>
+                  ) : null}
+                </Stack>
+              ) : null}
+            </Stack>
           </SheetBody>
           <SheetFooter>
             <Button variant="subtle" onClick={closeSheet}>
@@ -838,11 +878,12 @@ export function ElementsStep({
       </Sheet>
       {adding && addingSystem ? (
         <LibraryComponentPicker
-          open
+          key={`library-${addingSession}`}
+          open={addingOpen}
           parentLabel={addingParent?.name || addingSystem.name || "the system"}
           items={libraryItems}
           pending={libraryPending}
-          onClose={() => setAdding(null)}
+          onClose={() => setAddingOpen(false)}
           onPick={(item) => {
             addElement(
               addingSystem,
@@ -860,13 +901,14 @@ export function ElementsStep({
               },
               false,
             );
-            setAdding(null);
+            setAddingOpen(false);
           }}
         />
       ) : null}
-      {pickingProduct ? (
+      {productSession ? (
         <ProductConfigurationPicker
-          open
+          key={`product-${productSession}`}
+          open={pickingProduct}
           title="Create system from product"
           actionLabel="Create system from product"
           items={productItems}

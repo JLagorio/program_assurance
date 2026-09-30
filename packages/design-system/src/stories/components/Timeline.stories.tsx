@@ -1,4 +1,5 @@
 import {
+  Attachment,
   Avatar,
   AvatarFallback,
   AvatarGroupCount,
@@ -7,7 +8,6 @@ import {
   avatarHue,
   Badge,
   Button,
-  ButtonGroup,
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -48,8 +48,8 @@ import {
 } from "lucide-react";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { createRef, useState, type ReactNode } from "react";
-import { expect, waitFor, within } from "storybook/test";
-import { Box, Inline, Stack, Text } from "../../primitives";
+import { expect, userEvent, waitFor, within } from "storybook/test";
+import { Box, HeadingLevelProvider, Inline, Stack, Text } from "../../primitives";
 import { Specimens } from "../_lib/matrix";
 import { Pair } from "../_lib/pair";
 
@@ -82,18 +82,21 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** A file on an event, from kit parts: the name and size as a button, the download beside it. */
-function Attachment({ name, size }: { name: string; size: string }) {
+/** A file on an event: the kit's Attachment with its name and size, the download beside it. */
+function EventFile({ name, size }: { name: string; size: string }) {
   return (
-    <ButtonGroup>
-      <Button size="small" iconBefore={<Paperclip />}>
-        {name}
-        <Text color="color.text.subtle" className="ps-050">
-          ({size})
-        </Text>
-      </Button>
-      <IconButton size="small" label={`Download ${name}`} icon={<Download />} />
-    </ButtonGroup>
+    <Attachment size="small" style={{ maxWidth: 320 }}>
+      <Attachment.Media aria-hidden="true">
+        <Paperclip />
+      </Attachment.Media>
+      <Attachment.Content>
+        <Attachment.Title>{name}</Attachment.Title>
+        <Attachment.Description>{size}</Attachment.Description>
+      </Attachment.Content>
+      <Attachment.Actions>
+        <Attachment.Action label={`Download ${name}`} icon={<Download />} />
+      </Attachment.Actions>
+    </Attachment>
   );
 }
 
@@ -182,8 +185,9 @@ export const TimelineMatrix: Story = {
             />
             <Timeline.Item title="Active" onSelect={() => {}} isActive />
             <Timeline.Item
-              title="Emphasised (unread)"
-              emphasis
+              title="A new comment"
+              meta="isUnread: medium weight, and read as unread"
+              isUnread
               trailing={<Count value={1} appearance="primary" />}
             />
             <Timeline.Item
@@ -219,7 +223,7 @@ export const TimelineMatrix: Story = {
                 </>
               }
             >
-              <Attachment name="Quarter-close.pdf" size="220 KB" />
+              <EventFile name="Quarter-close.pdf" size="220 KB" />
             </Timeline.Item>
           </Timeline.Group>
           <Timeline.Group label="Icon markers">
@@ -357,6 +361,35 @@ export const TimelineMatrix: Story = {
       </Specimens>
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const activity = canvas.getByRole("list", { name: "Activity" });
+    // A list whose markers are removed says it is a list, its groups' lists too.
+    await expect(activity).toHaveAttribute("role", "list");
+    const states = within(activity).getByRole("list", { name: "States" });
+    await expect(states).toHaveAttribute("role", "list");
+    // A group's label is a heading at the contextual level: an h3 outside every provider.
+    const heading = canvas.getByRole("heading", { name: "States" });
+    await expect(heading.tagName).toBe("H3");
+    // The sticky label paints over the rail and the markers that pass under it.
+    const sticky = heading.closest("div")!;
+    const markerColumn = within(states).getAllByRole("listitem")[0]!.children[1]!;
+    await expect(Number(getComputedStyle(sticky).zIndex)).toBeGreaterThan(
+      Number(getComputedStyle(markerColumn).zIndex),
+    );
+    // The open event says so on its control; an unread one is read as unread.
+    await expect(within(states).getByRole("button", { name: "Active" })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    const unread = within(states).getByText("A new comment").closest("li")!;
+    await expect(unread).toHaveTextContent("Unread: A new comment");
+    // The full stamp is read after the words, and is their tooltip.
+    const tones = within(activity).getByRole("list", { name: "Tones" });
+    const stamp = within(tones).getAllByText("2h ago")[0]!.closest('[data-slot="truncate"]')!;
+    await expect(stamp).toHaveTextContent("2h ago, 2026-09-02 14:10");
+    await expect(stamp).toHaveAttribute("title", "2026-09-02 14:10");
+  },
 };
 
 /** A feed of people: a small Avatar as the marker, the title a sentence, the time in the footer with the kind, a menu on every row, and what each event carries under it. */
@@ -432,7 +465,7 @@ function Feed() {
         }
         trailing={menu()}
       >
-        <Attachment name="settlement-match.csv" size="48 KB" />
+        <EventFile name="settlement-match.csv" size="48 KB" />
       </Timeline.Item>
       <Timeline.Item
         marker={person("Marcus Bell")}
@@ -508,7 +541,7 @@ function Feed() {
   );
 }
 
-/** A record's activity: newest first, grouped by period, the unread rows emphasised, each row opening the event. */
+/** A record's activity: newest first, grouped by period, the unread rows in medium weight and read as unread, each row opening the event, the open one marked current. */
 export const Activity: Story = {
   render: () => (
     <Timeline label="Activity" className="max-w-[480px]">
@@ -520,7 +553,7 @@ export const Activity: Story = {
           time="2h ago"
           dateTime="2026-09-04T12:10"
           timeTitle="2026-09-04 12:10"
-          emphasis
+          isUnread
           onSelect={() => undefined}
         />
         <Timeline.Item
@@ -529,6 +562,7 @@ export const Activity: Story = {
           meta="Bank reconciliation, July"
           time="Yesterday"
           dateTime="2026-09-03"
+          isUnread
           trailing={<Count value={1} appearance="primary" />}
           onSelect={() => undefined}
         />
@@ -571,6 +605,32 @@ export const Activity: Story = {
       </Timeline.Group>
     </Timeline>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(
+      canvas.getByRole("button", { name: "Unread: Verified by Priya Natarajan" }),
+    ).toBeVisible();
+    await expect(canvas.getByRole("button", { name: "Due date moved" })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    await expect(canvas.getByRole("button", { name: "Control created" })).not.toHaveAttribute(
+      "aria-current",
+    );
+    // In forced colours the open event keeps a fill of its own: Highlight, where the rest are Canvas.
+    if (matchMedia("(forced-colors: active)").matches) {
+      const open = canvas.getByRole("button", { name: "Due date moved" }).closest("li")!;
+      const plain = canvas.getByRole("button", { name: "Control created" }).closest("li")!;
+      await expect(open).toHaveAttribute("data-active");
+      await expect(getComputedStyle(open).backgroundColor).not.toBe(
+        getComputedStyle(plain).backgroundColor,
+      );
+    }
+    // A given `time` beside `dateTime` is a <time>; the full stamp follows it for a screen reader.
+    const stamp = canvas.getByText("2h ago").closest("time")!;
+    await expect(stamp).toHaveAttribute("datetime", "2026-09-04T12:10");
+    await expect(stamp).toHaveTextContent("2h ago, 2026-09-04 12:10");
+  },
 };
 
 /** A feed of people, large: who did what as the title, the kind and the time in the footer, a menu on each row, and under the rows an attachment, two buttons, a stack, a progress, a quote. */
@@ -604,7 +664,7 @@ export const Log: Story = {
           </>
         }
       >
-        <Attachment name="Handoff.pdf" size="1.8 MB" />
+        <EventFile name="Handoff.pdf" size="1.8 MB" />
       </Timeline.Item>
       <Timeline.Item
         tone="information"
@@ -629,7 +689,7 @@ export const Log: Story = {
           </>
         }
       >
-        <Attachment name="SSO-map.csv" size="84 KB" />
+        <EventFile name="SSO-map.csv" size="84 KB" />
       </Timeline.Item>
       <Timeline.Item
         time="28 Apr 2026"
@@ -666,7 +726,7 @@ export const Log: Story = {
           </>
         }
       >
-        <Attachment name="Import-log.txt" size="26 KB" />
+        <EventFile name="Import-log.txt" size="26 KB" />
       </Timeline.Item>
     </Timeline>
   ),
@@ -783,7 +843,7 @@ export const Runs: Story = {
               description="Customer, urgency and routing fields arrived cleanly."
               footer={<Person name="Sam Lee" />}
             >
-              <Attachment name="intake.json" size="2 KB" />
+              <EventFile name="intake.json" size="2 KB" />
             </Timeline.Item>
             <Timeline.Item
               tone="success"
@@ -794,7 +854,7 @@ export const Runs: Story = {
               description="CRM and billing records attached before risk review."
               footer={<Person name="Ira Wells" />}
             >
-              <Attachment name="crm-match.csv" size="18 KB" />
+              <EventFile name="crm-match.csv" size="18 KB" />
             </Timeline.Item>
             <Timeline.Item
               tone="success"
@@ -805,7 +865,7 @@ export const Runs: Story = {
               description="Terms, region rules and account flags passed review."
               footer={<Person name="Owen Fox" />}
             >
-              <Attachment name="policy.pdf" size="140 KB" />
+              <EventFile name="policy.pdf" size="140 KB" />
             </Timeline.Item>
             <Timeline.Item
               tone="information"
@@ -817,7 +877,7 @@ export const Runs: Story = {
               emphasis
               footer={<Person name="Maya Chen" />}
             >
-              <Attachment name="signoff.docx" size="32 KB" />
+              <EventFile name="signoff.docx" size="32 KB" />
             </Timeline.Item>
           </Timeline>
         </Box>
@@ -1125,6 +1185,230 @@ export const Narrow: Story = {
     const viewport = list.parentElement!;
     await expect(viewport.scrollWidth).toBeGreaterThan(viewport.clientWidth);
     await expect(viewport.getBoundingClientRect().right).toBeLessThanOrEqual(window.innerWidth);
+    // Nothing in the strip takes focus, so the overflowing strip is the stop: a group named after
+    // the list, and the arrow keys scroll it.
+    await waitFor(() => expect(viewport).toHaveAttribute("tabindex", "0"));
+    await expect(viewport).toHaveAttribute("role", "group");
+    await expect(viewport).toHaveAccessibleName("Releases, scrolls");
+  },
+};
+
+/**
+ * A workflow's stages across a record, each at least a rail wide (`itemWidth="rail"`) so its title
+ * and date stay readable, the titles wrapping (`wrap`), the strip scrolling past that. The stages
+ * open in place, so the strip is no stop of its own; a focused stage's ring is drawn inside it.
+ */
+export const Stages: Story = {
+  render: () => (
+    <Box style={{ maxWidth: 480 }}>
+      <Timeline
+        label="Lifecycle gates"
+        orientation="horizontal"
+        align="start"
+        timePosition="below"
+        itemWidth="rail"
+        wrap
+      >
+        <Timeline.Item
+          tone="success"
+          icon={<Check />}
+          time="Passed 12 Feb 2026"
+          title="System requirements review"
+          onSelect={() => undefined}
+        />
+        <Timeline.Item
+          tone="success"
+          icon={<Check />}
+          time="Passed 30 Apr 2026"
+          title="Preliminary design review"
+          onSelect={() => undefined}
+        />
+        <Timeline.Item
+          tone="information"
+          icon={<Play />}
+          time="Due 10 Oct 2026"
+          title="Critical design review"
+          emphasis
+          isActive
+          onSelect={() => undefined}
+        />
+        <Timeline.Item
+          time="Due 18 Jan 2027"
+          title="Test readiness review"
+          onSelect={() => undefined}
+        />
+      </Timeline>
+    </Box>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const list = canvas.getByRole("list", { name: "Lifecycle gates" });
+    const rail = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue("--ds-dimension-layout-rail"),
+    );
+    for (const item of within(list).getAllByRole("listitem")) {
+      await expect(item.getBoundingClientRect().width).toBeGreaterThanOrEqual(rail - 1);
+      // The title wraps instead of being cut.
+      await expect(
+        within(item).getByRole("button").querySelector('[data-slot="truncate"]'),
+      ).toBeNull();
+    }
+    const viewport = list.parentElement!;
+    await expect(viewport.scrollWidth).toBeGreaterThan(viewport.clientWidth);
+    await expect(viewport).not.toHaveAttribute("tabindex");
+    await expect(canvas.getByRole("button", { name: "Critical design review" })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    // A focused stage's ring is drawn inside the strip, which clips.
+    const second = canvas.getByRole("button", { name: "Preliminary design review" });
+    second.focus();
+    await userEvent.keyboard("{Shift>}{Tab}{/Shift}{Tab}");
+    await expect(second).toHaveFocus();
+    await expect(getComputedStyle(second, "::after").outlineOffset).toBe("-2px");
+    // At the column's start the ring passes beside the marker and the text, not over them.
+    const stage = second.closest('[data-slot="timeline-item"]')!.firstElementChild!;
+    const start = stage.getBoundingClientRect().left;
+    const marker = stage.querySelector('[data-slot="timeline-marker"]')!;
+    await expect(marker.getBoundingClientRect().left - start).toBeGreaterThanOrEqual(4);
+    await expect(second.getBoundingClientRect().left - start).toBeGreaterThanOrEqual(4);
+  },
+};
+
+/**
+ * With only `dateTime`, the time is the relative words in the reader's locale ("5 minutes ago",
+ * "yesterday"), kept current, and the full moment in the reader's zone is read after them and is
+ * their tooltip.
+ */
+export const RelativeTimes: Story = {
+  render: () => {
+    const now = Date.now();
+    const ago = (ms: number) => new Date(now - ms).toISOString();
+    return (
+      <Timeline label="History" className="max-w-layout-measure">
+        <Timeline.Item
+          tone="success"
+          title="Verified"
+          meta="Priya Natarajan"
+          dateTime={ago(5 * 60_000)}
+        />
+        <Timeline.Item
+          tone="information"
+          title="Evidence linked"
+          meta="Dana Whitfield"
+          dateTime={ago(3 * 3_600_000)}
+        />
+        <Timeline.Item title="Control created" dateTime="2026-08-03" />
+      </Timeline>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const words = canvas.getByText("5 minutes ago");
+    const time = words.closest("time")!;
+    await expect(time).toHaveAttribute("datetime");
+    const stamp = words.closest('[data-slot="truncate"]')!;
+    const full = stamp.getAttribute("title") ?? "";
+    // The full moment has its year and its minutes.
+    await expect(full).toMatch(/\d{4}/);
+    await expect(full).toMatch(/\d:\d{2}/);
+    await expect(stamp).toHaveTextContent(`5 minutes ago, ${full}`);
+    const day = canvas.getByText("Control created").closest("li")!;
+    await expect(day.querySelector("time")).toHaveAttribute("datetime", "2026-08-03");
+  },
+};
+
+const longTitle =
+  "Verified by Priya Natarajan-Whitfield after the second reviewer signed the evidence";
+
+/**
+ * A long title and a long stamp in a narrow list. Beside the title the stamp takes at most half the
+ * line and is cut first; a title longer than the rest is cut, and shows whole on hover and while
+ * its row has keyboard focus. With `wrap` and the time below, nothing is cut.
+ */
+export const LongContent: Story = {
+  name: "Long content",
+  render: () => (
+    <Stack space="space.300">
+      <Box className="w-full" style={{ maxWidth: 320 }}>
+        <Timeline label="Cut">
+          <Timeline.Item
+            tone="success"
+            title={longTitle}
+            time="vor 2 Stunden und 14 Minuten"
+            dateTime="2026-09-02T14:10"
+            timeTitle="2. September 2026, 14:10 MESZ"
+            onSelect={() => undefined}
+          />
+        </Timeline>
+      </Box>
+      <Box className="w-full" style={{ maxWidth: 320 }}>
+        <Timeline label="Wrapped" wrap timePosition="below">
+          <Timeline.Item
+            tone="success"
+            title={longTitle}
+            time="vor 2 Stunden und 14 Minuten"
+            dateTime="2026-09-02T14:10"
+            timeTitle="2. September 2026, 14:10 MESZ"
+          />
+        </Timeline>
+      </Box>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const cut = (el: Element) => el.scrollWidth > el.clientWidth + 1;
+    const cutList = canvas.getByRole("list", { name: "Cut" });
+    const button = within(cutList).getByRole("button");
+    const title = button.querySelector('[data-slot="truncate"]')!;
+    const stamp = cutList.querySelector("time")!;
+    const line = stamp.parentElement!;
+    // Beside the title the stamp takes at most half the line, and is cut before the title is.
+    await expect(stamp.getBoundingClientRect().width).toBeLessThanOrEqual(
+      line.getBoundingClientRect().width / 2 + 1,
+    );
+    await expect(cut(stamp)).toBe(true);
+    await expect(stamp).toHaveAttribute("title", "2. September 2026, 14:10 MESZ");
+    await expect(cut(title)).toBe(true);
+    // Keyboard focus on the row's title shows the whole title.
+    await userEvent.tab();
+    await expect(button).toHaveFocus();
+    await waitFor(() =>
+      expect(document.querySelector('[data-slot="truncate-full-text"]')).toHaveTextContent(
+        longTitle,
+      ),
+    );
+    await userEvent.keyboard("{Escape}");
+    // Wrapped, the title takes the lines it needs and the stamp under it is whole.
+    const wrapped = canvas.getByRole("list", { name: "Wrapped" });
+    const wrappedTitle = within(wrapped).getByText(longTitle);
+    await expect(wrappedTitle.closest('[data-slot="truncate"]')).toBeNull();
+    const wrappedStamp = wrapped.querySelector("time")!;
+    await expect(cut(wrappedStamp)).toBe(false);
+    await expect(wrappedTitle.getBoundingClientRect().height).toBeGreaterThan(
+      wrappedStamp.getBoundingClientRect().height * 2,
+    );
+  },
+};
+
+/** A group's label is a heading at the level where the timeline sits: inside a Section under an h3, or a HeadingLevelProvider at 4 as here, an h4. */
+export const GroupHeadings: Story = {
+  render: () => (
+    <HeadingLevelProvider level={4}>
+      <Timeline label="History" className="max-w-layout-measure">
+        <Timeline.Group label="This week" count={1}>
+          <Timeline.Item tone="success" title="Verified" time="2h ago" />
+        </Timeline.Group>
+        <Timeline.Group label="August">
+          <Timeline.Item title="Control created" time="3 Aug" />
+        </Timeline.Group>
+      </Timeline>
+    </HeadingLevelProvider>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("heading", { name: "This week" }).tagName).toBe("H4");
+    await expect(canvas.getByRole("heading", { name: "August" }).tagName).toBe("H4");
   },
 };
 

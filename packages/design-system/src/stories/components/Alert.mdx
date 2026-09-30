@@ -1,54 +1,102 @@
 import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
-import { Alert, AlertTitle, AlertDescription, AlertAction } from "../../components";
+import { Alert, AlertTitle, AlertDescription, AlertAction, AlertIcon } from "../../components";
 import * as Stories from "./Alert.stories";
 
 <Meta of={Stories} />
 
 # Alert
 
-Inline feedback with explicit title, description and action parts. Use record-specific language that tells the reader what happened and what they can do.
+An inline message about a record or a region: what happened, what it means, and the way out. It stays where it is while it is true, beside the content it is about.
+
+<Canvas of={Stories.Playground} />
+
+## Choosing between them
+
+| The message                                     | Part                                                      |
+| ----------------------------------------------- | --------------------------------------------------------- |
+| About this record or region, while it holds     | Alert                                                     |
+| About one field of a form                       | [FieldError](?path=/docs/components-field--docs) under it |
+| Several problems with a submitted form          | [ErrorSummary](?path=/docs/components-errorsummary--docs) |
+| About the whole site, for every reader          | [Banner](?path=/docs/components-banner--docs)             |
+| Feedback after an act that needs nothing more   | A [toast](?path=/docs/components-toaster--docs)           |
+| A decision the reader must take before going on | [AlertDialog](?path=/docs/components-alertdialog--docs)   |
 
 ## Anatomy
 
 ```tsx
-<Alert variant="destructive">
+<Alert variant="danger">
+  <AlertIcon />
   <AlertTitle>Import failed</AlertTitle>
   <AlertDescription>The file is missing record identifiers.</AlertDescription>
   <AlertAction>
-    <a href="#format">Read the required format</a>
+    <TextLink href="#format">Read the required format</TextLink>
+    <Button size="small">Try the import again</Button>
   </AlertAction>
 </Alert>
 ```
 
-A decorative SVG may sit directly inside Alert, or beside text inside AlertTitle. Content and icons are caller-owned. Ledger keeps actions in normal flow so long recovery links fit narrow panels.
+| Part               | What it is                                                                                                                                      |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Alert`            | The region, in the tone's subtle fill. An svg as its first child (AlertIcon) takes a column of its own.                                         |
+| `AlertIcon`        | The tone's icon: Info, CircleCheck, TriangleAlert or CircleAlert, the same glyphs as Banner and the toast list. `icon` replaces it. Decorative. |
+| `AlertTitle`       | What happened, in medium weight. An unbroken code or hash wraps inside it.                                                                      |
+| `AlertDescription` | What it means or what to do, one or two lines.                                                                                                  |
+| `AlertAction`      | The way out: a TextLink to where it is fixed, or a small Button that fixes it. Links are underlined here as in the title and the description.   |
+
+Content and icons are the caller's. Actions stay in normal flow under the message, so a long recovery link fits a narrow panel.
 
 ## Variants and states
 
-`variant="default"` uses a neutral tone; `destructive` uses danger. Ledger's optional `tone` overrides either visual tone. Tone does not choose announcement behavior.
+`tone` is the Ledger meaning and picks the fill, the icon and the default role. `variant` is shadcn's treatment: `default` is the neutral tone and `destructive`, or its Ledger spelling `danger`, the danger tone; a `tone` overrides either.
 
 <Canvas of={Stories.Variants} />
+
 <Canvas of={Stories.Tones} />
+
+<Canvas of={Stories.LongContent} />
 
 The application owns action handlers and feedback.
 
 <Canvas of={Stories.WithAction} />
 
+## Content
+
+- **The title says what happened** in the reader's words: "Import failed", "Records could not be refreshed". Not "Error", not the server's message.
+- **The description says what it means or what to do**, in one or two lines. A server message is detail: put it after the plain sentence, or leave it out.
+- **One way out**, named for where it goes or what it does. A link navigates; a small Button acts.
+- **No Alert for a result the reader did not ask about.** Feedback after an act is a toast.
+
 ## Accessibility
 
-Alert defaults to `role="alert"`, following shadcn. Use `role="status"` for polite updates or `role="note"` for static contextual information. Explicitly associate titles and descriptions with `aria-labelledby` and `aria-describedby` when needed. Hide decorative icons from assistive technology. Buttons and links retain their native behavior.
+The role follows the tone, and `role` overrides it:
+
+| The message                                                     | Role                                 |
+| --------------------------------------------------------------- | ------------------------------------ |
+| A failure after the reader's act, which stops the task          | `alert`, the danger tone's default   |
+| A result or an update the reader should hear when idle          | `status`, every other tone's default |
+| Standing guidance that is read in place (a permission, a draft) | `note`                               |
+| Said already by the page's own live region                      | `role={undefined}`, none             |
+
+An Alert rendered with the page is not a change, so it is not announced whatever its role; the role matters when it appears after an act. Name it with `aria-labelledby` on its title when a screen reader should meet it as a landmark-like region. AlertIcon is hidden from assistive technology. On every tone's fill the icon and the focus ring hold 3:1, and a TextLink 4.5:1 in the standard modes; under increased contrast the neutral fill darkens, and the link holds 4.5:1 on the status tones only. The contrast test checks each pair. In forced colours the fill is replaced, so the Alert keeps a CanvasText edge and its icon.
 
 ## Props
 
 <ArgTypes of={Alert} />
 
-All parts accept native div attributes and refs. `title` is now the native HTML tooltip attribute.
+<ArgTypes of={AlertIcon} />
+
+All parts accept native div attributes and refs (AlertIcon's are the svg's). `title` is the native tooltip attribute.
 
 ### Migration
 
-Replace `Alert.Title`, `Alert.Description`, and `Alert.Action` with flat exports. Move shorthand `title`, `action`, and `icon` content into children. Existing callers explicitly retain their previous tones and announcement roles. New callers receive shadcn's neutral default appearance and alert role.
+Compose content as children: `AlertTitle`, `AlertDescription` and `AlertAction`, and `AlertIcon` for the tone's icon. A new Alert's role follows its tone; a caller that relied on every Alert being `role="alert"` passes it explicitly.
 
 ## Related
 
-[Banner](?path=/docs/components-banner--docs), [Toaster](?path=/docs/components-toaster--docs), [AlertDialog](?path=/docs/components-alertdialog--docs).
+[Banner](?path=/docs/components-banner--docs), [Toaster](?path=/docs/components-toaster--docs), [AlertDialog](?path=/docs/components-alertdialog--docs), [ErrorSummary](?path=/docs/components-errorsummary--docs), [Field](?path=/docs/components-field--docs).
 
-Sources: [shadcn Alert](https://ui.shadcn.com/docs/components/base/alert), [implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/alert.tsx).
+Sources: [shadcn Alert](https://ui.shadcn.com/docs/components/base/alert), [implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/alert.tsx), [WAI-ARIA alert role](https://www.w3.org/WAI/ARIA/apg/patterns/alert/).
+
+## Don't
+
+<Canvas of={Stories.Dont} />

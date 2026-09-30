@@ -3,7 +3,7 @@ import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { X } from "lucide-react";
-import type { ComponentProps, CSSProperties } from "react";
+import { useMemo, useRef, type ComponentProps, type CSSProperties } from "react";
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
@@ -11,10 +11,16 @@ import { HeadingLevelProvider } from "../primitives/heading-level";
 import { Button, IconButton } from "./button";
 import {
   OverlayPendingContext,
+  OverlayRootContext,
   bodySlot,
+  focusPastClose,
   overlaySurface,
   pendingCloseRender,
   pendingOpenChange,
+  useBlanketPress,
+  useFooterClearance,
+  useOpener,
+  useOpenerFocus,
   useOverlayPending,
   useReadOnlyScroller,
   withStyle,
@@ -39,15 +45,20 @@ export function Dialog<Payload = unknown>({
   ...props
 }: DialogProps<Payload>) {
   const { direction } = useLedgerLocale();
+  const opener = useOpener(props.open);
+  const holdsBlanket = pending || Boolean(disablePointerDismissal);
+  const root = useMemo(() => ({ opener, holdsBlanket }), [opener, holdsBlanket]);
   return (
     <DirectionProvider direction={direction}>
-      <OverlayPendingContext.Provider value={pending}>
-        <Primitive.Root
-          {...props}
-          disablePointerDismissal={pending || disablePointerDismissal}
-          onOpenChange={pendingOpenChange(pending, onOpenChange)}
-        />
-      </OverlayPendingContext.Provider>
+      <OverlayRootContext.Provider value={root}>
+        <OverlayPendingContext.Provider value={pending}>
+          <Primitive.Root
+            {...props}
+            disablePointerDismissal={pending || disablePointerDismissal}
+            onOpenChange={pendingOpenChange(pending, onOpenChange)}
+          />
+        </OverlayPendingContext.Provider>
+      </OverlayRootContext.Provider>
     </DirectionProvider>
   );
 }
@@ -60,11 +71,20 @@ export function DialogPortal(props: DialogPortalProps) {
   return <Primitive.Portal {...props} />;
 }
 export type DialogOverlayProps = Primitive.Backdrop.Props;
-export function DialogOverlay({ className, ...props }: DialogOverlayProps) {
+/**
+ * The blanket. While a press on it leaves the dialog open (`pending`, `disablePointerDismissal`),
+ * the press keeps focus where the reader has it instead of dropping it to the page.
+ */
+export function DialogOverlay({ className, onMouseDown, ...props }: DialogOverlayProps) {
+  const press = useBlanketPress();
   return (
     <Primitive.Backdrop
       data-slot="dialog-overlay"
       {...props}
+      onMouseDown={(event) => {
+        press?.(event);
+        onMouseDown?.(event);
+      }}
       className={classes(
         "fixed inset-0 z-50 bg-blanket data-open:animate-dim-in data-closed:animate-dim-out",
         className,
@@ -101,7 +121,10 @@ const dialogWidths: Record<DialogWidth, CSSProperties> = {
 };
 
 export type DialogContentProps = Primitive.Popup.Props & {
-  /** Renders the close button at the top end. It is disabled, and keeps focus, while the Dialog is `pending`. @default true */
+  /**
+   * Renders the close button at the top end, first in the Tab order as it is drawn. It is disabled,
+   * and keeps focus, while the Dialog is `pending`. @default true
+   */
   showCloseButton?: boolean | undefined;
   /**
    * The popup's width: `small` 400px for a short question, `medium` 520px for a form of a few
@@ -118,10 +141,14 @@ export function DialogContent({
   showCloseButton = true,
   width,
   style,
+  initialFocus,
+  finalFocus,
   ...props
 }: DialogContentProps) {
   const { direction, t } = useLedgerLocale();
   const pending = useOverlayPending();
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const returnFocus = useOpenerFocus();
   const own = width ? { ...overlaySurface, ...dialogWidths[width] } : overlaySurface;
   return (
     <DirectionProvider direction={dir === "rtl" || dir === "ltr" ? dir : direction}>
@@ -133,6 +160,11 @@ export function DialogContent({
           {...(width ? { "data-width": width } : {})}
           {...(pending ? { "aria-busy": true, "data-pending": "" } : {})}
           {...props}
+          // With the close button first in the DOM, the first field still takes focus by default.
+          initialFocus={
+            initialFocus === undefined && showCloseButton ? focusPastClose(closeRef) : initialFocus
+          }
+          finalFocus={finalFocus === undefined ? returnFocus : finalFocus}
           style={withStyle(own, style)}
           className={classes(
             // The popup scrolls as a fallback: a DialogBody normally takes the overflow, and in a
@@ -141,10 +173,10 @@ export function DialogContent({
             className,
           )}
         >
-          {/* The title is the dialog's h2; headings inside take the next level. */}
-          <HeadingLevelProvider level={3}>{children}</HeadingLevelProvider>
+          {/* First in the DOM, so Tab reaches it where it is drawn, before the body. */}
           {showCloseButton && (
             <DialogClose
+              ref={closeRef}
               render={
                 <IconButton
                   label={t("close")}
@@ -153,11 +185,13 @@ export function DialogContent({
                   isTooltipDisabled
                   disabled={pending}
                   focusableWhenDisabled
-                  className="absolute end-150 top-100"
+                  className="absolute end-150 top-100 z-10"
                 />
               }
             />
           )}
+          {/* The title is the dialog's h2; headings inside take the next level. */}
+          <HeadingLevelProvider level={3}>{children}</HeadingLevelProvider>
         </Primitive.Popup>
       </DialogPortal>
     </DirectionProvider>
@@ -201,29 +235,39 @@ export function DialogBody({ className, render, ref, ...props }: DialogBodyProps
   });
 }
 export type DialogFooterProps = ComponentProps<"div"> & {
-  /** Adds a Close button after the children, disabled while the Dialog is `pending`. @default false */
+  /**
+   * Adds a subtle Close button before the children, where Cancel goes, disabled while the Dialog
+   * is `pending`. @default false
+   */
   showCloseButton?: boolean | undefined;
 };
+/**
+ * The action row, held at the bottom. When the whole popup scrolls (a window under 30rem tall), a
+ * control that takes focus scrolls clear of it rather than under it.
+ */
 export function DialogFooter({
   className,
   children,
   showCloseButton = false,
+  ref,
   ...props
 }: DialogFooterProps) {
   const { t } = useLedgerLocale();
+  const clearance = useFooterClearance(ref);
   return (
     <div
       data-slot="dialog-footer"
       className={cn(
-        "sticky bottom-0 z-10 flex shrink-0 flex-wrap items-center justify-end gap-100 border-t border-default bg-surface-sunken px-250 py-150",
+        "sticky bottom-0 z-10 flex shrink-0 flex-wrap items-center justify-end gap-100 border-t border-default bg-surface-current px-250 py-150",
         className,
       )}
       {...props}
+      ref={clearance}
     >
-      {children}
       {showCloseButton && (
         <DialogClose render={<Button variant="subtle" />}>{t("close")}</DialogClose>
       )}
+      {children}
     </div>
   );
 }
@@ -233,7 +277,7 @@ export function DialogTitle({ className, ...props }: DialogTitleProps) {
     <Primitive.Title
       data-slot="dialog-title"
       {...props}
-      className={classes("font-heading-xsmall text-default", className)}
+      className={classes("font-heading-xsmall text-default break-words", className)}
     />
   );
 }
@@ -243,7 +287,7 @@ export function DialogDescription({ className, ...props }: DialogDescriptionProp
     <Primitive.Description
       data-slot="dialog-description"
       {...props}
-      className={classes("font-body text-subtle", className)}
+      className={classes("font-body text-subtle break-words", className)}
     />
   );
 }

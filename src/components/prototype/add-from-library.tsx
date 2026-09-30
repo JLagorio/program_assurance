@@ -147,7 +147,8 @@ export function AddFromLibrary({
   const revisions = useRows("component_definition_revisions");
   const definedComponents = useRows("defined_components");
   const implementations = useRows("defined_component_implementations");
-  const controls = useRows("controls");
+  // Only what the confirm frame names a control by, not every column of the whole catalog.
+  const controls = useRows("controls", {}, { columns: ["id", "code", "title"] });
   const components = useRows("system_components", { system_id: element.boundary_system_id });
   const plans = useRows("ssp_revisions", { system_id: element.boundary_system_id });
   const resolutions = useRows("profile_resolutions");
@@ -359,17 +360,10 @@ export function AddFromLibrary({
     rowLabel: (row) => `${row.code} ${row.name}`,
     label: "Library items",
     view: `add-from-library-${source}`,
-    selectable: true,
-    enableMultiRowSelection: false,
-    state: { rowSelection: chosenId ? { [chosenId]: true as const } : {} },
-    onRowSelectionChange: (next) => {
-      const previous = chosenId ? { [chosenId]: true as const } : {};
-      const value = typeof next === "function" ? next(previous) : next;
-      const picked = Object.keys(value).filter((id) => value[id]);
-      // One item is chosen at a time: a change that ticks several at once is not a choice.
-      if (picked.length > 1) return;
-      setChosenId(picked[0] ?? null);
-    },
+    // One item at a time: a radio per row, no select-all.
+    selectable: "single",
+    value: chosenId,
+    onValueChange: setChosenId,
   });
   const insideRows = useMemo(() => inside(element, rows), [element, rows]);
   const targets = useMemo(
@@ -434,6 +428,8 @@ export function AddFromLibrary({
   const confirmReady = confirmQueries.every((query) => query.data !== undefined);
   const needsRationale = source !== "requirement" && !rationale.trim();
   const elementType = elementTypeForComponent(chosen?.componentType ?? "other");
+  // "New subsystem under …", and "New element under …" for a type with no better word than other.
+  const elementWord = elementType === "other" ? "element" : labelFor(elementType).toLowerCase();
   const elementSpec = (target: SystemAssuranceRow) =>
     elementSpecs[target.id] ?? {
       code: `${target.code}-${chosen?.definitionCode ?? "component"}`.toUpperCase(),
@@ -597,12 +593,14 @@ export function AddFromLibrary({
   );
   const claimColumns = defineColumns<(typeof claimRows)[number]>((c) => [
     // Plain text: a link here would leave the draft this dialog holds.
-    c.text("name", { header: "Control", priority: 0, minWidth: 200, hideable: false }),
-    c.text("targetName", { header: "Target", minWidth: 160, wrap: true }),
-    c.text("coverage", { header: "Coverage", width: 110 }),
+    c.text("name", { header: "Control", priority: 0, minWidth: 180, hideable: false }),
+    c.text("targetName", { header: "Target", priority: 2, minWidth: 160, wrap: true }),
+    c.text("coverage", { header: "Coverage", priority: 3, width: 110 }),
+    // The decision the reader makes here stays in the row longest after the control's name.
     c.text("state", {
       header: "Result",
-      minWidth: 180,
+      priority: 1,
+      minWidth: 120,
       cell: (row) =>
         row.state === "seed" ? (
           // One stable name that starts with the visible label (WCAG 2.5.3); the box says whether.
@@ -740,8 +738,7 @@ export function AddFromLibrary({
                               return (
                                 <FieldSet key={target.id}>
                                   <FieldLegend variant="label">
-                                    New {labelFor(elementType).toLowerCase()} under {target.code} ·{" "}
-                                    {target.name}
+                                    New {elementWord} under {target.code} · {target.name}
                                   </FieldLegend>
                                   <Grid
                                     gap="space.150"

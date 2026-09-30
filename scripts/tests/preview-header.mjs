@@ -13,8 +13,10 @@ export async function expectPreviewHeader(page, { title, recordActions, nested =
   await expect(outer.getByRole("heading")).toHaveCount(0);
   await expect(outer.locator('[data-slot="page-header-actions"]')).toHaveCount(0);
   await expect(outer.locator('[data-slot="preview-navigation"]')).toHaveCount(1);
-  for (const name of ["Previous record", "Next record", "Close details"])
+  for (const name of ["Previous record", "Next record"])
     await expect(outer.getByRole("button", { name, exact: true })).toBeVisible();
+  // Close names the panel it ends: "Close requirement preview".
+  await expect(outer.getByRole("button", { name: /^Close (details|.+ preview)$/ })).toBeVisible();
   const back = outer.getByRole("button", { name: "Back to previous record", exact: true });
   await expect(back).toHaveCount(nested ? 1 : 0);
   await expect(
@@ -105,7 +107,7 @@ export async function expectPreviewHeader(page, { title, recordActions, nested =
 /** Exercise the supported desktop splitter instead of faking a narrow viewport. */
 export async function minimizePreview(page) {
   const panel = page.locator('[data-shell-area="panel"]');
-  const splitter = panel.getByRole("separator", { name: "Resize details", exact: true });
+  const splitter = panel.getByRole("separator", { name: /^Resize (details|.+ preview)$/ });
   await splitter.focus();
   await page.keyboard.press("Home");
   await expect(splitter).toHaveAttribute("aria-valuenow", "240");

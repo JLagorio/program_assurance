@@ -72,7 +72,7 @@ export const Specimens: Story = {
                 <Count value={3} />
                 <ChevronDown
                   aria-hidden="true"
-                  className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
+                  className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-panel-open/collapsible:rotate-180"
                 />
               </CollapsibleTrigger>
             </h3>
@@ -155,7 +155,7 @@ export const Specimens: Story = {
   },
 };
 
-/** Checks the generated state variants, including the reduced-motion media rules. */
+/** Checks the generated state variants, including the reduced-motion media rules: animations collapse, a turn lands at once, a colour fade stays, a spinner stops. */
 export const Preference: Story = {
   render: () => (
     <Stack space="space.200" className="overflow-hidden">
@@ -176,6 +176,14 @@ export const Preference: Story = {
       >
         Panel arrives from the logical end
       </div>
+      <ChevronDown
+        aria-hidden="true"
+        data-testid="motion-turn"
+        className="size-icon-small transition-transform duration-fast ease-standard"
+      />
+      <div data-testid="motion-colour" className="transition-colors duration-fast ease-standard">
+        A row's colour under the pointer
+      </div>
       <Spinner label="Refreshing records" />
     </Stack>
   ),
@@ -194,5 +202,15 @@ export const Preference: Story = {
     );
     const status = canvas.getByRole("status", { name: "Refreshing records" });
     await expect(getComputedStyle(status).animationName).toBe(reduced ? "none" : "spin");
+    // A turn lands at once under reduced motion; a colour fade keeps its duration.
+    const turn = Number.parseFloat(
+      getComputedStyle(canvas.getByTestId("motion-turn")).transitionDuration,
+    );
+    if (reduced) await expect(turn).toBe(0);
+    else await expect(turn).toBeGreaterThan(0);
+    const colour = Number.parseFloat(
+      getComputedStyle(canvas.getByTestId("motion-colour")).transitionDuration,
+    );
+    await expect(colour).toBeGreaterThan(0);
   },
 };

@@ -7,16 +7,24 @@
 /* The navigation system. The root is a grid of named areas in a fixed order: banner, top nav,
    side nav, main, panel. The banner and the top nav stick to the top; the side nav sticks under
    them and scrolls inside itself; main uses the body scroll. The panel is the last column for the
-   whole height of the window: the banner and the top nav stop at its edge, so opening it narrows
+   height of the window under the banner: the top nav stops at its edge, so opening it narrows
    everything and covers nothing. An area that is not rendered takes no column. The root sets the
    widths as variables from its state. */
 @utility shell-root {
   --shell-top: calc(var(--shell-banner, 0px) + var(--ds-dimension-layout-topnav));
-  /* The tokens, unless the browser remembered a dragged width (set on the root element by the
-     shell script) or the root sets one inline after a drag. */
-  --shell-sidenav-width: var(--shell-sidenav-stored, var(--ds-dimension-layout-sidenav));
+  /* SHELLNAV: the tokens, unless a part's `defaultWidth` (--shell-*-default, set inline by the root
+     while the part is mounted and never stored) says otherwise; either gives way to a width the
+     reader dragged or keyed, which the browser remembered (set on the document element by the
+     shell script) or the root sets inline once the resize ends. */
+  --shell-sidenav-width: var(
+    --shell-sidenav-stored,
+    var(--shell-sidenav-default, var(--ds-dimension-layout-sidenav))
+  );
   --shell-sidenav-rail-width: calc(var(--ds-space-600) + var(--ds-space-100));
-  --shell-panel-width: var(--shell-panel-stored, var(--ds-dimension-layout-panel));
+  --shell-panel-width: var(
+    --shell-panel-stored,
+    var(--shell-panel-default, var(--ds-dimension-layout-panel))
+  );
   /* Main's reserved minimum beside the side nav and the panel: one list column inside Main's
      desktop gutters (mainMinWidth in context.tsx is the same sum). Main's column never goes under
      it; the panel's column gives way first, down to its own minimum (--shell-panel-floor), and the
@@ -39,8 +47,10 @@
     auto minmax(min(var(--shell-main-min), 100%), 1fr) var(--shell-aside-inset, 0px)
     minmax(var(--shell-panel-floor, 0px), var(--shell-panel-inset, 0px));
   grid-template-rows: auto auto minmax(0, 1fr) auto;
+  /* SHELLPANEL (SHB-15): a banner spans the whole width, over the panel too, so the panel's header
+     sits level with the top nav whether or not a banner shows. */
   grid-template-areas:
-    "banner banner banner panel"
+    "banner banner banner banner"
     "topnav topnav topnav panel"
     "sidenav main aside panel"
     "sidenav context context panel";
@@ -52,12 +62,19 @@
     transition: none;
   }
 }
+/* SHELLPANEL (SHB-5): a splitter's key step lands at once. The splitter holds the columns still for
+   the frames that draw the new width (a pointer drag sets the root's own transition aside). */
+[data-slot="shell"][data-shell-resizing] {
+  transition: none;
+}
+/* SHELLNAV: at least the banner token's height, taller when the banner wraps on a narrow screen;
+   the root measures the area and publishes its real height as --shell-banner. */
 @utility shell-banner {
   grid-area: banner;
   position: sticky;
   top: 0;
   z-index: var(--shell-z-chrome);
-  height: var(--ds-dimension-layout-banner);
+  min-height: var(--ds-dimension-layout-banner);
 }
 @utility shell-topnav {
   grid-area: topnav;
@@ -93,18 +110,24 @@
     --shell-inset-bottom: var(--ds-space-400);
   }
 }
-/* In place of Main on a compact screen the panel sits under the top nav; beside the page it is the
-   full height of the window, and the banner and the top nav stop at its edge. */
+/* In place of Main below the large breakpoint the panel sits under the top nav; beside the page,
+   from `lg`, it is the height of the window under the banner, and the top nav stops at its edge
+   (SHELLNAV, D12: from `lg` to the panel breakpoint the side nav yields its width instead). */
 @utility shell-panel {
   container: shell-panel / inline-size;
-  scroll-padding-block-start: var(--ds-space-800);
+  /* SHELLPANEL (SHB-16): clear of the sticky header at its measured height (Panel.Header publishes
+     --shell-panel-header), so a control focused under a header that wraps still shows. */
+  scroll-padding-block-start: calc(
+    var(--shell-panel-header, var(--ds-dimension-layout-topnav)) + var(--ds-space-200)
+  );
   position: sticky;
   top: var(--shell-top);
   height: calc(100dvh - var(--shell-top));
   width: 100%;
-  @media (width >= theme(--breakpoint-panel)) {
-    top: 0;
-    height: 100dvh;
+  @media (width >= theme(--breakpoint-lg)) {
+    /* SHELLPANEL (SHB-15): under a banner, which spans the panel's column too. */
+    top: var(--shell-banner, 0px);
+    height: calc(100dvh - var(--shell-banner, 0px));
     border-inline-start-width: 1px;
   }
 }
@@ -145,6 +168,26 @@
     }
   }
 }
+/* SHELLPANEL (G5-8): in a window under 30rem tall (a phone on its side, a page zoomed to 400%) the
+   panel's header scrolls away with its content instead of holding a fixed share of the height;
+   Escape still closes the panel. */
+@media (height < 30rem) {
+  [data-slot="shell-panel-header"] {
+    position: static;
+  }
+  [data-slot="shell-panel"] {
+    scroll-padding-block-start: var(--ds-space-200);
+  }
+}
+/* SHELLPANEL (G5-8 with SHB-15): beside the page the panel starts under the banner, which scrolls
+   away in a short window, so the panel sticks at the top of the window as the side nav does instead
+   of leaving the banner's height empty above it. */
+@media (height < 30rem) and (width >= theme(--breakpoint-lg)) {
+  [data-slot="shell-panel"] {
+    top: 0;
+    height: 100dvh;
+  }
+}
 [data-shell-slot="aside"] {
   grid-area: context;
   min-width: 0;
@@ -181,7 +224,8 @@
   inset: 0;
   z-index: var(--shell-z-scrim);
 }
-@media (width >= theme(--breakpoint-panel)) {
+/* SHELLNAV, D12: the panel is a column beside Main from `lg`. */
+@media (width >= theme(--breakpoint-lg)) {
   .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]) {
     --shell-panel-inset: min(var(--shell-panel-width), 50vw);
     --shell-panel-floor: min(var(--shell-panel-min), var(--shell-panel-inset));
@@ -201,9 +245,31 @@
     [data-shell-area="aside"] {
     border-block-start: 0;
     border-inline-start: 1px solid var(--ds-color-border);
+    /* SHELLNAV (VW3-17): the rail's divider runs the page's height, not its facts'. */
+    min-height: 100%;
   }
 }
-@media (width < theme(--breakpoint-panel)) {
+/* SHELLNAV (VW2-14): from `lg`, a collapsed side nav (the icon rail, or hidden) leaves the room
+   the aside needs beside Main, so below the aside breakpoint the aside sits beside Main too,
+   instead of following a long page. The pre-paint attribute covers the first paint. */
+@media (width >= theme(--breakpoint-lg)) and (width < theme(--breakpoint-aside)) {
+  :is(.shell-root[data-sidenav="collapsed"], html[data-shell-sidenav="collapsed"] .shell-root):not(
+      :has(> [data-shell-slot="panel"] > [data-shell-area="panel"])
+    ):has(> [data-shell-slot="aside"] > [data-shell-area="aside"]) {
+    --shell-aside-inset: calc(var(--ds-dimension-layout-rail) + var(--ds-space-300));
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    & > [data-shell-slot="aside"] {
+      grid-area: aside;
+    }
+    & [data-shell-area="aside"] {
+      border-block-start: 0;
+      border-inline-start: 1px solid var(--ds-color-border);
+      min-height: 100%;
+    }
+  }
+}
+/* SHELLNAV, D12: below `lg` the panel replaces Main (and the aside) under the top nav. */
+@media (width < theme(--breakpoint-lg)) {
   .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]) > .shell-main,
   .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"])
     > [data-shell-slot="aside"] {
@@ -229,6 +295,25 @@
   height: 100dvh;
   width: min(var(--shell-sidenav-width), 90vw);
 }
+/* SHELLNAV (G5-8): in a window under 30rem tall the banner and the top nav scroll away with the
+   page instead of pinning a share of the height; the side nav and the panel stick at the top. */
+@media (height < 30rem) {
+  .shell-root {
+    --shell-top: 0px;
+  }
+  .shell-root > [data-slot="shell-banner"],
+  .shell-root > [data-slot="shell-topnav"] {
+    position: static;
+  }
+}
+/* SHELLNAV (G3-7): a side nav row's focus ring sits flush on its edge, in the 2px gap between rows,
+   so it is drawn on the side nav's surface, never over the current page's or a hovered row's fill. */
+:is(
+  [data-slot="shell-sidenav-item"],
+  [data-slot="shell-sidenav-expandable-trigger"]
+):focus-visible {
+  outline-offset: 0;
+}
 
 /* Before React takes over, the collapsed state the shell script found in storage hides the side
    nav and narrows the start slot, so a collapsed side nav does not flash open on reload. React
@@ -238,6 +323,19 @@
   [data-collapsed-sidenav="icons"][data-sidenav-motion]
     [data-shell-area="sidenav"]:not([data-overlay]) {
     transition: width var(--ds-motion-duration-moderate) var(--ds-motion-easing-standard);
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+  /* SHELLNAV (SHA-9): the top nav's start slot, and the middle slot beside it, move with the side
+     nav on the same curve instead of jumping to their end width on the first frame. The slot's
+     collapsed width is its content's, so the width eases between a keyword and a length. */
+  [data-collapsed-sidenav="icons"][data-sidenav-motion] [data-slot="shell-topnav-start"] {
+    interpolate-size: allow-keywords;
+    transition:
+      width var(--ds-motion-duration-moderate) var(--ds-motion-easing-standard),
+      background-color var(--ds-motion-duration-moderate) var(--ds-motion-easing-standard);
 
     @media (prefers-reduced-motion: reduce) {
       transition: none;
@@ -315,10 +413,12 @@
       padding-inline: 0;
     }
 
-    /* Visually hidden labels still name links, section groups and the account button. */
+    /* Visually hidden labels still name links, section groups and the account button; a count
+       stays in its item's name (SHELLNAV, SHA-6). */
     & [data-slot="shell-sidenav-label"],
     & [data-slot="shell-sidenav-heading"],
-    & [data-slot="shell-profile-label"] {
+    & [data-slot="shell-profile-label"],
+    & [data-slot="shell-sidenav-badge"] {
       position: absolute;
       width: 1px;
       height: 1px;
@@ -330,7 +430,26 @@
       border: 0;
     }
 
-    & [data-slot="shell-sidenav-badge"],
+    /* SHELLNAV (SHA-6): an item with a count or a badge shows a dot on its icon's corner. */
+    &
+      :is([data-slot="shell-sidenav-item"], [data-slot="shell-sidenav-expandable-trigger"]):has(
+        > [data-slot="shell-sidenav-badge"]
+      ) {
+      position: relative;
+
+      &::after {
+        content: "";
+        position: absolute;
+        inset-block-start: var(--ds-space-050);
+        inset-inline-end: var(--ds-space-075);
+        width: var(--ds-space-100);
+        height: var(--ds-space-100);
+        border-radius: var(--ds-radius-full);
+        background-color: var(--ds-color-background-brand-bold);
+        box-shadow: 0 0 0 var(--ds-border-width-selected) var(--ds-elevation-surface-sunken);
+      }
+    }
+
     & [data-slot="shell-sidenav-header"],
     & [data-slot="shell-sidenav-chevron"],
     & [data-slot="shell-sidenav-level"],
@@ -355,10 +474,11 @@
   .shell-root [data-shell-area="aside"] {
     border-block-start: 0;
     border-inline-start: 1px solid var(--ds-color-border);
+    min-height: 100%;
   }
 }
 
-@media (width < theme(--breakpoint-panel)) {
+@media (width < theme(--breakpoint-lg)) {
   .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"])
     [data-shell-skip="main"] {
     display: none;

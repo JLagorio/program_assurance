@@ -10,8 +10,8 @@ import {
   ModeSwitch,
   PageHeader,
   Section,
-  Stack,
 } from "@ledger/design-system";
+import { Page } from "@/components/app/shell";
 export const Route = createFileRoute("/components")({
   head: () => ({ meta: [{ title: "Design system — Program Assurance" }] }),
   component: DesignSystem,
@@ -19,9 +19,8 @@ export const Route = createFileRoute("/components")({
 function DesignSystem() {
   const [count, setCount] = useState(0);
   return (
-    <Stack space="space.250">
+    <Page>
       <PageHeader>
-        <PageHeader.Lead className="text-subtle">System</PageHeader.Lead>
         <PageHeader.Heading>
           <PageHeader.Title>Design system</PageHeader.Title>
           <PageHeader.Description>
@@ -59,6 +58,6 @@ function DesignSystem() {
           <ModeSwitch />
         </Section>
       </Grid>
-    </Stack>
+    </Page>
   );
 }

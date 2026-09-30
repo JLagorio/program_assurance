@@ -4,7 +4,7 @@ import { RadioGroup as RadioGroupPrimitive } from "@base-ui/react/radio-group";
 
 import { classes } from "../lib/base-ui";
 import { useLedgerLocale } from "../lib/locale";
-import { useFieldControlState } from "./controls";
+import { choiceControl, useFieldControlState } from "./controls";
 
 export type RadioGroupProps<Value = unknown> = RadioGroupPrimitive.Props<Value>;
 
@@ -43,9 +43,9 @@ export function RadioGroupItem<Value = unknown>({
       {...props}
       disabled={props.disabled || field.disabled}
       className={classes(
-        // The boundary is color.border.bold, 3:1 against every surface (WCAG 1.4.11). Invalid is the
-        // border, from the item or its group; the focus outline keeps the focus colour.
-        "group/radio-group-item peer relative flex size-200 shrink-0 items-center justify-center rounded-full border border-bold bg-input outline-none after:absolute after:-inset-x-150 after:-inset-y-100 focus-visible:outline-focused aria-invalid:border-danger group-aria-invalid/radio-group:border-danger data-checked:border-brand data-checked:bg-brand-bold data-checked:text-inverse data-disabled:cursor-not-allowed data-disabled:opacity-disabled",
+        // The shared choice states (see Checkbox). Invalid comes from the item or its group; a
+        // read-only chosen item keeps a dark dot on the sunken circle instead of the brand fill.
+        `${choiceControl} group/radio-group-item rounded-full group-aria-invalid/radio-group:border-danger`,
         className,
       )}
     >
@@ -53,7 +53,7 @@ export function RadioGroupItem<Value = unknown>({
         data-slot="radio-group-indicator"
         className="flex size-200 items-center justify-center"
       >
-        <span className="absolute top-1/2 left-1/2 size-100 -translate-x-1/2 -translate-y-1/2 rounded-full bg-surface" />
+        <span className="absolute top-1/2 left-1/2 size-100 -translate-x-1/2 -translate-y-1/2 rounded-full bg-surface group-data-readonly/radio-group-item:bg-neutral-bold" />
       </RadioPrimitive.Indicator>
     </RadioPrimitive.Root>
   );

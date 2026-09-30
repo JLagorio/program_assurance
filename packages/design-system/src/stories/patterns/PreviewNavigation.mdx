@@ -5,7 +5,7 @@ import * as Stories from "./PreviewNavigation.stories";
 
 # PreviewNavigation
 
-The collection controls for a record preview beside a register: previous and next through the table's displayed results, the announced position, and a link that opens the full record in a new tab. It belongs in the preview's outer bar, `Shell.Panel.Actions`, immediately before Close. That bar is navigation only: the record's visible name and its actions are an inner PageHeader at the start of the panel's body, its title an h2, as [Shell](?path=/docs/layout-shell--docs) describes.
+The collection controls for a record preview beside a register: previous and next through the table's displayed results, the announced record and position, and a link that opens the full record in a new tab. It belongs in the preview's outer bar, `Shell.Panel.Actions`, immediately before Close. That bar is navigation only: the record's visible name and its actions are an inner PageHeader at the start of the panel's body, its title an h2, as [Shell](?path=/docs/layout-shell--docs) describes.
 
 <Canvas of={Stories.Collection} />
 
@@ -18,6 +18,7 @@ The collection controls for a record preview beside a register: previous and nex
       <PreviewNavigation
         position={position}
         total={rows.length}
+        recordLabel={record.name}
         onPrevious={position > 1 ? showPrevious : undefined}
         onNext={position < rows.length ? showNext : undefined}
         openLink={<Link to={recordPath} target="_blank" rel="noopener noreferrer" />}
@@ -27,7 +28,9 @@ The collection controls for a record preview beside a register: previous and nex
   </Shell.Panel.Header>
   <Shell.Panel.Body>
     <PageHeader>
-      <PageHeader.Title>{record.name}</PageHeader.Title>
+      <PageHeader.Heading>
+        <PageHeader.Title>{record.name}</PageHeader.Title>
+      </PageHeader.Heading>
       <PageHeader.Actions>
         <Button size="small" variant="primary">
           Edit requirement
@@ -41,23 +44,38 @@ The collection controls for a record preview beside a register: previous and nex
 
 The outer bar has no `Shell.Panel.Title`, so the panel takes its accessible name from `label`, and its body's outline starts at 2: the PageHeader.Title is the h2. Do not repeat the record's name in the outer bar, and do not repeat the full-record link at the bottom of the body. A nested record frame adds Back before the navigation.
 
+<Canvas of={Stories.InPanel} />
+
 ## What the caller owns
 
-The application owns selection, the filtered, sorted and expanded row order, and real record destinations; the part imports no router and holds no rows. Supply a one-based `position` and the `total` of the displayed rows, and a callback for each adjacent record. Leave a callback out at an endpoint, or pass a position at the end, and that button is disabled. `openLink` is an anchor or router link with the record's real destination, `target="_blank"` and `rel="noopener noreferrer"`; it must lead to that record, not its collection. The part gives it its icon and accessible name.
+The application owns selection, the row order and real record destinations; the part imports no router and holds no rows. The order is the whole filtered and sorted set, with expanded tree rows in place, not the table's current page: supply a one-based `position` and the `total` of that set, and a callback for each adjacent record. When Next crosses the edge of a table page, the caller turns the table to the page that holds the new record, so the active row stays in view. Leave a callback out at an endpoint, or pass a position at the end, and that button is unavailable. Pass the record's name as `recordLabel`, so the announcement says which record arrived.
 
-If filtering removes the selected record, keep the preview open with `position={0}`. Both navigation buttons become disabled and the status says that the record is outside the current results. The full-record link stays available.
+`openLink` is an anchor or router link with the record's real destination, `target="_blank"` and `rel="noopener noreferrer"`; it must lead to that record, not its collection. The part gives it its icon, accessible name and tooltip. A preview inside a selection task (RecordBrowser, PickerSheet) belongs to the task and opens no record of its own: leave `openLink` out, and the bar is previous and next alone.
+
+<Canvas of={Stories.InTask} />
+
+## Outside the results
+
+If filtering removes the selected record, keep the preview open with `position={0}`. Both navigation buttons are unavailable and say why in their tooltip ("Record outside the current results"), which opens on hover, on keyboard focus and on a tap; the status says so too. The full-record link stays available.
 
 <Canvas of={Stories.OutsideResults} />
 
+## Showing the position
+
+The position is always announced. `showPosition` draws it as well, before the buttons ("2 of 6"), and "Not in results" while the record is outside them. Turn it on where the bar has the room: it adds about four characters' width, more for large totals.
+
+<Canvas of={Stories.VisiblePosition} />
+
 ## Focus and announcements
 
-- The controls are named "Previous record", "Next record" and "Open full record in new tab", and a polite status announces "n of m records" as the position changes.
+- The controls are a group named "Record navigation": "Previous record", "Next record" and "Open full record in new tab", each with its name in a tooltip.
+- A polite status says the record and its position, "Access review evidence, 2 of 6 records", when the preview opens and on each step. It mounts empty and speaks once assistive technology has seen it, so the first record is heard too.
 - Focus stays on the control the reader used while the preview's content changes, so arrowing through a collection needs no hunt for the button.
-- At an endpoint the control the reader used becomes disabled. Focus moves to the remaining enabled navigation button, or to the full-record link when neither is enabled, so Escape and the next key stay inside the preview.
+- At an endpoint the control the reader used stays focused and says it is unavailable (`aria-disabled`); pressing it again does nothing, so a repeated Enter at the last record stays put instead of walking back. Tab still reaches both buttons, and Escape still reaches the panel or sheet around them. In forced colours an unavailable button is GrayText, as a native disabled one is.
 
 ## Words
 
-Every label and the position template are LedgerProvider messages (`previousRecord`, `nextRecord`, `openFullRecord`, `recordPosition`, `recordOutsideResults`), translated once for the product; see [Locale](?path=/docs/components-locale--docs).
+Every label and template is a LedgerProvider message (`previousRecord`, `nextRecord`, `openFullRecord`, `recordNavigation`, `recordPosition`, `recordPositionNamed`, `recordPositionShort`, `recordOutsideResults`, `recordOutsideResultsNamed`, `recordNotInResults`), translated once for the product; see [Locale](?path=/docs/components-locale--docs). Numbers follow the locale. In a right-to-left provider the chevrons turn to face the reading direction, as Pagination's do.
 
 <Canvas of={Stories.Localized} />
 

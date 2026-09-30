@@ -1,10 +1,5 @@
-<!-- font.family.body is Geist with Inter as fallback; font.family.code is Geist Mono. -->
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link
-  rel="stylesheet"
-  href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap"
-/>
+<!-- The typefaces come from the package's fonts.css, which storybook.css imports, as a product
+     loads them: no font CDN, so the Storybook renders exactly what a consumer gets. -->
 <!-- A wide table on a docs page scrolls inside itself, so the page never scrolls sideways on a phone. -->
 <style>
   .sbdocs-content table {

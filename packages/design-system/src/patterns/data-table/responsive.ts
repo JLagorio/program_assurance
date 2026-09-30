@@ -1,11 +1,23 @@
 export type ResponsiveColumn = {
   id: string;
+  /** The column's width, or for a flexible column its least width. */
   width: number;
   priority?: number | undefined;
   action?: boolean | undefined;
+  /**
+   * The author left the column unsized, so it takes a share of the spare width; its `width` is
+   * then its least. With no flexible column drawn, the identity takes the spare width.
+   */
+  flexible?: boolean | undefined;
 };
 
-/** Layout only: never changes the reader's visibility, sorting, filters, pins or export. */
+/**
+ * Layout only: never changes the reader's visibility, sorting, filters, pins or export. The
+ * columns stay in the row in priority order, and the first that does not fit folds with every
+ * column after it, so a lower-priority column never outlasts a higher one. The spare width goes to
+ * the flexible columns drawn (`flexible`, which the renderer shares out); with none, it goes to the
+ * identity, in `widths`.
+ */
 export function fitColumns(columns: readonly ResponsiveColumn[], available: number, leading = 0) {
   const widths = new Map(columns.map((column) => [column.id, column.width]));
   const ids = new Set(columns.map((column) => column.id));
@@ -14,10 +26,20 @@ export function fitColumns(columns: readonly ResponsiveColumn[], available: numb
     .filter((column) => !column.action)
     .sort((a, b) => a.rank - b.rank);
   const identity = ordered[0];
+  const flexibleOf = (drawn: ReadonlySet<string>) =>
+    columns.filter((column) => column.flexible && !column.action && drawn.has(column.id));
   const total = columns.reduce((sum, column) => sum + column.width, leading);
   if (available <= 0 || total <= available) {
-    if (identity && available > total) widths.set(identity.id, identity.width + available - total);
-    return { ids, widths, collapsed: false, identity: identity?.id };
+    const flexible = flexibleOf(ids);
+    if (identity && available > total && flexible.length === 0)
+      widths.set(identity.id, identity.width + available - total);
+    return {
+      ids,
+      widths,
+      collapsed: false,
+      identity: identity?.id,
+      flexible: flexible.map((column) => column.id),
+    };
   }
 
   // Preserve the most important record identity and action menus; disclose the other fields.
@@ -34,17 +56,51 @@ export function fitColumns(columns: readonly ResponsiveColumn[], available: numb
     used += width;
   }
   for (const column of ordered.slice(1)) {
-    if (used + column.width <= budget) {
-      ids.add(column.id);
-      used += column.width;
-    }
+    // Priority is monotonic: the first column that does not fit folds, and so does every one after.
+    if (used + column.width > budget) break;
+    ids.add(column.id);
+    used += column.width;
   }
   const collapsed = ids.size < columns.length;
   // An identity-only row can shrink without hiding a field, so it has no disclosure column.
   const remaining = budget + (collapsed ? 0 : 32) - used;
-  if (identity && remaining > 0)
+  const flexible = flexibleOf(ids);
+  if (identity && remaining > 0 && flexible.length === 0)
     widths.set(identity.id, (widths.get(identity.id) ?? 0) + remaining);
-  return { ids, widths, collapsed, identity: identity?.id };
+  return {
+    ids,
+    widths,
+    collapsed,
+    identity: identity?.id,
+    flexible: flexible.map((column) => column.id),
+  };
+}
+
+/**
+ * The widths of the flexible columns in a frame: each its least width and a share of what the
+ * other drawn columns leave, in proportion to that least width. The renderer leaves the last one
+ * without a width, so it also takes any rounding.
+ */
+export function shareSlack(
+  layout: Pick<ReturnType<typeof fitColumns>, "ids" | "widths" | "collapsed" | "flexible">,
+  frame: number,
+  leading = 0,
+): Map<string, number> {
+  const flexible = layout.flexible;
+  const shares = new Map<string, number>();
+  const least = flexible.reduce((sum, id) => sum + (layout.widths.get(id) ?? 0), 0);
+  const fixed = [...layout.ids]
+    .filter((id) => !flexible.includes(id))
+    .reduce((sum, id) => sum + (layout.widths.get(id) ?? 0), leading + (layout.collapsed ? 32 : 0));
+  const slack = Math.max(0, frame - fixed - least);
+  for (const id of flexible) {
+    const width = layout.widths.get(id) ?? 0;
+    shares.set(
+      id,
+      Math.floor(width + (least > 0 ? (slack * width) / least : slack / flexible.length)),
+    );
+  }
+  return shares;
 }
 
 /** A pinned column as the renderer draws it: its band, its drawn width, and whether it is chrome (the row actions), which never gives way. */
@@ -93,16 +149,17 @@ export type FitColumn = ResponsiveColumn & {
   pin?: "start" | "end" | false | undefined;
 };
 
-/** A fitted frame: which columns show and how wide, the column that takes the slack, and which pins give way. */
+/** A fitted frame: which columns show and how wide, the columns that take the slack, and which pins give way. */
 export type FrameFit = {
   layout: ReturnType<typeof fitColumns> & {
     /**
-     * The identity column when the browser can give it the slack: drawn without a width in a fixed
-     * table, it takes whatever the other columns leave, so a frame that changes by a pixel changes
-     * nothing that React draws. Unset while the identity is pinned (a pin after it needs its width
-     * for its offset) or under a group heading (a spanning heading sets the widths).
+     * The columns that share the slack, in drawn order: the unsized ones drawn, or with none of
+     * those the identity. The renderer draws them from the frame's width outside React (the last
+     * without a width, so it takes the rest), so a frame that changes by a pixel changes nothing
+     * that React draws. Empty while the identity is the one and it is pinned (a pin after it needs
+     * its width for its offset) or under a group heading (a spanning heading sets the widths).
      */
-    flexible: string | undefined;
+    flexible: string[];
   };
   /** Which pins give way, as a JSON list of ids. */
   released: string;
@@ -122,9 +179,18 @@ export function fitFrame(
   leading = 0,
   { grouped = false }: { grouped?: boolean | undefined } = {},
 ): FrameFit {
-  const fitted = fitColumns(columns, frame, leading);
+  // Under a group heading the widths are the heading's: nothing flexes, the identity takes the slack.
+  const fitted = fitColumns(
+    grouped ? columns.map((column) => ({ ...column, flexible: false })) : columns,
+    frame,
+    leading,
+  );
   const identity = columns.find((column) => column.id === fitted.identity);
-  const flexible = identity && !identity.pin && !grouped ? identity.id : undefined;
+  const flexible = fitted.flexible.length
+    ? fitted.flexible
+    : identity && !identity.pin && !grouped
+      ? [identity.id]
+      : [];
   const bands: PinnedColumn[] = columns
     .filter((column) => column.pin && fitted.ids.has(column.id))
     .map((column) => ({
@@ -137,8 +203,10 @@ export function fitFrame(
   const key = JSON.stringify([
     [...fitted.ids],
     fitted.collapsed,
-    [...fitted.widths].filter(([id]) => fitted.ids.has(id) && id !== flexible),
-    flexible ?? null,
+    [...fitted.widths].filter(
+      ([id]) => fitted.ids.has(id) && !(flexible.length === 1 && flexible[0] === id),
+    ),
+    flexible,
     released,
   ]);
   return { layout: { ...fitted, flexible }, released, key };

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, waitFor, within } from "storybook/test";
 
 import { Chart } from "../..";
 import { Button, KeyValue } from "../../components";
@@ -18,7 +19,7 @@ type Story = StoryObj<typeof meta>;
 
 const open = [{ key: "open", label: "Open", tone: "brand" as const }];
 
-/** Every area in both modes: one series, stacked, smooth with end labels; cropped, with a band, the skeleton. */
+/** Every area in both modes: one series, stacked, smooth with end labels; textured, a time axis, a shared domain; stacked with end labels on each band's top, a band and a limit, the skeleton. */
 export const AreaMatrix: Story = {
   render: () => (
     <Stack space="space.400">
@@ -81,15 +82,16 @@ export const AreaMatrix: Story = {
           />
         </Box>
       </Specimens>
-      <Specimens title="Baseline auto · a band and a limit · loading">
+      <Specimens title="Stacked with end labels, each on its band · a band and a limit · loading">
         <Box style={{ width: "100%", maxWidth: 300 }}>
           <Chart.Area
             data={byMonth}
             x="month"
-            series={[{ key: "assessed", label: "Assessed", tone: "brand" }]}
-            baseline="auto"
+            series={findingSeries}
+            stacked
+            labels="end"
             size="small"
-            label="Controls assessed"
+            label="Findings, stacked, labelled"
           />
         </Box>
         <Box style={{ width: "100%", maxWidth: 300 }}>
@@ -117,6 +119,24 @@ export const AreaMatrix: Story = {
       </Specimens>
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    // On a stack, each end label sits on its band's top and prints the band's own value: Closed (4)
+    // sits on Open (5), so its label is the higher one, where the stack ends at 9.
+    const plot = within(canvasElement).getByRole("img", { name: "Findings, stacked, labelled" });
+    const label = (text: string) =>
+      Array.from(plot.querySelectorAll<SVGTextElement>("svg > g text, svg text")).find(
+        (t) =>
+          t.textContent === text &&
+          !t.closest(".recharts-cartesian-axis, .recharts-cartesian-axis-tick-labels"),
+      );
+    await waitFor(() => {
+      expect(label("4")).toBeDefined();
+      expect(label("5")).toBeDefined();
+    });
+    await expect(label("4")!.getBoundingClientRect().top).toBeLessThan(
+      label("5")!.getBoundingClientRect().top,
+    );
+  },
 };
 
 /** One series with a wash under it: the wash says "how much" where a line alone says "which way". The hue at 12%. */

@@ -4,6 +4,7 @@ import {
   recordDestination,
   useDisplayedRecords,
   useRemovalFocus,
+  useEndOnHide,
 } from "./record-preview";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { QueryState, MissingRecord } from "./work-common";
@@ -82,6 +83,9 @@ export function RequirementAllocations({
   const remove = useRemoveRequirementLink();
   const { confirm, confirmation } = useConfirmation();
   const [adding, setAdding] = useState(false);
+  // One sheet per opening: a new key starts it afresh, and the same key keeps it drawn through
+  // its exit, so it closes through its `open` state and returns focus before it goes.
+  const [allocateSession, setAllocateSession] = useState(0);
   const [editing, setEditing] = useState<AllocationRow | null>(null);
   const queries = [identity, content, allocations, mappings, systems];
   const ready = queries.every((query) => query.data !== undefined && !query.error);
@@ -130,6 +134,8 @@ export function RequirementAllocations({
     [allocations.data, mappings.data, elements],
   );
   const [previewId, setPreviewId] = useState<string>();
+  // A preview belongs to its tab: it ends when the record's tab hides this collection.
+  useEndOnHide(() => setPreviewId(undefined));
   const focus = useRemovalFocus(rows);
   /** The allocation's name opens what it names, the system's record; the eye previews the allocation. */
   const systemLink = (row: AllocationRow) =>
@@ -223,7 +229,9 @@ export function RequirementAllocations({
   const unavailable = !elements.length
     ? "Create a system in this program before allocating the requirement."
     : !ready
-      ? "The allocations are still loading."
+      ? queries.some((query) => query.isError)
+        ? "The allocations could not be loaded. Retry loading them first."
+        : "The allocations are still loading."
       : undefined;
   const action = canWrite ? (
     <Button
@@ -234,7 +242,10 @@ export function RequirementAllocations({
       variant="primary"
       iconBefore={<Plus />}
       disabledReason={unavailable}
-      onClick={() => setAdding(true)}
+      onClick={() => {
+        setAllocateSession((session) => session + 1);
+        setAdding(true);
+      }}
     >
       Allocate requirement
     </Button>
@@ -303,8 +314,10 @@ export function RequirementAllocations({
           }
         />
       )}
-      {adding && (
+      {allocateSession > 0 && (
         <AllocateRequirementSheet
+          key={allocateSession}
+          open={adding}
           contentId={contentId}
           requirementCode={requirementCode}
           requirementTitle={content.data?.title}
@@ -371,6 +384,7 @@ type Choice = SystemTreeNode<SystemElement & { typeLabel: string; path: string }
  * and the allocations are written together.
  */
 function AllocateRequirementSheet({
+  open,
   contentId,
   requirementCode,
   requirementTitle,
@@ -378,6 +392,7 @@ function AllocateRequirementSheet({
   allocations,
   onClose,
 }: {
+  open: boolean;
   contentId: string;
   requirementCode: string;
   requirementTitle?: string | undefined;
@@ -392,6 +407,9 @@ function AllocateRequirementSheet({
   const [selection, setSelection] = useState<Record<string, true>>({});
   const [rationale, setRationale] = useState("");
   const [error, setError] = useState<string | null>(null);
+  // Validated on submit, then as the reader edits.
+  const [checked, setChecked] = useState(false);
+  const rationaleRef = useRef<HTMLElement | null>(null);
   // One id per system for the whole session, so a retry after an uncertain response is the same write.
   const ids = useRef(new Map<string, string>());
   const chosen = Object.keys(selection).filter((id) => selection[id]);
@@ -458,6 +476,11 @@ function AllocateRequirementSheet({
   async function submit() {
     if (!chosen.length || guard.busy) return;
     setError(null);
+    setChecked(true);
+    if (rationale.length > RATIONALE_LIMIT) {
+      rationaleRef.current?.focus();
+      return;
+    }
     if (!guard.start()) return;
     const targets = chosen.map((systemId) => {
       let id = ids.current.get(systemId);
@@ -489,7 +512,7 @@ function AllocateRequirementSheet({
   }
   return (
     <PickerSheet
-      open
+      open={open}
       onClose={() => void guard.close()}
       title="Allocate requirement"
       subtitle={requirementTitle ? `${requirementCode} · ${requirementTitle}` : requirementCode}
@@ -502,8 +525,10 @@ function AllocateRequirementSheet({
           onChange={setRationale}
           multiline
           rows={2}
-          maxLength={10000}
+          characterLimit={RATIONALE_LIMIT}
           description="Why these systems are responsible. It applies to every system you choose."
+          error={checked ? rationaleIssue(rationale) : undefined}
+          controlRef={rationaleRef}
         />
       }
       pending={guard.busy}
@@ -529,6 +554,13 @@ function AllocateRequirementSheet({
   );
 }
 
+/** The most an allocation's rationale may hold. */
+const RATIONALE_LIMIT = 10000;
+const rationaleIssue = (rationale: string) =>
+  rationale.length > RATIONALE_LIMIT
+    ? "Shorten the rationale to 10,000 characters or fewer."
+    : undefined;
+
 /** An allocation's rationale is the one thing about it that changes; a new target is a new allocation. */
 function EditAllocationDialog({
   allocation,
@@ -543,6 +575,8 @@ function EditAllocationDialog({
   const [open, setOpen] = useState(true);
   const [rationale, setRationale] = useState(allocation.rationale ?? "");
   const [failure, setFailure] = useState<string | null>(null);
+  // Validated on submit, then as the reader edits.
+  const [checked, setChecked] = useState(false);
   const saved = useRef(false);
   const submitRef = useRef<HTMLButtonElement>(null);
   const rationaleRef = useRef<HTMLElement | null>(null);
@@ -559,6 +593,11 @@ function EditAllocationDialog({
     event.preventDefault();
     if (guard.busy) return;
     setFailure(null);
+    setChecked(true);
+    if (rationale.length > RATIONALE_LIMIT) {
+      rationaleRef.current?.focus();
+      return;
+    }
     submitRef.current?.focus();
     if (!guard.start()) return;
     try {
@@ -615,8 +654,9 @@ function EditAllocationDialog({
                   onChange={setRationale}
                   multiline
                   rows={4}
-                  maxLength={10000}
+                  characterLimit={RATIONALE_LIMIT}
                   description="Why this system is responsible for the requirement."
+                  error={checked ? rationaleIssue(rationale) : undefined}
                   controlRef={rationaleRef}
                 />
               </FieldSet>

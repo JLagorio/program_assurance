@@ -1,5 +1,6 @@
 import {
   createContext,
+  isValidElement,
   useCallback,
   useContext,
   useEffect,
@@ -22,6 +23,9 @@ import {
   PreviewNavigation,
   Shell,
   TextLink,
+  displayedRows,
+  showRow,
+  useLedgerLocale,
   type DataTableInstance,
   type ShellPanelProps,
 } from "@ledger/design-system";
@@ -32,6 +36,12 @@ export type PreviewRecord = { id: string; [key: string]: unknown };
 export type RecordPreviewPanelProps = Omit<ShellPanelProps, "title" | "actions"> & {
   /** The record name, rendered once in the body record header. */
   title: ReactNode;
+  /**
+   * The panel's name: the record type, then "preview" ("Operational issue preview"), or the task
+   * for a panel that is not a collection preview. It is drawn in sentence case, and Close and the
+   * splitter are named after it.
+   */
+  label?: string | undefined;
   /** Global record navigation only: previous, next and open full record. */
   navigation: ReactNode;
   /** Record commands in the body header: one primary and an overflow menu. */
@@ -45,6 +55,47 @@ const PreviewFrames = createContext<{
 } | null>(null);
 const PreviewParent = createContext<string | null>(null);
 const PreviewTargets = createContext<ReadonlyMap<string, HTMLDivElement>>(new Map());
+/**
+ * What the header's navigation knows about the frame it steps through: the frame's name, said with
+ * its position, and `show`, where it reports the record it shows so Close can return focus to it.
+ */
+const PreviewShown = createContext<{
+  title: string | undefined;
+  show: (id: string) => void;
+} | null>(null);
+
+const MAIN = '[data-shell-area="main"]';
+
+/** The words a title renders, for what is said about it; a part that draws its own words says nothing. */
+function textOf(node: ReactNode): string {
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map((item: ReactNode) => textOf(item)).join("");
+  if (isValidElement<{ children?: ReactNode }>(node)) return textOf(node.props.children);
+  return "";
+}
+
+/** A panel's name in sentence case, whatever case its record noun came in. */
+const sentence = (label: string) => label.charAt(0).toLocaleUpperCase() + label.slice(1);
+
+/**
+ * The shown record's own control in the collection, where Close returns focus: its eye, else its
+ * name. A row in a hidden tab is passed over; Main itself may still be covered by a phone's panel,
+ * and Shell focuses the control once it shows again.
+ */
+function recordControl(id: string | null): HTMLElement | null {
+  if (!id) return null;
+  const rows = document.querySelectorAll<HTMLElement>(
+    `${MAIN} tr[data-row-id="${CSS.escape(id)}"]`,
+  );
+  for (const row of rows) {
+    if (row.closest("[hidden]")) continue;
+    const control =
+      row.querySelector<HTMLElement>("button[aria-pressed]") ??
+      row.querySelector<HTMLElement>("a[href]");
+    if (control) return control;
+  }
+  return null;
+}
 
 function PreviewFrameSlot({ id, hidden }: { id: string; hidden: boolean }) {
   const host = useContext(PreviewFrames);
@@ -58,12 +109,16 @@ function PreviewFrameSlot({ id, hidden }: { id: string; hidden: boolean }) {
 
 /** One application host keeps sibling and linked-record previews in the same shell surface. */
 export function RecordPreviewProvider({ children }: { children: ReactNode }) {
+  const { t } = useLedgerLocale();
   const [frames, setFrames] = useState<PreviewFrame[]>([]);
   const [targets, setTargets] = useState<ReadonlyMap<string, HTMLDivElement>>(new Map());
   const panel = useRef<HTMLElement>(null);
   // The control inside the panel that opened each nested frame, so Back returns to it.
   const nestedOpeners = useRef(new Map<string, HTMLElement>());
   const returnTo = useRef<HTMLElement | null>(null);
+  // The record the root frame shows, as its navigation last reported it, so Close returns focus to
+  // that record's row: after previous and next, the reader is on that row, not on the one they opened.
+  const rootRecord = useRef<string | null>(null);
   const mountedFrames = useRef(new Set<string>());
   const frameRef = useRef(frames);
   frameRef.current = frames;
@@ -74,6 +129,7 @@ export function RecordPreviewProvider({ children }: { children: ReactNode }) {
       if (!existing && parentId !== null && focused instanceof HTMLElement)
         if (panel.current?.contains(focused)) nestedOpeners.current.set(id, focused);
       if (!existing && parentId === null) {
+        rootRecord.current = null;
         // A different register replaces the root preview and clears its selection.
         // Unmounted frames may still be in the queued state during a record-type switch.
         for (const frame of frameRef.current)
@@ -118,23 +174,64 @@ export function RecordPreviewProvider({ children }: { children: ReactNode }) {
     navigation: _navigation,
     recordActions: _recordActions,
     children: _children,
+    label,
+    finalFocus,
     ...panelProps
   } = current?.props ?? {};
-  // Closing the root frame unmounts Shell.Panel, which returns focus to the control the reader
-  // last used in Main (a later row's eye included). Back from a nested frame returns to the
-  // control in the parent frame that opened it.
+  // Close and Escape end the whole preview from any frame: the nested frames close first and the
+  // root last. Shell.Panel then returns focus to the shown record's row in the collection (below),
+  // else to the control the reader last used in Main.
   const close = () => {
-    returnTo.current = current?.parentId ? (nestedOpeners.current.get(current.id) ?? null) : null;
-    current?.props.onClose();
+    for (const frame of [...frameRef.current].reverse()) frame.props.onClose();
   };
+  // Back is the one way to leave a single frame: it shows the parent frame again and returns focus
+  // to the control in it that opened the nested one.
+  const back = () => {
+    if (!current?.parentId) return;
+    returnTo.current = nestedOpeners.current.get(current.id) ?? null;
+    current.props.onClose();
+  };
+  const returnFocus = useCallback(() => {
+    const id = rootRecord.current;
+    const control = recordControl(id);
+    if (!id) return true;
+    // The row may be drawn a few frames later: a table that was hidden under a phone's panel, or
+    // one that draws only the rows in view, draws them again once Main shows, and the control
+    // found now may be replaced as it does. Until focus lands somewhere, keep looking for the row's
+    // control for a moment and focus it. The first look runs before Shell's own return, so Shell
+    // returns to the control the reader last used only when the row is not there.
+    let frames = 0;
+    const settle = () => {
+      const active = document.activeElement;
+      if (active && active !== document.body && active.isConnected) return;
+      const later = recordControl(id);
+      if (later) later.focus();
+      else if (++frames < 30) requestAnimationFrame(settle);
+    };
+    requestAnimationFrame(settle);
+    return control ?? true;
+  }, []);
+  // The header's navigation names the record it announces from the frame's title, and reports the
+  // root frame's record for Close.
+  const titleText = current ? textOf(current.props.title).trim() || undefined : undefined;
+  const isRoot = current !== undefined && current.parentId === null;
+  const shown = useMemo(
+    () => ({
+      title: titleText,
+      show: (id: string) => {
+        if (isRoot) rootRecord.current = id;
+      },
+    }),
+    [titleText, isRoot],
+  );
   const previousFrame = useRef<string | undefined>(undefined);
   useLayoutEffect(() => {
-    if (previousFrame.current && previousFrame.current !== current?.id) {
+    if (!current) returnTo.current = null;
+    else if (previousFrame.current && previousFrame.current !== current.id) {
       const opener = returnTo.current;
       returnTo.current = null;
-      // Previous and Next sit in the panel's header, which stays while a keyed preview swaps its
-      // frame: focus stays on the control the reader pressed (or the one PreviewNavigation moved
-      // it to at an endpoint) instead of jumping to the panel.
+      // Previous and Next sit in the panel's header, which stays while a preview swaps its frame:
+      // focus stays on the control the reader pressed instead of jumping to the panel.
       const focused = document.activeElement;
       const header = panel.current?.querySelector('[data-slot="shell-panel-header"]');
       const inHeader = focused instanceof HTMLElement && !!header?.contains(focused);
@@ -142,25 +239,33 @@ export function RecordPreviewProvider({ children }: { children: ReactNode }) {
       else if (!inHeader) panel.current?.focus();
     }
     previousFrame.current = current?.id;
-  }, [current?.id]);
+  }, [current]);
   return (
     <PreviewFrames.Provider value={context}>
       <PreviewTargets.Provider value={targets}>{children}</PreviewTargets.Provider>
       {current && (
-        <Shell.Panel {...panelProps} ref={panel} onClose={close}>
+        <Shell.Panel
+          {...panelProps}
+          label={label ? sentence(label) : "Record preview"}
+          finalFocus={finalFocus ?? returnFocus}
+          ref={panel}
+          onClose={close}
+        >
           <Shell.Panel.Splitter />
           <Shell.Panel.Header>
             <Shell.Panel.Actions>
               {current.parentId && (
                 <IconButton
-                  label="Back to previous record"
-                  icon={<ArrowLeft />}
+                  label={t("backToPreviousRecord")}
+                  icon={<ArrowLeft className="rtl:rotate-180" />}
                   size="small"
                   variant="subtle"
-                  onClick={close}
+                  onClick={back}
                 />
               )}
-              {current.props.navigation}
+              <PreviewShown.Provider value={shown}>
+                {current.props.navigation}
+              </PreviewShown.Provider>
             </Shell.Panel.Actions>
             <Shell.Panel.Close />
           </Shell.Panel.Header>
@@ -312,6 +417,21 @@ export function RecordLink({
   );
 }
 
+/** A record's own name, for what is said about it when its frame's title draws no plain words. */
+function recordName(record: PreviewRecord): string | undefined {
+  for (const key of ["name", "title", "code"]) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) return value;
+  }
+  if (typeof record["version_number"] === "number") return `Version ${record["version_number"]}`;
+  return undefined;
+}
+
+/**
+ * Previous, next, the announced record and position, and the full record in a new tab. `rows` are
+ * the collection's displayed rows from `useDisplayedRecords`, across every page, so a step can
+ * cross a page and the table turns to it.
+ */
 export function RecordPreviewActions<T extends { id: string }>({
   table,
   record,
@@ -319,32 +439,55 @@ export function RecordPreviewActions<T extends { id: string }>({
   onSelect,
   destination,
   openLink,
+  recordLabel,
 }: {
   table: TableName;
   record: PreviewRecord;
   destination?: ReturnType<typeof recordDestination> | undefined;
-  openLink?: ComponentProps<typeof PreviewNavigation>["openLink"] | undefined;
+  /** The full-record link; `false` for a preview inside a selection task, which opens no record. */
+  openLink?: ComponentProps<typeof PreviewNavigation>["openLink"] | false | undefined;
   rows: readonly T[];
   onSelect: (row: T) => void;
+  /** What is announced with the position; by default the frame's title, else the record's name. */
+  recordLabel?: string | undefined;
 }) {
+  const shown = useContext(PreviewShown);
+  const show = shown?.show;
+  useLayoutEffect(() => {
+    show?.(record.id);
+  }, [show, record.id]);
   const index = rows.findIndex((row) => row.id === record.id);
   return (
     <PreviewNavigation
       position={index + 1}
       total={rows.length}
+      recordLabel={recordLabel ?? shown?.title ?? recordName(record)}
       onPrevious={index > 0 ? () => onSelect(rows[index - 1]!) : undefined}
       onNext={index >= 0 && index < rows.length - 1 ? () => onSelect(rows[index + 1]!) : undefined}
       openLink={
-        openLink ?? (
-          <Link
-            {...(destination ?? recordDestination(table, record))}
-            target="_blank"
-            rel="noopener noreferrer"
-          />
-        )
+        openLink === false
+          ? undefined
+          : (openLink ?? (
+              <Link
+                {...(destination ?? recordDestination(table, record))}
+                target="_blank"
+                rel="noopener noreferrer"
+              />
+            ))
       }
     />
   );
+}
+
+/**
+ * Ends what a collection has open beside it (its preview) when a retained tab hides it, so the
+ * preview never comes back over another tab, or takes focus from the tab strip when the reader
+ * returns. Call it with the setter that closes the preview: `useEndOnHide(() => setPreview(null))`.
+ */
+export function useEndOnHide(end: () => void) {
+  const latest = useRef(end);
+  latest.current = end;
+  useEffect(() => () => latest.current(), []);
 }
 
 /**
@@ -386,16 +529,70 @@ export function useRemovalFocus(rows: readonly { id: string }[]) {
   };
 }
 
-/** Publish exactly the table's rendered order, including filters, sorting, paging and tree expansion. */
+/**
+ * Brings the shown record's row into view in each scroller that holds it, clear of the scroller's
+ * padding (a table frame's sticky header, Main's top nav). Up and down only: a wide row's sideways
+ * scroll stays where the reader left it. A row in a hidden tab, or under a phone's panel, is left.
+ */
+function revealRow(id: string) {
+  const rows = [
+    ...document.querySelectorAll<HTMLElement>(`tr[data-row-id="${CSS.escape(id)}"]`),
+  ].filter((row) => row.getClientRects().length > 0);
+  const row = rows.find((item) => item.querySelector('button[aria-pressed="true"]')) ?? rows[0];
+  if (!row) return;
+  const root = document.scrollingElement;
+  for (let node = row.parentElement; node; node = node.parentElement) {
+    const style = getComputedStyle(node);
+    if (node !== root && !/auto|scroll/.test(style.overflowY)) continue;
+    if (node.scrollHeight <= node.clientHeight + 1) continue;
+    const box =
+      node === root ? { top: 0, bottom: window.innerHeight } : node.getBoundingClientRect();
+    const rect = row.getBoundingClientRect();
+    const top = box.top + (parseFloat(style.scrollPaddingTop) || 0);
+    const bottom = box.bottom - (parseFloat(style.scrollPaddingBottom) || 0);
+    if (rect.top < top) node.scrollTop -= top - rect.top;
+    else if (rect.bottom > bottom) node.scrollTop += Math.min(rect.bottom - bottom, rect.top - top);
+  }
+}
+
+/**
+ * Publish the rows the reader can reach, in the table's order, on every page: the search, filters,
+ * sort and tree expansion decide, the page does not. When the table's active row (the preview's
+ * record) changes, as Next or Previous steps, the table turns to the page that holds it and the
+ * row scrolls into view, so it stays on screen and marked; paging by hand leaves the preview where
+ * it is. The table keeps its page only while its `data` keeps its identity: a caller that rebuilds
+ * it on every render (inline columns into ModelTable) sends the table back to page 1, so keep
+ * `data` memoized.
+ */
 export function useDisplayedRecords<T extends { id: string }>(
   table: DataTableInstance<T>,
   onChange?: ((rows: T[]) => void) | undefined,
   originals?: ReadonlyMap<string, T>,
 ) {
-  const visible = table
-    .getRowModel()
-    .rows.filter((row) => !row.getIsGrouped())
-    .map((row) => originals?.get(row.id) ?? row.original);
+  const rows = displayedRows(table);
+  const visible = rows.map((row) => originals?.get(row.id) ?? row.original);
+  // The active row, from the table's `preview` or its id column's `active`, as the eye reads it.
+  const own = table.options.meta?.preview;
+  const isActive = own
+    ? undefined
+    : table.getAllLeafColumns().find((column) => column.columnDef.meta?.preview)?.columnDef.meta
+        ?.active;
+  const activeId = own
+    ? (own.activeId ?? null)
+    : isActive
+      ? (rows.find((row) => isActive(row.original as never))?.id ?? null)
+      : null;
+  // Keyed on the record alone: the table object is new on every render, and a page the reader
+  // turns while the preview is open must stay turned.
+  const latestTable = useRef(table);
+  latestTable.current = table;
+  useLayoutEffect(() => {
+    if (!activeId) return;
+    showRow(latestTable.current, activeId);
+    // The page turn draws before the next frame; the row is on the page by then.
+    const frame = requestAnimationFrame(() => revealRow(activeId));
+    return () => cancelAnimationFrame(frame);
+  }, [activeId]);
   const signature = JSON.stringify(
     visible.map((row) => [row.id, "revision" in row ? row.revision : null]),
   );

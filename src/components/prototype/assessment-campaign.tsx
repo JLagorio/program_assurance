@@ -4,6 +4,7 @@ import {
   Absent,
   Alert,
   AlertDescription,
+  AlertIcon,
   Button,
   Count,
   DropdownMenu,
@@ -28,7 +29,19 @@ import {
   DateTime,
   toast,
 } from "@ledger/design-system";
-import { AlertCircle, ChevronDown, MoreHorizontal } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronDown,
+  ClipboardList,
+  Eye,
+  FileText,
+  History,
+  ListChecks,
+  ListOrdered,
+  ListTodo,
+  MoreHorizontal,
+  Target,
+} from "lucide-react";
 import { useModelSave, useRow, useRows, type Row, type TableName } from "@/lib/models";
 import { labelFor, type DataRecord } from "@/lib/records";
 import { useWorkspace } from "@/components/app/workspace";
@@ -227,14 +240,16 @@ export function AssessmentCampaign({
   const planEmpty = (what: string) =>
     draftPlan
       ? what
-      : `${what} It belongs to a draft assessment plan revision: create one under Assessment plans first.`;
+      : writable
+        ? `${what} It belongs to a draft assessment plan revision: create one under Assessment plans first.`
+        : `${what} It belongs to a draft assessment plan revision.`;
   const runsReady = !runs.isPending && !plans.isPending && !events.isPending;
   const noun = (table: TableName) => capitalize(productRecordNoun(table));
   return (
     <Stack space="space.200">
       {form && <ModelForm target={form} onClose={() => setForm(null)} />}
       <Tabs value={tab} onValueChange={(value) => onTab(value as CampaignTab)}>
-        <TabsList variant="line" activateOnFocus aria-label="Campaign sections">
+        <TabsList variant="line" aria-label="Campaign sections">
           {campaignTabs.map((name) => (
             <TabsTrigger value={name} key={name}>
               {name}
@@ -264,8 +279,10 @@ export function AssessmentCampaign({
                     : undefined
                 }
                 onDisplayedRowsChange={keep("assessment_plan_revisions")}
+                compact
                 label="Assessment plans"
                 empty={{
+                  icon: <FileText />,
                   description:
                     "An assessment plan revision pins the SSP it assesses and holds the objectives, activities and tasks.",
                 }}
@@ -301,8 +318,10 @@ export function AssessmentCampaign({
                   selection?.table === "assessment_events" ? selection.existing?.id : undefined
                 }
                 onDisplayedRowsChange={keep("assessment_events")}
+                compact
                 label="Events"
                 empty={{
+                  icon: <CalendarDays />,
                   illustration: "calendar",
                   description: planRows[0]
                     ? "An event schedules a window of assessment work in this campaign."
@@ -327,8 +346,10 @@ export function AssessmentCampaign({
                   selection?.table === "assessment_objectives" ? selection.existing?.id : undefined
                 }
                 onDisplayedRowsChange={keep("assessment_objectives")}
+                compact
                 label="Objectives"
                 empty={{
+                  icon: <Target />,
                   illustration: "shield",
                   description: planEmpty("An objective says what the plan sets out to show."),
                 }}
@@ -350,8 +371,10 @@ export function AssessmentCampaign({
                   selection?.table === "assessment_activities" ? selection.existing?.id : undefined
                 }
                 onDisplayedRowsChange={keep("assessment_activities")}
+                compact
                 label="Activities"
                 empty={{
+                  icon: <ListChecks />,
                   description: planEmpty(
                     "An activity records how an objective is examined, interviewed or tested.",
                   ),
@@ -376,8 +399,10 @@ export function AssessmentCampaign({
                     : undefined
                 }
                 onDisplayedRowsChange={keep("scheduled_assessment_tasks")}
+                compact
                 label="Scheduled assessment tasks"
                 empty={{
+                  icon: <ListTodo />,
                   illustration: "tasks",
                   description: planEmpty("A scheduled task assigns assessment work to an owner."),
                 }}
@@ -385,7 +410,7 @@ export function AssessmentCampaign({
                 columns={[
                   { key: "title", label: "Task" },
                   { key: "status", label: "Status", width: 130, priority: 1 },
-                  { key: "owner", label: "Owner", width: 180 },
+                  { key: "owner", label: "Owner", kind: "person", width: 180 },
                   { key: "due_at", label: "Due", width: 140 },
                 ]}
                 onPreview={inspect("scheduled_assessment_tasks")}
@@ -405,8 +430,10 @@ export function AssessmentCampaign({
                 model="procedures"
                 selectedId={selection?.table === "procedures" ? selection.existing?.id : undefined}
                 onDisplayedRowsChange={keep("procedures")}
+                compact
                 label="Procedures"
                 empty={{
+                  icon: <ClipboardList />,
                   description:
                     "A procedure describes a repeatable test; its revisions hold the method and the steps.",
                 }}
@@ -428,8 +455,10 @@ export function AssessmentCampaign({
                   selection?.table === "procedure_revisions" ? selection.existing?.id : undefined
                 }
                 onDisplayedRowsChange={keep("procedure_revisions")}
+                compact
                 label="Procedure revisions"
                 empty={{
+                  icon: <History />,
                   description:
                     "A revision fixes a procedure's method, preconditions and steps for the runs that use it.",
                 }}
@@ -477,7 +506,7 @@ export function AssessmentCampaign({
                 width: 125,
                 priority: 1,
               },
-              { key: "assessor", label: "Assessor", width: 170 },
+              { key: "assessor", label: "Assessor", kind: "person", width: 170 },
               { key: "completed_at", label: "Completed", width: 140 },
             ]}
             onPreview={inspect("test_runs")}
@@ -721,8 +750,10 @@ function ActivitySteps({
         }
         model="activity_steps"
         readOnly={!editable}
+        compact
         label="Activity steps"
         empty={{
+          icon: <ListOrdered />,
           description: editable
             ? "A step says what to do and what to expect, in order."
             : "No steps were recorded for this activity.",
@@ -804,8 +835,10 @@ function ProcedureInspector({
             }
             model="procedure_steps"
             readOnly={!editable}
+            compact
             label="Procedure steps"
             empty={{
+              icon: <ListOrdered />,
               description: editable
                 ? "A step says what to do and what to expect, in order."
                 : "No steps were recorded for this revision.",
@@ -944,7 +977,7 @@ function RunInspector({
           <Stack space="space.250" ref={body}>
             {error && (
               <Alert variant="destructive" role="alert">
-                <AlertCircle aria-hidden />
+                <AlertIcon />
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
@@ -983,8 +1016,10 @@ function RunInspector({
                 sort={false}
                 model="procedure_steps"
                 readOnly={!editable}
+                compact
                 label="Step results"
                 empty={{
+                  icon: <ListChecks />,
                   description: "The procedure revision this run follows has no steps recorded.",
                 }}
                 rows={stepRows}
@@ -1129,8 +1164,10 @@ function RunObservations({
           </DropdownMenu>
         ) : undefined
       }
+      compact
       label="Observations"
       empty={{
+        icon: <Eye />,
         description: recorded.length
           ? "An observation records what the assessor saw at a step."
           : "Observations are recorded against step results: record a step's result first.",

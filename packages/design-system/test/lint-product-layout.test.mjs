@@ -79,6 +79,8 @@ test("product line tabs reject local wrapping, intrinsic width and overflow over
     `${tabsImport} <TabsList variant={"line" as const} className="w-full pt-100" />`,
     `${tabsImport} <TabsList variant="line" className={small ? "text-subtle" : "text-default"} />`,
     `${tabsImport} <TabsList variant="line" style={{ color: "inherit", overflowX: undefined }} />`,
+    // A destructured const is one slot of its initialiser; the label beside it is not a class.
+    `${tabsImport} const [label, layout] = ["flex-wrap", "text-subtle"]; <TabsList variant="line" className={layout} />`,
     'import { TabsList as Views } from "@ledger/design-system"; <Views variant="line" />',
     'import * as Kit from "@ledger/design-system"; <Kit.TabsList variant="line" />',
   ])

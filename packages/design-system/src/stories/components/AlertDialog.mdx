@@ -28,7 +28,7 @@ Not for a form: that is a [Dialog](?path=/docs/components-dialog--docs). Not for
 
 - **AlertDialogHeader** holds an optional AlertDialogMedia, the title (the question, an h2) and the description (the consequence).
 - **AlertDialogBody** holds what the decision affects when one line is not enough: the records a delete removes, a field for a reason. It follows the header with its inset and no divider, and scrolls between the header and the footer so the answers stay in view.
-- **AlertDialogFooter** holds AlertDialogCancel, the safe answer, before AlertDialogAction, the verb.
+- **AlertDialogFooter** holds AlertDialogCancel, the safe answer, before AlertDialogAction, the verb, on the dialog's own surface below a hairline.
 - AlertDialogContent records the overlay surface as the current one; AlertDialogPortal and AlertDialogOverlay are exported for a custom popup.
 
 <Canvas of={Stories.WithBody} />
@@ -46,13 +46,17 @@ Not for a form: that is a [Dialog](?path=/docs/components-dialog--docs). Not for
 ## Accessibility
 
 - **The role is `alertdialog`**, named by the title and described by the description.
-- **The blanket never dismisses it**; Escape and Cancel do, unless it is pending.
-- **Focus goes to Cancel** when the decision is destructive: pass it as `initialFocus`. Focus returns to what opened the dialog, or to `finalFocus` when that went away.
+- **The blanket never dismisses it**; Escape and Cancel do, unless it is pending. A press on the blanket leaves focus where it was.
+- **Focus goes to Cancel** when the decision is destructive: pass it as `initialFocus`. Focus returns to what opened the dialog, recorded as it opens, or to `finalFocus` when that went away.
+- **Over a Dialog or Sheet**, render it inside the parent's content: Base UI draws no second blanket for it, and the parent dims under it instead, so the prompt stands apart in both modes.
+- **Forced colours keep the edge**: the popup draws a CanvasText outline.
 
 ## Content
 
-- The title is the question: "Delete 24 drafts?". The description is the consequence, not the question again: "These drafts are removed for everyone."
+- The title is the question: "Delete 24 drafts?". The description is the consequence, not the question again: "These drafts are removed for everyone." A record's name or code in the title wraps rather than running past the edge; a failure's cause goes in the body, through an Alert.
 - The Action says the verb ("Delete drafts"); Cancel says the safe way out ("Keep drafts", "Keep editing").
+
+<Canvas of={Stories.LongValues} />
 
 ## Props
 

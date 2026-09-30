@@ -34,6 +34,7 @@ export {
   type SideNavSectionProps,
   type SideNavSlotProps,
   type SideNavToggleButtonProps,
+  type SideNavChange,
   type SideNavTrigger,
 } from "./shell";
 export { SHELL_STORAGE_KEY, shellScript, shellScriptFor, type ShellStored } from "./storage";
@@ -52,7 +53,11 @@ export {
   type PageHeaderProps,
   type PageHeaderTitleProps,
 } from "./page-header";
-export { PageSkeleton, type PageSkeletonProps } from "./page-skeleton";
+export {
+  PageSkeleton,
+  type PageSkeletonProps,
+  type PageSkeletonVariant,
+} from "./page-skeleton";
 export {
   Section,
   type SectionActionsProps,

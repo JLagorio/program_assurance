@@ -297,7 +297,7 @@ try {
     const eye = page.getByRole("button", { name: /Preview/ }).first();
     if (await eye.count()) {
       await eye.click();
-      await page.getByRole("button", { name: "Close details", exact: true }).waitFor();
+      await page.getByRole("button", { name: /^Close (details|.+ preview)$/ }).waitFor();
       await check(page, `${width} /programs preview`, log);
     }
     await context.close();

@@ -1,9 +1,9 @@
-import { KeyValue } from "@ledger/design-system";
+import { KeyValue, Text } from "@ledger/design-system";
 import { labelFor } from "@/lib/records";
 import type { ElementType } from "@/lib/program-wizard";
 import { ChoiceField, TextField, type ControlRef } from "./fields";
 
-export const elementTypeOptions = [
+const elementTypeOptions = [
   "subsystem",
   "hardware",
   "software",
@@ -82,7 +82,7 @@ export function ElementIdentityFields({
       />
       {typeLocked ? (
         <KeyValue label="Type">
-          {labelFor(value.type ?? "other")} <span className="text-subtle">{typeLocked}</span>
+          {labelFor(value.type ?? "other")} <Text color="color.text.subtle">{typeLocked}</Text>
         </KeyValue>
       ) : (
         <ChoiceField
@@ -90,6 +90,7 @@ export function ElementIdentityFields({
           value={value.type}
           onChange={(type) => onChange({ type: type as ElementType })}
           options={elementTypeOptions}
+          placeholder="Choose an element type"
           required
           error={errors?.type}
           controlRef={controlRef?.("type")}

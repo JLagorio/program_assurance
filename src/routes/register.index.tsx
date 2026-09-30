@@ -11,10 +11,5 @@ export const Route = createFileRoute("/register/")({
 function Page() {
   const { tab } = Route.useSearch();
   const navigate = Route.useNavigate();
-  return (
-    <Register
-      tab={tab}
-      onTabChange={(next) => void navigate({ search: { tab: next }, replace: true })}
-    />
-  );
+  return <Register tab={tab} onTabChange={(next) => void navigate({ search: { tab: next } })} />;
 }

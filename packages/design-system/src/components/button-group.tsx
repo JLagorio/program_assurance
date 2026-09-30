@@ -4,6 +4,7 @@ import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
+import type { ButtonSize } from "./button";
 import { Separator } from "./separator";
 
 export const buttonGroupVariants = cva(
@@ -34,14 +35,34 @@ export function ButtonGroup({ className, orientation = "horizontal", ...props }:
   );
 }
 
-export type ButtonGroupTextProps = useRender.ComponentProps<"div">;
-export function ButtonGroupText({ className, render, ...props }: ButtonGroupTextProps) {
+export type ButtonGroupTextProps = useRender.ComponentProps<"div"> & {
+  /**
+   * The size of the controls beside it, so the text is never shorter than they are: `medium` 32px
+   * (the default, as on Button), `small` 28px or `xsmall` 24px. In a vertical group, where it would
+   * otherwise be only as tall as its words, it takes the controls' height.
+   */
+  size?: ButtonSize | undefined;
+};
+
+const textHeights: Record<ButtonSize, string> = {
+  xsmall: "min-h-control-xsmall px-100",
+  small: "min-h-control-small px-150",
+  medium: "min-h-control-medium px-150",
+};
+
+export function ButtonGroupText({
+  className,
+  render,
+  size = "medium",
+  ...props
+}: ButtonGroupTextProps) {
   return useRender({
     defaultTagName: "div",
     props: mergeProps<"div">(
       {
         className: cn(
-          "flex items-center gap-100 rounded-medium border border-input bg-surface-sunken px-150 font-body-small font-medium text-subtle [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-icon-medium",
+          "flex items-center justify-center gap-100 rounded-medium border border-input bg-surface-sunken font-body-small font-medium text-subtle [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-icon-medium",
+          textHeights[size],
           className,
         ),
       },
@@ -62,8 +83,10 @@ export function ButtonGroupSeparator({
     <Separator
       data-slot="button-group-separator"
       orientation={orientation}
+      // Keyed on Base UI's data-orientation: the group removes the start edge of every child after
+      // the first, so the separator puts its own rule back.
       className={classes(
-        "relative self-stretch data-horizontal:w-auto data-horizontal:border-t! data-vertical:h-auto data-vertical:border-s!",
+        "relative self-stretch data-[orientation=horizontal]:w-auto data-[orientation=horizontal]:border-t! data-[orientation=vertical]:h-auto data-[orientation=vertical]:border-s!",
         className,
       )}
       {...props}

@@ -48,7 +48,7 @@ function assignRef<T>(ref: React.Ref<T> | undefined, value: T | null) {
   else if (ref) ref.current = value;
 }
 
-/** The navigation landmark; the caller owns the list, items, and separators. */
+/** The navigation landmark, named "Breadcrumb" (the `breadcrumb` message) unless `aria-label` names it; the caller owns the list, items, and separators. */
 function Breadcrumb({ className, ...props }: BreadcrumbProps) {
   const { t } = useLedgerLocale();
   return (
@@ -238,6 +238,11 @@ function fitTrail(list: HTMLOListElement): Fit {
   const hidden = new Set(
     folded.flatMap((level, i) => (i < folded.length - 1 ? level : level.slice(0, 1))),
   );
+  // A level that folds while it holds focus hands focus to the ellipsis, which now lists it, so
+  // the reader's place stays in the trail instead of falling to the page.
+  const focused = list.ownerDocument.activeElement;
+  const losesFocus =
+    focused instanceof HTMLElement && [...hidden].some((el) => el.contains(focused));
   levels.forEach((level, i) => {
     for (const el of level) el.toggleAttribute("data-collapsed", hidden.has(el));
     // The page takes the width the others leave, which absorbs any sub-pixel rounding.
@@ -260,6 +265,7 @@ function fitTrail(list: HTMLOListElement): Fit {
   // are hidden from assistive technology, so the reading order is unchanged.
   ellipsisItem?.toggleAttribute("data-leading", hidden.size > 0 && from === 0);
   list.setAttribute("data-fit", "");
+  if (losesFocus) ellipsisItem?.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
   // A list that ends narrower than its room sizes to its content; its container bounds it. A box
   // without width (display: contents) never reports a resize, so it is passed over.
   const bound =
@@ -268,6 +274,32 @@ function fitTrail(list: HTMLOListElement): Fit {
         null)
       : null;
   return { folded: folded.flatMap((level) => (level[0] ? [level[0]] : [])), bound };
+}
+
+const warned = new WeakSet<Element>();
+/**
+ * A trail has one current page, its last level. A router link that matches by path prefix marks
+ * every ancestor current as well; said once per trail in the console, never thrown.
+ */
+function useOneCurrentPage(list: React.RefObject<HTMLOListElement | null>) {
+  React.useEffect(() => {
+    const el = list.current;
+    if (!el || warned.has(el)) return;
+    const current = Array.from(el.querySelectorAll('[aria-current="page"]'));
+    const items = Array.from(el.children).filter(
+      (child) => child.getAttribute("data-slot") === "breadcrumb-item",
+    );
+    const last = items[items.length - 1];
+    const message =
+      current.length > 1
+        ? `Ledger: a breadcrumb trail marks ${current.length} levels as the current page. Only BreadcrumbPage, last, is the page; give a router link exact matching (activeOptions={{ exact: true }}) or render it through createLink(BreadcrumbLink).`
+        : current.length === 1 && last && !last.contains(current[0] ?? null)
+          ? "Ledger: a breadcrumb trail marks a level that is not its last as the current page. BreadcrumbPage is the last level."
+          : null;
+    if (!message) return;
+    warned.add(el);
+    console.warn(message);
+  });
 }
 
 /** Children in order, with fragments opened so the ellipsis can sit after the first separator. */
@@ -310,6 +342,7 @@ function BreadcrumbList({
     },
     [ref],
   );
+  useOneCurrentPage(listRef);
 
   // The container's width and the levels' content (text, fonts as they load) decide the fold. Each
   // check runs before paint (layout effect, ResizeObserver, MutationObserver microtask), so a fold
@@ -660,14 +693,14 @@ function BreadcrumbSeparator({ children, className, ...props }: React.ComponentP
     >
       {/* The only break opportunity between levels: before the separator, not after it. */}
       {wrap ? <wbr /> : null}
-      {children ?? <ChevronRightIcon />}
+      {/* The default chevron points along the reading direction, so it turns in right-to-left. */}
+      {children ?? <ChevronRightIcon className="rtl:rotate-180" />}
     </li>
   );
 }
 
 /** A decorative collapsed-path indicator. Name its surrounding control when interactive. */
 function BreadcrumbEllipsis({ className, ...props }: React.ComponentProps<"span">) {
-  const { t } = useLedgerLocale();
   return (
     <span
       data-slot="breadcrumb-ellipsis"
@@ -680,7 +713,6 @@ function BreadcrumbEllipsis({ className, ...props }: React.ComponentProps<"span"
       {...props}
     >
       <MoreHorizontalIcon />
-      <span className="sr-only">{t("more")}</span>
     </span>
   );
 }

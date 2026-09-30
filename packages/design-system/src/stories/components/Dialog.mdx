@@ -48,10 +48,10 @@ Not for a decision that needs one sentence: that is an [AlertDialog](?path=/docs
 </Dialog>
 ```
 
-- **DialogContent** brings its portal, the blanket and a close button at the top end, an IconButton named Close with no tooltip. It records the overlay surface as the current one, so a sticky header, a pinned cell or a scroll arrow inside paints the dialog's colour, not the page's.
-- **DialogHeader** holds the title and the description; the title is the dialog's h2, and headings inside the dialog start at h3.
+- **DialogContent** brings its portal, the blanket and a close button at the top end, an IconButton named Close with no tooltip. The close button is first in the Tab order, where it is drawn; the first field still takes focus when the dialog opens. It records the overlay surface as the current one, so a sticky header, a pinned cell or a scroll arrow inside paints the dialog's colour, not the page's.
+- **DialogHeader** holds the title and the description; the title is the dialog's h2, and headings inside the dialog start at h3. Both wrap an unbroken value, such as a record's code or a server's error, inside the popup.
 - **DialogBody** is the one scrolling region, with the dialog's inset. Put the form in it and the buttons in the footer; never make a `fieldset` or a hand-written `div` the scroller.
-- **DialogFooter** stays outside the scroll, with Cancel, a subtle button, before the primary.
+- **DialogFooter** stays outside the scroll, on the dialog's own surface below a hairline, with Cancel, a subtle button, before the primary. `showCloseButton` adds a subtle Close in Cancel's place, before the children.
 - DialogPortal and DialogOverlay are exported for a custom popup.
 
 ## Widths
@@ -76,7 +76,7 @@ The body takes the height the header and footer leave, at least 80px, and scroll
 
 <Canvas of={Stories.Scrollable} />
 
-In a window under 30rem tall (a landscape phone, or a laptop at 200% to 400% zoom) the popup becomes the one scroller: the header scrolls away with the body, the footer stays at the bottom, and every field and the primary can still be reached and seen.
+In a window under 30rem tall (a landscape phone, or a laptop at 200% to 400% zoom) the popup becomes the one scroller: the header scrolls away with the body, the footer stays at the bottom, and every field and the primary can still be reached and seen. The footer keeps its height as the popup's scroll padding, so a field that takes focus scrolls clear of it rather than under it.
 
 <Canvas of={Stories.LongForm} />
 
@@ -95,15 +95,21 @@ A failed save keeps the dialog and the draft, ends the pending state and says wh
 ## Accessibility
 
 - **A title names the dialog**; a DialogDescription, when there is one, describes it.
-- **Focus moves in and comes back.** The first field takes focus through `initialFocus` on DialogContent, never through `autoFocus` on the field: an `autoFocus` inside a dialog opened from state becomes the place focus returns to, and focus falls to the page when it closes. Base UI returns focus to the element that had it before the dialog opened; when that element goes away with the task, pass `finalFocus`.
+- **Focus moves in and comes back.** The first field takes focus through `initialFocus` on DialogContent, never through `autoFocus` on the field. A Dialog opened from state records the element that had focus as it opens and returns focus there when it closes, even when a field took focus as it mounted, as long as that element is still on the page and enabled; when it goes away with the task, pass `finalFocus`. Keep the opener enabled while its dialog is open.
 - **Base UI owns** the focus trap, Escape, the outside press and nested popups: a Select or a DatePicker inside closes on its own Escape first.
-- **One stack is allowed:** an AlertDialog over the Dialog that owns the decision, such as the discard prompt for a dirty draft. An independent record workflow replaces the dialog instead of stacking.
+- **One stack is allowed:** an AlertDialog over the Dialog that owns the decision, such as the discard prompt for a dirty draft. Render it inside DialogContent: the dialog under the prompt dims, so its buttons read as out of play, and the page keeps one blanket. An independent record workflow replaces the dialog instead of stacking.
+- **Forced colours keep the edge.** The popup draws a CanvasText outline where its fill and shadow are replaced, and the blanket stays a veil of Canvas. A press on the blanket while the dialog is `pending` keeps focus where it was.
+
+<Canvas of={Stories.FocusReturnFromState} />
 
 ## Content
 
 - The title is the operation and the singular noun; the primary says the same words, never OK, Submit or Save alone.
 - Validate on submit with the primary enabled. Errors say what fixes the field; an [ErrorSummary](?path=/docs/components-errorsummary--docs) lists them all when the form is longer than a few fields.
 - Button labels stay on one line.
+- A title that names a record may hold its code; it wraps rather than running past the edge. Say a failure's cause in the body, through an Alert or a FieldError, not in the title.
+
+<Canvas of={Stories.LongValues} />
 
 ## Props
 

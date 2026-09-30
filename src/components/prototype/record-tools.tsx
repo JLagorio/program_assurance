@@ -2,7 +2,7 @@ import { ProductCollection, type ProductCollectionProps } from "./product-collec
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { useMemo, useState, type ReactNode, useRef } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { FileText, Link2, Plus } from "lucide-react";
 import {
   Button,
   DateTime,
@@ -52,6 +52,7 @@ import {
   RecordPreviewPanel,
   recordDestination,
   useDisplayedRecords,
+  useEndOnHide,
 } from "./record-preview";
 
 /**
@@ -117,13 +118,19 @@ export type DisplayColumn = {
   /** The column's vocabulary from `@/lib/status`, for a status or level the model does not map
    * under `key` (a latest revision's severity): it sorts by rank and draws a badge or an indicator. */
   statuses?: StatusVocabulary | undefined;
-  /** What the column is, where neither the schema nor the key says: a derived count is a number. */
-  kind?: "date" | "number" | "text" | undefined;
+  /**
+   * What the column is, where neither the schema nor the key says: a derived count is a number. A
+   * person (an assessor, an owner) is drawn with their avatar, and sorts, filters and searches by
+   * the name `value` gives, never by the party's id.
+   */
+  kind?: "date" | "number" | "text" | "person" | undefined;
 };
 export type ModelTableEmpty = {
   title?: string;
   description?: string;
   illustration?: EmptyIllustrationKind | false;
+  /** A compact collection's icon, beside its one-line empty. */
+  icon?: ReactNode;
   action?: ReactNode;
 };
 const STATUS_KEYS = new Set([
@@ -229,6 +236,7 @@ export function ModelTable({
   fill,
   queries,
   noun,
+  compact,
 }: {
   model: TableName;
   rows: DataRecord[];
@@ -252,11 +260,14 @@ export function ModelTable({
   queries?: QueryStatus[] | undefined;
   /** What a row is, for the announced result ("8 of 24 risks"); the model's noun by default. */
   noun?: { one: string; other: string } | undefined;
+  /** A few rows beside other content (a record body's section): ProductCollection's compact form. */
+  compact?: boolean | undefined;
 }) {
   const navigate = useNavigate();
   const workspace = useWorkspace();
   const collection = workspace.collections.find((item) => item.name === model);
   const [preview, setPreview] = useState<DataRecord | null>(null);
+  useEndOnHide(() => setPreview(null));
   const openPreview = onPreview ?? setPreview;
   const byId = useMemo(() => new Map(rows.map((row) => [row.id, row])), [rows]);
   const byIdRef = useRef(byId);
@@ -336,11 +347,11 @@ export function ModelTable({
           };
           const cell = render ? (row: DataRecord) => render(raw(row)) : plain;
           if (primary)
+            // A readable minimum, so the name shares the spare width with the unsized columns.
             return c.id(column.key, {
               header,
               hideable: false,
               minWidth: 180,
-              width: 220,
               priority: 0,
               ...size,
               preview: (row) => openPreview(raw(row)),
@@ -383,6 +394,8 @@ export function ModelTable({
               ...size,
               ...(render ? { cell } : {}),
             });
+          if (kind === "person")
+            return c.person(column.key, { header, ...size, ...(render ? { cell } : {}) });
           return c.text(column.key, { header, ...size, cell });
         }),
       ),
@@ -415,6 +428,7 @@ export function ModelTable({
       <ProductCollection
         table={table}
         fill={fill}
+        compact={compact}
         queries={queries ?? []}
         noun={noun ?? { one: productRecordNoun(model), other: productCollectionNoun(model) }}
         onRowClick={(row) => void navigate(recordDestination(model, byId.get(row.id) ?? row))}
@@ -422,6 +436,7 @@ export function ModelTable({
           illustration: message.illustration ?? "records",
           title: message.title ?? "Nothing recorded yet",
           description: message.description,
+          ...(message.icon ? { icon: message.icon } : {}),
           action: message.action ?? actions,
         }}
         searchLabel={searchLabel}
@@ -576,6 +591,8 @@ function linkTarget(collection: Collection | undefined, context: Record<string, 
   return authored ? undefined : relations[0]!.target_table;
 }
 
+const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
 /** A collection title inside a sentence: lower case, except an acronym ("POA&M items"). */
 function inSentence(title: string) {
   return /^[A-Z0-9&]{2,}\b/.test(title) ? title : title.charAt(0).toLowerCase() + title.slice(1);
@@ -597,9 +614,18 @@ export function EntitySection({
   appendOnly = false,
   fill,
   showHeading = false,
+  compact = showHeading,
+  queries,
 }: {
   table: TableName;
+  /** The section's own heading, among a record body's other sections. */
   showHeading?: boolean;
+  /**
+   * A few rows beside other content: a one-line empty beside an icon and a lean toolbar
+   * (ProductCollection's `compact`). A headed section is compact unless it says otherwise; a tab
+   * whose only content is this collection is not.
+   */
+  compact?: boolean | undefined;
   filters?: Filters;
   title: string;
   columns: DisplayColumn[];
@@ -618,6 +644,9 @@ export function EntitySection({
   appendOnly?: boolean;
   /** The register is the page's one block: it takes the rest of the window. */
   fill?: boolean | undefined;
+  /** The lookups the columns read (the people a `person` column names), so the collection loads,
+   * and fails, with them. */
+  queries?: QueryStatus[] | undefined;
 }) {
   const workspace = useWorkspace();
   const query = useRows(table, filters);
@@ -660,8 +689,7 @@ export function EntitySection({
     if (named !== null && named !== undefined && named !== "") return String(named);
     const first = columns[0];
     if (first?.render) return first.render(row);
-    const noun = productRecordNoun(table, row);
-    return noun.charAt(0).toUpperCase() + noun.slice(1);
+    return capitalize(productRecordNoun(table, row));
   };
   const content = (
     <>
@@ -679,7 +707,7 @@ export function EntitySection({
       {selected && (
         <RecordPreviewPanel
           title={previewTitle(selected)}
-          label={`${productRecordNoun(table)} preview`}
+          label={`${capitalize(productRecordNoun(table))} preview`}
           defaultWidth={560}
           onClose={() => setSelected(null)}
           recordActions={
@@ -713,9 +741,10 @@ export function EntitySection({
       <ModelTable
         model={table}
         rows={(query.data ?? []) as unknown as DataRecord[]}
-        queries={[query]}
+        queries={[query, ...(queries ?? [])]}
         columns={columns}
         fill={fill}
+        compact={compact}
         onPreview={onOpen ?? setSelected}
         selectedId={selectedId ?? selected?.id}
         onDisplayedRowsChange={(rows) => {
@@ -732,7 +761,9 @@ export function EntitySection({
                 ? `Link the first ${productRecordNoun(target)} to this record.`
                 : `${addLabel} to start this collection.`))
             : "Nothing has been recorded here yet.",
-          action: add("medium"),
+          // A link is drawn as a link, a record of its own as a document.
+          icon: target ? <Link2 /> : <FileText />,
+          action: add(compact ? "small" : "medium"),
         }}
       />
     </>

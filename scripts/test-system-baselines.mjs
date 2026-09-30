@@ -137,7 +137,9 @@ try {
   });
   await page.setViewportSize({ width: 1500, height: 1050 });
   await baselineDetails();
+  // Visited tabs stay mounted and hidden, so read the text in the shown panel.
   await page
+    .getByRole("tabpanel")
     .getByText(/^Inherited from /)
     .first()
     .waitFor();
@@ -238,7 +240,9 @@ try {
       .adopted_profile_resolution_id,
     null,
   );
+  // Visited tabs stay mounted and hidden, so read the text in the shown panel.
   await page
+    .getByRole("tabpanel")
     .getByText(/^Inherited from /)
     .first()
     .waitFor();

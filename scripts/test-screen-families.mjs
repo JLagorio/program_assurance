@@ -91,7 +91,13 @@ async function verifyCollection(screen, width, tabName) {
     assert.ok(tabName, `${screen.path}: the seeded primary register must contain records`);
     await expect(empty.locator('[data-slot="empty-title"]')).not.toHaveText("");
     await expect(empty.locator('[data-slot="empty-description"]')).not.toHaveText("");
-    await expect(empty.locator('[data-slot="empty-illustration"]')).toHaveCount(1);
+    // An illustration, or an icon for a compact collection beside other content. EmptyMedia
+    // (data-slot="empty-icon") also wraps an illustration, so only its icon variant counts.
+    await expect(
+      empty.locator(
+        '[data-slot="empty-illustration"], [data-slot="empty-icon"][data-variant="icon"]',
+      ),
+    ).toHaveCount(1);
     await bounds(width, `${screen.path} ${tabName} empty collection`);
     return;
   }
@@ -100,7 +106,11 @@ async function verifyCollection(screen, width, tabName) {
   if (!(await row.count())) {
     await expect(table.locator('[data-slot="empty-title"]')).toHaveCount(1);
     await expect(table.locator('[data-slot="empty-description"]')).not.toHaveText("");
-    await expect(table.locator('[data-slot="empty-illustration"]')).toHaveCount(1);
+    await expect(
+      table.locator(
+        '[data-slot="empty-illustration"], [data-slot="empty-icon"][data-variant="icon"]',
+      ),
+    ).toHaveCount(1);
     await bounds(width, `${screen.path} ${tabName ?? ""} empty collection`);
     return;
   }
@@ -122,7 +132,7 @@ async function verifyCollection(screen, width, tabName) {
     .locator("tbody tr[data-row-id]")
     .evaluateAll((elements) => elements.map((element) => element.dataset.rowId));
   await eye.click();
-  await expect(page.getByRole("button", { name: "Close details", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Close (details|.+ preview)$/ })).toBeVisible();
   const header = page.locator("[data-record-preview-header]").filter({ visible: true });
   await expect(header.getByRole("heading", { level: 2 })).toHaveCount(1);
   const next = page.getByRole("button", { name: "Next record", exact: true });
@@ -140,7 +150,7 @@ async function verifyCollection(screen, width, tabName) {
   await page.screenshot({
     path: `${artifacts}/${screen.file.replaceAll(".tsx", "")}-${tabName?.replaceAll(/[^a-z0-9]/gi, "-") ?? "default"}-${width}-preview.png`,
   });
-  await page.getByRole("button", { name: "Close details", exact: true }).click();
+  await page.getByRole("button", { name: /^Close (details|.+ preview)$/ }).click();
   assert.deepEqual(
     (
       await table
@@ -336,17 +346,30 @@ try {
       await page.goto(`${origin}${path}`);
       await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-      if (screen.family !== "redirect")
-        await expect(page).toHaveTitle(`${screen.title} — Program Assurance`);
       const fixture = fixtures[screen.model]?.[0];
-      if (["record", "program-view", "schema-record"].includes(screen.family)) {
+      const named = ["record", "program-view", "schema-record"].includes(screen.family);
+      // A loaded record leads its browser title with its name; a missing one keeps the type.
+      if (screen.family !== "redirect")
+        await expect(page).toHaveTitle(
+          named && fixture
+            ? `${name(fixture)} — ${screen.title} — Program Assurance`
+            : `${screen.title} — Program Assurance`,
+        );
+      if (named) {
         if (fixture)
           await expect(page.getByRole("heading", { level: 1 })).toHaveText(name(fixture));
         else await verifyMissingRecord(screen);
       }
       if (screen.family === "redirect") {
         assert.ok(screen.redirectTo, `${screen.path}: declare the canonical redirect destination`);
-        await expect(page).toHaveURL(`${origin}${routePath(screen, screen.redirectTo)}`);
+        // The same destination, however the query encodes a space (`%20` or `+`).
+        const destination = new URL(`${origin}${routePath(screen, screen.redirectTo)}`);
+        await expect(page).toHaveURL(
+          (url) =>
+            url.origin === destination.origin &&
+            url.pathname === destination.pathname &&
+            url.searchParams.toString() === destination.searchParams.toString(),
+        );
         await expect(page.getByRole("heading", { level: 1 })).toHaveText(name(fixture));
       }
       if (["register", "schema-register"].includes(screen.family)) {
@@ -373,7 +396,9 @@ try {
     await expect(controlLink).toHaveText(implementedControl.title);
     await controlLink.click();
     await expect(page).toHaveURL(`${origin}${controlPath}`);
-    await expect(page).toHaveTitle("Program control — Program Assurance");
+    await expect(page).toHaveTitle(
+      `${implementedControl.title} — Program control — Program Assurance`,
+    );
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(implementedControl.title);
     await bounds(width, controlPath);
     console.log(`PASS ${width}px program Controls name link opens ${controlPath}`);

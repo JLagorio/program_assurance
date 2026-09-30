@@ -10,8 +10,10 @@ import ts from "typescript";
 import ledger from "../eslint-plugin/index.js";
 import {
   inventoryPath,
-  packageComponentNames,
+  packageInventory,
+  publicComponentHomes,
   publicComponentNames,
+  publicComponentStyleProps,
 } from "../build/lint-inventory.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -48,6 +50,62 @@ test("public inventory follows the barrel, including aliases, layout and type-on
       skipLibCheck: true,
     });
     assert.deepEqual(publicComponentNames(program, entry), ["Badge", "PageHeader"]);
+    // Each part's home is the module that declares it, through an alias and a barrel.
+    assert.deepEqual(publicComponentHomes(program, entry, directory), {
+      Badge: "parts",
+      PageHeader: "layout/header",
+    });
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("a part's styling props are the choices and is… flags it declares, its members' too", () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "ledger-lint-style-props-"));
+  try {
+    const src = path.join(directory, "src");
+    fs.mkdirSync(src);
+    fs.mkdirSync(path.join(directory, "vendor"));
+    // What another package declares (the DOM's, Base UI's) is not the part's own.
+    fs.writeFileSync(
+      path.join(directory, "vendor/base.ts"),
+      `export type BaseProps = { side?: "top" | "bottom"; isOpen?: boolean };`,
+    );
+    fs.writeFileSync(
+      path.join(src, "badge.ts"),
+      `import type { BaseProps } from "../vendor/base";
+type BadgeProps = BaseProps & {
+  className?: string;
+  as?: "span" | "div";
+  variant?: "neutral" | "danger" | undefined;
+  isSelected?: boolean;
+  open?: boolean;
+  isLoading?: boolean;
+  size?: 1 | 2;
+  label?: string;
+  state?: "idle" | "busy";
+  onPick?: () => void;
+};
+function BadgeRoot(props: BadgeProps) { return props; }
+function Dot(props: { tone?: "red" | "blue" }) { return props; }
+export const Badge = Object.assign(BadgeRoot, { Dot });
+export function Plain(props: { label: string }) { return props; }`,
+    );
+    const entry = path.join(src, "index.ts");
+    fs.writeFileSync(entry, `export { Badge, Plain } from "./badge";`);
+    const program = ts.createProgram([entry], {
+      module: ts.ModuleKind.ESNext,
+      moduleResolution: ts.ModuleResolutionKind.Bundler,
+      strict: true,
+      skipLibCheck: true,
+    });
+    // Choices first, then the is… flags, each in declaration order; className, the element, a
+    // handler, a load state, a pending flag, a plain boolean and a string are none; a part with
+    // none is left out.
+    assert.deepEqual(publicComponentStyleProps(program, entry, src), {
+      Badge: ["variant", "size", "isSelected"],
+      "Badge.Dot": ["tone"],
+    });
   } finally {
     fs.rmSync(directory, { recursive: true, force: true });
   }
@@ -56,8 +114,8 @@ test("public inventory follows the barrel, including aliases, layout and type-on
 test("shipped component inventory matches current public exports", () => {
   assert.deepEqual(
     JSON.parse(fs.readFileSync(inventoryPath, "utf8")),
-    { components: packageComponentNames() },
-    "Run npm run build:lint -w packages/design-system after changing public exports.",
+    packageInventory(),
+    "Run npm run build:lint -w packages/design-system after changing public exports or a part's props.",
   );
 });
 

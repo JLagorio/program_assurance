@@ -41,8 +41,26 @@ export const TaskRowMatrix: Story = {
         onCompletedChange={() => undefined}
         status="Saving changes"
       />
+      <TaskRow title="File the minutes" completed />
     </Item.Group>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // The checkbox is named for the task, whether it is done or not; its state says which.
+    await expect(canvas.getByRole("checkbox", { name: "Review draft" })).not.toBeChecked();
+    await expect(canvas.getByRole("checkbox", { name: "Check figures" })).toBeChecked();
+    await expect(canvas.getByRole("checkbox", { name: "Save confirmation" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    // A completed row without a checkbox says so in words, not only with the strike-through.
+    const done = canvas.getByText("File the minutes");
+    await expect(done.textContent).toBe("File the minutes, completed");
+    await expect(canvas.getByText("Tomorrow").closest("time")).toHaveAttribute(
+      "datetime",
+      "2026-09-07",
+    );
+  },
 };
 
 export const Completion: Story = {
@@ -69,15 +87,16 @@ export const Completion: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await userEvent.click(canvas.getByRole("checkbox", { name: "Complete: Review draft" }));
-    await expect(canvas.getByRole("checkbox", { name: "Reopen: Review draft" })).toBeChecked();
+    // One name through the change: the checked state, not the name, says the task is done.
+    const checkbox = canvas.getByRole("checkbox", { name: "Review draft" });
+    await userEvent.click(checkbox);
+    await expect(checkbox).toBeChecked();
+    await expect(checkbox).toHaveAccessibleName("Review draft");
     await expect(canvas.getByText("Opened: 0; actions: 0")).toBeVisible();
     await userEvent.keyboard(" ");
-    await expect(
-      canvas.getByRole("checkbox", { name: "Complete: Review draft" }),
-    ).not.toBeChecked();
+    await expect(checkbox).not.toBeChecked();
     await fireEvent.click(canvasElement.querySelector<HTMLInputElement>('input[type="checkbox"]')!);
-    await expect(canvas.getByRole("checkbox", { name: "Reopen: Review draft" })).toBeChecked();
+    await expect(checkbox).toBeChecked();
     await expect(canvas.getByText("Opened: 0; actions: 0")).toBeVisible();
     await userEvent.click(canvas.getByRole("button", { name: "Review draft" }));
     await userEvent.click(canvas.getByRole("button", { name: "Details" }));

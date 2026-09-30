@@ -1,11 +1,11 @@
 import { ProductCollection } from "./product-collection";
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { AlertCircle } from "lucide-react";
 import {
   Absent,
   Alert,
   AlertDescription,
+  AlertIcon,
   AlertTitle,
   Button,
   DataTable,
@@ -50,7 +50,12 @@ import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { useWorkspace } from "@/components/app/workspace";
 import { database, requireIdentity } from "@/lib/database";
 import { useRow, useRows, type Row } from "@/lib/models";
-import { implementationStatuses, revisionStates, type StatusVocabulary } from "@/lib/status";
+import {
+  implementationStatuses,
+  recordedImplementationStatuses,
+  revisionStates,
+  type StatusVocabulary,
+} from "@/lib/status";
 import { resolutionChain } from "@/lib/profile-chain";
 import { ControlInspector } from "./library-controls";
 import { RecordLink, useDisplayedRecords } from "./record-preview";
@@ -137,23 +142,13 @@ const controlSources: StatusVocabulary<ControlSource> = {
   excluded: { label: "Excluded here", tone: "warning", rank: 2 },
 };
 
-/** The boundary SSP's implementation status, and a control the SSP has no statement for yet. */
-const implementationColumn: StatusVocabulary = {
-  ...implementationStatuses,
-  not_recorded: {
-    label: "Not recorded",
-    tone: "neutral",
-    rank: Object.keys(implementationStatuses).length,
-  },
-};
-
 type ControlRow = {
   id: string;
   code: string;
   title: string;
   source: ControlSource;
   rationale: string | null;
-  /** The stored implementation status, or `not_recorded`. */
+  /** The stored implementation status, or `unrecorded` where the boundary SSP has none yet. */
   implementation: string;
   requirements: number;
   control: Row<"controls">;
@@ -170,7 +165,7 @@ const presets: Preset[] = [
   {
     id: "unimplemented",
     label: "No implementation",
-    filters: [{ id: "implementation", value: ["not_recorded"] }],
+    filters: [{ id: "implementation", value: ["unrecorded"] }],
   },
 ];
 
@@ -351,7 +346,7 @@ export function SystemControls({
           : sourceKind === "added"
             ? (system.data?.baseline_rationale ?? null)
             : null,
-      implementation: implementationByControl.get(control.id) ?? "not_recorded",
+      implementation: implementationByControl.get(control.id) ?? "unrecorded",
       requirements: revisionsByControl.get(control.id)?.size ?? 0,
       control,
       selectionId: selectionIdByControl.get(control.id),
@@ -408,9 +403,10 @@ export function SystemControls({
         c.status("implementation", {
           header: "Implementation",
           width: 150,
-          statuses: implementationColumn,
+          // The SSP register's vocabulary: a control nobody has implemented yet is `unrecorded`.
+          statuses: recordedImplementationStatuses,
           cell: (row) =>
-            row.implementation === "not_recorded" ? (
+            row.implementation === "unrecorded" ? (
               <Absent label="Not recorded" />
             ) : (
               <StatusBadge statuses={implementationStatuses} value={row.implementation} />
@@ -896,7 +892,7 @@ function BaselineDialog({
             <Stack space="space.250">
               {failure ? (
                 <Alert ref={failureRef} variant="destructive" role="alert">
-                  <AlertCircle aria-hidden />
+                  <AlertIcon />
                   <AlertTitle>The baseline was not changed</AlertTitle>
                   <AlertDescription>{failure}</AlertDescription>
                 </Alert>

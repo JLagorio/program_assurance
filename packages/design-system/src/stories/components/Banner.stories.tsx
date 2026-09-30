@@ -16,27 +16,36 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Every tone alone, with an action, and truncated in a narrow screen. */
+/** Every tone alone, with an action, and on a phone. A bar narrower than 42rem wraps its message, with the action after the last word; a wider one is one line. */
 export const BannerMatrix: Story = {
   render: () => (
     <Matrix
       rows={["information", "warning", "danger"] as const}
-      cols={["message", "with an action", "narrow, truncated"] as const}
+      cols={["message", "with an action", "on a phone, wrapped"] as const}
       rowLabel="tone"
       render={(tone, col) => (
-        <div style={{ width: col === "narrow, truncated" ? 320 : 480 }}>
+        <div style={{ width: col === "on a phone, wrapped" ? 320 : 720 }}>
           <Banner
             tone={tone}
-            action={col === "with an action" ? <a href="#action">See what changed</a> : undefined}
+            action={col === "message" ? undefined : <a href="#action">See what changed</a>}
           >
-            {col === "narrow, truncated"
-              ? "A message long enough that it cannot fit on one line of a narrow screen and is cut"
+            {col === "on a phone, wrapped"
+              ? "The audit window closes in three days; evidence uploads lock after that."
               : "A message about the whole site, one line."}
           </Banner>
         </div>
       )}
     />
   ),
+  play: async ({ canvasElement }) => {
+    const banners = canvasElement.querySelectorAll<HTMLElement>('[data-slot="banner"]');
+    for (const banner of banners) {
+      const message = banner.querySelector<HTMLElement>('[data-slot="banner-message"]')!;
+      // Nothing is cut: on a phone the message wraps; on a wide bar this one fits its line.
+      await expect(message.scrollWidth).toBeLessThanOrEqual(message.clientWidth + 1);
+      await expect(message).not.toHaveAttribute("title");
+    }
+  },
 };
 
 /** The three messages a banner carries: something changed, something is about to, something is lost. */
@@ -91,7 +100,7 @@ export const Banners: Story = {
     await expect(actionRef.current).toBe(action);
     await expect(notice).toHaveAttribute("id", "catalogue-notice");
     await expect(notice).toHaveAttribute("data-revision", "5.2");
-    await expect(notice).toHaveClass("px-300", "h-layout-banner");
+    await expect(notice).toHaveClass("px-300");
     await expect(notice).not.toHaveClass("px-200");
     await expect(notice).toHaveStyle({ maxWidth: "720px" });
     await expect(action).toHaveAttribute("id", "catalogue-action");
@@ -110,6 +119,47 @@ export const Banners: Story = {
     await expect(canvas.getByRole("status")).toHaveTextContent("The audit window closes");
     await expect(canvas.getByRole("alert")).toHaveTextContent("We have lost the connection");
     await expect(notice.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+  },
+};
+
+const long =
+  "The audit window closes in three days; evidence uploads lock after that, and findings can no longer be closed.";
+
+/** A message too long for its bar. On a bar 42rem wide or more it is one line, cut with an ellipsis, and the whole message is its title; on a phone it wraps, and the bar grows with it. */
+export const LongMessage: Story = {
+  name: "Long message",
+  render: () => (
+    <Stack space="space.200">
+      <div style={{ width: 720, maxWidth: "100%" }} data-testid="wide">
+        <Banner tone="warning" action={<a href="#renew">Ask for an extension</a>}>
+          {long}
+        </Banner>
+      </div>
+      <div style={{ width: 320, maxWidth: "100%" }} data-testid="phone">
+        <Banner tone="warning" action={<a href="#renew">Ask for an extension</a>}>
+          {long}
+        </Banner>
+      </div>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const part = (id: string, slot: string) =>
+      canvas.getByTestId(id).querySelector<HTMLElement>(`[data-slot="${slot}"]`)!;
+    const phone = part("phone", "banner");
+    // The phone's bar wraps: taller than one 48px line, nothing cut, the action in the flow.
+    await expect(phone.getBoundingClientRect().height).toBeGreaterThan(48);
+    const phoneMessage = part("phone", "banner-message");
+    await expect(phoneMessage.scrollWidth).toBeLessThanOrEqual(phoneMessage.clientWidth + 1);
+    await expect(within(phone).getByRole("link", { name: "Ask for an extension" })).toBeVisible();
+    // The wide bar is one line; where it cuts the message, the message is its own title.
+    const wide = part("wide", "banner");
+    const wideMessage = part("wide", "banner-message");
+    if (wide.getBoundingClientRect().width >= 672) {
+      await expect(wide.getBoundingClientRect().height).toBe(48);
+      if (wideMessage.scrollWidth > wideMessage.clientWidth + 1)
+        await expect(wideMessage).toHaveAttribute("title", long);
+    }
   },
 };
 
@@ -160,7 +210,7 @@ export const Dont: Story = {
             be closed, and the package snapshot is what the assessor sees.
           </Banner>
         }
-        dontText="Two sentences and two actions in one link. It truncates; the reader gets neither."
+        dontText="Two sentences and two actions in one link. A wide bar cuts it and a phone gives it the top of the screen; the reader gets neither."
       />
     </Stack>
   ),

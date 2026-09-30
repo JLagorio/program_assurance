@@ -1,4 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { RecordPending } from "@/components/app/shell";
+import { useRecordTitle } from "@/components/app/browser-title";
+import { useRow } from "@/lib/models";
 import {
   ComponentLibraryRecord,
   type ComponentTab,
@@ -28,10 +31,13 @@ export const Route = createFileRoute("/library/components/$componentKey")({
     ...(isComponentTab(search["tab"]) ? { tab: search["tab"] } : {}),
   }),
   head: () => ({ meta: [{ title: "Component — Program Assurance" }] }),
+  pendingComponent: RecordPending,
   component: ComponentPage,
 });
 function ComponentPage() {
   const { componentKey } = Route.useParams();
+  const record = useRow("component_definitions", componentKey);
+  useRecordTitle("Component", record.data?.name);
   const { version, tab } = Route.useSearch();
   const navigate = Route.useNavigate();
   return (
@@ -39,9 +45,7 @@ function ComponentPage() {
       id={componentKey}
       {...(version ? { initialVersion: version } : {})}
       tab={isComponentTab(tab) ? tab : undefined}
-      onTabChange={(next) =>
-        void navigate({ search: (previous) => ({ ...previous, tab: next }), replace: true })
-      }
+      onTabChange={(next) => void navigate({ search: (previous) => ({ ...previous, tab: next }) })}
     />
   );
 }

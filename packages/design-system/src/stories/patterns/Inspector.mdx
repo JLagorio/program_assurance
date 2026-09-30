@@ -9,7 +9,7 @@ import * as Stories from "./Inspector.stories";
 
 Groups of a record's facts: state, owner, identifiers and dates, as label and value rows under a title that folds. It is the Details rail beside a record's work area, and the Details block in a preview or a panel. The surrounding layout owns where it sits and how it scrolls.
 
-`Inspector` takes the groups as data and opens every one. `Inspector.Group` is one group on its own, with KeyValue rows (or a row of Badges, a short list) as children and an action beside its title.
+`Inspector` takes the groups as data, opens every one and renders each as an Inspector.Group. `Inspector.Group` is one group on its own, with its facts as children and an action beside its title. A group's KeyValue rows go in one [KeyValue.Group](?path=/docs/components-keyvalue--docs), so a screen reader hears one list of pairs per group, and the group gives them one label width; KeyValues given directly, and nothing else, become one KeyValue.Group. A row of Badges or a short list sits beside or instead of it.
 
 <Canvas of={Stories.Groups} />
 
@@ -36,7 +36,8 @@ A group's heading takes the contextual level, an h3 when nothing sets one. On a 
 
 ## Accessibility
 
-- Every group title is a button inside a heading, so the rail is in the heading outline and each group's state is announced ("Provenance, collapsed, button"). Enter and Space toggle it; focus stays on it.
+- Every group title is a button inside a heading, so the rail is in the heading outline and each group's state is announced ("Provenance, collapsed, button"). Enter and Space toggle it; focus stays on it. Both forms behave the same, because the data form is made of Inspector.Groups.
+- A group's facts are one definition list ("list, 4 items"), not one list per fact.
 - Open and closed look different by more than colour: the chevron turns. Under reduced motion it turns without moving and the rows appear without the fold.
 - The action is its own tab stop after the title, outside the heading, and names what it acts on ("Edit details").
 - Give the rail's region a label (Shell.Aside's `label`), and set the level so the groups sit under the right parent, as above.

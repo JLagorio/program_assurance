@@ -1,43 +1,55 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createContext, useContext, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
-import { ChevronDown, Plus } from "lucide-react";
+import { ChevronDown, MoreHorizontal, Plus } from "lucide-react";
 import {
+  Alert,
+  AlertAction,
+  AlertDescription,
+  AlertTitle,
   Badge,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
   Button,
   DataTable,
+  DateTime,
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLinkItem,
+  DropdownMenuTrigger,
   Editable,
   Field,
   FieldLabel,
+  HeadingLevelProvider,
+  IconButton,
   Inline,
   Input,
+  Inspector,
   KeyValue,
   PageHeader,
-  PreviewNavigation,
   Person,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  Section,
+  PreviewNavigation,
+  Prose,
   Scroller,
   ScrollerArrow,
   ScrollerViewport,
+  Section,
   Shell,
   Stack,
-  Table,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-  Text,
+  TextLink,
   Toolbar,
   defineColumns,
+  displayedRows,
+  showRow,
   useDataTable,
   type Tone,
 } from "../..";
@@ -47,33 +59,16 @@ export default meta;
 type Story = StoryObj;
 const RecordContext = createContext("Unavailable");
 
-function RecordProperties() {
+/* ---------- a record page ---------- */
+
+/** The record's Details rail: state, owner, identifiers and dates, the two a reader changes in place as Editables. */
+function RecordDetails() {
   const initialOwner = useContext(RecordContext);
   const [owner, setOwner] = useState(initialOwner);
   const [status, setStatus] = useState("In progress");
   return (
-    <Shell.Aside label="Record properties">
-      <Section title="Properties">
-        <KeyValue label="Owner">
-          <Editable.Select
-            label="Owner"
-            value={owner}
-            onChange={setOwner}
-            save={async () => {}}
-            options={[
-              initialOwner,
-              "Amara Bell",
-              "Dan Whitfield",
-              "Elena Vasquez",
-              "Hana Lindqvist",
-              "Joel Barrantes",
-              "Marcus Ryde",
-              "Priya Raghavan",
-              "Sarah Chen",
-            ]}
-            render={(name) => <Person name={name} />}
-          />
-        </KeyValue>
+    <Shell.Aside label="Details">
+      <Inspector.Group title="Details">
         <KeyValue label="Status">
           <Editable.Select<string>
             label="Status"
@@ -88,21 +83,98 @@ function RecordProperties() {
             )}
           />
         </KeyValue>
-      </Section>
+        <KeyValue label="Owner">
+          <Editable.Select
+            label="Owner"
+            value={owner}
+            onChange={setOwner}
+            save={async () => {}}
+            options={[initialOwner, "Amara Bell", "Dan Whitfield", "Priya Raghavan", "Sarah Chen"]}
+            render={(name) => <Person name={name} />}
+          />
+        </KeyValue>
+        <KeyValue label="Identifier">REQ-104</KeyValue>
+        <KeyValue label="Updated">
+          <DateTime value="2026-09-12" />
+        </KeyValue>
+      </Inspector.Group>
     </Shell.Aside>
   );
 }
 
+type Evidence = { id: string; name: string; state: "Draft" | "Published"; updated: string };
+const evidence: Evidence[] = [
+  { id: "EVD-210", name: "Quarterly access review", state: "Published", updated: "2026-09-10" },
+  { id: "EVD-211", name: "Privileged account register", state: "Published", updated: "2026-09-04" },
+  { id: "EVD-212", name: "Revocation test results", state: "Draft", updated: "2026-09-12" },
+];
+const evidenceColumns = defineColumns<Evidence>((c) => [
+  c.id("id"),
+  c.text("name", {
+    header: "Name",
+    minWidth: 200,
+    priority: 0,
+    cell: (row) => <TextLink href={`#evidence-${row.id}`}>{row.name}</TextLink>,
+  }),
+  c.status("state", {
+    header: "State",
+    tone: (row) => (row.state === "Published" ? "success" : "neutral"),
+  }),
+  c.date("updated", { header: "Updated", width: 120 }),
+]);
+
+/** A tab whose only content is a collection: the Toolbar and the table, with no heading over them and no rail beside them. */
+function EvidenceTab() {
+  const table = useDataTable({
+    columns: evidenceColumns,
+    data: evidence,
+    getRowId: (row) => row.id,
+    label: "Evidence",
+  });
+  return (
+    <DataTable
+      fill
+      responsive
+      table={table}
+      toolbar={
+        <Toolbar
+          search={String(table.state.globalFilter ?? "")}
+          onSearch={(value) => table.setGlobalFilter(value)}
+          placeholder="Search evidence"
+          actions={
+            <Button size="small" variant="primary" iconBefore={<Plus />}>
+              Add evidence
+            </Button>
+          }
+        >
+          <DataTable.Columns table={table} />
+        </Toolbar>
+      }
+      empty={{ title: "No evidence yet" }}
+    />
+  );
+}
+
+/** A record: the trail in the Lead with the code as its last level, the name as the h1, one Actions menu; tabs; on Overview the body's Sections and the Details rail beside them. */
 function RecordPage() {
   const [tab, setTab] = useState("overview");
-  const [method, setMethod] = useState("Examine");
   return (
     <RecordContext.Provider value="Alex Morgan">
       <Stack space="space.200">
         <PageHeader>
+          <PageHeader.Lead render={<Breadcrumb />}>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="#requirements">Requirements</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>REQ-104</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </PageHeader.Lead>
           <PageHeader.Heading>
             <PageHeader.Title>Review privileged access</PageHeader.Title>
-            <PageHeader.Description>REQ-104 · Access management</PageHeader.Description>
           </PageHeader.Heading>
           <PageHeader.Actions>
             <DropdownMenu>
@@ -112,133 +184,46 @@ function RecordPage() {
               <DropdownMenuContent align="end">
                 <DropdownMenuItem>Request review</DropdownMenuItem>
                 <DropdownMenuItem>Approve</DropdownMenuItem>
+                <DropdownMenuLinkItem href="#schema/requirements/req-104">
+                  Inspect record
+                </DropdownMenuLinkItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </PageHeader.Actions>
         </PageHeader>
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList variant="line" aria-label="Record sections">
+          <TabsList variant="line" aria-label="Requirement sections">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="evidence">Evidence</TabsTrigger>
           </TabsList>
           <TabsContent value="overview">
-            <Section title="Assessment">
-              <Stack space="space.200" className="max-w-layout-measure">
-                <Field>
-                  <FieldLabel htmlFor="review-method">Assessment method</FieldLabel>
-                  <Select
-                    value={method}
-                    onValueChange={(value) => value && setMethod(value)}
-                    items={[
-                      { value: "Examine", label: "Examine" },
-                      { value: "Test", label: "Test" },
-                    ]}
-                  >
-                    <SelectTrigger id="review-method" className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent alignItemWithTrigger={false} style={{ width: 300 }}>
-                      {[
-                        [
-                          "Examine",
-                          "Review the policy, account register and evidence of completed access reviews.",
-                        ],
-                        [
-                          "Test",
-                          "Verify that privileged access expires and revoked accounts cannot sign in.",
-                        ],
-                      ].map(([value, description]) => (
-                        <SelectItem key={value} value={value} label={value} aria-label={value}>
-                          <span className="flex min-w-0 flex-col gap-025">
-                            <span className="font-medium">{value}</span>
-                            <span className="font-body-small text-subtle">{description}</span>
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="review-note">Review note</FieldLabel>
-                  <Input id="review-note" placeholder="What should the reviewer check?" />
-                </Field>
-                <Inline space="space.100" shouldWrap>
-                  <Button variant="primary">Request review</Button>
-                  <Button iconBefore={<Plus />}>Add evidence</Button>
-                </Inline>
-              </Stack>
-            </Section>
+            <Stack space="space.300" className="max-w-layout-measure pt-200">
+              <Section title="Statement">
+                <Prose>
+                  Privileged access to the platform and its supporting services is reviewed every
+                  quarter, and access that is no longer needed is revoked within five working days.
+                </Prose>
+              </Section>
+              <Section title="Acceptance criteria" count={2}>
+                <Prose>
+                  {"Every privileged account has a named owner.\nA revoked account cannot sign in."}
+                </Prose>
+              </Section>
+            </Stack>
           </TabsContent>
           <TabsContent value="evidence">
-            <Section title="Evidence" count={2}>
-              <Button>Attach evidence</Button>
-            </Section>
+            <div className="pt-200">
+              <EvidenceTab />
+            </div>
           </TabsContent>
-          {tab === "overview" && <RecordProperties />}
+          {tab === "overview" && <RecordDetails />}
         </Tabs>
       </Stack>
     </RecordContext.Provider>
   );
 }
 
-function Queue() {
-  const [selected, setSelected] = useState(false);
-  const [draft, setDraft] = useState("");
-  return (
-    <Stack space="space.200">
-      <PageHeader>
-        <PageHeader.Title>Findings</PageHeader.Title>
-        <PageHeader.Actions>
-          <Button>Import</Button>
-        </PageHeader.Actions>
-      </PageHeader>
-      <Field>
-        <FieldLabel htmlFor="queue-filter">Filter findings</FieldLabel>
-        <Input id="queue-filter" placeholder="Search findings" />
-      </Field>
-      <Button onClick={() => setSelected(true)}>Inspect FND-104</Button>
-      {selected && (
-        <Shell.Panel
-          title="Incomplete account review"
-          label="Finding preview"
-          onClose={() => setSelected(false)}
-          actions={
-            <PreviewNavigation
-              position={1}
-              total={1}
-              openLink={<a href="#finding-fnd-104" target="_blank" rel="noopener noreferrer" />}
-            />
-          }
-        >
-          <Stack space="space.200">
-            <KeyValue label="Owner">Alex Morgan</KeyValue>
-            <Field>
-              <FieldLabel htmlFor="finding-note">Working note</FieldLabel>
-              <Input id="finding-note" value={draft} onValueChange={setDraft} />
-            </Field>
-            <Table label="Linked records" style={{ minWidth: 800 }}>
-              <thead>
-                <Table.Row>
-                  <Table.Header>Record</Table.Header>
-                  <Table.Header>Owner</Table.Header>
-                  <Table.Header>Assessment</Table.Header>
-                </Table.Row>
-              </thead>
-              <tbody>
-                <Table.Row>
-                  <Table.Cell>FND-104</Table.Cell>
-                  <Table.Cell>Alex Morgan</Table.Cell>
-                  <Table.Cell>Needs review</Table.Cell>
-                </Table.Row>
-              </tbody>
-            </Table>
-            <Button>Open full record</Button>
-          </Stack>
-        </Shell.Panel>
-      )}
-    </Stack>
-  );
-}
+/* ---------- a register ---------- */
 
 type Risk = {
   id: string;
@@ -269,15 +254,20 @@ const risks: Risk[] = Array.from({ length: 60 }, (_, i) => ({
 }));
 const riskColumns = defineColumns<Risk>((c) => [
   c.id("id"),
-  c.text("title", { header: "Risk", minWidth: 200, priority: 0 }),
+  c.text("title", {
+    header: "Risk",
+    minWidth: 200,
+    priority: 0,
+    cell: (row) => <TextLink href={`#risk-${row.id}`}>{row.title}</TextLink>,
+  }),
   c.status("status", { header: "Status", tone: (r) => riskTone[r.status] }),
   c.person("owner", { header: "Owner" }),
   c.date("updated", { header: "Updated", width: 120 }),
 ]);
 
-/** A record's register tab: the header, the tab strip, and the register filling the rest of the window. The tab names the collection, so the tab starts with the Toolbar and the table, with no heading or Section around the only table. A note added above it re-fits the page. */
+/** A page that is one collection: the name alone in the header, then the table filling the rest of the window under its Toolbar (the search, the saved views, a filter, Columns, Settings and the collection's overflow, and one small primary). A failed refresh keeps the rows under one alert with Retry, and the table re-fits under it. */
 function RegisterPage() {
-  const [noted, setNoted] = useState(false);
+  const [refreshFailed, setRefreshFailed] = useState(false);
   const table = useDataTable({
     columns: riskColumns,
     data: risks,
@@ -289,52 +279,258 @@ function RegisterPage() {
     <Stack space="space.200" className="min-w-0">
       <PageHeader>
         <PageHeader.Heading>
-          <PageHeader.Title>WS-X90 Sentinel Mission System</PageHeader.Title>
-          <PageHeader.Description>PRG-1090 · Program</PageHeader.Description>
+          <PageHeader.Title>Risks</PageHeader.Title>
         </PageHeader.Heading>
-        <PageHeader.Actions>
-          <Button onClick={() => setNoted(true)}>Add note</Button>
-        </PageHeader.Actions>
       </PageHeader>
-      <Tabs value="risk">
-        <TabsList variant="line" aria-label="Program sections">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="risk">Risk</TabsTrigger>
-        </TabsList>
-        <TabsContent value="risk">
-          <Stack space="space.150" className="pt-200">
-            {noted && (
-              <Text role="status">
-                The register was reviewed on 12 Sep 2026; no risk was closed.
-              </Text>
-            )}
-            <DataTable
-              fill
-              responsive
-              table={table}
-              toolbar={
-                <Toolbar
-                  search={String(table.state.globalFilter ?? "")}
-                  onSearch={(value) => table.setGlobalFilter(value)}
-                  placeholder="Search risks"
-                  filters={<DataTable.Filter table={table} column="status" />}
-                  actions={
-                    <Button size="small" variant="primary" iconBefore={<Plus />}>
-                      Create risk
-                    </Button>
-                  }
-                >
-                  <DataTable.Columns table={table} />
-                </Toolbar>
-              }
-              empty={{ title: "No risks yet" }}
-            />
-          </Stack>
-        </TabsContent>
-      </Tabs>
+      {refreshFailed && (
+        <Alert variant="danger">
+          <AlertTitle>The risks could not be refreshed</AlertTitle>
+          <AlertDescription>The rows below are the ones loaded before.</AlertDescription>
+          <AlertAction>
+            <Button size="small" onClick={() => setRefreshFailed(false)}>
+              Retry
+            </Button>
+          </AlertAction>
+        </Alert>
+      )}
+      <DataTable
+        fill
+        responsive
+        table={table}
+        toolbar={
+          <Toolbar
+            search={String(table.state.globalFilter ?? "")}
+            onSearch={(value) => table.setGlobalFilter(value)}
+            placeholder="Search risks"
+            views={
+              <DataTable.Presets
+                table={table}
+                variant="menu"
+                presets={[
+                  { id: "all", label: "All risks" },
+                  { id: "open", label: "Open", filters: [{ id: "status", value: ["Open"] }] },
+                ]}
+              />
+            }
+            filters={<DataTable.Filter table={table} column="status" />}
+            actions={
+              <Button size="small" variant="primary" iconBefore={<Plus />}>
+                Create risk
+              </Button>
+            }
+          >
+            <DataTable.Columns table={table} />
+            <DataTable.Settings table={table} />
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <IconButton
+                    label="Collection actions"
+                    icon={<MoreHorizontal />}
+                    size="small"
+                    variant="secondary"
+                  />
+                }
+              />
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setRefreshFailed(true)}>Refresh</DropdownMenuItem>
+                <DropdownMenuItem>Export</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </Toolbar>
+        }
+        empty={{ title: "No risks yet" }}
+      />
     </Stack>
   );
 }
+
+/* ---------- a preview beside a register ---------- */
+
+type Finding = {
+  id: string;
+  title: string;
+  status: "Open" | "In review" | "Closed";
+  owner: string;
+  due: string;
+};
+const findings: Finding[] = [
+  {
+    id: "FND-104",
+    title: "Incomplete account review",
+    status: "Open",
+    owner: "Alex Morgan",
+    due: "2026-10-15",
+  },
+  {
+    id: "FND-105",
+    title: "Stale access for departed staff",
+    status: "In review",
+    owner: "Priya Raghavan",
+    due: "2026-10-22",
+  },
+  {
+    id: "FND-106",
+    title: "Shared administrator credentials",
+    status: "Open",
+    owner: "Marcus Ryde",
+    due: "2026-11-01",
+  },
+];
+const findingTone: Record<Finding["status"], Tone> = {
+  Open: "warning",
+  "In review": "information",
+  Closed: "success",
+};
+
+const findingColumns = defineColumns<Finding>((c) => [
+  c.id("id"),
+  c.text("title", {
+    header: "Finding",
+    minWidth: 200,
+    priority: 0,
+    cell: (row) => <TextLink href={`#finding-${row.id}`}>{row.title}</TextLink>,
+  }),
+  c.status("status", { header: "Status", tone: (row) => findingTone[row.status] }),
+  c.person("owner", { header: "Owner" }),
+  c.date("due", { header: "Due", width: 120 }),
+]);
+
+/** The register of findings: its name alone in the header, then the table. The eye on each row's id opens the preview beside it, and the table stays mounted underneath, so its search survives. */
+function Queue() {
+  const [selected, setSelected] = useState<string | null>(null);
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const table = useDataTable({
+    columns: findingColumns,
+    data: findings,
+    getRowId: (row) => row.id,
+    label: "Findings",
+    preview: {
+      onPreview: (row) => setSelected(row.id),
+      activeId: selected,
+    },
+  });
+  // Previous and next walk every row the search and filters leave, across pages.
+  const order = displayedRows(table).map((row) => row.id);
+  const position = selected ? order.indexOf(selected) + 1 : 0;
+  const step = (by: number) => {
+    const next = order[position - 1 + by];
+    if (!next) return;
+    showRow(table, next);
+    setSelected(next);
+  };
+  const finding = findings.find((row) => row.id === selected);
+  return (
+    <Stack space="space.200" className="min-w-0">
+      <PageHeader>
+        <PageHeader.Heading>
+          <PageHeader.Title>Findings</PageHeader.Title>
+        </PageHeader.Heading>
+      </PageHeader>
+      <DataTable
+        fill
+        responsive
+        table={table}
+        toolbar={
+          <Toolbar
+            search={String(table.state.globalFilter ?? "")}
+            onSearch={(value) => table.setGlobalFilter(value)}
+            placeholder="Search findings"
+            actions={
+              <Button size="small" variant="primary" iconBefore={<Plus />}>
+                Create finding
+              </Button>
+            }
+          >
+            <DataTable.Columns table={table} />
+          </Toolbar>
+        }
+        empty={{ title: "No findings yet" }}
+      />
+      {finding && (
+        <Shell.Panel label="Finding preview" onClose={() => setSelected(null)}>
+          <Shell.Panel.Splitter />
+          <Shell.Panel.Header>
+            <Shell.Panel.Actions>
+              <PreviewNavigation
+                position={position}
+                total={order.length}
+                recordLabel={finding.title}
+                onPrevious={() => step(-1)}
+                onNext={() => step(1)}
+                openLink={
+                  <a href={`#finding-${finding.id}`} target="_blank" rel="noopener noreferrer" />
+                }
+              />
+            </Shell.Panel.Actions>
+            <Shell.Panel.Close />
+          </Shell.Panel.Header>
+          <Shell.Panel.Body>
+            <Stack space="space.200">
+              <PageHeader>
+                <PageHeader.Heading>
+                  <PageHeader.Title>{finding.title}</PageHeader.Title>
+                </PageHeader.Heading>
+                <PageHeader.Actions>
+                  <Button size="small" variant="primary">
+                    Edit finding
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <IconButton
+                          label="More finding actions"
+                          icon={<MoreHorizontal />}
+                          size="small"
+                          variant="subtle"
+                        />
+                      }
+                    />
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>Close finding</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </PageHeader.Actions>
+              </PageHeader>
+              <HeadingLevelProvider>
+                <Stack space="space.200">
+                  <KeyValue.Group>
+                    <KeyValue label="Identifier">{finding.id}</KeyValue>
+                    <KeyValue label="Status">
+                      <Badge variant="secondary" tone={findingTone[finding.status]}>
+                        {finding.status}
+                      </Badge>
+                    </KeyValue>
+                    <KeyValue label="Owner">
+                      <Person name={finding.owner} />
+                    </KeyValue>
+                    <KeyValue label="Due">
+                      <DateTime value={finding.due} />
+                    </KeyValue>
+                  </KeyValue.Group>
+                  <Field>
+                    <FieldLabel htmlFor="finding-note">Working note</FieldLabel>
+                    <Input
+                      id="finding-note"
+                      value={drafts[finding.id] ?? ""}
+                      onValueChange={(value) =>
+                        setDrafts((current) => ({ ...current, [finding.id]: value }))
+                      }
+                    />
+                  </Field>
+                  <Section title="Linked records">
+                    <Prose>Two controls and one test run cite this finding.</Prose>
+                  </Section>
+                </Stack>
+              </HeadingLevelProvider>
+            </Stack>
+          </Shell.Panel.Body>
+        </Shell.Panel>
+      )}
+    </Stack>
+  );
+}
+/* ---------- the workspace ---------- */
 
 function Workspace({ initial = "record" }: { initial?: "record" | "queue" | "register" }) {
   const [route, setRoute] = useState(initial);
@@ -365,44 +561,58 @@ function Workspace({ initial = "record" }: { initial?: "record" | "queue" | "reg
   );
 }
 
+/** A record page: the trail, the name and one Actions menu; tabs; the body's Sections on Overview with the Details rail beside them, which leaves with the tab; and a tab that is a register, which fills the work area. */
 export const Record: Story = {
   render: () => <Workspace />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const shell = canvasElement.querySelector(".shell-root");
-    const aside = await canvas.findByRole("complementary", { name: "Record properties" });
-    await expect(within(aside).getByText("Alex Morgan")).toBeVisible();
+    // One h1, the name; the code is the trail's last level, not the title.
+    await expect(canvas.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    const trail = canvas.getByRole("navigation", { name: "Breadcrumb" });
+    await expect(within(trail).getByRole("link", { current: "page" })).toHaveTextContent("REQ-104");
+    // The page header is not a landmark: the top nav is the page's one banner.
+    await expect(canvas.getAllByRole("banner")).toHaveLength(1);
+    await expect(
+      canvasElement.querySelector('[data-slot="page-header-description"]'),
+    ).not.toBeInTheDocument();
+    // The Details rail is the Aside, outside Main, with its group at h2 under the page's h1.
+    const aside = await canvas.findByRole("complementary", { name: "Details" });
     await expect(canvas.getByRole("main")).not.toContainElement(aside);
+    await expect(within(aside).getByRole("heading", { name: "Details" }).tagName).toBe("H2");
+    await expect(within(aside).getByText("Alex Morgan")).toBeVisible();
+    await expect(within(aside).getByText("REQ-104")).toBeVisible();
+    // The body's Sections sit under the h1.
+    await expect(canvas.getByRole("heading", { name: "Statement" }).tagName).toBe("H2");
     const screen = within(canvasElement.ownerDocument.body);
     const actions = canvas.getByRole("button", { name: "Actions" });
     const restingColor = getComputedStyle(actions).backgroundColor;
     await userEvent.click(actions);
-    await screen.findByRole("menu");
+    const menu = await screen.findByRole("menu");
     await expect(actions).toHaveAttribute("aria-expanded", "true");
     await expect(actions).not.toHaveAttribute("aria-pressed");
     await waitFor(() => expect(getComputedStyle(actions).backgroundColor).not.toBe(restingColor));
+    // A destination in the menu is a link, the last item.
+    const items = within(menu).getAllByRole("menuitem");
+    await expect(items.at(-1)).toHaveTextContent("Inspect record");
+    await expect(items.at(-1)?.tagName).toBe("A");
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(actions).toHaveFocus());
-    await userEvent.click(canvas.getByRole("combobox", { name: "Assessment method" }));
-    const examine = await screen.findByRole("option", { name: "Examine" });
-    await waitFor(() => expect(within(examine).getByText(/Review the policy/)).toBeVisible());
-    await expect(examine.scrollHeight).toBeLessThanOrEqual(examine.clientHeight + 1);
-    await userEvent.keyboard("{ArrowDown}{Enter}");
-    await expect(canvas.getByRole("combobox", { name: "Assessment method" })).toHaveTextContent(
-      "Test",
-    );
+    // A tab that is a register: the Toolbar first, no heading over it, no rail beside it.
     await userEvent.click(canvas.getByRole("tab", { name: "Evidence" }));
     await waitFor(() =>
-      expect(
-        canvas.queryByRole("complementary", { name: "Record properties" }),
-      ).not.toBeInTheDocument(),
+      expect(canvas.queryByRole("complementary", { name: "Details" })).not.toBeInTheDocument(),
     );
-    await expect(canvas.getByRole("tabpanel", { name: "Evidence" })).toBeVisible();
+    const panel = canvas.getByRole("tabpanel", { name: "Evidence" });
+    await expect(panel).toBeVisible();
+    await expect(within(panel).queryByRole("heading")).toBeNull();
+    await expect(within(panel).getByRole("searchbox", { name: "Search evidence" })).toBeVisible();
+    await expect(
+      within(panel).getByRole("link", { name: "Quarterly access review" }),
+    ).toHaveAttribute("href", "#evidence-EVD-210");
     await userEvent.click(canvas.getByRole("button", { name: "Queue route" }));
     await expect(canvasElement.querySelector(".shell-root")).toBe(shell);
-    await expect(
-      canvas.queryByRole("complementary", { name: "Record properties" }),
-    ).not.toBeInTheDocument();
+    await expect(canvas.queryByRole("complementary", { name: "Details" })).not.toBeInTheDocument();
   },
 };
 
@@ -411,14 +621,35 @@ export const QueueWithPanel: Story = {
   render: () => <Workspace initial="queue" />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const filter = canvas.getByRole("textbox", { name: "Filter findings" });
-    await userEvent.type(filter, "access");
-    const opener = canvas.getByRole("button", { name: "Inspect FND-104" });
+    const search = canvas.getByRole("searchbox", { name: "Search findings" });
+    await userEvent.type(search, "account");
+    // The eye sits on the row's first value: the id, or the name where the id has folded away.
+    const eye = /^Preview (FND-104|Incomplete account review)$/;
+    const opener = await canvas.findByRole("button", { name: eye });
     await userEvent.click(opener);
-    const panel = await canvas.findByRole("complementary", { name: "Incomplete account review" });
+    // The landmark is named by its label, never by the record.
+    const panel = await canvas.findByRole("complementary", { name: "Finding preview" });
     await expect(canvasElement.querySelector("main")).not.toContainElement(panel);
     await waitFor(() => expect(panel.scrollWidth).toBeLessThanOrEqual(panel.clientWidth + 1));
-    const wide = window.matchMedia("(min-width: 80rem)").matches;
+    // The outer header is navigation only; the inner PageHeader names the record as its h2.
+    const outer = panel.querySelector<HTMLElement>('[data-slot="shell-panel-header"]')!;
+    await expect(within(outer).queryByRole("heading")).toBeNull();
+    await expect(within(outer).queryByText("Incomplete account review")).toBeNull();
+    await expect(within(outer).getByRole("button", { name: "Next record" })).toBeVisible();
+    await expect(within(outer).getByRole("link", { name: /^Open full record/ })).toHaveAttribute(
+      "href",
+      "#finding-FND-104",
+    );
+    const title = within(panel).getByRole("heading", { name: "Incomplete account review" });
+    await expect(title.tagName).toBe("H2");
+    await expect(title).toHaveAttribute("data-slot", "page-header-title");
+    await expect(within(panel).getByRole("heading", { name: "Linked records" }).tagName).toBe("H3");
+    await expect(within(panel).getByRole("button", { name: "Edit finding" })).toBeVisible();
+    await expect(
+      within(panel).queryByRole("button", { name: "Open full record" }),
+    ).not.toBeInTheDocument();
+    // From the large breakpoint the panel sits beside Main; below it, it replaces Main.
+    const wide = window.matchMedia("(min-width: 64rem)").matches;
     if (!wide) {
       await expect(canvasElement.querySelector("main")).not.toBeVisible();
       await expect(
@@ -440,7 +671,7 @@ export const QueueWithPanel: Story = {
           canvas.getByRole("banner", { name: "Top navigation" }).getBoundingClientRect().right,
         ).toBeLessThanOrEqual(box.left + 1);
       });
-      const resize = canvas.getByRole("separator", { name: "Resize details" });
+      const resize = canvas.getByRole("separator", { name: "Resize Finding preview" });
       resize.focus();
       const before = Number(resize.getAttribute("aria-valuenow"));
       await userEvent.keyboard("{ArrowLeft}");
@@ -448,9 +679,9 @@ export const QueueWithPanel: Story = {
         expect(Number(resize.getAttribute("aria-valuenow"))).toBeGreaterThan(before),
       );
     }
-    await userEvent.click(within(panel).getByRole("button", { name: "Close details" }));
+    await userEvent.click(within(panel).getByRole("button", { name: "Close Finding preview" }));
     await waitFor(() => expect(opener).toHaveFocus());
-    await expect(filter).toHaveValue("access");
+    await expect(search).toHaveValue("account");
     await userEvent.click(opener);
     const note = await canvas.findByRole("textbox", { name: "Working note" });
     await expect(note).toHaveValue("Request evidence");
@@ -458,15 +689,33 @@ export const QueueWithPanel: Story = {
     // Escape in a field belongs to the field: the panel stays open and the note keeps focus.
     await userEvent.keyboard("{Escape}");
     await expect(note).toHaveFocus();
-    const reopened = canvas.getByRole("complementary", { name: "Incomplete account review" });
+    const reopened = canvas.getByRole("complementary", { name: "Finding preview" });
     // Outside a field, Escape closes the panel and focus returns to the opener.
     reopened.focus();
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(opener).toHaveFocus());
-    await userEvent.click(opener);
+    // Previous and next follow the table's displayed rows: with the search cleared, all three.
+    await userEvent.clear(search);
+    await userEvent.click(await canvas.findByRole("button", { name: eye }));
+    const walking = await canvas.findByRole("complementary", { name: "Finding preview" });
+    // The position is said with the record's name, once the region has settled.
+    await waitFor(() =>
+      expect(within(walking).getByRole("status")).toHaveTextContent(
+        /Incomplete account review.*\b1 of 3\b/,
+      ),
+    );
+    await userEvent.click(within(walking).getByRole("button", { name: "Next record" }));
+    await expect(
+      within(walking).getByRole("heading", { name: "Stale access for departed staff" }),
+    ).toBeVisible();
+    await waitFor(() =>
+      expect(within(walking).getByRole("status")).toHaveTextContent(
+        /Stale access for departed staff.*\b2 of 3\b/,
+      ),
+    );
     await userEvent.click(canvas.getByRole("button", { name: "Record route" }));
     await expect(
-      canvas.queryByRole("complementary", { name: "Incomplete account review" }),
+      canvas.queryByRole("complementary", { name: "Finding preview" }),
     ).not.toBeInTheDocument();
     await expect(
       canvas.getByRole("heading", { level: 1, name: "Review privileged access" }),
@@ -474,12 +723,17 @@ export const QueueWithPanel: Story = {
   },
 };
 
-/** The register that is the page, inside the shell: it fills the window under the header and the tabs, the pagination sits at Main's bottom inset, and a note added above it keeps the fit. */
+/** The register that is the page, inside the shell: it fills the window under its header, the pagination sits at Main's bottom inset, the frame never shows fewer than six rows under its toolbar, and an alert that appears above it keeps the fit. */
 export const Register: Story = {
   render: () => <Workspace initial="register" />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const frame = canvas.getByRole("table", { name: "Risks" }).parentElement!;
+    const tokens = getComputedStyle(document.documentElement);
+    const rows =
+      parseFloat(tokens.getPropertyValue("--ds-dimension-row-header")) +
+      6 * parseFloat(tokens.getPropertyValue("--ds-dimension-row"));
+    const rem = parseFloat(tokens.fontSize);
     const fits = async () => {
       await waitFor(() =>
         expect(document.documentElement.scrollHeight).toBeLessThanOrEqual(window.innerHeight),
@@ -489,6 +743,8 @@ export const Register: Story = {
         window.innerHeight,
       );
       await expect(frame.scrollHeight).toBeGreaterThan(frame.clientHeight);
+      // Never fewer than a header and six rows, whatever the toolbar above takes.
+      await expect(frame.clientHeight).toBeGreaterThanOrEqual(rows * rem - 1);
     };
     await fits();
     frame.scrollTop = 200;
@@ -498,13 +754,33 @@ export const Register: Story = {
         Math.abs(header.getBoundingClientRect().top - frame.getBoundingClientRect().top),
       ).toBeLessThanOrEqual(1),
     );
-    // The tab names the collection: no heading repeats it, and the toolbar's search comes first.
-    await expect(canvas.queryByRole("heading", { name: "Risk register" })).toBeNull();
+    // The header is the name alone; the toolbar's search comes first and holds the one primary.
+    const pageHeader = canvasElement.querySelector<HTMLElement>('[data-slot="page-header"]')!;
+    await expect(within(pageHeader).queryByRole("button")).toBeNull();
+    await expect(
+      pageHeader.querySelector('[data-slot="page-header-description"]'),
+    ).not.toBeInTheDocument();
     await expect(canvas.getByRole("searchbox", { name: "Search risks" })).toBeVisible();
     await expect(canvas.getByRole("button", { name: "Create risk" })).toBeVisible();
+    // The name is a link to the record.
+    await expect(canvas.getAllByRole("link", { name: riskTitles[0] ?? "" })[0]).toHaveAttribute(
+      "href",
+      "#risk-RSK-100",
+    );
+    // A failed refresh keeps the rows under one alert, and the table re-fits under it.
     const before = frame.clientHeight;
-    await userEvent.click(canvas.getByRole("button", { name: "Add note" }));
-    await expect(canvas.getByText(/The register was reviewed/)).toBeVisible();
+    // The overflow sits beside Columns and Settings, or in More when the row runs out of room.
+    const inline = canvas.queryByRole("button", { name: "Collection actions" });
+    if (!inline?.checkVisibility())
+      await userEvent.click(canvas.getByRole("button", { name: /^More filters/ }));
+    await userEvent.click(
+      await within(document.body).findByRole("button", { name: "Collection actions" }),
+    );
+    await userEvent.click(await within(document.body).findByRole("menuitem", { name: "Refresh" }));
+    await waitFor(() => expect(within(document.body).queryByRole("menu")).toBeNull());
+    await expect(await canvas.findByRole("alert")).toHaveTextContent(
+      "The risks could not be refreshed",
+    );
     await waitFor(() => expect(frame.clientHeight).toBeLessThan(before));
     await fits();
   },
@@ -529,5 +805,95 @@ export const CompactQueue: Story = {
       );
       expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(window.innerWidth + 1);
     });
+  },
+};
+
+/* ---------- focus and the sticky shell ---------- */
+
+function FocusInView() {
+  return (
+    <Shell>
+      <Shell.TopNav>
+        <Shell.TopNav.Start>
+          <Shell.AppLogo name="Workspace" render={<a href="#home" />} />
+        </Shell.TopNav.Start>
+      </Shell.TopNav>
+      <Shell.Main>
+        <Stack space="space.300">
+          <PageHeader>
+            <PageHeader.Heading>
+              <PageHeader.Title>Controls</PageHeader.Title>
+            </PageHeader.Heading>
+          </PageHeader>
+          <Section title="Recently changed">
+            {/* A list one row tall that scrolls inside itself. */}
+            <div
+              role="group"
+              aria-label="Recently changed controls"
+              className="h-500 overflow-y-auto"
+            >
+              {Array.from({ length: 6 }, (_, i) => (
+                <div key={i} className="flex h-500 items-center px-050">
+                  <Button size="small">{`CTRL-${400 + i}`}</Button>
+                </div>
+              ))}
+            </div>
+          </Section>
+          <Section title="All controls">
+            <Stack space="space.300">
+              {Array.from({ length: 40 }, (_, i) => (
+                <div key={i}>
+                  <Button size="small">{`Open CTRL-${500 + i}`}</Button>
+                </div>
+              ))}
+            </Stack>
+          </Section>
+        </Stack>
+      </Shell.Main>
+    </Shell>
+  );
+}
+
+/** Focus stays in view. The page keeps what focus scrolls to clear of the sticky top nav (its scroll padding is the top nav's height and `space.200`); a list that scrolls inside itself brings each focused row wholly into its own view, with no page margin taller than the list. */
+export const FocusStaysInView: Story = {
+  name: "Focus stays in view",
+  render: () => <FocusInView />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const root = document.documentElement;
+    const topNav = canvas.getByRole("banner", { name: "Top navigation" });
+    const tall = window.innerHeight >= 480;
+    if (tall)
+      await expect(parseFloat(getComputedStyle(root).scrollPaddingTop)).toBe(
+        Math.round(topNav.getBoundingClientRect().height) + 16,
+      );
+    // Every row of the one-row list comes wholly into the list's view as it takes focus.
+    const list = canvas.getByRole("group", { name: "Recently changed controls" });
+    const first = within(list).getByRole("button", { name: "CTRL-400" });
+    first.focus();
+    for (let i = 0; i < 6; i++) {
+      const row = within(list).getByRole("button", { name: `CTRL-${400 + i}` });
+      if (i > 0) await userEvent.tab();
+      await expect(row).toHaveFocus();
+      await waitFor(() => {
+        const box = row.getBoundingClientRect();
+        const view = list.getBoundingClientRect();
+        expect(box.top).toBeGreaterThanOrEqual(view.top - 0.5);
+        expect(box.bottom).toBeLessThanOrEqual(view.bottom + 0.5);
+      });
+    }
+    // A control under the sticky top nav scrolls out from under it when it takes focus.
+    if (tall) {
+      const target = canvas.getByRole("button", { name: "Open CTRL-520" });
+      window.scrollTo({ top: 0, behavior: "instant" });
+      const offset = target.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top: offset - 8, behavior: "instant" });
+      target.focus();
+      await waitFor(() =>
+        expect(target.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+          topNav.getBoundingClientRect().bottom,
+        ),
+      );
+    }
   },
 };

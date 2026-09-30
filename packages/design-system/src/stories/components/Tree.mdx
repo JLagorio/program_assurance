@@ -15,24 +15,28 @@ A tree is for two or more levels. One level is a collapsible [Item](?path=/docs/
 
 ## Anatomy
 
-| Part     | What it is                                                                                                                              |
-| -------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Row      | One visible node, 32px (`small`) or 24px (`xsmall`), the tree item itself: focusable, selected on a click.                              |
-| Guides   | One 16px column per ancestor level, a hairline down it while that ancestor's branch continues (`lines`).                                |
-| Chevron  | On a branch: right while closed, down while open. A click on it opens or closes without selecting. A leaf has a small dot in its place. |
-| Icon     | Optional, before the label, 16px: a folder for a branch, a document for a leaf. On every row, or on none.                               |
-| Label    | `font.body` in `color.text`, one line. It is the row's accessible name.                                                                 |
-| Trailing | At the end: a Count of what is beneath, a Badge for the row's state, a Dot.                                                             |
+| Part     | What it is                                                                                                                                                                                                                                                              |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Row      | One visible node, 32px (`small`) or 24px (`xsmall`), the tree item itself: focusable, selected on a click.                                                                                                                                                              |
+| Guides   | One 16px column per ancestor level, a hairline down it while that ancestor's branch continues (`lines`).                                                                                                                                                                |
+| Chevron  | On a branch: right while closed, down while open. A click on it opens or closes without selecting. A leaf has a small dot in its place.                                                                                                                                 |
+| Icon     | Optional, before the label, 16px: a folder for a branch, a document for a leaf. On every row, or on none.                                                                                                                                                               |
+| Label    | `font.body` in `color.text`, one line: a long label is cut with an ellipsis and shows whole on hover and while its row has keyboard focus. It is the row's accessible name, and nothing else is.                                                                        |
+| Hint     | Optional, after the label, `font.body.small` in `color.text.subtle`: a code, a kind, the profile a system adopts. It takes only the room the label leaves, so it is cut first, and is its own tooltip on hover. Read as the row's description.                          |
+| Trailing | At the end: a Count of what is beneath, a Badge for the row's state, a Dot. Read as the row's description after the hint; text in it gives way beside the label as the row narrows and is its own tooltip on hover, so the row's keyboard focus reveals only the label. |
+| Actions  | After the trailing: the row's menu button. Each control is its own tab stop and is neither the row's name nor its description.                                                                                                                                          |
 
 ## Variants
 
 Tree has one appearance. What varies:
 
-| Variant    | Use                                                                                                                                                          |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Selectable | Rows with `onSelect` and one `isSelected`: the tree is a navigator, and the selected row is where the reader is. The composition browser, the families rail. |
-| Read-only  | No `onSelect`: the tree only shows shape. Rare; a hierarchy worth drawing is usually worth opening.                                                          |
-| With icons | An icon on every row, so labels at one level align; see Don't.                                                                                               |
+| Variant    | Use                                                                                                                                                                                      |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Selectable | Rows with `onSelect` and one `isSelected`: the tree is a navigator, and the selected row is where the reader is. The composition browser, the families rail.                             |
+| Read-only  | No `onSelect` and no `isSelected`: the tree only shows shape, its rows carry no `aria-selected` and do not answer the pointer. Rare; a hierarchy worth drawing is usually worth opening. |
+| With icons | An icon on every row, so labels at one level align; see Don't.                                                                                                                           |
+
+<Canvas of={Stories.ReadOnly} />
 
 Not built, and why: multi-select with checkboxes, because bulk work on nodes is a table; drag to reorder, because nothing here is rearranged by hand; a tree that owns its data, because the callers already flatten a tree with rolled-up posture on every row.
 
@@ -49,20 +53,22 @@ Rows stack with no space between them. The indent is 16px per level, the guide d
 
 ## States
 
-| State    | What changes                                                                                                                                   |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Plain    | Text on the surface.                                                                                                                           |
-| Hover    | `color.background.neutral.subtle.hovered` across the row.                                                                                      |
+| State    | What changes                                                                                                                                                                                                                                                                                                                           |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Plain    | Text on the surface.                                                                                                                                                                                                                                                                                                                   |
+| Hover    | `color.background.neutral.subtle.hovered` across a row that takes `onSelect`. A read-only row has no hover.                                                                                                                                                                                                                            |
 | Selected | `color.background.selected` and a 2px bar at the row's start edge in the selected colour (`color.background.selected.bold`, 3:1 on the fill); `aria-selected`. The row is the initial tab stop; focus can move independently. If its branch is closed, the parent shows the selection instead. In forced colours the row is Highlight. |
-| Focus    | The focus outline around the row, on keyboard focus.                                                                                           |
-| Open     | The chevron down; `aria-expanded="true"`; the children rendered under it by the caller.                                                        |
-| Closed   | The chevron right; `aria-expanded="false"`; a Count in `trailing` says how many are beneath.                                                   |
+| Focus    | The focus outline around the row, on keyboard focus.                                                                                                                                                                                                                                                                                   |
+| Open     | The chevron down; `aria-expanded="true"`; the children rendered under it by the caller.                                                                                                                                                                                                                                                |
+| Closed   | The chevron right; `aria-expanded="false"`; a Count in `trailing` says how many are beneath.                                                                                                                                                                                                                                           |
 
 ## Modifiers
 
 - **`depth`** and **`lines`**: how deep, and which ancestors' guides to draw. A last child under each ancestor clears that ancestor's line.
 - **`hasChildren`**, **`isExpanded`**, **`onToggle`** on a branch; **`isSelected`**, **`onSelect`** on a selectable row. `expanded` is the deprecated name for `isExpanded` and is still read for one version.
-- **`trailing`** for a Count, a Badge or a Dot. A button there is a tab stop of its own, outside the tree's keyboard model.
+- **`hint`** for a code, a kind or a profile beside the name. It is cut before the label is.
+- **`trailing`** for a Count, a Badge or a Dot. A click on it selects the row, as a click on the label does.
+- **`actions`** for the row's controls: a menu button, a remove button. A click on one runs the control and leaves the selection alone.
 - **`size`** on the tree; **`label`** names it.
 
 ## Content
@@ -71,6 +77,9 @@ Rows stack with no space between them. The indent is 16px per level, the guide d
 - **Leaf labels say what the node is**: "CTRL-0412 Segregation of duties", "mission-api:2.1.4".
 - **Icons on every row or none**: a folder and a document, and nothing else.
 - **The count beneath a closed branch goes in `trailing`**, so a closed tree still says how big it is.
+- **A code, a kind or a profile goes in `hint`**, never in `trailing` beside the Badge: at a phone's width the trailing slot would take the name's room.
+
+<Canvas of={Stories.LongNames} />
 
 ## Style
 
@@ -80,9 +89,10 @@ Rows stack with no space between them. The indent is 16px per level, the guide d
 | Guide    | 16px column (`space.200`) · 1px `color.border`                                                                                                             |
 | Chevron  | 20px · `color.icon.subtle`, `color.icon` on hover · `radius.small` · rotates in `motion.duration.fast`                                                     |
 | Leaf dot | 4px · `color.background.neutral.pressed`                                                                                                                   |
-| Label    | `font.body` · `color.text`                                                                                                                                 |
+| Label    | `font.body` · `color.text` · one line, cut with an ellipsis                                                                                                |
+| Hint     | `font.body.small` · `color.text.subtle` · one line, cut before the label                                                                                   |
 | Hover    | `color.background.neutral.subtle.hovered`                                                                                                                  |
-| Selected | `color.background.selected` · a 2px (`space.025`) bar in `color.background.selected.bold` at the start edge, `space.050` from the top and bottom            |
+| Selected | `color.background.selected` · a 2px (`space.025`) bar in `color.background.selected.bold` at the start edge, `space.050` from the top and bottom           |
 | Focus    | The focus outline                                                                                                                                          |
 
 The selected fill is the one a table row and a list row take, so a selection reads the same everywhere; the bar at the start edge is its second cue, because the fill alone is about 1.1:1 against the surface. A table row's selection is carried by its checkbox instead. In a right-to-left tree the bar sits on the right and a closed branch's chevron points left.
@@ -93,20 +103,19 @@ The tree retains one entry tab stop as rows are selected, removed or collapsed. 
 
 ## Accessibility
 
-- **It is a tree**: `role="tree"` named by `label`, every row a `treeitem` with `aria-level`, `aria-selected`, and `aria-expanded` on a branch: the ARIA pattern.
+- **It is a tree**: `role="tree"` named by `label`, every row a `treeitem` with `aria-level`, `aria-selected` on a row that can be selected, and `aria-expanded` on a branch: the ARIA pattern.
+- **The row's name is its label.** The hint and the text or Count in `trailing` are its description, heard after the name ("Finance, 12"); the controls in `actions` are neither, so an arrow-key move reads the node and not its buttons.
 - **One entry tab stop per tree.** Initially the selected row is tabbable, or the first row when none is. Arrow navigation moves that tab stop without selecting; returning to the tree retains the last focused row. Removing that row restores focus to a preceding visible row when focus would otherwise be lost.
-- **Keyboard:** Down and Up move between visible rows; Right opens a closed branch, or moves into an open one; Left closes an open branch, or moves to the parent; Home and End go to the ends; Enter or Space selects.
+- **Keyboard:** Down and Up move between visible rows; Right opens a closed branch, or moves into an open one; Left closes an open branch, or moves to the parent; Home and End go to the ends; Enter or Space selects. In a right-to-left tree Left and Right swap, so the key toward the reading direction's end opens.
 - **The chevron is for the pointer.** It focuses and toggles the branch without selecting it. It is hidden from the keyboard and screen readers, which have Right and Left. Where any pointer is coarse its hit area is 24px, centred on the 20px chevron.
-- **Trailing controls are outside the model.** A button in `trailing` is its own tab stop; keep to a Count, a Badge or a Dot where the tree is long.
+- **Row controls are outside the model.** A button in `actions` is its own tab stop, outside the arrow keys; keep to one per row where the tree is long.
 - **The selection is never hidden.** When the selected row's branch is closed, the caller selects the parent, so the reader does not lose their place.
 
 <Canvas of={Stories.Keyboard} />
 
-Tree and Tree.Item accept native div attributes, styles, events and refs. Caller handlers run before their built-in handler; `preventDefault()` cancels that behavior. Use `onKeyDownCapture` on the root to reserve keys before row handling. Item’s `onSelect` is the existing node-selection callback, not the native text-selection event. Tree roles and row levels stay component-owned. An explicit `aria-label` overrides the root’s `label` shorthand; `posInSet`/`setSize` or native sibling metadata overrides inferred counts.
+Tree and Tree.Item accept native div attributes, styles, events and refs, and name themselves last with `data-slot` (`tree`, `tree-item`). Caller handlers run before the built-in one, and `preventDefault()` cancels it: a reserved key, a locked selection. Use `onKeyDownCapture` on the root to reserve keys before the rows see them. Item's `onSelect` is the node-selection callback, not the native text-selection event. The roles and row levels are the tree's own. An explicit `aria-label` overrides the root's `label`, and on a row replaces the label as its name; `posInSet` and `setSize`, or native sibling metadata, override the inferred counts.
 
-Embedded trees keep separate arrow navigation, typeahead and entry tab stops. Trailing controls keep their own actions and do not select the containing row.
-
-<Canvas of={Stories.NestedTrees} />
+<Canvas of={Stories.NativeAttributes} />
 
 The keyboard behavior follows the [WAI-ARIA tree view pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/). Root refs compose through [Base UI useRender](https://base-ui.com/react/utils/use-render#merging-refs).
 

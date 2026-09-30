@@ -13,23 +13,23 @@ A ring of slices on a `color.chart.track`, with a number in the middle: one numb
 
 ## Anatomy
 
-| Part    | What it is                                                                                                                                                                                        |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Track   | The full ring in `color.chart.track`, under the slices, so a single slice reads against its whole.                                                                                                |
-| Slice   | An arc in its tone, clockwise from the top, with a 2px `elevation.surface` gap from the next. A hovered slice grows 2px and takes its tone's `hovered` step; with `texture` it wears its pattern. |
-| Label   | The number in the middle, `font.heading.xsmall` in `color.text`: the total, the share, the one that matters.                                                                                      |
-| Caption | One word under the number in `font.body.xsmall` and `color.text.subtle`: what it counts.                                                                                                          |
-| Tooltip | The slice's name and value, keyed by a square.                                                                                                                                                    |
-| Card    | On a chosen slice: the slice, its value and its share of the whole, then the caller's facts.                                                                                                      |
+| Part    | What it is                                                                                                                                                                                                         |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Track   | The full ring in `color.chart.track`, under the slices, so a single slice reads against its whole; with `max`, the part of the whole no slice takes. It neither hovers nor keys.                                   |
+| Slice   | An arc in its tone, clockwise from the top, with a 2px `elevation.surface` gap from the next, and 3° at least. A hovered slice grows 2px and takes its tone's `hovered` step; with `texture` it wears its pattern. |
+| Center  | The number in the middle (`centerLabel`), `font.heading.xsmall` in `color.text`: the total, the share, the one that matters.                                                                                       |
+| Caption | One word under the number in `font.body.xsmall` and `color.text.subtle`: what it counts.                                                                                                                           |
+| Tooltip | The slice's name and value, keyed by a square.                                                                                                                                                                     |
+| Card    | On a chosen slice: the slice, its value and its share of the whole, then the caller's facts.                                                                                                                       |
 
 ## Variants
 
-| Variant       | Use                                                                                                                |
-| ------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Ring          | Parts of a whole with the whole in the middle: coverage, with the satisfied share printed.                         |
-| One slice     | One value against its whole: 62% assessed, the rest the track. The slice's tone is the value's status, or `brand`. |
-| `arc="half"`  | A gauge: a score from 0 to 100, the number at the base, the slice in the tone the score earns.                     |
-| Beside a Stat | The ring at 120 with its legend as a `Chart.Legend`, the Stat carrying the words.                                  |
+| Variant       | Use                                                                                                |
+| ------------- | -------------------------------------------------------------------------------------------------- |
+| Ring          | Parts of a whole with the whole in the middle: coverage, with the satisfied share printed.         |
+| One value     | `value` against `max`: 62% assessed, the rest the track. `tone` is the value's status, or `brand`. |
+| `arc="half"`  | A gauge: `value` against `max`, the number at the base, the slice in the tone the score earns.     |
+| Beside a Stat | The ring at 120 with its legend as a `Chart.Legend`, the Stat carrying the words.                  |
 
 <Canvas of={Stories.BesideStat} />
 <Canvas of={Stories.Gauge} />
@@ -51,24 +51,27 @@ A gauge is half as tall as it is wide, plus 4px for the base. The label fits ins
 
 ## States
 
-| State    | What changes                                                                                                                             |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Hover    | The slice grows 2px outward; the tooltip.                                                                                                |
-| Isolated | A slice hidden from the Frame's legend leaves the ring; the others keep their angles and the track shows through.                        |
-| Chosen   | With `onSelect` or `details`: the slices take the pointer, a click chooses one and the others dim; the card opens at the slice's middle. |
-| Loading  | A skeleton ring at the size and thickness, pulsing.                                                                                      |
-| Entering | The slices sweep round from the top over `motion.duration.slow`.                                                                         |
+| State    | What changes                                                                                                                                      |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hover    | The slice grows 2px outward; the tooltip.                                                                                                         |
+| Isolated | A slice hidden from the Frame's legend leaves the ring; the others keep their angles and the track shows through.                                 |
+| Focused  | With `onSelect` or `details`, on the keyboard: an arc in `color.border.focused` along the slice's inner edge, in the hole.                        |
+| Chosen   | With `onSelect` or `details`: a click, or Enter or Space on a focused slice, chooses it and the others dim; the card opens at the slice's middle. |
+| Loading  | A skeleton ring at the size and thickness, pulsing.                                                                                               |
+| Entering | The slices sweep round from the top over `motion.duration.slow`.                                                                                  |
 
 <Canvas of={Stories.Details} />
 
 In a [Chart](?path=/docs/patterns-chart-overview--docs) Frame the ring needs nothing repeated: the Frame's legend keys its slices, a hover dims the others and a click hides one, and its Table toggle lays them out, a row per slice with its value and its share of the whole, headed by the Frame's `xLabel`. A slice hidden from the legend leaves the ring and stays in the table, which is the data.
 
 <Canvas of={Stories.Framed} />
+<Canvas of={Stories.SmallShare} />
 
 ## Modifiers
 
 - **`arc="half"`** for the gauge; **`size`** (the largest diameter) and **`thickness`** in pixels; **`texture`** for the patterns.
-- **`label`** and **`caption`** for the middle.
+- **`slices`**, or **`value`** with **`tone`** for one value; **`max`** for the whole they are parts of, the rest of it the track. Without `max` the whole is the slices' sum, the hidden ones included, so a share is always of the same whole.
+- **`centerLabel`** and **`caption`** for the middle. `label` still draws the middle and is deprecated for `centerLabel`: in the next version `label` names the ring, as it names every other plot.
 - **`format`** for the tooltip, the card and the Frame's table. The Frame's, else the kit's.
 - **`onSelect`** and **`details`** as in States; the selection is `{ slice, share, index }`.
 - **`loading`** draws the skeleton; the Frame sets it from `state="loading"`.
@@ -79,27 +82,31 @@ In a [Chart](?path=/docs/patterns-chart-overview--docs) Frame the ring needs not
 - **Four slices at most, five with Other.** Past that the angles stop reading; the data is a Bar.
 - **The number in the middle is the point**: the share, the total, the score. The slices explain it.
 - **A caption is one word**: "satisfied", "open", "posture".
-- **Slices in status tones when they are statuses**, the categorical set when they are kinds, and the remainder always `neutral`.
+- **Slices in status tones when they are statuses**, the categorical set when they are kinds. A remainder is `max`'s track, never a made-up slice.
 - **A gauge's slice wears the tone its score earns**: `success` past the target, `warning` near it, `danger` below.
+- **A sliver still draws**: 3° at least when more than one slice shows, so 1 of 372 can be hovered; its value and share stay true in the tooltip, the card and the table.
 
 ## Style
 
-| Element  | Token                                                                                           |
-| -------- | ----------------------------------------------------------------------------------------------- |
-| Track    | `color.chart.track`                                                                             |
-| Slice    | `color.chart.<tone>` · 2px `elevation.surface` gap · hover +2px in `color.chart.<tone>.hovered` |
-| Label    | `font.heading.xsmall` · `color.text`                                                            |
-| Caption  | `font.body.xsmall` · `color.text.subtle`                                                        |
-| Dimmed   | `opacity.disabled`, over `motion.duration.fast`                                                 |
-| Skeleton | `color.skeleton` ring                                                                           |
+| Element  | Token                                                                                            |
+| -------- | ------------------------------------------------------------------------------------------------ |
+| Track    | `color.chart.track`                                                                              |
+| Slice    | `color.chart.<tone>` · 2px `elevation.surface` gap · hover +2px in `color.chart.<tone>.hovered`  |
+| Center   | `font.heading.xsmall` · `color.text`                                                             |
+| Caption  | `font.body.xsmall` · `color.text.subtle`                                                         |
+| Dimmed   | `opacity.disabled`, over `motion.duration.fast`                                                  |
+| Focused  | A 3px arc in `color.border.focused` inside the slice's inner edge; `Highlight` in forced colours |
+| Skeleton | `color.skeleton` ring                                                                            |
 
 ## Accessibility
 
-- **Named by `name` or the Frame**, the ring is a group and focusable; unnamed it is decoration beside its Stat, hidden from a screen reader so the number reads once.
+- **Named by `name` or the Frame**, a ring that chooses nothing is an image (`role="img"`) with no tab stop; unnamed it is decoration beside its Stat, hidden from a screen reader so the number reads once.
+- **One value against `max` is a meter**: `role="meter"` named by the ring, with its value, its range and its value in words ("72 of 100"). The number in the middle is then hidden, so it is heard once.
 - **The number is text**, in the middle, not drawn: a screen reader reads it, and it never wears a chart colour.
 - **The legend carries the names**; a slice's tone reinforces its word. Beside a Stat, the legend is a `Chart.Legend`.
 - **The table is one toggle away** in a Frame: every slice with its value and its share, so the angles are never the only way to read the parts.
-- **A chosen slice's card is a dialog**, and focus returns to the ring when it closes. The slices themselves are not buttons, so a filter the ring drives is also a control on the page.
+- **With `onSelect` or `details`, each slice is a button** and a tab stop, named with its value and share ("Partial: 40, 11%"); Enter and Space choose it as a click does, and the ring itself is no tab stop. A ring that chooses and has no name is named "Chart", with a warning in development.
+- **A chosen slice's card is a dialog**: the slice says it opens one (`aria-haspopup`, `aria-expanded`), and focus returns to that slice when it closes.
 - **Loading is `aria-busy`** and named "[the ring's name], loading".
 
 ## Props

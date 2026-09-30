@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { createRef, useState } from "react";
+import { createRef, useEffect, useState } from "react";
 import { expect, fireEvent, fn, userEvent, waitFor, within } from "storybook/test";
 
 import {
@@ -28,11 +28,49 @@ type Story = StoryObj<typeof meta>;
 const views = ["Overview", "Controls", "Evidence", "History"];
 const scrollViewport = (list: HTMLElement) =>
   list.closest<HTMLElement>('[data-slot="scroll-area-viewport"]')!;
+/** The Scroller's arrows are a hover affordance: a touch phone swipes the strip instead. */
+const hoverable = () => matchMedia("(hover: hover) and (pointer: fine)").matches;
+/** A focused tab draws its ring inside itself, and the tab sits inside the strip's clip. */
+const ringInside = async (tab: HTMLElement, viewport: HTMLElement) => {
+  const style = getComputedStyle(tab);
+  await expect(tab).toHaveFocus();
+  await expect(parseFloat(style.outlineWidth)).toBeGreaterThan(0);
+  await expect(parseFloat(style.outlineOffset)).toBe(-parseFloat(style.outlineWidth));
+  const clip = viewport.getBoundingClientRect();
+  const box = tab.getBoundingClientRect();
+  await expect(box.top).toBeGreaterThanOrEqual(clip.top - 0.5);
+  await expect(box.bottom).toBeLessThanOrEqual(clip.top + viewport.clientHeight + 0.5);
+  await expect(box.left).toBeGreaterThanOrEqual(clip.left - 0.5);
+  await expect(box.right).toBeLessThanOrEqual(clip.left + viewport.clientWidth + 0.5);
+};
+const inStrip = (viewport: HTMLElement, tab: HTMLElement) => {
+  const bounds = viewport.getBoundingClientRect();
+  const box = tab.getBoundingClientRect();
+  return box.left >= bounds.left - 1 && box.right <= bounds.right + 1;
+};
 
-/** The same line strip fills a page, phone, or preview and keeps every tab on one row. */
+/**
+ * The same line strip fills a page, phone, or preview and keeps every tab on one row. A filled
+ * strip in a narrow container scrolls the same way instead of spilling past both edges. Each tab
+ * draws its focus ring inside itself, and a click in the gap between two labels chooses the nearer.
+ */
 export const ResponsiveWidths: Story = {
   render: () => (
     <Stack space="space.400">
+      <Tabs defaultValue="Overview" style={{ width: 200, maxWidth: "100%" }}>
+        <TabsList aria-label="200px filled views">
+          {["Overview", "Requirements", "Controls", "Evidence"].map((view) => (
+            <TabsTrigger key={view} value={view}>
+              {view}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        {["Overview", "Requirements", "Controls", "Evidence"].map((view) => (
+          <TabsContent key={view} value={view}>
+            {view} content
+          </TabsContent>
+        ))}
+      </Tabs>
       {[720, 390, 280].map((width) => (
         <Tabs key={width} defaultValue="Overview" style={{ width, maxWidth: "100%" }}>
           <TabsList variant="line" aria-label={`${width}px record views`} activateOnFocus>
@@ -53,6 +91,26 @@ export const ResponsiveWidths: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    // The filled strip scrolls: its first tab starts inside the container, and End and Home
+    // reveal the last and first tabs.
+    const filled = canvas.getByRole("tablist", { name: "200px filled views" });
+    const filledViewport = scrollViewport(filled);
+    const filledTabs = within(filled).getAllByRole("tab");
+    await expect(filledViewport.scrollWidth).toBeGreaterThan(filledViewport.clientWidth);
+    await expect(filledTabs[0]!.getBoundingClientRect().left).toBeGreaterThanOrEqual(
+      filledViewport.getBoundingClientRect().left,
+    );
+    await expect(filledViewport).toHaveAttribute("tabindex", "-1");
+    await userEvent.keyboard("{Shift}");
+    filledTabs[0]!.focus();
+    await ringInside(filledTabs[0]!, filledViewport);
+    await userEvent.keyboard("{End}");
+    await waitFor(() => expect(filledTabs.at(-1)).toHaveFocus());
+    await waitFor(() => expect(inStrip(filledViewport, filledTabs.at(-1)!)).toBe(true));
+    await ringInside(filledTabs.at(-1)!, filledViewport);
+    await userEvent.keyboard("{Home}");
+    await waitFor(() => expect(filledViewport.scrollLeft).toBe(0));
+
     for (const width of [720, 390, 280]) {
       const list = canvas.getByRole("tablist", { name: `${width}px record views` });
       const viewport = scrollViewport(list);
@@ -75,6 +133,10 @@ export const ResponsiveWidths: Story = {
       if (width === 280) await expect(fits).toBe(false);
       if (fits) {
         await expect(viewport.scrollWidth).toBe(viewport.clientWidth);
+        await expect(within(root).queryByRole("button", { name: /^Scroll/ })).toBeNull();
+      } else if (!hoverable()) {
+        // A touch reader swipes: no arrows, and the strip's scrollbar stays under it.
+        await expect(viewport.scrollWidth).toBeGreaterThan(viewport.clientWidth);
         await expect(within(root).queryByRole("button", { name: /^Scroll/ })).toBeNull();
       } else {
         await expect(viewport.scrollWidth).toBeGreaterThan(viewport.clientWidth);
@@ -101,7 +163,15 @@ export const ResponsiveWidths: Story = {
         await userEvent.click(back);
         await waitFor(() => expect(viewport.scrollLeft).toBe(0));
       }
+      // A click between two labels lands on the nearer tab: each tab's hit area reaches half way
+      // across the gap, and the strip scrolls no further for it.
+      const [one, two] = [tabs[0]!.getBoundingClientRect(), tabs[1]!.getBoundingClientRect()];
+      const middle = (one.top + one.bottom) / 2;
+      await expect(document.elementFromPoint(one.right + 2, middle)).toBe(tabs[0]);
+      await expect(document.elementFromPoint(two.left - 2, middle)).toBe(tabs[1]);
+      await userEvent.keyboard("{Shift}");
       tabs[0]!.focus();
+      await ringInside(tabs[0]!, viewport);
       await userEvent.keyboard("{End}");
       const last = tabs.at(-1)!;
       await waitFor(() => expect(last).toHaveFocus());
@@ -111,9 +181,92 @@ export const ResponsiveWidths: Story = {
           viewport.getBoundingClientRect().right + 1,
         ),
       );
+      await ringInside(last, viewport);
       await userEvent.keyboard("{Home}");
       await waitFor(() => expect(viewport.scrollLeft).toBe(0));
     }
+  },
+};
+
+const phoneViews = [
+  "Overview",
+  "System",
+  "Requirements",
+  "Controls",
+  "Schedule",
+  "Findings",
+  "Evidence",
+  "Risk",
+  "Activity",
+];
+function LateCounts() {
+  const [value, setValue] = useState("Evidence");
+  const [counts, setCounts] = useState<Record<string, number> | null>(null);
+  useEffect(() => {
+    // Each tab's count comes from its own query, after the strip's first layout.
+    const timer = window.setTimeout(
+      () => setCounts({ System: 28, Requirements: 546, Controls: 412, Schedule: 12, Findings: 17 }),
+      300,
+    );
+    return () => window.clearTimeout(timer);
+  }, []);
+  return (
+    <div style={{ maxWidth: 390 }}>
+      <Stack space="space.200">
+        <div>
+          <Button size="small" onClick={() => setValue("Activity")}>
+            Open the activity
+          </Button>
+        </div>
+        <Tabs value={value} onValueChange={setValue}>
+          <TabsList variant="line" aria-label="Program views">
+            {phoneViews.map((view) => (
+              <TabsTrigger key={view} value={view}>
+                {view}
+                {counts?.[view] !== undefined ? <Count value={counts[view]!} max={999} /> : null}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {phoneViews.map((view) => (
+            <TabsContent key={view} value={view}>
+              {view} content
+            </TabsContent>
+          ))}
+        </Tabs>
+      </Stack>
+    </div>
+  );
+}
+
+/**
+ * A deep link to a tab on a phone: the counts arrive after the strip's first layout and widen the
+ * tabs before the selected one, and the selected tab stays in view. A tab chosen from outside the
+ * strip, as a record's Overview does, scrolls into view too.
+ */
+export const LateCountsOnAPhone: Story = {
+  render: () => <LateCounts />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const list = canvas.getByRole("tablist", { name: "Program views" });
+    const viewport = scrollViewport(list);
+    const evidence = within(list).getByRole("tab", { name: "Evidence" });
+    await expect(viewport.scrollWidth).toBeGreaterThan(viewport.clientWidth);
+    await waitFor(() => expect(inStrip(viewport, evidence)).toBe(true));
+    const before = viewport.scrollLeft;
+    await expect(before).toBeGreaterThan(0);
+    await waitFor(() =>
+      expect(within(list).getByRole("tab", { name: /^Controls/ })).toHaveAccessibleName(
+        "Controls 412",
+      ),
+    );
+    // The counts widened the tabs before it; the strip followed the selected tab.
+    await waitFor(() => expect(viewport.scrollLeft).toBeGreaterThan(before));
+    await waitFor(() => expect(inStrip(viewport, evidence)).toBe(true));
+    await userEvent.click(canvas.getByRole("button", { name: "Open the activity" }));
+    const activity = within(list).getByRole("tab", { name: "Activity" });
+    await expect(activity).toHaveAttribute("aria-selected", "true");
+    await waitFor(() => expect(inStrip(viewport, activity)).toBe(true));
+    await expect(canvas.getByRole("button", { name: "Open the activity" })).toHaveFocus();
   },
 };
 

@@ -19,10 +19,14 @@ A square [Button](?path=/docs/components-button--docs) with an icon, a required 
 | `subtle` | Toolbars, rows and header controls. |
 | `primary` | Emphasized actions, including the options beside a primary split action. |
 
-| Size | Button | Icon |
-| --- | --- | --- |
-| `small` | 28px square, the default | 14px |
-| `medium` | 32px square | 16px |
+| Size | Button | Icon | Typical placement |
+| --- | --- | --- | --- |
+| `medium` | 32px square | 16px | Beside a default (medium) Button, in a header or a footer. |
+| `small` | 28px square, the default | 14px | Toolbars, the top navigation, a card's corner. |
+| `xsmall` | 24px square | 14px | Beside an xsmall Button, such as the options of a dense split action. |
+| `xxsmall` | 20px square, small radius | 14px | The row control: a table or tree row's disclosure and row actions, a list row's chevron. |
+
+The sizes are Button's (`xsmall` 24px, `small` 28px, `medium` 32px) plus the 20px row control; Button defaults to `medium` and IconButton to `small`, so beside a default Button pass `size="medium"`. Where any pointer is coarse every size takes a hit area of at least 24px, centred, so a row keeps its height.
 
 Pass the icon element with `icon`. IconButton sizes it and hides it from assistive technology; `label` provides the accessible name. `isSelected` applies the selected palette and `aria-pressed`. `isLoading` replaces the icon with a decorative spinner while retaining the label and focus.
 
@@ -41,11 +45,14 @@ IconButton shares Button's native props, form behavior, refs and Base UI `render
 - A disclosure's content is not a popup, even inside a dialog, menu or listbox that also holds the button: focus that comes back from it, or from anywhere else in that surface, shows the tooltip.
 - `isTooltipDisabled` suppresses the tooltip when a parent supplies one or the label is already visible; the accessible name remains.
 - Tab reaches an enabled control; Enter and Space activate it. Disabled controls leave the normal tab order unless `disabledReason` or `focusableWhenDisabled` is set.
+- A disabled IconButton's tooltip is its only visible label, and a plain `disabled` one shows it to no one: the pointer and the keyboard both pass it by. When the reader still needs to find it, as with a pair of previous and next controls at either end, set `focusableWhenDisabled`: it stays in the tab order with `aria-disabled`, its tooltip shows on hover and focus, and one that becomes disabled while it has focus keeps focus. Escape still reaches the panel, side nav or dialog around it: only activation is blocked. When it needs to say why, use `disabledReason`. Do not make every disabled control focusable; one that leaves nothing to learn can leave the tab order.
 - Loading sets `aria-busy`, blocks activation and retains focus. An explicitly disabled control stays disabled.
 - Keep sufficient space around compact controls; choose a larger labelled Button when a touch interaction needs a larger target.
-- A row that sizes the button down to 20px keeps a hit area of at least 24px, centred on it, where any pointer is coarse; the row keeps its height.
+- `size="xxsmall"`, the 20px row control, keeps a hit area of at least 24px, centred on it, where any pointer is coarse; the row keeps its height.
 
 <Canvas of={Stories.InADenseRow} />
+
+<Canvas of={Stories.DisabledButReachable} />
 
 <Canvas of={Stories.OpensAMenu} />
 

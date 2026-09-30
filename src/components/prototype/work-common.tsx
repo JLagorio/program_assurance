@@ -1,10 +1,11 @@
 import { productRecordNoun } from "@/lib/product-records";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
 import {
   Absent,
   Alert,
   AlertAction,
   AlertDescription,
+  AlertIcon,
   AlertTitle,
   Button,
   DropdownMenu,
@@ -30,7 +31,7 @@ import {
   announce,
   type EmptyIllustrationKind,
 } from "@ledger/design-system";
-import { AlertCircle, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { ProductRecordDialog } from "./product-record-dialog";
 import { useWorkspace } from "@/components/app/workspace";
@@ -211,7 +212,7 @@ export function QueryState({
     <>
       {first && (
         <Alert ref={alertRef} variant="destructive" role="alert">
-          <AlertCircle aria-hidden />
+          <AlertIcon />
           <AlertTitle>
             {stale ? "Records could not be refreshed" : "Records could not be loaded"}
           </AlertTitle>
@@ -303,11 +304,18 @@ export function MissingRecord({
   kind,
   description = "This record is unavailable in the current workspace.",
   backTo = "/",
+  back,
   inline = false,
 }: {
   kind: string;
   description?: string;
   backTo?: keyof typeof missingRecordDestinations;
+  /**
+   * A way back the fixed list does not hold, in place of `backTo`: the record the missing one
+   * belongs to, such as a program's System tab for a missing system. Its words, and the router
+   * Link that goes there: `{ label: "Open the program’s systems", link: <Link to=… params=… /> }`.
+   */
+  back?: { label: string; link: ReactElement } | undefined;
   /** Inside a tab or a panel that already has its heading: the Empty alone, at the outline's level. */
   inline?: boolean;
 }) {
@@ -321,8 +329,8 @@ export function MissingRecord({
         <EmptyDescription>{description}</EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
-        <LinkButton variant="primary" render={<Link to={backTo} />}>
-          {missingRecordDestinations[backTo]}
+        <LinkButton variant="primary" render={back?.link ?? <Link to={backTo} />}>
+          {back?.label ?? missingRecordDestinations[backTo]}
         </LinkButton>
       </EmptyContent>
     </Empty>

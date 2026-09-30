@@ -17,7 +17,7 @@ import {
   VisuallyHidden,
   useLedgerLocale,
 } from "@ledger/design-system";
-import { StatusBadge } from "@/components/app/status";
+import { LevelIndicator, StatusBadge } from "@/components/app/status";
 import { labelFor } from "@/lib/records";
 import { useRow } from "@/lib/models";
 import { impactLevels, revisionStates, statusLabel, statusTone } from "@/lib/status";
@@ -54,18 +54,13 @@ export function ImpactLevel({
   mixed?: boolean | undefined;
   dimension?: ImpactDimension | undefined;
 }) {
-  const name = dimension ? (
-    <VisuallyHidden>{`${labelFor(dimension)} impact: `}</VisuallyHidden>
-  ) : null;
-  if (!value && !mixed)
-    return (
-      <Absent label={dimension ? `${labelFor(dimension)} impact not recorded` : "Not recorded"} />
-    );
   return (
-    <Indicator tone={mixed ? "warning" : impactTone({ value, source: "system" })}>
-      {name}
-      {mixed ? "Mixed" : statusLabel(impactLevels, value)}
-    </Indicator>
+    <LevelIndicator
+      levels={impactLevels}
+      value={value}
+      mixed={mixed}
+      name={dimension ? `${labelFor(dimension)} impact` : undefined}
+    />
   );
 }
 
@@ -336,7 +331,7 @@ export function SystemAssuranceDetails({
           {contained.map((child) => (
             <Item
               key={child.id}
-              id={<Id>{child.code}</Id>}
+              id={child.code}
               idWidth={104}
               title={child.name}
               meta={labelFor(child.system_type)}

@@ -7,19 +7,20 @@ import * as Stories from "./Stack.stories";
 
 # Stack
 
-A column with one gap. Children sit top to bottom with one space token between them, and the children carry no margin of their own: the parent owns the distance, so the rhythm of a form, a rail or a page body changes in one place. `space`, `alignBlock`, `alignInline`, `spread` and `grow`, on a `div`, a `span` or a list element. The child has no margin; the container has the distance. Here the orientation is the primitive's name; a row is an Inline.
+A column with one gap. Children sit top to bottom with one space token between them, and the children carry no margin of their own: the parent owns the distance, so the rhythm of a form, a rail or a page body changes in one place. `space`, `alignBlock`, `alignInline`, `spread`, `grow` and `shrink`, on a `div`, a `span` or a list element. The child has no margin; the container has the distance. Here the orientation is the primitive's name; a row is an Inline.
 
 <Canvas of={Stories.StackMatrix} />
 
 ## Anatomy
 
-| Part      | What it is                                                                                                                      |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Container | A flex column: a `div`, or the container, landmark or list element `as` names.                                                  |
-| Space     | `space`, one token between every pair of children. No first or last exception: a Stack has no outer space.                      |
-| Alignment | `alignInline`, where the children sit across the column; `alignBlock`, where they sit along it when it is taller than they are. |
-| Spread    | `spread="space-between"`, the free block space divided between the children: a footer pinned to a panel's bottom.               |
-| Grow      | `grow="fill"`, the Stack takes the block space its parent offers; `hug`, the default, it is as tall as its children.            |
+| Part      | What it is                                                                                                                                                                                                  |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Container | A flex column: a `div`, or the container, landmark or list element `as` names.                                                                                                                              |
+| Space     | `space`, one token between every pair of children. No first or last exception: a Stack has no outer space.                                                                                                  |
+| Alignment | `alignInline`, where the children sit across the column; `alignBlock`, where they sit along it when it is taller than they are.                                                                             |
+| Spread    | `spread="space-between"`, the free block space divided between the children: a footer pinned to a panel's bottom.                                                                                           |
+| Grow      | `grow="fill"`, the Stack takes the free space along its parent's main axis (the height in a column, the width in a row) and may shrink below its content; `hug`, the default, it is as big as its children. |
+| Shrink    | `shrink="none"`, the Stack keeps its size when its row runs out of room.                                                                                                                                    |
 
 ## Variants
 
@@ -53,8 +54,9 @@ One space token between every child:
 - **`alignInline`**: `start`, `center`, `end`, `stretch`. `stretch` is the browser's default for a flex column, so a Button in a Stack is as wide as the Stack unless the Stack says `start`.
 - **`alignBlock`**: `start`, `center`, `end`, when the Stack is taller than its children.
 - **`spread`**: `space-between`, the free block space between the children.
-- **`grow`**: `fill` to take the parent's block space, the case for `spread` and `alignBlock` to have any effect.
-- **`as`**: `ul` or `ol` for rows that are a list; `section` or `aside` for a region; the layout elements.
+- **`grow`**: `fill` to take the free space along the parent's main axis: the parent's height in a column, the case for `spread` and `alignBlock` to have any effect, or the width left in a row. A filled Stack drops its automatic minimum size on both axes, so a truncating child inside it cuts rather than pushing its parent wider or taller.
+- **`shrink`**: `none` for a Stack that must keep its size beside a filling sibling: a fixed column of labels, a date.
+- **`as`**: `ul` or `ol` for rows that are a list; `section` or `aside` for a region; the layout elements. A group of fields is a [FieldSet](?path=/docs/components-field--docs), which takes `disabled` and a legend and passes them to its controls; `as="fieldset"` only groups, and it drops a fieldset's content-wide minimum so the column stays in its frame.
 - **No `style`.** A Stack of a fixed width sits in a Box with the width; the Stack has no computed dimension of its own.
 
 ## Content
@@ -70,7 +72,8 @@ One space token between every child:
 | --------- | ---------------------------------------------------------------------- |
 | Space     | `space.*`, as `gap-*`                                                  |
 | Alignment | `items-*` for `alignInline`, `justify-*` for `alignBlock` and `spread` |
-| Grow      | `flex-1` for `fill`                                                    |
+| Grow      | `flex-1 min-w-0 min-h-0` for `fill`                                    |
+| Shrink    | `shrink-0` for `none`                                                  |
 
 ## Accessibility
 

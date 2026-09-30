@@ -1,4 +1,5 @@
 import { useConfirmation } from "@/components/app/confirmation";
+import { Page } from "@/components/app/shell";
 import { TextField } from "@/components/app/fields";
 import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
 import { StatusBadge } from "@/components/app/status";
@@ -49,9 +50,7 @@ import {
   Prose,
   Shell,
   Stack,
-  Table,
   Tabs,
-  TabsContent,
   TabsList,
   TabsTrigger,
   Text,
@@ -62,13 +61,14 @@ import {
 } from "@ledger/design-system";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { AlertCircle, ChevronDown, Plus } from "lucide-react";
-import { useEffect, useId, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { LibraryLoading, LibrarySelect } from "./library-shared";
-import { canAuthorLibrary } from "./library-utils";
+import { useEffect, useId, useMemo, useRef, useState, type FormEvent, type RefObject } from "react";
+import { LibraryLoading, LibrarySelect, QueryValue, VersionHistory } from "./library-shared";
+import { canAuthorLibrary, useVersionFocus, type VersionChoice } from "./library-utils";
 import { ProductCollection } from "./product-collection";
 import { ProductRecordDialog } from "./product-record-dialog";
 import { ProductStructure } from "./product-structure";
-import { recordDestination, RecordLink, useDisplayedRecords } from "./record-preview";
+import { RetainedTabPanels } from "./program-shared";
+import { recordDestination, RecordLink, useDisplayedRecords, useEndOnHide } from "./record-preview";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { RecordTrail, TrailLink } from "./record-trail";
 import { EmptyMessage, MissingRecord } from "./work-common";
@@ -79,12 +79,6 @@ const messageOf = (cause: unknown, fallback = "The request failed.") =>
 /** Writes a JSON document as a download, through the kit's download helper. */
 function downloadJson(filename: string, value: unknown) {
   downloadText(JSON.stringify(value, null, 2), filename, { type: "application/json" });
-}
-
-/** A count from a query: the number once it has loaded, and what is happening until then. */
-function loaded(query: { data?: unknown; isError: boolean }, value: () => ReactNode) {
-  if (query.data !== undefined) return value();
-  return query.isError ? "Could not load" : "Loading…";
 }
 
 type ProductLine = Row<"products"> & {
@@ -171,7 +165,8 @@ export function ProductLibraryIndex() {
     data: rows,
     columns,
     getRowId: (row) => row.id,
-    rowLabel: (row) => row.code,
+    // Two products may share a name, and a narrow frame folds the ID: name the row by both.
+    rowLabel: (row) => `${row.code} · ${row.name}`,
     label: "Product library",
     view: "live-product-library",
     resizable: true,
@@ -186,7 +181,7 @@ export function ProductLibraryIndex() {
       </Button>
     ) : undefined;
   return (
-    <Stack space="space.200" className="animate-rise">
+    <Page>
       <PageHeader>
         <PageHeader.Heading>
           <PageHeader.Title>Products</PageHeader.Title>
@@ -277,7 +272,7 @@ export function ProductLibraryIndex() {
           onClose={() => setSelected(null)}
         />
       )}
-    </Stack>
+    </Page>
   );
 }
 
@@ -298,6 +293,8 @@ export function ProductLibraryRecord({
   const workspace = useWorkspace();
   const { confirm, confirmation } = useConfirmation();
   const [selectedVersion, setSelectedVersion] = useState(initialVersion ?? "");
+  // Which control chose the version, so the new version's page gives focus to its twin.
+  const versionChoice = useRef<VersionChoice | null>(null);
   const [editProduct, setEditProduct] = useState(false);
   const versions = [...(revisions.data ?? [])].sort((a, b) => b.version_number - a.version_number);
   const current =
@@ -401,7 +398,7 @@ export function ProductLibraryRecord({
       </LibraryLoading>
     );
   return (
-    <Stack space="space.200" className="animate-rise">
+    <Page>
       <PageHeader>
         <RecordTrail current={product.data.name}>
           <TrailLink to="/library/products">Products</TrailLink>
@@ -468,6 +465,7 @@ export function ProductLibraryRecord({
             versions={versions}
             configurations={configurations.data ?? []}
             onVersion={setSelectedVersion}
+            versionChoice={versionChoice}
             editable={editable}
           />
         ) : (
@@ -495,7 +493,7 @@ export function ProductLibraryRecord({
         )}
       </LibraryLoading>
       {confirmation}
-    </Stack>
+    </Page>
   );
 }
 
@@ -507,6 +505,7 @@ function ProductRevision({
   versions,
   configurations,
   onVersion,
+  versionChoice,
   editable,
 }: {
   product: Row<"products">;
@@ -514,9 +513,14 @@ function ProductRevision({
   versions: Row<"product_revisions">[];
   configurations: Row<"product_configurations">[];
   onVersion: (id: string) => void;
+  /** Where the last version choice came from, which this page's focus reads once it is drawn. */
+  versionChoice: RefObject<VersionChoice | null>;
   editable: boolean;
 }) {
   const navigate = useNavigate();
+  // A version opened from the history draws on Overview, so focus goes to the rail's select.
+  const versionFocus = useVersionFocus(versionChoice);
+  const { formatNumber } = useLedgerLocale();
   const elements = useRows("product_elements", { product_revision_id: revision.id });
   const memberships = useRows("product_configuration_elements", {
     product_revision_id: revision.id,
@@ -527,7 +531,13 @@ function ProductRevision({
   const systems = useRows("systems");
   const programs = useRows("programs");
   const [variantPreview, setVariantPreview] = useState<VariantLine | null>(null);
-  const [tab, setTab] = useState<string>("Overview");
+  const [tab, setTab] = useState<(typeof productTabs)[number]>("Overview");
+  // A preview belongs to the tab it was opened from: choosing another tab ends it.
+  const [previewTab, setPreviewTab] = useState(tab);
+  if (previewTab !== tab) {
+    setPreviewTab(tab);
+    setVariantPreview(null);
+  }
   const active = configurations.filter((row) => row.state === "active");
   const specs = useMemo(
     () =>
@@ -610,7 +620,7 @@ function ProductRevision({
                 {row.programName}
               </TextLink>
             ) : (
-              <Absent />
+              <Absent label="Not available" />
             ),
         }),
         c.text("configurationName", { header: "Configuration" }),
@@ -638,7 +648,7 @@ function ProductRevision({
   };
   return (
     <>
-      <Tabs value={tab} onValueChange={(value) => setTab(String(value))}>
+      <Tabs value={tab} onValueChange={(value) => setTab(value as (typeof productTabs)[number])}>
         <TabsList variant="line" aria-label="Product sections">
           {productTabs.map((name) => (
             <TabsTrigger key={name} value={name}>
@@ -647,97 +657,75 @@ function ProductRevision({
             </TabsTrigger>
           ))}
         </TabsList>
-        <TabsContent value="Overview">
-          <Prose label="Description">
-            {product.description || <Absent label="No description" />}
-          </Prose>
-        </TabsContent>
-        <TabsContent value="Structure">
-          <ProductStructure
-            product={product}
-            revision={revision}
-            configurations={configurations}
-            editable={editable}
-          />
-        </TabsContent>
-        <TabsContent value="Configurations">
-          <ConfigurationsTab
-            product={product}
-            revision={revision}
-            configurations={configurations}
-            memberships={memberships.data ?? []}
-            elementIds={elementIdsInOrder(specs)}
-            variants={variants}
-            editable={editable}
-          />
-        </TabsContent>
-        <TabsContent value="Variants">
-          <ProductCollection
-            table={variantsTable}
-            queries={[systems, programs]}
-            fill
-            onRowClick={(row) => void navigate(recordDestination("systems", row))}
-            empty={{
-              illustration: "tree",
-              title: "No variants yet",
-              description: "A program creates a variant from a configuration of this product.",
-            }}
-            searchLabel="Find variants"
-            filters={
-              <>
-                <DataTable.Filter table={variantsTable} column="programName" />
-                <DataTable.Filter table={variantsTable} column="configurationName" />
-              </>
-            }
-          />
-        </TabsContent>
-        <TabsContent value="Versions">
-          <Table aria-label="Versions of this product">
-            <thead>
-              <tr>
-                <Table.Header>Version</Table.Header>
-                <Table.Header>State</Table.Header>
-                <Table.Header>Published</Table.Header>
-                <Table.Header>Actions</Table.Header>
-              </tr>
-            </thead>
-            <tbody>
-              {versions.map((version) => {
-                const shown = version.id === revision.id;
+        {/* Each tab keeps its panel once drawn, so a register keeps its rows, question and place. */}
+        <RetainedTabPanels tabs={productTabs} value={tab} space="space.200">
+          {(name) => {
+            switch (name) {
+              case "Overview":
                 return (
-                  <Table.Row
-                    key={version.id}
-                    isSelected={shown}
-                    aria-current={shown ? "true" : undefined}
-                  >
-                    <Table.Cell>{version.version_number}</Table.Cell>
-                    <Table.Cell>
-                      <StatusBadge statuses={revisionStates} value={version.state} />
-                    </Table.Cell>
-                    <Table.Cell>
-                      <DateTime
-                        value={version.published_at}
-                        format="date"
-                        absentLabel="Not published"
-                      />
-                    </Table.Cell>
-                    <Table.Cell>
-                      {shown ? (
-                        <Text size="small" color="color.text.subtle">
-                          Shown on this page
-                        </Text>
-                      ) : (
-                        <Button variant="subtle" size="small" onClick={() => onVersion(version.id)}>
-                          Open version {version.version_number}
-                        </Button>
-                      )}
-                    </Table.Cell>
-                  </Table.Row>
+                  <Prose label="Description" className="max-w-layout-measure">
+                    {product.description || <Absent label="No description" />}
+                  </Prose>
                 );
-              })}
-            </tbody>
-          </Table>
-        </TabsContent>
+              case "Structure":
+                return (
+                  <ProductStructure
+                    product={product}
+                    revision={revision}
+                    configurations={configurations}
+                    editable={editable}
+                  />
+                );
+              case "Configurations":
+                return (
+                  <ConfigurationsTab
+                    product={product}
+                    revision={revision}
+                    configurations={configurations}
+                    memberships={memberships.data ?? []}
+                    elementIds={elementIdsInOrder(specs)}
+                    variants={variants}
+                    editable={editable}
+                  />
+                );
+              case "Variants":
+                return (
+                  <ProductCollection
+                    table={variantsTable}
+                    queries={[systems, programs]}
+                    fill
+                    onRowClick={(row) => void navigate(recordDestination("systems", row))}
+                    empty={{
+                      illustration: "tree",
+                      title: "No variants yet",
+                      description:
+                        "A program creates a variant from a configuration of this product.",
+                    }}
+                    searchLabel="Find variants"
+                    filters={
+                      <>
+                        <DataTable.Filter table={variantsTable} column="programName" />
+                        <DataTable.Filter table={variantsTable} column="configurationName" />
+                      </>
+                    }
+                  />
+                );
+              case "Versions":
+                return (
+                  <VersionHistory
+                    label="Versions of this product"
+                    versions={versions}
+                    shownId={revision.id}
+                    shownRef={versionFocus.shown}
+                    onVersion={(id) => {
+                      versionChoice.current = "history";
+                      onVersion(id);
+                    }}
+                  />
+                );
+            }
+          }}
+        </RetainedTabPanels>
       </Tabs>
       {variantPreview && (
         <RecordSummaryPreview
@@ -761,18 +749,25 @@ function ProductRevision({
         <Shell.Aside label="Product details">
           <Inspector.Group title="Details">
             <Stack space="space.100">
-              <LibrarySelect
-                label="Version"
-                value={revision.id}
-                options={versions.map((version) => ({
-                  value: version.id,
-                  label: `${version.version_number} · ${statusLabel(revisionStates, version.state)}`,
-                }))}
-                onChange={onVersion}
-              />
               <KeyValue.Group>
                 <KeyValue label="Code">
                   <Id>{product.code}</Id>
+                </KeyValue>
+                <KeyValue label="Version">
+                  <LibrarySelect
+                    inline
+                    label="Version"
+                    value={revision.id}
+                    options={versions.map((version) => ({
+                      value: version.id,
+                      label: `${version.version_number} · ${statusLabel(revisionStates, version.state)}`,
+                    }))}
+                    triggerRef={versionFocus.select}
+                    onChange={(id) => {
+                      versionChoice.current = "select";
+                      onVersion(id);
+                    }}
+                  />
                 </KeyValue>
                 <KeyValue label="State">
                   <StatusBadge statuses={revisionStates} value={revision.state} />
@@ -799,12 +794,22 @@ function ProductRevision({
           </Inspector.Group>
           <Inspector.Group title="Contents">
             <KeyValue.Group>
-              <KeyValue label="Elements">{loaded(elements, () => elements.data?.length)}</KeyValue>
-              <KeyValue label="From the library">
-                {loaded(elements, () => specs.filter((row) => row.library).length)}
+              <KeyValue label="Elements">
+                <QueryValue queries={[elements]}>
+                  {() => formatNumber(elements.data?.length ?? 0)}
+                </QueryValue>
               </KeyValue>
-              <KeyValue label="Configurations">{active.length}</KeyValue>
-              <KeyValue label="Variants">{loaded(systems, () => variants.length)}</KeyValue>
+              <KeyValue label="From the library">
+                <QueryValue
+                  queries={[elements, definedComponents, componentRevisions, definitions]}
+                >
+                  {() => formatNumber(specs.filter((row) => row.library).length)}
+                </QueryValue>
+              </KeyValue>
+              <KeyValue label="Configurations">{formatNumber(active.length)}</KeyValue>
+              <KeyValue label="Variants">
+                <QueryValue queries={[systems]}>{() => formatNumber(variants.length)}</QueryValue>
+              </KeyValue>
             </KeyValue.Group>
           </Inspector.Group>
           {revision.state === "published" && (
@@ -857,6 +862,8 @@ function ConfigurationsTab({
   const includeAll = useIncludeAllElements();
   const { formatPlural } = useLedgerLocale();
   const [configurationPreview, setConfigurationPreview] = useState<ConfigurationLine | null>(null);
+  // A preview belongs to its tab: it ends when the tab hides this collection.
+  useEndOnHide(() => setConfigurationPreview(null));
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Row<"product_configurations"> | null>(null);
   const canEditVersion = editable && revision.state === "draft";

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Button, PageHeader, Stack } from "@ledger/design-system";
+import { Button, PageHeader } from "@ledger/design-system";
 import { Plus } from "lucide-react";
 import { useRows } from "@/lib/models";
+import { Page } from "@/components/app/shell";
 import { useWorkspace } from "@/components/app/workspace";
 import { RecordPreviewActions, RecordPreviewPanel } from "@/components/prototype/record-preview";
 import { productCreateLabel } from "@/lib/product-records";
@@ -42,7 +43,7 @@ function Suppliers() {
     },
   ];
   return (
-    <Stack space="space.200">
+    <Page>
       <PageHeader>
         <PageHeader.Heading>
           <PageHeader.Title>Suppliers</PageHeader.Title>
@@ -122,6 +123,6 @@ function Suppliers() {
           />
         </RecordPreviewPanel>
       )}
-    </Stack>
+    </Page>
   );
 }

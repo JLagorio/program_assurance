@@ -21,8 +21,13 @@ import { page, userEvent } from "vitest/browser";
  * - long (storybook-long, the 320px frame): after every text grows by 40% and gains an 80
  *   character unbroken token, the page scrolling sideways, text painting past the frame outside a
  *   scroller, or text cut by overflow with no ellipsis (G1-12).
+ * - motion (storybook-dark, which asks for reduced motion): an element whose transition moves it
+ *   (transform, translate, rotate, scale, width, height, inset or all) for longer than 0.01 ms, an
+ *   animation of those properties still running for longer than 10 ms, and a transition that
+ *   started during the render or play and moved something, such as dnd-kit's inline transforms
+ *   (G8-8). Opacity and colour may still fade; movement stops.
  */
-export type Gate = "focus" | "touch" | "forced-colors" | "short" | "long";
+export type Gate = "focus" | "touch" | "forced-colors" | "short" | "long" | "motion";
 export type GateResult = { count: number; items: string[] };
 
 const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
@@ -515,6 +520,10 @@ export async function shortWindow(): Promise<GateResult> {
       .filter((el) => visible(el) && !el.matches(":disabled, [aria-disabled='true']"))
       .slice(0, 3);
     for (const trigger of triggers) {
+      // A reader opens what they can see: bring a trigger below the fold into view first, or its
+      // popup opens off the window along with it.
+      trigger.scrollIntoView({ block: "nearest" });
+      await nextFrame();
       trigger.click();
       let surfaces: Element[] = [];
       for (let i = 0; i < 30 && surfaces.length === 0; i++) {
@@ -638,12 +647,103 @@ export async function longContent(): Promise<GateResult> {
   }
 }
 
+/* ---------- reduced motion (G8-8) ---------- */
+
+/** Properties whose change moves or resizes something on the page. */
+const MOVES =
+  /^(all|transform|translate|rotate|scale|width|height|min-width|max-width|min-height|max-height|block-size|inline-size|top|right|bottom|left|inset(-.+)?|margin(-.+)?|flex-basis|grid-template-(rows|columns))$/;
+const camelToKebab = (name: string) => name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
+/** A CSS time list as milliseconds: "0.15s, 0.01ms" is [150, 0.01]. */
+const times = (value: string) =>
+  value
+    .split(",")
+    .map((part) => part.trim())
+    .map((part) => (part.endsWith("ms") ? parseFloat(part) : parseFloat(part) * 1000) || 0);
+
+/** Transitions that started during the render and play and moved something, with their duration. */
+let started: string[] = [];
+const onTransitionRun = (event: TransitionEvent) => {
+  if (!MOVES.test(event.propertyName)) return;
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  const style = getComputedStyle(target, event.pseudoElement || null);
+  const properties = style.transitionProperty.split(",").map((part) => part.trim());
+  const durations = times(style.transitionDuration);
+  const index = properties.findIndex((p) => p === event.propertyName || p === "all");
+  const duration = durations[(index < 0 ? 0 : index) % Math.max(1, durations.length)] ?? 0;
+  if (duration > 0.01)
+    started.push(
+      `${describeElement(target)} moved ${event.propertyName} over ${Math.round(duration)}ms`,
+    );
+};
+/** Records moving transitions from here until the motion gate reads them (storybook.setup.ts). */
+export function watchMotion(): () => void {
+  started = [];
+  document.addEventListener("transitionrun", onTransitionRun, true);
+  return () => document.removeEventListener("transitionrun", onTransitionRun, true);
+}
+
+/** An element with no slot of its own, by its id or first classes, so the report finds it. */
+const where = (el: Element) =>
+  el.hasAttribute("data-slot")
+    ? ""
+    : el.id
+      ? ` #${el.id}`
+      : el.classList.length
+        ? ` .${[...el.classList].slice(0, 3).join(".")}`
+        : "";
+
+export async function reducedMotion(): Promise<GateResult> {
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches)
+    return result(["reduced motion is off, so this project checks nothing"]);
+  await nextFrame();
+  const items = [...started];
+  for (const el of document.body.querySelectorAll("*")) {
+    // Storybook's own hidden loader transitions `all`; what is not drawn cannot move.
+    if (!visible(el)) continue;
+    const style = getComputedStyle(el);
+    if (style.transitionProperty === "none" || style.transitionDuration === "0s") continue;
+    const properties = style.transitionProperty.split(",").map((part) => part.trim());
+    const durations = times(style.transitionDuration);
+    properties.forEach((property, index) => {
+      const duration = durations[index % Math.max(1, durations.length)] ?? 0;
+      if (MOVES.test(property) && duration > 0.01)
+        items.push(`${describeElement(el)}${where(el)} transitions ${property} over ${duration}ms`);
+    });
+  }
+  for (const animation of document.getAnimations()) {
+    if (animation.playState !== "running" && !animation.pending) continue;
+    const effect = animation.effect;
+    if (!(effect instanceof KeyframeEffect)) continue;
+    const timing = effect.getComputedTiming();
+    const duration = typeof timing.duration === "number" ? timing.duration : 0;
+    if (duration <= 10) continue;
+    const moved =
+      "transitionProperty" in animation
+        ? [String((animation as CSSTransition).transitionProperty)]
+        : effect
+            .getKeyframes()
+            .flatMap((frame) => Object.keys(frame))
+            .map(camelToKebab);
+    const property = moved.find((name) => MOVES.test(name));
+    if (!property) continue;
+    const name =
+      "animationName" in animation ? ` (${(animation as CSSAnimation).animationName})` : "";
+    const target = effect.target;
+    items.push(
+      `${target ? describeElement(target) : "an element"} animates ${property}${name} over ${Math.round(duration)}ms`,
+    );
+  }
+  return result(items);
+}
+
 const gates: Record<Gate, () => Promise<GateResult>> = {
   focus: focusRings,
   touch: touchTargets,
   "forced-colors": forcedColourStates,
   short: shortWindow,
   long: longContent,
+  motion: reducedMotion,
 };
 
 export const gateHelp: Record<Gate, string> = {
@@ -656,6 +756,8 @@ export const gateHelp: Record<Gate, string> = {
   short:
     "Let the surface scroll as one below 30rem tall, keep its title reachable, and keep focus scroll margins inside the overlay's own scroller.",
   long: "Let titles and values wrap (ids and URLs wrap anywhere) or truncate with an ellipsis and a reveal.",
+  motion:
+    "Under prefers-reduced-motion: reduce, give the part's movement a 0.01ms duration in src/styles/motion.css (or read useReducedMotion for motion driven from script); a fade may stay.",
 };
 
 /** Runs a gate over the rendered story. */

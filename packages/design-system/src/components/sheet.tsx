@@ -3,7 +3,7 @@ import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { X } from "lucide-react";
-import type { ComponentProps, CSSProperties } from "react";
+import { useMemo, useRef, type ComponentProps, type CSSProperties } from "react";
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
@@ -11,10 +11,16 @@ import { HeadingLevelProvider } from "../primitives/heading-level";
 import { IconButton } from "./button";
 import {
   OverlayPendingContext,
+  OverlayRootContext,
   bodySlot,
+  focusPastClose,
   overlaySurface,
   pendingCloseRender,
   pendingOpenChange,
+  useBlanketPress,
+  useFooterClearance,
+  useOpener,
+  useOpenerFocus,
   useOverlayPending,
   useReadOnlyScroller,
   withStyle,
@@ -38,15 +44,20 @@ export function Sheet<Payload = unknown>({
   ...props
 }: SheetProps<Payload>) {
   const { direction } = useLedgerLocale();
+  const opener = useOpener(props.open);
+  const holdsBlanket = pending || Boolean(disablePointerDismissal);
+  const root = useMemo(() => ({ opener, holdsBlanket }), [opener, holdsBlanket]);
   return (
     <DirectionProvider direction={direction}>
-      <OverlayPendingContext.Provider value={pending}>
-        <Primitive.Root
-          {...props}
-          disablePointerDismissal={pending || disablePointerDismissal}
-          onOpenChange={pendingOpenChange(pending, onOpenChange)}
-        />
-      </OverlayPendingContext.Provider>
+      <OverlayRootContext.Provider value={root}>
+        <OverlayPendingContext.Provider value={pending}>
+          <Primitive.Root
+            {...props}
+            disablePointerDismissal={pending || disablePointerDismissal}
+            onOpenChange={pendingOpenChange(pending, onOpenChange)}
+          />
+        </OverlayPendingContext.Provider>
+      </OverlayRootContext.Provider>
     </DirectionProvider>
   );
 }
@@ -54,16 +65,26 @@ export type SheetTriggerProps<Payload = unknown> = Primitive.Trigger.Props<Paylo
 export function SheetTrigger<Payload = unknown>(props: SheetTriggerProps<Payload>) {
   return <Primitive.Trigger data-slot="sheet-trigger" {...props} />;
 }
-type SheetPortalProps = Primitive.Portal.Props;
-function SheetPortal(props: SheetPortalProps) {
+export type SheetPortalProps = Primitive.Portal.Props;
+/** The sheet's portal, for a custom popup; SheetContent brings its own. */
+export function SheetPortal(props: SheetPortalProps) {
   return <Primitive.Portal {...props} />;
 }
-type SheetOverlayProps = Primitive.Backdrop.Props;
-function SheetOverlay({ className, ...props }: SheetOverlayProps) {
+export type SheetOverlayProps = Primitive.Backdrop.Props;
+/**
+ * The blanket, for a custom popup; SheetContent brings its own. While a press on it leaves the
+ * sheet open (`pending`, `disablePointerDismissal`), the press keeps focus where the reader has it.
+ */
+export function SheetOverlay({ className, onMouseDown, ...props }: SheetOverlayProps) {
+  const press = useBlanketPress();
   return (
     <Primitive.Backdrop
       data-slot="sheet-overlay"
       {...props}
+      onMouseDown={(event) => {
+        press?.(event);
+        onMouseDown?.(event);
+      }}
       className={classes(
         "fixed inset-0 z-50 bg-blanket data-open:animate-dim-in data-closed:animate-dim-out",
         className,
@@ -99,7 +120,10 @@ const sheetWidths: Record<Exclude<SheetWidth, "fullscreen">, number> = {
 };
 
 export type SheetContentProps = Primitive.Popup.Props & {
-  /** Renders the close button at the top end. It is disabled, and keeps focus, while the Sheet is `pending`. @default true */
+  /**
+   * Renders the close button at the top end, first in the Tab order as it is drawn. It is disabled,
+   * and keeps focus, while the Sheet is `pending`. @default true
+   */
   showCloseButton?: boolean | undefined;
   /** The edge it slides from. `start` and `end` follow the reading direction. @default "right" */
   side?: "top" | "right" | "bottom" | "left" | "start" | "end" | undefined;
@@ -125,10 +149,14 @@ export function SheetContent({
   side = "right",
   width,
   style,
+  initialFocus,
+  finalFocus,
   ...props
 }: SheetContentProps) {
   const { direction, t } = useLedgerLocale();
   const pending = useOverlayPending();
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const returnFocus = useOpenerFocus();
   const contentDirection = dir === "rtl" || dir === "ltr" ? dir : direction;
   const physicalSide =
     side === "start"
@@ -170,6 +198,11 @@ export function SheetContent({
           {...(width ? { "data-width": width } : {})}
           {...(pending ? { "aria-busy": true, "data-pending": "" } : {})}
           {...props}
+          // With the close button first in the DOM, the first field still takes focus by default.
+          initialFocus={
+            initialFocus === undefined && showCloseButton ? focusPastClose(closeRef) : initialFocus
+          }
+          finalFocus={finalFocus === undefined ? returnFocus : finalFocus}
           style={withStyle(own, style)}
           className={classes(
             cn(
@@ -181,10 +214,10 @@ export function SheetContent({
             className,
           )}
         >
-          {/* The title is the sheet's h2; headings inside take the next level. */}
-          <HeadingLevelProvider level={3}>{children}</HeadingLevelProvider>
+          {/* First in the DOM, so Tab reaches it where it is drawn, before the body. */}
           {showCloseButton && (
             <SheetClose
+              ref={closeRef}
               render={
                 <IconButton
                   label={t("close")}
@@ -193,11 +226,13 @@ export function SheetContent({
                   isTooltipDisabled
                   disabled={pending}
                   focusableWhenDisabled
-                  className="absolute end-150 top-100"
+                  className="absolute end-150 top-100 z-10"
                 />
               }
             />
           )}
+          {/* The title is the sheet's h2; headings inside take the next level. */}
+          <HeadingLevelProvider level={3}>{children}</HeadingLevelProvider>
         </Primitive.Popup>
       </SheetPortal>
     </DirectionProvider>
@@ -240,15 +275,21 @@ export function SheetBody({ className, render, ref, ...props }: SheetBodyProps) 
   });
 }
 export type SheetFooterProps = ComponentProps<"div">;
-export function SheetFooter({ className, ...props }: SheetFooterProps) {
+/**
+ * The action row, held at the bottom. When the whole sheet scrolls (a window under 30rem tall), a
+ * control that takes focus scrolls clear of it rather than under it.
+ */
+export function SheetFooter({ className, ref, ...props }: SheetFooterProps) {
+  const clearance = useFooterClearance(ref);
   return (
     <div
       data-slot="sheet-footer"
       className={cn(
-        "sticky bottom-0 z-10 flex shrink-0 flex-wrap items-center justify-end gap-100 border-t border-default bg-surface-sunken px-250 py-150",
+        "sticky bottom-0 z-10 flex shrink-0 flex-wrap items-center justify-end gap-100 border-t border-default bg-surface-current px-200 py-150",
         className,
       )}
       {...props}
+      ref={clearance}
     />
   );
 }
@@ -258,7 +299,7 @@ export function SheetTitle({ className, ...props }: SheetTitleProps) {
     <Primitive.Title
       data-slot="sheet-title"
       {...props}
-      className={classes("font-heading-xsmall text-default", className)}
+      className={classes("font-heading-xsmall text-default break-words", className)}
     />
   );
 }
@@ -268,7 +309,7 @@ export function SheetDescription({ className, ...props }: SheetDescriptionProps)
     <Primitive.Description
       data-slot="sheet-description"
       {...props}
-      className={classes("font-body text-subtle", className)}
+      className={classes("font-body text-subtle break-words", className)}
     />
   );
 }

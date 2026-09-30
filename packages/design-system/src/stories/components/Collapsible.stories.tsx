@@ -62,14 +62,16 @@ export const IndependentAndDisabled: Story = {
       <AccordionItem value="details">
         <AccordionTrigger>Record details</AccordionTrigger>
         <AccordionContent>
-          <Collapsible defaultOpen onOpenChange={(_, details) => details.cancel()}>
-            <CollapsibleTrigger>Required evidence</CollapsibleTrigger>
-            <CollapsibleContent>Retention is required.</CollapsibleContent>
-          </Collapsible>
-          <Collapsible disabled>
-            <CollapsibleTrigger>Unavailable</CollapsibleTrigger>
-            <CollapsibleContent>Restricted details</CollapsibleContent>
-          </Collapsible>
+          <HeadingLevelProvider level={4}>
+            <Collapsible defaultOpen onOpenChange={(_, details) => details.cancel()}>
+              <CollapsibleHeader>Required evidence</CollapsibleHeader>
+              <CollapsibleContent>Retention is required.</CollapsibleContent>
+            </Collapsible>
+            <Collapsible disabled>
+              <CollapsibleHeader>Unavailable</CollapsibleHeader>
+              <CollapsibleContent>Restricted details</CollapsibleContent>
+            </Collapsible>
+          </HeadingLevelProvider>
         </AccordionContent>
       </AccordionItem>
     </Accordion>
@@ -89,6 +91,8 @@ export const IndependentAndDisabled: Story = {
       "aria-disabled",
       "true",
     );
+    // Under the item's h3, the inner headers are set one level down.
+    await expect(canvas.getByRole("heading", { name: "Required evidence" }).tagName).toBe("H4");
   },
 };
 export const SearchableContent: Story = {
@@ -177,9 +181,9 @@ export const Header: Story = {
     await waitFor(() => expect(canvas.getByText("NIST SP 800-53 Rev 5")).toBeVisible());
     await waitFor(() => expect(turned(provenance)).toBe(true));
     // Settled open, the content clips no longer, so a focus ring at its edge shows whole.
-    const content = canvas.getByText("NIST SP 800-53 Rev 5").closest<HTMLElement>(
-      "[data-slot=collapsible-content]",
-    )!;
+    const content = canvas
+      .getByText("NIST SP 800-53 Rev 5")
+      .closest<HTMLElement>("[data-slot=collapsible-content]")!;
     await waitFor(() => expect(getComputedStyle(content).overflow).toBe("visible"));
     await userEvent.keyboard(" ");
     await expect(provenance).toHaveFocus();
@@ -201,12 +205,26 @@ export const Header: Story = {
     await expect(restricted).toHaveAttribute("aria-disabled", "true");
     await userEvent.click(restricted, { pointerEventsCheck: 0 });
     await expect(restricted).toHaveAttribute("aria-expanded", "false");
-    // Under reduced motion the chevron turns without moving.
+    // The row tint reaches space.100 before the flush title and ends at the row's end, where the
+    // chevron sits space.100 inside it; the title does not move.
+    const tint = getComputedStyle(provenance, "::before");
+    const bleed = getComputedStyle(canvasElement).getPropertyValue("--ds-space-100").trim();
+    await expect(tint.position).toBe("absolute");
+    await expect(tint.left).toBe(`-${bleed}`);
+    await expect(tint.right).toBe("0px");
+    await expect(getComputedStyle(provenance).paddingInlineEnd).toBe(bleed);
+    const title = provenance.querySelector("[data-slot=collapsible-header-title]")!;
+    await expect(Math.round(title.getBoundingClientRect().left)).toBe(
+      Math.round(provenance.getBoundingClientRect().left),
+    );
+    // Under reduced motion the chevron turns without moving, and the tint changes at once.
     const icon = provenance.querySelector("[data-slot=collapsible-header-icon]")!;
     await expect(icon).toHaveClass("motion-reduce:transition-none");
-    await expect(provenance).toHaveClass("motion-reduce:transition-none");
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+    await expect(provenance).toHaveClass("motion-reduce:before:transition-none");
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       await expect(getComputedStyle(icon).transitionProperty).toBe("none");
+      await expect(tint.transitionProperty).toBe("none");
+    }
   },
 };
 
@@ -241,5 +259,73 @@ export const HeaderLevels: Story = {
     await expect(canvas.getByRole("heading", { name: "Details" }).tagName).toBe("H2");
     await expect(canvas.getByRole("heading", { name: "Identifiers" }).tagName).toBe("H3");
     await expect(canvas.getByRole("heading", { name: "References" }).tagName).toBe("H3");
+  },
+};
+
+/**
+ * A Collapsible inside an open Accordion item folds on its own measured height, not the item's:
+ * every disclosure panel reads its own `--ds-collapse-height`, so the inner one eases open instead
+ * of taking the settled item's `auto` and snapping.
+ */
+export const NestedMotion: Story = {
+  name: "Nested motion",
+  render: () => (
+    <Accordion defaultValue={["record"]} className="w-layout-list max-w-full">
+      <AccordionItem value="record">
+        <AccordionTrigger>Record details</AccordionTrigger>
+        <AccordionContent>
+          <Collapsible>
+            <CollapsibleHeader>Provenance</CollapsibleHeader>
+            <CollapsibleContent data-testid="nested">
+              <div className="flex flex-col pb-200">
+                <KeyValue label="Source">NIST SP 800-53 Rev 5</KeyValue>
+                <KeyValue label="Imported">14 Sept 2026</KeyValue>
+                <KeyValue label="Resolved">15 Sept 2026</KeyValue>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const item = canvasElement.querySelector<HTMLElement>("[data-slot=accordion-content]")!;
+    // The item has settled open, so it holds `auto`, which a panel inside it would inherit.
+    await waitFor(() =>
+      expect(item.style.getPropertyValue("--accordion-panel-height")).toBe("auto"),
+    );
+    await expect(item).toHaveAttribute("data-collapse-panel", "accordion");
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // Catch the inner panel's fold as it starts, and hold it there.
+    const started = new Promise<Animation>((resolve) => {
+      canvasElement.addEventListener("animationstart", (event) => {
+        const target = event.target as HTMLElement;
+        if (event.animationName !== "ds-collapse-open" || target.dataset["testid"] !== "nested")
+          return;
+        const fold = target
+          .getAnimations()
+          .find((animation) => (animation as CSSAnimation).animationName === "ds-collapse-open");
+        if (!fold) return;
+        fold.pause();
+        resolve(fold);
+      });
+    });
+    await userEvent.click(canvas.getByRole("button", { name: "Provenance" }));
+    const nested = await canvas.findByTestId("nested");
+    await expect(nested).toHaveAttribute("data-collapse-panel", "collapsible");
+    if (!reduced) {
+      // Halfway through the fold the inner panel is part of the way open: it eases on its own
+      // measured height. On the item's `auto` it would be all the way open at once.
+      const fold = await started;
+      const duration = Number(fold.effect?.getTiming().duration ?? 0);
+      fold.currentTime = duration / 2;
+      const half = nested.getBoundingClientRect().height;
+      const full = nested.scrollHeight;
+      fold.finish();
+      await expect(half).toBeGreaterThan(0);
+      await expect(half).toBeLessThan(full);
+    }
+    await waitFor(() => expect(canvas.getByText("15 Sept 2026")).toBeVisible());
   },
 };

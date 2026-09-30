@@ -1,6 +1,20 @@
 import { Command as CommandPrimitive, useCommandState } from "cmdk";
 import { Search } from "lucide-react";
-import type { ComponentProps, ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentProps,
+  type ReactNode,
+} from "react";
+import { token } from "../generated/tokens";
+import { announce } from "../lib/announce";
 import { useLedgerLocale } from "../lib/locale";
 import {
   Dialog,
@@ -13,15 +27,74 @@ import {
 } from "./dialog";
 
 import { cn } from "../lib/cn";
-import { Kbd } from "./kbd";
+import { KbdShortcut, useFormatShortcut } from "./kbd";
 import { menuItem, menuSeparator } from "./menu";
 import { Spinner } from "./spinner";
 
-/* A list the reader filters from the keyboard: the ⌘K palette, a record picker, the search behind
-   a Combobox. cmdk underneath for the filtering, the arrow keys, the typeahead and the roles; the
-   kit owns the look, which is the floating list's, so a palette's row and a menu's row are one row. */
+/* A list the reader filters from the keyboard: the ⌘K palette, a record picker. cmdk underneath
+   for the filtering, the arrow keys, the typeahead and the roles; the kit owns the look, which is
+   the floating list's, so a palette's row and a menu's row are one row, and it owns what cmdk
+   leaves out: an active descendant that follows the selection, the count spoken as it settles,
+   and an empty sentence that waits while rows load. */
 
-export function Command({ className, ...props }: ComponentProps<typeof CommandPrimitive>) {
+/** How long the results must hold still before their count is spoken, so typing is not interrupted. */
+const ANNOUNCE_DELAY = 600;
+
+type CommandContextValue = { loading: boolean; register: () => () => void };
+/** Whether a CommandLoading is showing, so the empty sentence and the count wait for the rows. */
+const CommandContext = createContext<CommandContextValue>({
+  loading: false,
+  register: () => () => {},
+});
+
+/**
+ * Says the count of matching rows, or the empty sentence, through the page's Announcer once the
+ * query holds still. Nothing is said before a query or while rows load.
+ */
+function CommandStatus() {
+  const { t, messages, formatPlural } = useLedgerLocale();
+  const { loading } = useContext(CommandContext);
+  const search = useCommandState((s) => s.search);
+  const count = useCommandState((s) => s.filtered.count);
+  const marker = useRef<HTMLSpanElement>(null);
+  const query = search.trim();
+  useEffect(() => {
+    if (!query || loading) return;
+    const timer = setTimeout(() => {
+      const empty = marker.current
+        ?.closest("[cmdk-root]")
+        ?.querySelector("[cmdk-empty]")
+        ?.textContent?.trim();
+      announce(
+        count > 0
+          ? formatPlural(count, {
+              one: messages.commandMatchOne,
+              other: messages.commandMatchOther,
+            })
+          : empty || t("commandNoMatches"),
+      );
+    }, ANNOUNCE_DELAY);
+    return () => clearTimeout(timer);
+  }, [query, count, loading, formatPlural, messages, t]);
+  return <span ref={marker} hidden data-slot="command-status" />;
+}
+
+/**
+ * The list and its field. Give it a `label`, which names the field. While the reader types, the
+ * count of matching rows (or the empty sentence) is spoken once the query holds still, through the
+ * page's Announcer.
+ */
+export function Command({
+  className,
+  children,
+  ...props
+}: ComponentProps<typeof CommandPrimitive>) {
+  const [loaders, setLoaders] = useState(0);
+  const register = useCallback(() => {
+    setLoaders((n) => n + 1);
+    return () => setLoaders((n) => n - 1);
+  }, []);
+  const context = useMemo(() => ({ loading: loaders > 0, register }), [loaders, register]);
   return (
     <CommandPrimitive
       data-slot="command"
@@ -30,56 +103,122 @@ export function Command({ className, ...props }: ComponentProps<typeof CommandPr
         className,
       )}
       {...props}
-    />
+    >
+      <CommandContext.Provider value={context}>
+        <CommandStatus />
+        {children}
+      </CommandContext.Provider>
+    </CommandPrimitive>
   );
 }
 
-/** The field at the top: a search icon, the input, and at the end a hint, `esc` by default; `null` for none, a `CommandCount` for a picker. */
-export function CommandInput({
-  className,
-  hint,
-  ...props
-}: ComponentProps<typeof CommandPrimitive.Input> & { hint?: ReactNode }) {
+export type CommandInputProps = ComponentProps<typeof CommandPrimitive.Input> & {
+  /** At the end of the field: the Escape key by default, which is decoration; `null` for none; a `CommandCount` for a picker, which the field is described by. */
+  hint?: ReactNode;
+};
+
+/**
+ * The field at the top: a search icon, the input, and at the end a hint. The field's
+ * `aria-activedescendant` names the row Enter would choose, on open, after every keystroke and
+ * after every arrow. The row draws the field's focus ring while the field has focus.
+ */
+export function CommandInput({ className, hint, ref, ...props }: CommandInputProps) {
+  const own = useRef<HTMLInputElement | null>(null);
+  const setRef = useCallback(
+    (node: HTMLInputElement | null) => {
+      own.current = node;
+      if (typeof ref === "function") ref(node);
+      else if (ref) ref.current = node;
+    },
+    [ref],
+  );
+  // Every change that can move the selection re-renders the field, so the attribute follows.
+  useCommandState((s) => s.value);
+  useCommandState((s) => s.selectedItemId);
+  useCommandState((s) => s.search);
+  useCommandState((s) => s.filtered.count);
+  // cmdk resolves the selected row before the rows have rendered, so its own attribute is empty
+  // on open and stale after a filter; the row that is selected in the document is the answer.
+  useLayoutEffect(() => {
+    const input = own.current;
+    if (!input) return;
+    const selected = input
+      .closest("[cmdk-root]")
+      ?.querySelector<HTMLElement>('[cmdk-item][aria-selected="true"]');
+    if (selected?.id) input.setAttribute("aria-activedescendant", selected.id);
+    else input.removeAttribute("aria-activedescendant");
+  });
+  const hintId = useId();
+  const described = hint !== undefined && hint !== null && hint !== false;
+  const describedBy =
+    [props["aria-describedby"], described ? hintId : undefined].filter(Boolean).join(" ") ||
+    undefined;
   return (
-    <div className="flex h-control-large shrink-0 items-center gap-100 border-b border-default px-150">
+    <div
+      data-slot="command-input"
+      className="flex h-control-large shrink-0 items-center gap-100 rounded-t-xxlarge border-b border-default px-150 focus-within:outline-field-focused"
+    >
       <Search aria-hidden className="size-icon-medium shrink-0 icon-subtle" />
       <CommandPrimitive.Input
+        ref={setRef}
         className={cn(
-          "h-full w-full bg-surface-overlay font-body text-default outline-none placeholder:text-subtlest disabled:cursor-not-allowed disabled:text-disabled",
+          "h-full w-full min-w-0 bg-surface-overlay font-body text-default outline-none placeholder:text-subtlest disabled:cursor-not-allowed disabled:text-disabled",
           className,
         )}
         {...props}
+        aria-describedby={describedBy}
       />
-      {hint === undefined ? <Kbd>esc</Kbd> : hint}
+      {hint === undefined ? (
+        <span aria-hidden="true" className="flex shrink-0 items-center">
+          <KbdShortcut keys="Escape" />
+        </span>
+      ) : described ? (
+        <span id={hintId} data-slot="command-input-hint" className="flex shrink-0 items-center">
+          {hint}
+        </span>
+      ) : null}
     </div>
   );
 }
 
-/** The rows, scrolling inside themselves past 340px; pass `style` for another cap. */
-export function CommandList({ className, ...props }: ComponentProps<typeof CommandPrimitive.List>) {
+/** The rows, scrolling inside themselves past 340px; pass `style` for another cap. `label` names the listbox, "Results" by default. */
+export function CommandList({
+  className,
+  label,
+  ...props
+}: ComponentProps<typeof CommandPrimitive.List>) {
+  const { t } = useLedgerLocale();
   return (
     <CommandPrimitive.List
       style={{ maxHeight: 340 }}
+      label={label ?? t("commandListLabel")}
       className={cn("overflow-y-auto overflow-x-hidden overscroll-none p-075", className)}
       {...props}
     />
   );
 }
 
-/** What the list says when nothing matches the query. cmdk shows it only then. */
-export function CommandEmpty({
-  className,
-  ...props
-}: ComponentProps<typeof CommandPrimitive.Empty>) {
+export type CommandEmptyProps = ComponentProps<typeof CommandPrimitive.Empty> & {
+  /** What to say when a query matches nothing, where `children` says the list has no rows before any query. `children` serves both by default. */
+  noMatch?: ReactNode;
+};
+
+/** What the list says when no row shows. cmdk shows it only then, and never while a CommandLoading is showing: a load in progress is not an empty list. */
+export function CommandEmpty({ className, noMatch, children, ...props }: CommandEmptyProps) {
+  const { loading } = useContext(CommandContext);
+  const search = useCommandState((s) => s.search);
+  if (loading) return null;
   return (
     <CommandPrimitive.Empty
       className={cn("px-100 py-300 text-center font-body-small text-subtle", className)}
       {...props}
-    />
+    >
+      {search.trim() && noMatch !== undefined ? noMatch : children}
+    </CommandPrimitive.Empty>
   );
 }
 
-/** Place alongside CommandList while rows are fetched: the kit's Spinner and a word. cmdk marks it a progressbar named by `label`. */
+/** Place alongside CommandList while rows are fetched: the kit's Spinner and a word, "Searching…" by default. cmdk marks it a progressbar named by `label`. While it shows, CommandEmpty and the spoken count wait. */
 export function CommandLoading({
   label,
   className,
@@ -87,6 +226,9 @@ export function CommandLoading({
   ...props
 }: ComponentProps<typeof CommandPrimitive.Loading>) {
   const { t } = useLedgerLocale();
+  const { register } = useContext(CommandContext);
+  // Before the first paint, so the empty sentence never shows for a frame while rows load.
+  useLayoutEffect(() => register(), [register]);
   return (
     <CommandPrimitive.Loading
       label={label ?? t("loading")}
@@ -98,7 +240,7 @@ export function CommandLoading({
     >
       <span className="flex items-center justify-center gap-100">
         <Spinner size="small" />
-        <span>{children ?? t("search")}</span>
+        <span>{children ?? t("searching")}</span>
       </span>
     </CommandPrimitive.Loading>
   );
@@ -120,23 +262,41 @@ export function CommandGroup({
   );
 }
 
-/** One row: the label, an icon before it if the rows are of kinds, and children such as CommandShortcut at the end. The row under the cursor tints as a menu's does. */
-export function CommandItem({
-  className,
-  children,
-  ...props
-}: ComponentProps<typeof CommandPrimitive.Item>) {
+export type CommandItemProps = ComponentProps<typeof CommandPrimitive.Item> & {
+  /**
+   * The keys that run the same command from the page, written once for every platform: "Mod+E",
+   * "Shift+D". They are drawn at the end of the row and given to it as `aria-keyshortcuts`, so the
+   * row's name stays its label. Give the row a `value` when it has a shortcut.
+   */
+  shortcut?: string | undefined;
+};
+
+/**
+ * One row: the label, an icon before it if the rows are of kinds, and children such as
+ * CommandShortcut at the end. The selected row tints as a menu's does; while the field has focus it
+ * also draws the field's focus outline, since focus stays in the field and the row is its active
+ * descendant. The row under the pointer keeps the tint alone.
+ */
+export function CommandItem({ className, children, shortcut, ...props }: CommandItemProps) {
+  const format = useFormatShortcut();
   return (
     <CommandPrimitive.Item
+      aria-keyshortcuts={shortcut ? format(shortcut, "aria") : undefined}
       className={cn(
         menuItem,
         "min-h-control-medium",
         "data-[selected=true]:bg-neutral-subtle-hovered data-[disabled=true]:pointer-events-none data-[disabled=true]:text-disabled",
+        "in-[[cmdk-root]:has([cmdk-input]:focus)]:data-[selected=true]:[&:not(:hover)]:outline-field-focused",
         className,
       )}
       {...props}
     >
       {children}
+      {shortcut ? (
+        <CommandShortcut>
+          <KbdShortcut keys={shortcut} />
+        </CommandShortcut>
+      ) : null}
     </CommandPrimitive.Item>
   );
 }
@@ -162,24 +322,36 @@ export function CommandFooter({ children }: { children: ReactNode }) {
   );
 }
 
-/** "12 matches": the live count of rows that match. Renders inside a Command, in the field's hint or the footer. */
+/**
+ * "12 matches": the live count of rows that match, in the locale's words and plural rules.
+ * Renders inside a Command, in the field's hint (which describes the field) or the footer. `one`
+ * and `many` put other words after the number: "record", "records".
+ */
 export function CommandCount({
-  one = "match",
-  many = "matches",
+  one,
+  many,
 }: {
   one?: string | undefined;
   many?: string | undefined;
 }) {
+  const { formatPlural, messages } = useLedgerLocale();
   const count = useCommandState((s) => s.filtered.count);
+  // A caller's word follows the number; a word it leaves out is the locale's, in its plural rules.
+  const text = formatPlural(count, {
+    one: one === undefined ? messages.commandMatchOne : `{count} ${one}`,
+    other: many === undefined ? messages.commandMatchOther : `{count} ${many}`,
+  });
   return (
-    <span className="shrink-0 font-body-xsmall text-subtle tabular-nums">
-      {count} {count === 1 ? one : many}
+    <span data-slot="command-count" className="shrink-0 font-body-xsmall text-subtle tabular-nums">
+      {text}
     </span>
   );
 }
 
 export type CommandDialogProps<Payload = unknown> = Omit<DialogProps<Payload>, "children"> & {
+  /** The dialog's name, "Command palette" by default. Name the task: "Link evidence". */
   title?: string | undefined;
+  /** Read after the name. "Search for a command to run." with the default title, and nothing with any other, since the sentence is the palette's. */
   description?: string | undefined;
   className?: string | undefined;
   showCloseButton?: boolean | undefined;
@@ -187,9 +359,13 @@ export type CommandDialogProps<Payload = unknown> = Omit<DialogProps<Payload>, "
   style?: DialogContentProps["style"];
   children: ReactNode;
 };
+
+/** The top inset: 80px, or a tenth of the window where that is less, so a short window keeps its rows. */
+const commandDialogTop = "min(var(--ds-space-1000), 10dvh)";
+
 export function CommandDialog<Payload = unknown>({
-  title = "Command palette",
-  description = "Search for a command to run.",
+  title,
+  description,
   className,
   showCloseButton = false,
   finalFocus,
@@ -197,14 +373,19 @@ export function CommandDialog<Payload = unknown>({
   children,
   ...props
 }: CommandDialogProps<Payload>) {
+  const { t } = useLedgerLocale();
+  const name = title ?? t("commandPaletteTitle");
+  const sentence =
+    description ?? (title === undefined ? t("commandPaletteDescription") : undefined);
   const defaults = {
-    maxWidth: 560,
-    maxHeight: "calc(100dvh - var(--ds-space-1000) - var(--ds-space-200))",
+    top: commandDialogTop,
+    maxWidth: token("dimension.part.command"),
+    maxHeight: `calc(100dvh - ${commandDialogTop} - var(--ds-space-200))`,
   };
   return (
     <Dialog {...props}>
       <DialogContent
-        className={cn("top-1000 translate-y-0", className)}
+        className={cn("translate-y-0", className)}
         style={
           typeof style === "function"
             ? (state) => ({ ...defaults, ...style(state) })
@@ -214,8 +395,8 @@ export function CommandDialog<Payload = unknown>({
         finalFocus={finalFocus}
       >
         <DialogHeader className="sr-only">
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogTitle>{name}</DialogTitle>
+          {sentence ? <DialogDescription>{sentence}</DialogDescription> : null}
         </DialogHeader>
         {children}
       </DialogContent>
@@ -223,9 +404,15 @@ export function CommandDialog<Payload = unknown>({
   );
 }
 export type CommandShortcutProps = ComponentProps<"span">;
+/**
+ * A shortcut's keys at the end of a row, hidden from assistive technology so the row's name is its
+ * label: CommandItem's `shortcut` draws one and says it as `aria-keyshortcuts`. Content at the end
+ * that is not a shortcut, such as a count, passes `aria-hidden={false}`.
+ */
 export function CommandShortcut({ className, ...props }: CommandShortcutProps) {
   return (
     <span
+      aria-hidden="true"
       data-slot="command-shortcut"
       className={cn("ms-auto shrink-0 font-body-xsmall text-subtle", className)}
       {...props}

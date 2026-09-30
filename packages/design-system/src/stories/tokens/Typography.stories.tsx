@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect } from "storybook/test";
 
+import { Input, Textarea } from "../../components";
 import { Group, Page, Spec, under } from "../_lib/sheet";
 
 const meta = { title: "Tokens/Typography", parameters: { layout: "padded" } } satisfies Meta;
@@ -116,5 +117,40 @@ export const PackagedFaces: Story = {
     const sampleText = canvasElement.querySelector("[data-face] span");
     if (!sampleText) throw new Error("no sample");
     await expect(getComputedStyle(sampleText).fontFamily).toMatch(/^"Geist Variable"/);
+  },
+};
+
+/**
+ * Text entry on a coarse pointer: an Input and a Textarea set their text at 16px wherever any
+ * pointer is coarse, so iOS Safari does not zoom the page when one takes focus, and keep their
+ * token heights. With a fine pointer they keep the UI size, 13px.
+ */
+export const ControlTextOnTouch: Story = {
+  render: () => (
+    <Page
+      title="Control text on touch"
+      lede="Under (any-pointer: coarse), text-entry controls set 1rem, never under 16px; heights stay on dimension.control."
+    >
+      <Group title="Input and Textarea">
+        <div className="flex max-w-full flex-col gap-100">
+          <Input aria-label="Search controls" placeholder="Search controls" data-testid="input" />
+          <Textarea aria-label="Rationale" rows={2} data-testid="textarea" />
+        </div>
+      </Group>
+    </Page>
+  ),
+  play: async ({ canvas }) => {
+    const coarse = window.matchMedia("(any-pointer: coarse)").matches;
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    for (const id of ["input", "textarea"]) {
+      const size = parseFloat(getComputedStyle(canvas.getByTestId(id)).fontSize);
+      if (coarse) await expect(size, id).toBeGreaterThanOrEqual(16);
+      else await expect(size, id).toBeCloseTo(rem * 0.8125, 1);
+    }
+    // The control keeps its token height either way: dimension.control.medium, 2rem.
+    await expect(canvas.getByTestId("input").getBoundingClientRect().height).toBeCloseTo(
+      rem * 2,
+      0,
+    );
   },
 };

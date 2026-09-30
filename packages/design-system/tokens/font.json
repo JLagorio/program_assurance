@@ -47,7 +47,7 @@
       },
       "semibold": {
         "$value": 600,
-        "$description": "Page and record titles only."
+        "$description": "Titles (a page's, a record's, a section's, a panel's) and a Stat's figure. Never running text."
       }
     },
     "letterSpacing": {
@@ -130,7 +130,7 @@
           "lineHeight": "2.125rem",
           "letterSpacing": "{font.letterSpacing.400}"
         },
-        "$description": "Display: a stat value, a dashboard number. Not a page title."
+        "$description": "Display: a figure bigger than a Stat's, or the one title of a screen with nothing else on it (sign-in). Not a page or record title."
       },
       "medium": {
         "$value": {
@@ -140,7 +140,7 @@
           "lineHeight": "1.75rem",
           "letterSpacing": "{font.letterSpacing.400}"
         },
-        "$description": "Page and record titles. The only semibold."
+        "$description": "A Heading medium: a page title set without PageHeader. PageHeader.Title is font.heading.small at semibold."
       },
       "small": {
         "$value": {
@@ -150,7 +150,7 @@
           "lineHeight": "1.625rem",
           "letterSpacing": "{font.letterSpacing.300}"
         },
-        "$description": "Section headings."
+        "$description": "A section heading set with Heading; at semibold, the page and record title (PageHeader.Title) and a Stat's figure."
       },
       "xsmall": {
         "$value": {

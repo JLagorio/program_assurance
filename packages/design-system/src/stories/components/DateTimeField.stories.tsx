@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import type { ReactNode } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
-import { DateTimeField, Field, FieldDescription, FieldLabel } from "../../components";
+import { Button, DateTimeField, Field, FieldDescription, FieldLabel } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
 import { Stack } from "../../primitives";
 import { Pair } from "../_lib/pair";
@@ -156,6 +156,74 @@ export const MinAndMax: Story = {
     await userEvent.clear(time);
     await userEvent.type(time, "10:00 am{Enter}");
     await expect(canvasElement.querySelector('[data-slot="field-error"]')).toBeNull();
+  },
+};
+
+const submitTask = fn();
+
+/**
+ * Enter in either input with only the day or only the time does not submit the form around the
+ * field, and neither does Enter on a day or a time that does not read: the field says what fixes
+ * it, and focus stays where the reader is typing. With both halves read, Enter submits as it does
+ * in any text field.
+ */
+export const EnterWithHalfAnEntry: Story = {
+  name: "Enter with half an entry",
+  render: () => (
+    <form
+      aria-label="Task"
+      noValidate
+      style={{ maxWidth: 360 }}
+      onSubmit={(event) => {
+        event.preventDefault();
+        submitTask(new FormData(event.currentTarget).get("due"));
+      }}
+    >
+      <Stack space="space.200">
+        <Field>
+          <FieldLabel>Due</FieldLabel>
+          <DateTimeField name="due" />
+        </Field>
+        <div>
+          <Button type="submit" variant="primary">
+            Create task
+          </Button>
+        </div>
+      </Stack>
+    </form>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    submitTask.mockClear();
+    const day = canvas.getByRole("textbox", { name: "Due Date" });
+    const time = canvas.getByRole("spinbutton", { name: "Due Time Pacific Daylight Time" });
+    await userEvent.type(day, "Oct 2, 2026{Enter}");
+    await expect(submitTask).not.toHaveBeenCalled();
+    await expect(day).toHaveFocus();
+    await expect(canvasElement.querySelector('[data-slot="field-error"]')).toHaveTextContent(
+      "Enter both a date and a time.",
+    );
+    await expect(time).toHaveAttribute("aria-invalid", "true");
+    await userEvent.type(time, "5pm{Enter}");
+    await expect(submitTask).toHaveBeenCalledTimes(1);
+    await expect(submitTask).toHaveBeenLastCalledWith("2026-10-03T00:00:00.000Z");
+    await expect(canvasElement.querySelector('[data-slot="field-error"]')).toBeNull();
+    // A time with no day is held the same way.
+    await userEvent.clear(day);
+    await userEvent.click(time);
+    await userEvent.keyboard("{Enter}");
+    await expect(submitTask).toHaveBeenCalledTimes(1);
+    await expect(time).toHaveFocus();
+    // So is a day that does not read, with nothing in the time: the typed text stays, with the
+    // field's own message, instead of the form submitting an empty moment.
+    await userEvent.clear(time);
+    await userEvent.type(day, "Octember 45{Enter}");
+    await expect(submitTask).toHaveBeenCalledTimes(1);
+    await expect(day).toHaveFocus();
+    await expect(day).toHaveValue("Octember 45");
+    await expect(canvasElement.querySelector('[data-slot="field-error"]')).toHaveTextContent(
+      /^Enter a date such as/,
+    );
   },
 };
 

@@ -51,10 +51,13 @@ const update = (table, record, values) =>
 async function choose(label, name) {
   await page.getByRole("combobox", { name: label, exact: true }).click();
   await page.getByRole("option", { name, exact: true }).click();
+  // The list fades out after a choice; the next Select opens once it has gone.
+  await page.getByRole("listbox").waitFor({ state: "hidden" });
 }
 async function chooseMatching(label, pattern) {
   await page.getByRole("combobox", { name: label, exact: true }).click();
   await page.getByRole("option", { name: pattern }).first().click();
+  await page.getByRole("listbox").waitFor({ state: "hidden" });
 }
 async function login(target, path) {
   await target.goto(`${origin}${path}`);
@@ -72,7 +75,37 @@ async function rowMenu(name, item) {
   await page.getByRole("button", { name: `Row actions for ${name}`, exact: true }).click();
   await page.getByRole("menuitem", { name: item, exact: true }).click();
 }
-async function checkTailoringPhone(dialog, field, operation, artifact) {
+/**
+ * Below its stacking width the tailoring WorkPane is a drill-in (D5): Back shows the list with focus
+ * on the row, and choosing the row again shows the detail with focus on its heading, in view.
+ */
+async function checkDrillIn(dialog, back, row) {
+  for (const width of [390, 340]) {
+    await page.setViewportSize({ width, height: 844 });
+    await dialog.getByRole("button", { name: back, exact: true }).click();
+    const listed = dialog.getByRole("button", { name: row, exact: true });
+    await listed.waitFor();
+    assert.ok(
+      await listed.evaluate((element) => element === document.activeElement),
+      `Back returns focus to the chosen row at ${width}px`,
+    );
+    await page.keyboard.press("Enter");
+    await dialog.getByRole("button", { name: back, exact: true }).waitFor();
+    const heading = await page.evaluate(() => {
+      const active = document.activeElement;
+      if (!active || !/^H[1-6]$/.test(active.tagName)) return null;
+      const box = active.getBoundingClientRect();
+      return { top: box.top, bottom: box.bottom };
+    });
+    assert.ok(heading, `Choosing the row moves focus to the detail's heading at ${width}px`);
+    assert.ok(
+      heading.top >= 0 && heading.bottom <= 844,
+      `The detail's heading is in view at ${width}px`,
+    );
+  }
+}
+async function checkTailoringPhone(dialog, field, operation, artifact, drillIn) {
+  if (drillIn) await checkDrillIn(dialog, drillIn.back, drillIn.row);
   await page.setViewportSize({ width: 390, height: 844 });
   await field.scrollIntoViewIfNeeded();
   const bounds = await dialog.boundingBox();
@@ -162,12 +195,19 @@ try {
   // Step 2: the catalog edition, the Low base profile, tailored for this program.
   await page.getByRole("radio", { name: catalogTitle, exact: true }).check();
   assert.ok(
-    await page.getByRole("link", { name: "Open catalog", exact: true }).first().isVisible(),
+    await page
+      .getByRole("link", { name: "Open catalog (opens in a new tab)", exact: true })
+      .first()
+      .isVisible(),
   );
   await page.getByRole("checkbox", { name: lowTitle, exact: true }).check();
-  await page.getByRole("link", { name: "Open profile", exact: true }).first().waitFor();
+  await page
+    .getByRole("link", { name: "Open profile (opens in a new tab)", exact: true })
+    .first()
+    .waitFor();
   await page.getByRole("button", { name: "Tailor for this program…", exact: true }).click();
   await page.getByRole("button", { name: "Tailor controls", exact: true }).click();
+  let tailored;
   for (const [code, rationale] of [
     ["AC-2", "Account management is outside this validation boundary."],
     ["AC-4", "The message service requires explicit information flow enforcement."],
@@ -181,10 +221,12 @@ try {
       await controlsDialog.getByRole("combobox", { name: "Show", exact: true }).click();
       await page.getByRole("option", { name: "All catalog controls", exact: true }).click();
     }
+    // A tailoring row is named by its id and title: "AC-2, Account Management".
     await page
       .getByRole("dialog")
-      .getByRole("button", { name: control.title, exact: true })
+      .getByRole("button", { name: `${control.code}, ${control.title}`, exact: true })
       .click();
+    tailored = control;
     await page
       .getByRole("dialog", { name: "Tailor controls", exact: true })
       .getByRole("heading", { name: `${control.code} · ${control.title}`, exact: true })
@@ -216,6 +258,7 @@ try {
     page.getByRole("textbox", { name: "Control decision rationale", exact: true }),
     "Tailor controls",
     "control-picker",
+    { back: "Back to controls", row: `${tailored.code}, ${tailored.title}` },
   );
   await page
     .getByRole("dialog", { name: "Tailor controls", exact: true })
@@ -230,10 +273,8 @@ try {
   const parameter = (
     await rows("parameters", { catalog_revision_id: catalogs[0].id, source_id: "ac-1_prm_1" })
   )[0];
-  await page
-    .getByRole("dialog")
-    .getByRole("button", { name: parameter.label, exact: true })
-    .click();
+  const parameterRow = `${parameter.source_id}, ${parameter.label}`;
+  await page.getByRole("dialog").getByRole("button", { name: parameterRow, exact: true }).click();
   await page
     .getByRole("textbox", { name: "Parameter values", exact: true })
     .fill("Platform security team");
@@ -247,6 +288,7 @@ try {
     page.getByRole("textbox", { name: "Parameter override rationale", exact: true }),
     "Set parameter values",
     "parameter-picker",
+    { back: "Back to parameters", row: parameterRow },
   );
   await page
     .getByRole("dialog", { name: "Set parameter values", exact: true })
@@ -289,9 +331,8 @@ try {
     .filter({ hasText: "wizard-audit" })
     .first()
     .click();
-  await page
-    .getByRole("button", { name: "Add Audit policy under Data plane", exact: true })
-    .click();
+  // The picker's primary repeats its trigger and title.
+  await page.getByRole("button", { name: "Add from library", exact: true }).click();
   await page.getByRole("textbox", { name: "Name", exact: true }).waitFor();
   assert.equal(
     await page.getByRole("textbox", { name: "Name", exact: true }).inputValue(),
@@ -337,17 +378,14 @@ try {
       .getByRole("alertdialog")
       .getByRole("button", { name: "Create program", exact: true })
       .click();
-    await page
-      .getByText("Injected validation failure: draft must be retained", { exact: true })
-      .waitFor();
-    await page.getByRole("alertdialog").waitFor({ state: "hidden" });
+    // A failed create keeps the confirmation open with the failure inside it, the setup behind
+    // it intact, and its own action as the retry.
+    const confirmation = page.getByRole("alertdialog");
+    await confirmation.getByText(/Injected validation failure: draft must be retained/).waitFor();
+    await confirmation.getByText("The program was not created", { exact: true }).waitFor();
     assert.equal((await rows("programs", { tenant_id: workspace.tenantId })).length, 0);
     assert.ok((await page.locator("body").innerText()).includes("1 parameter override"));
-    await page.getByRole("button", { name: "Create program", exact: true }).click();
-    await page
-      .getByRole("alertdialog")
-      .getByRole("button", { name: "Create program", exact: true })
-      .click();
+    await confirmation.getByRole("button", { name: "Create program", exact: true }).click();
     await page.waitForURL(/\/programs\/[0-9a-f-]+\?tab=System/, { timeout: 60000 });
     const programs = await rows("programs", { tenant_id: workspace.tenantId });
     assert.equal(programs.length, 1);

@@ -1,7 +1,7 @@
 import { useConfirmation } from "@/components/app/confirmation";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ExternalLink, Library } from "lucide-react";
+import { Library } from "lucide-react";
 import {
   announce,
   Badge,
@@ -19,7 +19,6 @@ import {
   FieldError,
   FieldLabel,
   FieldLegend,
-  Icon,
   Inline,
   RadioGroup,
   RadioGroupItem,
@@ -27,7 +26,6 @@ import {
   Stack,
   Text,
   TextLink,
-  VisuallyHidden,
 } from "@ledger/design-system";
 import type { ProgramWizardDraft } from "@/lib/program-wizard";
 import type {
@@ -70,7 +68,6 @@ export function CatalogStep({
   controlRef: (field: string) => (node: HTMLElement | null) => void;
 }) {
   const { confirm, confirmation } = useConfirmation();
-  const newTab = useId();
   const [refused, setRefused] = useState<{ id: string; message: string } | null>(null);
   const tailoringTitle = useRef<HTMLHeadingElement>(null);
   const tailorButtons = useRef(new Map<string, HTMLElement | null>());
@@ -204,15 +201,16 @@ export function CatalogStep({
   const profilesError = errorFor("profiles");
   return (
     <Stack space="space.300">
-      {/* One sentence for every link on this step that opens in a new tab. */}
-      <VisuallyHidden id={newTab}>Opens in a new tab</VisuallyHidden>
+      {/* A record's link opens a new tab, so reading it never leaves the draft. It sits beside the
+          option, not in it, so the option's description is the edition's facts alone. */}
       <Section title="Catalog edition">
         {catalogs.length ? (
           <Field invalid={catalogError ? true : undefined} required>
-            <RadioGroup<string | null>
+            {/* Controlled from the first render: no edition yet is a value no item has. */}
+            <RadioGroup<string>
               ref={controlRef("catalog")}
               aria-label="Catalog edition"
-              value={draft.catalogRevisionId || null}
+              value={draft.catalogRevisionId}
               onValueChange={(value) => {
                 if (value) void changeCatalog(value);
               }}
@@ -225,29 +223,25 @@ export function CatalogStep({
                   space="space.200"
                   alignBlock="start"
                   spread="space-between"
+                  shouldWrap
                 >
                   <Field orientation="horizontal" className="min-w-0">
                     <RadioGroupItem value={catalog.id} />
                     <FieldContent>
                       <FieldLabel>{catalog.title}</FieldLabel>
                       <FieldDescription>
-                        Version {catalog.version} · Published OSCAL catalog ·{" "}
-                        <TextLink
-                          render={<Link to="/catalog" search={{ edition: catalog.id }} />}
-                          target="_blank"
-                          aria-describedby={newTab}
-                        >
-                          Open catalog
-                          <Icon>
-                            <ExternalLink />
-                          </Icon>
-                        </TextLink>
+                        Version {catalog.version} · Published OSCAL catalog · {catalog.controlCount}{" "}
+                        controls
                       </FieldDescription>
                     </FieldContent>
                   </Field>
-                  <Text as="span" size="small" color="color.text.subtle" className="shrink-0">
-                    {catalog.controlCount} controls
-                  </Text>
+                  <TextLink
+                    size="small"
+                    newTab
+                    render={<Link to="/catalog" search={{ edition: catalog.id }} />}
+                  >
+                    Open catalog
+                  </TextLink>
                 </Inline>
               ))}
             </RadioGroup>
@@ -309,10 +303,12 @@ export function CatalogStep({
                         orientation="horizontal"
                         className="min-w-0"
                         invalid={rowError ? true : undefined}
-                        disabled={!option.supported}
                       >
+                        {/* An unavailable profile stays in the tab order, read-only, so its
+                            reason (the description) is heard where the reader meets it. */}
                         <Checkbox
                           value={option.id}
+                          readOnly={!option.supported && !existing}
                           ref={controlRef(wizardField.profile(option.id))}
                         />
                         <FieldContent>
@@ -329,26 +325,6 @@ export function CatalogStep({
                             </Badge>{" "}
                             Version {option.version} · {option.controlCount} of{" "}
                             {option.catalogControlCount} catalog controls
-                            {option.profileId ? (
-                              <>
-                                {" · "}
-                                <TextLink
-                                  render={
-                                    <Link
-                                      to="/profiles/$profileId"
-                                      params={{ profileId: option.profileId }}
-                                    />
-                                  }
-                                  target="_blank"
-                                  aria-describedby={newTab}
-                                >
-                                  Open profile
-                                  <Icon>
-                                    <ExternalLink />
-                                  </Icon>
-                                </TextLink>
-                              </>
-                            ) : null}
                           </FieldDescription>
                           {!option.supported ? (
                             <FieldDescription>
@@ -358,20 +334,36 @@ export function CatalogStep({
                           {rowError ? <FieldError>{rowError}</FieldError> : null}
                         </FieldContent>
                       </Field>
-                      {existing ? (
-                        <Button
-                          ref={(node: HTMLElement | null) => {
-                            tailorButtons.current.set(existing.key, node);
-                          }}
-                          size="small"
-                          variant={tailored ? "secondary" : "subtle"}
-                          onClick={() => onEditingKeyChange(existing.key)}
-                        >
-                          {tailored
-                            ? `Edit tailoring · Out ${preview?.counts.excluded ?? 0} · In ${preview?.counts.added ?? 0}`
-                            : "Tailor for this program…"}
-                        </Button>
-                      ) : null}
+                      <Inline space="space.150" alignBlock="center" shouldWrap>
+                        {option.profileId ? (
+                          <TextLink
+                            size="small"
+                            newTab
+                            render={
+                              <Link
+                                to="/profiles/$profileId"
+                                params={{ profileId: option.profileId }}
+                              />
+                            }
+                          >
+                            Open profile
+                          </TextLink>
+                        ) : null}
+                        {existing ? (
+                          <Button
+                            ref={(node: HTMLElement | null) => {
+                              tailorButtons.current.set(existing.key, node);
+                            }}
+                            size="small"
+                            variant={tailored ? "secondary" : "subtle"}
+                            onClick={() => onEditingKeyChange(existing.key)}
+                          >
+                            {tailored
+                              ? `Edit tailoring · Out ${preview?.counts.excluded ?? 0} · In ${preview?.counts.added ?? 0}`
+                              : "Tailor for this program…"}
+                          </Button>
+                        ) : null}
+                      </Inline>
                     </Inline>
                   );
                 })}

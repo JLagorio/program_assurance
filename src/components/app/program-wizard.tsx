@@ -1,18 +1,8 @@
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { AlertCircle } from "lucide-react";
 import {
   Alert,
   AlertDescription,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertTitle,
   Box,
   Button,
   ErrorSummary,
@@ -31,6 +21,7 @@ import {
 import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
 import { QueryState } from "@/components/prototype/work-common";
 import { useFormFeedback } from "./form-feedback";
+import { Page } from "./shell";
 import { useDraftGuard } from "./use-draft-guard";
 import { useWorkspace } from "./workspace";
 import {
@@ -114,8 +105,6 @@ export function ProgramWizard() {
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [sheet, setSheet] = useState<SheetEditing | null>(null);
   const [dirty, setDirty] = useState(false);
-  const [confirming, setConfirming] = useState(false);
-  const [failure, setFailure] = useState<string | null>(null);
   // Steps whose issues show at their fields: each one the reader has tried to leave.
   const [checked, setChecked] = useState<ReadonlySet<number>>(new Set());
   // The issues from the last attempt, for the ErrorSummary; recomputing them would re-announce it.
@@ -150,18 +139,29 @@ export function ProgramWizard() {
       ),
     [draft.profiles, draft.catalogRevisionId, resources.data],
   );
+  // The catalog step checks the draft against the reference records once they are in, while the
+  // library and the products may still be loading.
+  const referenceReady = resources.stepReady(1);
   const issues = useMemo(
     () =>
       wizardIssues({
         draft,
-        ready: resources.ready,
+        ready: { reference: referenceReady, library: resources.ready },
         catalogs: options.catalogs,
         profiles: options.profiles,
         previews,
         libraryItems: resources.libraryItems,
         productItems: resources.productItems,
       }),
-    [draft, resources.ready, options, previews, resources.libraryItems, resources.productItems],
+    [
+      draft,
+      referenceReady,
+      resources.ready,
+      options,
+      previews,
+      resources.libraryItems,
+      resources.productItems,
+    ],
   );
   const errorFor = (field: string) =>
     issues.find((issue) => issue.field === field && checked.has(issue.step))?.message;
@@ -175,12 +175,14 @@ export function ProgramWizard() {
     else if (next.kind === "field") focusControl(feedback.node(next.field));
     else focusControl(wizardRow(next.key));
   });
-  // On arrival the first field takes focus, once the published records have loaded.
+  // On arrival the first field takes focus, once the program step's records have loaded; the
+  // catalog and the library go on loading behind it.
+  const programReady = resources.stepReady(0);
   useEffect(() => {
-    if (!resources.ready || settled.current) return;
+    if (!programReady || settled.current) return;
     settled.current = true;
     feedback.node("name")?.focus();
-  }, [resources.ready, feedback]);
+  }, [programReady, feedback]);
 
   const total = new Set(
     draft.systems.flatMap(
@@ -197,6 +199,14 @@ export function ProgramWizard() {
   const step = steps[index]!;
   const writable = workspace.role !== "viewer";
   const unavailable = !writable ? "An editor, admin, or owner can create a program." : undefined;
+  // A step is checked against what it shows, so it continues once that has loaded.
+  const stepReady = resources.stepReady(index);
+  const loading = (records: boolean) =>
+    records
+      ? undefined
+      : resources.stepQueries(index).some((query) => query.error)
+        ? "Load this step's published records first: use Retry loading above."
+        : "This step's published records are still loading.";
   // While the tailoring editor is open, Continue is a plain button and Enter does not submit.
   const formActive = !(index === 1 && editingKey);
 
@@ -204,7 +214,6 @@ export function ProgramWizard() {
     if (guard.busy) return;
     setDraft(next);
     setDirty(true);
-    setFailure(null);
   }
   /** Shows a step. Focus goes to its heading unless the caller sends it to a field. */
   function arrive(next: number, focus: Arrival | null = { kind: "heading" }) {
@@ -253,19 +262,42 @@ export function ProgramWizard() {
     if (inSheet) setSheet({ ...issue.sheet!, focus: issue.field });
   }
   function advance() {
-    if (!writable || guard.busy) return;
+    if (!writable || guard.busy || !stepReady) return;
     const blocking = issues.filter((issue) => issue.step <= index);
     if (blocking.length) report(blocking);
     else arrive(index + 1);
   }
-  function review() {
-    if (!writable || guard.busy || resources.error) return;
+  async function review() {
+    if (!writable || guard.busy || !resources.ready) return;
     if (issues.length) {
       report(issues);
       return;
     }
-    setFailure(null);
-    setConfirming(true);
+    // The prompt holds while the program is created, and says a failure inside itself, with Create
+    // program as the retry; the setup is kept either way.
+    let programId: string | null = null;
+    const created = await guard.confirm({
+      title: `Create ${draft.name.trim()}?`,
+      // A count of none says nothing, so only the sources the draft uses are named.
+      description: `${plural(draft.systems.length, "system")}${productCount ? ` (${productCount} from products)` : ""}, ${plural(elementCount, "element")}${libraryCount ? ` (${libraryCount} from the library)` : ""}, ${plural(draft.profiles.length, "program profile")} and ${total} distinct selected controls will be saved with the program, as one transaction.`,
+      confirmLabel: "Create program",
+      variant: "primary",
+      failureTitle: "The program was not created",
+      action: async () => {
+        if (!guard.start()) throw new Error("The program is already being created.");
+        try {
+          programId = (await create.mutateAsync(draft)).programId;
+        } catch (cause) {
+          const message = cause instanceof Error ? cause.message.trim() : "The request failed.";
+          throw new Error(
+            `${/[.!?]$/.test(message) ? message : `${message}.`} Nothing was saved and your setup is kept. Create the program again, or cancel to correct it.`,
+          );
+        } finally {
+          guard.finish();
+        }
+      },
+    });
+    if (created && programId) finishCreate(programId);
   }
   function submit(event: FormEvent<HTMLFormElement>) {
     // A picker's own form, rendered in a portal, bubbles its submission through this one.
@@ -273,34 +305,24 @@ export function ProgramWizard() {
     event.preventDefault();
     // Enter in the tailoring editor's search is not a request to continue.
     if (!formActive) return;
-    if (index === last) review();
+    if (index === last) void review();
     else advance();
   }
-  async function createProgram() {
-    if (!guard.start()) return;
-    setFailure(null);
-    try {
-      const result = await create.mutateAsync(draft);
-      setDirty(false);
-      toast.add({
-        title: `${draft.name.trim()} created`,
-        type: "success",
-        description: `${plural(draft.systems.length, "system")}${productCount ? ` (${productCount} from products)` : ""}, ${plural(elementCount, "element")} and ${plural(draft.profiles.length, "program profile")} were saved.`,
+  /** The program exists: say so, and open it on its System tab. */
+  function finishCreate(programId: string) {
+    setDirty(false);
+    toast.add({
+      title: `${draft.name.trim()} created`,
+      type: "success",
+      description: `${plural(draft.systems.length, "system")}, ${plural(elementCount, "element")} and ${plural(draft.profiles.length, "program profile")} saved.`,
+    });
+    leave.current = () =>
+      void navigate({
+        to: "/programs/$programId",
+        params: { programId },
+        search: { tab: "System" },
       });
-      leave.current = () =>
-        void navigate({
-          to: "/programs/$programId",
-          params: { programId: result.programId },
-          search: { tab: "System" },
-        });
-      guard.finish();
-      setConfirming(false);
-      guard.complete();
-    } catch (cause) {
-      setFailure(cause instanceof Error ? cause.message : "The request failed.");
-      guard.finish();
-      setConfirming(false);
-    }
+    guard.complete();
   }
 
   // The last attempt's list, less what the reader has fixed since: a removal is not announced.
@@ -362,7 +384,7 @@ export function ProgramWizard() {
       />
     );
   return (
-    <Stack className="animate-rise" space="space.250">
+    <Page>
       <PageHeader>
         <RecordTrail current="Create program">
           <TrailLink to="/programs">Programs</TrailLink>
@@ -378,154 +400,119 @@ export function ProgramWizard() {
           </AlertDescription>
         </Alert>
       ) : null}
-      <QueryState queries={resources.queries}>
-        <Grid gap="space.300" templateColumns={{ lg: "200px minmax(0,1fr)" }}>
-          {/* Beside the form where it fits; below that the step's heading says where the reader is. */}
-          <Box className="hidden lg:block lg:sticky-rail">
-            <Stepper orientation="vertical" label="Program setup">
-              {steps.map((label, stepIndex) => (
-                <Stepper.Item
-                  key={label}
-                  label={label}
-                  state={stepIndex < index ? "done" : stepIndex === index ? "current" : "upcoming"}
-                  meta={
-                    stepIndex === 1
-                      ? plural(draft.profiles.length, "profile")
-                      : stepIndex === 2
-                        ? `${plural(draft.systems.length, "system")} · ${plural(elementCount, "element")}`
-                        : `Step ${stepIndex + 1} of ${steps.length}`
-                  }
-                  {...(!guard.busy && stepIndex < index
-                    ? { onSelect: () => arrive(stepIndex) }
-                    : !guard.busy && writable && stepIndex === index + 1
-                      ? { onSelect: advance }
-                      : {})}
-                />
-              ))}
-            </Stepper>
-          </Box>
-          <Stack className="min-w-0" space="space.250">
-            <Section>
-              <Section.Header>
-                <Section.Heading>
-                  <Text
-                    as="p"
-                    size="small"
-                    color="color.text.subtle"
-                    aria-hidden
-                    className="lg:hidden"
-                  >
-                    Step {index + 1} of {steps.length}
-                  </Text>
-                  <Section.Title
-                    ref={heading}
-                    tabIndex={-1}
-                    className="font-heading-xsmall outline-none"
-                  >
-                    <VisuallyHidden>
-                      Step {index + 1} of {steps.length}:{" "}
-                    </VisuallyHidden>
-                    {step}
-                  </Section.Title>
-                </Section.Heading>
-              </Section.Header>
-              <Stack space="space.200">
-                {index === last && failure ? (
-                  <Alert variant="destructive" role="alert">
-                    <AlertCircle aria-hidden />
-                    <AlertTitle>The program was not created</AlertTitle>
-                    <AlertDescription>
-                      <Text as="p">{failure}</Text>
-                      <Text as="p">
-                        Nothing was saved and your setup is kept. Correct the problem and create the
-                        program again.
-                      </Text>
-                    </AlertDescription>
-                  </Alert>
-                ) : null}
-                <ErrorSummary issues={summaryItems} focusKey={attempts} />
-                {/* One element whatever the step shows, so a change of view keeps what has focus. */}
-                <form id={formId} noValidate onSubmit={submit}>
-                  <FieldSet disabled={guard.busy || !writable}>{content}</FieldSet>
-                </form>
-              </Stack>
-            </Section>
-            <Inline
-              className="border-t border-default pt-200"
-              space="space.200"
-              alignBlock="center"
-              alignInline={editingKey || index > 0 ? undefined : "end"}
-              spread={editingKey || index > 0 ? "space-between" : undefined}
-            >
-              {editingKey || index > 0 ? (
-                <Button
-                  variant="subtle"
-                  onClick={() => {
-                    if (editingKey) setEditingKey(null);
-                    else arrive(index - 1);
-                  }}
+      {/* The steps show at once; each step's region waits for its own records. */}
+      <Grid gap="space.300" templateColumns={{ lg: "200px minmax(0,1fr)" }}>
+        {/* Beside the form where it fits; below that the step's heading says where the reader is. */}
+        <Box className="hidden lg:block lg:sticky-rail">
+          <Stepper orientation="vertical" label="Program setup">
+            {steps.map((label, stepIndex) => (
+              <Stepper.Item
+                key={label}
+                label={label}
+                state={stepIndex < index ? "done" : stepIndex === index ? "current" : "upcoming"}
+                meta={
+                  stepIndex === 1
+                    ? plural(draft.profiles.length, "profile")
+                    : stepIndex === 2
+                      ? `${plural(draft.systems.length, "system")} · ${plural(elementCount, "element")}`
+                      : `Step ${stepIndex + 1} of ${steps.length}`
+                }
+                {...(!guard.busy && stepIndex < index
+                  ? { onSelect: () => arrive(stepIndex) }
+                  : !guard.busy && writable && stepIndex === index + 1
+                    ? { onSelect: advance }
+                    : {})}
+              />
+            ))}
+          </Stepper>
+        </Box>
+        <Stack className="min-w-0" space="space.250">
+          <Section>
+            <Section.Header>
+              <Section.Heading>
+                <Text
+                  as="p"
+                  size="small"
+                  color="color.text.subtle"
+                  aria-hidden
+                  className="lg:hidden"
                 >
-                  {editingKey ? "Back to profiles" : "Back"}
+                  Step {index + 1} of {steps.length}
+                </Text>
+                <Section.Title
+                  ref={heading}
+                  tabIndex={-1}
+                  className="font-heading-xsmall outline-none"
+                >
+                  <VisuallyHidden>
+                    Step {index + 1} of {steps.length}:{" "}
+                  </VisuallyHidden>
+                  {step}
+                </Section.Title>
+              </Section.Heading>
+            </Section.Header>
+            <Stack space="space.200">
+              <ErrorSummary issues={summaryItems} focusKey={attempts} />
+              {/* One element whatever the step shows, so a change of view keeps what has focus. */}
+              <form id={formId} noValidate onSubmit={submit}>
+                {/* The step's Retry sits outside the FieldSet, so a viewer can still reload it. */}
+                <QueryState
+                  key={index}
+                  queries={resources.stepQueries(index)}
+                  retryLabel="Retry loading"
+                >
+                  <FieldSet disabled={guard.busy || !writable}>{content}</FieldSet>
+                </QueryState>
+              </form>
+            </Stack>
+          </Section>
+          <Inline
+            className="border-t border-default pt-200"
+            space="space.200"
+            alignBlock="center"
+            alignInline={editingKey || index > 0 ? undefined : "end"}
+            spread={editingKey || index > 0 ? "space-between" : undefined}
+          >
+            {editingKey || index > 0 ? (
+              <Button
+                variant="subtle"
+                onClick={() => {
+                  if (editingKey) setEditingKey(null);
+                  else arrive(index - 1);
+                }}
+              >
+                {editingKey ? "Back to profiles" : "Back"}
+              </Button>
+            ) : null}
+            <Inline space="space.150" alignBlock="center">
+              <Button variant="subtle" onClick={() => void guard.close()}>
+                Cancel
+              </Button>
+              {index < last ? (
+                <Button
+                  variant="primary"
+                  type={formActive ? "submit" : "button"}
+                  form={formActive ? formId : undefined}
+                  onClick={formActive ? undefined : advance}
+                  disabledReason={unavailable ?? loading(stepReady)}
+                >
+                  Continue
                 </Button>
-              ) : null}
-              <Inline space="space.150" alignBlock="center">
-                <Button variant="subtle" onClick={() => void guard.close()}>
-                  Cancel
+              ) : (
+                <Button
+                  variant="primary"
+                  type="submit"
+                  form={formId}
+                  disabledReason={unavailable ?? loading(resources.ready)}
+                >
+                  Create program
                 </Button>
-                {index < last ? (
-                  <Button
-                    variant="primary"
-                    type={formActive ? "submit" : "button"}
-                    form={formActive ? formId : undefined}
-                    onClick={formActive ? undefined : advance}
-                    disabledReason={unavailable}
-                  >
-                    Continue
-                  </Button>
-                ) : (
-                  <Button
-                    variant="primary"
-                    type="submit"
-                    form={formId}
-                    disabledReason={
-                      unavailable ??
-                      (resources.error
-                        ? "Load the published records before creating the program."
-                        : undefined)
-                    }
-                  >
-                    Create program
-                  </Button>
-                )}
-              </Inline>
+              )}
             </Inline>
-          </Stack>
-        </Grid>
-      </QueryState>
-      <AlertDialog open={confirming} pending={guard.busy} onOpenChange={setConfirming}>
-        <AlertDialogContent className="top-200 translate-y-0 sm:top-1000">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Create {draft.name.trim()}?</AlertDialogTitle>
-            <AlertDialogDescription>
-              {plural(draft.systems.length, "system")} ({productCount} from products),{" "}
-              {plural(elementCount, "element")} ({libraryCount} from the library),{" "}
-              {plural(draft.profiles.length, "program profile")} and {total} distinct selected
-              controls will be saved with the program, as one transaction.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel variant="subtle">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              variant="primary"
-              isLoading={guard.busy}
-              onClick={() => void createProgram()}
-            >
-              Create program
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          </Inline>
+        </Stack>
+      </Grid>
       {guard.confirmation}
-    </Stack>
+    </Page>
   );
 }

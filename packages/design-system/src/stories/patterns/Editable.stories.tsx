@@ -2,12 +2,24 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import { interact } from "../_lib/interact";
 
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 
-import { Editable, type EditableTextProps } from "../..";
+import {
+  Editable,
+  EditableSelect,
+  EditableText,
+  type EditableOption,
+  type EditableTextProps,
+} from "../..";
 import {
   Badge,
   Button,
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
   Fact,
   Field,
   FieldLabel,
@@ -29,6 +41,11 @@ export default meta;
 type Story = StoryObj;
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+/** A key pressed in the open field. Enter and Escape close it, so the key goes through `interact`, which settles the close in one act scope. */
+const press = (field: HTMLElement, key: string, init: KeyboardEventInit = {}) =>
+  interact(() =>
+    field.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, ...init })),
+  );
 const statuses = ["Draft", "In review", "Verified", "Overdue"] as const;
 type Status = (typeof statuses)[number];
 const toneOf: Record<Status, Tone> = {
@@ -99,9 +116,12 @@ export const Rail: Story = {
     );
     await expect(canvas.getByRole("button", { name: /Name: Segregation/ })).toHaveFocus();
     await userEvent.click(canvas.getByRole("button", { name: "Owner: Unassigned" }));
-    await userEvent.type(canvas.getByRole("textbox", { name: "Owner" }), "Dana Whitfield");
+    const ownerField = canvas.getByRole("textbox", { name: "Owner" });
+    await userEvent.type(ownerField, "Dana Whitfield");
+    await press(ownerField, "Enter");
+    const owner = canvas.getByRole("button", { name: /Owner: Dana Whitfield/ });
+    await expect(owner).toHaveFocus();
     await userEvent.tab();
-    await expect(canvas.getByRole("button", { name: /Owner: Dana Whitfield/ })).toBeVisible();
     const status = canvas.getByRole("combobox", { name: /Status: In review/ });
     await expect(status).toHaveFocus();
     await userEvent.keyboard("{Enter}");
@@ -115,24 +135,50 @@ export const Rail: Story = {
     await expect(page.queryByRole("listbox")).toBeNull();
     await waitFor(() => expect(status).not.toHaveAttribute("aria-disabled", "true"));
 
-    // A KeyValue truncates its value across only, so the value's touch area is not cut to the
-    // row: where a pointer is coarse a finger reaches the name anywhere in a band at least 24px
-    // tall centred on its 22px line, above and below the line as well as on it.
+    // The row is the field's height, so opening the field does not move the rail; the field's box
+    // reaches space.050 past the text column on both sides, and the value keeps that reach (its
+    // clip margin, where the browser takes one), so the field's sides and the row's focus ring are
+    // whole in a KeyValue that truncates.
     const name = canvas.getByRole("button", { name: /Name: Segregation/ });
     const value = name.closest("dd")!;
-    await expect(getComputedStyle(value).overflowX).toBe("clip");
-    await expect(getComputedStyle(value).overflowY).toBe("visible");
-    await expect(name).toHaveClass("touch-target-block-after");
-    const box = name.getBoundingClientRect();
+    const rowHeight = name.getBoundingClientRect().height;
+    // The reach stays inside the Editable at the end, so the truncating value is not cut, and
+    // neither a hover nor focus on the row reveals its text in a tooltip.
+    await expect(value.scrollWidth).toBeLessThanOrEqual(value.clientWidth);
+    await expect(
+      canvasElement.ownerDocument.querySelector('[data-slot="truncate-full-text"]'),
+    ).toBeNull();
+    await userEvent.click(name);
+    const field = canvas.getByRole("textbox", { name: "Name" });
+    const fieldBox = field.getBoundingClientRect();
+    const valueBox = value.getBoundingClientRect();
+    await expect(fieldBox.height).toBe(rowHeight);
+    await expect(value.scrollWidth).toBeLessThanOrEqual(value.clientWidth);
+    const margin = CSS.supports("overflow-clip-margin", "4px")
+      ? parseFloat(getComputedStyle(value).overflowClipMargin) || 0
+      : 0;
+    if (margin) {
+      await expect(getComputedStyle(value).overflowY).toBe("clip");
+      await expect(fieldBox.left).toBeGreaterThanOrEqual(valueBox.left - margin - 0.5);
+      await expect(fieldBox.right).toBeLessThanOrEqual(valueBox.right + margin + 0.5);
+    } else await expect(getComputedStyle(value).overflowY).toBe("visible");
+    await press(field, "Escape");
+    const row = canvas.getByRole("button", { name: /Name: Segregation/ });
+    await expect(row).toHaveFocus();
+
+    // Where a pointer is coarse a finger reaches the name anywhere in a band at least 24px tall
+    // centred on its line, above and below the line as well as on it.
+    await expect(row).toHaveClass("touch-target-block-after");
+    const box = row.getBoundingClientRect();
     const at = (dy: number) =>
       canvasElement.ownerDocument.elementFromPoint(
         box.left + box.width / 2,
         box.top + box.height / 2 + dy,
       );
     if (matchMedia("(any-pointer: coarse)").matches) {
-      await expect(name.contains(at(-11.5))).toBe(true);
-      await expect(name.contains(at(11.5))).toBe(true);
-    } else await expect(getComputedStyle(name, "::after").content).toBe("none");
+      await expect(row.contains(at(-11.5))).toBe(true);
+      await expect(row.contains(at(11.5))).toBe(true);
+    } else await expect(getComputedStyle(row, "::after").content).toBe("none");
   },
 };
 const roster = [
@@ -201,7 +247,7 @@ export const Roster: Story = {
     const owner = canvas.getByRole("combobox", { name: /Owner: Marcus Ryde/ });
     await userEvent.click(owner);
     let search = await page.findByRole("combobox", { name: "Owner" });
-    await expect(search).toHaveFocus();
+    await waitFor(() => expect(search).toHaveFocus());
     await userEvent.type(search, "No matching person");
     await expect(await page.findByText("Nothing matches")).toBeVisible();
     await userEvent.keyboard("{Escape}");
@@ -321,7 +367,7 @@ export const InTable: Story = {
         box.left + box.width / 2,
         box.top + box.height / 2 + dy,
       );
-    // The value keeps its 22px line. Where a pointer is coarse, a finger reaches it anywhere in a
+    // The value keeps its 24px line. Where a pointer is coarse, a finger reaches it anywhere in a
     // band at least 24px tall centred on it (its ::after; ::before is the hover tint).
     if (matchMedia("(any-pointer: coarse)").matches) {
       await expect(value.contains(at(-11.5))).toBe(true);
@@ -357,11 +403,59 @@ function ValidationDemo() {
   );
 }
 
-/** `validate` runs as the reader types and blocks the commit with a message under the field. Escape puts the old value back. */
-export const Validation: Story = { render: () => <ValidationDemo /> };
+/** `validate` runs as the reader types and blocks the commit with a message under the field. Escape or Cancel puts the old value back. Leaving the field with a refused value keeps it open with its message and shows Cancel and Save, so a pointer can back out; leaving the window keeps the draft. */
+export const Validation: Story = {
+  render: () => (
+    <Stack space="space.100">
+      <ValidationDemo />
+      <Button size="small">Elsewhere</Button>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const doc = canvasElement.ownerDocument;
+    await userEvent.click(canvas.getByRole("button", { name: "Acronym: ATLAS" }));
+    const field = canvas.getByRole("textbox", { name: "Acronym" });
+    await userEvent.type(field, " X");
+    await expect(field).toHaveAccessibleDescription("Two to twelve letters, digits or hyphens.");
+
+    // Enter is refused and the status says why, once: typing on does not change what it says.
+    await press(field, "Enter");
+    const status = canvas.getByText(/^Not saved:/, { selector: "[role=status]" });
+    const refusal = "Not saved: Two to twelve letters, digits or hyphens.";
+    await expect(status).toHaveTextContent(refusal);
+    await userEvent.type(field, "{Backspace}{Backspace}");
+    await expect(field).not.toHaveAttribute("aria-invalid");
+    await expect(status).toHaveTextContent(refusal);
+    await userEvent.type(field, " X");
+
+    // Another window or tab takes focus: the field is not left, so nothing commits.
+    const hasFocus = doc.hasFocus;
+    doc.hasFocus = () => false;
+    try {
+      await interact(() => field.blur());
+    } finally {
+      doc.hasFocus = hasFocus;
+    }
+    await expect(canvas.getByRole("textbox", { name: "Acronym" })).toHaveValue("ATLAS X");
+
+    // A click elsewhere with a refused value: the field stays open, and Cancel is there to press.
+    await userEvent.click(field);
+    await userEvent.click(canvas.getByRole("button", { name: "Elsewhere" }));
+    await expect(canvas.getByRole("textbox", { name: "Acronym" })).toHaveValue("ATLAS X");
+    const cancel = canvas.getByRole("button", { name: "Cancel editing Acronym" });
+    await expect(canvas.getByRole("button", { name: "Save Acronym" })).toBeVisible();
+    await userEvent.click(cancel);
+    await expect(canvas.getByRole("button", { name: "Acronym: ATLAS" })).toHaveFocus();
+    await expect(canvas.queryByRole("textbox", { name: "Acronym" })).toBeNull();
+  },
+};
 
 function FailingDemo() {
   const [owner, setOwner] = useState("Dana Whitfield");
+  const [draft, setDraft] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [cancels, setCancels] = useState(0);
   return (
     <Stack space="space.050" className="w-layout-list max-w-full">
       <KeyValue label="Owner">
@@ -369,21 +463,86 @@ function FailingDemo() {
           label="Owner"
           value={owner}
           onChange={setOwner}
+          onDraftChange={setDraft}
+          onEditingChange={setEditing}
+          onCancel={() => setCancels((count) => count + 1)}
           save={() =>
-            wait(700).then(() => Promise.reject(new Error("The owner must be on the programme.")))
+            wait(300).then(() => Promise.reject(new Error("The owner must be on the programme.")))
           }
         />
       </KeyValue>
       <Text size="xsmall" color="color.text.subtlest">
-        The value shows at once; when the save is refused it goes back, and the reason stays under
-        it.
+        The value shows at once; when the save is refused it goes back, the reason stays under it,
+        and the refused value waits for Try again or Discard.
+      </Text>
+      <Text size="xsmall" color="color.text.subtle">
+        <output aria-label="Unsaved draft">{draft ?? "None"}</output> ·{" "}
+        <output aria-label="Editing">{editing ? "Editing" : "At rest"}</output> ·{" "}
+        <output aria-label="Cancelled">{cancels}</output>
       </Text>
     </Stack>
   );
 }
 
-/** The commit is optimistic. A rejected `save` rolls the value back and shows the error's message. */
-export const Failing: Story = { render: () => <FailingDemo /> };
+/** The commit is optimistic. A rejected `save` rolls the value back and shows the error's message; the refused value is kept, and reopening the field shows it, with Try again and Discard under the row. `onDraftChange`, `onEditingChange` and `onCancel` tell the host. */
+export const Failing: Story = {
+  render: () => <FailingDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const unsaved = canvas.getByLabelText("Unsaved draft");
+    const typed = "Priya Raghavan, lead for the payroll programme";
+    await userEvent.click(canvas.getByRole("button", { name: "Owner: Dana Whitfield" }));
+    await expect(canvas.getByLabelText("Editing")).toHaveTextContent("Editing");
+    const field = canvas.getByRole("textbox", { name: "Owner" });
+    await userEvent.clear(field);
+    await userEvent.type(field, typed);
+    await expect(unsaved).toHaveTextContent(typed);
+    await press(field, "Enter");
+    await expect(canvas.getByLabelText("Editing")).toHaveTextContent("At rest");
+    const row = await canvas.findByRole("button", { name: "Owner: Dana Whitfield" });
+    await waitFor(() =>
+      expect(row).toHaveAccessibleDescription("The owner must be on the programme."),
+    );
+    await expect(row).toHaveFocus();
+    await expect(row).toHaveAttribute("aria-invalid", "true");
+    // The reason wraps under the value, which truncates, so none of it is cut.
+    const reason = canvas.getByText("The owner must be on the programme.", { selector: "p" });
+    await expect(getComputedStyle(reason).whiteSpace).toBe("normal");
+    await expect(canvas.getByText(/^Not saved:/, { selector: "[role=status]" })).toHaveTextContent(
+      "Not saved: The owner must be on the programme.",
+    );
+    // The value went back, and the refused one is still the host's unsaved draft.
+    await waitFor(() => expect(unsaved).toHaveTextContent(typed));
+
+    // Reopening shows the refused value, described by the reason.
+    await userEvent.click(row);
+    const reopened = canvas.getByRole("textbox", { name: "Owner" });
+    await expect(reopened).toHaveValue(typed);
+    await expect(reopened).toHaveAccessibleDescription("The owner must be on the programme.");
+    await press(reopened, "Enter");
+    await waitFor(() =>
+      expect(canvas.getByRole("button", { name: "Try again to save Owner" })).toBeVisible(),
+    );
+
+    // Try again sends the refused value once more; focus waits on the row meanwhile.
+    await userEvent.click(canvas.getByRole("button", { name: "Try again to save Owner" }));
+    await expect(canvas.getByRole("button", { name: /^Owner:/ })).toHaveFocus();
+    const retry = await canvas.findByRole("button", { name: "Try again to save Owner" });
+    await expect(canvas.getByRole("button", { name: "Owner: Dana Whitfield" })).toHaveFocus();
+
+    // Discard drops it: the committed value stays, the message goes, and focus stays on the row.
+    await expect(retry).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Discard the change to Owner" }));
+    const settled = canvas.getByRole("button", { name: "Owner: Dana Whitfield" });
+    await expect(settled).toHaveFocus();
+    await expect(settled).not.toHaveAccessibleDescription();
+    await expect(canvas.queryByRole("button", { name: "Try again to save Owner" })).toBeNull();
+    await expect(unsaved).toHaveTextContent("None");
+    await expect(canvas.getByLabelText("Cancelled")).toHaveTextContent("1");
+    await userEvent.click(settled);
+    await expect(canvas.getByRole("textbox", { name: "Owner" })).toHaveValue("Dana Whitfield");
+  },
+};
 
 function States() {
   const [name, setName] = useState("Northwind payroll");
@@ -723,43 +882,49 @@ export const SerializedSave: Story = {
   },
 };
 
-/** Full paragraphs remain readable and edit in the same cell, with normal newline behavior. */
+function MultilineDemo() {
+  const [value, setValue] = useState(
+    "Reject unsigned images at every boot stage.\nPreserve the audit trail.",
+  );
+  return (
+    <div style={{ width: 320, maxWidth: "100%" }}>
+      <Field>
+        <FieldLabel>Success criteria</FieldLabel>
+        <EditableText
+          multiline
+          label="Success criteria"
+          value={value}
+          onChange={setValue}
+          save={async () => {}}
+          validate={(next) => (next.trim() ? null : "Describe the success criteria.")}
+        />
+      </Field>
+      <Button size="small">Next field</Button>
+    </div>
+  );
+}
+
+/** A paragraph reads as text at rest, which the reader can select and copy, with an Edit button beside it. Editing is a textarea with Cancel and Save under it: Enter adds a line, Ctrl/Cmd+Enter or Save saves, Escape or Cancel puts the old value back. */
 export const Multiline: Story = {
-  render: () => {
-    const [value, setValue] = useState(
-      "Reject unsigned images at every boot stage.\nPreserve the audit trail.",
-    );
-    return (
-      <div style={{ width: 320, maxWidth: "100%" }}>
-        <Field>
-          <FieldLabel>Success criteria</FieldLabel>
-          <Editable.Text
-            multiline
-            label="Success criteria"
-            value={value}
-            onChange={setValue}
-            save={async () => {}}
-            validate={(next) => (next.trim() ? null : "Describe the success criteria.")}
-          />
-        </Field>
-        <Button size="small">Next field</Button>
-      </div>
-    );
-  },
+  render: () => <MultilineDemo />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const cell = () => canvas.getByRole("button", { name: /Success criteria:/ });
-    await userEvent.click(cell());
+    const edit = () => canvas.getByRole("button", { name: "Edit Success criteria" });
+    // The paragraph is text, not a button's name.
+    const text = canvas.getByText(/Reject unsigned images/);
+    await expect(text.closest("button")).toBeNull();
+    await userEvent.click(edit());
     let input = canvas.getByRole("textbox", { name: "Success criteria" });
+    await expect(input).toHaveFocus();
     await userEvent.clear(input);
     await userEvent.type(input, "First check{Enter}Second check");
     await expect(input).toHaveValue("First check\nSecond check");
     await interact(() =>
-      input.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })),
+      canvas.getByRole("button", { name: "Cancel editing Success criteria" }).click(),
     );
-    await expect(cell()).toHaveTextContent("Reject unsigned images");
-    await expect(cell()).toHaveFocus();
-    await userEvent.click(cell());
+    await expect(canvas.getByText(/Reject unsigned images/)).toBeVisible();
+    await expect(edit()).toHaveFocus();
+    await userEvent.click(edit());
     input = canvas.getByRole("textbox", { name: "Success criteria" });
     await userEvent.clear(input);
     await interact(() =>
@@ -769,19 +934,290 @@ export const Multiline: Story = {
     );
     await expect(input).toHaveAttribute("aria-invalid", "true");
     await userEvent.type(input, "First check{Enter}Second check");
-    await interact(() =>
-      input.dispatchEvent(
-        new KeyboardEvent("keydown", { key: "Enter", ctrlKey: true, bubbles: true }),
-      ),
-    );
-    await waitFor(() => expect(cell()).toHaveFocus());
-    await expect(cell()).toHaveTextContent("First check Second check");
-    await waitFor(() => expect(cell()).not.toHaveAttribute("aria-disabled", "true"));
-    await userEvent.click(cell());
+    await interact(() => canvas.getByRole("button", { name: "Save Success criteria" }).click());
+    await waitFor(() => expect(edit()).toHaveFocus());
+    await expect(canvas.getByText(/First check/)).toHaveTextContent("First check Second check");
+    await waitFor(() => expect(edit()).not.toHaveAttribute("aria-disabled", "true"));
+    await userEvent.click(edit());
     input = canvas.getByRole("textbox", { name: "Success criteria" });
     await userEvent.clear(input);
     await userEvent.type(input, "Updated by leaving the cell");
     await interact(() => canvas.getByRole("button", { name: "Next field" }).focus());
-    await expect(cell()).toHaveTextContent("Updated by leaving the cell");
+    await expect(canvas.getByText("Updated by leaving the cell")).toBeVisible();
+  },
+};
+
+function DialogDemo() {
+  const [owner, setOwner] = useState("Dana Whitfield");
+  const [status, setStatus] = useState<Status>("In review");
+  return (
+    <Dialog>
+      <DialogTrigger render={<Button />}>Edit control</DialogTrigger>
+      <DialogContent width="medium">
+        <DialogHeader>
+          <DialogTitle>Account management</DialogTitle>
+        </DialogHeader>
+        <DialogBody>
+          <KeyValue label="Owner">
+            <EditableText label="Owner" value={owner} onChange={setOwner} save={() => wait(200)} />
+          </KeyValue>
+          <KeyValue label="Status">
+            <EditableSelect
+              label="Status"
+              value={status}
+              onChange={setStatus}
+              options={statuses}
+              save={() => wait(200)}
+            />
+          </KeyValue>
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** In a Dialog, Sheet or Popover, Escape in the field puts the old value back and stops there, as Escape in a Select's options closes only them: the overlay stays open. The next Escape, from the row, closes it. */
+export const InDialog: Story = {
+  render: () => <DialogDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Edit control" }));
+    const dialog = await page.findByRole("dialog", { name: "Account management" });
+    // The reader works in the dialog once it has arrived. A Select opened while the dialog still
+    // scales in measures a trigger that is still growing.
+    await waitFor(() =>
+      expect(dialog.getAnimations().filter((a) => a.playState === "running")).toHaveLength(0),
+    );
+    await userEvent.click(within(dialog).getByRole("button", { name: "Owner: Dana Whitfield" }));
+    const field = within(dialog).getByRole("textbox", { name: "Owner" });
+    await userEvent.type(field, " and Sam");
+    await press(field, "Escape");
+    await expect(dialog).toBeVisible();
+    const row = within(dialog).getByRole("button", { name: "Owner: Dana Whitfield" });
+    await expect(row).toHaveFocus();
+    // A Select's options close on Escape and leave the dialog open too.
+    const status = within(dialog).getByRole("combobox", { name: /^Status:/ });
+    await userEvent.click(status);
+    await page.findByRole("listbox");
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("listbox")).toBeNull());
+    await expect(dialog).toBeVisible();
+    await waitFor(() => expect(status).toHaveFocus());
+    await interact(() => row.focus());
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
+  },
+};
+
+function LockedDemo() {
+  const [title, setTitle] = useState("Segregation of duties, payables");
+  const [owner, setOwner] = useState("Dana Whitfield");
+  const [status, setStatus] = useState<Status>("In review");
+  const [statement, setStatement] = useState(
+    "Payables are approved by someone other than the person who raised them.",
+  );
+  const [saving, setSaving] = useState<string | null>(null);
+  const settle = useRef<(() => void) | null>(null);
+  const hold = (field: string) =>
+    new Promise<void>((resolve) => {
+      setSaving(field);
+      settle.current = () => {
+        setSaving(null);
+        resolve();
+      };
+    });
+  const reason = (field: string) =>
+    saving && saving !== field ? `Wait for the change to ${saving} to finish saving.` : undefined;
+  return (
+    <Stack space="space.100" className="w-layout-list max-w-full">
+      <KeyValue.Group>
+        <KeyValue label="Title">
+          <EditableText
+            label="Title"
+            value={title}
+            onChange={setTitle}
+            lockedReason={reason("Title")}
+            save={() => hold("Title")}
+          />
+        </KeyValue>
+        <KeyValue label="Owner">
+          <EditableText
+            label="Owner"
+            value={owner}
+            onChange={setOwner}
+            lockedReason={reason("Owner")}
+            save={() => hold("Owner")}
+          />
+        </KeyValue>
+        <KeyValue label="Status">
+          <EditableSelect
+            label="Status"
+            value={status}
+            onChange={setStatus}
+            options={statuses}
+            lockedReason={reason("Status")}
+            save={() => hold("Status")}
+          />
+        </KeyValue>
+      </KeyValue.Group>
+      <EditableText
+        multiline
+        label="Statement"
+        value={statement}
+        onChange={setStatement}
+        lockedReason={reason("Statement")}
+        save={() => hold("Statement")}
+      />
+      <Button size="small" onClick={() => settle.current?.()}>
+        Finish the save
+      </Button>
+    </Stack>
+  );
+}
+
+/** One change at a time: while one value saves, the host locks the others with `lockedReason`. A locked row stays focusable and in place, is described by the reason, and shows it when the reader tries to edit; nothing is disabled, so focus never drops. */
+export const Locked: Story = {
+  render: () => <LockedDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: /^Title:/ }));
+    const titleField = canvas.getByRole("textbox", { name: "Title" });
+    await userEvent.type(titleField, " review");
+    await press(titleField, "Enter");
+    const title = canvas.getByRole("button", { name: /^Title:/ });
+    await expect(title).toHaveFocus();
+    await expect(title).toHaveAttribute("aria-disabled", "true");
+    const owner = canvas.getByRole("button", { name: "Owner: Dana Whitfield" });
+    const reason = "Wait for the change to Title to finish saving.";
+    await expect(owner).toHaveAttribute("aria-disabled", "true");
+    await expect(owner).toHaveAccessibleDescription(reason);
+    // Said to a screen reader on focus; shown once the reader tries to edit.
+    for (const note of canvas.queryAllByText(reason)) await expect(note).not.toBeVisible();
+    await userEvent.click(owner);
+    await expect(canvas.queryByRole("textbox", { name: "Owner" })).toBeNull();
+    await expect(owner).toHaveFocus();
+    const note = canvas.getAllByText(reason)[0]!;
+    await expect(note).toBeVisible();
+    // The reason wraps under a value that truncates, so none of it is cut at the rail's edge.
+    await expect(getComputedStyle(note).whiteSpace).toBe("normal");
+    await expect(note.scrollWidth).toBeLessThanOrEqual(note.clientWidth + 1);
+    const status = canvas.getByRole("combobox", { name: /^Status:/ });
+    await expect(status).toHaveAccessibleDescription(reason);
+    await userEvent.click(status);
+    await expect(within(canvasElement.ownerDocument.body).queryByRole("listbox")).toBeNull();
+    const statement = canvas.getByRole("button", { name: "Edit Statement" });
+    await expect(statement).toHaveAttribute("aria-disabled", "true");
+    await expect(statement).toHaveAccessibleDescription(reason);
+    await userEvent.click(statement);
+    await expect(canvas.queryByRole("textbox", { name: "Statement" })).toBeNull();
+    await userEvent.click(canvas.getByRole("button", { name: "Finish the save" }));
+    await waitFor(() => expect(owner).not.toHaveAttribute("aria-disabled"));
+    await expect(owner).not.toHaveAccessibleDescription();
+    await userEvent.click(owner);
+    const ownerField = canvas.getByRole("textbox", { name: "Owner" });
+    await expect(ownerField).toHaveFocus();
+    await press(ownerField, "Escape");
+
+    // While a paragraph saves, its Edit button keeps focus and says it cannot be used yet.
+    await userEvent.click(canvas.getByRole("button", { name: "Edit Statement" }));
+    await userEvent.type(canvas.getByRole("textbox", { name: "Statement" }), " Weekly.");
+    await interact(() => canvas.getByRole("button", { name: "Save Statement" }).click());
+    const saving = canvas.getByRole("button", { name: "Edit Statement" });
+    await waitFor(() => expect(saving).toHaveFocus());
+    await expect(saving).toHaveAttribute("aria-disabled", "true");
+    await expect(canvas.getByRole("button", { name: /^Owner:/ })).toHaveAccessibleDescription(
+      "Wait for the change to Statement to finish saving.",
+    );
+    await userEvent.click(canvas.getByRole("button", { name: "Finish the save" }));
+    await waitFor(() => expect(saving).not.toHaveAttribute("aria-disabled"));
+  },
+};
+
+const people: readonly EditableOption<string>[] = [
+  { value: "p-101", label: "Amara Bell" },
+  { value: "p-102", label: "Dana Whitfield" },
+  { value: "p-103", label: "Elena Vasquez" },
+  { value: "p-104", label: "Hana Lindqvist" },
+  { value: "p-105", label: "Marcus Ryde" },
+  { value: "p-106", label: "Nadia Fournier" },
+  { value: "p-107", label: "Priya Raghavan" },
+  { value: "p-108", label: "Sarah Chen" },
+  { value: "p-109", label: "Tom Okafor" },
+];
+
+const methods: readonly EditableOption<string>[] = [
+  { value: "examine", label: "Inspection" },
+  { value: "interview", label: "Interview" },
+  { value: "test", label: "Test" },
+];
+
+function OptionsDemo() {
+  const [owner, setOwner] = useState("");
+  const [method, setMethod] = useState("");
+  return (
+    <Stack space="space.100" className="w-layout-list max-w-full">
+      <KeyValue.Group>
+        <KeyValue label="Owner">
+          <EditableSelect
+            label="Owner"
+            value={owner}
+            onChange={setOwner}
+            options={people}
+            emptyLabel="Unassigned"
+            render={(_, name) => <Person name={name} />}
+            save={() => wait(200)}
+          />
+        </KeyValue>
+        <KeyValue label="Method">
+          <EditableSelect
+            label="Method"
+            value={method}
+            onChange={setMethod}
+            options={methods}
+            placeholder="Not chosen"
+            save={() => wait(200)}
+          />
+        </KeyValue>
+      </KeyValue.Group>
+      <Text size="xsmall" color="color.text.subtle">
+        Stored owner: <output aria-label="Stored owner">{owner || "none"}</output> · Stored method:{" "}
+        <output aria-label="Stored method">{method || "none"}</output>
+      </Text>
+    </Stack>
+  );
+}
+
+/** Stored values are ids and readers see names: `{ value, label }` options search and announce the label and commit the value, and `emptyLabel` offers a first choice that clears it. An empty value at rest is the `placeholder`, the `emptyLabel`, or the muted dash, never a bare chevron. */
+export const Options: Story = {
+  render: () => <OptionsDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    const owner = canvas.getByRole("combobox", { name: "Owner: Unassigned" });
+    await expect(canvas.getByRole("combobox", { name: "Method: Not chosen" })).toBeVisible();
+    await userEvent.click(owner);
+    const search = await page.findByRole("combobox", { name: "Owner" });
+    await waitFor(() => expect(search).toHaveFocus());
+    await userEvent.type(search, "priya");
+    const priya = await page.findByRole("option", { name: "Priya Raghavan" });
+    await expect(page.queryByRole("option", { name: /p-10/ })).toBeNull();
+    await userEvent.click(priya);
+    await waitFor(() => expect(owner).toHaveAccessibleName("Owner: Priya Raghavan"));
+    await expect(canvas.getByLabelText("Stored owner")).toHaveTextContent("p-107");
+    await waitFor(() => expect(owner).not.toHaveAttribute("aria-disabled", "true"));
+    await userEvent.click(owner);
+    await userEvent.click(await page.findByRole("option", { name: "Unassigned" }));
+    await waitFor(() => expect(owner).toHaveAccessibleName("Owner: Unassigned"));
+    await expect(canvas.getByLabelText("Stored owner")).toHaveTextContent("none");
+    await waitFor(() => expect(page.queryByRole("listbox")).toBeNull());
+
+    // A short list is a Select, with the same labels: it shows the name and stores the id.
+    const method = canvas.getByRole("combobox", { name: "Method: Not chosen" });
+    await userEvent.click(method);
+    await userEvent.click(await page.findByRole("option", { name: "Interview" }));
+    await waitFor(() => expect(method).toHaveAccessibleName("Method: Interview"));
+    await expect(canvas.getByLabelText("Stored method")).toHaveTextContent("interview");
+    await waitFor(() => expect(page.queryByRole("listbox")).toBeNull());
   },
 };

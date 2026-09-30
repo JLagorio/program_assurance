@@ -59,6 +59,8 @@ const update = (table, record, values) =>
 async function choose(label, name) {
   await page.getByRole("combobox", { name: label, exact: true }).click();
   await page.getByRole("option", { name, exact: true }).click();
+  // The list fades out after a choice; the next Select opens once it has gone.
+  await page.getByRole("listbox").waitFor({ state: "hidden" });
 }
 async function login(target, path) {
   await target.goto(`${origin}${path}`);
@@ -205,9 +207,8 @@ try {
   await structureRowMenu("Guidance section", "GUID", "Add from library…");
   await page.getByLabel("Search the library", { exact: true }).fill("wizard-audit");
   await dialog().getByRole("row").filter({ hasText: "wizard-audit" }).first().click();
-  await page
-    .getByRole("button", { name: "Add Audit policy under Guidance section", exact: true })
-    .click();
+  // The picker's primary repeats its trigger and title.
+  await page.getByRole("button", { name: "Add from library", exact: true }).click();
   await dialog().getByRole("heading", { name: "Create component", exact: true }).waitFor();
   assert.equal(
     await dialog().getByRole("textbox", { name: "Code", exact: true }).inputValue(),
@@ -272,7 +273,10 @@ try {
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page.getByRole("radio", { name: catalogTitle, exact: true }).check();
   await page.getByRole("checkbox", { name: lowTitle, exact: true }).check();
-  await page.getByRole("link", { name: "Open profile", exact: true }).first().waitFor();
+  await page
+    .getByRole("link", { name: "Open profile (opens in a new tab)", exact: true })
+    .first()
+    .waitFor();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page.getByRole("button", { name: "Create system from product", exact: true }).click();
   await dialog()
@@ -280,7 +284,8 @@ try {
     .waitFor();
   await page.getByLabel("Search products", { exact: true }).fill("Missile");
   await dialog().getByRole("row").filter({ hasText: "Ground launch" }).first().click();
-  await dialog().getByText("Missile A · Ground launch chosen", { exact: true }).waitFor();
+  // A single choice names itself in the picker's footer.
+  await dialog().getByText("Missile A · Ground launch", { exact: true }).waitFor();
   await dialog().getByRole("button", { name: "Create system from product", exact: true }).click();
   await dialog()
     .getByRole("heading", { name: "Variant · Missile A · Ground launch", exact: true })
@@ -418,6 +423,10 @@ try {
   await shownVersion()
     .filter({ hasText: /1 · Published/ })
     .waitFor();
+  assert.ok(
+    await shownVersion().evaluate((element) => element === document.activeElement),
+    "Opening a version from the history moves focus to the version it shows",
+  );
   await page.getByRole("tab", { name: "Overview", exact: true }).click();
   assert.match(await shownVersion().innerText(), /1 · Published/);
   await page.getByRole("complementary", { name: "Product details", exact: true }).waitFor();

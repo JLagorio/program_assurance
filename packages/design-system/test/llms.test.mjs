@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 
+import plugin from "../eslint-plugin/index.js";
 import { llmsPath, pageFiles, pageToMarkdown, renderLlms } from "../build/llms.mjs";
 
 test("llms.txt is committed and matches the Storybook pages, tokens and exports", () => {
@@ -46,6 +47,8 @@ test("page conversion drops imports and Meta and describes rendered blocks", () 
       '<ColorSheet group="text" />',
       "",
       "Prose stays.",
+      "",
+      "{/* A note for the page's editors. */}",
     ].join("\n"),
   );
   assert.equal(title, "Components/Button");
@@ -55,4 +58,17 @@ test("page conversion drops imports and Meta and describes rendered blocks", () 
   assert.ok(body.includes("_Props: generated from `Button`"));
   assert.ok(body.includes("_Rendered in the Storybook: ColorSheet._"));
   assert.ok(body.includes("Prose stays."));
+  assert.ok(!body.includes("{/*"), "an MDX comment is for the page's editors, not the reader");
+});
+
+test("every lint rule's page reaches the file, after the Lint rules page", () => {
+  const text = fs.readFileSync(llmsPath, "utf8");
+  const at = (page) => text.indexOf(`<!-- page: ${page} (`);
+  assert.ok(at("Guidance/Lint rules") >= 0, "the Lint rules page is missing from llms.txt");
+  assert.ok(at("Guidance/Lint rules") < at("Guidance/Lint rules reference"));
+  assert.ok(at("Guidance/Lint rules reference") < at("Guidance/Writing stories"));
+  const reference = text.slice(at("Guidance/Lint rules reference"), at("Guidance/Writing stories"));
+  for (const rule of Object.keys(plugin.rules))
+    assert.ok(reference.includes(`\n## ledger/${rule}\n`), `llms.txt has no section for ${rule}`);
+  assert.ok(!text.includes("{/* lint-docs"), "llms.txt carries the Lint rules page's markers");
 });

@@ -4,16 +4,19 @@ import {
   RecordPreviewPanel,
   recordDestination,
   useDisplayedRecords,
+  useEndOnHide,
 } from "./record-preview";
 import { ProductCollection } from "./product-collection";
 import { useMemo, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Absent,
   Badge,
   DataTable,
   Inline,
   KeyValue,
+  LinkButton,
+  Text,
   defineColumns,
   useDataTable,
   type Preset,
@@ -55,6 +58,8 @@ export function ProgramLibrary({
 }) {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string>();
+  // A preview belongs to its tab: it ends when the program's Library tab hides.
+  useEndOnHide(() => setSelectedId(undefined));
   const { rows, queries: assuranceQueries } = useSystemAssurance(programId);
   const components = useRows("system_components");
   const definedComponents = useRows("defined_components");
@@ -148,7 +153,7 @@ export function ProgramLibrary({
           width: 160,
           cell: (row) => (
             <Inline space="space.075" alignBlock="center">
-              <span>{row.version}</span>
+              <Text>{row.version}</Text>
               {row.updateAvailable && (
                 <Badge variant="secondary" size="xsmall" tone="warning">
                   v{row.updateAvailable.version} available
@@ -161,12 +166,13 @@ export function ProgramLibrary({
           header: "Applied to",
           width: 260,
           items: (row) => row.elements,
-          empty: () => <Absent />,
+          empty: () => <Absent label="Applied to no element" />,
         }),
         c.number("changedHere", {
           header: "Changed here",
-          width: 120,
-          cell: (row) => (row.changedHere ? String(row.changedHere) : <Absent />),
+          width: 140,
+          cell: (row) =>
+            row.changedHere ? String(row.changedHere) : <Absent label="Nothing changed here" />,
         }),
         c.text("updateFlag", { header: "Update", width: 140 }),
       ]),
@@ -210,6 +216,16 @@ export function ProgramLibrary({
           title: "Nothing applied from the library yet",
           description:
             "Open an element in the System tab and use Add from library. What is applied anywhere in the program is listed here once per version.",
+          // The way to where the work happens: the program's System tab, where elements add from the library.
+          action: (
+            <LinkButton
+              render={
+                <Link to="/programs/$programId" params={{ programId }} search={{ tab: "System" }} />
+              }
+            >
+              Open System
+            </LinkButton>
+          ),
         }}
         queries={[...assuranceQueries, ...queries]}
         searchLabel="Find a library item"
@@ -238,7 +254,9 @@ export function ProgramLibrary({
             {selected.category && <KeyValue label="Category">{selected.category}</KeyValue>}
             <KeyValue label="Version">{selected.version}</KeyValue>
             <KeyValue label="Applied to" wrap>
-              {selected.elements.map((element) => element.label).join(", ") || <Absent />}
+              {selected.elements.map((element) => element.label).join(", ") || (
+                <Absent label="Applied to no element" />
+              )}
             </KeyValue>
             <KeyValue label="Changed here">
               {selected.changedHere ? (

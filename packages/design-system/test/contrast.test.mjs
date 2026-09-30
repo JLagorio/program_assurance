@@ -290,6 +290,214 @@ for (const surface of ["elevation.surface.overlay", "elevation.surface"])
     surface,
   );
 add("color.background.input.thumb", "color.background.input.track", 3, "switch thumb on the track");
+// FIELDS (CTL-11): a read-only choice keeps its mark on the sunken surface, without the brand
+// fill: the radio's dot is color.background.neutral.bold and the tick color.icon (it inherits
+// color.text), and a read-only switch that is on takes color.background.neutral.bold with the
+// thumb on it, each 3:1.
+add("color.background.neutral.bold", "elevation.surface.sunken", 3, "read-only radio dot");
+add("color.icon", "elevation.surface.sunken", 3, "read-only checkbox tick");
+for (const surface of surfaces)
+  add("color.background.neutral.bold", surface, 3, "read-only switch track, on", surface);
+add(
+  "color.background.input.thumb.checked",
+  "color.background.neutral.bold",
+  3,
+  "switch thumb on a read-only track",
+);
+// TOOLBAR (G6-4): the current page in Pagination is marked by a bar in
+// color.background.selected.bold, 3:1 on the pager's surface at rest in every mode, and on a
+// subtle button's hovered and pressed tint; its semibold label is color.text on the same. Under
+// increased contrast the tint is itself 3:1 against the surface (above), so the bar on it is held
+// to the standard modes, as the selected Tree row's bar is.
+for (const surface of surfaces) {
+  add("color.background.selected.bold", surface, 3, "current page bar", surface);
+  for (const tint of [
+    "color.background.neutral.subtle.hovered",
+    "color.background.neutral.subtle.pressed",
+  ]) {
+    const note = "current page bar on its hover tint";
+    add("color.background.selected.bold", tint, 3, note, surface, standardModes);
+    add("color.text", tint, 4.5, "current page label on its hover tint", surface);
+  }
+}
+// TABLE (G6-5): the open row's preview eye sits in a color.border.selected ring, 3:1 against the
+// row it sits on at rest, under the pointer and chosen (the selected fills are held above).
+for (const row of ["elevation.surface", "elevation.surface.hovered"])
+  add("color.border.selected", row, 3, "open row's eye ring on its row", "elevation.surface");
+// SCROLL (G6-3): the filled Tabs strip's selected chip is outlined in color.border.selected, 3:1
+// against the neutral track on every surface in the standard modes and against the chip's own
+// elevation.surface fill in every mode. Under increased contrast the track is itself 3:1 against
+// the chip, so the outline is held to the standard modes against the track.
+for (const surface of surfaces) {
+  if (surface === "color.background.input") continue;
+  const note = "selected filled tab's outline on the track";
+  add("color.border.selected", "color.background.neutral", 3, note, surface, standardModes);
+}
+add("color.border.selected", "elevation.surface", 3, "selected filled tab's outline on its chip");
+// CONTENT (STS-5): a brand Badge's words on its subtle fill, and a brand badge link's words on its
+// hovered fill, which it draws in color.text.selected (color.text.brand there is 4.18:1). The
+// Avatar accents: the tinted avatar's initials on their fill, and inverse initials on the bold
+// fill (the gradient runs between two of them). color.text.brand is not held against color.text
+// or color.text.subtle: a TextLink inside a sentence is underlined at rest, its non-colour cue
+// (CNT-1, G2-2).
+add("color.text.brand", "color.background.brand.subtlest", 4.5, "brand badge");
+add("color.text.selected", "color.background.brand.subtlest.hovered", 4.5, "brand badge link hovered");
+for (const hue of ["blue", "teal", "green", "orange", "red", "purple"]) {
+  add(`color.text.accent.${hue}`, `color.background.accent.${hue}.subtler`, 4.5, "tinted avatar");
+  add("color.text.inverse", `color.background.accent.${hue}.bolder`, 4.5, "bold avatar");
+}
+// FEEDBACK (G6-6, FDB-8): a Progress bar is a non-text element, so each tone's fill holds 3:1
+// against the track (color.background.neutral) on the surfaces a bar sits on. A warning bar is
+// color.chart.warning: color.background.warning.bold carries dark text and is not a 3:1 fill. An
+// indeterminate bar's stripes are the tone's icon colour, color.icon.subtle for neutral, on the
+// same track. Under increased contrast the track is itself 3:1 against the surface (above), so
+// the bar on it is held to the standard modes, as the current page bar is. Open: the light
+// warning orange (orange.600, the kit's warning icon too) is 2.97:1 on the track over
+// elevation.surface.sunken (a metrics strip, a pinned row), so warning is held on the others.
+for (const surface of surfaces) {
+  if (surface === "color.background.input") continue;
+  const warning = surface !== "elevation.surface.sunken";
+  for (const bar of [
+    "color.background.neutral.bold",
+    "color.background.information.bold",
+    "color.background.success.bold",
+    ...(warning ? ["color.chart.warning"] : []),
+    "color.background.danger.bold",
+  ])
+    add(bar, "color.background.neutral", 3, "progress fill on its track", surface, standardModes);
+  for (const stripe of [
+    "color.icon.subtle",
+    "color.icon.information",
+    "color.icon.success",
+    ...(warning ? ["color.icon.warning"] : []),
+    "color.icon.danger",
+  ])
+    add(stripe, "color.background.neutral", 3, "indeterminate stripes", surface, standardModes);
+}
+// FEEDBACK (FDB-2, FDB-6): an Alert's fill is its tone's color.background.<tone>. On it, the
+// AlertIcon (the tone's icon, color.icon.subtle for neutral) holds 3:1 and the focus ring 3:1 in
+// every mode, and a TextLink (color.text.brand) 4.5:1 on every status tone in every mode. Open: the
+// neutral fill darkens under increased contrast, where color.text.brand is 1.77:1 (light) and
+// 2.45:1 (dark) on it, so the link on a neutral Alert is held to the standard modes.
+for (const tone of ["neutral", ...status]) {
+  const alertFill = `color.background.${tone}`;
+  add(tone === "neutral" ? "color.icon.subtle" : `color.icon.${tone}`, alertFill, 3, "AlertIcon");
+  add("color.border.focused", alertFill, 3, "focus ring in an Alert");
+  add(
+    "color.text.brand",
+    alertFill,
+    4.5,
+    "link in an Alert",
+    "elevation.surface",
+    tone === "neutral" ? standardModes : modes,
+  );
+}
+
+// CARDS: a linked Stat.Tile hovers and presses on elevation.surface.hovered and .pressed, and a
+// linked Card on elevation.surface.raised.hovered and .pressed. The label, the note, a toned
+// count, a zero count (text.subtlest), the card's title and description and the inset focus ring
+// stay readable on those fills.
+for (const state of ["hovered", "pressed"]) {
+  const tile = `elevation.surface.${state}`;
+  const card = `elevation.surface.raised.${state}`;
+  for (const text of ["color.text", "color.text.subtle"]) {
+    add(text, tile, 4.5, "linked Stat.Tile text on its state fill");
+    add(text, card, 4.5, "linked Card text on its state fill", "elevation.surface.raised");
+  }
+  for (const s of status) add(`color.text.${s}`, tile, 4.5, "toned count on a linked Stat.Tile");
+  add("color.border.focused", tile, 3, "linked Stat.Tile inset focus ring");
+  add("color.border.focused", card, 3, "linked Card inset focus ring", "elevation.surface.raised");
+}
+for (const state of ["hovered", "pressed"])
+  add("color.text.subtlest", `elevation.surface.${state}`, 4.5, "zero count on a linked Stat.Tile");
+
+// STRUCTURE (STR-20): the Stepper's path ahead and behind. An upcoming step's ring is
+// color.border.bold (held 3:1 against every surface as the choice-control boundary above), and the
+// rail behind a done step is color.border.success, 3:1 against the page and raised surfaces a
+// Stepper sits on, in every mode.
+for (const surface of ["elevation.surface", "elevation.surface.raised"])
+  add("color.border.success", surface, 3, "stepper rail behind a done step", surface);
+
+// SHELLNAV: the side nav sits on elevation.surface.sunken. Its current page is the selected fill
+// with selected text and icon, hovered or not; a focused item's ring is drawn flush outside the
+// item, in the gap between items, so it sits on the nav's surface rather than a neighbour's fill;
+// the icon rail marks an item with a count by a brand dot.
+for (const fill of ["color.background.selected", "color.background.selected.hovered"]) {
+  add("color.text.selected", fill, 4.5, "side nav current page", "elevation.surface.sunken");
+  add("color.icon.selected", fill, 3, "side nav current icon", "elevation.surface.sunken");
+}
+add(
+  "color.border.focused",
+  "elevation.surface.sunken",
+  3,
+  "side nav focus ring",
+  "elevation.surface.sunken",
+);
+add(
+  "color.background.brand.bold",
+  "elevation.surface.sunken",
+  3,
+  "icon rail count dot",
+  "elevation.surface.sunken",
+);
+
+// FOUNDATIONS (G3-7, TOK-13): the pairs a chosen or hovered row puts on its fill, and the chart's
+// marks. A focused control inside a hovered or chosen row, and an inset ring, draw the focus ring
+// on the row's fill: color.border.focused holds 3:1 on the neutral and selected fills at rest,
+// under the pointer and pressed (a neutral press, a momentary state, is held under increased
+// contrast only, above) and on the surfaces' own hover and press, over every surface. In a
+// selected row the words keep their minimum: color.text.subtle at rest, hovered and pressed; a
+// record's name link (color.text.brand) at rest and hovered; color.text.subtlest, a meta line, on
+// the resting fill; and the icons at 3:1. Under increased contrast the fills are 3:1 mid tones and
+// the coloured and subtlest words are held to the surfaces (Tokens/Color), so these are the
+// standard modes'. Every chart series tone, the categorical set and Other, and each one's
+// hovered step, is a non-text mark at 3:1 on the surfaces a chart sits on, in every mode; the low
+// sequential and diverging steps are heatmap cells that carry a value label, and are not held.
+for (const surface of surfaces) {
+  if (surface === "color.background.input") continue;
+  for (const fill of [
+    "color.background.neutral",
+    "color.background.neutral.hovered",
+    "color.background.neutral.subtle.hovered",
+    "color.background.neutral.subtle.pressed",
+    ...selectedFills,
+  ])
+    add("color.border.focused", fill, 3, "focus ring on a row's fill", surface, standardModes);
+  for (const fill of [...selectedFills]) {
+    add("color.text.subtle", fill, 4.5, "subtle text in a selected row", surface, standardModes);
+    for (const icon of [
+      "color.icon",
+      "color.icon.subtle",
+      "color.icon.subtlest",
+      "color.icon.selected",
+    ])
+      add(icon, fill, 3, "icon in a selected row", surface, standardModes);
+  }
+  for (const fill of ["color.background.selected", "color.background.selected.hovered"])
+    add("color.text.brand", fill, 4.5, "name link in a selected row", surface, standardModes);
+  add(
+    "color.text.subtlest",
+    "color.background.selected",
+    4.5,
+    "meta text in a selected row",
+    surface,
+    standardModes,
+  );
+  const series = [
+    "brand",
+    "neutral",
+    ...status,
+    ...[1, 2, 3, 4, 5, 6, 7, 8].map((n) => `categorical.${n}`),
+  ];
+  for (const tone of series) {
+    add(`color.chart.${tone}`, surface, 3, "chart mark on its surface", surface);
+    if (tone !== "categorical.8")
+      add(`color.chart.${tone}.hovered`, surface, 3, "hovered chart mark", surface);
+  }
+}
+for (const state of ["hovered", "pressed"])
+  for (const fill of [`elevation.surface.${state}`, `elevation.surface.overlay.${state}`])
+    add("color.border.focused", fill, 3, "focus ring on a hovered or pressed surface");
 
 const results = [];
 for (const mode of modes) {

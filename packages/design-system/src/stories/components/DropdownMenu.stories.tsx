@@ -1,6 +1,6 @@
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Library, MoreHorizontal, Pencil, Plus } from "lucide-react";
+import { ChevronDown, Library, MoreHorizontal, Pencil, Plus } from "lucide-react";
 import { createRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import {
@@ -49,7 +49,13 @@ const renderedEdit = fn();
 const disabledAction = fn();
 const changed = fn();
 
-/** Action labels set the menu width, even when its trigger is a single icon. */
+const longLabel = "Include every element from the organization's shared library (12 missing)";
+
+/**
+ * Action labels set the menu width, even when its trigger is a single icon. Labels stay on one
+ * line; one wider than the window leaves ends in an ellipsis at the menu's edge, and a pointer
+ * resting on it shows the whole label.
+ */
 export const ActionLabelWidths: Story = {
   globals: { viewport: { value: "ledgerNarrow", isRotated: false } },
   render: () => (
@@ -76,12 +82,21 @@ export const ActionLabelWidths: Story = {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button size="small" iconAfter={<ChevronDown />} />}>
+          Include
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem>Include this element</DropdownMenuItem>
+          <DropdownMenuItem>{longLabel}</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </Stack>
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const page = within(canvasElement.ownerDocument.body);
-    for (const label of ["Create system", "More system actions"]) {
+    for (const label of ["Create system", "More system actions", "Include"]) {
       const trigger = canvas.getByRole("button", { name: label });
       await userEvent.click(trigger);
       const menu = await page.findByRole("menu");
@@ -92,13 +107,29 @@ export const ActionLabelWidths: Story = {
         expect(bounds.right).toBeLessThanOrEqual(innerWidth);
         expect(menu.scrollWidth).toBeLessThanOrEqual(menu.clientWidth);
         for (const item of within(menu).getAllByRole("menuitem")) {
+          const text = item.querySelector<HTMLElement>('[data-slot="dropdown-menu-item-label"]')!;
           const range = canvasElement.ownerDocument.createRange();
-          const text = [...item.childNodes].find((node) => node.nodeType === Node.TEXT_NODE)!;
-          range.selectNodeContents(text);
-          expect(range.getClientRects()).toHaveLength(1);
+          range.selectNodeContents(text.firstChild!);
+          // One line, never wrapped and never cut mid-word: a label that does not fit ends in
+          // an ellipsis inside the item.
+          const lines = new Set([...range.getClientRects()].map((box) => Math.round(box.top)));
+          expect(lines.size).toBe(1);
           expect(getComputedStyle(item).whiteSpace).toBe("nowrap");
+          expect(getComputedStyle(text).textOverflow).toBe("ellipsis");
+          expect(text.getBoundingClientRect().right).toBeLessThanOrEqual(
+            item.getBoundingClientRect().right,
+          );
         }
       });
+      if (label === "Include") {
+        const long = within(menu).getByRole("menuitem", { name: longLabel });
+        const text = long.querySelector<HTMLElement>('[data-slot="dropdown-menu-item-label"]')!;
+        await userEvent.hover(text);
+        // Cut short by the window's edge, the label shows its whole text to a resting pointer.
+        if (text.scrollWidth > text.clientWidth + 1)
+          await expect(text).toHaveAttribute("title", longLabel);
+        else await expect(text).not.toHaveAttribute("title");
+      }
       await userEvent.keyboard("{Escape}");
       await waitFor(() => expect(menu).not.toBeVisible());
     }
@@ -118,7 +149,7 @@ export const DropdownMenuMatrix: Story = {
       </DropdownMenuTrigger>
       <DropdownMenuContent
         ref={popupRef}
-        style={(state) => ({ width: 240, outlineOffset: state.open ? 4 : 0 })}
+        style={(state) => ({ minWidth: 240, outlineOffset: state.open ? 4 : 0 })}
         className={(state) => (state.open ? "font-medium" : "font-regular")}
       >
         <DropdownMenuGroup>
@@ -127,12 +158,10 @@ export const DropdownMenuMatrix: Story = {
             ref={itemRef}
             onClick={edit}
             render={<div onClick={renderedEdit} className="tabular-nums" />}
+            shortcut="E"
           >
             <Pencil aria-hidden />
             Edit
-            <DropdownMenuShortcut>
-              <Kbd>E</Kbd>
-            </DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuItem disabled onClick={disabledAction}>
             Reassign
@@ -141,6 +170,9 @@ export const DropdownMenuMatrix: Story = {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="danger">Archive</DropdownMenuItem>
+        <DropdownMenuItem variant="danger" disabled>
+          Delete
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   ),
@@ -163,10 +195,15 @@ export const DropdownMenuMatrix: Story = {
     await user.keyboard("{ArrowDown}");
     const menu = await page.findByRole("menu");
     await waitFor(() => expect(menu).toBeVisible());
-    const first = page.getByRole("menuitem", { name: "Edit E" });
+    // The shortcut is drawn at the end and said as aria-keyshortcuts, so the name is the label.
+    const first = page.getByRole("menuitem", { name: "Edit" });
+    await expect(first).toHaveAttribute("aria-keyshortcuts", "E");
+    const keys = first.querySelector('[data-slot="dropdown-menu-shortcut"]')!;
+    await expect(keys).toHaveAttribute("aria-hidden", "true");
+    await expect(within(keys as HTMLElement).getByText("E", { selector: "kbd" })).toBeVisible();
     await expect(popupRef.current).toBe(menu);
     await expect(menu).toHaveClass("font-medium");
-    await expect(menu).toHaveStyle({ width: "240px", outlineOffset: "4px" });
+    await expect(menu).toHaveStyle({ minWidth: "240px", outlineOffset: "4px" });
     await expect(itemRef.current).toBe(first);
     await expect(first).toHaveClass("tabular-nums");
     await expect(canvasElement).not.toContainElement(menu);
@@ -180,8 +217,16 @@ export const DropdownMenuMatrix: Story = {
     await expect(disabledAction).not.toHaveBeenCalled();
     await expect(menu).toBeVisible();
     await user.keyboard("{End}");
+    // A disabled danger item fades like any other: the danger colour would say it could run.
+    const deleting = page.getByRole("menuitem", { name: "Delete" });
+    await expect(deleting).toHaveFocus();
+    await expect(getComputedStyle(deleting).color).toBe(getComputedStyle(disabled).color);
+    await expect(getComputedStyle(deleting).color).not.toBe(
+      getComputedStyle(page.getByRole("menuitem", { name: "Archive" })).color,
+    );
+    await user.keyboard("{ArrowUp}");
     await expect(page.getByRole("menuitem", { name: "Archive" })).toHaveFocus();
-    await user.keyboard("{ArrowDown}");
+    await user.keyboard("{End}{ArrowDown}");
     await expect(first).toHaveFocus();
     await user.keyboard("d");
     await expect(page.getByRole("menuitem", { name: "Duplicate" })).toHaveFocus();
@@ -205,7 +250,7 @@ function PreferencesDemo() {
       <DropdownMenuTrigger render={<Button variant="secondary" />}>
         View options
       </DropdownMenuTrigger>
-      <DropdownMenuContent style={{ width: 220 }}>
+      <DropdownMenuContent>
         <DropdownMenuGroup>
           <DropdownMenuLabel>Columns</DropdownMenuLabel>
           <DropdownMenuCheckboxItem checked={owner} onCheckedChange={setOwner}>
@@ -235,7 +280,11 @@ function PreferencesDemo() {
   );
 }
 
-/** Checkbox and radio items stay open by default; a normal action closes the menu. */
+/**
+ * Checkbox and radio items stay open by default; a normal action closes the menu. Each kind sits
+ * in its own labelled group, apart from the actions, so an unchecked option never reads as an
+ * action; the chosen radio item carries a dot and a checked checkbox item a check.
+ */
 export const Toggles: Story = {
   name: "Preferences",
   render: () => <PreferencesDemo />,
@@ -258,6 +307,18 @@ export const Toggles: Story = {
     await expect(page.getByRole("menuitemradio", { name: "Date" })).toHaveAttribute(
       "aria-checked",
       "true",
+    );
+    // A dot marks the chosen option of a set; a check marks an option that is on.
+    await expect(
+      page
+        .getByRole("menuitemradio", { name: "Date" })
+        .querySelector('[data-slot="dropdown-menu-radio-item-indicator"] svg circle'),
+    ).not.toBeNull();
+    await expect(
+      required.querySelector('[data-slot="dropdown-menu-checkbox-item-indicator"] svg circle'),
+    ).toBeNull();
+    await expect(page.getByRole("group", { name: "Sort" })).toContainElement(
+      page.getByRole("menuitemradio", { name: "Date" }),
     );
     await expect(page.getByRole("menuitemradio", { name: "Name" })).toHaveAttribute(
       "aria-checked",
@@ -287,7 +348,7 @@ export const Submenus: Story = {
           <DropdownMenuTrigger render={<Button variant="secondary" />}>
             Record actions
           </DropdownMenuTrigger>
-          <DropdownMenuContent style={{ width: 220 }}>
+          <DropdownMenuContent>
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>Share</DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
@@ -388,7 +449,7 @@ function DialogDemo() {
         <DropdownMenuTrigger
           render={<IconButton label="Record actions" icon={<MoreHorizontal />} />}
         />
-        <DropdownMenuContent style={{ width: 200 }}>
+        <DropdownMenuContent>
           <DropdownMenuItem onClick={() => setOpen(true)}>Edit record</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -411,7 +472,7 @@ function DialogDemo() {
                 <DropdownMenuTrigger render={<Button variant="secondary" />}>
                   More options
                 </DropdownMenuTrigger>
-                <DropdownMenuContent style={{ width: 200 }}>
+                <DropdownMenuContent>
                   <DropdownMenuItem>Copy record</DropdownMenuItem>
                   <DropdownMenuItem>Move record</DropdownMenuItem>
                 </DropdownMenuContent>
@@ -492,7 +553,8 @@ export const DescriptionsAndReasons: Story = {
     );
     // The unavailable action is reachable, announced and inert.
     await user.keyboard("{ArrowDown}{ArrowDown}");
-    const unavailable = within(menu).getByRole("menuitem", { name: /^Publish version/ });
+    // A Shortcut drawn by hand is hidden too, so the name is the label alone.
+    const unavailable = within(menu).getByRole("menuitem", { name: "Publish version" });
     await waitFor(() => expect(unavailable).toHaveFocus());
     await expect(unavailable).toHaveAttribute("aria-disabled", "true");
     await expect(unavailable).toHaveAccessibleDescription(
@@ -501,13 +563,15 @@ export const DescriptionsAndReasons: Story = {
     await user.keyboard("{Enter}");
     await expect(publish).not.toHaveBeenCalled();
     await expect(menu).toBeVisible();
-    // The reason stays readable on the disabled row; the label fades.
+    // The reason stays readable on the disabled row; the label fades. Forced colours draw the
+    // whole disabled row in GrayText, the system's readable disabled colour.
     const reason = within(unavailable).getByText(
       "Add content to this version before publishing it.",
     );
-    await expect(getComputedStyle(reason).color).not.toBe(
-      getComputedStyle(within(unavailable).getByText("Publish version")).color,
-    );
+    if (!matchMedia("(forced-colors: active)").matches)
+      await expect(getComputedStyle(reason).color).not.toBe(
+        getComputedStyle(within(unavailable).getByText("Publish version")).color,
+      );
     // A disabled danger item takes the disabled colour, not the danger colour.
     const archive = within(menu).getByRole("menuitem", { name: "Archive" });
     const deleting = within(menu).getByRole("menuitem", { name: "Delete version" });
@@ -517,6 +581,43 @@ export const DescriptionsAndReasons: Story = {
     // The descriptions wrap inside a narrow menu instead of widening it past the screen.
     await expect(menu.getBoundingClientRect().right).toBeLessThanOrEqual(innerWidth);
     await expect(menu.scrollWidth).toBeLessThanOrEqual(menu.clientWidth);
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    await waitFor(() => expect(trigger).toHaveFocus());
+  },
+};
+
+/**
+ * A Label names the Group around it. One placed outside any Group, as a heading at the top of a
+ * menu, still renders, in a group of its own, and says once in the console that it names nothing;
+ * the menu keeps working.
+ */
+export const LabelOutsideAGroup: Story = {
+  name: "Label outside a group",
+  render: () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger render={<Button variant="secondary" />}>Export</DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuLabel>Format</DropdownMenuLabel>
+        <DropdownMenuItem>Export as CSV</DropdownMenuItem>
+        <DropdownMenuItem>Export as JSON</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ),
+  play: async ({ canvasElement }) => {
+    const doc = canvasElement.ownerDocument;
+    const body = within(doc.body);
+    const user = userEvent.setup({ document: doc });
+    const trigger = within(canvasElement).getByRole("button", { name: "Export" });
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    trigger.focus();
+    await user.keyboard("{ArrowDown}");
+    const menu = await body.findByRole("menu");
+    await waitFor(() => expect(menu).toBeVisible());
+    await expect(within(menu).getByText("Format")).toBeVisible();
+    await expect(within(menu).getByRole("group", { name: "Format" })).toBeInTheDocument();
+    const first = within(menu).getByRole("menuitem", { name: "Export as CSV" });
+    await waitFor(() => expect(first).toHaveFocus());
     await user.keyboard("{Escape}");
     await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
     await waitFor(() => expect(trigger).toHaveFocus());

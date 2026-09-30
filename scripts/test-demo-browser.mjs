@@ -244,7 +244,11 @@ try {
   await capture("campaigns");
 
   await visit("/work", "My work");
-  await page.getByRole("button", { name: "Saved questions", exact: true }).click();
+  // The views trigger is named by the question it shows; "Saved questions" is its description.
+  await page
+    .getByRole("button", { name: /^(All tasks|Assigned to you|Open|Done|View)(\s|$)/ })
+    .first()
+    .click();
   await page.getByRole("menuitemradio", { name: /^All tasks/ }).click();
   await find("Find tasks", task.title);
   await capture("all-tasks");

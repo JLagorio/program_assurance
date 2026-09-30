@@ -5,6 +5,7 @@ import {
   FieldSet,
   FieldLegend,
   FieldContent,
+  FieldGroup,
   ComboboxInput,
   ComboboxContent,
   ComboboxEmpty,
@@ -184,7 +185,7 @@ function ControlForm() {
           </Button>
           <form.Subscribe selector={(state) => state.isSubmitting}>
             {(isSubmitting) => (
-              <Button type="submit" variant="primary" disabled={isSubmitting}>
+              <Button type="submit" variant="primary" isLoading={isSubmitting}>
                 Save control
               </Button>
             )}
@@ -478,90 +479,90 @@ export const Choices: Story = {
   },
 };
 
-/** A form on a six-column Grid: each field as wide as its answer, a description across the row, the buttons at the end. */
+/**
+ * A form on a six-column Grid inside a FieldGroup: each field as wide as its answer, a description
+ * across the row, the buttons at the end. The FieldGroup is a size container, so the cells span the
+ * whole row until the form is 28rem wide: one column in a phone, a narrow dialog or a panel, the
+ * six-column layout beside them, and the same order at every width.
+ */
 export const Layout: Story = {
   render: function FieldExample() {
-    const fieldId = useId();
     const priyaItems = people;
     return (
       <div style={{ maxWidth: 640 }}>
         <Stack space="space.300">
-          <Grid
-            templateColumns="repeat(6, minmax(0, 1fr))"
-            columnGap="space.200"
-            rowGap="space.200"
-          >
-            <div style={{ gridColumn: "span 2" }}>
-              <Field required>
-                <FieldLabel>Acronym</FieldLabel>
-                <Input defaultValue="ATLAS" maxLength={8} />
-                <FieldDescription>Up to eight characters.</FieldDescription>
-              </Field>
-            </div>
-            <div style={{ gridColumn: "span 4" }}>
-              <Field required>
-                <FieldLabel>Program name</FieldLabel>
-                <Input defaultValue="Atlas payments platform" />
-              </Field>
-            </div>
-            <div style={{ gridColumn: "span 3" }}>
-              <Field>
-                <FieldLabel>Owner</FieldLabel>
-                <Combobox<(typeof priyaItems)[number]>
-                  items={priyaItems}
-                  isItemEqualToValue={(item, selected) => item.value === selected.value}
-                  filter={(item, query) =>
-                    [item.label, item.value, "keywords" in item ? item.keywords : ""]
-                      .join(" ")
-                      .toLocaleLowerCase()
-                      .includes(query.toLocaleLowerCase())
-                  }
-                  defaultValue={priyaItems.find((item) => item.value === "priya") ?? null}
-                >
-                  <ComboboxInput placeholder="Choose an owner" />
-                  <ComboboxContent>
-                    <ComboboxEmpty>No matches.</ComboboxEmpty>
-                    <ComboboxList>
-                      {(item) => (
-                        <ComboboxItem
-                          key={item.value}
-                          value={item}
-                          disabled={"disabled" in item && Boolean(item.disabled)}
-                        >
-                          <span className="min-w-0 flex-1">{item.label}</span>
-                          {"meta" in item && item.meta ? (
-                            <span className="text-subtle font-body-small">{String(item.meta)}</span>
-                          ) : null}
-                        </ComboboxItem>
-                      )}
-                    </ComboboxList>
-                  </ComboboxContent>
-                </Combobox>
-              </Field>
-            </div>
-            <div style={{ gridColumn: "span 3" }}>
-              <Field>
-                <FieldLabel id={`${fieldId}-due-label`} htmlFor={`${fieldId}-due`}>
-                  Authorization due
-                </FieldLabel>
-                <DatePicker
-                  id={`${fieldId}-due`}
-                  aria-labelledby={`${fieldId}-due-label`}
-                  defaultValue="2026-12-18"
-                />
-              </Field>
-            </div>
-            <div style={{ gridColumn: "span 6" }}>
-              <Field>
-                <FieldLabel>Description</FieldLabel>
-                <Textarea
-                  rows={3}
-                  placeholder="Cardholder and settlement processing for the Atlas platform."
-                />
-                <FieldDescription>What the system does for the mission.</FieldDescription>
-              </Field>
-            </div>
-          </Grid>
+          <FieldGroup>
+            <Grid templateColumns="repeat(6, minmax(0, 1fr))" gap="space.200">
+              <div data-testid="acronym" className="col-span-6 @md/field-group:col-span-2">
+                <Field required>
+                  <FieldLabel>Acronym</FieldLabel>
+                  <Input defaultValue="ATLAS" maxLength={8} />
+                  <FieldDescription>Up to eight characters.</FieldDescription>
+                </Field>
+              </div>
+              <div data-testid="name" className="col-span-6 @md/field-group:col-span-4">
+                <Field required>
+                  <FieldLabel>Program name</FieldLabel>
+                  <Input defaultValue="Atlas payments platform" />
+                </Field>
+              </div>
+              <div className="col-span-6 @md/field-group:col-span-3">
+                <Field>
+                  <FieldLabel>Owner</FieldLabel>
+                  <Combobox<(typeof priyaItems)[number]>
+                    items={priyaItems}
+                    isItemEqualToValue={(item, selected) => item.value === selected.value}
+                    filter={(item, query) =>
+                      [item.label, item.value, "keywords" in item ? item.keywords : ""]
+                        .join(" ")
+                        .toLocaleLowerCase()
+                        .includes(query.toLocaleLowerCase())
+                    }
+                    defaultValue={priyaItems.find((item) => item.value === "priya") ?? null}
+                  >
+                    <ComboboxInput placeholder="Choose an owner" />
+                    <ComboboxContent>
+                      <ComboboxEmpty>No matches.</ComboboxEmpty>
+                      <ComboboxList>
+                        {(item) => (
+                          <ComboboxItem
+                            key={item.value}
+                            value={item}
+                            disabled={"disabled" in item && Boolean(item.disabled)}
+                          >
+                            <span className="min-w-0 flex-1">{item.label}</span>
+                            {"meta" in item && item.meta ? (
+                              <span className="text-subtle font-body-small">
+                                {String(item.meta)}
+                              </span>
+                            ) : null}
+                          </ComboboxItem>
+                        )}
+                      </ComboboxList>
+                    </ComboboxContent>
+                  </Combobox>
+                </Field>
+              </div>
+              <div className="col-span-6 @md/field-group:col-span-3">
+                <Field>
+                  <FieldLabel>Authorization due</FieldLabel>
+                  <DatePicker defaultValue="2026-12-18" />
+                </Field>
+              </div>
+              <div className="col-span-6">
+                <Field>
+                  <FieldLabel>Description</FieldLabel>
+                  <Textarea
+                    rows={3}
+                    autoResize
+                    maxRows={8}
+                    placeholder="Cardholder and settlement processing for the Atlas platform."
+                  />
+                  <FieldDescription>What the system does for the mission.</FieldDescription>
+                </Field>
+              </div>
+            </Grid>
+          </FieldGroup>
           <Inline space="space.100" alignInline="end">
             <Button variant="subtle">Cancel</Button>
             <Button variant="primary">Create program</Button>
@@ -569,6 +570,23 @@ export const Layout: Story = {
         </Stack>
       </div>
     );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const group = canvasElement.querySelector<HTMLElement>('[data-slot="field-group"]')!;
+    const acronym = canvas.getByTestId("acronym").getBoundingClientRect();
+    const name = canvas.getByTestId("name").getBoundingClientRect();
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    if (group.getBoundingClientRect().width >= 28 * rem) {
+      // Wide enough: the acronym and the name share a row, the name twice as wide.
+      await expect(Math.abs(acronym.top - name.top)).toBeLessThan(1);
+      await expect(name.width).toBeGreaterThan(acronym.width * 1.5);
+    } else {
+      // Narrow: one column, in the same order, each field the row's full width.
+      await expect(name.top).toBeGreaterThan(acronym.bottom - 1);
+      await expect(Math.abs(name.width - acronym.width)).toBeLessThan(1);
+    }
+    await expect(canvas.getByRole("button", { name: /Authorization due/ })).toBeVisible();
   },
 };
 
@@ -888,8 +906,8 @@ function RecoveryDemo() {
             </Button>
             <form.Subscribe selector={(state) => state.isSubmitting}>
               {(submitting) => (
-                <Button type="submit" disabled={submitting}>
-                  {submitting ? "Saving…" : "Save details"}
+                <Button type="submit" variant="primary" isLoading={submitting}>
+                  Save details
                 </Button>
               )}
             </form.Subscribe>

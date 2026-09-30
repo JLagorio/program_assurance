@@ -1,3 +1,5 @@
+import { useRecordTitle } from "@/components/app/browser-title";
+import { Page, RecordPending } from "@/components/app/shell";
 import { StatusBadge } from "@/components/app/status";
 import { RelationName } from "@/components/prototype/record-tools";
 import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
@@ -29,6 +31,7 @@ import { useState } from "react";
 export const Route = createFileRoute("/workstreams/$workstreamId")({
   component: WorkstreamRoute,
   head: () => ({ meta: [{ title: "Workstream — Program Assurance" }] }),
+  pendingComponent: RecordPending,
 });
 function WorkstreamRoute() {
   const { workstreamId } = Route.useParams();
@@ -37,10 +40,11 @@ function WorkstreamRoute() {
 function WorkstreamDetail({ workstreamId }: { workstreamId: string }) {
   const query = useRow("workstreams", workstreamId);
   const row = query.data;
+  useRecordTitle("Workstream", row?.title);
   const program = useRow("programs", row?.program_id);
   const [editing, setEditing] = useState<DataRecord | null>(null);
   return (
-    <Stack space="space.200" className="min-w-0">
+    <Page>
       {editing && (
         <ModelForm
           target={{ table: "workstreams", existing: editing }}
@@ -109,6 +113,6 @@ function WorkstreamDetail({ workstreamId }: { workstreamId: string }) {
           <MissingRecord backTo="/programs" kind="Workstream" />
         )}
       </QueryState>
-    </Stack>
+    </Page>
   );
 }

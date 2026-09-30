@@ -11,6 +11,8 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
+  RadioGroup,
+  RadioGroupItem,
   ToggleGroup,
   ToggleGroupItem,
 } from "../../components";
@@ -145,16 +147,40 @@ function ToolbarDemo() {
               isActive={gaps}
               onClick={() => setGaps((v) => !v)}
             />
-            <FilterChip
-              label="Owner"
-              value={owner ?? undefined}
-              isActive={owner !== null}
-              onClick={() =>
-                setOwner((o) =>
-                  o === null ? (owners[0] ?? null) : (owners[owners.indexOf(o) + 1] ?? null),
-                )
-              }
-            />
+            <Popover>
+              <PopoverTrigger
+                render={
+                  <FilterChip
+                    label="Owner"
+                    value={owner ?? undefined}
+                    isActive={owner !== null}
+                  />
+                }
+              />
+              <PopoverContent style={{ width: 220 }} aria-label="Owner">
+                <Stack space="space.100">
+                  <RadioGroup
+                    aria-label="Owner"
+                    value={owner ?? ""}
+                    onValueChange={(value) => setOwner(typeof value === "string" ? value : null)}
+                  >
+                    {owners.map((o) => (
+                      <label key={o} className="inline-flex items-center gap-100">
+                        <RadioGroupItem value={o} />
+                        {o}
+                      </label>
+                    ))}
+                  </RadioGroup>
+                  {owner ? (
+                    <Inline alignInline="end">
+                      <Button variant="link" size="small" onClick={() => setOwner(null)}>
+                        Clear
+                      </Button>
+                    </Inline>
+                  ) : null}
+                </Stack>
+              </PopoverContent>
+            </Popover>
             <Popover>
               <PopoverTrigger
                 ref={toolbarRefs.trigger}
@@ -201,7 +227,7 @@ function ToolbarDemo() {
   );
 }
 
-/** In a Toolbar: a toggle, a chip that steps through its values, and a chip that opens a popover of checkboxes. Clear filters appears when any is on. On a phone or in a panel the chips fold into More. */
+/** In a Toolbar: a yes-or-no toggle, and two chips that open a popover, one to choose an owner and one to choose statuses. The value shows on the chip; a chip that opens a popover says expanded, never pressed. Clear filters appears when any is on. On a phone or in a panel the chips fold into More. */
 export const InToolbar: Story = {
   render: () => <ToolbarDemo />,
   play: async ({ canvasElement }) => {
@@ -242,7 +268,24 @@ export const InToolbar: Story = {
     await userEvent.keyboard("{Enter}");
     await expect(gaps).toHaveAttribute("aria-pressed", "false");
 
-    await userEvent.tab(); // Owner.
+    // Owner opens a popover of names: it says expanded, not pressed, and shows the one chosen.
+    await userEvent.tab();
+    const owner = canvas.getByRole("button", { name: "Owner" });
+    await expect(owner).toHaveFocus();
+    await expect(owner).toHaveAttribute("aria-expanded", "false");
+    await expect(owner).not.toHaveAttribute("aria-pressed");
+    await expect(owner).toHaveAttribute("data-slot", "filter-chip");
+    await userEvent.keyboard("{Enter}");
+    const owners = await body.findByRole("dialog", { name: "Owner" });
+    await userEvent.click(within(owners).getByRole("radio", { name: "Priya Natarajan" }));
+    await expect(owner).toHaveAccessibleName("Owner Priya Natarajan");
+    await expect(owner).not.toHaveAttribute("aria-pressed");
+    await userEvent.click(within(owners).getByRole("button", { name: "Clear" }));
+    await expect(owner).toHaveAccessibleName("Owner");
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(owner).toHaveFocus());
+
     await userEvent.tab();
     await expect(status).toHaveFocus();
     await expect(status).toHaveAttribute("aria-expanded", "false");

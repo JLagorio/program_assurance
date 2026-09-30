@@ -152,7 +152,10 @@ export const Messages: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByRole("button", { name: "Fiche précédente" })).toBeDisabled();
+    await expect(canvas.getByRole("button", { name: "Fiche précédente" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
     await userEvent.click(canvas.getByRole("button", { name: "Suivante" }));
     await expect(canvas.getByRole("status")).toHaveTextContent("Fiche 2 sur 3");
     await expect(

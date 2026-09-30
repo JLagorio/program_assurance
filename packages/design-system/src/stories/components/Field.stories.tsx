@@ -220,7 +220,8 @@ export const EveryControl: Story = {
 /**
  * `disabled` on a Field disables its control and dims its label; `disabled` on a FieldSet reaches
  * every control inside, including the Checkbox, Radio and Switch roots a native disabled
- * fieldset leaves live.
+ * fieldset leaves live. A label also dims when its control is disabled on its own or by a native
+ * `<fieldset disabled>`, and a disabled choice dims only its own label, never its neighbours'.
  */
 export const Disabled: Story = {
   render: () => (
@@ -253,6 +254,27 @@ export const Disabled: Story = {
           <Checkbox />
           Bare checkbox outside a Field
         </label>
+      </FieldSet>
+      <Field>
+        <FieldLabel>Previous owner</FieldLabel>
+        <Input disabled defaultValue="Dana Whitfield" />
+      </Field>
+      <fieldset disabled className="min-w-0">
+        <Field>
+          <FieldLabel>Package reference</FieldLabel>
+          <Input defaultValue="PKG-0031" />
+        </Field>
+      </fieldset>
+      <FieldSet>
+        <FieldLegend variant="label">Delivery</FieldLegend>
+        <Field orientation="horizontal">
+          <Checkbox disabled />
+          <FieldLabel>Courier</FieldLabel>
+        </Field>
+        <Field orientation="horizontal">
+          <Checkbox />
+          <FieldLabel>Secure upload</FieldLabel>
+        </Field>
       </FieldSet>
       <Field disabled>
         <FieldSet>
@@ -287,10 +309,58 @@ export const Disabled: Story = {
     await expect(canvas.getByText("Include inherited controls").closest("label")).toHaveAttribute(
       "data-disabled",
     );
+    // The label dims with its control, however the control was disabled. Forced colours replace
+    // the token colours with system ones, where the control's own state carries it.
+    const forced = matchMedia("(forced-colors: active)").matches;
+    const labelColor = (text: string) => getComputedStyle(canvas.getByText(text)).color;
+    const dimmed = labelColor("Reference");
+    const enabled = labelColor("Secure upload");
+    if (!forced) {
+      await expect(dimmed).not.toBe(enabled);
+      await expect(labelColor("Previous owner")).toBe(dimmed);
+      await expect(labelColor("Package reference")).toBe(dimmed);
+      await expect(labelColor("Courier")).toBe(dimmed);
+    }
     // Nothing in the disabled set is a tab stop.
     reference.ownerDocument.body.focus();
     await userEvent.tab();
     await expect(controls.some((control) => control === document.activeElement)).toBe(false);
+  },
+};
+
+/**
+ * A FieldSet is the form's lock while it saves: `disabled` holds every field and choice inside,
+ * and it adds no border, padding or content-sized minimum, so a wide table inside it scrolls or
+ * clips within its frame instead of pushing the dialog wider.
+ */
+export const SavingLock: Story = {
+  name: "Saving lock",
+  render: () => (
+    <div data-testid="frame" style={{ width: 240 }}>
+      <FieldSet disabled>
+        <Field>
+          <FieldLabel>Title</FieldLabel>
+          <Input defaultValue="Rotate the signing keys" />
+        </Field>
+        <div data-testid="scroller" className="overflow-hidden">
+          <div style={{ width: 600 }}>
+            <Text size="small">Six hundred pixels of rows, held inside the frame.</Text>
+          </div>
+        </div>
+      </FieldSet>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("textbox", { name: "Title" })).toBeDisabled();
+    const set = canvasElement.querySelector<HTMLElement>('[data-slot="field-set"]')!;
+    const frame = canvas.getByTestId("frame").getBoundingClientRect().width;
+    await expect(set.getBoundingClientRect().width).toBeLessThanOrEqual(frame);
+    const scroller = canvas.getByTestId("scroller");
+    await expect(scroller.scrollWidth).toBeGreaterThan(scroller.clientWidth);
+    const style = getComputedStyle(set);
+    await expect(style.borderTopWidth).toBe("0px");
+    await expect(style.paddingTop).toBe("0px");
   },
 };
 

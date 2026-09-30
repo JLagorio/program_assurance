@@ -1,4 +1,5 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Textarea } from "../../components";
 import * as Stories from "./Textarea.stories";
 
 <Meta of={Stories} />
@@ -24,10 +25,20 @@ Textarea is a native textarea on Base UI's Field.Control, so a [Field](?path=/do
 
 ## Variants and states
 
-`rows` sets the expected initial answer length. Textarea has a 64px minimum height and can be resized vertically. Native read-only, disabled and invalid states use the shared control styling. Use InputGroupTextarea when the editor has header or footer addons.
+`rows` is the expected answer length and the box's height in lines: two for a note, four for a description, eight for a narrative, three by default. The reader can drag the box taller. Read-only is the sunken surface with a dashed edge and no hover; disabled and invalid use the shared control styling. A value that is never edited where it is shown is a [KeyValue](?path=/docs/components-keyvalue--docs), not a read-only Textarea. Use InputGroupTextarea when the editor has header or footer addons.
 
 <Canvas of={Stories.TextareaMatrix} />
 <Canvas of={Stories.Rows} />
+
+`autoResize` grows the box with its text, from `rows` lines up to `maxRows`, where it scrolls, so a long statement or rationale is read without dragging a corner. The browser sizes it (`field-sizing: content`) where it can, and the Textarea measures it where it cannot. InputGroupTextarea takes both props.
+
+<Canvas of={Stories.AutoResize} />
+
+## Length
+
+`characterLimit` is a soft limit. A count under the box says how many characters are left, and past the limit how many too many, in the danger colour with the box's edge; the text stays whole, so a pasted statement never loses its tail. The count describes the box (with "Up to 2,000 characters." for assistive technology), is announced when the reader pauses typing, and fails native validation with its own words; the form's schema check on submit says what fixes it. Use it instead of `maxLength`, which cuts a paste off without a word. Put the limit in the count, not in the hint.
+
+<Canvas of={Stories.CharacterLimit} />
 <Canvas of={Stories.InField} />
 
 ## Accessibility
@@ -36,7 +47,9 @@ In a Field the label, hint, error, invalid state and requirement reach the texta
 
 ## Props
 
-`TextareaProps` is the native textarea contract, including `ref`, `rows`, `name`, `value`, `defaultValue`, `onChange`, `onBlur`, `required` and ARIA attributes. Ref and event targets are HTMLTextAreaElement. Styling and layout pass through native className and style.
+`TextareaProps` is the native textarea contract, including `ref`, `rows`, `name`, `value`, `defaultValue`, `onChange`, `onBlur`, `required` and ARIA attributes, plus `autoResize`, `maxRows` and `characterLimit`. Ref and event targets are HTMLTextAreaElement. Styling and layout pass through native className and style. With `characterLimit` the Textarea renders the count after the box, so the box and its count are siblings in the Field.
+
+<ArgTypes of={Textarea} />
 
 <Canvas of={Stories.Playground} />
 

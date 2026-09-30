@@ -12,10 +12,12 @@ import {
   DialogHeader,
   DialogTitle,
   DropdownMenuItem,
+  Inline,
   KbdShortcut,
   KeyValue,
   LinkButton,
   ModeSwitch,
+  PageSkeleton,
   SearchDialog,
   Shell,
   Stack,
@@ -41,7 +43,6 @@ import {
   Settings,
   ShieldAlert,
   ShieldCheck,
-  Sparkle,
   Users,
 } from "lucide-react";
 import { useRows } from "@/lib/models";
@@ -85,7 +86,6 @@ const groups = [
     label: "System",
     items: [
       { label: "Suppliers", to: "/vendors", icon: Users },
-      { label: "Design system", to: "/components", icon: Sparkle },
       { label: "Schema inspector", to: "/schema", icon: Database },
     ],
   },
@@ -104,6 +104,29 @@ const sections: ReadonlyArray<readonly [page: string, section: string]> = [
 ];
 const sectionFor = (pathname: string) =>
   sections.find(([page]) => within(pathname, page))?.[1] ?? pathname;
+
+/**
+ * A page's root in Main, the one every route starts with: its PageHeader, then its body, one
+ * `space.200` apart. It shrinks inside Main rather than widening it (`min-w-0`), and it rises in
+ * once as the page opens (`animate-rise`: motion.duration.moderate, nothing under reduced motion);
+ * a tab or a filter in the address keeps the page, so it does not rise again.
+ */
+export function Page({ children }: { children: ReactNode }) {
+  return (
+    <Stack space="space.200" className="min-w-0 animate-rise">
+      {children}
+    </Stack>
+  );
+}
+
+/**
+ * What a record route shows while the router still loads it: a record-shaped skeleton (trail,
+ * title with its action, a tab strip, two sections), where a register keeps the router's default
+ * register shape. A route passes it as its `pendingComponent`.
+ */
+export function RecordPending() {
+  return <PageSkeleton variant="record" />;
+}
 
 /** The prototype frame and the backend inspector are two views of the same workspace. */
 export function AppLayout({ children }: { children: ReactNode }) {
@@ -227,9 +250,12 @@ function PrototypeLayout({ children }: { children: ReactNode }) {
                 Create a program, define its systems and scope, then connect implementation,
                 assessment, evidence and remediation records.
               </Text>
-              <LinkButton render={<Link to="/schema" onClick={() => setHelpOpen(false)} />}>
-                Open schema inspector
-              </LinkButton>
+              {/* In its own row, so the Stack does not stretch it to the dialog's width. */}
+              <Inline>
+                <LinkButton render={<Link to="/schema" onClick={() => setHelpOpen(false)} />}>
+                  Open schema inspector
+                </LinkButton>
+              </Inline>
             </Stack>
           </DialogBody>
         </DialogContent>

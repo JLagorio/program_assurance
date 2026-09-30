@@ -11,8 +11,15 @@ import {
   User,
   type LucideIcon,
 } from "lucide-react";
-import { createContext, useContext, type ComponentProps, type CSSProperties } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  type ComponentProps,
+  type CSSProperties,
+} from "react";
 
+import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
 import { headingTag, useHeadingLevel } from "../primitives/heading-level";
 
@@ -29,6 +36,18 @@ export type EmptyFrame = "dashed" | "none";
 
 const EmptyContext = createContext<{ size: EmptySize }>({ size: "default" });
 const useEmpty = () => useContext(EmptyContext);
+/** True inside EmptyHeader, where EmptyMedia does not belong. */
+const InHeader = createContext(false);
+
+const warned = new Set<string>();
+/** A composition mistake said once in the console, never thrown: the Empty still renders. */
+function useWarnOnce(when: boolean, message: string) {
+  useEffect(() => {
+    if (!when || warned.has(message)) return;
+    warned.add(message);
+    console.warn(message);
+  }, [when, message]);
+}
 
 export type EmptyProps = ComponentProps<"div"> & {
   /** `default` centres the message under its media; `compact` puts media beside it, for a rail or a card. */
@@ -42,6 +61,7 @@ export function Empty({ size = "default", frame = "dashed", className, ...props 
   return (
     <EmptyContext.Provider value={{ size }}>
       <div
+        {...props}
         data-slot="empty"
         data-size={size}
         data-frame={size === "compact" ? "none" : frame}
@@ -49,7 +69,6 @@ export function Empty({ size = "default", frame = "dashed", className, ...props 
           "group/empty min-w-0",
           size === "compact"
             ? // Structural tracks let text shrink beside intrinsic-width media.
-              // eslint-disable-next-line ledger/no-arbitrary-value
               "grid items-center gap-x-150 gap-y-025 has-data-[slot=empty-icon]:grid-cols-[auto_minmax(0,1fr)]"
             : "flex flex-col items-center justify-center gap-300 px-300 py-600 text-center",
           size !== "compact" &&
@@ -57,29 +76,32 @@ export function Empty({ size = "default", frame = "dashed", className, ...props 
             "rounded-large border border-dashed border-default",
           className,
         )}
-        {...props}
       />
     </EmptyContext.Provider>
   );
 }
 
-/** The measure of the centred message, so a description wraps at a readable width. */
-const MESSAGE_MEASURE = 400;
+/** The measure of the centred message, `dimension.part.emptyMeasure`, so a description wraps at a
+    readable width. */
+const MESSAGE_MEASURE = token("dimension.part.emptyMeasure");
 
 export type EmptyHeaderProps = ComponentProps<"div">;
+/** The title and its description. EmptyMedia is its sibling, before it, never inside it. */
 export function EmptyHeader({ className, style, ...props }: EmptyHeaderProps) {
   const { size } = useEmpty();
   return (
-    <div
-      data-slot="empty-header"
-      className={cn(
-        "flex min-w-0 flex-col",
-        size === "compact" ? "gap-025" : "w-full items-center gap-100",
-        className,
-      )}
-      style={size === "compact" ? style : { maxWidth: MESSAGE_MEASURE, ...style }}
-      {...props}
-    />
+    <InHeader.Provider value>
+      <div
+        {...props}
+        data-slot="empty-header"
+        className={cn(
+          "flex min-w-0 flex-col",
+          size === "compact" ? "gap-025" : "w-full items-center gap-100",
+          className,
+        )}
+        style={size === "compact" ? style : { maxWidth: MESSAGE_MEASURE, ...style }}
+      />
+    </InHeader.Provider>
   );
 }
 
@@ -97,21 +119,29 @@ const emptyMediaVariants = cva(
 );
 
 export type EmptyMediaProps = ComponentProps<"div"> & VariantProps<typeof emptyMediaVariants>;
-/** The picture: an EmptyIllustration, an icon in the neutral circle (`variant="icon"`), an avatar, anything. */
+/** The picture: an EmptyIllustration, an icon in the neutral circle (`variant="icon"`), an avatar, anything. It is Empty's child, before EmptyHeader: inside the header it would sit `space.100` above the title instead of the Empty's gap, or share the message's column in compact. */
 export function EmptyMedia({ variant = "default", className, ...props }: EmptyMediaProps) {
+  useWarnOnce(
+    useContext(InHeader),
+    "Ledger: an EmptyMedia inside EmptyHeader sits space.100 above the title, not at the Empty's gap, and takes the message's column in compact. Make it the Empty's child, before EmptyHeader.",
+  );
   return (
     <div
+      {...props}
       data-slot="empty-icon"
       data-variant={variant}
       className={cn(emptyMediaVariants({ variant, className }))}
-      {...props}
     />
   );
 }
 
 export type EmptyTitleProps = useRender.ComponentProps<"h2">;
 /** What is missing, in the reader's words. In the default size it is a heading at the contextual level (an h2 outside every HeadingLevelProvider, an h3 in a titled Section), so a page whose content is an Empty keeps it in the outline; in compact, a rail's row, it is body text in a div. `render` sets another element outright: `render={<h1 />}` where the Empty is the page's only content, `render={<div />}` for none. */
-export function EmptyTitle({ render, ref, className, ...props }: EmptyTitleProps) {
+/* An unbroken code or hash breaks where it must, so it wraps inside the message's measure instead
+   of widening the centred block past both edges of its frame. */
+const WRAP = { overflowWrap: "anywhere" } as const;
+
+export function EmptyTitle({ render, ref, className, style, ...props }: EmptyTitleProps) {
   const { size } = useEmpty();
   const level = useHeadingLevel();
   return useRender({
@@ -121,8 +151,9 @@ export function EmptyTitle({ render, ref, className, ...props }: EmptyTitleProps
     state: { slot: "empty-title" },
     props: mergeProps<"h2">(props, {
       ...{ "data-slot": "empty-title" },
+      style: { ...WRAP, ...style },
       className: cn(
-        "text-default",
+        "max-w-full text-default",
         size === "compact" ? "font-body font-medium" : "font-heading-small text-balance",
         className,
       ),
@@ -131,17 +162,18 @@ export function EmptyTitle({ render, ref, className, ...props }: EmptyTitleProps
 }
 
 export type EmptyDescriptionProps = ComponentProps<"div">;
-export function EmptyDescription({ className, ...props }: EmptyDescriptionProps) {
+export function EmptyDescription({ className, style, ...props }: EmptyDescriptionProps) {
   const { size } = useEmpty();
   return (
     <div
+      {...props}
       data-slot="empty-description"
+      style={{ ...WRAP, ...style }}
       className={cn(
-        "text-subtle",
+        "max-w-full text-subtle",
         size === "compact" ? "font-body-small" : "font-body text-pretty",
         className,
       )}
-      {...props}
     />
   );
 }
@@ -152,6 +184,7 @@ export function EmptyContent({ className, ...props }: EmptyContentProps) {
   const { size } = useEmpty();
   return (
     <div
+      {...props}
       data-slot="empty-content"
       className={cn(
         "flex min-w-0 flex-wrap items-center",
@@ -160,7 +193,6 @@ export function EmptyContent({ className, ...props }: EmptyContentProps) {
           : "justify-center gap-100",
         className,
       )}
-      {...props}
     />
   );
 }
@@ -168,7 +200,8 @@ export function EmptyContent({ className, ...props }: EmptyContentProps) {
 /*
  * The kit's pictures, drawn from the surface tokens so they follow the mode. Each is a scene of
  * ghost records, the shape of what the region will hold, sometimes with a badge that says why it
- * is empty. A scene is 128px wide and 84px tall so every empty state sits at one height.
+ * is empty. A scene is 128px wide and 84px tall so every empty state sits at one height. Its front
+ * surface carries `data-part="front"` and paints over everything behind it.
  */
 
 export type EmptyIllustrationKind =
@@ -236,6 +269,7 @@ function Stack({ badge }: { badge?: Badge | undefined }) {
       />
       <div className={cn("col-start-1 row-start-2 row-end-4", SURFACE)} style={STACK_MIDDLE} />
       <div
+        data-part="front"
         className={cn(
           "col-start-1 row-start-3 flex w-full items-center gap-100 px-150 py-150 shadow-raised",
           SURFACE,
@@ -257,7 +291,8 @@ function Stack({ badge }: { badge?: Badge | undefined }) {
   );
 }
 
-/** A page of lines, another behind it. */
+/** A page of lines, another behind it. The back page is translated, which makes it a positioned
+    layer; the front page is `relative`, a positioned layer after it, so it paints on top. */
 function Document({ badge }: { badge?: Badge | undefined }) {
   return (
     <div className="grid items-center justify-items-center" style={SCENE}>
@@ -266,8 +301,9 @@ function Document({ badge }: { badge?: Badge | undefined }) {
         style={PAGE_BACK}
       />
       <div
+        data-part="front"
         className={cn(
-          "col-start-1 row-start-1 flex flex-col gap-100 px-150 py-150 shadow-raised",
+          "relative col-start-1 row-start-1 flex flex-col gap-100 px-150 py-150 shadow-raised",
           SURFACE,
         )}
         style={PAGE}
@@ -292,6 +328,7 @@ function Checklist() {
   return (
     <div className="grid items-center justify-items-center" style={SCENE}>
       <div
+        data-part="front"
         className={cn("flex flex-col justify-center gap-100 px-150 shadow-raised", SURFACE)}
         style={CARD}
       >
@@ -313,7 +350,10 @@ function People() {
       <div className="col-start-1 row-start-1 flex size-600 -translate-x-200 items-center justify-center rounded-full bg-neutral icon-subtle [&_svg]:size-icon-medium">
         <User />
       </div>
-      <div className="col-start-1 row-start-1 flex size-600 translate-x-200 items-center justify-center rounded-full border border-default bg-surface-raised icon-subtle shadow-raised [&_svg]:size-icon-medium">
+      <div
+        data-part="front"
+        className="col-start-1 row-start-1 flex size-600 translate-x-200 items-center justify-center rounded-full border border-default bg-surface-raised icon-subtle shadow-raised [&_svg]:size-icon-medium"
+      >
         <User />
       </div>
     </div>
@@ -324,7 +364,7 @@ function People() {
 function Tree() {
   return (
     <div className="flex flex-col items-center justify-center" style={SCENE}>
-      <div className={cn("shadow-raised", SURFACE)} style={NODE} />
+      <div data-part="front" className={cn("shadow-raised", SURFACE)} style={NODE} />
       <div className="h-100 border-l border-bold" />
       <div
         className="h-100 border-t border-l border-r border-bold rounded-t-small"
@@ -343,6 +383,7 @@ function Chart() {
   return (
     <div className="grid items-center justify-items-center" style={SCENE}>
       <div
+        data-part="front"
         className={cn("flex items-end gap-150 px-200 pt-200 pb-150 shadow-raised", SURFACE)}
         style={CARD}
       >
@@ -365,7 +406,11 @@ function Chart() {
 function Calendar() {
   return (
     <div className="grid items-center justify-items-center" style={SCENE}>
-      <div className={cn("flex flex-col overflow-hidden shadow-raised", SURFACE)} style={CARD}>
+      <div
+        data-part="front"
+        className={cn("flex flex-col overflow-hidden shadow-raised", SURFACE)}
+        style={CARD}
+      >
         <div className="flex h-200 shrink-0 items-center gap-050 bg-neutral px-100">
           <div className="size-075 rounded-full bg-neutral-bold" />
           <div className="size-075 rounded-full bg-neutral-bold" />
@@ -391,13 +436,17 @@ export type EmptyIllustrationProps = Omit<ComponentProps<"div">, "children"> & {
   kind?: EmptyIllustrationKind | undefined;
 };
 
-/** A picture for the empty state, on the surface tokens. Decorative: always hidden from assistive technology. */
+/** A picture for the empty state, on the surface tokens. Decorative: always hidden from assistive technology. It belongs to the default size; a compact Empty, a rail's row, takes an icon (`EmptyMedia variant="icon"`). */
 export function EmptyIllustration({
   kind = "records",
   className,
   style,
   ...props
 }: EmptyIllustrationProps) {
+  useWarnOnce(
+    useEmpty().size === "compact",
+    `Ledger: an EmptyIllustration (kind "${kind}") in a compact Empty is a 128×84 scene in a row drawn for an icon. Use EmptyMedia variant="icon" with a Lucide icon there.`,
+  );
   const badge = badges[kind];
   const scene =
     kind === "document" ? (
@@ -417,12 +466,12 @@ export function EmptyIllustration({
     );
   return (
     <div
+      {...props}
       data-slot="empty-illustration"
       data-kind={kind}
       aria-hidden
       className={cn("flex shrink-0 items-end justify-center select-none", className)}
       style={{ ...SCENE, ...style }}
-      {...props}
     >
       {scene}
     </div>

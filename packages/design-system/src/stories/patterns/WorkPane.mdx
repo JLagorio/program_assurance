@@ -1,0 +1,109 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { WorkPane, WorkPaneRow } from "../../patterns";
+import * as Stories from "./WorkPane.stories";
+
+<Meta of={Stories} />
+
+# WorkPane
+
+Master-detail, as a mail client draws it: a list of records that is the navigation, and the chosen record's detail beside it. Choosing a row never leaves the page, and the list holds still while the detail changes. Use it where the reader works through a long list one record at a time, deciding each as they go: tailoring a catalog's controls, setting its parameters. A list the reader scans, sorts and filters is a [DataTable](?path=/docs/patterns-data-table--docs); a preview of one row of a register is the register's panel.
+
+<Canvas of={Stories.WorkPaneStory} />
+
+## Layout
+
+The pane measures its own width, not the window's, so it behaves the same in a page, a dialog or a panel.
+
+| Pane width     | Layout                                                                                                                                                                              |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 768px and more | Side by side: the list column at `dimension.layout.list` (or `listWidth`), a hairline, the detail. Choosing a row changes the detail and focus stays on the row.                    |
+| Narrower       | A drill-in: the list alone; choosing a row puts its detail in the list's place with a Back button above it, and focus moves to the detail's first heading. Back returns to the row. |
+
+Side by side, the list sticks where the reader scrolls: under the shell's header on a page, at the top of its own scroller in a dialog's body or a panel, and never taller than that scroller, so its last rows stay reachable. The label and the toolbar stay put above the rows, and a focused row always scrolls in below them.
+
+## Anatomy
+
+| Part       | What it is                                                                                                                         |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Label      | `listLabel`: what the list is. It names the list's landmark and the list. Text, or a VisuallyHidden when a dialog's title says it. |
+| Toolbar    | `listToolbar`, under the label: the search, a filter, the count.                                                                   |
+| Rows       | `list`: WorkPane.Row, or Items that select in place, in one Item.Group.                                                            |
+| List empty | `listEmpty`: a compact Empty with the way out when the search leaves no rows.                                                      |
+| Detail     | `detail`: the chosen row's record, with its heading first.                                                                         |
+| Empty      | `empty`: an Empty beside the list while nothing is chosen; `detail` stays undefined until something is.                            |
+| Back       | Stacked only, above the detail: `backLabel`, "Back to list" by default from the locale.                                            |
+
+A row (WorkPane.Row) is a Dot for its state, the title, and under it the id and the `meta`, the state in words. Its name is the id and the title together ("AC-2, Account management"), because rows can share a title.
+
+## Drill-in
+
+<Canvas of={Stories.DrillIn} />
+
+Stacked, the pane shows one side at a time. The detail stays mounted while the list shows, and the list while the detail shows, so a half-written rationale and the list's search survive Back. When a primary outside the pane (a dialog's footer) submits the detail's form while the list shows, the detail comes back and focus stays put, so the form can take it to the field that needs fixing. A chosen row's `onSelect` may return a promise, for a guard that asks before it discards a draft: the detail opens once it settles, and not when it resolves `false`. Keep editing leaves the reader where they were, with focus back on the row they chose.
+
+<Canvas of={Stories.GuardedChoice} />
+
+The pane keeps which side shows. A caller that decides it, such as a dialog that opens on a chosen row, passes `defaultView="detail"`, or controls it with `view` and `onViewChange`: a chosen WorkPane.Row asks for `detail`, and Back for `list`. A change of `view` from outside moves focus the same way. When the pane narrows under the reader (a resize, a zoom), the side that holds focus stays on screen; when the detail goes while it holds focus, focus returns to the list.
+
+## Keyboard
+
+<Canvas of={Stories.OneTabStop} />
+
+The list is one Tab stop: the row last focused, else the open row, else the first. Up and Down move between rows, Home and End go to the first and the last, and typing the start of a name goes to the next row that has it. Enter or Space chooses. Tab leaves the list for the detail.
+
+## In a dialog
+
+<Canvas of={Stories.InADialog} />
+
+In a dialog the list sticks to the dialog's body. Keep the sticky part short, a search and a count, so a short window still shows rows under it; a filter with several choices belongs in the dialog's header or a Filters popover. The dialog's primary submits the detail's form through `form`, as any dialog form does; stacked, a submit from the list brings the detail back for its errors.
+
+## States
+
+<Canvas of={Stories.NothingChosenAndNoMatches} />
+
+| State          | What shows                                                              |
+| -------------- | ----------------------------------------------------------------------- |
+| Nothing chosen | `empty` beside the list; stacked, the list alone.                       |
+| Chosen         | The row's selected fill and `aria-current`, and its detail.             |
+| No rows        | `listEmpty` in the list's place, with the action that brings rows back. |
+
+## Content
+
+- **The label names the list** in a few words: "Catalog controls", "Parameters". The search, the filter and the count go in `listToolbar`.
+- **A row's meta says its state in words**: "In effective set", "No recorded value". The Dot repeats it as a colour; a `tone` other than `neutral` needs the `meta` that says it.
+- **The detail starts with a heading** that names the record, so the drill-in has somewhere to put focus.
+- **`backLabel` says where Back goes**: "Back to controls".
+
+## Accessibility
+
+- The list is a complementary landmark and an ordered list, both named by `listLabel` ("List" from the locale when there is none).
+- Each row is one button (or link), named by its id and title, described by its meta, with `aria-current="true"` on the open row.
+- The list costs one Tab stop, whatever its length; the arrow keys, Home, End and type-ahead move within it.
+- Stacked, choosing moves focus to the detail's first heading and Back returns it to the row that opened it, scrolled into view.
+- A focused row scrolls in below the label and the toolbar that stay put over the rows.
+
+## Props
+
+<ArgTypes of={WorkPane} />
+
+### WorkPane.Row
+
+<ArgTypes of={WorkPaneRow} />
+
+### Playground
+
+<Canvas of={Stories.Playground} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Item](?path=/docs/components-item--docs): the row and the list WorkPane is built on.
+- [RecordBrowser](?path=/docs/patterns-recordbrowser--docs): results and a preview in a chooser, with the same Back to results.
+- [DataTable](?path=/docs/patterns-data-table--docs): a list the reader scans, sorts and filters.
+- [Empty](?path=/docs/components-empty--docs): what nothing chosen and no rows show.
+
+## Don't
+
+<Canvas of={Stories.Dont} />

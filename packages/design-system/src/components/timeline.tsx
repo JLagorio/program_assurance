@@ -10,9 +10,16 @@ import {
   type ReactNode,
 } from "react";
 
+import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
-import { Scroller, ScrollerArrow, ScrollerViewport } from "./scroller";
+import { useLedgerLocale } from "../lib/locale";
+import { parseInstant, parseIsoDay } from "../lib/locale-format";
+import { headingTag, useHeadingLevel } from "../primitives/heading-level";
+import { ScrollerArrow, Scroller } from "./scroller";
+import { StripViewport } from "./stepper";
 import { Dot, toneClasses, type Tone } from "./badge";
+import { RelativeTime } from "./date-time";
+import { Truncate } from "./truncate";
 import { Eyebrow } from "./typography";
 
 /* Events in order along one rail: activity, history, an audit trail, a run
@@ -29,6 +36,8 @@ export type TimelineSize = "small" | "medium" | "large";
 export type TimelineTimePosition = "end" | "start" | "above" | "below";
 
 export type TimelineAlign = "center" | "start";
+
+export type TimelineItemWidth = "equal" | "rail";
 
 const columns = "auto auto minmax(0, 1fr)";
 
@@ -90,10 +99,12 @@ export type TimelineProps = Omit<ComponentProps<"ol">, "children" | "className">
   size?: TimelineSize | undefined;
   /** Where the time sits. Down the page: `end` of the title's line, the default; `above` the title as a dated line; `below` in the footer with the badges; `start` in a column before the rail. Across: `above` the marker, the default, or `below` it. */
   timePosition?: TimelineTimePosition | undefined;
-  /** Titles wrap onto more lines instead of truncating: a feed, where the sentence names a task or a file. Down the page only. */
+  /** Titles wrap onto more lines instead of truncating: a feed, where the sentence names a task or a file; across, a stage whose name is long. */
   wrap?: boolean | undefined;
   /** Across only. `center`, the default, puts the marker mid-column with the rail either side, for a line of releases; `start` puts it at the column's start with the text under it, for stages with a body. */
   align?: TimelineAlign | undefined;
+  /** Across only. `equal`, the default, gives every event an equal share of the list, which is `dimension.part.steps` (420px) wide at least; `rail` gives each event at least a rail's width (`dimension.layout.rail`), for stages whose title and date must stay readable, and the strip scrolls past that. */
+  itemWidth?: TimelineItemWidth | undefined;
   /** Timeline.Item rows, or Timeline.Group sections of them. */
   children: ReactNode;
   className?: string | undefined;
@@ -107,6 +118,7 @@ function TimelineRoot({
   timePosition,
   align = "center",
   wrap = false,
+  itemWidth = "equal",
   children,
   className,
   style,
@@ -119,15 +131,23 @@ function TimelineRoot({
       : "above"
     : (timePosition ?? "end");
   const items = Children.toArray(children);
+  const name = props["aria-label"] ?? label;
+  // Four stages need about `dimension.part.steps`, 420px; `rail` keeps a rail's width for each.
+  const minWidth =
+    itemWidth === "rail"
+      ? `calc(${items.length} * ${token("dimension.layout.rail")})`
+      : token("dimension.part.steps");
   const list = (
     <ol
       aria-label={label}
       {...props}
+      // A list with its markers removed keeps the list role in WebKit only when it says so.
+      role="list"
       data-slot="timeline"
       data-orientation={orientation}
       data-size={size}
       className={cn(horizontal ? "flex items-start" : "grid", className)}
-      style={{ ...(horizontal ? { minWidth: 420 } : { gridTemplateColumns: columns }), ...style }}
+      style={{ ...(horizontal ? { minWidth } : { gridTemplateColumns: columns }), ...style }}
     >
       {items.map((child, i) => (
         <GroupContext.Provider key={i} value={{ first: i === 0, last: i === items.length - 1 }}>
@@ -137,16 +157,13 @@ function TimelineRoot({
     </ol>
   );
   return (
-    <TimelineContext.Provider
-      value={{ orientation, size, timePosition: position, align, wrap: wrap && !horizontal }}
-    >
+    <TimelineContext.Provider value={{ orientation, size, timePosition: position, align, wrap }}>
       {horizontal ? (
-        // Four stages need about 420px; narrower than that the strip scrolls: arrows where a pointer
-        // can hover, a swipe on touch, and the viewport is a tab stop so the arrow keys scroll it.
+        // Four stages need about `dimension.part.steps`, 420px; narrower than that the strip
+        // scrolls: arrows where a pointer can hover, a swipe on touch, and the arrow keys once an
+        // event or the strip has focus.
         <Scroller orientation="horizontal" className="w-full">
-          <ScrollerViewport tabIndex={0} className="rounded-small focus-visible:outline-focused">
-            {list}
-          </ScrollerViewport>
+          <StripViewport name={name}>{list}</StripViewport>
           <ScrollerArrow edge="start" />
           <ScrollerArrow edge="end" />
         </Scroller>
@@ -158,7 +175,7 @@ function TimelineRoot({
 }
 
 export type TimelineGroupProps = Omit<ComponentProps<"li">, "children"> & {
-  /** The period or the kind: "This week", "August". An eyebrow that sticks to the top as the list scrolls. */
+  /** The period or the kind: "This week", "August". An eyebrow that sticks to the top as the list scrolls, and a heading at the contextual level: an h3 outside every HeadingLevelProvider. */
   label: ReactNode;
   /** How many events are under it. */
   count?: number | undefined;
@@ -170,13 +187,16 @@ export type TimelineGroupProps = Omit<ComponentProps<"li">, "children"> & {
 export function TimelineGroup({ label, count, children, className, ...props }: TimelineGroupProps) {
   const id = useId();
   const edge = useContext(GroupContext);
+  // The heading takes the level where the timeline sits: an h3 outside every provider.
+  const heading = headingTag(useHeadingLevel() ?? 3);
   return (
     <li
       {...props}
       data-slot="timeline-group"
       className={cn("col-span-full grid grid-cols-subgrid list-none", className)}
     >
-      <div className="sticky top-0 z-10 col-span-full grid grid-cols-subgrid bg-surface-current">
+      {/* Above the rows' marker column, which is raised over the rail, so markers pass under it. */}
+      <div className="sticky top-0 z-20 col-span-full grid grid-cols-subgrid bg-surface-current">
         <span />
         <span />
         <span
@@ -185,7 +205,8 @@ export function TimelineGroup({ label, count, children, className, ...props }: T
             edge && !edge.first ? "pt-150" : "pt-050",
           )}
         >
-          <Eyebrow as="h3" id={id}>
+          {/* Eyebrow types h2 to h4; a group deeper in the outline takes h5 or h6 the same way. */}
+          <Eyebrow as={heading as "h3"} id={id}>
             {label}
           </Eyebrow>
           {typeof count === "number" ? (
@@ -193,7 +214,7 @@ export function TimelineGroup({ label, count, children, className, ...props }: T
           ) : null}
         </span>
       </div>
-      <ol aria-labelledby={id} className="col-span-full grid grid-cols-subgrid">
+      <ol role="list" aria-labelledby={id} className="col-span-full grid grid-cols-subgrid">
         <GroupContext.Provider value={edge}>{children}</GroupContext.Provider>
       </ol>
     </li>
@@ -207,17 +228,17 @@ export type TimelineItemProps = Omit<ComponentProps<"li">, "title" | "children" 
   tone?: Tone | undefined;
   /** An icon in the marker, passed bare: a check for done, a cross for failed, a play for running. The marker becomes a disc in the tone with the icon on it. */
   icon?: ReactElement<{ className?: string | undefined }> | undefined;
-  /** What happened, one line. It truncates. On a row that opens, this is the link or button, stretched over the row. A Badge may sit inside it; a name may lead it. */
+  /** What happened, one line. It truncates, and shows whole on hover and on keyboard focus of the row while it is cut. On a row that opens, this is the link or button, stretched over the row. A Badge may sit inside it; a name may lead it. */
   title: ReactNode;
   /** Under the title, one line, subtle: who, and the kind. */
   meta?: ReactNode;
   /** Under the meta, `font.body.small`, wrapping: what the event amounts to, in a sentence. */
   description?: ReactNode;
-  /** When, as the reader would say it: "2h ago", "28 Aug". Where it sits is the list's `timePosition`. */
+  /** When, as the reader would say it: "2h ago", "28 Aug". Where it sits is the list's `timePosition`. A stamp longer than its place truncates. Left out beside `dateTime`, it is the relative words ("5 minutes ago", "yesterday") in the reader's locale, kept current. */
   time?: ReactNode;
-  /** The full stamp as the time's tooltip: "2026-09-02 14:10". */
+  /** The full stamp: "2026-09-02 14:10". A screen reader hears it after `time`, and it is the time's tooltip on hover. Left out beside an ISO `dateTime`, it is that moment in full in the reader's locale and time zone. */
   timeTitle?: string | undefined;
-  /** The machine-readable stamp, which makes the time a `<time>` element. */
+  /** The machine-readable stamp, an ISO day or instant, which makes the time a `<time>` element. */
   dateTime?: string | undefined;
   /** A link element (a router's Link) that becomes the title and stretches over the row. Leave it empty to use title; supplied children override the link text. */
   link?:
@@ -229,9 +250,11 @@ export type TimelineItemProps = Omit<ComponentProps<"li">, "title" | "children" 
     | undefined;
   /** Makes the title a button that stretches over the row. */
   onSelect?: (() => void) | undefined;
-  /** The event that is open beside the list. */
+  /** The event that is open beside the list: the selected fill, and `aria-current` on the row's link or button. */
   isActive?: boolean | undefined;
-  /** Unread or current: the title reads in weight 500. */
+  /** An event the reader has not seen: the title in weight 500, and "Unread" read before it. */
+  isUnread?: boolean | undefined;
+  /** The title in weight 500, for the current event, where its words already say why (a Current badge, "running"). An unread event is `isUnread`. */
   emphasis?: boolean | undefined;
   /** At the end of the title's line, beside the row's link or button: an unread Count, a chevron, a menu button. */
   trailing?: ReactNode;
@@ -256,6 +279,7 @@ export function TimelineItem({
   link,
   onSelect,
   isActive,
+  isUnread,
   emphasis,
   trailing,
   children,
@@ -265,18 +289,24 @@ export function TimelineItem({
 }: TimelineItemProps) {
   const { orientation, size, timePosition, align, wrap } = useContext(TimelineContext);
   const edge = useContext(GroupContext);
+  const { t, formatDate, formatDay, timeZone } = useLedgerLocale();
   const horizontal = orientation === "horizontal";
   const s = sizes[size];
   const generatedTitleId = useId();
   const titleId = link?.props.id ?? generatedTitleId;
   const clickable = Boolean(link || onSelect);
+  const strong = Boolean(emphasis || isUnread);
+  const [unreadBefore = "", unreadAfter = ""] = isUnread
+    ? t("timelineUnread").split("{title}")
+    : [];
 
   const mark =
     marker ??
     (icon ? (
       <span
         className={cn(
-          "flex items-center justify-center rounded-full",
+          // The transparent edge is drawn in forced colours, which drop the fill, so the disc stays.
+          "flex items-center justify-center rounded-full border border-transparent",
           s.disc,
           tone === "neutral" ? "bg-neutral text-subtle" : toneClasses[tone].bold,
         )}
@@ -296,16 +326,18 @@ export function TimelineItem({
       </span>
     ));
 
+  const titleText = cn("font-body text-default", strong && "font-medium");
   const text = (
-    <span
-      className={cn(
-        "block font-body text-default",
-        wrap ? "min-w-0" : "truncate",
-        emphasis && "font-medium",
+    <>
+      {unreadBefore ? <span className="sr-only">{unreadBefore}</span> : null}
+      {wrap ? (
+        <span className={cn("block min-w-0 break-words", titleText)}>{title}</span>
+      ) : (
+        // Cut across only, so a link inside the title keeps its focus ring above and below.
+        <Truncate className={titleText}>{title}</Truncate>
       )}
-    >
-      {title}
-    </span>
+      {unreadAfter ? <span className="sr-only">{unreadAfter}</span> : null}
+    </>
   );
   const titleClass = cn(
     "block min-w-0 outline-none",
@@ -315,11 +347,12 @@ export function TimelineItem({
       "static after:absolute after:inset-0 after:rounded-medium focus-visible:after:outline-focused",
   );
   const centred = horizontal && align === "center";
+  const current = isActive ? ("true" as const) : undefined;
   const titleLink = useRender({
     defaultTagName: "a",
     enabled: Boolean(link),
     render: link,
-    props: { id: titleId, className: titleClass, children: text },
+    props: { id: titleId, className: titleClass, "aria-current": current, children: text },
   });
   const titleEl = link ? (
     titleLink
@@ -327,8 +360,9 @@ export function TimelineItem({
     <button
       type="button"
       id={titleId}
+      aria-current={current}
       onClick={onSelect}
-      className={cn(titleClass, "cursor-pointer", centred ? "text-center" : "text-left")}
+      className={cn(titleClass, "cursor-pointer", centred ? "text-center" : "text-start")}
     >
       {text}
     </button>
@@ -338,17 +372,59 @@ export function TimelineItem({
     </span>
   );
 
-  const stampClass = "shrink-0 font-body-xsmall text-subtle tabular-nums";
-  const stamp = time ? (
-    dateTime ? (
-      <time dateTime={dateTime} title={timeTitle} className={stampClass}>
-        {time}
-      </time>
-    ) : (
-      <span title={timeTitle} className={stampClass}>
-        {time}
-      </span>
-    )
+  // The stamp: the caller's words, or the relative words for `dateTime`, and the full stamp, the
+  // caller's or `dateTime` in full. It truncates where its place is too narrow, with the full
+  // stamp as the reveal, and a screen reader hears the full stamp after the words.
+  const day = dateTime ? parseIsoDay(dateTime) : null;
+  const instant = dateTime && !day ? parseInstant(dateTime, timeZone) : null;
+  const full =
+    timeTitle ??
+    (day
+      ? formatDay(day, { dateStyle: "medium" })
+      : instant !== null
+        ? formatDate(instant, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            timeZoneName: "short",
+          })
+        : undefined);
+  const relative = time === undefined && (day || instant !== null);
+  const words = relative ? (
+    <RelativeTime value={dateTime} isTooltipDisabled focusable={false} />
+  ) : (
+    time
+  );
+  const heard = full && full !== words ? full : undefined;
+  const stampContent = (
+    <>
+      {words}
+      {/* Pinned to the row's corner: the stamp clips across, and a hidden label left where the
+          text runs on would sit past the end of a cut stamp. */}
+      {heard ? <span className="sr-only start-0 top-0">{`, ${heard}`}</span> : null}
+    </>
+  );
+  const stampClass = "max-w-full font-body-xsmall text-subtle tabular-nums";
+  const stamp = words ? (
+    <Truncate
+      {...(heard ? { title: heard } : {})}
+      // RelativeTime is a <time> of its own.
+      render={dateTime && !relative ? <time dateTime={dateTime} /> : <span />}
+      className={stampClass}
+      style={
+        !horizontal && timePosition === "end"
+          ? // Beside the title it takes at most half the line, so the title keeps the rest.
+            { flexShrink: 0, maxWidth: "50%" }
+          : !horizontal && timePosition === "start"
+            ? // In the column before the rail a stamp is at most 160px, so the rows keep their body.
+              { maxWidth: `calc(2 * ${token("space.1000")})` }
+            : undefined
+      }
+    >
+      {stampContent}
+    </Truncate>
   ) : null;
 
   const interactiveClass = cn(
@@ -360,7 +436,7 @@ export function TimelineItem({
     <span className="block max-w-full truncate font-body-xsmall text-subtle">{meta}</span>
   ) : null;
   const descriptionEl = description ? (
-    <span className="block font-body-small text-subtle">{description}</span>
+    <span className="block max-w-full break-words font-body-small text-subtle">{description}</span>
   ) : null;
   const bodyEl = children ? (
     <span className="relative block max-w-full pt-025 font-body text-default">{children}</span>
@@ -378,6 +454,10 @@ export function TimelineItem({
         {footer}
       </span>
     ) : null;
+  // A row that does not open carries the current state itself.
+  const rowState = isActive
+    ? { ...(clickable ? {} : { "aria-current": current }), "data-active": "" }
+    : {};
 
   if (horizontal) {
     const rail = (edge: "start" | "end") => (
@@ -390,13 +470,17 @@ export function TimelineItem({
       />
     );
     const markerEl = (
-      <span className={cn("relative z-10 flex shrink-0 items-center justify-center", s.col, s.box)}>
+      <span
+        data-slot="timeline-marker"
+        className={cn("relative z-10 flex shrink-0 items-center justify-center", s.col, s.box)}
+      >
         {mark}
       </span>
     );
     return (
       <li
         {...props}
+        {...rowState}
         data-slot="timeline-item"
         className={cn("group/event flex min-w-0 flex-1 list-none", className)}
       >
@@ -404,22 +488,33 @@ export function TimelineItem({
           className={cn(
             interactiveClass,
             "flex w-full min-w-0 flex-col",
-            centred ? "items-center text-center" : "items-start text-left",
+            centred ? "items-center text-center" : "items-start text-start",
             s.pad,
           )}
         >
           {timePosition === "above" ? (
-            <span className={cn("flex h-200 items-end", !centred && "ps-050")}>{stamp}</span>
+            <span className={cn("flex h-200 max-w-full items-end", !centred && "ps-050")}>
+              {stamp}
+            </span>
           ) : null}
           <span className={cn("flex w-full items-center", timePosition === "above" && "pt-050")}>
-            {centred ? rail("start") : null}
+            {centred ? (
+              rail("start")
+            ) : (
+              // At the start, the marker and the text keep `space.050` from the column's edge, so
+              // the focus ring drawn inside the strip passes beside them; the rail runs on to it.
+              <span
+                aria-hidden
+                className="h-0 w-050 shrink-0 border-t border-default group-first/event:invisible"
+              />
+            )}
             {markerEl}
             {rail("end")}
           </span>
           <span
             className={cn(
               "flex min-w-0 max-w-full flex-col gap-025 pt-075",
-              centred ? "items-center px-050" : "items-start pe-150",
+              centred ? "items-center px-050" : "items-start ps-050 pe-150",
             )}
           >
             {timePosition === "below" ? stamp : null}
@@ -443,6 +538,7 @@ export function TimelineItem({
   return (
     <li
       {...props}
+      {...rowState}
       data-slot="timeline-item"
       className={cn(
         interactiveClass,
@@ -451,7 +547,7 @@ export function TimelineItem({
       )}
     >
       <span className={cn("flex items-start justify-end", s.pad, start && "pe-150")}>
-        {start ? <span className={cn("flex items-center", s.line)}>{stamp}</span> : null}
+        {start ? <span className={cn("flex min-w-0 items-center", s.line)}>{stamp}</span> : null}
       </span>
       <span className={cn("relative z-10 flex flex-col items-center", s.col)}>
         <span
@@ -462,7 +558,12 @@ export function TimelineItem({
             hideTop && "group-first/event:invisible",
           )}
         />
-        <span className={cn("flex items-center justify-center", s.col, s.box)}>{mark}</span>
+        <span
+          data-slot="timeline-marker"
+          className={cn("flex items-center justify-center", s.col, s.box)}
+        >
+          {mark}
+        </span>
         <span
           aria-hidden
           className={cn(
@@ -472,7 +573,9 @@ export function TimelineItem({
         />
       </span>
       <span className={cn("flex min-w-0 flex-col gap-025 ps-100", s.pad)}>
-        {timePosition === "above" ? <span className="flex items-center">{stamp}</span> : null}
+        {timePosition === "above" ? (
+          <span className="flex min-w-0 items-center">{stamp}</span>
+        ) : null}
         <span className={cn("flex items-center", s.line)}>
           <span className="flex min-w-0 flex-1 items-baseline justify-between gap-150">
             {titleEl}

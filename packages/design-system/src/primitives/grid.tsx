@@ -1,6 +1,7 @@
 import type { ComponentPropsWithoutRef, CSSProperties, ElementType, ReactNode, Ref } from "react";
 
 import { cn } from "../lib/cn";
+import { elementClasses, shrinkClasses, type Shrink } from "./_elements";
 import { spaceClasses, type LayoutElement, type SpaceToken } from "./tokens";
 
 /* Grid: templateColumns, templateRows and templateAreas as strings, gap, rowGap, columnGap as
@@ -36,13 +37,15 @@ export type GridProps = {
   alignItems?: keyof typeof alignItems | undefined;
   justifyContent?: keyof typeof justifyContent | undefined;
   autoFlow?: keyof typeof autoFlow | undefined;
+  /** As a flex item: `none` keeps its size when the row runs out of room, for a fixed label such as an id; the default lets it shrink. */
+  shrink?: Shrink | undefined;
   className?: string | undefined;
   /** Runtime values only: a template computed at render. A design value is a token or a class. */
   style?: CSSProperties | undefined;
 } & Omit<ComponentPropsWithoutRef<"div">, "children" | "className" | "style">;
 
 /** CSS grid with token gaps. */
-export function Grid({ as = "div", templateColumns, templateRows, templateAreas, gap, rowGap, columnGap, alignItems: a, justifyContent: j, autoFlow: f, className, style, children, ...rest }: GridProps) {
+export function Grid({ as = "div", templateColumns, templateRows, templateAreas, gap, rowGap, columnGap, alignItems: a, justifyContent: j, autoFlow: f, shrink, className, style, children, ...rest }: GridProps) {
   const Tag = as as ElementType;
   const template: CSSProperties & Record<`--ds-grid-${keyof typeof responsiveCols}`, string> = {} as never;
   const responsive: string[] = [];
@@ -68,6 +71,8 @@ export function Grid({ as = "div", templateColumns, templateRows, templateAreas,
         j && justifyContent[j],
         f && autoFlow[f],
         responsive,
+        shrink && shrinkClasses[shrink],
+        elementClasses(as),
         className,
       )}
       style={{ ...template, ...style }}

@@ -7,7 +7,7 @@ import * as Stories from "./CodeBlock.stories";
 
 # CodeBlock
 
-Source shown as source: a configuration excerpt, a serialised record, a log, a command the reader will paste. One row per line in the code face, a line-number gutter that stays put when the block scrolls sideways, a cap on the height so a long document scrolls inside the block and not the page, and a Copy when the reader will take the text away. The caller owns highlighting and passes rendered lines.
+Source shown as source: a configuration excerpt, a serialised record, a log, a command the reader will paste. One row per line in the code face, a line-number gutter that stays put when the block scrolls sideways, a cap on the height so a long document scrolls inside the block and not the page, and a Copy when the reader will take the text away. The caller owns highlighting and passes rendered lines, or passes the text as `code` and the block splits it.
 
 It is not a field: a value the reader edits is a [Textarea](?path=/docs/components-textarea--docs). It is not prose: a paragraph is [Text](?path=/docs/primitives-text--docs). A single identifier in a sentence is an [Id](?path=/docs/components-id--docs).
 
@@ -15,34 +15,38 @@ It is not a field: a value the reader edits is a [Textarea](?path=/docs/componen
 
 ## Anatomy
 
-| Part   | What it is                                                                                                                                                                 |
-| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Frame  | A box in `elevation.surface.sunken` with a 1px `color.border` and `radius.medium`. It scrolls both ways inside itself; it is a tab stop so the keyboard can scroll it.        |
-| Gutter | The line numbers, `color.text.subtlest`, tabular, right-aligned, on a column that sticks to the start edge when the lines scroll sideways, with a 1px rule at its end.        |
-| Line   | One row per entry of `lines`, `space.150` from the gutter, in `font.code`. A string, or the caller's spans.                                                                  |
+| Part   | What it is                                                                                                                                                                                                                                            |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frame  | A box in `elevation.surface.sunken` with a 1px `color.border` and `radius.medium`. It scrolls both ways inside itself; while it has more than it shows, it is a tab stop so the keyboard can scroll it.                                               |
+| Gutter | The line numbers, `color.text.subtlest`, tabular, right-aligned, on a column that sticks to the start edge when the lines scroll sideways, with a 1px rule at its end. `showLineNumbers={false}` leaves it out.                                       |
+| Line   | One row per entry of `lines`, or per line of `code`, `space.150` from the gutter, in `font.code`. A string, or the caller's spans.                                                                                                                    |
 | Copy   | With `copy`, the kit's [CopyButton](?path=/docs/components-copybutton--docs), icon-only and subtle, at the top end on the block's own surface. The frame is at least as tall as it, and the lines keep room at their end to scroll out from under it. |
 
 ## Variants
 
-One. What changes is what the lines are: a string per line, or nodes the caller has coloured, because a kit tokenizer for every format the product meets is not the kit's job. The export page splits its JSON and colours the keys; a log is strings.
+One. What changes is what the lines are: a string per line, or nodes the caller has coloured, because a kit tokenizer for every format the product meets is not the kit's job. A log or a serialised value is a string, passed as `code`; a highlighted file is its lines, each coloured.
 
 <Canvas of={Stories.Highlighted} />
+
+A value that is not a file (a record's JSON, a profile's tailoring rules) takes `code` and `showLineNumbers={false}`: a line number points at nothing in it. With `wrap`, its long values fold.
+
+<Canvas of={Stories.Value} />
 
 Not built, and why: a highlighted line (the one a validation error points at, the changed lines of a revision), because no screen asks for it yet; a language picker or a tokenizer. Two versions of a text compared line by line are a [Diff](?path=/docs/components-diff--docs).
 
 ## Sizes
 
-One face, `font.code`, at the body size. The block is as wide as its container and as tall as its lines up to `maxHeight`, 560px by default; a short excerpt never scrolls. The gutter is as wide as the last line number needs, three digits at least.
+One face, `font.code`, at the body size. The block is as wide as its container and as tall as its lines up to `maxHeight`, 560px by default (`dimension.part.codeBlock`); a short excerpt never scrolls. The gutter is as wide as the last line number needs, three digits at least.
 
 ## States
 
-| State     | Look                                                                                                         |
-| --------- | ------------------------------------------------------------------------------------------------------------ |
-| Rest      | The lines, the gutter, the frame.                                                                            |
-| Focus     | The kit's focus outline on the frame, on keyboard focus, so a keyboard reader can scroll it.                 |
-| Scrolled  | Sideways, the gutter stays and the lines pass under it. Down, the gutter goes with the lines.                |
-| Copied    | The Copy's icon is a check in `color.icon.success` and its tooltip and a polite status say Copied, for a moment; its name stays Copy. |
-| Not copied | When the browser refuses the write, the icon is an alert in `color.icon.danger` and the tooltip and status say Could not copy. |
+| State      | Look                                                                                                                                  |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Rest       | The lines, the gutter, the frame.                                                                                                     |
+| Focus      | The kit's focus outline on the frame, on keyboard focus, while it scrolls, so a keyboard reader can scroll it.                        |
+| Scrolled   | Sideways, the gutter stays and the lines pass under it. Down, the gutter goes with the lines.                                         |
+| Copied     | The Copy's icon is a check in `color.icon.success` and its tooltip and a polite status say Copied, for a moment; its name stays Copy. |
+| Not copied | When the browser refuses the write, the icon is an alert in `color.icon.danger` and the tooltip and status say Could not copy.        |
 
 <Canvas of={Stories.CodeBlockMatrix} />
 
@@ -50,7 +54,9 @@ One face, `font.code`, at the body size. The block is as wide as its container a
 
 ## Modifiers
 
+- **`lines`** or **`code`**: the lines one entry each, or the text as one string split at its line breaks.
 - **`start`**: the number of the first line, for an excerpt of a longer file.
+- **`showLineNumbers`**: on by default; off for a value that is not a file.
 - **`maxHeight`**: pixels before the block scrolls inside itself.
 - **`wrap`**: long lines fold at the block's edge. Off by default so code keeps its columns; on for a log or a value with no columns to keep.
 - **`copy`**: the text a Copy puts on the clipboard, usually the lines joined. Unsaid, there is no button.
@@ -68,19 +74,23 @@ One face, `font.code`, at the body size. The block is as wide as its container a
 - **A Copy where the reader will paste:** a command, a configuration, a document. Not on a log they read.
 - **Highlighting colours the grammar, in the kit's text colours:** keys in `color.text.brand`, strings subtle, comments subtlest. Never a rainbow.
 
+## Long content
+
+Code keeps its columns: a long line scrolls sideways inside the block, never the page, and the gutter stays. A log, a value or a line with no columns to keep takes `wrap`, which folds long lines at the block's edge and breaks an unbroken token (a hash, a URL) where it must. A long document scrolls down inside the block past `maxHeight`. A CodeBlock never truncates: the reader must be able to read and copy all of it.
+
 ## Style
 
-| Element | Token                                                                                                   |
-| ------- | ------------------------------------------------------------------------------------------------------- |
-| Frame   | `elevation.surface.sunken` · 1px `color.border` · `radius.medium` · `space.050` block inside              |
-| Gutter  | `font.code` · `color.text.subtlest` · tabular · `space.100` inline · 1px `color.border` at its end        |
-| Line    | `font.code` · `color.text` · `space.150` from the gutter                                                  |
+| Element | Token                                                                                                                                                                                                                                 |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frame   | `elevation.surface.sunken` · 1px `color.border` · `radius.medium` · `space.050` block inside                                                                                                                                          |
+| Gutter  | `font.code` · `color.text.subtlest` · tabular · `space.100` inline · 1px `color.border` at its end                                                                                                                                    |
+| Line    | `font.code` · `color.text` · `space.150` from the gutter                                                                                                                                                                              |
 | Copy    | CopyButton, icon-only, `subtle` `small`, at `space.050` from the top and the end on `elevation.surface.sunken` · the frame at least `dimension.control.large` tall · `space.500` at the lines' end · `color.icon.success` when copied |
-| Focus   | The kit's focus outline, `color.border.focused`                                                           |
+| Focus   | The kit's focus outline, `color.border.focused`                                                                                                                                                                                       |
 
 ## Accessibility
 
-- **The frame is a group named by `label`** and a tab stop, so a keyboard reader can reach a block that scrolls and move it with the arrows. A block with a bare "Code" name is a block the screen reader cannot tell from the next one.
+- **The frame is a group named by `label`**, and a tab stop while it has more than it shows, so a keyboard reader can reach a block that scrolls and move it with the arrows; a block that shows everything takes no stop. A block with a bare "Code" name is a block the screen reader cannot tell from the next one.
 - **Line numbers are not selectable,** so a copied selection is the code alone.
 - **The Copy is a CopyButton:** named Copy, with the kit's tooltip, and a status region says Copied, or Could not copy when the browser refuses.
 - **The gutter is hidden from assistive technology,** so browse mode reads the code, not a line number before every line.
@@ -90,6 +100,8 @@ One face, `font.code`, at the body size. The block is as wide as its container a
 ## Props
 
 <ArgTypes of={CodeBlock} />
+
+Native div props and a ref reach the outer box, which names itself last with `data-slot="code-block"`.
 
 ### Playground
 

@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fitColumns, PIN_SHARE, yieldPins } from "../src/patterns/data-table/responsive.ts";
+import {
+  fitColumns,
+  fitFrame,
+  PIN_SHARE,
+  shareSlack,
+  yieldPins,
+} from "../src/patterns/data-table/responsive.ts";
 
 /** The released ids, sorted, so an assertion reads as a list. */
 const released = (...args) => [...yieldPins(...args)].sort();
@@ -120,4 +126,65 @@ test("the pins return as the frame widens, and the reader's pins are never chang
   // Narrowing again gives the same answer: the result depends on the width alone.
   assert.deepEqual(released(columns, 280, 32), sweep[0]);
   assert.deepEqual(columns, before);
+});
+
+test("priority folds monotonically: a narrower lower-priority column never outlasts a wider higher one", () => {
+  // /programs at 390: the name, then Code (130, rank 11), Status (130, rank 12), Systems (100, rank 13).
+  const columns = [
+    { id: "name", width: 180, priority: 0 },
+    { id: "code", width: 130 },
+    { id: "status", width: 130 },
+    { id: "systems", width: 100 },
+    { id: "actions", width: 32, action: true },
+  ];
+  const layout = fitColumns(columns, 390, 0);
+  assert.equal(layout.collapsed, true);
+  // 390 - 32 disclosure = 358 budget; 32 actions + 180 name = 212; Code (130) fits (342); Status
+  // (130) does not, so it and Systems fold even though Systems (100) would still fit.
+  assert.deepEqual([...layout.ids].sort(), ["actions", "code", "name"]);
+  assert.ok(!layout.ids.has("systems"), "a lower-priority column stayed after a higher one folded");
+});
+
+test("the spare width goes to the unsized columns, and the identity keeps its width", () => {
+  // /catalog CCIs at 1440: CCI is 180 by the author, Definition is unsized (least 150).
+  const columns = [
+    { id: "cci", width: 180, priority: 0 },
+    { id: "definition", width: 150, flexible: true },
+    { id: "type", width: 120 },
+    { id: "actions", width: 32, action: true },
+  ];
+  const fit = fitFrame(columns, 1440, 0);
+  assert.equal(fit.layout.collapsed, false);
+  assert.deepEqual(fit.layout.flexible, ["definition"]);
+  assert.equal(fit.layout.widths.get("cci"), 180);
+  // With one flexible column the renderer draws it without a width, so it takes the rest.
+  const shares = shareSlack(fit.layout, 1440, 0);
+  assert.equal(shares.get("definition"), 1440 - 180 - 120 - 32);
+  // The key does not move with the frame while nothing folds, so a resize draws no rows.
+  assert.equal(fitFrame(columns, 1300, 0).key, fit.key);
+});
+
+test("several unsized columns share the slack in proportion to their least widths", () => {
+  const columns = [
+    { id: "code", width: 120, priority: 0 },
+    { id: "statement", width: 300, flexible: true },
+    { id: "rationale", width: 150, flexible: true },
+  ];
+  const fit = fitFrame(columns, 1020, 32);
+  assert.deepEqual(fit.layout.flexible, ["statement", "rationale"]);
+  const shares = shareSlack(fit.layout, 1020, 32);
+  // 1020 - 32 leading - 120 code = 868 for 450 of least width: statement 579, rationale 289.
+  assert.equal(shares.get("statement"), Math.floor(300 * (868 / 450)));
+  assert.equal(shares.get("rationale"), Math.floor(150 * (868 / 450)));
+  assert.ok(shares.get("statement") >= 300 && shares.get("rationale") >= 150);
+});
+
+test("with every column sized, the identity takes the slack as before", () => {
+  const columns = [
+    { id: "name", width: 200, priority: 0 },
+    { id: "status", width: 120 },
+  ];
+  const fit = fitFrame(columns, 800, 0);
+  assert.deepEqual(fit.layout.flexible, ["name"]);
+  assert.equal(fit.layout.widths.get("name"), 680);
 });

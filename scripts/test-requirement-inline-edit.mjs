@@ -54,7 +54,9 @@ async function waitEdit(field, next, edits) {
   return rows[0];
 }
 async function editText(label, next, multiline = false) {
-  await page.getByRole("button", { name: new RegExp(`^${label}:`) }).click();
+  // A one-line value is one button named after it; a multiline value has its own Edit button.
+  if (multiline) await page.getByRole("button", { name: `Edit ${label}`, exact: true }).click();
+  else await page.getByRole("button", { name: new RegExp(`^${label}:`) }).click();
   const field = page.getByRole("textbox", { name: label, exact: true });
   await field.fill(next);
   await field.press(multiline ? "Control+Enter" : "Enter");
@@ -158,7 +160,7 @@ try {
   await expect(
     page.getByRole("group", { name: "Requirement details", exact: true }),
   ).toHaveAttribute("aria-busy", "true");
-  await page.getByRole("button", { name: "Close details", exact: true }).click();
+  await page.getByRole("button", { name: /^Close (details|.+ preview)$/ }).click();
   await expect(panel).toBeVisible();
   assert.equal((await records())[0].title, original.title);
   releaseSave();
@@ -208,9 +210,8 @@ try {
   await editText("Rationale", "The boundary changed after review.", true);
   await waitEdit("rationale", "The boundary changed after review.", 5);
   await page.reload();
-  await page
-    .getByRole("button", { name: /^Rationale: The boundary changed after review\./ })
-    .waitFor();
+  await page.getByText("The boundary changed after review.", { exact: true }).waitFor();
+  await page.getByRole("button", { name: "Edit Rationale", exact: true }).waitFor();
 
   await page.route(rpc, async (route) => {
     const response = await route.fetch();
@@ -222,13 +223,18 @@ try {
     });
   });
   await editText("Acceptance criteria", "Every updated boundary case has a recorded result.", true);
-  await page.getByRole("button", { name: "Retry change", exact: true }).waitFor();
-  assert.equal((await history()).length, initialEvents + 6);
   await page
-    .getByText("Every updated boundary case has a recorded result.", { exact: true })
+    .getByRole("button", { name: "Try again to save Acceptance criteria", exact: true })
+    .waitFor();
+  assert.equal((await history()).length, initialEvents + 6);
+  // A refused save shows the saved value again and keeps the draft behind Try again and Discard.
+  await page
+    .getByRole("button", { name: "Discard the change to Acceptance criteria", exact: true })
     .waitFor();
   await page.unroute(rpc);
-  await page.getByRole("button", { name: "Retry change", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Try again to save Acceptance criteria", exact: true })
+    .click();
   await waitEdit("acceptance_criteria", "Every updated boundary case has a recorded result.", 6);
 
   const stale = await context.newPage();
@@ -242,11 +248,12 @@ try {
     .getByRole("textbox", { name: "Title", exact: true })
     .fill("Stale unsaved boundary title");
   await stale.getByRole("textbox", { name: "Title", exact: true }).press("Enter");
-  await stale.getByRole("button", { name: "Retry change", exact: true }).waitFor();
-  await stale.getByText("Stale unsaved boundary title", { exact: true }).waitFor();
+  await stale.getByRole("button", { name: "Try again to save Title", exact: true }).waitFor();
+  // The refused draft waits behind Try again and Discard; the row shows the saved title again.
+  await stale.getByRole("button", { name: "Discard the change to Title", exact: true }).waitFor();
   assert.equal((await history()).length, initialEvents + 7);
   assert.equal((await records())[0].title, "Current boundary requirement");
-  await stale.getByRole("button", { name: "Discard change", exact: true }).click();
+  await stale.getByRole("button", { name: "Discard the change to Title", exact: true }).click();
   await stale.reload();
   await stale.getByRole("button", { name: /^Title: Current boundary requirement/ }).waitFor();
   await stale.close();

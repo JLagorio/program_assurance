@@ -6,42 +6,60 @@ import * as Stories from "./Resizable.stories";
 
 # Resizable
 
-User-sized panes following [shadcn’s Resizable source](https://ui.shadcn.com/docs/components/base/resizable), built on react-resizable-panels. A plain dividing rule is a Separator.
+User-sized panes following [shadcn’s Resizable source](https://ui.shadcn.com/docs/components/base/resizable), built on react-resizable-panels. A plain dividing rule is a Separator; the application shell's side nav and panel have their own splitters.
 
 ## Anatomy
 
 ```tsx
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@ledger/design-system";
+
 <ResizablePanelGroup>
   <ResizablePanel defaultSize="30%" minSize="20%">
     List
   </ResizablePanel>
   <ResizableHandle aria-label="Resize the list" withHandle />
   <ResizablePanel>Detail</ResizablePanel>
-</ResizablePanelGroup>
+</ResizablePanelGroup>;
 ```
 
-Give the group a sized parent. Panels clip their contents; put ScrollArea inside a scrolling pane. `withHandle` adds a visible grip.
+Give the group a sized parent. Panels clip their contents; put ScrollArea inside a scrolling pane. `withHandle` adds a visible grip. Sizes are strings for percentages (`"30%"`) and numbers for pixels.
 
 <Canvas of={Stories.Panes} />
 
 ## Variants and states
 
-`orientation="vertical"` stacks panes. Native panel props include minimum/maximum sizes, collapse behavior and resize callbacks. The library owns layout, pointer resizing and keyboard behavior.
+`orientation="vertical"` stacks panes. Native panel props include minimum and maximum sizes, collapse behavior and resize callbacks. The library owns layout, pointer resizing and keyboard behavior.
 
 <Canvas of={Stories.Vertical} />
 <Canvas of={Stories.Collapsible} />
 
-Persist layouts where the composition needs it. Use the upstream `useDefaultLayout` hook, stable group/panel IDs and the hook’s `defaultLayout`/`onLayoutChanged` pair. Preserve an existing ID to read its saved layouts. Supply server-safe storage when rendering the hook on the server; the story demonstrates this explicitly.
+## Without dragging
+
+A split that only a drag can change fails a reader who cannot drag (WCAG 2.5.7). The keyboard has the arrows, Home, End and Enter. Give a pointer a way that needs no drag as well: a button that folds and unfolds the pane through its `panelRef`'s `collapse()` and `expand()`, or buttons for the sizes the task needs. Every product split needs one.
+
+<Canvas of={Stories.WithoutDragging} />
+
+## Persisting and driving a split
+
+Persist a layout with `useResizableLayout` (the upstream `useDefaultLayout`) from the package root: give the group a stable `id` and the panels stable `id`s, and pass the hook's `defaultLayout` and `onLayoutChanged` to the group. Keep an existing id to read its saved layout. Supply server-safe `storage` when the hook renders on the server; the story does. Drive a split with the group's `groupRef` (`ResizablePanelGroupHandle`) and a panel's `panelRef` (`ResizablePanelHandle`); `ResizableLayout` and `ResizableLayoutStorage` type what the hook saves. Nothing is imported from react-resizable-panels directly.
 
 <Canvas of={Stories.Persisted} />
 
+## Narrow containers
+
+Panels keep their minimum sizes, so a group needs the width of its minimums; below that it overflows its parent. In a narrow container (a phone, a narrow panel) do not split side by side: stack the panes with `orientation="vertical"`, or show one pane at a time and let the reader move between them. Sizes in percentages follow the container; pixel minimums do not.
+
+## Right to left
+
+In a right-to-left page the first panel is drawn on the right, and the arrow keys move the handle the way they point: ArrowLeft moves it left. Set the direction before the group mounts; a group whose direction changes while mounted keeps the order it measured, so give it a `key` that changes with the direction.
+
+<Canvas of={Stories.RightToLeft} />
+
 ## Accessibility
 
-The handle is a focusable separator with the orientation of the rule: a horizontal group has a vertical separator. Arrow keys resize; Home/End reach bounds; Enter toggles a collapsible panel. Name handles with `aria-label`, especially when several splits are present. Group and Panel expose native `elementRef`, `groupRef` and `panelRef` instead of translating them into a generic ref.
+The handle is a focusable separator with the orientation of the rule: a side-by-side group has a vertical separator. Arrow keys resize, Home and End reach the bounds, Enter toggles a collapsible panel and F6 moves between handles. Name each handle with `aria-label` ("Resize the list"), especially when several splits are present; the default is "Resize". On a touch screen the handle takes a 24px hit area. Group and Panel expose native `elementRef`, `groupRef` and `panelRef` instead of translating them into a generic ref.
 
 ## Props
-
-Replace `Resizable` with `ResizablePanelGroup`, `.Panel` with `ResizablePanel`, and `.Handle` with `ResizableHandle`. Replace handle `label` with `aria-label`; move `persist` into the native hook at the caller. **Numeric sizes now mean pixels.** Change old percentage numbers such as `minSize={20}` to `minSize="20%"`. Existing PreviewSplit proportions are preserved.
 
 <ArgTypes of={ResizablePanelGroup} />
 <ArgTypes of={ResizablePanel} />
@@ -49,4 +67,4 @@ Replace `Resizable` with `ResizablePanelGroup`, `.Panel` with `ResizablePanel`, 
 
 ## Related
 
-[Shell.Panel](?path=/docs/layout-pages--docs), [ScrollArea](?path=/docs/components-scrollarea--docs), [Separator](?path=/docs/components-separator--docs).
+[Shell.Panel](?path=/docs/layout-shell--docs), [ScrollArea](?path=/docs/components-scrollarea--docs), [Separator](?path=/docs/components-separator--docs).

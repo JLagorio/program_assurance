@@ -14,7 +14,7 @@ Each part has its own page: [Tooltip](?path=/docs/components-tooltip--docs), [Ho
 
 | Need                                                             | Use              | Opens on                            | Closes on                              |
 | ---------------------------------------------------------------- | ---------------- | ----------------------------------- | -------------------------------------- |
-| A short label                                                    | **Tooltip**      | Hover or focus, after 300ms         | Leaving, Escape                        |
+| A short label                                                    | **Tooltip**      | Hover after 300ms; focus at once    | Leaving, Escape                        |
 | A peek at a record: a few facts, no actions                      | **HoverCard**    | Hover or focus, after 600ms         | Leaving, Escape                        |
 | A small task at its button: a filter, a reason, a picker         | **Popover**      | Click                               | Escape, outside click, Done            |
 | A list of actions                                                | **DropdownMenu** | Click, Enter, Space, the down arrow | Choosing, Escape, outside click        |
@@ -29,21 +29,23 @@ Each part has its own page: [Tooltip](?path=/docs/components-tooltip--docs), [Ho
 
 ## Anatomy
 
-- **The anchored four** sit beside their trigger, 4 to 6px off it, flipping when there is no room, with Tooltip adding a small arrow. A Tooltip is the dark one, `color.background.neutral.bold` with inverse text; the other three are the overlay surface with a hairline border.
-- **The blanketed four** paint `color.blanket` over the page; nothing else paints it. Their surface is `elevation.surface.overlay` with `radius.xxlarge` (a Sheet has square corners, since it is an edge), a header with the title in `font.heading.xsmall`, a body part that scrolls (DialogBody, SheetBody, DrawerBody, AlertDialogBody), and a footer on `elevation.surface.sunken` with the buttons at the end. The title is the overlay's h2; headings inside start at h3.
+- **The anchored four** sit beside their trigger, 4px off it and centred on it, flipping when there is no room, with Tooltip adding a small arrow. A Tooltip is the dark one, `color.background.neutral.bold` with inverse text; the other three are the overlay surface with a hairline border. Popover, HoverCard and DropdownMenu are capped at the height the window leaves on their side and scroll within it, so a calendar or a long list never opens past the edge. Content can anchor to something other than its trigger (a cell, a chart mark, a virtual point) through `anchor`, and takes `collisionPadding`, `collisionBoundary`, `collisionAvoidance`, `sticky` and `positionMethod`.
+- **Text size follows the job.** A Tooltip's label and a Popover's loose text are `font.body.small`, since they sit beside the control they explain and a Popover's own fields set their size; a HoverCard is `font.body`, since it previews the record's own words.
+- **The blanketed four** paint `color.blanket` over the page; nothing else paints it. Their surface is `elevation.surface.overlay` with `radius.xxlarge` (a Sheet has square corners, since it is an edge), a header with the title in `font.heading.xsmall`, a body part that scrolls (DialogBody, SheetBody, DrawerBody, AlertDialogBody), and a footer on the same surface, divided by a hairline, with the buttons at the end. The title is the overlay's h2; headings inside start at h3. Titles and descriptions wrap an unbroken value, such as a code or a server's error, instead of running past the edge.
 - **Overlays record their surface.** The Dialog, Sheet, Drawer, AlertDialog, Popover and HoverCard popups set `utility.elevation.surface.current` to the overlay surface, so a sticky table header, a pinned cell or a scroll arrow inside paints the overlay's colour, not the page's.
-- **The close** is one shared icon button at the top end, `dimension.control.small`. AlertDialog and Drawer compose explicit action buttons; a Drawer’s optional swipe handle is decorative.
+- **The close** is one shared icon button at the top end, `dimension.control.small`, and first in the Tab order, where it is drawn; the first field still takes focus when the overlay opens. AlertDialog and Drawer compose explicit action buttons; a Drawer’s optional swipe handle is decorative.
 
 ## Accessibility
 
-- **Focus moves in** when a blanketed overlay opens (Drawer focuses its popup by default; initialFocus can target an action or field) and **returns** to what opened it when it closes. The page behind is hidden from assistive technology and does not scroll.
-- **Escape closes** every overlay. An outside click closes the anchored ones and the blanket closes a Dialog, a Sheet and a Drawer; an AlertDialog ignores it.
+- **Focus moves in** when a blanketed overlay opens (Drawer focuses its popup by default; initialFocus can target an action or field) and **returns** to what opened it when it closes. A Dialog, Sheet or AlertDialog opened from state records the element that had focus as it opens, so focus comes back to it even when a field inside took focus as it mounted; `finalFocus` names another element when the opener goes away with the task. The page behind is hidden from assistive technology and does not scroll.
+- **Escape closes** every overlay. An outside click closes the anchored ones and the blanket closes a Dialog, a Sheet and a Drawer; an AlertDialog ignores it. A press on a blanket that does not close its overlay (an AlertDialog's, a pending one's) leaves focus where it was.
+- **Forced colours keep the edges.** A Dialog, AlertDialog, Sheet, Drawer and Tooltip draw a CanvasText outline, since forced colours replace their fill and remove their shadow, and the blanket stays a veil of Canvas; Popover and HoverCard keep their border.
 - **Pending holds.** `pending` on a Dialog, Sheet or AlertDialog cancels every request to close (Escape, the blanket, Close), disables the close controls while keeping them focusable (`aria-disabled`), so focus on one is kept, and marks the popup `aria-busy` until the command returns; PickerSheet's `pending` is its Sheet's. A Drawer cancels in its own `onOpenChange`.
 - **A tooltip never holds a control**, a hover card never holds an action, a popover never holds a task the reader must finish.
 
 ## Style
 
-- **One blanket at a time.** An AlertDialog may open over a Sheet or a Dialog, for the decision the task ends in; that is the only stack. Independent stacked record workflows should navigate or replace the current frame. A selection workflow owns its internal preview.
+- **One blanket at a time.** An AlertDialog may open over a Sheet or a Dialog, for the decision the task ends in; that is the only stack. Render it inside the Dialog or Sheet that owns the decision: only the top dialog then dismisses, the page keeps its one blanket, and the Dialog or Sheet under the prompt dims under `color.blanket`, fading on the motion tokens, so its own buttons read as out of play in both modes. Independent stacked record workflows should navigate or replace the current frame. A selection workflow owns its internal preview.
 - **A sheet's next record is its next frame**, not a second sheet: the same surface, a Back chevron before the title (PreviewSheet's and PickerSheet's `onBack`), the stack in the URL so the browser's back agrees.
 - **Anchored overlays stack on anything.** A Tooltip in a Dialog, a DropdownMenu in a Sheet, a Popover in a Drawer are fine; a Popover in a Popover is not.
 

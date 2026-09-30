@@ -55,7 +55,8 @@ The scale, with every token, is on the [Space](?path=/docs/tokens-space--docs) s
 
 - **`padding`**, **`paddingInline`**, **`paddingBlock`**, and the four edges by name. Per-axis over per-side: one Box, not two.
 - **`backgroundColor`**: a background or a surface token. A surface publishes itself; a bold fill paints inverse text.
-- **`as`**: the element, from the layout elements: `div`, `span`, `section`, `article`, `aside`, `nav`, `header`, `footer`, `main`, `ul`, `ol`, `li`, `dl`, `dt`, `dd`, `fieldset`, `form`, `figure`, `figcaption`.
+- **`as`**: the element, from the layout elements: `div`, `span`, `section`, `article`, `aside`, `nav`, `header`, `footer`, `main`, `ul`, `ol`, `li`, `dl`, `dt`, `dd`, `fieldset`, `form`, `figure`, `figcaption`. The props are a `div`'s: a group of fields is a [FieldSet](?path=/docs/components-field--docs), which takes `disabled` and a legend and passes them to its controls, and a form that submits is a `<form>` element. `as="fieldset"` only groups, and drops a fieldset's content-wide minimum so the box stays in its frame.
+- **`shrink`**: `none` keeps the Box's size when its row runs out of room: the id or the count beside a filling title.
 - **`className`** for the radius, the border and the shadow, from the token classes.
 - **`style`**, runtime values only: a width measured or computed at render, a story's fixed frame. Box and Grid are the two layout primitives that take it; a Stack, an Inline or a Text of a fixed width sits in a Box.
 

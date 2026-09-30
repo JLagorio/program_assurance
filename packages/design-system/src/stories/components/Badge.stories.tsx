@@ -29,6 +29,13 @@ type Story = StoryObj<typeof meta>;
 
 const variants = ["default", "secondary", "destructive", "outline", "ghost", "link"] as const;
 
+/** The Badge whose words these are: a Badge's words sit in its own truncating span. */
+const badgeWith = (canvasElement: HTMLElement, text: string) => {
+  const badge = within(canvasElement).getByText(text).closest<HTMLElement>('[data-slot="badge"]');
+  if (!badge) throw new Error(`No Badge says ${text}`);
+  return badge;
+};
+
 /** The six reference variants, including actual links and the icon-position selectors. */
 export const Matrix: Story = {
   render: () => (
@@ -103,7 +110,7 @@ export const NativeAttributes: Story = {
   ),
   play: async ({ canvasElement }) => {
     for (const { id, label, ref, tone } of nativeBadges) {
-      const badge = within(canvasElement).getByText(label);
+      const badge = badgeWith(canvasElement, label);
       await expect(ref.current).toBe(badge);
       await expect(badge.tagName).toBe("SPAN");
       await expect(badge).toHaveAttribute("data-slot", "badge");
@@ -195,7 +202,7 @@ export const RenderLink: Story = {
     // A badge that links takes a 24px hit area on a touch screen and stops clipping so it can
     // reach past the pill; a label badge stays unpositioned and clipped.
     await expect(link).toHaveStyle({ position: "relative", overflow: "visible" });
-    await expect(canvas.getByText("Available")).toHaveStyle({
+    await expect(badgeWith(canvasElement, "Available")).toHaveStyle({
       position: "static",
       overflow: "hidden",
     });
@@ -237,7 +244,7 @@ export const ConditionalIcons: Story = {
   render: () => <ConditionalIconExample />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const badge = canvas.getByText("Unverified source");
+    const badge = badgeWith(canvasElement, "Unverified source");
     await expect(badge.querySelector("svg")).toBeNull();
     await userEvent.click(canvas.getByRole("button", { name: "Verify source" }));
     await expect(badge).toHaveTextContent("Verified source");
@@ -300,7 +307,7 @@ export const States: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const invalidLabel = canvas.getByText("Invalid reference");
+    const invalidLabel = badgeWith(canvasElement, "Invalid reference");
     const dangerColor = getComputedStyle(invalidLabel).borderColor;
     const destructive = canvas.getByRole("link", { name: "destructive" });
     const invalidLink = canvas.getByRole("link", { name: "Review invalid reference" });
@@ -361,16 +368,17 @@ export const ToneWithoutVariant: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const alone = canvas.getByText("Withdrawn");
+    const badge = (text: string) => badgeWith(canvasElement, text);
+    const alone = badge("Withdrawn");
     await expect(alone).toHaveAttribute("data-variant", "secondary");
     await expect(alone).toHaveAttribute("data-appearance", "subtle");
     // The same paint as the secondary badge in the same tone.
-    await expect(alone.className).toBe(canvas.getByText("Due soon").className);
-    await expect(canvas.getByText("Overdue")).toHaveAttribute("data-appearance", "bold");
-    const explicit = canvas.getByText("Featured");
+    await expect(alone.className).toBe(badge("Due soon").className);
+    await expect(badge("Overdue")).toHaveAttribute("data-appearance", "bold");
+    const explicit = badge("Featured");
     await expect(explicit).toHaveAttribute("data-variant", "default");
     await expect(explicit).toHaveAttribute("data-appearance", "bold");
-    const plain = canvas.getByText("Plain");
+    const plain = badge("Plain");
     await expect(plain).toHaveAttribute("data-tone", "brand");
     await expect(plain).toHaveAttribute("data-appearance", "bold");
     await expect(badgeVariants({ tone: "warning" })).toBe(
@@ -535,9 +543,18 @@ const rows = [
     sev: "danger",
     findings: 5,
   },
+  {
+    id: "CTRL-0463",
+    name: "Assessment of the payables interface",
+    status: "Other than satisfied",
+    tone: "danger",
+    severity: "Medium",
+    sev: "warning",
+    findings: 1,
+  },
 ] as const;
 
-/** In a table: the status is the row's one pill at `xsmall`; severity is an Indicator; a count is a Count. */
+/** In a table: the status is the row's one pill at `xsmall`; severity is an Indicator; a count is a Count. A status longer than its 112px column, the RMF "Other than satisfied", stays in its cell, ends in an ellipsis and shows whole on hover while it is cut. */
 export const InRows: Story = {
   render: () => (
     <div style={{ maxWidth: 640 }}>
@@ -573,6 +590,107 @@ export const InRows: Story = {
       </Table>
     </div>
   ),
+  play: async ({ canvasElement }) => {
+    const long = badgeWith(canvasElement, "Other than satisfied");
+    const words = within(long).getByText("Other than satisfied");
+    const cell = long.closest("td")!.getBoundingClientRect();
+    // The pill stays in its cell, and says that its words are cut.
+    await expect(long.getBoundingClientRect().right).toBeLessThanOrEqual(cell.right + 0.5);
+    await expect(words.scrollWidth).toBeGreaterThan(words.clientWidth);
+    await expect(getComputedStyle(words).textOverflow).toBe("ellipsis");
+    // The whole status is still what a screen reader reads, and the pointer can see it.
+    await expect(long).toHaveTextContent("Other than satisfied");
+    await userEvent.hover(words);
+    await waitFor(() =>
+      expect(document.querySelector('[data-slot="truncate-full-text"]')).toHaveTextContent(
+        "Other than satisfied",
+      ),
+    );
+    await userEvent.unhover(words);
+    // A status that fits is not cut and reveals nothing.
+    const fits = within(badgeWith(canvasElement, "Verified")).getByText("Verified");
+    await expect(fits.scrollWidth).toBeLessThanOrEqual(fits.clientWidth);
+  },
+};
+
+/**
+ * The rules that would repaint an element while the pointer is over it. A play cannot move the real
+ * pointer, so it matches each `:hover` rule against the element instead.
+ */
+function hoverRules(el: Element): string[] {
+  const found: string[] = [];
+  // A nested rule's `&` is its parent's selector.
+  const walk = (rules: CSSRuleList, parent: string | null) => {
+    for (const rule of Array.from(rules)) {
+      let selector = parent;
+      if (rule instanceof CSSStyleRule) {
+        selector = parent
+          ? rule.selectorText.replace(/&/g, `:is(${parent})`)
+          : rule.selectorText.replace(/&/g, ":scope");
+        // `:hover` as a pseudo-class, not the escaped `\:hover` inside a class name.
+        if (/(?<!\\):hover/.test(selector)) {
+          try {
+            if (el.matches(selector.replace(/(?<!\\):hover/g, ""))) found.push(selector);
+          } catch {
+            // A selector the engine cannot test on its own is no rule for this element.
+          }
+        }
+      }
+      if ("cssRules" in rule) walk((rule as CSSGroupingRule).cssRules, selector);
+    }
+  };
+  for (const sheet of Array.from(document.styleSheets)) {
+    try {
+      walk(sheet.cssRules, null);
+    } catch {
+      // A stylesheet from another origin cannot be read and holds no kit rule.
+    }
+  }
+  return found;
+}
+
+/** Only a badge that is a link or a button answers the pointer. A ghost or link label on a span keeps its fill and its underline under the pointer; the same treatments on an anchor take the hover. A brand badge link draws its words in `color.text.selected` on the hovered fill, which holds 4.5:1 where `color.text.brand` would not. */
+export const HoverOnlyWhenInteractive: Story = {
+  render: () => (
+    <Stack space="space.200">
+      <Specimens title="Labels: no hover">
+        <Badge variant="ghost">Ghost label</Badge>
+        <Badge variant="link">Link label</Badge>
+        <Badge variant="secondary">Subtle label</Badge>
+      </Specimens>
+      <Specimens title="Links: hover">
+        <Badge variant="ghost" render={<a href="#ghost" />}>
+          Ghost link
+        </Badge>
+        <Badge variant="link" render={<a href="#link" />}>
+          Link link
+        </Badge>
+        <Badge variant="outline" tone="brand" render={<a href="#brand" />}>
+          Brand outline link
+        </Badge>
+        <Badge variant="secondary" tone="brand" render={<button type="button" />}>
+          Brand subtle button
+        </Badge>
+      </Specimens>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    for (const label of ["Ghost label", "Link label", "Subtle label"])
+      await expect(hoverRules(badgeWith(canvasElement, label))).toEqual([]);
+    const ghost = hoverRules(canvas.getByRole("link", { name: "Ghost link" }));
+    await expect(ghost.some((rule) => rule.includes("bg-neutral"))).toBe(true);
+    const link = hoverRules(canvas.getByRole("link", { name: "Link link" }));
+    await expect(link.some((rule) => rule.includes("underline"))).toBe(true);
+    for (const brand of [
+      canvas.getByRole("link", { name: "Brand outline link" }),
+      canvas.getByRole("button", { name: "Brand subtle button" }),
+    ]) {
+      const rules = hoverRules(brand);
+      await expect(rules.some((rule) => rule.includes("bg-brand-subtlest-hovered"))).toBe(true);
+      await expect(rules.some((rule) => rule.includes("text-selected"))).toBe(true);
+    }
+  },
 };
 
 /** A category is neutral and differs by its word; a status is a tone. The two read differently side by side. */

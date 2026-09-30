@@ -357,4 +357,112 @@ export const NarrowRow: Story = {
   },
 };
 
+function PressedStop() {
+  const [period, setPeriod] = useState(["quarter"]);
+  return (
+    <Stack space="space.200">
+      <button type="button">Before</button>
+      <ToggleGroup aria-label="Period" value={period} onValueChange={setPeriod}>
+        <ToggleGroupItem value="month">Month</ToggleGroupItem>
+        <ToggleGroupItem value="quarter">Quarter</ToggleGroupItem>
+        <ToggleGroupItem value="year">Year</ToggleGroupItem>
+      </ToggleGroup>
+      <button type="button" onClick={() => setPeriod(["year"])}>
+        Show the year
+      </button>
+      <ToggleGroup aria-label="Filters" multiple defaultValue={["open"]}>
+        <ToggleGroupItem value="mine">Mine</ToggleGroupItem>
+        <ToggleGroupItem value="open">Open</ToggleGroupItem>
+      </ToggleGroup>
+      <ToggleGroup aria-label="Unavailable pressed" defaultValue={["b"]}>
+        <ToggleGroupItem value="a">First</ToggleGroupItem>
+        <ToggleGroupItem value="b" disabled>
+          Second
+        </ToggleGroupItem>
+      </ToggleGroup>
+      <ToggleGroup aria-label="View" defaultValue={["board"]}>
+        <ToggleGroupItem value="list">List</ToggleGroupItem>
+        <ToggleGroupItem value="board">Board</ToggleGroupItem>
+      </ToggleGroup>
+    </Stack>
+  );
+}
+
+/**
+ * A single-select group is a set of choices, like a radio group: Tab lands on the pressed item, not
+ * the first, so the reader starts on the current choice and Space on it changes nothing by
+ * surprise. Arrow keys still reach every item, Tab from any of them leaves the group, and a value
+ * changed from outside moves the stop, as does a choice in an uncontrolled group (View). A
+ * `multiple` group keeps Base UI's first-item stop, and a
+ * pressed item that is disabled leaves the stop on the first enabled one.
+ */
+export const TabStopOnThePressedItem: Story = {
+  name: "Tab stop on the pressed item",
+  render: () => <PressedStop />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const period = within(canvas.getByRole("group", { name: "Period" }));
+    const before = canvas.getByRole("button", { name: "Before" });
+    const after = canvas.getByRole("button", { name: "Show the year" });
+    before.focus();
+    await userEvent.tab();
+    await expect(period.getByRole("button", { name: "Quarter" })).toHaveFocus();
+    // Arrows move to every item; Tab from one that is not pressed leaves the group.
+    await userEvent.keyboard("{ArrowLeft}");
+    await expect(period.getByRole("button", { name: "Month" })).toHaveFocus();
+    await userEvent.tab();
+    await expect(after).toHaveFocus();
+    // Coming back lands on the pressed item again, from either side.
+    await userEvent.tab({ shift: true });
+    await expect(period.getByRole("button", { name: "Quarter" })).toHaveFocus();
+    await expect(period.getByRole("button", { name: "Quarter" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    // A change made outside the group moves the stop with the value.
+    await userEvent.tab();
+    await userEvent.keyboard("{Enter}");
+    await expect(period.getByRole("button", { name: "Year" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await userEvent.tab({ shift: true });
+    await expect(period.getByRole("button", { name: "Year" })).toHaveFocus();
+    // Choosing with the keyboard moves it too.
+    await userEvent.keyboard("{Home} ");
+    await expect(period.getByRole("button", { name: "Month" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await userEvent.tab();
+    await userEvent.tab({ shift: true });
+    await expect(period.getByRole("button", { name: "Month" })).toHaveFocus();
+    // Multiple selection: the first item is the stop.
+    after.focus();
+    await userEvent.tab();
+    await expect(
+      within(canvas.getByRole("group", { name: "Filters" })).getByRole("button", { name: "Mine" }),
+    ).toHaveFocus();
+    // A disabled pressed item cannot hold the stop; the first enabled item does.
+    await userEvent.tab();
+    await expect(
+      within(canvas.getByRole("group", { name: "Unavailable pressed" })).getByRole("button", {
+        name: "First",
+      }),
+    ).toHaveFocus();
+    // An uncontrolled group moves the stop with the choice it keeps itself.
+    const view = within(canvas.getByRole("group", { name: "View" }));
+    await userEvent.tab();
+    await expect(view.getByRole("button", { name: "Board" })).toHaveFocus();
+    await userEvent.keyboard("{Home} ");
+    await expect(view.getByRole("button", { name: "List" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await userEvent.tab({ shift: true });
+    await userEvent.tab();
+    await expect(view.getByRole("button", { name: "List" })).toHaveFocus();
+  },
+};
+
 export const Playground: Story = {};

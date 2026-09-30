@@ -1,10 +1,19 @@
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cloneElement, Fragment, isValidElement, type ComponentProps, type ReactNode } from "react";
+import {
+  Children,
+  cloneElement,
+  Fragment,
+  isValidElement,
+  type ComponentProps,
+  type ReactNode,
+} from "react";
 
 import { cn } from "../lib/cn";
+import { useLedgerLocale } from "../lib/locale";
 import { toneClasses, type Tone } from "../lib/status-tone";
+import { Truncate } from "./truncate";
 
 export { toneClasses, tones, type Tone } from "../lib/status-tone";
 
@@ -12,13 +21,14 @@ type BadgeTone = Tone | "brand";
 type BadgeAppearance = "subtle" | "bold";
 
 /* A badge that is a link or a button takes a 24px hit area on a touch screen and stops clipping, so
-   the area can reach past the pill. A label badge stays unpositioned. */
+   the area can reach past the pill. A label badge stays unpositioned. Every hover below is scoped
+   to a link or a button in the same way, so a label badge never answers the pointer. */
 const interactiveBadge =
   "[a]:relative [a]:touch-target [a]:overflow-visible [button]:relative [button]:touch-target [button]:overflow-visible";
 
 const badgeRecipe = cva(
   cn(
-    "group/badge inline-flex w-fit shrink-0 items-center justify-center gap-050 overflow-hidden rounded-full border-w-default border-solid border-transparent font-medium whitespace-nowrap transition-all duration-fast ease-standard focus-visible:border-focused focus-visible:outline-focused aria-invalid:border-danger aria-invalid:outline-danger! [&>svg]:pointer-events-none [&>svg]:size-150!",
+    "group/badge inline-flex w-fit max-w-full shrink-0 items-center justify-center gap-050 overflow-hidden rounded-full border-w-default border-solid border-transparent font-medium whitespace-nowrap transition-all duration-fast ease-standard focus-visible:border-focused focus-visible:outline-focused aria-invalid:border-danger aria-invalid:outline-danger! [&>svg]:pointer-events-none [&>svg]:size-150!",
     interactiveBadge,
   ),
   {
@@ -29,7 +39,7 @@ const badgeRecipe = cva(
         destructive: "",
         outline: "",
         ghost: "",
-        link: "underline-offset-4 hover:underline",
+        link: "underline-offset-4 [a]:hover:underline [button]:hover:underline",
       },
       size: {
         small:
@@ -66,55 +76,63 @@ const badgePalette: Record<
     ghostHover: string;
   }
 > = {
+  // The brand hovers draw their words in text.selected: text.brand on the hovered brand fill is
+  // 4.18:1, under the 4.5 a label needs.
   brand: {
     subtle: "bg-brand-subtlest text-brand",
     bold: "bg-brand-bold text-inverse",
     text: "text-brand",
     border: "border-brand",
-    subtleLinkHover: "[a]:hover:bg-brand-subtlest-hovered",
-    boldLinkHover: "[a]:hover:bg-brand-bold-hovered",
-    outlineLinkHover: "[a]:hover:bg-brand-subtlest-hovered",
-    ghostHover: "hover:bg-brand-subtlest-hovered",
+    subtleLinkHover:
+      "[a]:hover:bg-brand-subtlest-hovered [a]:hover:text-selected [button]:hover:bg-brand-subtlest-hovered [button]:hover:text-selected",
+    boldLinkHover: "[a]:hover:bg-brand-bold-hovered [button]:hover:bg-brand-bold-hovered",
+    outlineLinkHover:
+      "[a]:hover:bg-brand-subtlest-hovered [a]:hover:text-selected [button]:hover:bg-brand-subtlest-hovered [button]:hover:text-selected",
+    ghostHover:
+      "[a]:hover:bg-brand-subtlest-hovered [a]:hover:text-selected [button]:hover:bg-brand-subtlest-hovered [button]:hover:text-selected",
   },
   neutral: {
     ...toneClasses.neutral,
     border: "border-default",
-    subtleLinkHover: "[a]:hover:bg-neutral-hovered",
-    boldLinkHover: "[a]:hover:bg-neutral-bold-hovered",
-    outlineLinkHover: "[a]:hover:bg-neutral [a]:hover:text-subtle",
-    ghostHover: "hover:bg-neutral hover:text-subtle",
+    subtleLinkHover: "[a]:hover:bg-neutral-hovered [button]:hover:bg-neutral-hovered",
+    boldLinkHover: "[a]:hover:bg-neutral-bold-hovered [button]:hover:bg-neutral-bold-hovered",
+    outlineLinkHover:
+      "[a]:hover:bg-neutral [a]:hover:text-subtle [button]:hover:bg-neutral [button]:hover:text-subtle",
+    ghostHover:
+      "[a]:hover:bg-neutral [a]:hover:text-subtle [button]:hover:bg-neutral [button]:hover:text-subtle",
   },
   information: {
     ...toneClasses.information,
     border: "border-information",
-    subtleLinkHover: "[a]:hover:bg-information-hovered",
-    boldLinkHover: "[a]:hover:bg-information-bold-hovered",
-    outlineLinkHover: "[a]:hover:bg-information-hovered",
-    ghostHover: "hover:bg-information-hovered",
+    subtleLinkHover: "[a]:hover:bg-information-hovered [button]:hover:bg-information-hovered",
+    boldLinkHover:
+      "[a]:hover:bg-information-bold-hovered [button]:hover:bg-information-bold-hovered",
+    outlineLinkHover: "[a]:hover:bg-information-hovered [button]:hover:bg-information-hovered",
+    ghostHover: "[a]:hover:bg-information-hovered [button]:hover:bg-information-hovered",
   },
   success: {
     ...toneClasses.success,
     border: "border-success",
-    subtleLinkHover: "[a]:hover:bg-success-hovered",
-    boldLinkHover: "[a]:hover:bg-success-bold-hovered",
-    outlineLinkHover: "[a]:hover:bg-success-hovered",
-    ghostHover: "hover:bg-success-hovered",
+    subtleLinkHover: "[a]:hover:bg-success-hovered [button]:hover:bg-success-hovered",
+    boldLinkHover: "[a]:hover:bg-success-bold-hovered [button]:hover:bg-success-bold-hovered",
+    outlineLinkHover: "[a]:hover:bg-success-hovered [button]:hover:bg-success-hovered",
+    ghostHover: "[a]:hover:bg-success-hovered [button]:hover:bg-success-hovered",
   },
   warning: {
     ...toneClasses.warning,
     border: "border-warning",
-    subtleLinkHover: "[a]:hover:bg-warning-hovered",
-    boldLinkHover: "[a]:hover:bg-warning-bold-hovered",
-    outlineLinkHover: "[a]:hover:bg-warning-hovered",
-    ghostHover: "hover:bg-warning-hovered",
+    subtleLinkHover: "[a]:hover:bg-warning-hovered [button]:hover:bg-warning-hovered",
+    boldLinkHover: "[a]:hover:bg-warning-bold-hovered [button]:hover:bg-warning-bold-hovered",
+    outlineLinkHover: "[a]:hover:bg-warning-hovered [button]:hover:bg-warning-hovered",
+    ghostHover: "[a]:hover:bg-warning-hovered [button]:hover:bg-warning-hovered",
   },
   danger: {
     ...toneClasses.danger,
     border: "border-danger",
-    subtleLinkHover: "[a]:hover:bg-danger-hovered",
-    boldLinkHover: "[a]:hover:bg-danger-bold-hovered",
-    outlineLinkHover: "[a]:hover:bg-danger-hovered",
-    ghostHover: "hover:bg-danger-hovered",
+    subtleLinkHover: "[a]:hover:bg-danger-hovered [button]:hover:bg-danger-hovered",
+    boldLinkHover: "[a]:hover:bg-danger-bold-hovered [button]:hover:bg-danger-bold-hovered",
+    outlineLinkHover: "[a]:hover:bg-danger-hovered [button]:hover:bg-danger-hovered",
+    ghostHover: "[a]:hover:bg-danger-hovered [button]:hover:bg-danger-hovered",
   },
 };
 
@@ -175,6 +193,43 @@ function badgeVariants({
   );
 }
 
+/* The words in the pill. A pill narrower than its words (a status column, a narrow panel) cuts
+   them with an ellipsis, and the whole shows on hover and on keyboard focus of a badge that links,
+   while they are cut; the words stay whole in the DOM for a screen reader. Icons stay direct
+   children, so their position selectors keep working. A badge with a title of its own shows that
+   instead. */
+function badgeText(content: ReactNode, reveal: boolean): ReactNode {
+  const wrap = (text: string, key?: string) =>
+    reveal ? (
+      <Truncate key={key} render={<span />}>
+        {text}
+      </Truncate>
+    ) : (
+      <span key={key} className="min-w-0 truncate">
+        {text}
+      </span>
+    );
+  if (typeof content === "string" || typeof content === "number") return wrap(String(content));
+  if (!Array.isArray(content)) return content;
+  const out: ReactNode[] = [];
+  let run = "";
+  let runs = 0;
+  const flush = () => {
+    // Whitespace alone between two icons is no text, as it is no flex item without the wrapper.
+    if (run.trim()) out.push(wrap(run, `badge-text-${runs++}`));
+    run = "";
+  };
+  for (const child of Children.toArray(content)) {
+    if (typeof child === "string" || typeof child === "number") run += String(child);
+    else {
+      flush();
+      out.push(child);
+    }
+  }
+  flush();
+  return out;
+}
+
 export type BadgeProps = useRender.ComponentProps<"span"> &
   VariantProps<typeof badgeVariants> & {
     /** An optional leading icon. Explicit icon children and their position attributes also work. */
@@ -203,7 +258,10 @@ function Badge({
       : icon;
   const hasIcon = icon != null && typeof icon !== "boolean";
   const renderElement = isValidElement<{ children?: ReactNode }>(render) ? render : null;
-  const content = children === undefined ? renderElement?.props.children : children;
+  const content = badgeText(
+    children === undefined ? renderElement?.props.children : children,
+    props.title === undefined,
+  );
   const hasChildren = children !== undefined || hasIcon;
   const composedChildren = hasIcon ? (
     <>
@@ -256,9 +314,23 @@ export type CountProps = Omit<ComponentProps<"span">, "children" | "className"> 
   className?: string | undefined;
 };
 
-/** A number in a pill: unread items, rows in a group, results behind a filter. It is named by the label beside it. Native span props and the ref reach the pill. */
+/** The sign an added or a removed count carries, so the two differ by more than their fill: "+12", "−3" (U+2212). */
+const countSigns: Partial<Record<keyof typeof countAppearances, string>> = {
+  added: "+",
+  removed: "\u2212",
+};
+
+/** A number in a pill: unread items, rows in a group, results behind a filter. It is named by the label beside it. A number reads in the reader's locale; an added or removed count carries its sign. Native span props and the ref reach the pill. */
 export function Count({ value, max = 99, appearance = "default", className, ...rest }: CountProps) {
-  const text = typeof value === "number" && value > max ? `${max}+` : String(value);
+  const { formatNumber } = useLedgerLocale();
+  const number =
+    typeof value === "number"
+      ? value > max
+        ? `${formatNumber(max)}+`
+        : formatNumber(value)
+      : String(value);
+  const sign = countSigns[appearance];
+  const text = sign && !/^[+\-\u2212]/.test(number) ? `${sign}${number}` : number;
   return (
     <span
       {...rest}
@@ -277,12 +349,12 @@ export function Count({ value, max = 99, appearance = "default", className, ...r
 
 export type DotProps = Omit<ComponentProps<"svg">, "children" | "className"> & {
   tone?: Tone | undefined;
-  /** What the dot says when no text sits beside it: the status as a word ("Suspect", "No supplier attestation on file"). With it the dot is an image named by the label; without it the dot is hidden and the text beside it carries the status. */
+  /** The status as a word ("Suspect"), read by a screen reader: with it the dot is an image named by the label; without it the dot is hidden and the text beside it carries the status. A sighted reader still sees colour alone, so a status shows its word beside the dot, or is an Indicator; the label is the last resort. */
   label?: string | undefined;
   className?: string | undefined;
 };
 
-/** A 6px status dot. It is an icon, so it takes the tone's icon colour, which is tuned to read at small sizes. Native svg props and the ref reach the dot. */
+/** A 6px status dot, the mark beside a status whose word is written next to it; never the status alone. It is an icon, so it takes the tone's icon colour, which is tuned to read at small sizes. Native svg props and the ref reach the dot. */
 export function Dot({ tone = "neutral", label, className, ...rest }: DotProps) {
   return (
     <svg
@@ -307,7 +379,7 @@ export function Dot({ tone = "neutral", label, className, ...rest }: DotProps) {
 export type IndicatorProps = Omit<ComponentProps<"span">, "children" | "className"> & {
   /** The severity or the health the Dot carries. `neutral` mutes the text as well: the lowest rung. */
   tone?: Tone | undefined;
-  /** The word beside the Dot: "High", "Healthy", "Obligation not stated". It truncates when the row is narrower than it. */
+  /** The word beside the Dot: "High", "Healthy", "Obligation not stated". It truncates when the row is narrower than it, and shows whole on hover while it is cut. */
   children: ReactNode;
   className?: string | undefined;
 };
@@ -326,7 +398,8 @@ export function Indicator({ tone = "neutral", className, children, ...rest }: In
       )}
     >
       <Dot tone={tone} />
-      <span className="min-w-0 truncate">{children}</span>
+      {/* A word cut by its column shows whole on hover while it is cut, as a Badge's does. */}
+      <Truncate render={<span />}>{children}</Truncate>
     </span>
   );
 }

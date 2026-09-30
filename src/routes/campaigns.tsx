@@ -1,5 +1,6 @@
-import { PageHeader, Stack } from "@ledger/design-system";
+import { PageHeader } from "@ledger/design-system";
 import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
+import { Page } from "@/components/app/shell";
 import { AssessmentBrowser } from "@/components/prototype/assessment-browser";
 
 export const Route = createFileRoute("/campaigns")({
@@ -10,13 +11,13 @@ function CampaignsLayout() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   if (pathname !== "/campaigns" && pathname !== "/campaigns/") return <Outlet />;
   return (
-    <Stack space="space.200" className="min-w-0">
+    <Page>
       <PageHeader>
         <PageHeader.Heading>
           <PageHeader.Title>Assessment campaigns</PageHeader.Title>
         </PageHeader.Heading>
       </PageHeader>
       <AssessmentBrowser />
-    </Stack>
+    </Page>
   );
 }

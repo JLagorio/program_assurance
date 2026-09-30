@@ -173,8 +173,14 @@ try {
     allowed.length,
     "Only actual statement/item prose is eligible",
   );
-  assert.equal(await options.filter({ hasText: method.source_id }).count(), 0);
-  await options.filter({ hasText: statement.source_id }).first().click();
+  // Options read as the catalog numbers them, with the prose under the label; never the source id.
+  const opening = (part) => (part.prose ?? "").split("{{")[0].trim().slice(0, 50);
+  assert.equal(await options.filter({ hasText: statement.source_id }).count(), 0);
+  if (opening(method)) assert.equal(await options.filter({ hasText: opening(method) }).count(), 0);
+  await options
+    .filter({ hasText: opening(statement) })
+    .first()
+    .click();
   await dialog
     .getByLabel("Rationale", { exact: true })
     .fill("Repaired against the actual statement");

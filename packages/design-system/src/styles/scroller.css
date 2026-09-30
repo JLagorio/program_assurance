@@ -6,3 +6,23 @@
 [data-scroller-arrows]::-webkit-scrollbar {
   display: none;
 }
+
+/* A Scroller's viewport clips on both axes, so every focus ring inside it is drawn inside its
+   box, with the outline-field-focused geometry: the viewport's own ring on the keyboard, a
+   focused item's outline, and a ring an item draws on a ::before or ::after overlay (Stepper and
+   Timeline steps). The Scroller stamps the element it scrolls, its own ScrollerViewport or the
+   ScrollArea viewport a line Tabs strip passes it. */
+[data-scroller-viewport]:focus-visible,
+[data-scroller-viewport] :focus-visible,
+[data-scroller-viewport] :focus-visible::before,
+[data-scroller-viewport] :focus-visible::after {
+  outline-offset: calc(-1 * var(--ds-border-width-focused));
+}
+
+/* ScrollArea's viewport follows its root's corners, so its inset focus ring does too. In the
+   components layer, so a caller's own radius class still wins. */
+@layer components {
+  [data-slot="scroll-area-viewport"] {
+    border-radius: inherit;
+  }
+}

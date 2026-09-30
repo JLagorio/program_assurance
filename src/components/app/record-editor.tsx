@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
-import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { AlertCircle } from "lucide-react";
 import {
@@ -8,12 +8,6 @@ import {
   AlertDescription,
   AlertTitle,
   Button,
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
   DatePicker,
   DateTimeField,
   DialogBody,
@@ -35,7 +29,6 @@ import {
   Textarea,
   VisuallyHidden,
   toast,
-  useLedgerLocale,
 } from "@ledger/design-system";
 import { listRecords, saveRecord } from "@/lib/database";
 import {
@@ -50,14 +43,16 @@ import {
 } from "@/lib/records";
 import {
   isAdditionalProductField,
+  productCollectionNoun,
   productFieldLabel,
   productFieldOrder,
   productRecordNoun,
   productTargetGroups,
 } from "@/lib/product-records";
 import { statusLabel, vocabularyFor } from "@/lib/status";
-import { ChoiceField } from "./fields";
-import { unsettledMoment, useFormFeedback, type FormIssue } from "./form-feedback";
+import { ChoiceField, RecordField } from "./fields";
+import { useFormFeedback, type FormIssue } from "./form-feedback";
+import { causeText } from "./sentence";
 import { useDraftGuard } from "./use-draft-guard";
 import { relatedCollection, useRecord } from "./record-lookup";
 import { useWorkspace } from "./workspace";
@@ -152,13 +147,18 @@ function requiredMessage(kind: FieldKind, label: string, column: string) {
 
 const listFormat = new Intl.ListFormat("en-US", { type: "disjunction" });
 
-function useDebounced<T>(value: T, delay = 250) {
-  const [settled, setSettled] = useState(value);
-  useEffect(() => {
-    const timer = setTimeout(() => setSettled(value), delay);
-    return () => clearTimeout(timer);
-  }, [value, delay]);
-  return settled;
+/** How many matches one search returns; the list says how many more there are. */
+const REFERENCE_PAGE = 50;
+
+/**
+ * What a reference field asks for, in its placeholder: the field's own words ("Choose an owner",
+ * "Choose a parent organization"), or the record's where the label names an act ("Approved by").
+ */
+function referencePlaceholder(label: string, collection: Collection) {
+  if (!/ by$/i.test(label)) return `Choose ${withArticle(label)}`;
+  return collection.name === "parties"
+    ? "Choose a person or organization"
+    : `Choose ${withArticle(productRecordNoun(collection.name))}`;
 }
 
 /** A searchable choice of records the server filters, with the chosen one always named. */
@@ -168,7 +168,7 @@ function ReferencePicker({
   onChange,
   label,
   required,
-  disabled,
+  clearable,
   description,
   error,
   controlRef,
@@ -178,81 +178,59 @@ function ReferencePicker({
   onChange: (value: string) => void;
   label: string;
   required: boolean;
-  disabled?: boolean | undefined;
+  /** A reference the schema lets be empty can be cleared. */
+  clearable: boolean;
   description?: string | null | undefined;
   error?: string | undefined;
   controlRef: (node: HTMLElement | null) => void;
 }) {
   const workspace = useWorkspace();
-  const [search, setSearch] = useState("");
-  const term = useDebounced(search);
-  const query = useQuery({
-    queryKey: ["reference-options", workspace.tenantId, collection.name, term],
-    queryFn: () => listRecords(workspace, collection, { search: term, limit: 50 }),
-    placeholderData: keepPreviousData,
-    retry: false,
-  });
   const selected = useRecord(collection, value || null);
-  const choices = (query.data?.records ?? []).map((record) => ({
-    value: record.id,
-    label: recordTitle(record, collection),
-  }));
-  if (value && !choices.some((choice) => choice.value === value))
-    choices.unshift({
-      value,
-      label: selected.data ? recordTitle(selected.data, collection) : "Loading the chosen record…",
-    });
-  const noun = productRecordNoun(collection.name);
-  const hints = [
-    description,
-    query.isError
-      ? `The ${noun} list could not be loaded: ${query.error instanceof Error ? query.error.message : "the request failed"}. Type to try again.`
-      : null,
-    selected.isError ? `The chosen ${noun} could not be read.` : null,
-    query.data && query.data.count > 50
-      ? `Showing the first 50 of ${query.data.count}. Type to narrow them.`
-      : null,
-  ].filter(Boolean);
+  // A party is a person or an organization, in the words PartyField uses.
+  const parties = collection.name === "parties";
+  const noun = parties ? "person or organization" : productRecordNoun(collection.name);
+  const hint = [description, selected.isError ? `The chosen ${noun} could not be read.` : null]
+    .filter(Boolean)
+    .join(" ");
   return (
-    <Field invalid={error ? true : undefined} required={required} disabled={disabled}>
-      <FieldLabel>{label}</FieldLabel>
-      <Combobox<{ value: string; label: string }>
-        items={choices}
-        value={choices.find((item) => item.value === value) ?? null}
-        isItemEqualToValue={(item, chosen) => item.value === chosen.value}
-        filter={null}
-        autoHighlight
-        onInputValueChange={(input, details) => {
-          if (["input-change", "input-clear", "clear-press"].includes(details.reason))
-            setSearch(input);
-        }}
-        onValueChange={(item) => onChange(item?.value ?? "")}
-      >
-        <ComboboxInput
-          ref={controlRef}
-          placeholder={`Choose ${withArticle(noun)}`}
-          showClear={!required}
-        />
-        <ComboboxContent>
-          <ComboboxEmpty>
-            {query.isError
-              ? "The records could not be loaded."
-              : query.isFetching && !query.data
-                ? "Loading records…"
-                : "No matching records."}
-          </ComboboxEmpty>
-          <ComboboxList>
-            {(item: { value: string; label: string }) => (
-              <ComboboxItem key={item.value} value={item}>
-                {item.label}
-              </ComboboxItem>
-            )}
-          </ComboboxList>
-        </ComboboxContent>
-      </Combobox>
-      {hints.length ? <FieldDescription>{hints.join(" ")}</FieldDescription> : null}
-      {error ? <FieldError>{error}</FieldError> : null}
-    </Field>
+    <RecordField
+      label={label}
+      value={value || null}
+      onChange={(next) => onChange(next ?? "")}
+      queryKey={["reference-options", workspace.tenantId, collection.name]}
+      search={async (term) => {
+        const page = await listRecords(workspace, collection, {
+          search: term,
+          limit: REFERENCE_PAGE,
+        });
+        return {
+          options: page.records.map((record) => ({
+            value: record.id,
+            label: recordTitle(record, collection),
+          })),
+          total: page.count,
+        };
+      }}
+      selected={
+        value
+          ? {
+              value,
+              label: selected.data
+                ? recordTitle(selected.data, collection)
+                : selected.isError
+                  ? `Unavailable ${noun}`
+                  : `Loading the chosen ${noun}…`,
+            }
+          : null
+      }
+      noun={parties ? "people and organizations" : productCollectionNoun(collection.name)}
+      required={required}
+      clearable={clearable}
+      placeholder={referencePlaceholder(label, collection)}
+      description={hint || undefined}
+      error={error}
+      controlRef={controlRef}
+    />
   );
 }
 
@@ -297,7 +275,6 @@ export function RecordEditor({
 }) {
   const workspace = useWorkspace();
   const formId = useId();
-  const { t } = useLedgerLocale();
   const [baseline] = useState(existing);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -412,7 +389,9 @@ export function RecordEditor({
   const additionalColumns =
     presentation === "product" ? visibleColumns.filter(isAdditionalProductField) : [];
   const ordered = [...mainColumns, ...additionalColumns];
-  const isRequired = (column: Column) => column.required && !column.default;
+  // A column the record cannot leave empty: always on an edit, and on a create unless the schema
+  // fills it in. The field is marked, and the save checks it, by the same rule.
+  const isRequired = (column: Column) => column.required && (!!baseline || !column.default);
 
   /** Every issue with the values, one per field, in the order the fields appear. */
   function validate(extra: readonly FormIssue<string>[] = []) {
@@ -425,7 +404,7 @@ export function RecordEditor({
       const raw = fields[column.name] ?? "";
       const kind = kindOf(column, Boolean(targetOf(column)));
       if (!raw.trim()) {
-        if (column.required && (baseline || !column.default))
+        if (isRequired(column))
           found.set(
             column.name,
             // A record whose body is the record (a comment) asks for the record itself.
@@ -469,18 +448,9 @@ export function RecordEditor({
     event.preventDefault();
     if (busy) return;
     setFailure(null);
-    // Enter inside a DateTimeField submits before the field has checked a half-typed moment.
-    const unsettled = ordered.filter(
-      (column) =>
-        kindOf(column, false) === "moment" &&
-        !fields[column.name] &&
-        !entryErrors[column.name] &&
-        unsettledMoment(feedback.node(column.name)),
-    );
-    if (unsettled.length) submitRef.current?.focus();
-    const issues = validate(
-      unsettled.map((column) => ({ field: column.name, message: t("dateTimeIncomplete") })),
-    );
+    // A DateTimeField holds Enter on a half-typed moment and reports it through onEntryError, as
+    // it does when focus leaves it, so its entry error is among the issues below.
+    const issues = validate();
     if (issues.some((issue) => additionalColumns.some((column) => column.name === issue.field)))
       setAdditionalOpen(true);
     if (!feedback.report(issues)) return;
@@ -490,7 +460,7 @@ export function RecordEditor({
     } catch (cause) {
       setFailure({
         title: `Check the ${noun} details`,
-        message: cause instanceof Error ? cause.message : "A value could not be read.",
+        message: causeText(cause, "A value could not be read."),
       });
       return;
     }
@@ -503,7 +473,7 @@ export function RecordEditor({
     } catch (cause) {
       setFailure({
         title: existing ? `The ${noun} was not saved` : `The ${noun} was not created`,
-        message: `${cause instanceof Error ? cause.message : "The request failed."} Your details are kept.`,
+        message: `${causeText(cause)} Your details are kept.`,
       });
       guard.finish();
       return;
@@ -537,7 +507,7 @@ export function RecordEditor({
         type: "error",
         timeout: 8000,
         title: existing ? `${capitalize(noun)} saved` : `${capitalize(noun)} created`,
-        description: `The next view could not be opened. ${cause instanceof Error ? cause.message : ""}`,
+        description: `The next view could not be opened. ${causeText(cause, "")}`.trim(),
       });
     }
   }
@@ -575,6 +545,7 @@ export function RecordEditor({
           onChange={(next) => change(column, next)}
           label={label}
           required={required}
+          clearable={!column.required}
           description={description}
           error={error}
           controlRef={ref}
@@ -600,8 +571,10 @@ export function RecordEditor({
                 }))
           }
           required={required}
-          placeholder={required ? `Choose ${withArticle(label)}` : "Not recorded"}
-          {...(required ? {} : { emptyOption: "Not recorded" })}
+          placeholder={column.required ? `Choose ${withArticle(label)}` : "Not recorded"}
+          // Only a column the schema lets be empty offers "Not recorded"; an empty required one
+          // would fail the save, or take the schema's default rather than stay unrecorded.
+          {...(column.required ? {} : { emptyOption: "Not recorded" })}
           description={description}
           error={error}
           controlRef={ref}
@@ -616,6 +589,8 @@ export function RecordEditor({
             value={value}
             onChange={(event) => change(column, event.target.value)}
             rows={4}
+            autoResize
+            maxRows={12}
           />
         ) : kind === "number" ? (
           <NumberField

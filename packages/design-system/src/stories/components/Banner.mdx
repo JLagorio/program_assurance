@@ -7,7 +7,7 @@ import * as Stories from "./Banner.stories";
 
 # Banner
 
-A message about the whole site, at the top of the screen in the shell's Banner area: the loss of data or a function, or something site-wide that changes what the reader can do. One at a time, never dismissible, gone when no longer true. It is one line and truncates rather than wraps; the action is one link or button drawn in the banner's own colour. The kit's inline message is the [Alert](?path=/docs/components-alert--docs).
+A message about the whole site, at the top of the screen in the shell's Banner area: the loss of data or a function, or something site-wide that changes what the reader can do. One at a time, never dismissible, gone when no longer true. On a bar 42rem wide or more it is one line; narrower, on a phone, the message wraps and the bar grows with it. The action is one link or button drawn in the banner's own colour. The kit's inline message is the [Alert](?path=/docs/components-alert--docs).
 
 An Alert is about the record; a Banner is about the site. Feedback after an act is a toast. If the message would be true for one reader and not the next, it is not a banner.
 
@@ -15,12 +15,12 @@ An Alert is about the record; a Banner is about the site. Feedback after an act 
 
 ## Anatomy
 
-| Part    | What it is                                                                                                  |
-| ------- | ----------------------------------------------------------------------------------------------------------- |
-| Bar     | 48px, `dimension.layout.banner`, the tone's bold fill, its content centred, `space.200` inside at each end. |
-| Icon    | The tone's icon at `dimension.icon.small`: Info, TriangleAlert, CircleAlert. `icon` replaces it.            |
-| Message | One line in `font.body` medium and the inverse text colour. It truncates.                                   |
-| Action  | One link or button after the message, underlined, in the banner's own text colour.                          |
+| Part    | What it is                                                                                                                                                            |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bar     | At least 48px, `dimension.layout.banner`, the tone's bold fill, `space.200` inside at each end; its content centred on a wide bar, from the start on a narrow one.    |
+| Icon    | The tone's icon at `dimension.icon.small`: Info, TriangleAlert, CircleAlert, on the first line's centre. `icon` replaces it.                                          |
+| Message | `font.body` medium in the inverse text colour: one line on a wide bar, cut with an ellipsis and its whole text as its title when it must be; wrapped on a narrow one. |
+| Action  | One link or button after the message's last word, underlined, in the banner's own text colour.                                                                        |
 
 ## Variants
 
@@ -38,7 +38,9 @@ Where it lives: `Shell.Banner` is the area, above the top navigation. It holds t
 
 ## Sizes
 
-One: the width of the screen at 48px. On a narrow screen the message truncates and the action stays; the message should be short enough that a phone shows most of it.
+One: the width of the screen. The bar is its own container, so its width, not the window's, decides the form. From 42rem it is one 48px line. Narrower it wraps: `space.100` above and below, the icon on the first line, the action after the last word, and the bar as tall as its lines. `Shell.Banner` measures it, so the top navigation, the side navigation and the panel sit under a banner that wraps.
+
+<Canvas of={Stories.LongMessage} />
 
 ## States
 
@@ -62,19 +64,19 @@ Present or absent. A banner is rendered while its condition holds and unmounted 
 
 ## Style
 
-| Element | Token                                                                                                  |
-| ------- | ------------------------------------------------------------------------------------------------------ |
-| Bar     | `dimension.layout.banner` 48px · `color.background.<tone>.bold` · `space.200` inline · `space.100` gap |
-| Text    | `font.body` medium · `color.text.inverse`, `color.text.warning.inverse` on warning                     |
-| Icon    | `dimension.icon.small` 14px in the text colour                                                         |
-| Action  | Underlined, `radius.xsmall` for its focus outline                                                      |
+| Element | Token                                                                                                                                           |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bar     | `dimension.layout.banner` 48px, the minimum · `color.background.<tone>.bold` · `space.200` inline · `space.100` gap and, wrapped, block padding |
+| Text    | `font.body` medium · `color.text.inverse`, `color.text.warning.inverse` on warning                                                              |
+| Icon    | `dimension.icon.small` 14px in the text colour                                                                                                  |
+| Action  | Underlined, `radius.xsmall` for its focus outline                                                                                               |
 
 The bold fills are Badge's bold appearance, so a danger banner and a danger bold Badge are the same red.
 
 ## Accessibility
 
 - **A danger Banner is `role="alert"`**, announced at once; the rest are `role="status"`. The shell's Banner area is a region named "Banner".
-- **Truncation hides words from sighted readers only;** a screen reader hears the whole line. Keep it short so both get the same message.
+- **Nothing is hidden on a phone:** the message wraps there. On a wide bar a message too long for its line is cut for sighted readers only, and its whole text is the message's title; a screen reader hears it all. Keep it to one sentence so everyone gets the same message.
 - **The action is in the tab order; the banner is not.** It sits first in the page, before the top navigation, so it is the first thing a keyboard reader meets, which is the point.
 - **The bold fills pass 4.5:1** with the inverse text in both modes; the contrast test covers them.
 

@@ -39,31 +39,37 @@ Navigation between pages using [shadcn’s flat Pagination parts](https://ui.sha
 </Pagination>
 ```
 
-Root is a nav, Content a list and Item a list item. Link uses a real anchor with the shared Button recipe. Base UI 1.7 Button adds button semantics even when rendered as an anchor, so Ledger preserves native link semantics here. Previous and Next are links with localized names, optional `text` and direction-aware icons.
+Root is a nav, Content a list and Item a list item. Link uses a real anchor with the shared Button recipe. Base UI 1.7 Button adds button semantics even when rendered as an anchor, so Ledger preserves native link semantics here. Previous and Next are links with localized names, optional `text` and direction-aware icons. Ellipsis stands for the pages skipped between two links and says "More pages" to a screen reader.
 
 <Canvas of={Stories.Links} />
 
 ## Variants and states
 
-`isActive` sets `aria-current="page"` and the selected appearance. All links accept native anchor attributes, events and refs, including href, target and rel. Ellipsis is decorative.
+`isActive` sets `aria-current="page"`. The current page is marked from that state by its PaginationItem, whether it holds a link or a button: a semibold figure in the default text colour over a 2px bar in the selected colour, which holds 3:1 on every surface in both modes. Every page, the current one included, is otherwise the subtle appearance, and in forced colours the current page is Highlight. All links accept native anchor attributes, events and refs, including href, target and rel.
 
-Previous and Next carry their words where the pagination has 384px of its own width and are arrows below it, named for a screen reader either way. The region measures itself, not the window, so the same pagination has words on a page and arrows in a 320px panel on the same screen. A pagination holding Previous or Next is a size container, so its width comes from where it sits, not from its links. It spans its container by default. At the end of a row, give it the rest of the row with `min-w-0 flex-1 justify-end`: its words show where that leaves 384px, and a narrower row shrinks it to arrows. Sized to its content instead (`w-auto`, an `auto` grid column), a pagination with words is 384px whatever its links need, so a longer list wraps inside it. Previous and Next read that width from their `Pagination` root; outside one they show arrows only. The list wraps rather than running past a narrow frame, and every link is at least 28px.
+Previous and Next carry their words where the pagination has 384px (`dimension.container.sm`) of its own width and are arrows below it, named for a screen reader either way. The region measures itself, not the window, so the same pagination has words on a page and arrows in a 320px panel on the same screen. A pagination holding Previous or Next is a size container, so its width comes from where it sits, not from its links. It spans its container by default. At the end of a row, give it the rest of the row with `min-w-0 flex-1 justify-end`: its words show where that leaves 384px, and a narrower row shrinks it to arrows. Sized to its content instead (`w-auto`, an `auto` grid column), a pagination with words is 384px whatever its links need, so a longer list wraps inside it. Previous and Next read that width from their `Pagination` root; outside one they show arrows only. The list wraps rather than running past a narrow frame, and every link is at least 28px.
 
 <Canvas of={Stories.InANarrowPanel} />
 <Canvas of={Stories.AtTheEndOfARow} />
 
-For in-memory tables, compose Button inside PaginationItem with native disabled and aria-current attributes. The internal DataTable pagination pattern owns page calculation, empty results and row-range text, using those same parts.
+For in-memory tables, compose buttons inside PaginationItem: each page a subtle small Button with `aria-current="page"` on the current one, and the arrows IconButtons that take `disabled` with `focusableWhenDisabled` at the first and last page. The arrow stays in the tab order with `aria-disabled`, so a reader who presses Next to the end keeps focus on it instead of falling to the page. The internal DataTable pagination pattern owns page calculation, empty results and row-range text, using those same parts.
 
 <Canvas of={Stories.InMemoryTable} />
 <Canvas of={Stories.ManyPages} />
 
+`text` replaces the word on Previous or Next, for a feed read newest first ("Newer", "Older"), and names the link as well, so what a reader sees is what a speech user says.
+
+<Canvas of={Stories.OwnWords} />
+
 ## Accessibility
 
-Name each navigation region distinctly. Use links for URLs and buttons for local state changes. An unavailable link needs caller-owned semantics and activation handling; anchors have no native disabled attribute. Prefer omitting unavailable navigation links or rendering a disabled Button for an in-memory pager. RTL arrows follow the enclosing direction.
+Name each navigation region distinctly; unnamed, it is "Pagination". Use links for URLs and buttons for local state changes. An unavailable link needs caller-owned semantics and activation handling; anchors have no native disabled attribute. Prefer omitting unavailable navigation links, or, in an in-memory pager, a Button that is `disabled` with `focusableWhenDisabled`. The current page is `aria-current="page"`, never `aria-pressed`. Previous and Next are named "Previous page" and "Next page", or by their `text`. RTL arrows follow the enclosing direction.
 
 ## Props
 
-The configured `page`, `pageCount`, `onPageChange`, `total`, `pageSize` and `label` API is removed. Use native `aria-label` and explicit children. DataTable retains its page-size and table-state API; its internal composition preserves result counts and page controls.
+Pagination owns no page state: it takes native `aria-label` and explicit children. DataTable has the page-size and table-state API and composes these parts for its result counts and page controls. Every part takes its element's native props and a ref, and keeps its own `data-slot` after them.
+
+<Canvas of={Stories.NativeAttributes} />
 
 <ArgTypes of={Pagination} />
 <ArgTypes of={PaginationLink} />

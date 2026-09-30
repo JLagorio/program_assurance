@@ -382,7 +382,12 @@ export const Localized: Story = {
     const root = arabic.querySelector('[data-slot="calendar"]');
     await expect(root).toHaveAttribute("lang", "ar-EG");
     await expect(root).toHaveAttribute("dir", "rtl");
-    await expect(arabic.querySelectorAll("thead th")[0]).toHaveAttribute("aria-label", "السبت");
+    const arabicDays = arabic.querySelectorAll("thead th");
+    await expect(arabicDays[0]).toHaveAttribute("aria-label", "السبت");
+    // Arabic's short names are whole words, too wide for a 32px column: the header shows the
+    // narrow form and keeps the full name as its label. German keeps its short "Mo".
+    await expect([...(arabicDays[0]?.textContent ?? "")].length).toBeLessThanOrEqual(2);
+    await expect(germanDays[0]).toHaveTextContent("Mo");
     await expect(within(arabic).getAllByRole("button", { name: /١٨/ }).length).toBeGreaterThan(0);
   },
 };

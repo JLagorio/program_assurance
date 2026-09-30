@@ -11,7 +11,11 @@
   transform: translate(var(--active-tab-left), var(--active-tab-top));
   border-radius: var(--ds-radius-small);
   background-color: var(--ds-elevation-surface);
-  box-shadow: var(--ds-elevation-shadow-raised);
+  /* The filled strip's selected chip is outlined in color.border.selected, 3:1 against the track
+     and the chip in both modes, since the chip's fill alone is about 1.1:1 against the track. */
+  box-shadow:
+    inset 0 0 0 var(--ds-border-width) var(--ds-color-border-selected),
+    var(--ds-elevation-shadow-raised);
   transition:
     transform var(--ds-motion-duration-moderate) var(--ds-motion-easing-standard),
     width var(--ds-motion-duration-moderate) var(--ds-motion-easing-standard),
@@ -33,6 +37,25 @@
     inset-inline-end: 0;
     width: var(--ds-space-025);
     transform: translateY(var(--active-tab-top));
+  }
+}
+
+/* A horizontal line strip keeps its gap between labels, and each tab's hit area reaches half way
+   across it, so a click between two labels chooses the nearer tab. The strip's first and last
+   tabs do not reach past its ends, which would widen what it scrolls. */
+[data-slot="tabs-list"][data-variant="line"][data-orientation="horizontal"]
+  > [data-slot="tabs-trigger"] {
+  &::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline: 0;
+  }
+  &:has(+ [data-slot="tabs-trigger"])::before {
+    inset-inline-end: calc(-1 * var(--ds-space-150));
+  }
+  & + [data-slot="tabs-trigger"]::before {
+    inset-inline-start: calc(-1 * var(--ds-space-150));
   }
 }
 

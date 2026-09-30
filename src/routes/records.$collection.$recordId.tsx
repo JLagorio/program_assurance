@@ -1,12 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { RecordPending } from "@/components/app/shell";
+import { useRecordTitle } from "@/components/app/browser-title";
 import { RecordDetail } from "@/components/app/record-browser";
+import { useRecord } from "@/components/app/record-lookup";
+import { useWorkspace } from "@/components/app/workspace";
+import { recordTitle } from "@/lib/records";
 export const Route = createFileRoute("/records/$collection/$recordId")({
   head: () => ({ meta: [{ title: "Schema record — Program Assurance" }] }),
+  pendingComponent: RecordPending,
   component: Record,
 });
 function Record() {
   const { collection, recordId } = Route.useParams();
   const { field, value } = Route.useSearch();
+  // The record under the name its page gives it; a new record's page keeps the type alone.
+  const workspace = useWorkspace();
+  const meta = workspace.collections.find((item) => item.name === collection);
+  const record = useRecord(meta, recordId === "new" ? null : recordId);
+  useRecordTitle("Schema record", record.data && meta ? recordTitle(record.data, meta) : null);
   return (
     <RecordDetail
       key={`${collection}-${recordId}`}

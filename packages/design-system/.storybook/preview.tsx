@@ -104,7 +104,20 @@ const preview: Preview = {
         order: [
           "Introduction",
           "Guidance",
-          ["Getting started", "Token grammar", "Lint rules"],
+          // Reading order, as llms.txt has it: set up, choose a part, compose it, style it, the rest.
+          [
+            "Getting started",
+            "Choosing a part",
+            "Recipes",
+            "Which token",
+            "Agents",
+            "Coming from shadcn",
+            "Token grammar",
+            "Lint rules",
+            "Lint rules reference",
+            "Writing stories",
+            "Testing and review",
+          ],
           "Tokens",
           "Primitives",
           ["Overview"],

@@ -6,42 +6,64 @@ import * as Stories from "./Spinner.stories";
 
 # Spinner
 
-An indeterminate wait such as saving, exporting or refreshing. Use Skeleton when the loading content has a known shape.
-
-## Anatomy
-
-Spinner renders Lucide's Loader2 SVG with `data-slot="spinner"`. Native SVG attributes, events and refs reach that element.
+Something is in flight and its length is unknown: a save, an export, a refresh. It sits beside what it is about, says its name once when it appears, and goes when the work ends.
 
 <Canvas of={Stories.Playground} />
 
-## Variants and states
+## Choosing between them
 
-Sizes are small (12px, default), medium (16px) and large (24px). Appearance is subtle, inverse on a bold fill, or inherit for the surrounding text color.
+| The wait                                             | Part                                                                                                                   |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| The reader pressed a button and waits for its result | The Button's own `isLoading`, which draws a decorative Spinner and keeps focus                                         |
+| Work beside a control or a row that is not a button  | `Spinner`, `small` beside text, `medium` alone in a row or a toolbar                                                   |
+| A region's content on its way, whose shape is known  | [Skeleton](?path=/docs/components-skeleton--docs), or DataTable's loading rows                                         |
+| A task that finishes and knows how far it has gone   | [Progress](?path=/docs/components-progress--docs)                                                                      |
+| A file on its way up                                 | [Attachment](?path=/docs/components-attachment--docs) in its `uploading` state, started from a Button with `isLoading` |
+
+A long background task (an upload, a package build) shows on the control that started it, with `isLoading`, never a disabled button whose label changes: that drops focus to the page and says nothing. Its end is said in the region, or as a [toast](?path=/docs/components-toaster--docs) when the reader has moved on.
+
+## Anatomy
+
+Lucide's Loader2 as an svg with `data-slot="spinner"`, `role="status"` and the name as its `aria-label`. Native svg attributes, events and the ref reach that element.
+
+## Variants and sizes
+
+`small` (12px, the default) beside text and in a button; `medium` (16px) alone in a row or a toolbar; `large` (24px) centred in a section that has nothing else while it loads. `appearance` is `subtle` on a surface, `inverse` on a bold fill, or `inherit` for the text colour around it.
 
 <Canvas of={Stories.SizesAndAppearance} />
 
-`delay` waits before revealing the spinner. Changing a pending delay restarts the timer; once visible, it stays visible until unmounted. A new operation can reset it with a new key. Non-positive delays reveal immediately.
+## Delay
+
+`delay` waits that many milliseconds before the spinner appears. The default, 0, shows it at once. Pass about 400 for a wait that is often shorter, so a fast one never flashes a spinner. Changing a pending delay restarts the wait; once shown, the spinner stays until it unmounts, so a new operation that should wait again takes a new `key`.
 
 <Canvas of={Stories.Delay} />
 
+## Content
+
+- **Name the wait for what it is**: "Saving", "Exporting the package". "Loading", the locale's default, is for a load with no better word.
+- **Beside a word that already says it**, pass that word, so a screen reader and a sighted reader get the same one.
+- **One spinner per wait.** Four charts refreshing together share one name, which is said once.
+
 ## Accessibility
 
-The default is a status named by the provider's localized Loading text. Use `label` or native `aria-label` to describe the operation; explicit native attributes take precedence. Use `aria-labelledby` to associate visible text.
+- **It says its name once, politely, when it appears.** A status inserted with its name already set is announced by almost no screen reader, so the Spinner sends its name through the kit's live regions (`announce`) as it appears, after its delay; spinners that appear together with one name are said once. `aria-labelledby` says the referenced text instead.
+- **`isDecorative`** hides it and says nothing, where its parent already carries the busy state: a loading Button, a region with its own status, a loading toast.
+- **Reduced motion** stops the rotation; the status and its name stay.
 
-`isDecorative` hides a spinner when its parent already owns the busy announcement. Button does this for its loading indicator. Reduced motion stops the animation while retaining the accessible status.
+<Canvas of={Stories.Announced} />
 
 ## Props
 
 <ArgTypes of={Spinner} />
 
-Native SVG props include `ref`, `id`, `strokeWidth`, `style`, `className`, ARIA and events. Ledger retains `size`, `appearance`, `label`, `isDecorative` and `delay`. Class overrides can adjust dimensions.
-
-### Migration
-
-Existing Spinner calls keep working. Native SVG props and refs no longer need an enclosing element.
+Native svg props include `ref`, `id`, `strokeWidth`, `style`, `className`, ARIA and events; an explicit `aria-label` wins over `label`.
 
 ## Related
 
-[Button](?path=/docs/components-button--docs), [Skeleton](?path=/docs/components-skeleton--docs), [Progress](?path=/docs/components-progress--docs).
+[Button](?path=/docs/components-button--docs), [Skeleton](?path=/docs/components-skeleton--docs), [Progress](?path=/docs/components-progress--docs), [Attachment](?path=/docs/components-attachment--docs), [Announcer](?path=/docs/components-announcer--docs).
 
-Sources: [shadcn Spinner](https://ui.shadcn.com/docs/components/base/spinner), [implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/spinner.tsx).
+Sources: [shadcn Spinner](https://ui.shadcn.com/docs/components/base/spinner), [implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/spinner.tsx), [Polaris Spinner](https://polaris-react.shopify.com/components/feedback-indicators/spinner).
+
+## Don't
+
+<Canvas of={Stories.Dont} />

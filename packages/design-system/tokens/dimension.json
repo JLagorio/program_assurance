@@ -243,6 +243,179 @@
         "$value": "720px",
         "$description": "The widest a run of prose grows: statements, notes, descriptions."
       }
+    },
+    "part": {
+      "tooltip": {
+        "$value": "320px",
+        "$description": "The widest a Tooltip grows; a narrower window caps it at the room it leaves.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "hoverCard": {
+        "$value": "256px",
+        "$description": "A HoverCard's width, within the room the window leaves.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "popover": {
+        "$value": "288px",
+        "$description": "A Popover's width, within the room the window leaves. The caller's style sets another.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "command": {
+        "$value": "560px",
+        "$description": "The widest a CommandDialog grows.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "menu": {
+        "$value": "128px",
+        "$description": "A DropdownMenu's narrowest, unless its trigger is wider; never past the window's edge.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "submenu": {
+        "$value": "96px",
+        "$description": "A DropdownMenu submenu's narrowest; never past the window's edge.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "select": {
+        "$value": "9rem",
+        "$description": "A Select's list at its narrowest, unless its trigger is wider: 144px at the default text size.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "search": {
+        "$value": "240px",
+        "$description": "The widest a Toolbar's search field grows while it shares its row with the other controls.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "steps": {
+        "$value": "420px",
+        "$description": "Room for about four steps. A horizontal Stepper or Timeline is at least this wide; in a narrower space its strip scrolls.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "skeletonCircle": {
+        "$value": "32px",
+        "$description": "A circle Skeleton's size, an avatar's or an icon's, unless its width gives another.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "skeletonBlock": {
+        "$value": "96px",
+        "$description": "A block Skeleton's height unless its height gives another.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "emptyMeasure": {
+        "$value": "400px",
+        "$description": "The widest an Empty's title and description grow, so the description wraps at a readable width.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "keyValue": {
+        "$value": "8rem",
+        "$description": "In an auto KeyValue.Group a row keeps its label beside the value while the value has this much room, 128px at the default text size, and puts the label over the value below it.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "keyValueLabel": {
+        "$value": "6.5rem",
+        "$description": "A KeyValue's label column, 104px at the default text size, unless labelWidth gives another. It is drawn in rem, so it grows with the reader's text size as the label does.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "codeBlock": {
+        "$value": "560px",
+        "$description": "The tallest a CodeBlock grows before it scrolls inside itself, unless its maxHeight gives another.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "itemId": {
+        "$value": "72px",
+        "$description": "An Item's id column, unless its idWidth gives another, so the ids of a list line up.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "filter": {
+        "$value": "220px",
+        "$description": "A DataTable column filter's popover width, unless its width gives another.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "tableSearch": {
+        "$value": "200px",
+        "$description": "A DataTable Search field's width, unless its width gives another; it never runs past its row.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "previewSheet": {
+        "$value": "720px",
+        "$description": "A PreviewSheet's width, about half the screen, unless its width gives another.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      }
     }
   }
 }

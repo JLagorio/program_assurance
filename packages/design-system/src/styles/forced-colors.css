@@ -185,3 +185,351 @@
     outline-offset: calc(-1 * var(--ds-border-width-focused));
   }
 }
+
+/* TOOLBAR: the current page's bar (PaginationItem) gives way to the Highlight fill above, as the
+   pressed edge and the selected bar do. */
+@media (forced-colors: active) {
+  [data-slot="pagination-item"] > [aria-current="page"]::after {
+    display: none;
+  }
+}
+
+/* SCROLL: ScrollArea's thumb keeps a system colour, which the tokens' tint would lose to Canvas,
+   and turns Highlight under the pointer. */
+@media (forced-colors: active) {
+  [data-slot="scroll-area-thumb"] {
+    forced-color-adjust: none;
+    background-color: CanvasText;
+  }
+  [data-slot="scroll-area-thumb"]:hover {
+    background-color: Highlight;
+  }
+}
+
+/* ACTIONS: a bounded Button, IconButton, LinkButton or LinkIconButton keeps its bounds. Primary,
+   secondary and danger draw their edge with a fill or a raised shadow, which forced colours
+   remove, so they take a ButtonText outline inside their box; a disabled one is GrayText. Subtle
+   and link have no edge to keep. The focus outline still wins while the keyboard is on one. */
+@media (forced-colors: active) {
+  :is(
+    [data-button-variant="primary"],
+    [data-button-variant="secondary"],
+    [data-button-variant="danger"]
+  ):not(:focus-visible) {
+    outline: var(--ds-border-width) solid ButtonText;
+    outline-offset: calc(-1 * var(--ds-border-width));
+  }
+  :is(
+      [data-button-variant="primary"],
+      [data-button-variant="secondary"],
+      [data-button-variant="danger"]
+    )[data-disabled]:not([data-loading]):not(:focus-visible) {
+    outline-color: GrayText;
+  }
+}
+
+/* DTCORE: a DataTable that chooses one row draws a native radio per row. It keeps the radio's ring,
+   and the chosen one its fill and dot, in the reader's system colours. */
+@media (forced-colors: active) {
+  [data-slot="table-choice"] {
+    forced-color-adjust: none;
+    background-color: ButtonFace;
+    border-color: ButtonText;
+  }
+  [data-slot="table-choice"]:checked {
+    background-color: Highlight;
+    border-color: Highlight;
+  }
+  [data-slot="table-choice"]:disabled {
+    border-color: GrayText;
+  }
+  [data-slot="table-choice"]:checked + [data-slot="table-choice-dot"] {
+    forced-color-adjust: none;
+    background-color: HighlightText;
+  }
+  [data-slot="table-choice"]:focus-visible {
+    outline: var(--ds-border-width-focused) solid Highlight;
+    outline-offset: var(--ds-space-025);
+  }
+  /* The refreshing bar over the header keeps showing, in Highlight. */
+  [data-slot="data-table-refreshing"] {
+    forced-color-adjust: none;
+    background-color: Highlight;
+  }
+}
+
+/* FIELDS: a choice card (a FieldLabel around a Field) draws the one focus ring, in Highlight; the
+   radio or switch inside it draws none, as outside forced colours. */
+@media (forced-colors: active) {
+  [data-slot="field-label"]:has(> [data-slot="field"]) [data-slot="radio-group-item"]:focus-visible,
+  [data-slot="field-label"]:has(> [data-slot="field"]) [data-slot="switch"]:focus-visible {
+    outline: none;
+  }
+}
+
+/* DTPARTS: a DataTable toolbar trigger whose choice is in force (Group by with a field, Filters
+   with a filter, an open Metrics) is Highlight, as a pressed button is, since the selected fill
+   that marks it is replaced. */
+@media (forced-colors: active) {
+  [data-active-trigger],
+  [data-slot="data-table-metrics-trigger"][data-panel-open] {
+    forced-color-adjust: none;
+    background-color: Highlight;
+    color: HighlightText;
+  }
+  :is([data-active-trigger], [data-slot="data-table-metrics-trigger"][data-panel-open]) * {
+    color: HighlightText;
+  }
+  :is(
+    [data-active-trigger],
+    [data-slot="data-table-metrics-trigger"][data-panel-open]
+  ):focus-visible {
+    outline-color: CanvasText;
+  }
+}
+
+/* TABLE: a chosen row (Table.Row isSelected, and so every DataTable row with a checked box) is a
+   tint the palette replaces, so it keeps a Highlight edge inside the row. The eye of the row open
+   in the preview is a pressed button, Highlight above. */
+@media (forced-colors: active) {
+  [data-slot="table"] tr[data-selected] {
+    outline: var(--ds-border-width-focused) solid Highlight;
+    outline-offset: calc(-1 * var(--ds-border-width-focused));
+  }
+}
+
+/* OVERLAYS: a modal popup and a tooltip keep their edge. They draw it with a fill and a shadow,
+   which forced colours replace and remove, so they take a CanvasText outline around their box;
+   Popover and HoverCard keep their border. The blanket, and the dimming of a Dialog or Sheet under
+   a nested decision, stay a veil of Canvas, so the page behind reads as out of play. */
+@media (forced-colors: active) {
+  :is(
+    [data-slot="dialog-content"],
+    [data-slot="alert-dialog-content"],
+    [data-slot="sheet-content"],
+    [data-slot="drawer-popup"],
+    [data-slot="tooltip-content"]
+  ) {
+    outline: var(--ds-border-width) solid CanvasText;
+  }
+  :is(
+    [data-slot="dialog-overlay"],
+    [data-slot="alert-dialog-overlay"],
+    [data-slot="sheet-overlay"],
+    [data-slot="drawer-overlay"]
+  ),
+  :is([data-slot="dialog-content"], [data-slot="sheet-content"])::after {
+    forced-color-adjust: none;
+    background-color: color-mix(in srgb, Canvas 70%, transparent);
+  }
+}
+
+/* FEEDBACK: the feedback parts keep their shape. An Alert and a Banner draw their tone with a fill,
+   which forced colours replace, so they take a CanvasText edge inside their box, which keeps the
+   bar's height (the Alert's icon still says the tone). A Skeleton's shape is GrayText, so a
+   loading page is not blank. A focused ProgressStacked segment rings in Highlight. An
+   EmptyIllustration keeps its scene: surfaces are Canvas with a CanvasText edge, ghost lines and
+   bars GrayText, and a badge a CanvasText disc with a Canvas glyph; the icon circle of an icon
+   EmptyMedia keeps its edge. */
+@media (forced-colors: active) {
+  [data-slot="alert"] {
+    outline: var(--ds-border-width) solid CanvasText;
+    outline-offset: calc(-1 * var(--ds-border-width));
+  }
+  [data-slot="banner"] {
+    outline: var(--ds-border-width) solid CanvasText;
+    outline-offset: calc(-1 * var(--ds-border-width));
+  }
+  [data-slot="skeleton"].bg-skeleton,
+  [data-slot="skeleton"] > .bg-skeleton {
+    forced-color-adjust: none;
+    background-color: GrayText;
+  }
+  [data-slot="progress-segment"]:focus-visible {
+    outline-color: Highlight;
+  }
+  [data-slot="empty-illustration"] {
+    forced-color-adjust: none;
+    color: CanvasText;
+  }
+  [data-slot="empty-illustration"] :is(.bg-surface, .bg-surface-raised, .bg-surface-sunken) {
+    background-color: Canvas;
+  }
+  [data-slot="empty-illustration"] :is(.border-default, .border-bold) {
+    border-color: CanvasText;
+  }
+  [data-slot="empty-illustration"] :is(.bg-skeleton, .bg-skeleton-subtle, .bg-neutral) {
+    background-color: GrayText;
+  }
+  [data-slot="empty-illustration"] :is(.bg-neutral-bold, .bg-success-bold, .bg-brand-bold) {
+    background-color: CanvasText;
+    color: Canvas;
+  }
+  [data-slot="empty-illustration"] .icon-subtle {
+    color: inherit;
+  }
+  [data-slot="empty-icon"][data-variant="icon"] {
+    outline: var(--ds-border-width) solid CanvasText;
+    outline-offset: calc(-1 * var(--ds-border-width));
+  }
+}
+
+/* CONTENT: Count, the avatar group's +n, a filled Avatar and the mark on its corner keep their
+   shapes when forced colours drop their fills (audit STS-14): a hairline outline inside each
+   pill and circle, and the corner mark drawn in CanvasText. A neutral Avatar has its own border.
+   The +n as a button takes the Highlight ring. */
+@media (forced-colors: active) {
+  [data-slot="count"],
+  [data-slot="avatar-group-count"],
+  [data-slot="avatar"]:not([data-variant="neutral"]) {
+    outline: var(--ds-border-width) solid CanvasText;
+    outline-offset: calc(-1 * var(--ds-border-width));
+  }
+  [data-slot="avatar-group-count"]:focus-visible {
+    outline: var(--ds-border-width-focused) solid Highlight;
+    outline-offset: var(--ds-space-025);
+  }
+  [data-slot="avatar-badge"] {
+    forced-color-adjust: none;
+    background-color: CanvasText;
+    color: Canvas;
+  }
+}
+
+/* SHELLPANEL: the Shell splitter (audit SHB-8). Its only indicator is a brand fill on a 4px band,
+   which forced colours drop, and it has no outline of its own. The band keeps a system colour:
+   Highlight while it is hovered, focused or dragged, so a High Contrast reader who tabs to it or
+   takes hold of it sees where the edge is. */
+@media (forced-colors: active) {
+  [data-slot="shell-splitter"] {
+    forced-color-adjust: none;
+    background-color: transparent;
+  }
+  [data-slot="shell-splitter"]:hover,
+  [data-slot="shell-splitter"]:focus-visible,
+  [data-slot="shell-splitter"][data-dragging] {
+    background-color: Highlight;
+  }
+}
+
+/* SHELLNAV: the side nav's current page stays visible (audit SHA-5, SHA-6). An expandable row that
+   holds the current page while its items are out of view (the group closed, or the icon rail) takes
+   the current item's Highlight fill; the rail's count dot keeps a system colour; the default mark
+   keeps its edge. */
+@media (forced-colors: active) {
+  [data-slot="shell-sidenav-expandable-trigger"][data-current] {
+    forced-color-adjust: none;
+    background-color: Highlight;
+    color: HighlightText;
+    outline-color: HighlightText;
+  }
+  [data-slot="shell-sidenav-expandable-trigger"][data-current] * {
+    color: HighlightText;
+  }
+  [data-slot="shell-sidenav-expandable-trigger"][data-current]:focus-visible {
+    outline-color: CanvasText;
+  }
+  [data-shell-area="sidenav"]
+    :is([data-slot="shell-sidenav-item"], [data-slot="shell-sidenav-expandable-trigger"])::after {
+    forced-color-adjust: none;
+    background-color: CanvasText;
+    box-shadow: 0 0 0 var(--ds-border-width-selected) Canvas;
+  }
+  [data-slot="shell-mark"] {
+    outline: var(--ds-border-width) solid CanvasText;
+    outline-offset: calc(-1 * var(--ds-border-width));
+  }
+}
+
+/* STRUCTURE: Timeline keeps its open event (audit STR-9). The event open beside the list
+   (Timeline.Item isActive, data-active on its row) draws its state with the selected fill, which
+   forced colours replace, so it takes the selected Tree row's Highlight fill with HighlightText
+   inside (a marker's Dot is drawn in the text colour, so it follows), and a focused title's ring
+   turns CanvasText. */
+@media (forced-colors: active) {
+  [data-slot="timeline-item"][data-active] {
+    forced-color-adjust: none;
+    background-color: Highlight;
+    color: HighlightText;
+  }
+  [data-slot="timeline-item"][data-active] * {
+    background-color: transparent;
+    border-color: HighlightText;
+    color: HighlightText;
+  }
+  [data-slot="timeline-item"][data-active] :focus-visible::after {
+    outline-color: CanvasText;
+  }
+}
+
+/* EDITING: Composer's suggestion list keeps its active option (audit EDT-15). The option the
+   arrow keys have reached (data-highlighted, the one Enter or Tab inserts) is a tint forced
+   colours remove, so it takes a floating list's highlighted row: Highlight, with HighlightText
+   inside. Editable's Try again, Discard, Cancel and Save are Buttons, which keep their bounds. */
+@media (forced-colors: active) {
+  [data-slot="composer-option"][data-highlighted] {
+    forced-color-adjust: none;
+    background-color: Highlight;
+    color: HighlightText;
+  }
+  [data-slot="composer-option"][data-highlighted] * {
+    background-color: transparent;
+    border-color: HighlightText;
+    color: HighlightText;
+  }
+}
+
+/* CHARTA: a chart's key keeps its colours (audit CHF-6, CHX-6). The svg marks keep theirs in a
+   forced-colours mode, while the legend's, the tooltip's and the details card's HTML swatches would
+   lose their fill to Canvas, and a name would no longer map to its mark. A swatch is outlined in
+   CanvasText, so a light hue still shows on the system background. */
+@media (forced-colors: active) {
+  [data-slot="chart-swatch"] {
+    forced-color-adjust: none;
+    outline: var(--ds-border-width) solid CanvasText;
+  }
+}
+
+/* CHARTB: a colour-scale Heatmap and its key keep their values (audit CHO-6). A cell's fill and a
+   Chart.Scale step's are the value itself, painted inline, and would turn to Canvas with the
+   values screen-reader-only: they keep their colours, outlined in CanvasText, and an empty cell
+   is a dashed GrayText box. The keyboard's ring on a chart mark (a Donut slice, a Treemap tile, a
+   Scatter point, drawn in the svg, which keeps its author colours) takes Highlight. */
+@media (forced-colors: active) {
+  [data-slot="chart-heatmap-cell"],
+  [data-slot="chart-scale-step"] {
+    forced-color-adjust: none;
+    outline: var(--ds-border-width) solid CanvasText;
+    outline-offset: calc(-1 * var(--ds-border-width));
+  }
+  [data-slot="chart-heatmap-cell"][data-empty] {
+    outline-style: dashed;
+    outline-color: GrayText;
+  }
+  circle[data-slot="chart-mark-focus"],
+  [data-slot="chart-mark-focus"] rect[stroke] {
+    stroke: Highlight;
+  }
+  path[data-slot="chart-mark-focus"] {
+    fill: Highlight;
+  }
+}
+
+/* CARDS: an Item's open row keeps its mark in any list (audit CNT-3). Its `isActive` fill is a tint
+   forced colours remove, so the row whose title carries aria-current is outlined in Highlight,
+   inside its edge. Only the row itself (the item's first child), not the rows nested under it. */
+@media (forced-colors: active) {
+  [data-slot="item"] > div:first-child:has([aria-current="true"]) {
+    outline: var(--ds-border-width-selected) solid Highlight;
+    outline-offset: calc(-1 * var(--ds-border-width-selected));
+  }
+}
+
+/* PREVIEWKIT: an unavailable previous or next step stays in the tab order with aria-disabled (audit
+   PRV-7), and forced colours draw such a button in live ButtonText, where a native disabled one
+   takes GrayText. It takes GrayText too, so the end of the results still reads as the end. */
+@media (forced-colors: active) {
+  [data-slot="preview-navigation"] button[aria-disabled="true"] {
+    color: GrayText;
+  }
+}

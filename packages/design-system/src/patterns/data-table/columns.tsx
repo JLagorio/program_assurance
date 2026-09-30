@@ -166,6 +166,12 @@ function LocalizedDate({ value, pattern }: { value: unknown; pattern: keyof type
     : formatDate(parsed, dateFormats[pattern]);
 }
 
+/** The row-actions column's heading, for assistive technology only. */
+function ActionsHeader() {
+  const { t } = useLedgerLocale();
+  return <span className="sr-only">{t("actions")}</span>;
+}
+
 export function columnKinds<TData extends RowData>() {
   const helper = createDataTableColumnHelper<TData>();
 
@@ -199,7 +205,15 @@ export function columnKinds<TData extends RowData>() {
       sortFn: sortOf("alphanumeric", sortBy),
       filterFn: "matches",
       ...shared({ pin, hideable, resizable }),
-      meta: { priority, pin, kind: "text", align: "start", wrap, editable: Boolean(editable) },
+      meta: {
+        priority,
+        pin,
+        kind: "text",
+        align: "start",
+        wrap,
+        editable: Boolean(editable),
+        sized: width !== undefined,
+      },
       cell: ({ row, getValue }) => {
         if (cell) return cell(row.original);
         const v = getValue();
@@ -253,7 +267,18 @@ export function columnKinds<TData extends RowData>() {
       sortFn: sortOf("alphanumeric", sortBy),
       filterFn: "matches",
       ...shared({ pin, hideable, resizable }),
-      meta: { priority, pin, kind: "id", align: "start", tone, preview, active, glance },
+      meta: {
+        priority,
+        pin,
+        kind: "id",
+        align: "start",
+        tone,
+        preview,
+        active,
+        glance,
+        // A code keeps its width; a name given a `minWidth` and no `width` grows with the others.
+        sized: width !== undefined || minWidth === undefined,
+      },
       cell: ({ row, getValue }) => (cell ? cell(row.original) : String(getValue())),
     });
 
@@ -272,17 +297,31 @@ export function columnKinds<TData extends RowData>() {
       cell,
       format: fmt = "integer",
       footer,
+      footerRows = "leaves",
     }: Shared<TData> & {
       format?: keyof typeof numberFormats | ((value: number) => string) | undefined;
-      /** A total in the footer: sum, mean, min, max, count, or your own over the rows shown. */
+      /** A total in the footer: sum, mean, min, max, count, or your own, over the rows the filters leave on every page. */
       footer?: Footer | ((rows: TData[]) => ReactNode) | undefined;
+      /**
+       * Which rows a tree's total counts: `leaves`, the rows with no parts, or `top`, the top-level
+       * rows, for a parent whose value already sums its parts. Either way the total is the same
+       * whatever is open or folded. `leaves` unsaid.
+       */
+      footerRows?: "leaves" | "top" | undefined;
     } = {},
   ) =>
     helper.accessor(read<TData>(key), {
       ...(footer
         ? {
             footer: ({ table }) => {
-              const rows = table.getPrePaginatedRowModel().rows.map((r) => r.original);
+              // The rows the filters leave, before grouping, folding or paging: a total never
+              // changes as a row opens or a page turns.
+              const filtered = table.getFilteredRowModel();
+              const rows = (
+                footerRows === "top"
+                  ? filtered.rows
+                  : filtered.flatRows.filter((r) => r.subRows.length === 0)
+              ).map((r) => r.original);
               if (typeof footer === "function") return footer(rows);
               const values = rows
                 .map((r): unknown => r[key])
@@ -305,7 +344,7 @@ export function columnKinds<TData extends RowData>() {
       filterFn: "inNumberRange",
       enableGlobalFilter: false,
       ...shared({ pin, hideable, resizable }),
-      meta: { priority, pin, kind: "number", align: "end" },
+      meta: { priority, pin, kind: "number", align: "end", sized: width !== undefined },
       cell: ({ row, getValue }) => {
         if (cell) return cell(row.original);
         const v = getValue();
@@ -340,7 +379,7 @@ export function columnKinds<TData extends RowData>() {
       filterFn: "dateRange",
       enableGlobalFilter: false,
       ...shared({ pin, hideable, resizable }),
-      meta: { priority, pin, kind: "date", align: "start" },
+      meta: { priority, pin, kind: "date", align: "start", sized: width !== undefined },
       cell: ({ row, getValue }) =>
         cell ? cell(row.original) : <LocalizedDate value={getValue()} pattern={fmt} />,
     });
@@ -400,6 +439,7 @@ export function columnKinds<TData extends RowData>() {
         kind: "status",
         align: "start",
         editable: Boolean(editable),
+        sized: width !== undefined,
         ...(statuses
           ? {
               statuses,
@@ -421,7 +461,11 @@ export function columnKinds<TData extends RowData>() {
               validate={editable.validate}
               render={(o) =>
                 o ? (
-                  <Badge variant="secondary" tone={toneFor({ ...row.original, [key]: o }, o)}>
+                  <Badge
+                    variant="secondary"
+                    size="xsmall"
+                    tone={toneFor({ ...row.original, [key]: o }, o)}
+                  >
                     {status.label(o)}
                   </Badge>
                 ) : (
@@ -430,10 +474,11 @@ export function columnKinds<TData extends RowData>() {
               }
             />
           );
+        // A row's status is the 16px xsmall badge, as every status drawn in a row is.
         return isAbsent(v) ? (
           <Absent />
         ) : (
-          <Badge variant="secondary" tone={toneFor(row.original, v)}>
+          <Badge variant="secondary" size="xsmall" tone={toneFor(row.original, v)}>
             {status.label(v)}
           </Badge>
         );
@@ -465,7 +510,7 @@ export function columnKinds<TData extends RowData>() {
       sortFn: sortOf("text", sortBy),
       filterFn: "matches",
       ...shared({ pin, hideable, resizable }),
-      meta: { priority, pin, kind: "person", align: "start" },
+      meta: { priority, pin, kind: "person", align: "start", sized: width !== undefined },
       cell: ({ row, getValue }) => {
         if (cell) return cell(row.original);
         const v = getValue();
@@ -529,12 +574,16 @@ export function columnKinds<TData extends RowData>() {
         pin,
         kind: "list",
         align: "start",
+        sized: width !== undefined,
         export: labels as (row: never) => string,
       },
       cell: ({ row, table }) => {
         const meta = table.options.meta;
-        const preview = table.getAllLeafColumns().find((c) => c.columnDef.meta?.kind === "id")
-          ?.columnDef.meta?.preview;
+        // The table's preview, from the hook or from the id column.
+        const preview =
+          meta?.preview?.onPreview ??
+          table.getAllLeafColumns().find((c) => c.columnDef.meta?.kind === "id")?.columnDef.meta
+            ?.preview;
         const opensDetail = opens === "detail" && Boolean(meta?.detail);
         const onOpen = opensDetail
           ? () => meta?.toggleDetail?.(row.id)
@@ -567,13 +616,13 @@ export function columnKinds<TData extends RowData>() {
   const actions = (rowActions: (row: TData) => RowAction[]) =>
     helper.display({
       id: "actions",
-      header: () => <span className="sr-only">Actions</span>,
+      header: () => <ActionsHeader />,
       size: minWidths.actions,
       minSize: minWidths.actions,
       enableSorting: false,
       enableHiding: false,
       enableResizing: false,
-      meta: { kind: "actions", align: "end", pin: "end", actions: rowActions },
+      meta: { kind: "actions", align: "end", pin: "end", actions: rowActions, sized: true },
     });
 
   /** Anything else: a bar, an icon, a composed cell. `sort` reads the value the column sorts by; without it the column does not sort. `pin`, `hideable` and `resizable` as on every kind. */
@@ -609,6 +658,7 @@ export function columnKinds<TData extends RowData>() {
       pin,
       kind: "custom" as const,
       align,
+      sized: width !== undefined,
       export: text as ((row: never) => string) | undefined,
     };
     return sort

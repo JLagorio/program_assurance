@@ -18,28 +18,37 @@
   align-self: flex-start;
   max-height: var(
     --rail-max-height,
-    calc(100vh - var(--shell-top, var(--ds-dimension-layout-topnav)) - var(--ds-space-600))
+    calc(100dvh - var(--shell-top, var(--ds-dimension-layout-topnav)) - var(--ds-space-600))
   );
 }
-/* A work surface that fills the viewport under the shell's header and a page header. */
+/* A work surface that fills the viewport under the shell's header and a page header. The dynamic
+   viewport, as fill-window, so a phone's browser bar never hides its end. */
 @utility min-h-work {
   min-height: calc(
-    100vh - var(--shell-top, var(--ds-dimension-layout-topnav)) - var(--ds-space-1000) -
+    100dvh - var(--shell-top, var(--ds-dimension-layout-topnav)) - var(--ds-space-1000) -
       var(--ds-space-600)
   );
 }
 /* A register that is the page's one block takes the rest of the window, and its rows scroll
    inside it. The block measures its own offset from the top of the document into --fill-top
    (useFillWindow); the shell's main area publishes the inset under the page. Never shorter than
-   a header, six rows and the pagination: past that the page scrolls again. */
+   its toolbar row, a header, six rows and the pagination: past that the page scrolls again. */
 @utility fill-window {
+  /* PAGE (PGL-9): the toolbar's row, when the block has one, counts toward the floor. */
+  --fill-chrome: 0px;
   display: flex;
   flex-direction: column;
   min-height: 0;
   height: max(
-    calc(var(--ds-dimension-row-header) + 6 * var(--ds-dimension-row) + var(--ds-space-600)),
+    calc(
+      var(--fill-chrome) + var(--ds-dimension-row-header) + 6 * var(--ds-dimension-row) +
+        var(--ds-space-600)
+    ),
     calc(100dvh - var(--fill-top, 0px) - var(--shell-inset-bottom, 0px))
   );
+  &:has(> [data-slot="data-table-toolbar"]) {
+    --fill-chrome: calc(var(--ds-dimension-control-medium) + var(--ds-space-200));
+  }
 }
 
 /* The page header: the Lead across the row, then what names the page beside its actions. The
@@ -79,6 +88,28 @@
     max-inline-size: 100%;
     margin-inline-start: auto;
   }
+  /* PAGE (PGL-5): a divided header draws its rule space.100 above its own end, so what follows
+     starts space.100 below the rule whatever it is (text, a table, a composed part) and the
+     content's own flow is untouched. A collapsible Section spaces its content inside the fold
+     instead, so a closed one ends at the rule. */
+  &[data-divided] {
+    position: relative;
+    padding-block-end: calc(2 * var(--ds-space-100) + var(--ds-border-width));
+  }
+  &[data-divided]::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: var(--ds-space-100);
+    border-block-end: var(--ds-border-width) solid var(--ds-color-border);
+    pointer-events: none;
+  }
+  [data-collapsible] > &[data-divided] {
+    padding-block-end: calc(var(--ds-space-100) + var(--ds-border-width));
+  }
+  [data-collapsible] > &[data-divided]::after {
+    inset-block-end: 0;
+  }
 }
 
 /* A bar that stays put under the shell's header while the page scrolls: the ActionBar. */
@@ -87,12 +118,26 @@
   top: var(--shell-top, var(--ds-dimension-layout-topnav));
 }
 
-/* Keep keyboard-focused controls clear of sticky application furniture when scrolled into view. */
-:where(input, textarea, select, button, a[href], [tabindex]):focus-visible {
-  scroll-margin-block: calc(
-      var(--shell-top, var(--ds-dimension-layout-topnav)) + var(--ds-space-200)
-    )
+/* PAGE (G5-2): the page keeps what focus or an anchor scrolls into view clear of the shell's sticky
+   banner and top nav, and of its bottom inset. The padding is the document scroller's own, so it
+   moves the page only: a dialog, a sheet, a panel or a short list inside the page scrolls a focused
+   row fully into its own view, with no margin taller than itself. A banner the shell measured
+   taller than its token is covered by the top nav's allowance of space.200. */
+html:has(.shell-root) {
+  scroll-padding-block: calc(var(--ds-dimension-layout-topnav) + var(--ds-space-200))
     var(--ds-space-1000);
+}
+html:has(.shell-root > [data-slot="shell-banner"]) {
+  scroll-padding-block-start: calc(
+    var(--ds-dimension-layout-banner) + var(--ds-dimension-layout-topnav) + var(--ds-space-200)
+  );
+}
+/* Under 30rem tall the banner and the top nav scroll away with the page (shell.css). */
+@media (height < 30rem) {
+  html:has(.shell-root),
+  html:has(.shell-root > [data-slot="shell-banner"]) {
+    scroll-padding-block: var(--ds-space-200);
+  }
 }
 
 /* A relationship chooser owns its internal preview, independently of the page shell. Below the

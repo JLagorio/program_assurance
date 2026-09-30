@@ -7,16 +7,15 @@ import {
   DataTable,
   LinkButton,
   PageHeader,
-  Stack,
   defineColumns,
-  downloadText,
-  toCsv,
+  downloadCsv,
   useDataTable,
 } from "@ledger/design-system";
 import { Plus } from "lucide-react";
 import { useRows, type Row } from "@/lib/models";
 import { labelFor } from "@/lib/records";
 import { programStatuses } from "@/lib/status";
+import { Page } from "@/components/app/shell";
 import { useWorkspace } from "@/components/app/workspace";
 import { StatusBadge } from "@/components/app/status";
 
@@ -131,10 +130,10 @@ function ProgramList() {
   const loading = programs.isPending || systems.isPending || parties.isPending;
   const canCreate = workspace.role !== "viewer";
   function download() {
-    downloadText(toCsv(table), "programs.csv", { type: "text/csv;charset=utf-8", bom: true });
+    downloadCsv(table, "programs.csv");
   }
   return (
-    <Stack space="space.200" className="min-w-0">
+    <Page>
       <PageHeader>
         <PageHeader.Heading>
           <PageHeader.Title>Programs</PageHeader.Title>
@@ -211,6 +210,6 @@ function ProgramList() {
           ]}
         />
       )}
-    </Stack>
+    </Page>
   );
 }

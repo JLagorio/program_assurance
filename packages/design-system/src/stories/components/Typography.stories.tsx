@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { createRef } from "react";
 import { expect, within } from "storybook/test";
 
 import { Absent, Eyebrow, KeyValue, Prose, tones } from "../../components";
@@ -263,5 +264,41 @@ export const AbsentLabelled: Story = {
       "data-slot",
       "visually-hidden",
     );
+  },
+};
+
+const eyebrowRef = createRef<HTMLElement>();
+const url = "https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final/controls/ac-2.4_smt.a_param-01_odp";
+
+/** Native props, a class and a ref reach the Eyebrow's element, whichever `as` names, and it names itself last with `data-slot="eyebrow"`. */
+export const EyebrowNativeAttributes: Story = {
+  render: () => (
+    <Eyebrow ref={eyebrowRef} as="h3" data-testid="eyebrow" title="Schedule" className="pb-050">
+      Schedule
+    </Eyebrow>
+  ),
+  play: async ({ canvasElement }) => {
+    const eyebrow = within(canvasElement).getByTestId("eyebrow");
+    await expect(eyebrowRef.current).toBe(eyebrow);
+    await expect(eyebrow.tagName).toBe("H3");
+    await expect(eyebrow).toHaveAttribute("data-slot", "eyebrow");
+    await expect(eyebrow).toHaveAttribute("title", "Schedule");
+    await expect(eyebrow).toHaveClass("pb-050", "uppercase");
+  },
+};
+
+/** Authored text wraps at the measure, and an unbroken token in it (a URL, a hash) breaks where it must, so Prose never pushes its column wider. */
+export const ProseLongContent: Story = {
+  render: () => (
+    <Box style={{ width: 280 }} data-testid="column">
+      <Prose label="Source">{`Taken from the control catalog at ${url} on import.`}</Prose>
+    </Box>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const column = canvas.getByTestId("column").getBoundingClientRect();
+    const paragraph = canvas.getByText(/Taken from the control catalog/);
+    await expect(paragraph.getBoundingClientRect().right).toBeLessThanOrEqual(column.right + 0.5);
+    await expect(paragraph.scrollWidth).toBeLessThanOrEqual(paragraph.clientWidth + 1);
   },
 };

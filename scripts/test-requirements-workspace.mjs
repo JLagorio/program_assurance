@@ -130,10 +130,10 @@ async function assertRequirementForm(surface, header, current) {
     (await form.getByRole("button", { name: /^Title:/ }).innerText()).includes(current.title),
     "The authored title belongs to the inline form",
   );
+  // A multiline value is its text beside an Edit button, not one button named after the value.
+  await form.getByRole("button", { name: "Edit Statement", exact: true }).waitFor();
   assert.ok(
-    (await form.getByRole("button", { name: /^Statement:/ }).innerText()).includes(
-      current.statement,
-    ),
+    (await form.innerText()).includes(current.statement),
     "The inline form shows the exact recorded statement",
   );
   for (const label of ["Requirement type", "Owner"])
@@ -191,7 +191,8 @@ try {
   assert.equal(restoredView.sizing.code, 190, "Valid saved widths survive removed columns");
   assert.equal(restoredView.visibility.owner, false);
   assert.equal(restoredView.density, "compact");
-  await page.getByRole("button", { name: "Saved views", exact: true }).click();
+  // The views trigger is named by the view it shows; "Saved views" is its description.
+  await page.getByRole("button", { name: /^All requirements/ }).click();
   await page.getByRole("menuitemradio", { name: /^All requirements/ }).waitFor();
   assert.equal(await page.getByRole("menuitemradio", { name: /Draft revisions/ }).count(), 0);
   await page.keyboard.press("Escape");
@@ -234,9 +235,12 @@ try {
   );
   assert.ok(firstIds.length > 1);
   await recordRows.first().hover();
-  await recordRows.first().getByRole("button", { name: "Preview row", exact: true }).click();
+  await recordRows
+    .first()
+    .getByRole("button", { name: /^Preview / })
+    .click();
   const panel = page.locator('[data-shell-area="panel"]');
-  await panel.getByRole("tab", { name: "Statement", exact: true }).waitFor();
+  await panel.getByRole("tab", { name: "Overview", exact: true }).waitFor();
   assert.equal(new URL(page.url()).searchParams.get("requirementId"), firstIds[0]);
   const firstDetails = latest.get(firstIds[0]);
   assert.ok(firstDetails);
@@ -247,7 +251,7 @@ try {
   });
   await panel.getByRole("button", { name: "Next requirement", exact: true }).click();
   await page.waitForURL((url) => url.searchParams.get("requirementId") === firstIds[1]);
-  await panel.getByRole("tab", { name: "Statement", exact: true }).waitFor();
+  await panel.getByRole("tab", { name: "Overview", exact: true }).waitFor();
   await panel.getByRole("button", { name: "Previous requirement", exact: true }).click();
   await page.waitForURL((url) => url.searchParams.get("requirementId") === firstIds[0]);
   await panel.getByRole("tab", { name: "Evidence", exact: true }).click();
@@ -267,10 +271,18 @@ try {
   await fullPage.getByRole("tab", { name: "Evidence", exact: true }).waitFor();
   assert.equal(new URL(fullPage.url()).searchParams.get("tab"), "Evidence");
   assert.equal(new URL(fullPage.url()).searchParams.has("revisionId"), false);
-  await fullPage.getByRole("tab", { name: "Statement", exact: true }).click();
-  await assertRequirementForm(fullPage, fullPage.locator("header.page-header"), firstDetails);
+  await fullPage.getByRole("tab", { name: "Overview", exact: true }).click();
+  await assertRequirementForm(
+    fullPage,
+    fullPage.locator('[data-slot="page-header"]'),
+    firstDetails,
+  );
   await fullPage.reload();
-  await assertRequirementForm(fullPage, fullPage.locator("header.page-header"), firstDetails);
+  await assertRequirementForm(
+    fullPage,
+    fullPage.locator('[data-slot="page-header"]'),
+    firstDetails,
+  );
   await fullPage.getByRole("tab", { name: "Edit history", exact: true }).click();
   await fullPage.waitForURL((url) => url.searchParams.get("tab") === "Edit history");
   await fullPage.getByRole("heading", { name: "Edit history", exact: true }).waitFor();
@@ -283,8 +295,12 @@ try {
     `${origin}/programs/${programId}/requirements/${firstIds[0]}?tab=History&revisionId=00000000-0000-0000-0000-000000000000`,
   );
   await fullPage.getByRole("heading", { name: "Edit history", exact: true }).waitFor();
-  await fullPage.getByRole("tab", { name: "Statement", exact: true }).click();
-  await assertRequirementForm(fullPage, fullPage.locator("header.page-header"), firstDetails);
+  await fullPage.getByRole("tab", { name: "Overview", exact: true }).click();
+  await assertRequirementForm(
+    fullPage,
+    fullPage.locator('[data-slot="page-header"]'),
+    firstDetails,
+  );
   await fullPage.close();
   await panel.focus();
   await page.keyboard.press("Escape");
@@ -296,8 +312,8 @@ try {
   );
   await recordRows.first().getByRole("link", { name: first.code, exact: true }).click();
   await page.waitForURL((url) => url.pathname.includes(`/requirements/${firstIds[0]}`));
-  await page.getByRole("tab", { name: "Statement", exact: true }).waitFor();
-  await assertRequirementForm(page, page.locator("header.page-header"), firstDetails);
+  await page.getByRole("tab", { name: "Overview", exact: true }).waitFor();
+  await assertRequirementForm(page, page.locator('[data-slot="page-header"]'), firstDetails);
   if (currentDecomposition) {
     const parentRecord = byRevision.get(currentDecomposition.parent_requirement_revision_id);
     const childRecord = byRevision.get(currentDecomposition.child_requirement_revision_id);

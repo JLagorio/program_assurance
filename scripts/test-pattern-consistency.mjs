@@ -6,7 +6,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium } from "playwright";
 import { expect as playwrightExpect } from "playwright/test";
+import { checkFailedLoads } from "./tests/failed-loads.mjs";
 import { localWorkspace } from "./tests/local-workspace.mjs";
+import { checkRetainedTabs } from "./tests/retained-tabs.mjs";
 
 const origin = process.env.APP_TEST_URL || "http://127.0.0.1:8080";
 assert.ok(["127.0.0.1", "localhost"].includes(new URL(origin).hostname));
@@ -295,8 +297,7 @@ try {
   ]);
   // The second pass above leaves descending order: Zeta, Pattern, Alpha.
   const supplierEye = tableRow(supplierTable, supplier.id).getByRole("button", {
-    name: "Preview row",
-    exact: true,
+    name: /^Preview /,
   });
   await supplierEye.focus();
   await page.keyboard.press("Enter");
@@ -304,7 +305,7 @@ try {
   await expect(
     supplierPanel.getByRole("heading", { name: supplier.name, exact: true }),
   ).toBeVisible();
-  await expect(supplierPanel.getByRole("status")).toHaveText("2 of 3 records");
+  await expect(supplierPanel.getByRole("status")).toHaveText(`${supplier.name}, 2 of 3 records`);
   await expect(
     supplierPanel.getByRole("link", { name: "Open full record in new tab" }),
   ).toHaveAttribute("href", `/records/parties/${supplier.id}`);
@@ -325,9 +326,11 @@ try {
   await page
     .getByRole("searchbox", { name: "Search organizations", exact: true })
     .fill(supplier.name);
-  await expect(supplierPanel.getByRole("status")).toHaveText("Record outside the current results");
+  await expect(supplierPanel.getByRole("status")).toHaveText(
+    `${zetaSupplier.name}, outside the current results`,
+  );
   await expect(supplierPanel.getByRole("button", { name: "Next record" })).toBeDisabled();
-  await supplierPanel.getByRole("button", { name: "Close details", exact: true }).click();
+  await supplierPanel.getByRole("button", { name: /^Close (details|.+ preview)$/ }).click();
   await page
     .getByRole("searchbox", { name: "Search organizations", exact: true })
     .fill("No matching supplier");
@@ -335,14 +338,14 @@ try {
   await expect(supplierTable.locator("tbody tr[data-row-id]")).toHaveCount(3);
   await page.setViewportSize({ width: 390, height: 844 });
   await tableRow(supplierTable, supplier.id)
-    .getByRole("button", { name: "Preview row", exact: true })
+    .getByRole("button", { name: /^Preview / })
     .click();
   await expect(
     supplierPanel.getByRole("heading", { name: supplier.name, exact: true }),
   ).toBeVisible();
   await expect(supplierPanel.getByRole("button", { name: "Previous record" })).toBeVisible();
   await page.screenshot({ path: join(screenshots, "supplier-preview-390.png") });
-  await supplierPanel.getByRole("button", { name: "Close details", exact: true }).click();
+  await supplierPanel.getByRole("button", { name: /^Close (details|.+ preview)$/ }).click();
   await page.setViewportSize({ width: 1600, height: 1000 });
   console.log(
     "PASS supplier preview follows sorted/filtered rows, endpoints, real links and mobile layout",
@@ -390,6 +393,18 @@ try {
   await expect(organizationSearch).toHaveValue(supplier.name);
   await expect(tableRow(supplierTable, supplier.id)).toBeVisible();
   console.log("PASS failed refresh retains records and table state through Retry");
+  // The same recovery on other registers, a record page's secondary collection, a picker in a
+  // dialog, and a register the server searches (G4-19).
+  await checkFailedLoads(page, {
+    origin,
+    registers: [
+      { path: "/evidence", table: "evidence_artifacts", heading: "Evidence" },
+      { path: "/work", table: "tasks", heading: "My work" },
+      { path: "/programs", table: "programs", heading: "Programs" },
+    ],
+    program: { id: program.id, name: program.name },
+    search: { path: "/records/parties", table: "parties", term: "Zeta" },
+  });
   await page.goto(`${origin}/programs/${program.id}?tab=Schedule`);
   await expect(page.getByRole("heading", { name: "Lifecycle gates", exact: true })).toBeVisible();
   await expect(
@@ -397,6 +412,7 @@ try {
   ).toBeVisible();
   await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
   console.log("PASS Schedule has one page heading");
+  await checkRetainedTabs(page, { origin, programId: program.id, term: suffix });
 
   await page.goto(`${origin}/evidence`);
   const evidenceTable = page.getByRole("table", { name: "Evidence", exact: true });
@@ -408,8 +424,7 @@ try {
   );
   const artifact = samples[3].artifact;
   const evidenceOpener = tableRow(evidenceTable, artifact.id).getByRole("button", {
-    name: "Preview row",
-    exact: true,
+    name: /^Preview /,
   });
   await evidenceOpener.focus();
   await expect(evidenceOpener).toBeFocused();
@@ -421,12 +436,14 @@ try {
     preview.getByRole("link", { name: "Open full record in new tab", exact: true }),
   ).toHaveAttribute("href", `/records/evidence_artifacts/${artifact.id}`);
   await expect(preview.locator('[data-slot="preview-navigation"]').getByRole("status")).toHaveText(
-    "3 of 4 records",
+    `${artifact.title}, 3 of 4 records`,
   );
   await preview.getByRole("button", { name: "Next record", exact: true }).click();
   const lastEvidence = page.locator('[data-shell-area="panel"]');
   await expect(lastEvidence).toBeVisible();
   await expect(lastEvidence.getByRole("button", { name: "Next record" })).toBeDisabled();
+  // Away from Next, so its tooltip is not what Escape closes first.
+  await page.mouse.move(0, 0);
   await page.keyboard.press("Escape");
   await expect(lastEvidence).toBeHidden();
   await expect(
@@ -438,8 +455,7 @@ try {
   await page.getByPlaceholder("Find a control").fill(control.code);
   const catalogTable = page.getByRole("table", { name: "Catalog controls", exact: true });
   const catalogOpener = tableRow(catalogTable, control.id).getByRole("button", {
-    name: "Preview row",
-    exact: true,
+    name: /^Preview /,
   });
   await catalogOpener.focus();
   await expect(catalogOpener).toBeFocused();
@@ -629,7 +645,7 @@ try {
     .getByRole("searchbox", { name: "Find selected controls", exact: true })
     .fill(sspControl.code);
   await tableRow(sspTable, sspSelection.id)
-    .getByRole("button", { name: "Preview row", exact: true })
+    .getByRole("button", { name: /^Preview / })
     .click();
   const sspPanel = page.locator('[data-shell-area="panel"]');
   await expect(
@@ -700,7 +716,7 @@ try {
     stored.map((row) => row.description),
     ["Stored control narrative"],
   );
-  await sspPanel.getByRole("button", { name: "Close details", exact: true }).click();
+  await sspPanel.getByRole("button", { name: /^Close (details|.+ preview)$/ }).click();
   console.log("PASS failed SSP refresh keeps the open narrative draft, its focus and the register");
 
   // Choosing another SSP revision redraws the register and keeps focus on the picker.

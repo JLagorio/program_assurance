@@ -15,6 +15,32 @@ Use it for something that happens on this page: saving, opening a dialog or a me
 
 Leading and trailing icons use a smaller inset on their own side; icon-only controls stay centered. Open popup triggers retain their pressed surface through `aria-expanded` while the popup is open. Toggle selection continues to use `aria-pressed`.
 
+## Choosing between them
+
+| Need | Part |
+| --- | --- |
+| Something happens on this page: save, open a dialog or a menu, change state | Button |
+| The same, shown only as an icon | [IconButton](?path=/docs/components-iconbutton--docs) |
+| Go somewhere, with a button's look | [LinkButton](?path=/docs/components-linkbutton--docs) or LinkIconButton |
+| Go somewhere from inside a sentence, or a record's name in a row | [TextLink](?path=/docs/components-textlink--docs) |
+| One setting that is on or off | [Toggle](?path=/docs/components-toggle--docs) or [Switch](?path=/docs/components-switch--docs) |
+| One choice among a few, shown at once | [ToggleGroup](?path=/docs/components-togglegroup--docs) |
+| Copy a value | [CopyButton](?path=/docs/components-copybutton--docs) |
+
+## Hierarchy
+
+One primary per region: a page header, a dialog footer, a toolbar, a card. It is the action the region exists for, and the reader finds it without reading the rest. Every other action beside it is secondary, or subtle where there are several; a destructive action is `danger`, and its confirmation's primary is `danger` too. When a region seems to need two primaries, one of them belongs in an overflow menu or in another region.
+
+<Canvas of={Stories.Emphasis} />
+
+## Content
+
+- **Name what happens, as a verb and its object:** “Create requirement revision”, “Export report”, “Remove allocation”. The trigger, the dialog's title and its primary use the same words.
+- **Never OK, Submit, Save or Yes alone.** A reader who lands on the button hears only its name.
+- **Sentence case, no end punctuation,** and short enough for one line: a label that needs to wrap is a sentence, and belongs in the region's text.
+- **The visible words are the name.** Do not put `aria-label` on a Button that shows text: a speech-input user says the words they see (WCAG 2.5.3, Label in Name). Add context with `aria-describedby` instead. A Button whose `aria-label` leaves out its visible text says so once in the console, with a message that starts “Ledger:”.
+- **Keep the label while loading.** Do not swap it for “Saving…”: `isLoading` keeps the name and the width, and `loadingLabel` says what is happening.
+
 ## Variants and sizes
 
 | Variant | Use |
@@ -31,17 +57,19 @@ Leading and trailing icons use a smaller inset on their own side; icon-only cont
 | `small` | 28px | Toolbars and rows. |
 | `xsmall` | 24px | Dense inline actions. |
 
-The `link` variant has no fixed height. `iconBefore` and `iconAfter` take an icon element; Button sizes it to 14px and keeps a 6px gap. `isSelected` applies the selected palette and `aria-pressed`.
+The `link` variant has no fixed height and ignores `size`: it is as tall as its text. `iconBefore` and `iconAfter` take an icon element; Button sizes it to 14px and keeps a 6px gap. `isSelected` applies the selected palette and `aria-pressed`.
 
-<Canvas of={Stories.Emphasis} />
+The family shares one height axis: `xsmall` 24px, `small` 28px and `medium` 32px on Button, IconButton, LinkButton and LinkIconButton, and the icon-only two add `xxsmall`, the 20px row control. Button defaults to `medium` and IconButton to `small`, so an IconButton beside a default Button takes `size="medium"`. Toggle and ToggleGroup name the same heights the shadcn way: `sm` is 28px, `default` 32px, and `lg` a 36px step Button does not have. ButtonGroupText takes the `size` of the controls beside it.
 
 ## Loading and forms
 
 Button defaults to `type="button"`. Set `type="submit"` for a form's submit action. Native form attributes, event handlers and refs reach the button element. `isFullWidth` fills its container.
 
-`isLoading` replaces the leading icon with a decorative spinner and retains the label. It sets `aria-busy`, blocks activation and preserves focus while work is pending. An explicitly `disabled` button remains disabled and leaves the normal tab order. Base UI's `focusableWhenDisabled` is available when a disabled action needs to remain focusable.
+`isLoading` blocks activation and preserves focus while work is pending, and the button keeps its width and its name. The decorative spinner takes the leading icon's place; without one, the trailing icon's; without either, it sits over the label, which keeps its space and stays the accessible name. It sets `aria-busy`, which the major screen readers do not announce, so pass `loadingLabel` (“Saving requirement revision”) to say once, through the page's polite live region, what started; leave it out when a toast or a status on the page already says it. Do not also pass the pending flag to `disabled`: an explicitly `disabled` button remains disabled and leaves the normal tab order, so focus falls to the page (`ledger/no-disabled-while-loading` reports it). Base UI's `focusableWhenDisabled` is available when a disabled action needs to remain focusable.
 
 <Canvas of={Stories.Loading} />
+
+<Canvas of={Stories.LoadingKeepsItsWidth} />
 
 ## Disabled with a reason
 
@@ -69,7 +97,7 @@ Navigation is a [LinkButton](?path=/docs/components-linkbutton--docs): an anchor
 </LinkButton>
 ```
 
-`buttonVariants` is the lower-level recipe LinkButton uses. It accepts `variant`, `size`, `isSelected`, `isFullWidth` and `className`, and supplies classes without adding ARIA, icon insets or disabled behavior; reach for it only where a part cannot take LinkButton. Existing `Button asChild` and `IconButton asChild` usages move to LinkButton or LinkIconButton for navigation, or to `render` for an action control.
+`buttonVariants` is the lower-level recipe LinkButton uses. It accepts `variant`, `size`, `isSelected`, `isFullWidth` and `className`, and supplies classes without adding ARIA, icon insets or disabled behavior; reach for it only where a part cannot take LinkButton.
 
 <Canvas of={Stories.AsLink} />
 
@@ -77,7 +105,9 @@ Navigation is a [LinkButton](?path=/docs/components-linkbutton--docs): an anchor
 
 - Tab reaches an enabled button. Enter and Space activate it; the focus outline appears on keyboard focus.
 - Disabled buttons are skipped by Tab by default. For an action that cannot run, `disabledReason` keeps it focusable with `aria-disabled` and gives it the reason as its description; for form validation, keep the submit action available so the form can report errors.
-- Loading blocks click, Enter and Space activation, including handlers on the rendered action. It keeps the accessible name stable.
+- Loading blocks click, Enter and Space activation, including handlers on the rendered action. It keeps the accessible name and the width stable, and `loadingLabel` is announced when it starts.
+- A button that is unavailable but stays focusable (loading, `disabledReason` or `focusableWhenDisabled`) blocks activation only: Escape still reaches the panel, side nav or dialog around it.
+- In forced colours a primary, secondary or danger button keeps a ButtonText edge, a selected one is Highlight, and the spinner takes the text colour.
 - Use [IconButton](?path=/docs/components-iconbutton--docs) for an icon only action with a required accessible label, and [Toggle](?path=/docs/components-toggle--docs) for an on/off control.
 - `variant="link"` is as tall as its text. Where any pointer is coarse it takes an invisible hit area of at least 24px, centred on it, so nothing around it moves.
 
@@ -94,3 +124,7 @@ Navigation is a [LinkButton](?path=/docs/components-linkbutton--docs): an anchor
 ## Related
 
 [IconButton](?path=/docs/components-iconbutton--docs) · [LinkButton](?path=/docs/components-linkbutton--docs) · [CopyButton](?path=/docs/components-copybutton--docs) · [ButtonGroup](?path=/docs/components-buttongroup--docs) · [TextLink](?path=/docs/components-textlink--docs) · [DropdownMenu](?path=/docs/components-dropdownmenu--docs) · [AlertDialog](?path=/docs/components-alertdialog--docs) · [Forms](?path=/docs/patterns-forms--docs)
+
+## Don't
+
+<Canvas of={Stories.Dont} />

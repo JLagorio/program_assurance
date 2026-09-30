@@ -165,7 +165,7 @@ try {
       await page.keyboard.press("End");
     }
   }
-  await preview.getByRole("button", { name: "Close details", exact: true }).click();
+  await preview.getByRole("button", { name: /^Close (details|.+ preview)$/ }).click();
   await expect(preview).toHaveCount(0);
   await expect(table()).toBeVisible();
   await expect
@@ -179,7 +179,7 @@ try {
     .toBe(true);
   const mobileRow = table().locator(`tr[data-row-id="${child.id}"]`);
   await expect(mobileRow.getByRole("link", { name: edited.name, exact: true })).toBeVisible();
-  await expect(mobileRow.getByRole("button", { name: "Preview row", exact: true })).toBeVisible();
+  await expect(mobileRow.getByRole("button", { name: /^Preview / })).toBeVisible();
   const moreFields = mobileRow.getByRole("button", {
     name: `More fields for ${child.code}`,
     exact: true,

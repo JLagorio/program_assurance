@@ -15,6 +15,7 @@ import {
   Id,
   Inline,
   KeyValue,
+  Prose,
   Stack,
   Text,
   VisuallyHidden,
@@ -74,7 +75,7 @@ function StepCard({
   );
 }
 
-/** Step 4: a checkout summary. One card per step, what it amounts to, and Edit to go back; nothing entered is restated in full. */
+/** Step 4: a checkout summary. One card per step, what it amounts to, and Edit to go back; the counts stand for the lists, and only the mission is authored text, shown whole. */
 export function ReviewStep({
   draft,
   data,
@@ -142,9 +143,10 @@ export function ReviewStep({
           <KeyValue label="Code">
             <Id>{draft.code}</Id>
           </KeyValue>
+          {/* Authored text is read whole: a cut mission has no way to the rest of it. */}
           {draft.description ? (
             <KeyValue label="Mission" wrap>
-              <Text maxLines={2}>{draft.description}</Text>
+              <Prose>{draft.description}</Prose>
             </KeyValue>
           ) : null}
           <KeyValue label="Sponsor">{person(party(draft.sponsorPartyId))}</KeyValue>

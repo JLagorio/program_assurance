@@ -77,14 +77,10 @@ export function ProductConfigurationPicker({
   const chosen = items.find((item) => item.id === chosenId) ?? null;
   const table = useDataTable({
     columns,
-    selectable: true,
-    enableMultiRowSelection: false,
-    state: { rowSelection: chosenId ? { [chosenId]: true } : {} },
-    onRowSelectionChange: (update) => {
-      const next =
-        typeof update === "function" ? update(chosenId ? { [chosenId]: true } : {}) : update;
-      setChosenId(Object.keys(next).find((id) => next[id]) ?? null);
-    },
+    // One record: a radio per row, and a click on the row chooses it.
+    selectable: "single",
+    value: chosenId,
+    onValueChange: setChosenId,
     data: rows,
     getRowId: (row) => row.id,
     rowLabel: (row) => `${row.productName} · ${row.configurationName}`,
@@ -101,7 +97,6 @@ export function ProductConfigurationPicker({
       width="xlarge"
       table={table}
       search={{ placeholder: "Search products" }}
-      summary={chosen ? `${chosen.productName} · ${chosen.configurationName} chosen` : undefined}
       action={{
         label:
           actionLabel ??
@@ -119,7 +114,6 @@ export function ProductConfigurationPicker({
         responsive
         table={table}
         state={pending ? "loading" : "ready"}
-        onRowClick={(row) => setChosenId(row.id)}
         empty={{
           illustration: "records",
           title: "Nothing published to add",

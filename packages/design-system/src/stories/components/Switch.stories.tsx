@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useId, createRef, useState } from "react";
+import { createRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import {
@@ -29,12 +29,12 @@ type Story = StoryObj<typeof meta>;
 
 const blockedChange = fn();
 
-/** Sizes, checked states, disabled and read-only behavior, plus cancellation and RTL. */
+/** Sizes, checked states, disabled and read-only behavior, plus cancellation and RTL. A read-only switch that is on takes the neutral fill, not the brand one. */
 export const SwitchMatrix: Story = {
   render: () => (
     <Stack space="space.300">
       <Grid
-        rows={["default", "sm"] as const}
+        rows={["medium", "small"] as const}
         cols={["off", "on", "disabled", "read-only"] as const}
         rowLabel="size"
         render={(size, state) => (
@@ -56,6 +56,10 @@ export const SwitchMatrix: Story = {
           Program-managed notifications
         </label>
       </Specimens>
+      <Specimens title="The shadcn spellings, deprecated">
+        <Switch size="default" aria-label="Legacy default" />
+        <Switch size="sm" aria-label="Legacy sm" />
+      </Specimens>
       <LedgerProvider direction="rtl">
         <label className="inline-flex items-center gap-100 px-150">
           <Switch /> RTL notifications
@@ -68,8 +72,8 @@ export const SwitchMatrix: Story = {
     const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
     blockedChange.mockClear();
     for (const [size, width, height, thumbSize, travel] of [
-      ["default", 32, 20, 16, 12],
-      ["sm", 24, 16, 12, 8],
+      ["medium", 32, 20, 16, 12],
+      ["small", 24, 16, 12, 8],
     ] as const) {
       const off = canvas.getByRole("switch", { name: `${size} off` });
       const thumb = off.querySelector<HTMLElement>('[data-slot="switch-thumb"]')!;
@@ -112,6 +116,11 @@ export const SwitchMatrix: Story = {
       await expect(disabled).toBeChecked();
       const readOnly = canvas.getByRole("switch", { name: `${size} read-only` });
       await expect(readOnly).toHaveAttribute("aria-readonly", "true");
+      await expect(off).toHaveAttribute("data-size", size);
+      if (!matchMedia("(forced-colors: active)").matches)
+        await expect(getComputedStyle(readOnly).backgroundColor).not.toBe(
+          getComputedStyle(canvas.getByRole("switch", { name: `${size} on` })).backgroundColor,
+        );
       await userEvent.click(readOnly);
       await userEvent.keyboard("{Enter} ");
       await expect(readOnly).toBeChecked();
@@ -120,6 +129,15 @@ export const SwitchMatrix: Story = {
       await expect(readOnly).toHaveFocus();
     }
     await expect(blockedChange).not.toHaveBeenCalled();
+    // The shadcn spellings still render at their sizes and report the kit's words.
+    for (const [name, size, width] of [
+      ["Legacy default", "medium", 32],
+      ["Legacy sm", "small", 24],
+    ] as const) {
+      const legacy = canvas.getByRole("switch", { name });
+      await expect(legacy).toHaveAttribute("data-size", size);
+      await expect(legacy.getBoundingClientRect().width).toBe(width);
+    }
     const managed = canvas.getByRole("switch", { name: "Program-managed notifications" });
     await userEvent.click(managed);
     await expect(managed).toBeChecked();
@@ -136,13 +154,73 @@ const rootRef = createRef<HTMLElement>();
 const inputRef = createRef<HTMLInputElement>();
 
 function SettingsDemo() {
-  const fieldId = useId();
+  const [notify, setNotify] = useState(true);
+  const [digest, setDigest] = useState(false);
+  const [status, setStatus] = useState("");
+  const apply = (setting: string, on: boolean) =>
+    setStatus(`${setting} ${on ? "turned on" : "turned off"}.`);
+  return (
+    <Stack space="space.200" className="w-layout-list max-w-full">
+      <Field orientation="horizontal">
+        <Switch
+          checked={notify}
+          onCheckedChange={(on) => {
+            setNotify(on);
+            apply("Owner notifications", on);
+          }}
+        />
+        <FieldContent>
+          <FieldLabel>Notify the owner</FieldLabel>
+          <FieldDescription>Email the owner when a finding changes status.</FieldDescription>
+        </FieldContent>
+      </Field>
+      <Field orientation="horizontal">
+        <Switch
+          checked={digest}
+          onCheckedChange={(on) => {
+            setDigest(on);
+            apply("Weekly digest", on);
+          }}
+        />
+        <FieldContent>
+          <FieldLabel>Weekly digest</FieldLabel>
+          <FieldDescription>A summary of open work every Monday.</FieldDescription>
+        </FieldContent>
+      </Field>
+      <Text role="status">{status}</Text>
+    </Stack>
+  );
+}
 
+/**
+ * A settings list: each switch applies the moment it moves, and a status says what changed, so
+ * there is no Save button. The label, the hint and the switch are one horizontal Field each.
+ */
+export const Settings: Story = {
+  render: () => <SettingsDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const notify = canvas.getByRole("switch", { name: "Notify the owner" });
+    const digest = canvas.getByRole("switch", { name: "Weekly digest" });
+    await expect(notify).toHaveAccessibleDescription(
+      "Email the owner when a finding changes status.",
+    );
+    await expect(canvas.queryByRole("button")).toBeNull();
+    await userEvent.click(canvas.getByText("Weekly digest"));
+    await expect(digest).toBeChecked();
+    await expect(canvas.getByRole("status")).toHaveTextContent("Weekly digest turned on.");
+    notify.focus();
+    await userEvent.keyboard(" ");
+    await expect(notify).not.toBeChecked();
+    await expect(canvas.getByRole("status")).toHaveTextContent("Owner notifications turned off.");
+  },
+};
+
+function NativeFormDemo() {
   const [notify, setNotify] = useState(true);
   const [pack, setPack] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [saved, setSaved] = useState("Changes have not been saved.");
-  const fieldError1 = sharing ? undefined : "Enable sharing before sending the package.";
   return (
     <Stack space="space.300" className="max-w-layout-measure">
       <form
@@ -188,38 +266,27 @@ function SettingsDemo() {
           <Text role="status">{saved}</Text>
         </Stack>
       </form>
-      <Field data-invalid={Boolean(fieldError1)}>
-        <FieldLabel id={`${fieldId}-external-sharing-1-label`} htmlFor={"external-sharing"}>
-          {"External sharing"}
-          <span aria-hidden="true" className="text-danger">
-            {" "}
-            *
-          </span>
-        </FieldLabel>
-        <Switch
-          id={"external-sharing"}
-          aria-labelledby={`${fieldId}-external-sharing-1-label`}
-          aria-required={true}
-          aria-invalid={Boolean(fieldError1)}
-          aria-describedby={`${fieldId}-external-sharing-1-message`}
-          checked={sharing}
-          onCheckedChange={setSharing}
-        />
-        {Boolean(fieldError1) ? (
-          <FieldError id={`${fieldId}-external-sharing-1-message`}>{fieldError1}</FieldError>
+      <Field invalid={!sharing} required>
+        <FieldLabel>External sharing</FieldLabel>
+        <Switch id="external-sharing" checked={sharing} onCheckedChange={setSharing} />
+        {sharing ? (
+          <FieldDescription>Only approved partners can access the package.</FieldDescription>
         ) : (
-          <FieldDescription id={`${fieldId}-external-sharing-1-message`}>
-            {"Only approved partners can access the package."}
-          </FieldDescription>
+          <FieldError>Enable sharing before sending the package.</FieldError>
         )}
       </Field>
     </Stack>
   );
 }
 
-/** Wrapping and sibling labels, explicit form reset, and Field label/error/hint wiring. */
-export const Settings: Story = {
-  render: () => <SettingsDemo />,
+/**
+ * The hidden checkbox takes part in a native form: `name`, `value`, `uncheckedValue`, reset, a
+ * sibling `<label htmlFor>` pointing at the input's `id`, a wrapping label, refs and state
+ * callbacks. A Field names, describes and marks the last switch with no ids.
+ */
+export const NativeForm: Story = {
+  name: "Native form",
+  render: () => <NativeFormDemo />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const notify = canvas.getByRole("switch", { name: "Notify the owner" });

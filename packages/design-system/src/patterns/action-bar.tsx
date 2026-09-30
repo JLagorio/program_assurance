@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Fragment, useId, type ReactNode } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -59,9 +59,19 @@ export type ActionBarProps = {
   tabs?: ReactNode;
 };
 
-/** The record's header pinned above the work: the trail, the title, the state axes as facts, and the actions that change them. A blocked action carries its reason rather than hiding. */
+/**
+ * The record's header pinned above the work: the trail, the title, the state axes as facts, and
+ * the actions that change them. A blocked action carries its reason rather than hiding: it stays
+ * in the tab order, disabled, and its reason under the row is its accessible description.
+ *
+ * No product screen uses it; a record page's header is PageHeader, with the state in the
+ * Details rail. It stays exported for a work surface that pins its state axes above the work.
+ */
 export function ActionBar({ crumbs, id, title, context, states, actions, tabs }: ActionBarProps) {
+  const reasonId = useId();
   const blocked = actions?.filter((a) => a.blocked) ?? [];
+  const reasonFor = (action: ActionBarAction) =>
+    action.blocked ? `${reasonId}-${blocked.indexOf(action)}` : undefined;
   const facts = states.length
     ? states.map((s, i) => (
         <Fact key={s.label} label={s.label}>
@@ -85,6 +95,9 @@ export function ActionBar({ crumbs, id, title, context, states, actions, tabs }:
             variant={a.primary ? "primary" : "secondary"}
             onClick={a.onSelect}
             disabled={Boolean(a.blocked)}
+            // A blocked action stays reachable, so the reader learns why it cannot run.
+            focusableWhenDisabled={Boolean(a.blocked)}
+            aria-describedby={reasonFor(a)}
           >
             {a.label}
           </Button>
@@ -92,7 +105,12 @@ export function ActionBar({ crumbs, id, title, context, states, actions, tabs }:
       </div>
       {blocked.length ? (
         <span className="text-end font-body-xsmall text-subtle">
-          {blocked.map((a) => `${a.label}: ${a.blocked}`).join(" · ")}
+          {blocked.map((a, i) => (
+            <Fragment key={a.label}>
+              {i > 0 ? " · " : null}
+              <span id={reasonFor(a)}>{`${a.label}: ${a.blocked}`}</span>
+            </Fragment>
+          ))}
         </span>
       ) : null}
     </div>

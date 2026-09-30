@@ -25,14 +25,19 @@ import {
   FieldLabel,
   FieldSet,
   Grid,
-  KeyValue,
   Stack,
   Text,
   toast,
-  useLedgerLocale,
 } from "@ledger/design-system";
-import { ChoiceField, ComboboxField, PartyField, TextField } from "@/components/app/fields";
-import { unsettledMoment, useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
+import {
+  ChoiceField,
+  ComboboxField,
+  ContextValue,
+  PartyField,
+  TextField,
+} from "@/components/app/fields";
+import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
+import { causeText } from "@/components/app/sentence";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { useWorkspace } from "@/components/app/workspace";
 import { useRows } from "@/lib/models";
@@ -127,7 +132,6 @@ export function CreateEvidenceDialog({
   const submitRef = useRef<HTMLButtonElement>(null);
   const failureRef = useRef<HTMLDivElement>(null);
   const feedback = useFormFeedback<EvidenceField>();
-  const { t } = useLedgerLocale();
   const { confirm, confirmation } = useConfirmation();
   const guard = useDraftGuard({
     dirty,
@@ -221,13 +225,9 @@ export function CreateEvidenceDialog({
       setEarly(true);
       return;
     }
-    // Enter inside the collected field submits before the field has checked a half-typed moment.
-    const unsettled =
-      !collected && !collectedEntryError && unsettledMoment(feedback.node("collected"));
-    if (unsettled) submitRef.current?.focus();
-    const attempt = unsettled
-      ? validate(values, [{ field: "collected", message: t("dateTimeIncomplete") }, ...extra])
-      : check;
+    // The collected field holds Enter on a half-typed moment and reports it as its entry error, as
+    // it does when focus leaves it, so `check` already counts it.
+    const attempt = check;
     if (!feedback.report(attempt.issues) || !attempt.data) return;
     // The fields lock while the save runs; the primary stays focusable while it loads.
     submitRef.current?.focus();
@@ -240,7 +240,7 @@ export function CreateEvidenceDialog({
     } catch (cause) {
       setFailure({
         title: "The evidence was not created",
-        message: `${cause instanceof Error ? cause.message : "The request failed."} Your details are kept, and creating it again will not make duplicate evidence.`,
+        message: `${causeText(cause)} Your details are kept, and creating it again will not make duplicate evidence.`,
       });
       guard.finish();
     }
@@ -253,7 +253,7 @@ export function CreateEvidenceDialog({
       toast.add({
         type: "error",
         title: "Evidence created",
-        description: `Its preview could not be opened. ${cause instanceof Error ? cause.message : ""}`,
+        description: `Its preview could not be opened. ${causeText(cause, "")}`.trim(),
       });
     } finally {
       onClose();
@@ -290,7 +290,7 @@ export function CreateEvidenceDialog({
                 <Alert variant="destructive" role="alert">
                   <AlertCircle aria-hidden />
                   <AlertTitle>The choices could not be loaded</AlertTitle>
-                  <AlertDescription>{loadError.message}</AlertDescription>
+                  <AlertDescription>{causeText(loadError)}</AlertDescription>
                   <AlertAction>
                     <Button
                       size="small"
@@ -344,7 +344,6 @@ export function CreateEvidenceDialog({
                       changed();
                     }}
                     required
-                    maxLength={1000}
                     error={errors.get("title")}
                     controlRef={feedback.ref("title")}
                   />
@@ -369,7 +368,9 @@ export function CreateEvidenceDialog({
                       label="Owner"
                       value={owner}
                       parties={parties.data ?? []}
-                      disabled={!parties.data}
+                      loading={parties.isPending && !parties.isError}
+                      loadError={parties.isError}
+                      onRetry={() => void parties.refetch()}
                       onChange={(value) => {
                         setOwner(value);
                         changed();
@@ -378,10 +379,12 @@ export function CreateEvidenceDialog({
                       controlRef={feedback.ref("owner")}
                     />
                     {programId ? (
-                      <KeyValue label="Program" wrap>
-                        {contextProgram?.name ??
-                          (programs.isPending ? "Loading…" : "Unavailable program")}
-                      </KeyValue>
+                      <ContextValue
+                        label="Program"
+                        value={contextProgram?.name}
+                        query={programs}
+                        noun="program"
+                      />
                     ) : (
                       <ComboboxField
                         label="Program"
@@ -390,7 +393,10 @@ export function CreateEvidenceDialog({
                           value: program.id,
                           label: `${program.code} · ${program.name}`,
                         }))}
-                        disabled={!programs.data}
+                        noun="programs"
+                        loading={programs.isPending && !programs.isError}
+                        loadError={programs.isError}
+                        onRetry={() => void programs.refetch()}
                         onChange={(value) => void chooseProgram(value)}
                         placeholder="Choose a program"
                         error={errors.get("program")}
@@ -404,7 +410,20 @@ export function CreateEvidenceDialog({
                         value: row.id,
                         label: `${row.code} · ${row.name}`,
                       }))}
-                      disabled={!effectiveProgramId || !scopes.data || !systems.data}
+                      disabled={!effectiveProgramId}
+                      noun="scopes"
+                      loading={
+                        !!effectiveProgramId &&
+                        ((scopes.isPending && !scopes.isError) ||
+                          (systems.isPending && !systems.isError))
+                      }
+                      loadError={scopes.isError || systems.isError}
+                      onRetry={() =>
+                        void Promise.all([
+                          scopes.isError ? scopes.refetch() : null,
+                          systems.isError ? systems.refetch() : null,
+                        ])
+                      }
                       placeholder="Choose a scope"
                       description={
                         !effectiveProgramId
@@ -423,7 +442,7 @@ export function CreateEvidenceDialog({
                     label="Description"
                     value={description}
                     multiline
-                    maxLength={10000}
+                    autoResize
                     onChange={(value) => {
                       setDescription(value);
                       changed();
@@ -464,7 +483,7 @@ export function CreateEvidenceDialog({
                     label="Provenance"
                     value={provenance}
                     multiline
-                    maxLength={10000}
+                    autoResize
                     onChange={(value) => {
                       setProvenance(value);
                       changed();

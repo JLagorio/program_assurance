@@ -14,7 +14,7 @@ import * as Stories from "./Card.stories";
 
 # Card
 
-A raised container for a table, chart, form or set of facts. Compose its header, content and footer as needed.
+A raised container for a table, chart, form or set of facts. Compose its header, content and footer as needed. A card whose whole purpose is to open one record or register is a linked card: its title's link stretches over it.
 
 ## Anatomy
 
@@ -36,7 +36,7 @@ A raised container for a table, chart, form or set of facts. Compose its header,
 </Card>
 ```
 
-CardHeader arranges the title, description and optional action. The action sits at the end of the title's row while the header has 16rem inside its inset, that is while the card is about 18rem wide or more (about 17.5rem at `size="sm"`), as a full-width card on a 340px phone is. In a narrower card, such as one in a rail or a full-width card on a 320px phone, it takes its own row after the description, at the end, so the title keeps the full width. CardContent supplies the horizontal inset. CardFooter holds actions or secondary content. The root supplies vertical padding and spacing between parts, and records its raised surface so sticky table headers remain opaque.
+CardHeader arranges the title, description and optional action, and keeps the title's readable measure beside the action, as Section.Header does: 12rem, about twenty-five characters a line, or the title's own width when that is shorter. The action sits at the end of the title's row while the header holds that measure and the action side by side, and has 16rem inside its inset, that is while the card is about 18rem wide or more (about 17.5rem at `size="small"`), as a full-width card on a 340px phone is. Otherwise, in a rail, in a full-width card on a 320px phone, or beside an action too wide for the measure, it takes its own row after the description, at the end, so the title keeps the full width and never breaks mid-word. The header reads its own width and the action's, not the window's, so a card that is resized follows. CardContent supplies the horizontal inset. CardFooter holds actions or secondary content. The root supplies vertical padding and spacing between parts, and records its raised surface so sticky table headers remain opaque.
 
 Headers and footers are undivided by default. Add `className="border-b"` to CardHeader or `className="border-t"` to CardFooter when a rule separates distinct work areas; the part adds padding beside that rule. Form titles usually need spacing only, while a footer with submission actions can earn a divider.
 
@@ -44,15 +44,24 @@ Headers and footers are undivided by default. Add `className="border-b"` to Card
 
 ## Variants and states
 
-The default size uses Ledger's standard inset; `size="sm"` reduces the inset and gaps. Tables and charts that own their spacing can sit directly inside Card. For a table flush against a divided header and the bottom edge, use `className="gap-0 pb-0"` on Card and `className="border-b"` on CardHeader. Loading, empty and error behavior belongs to the content.
+`size="medium"`, the default, uses Ledger's standard inset; `size="small"` reduces the inset and gaps, for a rail or a grid of cards. `default` and `sm` are the deprecated spellings of `medium` and `small`, kept for one version, and render the same. Tables and charts that own their spacing can sit directly inside Card. For a table flush against a divided header and the bottom edge, use `className="gap-0 pb-0"` on Card and `className="border-b"` on CardHeader. Loading, empty and error behavior belongs to the content.
 
 <Canvas of={Stories.Sizes} />
 <Canvas of={Stories.EdgeToEdge} />
 <Canvas of={Stories.InARail} />
+<Canvas of={Stories.BesideAWideAction} />
+
+### A linked card
+
+`link` on CardTitle takes a link element (a router's Link, or `<a href>`) and makes the title's text that link, stretched over the card: a click anywhere on the card opens it, the card takes `elevation.surface.raised.hovered` under the pointer and `elevation.surface.raised.pressed` while pressed, the title underlines, and the focus ring is drawn inside the card's edge, where its clipping cannot cut it. A linked card holds no other control: no CardAction, no button or link in its content, because a card that carries its own actions cannot also be one click target. For a card with actions, keep the title a link and the actions separate, as [Related](?path=/docs/patterns-related--docs) cards do. For a headline count, use a linked [Stat.Tile](?path=/docs/components-stat--docs).
+
+<Canvas of={Stories.Linked} />
 
 ## Accessibility
 
-All parts are native divs. CardTitle does not choose a heading level: compose an h2 or h3 when the card should appear in the document outline. Existing callers retain their h2 headings. Name a region with `role="region"` and `aria-labelledby` when a landmark is useful. Links and buttons inside the card keep their own semantics and focus.
+Every part is a native div by default. CardTitle does not choose a heading level: set it with `render={<h2 />}` (or h3, one below the heading the card sits under), or compose a heading inside it. Name a region with `role="region"` and `aria-labelledby` when a landmark is useful. Links and buttons inside the card keep their own semantics and focus.
+
+A linked card's link is named by its title alone, and it is the card's one Tab stop. Keep the title the heading and the link inside it (`render={<h3 />}` with `link`), so a heading list and a link list both find the card.
 
 ## Props
 
@@ -64,11 +73,11 @@ All parts are native divs. CardTitle does not choose a heading level: compose an
 <ArgTypes of={CardContent} />
 <ArgTypes of={CardFooter} />
 
-Every part accepts native div props and refs. Root `style` overrides merge with the raised-surface default.
+Every part accepts native div props and refs, and names itself last with `data-slot` (`card`, `card-header`, `card-title`, `card-description`, `card-action`, `card-content`, `card-footer`; a title's link is `card-link`). Root `style` overrides merge with the raised-surface default. CardTitle takes `render` for its element, as Section.Title does, and `link`, which keeps the supplied link's own props, ref and handlers.
 
 ### Migration
 
-Replace `Card.Header title/description/action` with CardHeader containing CardTitle, CardDescription and CardAction. Replace `Card.Body` with CardContent. Add a heading inside CardTitle to preserve the original outline. Card now lives in the components layer; application imports still come from the package root.
+Replace `Card.Header title/description/action` with CardHeader containing CardTitle, CardDescription and CardAction. Replace `Card.Body` with CardContent. Add a heading inside CardTitle, or set it with `render`, to preserve the original outline. Write `size="small"` for `size="sm"`, and leave out `size="default"`. Card lives in the components layer; application imports come from the package root.
 
 ## Related
 

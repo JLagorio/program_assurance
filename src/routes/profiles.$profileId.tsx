@@ -1,6 +1,8 @@
 import { ProfileChain } from "@/components/app/profile-tailoring/chain";
 import { ProfileTailoringEditor } from "@/components/app/profile-tailoring/editor";
 import { useReferenceData } from "@/components/app/profile-tailoring/use-reference-data";
+import { useRecordTitle } from "@/components/app/browser-title";
+import { Page, RecordPending } from "@/components/app/shell";
 import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
 import { ControlInspector, LibraryControlTable } from "@/components/prototype/library-controls";
@@ -58,6 +60,7 @@ function profileTab(value: unknown): ProfileTab | undefined {
 
 export const Route = createFileRoute("/profiles/$profileId")({
   head: () => ({ meta: [{ title: "Profile — Program Assurance" }] }),
+  pendingComponent: RecordPending,
   // The tab and the revision are part of the address, so a reload, Back or a shared link keeps them.
   validateSearch: (
     search: Record<string, unknown>,
@@ -83,6 +86,7 @@ function ProfilePage() {
   );
   const current = versions.find((revision) => revision.id === chosen) ?? versions[0];
   const record = profile.data;
+  useRecordTitle("Profile", record?.title);
   const editable = record?.tenant_id === workspace.tenantId && canAuthorLibrary(workspace.role);
   const go = (next: { tab?: ProfileTab; revision?: string }) =>
     void navigate({ search: (previous) => ({ ...previous, ...next }), replace: true });
@@ -90,7 +94,7 @@ function ProfilePage() {
   if (!record) return <QueryState queries={[profile]} />;
   const create = () => setCreating(true);
   return (
-    <Stack space="space.200" className="animate-rise">
+    <Page>
       <PageHeader>
         <RecordTrail current={record.title}>
           <TrailLink to="/profiles">Profiles</TrailLink>
@@ -141,7 +145,7 @@ function ProfilePage() {
           />
         )}
       </QueryState>
-    </Stack>
+    </Page>
   );
 }
 
@@ -383,7 +387,9 @@ function ProfileRevision({
                     <Table>
                       <thead>
                         <tr>
-                          <Table.Header>Order</Table.Header>
+                          <Table.Header align="end" width={88}>
+                            Order
+                          </Table.Header>
                           <Table.Header>Source</Table.Header>
                           <Table.Header>Selection</Table.Header>
                           <Table.Header>Reference</Table.Header>
@@ -395,8 +401,8 @@ function ProfileRevision({
                           const imported = importedRevision(item);
                           return (
                             <Table.Row key={item.id}>
-                              <Table.Cell>{item.ordinal}</Table.Cell>
-                              <Table.Cell className="whitespace-normal">
+                              <Table.Cell align="end">{item.ordinal}</Table.Cell>
+                              <Table.Cell wrap>
                                 {edition ? (
                                   <TextLink
                                     render={<Link to="/catalog" search={{ edition: edition.id }} />}
@@ -421,10 +427,8 @@ function ProfileRevision({
                                   <Absent label="Not recorded" />
                                 )}
                               </Table.Cell>
-                              <Table.Cell className="whitespace-normal">
-                                {importSelection(item)}
-                              </Table.Cell>
-                              <Table.Cell className="whitespace-normal">
+                              <Table.Cell wrap>{importSelection(item)}</Table.Cell>
+                              <Table.Cell wrap>
                                 <Id className="break-all">{item.href}</Id>
                               </Table.Cell>
                             </Table.Row>

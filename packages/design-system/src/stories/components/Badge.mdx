@@ -19,7 +19,7 @@ A compact label built on the shadcn Base UI Badge foundation and adapted to Ledg
 | --------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `Badge`         | A `span` by default, or the element supplied through Base UI's `render` prop.                                               |
 | `badgeVariants` | The shared class recipe for treatment, tone, emphasis, and size. Consumers composing their own element can use it directly. |
-| Label           | Concise children that remain meaningful without color or an icon.                                                           |
+| Label           | Concise children that remain meaningful without color or an icon. Text children sit in a truncating span inside the pill.   |
 | Icon            | An optional leading `icon`, or explicit icon children with `data-icon="inline-start"` / `"inline-end"`.                     |
 
 Badge emits `data-slot="badge"` and its resolved `data-variant`, `data-tone`, `data-appearance`, and `data-size`. Palette choices do not select a different component or change the shape.
@@ -58,14 +58,18 @@ The recipe supplies classes only. A consumer using `badgeVariants` directly owns
 
 All six treatments accept the same tone and size axes.
 
-| `variant`     | Default palette / emphasis | Treatment                                                                                      |
-| ------------- | -------------------------- | ---------------------------------------------------------------------------------------------- |
-| `default`     | Brand / bold               | Filled. A rendered anchor uses the palette's hover fill. The default.                          |
-| `secondary`   | Neutral / subtle           | Filled. A rendered anchor uses the palette's hover fill.                                       |
-| `destructive` | Danger / subtle            | Filled. Its default danger tone uses the danger focus outline.                                 |
-| `outline`     | Neutral                    | Transparent with a visible border; a rendered anchor gains the palette's subtle fill on hover. |
-| `ghost`       | Neutral                    | Transparent, with the palette's subtle fill on hover.                                          |
-| `link`        | Brand                      | Palette-colored text, underlined on hover. Render an anchor to give it link behavior.          |
+| `variant`     | Default palette / emphasis | Treatment                                                                                                |
+| ------------- | -------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `default`     | Brand / bold               | Filled. A rendered anchor or button uses the palette's hover fill. The default.                          |
+| `secondary`   | Neutral / subtle           | Filled. A rendered anchor or button uses the palette's hover fill.                                       |
+| `destructive` | Danger / subtle            | Filled. Its default danger tone uses the danger focus outline.                                           |
+| `outline`     | Neutral                    | Transparent with a visible border; a rendered anchor or button gains the palette's subtle fill on hover. |
+| `ghost`       | Neutral                    | Transparent; a rendered anchor or button gains the palette's subtle fill on hover.                       |
+| `link`        | Brand                      | Palette-colored text; a rendered anchor or button underlines on hover.                                   |
+
+Every hover belongs to a badge that is a link or a button: a label on a span never answers the pointer, whatever its treatment. A brand badge link draws its words in `color.text.selected` on the hovered fill, where `color.text.brand` would fall under 4.5:1.
+
+<Canvas of={Stories.HoverOnlyWhenInteractive} />
 
 `appearance="subtle"` or `"bold"` overrides the filled treatments' default emphasis. Outline, ghost, and link retain their treatment when an appearance is supplied. `tone` overrides the palette across every variant, including outline borders and link text. Semantic colors adapt to light and dark modes; bold warning badges use the dark `color.text.warning.inverse` text token.
 
@@ -73,10 +77,12 @@ All six treatments accept the same tone and size axes.
 | ------------- | ---------------------------------------------------------------------------- |
 | `brand`       | Branding or a featured label. The default palette for `default` and `link`.  |
 | `neutral`     | A category, kind, or state without a judgment: Inspection, Draft, Inherited. |
-| `information` | In progress: In review, In remediation.                                      |
+| `information` | In progress: In review, In assessment.                                       |
 | `success`     | Done and good: Verified, Satisfied, Closed.                                  |
 | `warning`     | Needs attention soon: Due soon, Partial, Suspect.                            |
 | `danger`      | Wrong or late: Overdue, Other than satisfied, Invalidated.                   |
+
+These are the kit's meanings, and the words are examples of them. A product keeps its own values, each value's words and its tone, in one status map that follows these meanings, so a value reads the same on every screen; that map, not this table, decides where a product word such as In remediation or Accepted falls.
 
 <Canvas of={Stories.SemanticMatrix} />
 
@@ -92,6 +98,10 @@ The next matrix applies every status tone to all six variants at the compact siz
 | `xsmall` | 16px / 11px   | A table row, a tab, or a dense list item.           |
 
 Both sizes use the same pill radius and 12px icons. Small badges use 8px horizontal padding, reduced to 6px beside a marked icon; xsmall badges keep 4px padding for density. The width follows the label, which stays on one line. Containers should wrap separate badges when space is limited; keep long labels readable.
+
+### Long content
+
+A badge is one line and never wraps. It is never wider than its container: a label longer than the room it has (the RMF "Other than satisfied" in a status column, a category in a narrow panel) ends in an ellipsis, and the whole label shows in a tooltip on hover, and on keyboard focus of a badge that links, while it is cut. The whole label stays in the DOM, so a screen reader reads it all. A badge with a `title` of its own shows that instead. Keep status words short so the cut is rare: size a status column from its longest word. An id, a URL or a file name is never a badge.
 
 <Canvas of={Stories.InRows} />
 

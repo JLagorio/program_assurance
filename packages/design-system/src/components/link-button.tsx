@@ -18,8 +18,10 @@ import {
   decorativeIcon,
   iconInsets,
   labelAndReason,
+  squareSize,
   useCarriedFocus,
   type ButtonSize,
+  type IconButtonSize,
 } from "./button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 
@@ -56,13 +58,9 @@ const stop = (event: MouseEvent<HTMLElement>) => {
   event.stopPropagation();
 };
 
-const iconOnly = (size: "small" | "medium", className: string | undefined) =>
-  cn(
-    // A row or tree that sizes the link down to 20px still gets a 24px hit area on touch.
-    "relative shrink-0 touch-target p-0",
-    size === "medium" ? "size-control-medium [&>svg]:size-icon-medium" : "size-control-small",
-    className,
-  );
+const iconOnly = (size: IconButtonSize, className: string | undefined) =>
+  // A row or tree that sizes the link down to 20px still gets a 24px hit area on touch.
+  cn("relative shrink-0 touch-target p-0", squareSize(size).className, className);
 
 /** The anchor itself, without the tooltip a disabled reason adds. */
 function LinkButtonBase({
@@ -109,6 +107,8 @@ function LinkButtonBase({
     state: { slot: "link-button" },
     props: mergeProps<"a">(
       {
+        // A data attribute goes in through a spread, which the anchor's prop type does not check.
+        ...{ "data-button-variant": variant },
         className: cn(
           buttonVariants({ variant, size, isFullWidth }),
           iconInsets({
@@ -164,8 +164,8 @@ export type LinkIconButtonProps = Omit<
   /** Decorative icon. */
   icon: ReactElement;
   variant?: "primary" | "secondary" | "subtle" | undefined;
-  /** Small is 28px; medium is 32px with a larger icon. */
-  size?: "small" | "medium" | undefined;
+  /** As on IconButton: small 28px (the default), medium 32px, xsmall 24px and xxsmall 20px, the row control. */
+  size?: IconButtonSize | undefined;
   /** Keep the accessible name while omitting the tooltip. A `disabledReason` still shows its own. */
   isTooltipDisabled?: boolean | undefined;
 };
@@ -189,7 +189,7 @@ export function LinkIconButton({
       data-slot="link-icon-button"
       aria-label={label}
       iconBefore={icon}
-      size={size}
+      size={squareSize(size).base}
       {...props}
       carry={carry}
       className={iconOnly(size, className)}

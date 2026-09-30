@@ -1,5 +1,15 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { ChevronDown, Download, ExternalLink, MoreHorizontal, Search, X } from "lucide-react";
+import {
+  Archive,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  ExternalLink,
+  MoreHorizontal,
+  Search,
+  X,
+} from "lucide-react";
 import { createRef, useRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
@@ -33,18 +43,31 @@ type Story = StoryObj<typeof meta>;
 
 const matrixAction = fn();
 
+const matrixCols = [
+  "xxsmall",
+  "xsmall",
+  "small",
+  "medium",
+  "selected",
+  "loading",
+  "disabled",
+] as const;
+const squareOf = { xxsmall: 20, xsmall: 24, small: 28, medium: 32 } as const;
+const sizeOf = (col: (typeof matrixCols)[number]) =>
+  col === "xxsmall" || col === "xsmall" || col === "medium" ? col : "small";
+
 /** All variants and sizes, plus selected, loading and disabled states. */
 export const IconButtonMatrix: Story = {
   render: () => (
     <Grid
       rows={["secondary", "subtle", "primary"] as const}
-      cols={["small", "medium", "selected", "loading", "disabled"] as const}
+      cols={matrixCols}
       render={(variant, col) => (
         <IconButton
           label="Search"
           icon={<Search />}
           variant={variant}
-          size={col === "medium" ? "medium" : "small"}
+          size={sizeOf(col)}
           isSelected={col === "selected"}
           isLoading={col === "loading"}
           disabled={col === "disabled"}
@@ -58,9 +81,9 @@ export const IconButtonMatrix: Story = {
     const canvas = within(canvasElement);
     matrixAction.mockClear();
     for (const variant of ["secondary", "subtle", "primary"]) {
-      for (const col of ["small", "medium", "selected", "loading", "disabled"]) {
+      for (const col of matrixCols) {
         const button = canvas.getByTestId(`${variant}-${col}`);
-        const size = col === "medium" ? 32 : 28;
+        const size = squareOf[sizeOf(col)];
         await expect(button).toHaveAccessibleName("Search");
         await expect(button).toHaveAttribute("type", "button");
         await expect(button.getBoundingClientRect().width).toBe(size);
@@ -184,8 +207,9 @@ export const InPlace: Story = {
 };
 
 /**
- * A table or tree row that sizes its row actions down to 20px keeps a hit area of at least 24px on
- * a touch screen, centred on the button, so the row keeps its height and a finger still lands.
+ * `size="xxsmall"` is the 20px row control: a table or tree row's disclosure and row actions. On
+ * a touch screen it keeps a hit area of at least 24px, centred on the button, so the row keeps its
+ * height and a finger still lands.
  */
 export const InADenseRow: Story = {
   globals: { viewport: { value: "ledgerPhone", isRotated: false } },
@@ -195,7 +219,7 @@ export const InADenseRow: Story = {
         label="Open CTRL-0412"
         icon={<ExternalLink />}
         variant="subtle"
-        className="size-250"
+        size="xxsmall"
         isTooltipDisabled
       />
       <Text size="small" className="min-w-0 flex-1 truncate">
@@ -205,7 +229,7 @@ export const InADenseRow: Story = {
         label="Remove CTRL-0412"
         icon={<X />}
         variant="subtle"
-        className="size-250"
+        size="xxsmall"
         isTooltipDisabled
       />
     </Inline>
@@ -215,6 +239,8 @@ export const InADenseRow: Story = {
     for (const name of ["Open CTRL-0412", "Remove CTRL-0412"]) {
       const action = canvas.getByRole("button", { name });
       await expect(action.getBoundingClientRect().width).toBe(20);
+      await expect(action.getBoundingClientRect().height).toBe(20);
+      await expect(action.querySelector("svg")!.getBoundingClientRect().width).toBe(14);
       await expect(action).toHaveClass("touch-target");
       await expect(getComputedStyle(action).position).toBe("relative");
       if (matchMedia("(any-pointer: coarse)").matches) {
@@ -497,6 +523,101 @@ export const ReasonChangesWhileFocused: Story = {
     await expect(canvas.getByRole("button", { name: "Export" })).toHaveFocus();
     await userEvent.keyboard("{Enter}");
     await expect(exportAction).toHaveBeenCalledTimes(1);
+  },
+};
+
+function RecordStepper() {
+  const [index, setIndex] = useState(0);
+  const [dismissed, setDismissed] = useState(false);
+  const last = 2;
+  return (
+    <Stack
+      space="space.100"
+      // As a panel or a side nav does: Escape that nothing inside has handled closes the surface.
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && !event.defaultPrevented) setDismissed(true);
+      }}
+    >
+      <Inline space="space.100" alignBlock="center">
+        <IconButton
+          label="Previous record"
+          icon={<ChevronLeft />}
+          variant="subtle"
+          disabled={index === 0}
+          focusableWhenDisabled
+          onClick={() => setIndex(index - 1)}
+        />
+        <IconButton
+          label="Next record"
+          icon={<ChevronRight />}
+          variant="subtle"
+          disabled={index === last}
+          focusableWhenDisabled
+          onClick={() => setIndex(index + 1)}
+        />
+        <Text size="small">
+          {index + 1} of {last + 1}
+        </Text>
+        <IconButton label="Archive" icon={<Archive />} variant="subtle" disabled />
+      </Inline>
+      <Text size="small" color="color.text.subtle" data-testid="surface">
+        {dismissed ? "Escape closed the surface" : "The surface is open"}
+      </Text>
+    </Stack>
+  );
+}
+
+/**
+ * A disabled icon-only control's tooltip is its only visible label. With `focusableWhenDisabled`
+ * it stays in the tab order with `aria-disabled` and its tooltip still shows on hover and on
+ * keyboard focus. A control that becomes disabled while it has focus, such as Next at the last
+ * record, keeps focus, so pressing Enter again does nothing instead of walking backwards. Only
+ * activation is blocked: Escape closes an open tooltip first, then reaches the surface around the
+ * control, as a panel's or a side nav's Escape must. A plain `disabled` IconButton leaves the tab
+ * order.
+ */
+export const DisabledButReachable: Story = {
+  name: "Disabled but reachable",
+  render: () => <RecordStepper />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const previous = canvas.getByRole("button", { name: "Previous record" });
+    const next = canvas.getByRole("button", { name: "Next record" });
+    // At the first record Previous is unavailable but reachable, and its tooltip names it.
+    await expect(previous).toHaveAttribute("aria-disabled", "true");
+    await expect(previous).not.toBeDisabled();
+    await userEvent.tab();
+    await expect(previous).toHaveFocus();
+    await waitFor(() => expect(openTip()).toHaveTextContent("Previous record"));
+    await userEvent.keyboard("{Enter}");
+    await expect(canvas.getByText("1 of 3")).toBeVisible();
+    // Next to the end: focus stays on Next, and Enter there does nothing more.
+    await userEvent.tab();
+    await expect(next).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    await userEvent.keyboard("{Enter}");
+    await expect(canvas.getByText("3 of 3")).toBeVisible();
+    await expect(next).toHaveAttribute("aria-disabled", "true");
+    await expect(next).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    await expect(canvas.getByText("3 of 3")).toBeVisible();
+    await expect(next).toHaveFocus();
+    // The pointer still finds the label of an unavailable control. Escape closes that tooltip and
+    // goes no further; the next one reaches the surface around the control, as a panel's or a side
+    // nav's Escape must.
+    await userEvent.hover(next);
+    await waitFor(() => expect(openTip()).toHaveTextContent("Next record"));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(openTip()).toBeNull());
+    await expect(canvas.getByTestId("surface")).toHaveTextContent("The surface is open");
+    await userEvent.keyboard("{Escape}");
+    await expect(canvas.getByTestId("surface")).toHaveTextContent("Escape closed the surface");
+    await expect(next).toHaveFocus();
+    await userEvent.unhover(next);
+    // A plain disabled control leaves the tab order.
+    await userEvent.tab();
+    await expect(canvas.getByRole("button", { name: "Archive" })).not.toHaveFocus();
+    await expect(canvas.getByRole("button", { name: "Archive" })).toBeDisabled();
   },
 };
 

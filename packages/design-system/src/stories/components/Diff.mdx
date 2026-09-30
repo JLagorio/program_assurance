@@ -84,6 +84,10 @@ Long unbroken text, such as a link or a hash, wraps at the frame's edge instead 
 - **Keep paragraphs as lines.** Text hard-wrapped at a width turns one edited sentence into several changed lines.
 - **One Diff per text.** Several fields that changed are several Diffs under their own headings, or a DataTable with a preview.
 
+## Long content
+
+A Diff never truncates: every changed word must be readable. Lines wrap at the column's edge, and an unbroken token (a URL, a hash, an id) breaks anywhere, so a side-by-side Diff in a narrow panel stays inside it; below the container's `xl` width the two sides stack.
+
 ## Accessibility
 
 - **Never colour alone.** Every change is marked three ways: the + or − marker, a visually hidden "Added:" or "Removed:" before the line, and a text decoration on changed words (struck through for removed, underlined for added) in native `<del>` and `<ins>` elements. In forced-colours mode the tints go and the markers and decorations stay.

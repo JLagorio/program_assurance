@@ -6,15 +6,35 @@ import * as Stories from "./PageHeader.stories";
 
 # PageHeader
 
-One composable page header for collections and records. Two columns: Heading, what names the page, on the left; Actions on the right; Lead across both above them. Native header, heading, paragraph and div props and refs pass through every part.
+One composable page header for collections and records. Two columns: Heading, what names the page, on the left; Actions on the right; Lead across both above them. Native props and refs pass through every part.
 
 <Canvas of={Stories.Collection} />
 <Canvas of={Stories.Record} />
 <Canvas of={Stories.Constrained} />
 
-Compose a Heading with a Title, an optional Lead and one primary action or Actions menu. A breadcrumb is the Lead through `render={<Breadcrumb />}`; a category line is a Lead with text. Record fields, owner/status editors and property strips belong in the work area or Aside, not in PageHeader or a preview header. Description is optional and wraps without hiding content behind a tooltip.
+Compose a Heading with a Title, an optional Lead and one primary action or an Actions menu. A breadcrumb is the Lead through `render={<Breadcrumb />}`; a category line is a Lead with text. A register's header is its name alone: its create action is the toolbar's primary. A record's header is the trail, the name and its actions: a code goes in the trail, and record fields, owner and status editors and property strips belong in the work area or the Aside, not in PageHeader or a preview header.
 
-Use PageHeader.Title once for the page's h1. Actions sit at the end of the title's row while the row can give the title its measure (14rem) beside them; when it cannot, on a phone or in a narrow panel, they take the next row, right-aligned, and the title wraps at its full width. The same rule holds on a page, in a Shell.Panel and in a Sheet (the Stacked story). Keep action groups on one line; use a dropdown when several actions compete for space.
+Use PageHeader.Title once for the page's h1. Actions sit at the end of the title's row while the row can give the title its measure (14rem) beside them; when it cannot, on a phone or in a narrow panel, they take the next row, right-aligned, and the title wraps at its full width. The same rule holds on a page, in a Shell.Panel and in a Sheet (the Stacked story). Keep action groups on one line; use a menu when several actions compete for space.
+
+## When to use
+
+- **Every page and every preview's record.** A page's header names it; a preview's inner header names its record, below the panel's navigation-only header.
+- **Not for a section of a page.** A titled block inside the page is a [Section](?path=/docs/layout-section--docs).
+- **Not for a dialog's title.** A dialog or a sheet has its own header part; PageHeader.Title renders through it with `render` only where a sheet's body starts with a record header, as in PreviewSheet.
+
+## Actions and their sizes
+
+| Where                    | Actions                                                                                                                                                                                            |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A register               | None. The create action is the Toolbar's small primary.                                                                                                                                            |
+| A record page            | One default-size primary Button, or one default-size Actions menu: a Button labelled Actions with a trailing ChevronDown, its items the record's operations, and a link item for each destination. |
+| A preview's inner header | One small primary, then the rest behind a subtle small IconButton that opens a menu.                                                                                                               |
+
+A destination in an Actions menu is a link item (`DropdownMenuLinkItem`, or an item rendered as a router link), so it opens in a new tab; a Button in the header acts, never navigates.
+
+<Canvas of={Stories.WithDescription} />
+
+Description is for a page outside the register and record shapes, such as a settings page or a setup step: one line of orientation under the title. It wraps, and a long unbroken value breaks rather than widening the page.
 
 ## Title levels
 
@@ -22,7 +42,17 @@ The Title is the h1 on a page. Inside a [HeadingLevelProvider](?path=/docs/primi
 
 <Canvas of={Stories.TitleLevels} />
 
-No other part has props of its own: the root is a `header`, Heading and Actions are `div`s, Description a `p`, and Lead a `div` or the element given to `render`; each takes its element's native props and ref, and names itself last with `data-slot`. Title takes `render` and its element's props. Every part is also exported by name (`PageHeaderLead`, `PageHeaderHeading`, `PageHeaderTitle`, `PageHeaderDescription`, `PageHeaderActions`), the same component as the member.
+## Accessibility
+
+- **Not a landmark.** The root is a `div`: the page's landmarks are the shell's (Main, the navigation, the Aside and the Panel), and a `header` element inside a dialog or a sheet would become a second banner. `render={<header />}` gives a page the element where it wants one.
+- **One h1 a page.** The Title is the page's h1; a preview's record title is an h2 through the heading-level context, never a second h1.
+- **The trail is navigation.** A Breadcrumb Lead is a named navigation landmark whose last level is the current page (see [Breadcrumb](?path=/docs/components-breadcrumb--docs)).
+- **A page change is announced by the Shell.** When the route changes, `Shell locationKey` moves focus to Main and says the page's name; the header needs no focus handling of its own.
+- **Actions keep their names.** An Actions menu's trigger is named by its visible label; an icon-only overflow takes a `label` that names the record ("More artifact actions").
+
+## Props
+
+No other part has props of its own: the root and Lead are a `div` or the element given to `render`, Heading and Actions are `div`s, and Description a `p`; each takes its element's native props and ref, and names itself last with `data-slot`. Title takes `render` and its element's props. Every part is also exported by name (`PageHeaderLead`, `PageHeaderHeading`, `PageHeaderTitle`, `PageHeaderDescription`, `PageHeaderActions`), the same component as the member.
 
 <ArgTypes of={PageHeader} />
 

@@ -37,8 +37,15 @@ async function digest(blob: Blob) {
   return Array.from(new Uint8Array(hash), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+/**
+ * How long one transfer may take before it gives up: 30 seconds, or the time the file takes at a
+ * slow 50 kB/s, so a large file on a slow link is not cut off while it is still moving. An upload
+ * can be cancelled sooner.
+ */
+const transferTimeout = (bytes: number) => Math.max(30_000, Math.ceil(bytes / 50_000) * 1000);
+
 // Each operation keeps its original identity, even if another tab changes sign-in.
-function privateStorage(token: string, signal: AbortSignal) {
+function privateStorage(token: string, signal: AbortSignal, timeout = 30_000) {
   return createClient(
     import.meta.env["VITE_SUPABASE_URL"],
     import.meta.env["VITE_SUPABASE_ANON_KEY"],
@@ -50,7 +57,7 @@ function privateStorage(token: string, signal: AbortSignal) {
             ...init,
             signal: AbortSignal.any([
               signal,
-              AbortSignal.timeout(30_000),
+              AbortSignal.timeout(timeout),
               ...(init?.signal ? [init.signal] : []),
             ]),
           }),
@@ -112,6 +119,7 @@ function EvidenceFileEditor({
   const { locale } = useLedgerLocale();
   const operation = useRef<AbortController | null>(null);
   const trigger = useRef<HTMLButtonElement | null>(null);
+  const uploadButton = useRef<HTMLButtonElement | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState<Operation | null>(null);
   const [failure, setFailure] = useState<{ operation: Operation; message: string } | null>(null);
@@ -139,7 +147,12 @@ function EvidenceFileEditor({
     return controller;
   }
   function finish(controller: AbortController) {
-    if (controller.signal.aborted) return;
+    if (controller.signal.aborted) {
+      // A cancelled upload's reservation can land after Cancel: read the record again, so
+      // Recover uploaded file appears once it has.
+      void cache.invalidateQueries({ queryKey: recordKey }).catch(() => {});
+      return;
+    }
     operation.current = null;
     onBusyChange?.(false);
     setBusy(null);
@@ -167,7 +180,11 @@ function EvidenceFileEditor({
     if (!controller) return;
     try {
       const token = await checkIdentity(controller);
-      const storage = privateStorage(token, controller.signal);
+      const storage = privateStorage(
+        token,
+        controller.signal,
+        transferTimeout(selectedFile?.size ?? MAX_STORED_BYTES),
+      );
       let current = await getRecord(workspace, collection, record.id);
       await checkIdentity(controller);
       if (current["state"] !== "draft")
@@ -293,9 +310,11 @@ function EvidenceFileEditor({
     if (!controller) return;
     try {
       const token = await checkIdentity(controller);
+      const size = typeof record["byte_size"] === "number" ? record["byte_size"] : MAX_STORED_BYTES;
       const { data, error: downloadError } = await privateStorage(
         token,
         controller.signal,
+        transferTimeout(size),
       ).download(path);
       if (downloadError) throw new Error(downloadError.message);
       await checkIdentity(controller);
@@ -328,6 +347,23 @@ function EvidenceFileEditor({
     announce(`Removed ${name}.`);
     // The row took focus with it; the trigger is the control that survives.
     trigger.current?.focus();
+  }
+  /**
+   * Stops the upload in progress. The chosen file stays ready to upload again; a path the upload
+   * already reserved stays recoverable through Recover uploaded file.
+   */
+  function cancel() {
+    const controller = operation.current;
+    if (!controller || busy !== "upload" || !file) return;
+    controller.abort();
+    operation.current = null;
+    onBusyChange?.(false);
+    setBusy(null);
+    // The reservation may have been saved before the cancel: the record says what to recover.
+    void cache.invalidateQueries({ queryKey: recordKey }).catch(() => {});
+    announce(`Cancelled the upload of ${file.name}.`);
+    // Cancel went with the upload; the Upload file button is where the reader starts again.
+    uploadButton.current?.focus();
   }
   function upload() {
     if (busy) return;
@@ -408,7 +444,15 @@ function EvidenceFileEditor({
                         : `Ready to upload · ${formatFileSize(file.size, { locale })}`}
                   </Attachment.Description>
                 </Attachment.Content>
-                {busy !== "upload" ? (
+                {busy === "upload" ? (
+                  <Attachment.Actions>
+                    <Attachment.Action
+                      label={`Cancel uploading ${file.name}`}
+                      icon={<X />}
+                      onClick={cancel}
+                    />
+                  </Attachment.Actions>
+                ) : (
                   <Attachment.Actions>
                     {uploadFailed ? (
                       <Attachment.Action
@@ -423,13 +467,15 @@ function EvidenceFileEditor({
                       onClick={remove}
                     />
                   </Attachment.Actions>
-                ) : null}
+                )}
               </Attachment>
             ) : null}
             <Inline space="space.150" rowSpace="space.100" shouldWrap>
               <Button
+                ref={uploadButton}
                 variant="primary"
                 isLoading={busy === "upload"}
+                loadingLabel={file ? `Uploading ${file.name}` : "Uploading the file"}
                 disabledReason={busy && busy !== "upload" ? waiting : undefined}
                 onClick={upload}
               >
@@ -439,6 +485,7 @@ function EvidenceFileEditor({
                 <Button
                   variant="secondary"
                   isLoading={busy === "recover"}
+                  loadingLabel="Recovering the uploaded file"
                   disabledReason={busy && busy !== "recover" ? waiting : undefined}
                   onClick={() => void attach()}
                 >

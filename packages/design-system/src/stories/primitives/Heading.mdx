@@ -21,14 +21,14 @@ A title. The size is the design's and the level is the page's: `size` picks the 
 
 ## Variants
 
-| Heading  | Use                                                                                               |
-| -------- | ------------------------------------------------------------------------------------------------- |
-| `large`  | A displayed number: a Stat's value, a dashboard figure. A `div`, because a number is not a title. |
-| `medium` | The page's title, the record's name. One per page, the `h1`.                                      |
-| `small`  | A section heading in a page body, a tab's heading. The `h2`.                                      |
-| `xsmall` | A card's title, a dialog's title, a rail section's heading. The `h3`, or `h4` under a section.    |
+| Heading  | Use                                                                                                                                                                          |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `large`  | Display: a figure bigger than a Stat's, or the one title of a screen with nothing else on it (sign-in) given `as="h1"`. A `div` by default, because a number is not a title. |
+| `medium` | The page's title, the record's name. One per page, the `h1`.                                                                                                                 |
+| `small`  | A section heading in a page body, a tab's heading. The `h2`.                                                                                                                 |
+| `xsmall` | A card's title, a dialog's title, a rail section's heading. The `h3`, or `h4` under a section.                                                                               |
 
-Not built, and why: `xxlarge` and `xlarge` (the product has no hero, and 22px is the biggest text on a page); `xxsmall` as a Heading (it is the Eyebrow, uppercase and subtle, on the Typography page); a subtitle slot (the line under a title is a Text, and the PageHeader draws it); an icon before (a Heading is words; the mark beside a record's title is the PageHeader's); a tone (a red heading says the word is the problem; the count beside it is).
+Not built, and why: `xxlarge` and `xlarge` (the product has no hero, and `large`, 28px, is the biggest text it sets); `xxsmall` as a Heading (it is the Eyebrow, uppercase and subtle, on the Typography page); a subtitle slot (the line under a title is a Text, and the PageHeader draws it); an icon before (a Heading is words; the mark beside a record's title is the PageHeader's); a tone (a red heading says the word is the problem; the count beside it is).
 
 ## Sizes
 
@@ -40,6 +40,8 @@ Not built, and why: `xxlarge` and `xlarge` (the product has no hero, and 22px is
 | `xsmall` | `font.heading.xsmall` | 15 / 22 / medium        | `h3`    | A card, a dialog, a rail section. |
 
 Under it, `font.heading.xxsmall` at 11 / 14, uppercase, is the Eyebrow. Four are enough here because a page is a title, its sections and their cards.
+
+The kit's own titles set their size themselves and read the level context: PageHeader.Title and the record title of a preview are 20 / 26 semibold (`font.heading.small` at semibold), Section.Title and Shell.Panel.Title 13 / 18 semibold (`font.body` at semibold), a dialog's and a card's title `font.heading.xsmall`, and a Stat's value 20 / 26 semibold. A screen built from those parts needs no Heading for them; Heading is for a title those parts do not draw, such as a step's heading in a wizard or a group inside a dialog.
 
 ## Level from context
 
@@ -64,7 +66,7 @@ Context follows the React tree, portals included: content portalled into another
 - **One `h1`.** The page's title; every other title is `as="h2"` or below, whatever its size.
 - **The outline in order.** No `h3` under an `h1` without an `h2` between, and no level chosen for its size.
 - **A title is a noun phrase**, sentence case, no full stop: "Assessment results", "Schedule assessment".
-- **`large` is a number**, not a title. The 28px size is a Stat's.
+- **`large` is display**, not a page or record title: a figure bigger than a Stat's, or the one title of a screen that has nothing else (sign-in), given `as="h1"`.
 - **A tone goes on the fact beside the title**, never on the title.
 
 ## Style
@@ -99,7 +101,7 @@ Context follows the React tree, portals included: content portalled into another
 - [Typography](?path=/docs/components-typography--docs): the Eyebrow, the heading under `xsmall`.
 - [PageHeader](?path=/docs/layout-pageheader--docs): where the `h1` is drawn, and the record title in a preview at the context's level.
 - [Section](?path=/docs/layout-section--docs) and [Card](?path=/docs/components-card--docs): where the `h2` and the `h3` are drawn.
-- [Stat](?path=/docs/components-stat--docs): where `large` is drawn.
+- [Stat](?path=/docs/components-stat--docs): a figure with its label, at 20 / 26 semibold; `large` is for a figure bigger than that.
 - [Typography tokens](?path=/docs/tokens-typography--docs): the ramp.
 
 ## Don't

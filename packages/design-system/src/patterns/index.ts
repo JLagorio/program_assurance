@@ -3,6 +3,7 @@ export {
   useCommandPalette,
   type CommandPaletteProps,
   type PaletteCommand,
+  type UseCommandPaletteOptions,
 } from "./command-palette";
 export {
   Composer,
@@ -11,6 +12,7 @@ export {
   type ComposerSuggestions,
 } from "./composer";
 export * from "./data-table";
+export type { FilterOption } from "./data-table/filter";
 export { Glance, type GlanceProps } from "./glance";
 export {
   PickerSheet,
@@ -21,7 +23,14 @@ export {
 export { PreviewSheet, type PreviewSheetProps } from "./preview-sheet";
 export { PreviewNavigation, type PreviewNavigationProps } from "./preview-navigation";
 export { RecordPicker, type PickerRecord, type RecordPickerProps } from "./record-picker";
-export { Related, type RelatedProps } from "./related";
+export {
+  Related,
+  RelatedCard,
+  type RelatedCardProps,
+  type RelatedEmpty,
+  type RelatedLayout,
+  type RelatedProps,
+} from "./related";
 export { SearchDialog, type SearchDialogProps, type SearchResult } from "./search-dialog";
 export { TaskRow, type TaskRowProps } from "./task-row";
 
@@ -70,11 +79,14 @@ export {
 } from "./chart";
 export {
   Editable,
+  EditableSelect,
+  EditableText,
+  type EditableOption,
   type EditableProps,
   type EditableSelectProps,
   type EditableTextProps,
 } from "./editable";
-export { Gates, type GateItemProps, type GatesProps } from "./gates";
+export { GateItem, Gates, type GateItemProps, type GatesProps } from "./gates";
 export {
   Inspector,
   InspectorGroup,
@@ -83,6 +95,16 @@ export {
   type InspectorProps,
 } from "./inspector";
 export { Toolbar, type ToolbarProps } from "./toolbar";
-export { WorkPane, type WorkPaneProps, type WorkPaneRowProps } from "./work-pane";
+export {
+  WorkPane,
+  WorkPaneRow,
+  type WorkPaneProps,
+  type WorkPaneRowProps,
+  type WorkPaneView,
+} from "./work-pane";
 
-export { RecordBrowser, type RecordBrowserProps } from "./record-browser";
+export {
+  RecordBrowser,
+  type RecordBrowserEmpty,
+  type RecordBrowserProps,
+} from "./record-browser";

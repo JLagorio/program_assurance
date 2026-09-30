@@ -93,7 +93,7 @@
     "path": "/",
     "title": "Portfolio",
     "family": "dashboard",
-    "reason": "Portfolio combines metrics and distinct collections, each collection owns its toolbar."
+    "reason": "The dashboard shape: a band of linked Stat tiles that open their registers, top-N widgets with View all and no toolbar or pager, and a Timeline activity feed."
   },
   {
     "file": "issues.$issueId.tsx",
@@ -350,7 +350,9 @@
     "file": "programs.$programId_.te-phases.tsx",
     "path": "/programs/$programId/te-phases",
     "title": "Program",
-    "family": "program-view",
+    "family": "redirect",
+    "reason": "Legacy Cyber T&E phases address redirects to the program Assessment campaigns tab.",
+    "redirectTo": "/programs/$programId?tab=Assessment campaigns",
     "model": "programs"
   },
   {

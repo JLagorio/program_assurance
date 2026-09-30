@@ -10,6 +10,7 @@ import {
 } from "react";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
+import { ChevronDown } from "lucide-react";
 import {
   Absent,
   Alert,
@@ -42,12 +43,10 @@ import {
   Section,
   Shell,
   Skeleton,
-  Stack,
   Stat,
   TextLink,
   VisuallyHidden,
   useDataTable,
-  useLedgerLocale,
 } from "@ledger/design-system";
 import { deleteRecord, getRecord, listRecords } from "@/lib/database";
 import {
@@ -62,6 +61,7 @@ import {
 } from "@/lib/records";
 import { vocabularyFor } from "@/lib/status";
 import { FieldStatus } from "./status";
+import { Page } from "./shell";
 import { useWorkspace } from "./workspace";
 import { ProductCollection } from "@/components/prototype/product-collection";
 import {
@@ -92,7 +92,7 @@ const PROSE = /description|narrative|rationale|prose|notes|criteria|statement|bo
 
 function CollectionNotFound() {
   return (
-    <Stack space="space.200">
+    <Page>
       <PageHeader>
         <PageHeader.Heading>
           <PageHeader.Title>Schema inspector</PageHeader.Title>
@@ -112,7 +112,7 @@ function CollectionNotFound() {
           </LinkButton>
         </EmptyContent>
       </Empty>
-    </Stack>
+    </Page>
   );
 }
 
@@ -248,10 +248,11 @@ function SchemaCollection({
           const header = fieldLabel(column.name);
           const vocabulary = vocabularyFor(name, column.name);
           if (index === 0)
+            // A minimum, not a width: the name takes the room the other columns leave.
             return c.id(column.name, {
               header,
               priority: 0,
-              width: 220,
+              minWidth: 200,
               hideable: false,
               preview: setSelected,
               active: (record) => record.id === selected?.id,
@@ -330,7 +331,7 @@ function SchemaCollection({
   );
   const preview = selected ? { record: selected } : null;
   return (
-    <Stack space="space.200">
+    <Page>
       <PageHeader>
         <PageHeader.Heading>
           <PageHeader.Title>{labelFor(name)}</PageHeader.Title>
@@ -381,28 +382,52 @@ function SchemaCollection({
             />
           }
         >
-          <KeyValue.Group>
-            {collection.columns
-              // The name is the preview's title; the properties are everything else.
-              .filter(
-                (column) =>
-                  column.name in preview.record &&
-                  column.name !== keyColumn &&
-                  !systemColumns.has(column.name),
-              )
-              .map((column) => (
-                <KeyValue key={column.name} label={fieldLabel(column.name)} wrap>
-                  <Value
-                    collection={collection}
-                    column={column}
-                    value={preview.record[column.name]}
-                  />
-                </KeyValue>
-              ))}
-          </KeyValue.Group>
+          <PreviewProperties
+            key={preview.record.id}
+            collection={collection}
+            id={preview.record.id}
+            keyColumn={keyColumn}
+          />
         </RecordPreviewPanel>
       )}
-    </Stack>
+    </Page>
+  );
+}
+
+/**
+ * A preview's properties. The list reads a few columns per row, so the preview reads the whole
+ * record (the same query its page uses): the name is the title, the properties are the rest.
+ */
+function PreviewProperties({
+  collection,
+  id,
+  keyColumn,
+}: {
+  collection: Collection;
+  id: string;
+  keyColumn: string;
+}) {
+  const query = useRecord(collection, id);
+  const record = query.data;
+  return (
+    <QueryState queries={[query]} retryLabel="Retry loading the properties">
+      {record ? (
+        <KeyValue.Group>
+          {collection.columns
+            .filter(
+              (column) =>
+                column.name in record &&
+                column.name !== keyColumn &&
+                !systemColumns.has(column.name),
+            )
+            .map((column) => (
+              <KeyValue key={column.name} label={fieldLabel(column.name)} wrap>
+                <Value collection={collection} column={column} value={record[column.name]} />
+              </KeyValue>
+            ))}
+        </KeyValue.Group>
+      ) : null}
+    </QueryState>
   );
 }
 
@@ -493,7 +518,7 @@ export function RecordDetail({
   // The product's not-found shape: the record's kind as the page title, then the Empty.
   if (missing)
     return (
-      <Stack space="space.200">
+      <Page>
         <PageHeader>
           {trail("Not found")}
           <PageHeader.Heading>
@@ -519,7 +544,7 @@ export function RecordDetail({
             </LinkButton>
           </EmptyContent>
         </Empty>
-      </Stack>
+      </Page>
     );
   const title = creating ? (
     `Create ${editorNoun}`
@@ -543,7 +568,7 @@ export function RecordDetail({
       ),
   );
   return (
-    <Stack space="space.200">
+    <Page>
       <PageHeader>
         {trail(title)}
         <PageHeader.Heading>
@@ -552,9 +577,10 @@ export function RecordDetail({
         {!creating && canEdit && (
           <PageHeader.Actions>
             <DropdownMenu>
-              <DropdownMenuTrigger ref={actionsRef} render={<Button />}>
-                Actions
-              </DropdownMenuTrigger>
+              <DropdownMenuTrigger
+                ref={actionsRef}
+                render={<Button iconAfter={<ChevronDown />}>Actions</Button>}
+              />
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => setEditing(query.data!)}>
                   Edit {noun}
@@ -676,14 +702,16 @@ export function RecordDetail({
           </QueryState>
         </>
       )}
-    </Stack>
+    </Page>
   );
 }
 
-/** One collection's count as a headline number, opening the collection. */
+/**
+ * One collection's count as a headline number: the whole tile opens the collection, named by its
+ * label, the number and the note.
+ */
 function RecordCount({ name }: { name: string }) {
   const workspace = useWorkspace();
-  const { formatNumber } = useLedgerLocale();
   const collection = workspace.collections.find((item) => item.name === name);
   const query = useQuery({
     queryKey: ["records", workspace.tenantId, name, "count"],
@@ -692,25 +720,12 @@ function RecordCount({ name }: { name: string }) {
     retry: false,
   });
   if (!collection) return null;
-  const label = labelFor(name);
   return (
     <Stat.Tile
-      label={label}
-      value={
-        query.data ? (
-          <TextLink render={<Link to="/records/$collection" params={{ collection: name }} />}>
-            {formatNumber(query.data.count)}
-            <VisuallyHidden> {label.toLowerCase()}</VisuallyHidden>
-          </TextLink>
-        ) : query.isError ? (
-          <Absent label="Not available" />
-        ) : (
-          <span aria-busy="true">
-            <Skeleton shape="heading" width={48} />
-            <VisuallyHidden>Loading</VisuallyHidden>
-          </span>
-        )
-      }
+      label={labelFor(name)}
+      value={query.isError ? <Absent label="Not available" /> : (query.data?.count ?? 0)}
+      isLoading={query.isPending && !query.isError}
+      link={<Link to="/records/$collection" params={{ collection: name }} />}
       {...(query.isError ? { note: "Could not be counted" } : {})}
     />
   );
@@ -726,7 +741,7 @@ export function WorkspaceHome() {
     retry: false,
   });
   return (
-    <Stack space="space.300">
+    <Page>
       <PageHeader>
         <PageHeader.Heading>
           <PageHeader.Title>Schema inspector</PageHeader.Title>
@@ -771,7 +786,7 @@ export function WorkspaceHome() {
           </EmptyContent>
         </Empty>
       )}
-    </Stack>
+    </Page>
   );
 }
 

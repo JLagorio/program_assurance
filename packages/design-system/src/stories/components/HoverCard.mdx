@@ -24,9 +24,11 @@ A supplementary preview of a link's destination, built from shadcn's Base UI Pre
 
 An action trigger can use `render={<button type="button" />}`. Its native button owns click and keyboard activation; Trigger has no `nativeButton` prop.
 
-Content is 256px wide by default. Override its width through `style`, including a state callback. Placement defaults to `side="bottom"`, `sideOffset={4}`, `align="center"` and `alignOffset={4}`. These four props belong to Content. The positioner handles collisions; logical sides and alignment follow the Ledger locale, with Content's `dir` available as an override.
+Content is 256px wide by default (`dimension.part.hoverCard`) and centred under its trigger: `side="bottom"`, `sideOffset={4}`, `align="center"` and `alignOffset={0}`. Override its width through `style`, including a state callback. It is capped at the height the window leaves on its side and scrolls within it. Content also takes the positioner's `anchor` (a cell or a virtual point instead of the trigger), `collisionPadding`, `collisionBoundary`, `collisionAvoidance`, `sticky` and `positionMethod`. The positioner handles collisions; logical sides and alignment follow the Ledger locale, with Content's `dir` available as an override.
 
-The surface uses Ledger's overlay, border, text, radius, spacing and motion tokens, and records the overlay surface as the current one, so a child painted with `bg-surface-current` (a sticky label, a fade at an edge) matches the card. Content `className` and `style` callbacks receive Base UI popup state; render props, classes, styles and refs are merged.
+The trigger draws the kit's focus ring. Compose it with [TextLink](?path=/docs/components-textlink--docs) (`<TextLink render={<HoverCardTrigger href="…" />}>`) for link styling.
+
+The surface uses Ledger's overlay, border, text in `font.body` (it previews the record's own words), radius, spacing and motion tokens, and records the overlay surface as the current one, so a child painted with `bg-surface-current` (a sticky label, a fade at an edge) matches the card. Content `className` and `style` callbacks receive Base UI popup state; render props, classes, styles and refs are merged.
 
 <Canvas of={Stories.HoverCardMatrix} />
 
@@ -44,13 +46,9 @@ Use Root's `defaultOpen`, or controlled `open` with `onOpenChange(open, details)
 
 Keep the preview supplementary. Essential information and actions belong at the linked destination or in a [Popover](?path=/docs/components-popover--docs). Opening the preview does not move focus or add a popup Tab stop, and it is not a dialog announcement. The link remains the way to navigate for keyboard, touch and assistive-technology users.
 
-## Migration
-
-Replace the wrapper's `content` prop with `HoverCardContent` children. Compose an existing link through `HoverCardTrigger render`, or pass `href` and link text directly to Trigger. Move `delay` to Trigger; move placement to Content and replace `width` with `style={{ width }}`. Root retains controlled open state and now provides Base UI event details. The old 280px width and 400ms/120ms timing defaults become 256px and 600ms/300ms.
-
 ## Props
 
-HoverCard inherits Base UI's [Root props](https://base-ui.com/react/components/preview-card#root), and HoverCardTrigger inherits its [Trigger props](https://base-ui.com/react/components/preview-card#trigger). HoverCardContent inherits [Popup props](https://base-ui.com/react/components/preview-card#popup) plus the four positioning props described above.
+HoverCard inherits Base UI's [Root props](https://base-ui.com/react/components/preview-card#root), and HoverCardTrigger inherits its [Trigger props](https://base-ui.com/react/components/preview-card#trigger). HoverCardContent inherits [Popup props](https://base-ui.com/react/components/preview-card#popup) plus the positioner's props described above.
 
 <ArgTypes of={HoverCardContent} />
 

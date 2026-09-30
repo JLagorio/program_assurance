@@ -7,7 +7,7 @@ import * as Stories from "./Checkbox.stories";
 
 # Checkbox
 
-An independent boolean choice, using the shadcn Base UI root and indicator. The 16px control supplies the check or mixed-state dash; the label and hint come from a horizontal [Field](?path=/docs/components-field--docs), which ties them to the box with no ids.
+An independent yes or no, on the shadcn Base UI root and indicator. The 16px box draws the tick or the mixed-state dash; the label and hint come from a horizontal [Field](?path=/docs/components-field--docs), which ties them to the box with no ids and aligns the box with the label's first line.
 
 ```tsx
 <Field orientation="horizontal">
@@ -19,39 +19,81 @@ An independent boolean choice, using the shadcn Base UI root and indicator. The 
 </Field>
 ```
 
-Use [RadioGroup](?path=/docs/components-radiogroup--docs) for one selected answer from visible choices, or [Switch](?path=/docs/components-switch--docs) for an on/off setting. The caller decides when to save a change.
-
 <Canvas of={Stories.CheckboxMatrix} />
+
+## When to use it
+
+- **Use a Checkbox** for a choice that stands on its own and waits for the form's primary: include this family, handles PII, I have reviewed the evidence.
+- **Several related choices** are a [CheckboxGroup](?path=/docs/components-checkboxgroup--docs) under one legend.
+- **Not for one answer from two or more options.** "Accept" or "Not applicable" is a [RadioGroup](?path=/docs/components-radiogroup--docs); two boxes that untick each other are announced as two independent choices and ignore the arrow keys.
+- **Not for a setting that applies the moment it changes.** That is a [Switch](?path=/docs/components-switch--docs).
+- **Not for a fact.** A ticked, disabled box reads as a choice someone made. A value the reader cannot change is a labelled property ([KeyValue](?path=/docs/components-keyvalue--docs)), or a read-only box with a hint that says why.
+
+The [Forms](?path=/docs/patterns-forms--docs) page has the table of which control answers which question.
 
 ## Selection and mixed state
 
-Use boolean `checked` with `onCheckedChange(checked, details)`, or `defaultChecked` for local state. `details.cancel()` rejects a change. `disabled` prevents interaction and removes the control from the tab order; `readOnly` keeps it focusable without allowing changes.
+Use boolean `checked` with `onCheckedChange(checked, details)`, or `defaultChecked` for local state. `details.cancel()` rejects a change. `disabled` prevents interaction and removes the box from the tab order; `readOnly` keeps it focusable without allowing changes.
 
 Mixed state uses a separate boolean `indeterminate` prop. [Table.Selection](?path=/docs/components-table--docs) derives it from the rows it selects. For a list of choices with select-all, use a [CheckboxGroup](?path=/docs/components-checkboxgroup--docs): it owns the ticked values and its CheckboxGroupSelectAll derives the checked and mixed states.
 
 <Canvas of={Stories.Parent} />
 
+## Read-only
+
+A read-only box keeps its answer and its Tab stop but not the brand fill or the hover: a sunken box with a dashed edge, the tick in the text colour. Give it a FieldDescription that says why it cannot change ("Set by the system categorization."): the hint describes the box, so a reader who reaches it hears the reason. Prefer this to `disabled` whenever the reason must stay reachable, since a disabled box leaves the tab order and takes its reason with it.
+
+<Canvas of={Stories.ReadOnly} />
+
+## Choice cards
+
+When each option needs a title and a line of explanation, wrap a horizontal Field in a FieldLabel: a press anywhere on the card chooses, the card shows hover, the chosen state and the one keyboard focus ring, and a disabled card keeps a quiet surface. Put the title in a FieldTitle, which names the box on its own, and the explanation in a FieldDescription, which describes it once.
+
+```tsx
+<FieldLabel>
+  <Field orientation="horizontal">
+    <Checkbox value="second-review" />
+    <FieldContent>
+      <FieldTitle>Require a second reviewer</FieldTitle>
+      <FieldDescription>A colleague confirms the determination.</FieldDescription>
+    </FieldContent>
+  </Field>
+</FieldLabel>
+```
+
+<Canvas of={Stories.ChoiceCard} />
+
 ## Labels, Field and forms
 
-In a Field the FieldLabel names the box and toggles it when clicked, the FieldDescription and FieldError describe it, and the Field's `invalid`, `required` and `disabled` reach it; nothing needs an id. Outside a Field, a wrapping label or a sibling label with `htmlFor` and the checkbox's `id` names it, and `aria-describedby` links supporting text. Use `aria-label` only for a box with no visible label. Several related boxes belong in a [CheckboxGroup](?path=/docs/components-checkboxgroup--docs); requiring the group does not require every box. Native `required` on the box is a browser and Base UI constraint; the Field's `required` only announces and marks.
+In a Field the FieldLabel names the box and toggles it when clicked, the FieldDescription and FieldError describe it, and the Field's `invalid`, `required` and `disabled` reach it; nothing needs an id. Outside a Field, a wrapping label or a sibling label with `htmlFor` and the checkbox's `id` names it, and `aria-describedby` links supporting text; the box is inline, so a plain label keeps its text on the box's line. Use `aria-label` only for a box with no visible label: inside a wrapping label an `aria-label` is added to the label's text, not put in its place. Requiring a CheckboxGroup does not require every box. Native `required` on the box is a browser and Base UI constraint; the Field's `required` only announces and marks.
 
-The box's boundary is `color.border.bold`, 3:1 against every surface, so an unticked box can be found (WCAG 1.4.11); text fields keep their lighter `color.border.input`, which increased contrast raises. Invalid is the danger border. The keyboard focus outline stays the focus colour on an invalid box, so focus is visible while the reader moves through a list of errors. A FieldSet's `disabled` disables the boxes inside it, which a native `<fieldset disabled>` alone does not.
-
-<Canvas of={Stories.InvalidAndFocused} />
+<Canvas of={Stories.InAPlainLabel} />
 
 `name`, `value` and `form` control native submission. A checked checkbox submits its value (or `on` when omitted); an unchecked checkbox is omitted unless `uncheckedValue` is supplied. Native form reset is caller-owned in Base UI 1.7: restore controlled `checked` state in `onReset`.
 
 <Canvas of={Stories.InField} />
+
+## Content
+
+- **Name the choice, not its state.** The label stays the same ticked and unticked: "Seed AC-2 on the payments platform", never a label that flips between "Will seed" and "Excluded", and "Complete: Rotate the signing keys", never "Reopen: …" once ticked. The box shows the state; a status beside it can repeat it.
+- **Say what ticking does**, in the positive: "Notify the owner", not "Do not notify the owner".
+- **Do not disable a box to show a fact** (see When to use it).
+
+## Accessibility
+
+- The box's boundary is `color.border.bold`, 3:1 against every surface, so an unticked box can be found (WCAG 1.4.11); text fields keep their lighter `color.border.input`, which increased contrast raises.
+- Invalid is the danger border. The keyboard focus outline stays the focus colour on an invalid box, so focus is visible while the reader moves through a list of errors.
+- A FieldSet's `disabled` disables the boxes inside it, which a native `<fieldset disabled>` alone does not.
+- In forced colours the box keeps its boundary and the tick in system colours.
+
+<Canvas of={Stories.InvalidAndFocused} />
+<Canvas of={Stories.Boundary} />
 
 ## Native props and keyboard
 
 The default root is a span with `role="checkbox"`, plus a hidden input. `ref` targets the visible control; `inputRef` and `id` target the input. For a native button root, use `nativeButton` with `render={<button />}`; `id` then belongs to that button. The render element's props, classes, styles, handlers and refs are merged. `className` and `style` accept Base UI state callbacks.
 
 Each enabled checkbox is a Tab stop. Space toggles it. Enter does not toggle it; inside a form it activates the default submitter. Mixed state is announced as `aria-checked="mixed"` and drawn with a dash.
-
-## Migration
-
-Move label children into an external label and replace `description` with supporting content linked by `aria-describedby` or FieldDescription. Replace `checked="indeterminate"` with `checked={false} indeterminate`; callbacks now receive a boolean and cancellable event details. Use `render` for composition. The root follows Base UI's default span and input structure.
 
 ## Props
 

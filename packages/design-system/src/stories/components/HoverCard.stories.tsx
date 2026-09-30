@@ -33,7 +33,8 @@ const renderedClick = fn();
 export const HoverCardMatrix: Story = {
   render: () => (
     <Grid
-      templateColumns="repeat(2, minmax(0, 1fr))"
+      // Two columns where they fit; one in a narrow frame, so a link wraps between its words.
+      templateColumns="repeat(auto-fit, minmax(min(12rem, 100%), 1fr))"
       gap="space.400"
       style={{ padding: 100, minHeight: 280 }}
     >
@@ -107,6 +108,10 @@ export const HoverCardMatrix: Story = {
     await waitFor(() => expect(content.getBoundingClientRect().width).toBe(256));
     const rtl = await body.findByTestId("review-calendar-preview");
     const rtlTrigger = canvas.getByRole("link", { name: "Review calendar" });
+    // A bare trigger draws the kit's focus ring, not the browser's.
+    rtlTrigger.focus({ focusVisible: true } as FocusOptions);
+    await waitFor(() => expect(getComputedStyle(rtlTrigger).outlineStyle).toBe("solid"));
+    rtlTrigger.blur();
     // Inline-end is the left in RTL. Where the window leaves no room there (a phone, a narrow
     // frame), the card flips to stay on screen instead.
     if (rtlTrigger.getBoundingClientRect().left >= rtl.getBoundingClientRect().width + 32) {
@@ -295,6 +300,7 @@ export const OnAnId: Story = {
   },
 };
 
+/** A TextLink trigger, the usual composition, with the card centred under it. */
 export const Playground: Story = {
   name: "Basic",
   render: (args) => (
@@ -305,4 +311,24 @@ export const Playground: Story = {
       </HoverCard>
     </div>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const user = userEvent.setup({ document: canvasElement.ownerDocument });
+    const trigger = canvas.getByRole("link", { name: "Review guide" });
+    await user.tab();
+    await expect(trigger).toHaveFocus();
+    const card = await body.findByText("How to prepare evidence and schedule a control review.");
+    const popup = card.closest<HTMLElement>('[data-slot="hover-card-content"]')!;
+    await waitFor(() => expect(popup).toBeVisible());
+    // Centred on its trigger with no offset along it, and capped at the room the window leaves.
+    await waitFor(() => {
+      const box = popup.getBoundingClientRect();
+      const anchor = trigger.getBoundingClientRect();
+      expect(Math.abs(box.left + box.width / 2 - (anchor.left + anchor.width / 2))).toBeLessThan(1);
+    });
+    await expect(popup.style.maxHeight).toBe("var(--available-height)");
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(popup).not.toBeInTheDocument());
+  },
 };

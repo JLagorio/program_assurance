@@ -7,7 +7,6 @@ import {
   DataTable,
   Heading,
   HeadingLevelProvider,
-  Icon,
   Id,
   Inline,
   Inspector,
@@ -22,13 +21,11 @@ import {
   TabsTrigger,
   Text,
   TextLink,
-  VisuallyHidden,
   defineColumns,
   useDataTable,
   useLedgerLocale,
 } from "@ledger/design-system";
 import { useNavigate } from "@tanstack/react-router";
-import { ExternalLink } from "lucide-react";
 import { Fragment, useMemo, useState, type ReactNode } from "react";
 import { QueryValue } from "./library-shared";
 import { ProductCollection } from "./product-collection";
@@ -54,6 +51,7 @@ export function LibraryControlTable({
   controls,
   onSelect,
   label = "Catalog controls",
+  views,
   filters,
   showRelease = true,
   selectedBy,
@@ -65,7 +63,12 @@ export function LibraryControlTable({
   onDisplayedRowsChange?: ((rows: Row<"controls">[]) => void) | undefined;
   onSelect: (control: Row<"controls">) => void;
   label?: string;
-  /** Extra toolbar controls after the search: an edition picker, say. */
+  /**
+   * What the rows are drawn from, in the toolbar's views slot beside the search: the catalog's
+   * edition, a profile's resolved selection. It never folds into More, as a filter can.
+   */
+  views?: ReactNode;
+  /** Extra toolbar filters after the search. */
   filters?: ReactNode;
   /** Hide the Release column when every row is from one edition. */
   showRelease?: boolean;
@@ -139,6 +142,9 @@ export function LibraryControlTable({
     data,
     columns,
     getRowId: (row) => row.id,
+    // Titles repeat across families (every family's first control is "Policy and Procedures"), so
+    // the row's controls are named by code and title, also once a narrow frame folds the code.
+    rowLabel: (row) => `${row.code} · ${row.title}`,
     label,
     view: "live-library-controls-v2",
     resizable: true,
@@ -158,6 +164,7 @@ export function LibraryControlTable({
         description: "Reference catalogs are loaded by a workspace administrator.",
       }}
       searchLabel="Find a control"
+      views={views}
       filters={
         <>
           {filters}
@@ -256,6 +263,96 @@ function PartProse({ text, index }: { text: string; index: Placeholders }) {
     <Prose>{withPlaceholders(text, index)}</Prose>
   ) : (
     <Prose>{text}</Prose>
+  );
+}
+
+const NO_PLACEHOLDERS: Placeholders = new Map();
+
+/** Every control's parameter placeholders, by control id: prose shown away from the control preview. */
+export type ControlPlaceholders = ReadonlyMap<string, Placeholders>;
+
+/**
+ * Every control's parameters, read once for prose a screen shows beside other records: a
+ * requirement's control mappings, a statement to choose. Until they load, an insertion reads as
+ * its parameter's id.
+ */
+export function useControlPlaceholders(): ControlPlaceholders {
+  const parameters = useRows(
+    "parameters",
+    {},
+    {
+      columns: [
+        "id",
+        "control_id",
+        "source_id",
+        "label",
+        "has_selection",
+        "selection_count",
+        "props",
+      ],
+    },
+  );
+  const choices = useRows(
+    "parameter_choices",
+    {},
+    { columns: ["id", "parameter_id", "ordinal", "value"] },
+  );
+  return useMemo(() => {
+    const byParameter = new Map<string, ParameterChoice[]>();
+    for (const choice of choices.data ?? [])
+      byParameter.set(choice.parameter_id, [
+        ...(byParameter.get(choice.parameter_id) ?? []),
+        choice,
+      ]);
+    const byControl = new Map<string, ParameterText[]>();
+    for (const parameter of parameters.data ?? [])
+      if (parameter.control_id)
+        byControl.set(parameter.control_id, [
+          ...(byControl.get(parameter.control_id) ?? []),
+          parameter,
+        ]);
+    return new Map(
+      [...byControl].map(([controlId, list]) => [
+        controlId,
+        placeholderIndex(
+          list,
+          list.flatMap((parameter) => byParameter.get(parameter.id) ?? []),
+        ),
+      ]),
+    );
+  }, [parameters.data, choices.data]);
+}
+
+/** A control's authored prose as plain words, each insertion as its labelled placeholder. */
+export function controlProseText(
+  text: string,
+  controlId: string | null | undefined,
+  placeholders: ControlPlaceholders,
+): string {
+  const index = (controlId && placeholders.get(controlId)) || NO_PLACEHOLDERS;
+  return text.replace(INSERT, (_, id: string) => placeholderText(id, index));
+}
+
+/** A control's authored prose, line breaks kept, each insertion as its labelled placeholder. */
+export function ControlProse({
+  text,
+  controlId,
+  placeholders,
+  size,
+  as,
+}: {
+  text: string;
+  controlId: string | null | undefined;
+  placeholders: ControlPlaceholders;
+  size?: "small" | undefined;
+  /** A paragraph of its own; inline text (inside a field's description, say) unsaid. */
+  as?: "p" | undefined;
+}) {
+  const index = (controlId && placeholders.get(controlId)) || NO_PLACEHOLDERS;
+  return (
+    <Text preserveLineBreaks {...(as ? { as } : {})} {...(size ? { size } : {})}>
+      {HAS_INSERT.test(text) ? withPlaceholders(text, index) : text}
+    </Text>
   );
 }
 
@@ -522,60 +619,60 @@ export function ControlInspector<C extends ControlSummary>({
                 </TabsTrigger>
               ))}
             </TabsList>
-            <TabsContent value={tab}>
-              {(tab === "Statements" || tab === "Objectives") && (
+            {(["Statements", "Objectives"] as const).map((name) => (
+              <TabsContent key={name} value={name}>
                 <QueryState queries={[parts, parameters, choices]}>
                   {(parts.data ?? []).some(
                     (part) =>
                       part.parent_part_id === null &&
-                      (tabRoots[tab] as readonly string[]).includes(part.name),
+                      (tabRoots[name] as readonly string[]).includes(part.name),
                   ) ? (
                     <ControlStatement
                       parts={parts.data ?? []}
                       parameters={parameters.data ?? []}
                       choices={choices.data ?? []}
-                      roots={tabRoots[tab]}
+                      roots={tabRoots[name]}
                     />
                   ) : (
                     <EmptyMessage
                       compact
                       title={
-                        tab === "Statements" ? "No statement recorded" : "No objectives recorded"
+                        name === "Statements" ? "No statement recorded" : "No objectives recorded"
                       }
                       description="The catalog records none for this control."
                     />
                   )}
                 </QueryState>
-              )}
-              {tab === "Parameters" && (
-                <QueryState queries={[parameters, choices]}>
-                  {parameters.data?.length ? (
-                    <Stack space="space.150">
-                      {[...parameters.data]
-                        .sort((a, b) => a.ordinal - b.ordinal)
-                        .map((parameter) => (
-                          <ParameterGroup
-                            key={parameter.id}
-                            parameter={parameter}
-                            parameters={parameters.data ?? []}
-                            choices={choices.data ?? []}
-                          />
-                        ))}
-                    </Stack>
-                  ) : (
-                    <EmptyMessage
-                      compact
-                      title="No parameters declared"
-                      description="This control's text has no values to assign."
-                    />
-                  )}
-                </QueryState>
-              )}
-              {tab === "Links" && (
-                <QueryState queries={[links]}>
-                  <ControlLinks links={links.data ?? []} />
-                </QueryState>
-              )}
+              </TabsContent>
+            ))}
+            <TabsContent value="Parameters">
+              <QueryState queries={[parameters, choices]}>
+                {parameters.data?.length ? (
+                  <Stack space="space.150">
+                    {[...parameters.data]
+                      .sort((a, b) => a.ordinal - b.ordinal)
+                      .map((parameter) => (
+                        <ParameterGroup
+                          key={parameter.id}
+                          parameter={parameter}
+                          parameters={parameters.data ?? []}
+                          choices={choices.data ?? []}
+                        />
+                      ))}
+                  </Stack>
+                ) : (
+                  <EmptyMessage
+                    compact
+                    title="No parameters declared"
+                    description="This control's text has no values to assign."
+                  />
+                )}
+              </QueryState>
+            </TabsContent>
+            <TabsContent value="Links">
+              <QueryState queries={[links]}>
+                <ControlLinks links={links.data ?? []} />
+              </QueryState>
             </TabsContent>
           </Tabs>
         </Stack>
@@ -766,12 +863,8 @@ function Reference({ id }: { id: string }) {
         return (
           <Stack space="space.025">
             {href && /^https?:\/\//.test(href) ? (
-              <TextLink href={href} target="_blank" rel="noopener noreferrer">
-                {title}{" "}
-                <Icon>
-                  <ExternalLink />
-                </Icon>
-                <VisuallyHidden> (opens in a new tab)</VisuallyHidden>
+              <TextLink href={href} newTab>
+                {title}
               </TextLink>
             ) : (
               <Text>{title}</Text>

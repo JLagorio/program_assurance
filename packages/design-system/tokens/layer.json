@@ -1,0 +1,30 @@
+{
+  "layer": {
+    "$type": "number",
+    "chrome": {
+      "$value": 30,
+      "$description": "The Shell's banner and top nav, sticky over the page. A region's own sticky parts (a table's header, a pinned column, a sticky footer) stack inside Main, below it.",
+      "$extensions": { "ledger": { "introduced": "0.7.0" } }
+    },
+    "blanket": {
+      "$value": 40,
+      "$description": "The Shell's blanket under the side nav when it opens over the page on a narrow screen. A dialog's, sheet's or drawer's own blanket goes with its popup on layer.overlay, so it also covers an open side nav.",
+      "$extensions": { "ledger": { "introduced": "0.7.0" } }
+    },
+    "overlay": {
+      "$value": 50,
+      "$description": "Everything that opens over the page: the side nav and the panel as overlays, a popover, a menu, a listbox, a hover card, a dialog, a sheet, a drawer and their blankets. They portal to the body and stack among themselves by document order, so the one opened last is on top.",
+      "$extensions": { "ledger": { "introduced": "0.7.0" } }
+    },
+    "toast": {
+      "$value": 1000,
+      "$description": "The toast stack, above every overlay, so a notification is never behind the dialog that raised it.",
+      "$extensions": { "ledger": { "introduced": "0.7.0" } }
+    },
+    "tooltip": {
+      "$value": 1100,
+      "$description": "A tooltip, above everything, a toast's included: it names the control the pointer or the focus is on, wherever that control sits.",
+      "$extensions": { "ledger": { "introduced": "0.7.0" } }
+    }
+  }
+}

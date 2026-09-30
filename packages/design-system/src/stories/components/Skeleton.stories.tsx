@@ -43,14 +43,16 @@ export const SkeletonMatrix: Story = {
         </Box>
       </Specimens>
       <Specimens title="What is coming: a record head, a list row, a card with a chart">
-        <Box style={{ width: 320 }} aria-busy>
+        <Box style={{ width: 320, maxWidth: "100%" }} aria-busy>
+          <span className="sr-only">Loading the record</span>
           <Stack space="space.150">
             <Skeleton width={72} />
             <Skeleton shape="heading" width={240} />
             <Skeleton lines={2} />
           </Stack>
         </Box>
-        <Box style={{ width: 320 }} aria-busy>
+        <Box style={{ width: 320, maxWidth: "100%" }} aria-busy>
+          <span className="sr-only">Loading the list</span>
           <Inline space="space.150" alignBlock="center">
             <Skeleton shape="circle" width={24} />
             <Box className="flex-1">
@@ -68,6 +70,7 @@ export const SkeletonMatrix: Story = {
           className="rounded-medium border border-default"
           aria-busy
         >
+          <span className="sr-only">Loading the chart</span>
           <Stack space="space.200">
             <Skeleton shape="heading" width={160} />
             <Skeleton shape="block" height={120} />
@@ -117,6 +120,15 @@ export const SkeletonMatrix: Story = {
       await expect(root).toHaveAttribute("aria-hidden", "true");
       await expect(root.tabIndex).toBe(-1);
     }
+    // The waiting region says the wait in words; the shapes themselves are hidden.
+    for (const region of canvasElement.querySelectorAll<HTMLElement>('[aria-busy="true"]'))
+      await expect(region.textContent?.trim()).toMatch(/^Loading/);
+    // In forced colours the shapes are GrayText, so a loading page is not blank.
+    if (matchMedia("(forced-colors: active)").matches) {
+      const line = canvas.getByTestId("skeleton-line");
+      await expect(getComputedStyle(line).backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
+      await expect(getComputedStyle(line).forcedColorAdjust).toBe("none");
+    }
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const animatedShapes = canvasElement.querySelectorAll(".animate-pulse");
     await expect(animatedShapes.length).toBeGreaterThan(0);
@@ -133,13 +145,14 @@ export const Dont: Story = {
       <Pair
         do={
           <Box style={{ maxWidth: 320 }} aria-busy>
+            <span className="sr-only">Loading the section</span>
             <Stack space="space.150">
               <Skeleton shape="heading" width={200} />
               <Skeleton lines={3} />
             </Stack>
           </Box>
         }
-        doText="A page or a section that is loading holds its shape: the reader knows what is coming and nothing jumps."
+        doText="A page or a section that is loading holds its shape: the reader knows what is coming and nothing jumps. The region is busy and says so in words."
         dont={
           <Box style={{ maxWidth: 320, height: 84 }} className="flex items-center justify-center">
             <Spinner size="large" />
@@ -150,6 +163,7 @@ export const Dont: Story = {
       <Pair
         do={
           <Box style={{ maxWidth: 320 }} aria-busy>
+            <span className="sr-only">Loading the owner</span>
             <Inline space="space.150" alignBlock="center">
               <Skeleton shape="circle" width={24} />
               <Box className="flex-1">
@@ -169,6 +183,7 @@ export const Dont: Story = {
       <Pair
         do={
           <Box style={{ maxWidth: 320 }} aria-busy>
+            <span className="sr-only">Loading the note</span>
             <Stack space="space.100">
               <Skeleton width={240} />
               <Skeleton width={180} />

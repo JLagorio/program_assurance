@@ -1,43 +1,115 @@
-import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import {
+  Progress,
+  ProgressIndicator,
+  ProgressLabel,
+  ProgressStacked,
+  ProgressTrack,
+  ProgressValue,
+} from "../../components";
 import * as Stories from "./Progress.stories";
 
 <Meta of={Stories} />
 
 # Progress
 
-Based on [shadcn’s Base UI source](https://ui.shadcn.com/docs/components/base/progress) and [Base UI](https://base-ui.com/react/components/progress). Ledger retains its tokens and application layouts.
-
-## Anatomy
-
-Task completion using Base UI Progress. Progress supplies its default Track and Indicator; ProgressLabel and ProgressValue are optional children. ProgressTrack and ProgressIndicator expose the corresponding native parts for custom composition under Base UI’s root. ProgressStacked remains the separate proportional coverage bar.
-
-## Variants
+How far a task has gone, as a bar: an upload, an import, a package build. `Progress` is a progressbar on Base UI's Progress, with Ledger's tones and sizes. `ProgressStacked` is the other bar: a share of a whole, such as control coverage, drawn as segments.
 
 <Canvas of={Stories.ValuesAndRanges} />
 
+## Choosing between them
+
+| What the reader is watching                                  | Part                                                                                                  |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| A task that finishes, with a known amount done               | `Progress` with `value`                                                                               |
+| A task that finishes, of unknown length, in a region         | `Progress` with `value={null}`: a hatched bar                                                         |
+| A short wait for an action, beside its control               | [Spinner](?path=/docs/components-spinner--docs), or the Button's own `isLoading`                      |
+| Content on its way, whose shape is known                     | [Skeleton](?path=/docs/components-skeleton--docs)                                                     |
+| A share of a whole: coverage, controls by state, a breakdown | `ProgressStacked`, or the number in words                                                             |
+| A measure against a target that does not finish (a score)    | A number in words, or a [Chart](?path=/docs/patterns-chart-overview--docs) gauge; never a progressbar |
+
+A progressbar says a task is under way and will end. A quantity that is not a task's completion is not one: a screen reader would hear "73 percent" of a job that is not running.
+
+## Anatomy
+
+```tsx
+<Progress value={41} max={80} tone="success">
+  <ProgressLabel>Controls verified</ProgressLabel>
+  <ProgressValue>{(_, value) => `${value} of 80`}</ProgressValue>
+</Progress>
+```
+
+| Part                | What it is                                                                                                                                     |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Progress`          | The progressbar: Base UI's root, a row that wraps, with its own track and indicator after the children.                                        |
+| `ProgressLabel`     | The visible name, in small medium text. It names the bar.                                                                                      |
+| `ProgressValue`     | The value after the label, at the row's end, in small subtle tabular figures: the formatted percentage, or what its children function returns. |
+| `ProgressTrack`     | The track, `color.background.neutral`, rounded, at the size's height. For a custom composition under Base UI's root.                           |
+| `ProgressIndicator` | The fill, in the tone's bar colour; the hatched bar while the value is unknown. For a custom composition.                                      |
+| `ProgressStacked`   | The segmented bar: each segment its share of the total, solid or hatched, optionally a button that filters what is under it.                   |
+
 <Canvas of={Stories.LabelAndValue} />
+
+## Variants and sizes
+
+`tone` is the Ledger meaning: `information` by default, `success` for a task that is going well, `warning` or `danger` for one at risk, `neutral` for one that carries no judgement. Each fill holds 3:1 against its track on the page, raised and overlay surfaces; on `elevation.surface.sunken` a light-mode warning bar is just under it (2.97:1), so give it its value in words there. A warning bar is `color.chart.warning`, the colour a warning series has in a chart, because `color.background.warning.bold` is a light orange made to carry dark text. `size` is `small` (4px, in a cell or beside a name), `medium` (6px, the default, in a row) or `large` (8px, a band).
+
+<Canvas of={Stories.Tones} />
+
+## States
+
+- **Determinate**: `value` between `min` and `max` (0 and 100 unless set). Base UI clamps a value past either end, and the bar's width and its accessible value follow.
+- **Unknown length**: `value={null}` is a wait. The bar is hatched the width of the track, in the tone's icon colour, and its stripes move one tile every `motion.duration.slower`; under reduced motion they stand still and the bar stays hatched. It never looks like a finished bar.
+- **Done**: remove the bar, or replace it with what the task made. A full bar left on the page reads as a task still running.
+
+## Content
+
+- **Name what is progressing**, with `ProgressLabel` or `aria-label`: "Uploading evidence", "Importing the catalogue". Not "Progress", not "Loading".
+- **Show the value when the reader needs it**, as a count where a count means more than a percentage ("41 of 80").
+- **One bar per task.** Several uploads are several bars, each named for its file.
+
+## Stacked
+
+`ProgressStacked` draws each segment as its share of the total; a zero segment is skipped. A `hatched` segment is what is not known or not covered, a hole in the record rather than a colour. With `label`, the bar is an image named by the label and its segments' titles; when segments have `onClick`, it is a group of buttons named by the label, each segment's button named by its title, and a segment that does not click is read as its title, so no part of the breakdown is lost. Without `label` it is decorative and the numbers beside it carry the values.
 
 <Canvas of={Stories.StackedCoverage} />
 
-<Canvas of={Stories.CustomTrack} />
-
 ## Accessibility
 
-Name meaningful bars through ProgressLabel or aria-label. Mark redundant decorative bars aria-hidden. Base UI keeps the indicator width, bounded value and accessible value in sync for min/max; null or a nonfinite value is indeterminate. Interactive stacked segments keep individual button names.
-
-In forced-colors mode, system-color boundaries and fills keep tracks and progress indicators visible.
+- **Progress is a progressbar** with `aria-valuenow`, `aria-valuemin` and `aria-valuemax`, and `aria-valuetext` from Base UI's formatting in the provider's locale. While the value is unknown it has no `aria-valuenow`, and its value text is the locale's "In progress". `getAriaValueText` replaces either.
+- **A clickable segment is a button** in the tab order. The bar does not clip its segments, so a focused segment's ring shows whole around it, in Highlight under forced colours. On a touch screen its hit area is 24px tall across the segment's own width, so neighbours never overlap.
+- **Reduced motion** stops the stripes and the width transition; the hatching and the value stay.
+- **Forced colours** keep the track's boundary and the fill, the segments and the hatching in system colours.
 
 ## Props
 
-Progress exposes Base UI native root props and ref, including value, min/max, formatting, locale, render and state callbacks. Ledger tone and small/medium/large track sizes remain. Label, Value, Track and Indicator expose their corresponding native contracts.
+<ArgTypes of={Progress} />
 
-### Migration and API
+<ArgTypes of={ProgressStacked} />
 
-- Replace label with aria-label or ProgressLabel; valueText with aria-valuetext; showValue with ProgressValue children.
-- Replace Progress.Stacked with ProgressStacked. Existing tone, size and coverage segment APIs remain.
-- ProgressValue defaults to the formatted percentage; its children callback can display counts. Base UI performs clamping; the wrapper no longer calculates a second percentage.
+<ArgTypes of={ProgressLabel} />
+
+<ArgTypes of={ProgressValue} />
+
+<ArgTypes of={ProgressTrack} />
+
+<ArgTypes of={ProgressIndicator} />
+
+Progress takes Base UI's native root props and ref (`value`, `min`, `max`, `format`, `locale`, `getAriaValueText`, `render`, state callbacks) with Ledger's `tone` and `size`. ProgressStacked takes a span's native props and ref. The track and the indicator also compose under Base UI's own root:
+
+<Canvas of={Stories.CustomTrack} />
+
+### Migration
+
+- `label` is `aria-label` or a `ProgressLabel`; `valueText` is `aria-valuetext`; `showValue` is a `ProgressValue` child.
+- `Progress.Stacked` is `ProgressStacked`; its tone, size and segment API are unchanged.
 
 ## Related
 
-- [Gates](?path=/docs/patterns-gates--docs)
-- [Chart](?path=/docs/patterns-chart-overview--docs)
+[Spinner](?path=/docs/components-spinner--docs), [Skeleton](?path=/docs/components-skeleton--docs), [Gates](?path=/docs/patterns-gates--docs), [Chart](?path=/docs/patterns-chart-overview--docs).
+
+Sources: [shadcn Progress](https://ui.shadcn.com/docs/components/base/progress), [Base UI Progress](https://base-ui.com/react/components/progress), [WAI-ARIA progressbar](https://www.w3.org/TR/wai-aria-1.2/#progressbar).
+
+## Don't
+
+<Canvas of={Stories.Dont} />

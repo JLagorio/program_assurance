@@ -1,7 +1,8 @@
 import { Checkbox, Item, type ItemProps } from "../components";
 import { type ReactNode } from "react";
 import { cn } from "../lib/cn";
-import { Box } from "../primitives";
+import { useLedgerLocale } from "../lib/locale";
+import { Box, VisuallyHidden } from "../primitives";
 
 export type TaskRowProps = Pick<
   ItemProps,
@@ -13,9 +14,9 @@ export type TaskRowProps = Pick<
   completed?: boolean | undefined;
   /** Requests completion or reopening. Omit for a row without a completion control. */
   onCompletedChange?: ((completed: boolean) => void) | undefined;
-  /** Localized accessible name of the current completion action. Defaults to Complete/Reopen plus the title. */
+  /** The completion checkbox's accessible name, the title by default. It names the task, not the next action, so it stays the same as the row is completed and reopened; the checked state says which. */
   completionLabel?: string | undefined;
-  /** Localized completed-state text for assistive technology when no checkbox is rendered. */
+  /** What a screen reader hears for a completed row without a checkbox, so the strike-through is not the only cue: a sentence with `{title}` where the title goes, the locale's "{title}, completed" by default. Words without `{title}` ("Done") are said after the title. */
   completedLabel?: string | undefined;
   /** Disables only the completion control, for example while the caller persists a change. */
   completionDisabled?: boolean | undefined;
@@ -35,7 +36,7 @@ export function TaskRow({
   completed = false,
   onCompletedChange,
   completionLabel,
-  completedLabel = "Completed",
+  completedLabel,
   completionDisabled = false,
   assignee,
   due,
@@ -43,6 +44,17 @@ export function TaskRow({
   status,
   ...itemProps
 }: TaskRowProps) {
+  const { t } = useLedgerLocale();
+  // A completed row without a checkbox says so in words: the drawn title, then the rest of the
+  // locale's sentence ("{title}, completed"), spoken and not drawn.
+  const sentence =
+    completedLabel === undefined
+      ? t("taskRowCompleted")
+      : completedLabel.includes("{title}")
+        ? completedLabel
+        : `{title} — ${completedLabel}`;
+  const [before = "", after = ""] = sentence.split("{title}");
+  const spokenState = completed && !onCompletedChange;
   return (
     <Item
       {...itemProps}
@@ -52,20 +64,16 @@ export function TaskRow({
             checked={completed}
             disabled={completionDisabled}
             onCheckedChange={onCompletedChange}
-            aria-label={completionLabel ?? `${completed ? "Reopen" : "Complete"}: ${title}`}
+            aria-label={completionLabel ?? title}
             className="z-10"
           />
         ) : undefined
       }
       title={
         <Box as="span" className={cn(completed && "line-through text-subtle")}>
+          {spokenState && before ? <VisuallyHidden>{before}</VisuallyHidden> : null}
           {title}
-          {completed && !onCompletedChange ? (
-            <Box as="span" className="sr-only">
-              {" "}
-              — {completedLabel}
-            </Box>
-          ) : null}
+          {spokenState && after ? <VisuallyHidden>{after}</VisuallyHidden> : null}
         </Box>
       }
       trailing={

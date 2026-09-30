@@ -7,53 +7,64 @@ import * as Stories from "./PageSkeleton.stories";
 
 # PageSkeleton
 
-What a screen looks like before its data arrives: a title and a line, a tab strip, then a table's worth of rows, in the [Skeleton](?path=/docs/components-skeleton--docs)'s shapes. The router shows it for every route that is still loading, so it is the shape most pages share, an index. A page loads progressively; a section that loads on its own draws its own Skeleton inside a page that has already landed.
+What a screen looks like before its data arrives, in the shape of the page that is coming, drawn from the [Skeleton](?path=/docs/components-skeleton--docs)'s shapes so the real page lands on the same lines. The router shows it while a route is pending. A page loads progressively: a section that loads on its own draws its own Skeleton inside a page that has already landed.
 
 <Canvas of={Stories.PageSkeletonMatrix} />
 
 ## Anatomy
 
-| Part | What it is                                                                                     |
-| ---- | ---------------------------------------------------------------------------------------------- |
-| Head | A heading shape 240px wide and a line 440px wide, where a PageHeader's title and line will be. |
-| Tabs | Four short lines over a rule, where a Tabs strip or a filter row will be.                      |
-| Rows | `rows` lines of a table: an id, a title that fills, two values; `space.200` apart.             |
+| Variant    | Parts                                                                                                                                                                                                                                                                 |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `register` | A heading shape where the PageHeader's title will be, nothing under it; the toolbar's row at `dimension.control.medium` (the search, two filters, the primary at the end); the table's header row and `rows` rows at the row heights DataTable's loading state keeps. |
+| `record`   | A line for the trail; the title with an action at the end of its row; a tab strip over a rule; two sections at the reading measure. The Details rail is the shell's Aside, which arrives with the page.                                                               |
 
 ## Variants
 
-One skeleton. Not built, and why: a record variant with a facts strip and a rail, because the router shows one skeleton before it knows the route's shape, and a record's first paint lands within the same 150ms; per-section skeletons, because those are the sections' own, drawn from Skeleton where they load.
+- **`register`**, the default, for a collection page and for a route the router knows nothing about.
+- **`record`**, for a record route: pass `<PageSkeleton variant="record" />` as its pending component.
+
+<Canvas of={Stories.Register} />
+<Canvas of={Stories.Record} />
+
+Not built, and why: a dashboard shape, because a dashboard's widgets load on their own and each draws its own Skeleton; per-section skeletons, because those are the sections' own, drawn from Skeleton where they load.
 
 ## Sizes
 
-`rows` sets how many rows to draw, 8 by default, about a screen at the register's row height. The skeleton is as wide as the page.
+`rows` sets how many table rows a register draws, 8 by default, about a screen. The skeleton is as wide as the page, and its lines follow the page's width below their own (the Narrow story).
 
 ## States
 
-One state: waiting. The whole is a `status` region marked busy and named "Loading", so a screen reader hears one announcement and not a hundred grey bars.
+One state: waiting. It says what it is waiting for once, and the shapes stay until the page replaces it.
 
 ## Modifiers
 
+- **`variant`** as in Variants.
 - **`rows`** as in Sizes.
+- **`label`**: what the wait is, "Loading page" by default (the `loadingPage` message). Name the page when the route knows it: "Loading risks".
 
 ## Content
 
-- **The shape of an index.** A page that is not one still lands on the same title line, so the swap is small.
-- **Shown after 150ms**: the router's pending delay, so a fast route never flashes it.
+- **The shape of the page that is coming.** A register has no sentence or tabs under its title; a record has a trail, actions and tabs. The swap to the real page moves nothing.
+- **Shown after a short delay.** Give the router a pending delay (about 150ms) and a minimum time on screen, so a fast route never flashes it.
 - **Never beside content.** It replaces the page; a section that loads later draws its own.
 
 ## Style
 
-| Element | Token                                                                             |
-| ------- | --------------------------------------------------------------------------------- |
-| Head    | Skeleton heading and line · `space.150` between                                   |
-| Tabs    | four Skeleton lines · `space.250` apart · `color.border` rule · `space.150` under |
-| Rows    | Skeleton lines · `space.200` between rows and cells                               |
-| Layout  | `space.300` between the three parts                                               |
+| Element  | Token                                                                               |
+| -------- | ----------------------------------------------------------------------------------- |
+| Title    | Skeleton heading, at most 240px (register) or 320px (record)                        |
+| Toolbar  | `dimension.control.medium` high · `space.100` between · `space.200` above the table |
+| Rows     | `dimension.row.header`, then `dimension.row` each · `color.border` under every row  |
+| Tabs     | three Skeleton lines · `space.250` apart · `color.border` rule · `space.150` under  |
+| Sections | a line, then three lines · `space.150` between · at `dimension.layout.measure`      |
+| Layout   | `space.300` between the parts                                                       |
 
 ## Accessibility
 
-- **A `role="status"` marked `aria-busy`** and named "Loading", so the wait is announced once.
-- **The bars are hidden**; the region carries the meaning.
+- **Said once.** On mount it sends its `label` to the kit's persistent polite live region (`announce`), which a screen reader has registered before the message arrives; a status region inserted with its words already in it is heard by almost none. Several skeletons that appear together are said once.
+- **Found by browsing.** The root is a `role="status"` holding the same words as visually hidden text, so a reader who moves through the page meets them.
+- **The shapes are hidden** from assistive technology; the words carry the meaning.
+- **Forced colours** draw every shape in `GrayText`, so the page is never blank.
 - **Reduced motion stops the pulse**; the shapes stay.
 
 ## Props
@@ -69,11 +80,11 @@ One state: waiting. The whole is a `status` region marked busy and named "Loadin
 ## Related
 
 - [Skeleton](?path=/docs/components-skeleton--docs): the shapes it is drawn from.
-- [Pages](?path=/docs/layout-pages--docs): the index it stands in for.
+- [Pages](?path=/docs/layout-pages--docs): the pages it stands in for.
 - [Spinner](?path=/docs/components-spinner--docs): a wait on an action, not a page.
 
 ## Don't
 
 <Canvas of={Stories.Dont} />
 
-The head's lines are at most 240px and 440px and follow the page's width below that, so the skeleton never scrolls a phone sideways (the Narrow story).
+<Canvas of={Stories.Narrow} />

@@ -51,3 +51,35 @@
     }
   }
 }
+
+/* Text entry at 16px wherever any pointer is coarse. iOS Safari zooms the page into a focused text
+   field whose text is under 16px, and the toolbar, the panel and the dialog around it drift off
+   screen. So a text-entry control (an Input, a Textarea, a search, a combobox's or a date field's
+   input, an editable region) sets its text at 1rem, and never under 16px, on a phone, a tablet or
+   a touchscreen laptop. Only the text grows: the control keeps its token height and its line
+   height, so a row of controls does not move. Unlayered, so it wins over the type utility on the
+   control. Choice controls, buttons, and a Select's trigger, which is a button, keep theirs. The
+   size is set, not raised: a field set larger than 16px (none is today, a title edited in place
+   would be) lands at 16px here too, and a utility class cannot lift it back, since this rule is
+   unlayered: such a field takes its own unlayered rule under this query. */
+@media (any-pointer: coarse) {
+  :where(
+    input:not(
+      [type="checkbox"],
+      [type="radio"],
+      [type="range"],
+      [type="color"],
+      [type="file"],
+      [type="button"],
+      [type="submit"],
+      [type="reset"],
+      [type="image"],
+      [type="hidden"]
+    ),
+    textarea,
+    select,
+    [contenteditable]:not([contenteditable="false"])
+  ) {
+    font-size: max(1rem, 16px);
+  }
+}

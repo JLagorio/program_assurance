@@ -1,8 +1,8 @@
 import { useRef, useState } from "react";
-import { expect, userEvent, within } from "storybook/test";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Button, TextLink } from "../../components";
+import { Button, TextLink, Truncate } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
 import { Matrix as Grid, Specimens } from "../_lib/matrix";
 
@@ -40,9 +40,10 @@ export const TextLinkMatrix: Story = {
 /**
  * Navigation that reads as text. Native href and Base UI render both preserve anchor behavior. A
  * link in a sentence is underlined at rest, so it never differs from the words beside it by colour
- * alone, and keeps its words as the touch target, including one that wraps in the narrow column;
- * the standalone links underline on hover and take a hit area at least 24px tall where a pointer
- * is coarse.
+ * alone, also in small subtle text, where the link colour is barely 1.5:1 against the words; it
+ * keeps its words as the touch target, including one that wraps in the narrow column. The
+ * standalone links underline on hover and take a hit area at least 24px tall where a pointer is
+ * coarse.
  */
 export const InProse: Story = {
   render: () => (
@@ -50,6 +51,10 @@ export const InProse: Story = {
       <Text>
         The finding was raised against <TextLink render={<a href="#ctrl" />}>AC-2(4)</TextLink> and
         traces to <TextLink render={<a href="#req" />}>REQ-0118</TextLink>.
+      </Text>
+      <Text as="p" size="small" color="color.text.subtle">
+        Version 5.1.1 · Published OSCAL catalog ·{" "}
+        <TextLink render={<a href="#catalog" />}>Open catalog</TextLink>
       </Text>
       <div style={{ maxWidth: 240 }}>
         <Text as="p">
@@ -78,7 +83,7 @@ export const InProse: Story = {
     const canvas = within(canvasElement);
     const link = (name: string) => canvas.getByRole("link", { name });
     const wrapped = link("REQ-0118 Account management for privileged users");
-    const inSentence = [link("AC-2(4)"), link("REQ-0118"), wrapped];
+    const inSentence = [link("AC-2(4)"), link("REQ-0118"), link("Open catalog"), wrapped];
     const standalone = ["Small", "Medium", "Medium weight", "An anchor from href"].map(link);
     await expect(wrapped.getClientRects().length).toBeGreaterThan(1);
     // A link with its sentence's text beside it takes no touch area; a standalone one does, where
@@ -117,6 +122,87 @@ export const InProse: Story = {
               stray.push(`${Math.round(x)},${Math.round(y)}`);
     }
     await expect(stray).toEqual([]);
+  },
+};
+
+/**
+ * `newTab` opens the destination in a new tab and says so: an external-link icon after the last
+ * word, joined to it so a wrapping link never leaves the icon alone on a line, and "(opens in a new
+ * tab)" read after the name. It sets `target="_blank"` and `rel="noopener noreferrer"`, which a
+ * `target` or `rel` of the caller's replaces. A router link through `render` takes it the same way.
+ */
+export const NewTab: Story = {
+  render: () => (
+    <Stack space="space.200">
+      <Text>
+        The baseline is defined in{" "}
+        <TextLink href="https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final" newTab>
+          NIST SP 800-53 Rev 5
+        </TextLink>
+        .
+      </Text>
+      <TextLink newTab render={<a href="#catalog" />}>
+        Open catalog
+      </TextLink>
+      <div style={{ maxWidth: 180 }}>
+        <TextLink newTab href="#controls">
+          Open the whole catalog of security controls
+        </TextLink>
+      </div>
+      <TextLink newTab href="#named" target="catalog-window" rel="noopener">
+        Open in the catalog window
+      </TextLink>
+      <div style={{ width: 160 }}>
+        <Truncate data-testid="row-field">
+          <TextLink newTab href="#source">
+            Privileged account inventory export
+          </TextLink>
+        </Truncate>
+      </div>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const inText = canvas.getByRole("link", { name: "NIST SP 800-53 Rev 5 (opens in a new tab)" });
+    const routed = canvas.getByRole("link", { name: "Open catalog (opens in a new tab)" });
+    const wrapped = canvas.getByRole("link", {
+      name: "Open the whole catalog of security controls (opens in a new tab)",
+    });
+    for (const link of [inText, routed, wrapped]) {
+      await expect(link).toHaveAttribute("target", "_blank");
+      await expect(link).toHaveAttribute("rel", "noopener noreferrer");
+      const icon = link.querySelector('[data-slot="icon"]')!;
+      await expect(icon).toHaveAttribute("aria-hidden", "true");
+    }
+    await expect(inText).toHaveAttribute("data-in-text");
+    await expect(routed).toHaveAttribute("href", "#catalog");
+    // The icon sits on the link's last line, beside its last word.
+    const lines = Array.from(wrapped.getClientRects());
+    await expect(lines.length).toBeGreaterThan(1);
+    const last = lines.at(-1)!;
+    const icon = wrapped.querySelector('[data-slot="icon"]')!.getBoundingClientRect();
+    await expect(icon.top).toBeGreaterThanOrEqual(last.top - 1);
+    await expect(icon.bottom).toBeLessThanOrEqual(last.bottom + 1);
+    // A target and a rel of the caller's win.
+    const named = canvas.getByRole("link", { name: "Open in the catalog window (opens in a new tab)" });
+    await expect(named).toHaveAttribute("target", "catalog-window");
+    await expect(named).toHaveAttribute("rel", "noopener");
+    // In a row field the Truncate goes around the link, so the words and the icon are cut on one
+    // line together, and the whole name is a hover or a focus away.
+    const field = canvas.getByTestId("row-field");
+    const row = canvas.getByRole("link", {
+      name: "Privileged account inventory export (opens in a new tab)",
+    });
+    await expect(row.getClientRects()).toHaveLength(1);
+    await expect(field.scrollWidth).toBeGreaterThan(field.clientWidth);
+    await expect(getComputedStyle(field).textOverflow).toBe("ellipsis");
+    row.focus();
+    await waitFor(() =>
+      expect(document.querySelector('[data-slot="truncate-full-text"]')).toHaveTextContent(
+        "Privileged account inventory export",
+      ),
+    );
+    row.blur();
   },
 };
 

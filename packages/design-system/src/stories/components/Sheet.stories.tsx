@@ -1,3 +1,4 @@
+import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
@@ -19,6 +20,8 @@ import {
   SheetDescription,
   SheetFooter,
   SheetHeader,
+  SheetOverlay,
+  SheetPortal,
   SheetTitle,
   SheetTrigger,
   type SheetWidth,
@@ -219,10 +222,12 @@ export const Pending: Story = {
     await userEvent.keyboard("{Enter}");
     await expect(close).toHaveFocus();
     await userEvent.keyboard("{Escape}");
+    // A press on the blanket leaves the pending sheet open and keeps focus where it was.
     await userEvent.click(
       canvasElement.ownerDocument.querySelector<HTMLElement>('[data-slot="sheet-overlay"]')!,
     );
     await expect(popup).toBeVisible();
+    await expect(close).toHaveFocus();
     await userEvent.click(sheet.getByRole("button", { name: "Stop waiting" }));
     await expect(popup).not.toHaveAttribute("aria-busy");
     await userEvent.keyboard("{Escape}");
@@ -273,6 +278,36 @@ export const NestedAndRTL: Story = {
     );
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+  },
+};
+
+/** SheetPortal and SheetOverlay frame a custom Base UI popup at an edge, as Dialog's parts do. */
+export const CustomPortal: Story = {
+  render: () => (
+    <Sheet>
+      <SheetTrigger render={<Button />}>Open custom sheet</SheetTrigger>
+      <SheetPortal>
+        <SheetOverlay />
+        <BaseDialog.Popup className="fixed inset-y-0 end-0 z-50 flex w-full max-w-[360px] flex-col gap-150 bg-surface-overlay p-200 text-default shadow-overlay">
+          <SheetTitle>Custom review sheet</SheetTitle>
+          <p className="font-body">Portal and blanket frame a caller-owned layout.</p>
+          <SheetClose render={<Button />}>Done</SheetClose>
+        </BaseDialog.Popup>
+      </SheetPortal>
+    </Sheet>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement),
+      body = within(canvasElement.ownerDocument.body);
+    const trigger = canvas.getByRole("button", { name: "Open custom sheet" });
+    await userEvent.click(trigger);
+    const popup = await body.findByRole("dialog", { name: "Custom review sheet" });
+    await expect(
+      canvasElement.ownerDocument.querySelector('[data-slot="sheet-overlay"]'),
+    ).not.toBeNull();
+    await userEvent.click(within(popup).getByRole("button", { name: "Done" }));
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(trigger).toHaveFocus());
   },
 };
 

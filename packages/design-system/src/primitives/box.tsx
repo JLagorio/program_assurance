@@ -11,6 +11,7 @@ import {
   type SpaceToken,
 } from "./tokens";
 import { tokens } from "../generated/tokens";
+import { elementClasses, shrinkClasses, type Shrink } from "./_elements";
 
 /* Box is the fundamental block: padding on every edge as space tokens, a backgroundColor token,
    `as` for any non-interactive element (never an `a` or a `button`: those are TextLink and
@@ -35,6 +36,8 @@ export type BoxProps = {
   paddingInlineEnd?: SpaceToken | undefined;
   /** A semantic background or an elevation surface. A surface is also published as the current surface for sticky and masking children; a bold fill paints its text inverse. */
   backgroundColor?: BackgroundToken | undefined;
+  /** As a flex item: `none` keeps its size when the row runs out of room, for a fixed label such as an id; the default lets it shrink. */
+  shrink?: Shrink | undefined;
   className?: string | undefined;
   /** Runtime values only: a width measured or computed at render. A design value is a token or a class. The other layout primitives take no style; a computed dimension is a Box's. */
   style?: CSSProperties | undefined;
@@ -54,6 +57,7 @@ export function Box({
   paddingInlineStart,
   paddingInlineEnd,
   backgroundColor,
+  shrink,
   className,
   style,
   children,
@@ -77,6 +81,8 @@ export function Box({
         paddingInlineEnd && spaceClasses.pe[paddingInlineEnd],
         backgroundColor && classFor(backgroundColor),
         inverse && classFor(inverse),
+        shrink && shrinkClasses[shrink],
+        elementClasses(as),
         className,
       )}
       style={surfaceStyle || style ? { ...surfaceStyle, ...style } : undefined}
