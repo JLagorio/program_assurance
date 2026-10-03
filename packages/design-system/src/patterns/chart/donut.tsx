@@ -1,5 +1,5 @@
 import { useLedgerLocale } from "../../lib/locale";
-import { useId, useMemo, type KeyboardEvent, type ReactNode } from "react";
+import { useId, useMemo, type ComponentProps, type KeyboardEvent, type ReactNode } from "react";
 import {
   Cell,
   Pie,
@@ -33,6 +33,7 @@ import {
   useMotion,
   usePicked,
   useTooltipMotion,
+  useWarnOnce,
   type ChartSeries,
   type ChartTone,
   type Formatter,
@@ -51,7 +52,7 @@ export type DonutSlice = {
 /** What was chosen on a ring: the slice, its share of the whole, and its index. */
 export type DonutSelection = { slice: DonutSlice; share: number; index: number };
 
-export type ChartDonutProps = {
+type ChartDonutOwnProps = {
   /** The parts, in order from the top, clockwise. */
   slices?: DonutSlice[] | undefined;
   /** One value against `max`, in place of `slices`: a gauge's score, a single share. It is one slice, named by the ring, in `tone`. */
@@ -63,13 +64,16 @@ export type ChartDonutProps = {
   /** The number in the middle: the total, the share, the one that matters. */
   centerLabel?: ReactNode | undefined;
   /**
-   * The number in the middle.
-   * @deprecated Use `centerLabel`. In the next version `label` names the ring, as it names every other plot; `ledger/no-deprecated-name` fixes it.
+   * The ring's accessible name, as `label` names every plot. The Frame's title when unsaid.
+   *
+   * For one version the earlier spelling still draws the middle: with no `centerLabel`, a `label`
+   * that is not a string, or one beside the deprecated `name`, is the centre text, with a warning in
+   * development. Write the middle as `centerLabel`; `ledger/no-deprecated-name` fixes it.
    */
   label?: ReactNode | undefined;
   /** One word under the number: what it counts. */
   caption?: string | undefined;
-  /** `full` is a ring; `half` is a gauge, open at the bottom, the label at its base. */
+  /** `full` is a ring; `half` is a gauge, open at the bottom, the number at its base. */
   arc?: "full" | "half" | undefined;
   /** The largest diameter in pixels. In a narrower container the ring scales down, keeping its proportions; the number keeps its type size. In the expanded Dialog it draws at 320px, the `large` plot's height, at least. */
   size?: number | undefined;
@@ -77,7 +81,10 @@ export type ChartDonutProps = {
   thickness?: number | undefined;
   /** The number format in the tooltip. */
   format?: Formatter | undefined;
-  /** The ring's accessible name. Unneeded inside a Frame. */
+  /**
+   * The ring's accessible name.
+   * @deprecated Use `label`, which names every plot; `ledger/no-deprecated-name` fixes it.
+   */
   name?: string | undefined;
   /** Every slice wears a pattern as well as its colour. The Frame's `texture` sets it. */
   texture?: boolean | undefined;
@@ -89,6 +96,10 @@ export type ChartDonutProps = {
   details?: ((selection: DonutSelection) => ReactNode) | undefined;
   className?: string | undefined;
 };
+
+/** The part's own props, and the native props and ref of the ring's box: an `id`, `data-*` for a test, a handler. */
+export type ChartDonutProps = ChartDonutOwnProps &
+  Omit<ComponentProps<"div">, keyof ChartDonutOwnProps | "children" | "role">;
 
 const RADIAN = Math.PI / 180;
 /** The key of the ring's remainder under `max`: drawn as the track, never a slice. */
@@ -106,6 +117,30 @@ type Entry = {
   gap: boolean;
 };
 
+/**
+ * Which of the props names the ring and which draws the middle. `label` names the ring, as on every
+ * plot, and `centerLabel` is the middle. For one version the earlier spelling still reads as it did:
+ * with no `centerLabel`, a `label` that is not a string (a number, an element), or one beside the
+ * deprecated `name`, is the middle, and `name` names the ring.
+ */
+function donutLabels(
+  label: ReactNode,
+  centerLabel: ReactNode,
+  legacyName: string | undefined,
+): { center: ReactNode; ownName: string | undefined; legacy: boolean } {
+  const legacyCenter =
+    centerLabel === undefined &&
+    label !== undefined &&
+    label !== null &&
+    (typeof label !== "string" || legacyName !== undefined);
+  if (legacyCenter) return { center: label, ownName: legacyName, legacy: true };
+  return {
+    center: centerLabel,
+    ownName: (typeof label === "string" ? label : undefined) ?? legacyName,
+    legacy: legacyName !== undefined,
+  };
+}
+
 /** A ring of slices on a `color.chart.track` with a number in the middle; or half a ring, a gauge. A click on a slice chooses it. */
 export function ChartDonut({
   slices: slicesProp,
@@ -113,20 +148,27 @@ export function ChartDonut({
   tone: valueTone,
   max,
   centerLabel,
-  label: legacyLabel,
+  label,
   caption,
   arc = "full",
   size: sizeProp = 120,
   thickness: thicknessProp = 12,
   format: formatProp,
-  name: nameProp,
+  name: legacyName,
   texture: textureProp,
   loading: loadingProp,
   onSelect,
   details,
   className,
+  "aria-describedby": describedBy,
+  ...native
 }: ChartDonutProps) {
   const { t, formatNumber } = useLedgerLocale();
+  const { center, ownName, legacy } = donutLabels(label, centerLabel, legacyName);
+  useWarnOnce(
+    legacy,
+    "Ledger Chart.Donut: `label` names the ring and `centerLabel` draws the middle. `name` is deprecated for `label`, and a `label` drawn in the middle is deprecated for `centerLabel`.",
+  );
 
   const {
     name: frameName,
@@ -139,17 +181,17 @@ export function ChartDonut({
     texture,
     offstage,
     expanded,
-  } = useFrame(nameProp, formatProp, undefined, loadingProp, undefined, textureProp);
+  } = useFrame(ownName, formatProp, undefined, loadingProp, undefined, textureProp);
   const chooses = Boolean(onSelect || details);
   const surfaceProps = useChartSurface({
     name: frameName,
     titleId,
     chooses,
+    describedBy,
     count: 0,
     describe: () => "",
   });
   const name = surfaceProps.name;
-  const center = centerLabel ?? legacyLabel;
   // Expanded, the ring takes the room the Dialog gives a plot, thickness in proportion.
   const grow = expanded ? Math.max(1, heights.large / sizeProp) : 1;
   const size = sizeProp * grow;
@@ -247,6 +289,7 @@ export function ChartDonut({
   if (loading)
     return (
       <div
+        {...native}
         role={name ? "group" : undefined}
         aria-label={name ? t("loadingLabel", { label: name }) : undefined}
         aria-busy
@@ -319,7 +362,7 @@ export function ChartDonut({
     ? {
         accessibilityLayer: false,
         role: "meter",
-        ...(titleId && !nameProp ? { "aria-labelledby": titleId } : { "aria-label": name }),
+        ...(titleId ? { "aria-labelledby": titleId } : { "aria-label": name }),
         "aria-valuenow": slices[0]?.value,
         "aria-valuemin": 0,
         "aria-valuemax": whole,
@@ -327,6 +370,7 @@ export function ChartDonut({
           share: format(slices[0]?.value ?? 0),
           total: format(whole),
         }),
+        ...(describedBy ? { "aria-describedby": describedBy } : {}),
       }
     : chooses
       ? { accessibilityLayer: false }
@@ -390,6 +434,9 @@ export function ChartDonut({
   };
   return (
     <Plot
+      {...native}
+      // Choosing, the box is the named group and carries the description; else the svg does.
+      aria-describedby={chooses ? describedBy : undefined}
       name={name}
       width={size}
       height={boxHeight}
@@ -486,7 +533,7 @@ export function ChartDonut({
             )}
           >
             {center !== undefined ? (
-              <span className="font-heading-xsmall text-default">{center}</span>
+              <span className="font-heading-overlay text-default">{center}</span>
             ) : null}
             {caption ? <span className="font-body-xsmall text-subtle">{caption}</span> : null}
           </div>

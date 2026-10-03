@@ -59,6 +59,7 @@
     "bg-chart-success-hovered",
     "bg-chart-track",
     "bg-chart-warning",
+    "bg-chart-warning-bold",
     "bg-chart-warning-hovered",
     "bg-danger",
     "bg-danger-bold",
@@ -203,14 +204,19 @@
     "fill-chart-success-hovered",
     "fill-chart-track",
     "fill-chart-warning",
+    "fill-chart-warning-bold",
     "fill-chart-warning-hovered",
     "font-body",
     "font-body-large",
     "font-body-small",
     "font-body-xsmall",
     "font-code",
+    "font-heading-display",
     "font-heading-large",
     "font-heading-medium",
+    "font-heading-overlay",
+    "font-heading-page",
+    "font-heading-section",
     "font-heading-small",
     "font-heading-xsmall",
     "font-heading-xxsmall",
@@ -340,6 +346,7 @@
     "stroke-chart-success-hovered",
     "stroke-chart-track",
     "stroke-chart-warning",
+    "stroke-chart-warning-bold",
     "stroke-chart-warning-hovered",
     "text-accent-blue",
     "text-accent-green",
@@ -366,7 +373,12 @@
     "w-layout-list",
     "w-layout-panel",
     "w-layout-rail",
-    "w-layout-sidenav"
+    "w-layout-sidenav",
+    "z-blanket",
+    "z-chrome",
+    "z-overlay",
+    "z-toast",
+    "z-tooltip"
   ],
   "spaceKeys": [
     "0",
@@ -389,6 +401,26 @@
       "replacement": "color.chart.categorical.7",
       "class": "fill-chart-categorical-8",
       "replacementClass": "fill-chart-categorical-7"
+    },
+    "font.heading.large": {
+      "replacement": "font.heading.display",
+      "class": "font-heading-large",
+      "replacementClass": "font-heading-display"
+    },
+    "font.heading.medium": {
+      "replacement": "font.heading.page",
+      "class": "font-heading-medium",
+      "replacementClass": "font-heading-page"
+    },
+    "font.heading.small": {
+      "replacement": "font.heading.page",
+      "class": "font-heading-small",
+      "replacementClass": "font-heading-page"
+    },
+    "font.heading.xsmall": {
+      "replacement": "font.heading.overlay",
+      "class": "font-heading-xsmall",
+      "replacementClass": "font-heading-overlay"
     }
   }
 }

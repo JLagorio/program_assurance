@@ -13,6 +13,8 @@ import * as Stories from "./AlertDialog.stories";
 
 # AlertDialog
 
+**Status: Stable.**
+
 A decision that needs a word before it happens: delete, archive, discard a draft. Built on [Base UI Alert Dialog](https://base-ui.com/react/components/alert-dialog) with [shadcn’s composition](https://ui.shadcn.com/docs/components/base/alert-dialog) and Ledger's tokens.
 
 <Canvas of={Stories.ConfirmationAndPending} />
@@ -26,18 +28,28 @@ Not for a form: that is a [Dialog](?path=/docs/components-dialog--docs). Not for
 
 ## Anatomy
 
-- **AlertDialogHeader** holds an optional AlertDialogMedia, the title (the question, an h2) and the description (the consequence).
+- **AlertDialogHeader** holds an optional AlertDialogMedia, the title (the question, an h2, a [Heading](?path=/docs/primitives-heading--docs) at `overlay`, 15/22 medium) and the description (the consequence).
 - **AlertDialogBody** holds what the decision affects when one line is not enough: the records a delete removes, a field for a reason. It follows the header with its inset and no divider, and scrolls between the header and the footer so the answers stay in view.
 - **AlertDialogFooter** holds AlertDialogCancel, the safe answer, before AlertDialogAction, the verb, on the dialog's own surface below a hairline.
 - AlertDialogContent records the overlay surface as the current one; AlertDialogPortal and AlertDialogOverlay are exported for a custom popup.
 
 <Canvas of={Stories.WithBody} />
 
-## Sizes
+## Widths
 
-`size="default"` is 440px wide; `size="sm"` is 320px, for a one-line question. Both narrow to the window less a 1rem gutter.
+`width` on AlertDialogContent picks a step, in [Dialog](?path=/docs/components-dialog--docs)'s words for Dialog's widths, so a `small` alert dialog is as wide as a `small` dialog. Do not set pixels in `style`.
+
+| `width`  | Size               | For                                                    |
+| -------- | ------------------ | ------------------------------------------------------ |
+| `xsmall` | 320px              | A one-line question                                    |
+| `small`  | 400px, the default | A question and its consequence                         |
+| `medium` | 520px              | A decision whose AlertDialogBody lists what it affects |
+
+Every step keeps a `space.200` gutter on each side of the window, so on a phone the popup is the phone's width less the gutter. `size` is the deprecated spelling: `size="sm"` is `width="xsmall"` and `size="default"` is `width="small"`; `ledger/no-deprecated-name` rewrites the prop and its value in one fix.
 
 <Canvas of={Stories.SmallConfirmation} />
+
+<Canvas of={Stories.Widths} />
 
 ## Pending
 
@@ -58,9 +70,13 @@ Not for a form: that is a [Dialog](?path=/docs/components-dialog--docs). Not for
 
 <Canvas of={Stories.LongValues} />
 
+"Are you sure?" with OK repeats the question, says no consequence and hides the verb.
+
+<Canvas of={Stories.DoDont} />
+
 ## Props
 
-AlertDialog takes Base UI AlertDialog's root props, `open`, `defaultOpen`, `onOpenChange` (with the change's `reason` and `cancel()` in its details), `onOpenChangeComplete`, `actionsRef` and `handle`, and Ledger's `pending`; it has no `modal` or `disablePointerDismissal`, since an alert dialog is always modal and ignores the blanket. AlertDialogContent takes the popup's `initialFocus`, `finalFocus`, `render`, `className` and `style`, and Ledger's `size`. The types are in [Base UI's API reference](https://base-ui.com/react/components/alert-dialog#api-reference).
+AlertDialog takes Base UI AlertDialog's root props, `open`, `defaultOpen`, `onOpenChange` (with the change's `reason` and `cancel()` in its details), `onOpenChangeComplete`, `actionsRef` and `handle`, and Ledger's `pending`; it has no `modal` or `disablePointerDismissal`, since an alert dialog is always modal and ignores the blanket. AlertDialogContent takes the popup's `initialFocus`, `finalFocus`, `render`, `className` and `style`, and Ledger's `width`. Every part takes its element's native attributes, and its `data-slot` comes after them, so a caller's attribute never renames the part (Native attributes, below). The title, the description and AlertDialogCancel are the exception: another part renders as them through `render` (a PageHeader.Title as the title, an AlertDialogAction as Cancel) and its `data-slot` names the element, as it does on a Button. The types are in [Base UI's API reference](https://base-ui.com/react/components/alert-dialog#api-reference).
 
 <ArgTypes of={AlertDialog} />
 
@@ -86,8 +102,11 @@ AlertDialog takes Base UI AlertDialog's root props, `open`, `defaultOpen`, `onOp
 
 <Canvas of={Stories.Playground} />
 
+<Canvas of={Stories.NativeAttributes} />
+
 <Canvas of={Stories.CustomPortal} />
 
 ## Related
 
 - [Dialog](?path=/docs/components-dialog--docs), [Overlays](?path=/docs/components-overlays--docs), [Button](?path=/docs/components-button--docs).
+- [Upgrading](?path=/docs/guidance-upgrading--docs#alertdialog): `size` is `width`.

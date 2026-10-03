@@ -40,9 +40,11 @@ import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback"
 import { causeText } from "@/components/app/sentence";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { useWorkspace } from "@/components/app/workspace";
+import { useColumnChoices } from "@/lib/collections";
 import { useRows } from "@/lib/models";
 import { labelFor } from "@/lib/records";
 import {
+  EXTERNAL_REFERENCE_LIMIT,
   createEvidenceSchema,
   useCreateEvidence,
   type CreateEvidenceInput,
@@ -158,10 +160,7 @@ export function CreateEvidenceDialog({
   const invalidContext = !!effectiveProgramId && ready && !contextProgram;
   const validScope = !scope || !scopes.data || availableScopes.some((row) => row.id === scope);
   const writable = workspace.role !== "viewer";
-  const kinds =
-    workspace.collections
-      .find((collection) => collection.name === "evidence_artifacts")
-      ?.columns.find((column) => column.name === "artifact_kind")?.choices ?? [];
+  const kinds = useColumnChoices("evidence_artifacts", "artifact_kind").data ?? [];
   const values = {
     title,
     artifactKind: kind,
@@ -410,7 +409,7 @@ export function CreateEvidenceDialog({
                         value: row.id,
                         label: `${row.code} · ${row.name}`,
                       }))}
-                      disabled={!effectiveProgramId}
+                      readOnly={!effectiveProgramId}
                       noun="scopes"
                       loading={
                         !!effectiveProgramId &&
@@ -453,7 +452,7 @@ export function CreateEvidenceDialog({
                   <TextField
                     label="External reference"
                     value={externalUri}
-                    maxLength={4000}
+                    characterLimit={EXTERNAL_REFERENCE_LIMIT}
                     onChange={(value) => {
                       setExternalUri(value);
                       changed();

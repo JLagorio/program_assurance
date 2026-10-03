@@ -3,7 +3,9 @@ import test from "node:test";
 import {
   fitColumns,
   fitFrame,
+  identityOf,
   PIN_SHARE,
+  rankColumns,
   shareSlack,
   yieldPins,
 } from "../src/patterns/data-table/responsive.ts";
@@ -187,4 +189,37 @@ test("with every column sized, the identity takes the slack as before", () => {
   const fit = fitFrame(columns, 800, 0);
   assert.deepEqual(fit.layout.flexible, ["name"]);
   assert.equal(fit.layout.widths.get("name"), 680);
+});
+
+test("the identity is the lowest priority, else the first column, and never the actions", () => {
+  const ids = (columns) => columns.map((column) => column.id);
+  // The name at priority 0 names the row though the code comes first.
+  const named = [
+    { id: "code", priority: 1 },
+    { id: "name", priority: 0 },
+    { id: "status" },
+    { id: "actions", action: true, priority: -1 },
+  ];
+  assert.equal(identityOf(named)?.id, "name");
+  assert.deepEqual(ids(rankColumns(named)), ["name", "code", "status"]);
+  // With no priority the first column is the identity; the actions never are.
+  assert.equal(
+    identityOf([{ id: "actions", action: true }, { id: "title" }, { id: "due" }])?.id,
+    "title",
+  );
+  // A tie keeps the given order, and a table of actions alone has none.
+  assert.equal(
+    identityOf([
+      { id: "a", priority: 0 },
+      { id: "b", priority: 0 },
+    ])?.id,
+    "a",
+  );
+  assert.equal(identityOf([{ id: "actions", action: true }]), undefined);
+  // The layout keeps the same identity.
+  const layout = fitColumns(
+    named.map((column) => ({ ...column, width: 100 })),
+    200,
+  );
+  assert.equal(layout.identity, "name");
 });

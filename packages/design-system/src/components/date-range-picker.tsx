@@ -23,6 +23,7 @@ import {
   type ControlSize,
 } from "./controls";
 import {
+  calendarInitialFocus,
   dayFormat,
   useDayConstraints,
   useFieldTrigger,
@@ -79,7 +80,10 @@ type DateRangePickerOwnProps = DayConstraintProps & {
   "aria-describedby"?: string | undefined;
   /** The month's own options, as on DatePicker. */
   calendarProps?: DatePickerProps["calendarProps"];
-  /** Layout only. */
+  /**
+   * Layout only.
+   * @accepts layout
+   */
   className?: string | undefined;
 };
 
@@ -129,6 +133,7 @@ export function DateRangePicker({
   const triggerId = id ?? generatedId;
   const valueId = `${triggerId}-value`;
   const hidden = useRef<HTMLInputElement>(null);
+  const popup = useRef<HTMLDivElement>(null);
   const [inner, setInner] = useState<DateRangeValue>(defaultValue ?? empty);
   const [open, setOpen] = useState(defaultOpen);
   const current = value ?? inner;
@@ -264,9 +269,12 @@ export function DateRangePicker({
           }
         />
         <PopoverContent
+          ref={popup}
           {...(labelledBy
             ? { "aria-labelledby": labelledBy }
             : { "aria-label": ariaLabel ?? t("chooseDates") })}
+          // The months open on their day in the Tab order, past the presets.
+          initialFocus={calendarInitialFocus(popup)}
           finalFocus={() => hidden.current?.ownerDocument.getElementById(triggerId) ?? null}
           align="start"
           className="gap-0 p-0"
@@ -313,7 +321,6 @@ export function DateRangePicker({
                 <Calendar
                   mode="range"
                   resetOnSelect
-                  autoFocus
                   numberOfMonths={numberOfMonths}
                   {...(constraints.startMonth ? { startMonth: constraints.startMonth } : {})}
                   {...(constraints.endMonth ? { endMonth: constraints.endMonth } : {})}

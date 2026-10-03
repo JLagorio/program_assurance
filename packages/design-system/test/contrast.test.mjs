@@ -102,8 +102,9 @@ const surfaces = [
   "elevation.surface.overlay",
   "color.background.input",
 ];
-// Interactive neutral fills: guaranteed for text and text.subtle. Atlassian does not promise
-// text.subtlest on these either (dark DarkNeutral700 on DarkNeutral200A sits near 3.4:1).
+// Interactive neutral fills: guaranteed for text and text.subtle everywhere. text.subtlest is held
+// on the highlight a menu item or a filter option takes (neutral.subtle.hovered) in the standard
+// modes, below, and not on a neutral fill's hover or press.
 const neutralFills = ["color.background.neutral", "color.background.neutral.subtle.hovered"];
 
 const cases = [];
@@ -341,27 +342,33 @@ add("color.border.selected", "elevation.surface", 3, "selected filled tab's outl
 // or color.text.subtle: a TextLink inside a sentence is underlined at rest, its non-colour cue
 // (CNT-1, G2-2).
 add("color.text.brand", "color.background.brand.subtlest", 4.5, "brand badge");
-add("color.text.selected", "color.background.brand.subtlest.hovered", 4.5, "brand badge link hovered");
+add(
+  "color.text.selected",
+  "color.background.brand.subtlest.hovered",
+  4.5,
+  "brand badge link hovered",
+);
 for (const hue of ["blue", "teal", "green", "orange", "red", "purple"]) {
   add(`color.text.accent.${hue}`, `color.background.accent.${hue}.subtler`, 4.5, "tinted avatar");
   add("color.text.inverse", `color.background.accent.${hue}.bolder`, 4.5, "bold avatar");
 }
 // FEEDBACK (G6-6, FDB-8): a Progress bar is a non-text element, so each tone's fill holds 3:1
-// against the track (color.background.neutral) on the surfaces a bar sits on. A warning bar is
-// color.chart.warning: color.background.warning.bold carries dark text and is not a 3:1 fill. An
-// indeterminate bar's stripes are the tone's icon colour, color.icon.subtle for neutral, on the
-// same track. Under increased contrast the track is itself 3:1 against the surface (above), so
-// the bar on it is held to the standard modes, as the current page bar is. Open: the light
-// warning orange (orange.600, the kit's warning icon too) is 2.97:1 on the track over
-// elevation.surface.sunken (a metrics strip, a pinned row), so warning is held on the others.
+// against the track (color.background.neutral) on every surface a bar sits on, the sunken one
+// (a metrics strip, a pinned row) included. A warning bar, filled or waiting, is
+// color.chart.warning.bold: color.background.warning.bold carries dark text and is not a 3:1
+// fill, and the warning series and icon orange (orange.600 in light) is under 3:1 on the track
+// over the sunken surface. The warning fill also holds 3:1 against the surface itself, in both
+// modes and under increased contrast. An indeterminate bar's stripes are the tone's icon colour,
+// color.icon.subtle for neutral, on the same track. Under increased contrast the track is itself
+// 3:1 against the surface (above), so the bar on it is held to the standard modes, as the
+// current page bar is.
 for (const surface of surfaces) {
   if (surface === "color.background.input") continue;
-  const warning = surface !== "elevation.surface.sunken";
   for (const bar of [
     "color.background.neutral.bold",
     "color.background.information.bold",
     "color.background.success.bold",
-    ...(warning ? ["color.chart.warning"] : []),
+    "color.chart.warning.bold",
     "color.background.danger.bold",
   ])
     add(bar, "color.background.neutral", 3, "progress fill on its track", surface, standardModes);
@@ -369,16 +376,18 @@ for (const surface of surfaces) {
     "color.icon.subtle",
     "color.icon.information",
     "color.icon.success",
-    ...(warning ? ["color.icon.warning"] : []),
+    "color.chart.warning.bold",
     "color.icon.danger",
   ])
     add(stripe, "color.background.neutral", 3, "indeterminate stripes", surface, standardModes);
+  add("color.chart.warning.bold", surface, 3, "warning progress fill on its surface", surface);
 }
 // FEEDBACK (FDB-2, FDB-6): an Alert's fill is its tone's color.background.<tone>. On it, the
 // AlertIcon (the tone's icon, color.icon.subtle for neutral) holds 3:1 and the focus ring 3:1 in
-// every mode, and a TextLink (color.text.brand) 4.5:1 on every status tone in every mode. Open: the
+// every mode, and a TextLink (color.text.brand) 4.5:1 on every status tone in every mode. The
 // neutral fill darkens under increased contrast, where color.text.brand is 1.77:1 (light) and
-// 2.45:1 (dark) on it, so the link on a neutral Alert is held to the standard modes.
+// 2.45:1 (dark) on it; the token sheet keeps that pairing, so the link on a neutral Alert is held
+// to the standard modes.
 for (const tone of ["neutral", ...status]) {
   const alertFill = `color.background.${tone}`;
   add(tone === "neutral" ? "color.icon.subtle" : `color.icon.${tone}`, alertFill, 3, "AlertIcon");
@@ -419,13 +428,25 @@ for (const surface of ["elevation.surface", "elevation.surface.raised"])
   add("color.border.success", surface, 3, "stepper rail behind a done step", surface);
 
 // SHELLNAV: the side nav sits on elevation.surface.sunken. Its current page is the selected fill
-// with selected text and icon, hovered or not; a focused item's ring is drawn flush outside the
-// item, in the gap between items, so it sits on the nav's surface rather than a neighbour's fill;
-// the icon rail marks an item with a count by a brand dot.
+// with selected text and icon, hovered or not, and a bar on its start edge (G6-13) in
+// color.background.selected.bold, which marks it without the fill: 3:1 on the fill it sits on, as
+// the selected Tree row's bar is (held to the standard modes, where the fill is not itself 3:1),
+// and on the nav's surface beside it in every mode. A focused item's ring is drawn flush outside
+// the item, in the gap between items, so it sits on the nav's surface rather than a neighbour's
+// fill; the icon rail marks an item with a count by a brand dot.
 for (const fill of ["color.background.selected", "color.background.selected.hovered"]) {
   add("color.text.selected", fill, 4.5, "side nav current page", "elevation.surface.sunken");
   add("color.icon.selected", fill, 3, "side nav current icon", "elevation.surface.sunken");
+  const bar = "side nav current page bar on its fill";
+  add("color.background.selected.bold", fill, 3, bar, "elevation.surface.sunken", standardModes);
 }
+add(
+  "color.background.selected.bold",
+  "elevation.surface.sunken",
+  3,
+  "side nav current page bar on the nav",
+  "elevation.surface.sunken",
+);
 add(
   "color.border.focused",
   "elevation.surface.sunken",
@@ -447,12 +468,15 @@ add(
 // under the pointer and pressed (a neutral press, a momentary state, is held under increased
 // contrast only, above) and on the surfaces' own hover and press, over every surface. In a
 // selected row the words keep their minimum: color.text.subtle at rest, hovered and pressed; a
-// record's name link (color.text.brand) at rest and hovered; color.text.subtlest, a meta line, on
-// the resting fill; and the icons at 3:1. Under increased contrast the fills are 3:1 mid tones and
-// the coloured and subtlest words are held to the surfaces (Tokens/Color), so these are the
-// standard modes'. Every chart series tone, the categorical set and Other, and each one's
-// hovered step, is a non-text mark at 3:1 on the surfaces a chart sits on, in every mode; the low
-// sequential and diverging steps are heatmap cells that carry a value label, and are not held.
+// record's name link (color.text.brand) and color.text.subtlest, a meta line or an Absent, at rest
+// and hovered (a press is momentary); and the icons at 3:1. A highlighted menu item or filter
+// option keeps its count or meta line (color.text.subtlest) on its tint. Under increased contrast
+// the fills are 3:1 mid tones and the coloured and subtlest words are held to the surfaces
+// (Tokens/Color), so these are the standard modes'. Every chart series tone, the categorical set
+// and Other, and each one's hovered step, is a non-text mark at 3:1 on the surfaces a chart sits
+// on, in every mode; the low sequential and diverging steps and the track are heatmap cells and
+// key swatches that wear a color.border.bold edge (held 3:1 above as the choice-control boundary),
+// dashed when a cell is empty, and are not held themselves.
 for (const surface of surfaces) {
   if (surface === "color.background.input") continue;
   for (const fill of [
@@ -473,13 +497,15 @@ for (const surface of surfaces) {
     ])
       add(icon, fill, 3, "icon in a selected row", surface, standardModes);
   }
-  for (const fill of ["color.background.selected", "color.background.selected.hovered"])
+  for (const fill of ["color.background.selected", "color.background.selected.hovered"]) {
     add("color.text.brand", fill, 4.5, "name link in a selected row", surface, standardModes);
+    add("color.text.subtlest", fill, 4.5, "meta text in a selected row", surface, standardModes);
+  }
   add(
     "color.text.subtlest",
-    "color.background.selected",
+    "color.background.neutral.subtle.hovered",
     4.5,
-    "meta text in a selected row",
+    "count or meta line on a highlighted menu item",
     surface,
     standardModes,
   );

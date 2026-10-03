@@ -66,7 +66,7 @@ function Suppliers() {
         rows={(query.data ?? []) as DataRecord[]}
         columns={columns}
         onPreview={setPreview}
-        searchLabel="Search organizations"
+        searchLabel="Find organizations"
         noun={{ one: "organization", other: "organizations" }}
         view="supplier-registry"
         empty={{

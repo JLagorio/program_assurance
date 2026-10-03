@@ -23,22 +23,24 @@ function lint(source, name) {
 const tableImport = 'import { DataTable } from "@ledger/design-system";';
 const tabsImport = 'import { TabsList } from "@ledger/design-system";';
 
-test("product tables explicitly enable responsive after prop spreads", () => {
+test("product tables never turn responsive off, nor leave it to a prop spread", () => {
   for (const source of [
-    `${tableImport} <DataTable />`,
     `${tableImport} <DataTable responsive={false} />`,
     `${tableImport} <DataTable responsive="true" />`,
     `${tableImport} <DataTable responsive={narrow} />`,
     `${tableImport} <DataTable {...props} />`,
     `${tableImport} <DataTable responsive {...props} />`,
-    'import { DataTable as Register } from "@ledger/design-system"; <Register />',
-    'import * as Kit from "@ledger/design-system"; <Kit.DataTable />',
+    'import { DataTable as Register } from "@ledger/design-system"; <Register responsive={false} />',
+    'import * as Kit from "@ledger/design-system"; <Kit.DataTable responsive={false} />',
   ]) {
     const messages = lint(source, "product-responsive-table");
     assert.equal(messages.length, 1, source);
     assert.equal(messages[0].ruleId, "ledger/product-responsive-table", source);
   }
   for (const source of [
+    `${tableImport} <DataTable />`,
+    'import { DataTable as Register } from "@ledger/design-system"; <Register />',
+    'import * as Kit from "@ledger/design-system"; <Kit.DataTable />',
     `${tableImport} <DataTable responsive />`,
     `${tableImport} <DataTable responsive={true} />`,
     `${tableImport} <DataTable responsive={true as const} />`,

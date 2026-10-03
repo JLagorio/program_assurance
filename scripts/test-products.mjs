@@ -205,7 +205,7 @@ try {
   await choose("Type", "Subsystem");
   await saveElement();
   await structureRowMenu("Guidance section", "GUID", "Add from library…");
-  await page.getByLabel("Search the library", { exact: true }).fill("wizard-audit");
+  await page.getByLabel("Find a library component", { exact: true }).fill("wizard-audit");
   await dialog().getByRole("row").filter({ hasText: "wizard-audit" }).first().click();
   // The picker's primary repeats its trigger and title.
   await page.getByRole("button", { name: "Add from library", exact: true }).click();
@@ -282,7 +282,7 @@ try {
   await dialog()
     .getByRole("heading", { name: "Create system from product", exact: true })
     .waitFor();
-  await page.getByLabel("Search products", { exact: true }).fill("Missile");
+  await page.getByLabel("Find a product", { exact: true }).fill("Missile");
   await dialog().getByRole("row").filter({ hasText: "Ground launch" }).first().click();
   // A single choice names itself in the picker's footer.
   await dialog().getByText("Missile A · Ground launch", { exact: true }).waitFor();
@@ -361,7 +361,7 @@ try {
   assert.equal(await programTree.getByText("Product", { exact: true }).count(), 2);
   await page.screenshot({ path: "/tmp/products-program-tree.png", fullPage: true });
   await page.goto(`${origin}/programs/${programId}`);
-  const rail = page.getByRole("complementary", { name: "Program properties", exact: true });
+  const rail = page.getByRole("complementary", { name: "Program details", exact: true });
   await rail.getByRole("link", { name: "Missile A v1 · Ground launch", exact: true }).click();
   await page.waitForURL(new RegExp(`/library/products/${productId}\\?version=${revision.id}`));
   await page.getByRole("tab", { name: /^Variants/ }).click();
@@ -373,7 +373,8 @@ try {
     .getByRole("row")
     .filter({ hasText: "Missile A · Ground launch" });
   assert.deepEqual(
-    (await groundVariantRow.getByRole("cell").allTextContents()).map((text) => text.trim()),
+    // The name is the row's header cell; every other value is a data cell, in drawn order.
+    (await groundVariantRow.locator("th, td").allTextContents()).map((text) => text.trim()),
     [
       "MSL-A-GL",
       "Missile A · Ground launch",
@@ -408,25 +409,24 @@ try {
   await versionRow(1).getByText("Shown on this page", { exact: true }).waitFor();
   assert.equal(await versionRow(1).getAttribute("aria-current"), "true");
   assert.equal(await versionsTable.getByRole("button", { name: /^Open version/ }).count(), 0);
-  // A second version, drafted from the first, opens on its Overview; version 1 is then reopened
-  // from the history by its explicit button.
+  // A second version, drafted from the first, is shown on the tab the reader is on; version 1 is
+  // then reopened from the history by its explicit button. The tab and the version are in the
+  // address, so a reload keeps both.
   await page.getByRole("button", { name: "Actions", exact: true }).click();
   await page.getByRole("menuitem", { name: "Create product version", exact: true }).click();
-  await shownVersion()
-    .filter({ hasText: /2 · Draft/ })
-    .waitFor();
-  await page.getByRole("tab", { name: "Versions", exact: true }).click();
   await versionRow(2).getByText("Shown on this page", { exact: true }).waitFor();
   assert.equal(await versionRow(2).getAttribute("aria-current"), "true");
   assert.equal(await versionRow(1).getAttribute("aria-current"), null);
   await versionRow(1).getByRole("button", { name: "Open version 1", exact: true }).click();
-  await shownVersion()
-    .filter({ hasText: /1 · Published/ })
-    .waitFor();
+  const shownMark = versionRow(1).getByText("Shown on this page", { exact: true });
+  await shownMark.waitFor();
   assert.ok(
-    await shownVersion().evaluate((element) => element === document.activeElement),
-    "Opening a version from the history moves focus to the version it shows",
+    await shownMark.evaluate((element) => element === document.activeElement),
+    "Opening a version from the history moves focus to the mark on the version it shows",
   );
+  assert.match(page.url(), /[?&]tab=Versions\b/);
+  await page.reload();
+  await versionRow(1).getByText("Shown on this page", { exact: true }).waitFor();
   await page.getByRole("tab", { name: "Overview", exact: true }).click();
   assert.match(await shownVersion().innerText(), /1 · Published/);
   await page.getByRole("complementary", { name: "Product details", exact: true }).waitFor();
@@ -472,13 +472,13 @@ try {
   await page.setViewportSize({ width: 1700, height: 1100 });
   await page.goto(`${origin}/programs/${programId}/systems/${boundary.id}`);
   await page
-    .getByRole("complementary", { name: "Record details", exact: true })
+    .getByRole("complementary", { name: "System details", exact: true })
     .getByRole("link", { name: "Missile A v1 · Ground launch", exact: true })
     .waitFor();
   const guidanceSystem = systems.find((row) => row.code === "GUID");
   await page.goto(`${origin}/programs/${programId}/systems/${guidanceSystem.id}`);
   await page
-    .getByRole("complementary", { name: "Record details", exact: true })
+    .getByRole("complementary", { name: "System details", exact: true })
     .getByRole("link", { name: "GUID · Guidance section", exact: true })
     .waitFor();
 
@@ -486,16 +486,18 @@ try {
   await page.goto(`${origin}/programs/${programId}?tab=System`);
   // Create system opens its dialog directly; the product path is the split button's second part.
   await page.getByRole("button", { name: "More ways to create a system", exact: true }).click();
-  await page.getByRole("menuitem", { name: "Add system from product", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Create system from product", exact: true }).click();
   await dialog().getByRole("row").filter({ hasText: "Air launch" }).first().click();
   await page.getByRole("button", { name: "Add Missile A · Air launch", exact: true }).click();
-  await dialog().getByRole("heading", { name: "Add system from product", exact: true }).waitFor();
+  await dialog()
+    .getByRole("heading", { name: "Create system from product", exact: true })
+    .waitFor();
   for (const label of ["Confidentiality", "Integrity", "Availability"]) await choose(label, "Low");
   await page
     .getByRole("textbox", { name: "Categorization rationale", exact: true })
     .fill("A second variant on the same program.");
   await page.screenshot({ path: "/tmp/products-add-system.png", fullPage: true });
-  await dialog().getByRole("button", { name: "Add system from product", exact: true }).click();
+  await dialog().getByRole("button", { name: "Create system from product", exact: true }).click();
   await page
     .getByRole("treegrid", { name: "Program systems", exact: true })
     .getByRole("row")

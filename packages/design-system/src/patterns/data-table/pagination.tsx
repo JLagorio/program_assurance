@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { ComponentPropsWithRef } from "react";
 import { Button, IconButton } from "../../components/button";
 import {
   Pagination,
@@ -16,19 +17,33 @@ import {
 import { cn } from "../../lib/cn";
 import { useLedgerLocale } from "../../lib/locale";
 
-type TablePaginationProps = {
+/** The native props of the pager's `div`, which draws its own content. */
+export type TablePaginationProps = Omit<ComponentPropsWithRef<"div">, "children"> & {
+  /** The page shown, from 1. */
   page: number;
+  /** How many pages there are; at least 1. */
   pageCount: number;
+  /** Called with the page the reader asks for. The caller owns the page and says it back through `page`. */
   onPageChange: (page: number) => void;
+  /** Every row across the pages. With `pageSize` it draws the range: "21–40 of 1,391", or "No rows". */
   total?: number | undefined;
+  /** Rows per page: the range reads it, and so does Rows per page. */
   pageSize?: number | undefined;
-  /** The sizes the reader can choose from; the choice shows when there is more than one. */
+  /** The sizes the reader can choose from; the choice shows when there is more than one and `onPageSizeChange` is given. */
   pageSizes?: number[] | undefined;
+  /** Called with the size the reader chooses under Rows per page. */
   onPageSizeChange?: ((size: number) => void) | undefined;
+  /** The navigation's name, after the table: "Findings pagination". "Pagination" unsaid. */
   label?: string | undefined;
   className?: string | undefined;
 };
-/** Table state and row counts belong to the pattern. In-memory paging uses buttons; URL navigation uses PaginationLink. The range first, then Rows per page, then the pager at the end. */
+/**
+ * The pager under a table that pages in memory: the row range, then Rows per page, then the pages
+ * as buttons at the end. The caller owns the page, the size and the counts; DataTable draws one
+ * when it pages. At the first or last page the arrow stays focusable with `aria-disabled`. For a
+ * pager of URLs, compose Pagination with PaginationLink instead. The `div`'s native props,
+ * `className` and `ref` reach its root.
+ */
 export function TablePagination({
   page,
   pageCount,
@@ -39,13 +54,16 @@ export function TablePagination({
   onPageSizeChange,
   label,
   className,
+  ...props
 }: TablePaginationProps) {
   const { t, formatNumber: num } = useLedgerLocale();
   const from = total !== undefined && pageSize ? (page - 1) * pageSize + 1 : null;
   const to = total !== undefined && pageSize ? Math.min(page * pageSize, total) : null;
   return (
     <div
+      {...props}
       className={cn("flex flex-wrap items-center gap-150 font-body-small text-subtle", className)}
+      data-slot="table-pagination"
     >
       {from !== null && to !== null && total !== undefined && (
         <span className="tabular-nums">

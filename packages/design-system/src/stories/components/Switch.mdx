@@ -7,7 +7,9 @@ import * as Stories from "./Switch.stories";
 
 # Switch
 
-An on/off setting that takes effect the moment it moves, on Base UI with the shadcn composition. The thumb is included; the setting's label and hint come from a horizontal [Field](?path=/docs/components-field--docs), which ties them to the switch with no ids.
+**Status: Stable.**
+
+An on/off setting that takes effect the moment it moves, on Base UI with the shadcn composition. The thumb is included; the setting's label and hint come from a horizontal [Field](?path=/docs/components-field--docs), which ties them to the switch with no ids and centres the switch on the label's first line.
 
 ```tsx
 <Field orientation="horizontal">
@@ -31,6 +33,10 @@ An on/off setting that takes effect the moment it moves, on Base UI with the sha
 The [Forms](?path=/docs/patterns-forms--docs) page has the table of which control answers which question.
 
 <Canvas of={Stories.Settings} />
+
+A switch inside a form that waits for Save looks applied before it is: there the answer is a Checkbox.
+
+<Canvas of={Stories.DoDont} />
 
 ## Sizes and state
 
@@ -86,4 +92,4 @@ For a native button root, pass `nativeButton` and `render={<button />}`. In that
 
 ## Related
 
-[Field](?path=/docs/components-field--docs) · [Forms](?path=/docs/patterns-forms--docs) · [Checkbox](?path=/docs/components-checkbox--docs) · [Toggle](?path=/docs/components-toggle--docs) · [shadcn Switch](https://ui.shadcn.com/docs/components/base/switch) · [Base UI Switch](https://base-ui.com/react/components/switch)
+[Field](?path=/docs/components-field--docs) · [Forms](?path=/docs/patterns-forms--docs) · [Checkbox](?path=/docs/components-checkbox--docs) · [Toggle](?path=/docs/components-toggle--docs) · [shadcn Switch](https://ui.shadcn.com/docs/components/base/switch) · [Base UI Switch](https://base-ui.com/react/components/switch) · [Upgrading](?path=/docs/guidance-upgrading--docs#switch)

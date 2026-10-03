@@ -230,7 +230,7 @@ test("product composition errors are enforced on routes and shared feature code"
 
 test("product table and tab policies apply to all application UI layers", async () => {
   const source = `import { DataTable as Records, TabsList as Views } from "@ledger/design-system";
-    export function Screen() { return <><Records /><Views variant="line" className="flex-wrap" /></>; }`;
+    export function Screen() { return <><Records responsive={false} /><Views variant="line" className="flex-wrap" /></>; }`;
   for (const filePath of [
     "src/routes/vendors.tsx",
     "src/components/app/record-browser.tsx",

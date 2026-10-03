@@ -7,11 +7,25 @@ import * as Stories from "./NumberField.stories";
 
 # NumberField
 
+**Status: Stable.**
+
 A number the reader types or steps: a retention period, a budget, a count of reviewers. Base UI NumberField underneath, so the value is parsed and formatted in the reader's locale, kept within `min` and `max`, and stepped by `step` from the keyboard or the decrement and increment buttons.
 
-Use it for a quantity. Do not use it for digits that name something, such as an identifier, a build number or a postcode: those are text, an [Input](?path=/docs/components-input--docs) with `inputMode="numeric"`, because a number field drops leading zeros, adds grouping separators and offers steps that mean nothing. For a value chosen along a range with a pointer, a slider may suit better; the kit has none yet.
-
 <Canvas of={Stories.Keyboard} />
+
+## When to use it
+
+- **A quantity**: a count, a period, an amount, a percentage, a score, which the reader types or steps.
+- **A number with bounds or a unit**: `min` and `max` keep it in range, and `format` writes it with its unit ("90 days") or currency in the reader's locale.
+
+Not for digits that name something, such as an identifier, a build number or a postcode: those are text, an [Input](?path=/docs/components-input--docs) with `inputMode="numeric"`, because a number field drops leading zeros, adds grouping separators and offers steps that mean nothing. Not for one value from a short fixed set (1, 3 or 5 reviewers): that is a [Select](?path=/docs/components-select--docs) or a [RadioGroup](?path=/docs/components-radiogroup--docs). For a value chosen along a range with a pointer, a slider may suit better; the kit has none yet.
+
+## Content
+
+- The label names the quantity, and the unit goes in `format`, not in the label: "Retention" with `{ style: "unit", unit: "day" }`, not "Retention (days)".
+- The hint gives the range or the rule in words ("Between 30 and 365 days"), since a button that stops at a bound does not say why.
+- The error says the bound or the fix: "Enter 365 days or fewer", never "Invalid number".
+- An empty field is `null`, not `0`: a value nobody entered stays empty until someone does.
 
 ## Stepping
 
@@ -73,5 +87,7 @@ Inside a [Field](?path=/docs/components-field--docs) the FieldLabel names the in
 [Input](?path=/docs/components-input--docs) · [Field](?path=/docs/components-field--docs) · [InputGroup](?path=/docs/components-inputgroup--docs) · [Base UI Number Field](https://base-ui.com/react/components/number-field)
 
 ## Don't
+
+A NumberField holds a quantity the reader steps. An identifier made of digits is an Input with `inputMode="numeric"`, never a NumberField, which drops its leading zero and groups its digits.
 
 <Canvas of={Stories.Dont} />

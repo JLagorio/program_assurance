@@ -4,7 +4,10 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Button, Input } from "../../components";
 import { Box, Heading, Inline, Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Primitives/Inline",
@@ -72,7 +75,7 @@ export const InlineMatrix: Story = {
               <Label>{a}</Label>
               <Frame width={220}>
                 <Inline space="space.100" alignBlock={a}>
-                  <Heading size="small" as="div">
+                  <Heading size="page" as="div">
                     AC-2
                   </Heading>
                   <Chip label="Satisfied" />
@@ -248,6 +251,7 @@ export const SeparatorAndSpread: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair

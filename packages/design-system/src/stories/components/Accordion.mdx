@@ -6,6 +6,8 @@ import * as Stories from "./Accordion.stories";
 
 # Accordion
 
+**Status: Stable.**
+
 A coordinated set of expandable sections, implemented with the shadcn Base UI composition. Use Collapsible for one independent disclosure.
 
 ## Anatomy
@@ -46,6 +48,17 @@ Use `value` with `onValueChange` for controlled state and `defaultValue` otherwi
 - **Not** for one titled block that folds: that is a [CollapsibleHeader](?path=/docs/components-collapsible--docs), a collapsible [Section](?path=/docs/layout-section--docs) on a page, or an [Inspector.Group](?path=/docs/patterns-inspector--docs) in a rail of facts.
 - **Not** for switching between views of one record: those are [Tabs](?path=/docs/components-tabs--docs).
 - **Not** for a row that discloses more of itself: Item's `isCollapsible` and Table's disclosure column own their chevrons.
+
+## Content
+
+- Each trigger names its section as a noun or as the question the section answers ("Delivery options", "What delivery options are available?"), the same open and closed; the chevron shows the state.
+- Sections are parallel: the same kind of content under each, in an order the reader expects (the form's order, then the rest).
+- Open the section the reader most needs with `defaultValue`; never hide the only content on a page in a closed item.
+- Keep a section's content short. A section that holds a page of its own belongs on that page, linked from here.
+
+A trigger named "Show more" says nothing about its section; two of them read as one heading twice.
+
+<Canvas of={Stories.DoDont} />
 
 ## Accessibility
 

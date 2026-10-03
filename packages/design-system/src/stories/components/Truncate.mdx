@@ -7,6 +7,8 @@ import * as Stories from "./Truncate.stories";
 
 # Truncate
 
+**Status: Stable.**
+
 Text cut to one, two or three lines (`maxLines`, as on Text) with an ellipsis, and the whole of it in a tooltip while it is cut. The tooltip opens on hover, and on keyboard focus of the link or button the text sits in or of a control inside it, so a keyboard reader can see a long record name from the list. Nothing opens while the text fits. The full text never leaves the DOM, so a screen reader reads all of it; the tooltip is a visual copy and is hidden from assistive technology.
 
 ```tsx
@@ -43,9 +45,13 @@ A `title` of your own replaces the tooltip rather than stacking a second one on 
 
 <Canvas of={Stories.RevealsOnKeyboardFocus} />
 
+In a [Table](?path=/docs/components-table--docs)'s body cell that truncates, a one-line Truncate mounts no tooltip of its own: the table's one reveal shows a cut part of the cell whole, on hover, on keyboard focus and after a long press, so a register of status Badges and names mounts one tooltip rather than one per cell. The Truncate carries `data-reveal="cell"` there. A Truncate with `maxLines` of two or three or with `fullText`, one in a heading, one in a wrapping cell, one in a detail row and one in a card, a menu or a dialog the cell opens (drawn outside the table) keep their own tooltip.
+
+<Canvas of={Stories.InTableCell} />
+
 ## The element
 
-A `span` set as a block by default. `render` makes it another element with its own props (`<dd />`, `<p />`), which keeps its own display; the one-line clamp needs a block or a flex item to cut. One line clips across only (`overflow-x: clip`), so a focus ring and a touch area inside it reach above and below the line; two and three lines clamp, which clips both ways.
+A `span` set as a block by default. `render` makes it another element with its own props (`<dd />`, `<p />`), which keeps its own display; the one-line clamp needs a block or a flex item to cut. One line clips across only (`overflow-x: clip`), so a focus ring and a touch area inside it reach above and below the line; two and three lines clamp, which clips both ways. On one line the text also counts as cut when a child cuts its own text with an ellipsis, as a link that is a whole KeyValue value does, so the reveal still opens.
 
 <Canvas of={Stories.RenderedAs} />
 
@@ -79,5 +85,7 @@ A `span` set as a block by default. `render` makes it another element with its o
 - [Tooltip](?path=/docs/components-tooltip--docs): the surface the reveal uses.
 
 ## Don't
+
+A name in a row is wrapped in Truncate, which shows the whole of it on hover and keyboard focus, never cut by a bare `truncate` class. A statement wraps, and is never cut to a line.
 
 <Canvas of={Stories.Dont} />

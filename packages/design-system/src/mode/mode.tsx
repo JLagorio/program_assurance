@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { ToggleGroup, ToggleGroupItem } from "../components/toggle-group";
+import { ToggleGroup, ToggleGroupItem, type ToggleGroupProps } from "../components/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../components/tooltip";
 
 /**
@@ -174,6 +174,32 @@ const modes: {
 ];
 
 /**
+ * The switch takes its ToggleGroup's props too (its native props, `ref`, `disabled`, `size`, which
+ * is `small` by default), except the group's value, which is one mode: `value` and `onChange`.
+ */
+export type ModeSwitchProps = Omit<
+  ToggleGroupProps<ColorMode>,
+  | "value"
+  | "defaultValue"
+  | "onValueChange"
+  | "multiple"
+  | "onChange"
+  | "children"
+  | "aria-label"
+  | "className"
+> & {
+  /** The mode shown as chosen. Unsaid, the provider's. */
+  value?: ColorMode | undefined;
+  /** Called with the chosen mode. Unsaid, the choice goes to the provider, unless `value` is given. */
+  onChange?: ((mode: ColorMode) => void) | undefined;
+  /** Text beside each icon. Off in chrome, on in a settings form. */
+  showLabels?: boolean | undefined;
+  /** The group's name: the locale's "Appearance" by default. */
+  "aria-label"?: string | undefined;
+  className?: string | undefined;
+};
+
+/**
  * The three-state control: light, dark, match the system. Reads the provider; `value` and `onChange`
  * override it, for a settings form that commits later or for a story. Icons only, each item's name
  * shows in a tooltip on hover and keyboard focus, as an IconButton's does.
@@ -184,23 +210,18 @@ export function ModeSwitch({
   showLabels = false,
   "aria-label": ariaLabel,
   className,
-}: {
-  value?: ColorMode | undefined;
-  onChange?: ((mode: ColorMode) => void) | undefined;
-  /** Text beside each icon. Off in chrome, on in a settings form. */
-  showLabels?: boolean | undefined;
-  "aria-label"?: string | undefined;
-  className?: string | undefined;
-}) {
+  ...props
+}: ModeSwitchProps) {
   const { t } = useLedgerLocale();
   const ctx = useContext(ModeContext);
   const current = value ?? ctx?.mode ?? "system";
   const change = onChange ?? (value === undefined ? ctx?.setMode : undefined) ?? (() => undefined);
   return (
     <ToggleGroup<ColorMode>
+      size="small"
+      {...props}
       aria-label={ariaLabel ?? t("colorMode")}
       className={className}
-      size="sm"
       value={[current]}
       onValueChange={([next]) => {
         if (next !== undefined) change(next);

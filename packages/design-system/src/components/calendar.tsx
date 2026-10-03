@@ -196,7 +196,7 @@ export function Calendar({
 }
 
 function CalendarRoot({ className, rootRef, ...props }: ComponentProps<typeof Root>) {
-  return <div data-slot="calendar" ref={rootRef} className={className} {...props} />;
+  return <div {...props} ref={rootRef} data-slot="calendar" className={className} />;
 }
 function CalendarChevron({
   orientation,

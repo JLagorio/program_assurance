@@ -29,8 +29,12 @@ import {
   Timeline,
 } from "../../components";
 import { Box, HeadingLevelProvider, Inline, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 /** A real pointer over the element, so CSS `:hover` applies in the browser tests; Storybook itself only dispatches the events. */
 async function nativeHover(target: HTMLElement) {
@@ -271,6 +275,7 @@ const addAction = (
 
 /** In a rail: rows with an id and the state, a Dot and a date, people; a handful of many with See all; the empty state, plain and with a line and an action. In the body of a page: a grid of cards with a mark, the name as the link, one status, four properties and the actions on hover; people as cards; the empty state at that width. */
 export const RelatedMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="In a rail: list">
@@ -412,6 +417,7 @@ export const RelatedTable: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -570,10 +576,32 @@ export const Dont: Story = {
   ),
 };
 
+/** The props on the controls: `layout` swaps the finding rows for system cards. */
 export const Playground: Story = {
+  // Its code reads the args to swap the children, which the manifest would print as written.
+  tags: ["!manifest"],
   render: (args) => (
     <Box className={args.layout === "cards" ? undefined : "w-layout-rail"}>
-      <Related {...args}>{args.layout === "cards" ? systemCards : findings}</Related>
+      <Related {...args}>
+        {args.layout === "cards" ? (
+          systemCards
+        ) : (
+          <>
+            <Item
+              id="FND-2231"
+              title="Router management plane accepts unencrypted telnet"
+              trailing="CAT I"
+              link={<a href="#fnd-2231" />}
+            />
+            <Item
+              id="FND-2214"
+              title="SSH permits GSSAPI authentication"
+              trailing="CAT II"
+              link={<a href="#fnd-2214" />}
+            />
+          </>
+        )}
+      </Related>
     </Box>
   ),
 };

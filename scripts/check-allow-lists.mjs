@@ -10,8 +10,6 @@
  * since every list would otherwise be new there.
  *
  * - packages/design-system/test/lint-allow.json: ESLint reports per rule and file in the kit.
- * - packages/design-system/eslint-suppressions.json: the kit's reports of the recommended JS, TS
- *   and hooks rules per file and rule (ESLint's own bulk suppressions, TOO-6).
  * - scripts/lint-allow.json: ESLint reports per rule and file in the product.
  * - packages/design-system/test/gates-allow.json: story gate problems per story, skipped plays
  *   and stories that log a warning on purpose.
@@ -31,8 +29,10 @@
  *   ledger rule off, including the one that would report it, so it is counted too, as
  *   `<file> › every rule`. At a base ref without the kit (a pull request into main) the count
  *   starts, as a new list does.
- * - ESLint applies an eslint-suppressions.json by itself, so the product has none, and the kit's
- *   carries no ledger rule: ledger reports ratchet through lint-allow.json, where the rule sees them.
+ * - ESLint applies an eslint-suppressions.json by itself, so neither the product nor the kit keeps
+ *   one: a report of ESLint's or typescript-eslint's rules is fixed at its site, and a ledger
+ *   report ratchets through lint-allow.json, where the rule sees it. A suppressions file that names
+ *   a ledger rule is named for that too.
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
@@ -47,7 +47,6 @@ import ledger from "../packages/design-system/eslint-plugin/index.js";
 
 const LISTS = [
   "packages/design-system/test/lint-allow.json",
-  "packages/design-system/eslint-suppressions.json",
   "scripts/lint-allow.json",
   "packages/design-system/test/gates-allow.json",
   "packages/design-system/test/layout-allow.json",
@@ -259,6 +258,10 @@ else console.log(`${DIRECTIVES}: ${base} has no kit, so this is where they start
 if (existsSync(SUPPRESSIONS[0]))
   misplaced.push(
     `${SUPPRESSIONS[0]}: ESLint applies it by itself, so the product keeps none; its reports ratchet through scripts/lint-allow.json.`,
+  );
+if (existsSync(SUPPRESSIONS[1]))
+  misplaced.push(
+    `${SUPPRESSIONS[1]}: ESLint applies it by itself, so the kit keeps none; fix the site, and a ledger report ratchets through packages/design-system/test/lint-allow.json.`,
   );
 for (const file of SUPPRESSIONS) {
   if (!existsSync(file)) continue;

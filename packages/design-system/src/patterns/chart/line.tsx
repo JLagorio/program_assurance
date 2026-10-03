@@ -20,6 +20,7 @@ import {
   CardHead,
   Plot,
   PlotSkeleton,
+  PointTick,
   ReferenceLabels,
   References,
   Swatch,
@@ -30,6 +31,7 @@ import {
   axisLine,
   axisTitle,
   axisWidth,
+  categoryAxisHeight,
   cursorLine,
   deltaText,
   formatValue,
@@ -43,6 +45,7 @@ import {
   niceScale,
   pinnedTicks,
   pointAnchor,
+  pointLabels,
   seriesClass,
   seriesColor,
   stackExtent,
@@ -430,7 +433,8 @@ function Axes({
   yLabel,
   format,
   formatX,
-  allCategories,
+  count,
+  points,
   includeHidden = true,
 }: {
   x: string;
@@ -442,13 +446,14 @@ function Axes({
   yLabel: string | undefined;
   format: Formatter;
   formatX: CategoryFormatter;
-  /** Every category's label fits its slot, so none is thinned out. */
-  allCategories: boolean;
+  /** How many categories the axis holds, and how it prints their labels: every `step` points, on one line or two. */
+  count: number;
+  points: { step: number; lines: 1 | 2 };
   /** A hidden series keeps its place on the scale. Off for a stack, whose scale the part sets. */
   includeHidden?: boolean | undefined;
 }) {
   const valueTick = (v: unknown) => format(tickValue(v));
-  const categoryTick = (v: unknown) => tickText(v, formatX, 14);
+  const categoryTick = (v: unknown) => tickText(v, formatX);
   return (
     <>
       <CartesianGrid {...grid} vertical={false} />
@@ -472,11 +477,15 @@ function Axes({
         <XAxis
           dataKey={x}
           tickFormatter={categoryTick}
-          tick={<Tick format={formatX} />}
+          // The kit picks which labels print: each fitted to the slots up to the next, none dropped
+          // while every slot holds a readable one.
+          interval={points.step - 1}
+          tick={
+            <PointTick count={count} step={points.step} format={formatX} lines={points.lines} />
+          }
           axisLine={axisLine}
           tickLine={false}
-          height={xLabel ? 36 : 24}
-          interval={allCategories ? 0 : "equidistantPreserveStart"}
+          height={categoryAxisHeight(points.lines, Boolean(xLabel))}
           {...(xLabel ? { label: axisTitle(xLabel, false) } : {})}
         />
       )}
@@ -523,14 +532,26 @@ function useCategoryReport(
 }
 
 /**
- * Whether every category label of a point axis fits its slot in a plot `width` wide, less the
- * value axis: then all print, and recharts thins none out.
+ * How a Line's or an Area's category axis prints its labels in a plot box `plotWidth` wide: the
+ * plot is the box less the value axis and the margins; a time axis picks its own ticks.
  */
-const categoriesFit = (labels: string[], width: number | undefined, valueAxis: number) => {
-  if (!width || labels.length < 2) return false;
-  const slot = (width - valueAxis - 24) / (labels.length - 1);
-  return labels.every((l) => labelWidth(l) + 6 <= slot);
-};
+const categoryPoints = (
+  rows: ChartDatum[],
+  x: string,
+  formatX: CategoryFormatter,
+  time: boolean,
+  plotWidth: number | undefined,
+  valueAxis: number,
+  margin: { left: number; right: number },
+) =>
+  time
+    ? { step: 1, lines: 1 as const }
+    : pointLabels(
+        rows.map((d) => tickText(d[x], formatX)),
+        plotWidth === undefined ? undefined : plotWidth - valueAxis - margin.left - margin.right,
+        valueAxis + margin.left,
+        margin.right,
+      );
 
 /** The category format a time axis' tooltip uses: the full date, at the unit the span needs. */
 const timeFormat = (
@@ -610,7 +631,14 @@ export function ChartLine({
   if (offstage) return null;
   if (loading)
     return (
-      <PlotSkeleton kind="line" name={name} size={size} height={height} className={className} />
+      <PlotSkeleton
+        {...native}
+        kind="line"
+        name={name}
+        size={size}
+        height={height}
+        className={className}
+      />
     );
   const keys = series.map((s) => s.key);
   const negative = hasNegative(data, keys);
@@ -624,6 +652,16 @@ export function ChartLine({
       : null;
   const endWidth =
     labels === "end" ? endLabelWidth(rows, series, hidden, format, false) + END_GAP : undefined;
+  const margin = {
+    ...marginFor({
+      endLabels: labels === "end",
+      refLabels: hasRefLabels(reference, bands),
+      endWidth,
+    }),
+    bottom: xLabel ? 12 : 0,
+    left: yLabel ? 8 : 0,
+  };
+  const valueAxis = axisWidth(data, keys, format, through?.domain ?? domain, Boolean(yLabel));
   return (
     <Plot
       {...native}
@@ -641,15 +679,7 @@ export function ChartLine({
     >
       <ComposedChart
         data={rows}
-        margin={{
-          ...marginFor({
-            endLabels: labels === "end",
-            refLabels: hasRefLabels(reference, bands),
-            endWidth,
-          }),
-          bottom: xLabel ? 12 : 0,
-          left: yLabel ? 8 : 0,
-        }}
+        margin={margin}
         {...c.a11y.chart}
         {...syncProp(sync)}
         {...c.clickProps}
@@ -667,16 +697,13 @@ export function ChartLine({
                   allIntegers(data, keys),
                 )
           }
-          width={axisWidth(data, keys, format, through?.domain ?? domain, Boolean(yLabel))}
+          width={valueAxis}
           xLabel={xLabel}
           yLabel={yLabel}
           format={format}
           formatX={formatX}
-          allCategories={categoriesFit(
-            time ? [] : rows.map((d) => tickText(d[x], formatX, 14)),
-            plotWidth,
-            axisWidth(data, keys, format, through?.domain ?? domain, Boolean(yLabel)),
-          )}
+          count={rows.length}
+          points={categoryPoints(rows, x, formatX, Boolean(time), plotWidth, valueAxis, margin)}
         />
         <Tooltip
           cursor={cursorLine}
@@ -836,7 +863,14 @@ export function ChartArea({
   if (offstage) return null;
   if (loading)
     return (
-      <PlotSkeleton kind="area" name={name} size={size} height={height} className={className} />
+      <PlotSkeleton
+        {...native}
+        kind="area"
+        name={name}
+        size={size}
+        height={height}
+        className={className}
+      />
     );
   const keys = series.map((s) => s.key);
   const negative = hasNegative(data, keys);
@@ -856,6 +890,16 @@ export function ChartArea({
     labels === "end"
       ? endLabelWidth(rows, series, hidden, format, Boolean(stacked)) + END_GAP
       : undefined;
+  const margin = {
+    ...marginFor({
+      endLabels: labels === "end",
+      refLabels: hasRefLabels(reference, bands),
+      endWidth,
+    }),
+    bottom: xLabel ? 12 : 0,
+    left: yLabel ? 8 : 0,
+  };
+  const valueAxis = axisWidth(data, keys, format, through?.domain ?? domain, Boolean(yLabel));
   return (
     <Plot
       {...native}
@@ -885,15 +929,7 @@ export function ChartArea({
     >
       <ComposedChart
         data={rows}
-        margin={{
-          ...marginFor({
-            endLabels: labels === "end",
-            refLabels: hasRefLabels(reference, bands),
-            endWidth,
-          }),
-          bottom: xLabel ? 12 : 0,
-          left: yLabel ? 8 : 0,
-        }}
+        margin={margin}
         {...(stacked && negative ? { stackOffset: "sign" as const } : {})}
         {...c.a11y.chart}
         {...syncProp(sync)}
@@ -912,16 +948,13 @@ export function ChartArea({
                   allIntegers(data, keys),
                 )
           }
-          width={axisWidth(data, keys, format, through?.domain ?? domain, Boolean(yLabel))}
+          width={valueAxis}
           xLabel={xLabel}
           yLabel={yLabel}
           format={format}
           formatX={formatX}
-          allCategories={categoriesFit(
-            time ? [] : rows.map((d) => tickText(d[x], formatX, 14)),
-            plotWidth,
-            axisWidth(data, keys, format, through?.domain ?? domain, Boolean(yLabel)),
-          )}
+          count={rows.length}
+          points={categoryPoints(rows, x, formatX, Boolean(time), plotWidth, valueAxis, margin)}
           includeHidden={!stacked}
         />
         <Tooltip

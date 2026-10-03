@@ -1,7 +1,9 @@
 import { useCallback, useMemo, useRef, useState, type RefObject } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
+  Absent,
   Button,
+  DateLabel,
   DateTime,
   DropdownMenu,
   DropdownMenuTrigger,
@@ -12,11 +14,14 @@ import {
   DataTable,
   defineColumns,
   Inline,
+  Person,
   PreviewSheet,
   Prose,
   Section,
   Stack,
   useDataTable,
+  type FilterOption,
+  type Preset,
 } from "@ledger/design-system";
 import {
   RecordLink,
@@ -28,12 +33,20 @@ import {
 } from "./record-preview";
 import type { ReactNode } from "react";
 import { ProductCollection } from "./product-collection";
+import {
+  useServerCollection,
+  useServerPresetCounts,
+  vocabularyOptions,
+} from "./collection-question";
 import { MoreHorizontal, Plus } from "lucide-react";
 import { useRow, useRows, type Row, type TableName } from "@/lib/models";
 import { labelFor, type DataRecord } from "@/lib/records";
+import { createEvidenceSchema } from "@/lib/evidence-create";
+import { serverRead, type ServerRow } from "@/lib/server-table";
 import { evidenceReviewDecisions, revisionStates, type StatusVocabulary } from "@/lib/status";
 import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
+import { useCollection } from "@/lib/collections";
 import { EvidenceFile } from "@/components/app/evidence-file";
 import { CreateEvidenceDialog } from "./create-evidence-dialog";
 import {
@@ -51,24 +64,189 @@ const latestReviewStatuses: StatusVocabulary = {
   ...evidenceReviewDecisions,
 };
 
-type EvidenceRow = Row<"evidence_artifacts"> & {
-  program: string;
+/**
+ * The kinds an artifact records, as its create command accepts them, each in words: the Kind
+ * filter offers every one (the server's rows are one page), and the search finds a kind by them.
+ */
+const artifactKinds = createEvidenceSchema.innerType().shape.artifactKind.options;
+const kindOptions: FilterOption[] = artifactKinds.map((value) => ({
+  value,
+  label: labelFor(value),
+}));
+const kindLabels = Object.fromEntries(
+  artifactKinds.map((kind) => [kind, { label: labelFor(kind) }]),
+);
+
+/**
+ * The register's columns, one list for every render: the preview is the table's, so stepping
+ * through artifacts never rebuilds them. A program's own evidence leaves out the Program column.
+ */
+const evidenceColumns = (inProgram: boolean) =>
+  defineColumns<EvidenceRow>((c) => [
+    // A name with a minimum and no width shares the spare width with the other unsized fields.
+    c.text("title", {
+      header: "Artifact",
+      minWidth: 200,
+      priority: 0,
+      hideable: false,
+      cell: (row) => (
+        <RecordLink table="evidence_artifacts" record={row}>
+          {row.title}
+        </RecordLink>
+      ),
+    }),
+    ...(inProgram
+      ? []
+      : [
+          c.text("program", {
+            header: "Program",
+            width: 170,
+            cell: (row) => row.program ?? <Absent label={missing(row.program_id)} />,
+          }),
+        ]),
+    c.text("kind", { header: "Kind", width: 120, cell: (row) => labelFor(row.kind) }),
+    // A person and a date take their kinds' widths.
+    c.person("owner", {
+      header: "Owner",
+      cell: (row) =>
+        row.owner ? <Person name={row.owner} /> : <Absent label={missing(row.owner_party_id)} />,
+    }),
+    c.text("version", { header: "Version", width: 105 }),
+    c.date("collected", { header: "Collected" }),
+    c.status("review", {
+      header: "Latest review",
+      width: 150,
+      statuses: latestReviewStatuses,
+    }),
+  ]);
+/** A name the row cannot show: none recorded, or one recorded that the reader cannot see. */
+const missing = (id: string | null) => (id ? "Not available" : "Not recorded");
+const registerColumns = evidenceColumns(false);
+const programColumns = evidenceColumns(true);
+
+/** What an artifact's preview reads of it, and its Edit seeds the form from. */
+type Artifact = Pick<
+  Row<"evidence_artifacts">,
+  | "id"
+  | "tenant_id"
+  | "title"
+  | "description"
+  | "artifact_kind"
+  | "program_id"
+  | "scope_id"
+  | "owner_party_id"
+  | "source_uri"
+  | "retention_until"
+  | "revision"
+>;
+/**
+ * An artifact as the register reads it: every column its preview's Edit seeds the form from, its
+ * program and owner by name, its latest version and that version's latest review.
+ */
+type EvidenceRecord = ServerRow<
+  "evidence_artifact_rows",
+  | keyof Artifact
+  | "updated_at"
+  | "program_name"
+  | "owner_name"
+  | "latest_version_number"
+  | "collected_at"
+  | "review",
+  "tenant_id" | "title" | "artifact_kind" | "revision" | "updated_at" | "review"
+>;
+type EvidenceRow = EvidenceRecord & {
+  /** The program's name; null when the artifact names none or the reader cannot see it. */
+  program: string | null;
+  /** The artifact's kind as stored; the cell and the filter say it in words. */
   kind: string;
-  /** The owner's name; null when none is recorded. */
+  /** The owner's name; null when none is recorded or the reader cannot see them. */
   owner: string | null;
   version: string;
   collected: string | undefined;
-  review: string;
 };
+
+/** Each artifact of a page as the register draws it. */
+const evidenceRows = (page: EvidenceRecord[]): EvidenceRow[] =>
+  page.map((artifact) => ({
+    ...artifact,
+    // A name the reader cannot see is null, and its cell says so: never words in its place.
+    program: artifact.program_name,
+    kind: artifact.artifact_kind,
+    owner: artifact.owner_name,
+    version:
+      artifact.latest_version_number === null
+        ? "No versions"
+        : `Version ${artifact.latest_version_number}`,
+    collected: artifact.collected_at ?? undefined,
+  }));
+
+/**
+ * The evidence of the workspace or of one program, a page at a time from the server, newest change
+ * first: each artifact's latest version and its latest review come from the view, where the sort,
+ * the filters and the search reach them too.
+ */
+const evidenceRead = (programId: string | undefined) =>
+  serverRead({
+    source: "evidence_artifact_rows",
+    model: "evidence_artifacts",
+    // A new version, or a review of the latest one, changes what the row says of its artifact.
+    models: ["evidence_versions", "evidence_reviews"],
+    columns: [
+      "id",
+      "tenant_id",
+      "title",
+      "description",
+      "artifact_kind",
+      "program_id",
+      "scope_id",
+      "owner_party_id",
+      "source_uri",
+      "retention_until",
+      "revision",
+      "updated_at",
+      "program_name",
+      "owner_name",
+      "latest_version_number",
+      "collected_at",
+      "review",
+    ],
+    scope: programId ? { program_id: programId } : {},
+    search: ["title", "program_name", "owner_name"],
+    fields: {
+      program: { column: "program_name", filter: false },
+      kind: { column: "artifact_kind", labels: kindLabels },
+      owner: { column: "owner_name", filter: false },
+      version: { column: "latest_version_number", filter: false },
+      collected: { column: "collected_at", filter: false },
+      review: { labels: latestReviewStatuses, sort: "review_rank" },
+    },
+    order: [{ column: "updated_at", ascending: false }],
+  });
+
+const presets: Preset[] = [
+  { id: "all", label: "All evidence" },
+  {
+    id: "pending",
+    label: "Not reviewed",
+    filters: [{ id: "review", value: ["not_reviewed", "pending"] }],
+  },
+  {
+    id: "revision",
+    label: "Needs revision",
+    filters: [{ id: "review", value: ["needs_revision"] }],
+  },
+];
+
+/** Of two copies of one artifact, the later revision: the page's after a refresh, else the one saved. */
+const later = <T extends { revision: number }>(a: T | undefined, b: T | undefined) =>
+  a && b ? (b.revision > a.revision ? b : a) : (a ?? b);
+
 export function EvidenceBrowser({ programId }: { programId?: string }) {
   const workspace = useWorkspace();
   const navigate = useNavigate();
-  const artifacts = useRows("evidence_artifacts", programId ? { program_id: programId } : {});
-  const versions = useRows("evidence_versions");
-  const reviews = useRows("evidence_reviews");
-  const programs = useRows("programs");
-  const parties = useRows("parties");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // The artifact the reader opened or saved last, while the page may not hold it.
+  const [held, setHeld] = useState<Artifact | null>(null);
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
   // A preview belongs to its tab: it ends when a program tab hides this register.
   useEndOnHide(() => {
@@ -77,88 +255,39 @@ export function EvidenceBrowser({ programId }: { programId?: string }) {
   });
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState<FormTarget | null>(null);
-  const selected = artifacts.data?.find((row) => row.id === selectedId);
-  const rows = useMemo<EvidenceRow[]>(
-    () =>
-      (artifacts.data ?? []).map((artifact) => {
-        const latest = (versions.data ?? [])
-          .filter((version) => version.artifact_id === artifact.id)
-          .sort((a, b) => b.version_number - a.version_number)[0];
-        const review = latest
-          ? (reviews.data ?? [])
-              .filter((item) => item.evidence_version_id === latest.id)
-              .sort((a, b) =>
-                (b.reviewed_at ?? b.created_at).localeCompare(a.reviewed_at ?? a.created_at),
-              )[0]
-          : undefined;
-        return {
-          ...artifact,
-          program: artifact.program_id
-            ? (programs.data?.find((program) => program.id === artifact.program_id)?.name ??
-              "Unavailable program")
-            : "Not recorded",
-          kind: labelFor(artifact.artifact_kind),
-          owner: artifact.owner_party_id
-            ? (parties.data?.find((party) => party.id === artifact.owner_party_id)?.name ??
-              "Unavailable person")
-            : null,
-          version: latest ? `Version ${latest.version_number}` : "No versions",
-          collected: latest?.collected_at ?? undefined,
-          review: review ? review.decision : "not_reviewed",
-        };
-      }),
-    [artifacts.data, versions.data, reviews.data, programs.data, parties.data],
-  );
   const openPreview = useCallback(
     (row: EvidenceRow) => {
       if (!form && !creating) {
         setSelectedId(row.id);
+        setHeld(row);
         setSelectedVersionId(null);
       }
     },
     [form, creating],
   );
-  const columns = useMemo(
-    () =>
-      defineColumns<EvidenceRow>((c) => [
-        // A name with a minimum and no width shares the spare width with the other unsized fields.
-        c.id("title", {
-          header: "Artifact",
-          minWidth: 200,
-          priority: 0,
-          hideable: false,
-          preview: openPreview,
-          active: (row) => row.id === selectedId,
-          cell: (row) => (
-            <RecordLink table="evidence_artifacts" record={row}>
-              {row.title}
-            </RecordLink>
-          ),
-        }),
-        ...(programId ? [] : [c.text("program", { header: "Program", width: 170 })]),
-        c.text("kind", { header: "Kind", width: 120 }),
-        c.person("owner", { header: "Owner", width: 170 }),
-        c.text("version", { header: "Version", width: 105 }),
-        c.date("collected", { header: "Collected", width: 120 }),
-        c.status("review", {
-          header: "Latest review",
-          width: 150,
-          statuses: latestReviewStatuses,
-        }),
-      ]),
-    [programId, selectedId, openPreview],
+  const preview = useMemo(
+    () => ({ onPreview: openPreview, activeId: selectedId }),
+    [openPreview, selectedId],
   );
-  const table = useDataTable({
-    data: rows,
-    columns,
+  const read = useMemo(() => evidenceRead(programId), [programId]);
+  const collection = useServerCollection<EvidenceRow, EvidenceRecord>(read, {
+    columns: programId ? programColumns : registerColumns,
+    rows: evidenceRows,
     getRowId: (row) => row.id,
+    preview,
     label: "Evidence",
     view: `evidence-${programId ?? "all"}`,
-    pageSize: 20,
     resizable: true,
     reorderable: true,
   });
+  const { table } = collection;
+  const presetCounts = useServerPresetCounts(read, presets);
   const displayed = useDisplayedRecords(table);
+  const onPage = displayed.find((row) => row.id === selectedId);
+  const kept = held?.id === selectedId ? held : undefined;
+  // An artifact neither the page nor the reader's last step holds (one just created) is read.
+  const fetched = useRow("evidence_artifacts", selectedId && !onPage && !kept ? selectedId : null);
+  const selected = later<Artifact>(onPage, kept) ?? fetched.data ?? undefined;
   return (
     <Stack space="space.150">
       {creating && (
@@ -167,6 +296,7 @@ export function EvidenceBrowser({ programId }: { programId?: string }) {
           onClose={() => setCreating(false)}
           onCreated={(result) => {
             setSelectedId(result.artifactId);
+            setHeld(null);
             setSelectedVersionId(result.versionId);
           }}
         />
@@ -176,13 +306,15 @@ export function EvidenceBrowser({ programId }: { programId?: string }) {
           target={form}
           onClose={() => setForm(null)}
           onSaved={(record) => {
-            if (form.table === "evidence_artifacts") setSelectedId(record.id);
+            if (form.table === "evidence_artifacts") {
+              setSelectedId(record.id);
+              setHeld(record as unknown as Artifact);
+            }
           }}
         />
       )}
       <ProductCollection
-        table={table}
-        queries={[artifacts, versions, reviews, programs, parties]}
+        {...collection}
         fill
         searchLabel="Find evidence"
         onRowClick={(row) => void navigate(recordDestination("evidence_artifacts", row))}
@@ -193,28 +325,16 @@ export function EvidenceBrowser({ programId }: { programId?: string }) {
             "Create an artifact and its first draft version, then attach its file and supporting relationships.",
         }}
         views={
-          <DataTable.Presets
-            table={table}
-            variant="menu"
-            presets={[
-              { id: "all", label: "All evidence" },
-              {
-                id: "pending",
-                label: "Not reviewed",
-                filters: [{ id: "review", value: ["not_reviewed", "pending"] }],
-              },
-              {
-                id: "revision",
-                label: "Needs revision",
-                filters: [{ id: "review", value: ["needs_revision"] }],
-              },
-            ]}
-          />
+          <DataTable.Presets table={table} variant="menu" presets={presets} counts={presetCounts} />
         }
         filters={
           <>
-            <DataTable.Filter table={table} column="review" />
-            <DataTable.Filter table={table} column="kind" />
+            <DataTable.Filter
+              table={table}
+              column="review"
+              options={vocabularyOptions(latestReviewStatuses)}
+            />
+            <DataTable.Filter table={table} column="kind" options={kindOptions} />
           </>
         }
         action={
@@ -256,6 +376,36 @@ export function EvidenceBrowser({ programId }: { programId?: string }) {
   );
 }
 
+/** An artifact's versions in its preview, one list for every render: the preview is the table's. */
+const versionTableColumns = defineColumns<Row<"evidence_versions">>((c) => [
+  c.id("version_number", {
+    header: "Version",
+    priority: 0,
+    // "Version 12" needs little room: a minimum leaves the State beside it in a narrow panel.
+    minWidth: 120,
+    hideable: false,
+    cell: (row) => (
+      <RecordLink table="evidence_versions" record={row}>
+        Version {row.version_number}
+      </RecordLink>
+    ),
+  }),
+  c.status("state", { header: "State", width: 130, statuses: revisionStates }),
+  c.date("collected_at", { header: "Collected" }),
+  c.text("storage_object_name", {
+    header: "File",
+    width: 180,
+    cell: (row) =>
+      row.storage_object_id
+        ? "Uploaded"
+        : row.storage_object_name
+          ? "Upload unfinished"
+          : row.external_uri
+            ? "External reference"
+            : "No file",
+  }),
+]);
+
 function EvidencePreview({
   artifact,
   formOpen,
@@ -265,7 +415,7 @@ function EvidencePreview({
   onClose,
   onEdit,
 }: {
-  artifact: Row<"evidence_artifacts">;
+  artifact: Artifact;
   /** A form is open over the preview: the modal version review steps aside so they do not stack. */
   formOpen: boolean;
   navigation: ReactNode;
@@ -276,7 +426,6 @@ function EvidencePreview({
 }) {
   const workspace = useWorkspace();
   const versions = useRows("evidence_versions", { artifact_id: artifact.id });
-  const parties = useRows("parties");
   const sorted = useMemo(
     () => [...(versions.data ?? [])].sort((a, b) => b.version_number - a.version_number),
     [versions.data],
@@ -301,44 +450,18 @@ function EvidencePreview({
         },
       }
     : {};
-  const columns = useMemo(
-    () =>
-      defineColumns<Row<"evidence_versions">>((c) => [
-        c.id("version_number", {
-          header: "Version",
-          priority: 0,
-          // "Version 12" needs little room: a minimum leaves the State beside it in a narrow panel.
-          minWidth: 120,
-          hideable: false,
-          preview: (row) => setVersionId(row.id),
-          active: (row) => row.id === versionId,
-          cell: (row) => (
-            <RecordLink table="evidence_versions" record={row}>
-              Version {row.version_number}
-            </RecordLink>
-          ),
-        }),
-        c.status("state", { header: "State", width: 130, statuses: revisionStates }),
-        c.date("collected_at", { header: "Collected", width: 120 }),
-        c.text("storage_object_name", {
-          header: "File",
-          width: 180,
-          cell: (row) =>
-            row.storage_object_id
-              ? "Uploaded"
-              : row.storage_object_name
-                ? "Upload unfinished"
-                : row.external_uri
-                  ? "External reference"
-                  : "No file",
-        }),
-      ]),
+  const preview = useMemo(
+    () => ({
+      onPreview: (row: Row<"evidence_versions">) => setVersionId(row.id),
+      activeId: versionId,
+    }),
     [versionId, setVersionId],
   );
   const table = useDataTable({
-    columns,
+    columns: versionTableColumns,
     data: sorted,
     getRowId: (row) => row.id,
+    preview,
     // Its controls say which version: "Preview Version 2", not a row's number or id.
     rowLabel: (row) => `Version ${row.version_number}`,
     label: "Evidence versions",
@@ -348,6 +471,7 @@ function EvidencePreview({
     <Button
       size="small"
       variant="primary"
+      iconBefore={<Plus />}
       disabledReason={
         versions.isPending
           ? "The versions are still loading."
@@ -393,7 +517,13 @@ function EvidencePreview({
           facts={[
             ["Description", artifact.description ? <Prose>{artifact.description}</Prose> : null],
             ["Kind", labelFor(artifact.artifact_kind)],
-            ["Owner", parties.data?.find((party) => party.id === artifact.owner_party_id)?.name],
+            // The owner read by their id, which the preview's Edit saves, so a change reads at once.
+            [
+              "Owner",
+              artifact.owner_party_id ? (
+                <RelationName table="parties" id={artifact.owner_party_id} />
+              ) : null,
+            ],
             [
               "Source",
               artifact.source_uri ? <ExternalReference uri={artifact.source_uri} /> : null,
@@ -405,12 +535,15 @@ function EvidencePreview({
           ]}
         />
         <Section title="Versions">
+          {/* The preview's few versions ask nothing of a search: the toolbar keeps the create. */}
           <ProductCollection
             compact
+            search={false}
             table={table}
             queries={[versions]}
-            searchLabel="Find versions"
             action={createVersion}
+            // The preview's record header keeps the one primary, Edit evidence artifact.
+            actionVariant="secondary"
             empty={{
               illustration: "document",
               title: "No versions yet",
@@ -476,7 +609,12 @@ function EvidenceVersionActions({
   menuButton: RefObject<HTMLButtonElement | null>;
 }) {
   const workspace = useWorkspace();
-  const parties = useRows("parties");
+  // The reader's own party, the review's reviewer unless they choose another.
+  const parties = useRows(
+    "parties",
+    { auth_user_id: workspace.userId },
+    { columns: ["id", "auth_user_id"] },
+  );
   const me = parties.data?.find((party) => party.auth_user_id === workspace.userId);
   return (
     <Inline space="space.100">
@@ -545,8 +683,7 @@ function EvidenceVersionActions({
 }
 
 function EvidenceVersion({ version }: { version: Row<"evidence_versions"> }) {
-  const workspace = useWorkspace();
-  const collection = workspace.collections.find((item) => item.name === "evidence_versions");
+  const collection = useCollection("evidence_versions").data;
   return (
     <Stack space="space.250">
       <Section title="Version details">
@@ -554,7 +691,11 @@ function EvidenceVersion({ version }: { version: Row<"evidence_versions"> }) {
           facts={[
             ["State", <StatusBadge statuses={revisionStates} value={version.state} />],
             ["Collected", version.collected_at ? <DateTime value={version.collected_at} /> : null],
-            ["Expires", version.expires_at ? <DateTime value={version.expires_at} /> : null],
+            // Where the expiry stands: expired, today or soon say so beside the moment.
+            [
+              "Expires",
+              version.expires_at ? <DateLabel kind="expiry" value={version.expires_at} /> : null,
+            ],
             [
               "External reference",
               version.external_uri ? (

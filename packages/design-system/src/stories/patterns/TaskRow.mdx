@@ -6,7 +6,9 @@ import * as Stories from "./TaskRow.stories";
 
 # TaskRow
 
-An experimental shared completion row for checklists and work queues. The package owns the completion control, row layout and independent navigation/actions. The application owns its task model, status vocabulary, deadlines and persistence. Owner: Ledger maintainers; consumers own state mappings.
+**Status: Experimental.** No product screen uses a TaskRow, so its API can still change before it is stable; owner: Ledger maintainers.
+
+A shared completion row for checklists and work queues. The package owns the completion control, row layout and independent navigation/actions. The application owns its task model, status vocabulary, deadlines and persistence. Consumers own the state mappings.
 
 <Canvas of={Stories.TaskRowMatrix} />
 
@@ -58,5 +60,7 @@ Completion is a controlled checkbox with Space-key operation, named for the task
 - A product maps its own task states, owner names and overdue presentation onto `completed`, `assignee`, `due` and `status`; create-task workflows stay in the product.
 
 ## Don't
+
+The status is your product's words, given as content, and completion a separate boolean, never a storage code on screen or every field packed into the title.
 
 <Canvas of={Stories.Dont} />

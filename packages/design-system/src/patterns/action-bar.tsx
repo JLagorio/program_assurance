@@ -22,6 +22,7 @@ import { Fact } from "../components/typography";
    record's header, and take the next row when the row cannot give the title its measure: the bar
    is composed from PageHeader's parts so it keeps PageHeader's wrap rule. */
 
+/** @deprecated Kept for one version with ActionBar; a record's header is PageHeader. */
 export type ActionBarState = {
   /** The axis: "Implementation", "Assessment", "Evidence". */
   label: string;
@@ -32,6 +33,7 @@ export type ActionBarState = {
   control?: ReactNode;
 };
 
+/** @deprecated Kept for one version with ActionBar; a record's header is PageHeader. */
 export type ActionBarAction = {
   /** A verb: "Request evidence", "Mark satisfied", "Submit". */
   label: string;
@@ -42,6 +44,7 @@ export type ActionBarAction = {
   blocked?: string | null | undefined;
 };
 
+/** @deprecated Kept for one version with ActionBar; a record's header is PageHeader. */
 export type ActionBarProps = {
   /** The parents as BreadcrumbItem elements with BreadcrumbSeparator between them; the header appends the id as the last crumb. */
   crumbs?: ReactNode;
@@ -64,8 +67,9 @@ export type ActionBarProps = {
  * the actions that change them. A blocked action carries its reason rather than hiding: it stays
  * in the tab order, disabled, and its reason under the row is its accessible description.
  *
- * No product screen uses it; a record page's header is PageHeader, with the state in the
- * Details rail. It stays exported for a work surface that pins its state axes above the work.
+ * @deprecated Kept for one version. A record's header is PageHeader: the trail in
+ * PageHeader.Lead, the name in PageHeader.Title, the verbs in PageHeader.Actions, and the state
+ * axes in the Details rail (Shell.Aside). A blocked action is a Button with `disabledReason`.
  */
 export function ActionBar({ crumbs, id, title, context, states, actions, tabs }: ActionBarProps) {
   const reasonId = useId();
@@ -116,11 +120,13 @@ export function ActionBar({ crumbs, id, title, context, states, actions, tabs }:
     </div>
   ) : null;
   return (
+    // layout.css keeps the bar under the shell's header while the page scrolls.
     <div
+      data-slot="action-bar"
       className={
         tabs
-          ? "sticky-bar z-20 border-b border-default bg-surface-current pt-050"
-          : "sticky-bar z-20 border-b border-default bg-surface-current pb-150 pt-050"
+          ? "z-20 border-b border-default bg-surface-current pt-050"
+          : "z-20 border-b border-default bg-surface-current pb-150 pt-050"
       }
     >
       <PageHeader>

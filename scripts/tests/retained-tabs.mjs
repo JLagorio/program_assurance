@@ -30,7 +30,7 @@ export async function checkRetainedTabs(page, { origin, programId, term, log = c
   const tile = page.getByRole("link", { name: /^Open risks/ });
   await tile.focus();
   await page.keyboard.press("Enter");
-  await expect(tab(page, "Risk")).toHaveAttribute("aria-selected", "true");
-  await expect(tab(page, "Risk")).toBeFocused();
+  await expect(tab(page, "POA&M & risk")).toHaveAttribute("aria-selected", "true");
+  await expect(tab(page, "POA&M & risk")).toBeFocused();
   log("PASS an Overview tile that chooses a tab moves focus to that tab");
 }

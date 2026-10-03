@@ -1,8 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import { useRef, useState } from "react";
-import { Button, defineColumns, KeyValue, RecordBrowser, Stack } from "../..";
+import { Button, defineColumns, KeyValue, RecordBrowser, Section, Stack } from "../..";
 import { interact } from "../_lib/interact";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 type Record = { id: string; title: string; type: string; owner: string };
 const records: Record[] = Array.from({ length: 24 }, (_, index) => ({
@@ -57,14 +61,16 @@ function Example({
         recordCode={(record) => record.id}
         searchPlaceholder="Search evidence"
         renderPreview={(record) => (
-          <Stack space="space.200">
-            <KeyValue label="Type">{record.type}</KeyValue>
-            <KeyValue label="Owner">{record.owner}</KeyValue>
-            <p className="font-body">
-              The complete evidence record belongs here. Previewing it leaves selection, search and
-              the table position intact.
-            </p>
-          </Stack>
+          <Section title="Details">
+            <Stack space="space.200">
+              <KeyValue label="Type">{record.type}</KeyValue>
+              <KeyValue label="Owner">{record.owner}</KeyValue>
+              <p className="font-body">
+                The complete evidence record belongs here. Previewing it leaves selection, search
+                and the table position intact.
+              </p>
+            </Stack>
+          </Section>
         )}
         onConfirm={(chosen) => {
           if (fail)
@@ -115,7 +121,7 @@ const closeBrowser = async (canvasElement: HTMLElement) => {
  * opening starts with nothing chosen.
  */
 export const BrowseAndLink: Story = {
-  render: () => <Example />,
+  render: Example,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const screen = within(canvasElement.ownerDocument.body);
@@ -124,8 +130,14 @@ export const BrowseAndLink: Story = {
     const eye = dialog.getByRole("button", { name: "Preview Verification artifact 1" });
     await userEvent.click(eye);
     await expect(eye).toHaveAttribute("aria-pressed", "true");
-    await expect(dialog.getByRole("heading", { name: "Verification artifact 1" })).toHaveFocus();
+    const recordName = dialog.getByRole("heading", { name: "Verification artifact 1" });
+    await expect(recordName).toHaveFocus();
+    // The record's name is the kit's record title, a level under the dialog's h2, and what the
+    // preview shows sits a level under it.
+    await expect(recordName.tagName).toBe("H3");
+    await expect(recordName).toHaveAttribute("data-slot", "page-header-title");
     let preview = previewOf(dialog, "Verification artifact 1");
+    await expect(preview.getByRole("heading", { name: "Details" }).tagName).toBe("H4");
     await expect(preview.getByText("EVD-001")).toBeVisible();
     await expect(preview.getByRole("button", { name: "Previous record" })).toHaveAttribute(
       "aria-disabled",
@@ -134,7 +146,9 @@ export const BrowseAndLink: Story = {
     await userEvent.click(
       preview.getByRole("checkbox", { name: "Select Verification artifact 1" }),
     );
-    await waitFor(() => expect(dialog.getByText("1 selected", { exact: true })).toBeVisible());
+    await waitFor(() =>
+      expect(dialog.getByText("1 of 24 selected", { exact: true })).toBeVisible(),
+    );
     const next = preview.getByRole("button", { name: "Next record" });
     await userEvent.click(next);
     preview = previewOf(dialog, "Verification artifact 2");
@@ -155,7 +169,7 @@ export const BrowseAndLink: Story = {
     await userEvent.click(
       dialog.getByRole("checkbox", { name: "Select Verification artifact 24" }),
     );
-    await expect(dialog.getByText("2 selected", { exact: true })).toBeVisible();
+    await expect(dialog.getByText("2 of 24 selected", { exact: true })).toBeVisible();
     await userEvent.clear(search);
     await userEvent.click(dialog.getByRole("button", { name: "Next page" }));
     await expect(
@@ -169,7 +183,9 @@ export const BrowseAndLink: Story = {
     await waitFor(() => expect(canvas.getByRole("button", { name: "Add evidence" })).toHaveFocus());
     await userEvent.click(canvas.getByRole("button", { name: "Add evidence" }));
     const reopened = within(await screen.findByRole("dialog", { name: "Link evidence" }));
-    await waitFor(() => expect(reopened.getByText("0 selected", { exact: true })).toBeVisible());
+    await waitFor(() =>
+      expect(reopened.getByText("0 of 24 selected", { exact: true })).toBeVisible(),
+    );
     await userEvent.keyboard("{Escape}");
   },
 };
@@ -211,9 +227,11 @@ export const RetainedSelection: Story = {
     await expect(
       dialog.getByRole("checkbox", { name: "Select Verification artifact 1" }),
     ).toBeChecked();
-    await waitFor(() => expect(dialog.getByText("1 selected", { exact: true })).toBeVisible());
+    await waitFor(() =>
+      expect(dialog.getByText("1 of 24 selected", { exact: true })).toBeVisible(),
+    );
     await userEvent.click(dialog.getByRole("button", { name: "Clear selection" }));
-    await expect(dialog.getByText("0 selected", { exact: true })).toBeVisible();
+    await expect(dialog.getByText("0 of 24 selected", { exact: true })).toBeVisible();
     await userEvent.click(dialog.getByRole("button", { name: "Cancel" }));
   },
 };
@@ -430,11 +448,17 @@ const keyedColumns = defineColumns<Artifact>((c) => [
   c.text("kind", { header: "Kind", width: 120 }),
 ]);
 
-function KeyedExample() {
+function KeyedExample({
+  named = true,
+  trigger = "Add evidence",
+}: {
+  named?: boolean;
+  trigger?: string;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <div className="p-200">
-      <Button onClick={() => setOpen(true)}>Add evidence</Button>
+      <Button onClick={() => setOpen(true)}>{trigger}</Button>
       <RecordBrowser
         open={open}
         onClose={() => setOpen(false)}
@@ -444,7 +468,7 @@ function KeyedExample() {
         columns={keyedColumns}
         previewColumn="title"
         recordTitle={(record) => <strong>{record.title}</strong>}
-        recordLabel={(record) => record.title}
+        recordLabel={named ? (record) => record.title : undefined}
         recordCode={(record) => record.code}
         renderPreview={(record) => <KeyValue label="Kind">{record.kind}</KeyValue>}
         onConfirm={() => undefined}
@@ -551,13 +575,15 @@ export const NothingToLink: Story = {
 /**
  * `state` says where the records are: skeleton rows under the toolbar while they load, the
  * caller's `error` in place of the rows when they fail. Once they are in, a search that matches
- * nothing shows the table's filtered state, and Clear filters brings every row back.
+ * nothing shows the table's filtered state, and Clear filters brings every row back. A refresh
+ * that fails keeps the rows the reader had, under the error with Try again (`onRetry`).
  */
 export const LoadingAndNoMatch: Story = {
   name: "Loading, failure and no match",
   render: function Render() {
     const [open, setOpen] = useState(false);
     const [state, setState] = useState<"loading" | "ready" | "error">("loading");
+    const [loaded, setLoaded] = useState(false);
     return (
       <div className="p-200">
         <Button onClick={() => setOpen(true)}>Add evidence</Button>
@@ -566,9 +592,10 @@ export const LoadingAndNoMatch: Story = {
           onClose={() => setOpen(false)}
           title="Link evidence"
           description="Published versions in this program can be linked to the requirement."
-          records={state === "ready" ? records : []}
+          records={loaded ? records : []}
           state={state}
-          error="The evidence could not load. Close the browser and try again."
+          error="The evidence could not load."
+          onRetry={() => setState("ready")}
           columns={columns}
           recordTitle={(record) => record.title}
           renderPreview={(record) => <p>{record.title}</p>}
@@ -576,7 +603,13 @@ export const LoadingAndNoMatch: Story = {
           confirmLabel="Link evidence"
           context={
             <Stack space="space.100">
-              <Button size="small" onClick={() => setState("ready")}>
+              <Button
+                size="small"
+                onClick={() => {
+                  setLoaded(true);
+                  setState("ready");
+                }}
+              >
                 Finish loading
               </Button>
               <Button size="small" onClick={() => setState("error")}>
@@ -613,10 +646,16 @@ export const LoadingAndNoMatch: Story = {
     await expect(
       dialog.getByRole("checkbox", { name: "Select Verification artifact 1" }),
     ).toBeVisible();
+    // A failed refresh keeps the rows the reader had, under the error and its Try again.
     await userEvent.click(dialog.getByRole("button", { name: "Fail loading" }));
     await expect(await dialog.findByRole("alert")).toHaveTextContent(
       "The evidence could not load.",
     );
+    await expect(
+      dialog.getByRole("checkbox", { name: "Select Verification artifact 1" }),
+    ).toBeVisible();
+    await userEvent.click(dialog.getByRole("button", { name: "Try again" }));
+    await waitFor(() => expect(dialog.queryByRole("alert")).toBeNull());
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   },
@@ -752,7 +791,7 @@ export const FitsItsPane: Story = {
       // Nothing scrolls sideways: the fields that do not fit are in More fields.
       await waitFor(() => expect(frame.scrollWidth).toBeLessThanOrEqual(frame.clientWidth + 1));
       await expect(
-        dialog.getAllByRole("button", { name: /^More fields for / }).length,
+        dialog.getAllByRole("button", { name: /^Show \d+ more fields? for / }).length,
       ).toBeGreaterThan(0);
       // The rows scroll inside the table; the search stays where it is.
       const search = dialog.getByRole("searchbox", { name: "Search records" });
@@ -765,6 +804,37 @@ export const FitsItsPane: Story = {
       await expect(results.scrollTop).toBe(0);
     }
     await closePreview(dialog);
+    await closeBrowser(canvasElement);
+  },
+};
+
+/** A record whose title is markup and whose ids are database keys takes `recordLabel`; without it, every checkbox and eye is named by the key. */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  parameters: { layout: "padded" },
+  render: () => (
+    <Pair
+      do={<KeyedExample trigger="Add evidence, named" />}
+      doText="recordLabel={(record) => record.title}: the checkbox says Select Firewall ruleset export."
+      dont={<KeyedExample named={false} trigger="Add evidence, keyed" />}
+      dontText="No recordLabel beside a title in markup. The name falls back to the record's id, so a screen reader hears Select 63f405ca-298e-5fb6…"
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const screen = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Add evidence, named" }));
+    const named = within(await screen.findByRole("dialog", { name: "Link evidence" }));
+    await expect(
+      named.getByRole("checkbox", { name: "Select Firewall ruleset export" }),
+    ).toBeInTheDocument();
+    await closeBrowser(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Add evidence, keyed" }));
+    const keyedDialog = within(await screen.findByRole("dialog", { name: "Link evidence" }));
+    await expect(
+      keyedDialog.getByRole("checkbox", { name: `Select ${keyed[0]!.id}` }),
+    ).toBeInTheDocument();
     await closeBrowser(canvasElement);
   },
 };

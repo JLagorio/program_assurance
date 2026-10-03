@@ -5,7 +5,10 @@ import { expect, fireEvent, userEvent, within } from "storybook/test";
 import { TaskRow } from "../..";
 import { Badge, Button, Item, Person } from "../../components";
 import { Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Patterns/TaskRow",
@@ -105,6 +108,7 @@ export const Completion: Story = {
 };
 
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Pair
       do={

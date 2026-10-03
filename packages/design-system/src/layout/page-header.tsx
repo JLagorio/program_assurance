@@ -2,6 +2,7 @@ import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import type { ComponentProps } from "react";
 import { cn } from "../lib/cn";
+import { Heading } from "../primitives/heading";
 import { headingTag, useHeadingLevel } from "../primitives/heading-level";
 
 /** Native header props and ref; `render` sets the element. A `div` by default: the page's own header is not a banner landmark, and inside a dialog or a sheet a `header` would become one. */
@@ -42,17 +43,17 @@ export function PageHeaderLead({ render, ref, className, ...props }: PageHeaderL
 export function PageHeaderHeading({ className, ...props }: PageHeaderHeadingProps) {
   return <div {...props} data-slot="page-header-heading" className={cn("min-w-0", className)} />;
 }
-/** What names the page or the record: an h1 on a page. Inside a HeadingLevelProvider (a preview's body starts at 2) it takes that level, and `render` sets another element outright: `render={<h2 />}`, or a dialog's title part. */
+/** What names the page or the record: a Heading at `page`, 20/26 semibold, an h1 on a page. Inside a HeadingLevelProvider (a preview's body starts at 2) it takes that level, and `render` sets another element outright: `render={<h2 />}`, or a dialog's title part, which keeps the `page` size. */
 export function PageHeaderTitle({ render, ref, className, ...props }: PageHeaderTitleProps) {
   const level = useHeadingLevel();
   return useRender({
-    defaultTagName: headingTag(level ?? 1),
-    render,
+    render: render ?? <Heading size="page" as={headingTag(level ?? 1)} />,
     ref,
     state: { slot: "page-header-title" },
     props: mergeProps<"h1">(props, {
       ...{ "data-slot": "page-header-title" },
-      className: cn("min-w-0 break-words font-heading-small font-semibold text-default", className),
+      // The size's class rides along, so a title rendered as another part keeps it.
+      className: cn("min-w-0 break-words font-heading-page text-default", className),
     }),
   });
 }

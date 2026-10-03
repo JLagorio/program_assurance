@@ -111,6 +111,7 @@ const errors = [];
 const writes = [];
 context.on("page", (opened) => opened.on("pageerror", (error) => errors.push(error.message)));
 page.on("pageerror", (error) => errors.push(error.message));
+// Reads posted as RPCs: the workspace bootstrap, and the record schema read on demand.
 const bootstrap = new Set(["/rest/v1/rpc/ensure_personal_tenant", "/rest/v1/rpc/app_schema"]);
 await context.route("**/rest/v1/**", async (route) => {
   const request = route.request();
@@ -123,7 +124,7 @@ await context.route("**/rest/v1/**", async (route) => {
   } else await route.continue();
 });
 async function assertRequirementForm(surface, header, current) {
-  const form = surface.getByRole("group", { name: "Requirement details", exact: true });
+  const form = surface.getByRole("group", { name: "Requirement text", exact: true });
   await form.waitFor();
   await form.getByRole("button", { name: /^Title:/ }).waitFor();
   assert.ok(
@@ -136,12 +137,15 @@ async function assertRequirementForm(surface, header, current) {
     (await form.innerText()).includes(current.statement),
     "The inline form shows the exact recorded statement",
   );
-  for (const label of ["Requirement type", "Owner"])
-    await form.getByText(label, { exact: true }).waitFor();
+  // The type and the owner are properties, in Details beside the code, never in the text.
+  for (const label of ["Requirement type", "Owner"]) {
+    await surface.getByText(label, { exact: true }).first().waitFor();
+    assert.equal(await form.getByText(label, { exact: true }).count(), 0);
+  }
   for (const label of ["Version", "Revision", "Revision status", "State", "Published"])
     assert.equal(await form.getByText(label, { exact: true }).count(), 0);
   assert.equal(
-    await header.getByRole("group", { name: "Requirement details", exact: true }).count(),
+    await header.getByRole("group", { name: "Requirement text", exact: true }).count(),
     0,
   );
   assert.equal(
@@ -258,7 +262,7 @@ try {
   await page.waitForURL((url) => url.searchParams.get("requirementTab") === "Evidence");
   await panel.getByPlaceholder("Find linked evidence", { exact: true }).waitFor();
   assert.equal(
-    await panel.getByRole("group", { name: "Requirement details", exact: true }).count(),
+    await panel.getByRole("group", { name: "Requirement text", exact: true }).count(),
     0,
   );
   await page.screenshot({
@@ -287,7 +291,7 @@ try {
   await fullPage.waitForURL((url) => url.searchParams.get("tab") === "Edit history");
   await fullPage.getByRole("heading", { name: "Edit history", exact: true }).waitFor();
   assert.equal(
-    await fullPage.getByRole("group", { name: "Requirement details", exact: true }).count(),
+    await fullPage.getByRole("group", { name: "Requirement text", exact: true }).count(),
     0,
   );
   // Older links still reach the current requirement; they do not select historical snapshots.

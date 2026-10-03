@@ -1,20 +1,23 @@
 import { ProductCollection } from "@/components/prototype/product-collection";
+import { useCollectionTable } from "@/components/prototype/collection-question";
 import { RecordSummaryPreview } from "@/components/prototype/record-summary-preview";
 import { RecordLink, useDisplayedRecords } from "@/components/prototype/record-preview";
 import { useMemo, useState } from "react";
 import { Link, Outlet, createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
+  Absent,
   DataTable,
   LinkButton,
   PageHeader,
+  Person,
   defineColumns,
   downloadCsv,
-  useDataTable,
 } from "@ledger/design-system";
 import { Plus } from "lucide-react";
 import { useRows, type Row } from "@/lib/models";
 import { labelFor } from "@/lib/records";
 import { programStatuses } from "@/lib/status";
+import { registerViews } from "@/lib/register-views";
 import { Page } from "@/components/app/shell";
 import { useWorkspace } from "@/components/app/workspace";
 import { StatusBadge } from "@/components/app/status";
@@ -50,12 +53,64 @@ const statusPresets = [
     filters: [{ id: "status", value: ["closed", "suspended"] }],
   },
 ];
+/**
+ * The register's columns, one list for every render: the preview is the table's, so stepping
+ * through programs never rebuilds them.
+ */
+const programColumns = defineColumns<ProgramListRow>((c) => [
+  c.text("name", {
+    header: "Program",
+    width: 200,
+    minWidth: 180,
+    priority: 0,
+    hideable: false,
+    cell: (row) => (
+      <RecordLink table="programs" record={row}>
+        {row.name}
+      </RecordLink>
+    ),
+  }),
+  // In a narrow frame the status stays beside the name longest, then the code.
+  c.text("code", { header: "Code", width: 130, priority: 2 }),
+  c.status("status", {
+    header: "Status",
+    width: 120,
+    priority: 1,
+    statuses: programStatuses,
+  }),
+  c.number("systemCount", { header: "Systems", width: 100, priority: 3 }),
+  c.text("impacts", { header: "System impacts", width: 160, priority: 4 }),
+  // A person, with their avatar, at the kind's width; the dates take theirs. A sponsor recorded
+  // whom the reader cannot see is not available, never "Not recorded".
+  c.person("sponsor", {
+    header: "Sponsor",
+    priority: 5,
+    cell: (row) =>
+      row.sponsor ? (
+        <Person name={row.sponsor} />
+      ) : (
+        <Absent label={row.sponsor_party_id ? "Not available" : "Not recorded"} />
+      ),
+  }),
+  c.date("starts_on", { header: "Starts", priority: 6 }),
+  c.date("ends_on", { header: "Ends", priority: 7 }),
+]);
 function ProgramList() {
   const workspace = useWorkspace();
   const navigate = useNavigate();
   const programs = useRows("programs");
-  const systems = useRows("systems");
-  const parties = useRows("parties");
+  // Of the systems and people, only what the register shows: each program's systems and their
+  // impacts, and the sponsor's name.
+  const systems = useRows("systems", undefined, {
+    columns: [
+      "id",
+      "program_id",
+      "confidentiality_impact",
+      "integrity_impact",
+      "availability_impact",
+    ],
+  });
+  const parties = useRows("parties", undefined, { columns: ["id", "name"] });
   const rows = useMemo(
     () =>
       (programs.data ?? []).map((program): ProgramListRow => {
@@ -82,46 +137,17 @@ function ProgramList() {
     [programs.data, systems.data, parties.data],
   );
   const [preview, setPreview] = useState<ProgramListRow | null>(null);
-  const columns = useMemo(
-    () =>
-      defineColumns<ProgramListRow>((c) => [
-        c.id("name", {
-          header: "Program",
-          width: 200,
-          minWidth: 180,
-          priority: 0,
-          hideable: false,
-          preview: setPreview,
-          active: (row) => row.id === preview?.id,
-          cell: (row) => (
-            <RecordLink table="programs" record={row}>
-              {row.name}
-            </RecordLink>
-          ),
-        }),
-        // In a narrow frame the status stays beside the name longest, then the code.
-        c.text("code", { header: "Code", width: 130, priority: 2 }),
-        c.status("status", {
-          header: "Status",
-          width: 120,
-          priority: 1,
-          statuses: programStatuses,
-        }),
-        c.number("systemCount", { header: "Systems", width: 100, priority: 3 }),
-        c.text("impacts", { header: "System impacts", width: 160, priority: 4 }),
-        c.text("sponsor", { header: "Sponsor", width: 160, priority: 5 }),
-        c.date("starts_on", { header: "Starts", width: 120, priority: 6 }),
-        c.date("ends_on", { header: "Ends", width: 120, priority: 7 }),
-      ]),
+  const tablePreview = useMemo(
+    () => ({ onPreview: setPreview, activeId: preview?.id ?? null }),
     [preview?.id],
   );
-  const table = useDataTable({
-    columns,
+  const table = useCollectionTable({
+    columns: programColumns,
     data: rows,
     getRowId: (program) => program.id,
     label: "Programs",
-    view: "programs",
-    pageSize: 20,
+    preview: tablePreview,
+    view: registerViews.programs,
     resizable: true,
     reorderable: true,
   });

@@ -5,6 +5,7 @@ import { expect, userEvent, waitFor, within } from "storybook/test";
 import { Glance } from "../..";
 import {
   Badge,
+  Dot,
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
@@ -12,7 +13,11 @@ import {
   Indicator,
   TextLink,
 } from "../../components";
-import { Box, Inline } from "../../primitives";
+import { Box, Inline, Stack } from "../../primitives";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Patterns/Glance",
@@ -165,4 +170,84 @@ export const Playground: Story = {
       />
     </GlanceCard>
   ),
+};
+
+/** The status is a word a reader can hear, and the facts are the four that decide whether to open the record: a fifth is not shown. */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <Stack space="space.400">
+      <Pair
+        do={
+          <div data-testid="status-do">
+            <Glance
+              id="SI-7(1)"
+              title="Software, firmware, and information integrity · integrity checks"
+              meta="SI · System and information integrity"
+              status={<Indicator tone="danger">Not satisfied</Indicator>}
+            />
+          </div>
+        }
+        doText="An Indicator or a Badge, its tone and its word: Not satisfied."
+        dont={
+          <div data-testid="status-dont">
+            <Glance
+              id="SI-7(1)"
+              title="Software, firmware, and information integrity · integrity checks"
+              meta="SI · System and information integrity"
+              status={<Dot tone="danger" />}
+            />
+          </div>
+        }
+        dontText="A dot alone. The colour is the only signal: a screen reader hears nothing, and red reads the same as green to many readers."
+      />
+      <Pair
+        do={
+          <div data-testid="facts-do">
+            <Glance
+              id="REQ-0042.4"
+              title="The module shall refuse firmware below the rollback fuses' security version."
+              meta="Derived · revision 1"
+              facts={[
+                { label: "Owner", value: "Marcus Ryde" },
+                { label: "Method", value: "Test" },
+                { label: "Verification", value: "Not met" },
+              ]}
+            />
+          </div>
+        }
+        doText="The facts that decide whether to open the record, four at most."
+        dont={
+          <div data-testid="facts-dont">
+            <Glance
+              id="REQ-0042.4"
+              title="The module shall refuse firmware below the rollback fuses' security version."
+              meta="Derived · revision 1"
+              facts={[
+                { label: "Owner", value: "Marcus Ryde" },
+                { label: "Method", value: "Test" },
+                { label: "Carried by", value: "2 elements" },
+                { label: "Parent", value: "REQ-0042" },
+                { label: "Verification", value: "Not met" },
+                { label: "Updated", value: "14 Sep 2026" },
+              ]}
+            />
+          </div>
+        }
+        dontText="Six facts. Glance shows the first four, so Verification, the one the reader came for, is not there."
+      />
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByTestId("status-do")).toHaveTextContent("Not satisfied");
+    // The dot is hidden from assistive technology and says nothing in words.
+    const dot = canvas.getByTestId("status-dont").querySelector('[data-slot="dot"]');
+    await expect(dot).toHaveAttribute("aria-hidden", "true");
+    await expect(within(canvas.getByTestId("facts-do")).getAllByRole("term")).toHaveLength(3);
+    const dropped = canvas.getByTestId("facts-dont");
+    await expect(within(dropped).getAllByRole("term")).toHaveLength(4);
+    await expect(within(dropped).queryByText("Verification")).toBeNull();
+  },
 };

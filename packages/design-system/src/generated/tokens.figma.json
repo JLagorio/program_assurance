@@ -989,8 +989,8 @@
         }
       },
       "subtlest": {
-        "$value": "{color.neutral.700}",
-        "$description": "Use for tertiary text, such as metadata, breadcrumbs, placeholder and helper text. 4.5:1 on every surface and on the resting selected fill, in both modes; not promised on a hovered or pressed fill.",
+        "$value": "{color.neutral.720}",
+        "$description": "Use for tertiary text, such as metadata, breadcrumbs, placeholder and helper text. 4.5:1 on every surface, on the selected fill at rest and under the pointer, and on a highlighted menu item, in both modes; not promised on a pressed fill.",
         "$extensions": {
           "ledger": {
             "dark": "{color.darkNeutral.715}",
@@ -1233,7 +1233,7 @@
         }
       },
       "subtlest": {
-        "$value": "{color.neutral.700}",
+        "$value": "{color.neutral.720}",
         "$description": "Use for icons paired with color.text.subtlest.",
         "$extensions": {
           "ledger": {
@@ -1394,7 +1394,7 @@
       },
       "input": {
         "$value": "{color.neutral.400}",
-        "$description": "Borders of form UI elements, such as text fields, checkboxes, and radio buttons. A light boundary by decision (2026-09-04): the input surface, the hover tint and the focus and danger borders carry the affordance. Increased contrast raises it to 3:1 on every surface.",
+        "$description": "Borders of form UI elements, such as text fields, checkboxes, and radio buttons. A light boundary by decision: the input surface, the hover tint and the focus and danger borders carry the affordance. Increased contrast raises it to 3:1 on every surface.",
         "$extensions": {
           "ledger": {
             "dark": "{color.darkNeutral.500}",
@@ -1667,6 +1667,16 @@
               "introduced": "0.5.0"
             }
           }
+        },
+        "bold": {
+          "$value": "{color.orange.700}",
+          "$description": "A warning mark on a grey track, where the series step is too pale to hold 3:1: a Progress bar's fill and its waiting stripes. One step darker than the series in light; the series step in dark, which holds 3:1 on the track there.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.600}",
+              "introduced": "0.7.0"
+            }
+          }
         }
       },
       "danger": {
@@ -1705,7 +1715,7 @@
         "1": {
           "default": {
             "$value": "{color.blue.600}",
-            "$description": "Categorical series 1, blue. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$description": "Categorical series 1, blue. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision, validated in both modes; assign in order, never by rank.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.blue.600}",
@@ -1727,7 +1737,7 @@
         "2": {
           "default": {
             "$value": "{color.orange.600}",
-            "$description": "Categorical series 2, orange. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$description": "Categorical series 2, orange. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision, validated in both modes; assign in order, never by rank.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.orange.600}",
@@ -1749,7 +1759,7 @@
         "3": {
           "default": {
             "$value": "{color.teal.600}",
-            "$description": "Categorical series 3, teal. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$description": "Categorical series 3, teal. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision, validated in both modes; assign in order, never by rank.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.teal.600}",
@@ -1771,7 +1781,7 @@
         "4": {
           "default": {
             "$value": "{color.red.600}",
-            "$description": "Categorical series 4, red. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$description": "Categorical series 4, red. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision, validated in both modes; assign in order, never by rank.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.red.600}",
@@ -1793,7 +1803,7 @@
         "5": {
           "default": {
             "$value": "{color.purple.600}",
-            "$description": "Categorical series 5, purple. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$description": "Categorical series 5, purple. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision, validated in both modes; assign in order, never by rank.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.purple.600}",
@@ -1815,7 +1825,7 @@
         "6": {
           "default": {
             "$value": "{color.green.600}",
-            "$description": "Categorical series 6, green. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$description": "Categorical series 6, green. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision, validated in both modes; assign in order, never by rank.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.green.600}",
@@ -1983,63 +1993,72 @@
     "neutral": {
       "0": {
         "$value": "oklch(1 0 0)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "100": {
         "$value": "oklch(0.985 0.002 258)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "200": {
         "$value": "oklch(0.972 0.003 258)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "300": {
         "$value": "oklch(0.93 0.005 258)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "400": {
         "$value": "oklch(0.8 0.008 258)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "500": {
         "$value": "oklch(0.65 0.012 258)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "600": {
         "$value": "oklch(0.6 0.014 258)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "700": {
         "$value": "oklch(0.545 0.018 258)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
+      },
+      "720": {
+        "$value": "oklch(0.525 0.018 258)",
+        "$description": "Tertiary text and its icons in light: 4.5:1 on every surface, on the selected fill at rest and under the pointer, and on a highlighted menu item.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
       },
       "800": {
         "$value": "oklch(0.44 0.02 258)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "900": {
         "$value": "oklch(0.3 0.022 258)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "1000": {
         "$value": "oklch(0.22 0.024 258)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "1100": {
         "$value": "oklch(0.15 0.024 258)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "100A": {
         "$value": "oklch(0.22 0.024 258 / 0.04)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "200A": {
         "$value": "oklch(0.22 0.024 258 / 0.06)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "300A": {
         "$value": "oklch(0.22 0.024 258 / 0.1)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "400A": {
         "$value": "oklch(0.22 0.024 258 / 0.18)",
@@ -2047,7 +2066,7 @@
       },
       "500A": {
         "$value": "oklch(0.22 0.024 258 / 0.5)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "450A": {
         "$value": "oklch(0.22 0.024 258 / 0.47)",
@@ -2071,47 +2090,47 @@
     "darkNeutral": {
       "0": {
         "$value": "oklch(0.176 0.014 285)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "100": {
         "$value": "oklch(0.196 0.015 285)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "200": {
         "$value": "oklch(0.213 0.016 285)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "250": {
         "$value": "oklch(0.232 0.017 285)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "300": {
         "$value": "oklch(0.243 0.018 285)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "350": {
         "$value": "oklch(0.255 0.019 285)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "400": {
         "$value": "oklch(0.295 0.018 285)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "500": {
         "$value": "oklch(0.42 0.02 285)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "600": {
         "$value": "oklch(0.55 0.02 285)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "700": {
         "$value": "oklch(0.66 0.02 285)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "715": {
-        "$value": "oklch(0.68 0.02 285)",
-        "$description": "Tertiary text and its icons in dark: 4.5:1 on the resting selected fill as well as on every surface.",
+        "$value": "oklch(0.72 0.02 285)",
+        "$description": "Tertiary text and its icons in dark: 4.5:1 on every surface, on the selected fill at rest and under the pointer, and on a highlighted menu item.",
         "$extensions": {
           "ledger": {
             "introduced": "0.7.0"
@@ -2120,35 +2139,35 @@
       },
       "800": {
         "$value": "oklch(0.81 0.015 285)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "900": {
         "$value": "oklch(0.86 0.012 285)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "1000": {
         "$value": "oklch(0.945 0.008 285)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "1100": {
         "$value": "oklch(0.98 0.004 285)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "-100": {
         "$value": "oklch(0.15 0.014 285)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "100A": {
         "$value": "oklch(1 0 0 / 0.04)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "200A": {
         "$value": "oklch(1 0 0 / 0.07)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "300A": {
         "$value": "oklch(1 0 0 / 0.11)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "400A": {
         "$value": "oklch(1 0 0 / 0.18)",
@@ -2156,7 +2175,7 @@
       },
       "500A": {
         "$value": "oklch(1 0 0 / 0.5)",
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "450A": {
         "$value": "oklch(1 0 0 / 0.34)",
@@ -2198,7 +2217,7 @@
       },
       "100": {
         "$value": "oklch(0.97 0.022 254)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "150": {
         "$value": "oklch(0.9525 0.0335 254.0)",
@@ -2211,7 +2230,7 @@
       },
       "200": {
         "$value": "oklch(0.935 0.045 254)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "225": {
         "$value": "oklch(0.92 0.055 254.0)",
@@ -2224,15 +2243,15 @@
       },
       "250": {
         "$value": "oklch(0.905 0.065 254)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "300": {
         "$value": "oklch(0.84 0.1 254)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "400": {
         "$value": "oklch(0.73 0.145 254)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "475": {
         "$value": "oklch(0.65 0.165 254)",
@@ -2245,7 +2264,7 @@
       },
       "500": {
         "$value": "oklch(0.635 0.17 254)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "550": {
         "$value": "oklch(0.61 0.178 254)",
@@ -2258,7 +2277,7 @@
       },
       "600": {
         "$value": "oklch(0.585 0.185 254)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "675": {
         "$value": "oklch(0.55 0.19 254)",
@@ -2271,7 +2290,7 @@
       },
       "700": {
         "$value": "oklch(0.54 0.19 254)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "725": {
         "$value": "oklch(0.525 0.19 254)",
@@ -2284,11 +2303,11 @@
       },
       "800": {
         "$value": "oklch(0.49 0.185 254)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "850": {
         "$value": "oklch(0.44 0.17 254)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "875": {
         "$value": "oklch(0.41 0.1575 254.0)",
@@ -2301,7 +2320,7 @@
       },
       "900": {
         "$value": "oklch(0.38 0.145 254)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "950": {
         "$value": "oklch(0.34 0.1225 254.0)",
@@ -2314,7 +2333,7 @@
       },
       "1000": {
         "$value": "oklch(0.3 0.1 254)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "1100": {
         "$value": "oklch(0.2 0.06 254)",
@@ -2329,11 +2348,11 @@
     "green": {
       "100": {
         "$value": "oklch(0.965 0.02 162)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "200": {
         "$value": "oklch(0.935 0.04 162)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "225": {
         "$value": "oklch(0.9175 0.05 162.0)",
@@ -2346,35 +2365,35 @@
       },
       "250": {
         "$value": "oklch(0.9 0.06 162)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "300": {
         "$value": "oklch(0.84 0.09 162)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "400": {
         "$value": "oklch(0.74 0.12 162)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "500": {
         "$value": "oklch(0.65 0.13 162)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "600": {
         "$value": "oklch(0.58 0.125 162)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "700": {
         "$value": "oklch(0.52 0.115 162)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "800": {
         "$value": "oklch(0.46 0.105 162)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "850": {
         "$value": "oklch(0.41 0.095 162)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "875": {
         "$value": "oklch(0.38 0.0875 162.0)",
@@ -2387,21 +2406,21 @@
       },
       "900": {
         "$value": "oklch(0.35 0.08 162)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "1000": {
         "$value": "oklch(0.28 0.06 162)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       }
     },
     "orange": {
       "100": {
         "$value": "oklch(0.97 0.03 78)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "200": {
         "$value": "oklch(0.945 0.055 75)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "225": {
         "$value": "oklch(0.93 0.0675 73.5)",
@@ -2414,35 +2433,35 @@
       },
       "250": {
         "$value": "oklch(0.915 0.08 72)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "300": {
         "$value": "oklch(0.86 0.11 70)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "400": {
         "$value": "oklch(0.78 0.14 68)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "500": {
         "$value": "oklch(0.71 0.15 66)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "600": {
         "$value": "oklch(0.64 0.145 64)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "700": {
         "$value": "oklch(0.57 0.135 62)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "800": {
         "$value": "oklch(0.5 0.12 60)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "850": {
         "$value": "oklch(0.45 0.11 58)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "875": {
         "$value": "oklch(0.42 0.1025 57.0)",
@@ -2455,21 +2474,21 @@
       },
       "900": {
         "$value": "oklch(0.39 0.095 56)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "1000": {
         "$value": "oklch(0.31 0.07 54)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       }
     },
     "red": {
       "100": {
         "$value": "oklch(0.965 0.02 26)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "200": {
         "$value": "oklch(0.935 0.04 26)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "225": {
         "$value": "oklch(0.92 0.05 26.0)",
@@ -2482,35 +2501,35 @@
       },
       "250": {
         "$value": "oklch(0.905 0.06 26)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "300": {
         "$value": "oklch(0.84 0.1 26)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "400": {
         "$value": "oklch(0.73 0.15 26)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "500": {
         "$value": "oklch(0.64 0.18 26)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "600": {
         "$value": "oklch(0.58 0.19 26)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "700": {
         "$value": "oklch(0.53 0.18 26)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "800": {
         "$value": "oklch(0.47 0.17 26)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "850": {
         "$value": "oklch(0.42 0.155 26)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "875": {
         "$value": "oklch(0.39 0.1425 26.0)",
@@ -2523,112 +2542,112 @@
       },
       "900": {
         "$value": "oklch(0.36 0.13 26)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "1000": {
         "$value": "oklch(0.28 0.09 26)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       }
     },
     "teal": {
       "100": {
         "$value": "oklch(0.97 0.018 192)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "200": {
         "$value": "oklch(0.935 0.036 192)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "250": {
         "$value": "oklch(0.905 0.052 192)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "300": {
         "$value": "oklch(0.84 0.080 192)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "400": {
         "$value": "oklch(0.73 0.116 192)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "500": {
         "$value": "oklch(0.635 0.136 192)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "600": {
         "$value": "oklch(0.585 0.148 192)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "700": {
         "$value": "oklch(0.54 0.152 192)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "800": {
         "$value": "oklch(0.49 0.148 192)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "850": {
         "$value": "oklch(0.44 0.136 192)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "900": {
         "$value": "oklch(0.38 0.116 192)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "1000": {
         "$value": "oklch(0.3 0.080 192)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "$description": "Chart hue. Not a semantic colour: nothing but color.chart reaches it."
     },
     "purple": {
       "100": {
         "$value": "oklch(0.97 0.020 300)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "200": {
         "$value": "oklch(0.935 0.041 300)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "250": {
         "$value": "oklch(0.905 0.059 300)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "300": {
         "$value": "oklch(0.84 0.090 300)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "400": {
         "$value": "oklch(0.73 0.131 300)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "500": {
         "$value": "oklch(0.635 0.153 300)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "600": {
         "$value": "oklch(0.585 0.167 300)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "700": {
         "$value": "oklch(0.54 0.171 300)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "800": {
         "$value": "oklch(0.49 0.167 300)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "850": {
         "$value": "oklch(0.44 0.153 300)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "900": {
         "$value": "oklch(0.38 0.131 300)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "1000": {
         "$value": "oklch(0.3 0.090 300)",
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "$description": "Chart hue. Not a semantic colour: nothing but color.chart reaches it."
     }
@@ -2696,7 +2715,7 @@
       },
       "aside": {
         "$value": "75rem",
-        "$description": "1200px. The aside sits beside Main from here while no panel is open; below, it follows Main."
+        "$description": "1200px. The aside sits beside Main from here, whatever the side nav's width, while no panel is open; from `lg` it does while the side nav leaves Main its minimum, and otherwise it follows Main."
       },
       "panel": {
         "$value": "80rem",
@@ -2732,7 +2751,7 @@
       },
       "xs": {
         "$value": "20rem",
-        "$description": "Tailwind's container xs, 320px, restated so the `@xs` variant reads a token. No part switches here yet.",
+        "$description": "Tailwind's container xs, 320px, restated so the `@xs` variant reads a token. A KeyValue.Group whose label column is auto puts each label over its value below it.",
         "$extensions": {
           "ledger": {
             "introduced": "0.7.0"
@@ -2831,7 +2850,7 @@
       },
       "compact": {
         "$value": "25rem",
-        "$description": "400px. Below it a region is compact: a header gives its actions a row of their own under the title, as the panel header does.",
+        "$description": "400px at the default text size. Below it a region is compact (`@compact:`): a header gives its actions a row of their own under the title. In rem, so it scales with the reader's text size; the Shell.Panel header switches on dimension.query.panelHeader, in px.",
         "$extensions": {
           "ledger": {
             "introduced": "0.7.0"
@@ -2841,6 +2860,26 @@
       "split": {
         "$value": "50rem",
         "$description": "800px. From here a body shows two panes side by side; below it an open preview replaces the list, as in RecordBrowser.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      }
+    },
+    "query": {
+      "shortWindow": {
+        "$value": "30rem",
+        "$description": "A short window: under this height (a phone on its side, a page zoomed to 400%) the banner, the top nav and the panel's header scroll away with the page. A height, so it is no breakpoint: a stylesheet reads it as theme(--query-short-window) in an @media condition, and no class or variant reads it.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "panelHeader": {
+        "$value": "400px",
+        "$description": "Under this width a Shell.Panel's header gives its actions a row of their own under the title. In px, so it does not scale with the reader's text size as dimension.container.compact does; a stylesheet reads it as theme(--query-panel-header) in the panel's @container condition, and no class or variant reads it.",
         "$extensions": {
           "ledger": {
             "introduced": "0.7.0"
@@ -2871,7 +2910,7 @@
       },
       "rail": {
         "$value": "272px",
-        "$description": "The rail beside a record page: PreviewRail, the Inspector, the ShowPage rail."
+        "$description": "The rail beside a record page: the Shell's Aside and the Inspector in it. A vertical Attachment, and a Timeline event across at `itemWidth=\"rail\"`, take the same width."
       },
       "measure": {
         "$value": "720px",
@@ -2996,9 +3035,27 @@
           }
         }
       },
+      "keyValueLabelNarrow": {
+        "$value": "5.5rem",
+        "$description": "A KeyValue's narrow label column, 88px at the default text size: labelWidth \"narrow\", for short labels in a card, a glance or a chart's details (Owner, Open). Drawn in rem, so it grows with the reader's text size as the label does.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
       "keyValueLabel": {
         "$value": "6.5rem",
-        "$description": "A KeyValue's label column, 104px at the default text size, unless labelWidth gives another. It is drawn in rem, so it grows with the reader's text size as the label does.",
+        "$description": "A KeyValue's label column, 104px at the default text size: labelWidth \"default\", a rail's, and the width without a labelWidth. Drawn in rem, so it grows with the reader's text size as the label does.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "keyValueLabelWide": {
+        "$value": "10rem",
+        "$description": "A KeyValue's wide label column, 160px at the default text size: labelWidth \"wide\", for labels of about twenty characters (Authorizing official), and the most an \"auto\" column takes before its labels wrap. Drawn in rem, so it grows with the reader's text size as the label does.",
         "$extensions": {
           "ledger": {
             "introduced": "0.7.0"
@@ -3044,6 +3101,204 @@
       "previewSheet": {
         "$value": "720px",
         "$description": "A PreviewSheet's width, about half the screen, unless its width gives another.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "filterChipValue": {
+        "$value": "20ch",
+        "$description": "The widest a FilterChip's value grows before it truncates; its full text is its title. In ch, so it holds about twenty characters at the chip's text size.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "commandList": {
+        "$value": "340px",
+        "$description": "The tallest a Command's list grows before it scrolls inside itself.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "cellCard": {
+        "$value": "300px",
+        "$description": "The width of the card a table cell opens: Table.List's full list and a DataTable column's glance.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "composerSuggestions": {
+        "$value": "280px",
+        "$description": "The width of a Composer's suggestions list.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "composerSuggestionsHeight": {
+        "$value": "240px",
+        "$description": "The tallest a Composer's suggestions list grows before it scrolls, within the room the window leaves.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "tableMenu": {
+        "$value": "220px",
+        "$description": "A DataTable's Columns and Settings menus at their narrowest.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "tableColumnMenu": {
+        "$value": "200px",
+        "$description": "A DataTable column header's menu at its narrowest.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "tableGroupBy": {
+        "$value": "200px",
+        "$description": "A DataTable's Group by menu at its narrowest.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "tablePresets": {
+        "$value": "240px",
+        "$description": "A DataTable's Presets menu at its narrowest, where its saved questions are a menu rather than a strip.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "editableSelect": {
+        "$value": "220px",
+        "$description": "The width of an EditableSelect's list of choices.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "editableCombobox": {
+        "$value": "240px",
+        "$description": "The width of an EditableSelect's searchable popup, for a long list of choices.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "editableComboboxList": {
+        "$value": "260px",
+        "$description": "The tallest the list in an EditableSelect's searchable popup grows before it scrolls inside itself.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "recordSearch": {
+        "$value": "640px",
+        "$description": "The widest a dialog that searches records grows, a SearchDialog's and a RecordPicker's; a narrower window caps it at the room it leaves.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "relatedCard": {
+        "$value": "240px",
+        "$description": "A Related card's narrowest in the cards layout, which fits as many to a row as the row holds.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "recordBrowser": {
+        "$value": "90vw",
+        "$description": "A RecordBrowser's width and its cap: most of the window, for its list beside a preview.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "recordBrowserPreview": {
+        "$value": "320px",
+        "$description": "A RecordBrowser's preview column at its narrowest beside the results, which it shares at 40% of the browser's width.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "drawerSmall": {
+        "$value": "20rem",
+        "$description": "A Drawer at width \"small\", 320px at the default text size: how wide a side drawer grows, and a bottom or top drawer on a window from sm up, centred. A narrower window caps a side drawer at 75% of its width and runs a bottom or top drawer edge to edge.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "drawer": {
+        "$value": "24rem",
+        "$description": "A Drawer at width \"medium\", its default, 384px at the default text size: how wide a side drawer grows, and a bottom or top drawer on a window from sm up, centred. A narrower window caps a side drawer at 75% of its width and runs a bottom or top drawer edge to edge.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "drawerLarge": {
+        "$value": "47.5rem",
+        "$description": "A Drawer at width \"large\", 760px at the default text size, Sheet's and Dialog's large: how wide a side drawer grows, and a bottom or top drawer on a window from sm up, centred. A narrower window caps a side drawer at 75% of its width and runs a bottom or top drawer edge to edge.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "toast": {
+        "$value": "24rem",
+        "$description": "The widest the Toaster's stack grows, 384px at the default text size; a narrower window leaves space.200 on each side.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "pageHeaderHeading": {
+        "$value": "14rem",
+        "$description": "A PageHeader's heading measure, about twenty characters of font.heading.page a line: when the row cannot hold it beside the actions, the actions wrap under it.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "sectionHeading": {
+        "$value": "12rem",
+        "$description": "A Section header's heading measure, about twenty-five characters of body text a line: when the row cannot hold it beside the actions, the actions take the next row.",
         "$extensions": {
           "ledger": {
             "introduced": "0.7.0"
@@ -3238,13 +3493,16 @@
       },
       "code": {
         "$value": [
-          "Geist Mono Variable",
           "Geist Mono",
           "JetBrains Mono",
           "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "Consolas",
+          "Liberation Mono",
           "monospace"
         ],
-        "$description": "Code blocks and data previews only. Never UI text. Geist Mono Variable is the name the packaged mono face takes once fonts.css loads it."
+        "$description": "Code blocks and data previews only. Never UI text. The package ships no mono face, so the stack names faces the machine has: Geist Mono or JetBrains Mono where installed, else the system monospace."
       }
     },
     "weight": {
@@ -3333,6 +3591,46 @@
     },
     "heading": {
       "$type": "typography",
+      "display": {
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.semibold}",
+          "fontSize": "1.75rem",
+          "lineHeight": "2.125rem",
+          "letterSpacing": "{font.letterSpacing.400}"
+        },
+        "$description": "Heading `display`: a figure bigger than a Stat's, or the one title of a screen with nothing else on it (sign-in), set as its h1. Never a page or record title."
+      },
+      "page": {
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.semibold}",
+          "fontSize": "1.25rem",
+          "lineHeight": "1.625rem",
+          "letterSpacing": "{font.letterSpacing.300}"
+        },
+        "$description": "Heading `page`: the page and record title, which PageHeader.Title draws on a page and as a preview's record name, and a Stat's figure."
+      },
+      "overlay": {
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.medium}",
+          "fontSize": "0.9375rem",
+          "lineHeight": "1.375rem",
+          "letterSpacing": "{font.letterSpacing.300}"
+        },
+        "$description": "Heading `overlay`: an overlay's title, which DialogTitle, SheetTitle, AlertDialogTitle and DrawerTitle draw; a card's title and a group heading inside an overlay take it too."
+      },
+      "section": {
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.semibold}",
+          "fontSize": "0.8125rem",
+          "lineHeight": "1.125rem",
+          "letterSpacing": "{font.letterSpacing.200}"
+        },
+        "$description": "Heading `section`: a section's title, which Section.Title draws: body size at semibold."
+      },
       "large": {
         "$type": "typography",
         "$value": {
@@ -3342,7 +3640,12 @@
           "lineHeight": "2.125rem",
           "letterSpacing": "{font.letterSpacing.400}"
         },
-        "$description": "Display: a figure bigger than a Stat's, or the one title of a screen with nothing else on it (sign-in). Not a page or record title."
+        "$description": "Deprecated: font.heading.display, the same style. Kept for one version.",
+        "$extensions": {
+          "ledger": {
+            "deprecated": "font.heading.display"
+          }
+        }
       },
       "medium": {
         "$value": {
@@ -3352,7 +3655,12 @@
           "lineHeight": "1.75rem",
           "letterSpacing": "{font.letterSpacing.400}"
         },
-        "$description": "A Heading medium: a page title set without PageHeader. PageHeader.Title is font.heading.small at semibold."
+        "$description": "Deprecated: font.heading.page (20/26) for a page or record title. Kept for one version.",
+        "$extensions": {
+          "ledger": {
+            "deprecated": "font.heading.page"
+          }
+        }
       },
       "small": {
         "$value": {
@@ -3362,7 +3670,12 @@
           "lineHeight": "1.625rem",
           "letterSpacing": "{font.letterSpacing.300}"
         },
-        "$description": "A section heading set with Heading; at semibold, the page and record title (PageHeader.Title) and a Stat's figure."
+        "$description": "Deprecated: font.heading.page (20/26 semibold) for a page or record title, font.heading.section for a section's title. Kept for one version.",
+        "$extensions": {
+          "ledger": {
+            "deprecated": "font.heading.page"
+          }
+        }
       },
       "xsmall": {
         "$value": {
@@ -3372,7 +3685,12 @@
           "lineHeight": "1.375rem",
           "letterSpacing": "{font.letterSpacing.300}"
         },
-        "$description": "Dialog and card titles."
+        "$description": "Deprecated: font.heading.overlay, the same style. Kept for one version.",
+        "$extensions": {
+          "ledger": {
+            "deprecated": "font.heading.overlay"
+          }
+        }
       },
       "xxsmall": {
         "$value": {
@@ -3559,27 +3877,27 @@
     "$type": "dimension",
     "xsmall": {
       "$value": "2px",
-      "$description": "Draft, on a 5px base. Kbd, tiny chips."
+      "$description": "Kbd, tiny chips. The smallest step."
     },
     "small": {
       "$value": "3px",
-      "$description": "Draft. Count chips, the checkbox, skeleton lines, inline hit targets."
+      "$description": "Count chips, the checkbox, skeleton lines, inline hit targets."
     },
     "medium": {
       "$value": "5px",
-      "$description": "Draft. Buttons, inputs, chips, tooltips, menu items."
+      "$description": "Buttons, inputs, chips, tooltips, menu items. The scale's base."
     },
     "large": {
       "$value": "7px",
-      "$description": "Draft. Cards, popovers, hover cards, menus and listboxes."
+      "$description": "Cards, popovers, hover cards, menus and listboxes."
     },
     "xlarge": {
       "$value": "9px",
-      "$description": "Draft. No part yet: a sheet runs flush to the window's edge, and a dialog is xxlarge."
+      "$description": "A large surface of a product's own, between a card and a dialog. No kit part draws it: a sheet runs flush to the window's edge, and a dialog is xxlarge."
     },
     "xxlarge": {
       "$value": "12px",
-      "$description": "Draft. Dialogs, the command palette, a drawer's free edge, spotlight cards."
+      "$description": "Dialogs, the command palette, a drawer's free edge, spotlight cards."
     },
     "full": {
       "$value": "9999px",

@@ -3,7 +3,7 @@ import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import { Chart } from "../..";
 import { Badge, Button, KeyValue } from "../../components";
-import { Box, Grid, Stack } from "../../primitives";
+import { Box, Grid, Stack, Text } from "../../primitives";
 import {
   families,
   findingsByFamilyMonth,
@@ -16,8 +16,12 @@ import {
   risksAt,
   varianceByPhase,
 } from "../_lib/chart-data";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const findings = (r: string, c: string) => findingsByFamilyMonth[r]?.[heatMonths.indexOf(c)];
 const variance = (r: string, c: string) => varianceByPhase[r]?.[heatMonths.indexOf(c)];
@@ -54,8 +58,9 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Every grid in both modes: sequential, diverging and status scales with their keys; small cells, values printed, empty cells, loading. */
+/** Every grid in both modes: sequential, diverging and status scales with their keys; small cells, values printed, empty cells, loading. A step close to the surface wears a `color.border.bold` edge, so its cell never sinks into the page; an empty cell is a dashed edge with no fill, so it never passes for a low value. */
 export const HeatmapMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="Sequential · diverging · status, with values">
@@ -152,6 +157,17 @@ export const HeatmapMatrix: Story = {
     const empty = gaps.querySelectorAll('[data-slot="chart-heatmap-cell"][data-empty]');
     await expect(empty).toHaveLength(3);
     await expect(empty[0]).toHaveAttribute("title", "AU, Apr: none");
+    // An empty cell is a dashed edge and no fill; a faint step a solid edge; a strong one none.
+    await expect(getComputedStyle(empty[0]!).borderTopWidth).toBe("1px");
+    await expect(getComputedStyle(empty[0]!).borderTopStyle).toBe("dashed");
+    await expect(getComputedStyle(empty[0]!).backgroundColor).toBe("rgba(0, 0, 0, 0)");
+    const sequential = canvas.getByRole("table", { name: "Findings by family and month" });
+    const faint = getComputedStyle(within(sequential).getByTitle("AU, Jul: 1"));
+    await expect(faint.borderTopWidth).toBe("1px");
+    await expect(faint.borderTopStyle).toBe("solid");
+    await expect(
+      getComputedStyle(within(sequential).getByTitle("SC, Jun: 12")).borderTopWidth,
+    ).toBe("0px");
     // Zero apart: its own fill, the track's, which no binned value wears.
     const zeroApart = canvas.getByRole("table", {
       name: "Findings by family and month, zero apart",
@@ -180,7 +196,7 @@ export const Sequential: Story = {
         <Chart.Heatmap
           rows={families}
           columns={heatMonths}
-          value={findings}
+          value={(family, month) => findingsByFamilyMonth[family]?.[heatMonths.indexOf(month)]}
           domain={[0, 12]}
           label="Findings by family and month"
           rowLabel="Family"
@@ -232,10 +248,10 @@ export const Diverging: Story = {
         <Chart.Heatmap
           rows={phases}
           columns={heatMonths}
-          value={variance}
+          value={(phase, month) => varianceByPhase[phase]?.[heatMonths.indexOf(month)]}
           scale="diverging"
           domain={[-12, 12]}
-          format={days}
+          format={(v) => `${v > 0 ? "+" : ""}${v} days`}
           label="Schedule variance by phase and month"
           rowLabel="Phase"
           columnLabel="Month"
@@ -300,7 +316,7 @@ export const Details: Story = {
           <Stack space="space.150">
             <Stack space="space.050">
               {risksAt(s.row, s.column).map((r) => (
-                <KeyValue key={r.id} label={r.id} labelWidth={72}>
+                <KeyValue key={r.id} label={r.id} labelWidth="narrow">
                   {r.title}
                 </KeyValue>
               ))}
@@ -330,6 +346,9 @@ export const Details: Story = {
     await expect(cell).toHaveAttribute("aria-expanded", "false");
     await userEvent.click(cell!);
     const dialog = await page.findByRole("dialog", { name: "Risk matrix, details" });
+    // The card is the kit's PopoverContent, capped at the height the window leaves it.
+    await expect(dialog).toHaveAttribute("data-slot", "popover-content");
+    await expect(getComputedStyle(dialog).maxHeight).not.toBe("none");
     await waitFor(() => expect(within(dialog).getByText("Likely, Critical")).toBeVisible());
     await expect(within(dialog).getByText("Likelihood by Impact")).toBeVisible();
     await expect(cell).toHaveAttribute("aria-expanded", "true");
@@ -363,7 +382,74 @@ export const Details: Story = {
   },
 };
 
-/** The key reads as the grid is binned. Given the Heatmap's `domain`, `Chart.Scale` prints the value at each step's edge in the Frame's format, so the reader can tell that the darkest step starts at 9.6; with `zeroStep` on both, zero has its own swatch, so none reads apart from a few. `scale="status"` keys a tone function's tones in words. */
+/** Where a register reads its question from the address. */
+const riskRegister = (likelihood: string, impact: string) =>
+  `#risks?likelihood=${encodeURIComponent(likelihood)}&impact=${encodeURIComponent(impact)}`;
+
+/** Each cell that holds risks opens the register filtered to its likelihood and impact: `link` returns the link element (a router's Link in an application), and the cell becomes it, named by its place and count, so a modifier or middle click opens a new tab. Both axes are levels in words, in the order given: likelihood from Certain down, impact from Minor across. The Table toggle lays the same grid out with the same links. */
+export const Links: Story = {
+  render: () => (
+    <Chart title="Open risks by likelihood and impact" description="Choose a cell for its risks">
+      <Stack space="space.150">
+        <Chart.Heatmap
+          rows={[...likelihoods].reverse()}
+          columns={impacts}
+          value={riskCount}
+          scale={riskTone}
+          size="large"
+          rowLabel="Likelihood"
+          columnLabel="Impact"
+          link={(s) => <a href={riskRegister(s.row, s.column)} />}
+        />
+        <Chart.Scale scale="status" steps={riskLevels} />
+      </Stack>
+    </Chart>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const grid = canvas.getByRole("table", { name: "Open risks by likelihood and impact" });
+    // The levels keep the order given, on both axes.
+    await expect(
+      within(grid)
+        .getAllByRole("columnheader")
+        .slice(1)
+        .map((h) => h.textContent),
+    ).toEqual(impacts);
+    await expect(
+      within(grid)
+        .getAllByRole("rowheader")
+        .map((h) => h.textContent),
+    ).toEqual([...likelihoods].reverse());
+    // A cell that holds risks is a link to the filtered register, named by its place and count;
+    // a zero is no link, and no cell is a button.
+    const withRisks = likelihoods.flatMap((l) => impacts.filter((i) => riskCount(l, i) > 0));
+    await expect(within(grid).getAllByRole("link")).toHaveLength(withRisks.length);
+    await expect(within(grid).queryAllByRole("button")).toHaveLength(0);
+    await expect(canvas.getByTitle("Rare, Minor: 0").closest("a")).toBeNull();
+    const count = riskCount("Likely", "Critical");
+    const cell = within(grid).getByRole("link", { name: `Likely, Critical: ${count}` });
+    await expect(cell).toHaveAttribute("href", riskRegister("Likely", "Critical"));
+    cell.focus();
+    await expect(cell).toHaveFocus();
+    // The table twin carries the same links, in the same order.
+    await userEvent.click(canvas.getByRole("button", { name: "Table" }));
+    const table = await canvas.findByRole("table", {
+      name: "Open risks by likelihood and impact, as a table",
+    });
+    await expect(
+      within(table)
+        .getAllByRole("columnheader")
+        .map((h) => h.textContent),
+    ).toEqual(["Likelihood", ...impacts]);
+    await expect(within(table).getAllByRole("link")).toHaveLength(withRisks.length);
+    await expect(
+      within(table).getByRole("link", { name: `Likely, Critical: ${count}` }),
+    ).toHaveAttribute("href", riskRegister("Likely", "Critical"));
+    await userEvent.click(canvas.getByRole("button", { name: "Table" }));
+  },
+};
+
+/** The key reads as the grid is binned. Given the Heatmap's `domain`, `Chart.Scale` prints the value at each step's edge in the Frame's format, so the reader can tell that the darkest step starts at 9.6; with `zeroStep` on both, zero has its own swatch, so none reads apart from a few. The faint steps wear the edge their cells do. `scale="status"` keys a tone function's tones in words. */
 export const Keys: Story = {
   render: () => (
     <Stack space="space.300">
@@ -379,6 +465,14 @@ export const Keys: Story = {
       await expect(canvas.getAllByText(edge)).toHaveLength(2);
     await expect(canvas.getByText("12 findings")).toBeVisible();
     await expect(canvas.getByText("Very high")).toBeVisible();
+    // Sequential 1 to 3, zero, and the three middle diverging steps wear the edge; the rest none.
+    const edged = Array.from(
+      canvasElement.querySelectorAll('[data-slot="chart-scale-step"]'),
+      (step) => getComputedStyle(step).borderTopWidth === "1px",
+    );
+    await expect(edged.slice(0, 5)).toEqual([true, true, true, false, false]);
+    await expect(edged.slice(5, 11)).toEqual([true, true, true, true, false, false]);
+    await expect(edged.slice(11, 16)).toEqual([false, true, true, true, false]);
   },
 };
 
@@ -438,8 +532,38 @@ export const Narrow: Story = {
   },
 };
 
+/** The grid's box, its scroller, takes native props and a ref: an `id`, `data-*` for a test, a handler. `aria-describedby` describes the table. */
+export const NativeAttributes: Story = {
+  render: () => (
+    <Stack space="space.100">
+      <Chart.Heatmap
+        rows={families.slice(0, 3)}
+        columns={heatMonths}
+        value={findings}
+        size="small"
+        label="Findings by family and month"
+        data-testid="findings-grid"
+        aria-describedby="grid-note"
+        ref={(node) => node?.setAttribute("data-ref", "")}
+      />
+      <Text id="grid-note" size="small" color="color.text.subtle">
+        Opened in the month.
+      </Text>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const box = canvas.getByTestId("findings-grid");
+    await expect(box).toHaveAttribute("data-ref");
+    const grid = canvas.getByRole("table", { name: "Findings by family and month" });
+    await expect(box).toContainElement(grid);
+    await expect(grid).toHaveAccessibleDescription("Opened in the month.");
+  },
+};
+
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Grid templateColumns={{ base: "1fr" }} gap="space.400">
       <Pair

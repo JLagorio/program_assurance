@@ -3,6 +3,7 @@ import type { ComponentProps, ReactElement, ReactNode } from "react";
 
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
+import { Heading } from "../primitives/heading";
 import { VisuallyHidden } from "../primitives/visually-hidden";
 import { toneClasses, type Tone } from "./badge";
 import { Skeleton } from "./skeleton";
@@ -43,11 +44,26 @@ export type StatGridProps = ComponentProps<"div"> & {
 
 const isZero = (value: ReactNode) => value === 0 || value === "0";
 
-const valueClass = (value: ReactNode, tone: Tone) =>
-  cn(
-    "font-heading-small font-semibold tabular-nums",
-    isZero(value) ? "text-subtlest" : tone === "neutral" ? "text-default" : toneClasses[tone].text,
+/** The figure: a Heading at `page` (20/26 semibold) as a div, since a number is not a title, with
+    tabular numerals. Zero reads muted; a tone colours a number that is a status. */
+function Figure({ value, tone, children }: { value: ReactNode; tone: Tone; children: ReactNode }) {
+  return (
+    <Heading
+      size="page"
+      as="div"
+      className={cn(
+        "tabular-nums",
+        isZero(value)
+          ? "text-subtlest"
+          : tone === "neutral"
+            ? "text-default"
+            : toneClasses[tone].text,
+      )}
+    >
+      {children}
+    </Heading>
   );
+}
 
 /** The value slot's contents: the number in the reader's locale, or the placeholder while it loads. */
 function useStatValue(value: ReactNode, isLoading: boolean | undefined) {
@@ -77,7 +93,11 @@ export function StatTile({
   ...props
 }: StatTileProps) {
   const shown = useStatValue(value, isLoading);
-  const number = <div className={valueClass(value, tone)}>{shown}</div>;
+  const number = (
+    <Figure value={value} tone={tone}>
+      {shown}
+    </Figure>
+  );
   const content = (
     <>
       <div
@@ -120,7 +140,7 @@ export function StatTile({
       aria-busy={isLoading ? true : props["aria-busy"]}
       data-slot="stat-tile"
       className={cn(
-        "flex flex-col bg-surface animate-rise",
+        "flex flex-col bg-surface-current animate-rise",
         !link && "gap-025 px-200 py-150",
         className,
       )}
@@ -131,14 +151,7 @@ export function StatTile({
 }
 
 /** Bare number over its label, for an unframed summary row. */
-function StatRoot({
-  label,
-  value,
-  tone = "neutral",
-  isLoading,
-  className,
-  ...props
-}: StatProps) {
+function StatRoot({ label, value, tone = "neutral", isLoading, className, ...props }: StatProps) {
   const shown = useStatValue(value, isLoading);
   return (
     <div
@@ -147,7 +160,9 @@ function StatRoot({
       data-slot="stat"
       className={cn("flex flex-col gap-050 py-100", className)}
     >
-      <div className={valueClass(value, tone)}>{shown}</div>
+      <Figure value={value} tone={tone}>
+        {shown}
+      </Figure>
       <div className="font-body-small text-subtle">{label}</div>
     </div>
   );

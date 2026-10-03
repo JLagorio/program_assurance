@@ -7,6 +7,8 @@ import * as Stories from "./Grid.stories";
 
 # Grid
 
+**Status: Stable.**
+
 Columns and rows on a template. The template is a string, the CSS value itself, or one string per breakpoint; the gaps are tokens. It is the primitive for a layout with widths: a main column and a rail, a label column and a value column, cards of equal width, a form's fields in two columns that become one on a narrow page. The one thing past a plain grid is the template per breakpoint, which travels as a CSS variable a static class reads, so a page never writes an arbitrary class. A page grid with gutters and margins is the Shell's areas' job, not this.
 
 <Canvas of={Stories.GridMatrix} />
@@ -104,5 +106,7 @@ The widths a template names come from the layout tokens where one exists: `dimen
 - [Space](?path=/docs/tokens-space--docs) and [Metrics](?path=/docs/tokens-metrics--docs): the gaps and the layout widths.
 
 ## Don't
+
+Columns are `minmax(0, 1fr)`, never a bare `1fr` that a long word widens. A layout that changes with the width takes a template per breakpoint, never three columns at every width, and chips are an Inline, never a Grid.
 
 <Canvas of={Stories.Dont} />

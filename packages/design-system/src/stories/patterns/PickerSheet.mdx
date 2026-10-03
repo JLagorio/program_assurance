@@ -7,6 +7,8 @@ import * as Stories from "./PickerSheet.stories";
 
 # PickerSheet
 
+**Status: Stable.**
+
 Choosing many from hundreds: the association panel. A [Sheet](?path=/docs/components-sheet--docs) whose toolbar is a search field and the filters, whose body is a [DataTable](?path=/docs/patterns-data-table--docs) with sortable headers and a selection, and whose footer names how many are chosen and the one thing to do with them. The selection survives search and filters. When the chosen rows need fields of their own, a second frame of the same sheet shows them as a compact table with editable cells and a defaults row applied to all; `onBack` returns to the first frame with the selection kept. The kit owns the frame; the caller owns the columns, the rows and the selection. When the many are found by name rather than by attribute, a [Combobox](?path=/docs/components-combobox--docs) is the picker, and when there is one to pick, the [RecordPicker](?path=/docs/patterns-recordpicker--docs).
 
 <Canvas of={Stories.PickerSheetStory} />
@@ -28,7 +30,7 @@ function AllocateRequirements() {
       error={saveError}
       action={{ label: `Allocate ${count} to Flight computer`, onClick: allocate }}
     >
-      <DataTable table={table} responsive />
+      <DataTable table={table} />
     </PickerSheet>
   );
 }
@@ -44,7 +46,7 @@ Back is rendered only when `onBack` is supplied. The toolbar and its divider are
 | Toolbar  | The kit's Toolbar: the search field, then the filters, which fold into More when the sheet is narrow; then the caller's `toolbar` row. On the second frame, the defaults row. It does not scroll, except in a short window. |
 | Body     | A SheetBody. Frame one: the DataTable with Table.Selection. Frame two: the chosen rows with editable cells.                                                                                                                 |
 | Error    | `error`, a danger Alert above the footer's buttons, outside the scroll.                                                                                                                                                     |
-| Count    | At the start of the footer, a polite status: "12 chosen of 28", "28 to choose from", or the chosen record's name for a single choice, with Clear beside it.                                                                 |
+| Count    | At the start of the footer, a polite status: "12 of 28 selected", "0 of 28 selected", or the chosen record's name for a single choice, with Clear beside it. RecordBrowser counts the same way.                             |
 | Actions  | At the end of the footer: a lesser button, Cancel (a subtle Button), then the primary named in full.                                                                                                                        |
 
 ## Variants
@@ -58,34 +60,44 @@ Not built, and why: a Combobox with hundreds of options, because the many are fo
 
 ## The table owns the search
 
-Pass the DataTable as `table` and give it the whole collection as `data`. The search field then drives the table's global filter, so a search that matches nothing shows the table's own filtered empty, "Nothing matches" with Clear filters, and never the empty for a collection with nothing to add. The count, the total and Clear come from the table unless `selected`, `total` and `onClear` are given: the count is its selection, which survives the search, and the total the rows that search and filters keep and that can be chosen, nested rows included and group bands left out. Without `table`, `search` takes `value` and `onChange` and the caller filters; filter the table, never the rows handed to it.
+Pass the DataTable as `table` and give it the whole collection as `data`. The search field then drives the table's global filter, so a search that matches nothing shows the table's own filtered empty, "Nothing matches" with Clear filters, and never the empty for a collection with nothing to add. The count, the total and Clear come from the table unless `selected`, `total` and `onClear` are given: the count is its selection, which survives the search, and the total every row that can be chosen, search and filters aside, nested rows included and group bands left out, so a chosen row the search hides is still one of it. Without `table`, `search` takes `value` and `onChange` and the caller filters; filter the table, never the rows handed to it.
 
 <Canvas of={Stories.SearchWithNoMatch} />
 
 ## Sizes
 
-`width` takes a Sheet step: `large`, 760px and room for a table of four columns, unsaid; `xlarge`, 960px, for more. A number of pixels still works; prefer a step. On a narrow screen the sheet takes the full width. Render the DataTable `responsive`, and give the column the reader chooses by (the name, the statement) `priority: 0` and a readable minimum of about 180 to 220px: the table then keeps it in the row and moves the lower-priority columns into each row's More fields instead of scrolling sideways. In a window under 30rem tall (a landscape phone, 400% zoom) the sheet scrolls as one: the header and the toolbar scroll away with the rows and the footer stays, so the list is never squeezed to a single row, and a row that takes focus scrolls clear of the footer.
+`width` takes a Sheet step: `large`, 760px and room for a table of four columns, unsaid; `xlarge`, 960px, for more. A number of pixels still works; prefer a step. On a narrow screen the sheet takes the full width. The DataTable fits the sheet, as every DataTable does unless it says `responsive={false}`: give the column the reader chooses by (the name, the statement) `priority: 0` and a readable minimum of about 180 to 220px, and the table keeps it in the row and moves the lower-priority columns into each row's More fields ("+3") instead of scrolling sideways. In a window under 30rem tall (a landscape phone, 400% zoom) the sheet scrolls as one: the header and the toolbar scroll away with the rows and the footer stays, so the list is never squeezed to a single row, and a row that takes focus scrolls clear of the footer.
 
-Past about a hundred candidates, give the table a `pageSize` (or `virtualize` it) so the sheet draws a page at a time; the selection still counts every chosen row across pages, and the header's select-all chooses the rows on the page, not the whole collection.
+Past about a hundred candidates, give the table a `pageSize` (or `virtualize` it) so the sheet draws a page at a time; the selection still counts every chosen row across pages, and the header's select-all chooses the rows on the page, not the whole collection. Choosing the rest is a second, explicit step: once the page's rows are chosen and more are on offer, `secondary` holds a "Select all 538" Button (the locale's `selectAllCount`) that calls `table.toggleAllRowsSelected(true)`, as the DataTable's SelectionBar offers it. The command that applies a large selection writes it in one request, so it lands whole or not at all.
 
 <Canvas of={Stories.ShortWindow} />
 
 ## States
 
-| State          | What changes                                                                    |
-| -------------- | ------------------------------------------------------------------------------- |
-| Nothing chosen | The footer says what there is to choose from; the primary waits, disabled.      |
-| Some chosen    | The count and Clear; the primary is live and names the number.                  |
-| One chosen     | A table that chooses one (`selectable: "single"`): the chosen record's name.    |
-| Filtered       | The count says "of" the rows on offer; the selection is kept.                   |
-| No match       | The table's filtered empty with Clear filters; the selection is kept.           |
-| Pending        | `pending`: the sheet holds, the rows and toolbar are locked, the primary works. |
-| Failed         | `error` above the buttons; the choice and the fields are kept for a retry.      |
-| Frame two      | The back chevron; the toolbar is the defaults row.                              |
+| State          | What changes                                                                                                                                         |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Nothing chosen | The footer says how many there are to choose from, "0 of 28 selected"; the primary waits, disabled.                                                  |
+| Some chosen    | The count and Clear; the primary is live and names the number.                                                                                       |
+| One chosen     | A table that chooses one (`selectable: "single"`): the chosen record's name.                                                                         |
+| Filtered       | The count keeps its total, every row there is to choose from, and the selection is kept. Folded into More, the filters that apply are counted on it. |
+| Loading        | `state="loading"`: the table's skeleton rows; the count says only what is chosen, "0 selected", never "0 of 0".                                      |
+| Load failed    | `state="error"`: the table's error with Try again; the count still waits for the rows.                                                               |
+| No match       | The table's filtered empty with Clear filters; the selection is kept.                                                                                |
+| Pending        | `pending`: the sheet holds, the rows and toolbar are locked, the primary works.                                                                      |
+| Failed         | `error` above the buttons; the choice and the fields are kept for a retry.                                                                           |
+| Frame two      | The back chevron; the toolbar is the defaults row.                                                                                                   |
 
 `pending` holds the sheet while the action's command runs: Escape, the blanket, the close button and Cancel do nothing and `onClose` is not called; Back and Clear are disabled but keep focus; the toolbar and the rows are inert; the sheet is `aria-busy`; and the primary shows `isLoading` (the action's own `isLoading` wins). When the command fails, end `pending` and set `error` to what went wrong and what to do; when it succeeds, close the sheet.
 
 <Canvas of={Stories.PendingAndFailure} />
+
+`state` says where the rows on offer are, as the DataTable's `state` does, and the sheet passes nothing to the table for it: give both the same value. While the rows load, and when they fail to load, what there is to choose from is not known, so the footer counts only what is chosen ("0 selected") and never says "0 of 0", which reads as an empty library. A failed refresh that keeps its rows still counts them.
+
+<Canvas of={Stories.LoadingAndFailedLoad} />
+
+In a sheet too narrow for its filters they fold into the toolbar's More, which counts the filters that apply and says so in its name ("More filters, 1 applied"), so a narrowed list never reads as all of it. With `table` the count is its column filters; a caller who filters the rows itself passes `activeFilters`.
+
+<Canvas of={Stories.FoldedFilters} />
 
 One record to choose is a table with `selectable: "single"`: a radio per row and no select-all. The footer names the chosen record by the table's `rowLabel` instead of counting it; `summary` overrides it.
 
@@ -94,8 +106,8 @@ One record to choose is a table with `selectable: "single"`: a radio per row and
 ## Modifiers
 
 - **`table`** for the DataTable the search filters and the count reads.
-- **`search`**, **`filters`**, **`toolbar`** for the row that stays put: the search and the filters are the kit's Toolbar, so a narrow sheet folds the filters into More, and More counts the filters that apply.
-- **`selected`**, **`total`**, **`onClear`** for the footer's count when there is no `table`, or to override it; **`summary`** in place of the count, such as the chosen record's name for a single choice.
+- **`search`**, **`filters`**, **`toolbar`** for the row that stays put: the search and the filters are the kit's Toolbar, so a narrow sheet folds the filters into More, and More counts the filters that apply: the table's column filters, or **`activeFilters`**.
+- **`selected`**, **`total`**, **`onClear`** for the footer's count when there is no `table`, or to override it; **`summary`** in place of the count, such as the chosen record's name for a single choice; **`state`** while the rows load or have failed to load.
 - **`action`** (with `isLoading`), **`secondary`** for the footer's buttons; **`pending`** and **`error`** for the command; **`onBack`** for the second frame; **`width`**.
 - **`initialFocus`** and **`finalFocus`** as on SheetContent; **`onClose`** receives Base UI's details, whose `reason` says whether Escape, the blanket, or the close button or Cancel asked.
 
@@ -104,7 +116,7 @@ One record to choose is a table with `selectable: "single"`: a radio per row and
 - **The title is the task**, a verb and its object: "Allocate requirements", "Tailor the baseline".
 - **The subtitle is what the rows attach to**, and a read-out: "Flight computer · 14 allocated today".
 - **The primary is named in full**: "Allocate 12 to Flight computer", "Continue with 12". Never "OK", "Submit", "Done".
-- **The count is a sentence of numbers**: "12 chosen of 28", "Nothing chosen yet", "28 to choose from".
+- **The count is a sentence of numbers**, the one phrase PickerSheet and RecordBrowser share: "12 of 28 selected" where the rows on offer are known, "12 selected" while they are not.
 - **The secondary is the lesser way through**: "Continue without details".
 
 ## Style
@@ -120,12 +132,12 @@ One record to choose is a table with `selectable: "single"`: a radio per row and
 ## Accessibility
 
 - **A dialog named by the task** and described by the subtitle; focus moves to the search field on open, or to `initialFocus` (a rationale field), and returns to the opener on close, or to `finalFocus` when choosing hands over to the next surface. Never `autoFocus` a field in the toolbar: it becomes where focus returns, and focus falls to the page on close.
-- **The table is the DataTable's**: the selection column's checkboxes, or a single choice's radios, are named by the table's `rowLabel` ("Select REQ-0101"); give the table a `rowLabel` whenever its row ids are database keys, since without one they say "Select row" and the id. Sortable headers say their order.
+- **The table is the DataTable's**: the selection column's checkboxes, or a single choice's radios, are named by the row's name: the table's `rowLabel` ("Select REQ-0101"), else the text of its identity column. Give the table a `rowLabel` when that text is not the name a reader knows the row by, as when statements repeat and the code tells them apart. Sortable headers say their order.
 - **The count is a polite status**: a screen reader hears it after each choice, once the page is quiet.
 - **The primary is disabled until something is chosen** and named with the number, so the reader hears what will happen to how many.
 - **Escape empties the search first**, then closes the sheet on either frame; the back chevron goes to the first frame with the selection kept.
 - **A failure is announced**: `error` is an Alert with `role="alert"`, where a sighted reader sees it too, beside the primary.
-- **The words are the locale's**: the count, Back, Search, Clear and Cancel come from the LedgerProvider's messages (`pickerChosenOf…`, `pickerToChooseFrom…`, with plural forms), so a translated provider translates the sheet.
+- **The words are the locale's**: the count, Back, Search, Clear and Cancel come from the LedgerProvider's messages (`selectedCount` and `selectedCountOf`), so a translated provider translates the sheet.
 
 ## Props
 
@@ -135,10 +147,13 @@ One record to choose is a table with `selectable: "single"`: a radio per row and
 
 - [Recipes · Choosing records](?path=/docs/guidance-recipes--docs#choosing-records): which picker for which choice, and what the kit owns and the caller owns.
 - [DataTable](?path=/docs/patterns-data-table--docs): frame one is a DataTable in the sheet.
-- [Sheet](?path=/docs/components-sheet--docs): the frame.
+- [Sheet](?path=/docs/components-sheet--docs): the frame. [Overlays](?path=/docs/components-overlays--docs): how the sheets, dialogs and anchored overlays relate.
 - [RecordPicker](?path=/docs/patterns-recordpicker--docs): picking one record from a list.
 - [Combobox](?path=/docs/components-combobox--docs): choosing by name.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#pickersheet-and-recordbrowser): the one count phrase and what `total` counts.
 
 ## Don't
+
+The footer counts what is chosen and names the one thing to do with it, in full, never OK without a count. With nothing chosen the action waits, disabled, and the footer says how many there are to choose from.
 
 <Canvas of={Stories.Dont} />

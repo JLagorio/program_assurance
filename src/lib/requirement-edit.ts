@@ -3,24 +3,29 @@ import { z } from "zod";
 import { useWorkspace } from "@/components/app/workspace";
 import { database, requireIdentity } from "./database";
 
+/**
+ * The types a requirement may take, as the requirement_revisions check constraint lists them: the
+ * edit accepts these and no other, so an inline type choice offers these without reading the
+ * record schema.
+ */
+export const requirementTypes = [
+  "functional",
+  "performance",
+  "interface",
+  "security",
+  "safety",
+  "design",
+  "operational",
+  "other",
+] as const;
+
 export const requirementPatchSchema = z
   .object({
     title: z.string().trim().min(1, "Enter a title.").optional(),
     statement: z.string().trim().min(1, "Enter a requirement statement.").optional(),
     acceptanceCriteria: z.string().trim().min(1, "Enter acceptance criteria.").optional(),
     rationale: z.string().trim().nullable().optional(),
-    requirementType: z
-      .enum([
-        "functional",
-        "performance",
-        "interface",
-        "security",
-        "safety",
-        "design",
-        "operational",
-        "other",
-      ])
-      .optional(),
+    requirementType: z.enum(requirementTypes).optional(),
     ownerPartyId: z.string().uuid("Choose an existing owner.").nullable().optional(),
   })
   .strict();

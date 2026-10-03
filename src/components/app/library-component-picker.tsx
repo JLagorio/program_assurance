@@ -23,6 +23,8 @@ export function LibraryComponentPicker({
   parentLabel,
   items,
   pending = false,
+  failed = false,
+  onRetry,
   onPick,
   onClose,
 }: {
@@ -30,6 +32,10 @@ export function LibraryComponentPicker({
   parentLabel: string;
   items: LibraryComponentItem[];
   pending?: boolean | undefined;
+  /** A read behind `items` failed: with nothing to offer, the table says so instead of "empty". */
+  failed?: boolean | undefined;
+  /** Try again in that failure: refetch what failed. */
+  onRetry?: (() => void) | undefined;
   onPick: (item: LibraryComponentItem) => void;
   onClose: () => void;
 }) {
@@ -42,6 +48,8 @@ export function LibraryComponentPicker({
     [items],
   );
   const chosen = items.find((item) => item.id === chosenId) ?? null;
+  // Loading and a failure leave the total unknown: never "0 of 0" or an empty library.
+  const state = failed && !items.length ? "error" : pending ? "loading" : "ready";
   const table = useDataTable({
     columns,
     // One record: a radio per row, and a click on the row chooses it.
@@ -63,7 +71,8 @@ export function LibraryComponentPicker({
       subtitle={`Under ${parentLabel}`}
       width="xlarge"
       table={table}
-      search={{ placeholder: "Search the library" }}
+      state={state}
+      search={{ placeholder: "Find a library component" }}
       // The primary repeats the trigger and the title; the footer names the choice, the subtitle
       // where it goes, so the label stays short enough for one line on a phone.
       action={{
@@ -80,7 +89,9 @@ export function LibraryComponentPicker({
       <DataTable
         responsive
         table={table}
-        state={pending ? "loading" : "ready"}
+        state={state}
+        error="The library could not be loaded."
+        onRetry={onRetry}
         empty={{
           illustration: "records",
           title: "Nothing published to add",

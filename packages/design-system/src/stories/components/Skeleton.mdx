@@ -7,6 +7,8 @@ import * as Stories from "./Skeleton.stories";
 
 # Skeleton
 
+**Status: Stable.**
+
 A placeholder that holds the space of loading content. It follows shadcn's native div contract, with Ledger's line, heading, circle and block options. Use [PageSkeleton](?path=/docs/layout-pageskeleton--docs) for a page's first paint and [Spinner](?path=/docs/components-spinner--docs) for an action in progress.
 
 <Canvas of={Stories.SkeletonMatrix} />
@@ -59,7 +61,7 @@ Skeleton uses a native div, as the shadcn reference does. It has no `render` or 
 
 ## Props
 
-`SkeletonProps` includes native div props plus `shape`, `lines`, `width` and `height`.
+`SkeletonProps` includes native div props plus `shape`, `lines`, `width` and `height`. Native attributes, events, children and refs reach the outer div, which carries `data-slot="skeleton"`; a multiline Skeleton's ref is its wrapper, not a line.
 
 <ArgTypes of={Skeleton} />
 
@@ -67,17 +69,16 @@ Skeleton uses a native div, as the shadcn reference does. It has no `render` or 
 
 <Controls of={Stories.Playground} />
 
-## Migration
-
-Shapes, line counts, dimensions and style overrides keep their meaning. Native attributes, events, children and refs reach the outer div, which carries `data-slot="skeleton"`; a multiline Skeleton's ref is its wrapper, not a line. A waiting region that used `aria-busy` alone adds a line that names the wait.
-
 ## Related
 
 - [PageSkeleton](?path=/docs/layout-pageskeleton--docs): the page's first paint.
 - [Spinner](?path=/docs/components-spinner--docs): progress for an action.
 - [Chart](?path=/docs/patterns-chart-overview--docs): loading layouts for plots.
 - [Empty](?path=/docs/components-empty--docs): a region with no content to load.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#skeleton): the earlier API's spellings and what they are now.
 
 ## Don't
+
+Content on its way holds its shape with a Skeleton: a circle where the avatar will be, lines about as long as the text. Never a spinner in its place, one grey block for a row, or more lines than will arrive.
 
 <Canvas of={Stories.Dont} />

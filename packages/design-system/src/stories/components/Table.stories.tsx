@@ -1,17 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { TablePagination } from "../../patterns/data-table/pagination";
 
-import { Filter, Plus } from "lucide-react";
+import { Filter, Package, Plus, Server } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { expect, fireEvent, userEvent, waitFor, within } from "storybook/test";
 
-import { Toolbar } from "../..";
+import { TablePagination, Toolbar } from "../..";
 import {
   Absent,
   Badge,
   Button,
   DateTime,
   FilterChip,
+  Icon,
   Id,
   Indicator,
   Person,
@@ -23,7 +23,12 @@ import {
 } from "../../components";
 import { LedgerProvider, useLedgerLocale } from "../../lib/locale";
 import { Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as direction from "../_lib/direction";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
+const { along, isRtl, towardsEnd } = direction;
 
 const meta = {
   title: "Components/Table",
@@ -244,6 +249,34 @@ function Register() {
   );
 }
 
+export const Playground: Story = {
+  args: { label: "Controls" },
+  render: (args) => (
+    <Table {...args}>
+      <thead>
+        <tr>
+          <Table.Header width={110}>Id</Table.Header>
+          <Table.Header>Control</Table.Header>
+          <Table.Header width={140}>Status</Table.Header>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <Table.Row key={r.id}>
+            <Table.Id id={r.id} />
+            <Table.Cell>{r.name}</Table.Cell>
+            <Table.Cell>
+              <Badge variant="secondary" tone={r.status.tone}>
+                {r.status.label}
+              </Badge>
+            </Table.Cell>
+          </Table.Row>
+        ))}
+      </tbody>
+    </Table>
+  ),
+};
+
 /** A register by hand: the checkbox column, the pinned id as each row's header with the eye that previews it, the name as the link that opens the record (the row's click follows it), dates sorted by their ISO value and shown through DateTime. */
 export const RegisterStory: Story = {
   name: "Register",
@@ -344,8 +377,8 @@ function Grouped() {
         <Table.Group
           key={f}
           colSpan={3}
-          open={open[f] ?? false}
-          onToggle={() => setOpen((o) => ({ ...o, [f]: !o[f] }))}
+          expanded={open[f] ?? false}
+          onExpandedChange={(next) => setOpen((o) => ({ ...o, [f]: next }))}
           title={f}
           count={rows.filter((r) => r.family === f).length}
         >
@@ -372,7 +405,6 @@ function Grouped() {
 export const RegisterPhone: Story = {
   name: "Register at 390px",
   globals: { viewport: { value: "ledgerPhone", isRotated: false } },
-  tags: ["narrow"],
   render: () => <Register />,
   play: async ({ canvasElement }) => {
     await waitFor(() => expect(window.innerWidth).toBe(390));
@@ -391,15 +423,13 @@ export const RegisterPhone: Story = {
     const id = slot.previousElementSibling as HTMLElement;
     await expect(id).toHaveTextContent("CTRL-0450");
     await expect(id.scrollWidth).toBeLessThanOrEqual(id.clientWidth);
-    await expect(id.getBoundingClientRect().right - 24).toBeLessThanOrEqual(
-      slot.getBoundingClientRect().left + 1,
-    );
+    await expect(along(id).end - 24).toBeLessThanOrEqual(along(slot).start + 1);
     // Scrolled sideways, the checkbox and the id hold still and the name scrolls under them.
-    const idLeft = slot.getBoundingClientRect().left;
-    frame.scrollLeft = 160;
+    const idStart = along(slot).start;
+    frame.scrollLeft = towardsEnd(frame, 160);
     fireEvent.scroll(frame);
-    await waitFor(() => expect(name.getBoundingClientRect().left).toBeLessThan(idLeft));
-    await expect(Math.round(slot.getBoundingClientRect().left)).toBe(Math.round(idLeft));
+    await waitFor(() => expect(along(name).start).toBeLessThan(idStart));
+    await expect(Math.round(along(slot).start)).toBe(Math.round(idStart));
     frame.scrollLeft = 0;
     fireEvent.scroll(frame);
     // Every control smaller than 24px takes the touch hit area.
@@ -533,6 +563,97 @@ export const ListLineStory: Story = {
   },
 };
 
+const elements = [
+  {
+    id: "EL-01",
+    name: "Ground segment",
+    kind: "System",
+    path: "Program Atlas",
+    library: false,
+  },
+  {
+    id: "EL-02",
+    name: "Telemetry, tracking and command processor with redundant uplink",
+    kind: "Component",
+    path: "Ground segment · Operations network",
+    library: true,
+  },
+  { id: "EL-03", name: "Operator console", kind: "Component", path: "", library: false },
+];
+
+/** A name with what tells records apart: the kind's icon, a link, one badge, a second line. */
+function RichNames() {
+  return (
+    <Table label="Program elements" style={{ maxWidth: 420 }}>
+      <thead>
+        <tr>
+          <Table.Header minWidth={200}>Element</Table.Header>
+          <Table.Header width={96}>Code</Table.Header>
+        </tr>
+      </thead>
+      <tbody>
+        {elements.map((element) => (
+          <Table.Row key={element.id}>
+            <Table.Cell rowHeader>
+              <Table.Name
+                icon={
+                  <Icon label={element.kind} size="medium" color="color.icon.subtle">
+                    {element.kind === "System" ? <Server /> : <Package />}
+                  </Icon>
+                }
+                {...(element.library
+                  ? {
+                      badge: (
+                        <Badge size="xsmall" variant="secondary" tone="information">
+                          Library
+                        </Badge>
+                      ),
+                    }
+                  : {})}
+                {...(element.path ? { description: element.path } : {})}
+              >
+                <TextLink href={`#/elements/${element.id}`}>{element.name}</TextLink>
+              </Table.Name>
+            </Table.Cell>
+            <Table.Cell>
+              <Id>{element.id}</Id>
+            </Table.Cell>
+          </Table.Row>
+        ))}
+      </tbody>
+    </Table>
+  );
+}
+
+/** `Table.Name`: the record's kind as a labelled icon, its link, one badge and a muted second line, built in and never by hand. The name is cut first, the badge keeps its width, and the second line is cut on its own; in the row header a screen reader hears all of it with each cell. */
+export const RichNamesStory: Story = {
+  name: "Names with an icon, a badge and a second line",
+  render: () => <RichNames />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = canvas.getByRole("table", { name: "Program elements" });
+    const headers = within(table).getAllByRole("rowheader");
+    await expect(headers).toHaveLength(3);
+    // The kind, the name, the badge and the second line are the row header's words.
+    await expect(headers[1]).toHaveTextContent(/Telemetry.*Library.*Ground segment/);
+    await expect(within(headers[1]!).getByRole("img", { name: "Component" })).toBeVisible();
+    // The long name gives way: its link cuts itself, with its ring inside, and the badge beside it
+    // keeps its whole width.
+    const name = within(headers[1]!).getByRole("link", { name: /^Telemetry/ });
+    await expect(name.scrollWidth).toBeGreaterThan(name.clientWidth);
+    const badge = within(headers[1]!).getByText("Library");
+    await expect(badge.scrollWidth).toBeLessThanOrEqual(badge.clientWidth + 1);
+    await expect(badge.getBoundingClientRect().right).toBeLessThanOrEqual(
+      headers[1]!.getBoundingClientRect().right,
+    );
+    // The link is the record's, and a row without a second line draws none.
+    await expect(within(headers[2]!).getByRole("link", { name: "Operator console" })).toBeVisible();
+    await expect(headers[2]!.querySelector('[data-slot="table-name-description"]')).toBeNull();
+    // Two lines still fit the 40px row.
+    await expect(headers[0]!.closest("tr")!.getBoundingClientRect().height).toBeLessThanOrEqual(41);
+  },
+};
+
 function FixedIds() {
   const [preview, setPreview] = useState<string | null>("CTRL-0450");
   return (
@@ -566,9 +687,7 @@ export const FixedLayoutIds: Story = {
     const open = table.getByRole("button", { name: "Preview CTRL-0450", pressed: true });
     await expect(idOf(open)).toHaveStyle({ paddingInlineEnd: "24px" });
     await expect(idOf(open).scrollWidth).toBeLessThanOrEqual(idOf(open).clientWidth);
-    await expect(idOf(open).getBoundingClientRect().right - 24).toBeLessThanOrEqual(
-      open.getBoundingClientRect().left,
-    );
+    await expect(along(idOf(open)).end - 24).toBeLessThanOrEqual(along(open).start);
     const rest = table.getByRole("button", { name: "Preview CTRL-0412" });
     // A pointer that can hover: the resting row's id has its whole width.
     if (window.matchMedia("(hover: hover)").matches)
@@ -666,7 +785,7 @@ function Hierarchy({ leading = false }: { leading?: boolean }) {
                   <Table.Disclosure
                     hasChildren={p.children > 0}
                     expanded={expanded}
-                    onToggle={() => toggle(p.id)}
+                    onExpandedChange={() => toggle(p.id)}
                     label={p.name}
                     width={28}
                   />
@@ -684,7 +803,7 @@ function Hierarchy({ leading = false }: { leading?: boolean }) {
                   depth={p.depth}
                   hasChildren={p.children > 0}
                   expanded={expanded}
-                  onToggle={() => toggle(p.id)}
+                  onExpandedChange={() => toggle(p.id)}
                   label={p.name}
                   hint={
                     p.children && !expanded ? (
@@ -736,9 +855,10 @@ export const TreeStory: Story = {
 
       // The heading of a number column ends where its figures end.
       const heading = t.getByRole("columnheader", { name: "Controls" });
-      const labelEnd = textBox(headingLabel(heading)).right;
+      const label = headingLabel(heading);
+      const labelEnd = along(label, textBox(label)).end;
       for (const cell of t.getAllByRole("cell").filter((c) => /^[\d,]+$/.test(c.textContent!)))
-        await expect(Math.abs(textBox(cell).right - labelEnd)).toBeLessThanOrEqual(1);
+        await expect(Math.abs(along(cell, textBox(cell)).end - labelEnd)).toBeLessThanOrEqual(1);
     }
   },
 };
@@ -756,8 +876,8 @@ function GroupStates() {
       </thead>
       <Table.Group
         colSpan={3}
-        open={open}
-        onToggle={() => setOpen((o) => !o)}
+        expanded={open}
+        onExpandedChange={setOpen}
         title="Access control"
         count={2}
         trailing={
@@ -787,8 +907,8 @@ function GroupStates() {
       </Table.Group>
       <Table.Group
         colSpan={3}
-        open={false}
-        onToggle={() => {}}
+        expanded={false}
+        onExpandedChange={() => {}}
         title="Audit and accountability (closed)"
         count={25}
       >
@@ -980,14 +1100,15 @@ export const SortedAndPaged: Story = {
     await expect(risk).not.toHaveAttribute("aria-sort");
     // The arrow leads the end-aligned heading; the word ends over the column's figures.
     const button = within(score).getByRole("button");
-    await expect(button.querySelector("svg")!.getBoundingClientRect().right).toBeLessThanOrEqual(
-      textBox(headingLabel(score)).left,
+    const label = headingLabel(score);
+    await expect(along(button.querySelector("svg")!).end).toBeLessThanOrEqual(
+      along(label, textBox(label)).start,
     );
     const figures = within(canvas.getByRole("table"))
       .getAllByRole("cell")
       .filter((cell) => /^\d+$/.test(cell.textContent!));
     await expect(
-      Math.abs(textBox(headingLabel(score)).right - textBox(figures[0]!).right),
+      Math.abs(along(label, textBox(label)).end - along(figures[0]!, textBox(figures[0]!)).end),
     ).toBeLessThanOrEqual(1);
 
     await userEvent.click(within(risk).getByRole("button"));
@@ -1066,7 +1187,7 @@ export const FrameStory: Story = {
     await expect(frame).not.toHaveAttribute("data-scrolled-start");
     await expect(getComputedStyle(pinned, "::after").borderInlineEndWidth).toBe("0px");
     const left = pinned.getBoundingClientRect().left;
-    frame.scrollLeft = 200;
+    frame.scrollLeft = towardsEnd(frame, 200);
     fireEvent.scroll(frame);
     await waitFor(() => expect(frame).toHaveAttribute("data-scrolled-start"));
     await expect(getComputedStyle(pinned, "::after").borderInlineEndWidth).toBe("1px");
@@ -1198,16 +1319,34 @@ export const ResizeHandles: Story = {
     await expect(handle).toHaveFocus();
     await expect(getComputedStyle(handle).outlineStyle).toBe("solid");
     await waitFor(() => expect(getComputedStyle(handle, "::after").opacity).toBe("1"));
-    await userEvent.keyboard("{ArrowRight}");
+    // Towards the line's end widens: ArrowRight, or ArrowLeft in right to left.
+    await userEvent.keyboard(isRtl(handle) ? "{ArrowLeft}" : "{ArrowRight}");
     await expect(handle).toHaveAttribute("aria-valuenow", "248");
     await userEvent.keyboard("{Home}");
     await expect(handle).toHaveAttribute("aria-valuenow", "120");
   },
 };
 
-/** A value that must be read whole wraps (`wrap`); a hash or URN inside it breaks anywhere as an `Id` with `break-all`, and a link in it wraps with the text. A heading that must be read whole wraps too, inside its sort button. A cell whose content is not a plain string, cut by its column, takes its text as its title when the pointer arrives. */
+/** The table's one reveal of a cut value, which it portals: the whole text, one line per cut part. */
+const cutReveal = (el: Element) =>
+  el.ownerDocument.querySelector<HTMLElement>('[data-slot="table-cell-reveal"]');
+
+/** A finger held on an element for `ms`, as a touch screen sends it. */
+const longPress = async (el: Element, ms = 650) => {
+  const { left, top } = el.getBoundingClientRect();
+  const at = { bubbles: true, pointerType: "touch", clientX: left + 8, clientY: top + 8 };
+  el.dispatchEvent(new PointerEvent("pointerdown", at));
+  await new Promise((resolve) => setTimeout(resolve, ms));
+  el.dispatchEvent(new PointerEvent("pointerup", at));
+  el.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+};
+
+/** What a press on the last row would open, so the play can tell a long press from a tap. */
+let overlayOpened = 0;
+
+/** A value that must be read whole wraps (`wrap`); a hash or URN inside it breaks anywhere as an `Id` with `break-all`, and a link in it wraps with the text. A heading that must be read whole wraps too, inside its sort button. A value its column cuts shows whole in the table's one tooltip, and only while it is cut: on hover, while the keyboard is on the cell or a link in it, and after a long press on a touch screen, which then opens nothing. Escape closes it. A cut heading shows whole the same way. */
 export const WrapAndTitles: Story = {
-  name: "Wrapping and titles",
+  name: "Wrapping and cut values",
   render: () => (
     <Table label="Source imports" className="table-fixed" style={{ maxWidth: 640 }}>
       <thead>
@@ -1219,7 +1358,7 @@ export const WrapAndTitles: Story = {
           <Table.Header width={112} align="end" wrap sort={false} onSort={() => {}}>
             Controls included
           </Table.Header>
-          <Table.Header width={220}>Reference</Table.Header>
+          <Table.Header width={220}>Reference in the source catalog's back matter</Table.Header>
         </tr>
       </thead>
       <tbody>
@@ -1251,6 +1390,18 @@ export const WrapAndTitles: Story = {
             <Id className="break-all">urn:uuid:8a1c4be0-52d7-4f0e-9a51-3c0d7e61b2aa</Id>
           </Table.Cell>
         </Table.Row>
+        <Table.Row onClick={() => (overlayOpened += 1)}>
+          <Table.Cell align="end">4</Table.Cell>
+          <Table.Cell>
+            <TextLink href="#ground-overlay">
+              Ground segment overlay for operational technology and its field sites
+            </TextLink>
+          </Table.Cell>
+          <Table.Cell align="end">12</Table.Cell>
+          <Table.Cell wrap>
+            <Id className="break-all">urn:uuid:0d6f3a2e-9b14-4c7a-8f21-6e5b1a9c4d30</Id>
+          </Table.Cell>
+        </Table.Row>
       </tbody>
     </Table>
   ),
@@ -1264,21 +1415,86 @@ export const WrapAndTitles: Story = {
     await expect(reference).not.toHaveAttribute("title");
     await expect(textBox(reference).height).toBeGreaterThan(20);
     await expect(reference.scrollWidth).toBeLessThanOrEqual(reference.clientWidth);
-    // Cut, a cell of other content takes its text as its title on the pointer's arrival.
+
+    // Cut, a value shows whole in the table's reveal while the pointer rests on it. No cell takes
+    // a title, which would show it a second time and only to a mouse.
     const source = within(table)
       .getByText(/moderate baseline/)
       .closest("td")!;
     await expect(source).not.toHaveAttribute("title");
     await userEvent.hover(source);
-    await expect(source).toHaveAttribute(
-      "title",
-      "NIST SP 800-53 Rev 5 moderate baseline, tailored for the ground segment",
+    await waitFor(() =>
+      expect(cutReveal(source)).toHaveTextContent(
+        "NIST SP 800-53 Rev 5 moderate baseline, tailored for the ground segment",
+      ),
     );
-    // A plain string is its own title; one that fits keeps it too, as the whole it already is.
-    await expect(within(table).getByText("Organization overlay")).toHaveAttribute(
-      "title",
-      "Organization overlay",
+    // It is a visual copy of words the cell already holds.
+    await expect(cutReveal(source)).toHaveAttribute("aria-hidden", "true");
+    await userEvent.unhover(source);
+    await waitFor(() => expect(cutReveal(source)).toBeNull());
+    // A value that fits shows nothing more, and has no title either.
+    const fits = within(table).getByText("Organization overlay");
+    await expect(fits).not.toHaveAttribute("title");
+    await userEvent.hover(fits);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    await expect(cutReveal(fits)).toBeNull();
+    await userEvent.unhover(fits);
+
+    // From the keyboard: the cut name shows whole while its link has focus, and Escape closes the
+    // reveal and nothing else.
+    const overlay = within(table).getByRole("link", { name: /^Ground segment overlay/ });
+    await expect(overlay.scrollWidth).toBeGreaterThan(overlay.clientWidth);
+    overlay.blur();
+    await userEvent.click(canvas.getByRole("columnheader", { name: "Order" }));
+    for (let i = 0; i < 8 && canvasElement.ownerDocument.activeElement !== overlay; i++)
+      await userEvent.tab();
+    await expect(overlay).toHaveFocus();
+    await waitFor(() =>
+      expect(cutReveal(overlay)).toHaveTextContent(
+        "Ground segment overlay for operational technology and its field sites",
+      ),
     );
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(cutReveal(overlay)).toBeNull());
+    await expect(overlay).toHaveFocus();
+    overlay.blur();
+
+    // On a touch screen a long press shows it, and the press opens nothing; a tap still does.
+    overlayOpened = 0;
+    const overlayCell = overlay.closest("td")!;
+    await longPress(overlayCell);
+    await waitFor(() =>
+      expect(cutReveal(overlayCell)).toHaveTextContent(/^Ground segment overlay/),
+    );
+    await expect(overlayOpened).toBe(0);
+    // The next press anywhere closes it.
+    canvasElement.ownerDocument.body.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true, pointerType: "touch" }),
+    );
+    await waitFor(() => expect(cutReveal(overlayCell)).toBeNull());
+    await userEvent.click(within(overlayCell.closest("tr")!).getByText("12"));
+    await expect(overlayOpened).toBe(1);
+
+    // A cut heading shows whole on hover; it is a heading, so it needs no title either.
+    const cutHeading = within(table).getByRole("columnheader", {
+      name: /^Reference in the source/,
+    });
+    const label = headingLabel(cutHeading);
+    await expect(label.scrollWidth).toBeGreaterThan(label.clientWidth);
+    await expect(label).not.toHaveAttribute("title");
+    await userEvent.hover(label);
+    await waitFor(() =>
+      expect(
+        canvasElement.ownerDocument.querySelector('[data-slot="truncate-full-text"]'),
+      ).toHaveTextContent("Reference in the source catalog's back matter"),
+    );
+    await userEvent.unhover(label);
+    await waitFor(() =>
+      expect(
+        canvasElement.ownerDocument.querySelector('[data-slot="truncate-full-text"]'),
+      ).toBeNull(),
+    );
+
     // A link in a wrapping cell wraps with it: it is not cut to one line.
     const link = within(table).getByRole("link", { name: /^Base profile/ });
     await expect(getComputedStyle(link).whiteSpace).not.toBe("nowrap");
@@ -1431,6 +1647,7 @@ function Owners({ absent }: { absent: boolean }) {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -1452,34 +1669,6 @@ export const Dont: Story = {
         dontText="A dash typed by hand and an N/A. Two spellings of nothing, neither of which a sort or a filter understands."
       />
     </Stack>
-  ),
-};
-
-export const Playground: Story = {
-  args: { label: "Controls" },
-  render: (args) => (
-    <Table {...args}>
-      <thead>
-        <tr>
-          <Table.Header width={110}>Id</Table.Header>
-          <Table.Header>Control</Table.Header>
-          <Table.Header width={140}>Status</Table.Header>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((r) => (
-          <Table.Row key={r.id}>
-            <Table.Id id={r.id} />
-            <Table.Cell>{r.name}</Table.Cell>
-            <Table.Cell>
-              <Badge variant="secondary" tone={r.status.tone}>
-                {r.status.label}
-              </Badge>
-            </Table.Cell>
-          </Table.Row>
-        ))}
-      </tbody>
-    </Table>
   ),
 };
 
@@ -1644,7 +1833,7 @@ export const DynamicFrame: Story = {
     await waitFor(() => expect(frame).toHaveAttribute("tabindex", "0"));
     await expect(frame).toHaveAttribute("role", "region");
     await expect(frame).toHaveAttribute("data-scrolled-end");
-    frame.scrollTo({ left: 120 });
+    frame.scrollTo({ left: towardsEnd(frame, 120) });
     await waitFor(() => expect(frame).toHaveAttribute("data-scrolled-start"));
     await userEvent.click(canvas.getByRole("button", { name: "Toggle columns" }));
     await waitFor(() => expect(frame).not.toHaveAttribute("tabindex"));

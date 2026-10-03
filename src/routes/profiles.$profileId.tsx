@@ -10,8 +10,15 @@ import { QueryValue } from "@/components/prototype/library-shared";
 import { canAuthorLibrary } from "@/components/prototype/library-utils";
 import { ProductRecordDialog } from "@/components/prototype/product-record-dialog";
 import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
-import { EmptyMessage, MissingRecord, QueryState } from "@/components/prototype/work-common";
-import { useRow, useRows, type Row } from "@/lib/models";
+import {
+  EmptyMessage,
+  MissingRecord,
+  QueryState,
+  RecordActions,
+  ReportFailures,
+} from "@/components/prototype/work-common";
+import { useSelectedControls } from "@/lib/control-reads";
+import { idSet, useRow, useRows, type Row } from "@/lib/models";
 import { inspectBase, overlayDecisions, profileDisplayTitle } from "@/lib/program-wizard-reference";
 import { labelFor } from "@/lib/records";
 import { revisionStates, statusLabel } from "@/lib/status";
@@ -21,6 +28,14 @@ import {
   CodeBlock,
   Count,
   DateTime,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
   Empty,
   EmptyDescription,
   EmptyHeader,
@@ -44,15 +59,26 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-  Text,
   TextLink,
   useLedgerLocale,
 } from "@ledger/design-system";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { ChevronDown, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
 const profileTabs = ["Overview", "Derivation", "Controls", "Tailoring"] as const;
+
+/** What the Controls tab and its preview read of a control: never its stored properties. */
+const profileControlColumns = [
+  "id",
+  "code",
+  "title",
+  "source_id",
+  "status",
+  "group_id",
+  "catalog_revision_id",
+] as const;
+type ProfileControl = Pick<Row<"controls">, (typeof profileControlColumns)[number]>;
 type ProfileTab = (typeof profileTabs)[number];
 function profileTab(value: unknown): ProfileTab | undefined {
   return profileTabs.find((tab) => tab === value);
@@ -88,8 +114,12 @@ function ProfilePage() {
   const record = profile.data;
   useRecordTitle("Profile", record?.title);
   const editable = record?.tenant_id === workspace.tenantId && canAuthorLibrary(workspace.role);
-  const go = (next: { tab?: ProfileTab; revision?: string }) =>
-    void navigate({ search: (previous) => ({ ...previous, ...next }), replace: true });
+  // A tab is a place the reader went, so Back returns to the one before; choosing another revision
+  // replaces the address, as a library record's version does.
+  const goToTab = (next: ProfileTab) =>
+    void navigate({ search: (previous) => ({ ...previous, tab: next }) });
+  const goToRevision = (next: string) =>
+    void navigate({ search: (previous) => ({ ...previous, revision: next }), replace: true });
   if (profile.isSuccess && !record) return <MissingRecord backTo="/profiles" kind="Profile" />;
   if (!record) return <QueryState queries={[profile]} />;
   const create = () => setCreating(true);
@@ -102,33 +132,50 @@ function ProfilePage() {
         <PageHeader.Heading>
           <PageHeader.Title>{record.title}</PageHeader.Title>
         </PageHeader.Heading>
-        {editable && (
-          <PageHeader.Actions>
-            <Button variant="primary" onClick={create}>
-              Create profile revision
-            </Button>
-          </PageHeader.Actions>
-        )}
+        <PageHeader.Actions>
+          {/* The revision every tab reads, named and chosen here on every tab. */}
+          {current && (
+            <RevisionMenu versions={versions} current={current} onVersion={goToRevision} />
+          )}
+          {/* Every library record's one menu: a viewer keeps Inspect record alone. */}
+          <RecordActions table="profiles" id={record.id}>
+            {editable && (
+              <DropdownMenuItem
+                {...(revisions.data
+                  ? {}
+                  : {
+                      disabledReason: revisions.isError
+                        ? "The revisions could not be loaded."
+                        : "The revisions are still loading.",
+                    })}
+                onClick={create}
+              >
+                Create profile revision
+              </DropdownMenuItem>
+            )}
+          </RecordActions>
+        </PageHeader.Actions>
       </PageHeader>
       {creating && (
         <ProductRecordDialog
           table="profile_revisions"
           initialValues={{ profile_id: profileId }}
           onClose={() => setCreating(false)}
-          onSaved={(saved) => go({ revision: saved.id })}
+          onSaved={(saved) => goToRevision(saved.id)}
         />
       )}
-      <QueryState queries={[revisions]} retryLabel="Retry loading revisions">
+      {/* The revision's body is one failure region: an outage of its imports, rules, resolutions,
+          controls and reference data reads as one alert under the header, whose Retry reloads
+          every failed read. */}
+      <QueryState queries={[revisions]} region>
         {current ? (
           <ProfileRevision
             key={current.id}
             profile={record}
             revision={current}
             editable={editable}
-            versions={versions}
             tab={tab}
-            onTab={(next) => go({ tab: next })}
-            onVersion={(id) => go({ revision: id })}
+            onTab={goToTab}
           />
         ) : (
           <EmptyMessage
@@ -149,36 +196,75 @@ function ProfilePage() {
   );
 }
 
+/**
+ * The revision every tab shows, as the header's version menu: its trigger names the revision, and
+ * the menu lists every revision, newest first, with its state, the shown one marked. Choosing one
+ * replaces the address, as a library record's version does.
+ */
+function RevisionMenu({
+  versions,
+  current,
+  onVersion,
+}: {
+  versions: Row<"profile_revisions">[];
+  current: Row<"profile_revisions">;
+  onVersion: (id: string) => void;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={<Button iconAfter={<ChevronDown />}>{`Revision ${current.version}`}</Button>}
+      />
+      <DropdownMenuContent align="end">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Profile revisions</DropdownMenuLabel>
+          <DropdownMenuRadioGroup
+            value={current.id}
+            onValueChange={(value: string) => onVersion(value)}
+          >
+            {versions.map((version) => (
+              <DropdownMenuRadioItem key={version.id} value={version.id} closeOnClick>
+                {version.version} · {statusLabel(revisionStates, version.state)}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 function ProfileRevision({
   profile,
   revision,
   editable,
-  versions,
   tab,
   onTab,
-  onVersion,
 }: {
   profile: Row<"profiles">;
   revision: Row<"profile_revisions">;
   editable: boolean;
-  versions: Row<"profile_revisions">[];
   tab: ProfileTab;
   onTab: (tab: ProfileTab) => void;
-  onVersion: (id: string) => void;
 }) {
   const locale = useLedgerLocale();
   const [resolutionId, setResolutionId] = useState("");
-  const [displayedControls, setDisplayedControls] = useState<Row<"controls">[]>([]);
-  const [control, setControl] = useState<Row<"controls"> | null>(null);
+  const [displayedControls, setDisplayedControls] = useState<ProfileControl[]>([]);
+  const [control, setControl] = useState<ProfileControl | null>(null);
   const [editing, setEditing] = useState<"profile_imports" | "profile_rules" | null>(null);
   const imports = useRows("profile_imports", { profile_revision_id: revision.id });
   const rules = useRows("profile_rules", { profile_revision_id: revision.id });
   const resolutions = useRows("profile_resolutions", { profile_revision_id: revision.id });
-  const allRevisions = useRows("profile_revisions");
-  const controls = useRows("controls");
-  const catalogRevisions = useRows("catalog_revisions");
-  const catalogs = useRows("catalogs");
-  const profiles = useRows("profiles");
+  // What names a source import: a catalog edition or a base profile revision, in any state, and
+  // the catalog or profile it belongs to. The catalogs and profiles are the reference data's reads.
+  const allRevisions = useRows("profile_revisions", undefined, {
+    columns: ["id", "profile_id", "title", "version"],
+  });
+  const catalogRevisions = useRows("catalog_revisions", undefined, {
+    columns: ["id", "catalog_id", "title", "version"],
+  });
+  const catalogs = useRows("catalogs", undefined, { columns: ["id", "code", "title"] });
+  const profiles = useRows("profiles", undefined, { columns: ["id", "code", "title"] });
   const reference = useReferenceData();
   // The source document's name only: its stored OSCAL content is never fetched for a page.
   const sourceDocument = useRows(
@@ -190,15 +276,17 @@ function ProfileRevision({
     b.resolved_at.localeCompare(a.resolved_at),
   );
   const resolution = available.find((candidate) => candidate.id === resolutionId) ?? available[0];
-  const selections = useRows(
-    "selected_controls",
-    resolution ? { profile_resolution_id: resolution.id } : {},
-    { enabled: !!resolution },
+  // Which controls the shown resolution selects, and each selection's id for its provenance.
+  const selections = useSelectedControls(resolution ? [resolution.id] : undefined, {
+    columns: ["id", "control_id"],
+  });
+  // Only the controls the shown resolution selects, with what the register and preview show.
+  const controls = useRows(
+    "controls",
+    { id: idSet(selections.data?.map((selection) => selection.control_id)) },
+    { columns: profileControlColumns, enabled: selections.isSuccess, keepPrevious: true },
   );
-  const selectedIds = new Set(selections.data?.map((selection) => selection.control_id));
-  const selectedControls = (controls.data ?? []).filter((candidate) =>
-    selectedIds.has(candidate.id),
-  );
+  const selectedControls = controls.data ?? [];
   const selectionsReady = !!selections.data;
   const inspection = useMemo(
     () => (resolution && reference.ready ? inspectBase(resolution.id, reference.data) : null),
@@ -214,7 +302,7 @@ function ProfileRevision({
   );
   const catalogOf = (item: Row<"profile_imports">) =>
     catalogRevisions.data?.find((catalog) => catalog.id === item.catalog_revision_id);
-  const catalogTitle = (catalog: Row<"catalog_revisions">) =>
+  const catalogTitle = (catalog: Pick<Row<"catalog_revisions">, "catalog_id" | "title">) =>
     catalogs.data?.find((row) => row.id === catalog.catalog_id)?.title ?? catalog.title;
   /**
    * The catalog under its stable name: the resolved chain's when a published resolution walks to
@@ -235,6 +323,10 @@ function ProfileRevision({
       version: edition.version,
     };
   }, [inspection, orderedImports, catalogRevisions.data, catalogs.data, reference.data.catalogs]);
+  // What the Derived from row reads: the editions and the catalogs, and, once a resolution is
+  // recorded, the reference data that walks its chain.
+  const derivationQueries = [catalogRevisions, catalogs, ...(resolution ? reference.queries : [])];
+  const derivationReady = derivationQueries.every((query) => query.data !== undefined);
   const importedRevision = (item: Row<"profile_imports">) =>
     allRevisions.data?.find((row) => row.id === item.imported_profile_revision_id);
   const importSelection = (item: Row<"profile_imports">) => {
@@ -275,12 +367,7 @@ function ProfileRevision({
       ? `Tailored from ${baseTitle}`
       : "Tailored"
     : "Reference";
-  const referenceFailed = reference.queries.filter(
-    (query) => query.isError && query.data === undefined,
-  );
-  // One outage is one alert: when the revision's own records fail too, one Retry covers both.
   const overviewQueries = [imports, rules, resolutions];
-  const overviewFailed = overviewQueries.some((query) => query.isError && query.data === undefined);
   const createImport = draft ? (
     <Button variant="secondary" onClick={() => setEditing("profile_imports")}>
       Create profile import
@@ -294,7 +381,6 @@ function ProfileRevision({
           onTab(profileTab(value) ?? "Overview");
           setControl(null);
         }}
-        className="gap-150"
       >
         <TabsList variant="line" aria-label="Profile sections">
           {profileTabs.map((name) => (
@@ -307,7 +393,7 @@ function ProfileRevision({
           ))}
         </TabsList>
         <TabsContent value={tab}>
-          <Stack space="space.300" className="min-w-0 pt-200">
+          <Stack space="space.300" className="min-w-0">
             {editing && (
               <ProductRecordDialog
                 table={editing}
@@ -317,12 +403,42 @@ function ProfileRevision({
             )}
             {tab === "Overview" && (
               <>
-                {referenceFailed.length > 0 && !overviewFailed && (
-                  <QueryState queries={referenceFailed} retryLabel="Retry loading the derivation" />
-                )}
-                <QueryState
-                  queries={[...overviewQueries, ...(overviewFailed ? referenceFailed : [])]}
+                {/* The revision's Details, first on Overview: the rail beside it, or on a phone a
+                    closed disclosure above it whose row says the state. */}
+                <Shell.Aside
+                  label="Profile details"
+                  summary={<StatusBadge statuses={revisionStates} value={revision.state} />}
                 >
+                  <Inspector.Group title="Details">
+                    <KeyValue.Group>
+                      <KeyValue label="State">
+                        <StatusBadge statuses={revisionStates} value={revision.state} />
+                      </KeyValue>
+                      <KeyValue label="Code" wrap>
+                        <Id>{profile.code}</Id>
+                      </KeyValue>
+                      <KeyValue label="Source" wrap>
+                        {profile.tenant_id ? "Workspace profile" : "Shared reference"}
+                      </KeyValue>
+                      <KeyValue label="Updated" wrap>
+                        <DateTime value={revision.updated_at} format="date" />
+                      </KeyValue>
+                    </KeyValue.Group>
+                  </Inspector.Group>
+                </Shell.Aside>
+                {/* The control count, the derivation and the provenance say "Could not load" in
+                    place; the region's alert says why, and its Retry reloads them. */}
+                <ReportFailures
+                  queries={[
+                    catalogRevisions,
+                    catalogs,
+                    ...reference.queries,
+                    sourceDocument,
+                    ...(resolution ? [selections] : []),
+                  ]}
+                />
+
+                <QueryState queries={overviewQueries}>
                   <Stat.Grid cols={3} role="group" aria-label="Revision summary">
                     <Stat.Tile
                       label="Controls"
@@ -344,7 +460,6 @@ function ProfileRevision({
                     <Stat.Tile
                       label="Source imports"
                       value={locale.formatNumber(orderedImports.length)}
-                      {...(catalog ? { note: catalog.title } : {})}
                     />
                     <Stat.Tile
                       label="OSCAL rules"
@@ -352,24 +467,83 @@ function ProfileRevision({
                     />
                   </Stat.Grid>
                   <Section title="Derived from">
-                    <KeyValue.Group>
+                    <KeyValue.Group labelWidth="auto">
+                      <KeyValue label="Kind" wrap>
+                        <QueryValue
+                          queries={[resolutions, imports, ...(resolution ? reference.queries : [])]}
+                        >
+                          {() => kindLabel}
+                        </QueryValue>
+                      </KeyValue>
                       {/* The whole chain, this profile included: ProfileChain names each hop by its
                           place in it, so a layer between this profile and its base keeps its name. */}
-                      {inspection && inspection.chain.length > 1 ? (
+                      {derivationReady && inspection && inspection.chain.length > 1 ? (
                         <ProfileChain chain={inspection.chain} catalog={catalog} />
                       ) : (
                         <KeyValue label="Catalog" wrap>
-                          {catalog ? (
-                            <TextLink
-                              render={<Link to="/catalog" search={{ edition: catalog.id }} />}
-                            >
-                              {catalog.title} · {catalog.version}
-                            </TextLink>
-                          ) : (
-                            <Absent label="Not recorded" />
-                          )}
+                          {/* A skeleton until the editions, the catalogs and any resolved chain
+                              are in: loading never reads as a catalog that is not recorded. */}
+                          <QueryValue queries={derivationQueries}>
+                            {() =>
+                              catalog ? (
+                                <TextLink
+                                  render={<Link to="/catalog" search={{ edition: catalog.id }} />}
+                                >
+                                  {catalog.title} · {catalog.version}
+                                </TextLink>
+                              ) : (
+                                <Absent />
+                              )
+                            }
+                          </QueryValue>
                         </KeyValue>
                       )}
+                    </KeyValue.Group>
+                  </Section>
+                  {/* Where the revision's content came from, for the reader who checks it. */}
+                  <Section title="Provenance" isCollapsible defaultOpen={false}>
+                    <KeyValue.Group labelWidth="auto">
+                      <KeyValue label="OSCAL document" wrap>
+                        {/* A link only to a document that is there: loading, failure and a missing
+                            document read as words, never as a link's name. */}
+                        <QueryValue queries={[sourceDocument]}>
+                          {() => {
+                            const document = sourceDocument.data?.[0];
+                            return document ? (
+                              <TextLink
+                                render={
+                                  <Link
+                                    to="/records/$collection/$recordId"
+                                    params={{
+                                      collection: "oscal_document_revisions",
+                                      recordId: document.id,
+                                    }}
+                                  />
+                                }
+                              >
+                                {document.title} · {document.document_version}
+                              </TextLink>
+                            ) : (
+                              <Absent label="Not available" />
+                            );
+                          }}
+                        </QueryValue>
+                      </KeyValue>
+                      <KeyValue label="Resolved by" wrap>
+                        {resolution ? (
+                          `${resolution.resolver_name} · ${resolution.resolver_version}`
+                        ) : (
+                          <Absent label="No resolution recorded" />
+                        )}
+                      </KeyValue>
+                      {resolution && (
+                        <KeyValue label="Resolved" wrap>
+                          <DateTime value={resolution.resolved_at} />
+                        </KeyValue>
+                      )}
+                      <KeyValue label="Created" wrap>
+                        <DateTime value={revision.created_at} format="date" />
+                      </KeyValue>
                     </KeyValue.Group>
                   </Section>
                 </QueryState>
@@ -424,7 +598,7 @@ function ProfileRevision({
                                     · {imported.version}
                                   </TextLink>
                                 ) : (
-                                  <Absent label="Not recorded" />
+                                  <Absent />
                                 )}
                               </Table.Cell>
                               <Table.Cell wrap>{importSelection(item)}</Table.Cell>
@@ -446,7 +620,12 @@ function ProfileRevision({
                     />
                   )}
                 </Section>
-                <Section title="Recorded resolutions" count={available.length} isCollapsible>
+                <Section
+                  title="Recorded resolutions"
+                  count={available.length}
+                  countMax={9999}
+                  isCollapsible
+                >
                   {available.length ? (
                     <Stack space="space.300">
                       {available.map((item) => (
@@ -554,6 +733,7 @@ function ProfileRevision({
                 <Section
                   title="OSCAL rules"
                   count={rules.data?.length ?? 0}
+                  countMax={9999}
                   isCollapsible
                   {...(draft
                     ? {
@@ -589,86 +769,6 @@ function ProfileRevision({
           </Stack>
         </TabsContent>
       </Tabs>
-      {tab === "Overview" && (
-        <Shell.Aside label="Profile details">
-          <Inspector.Group title="Details">
-            <KeyValue.Group labelWidth={120} layout="columns">
-              <KeyValue label="Revision">
-                {versions.length > 1 ? (
-                  <Select<string>
-                    value={revision.id}
-                    items={versions.map((version) => ({
-                      value: version.id,
-                      label: `${version.version} · ${statusLabel(revisionStates, version.state)}`,
-                    }))}
-                    onValueChange={(value) => {
-                      if (value) onVersion(value);
-                    }}
-                  >
-                    <SelectTrigger size="small" aria-label="Profile revision">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {versions.map((version) => (
-                        <SelectItem key={version.id} value={version.id}>
-                          {version.version} · {statusLabel(revisionStates, version.state)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  revision.version
-                )}
-              </KeyValue>
-              <KeyValue label="State">
-                <StatusBadge statuses={revisionStates} value={revision.state} />
-              </KeyValue>
-              <KeyValue label="Kind" wrap>
-                <QueryValue
-                  queries={[resolutions, imports, ...(resolution ? reference.queries : [])]}
-                >
-                  {() => kindLabel}
-                </QueryValue>
-              </KeyValue>
-              <KeyValue label="Code" wrap>
-                <Id>{profile.code}</Id>
-              </KeyValue>
-              <KeyValue label="Source">
-                {profile.tenant_id ? "Workspace profile" : "Shared reference"}
-              </KeyValue>
-              <KeyValue label="OSCAL document">
-                {/* A link only to a document that is there: loading, failure and a missing
-                    document read as words, never as a link's name. */}
-                <QueryValue queries={[sourceDocument]}>
-                  {() => {
-                    const document = sourceDocument.data?.[0];
-                    return document ? (
-                      <TextLink
-                        render={
-                          <Link
-                            to="/records/$collection/$recordId"
-                            params={{
-                              collection: "oscal_document_revisions",
-                              recordId: document.id,
-                            }}
-                          />
-                        }
-                      >
-                        {document.title} · {document.document_version}
-                      </TextLink>
-                    ) : (
-                      <Text color="color.text.subtle">Not available</Text>
-                    );
-                  }}
-                </QueryValue>
-              </KeyValue>
-              <KeyValue label="Updated">
-                <DateTime value={revision.updated_at} format="date" />
-              </KeyValue>
-            </KeyValue.Group>
-          </Inspector.Group>
-        </Shell.Aside>
-      )}
       {control && (
         <ControlInspector
           control={control}

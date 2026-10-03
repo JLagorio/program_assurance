@@ -805,7 +805,7 @@ export function Diff({
         ...(label !== undefined ? { "aria-label": label } : {}),
         ...{ "data-slot": "diff", "data-layout": layout },
         className: cn(
-          "@container/diff w-full min-w-0 overflow-hidden rounded-medium border border-default bg-surface text-default",
+          "@container/diff w-full min-w-0 overflow-hidden rounded-medium border border-default bg-surface-current text-default",
           code ? "font-code" : "font-body",
           className,
         ),

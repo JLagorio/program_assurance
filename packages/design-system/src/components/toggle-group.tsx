@@ -1,23 +1,14 @@
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { Toggle as TogglePrimitive } from "@base-ui/react/toggle";
 import { ToggleGroup as ToggleGroupPrimitive } from "@base-ui/react/toggle-group";
-import type { VariantProps } from "class-variance-authority";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useLayoutEffect,
-  useMemo,
-  useState,
-  type CSSProperties,
-} from "react";
+import { createContext, useCallback, useContext, useLayoutEffect, useMemo, useState } from "react";
 
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
-import { toggleVariants, type ToggleProps } from "./toggle";
+import { toggleSizeWord, toggleVariants, type ToggleProps, type ToggleStyleProps } from "./toggle";
 
-type ToggleGroupContextValue = VariantProps<typeof toggleVariants> & {
+type ToggleGroupContextValue = ToggleStyleProps & {
   spacing: number;
   orientation: "horizontal" | "vertical";
   /** A single-select group's pressed value, whose item holds the group's one tab stop. */
@@ -30,9 +21,10 @@ type ToggleGroupContextValue = VariantProps<typeof toggleVariants> & {
   focusInside: boolean;
 };
 
+// Outside a group an item keeps its own size and variant.
 const ToggleGroupContext = createContext<ToggleGroupContextValue>({
-  size: "default",
-  variant: "default",
+  size: undefined,
+  variant: undefined,
   spacing: 2,
   orientation: "horizontal",
   pressed: undefined,
@@ -42,19 +34,37 @@ const ToggleGroupContext = createContext<ToggleGroupContextValue>({
 });
 
 export type ToggleGroupProps<Value extends string = string> = ToggleGroupPrimitive.Props<Value> &
-  VariantProps<typeof toggleVariants> & {
-    /** Gap in 4px spacing units. Use zero to join the items. */
+  ToggleStyleProps & {
+    /**
+     * The gap between items in 4px steps on the space scale: 2 (8px, `space.100`) by default, 0
+     * joins the items. 1 to 6, 8, 10, 12 and 16 are the steps; a number between two steps takes the
+     * smaller.
+     */
     spacing?: number | undefined;
   };
+
+/** The gap for `spacing` in 4px steps, on the space tokens. */
+const gaps: ReadonlyArray<readonly [number, string]> = [
+  [16, "gap-800"],
+  [12, "gap-600"],
+  [10, "gap-500"],
+  [8, "gap-400"],
+  [6, "gap-300"],
+  [5, "gap-250"],
+  [4, "gap-200"],
+  [3, "gap-150"],
+  [2, "gap-100"],
+  [1, "gap-050"],
+];
+const gapFor = (spacing: number) => gaps.find(([step]) => spacing >= step)?.[1] ?? "gap-0";
 
 export function ToggleGroup<Value extends string = string>({
   className,
   variant,
-  size,
+  size: sizeProp,
   spacing = 2,
   orientation = "horizontal",
   dir,
-  style,
   children,
   value,
   defaultValue,
@@ -66,7 +76,7 @@ export function ToggleGroup<Value extends string = string>({
 }: ToggleGroupProps<Value>) {
   const { direction } = useLedgerLocale();
   const keyboardDirection = dir === "ltr" || dir === "rtl" ? dir : direction;
-  const gap = { "--gap": spacing } as CSSProperties;
+  const size = toggleSizeWord(sizeProp);
   // The group's value as Base UI holds it: the controlled value, or a copy of the uncontrolled one
   // that follows every change the group accepts.
   const [uncontrolled, setUncontrolled] = useState<readonly Value[]>(defaultValue ?? []);
@@ -101,10 +111,6 @@ export function ToggleGroup<Value extends string = string>({
     <DirectionProvider direction={keyboardDirection}>
       <ToggleGroupContext.Provider value={context}>
         <ToggleGroupPrimitive
-          data-slot="toggle-group"
-          data-variant={variant}
-          data-size={size}
-          data-spacing={spacing}
           dir={dir ?? direction}
           orientation={orientation}
           {...props}
@@ -125,11 +131,10 @@ export function ToggleGroup<Value extends string = string>({
             if (!(next instanceof Node) || !event.currentTarget.contains(next))
               setFocusInside(false);
           }}
-          style={
-            typeof style === "function"
-              ? (state) => ({ ...gap, ...style(state) })
-              : { ...gap, ...style }
-          }
+          data-slot="toggle-group"
+          data-variant={variant ?? undefined}
+          data-size={size}
+          data-spacing={spacing}
           // A row too narrow for every item wraps onto the next line, so each choice stays in
           // view and in reach and nothing paints past the row. Three places keep one line. A
           // joined group (spacing 0) is one control, and wrapping would break its borders and
@@ -138,7 +143,10 @@ export function ToggleGroup<Value extends string = string>({
           // cell keeps one line and the table's frame scrolls. Inside a horizontal Scroller (a
           // saved-views strip), the Scroller scrolls it.
           className={classes(
-            "group/toggle-group flex w-fit flex-row flex-wrap items-center gap-[calc(var(--ds-space-050)*var(--gap))] rounded-medium data-[size=sm]:rounded-small data-[spacing=0]:flex-nowrap data-[orientation=vertical]:flex-col data-[orientation=vertical]:flex-nowrap data-[orientation=vertical]:items-stretch [td_&]:flex-nowrap [th_&]:flex-nowrap [[data-slot=scroller][data-orientation=horizontal]_&]:flex-nowrap",
+            cn(
+              "group/toggle-group flex w-fit flex-row flex-wrap items-center rounded-medium data-[size=small]:rounded-small data-[spacing=0]:flex-nowrap data-[orientation=vertical]:flex-col data-[orientation=vertical]:flex-nowrap data-[orientation=vertical]:items-stretch [td_&]:flex-nowrap [th_&]:flex-nowrap [[data-slot=scroller][data-orientation=horizontal]_&]:flex-nowrap",
+              gapFor(spacing),
+            ),
             className,
           )}
         >
@@ -154,12 +162,12 @@ export type ToggleGroupItemProps<Value extends string = string> = ToggleProps<Va
 export function ToggleGroupItem<Value extends string = string>({
   className,
   variant = "default",
-  size = "default",
+  size = "medium",
   ...props
 }: ToggleGroupItemProps<Value>) {
   const context = useContext(ToggleGroupContext);
   const resolvedVariant = context.variant || variant;
-  const resolvedSize = context.size || size;
+  const resolvedSize = toggleSizeWord(context.size || size) ?? "medium";
   const joined = context.spacing === 0;
   const horizontal = context.orientation === "horizontal";
   const { claimStop } = context;
@@ -172,12 +180,12 @@ export function ToggleGroupItem<Value extends string = string>({
 
   return (
     <TogglePrimitive
+      {...(tabIndex !== undefined ? { tabIndex } : {})}
+      {...props}
       data-slot="toggle-group-item"
       data-variant={resolvedVariant}
       data-size={resolvedSize}
       data-spacing={context.spacing}
-      {...(tabIndex !== undefined ? { tabIndex } : {})}
-      {...props}
       className={classes(
         cn(
           toggleVariants({ variant: resolvedVariant, size: resolvedSize }),

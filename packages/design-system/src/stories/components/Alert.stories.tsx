@@ -13,24 +13,26 @@ import {
   tones,
 } from "../../components";
 import { Stack } from "../../primitives";
-import { Matrix } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Alert",
   component: Alert,
   subcomponents: { AlertIcon, AlertTitle, AlertDescription, AlertAction },
   parameters: { layout: "padded" },
-  args: {
-    variant: "default",
-    children: (
-      <>
-        <AlertIcon />
-        <AlertTitle>Review imported records</AlertTitle>
-        <AlertDescription>Two records need an owner before continuing.</AlertDescription>
-      </>
-    ),
-  },
+  args: { variant: "default" },
+  render: (args) => (
+    <Alert {...args}>
+      <AlertIcon />
+      <AlertTitle>Review imported records</AlertTitle>
+      <AlertDescription>Two records need an owner before continuing.</AlertDescription>
+    </Alert>
+  ),
 } satisfies Meta<typeof Alert>;
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -113,6 +115,7 @@ export const Variants: Story = {
 };
 
 export const Tones: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Matrix
       rows={tones}
@@ -224,6 +227,7 @@ export const WithAction: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair

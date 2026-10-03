@@ -151,7 +151,10 @@ type TimeFieldOwnProps = {
   onEntryError?: ((message: string | null) => void) | undefined;
   /** `medium` (32px) in a form; `small` (28px) in a toolbar. */
   size?: ControlSize | undefined;
-  /** Layout only; reaches the field's frame. */
+  /**
+   * Layout only; reaches the field's frame.
+   * @accepts layout
+   */
   className?: string | undefined;
   ref?: Ref<HTMLInputElement> | undefined;
 };

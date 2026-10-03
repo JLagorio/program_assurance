@@ -14,7 +14,11 @@
 //   isKitHomeBinding narrows it for a renamed prop in the kit's own source, where a private part
 //   may share a public part's name: only an import of the part's home module counts there.
 // - classOwnerOf says which part the classes on an element land on: Base UI's `render` replaces the
-//   element, so `<DialogTrigger render={<Button />} className="…">` styles a Button.
+//   element, so `<DialogTrigger render={<Button />} className="…">` styles a Button; and a component
+//   of the file that hands its className on to a part (`const Pad = (props) => <TabsContent
+//   {...props} />`) puts `<Pad className="…">`'s classes on that part.
+// - forwardedTo is that hand-on for any prop: the element of a same-file component a prop given at
+//   its call site reaches, for a rule that judges a prop, the children or a render.
 //
 // What the kit is depends on where the lint runs. In a product (the recommended preset) it is an
 // import from exactly "@ledger/design-system". In the kit's own source (the package preset sets
@@ -73,14 +77,24 @@ const intrinsic = (node) => node?.type === "JSXIdentifier" && /^[a-z]/.test(node
 const isValue = (variable) => variable.isValueVariable !== false;
 
 /** The value variable a name refers to where it is written, walking out from its scope; none for
-    an intrinsic element, whatever the file declares under its name. */
+    an intrinsic element, whatever the file declares under its name. Remembered per node and name,
+    since every rule that asks what a tag is asks it of the same node. */
+const variables = new WeakMap();
 function variableOf(context, node, name) {
   if (intrinsic(node)) return undefined;
+  let known = variables.get(node);
+  if (!known) variables.set(node, (known = new Map()));
+  if (known.has(name)) return known.get(name);
+  let found;
   for (let scope = context.sourceCode.getScope(node); scope; scope = scope.upper) {
     const variable = scope.set.get(name);
-    if (variable && isValue(variable)) return variable;
+    if (variable && isValue(variable)) {
+      found = variable;
+      break;
+    }
   }
-  return undefined;
+  known.set(name, found);
+  return found;
 }
 
 /* ---------- what the kit is, per file ---------- */
@@ -118,6 +132,14 @@ function fileOf(context) {
     // What each tag is and where its classes land, answered once for every rule that asks.
     parts: new WeakMap(),
     owners: new WeakMap(),
+    // Which element of each same-file component a prop reaches (forwardedTo), per component, and
+    // the elements each one hands it to (receiverAt).
+    forwards: new WeakMap(),
+    receivers: new WeakMap(),
+    // The names the file declares a component under (declaredComponents), once asked.
+    components: undefined,
+    // Each component's JSX elements (elementsIn).
+    elements: new WeakMap(),
   };
   files.set(sourceCode, file);
   return file;
@@ -338,6 +360,23 @@ export function partNameOf(context, nameNode, { sources } = {}) {
   return !variable || !notAPart(variable) ? name : "";
 }
 
+/**
+ * Whether a tag's root is a parameter or a local that shadows an outer value of its name (the
+ * kit's import, a top-level component): what it renders is not the outer one, so a rule that
+ * judges any component by its props leaves it alone. A parameter that shadows nothing (`({ Action
+ * }) => <Action … />`) is a component the caller gives, which such a rule still judges.
+ */
+export function shadowsOuterName(context, nameNode) {
+  const [head] = written(nameNode).split(".");
+  const variable = head ? variableOf(context, nameNode, head) : undefined;
+  if (!variable || ["module", "global"].includes(variable.scope.type)) return false;
+  for (let scope = variable.scope.upper; scope; scope = scope.upper) {
+    const outer = scope.set.get(variable.name);
+    if (outer && isValue(outer)) return true;
+  }
+  return false;
+}
+
 /** The name a message gives a tag: the kit part it is, or the name as written. */
 export const displayNameOf = (context, nameNode) =>
   kitPartOf(context, nameNode) || jsxTag(nameNode);
@@ -400,19 +439,325 @@ export function renderedElementOf(opening) {
   return forwards ? body : undefined;
 }
 
+/* ---------- components of the file that hand a prop on ---------- */
+
+/** `memo(…)`, `forwardRef(…)` and `React.memo(…)`, which declare a component around a function. */
+const COMPONENT_CALL = /^(React\.)?(memo|forwardRef)$/;
+
+/** The capitalised names the file declares once, as a function or a const, in any scope: the
+    only names componentOf can find a component under, gathered once per file so that a tag the
+    file imports (most of them) is answered without a scope lookup. */
+function declaredComponents(context) {
+  const file = fileOf(context);
+  if (file.components === undefined) {
+    const scopes = context.sourceCode.scopeManager?.scopes;
+    // Without a scope manager every name is asked of its scope, as before the list.
+    file.components = scopes ? new Set() : null;
+    // A module declares nothing in the global scope, which holds the ~1,300 browser and TS lib
+    // globals; walking it per file cost more than the list saves.
+    const isModule = context.sourceCode.ast.sourceType === "module";
+    for (const scope of scopes ?? [])
+      if (!(isModule && scope.type === "global"))
+        for (const variable of scope.variables)
+          if (
+            /^[A-Z]/.test(variable.name) &&
+            variable.defs.length === 1 &&
+            (variable.defs[0].type === "FunctionName" || variable.defs[0].parent?.kind === "const")
+          )
+            file.components.add(variable.name);
+  }
+  return file.components;
+}
+
+/** The function a capitalised JSX name stands for when the file declares it: a function, or a
+    const that holds one (under memo or forwardRef too). An import, a parameter, a member name and
+    anything else are none. */
+function componentOf(context, nameNode) {
+  if (nameNode?.type !== "JSXIdentifier" || !/^[A-Z]/.test(nameNode.name)) return undefined;
+  if (declaredComponents(context)?.has(nameNode.name) === false) return undefined;
+  const variable = variableOf(context, nameNode, nameNode.name);
+  if (!variable || variable.defs.length !== 1) return undefined;
+  const [definition] = variable.defs;
+  if (definition.type === "FunctionName") return definition.node;
+  if (
+    definition.type !== "Variable" ||
+    definition.parent?.kind !== "const" ||
+    definition.node.id !== definition.name
+  )
+    return undefined;
+  let init = unwrap(definition.node.init);
+  for (let depth = 0; init?.type === "CallExpression" && depth < 3; depth++) {
+    if (!COMPONENT_CALL.test(memberTag(init.callee))) return undefined;
+    init = unwrap(init.arguments[0]);
+  }
+  return init?.type === "ArrowFunctionExpression" || init?.type === "FunctionExpression"
+    ? init
+    : undefined;
+}
+
+/** The props pattern a component's body destructures its props object with, as its first const
+    of that shape at the top of the body (`const { className, ...rest } = props;`), or undefined. */
+function bodyPatternOf(fn, name) {
+  if (fn.body?.type !== "BlockStatement") return undefined;
+  for (const statement of fn.body.body) {
+    if (statement.type !== "VariableDeclaration" || statement.kind !== "const") continue;
+    const declarator = statement.declarations.find(
+      (candidate) =>
+        candidate.id.type === "ObjectPattern" &&
+        unwrap(candidate.init)?.type === "Identifier" &&
+        unwrap(candidate.init).name === name,
+    );
+    if (declarator) return declarator;
+  }
+  return undefined;
+}
+
+/** How a destructuring pattern holds `prop`: `{ local }`, the name it is destructured to, or
+    `{ rest }`, the rest that still carries it; null when it drops it, undefined when the lint
+    cannot tell (a computed key). */
+function patternHolds(pattern, prop) {
+  for (const property of pattern.properties) {
+    if (property.type !== "Property") continue;
+    if (property.computed) return undefined;
+    if ((property.key.name ?? property.key.value) !== prop) continue;
+    const value =
+      property.value?.type === "AssignmentPattern" ? property.value.left : property.value;
+    return value?.type === "Identifier" ? { local: value.name } : undefined;
+  }
+  const rest = pattern.properties.find((property) => property.type === "RestElement");
+  return rest?.argument.type === "Identifier" ? { rest: rest.argument.name } : null;
+}
+
+/** How a component's first parameter holds `prop`: `{ whole }`, the props object; `{ local }`, the
+    name it is destructured to; `{ rest }`, the rest of a destructured object, which still carries
+    it. A props object the body destructures (`const { className } = props`) holds it both ways,
+    with the destructuring's `declarator`. Undefined when it holds no such prop the lint can
+    follow. */
+function carrierOf(fn, prop) {
+  let first = fn.params[0];
+  if (first?.type === "AssignmentPattern") first = first.left;
+  if (first?.type === "Identifier") {
+    const declarator = bodyPatternOf(fn, first.name);
+    const held = declarator && patternHolds(declarator.id, prop);
+    return held ? { whole: first.name, ...held, declarator } : { whole: first.name };
+  }
+  if (first?.type !== "ObjectPattern") return undefined;
+  return patternHolds(first, prop) ?? undefined;
+}
+
+/** Whether an identifier is what the carrier names where it is written: `fn`'s own parameter of
+    that name, or a name its body's props destructuring declares, not a local that shadows them. */
+const isCarriedBy = (context, identifier, fn, carrier) => {
+  const definition = variableOf(context, identifier, identifier.name)?.defs[0];
+  if (definition?.type === "Parameter") return definition.node === fn;
+  return (
+    Boolean(carrier.declarator) &&
+    definition?.type === "Variable" &&
+    definition.node === carrier.declarator
+  );
+};
+
+/** Whether a value hands on what the carrier holds: the destructured name, the props object's
+    member of that key (`props.className`, `rest.className`), or either inside a call's arguments,
+    a template, a condition or a fallback (`cn("p-0", className)`). */
+function handsOn(context, node, fn, prop, carrier) {
+  const value = unwrap(node);
+  if (!value) return false;
+  const again = (child) => handsOn(context, child, fn, prop, carrier);
+  switch (value.type) {
+    case "Identifier":
+      return value.name === carrier.local && isCarriedBy(context, value, fn, carrier);
+    case "MemberExpression": {
+      const object = unwrap(value.object);
+      return (
+        !value.computed &&
+        value.property.name === prop &&
+        object?.type === "Identifier" &&
+        (object.name === carrier.whole || object.name === carrier.rest) &&
+        isCarriedBy(context, object, fn, carrier)
+      );
+    }
+    case "CallExpression":
+      return value.arguments.some((argument) =>
+        again(argument.type === "SpreadElement" ? argument.argument : argument),
+      );
+    case "TemplateLiteral":
+      return value.expressions.some(again);
+    case "ConditionalExpression":
+      return again(value.consequent) || again(value.alternate);
+    case "LogicalExpression":
+      return again(value.left) || again(value.right);
+    case "ArrayExpression":
+      return value.elements.some((element) =>
+        again(element?.type === "SpreadElement" ? element.argument : element),
+      );
+    default:
+      return false;
+  }
+}
+
+/** Whether a JSX element of `fn` is handed the call site's `prop`: the last attribute that can set
+    it decides, the props object (or the rest that carries it) spread onto the element, or the
+    prop written from what the carrier holds. Children written inside the element replace the
+    children a spread brings, so then one of them must be the carrier's. */
+function receives(context, opening, fn, prop, carrier) {
+  if (prop === "children") {
+    const written = opening.parent.children.filter(
+      (child) => !(child.type === "JSXText" && !child.value.trim()),
+    );
+    if (written.length)
+      return written.some(
+        (child) =>
+          child.type === "JSXExpressionContainer" &&
+          handsOn(context, child.expression, fn, prop, carrier),
+      );
+  }
+  for (const item of [...opening.attributes].reverse()) {
+    if (item.type === "JSXSpreadAttribute") {
+      const argument = unwrap(item.argument);
+      if (
+        argument?.type === "Identifier" &&
+        (argument.name === carrier.whole || argument.name === carrier.rest) &&
+        isCarriedBy(context, argument, fn, carrier)
+      )
+        return true;
+    } else if (item.name.type === "JSXIdentifier" && item.name.name === prop)
+      return handsOn(context, item.value, fn, prop, carrier);
+  }
+  return false;
+}
+
+/** The `index`th element of a component's body that is handed `prop`, in source order, or
+    undefined past the last: the elements are judged only as far as a caller asks, and each once
+    per component and prop, since the first one is most often where the prop lands. */
+function receiverAt(context, fn, prop, index) {
+  const { receivers } = fileOf(context);
+  let byProp = receivers.get(fn);
+  if (!byProp) receivers.set(fn, (byProp = new Map()));
+  let found = byProp.get(prop);
+  if (!found) {
+    const carrier = carrierOf(fn, prop);
+    found = { carrier, elements: carrier ? elementsIn(context, fn) : [], next: 0, list: [] };
+    byProp.set(prop, found);
+  }
+  while (found.list.length <= index && found.next < found.elements.length) {
+    const node = found.elements[found.next++];
+    if (receives(context, node, fn, prop, found.carrier)) found.list.push(node);
+  }
+  return found.list[index];
+}
+
+/** A component's JSX opening elements in source order, gathered once for every prop asked. */
+function elementsIn(context, fn) {
+  const { elements } = fileOf(context);
+  let found = elements.get(fn);
+  if (found) return found;
+  const keys = context.sourceCode.visitorKeys;
+  found = [];
+  const visit = (node) => {
+    if (node.type === "JSXOpeningElement") found.push(node);
+    for (const key of keys[node.type] ?? [])
+      for (const child of [node[key]].flat())
+        if (child && typeof child.type === "string") visit(child);
+  };
+  visit(fn.body);
+  elements.set(fn, found);
+  return found;
+}
+
+/** How many components of the file a prop is followed through, the one it is given to first. */
+const REACH = 4;
+/** What a component hands a prop to when every element it hands it to comes back round. */
+const ROUND = Symbol("round");
+
 /**
- * The part the classes on a JSX element land on. `via` is "self" when the element wears them, and
- * "render" when its `render` puts a kit part in its place, which then owns them; `wrapper` names
- * the element that renders it (as the kit part it is, or as written). A render element that is no
- * kit part (`render={<a />}`) leaves the classes with the element itself.
+ * Where `prop` lands from inside the component `fn`, `route` the components it has come through:
+ * its first receiver in source order that is no component of the file (a kit part, an element, an
+ * import), or where a receiver that is one hands it on in turn. A receiver that renders a component
+ * already on the route (a component that renders itself, two that render each other) is passed
+ * over for the next one; one that hands the prop to nothing is where it lands; past REACH
+ * components, the receiver is. Null when `fn` hands it to nothing, ROUND when every receiver comes
+ * back round.
+ */
+function landingFrom(context, fn, prop, route) {
+  let receiver = receiverAt(context, fn, prop, 0);
+  if (!receiver) return null;
+  for (let index = 1; receiver; receiver = receiverAt(context, fn, prop, index++)) {
+    const inner = componentOf(context, receiver.name);
+    if (!inner) return receiver;
+    if (route.has(inner)) continue;
+    if (route.size >= REACH) return receiver;
+    route.add(inner);
+    const landed = landingFrom(context, inner, prop, route);
+    route.delete(inner);
+    if (landed !== ROUND) return landed ?? receiver;
+  }
+  return ROUND;
+}
+
+/**
+ * Where a prop given to a JSX element lands when the element is a component of this file that
+ * hands it on: `{ element, wrapper }`, the opening element that receives it (followed through the
+ * file's components it is handed to in turn, up to REACH components in all) and the component's
+ * name as written; undefined when the element is no such component or the prop reaches no element.
+ * A wrapper is a capitalised same-file component, a function or a const that holds one, whose first
+ * parameter forwards the prop: the props object or the rest that still carries it, spread onto an
+ * element, or the prop destructured (in the parameter, or from the props object at the top of the
+ * body) and written onto one. Of the elements it hands the prop to, the first in source order
+ * counts, passing over one that renders a component already on the way. Which part the element is
+ * stays the caller's question, by its rule's identity (kitPartOf, partNameOf, classOwnerOf).
+ * Remembered per component and prop.
+ */
+export function forwardedTo(context, opening, prop) {
+  const fn = componentOf(context, opening.name);
+  if (!fn) return undefined;
+  const { forwards } = fileOf(context);
+  let byProp = forwards.get(fn);
+  if (!byProp) forwards.set(fn, (byProp = new Map()));
+  let element = byProp.get(prop);
+  if (element === undefined) {
+    const landed = landingFrom(context, fn, prop, new Set([fn]));
+    byProp.set(prop, (element = landed === ROUND ? null : landed));
+  }
+  return element ? { element, wrapper: jsxTag(opening.name) } : undefined;
+}
+
+/**
+ * The part the classes on a JSX element land on. `via` is "self" when the element wears them,
+ * "render" when its `render` puts a kit part in its place, which then owns them, and "wrapper" when
+ * it is a component of this file that hands its className on to a part (forwardedTo, which stops
+ * after REACH components); `wrapper` names the element that renders or forwards (as the kit part
+ * it is, or as written). A render element that is no kit part (`render={<a />}`) leaves the classes
+ * with the element itself.
  */
 export function classOwnerOf(context, opening) {
   const { owners } = fileOf(context);
   let owner = owners.get(opening);
-  if (!owner) owners.set(opening, (owner = ownerOf(context, opening)));
+  if (!owner) owners.set(opening, (owner = propOwnerOf(context, opening, "className")));
   return owner;
 }
-function ownerOf(context, opening) {
+
+/**
+ * The part a prop given to a JSX element lands on, as classOwnerOf says it of className: the kit
+ * part the element is, the one its `render` puts in its place, or the one a component of this file
+ * hands the prop on to (`style` through `<Pane style={…}>`); `{ part: "" }` when none.
+ */
+export function propOwnerOf(context, opening, prop) {
+  const own = partHere(context, opening);
+  if (own.part) return own;
+  // A prop reaches a component of the file as an attribute or in a spread.
+  const given = opening.attributes.some(
+    (item) => item.type === "JSXSpreadAttribute" || item.name.name === prop,
+  );
+  const forwarded = given ? forwardedTo(context, opening, prop) : undefined;
+  // The element it lands on as the part it is or renders: forwardedTo has followed the file's
+  // components as far as it reaches.
+  const inner = forwarded ? partHere(context, forwarded.element).part : "";
+  return inner ? { part: inner, via: "wrapper", wrapper: forwarded.wrapper } : own;
+}
+
+/** The part an element is, or the kit part its `render` puts in its place. */
+function partHere(context, opening) {
   const self = kitPartOf(context, opening.name);
   const rendered = renderedElementOf(opening);
   const part = rendered ? kitPartOf(context, rendered.openingElement.name) : "";

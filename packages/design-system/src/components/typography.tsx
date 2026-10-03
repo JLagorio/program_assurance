@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import { cn } from "../lib/cn";
+import { useLedgerLocale } from "../lib/locale";
 import type { TextElement } from "../primitives";
 import { VisuallyHidden } from "../primitives/visually-hidden";
 import { toneClasses, type Tone } from "./badge";
@@ -59,25 +60,25 @@ export function Eyebrow({
 
 export type AbsentProps = Omit<ComponentProps<"span">, "children"> & {
   /**
-   * What a screen reader hears in place of the dash: "Not recorded", "None". The dash itself is
-   * then hidden from assistive technology, which does not read it by default. Leave it out only
-   * where the empty value is announced another way.
+   * What a screen reader hears in place of the dash, when the context says more than the default:
+   * "None", "No due date", "Not available". Without it, the LedgerProvider's `absent` message,
+   * "Not recorded" in English. The dash itself is always hidden from assistive technology, which
+   * skips it at default punctuation settings.
    */
   label?: string | undefined;
 };
 
-/** The absent value: a muted dash where a value would be; `label` says so to a screen reader. */
+/**
+ * The absent value: a muted dash where a value would be, which a screen reader hears as `label`,
+ * "Not recorded" by default.
+ */
 export function Absent({ label, className, ...props }: AbsentProps = {}) {
+  const { messages } = useLedgerLocale();
+  const spoken = label || messages.absent;
   return (
     <span {...props} data-slot="absent" className={cn("text-subtlest", className)}>
-      {label ? (
-        <>
-          <span aria-hidden="true">—</span>
-          <VisuallyHidden>{label}</VisuallyHidden>
-        </>
-      ) : (
-        "—"
-      )}
+      <span aria-hidden="true">—</span>
+      <VisuallyHidden>{spoken}</VisuallyHidden>
     </span>
   );
 }
@@ -360,7 +361,8 @@ function safeHref(raw: string) {
   const href = raw.trim();
   if (!href) return null;
   // Browsers ignore control characters and spaces inside a scheme ("java\tscript:"), so the check does too.
-  const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(href.replace(/[\u0000- \u007f]/g, ""));
+  const bare = Array.from(href, (char) => (char <= " " || char === "\u007f" ? "" : char)).join("");
+  const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(bare);
   if (!scheme) return href;
   return /^(https?|mailto|tel)$/i.test(scheme[1]!) ? href : null;
 }

@@ -7,17 +7,19 @@ import * as Stories from "./Typography.stories";
 
 # Typography
 
-The small text parts a record page is made of, beyond body copy and titles. `Eyebrow` is the uppercase micro-label on `font.heading.xxsmall`: a section's name in a rail, a record's kind above its title, a callout's label. `Absent` is the muted dash where a value would be, with a `label` a screen reader hears in its place. `Prose` is authored text: one paragraph or several, with the line breaks it was written with, a safe Markdown subset on request, under an optional Eyebrow label. For body copy and titles, the [Text](?path=/docs/primitives-text--docs) and [Heading](?path=/docs/primitives-heading--docs) primitives; this page is the three parts between them.
+**Status: Stable.**
+
+The small text parts a record page is made of, beyond body copy and titles. `Eyebrow` is the uppercase micro-label on `font.heading.xxsmall`: a section's name in a rail, a record's kind above its title, a callout's label. `Absent` is the muted dash where a value would be, which a screen reader hears as "Not recorded" or as the `label` it is given. `Prose` is authored text: one paragraph or several, with the line breaks it was written with, a safe Markdown subset on request, under an optional Eyebrow label. For body copy and titles, the [Text](?path=/docs/primitives-text--docs) and [Heading](?path=/docs/primitives-heading--docs) primitives; this page is the three parts between them.
 
 <Canvas of={Stories.TypographyMatrix} />
 
 ## Anatomy
 
-| Part    | What it is                                                                                                                                                                                                                               |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Eyebrow | `font.heading.xxsmall`, uppercase, `color.text.subtle`; a tone colours it. A `div`, or the element `as` names.                                                                                                                           |
-| Absent  | An em dash in `color.text.subtlest`, the size of its line. With `label`, the dash is `aria-hidden` and the label is [VisuallyHidden](?path=/docs/primitives-visuallyhidden--docs) text beside it.                                        |
-| Prose   | An optional Eyebrow, then the text in `font.body` (or `font.body.large` with `size="large"`) and `color.text`: `space.050` under the Eyebrow, `space.075` above a labelled Prose, `space.100` between paragraphs (`space.150` at large). |
+| Part    | What it is                                                                                                                                                                                                                                 |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Eyebrow | `font.heading.xxsmall`, uppercase, `color.text.subtle`; a tone colours it. A `div`, or the element `as` names.                                                                                                                             |
+| Absent  | An em dash in `color.text.subtlest`, the size of its line. The dash is `aria-hidden`; beside it, [VisuallyHidden](?path=/docs/primitives-visuallyhidden--docs) text says what is missing: the `label`, else the locale's `absent` message. |
+| Prose   | An optional Eyebrow, then the text in `font.body` (or `font.body.large` with `size="large"`) and `color.text`: `space.050` under the Eyebrow, `space.075` above a labelled Prose, `space.100` between paragraphs (`space.150` at large).   |
 
 ## Variants
 
@@ -49,6 +51,10 @@ Links render as TextLinks with native anchors; `renderLink` makes each one a rou
 
 <Canvas of={Stories.ProseRouterLinks} />
 
+A bare Absent is heard as the LedgerProvider's `absent` message, "Not recorded" in English; a `label` says more where the context knows more.
+
+<Canvas of={Stories.AbsentDefault} />
+
 <Canvas of={Stories.AbsentLabelled} />
 
 ## States
@@ -63,7 +69,7 @@ None. The three are text. The tone on an Eyebrow or a Prose is a colour for a ca
 - **Prose children as a string** are authored text: a blank line starts a paragraph, and a line break stays a line break (`white-space: pre-line`). Composed inline content (words and a TextLink) is one paragraph.
 - **Prose `markdown`** renders a safe subset in place of the children, and **`renderLink`** sends its links through a router's link element.
 - **Prose `size`**: `medium` in a rail, `large` for reading text at the measure.
-- **Absent `label`**: what a screen reader hears for the empty value, "Not recorded" or "None".
+- **Absent `label`**: what a screen reader hears for the empty value when the context says more than "Not recorded": "None", "No due date", "Not available".
 
 ## Content
 
@@ -93,7 +99,7 @@ An eyebrow is `color.text.subtle`, as all secondary text is; the Shell's section
 
 - **An eyebrow that heads a section is a heading**, with `as="h3"` or `h4`, so the page's outline lists it and a screen reader can jump to it. As a `div` it is a label and is read in place.
 - **Uppercase is styling**, so a screen reader reads the words, not the letters; write the text in sentence case.
-- **The dash alone is often silent.** Screen readers skip an em dash at their default punctuation level, so a value with nothing in it sounds like a skipped row. Give Absent a `label` ("Not recorded", "None") wherever the empty value matters: the dash is then hidden and the label is read in its place.
+- **Absent always speaks.** Screen readers skip an em dash at their default punctuation level, so a bare dash sounds like a skipped row. Absent hides the dash and reads words in its place: the `label` when one is given, else the LedgerProvider's `absent` message, "Not recorded" in English, which a product translates with the rest of the kit's words.
 - **Prose Markdown injects no HTML.** The source is parsed into React elements; `<script>` and any other markup show as the characters typed. A link whose address is not http(s), mailto, tel or relative (a `javascript:` or `data:` address) shows as its words, not as a link. Links in Prose are underlined, so they are told apart from the text by more than colour.
 - **Contrast:** `color.text.subtle` at 11px uppercase passes 4.5:1, and `color.text.subtlest` does for the dash; the gate runs every tone.
 
@@ -128,5 +134,7 @@ Eyebrow takes its element's native props and a ref, whichever `as` names, and na
 - [Alert](?path=/docs/components-alert--docs): the callout an eyebrow with a tone often heads.
 
 ## Don't
+
+An Eyebrow is one to three words, never an uppercase sentence. A labelled paragraph is Prose under its Eyebrow, never a bold run-in label with a colon, and a missing value is Absent, the muted dash, never N/A.
 
 <Canvas of={Stories.Dont} />

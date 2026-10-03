@@ -4,8 +4,12 @@ import { expect } from "storybook/test";
 
 import { Icon } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Icon",
@@ -18,6 +22,7 @@ type Story = StoryObj<typeof meta>;
 
 /** The two sizes, the icon colours, and a named mark beside a decorative one. */
 export const IconMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="size small (14px) · medium (16px)">
@@ -111,6 +116,7 @@ export const Rendered: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   // The negative example is the defect itself: a name on an element that cannot carry one.
   parameters: { a11y: { config: { rules: [{ id: "aria-prohibited-attr", enabled: false }] } } },
   render: () => (

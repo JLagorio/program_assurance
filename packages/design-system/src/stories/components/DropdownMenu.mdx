@@ -7,6 +7,8 @@ import * as Stories from "./DropdownMenu.stories";
 
 # DropdownMenu
 
+**Status: Stable.**
+
 Actions and view options anchored to a button, using shadcn's Base UI Menu composition. Ledger supplies the menu surface, row geometry, colors and motion.
 
 ```tsx
@@ -47,6 +49,10 @@ Use something else when:
 - **One line per label.** A label wider than the window leaves ends in an ellipsis, so write the short form; say the difference between two similar actions in `description`, and why an action cannot run in `disabledReason`.
 - **The trigger says it opens a menu.** A labelled trigger carries a trailing ChevronDown (`render={<Button iconAfter={<ChevronDown />} />}`); an icon trigger such as More is a menu by its icon. A create action that asks how to create is a [ButtonGroup](?path=/docs/components-buttongroup--docs): the one create action, then a labelled icon menu for the other ways.
 
+A place to go is a LinkItem, a real link the reader can open in a new tab, never an item that navigates in its click handler; a destructive item comes last, never first.
+
+<Canvas of={Stories.DoDont} />
+
 ## Composition and states
 
 Root owns controlled or uncontrolled open state, modality, generic trigger payloads and cancellable `onOpenChange(open, details)`. Trigger defaults to a native button and composes existing buttons through `render`. Custom rendered components must accept merged props and refs; use `nativeButton={false}` only when replacing a button with a non-button action target.
@@ -61,7 +67,7 @@ Action labels stay on one line. The menu is as wide as its longest label within 
 
 `shortcut` on an Item names the keys that run the same action from the page, written once for every platform as [KbdShortcut](?path=/docs/components-kbd--docs) takes them ("Mod+E", "Shift+D"). They are drawn at the end in the platform's glyphs and given to the item as `aria-keyshortcuts`, so the item's name stays its label ("Edit", not "Edit E"). Binding the keys stays with the caller. Shortcut, the part the prop draws, is hidden from assistive technology; other content at the end of a row that a reader needs, such as a count, passes `aria-hidden={false}` to it.
 
-<Canvas of={Stories.DropdownMenuMatrix} />
+<Canvas of={Stories.Actions} />
 
 <Canvas of={Stories.LabelOutsideAGroup} />
 
@@ -99,13 +105,9 @@ Content owns `finalFocus`. Ledger's modal wrappers resolve an activating menu it
 
 <Canvas of={Stories.Dialogs} />
 
-## Migration and API
-
-Replace the configured `trigger` prop with Trigger's `render`; move placement and width into Content. Replace `DropdownMenu.Item`, `.Label` and `.Separator` with the flat exports. `onSelect` becomes `onClick` for actions; `isSelected` becomes CheckboxItem or RadioGroup state; `closeOnSelect` becomes `closeOnClick`; `tone="danger"` becomes `variant="danger"`; `trailing` becomes `shortcut`. Remove children-as-`close` callbacks: items close through Base UI, and Root exposes controlled state or `actionsRef` for imperative dismissal.
-
-See [shadcn Dropdown Menu](https://ui.shadcn.com/docs/components/base/dropdown-menu) and [Base UI Menu](https://base-ui.com/react/components/menu) for the native APIs. Content adds the four positioning props to Popup. Ledger adds token styling and locale/dialog integration; reference catalogs remain independently refreshable.
-
 ## Props
+
+DropdownMenu follows [shadcn Dropdown Menu](https://ui.shadcn.com/docs/components/base/dropdown-menu) and [Base UI Menu](https://base-ui.com/react/components/menu), whose pages give the native APIs. DropdownMenuContent adds the four positioning props to Base UI's Popup; Ledger adds the token styling and the locale and dialog integration.
 
 ### DropdownMenuItem
 
@@ -121,4 +123,4 @@ See [shadcn Dropdown Menu](https://ui.shadcn.com/docs/components/base/dropdown-m
 
 ## Related
 
-[Popover](?path=/docs/components-popover--docs) · [Dialog](?path=/docs/components-dialog--docs) · [Editable](?path=/docs/patterns-editable--docs) · [DataTable](?path=/docs/patterns-data-table--docs) · [IconButton](?path=/docs/components-iconbutton--docs) · [Overlays](?path=/docs/components-overlays--docs)
+[Popover](?path=/docs/components-popover--docs) · [Dialog](?path=/docs/components-dialog--docs) · [Editable](?path=/docs/patterns-editable--docs) · [DataTable](?path=/docs/patterns-data-table--docs) · [IconButton](?path=/docs/components-iconbutton--docs) · [Overlays](?path=/docs/components-overlays--docs) · [Upgrading](?path=/docs/guidance-upgrading--docs#dropdownmenu)

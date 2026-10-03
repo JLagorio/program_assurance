@@ -112,12 +112,12 @@ try {
   await page.goto(`${origin}/programs/${program.id}?tab=System`);
   // Create system opens its own dialog; the split button's menu holds the product route.
   await page.getByRole("button", { name: "More ways to create a system", exact: true }).click();
-  await page.getByRole("menuitem", { name: "Add system from product", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Create system from product", exact: true }).click();
   await page.getByRole("row").filter({ hasText: "Base configuration" }).first().click();
   await page
     .getByRole("button", { name: "Add Audit product · Base configuration", exact: true })
     .click();
-  const variant = page.getByRole("dialog", { name: "Add system from product", exact: true });
+  const variant = page.getByRole("dialog", { name: "Create system from product", exact: true });
   const name = variant.getByRole("textbox", { name: "Name", exact: true });
   await expect(name).toBeFocused();
   await name.fill("Retained variant draft");
@@ -125,7 +125,7 @@ try {
   await expect(prompt).toBeVisible();
   await prompt.getByRole("button", { name: "Keep editing", exact: true }).click();
   await expect(name).toHaveValue("Retained variant draft");
-  const submit = variant.getByRole("button", { name: "Add system from product", exact: true });
+  const submit = variant.getByRole("button", { name: "Create system from product", exact: true });
   assert.equal(
     await submit.evaluate(
       (button) => button.type === "submit" && button.form instanceof HTMLFormElement,

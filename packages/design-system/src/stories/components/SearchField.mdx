@@ -7,6 +7,8 @@ import * as Stories from "./SearchField.stories";
 
 # SearchField
 
+**Status: Stable.**
+
 One search input: the search icon, the query, and a clear button while there is a query. It narrows a list as the reader types, or runs a search on Enter. [Toolbar](?path=/docs/patterns-toolbar--docs) uses it for its search.
 
 Use it wherever the reader finds or narrows records. Do not use it for a value the record keeps, such as a name or a reference: that is an [Input](?path=/docs/components-input--docs) in a [Field](?path=/docs/components-field--docs), which Escape and a clear button never erase. To pick one record from a list of options, use a [Combobox](?path=/docs/components-combobox--docs); to search the whole product, the [SearchDialog](?path=/docs/patterns-searchdialog--docs).
@@ -71,5 +73,7 @@ The words it writes come from the locale (`search`, `clearSearch`), so a `Ledger
 [Toolbar](?path=/docs/patterns-toolbar--docs) · [Input](?path=/docs/components-input--docs) · [InputGroup](?path=/docs/components-inputgroup--docs) · [Field](?path=/docs/components-field--docs) · [Combobox](?path=/docs/components-combobox--docs)
 
 ## Don't
+
+A SearchField narrows or finds records. A value the record keeps, such as its name, is an Input in a Field, never a SearchField, whose Escape and clear button erase it.
 
 <Canvas of={Stories.Dont} />

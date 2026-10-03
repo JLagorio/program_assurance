@@ -1,5 +1,11 @@
 import { useLedgerLocale } from "../../lib/locale";
-import { useContext, useMemo, type KeyboardEvent, type ReactNode } from "react";
+import {
+  useContext,
+  useMemo,
+  type ComponentProps,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import { CartesianGrid, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
 
 import { token } from "../../generated/tokens";
@@ -39,6 +45,7 @@ import {
   usePicked,
   usePlotSize,
   useTooltipMotion,
+  useWarnOnce,
   type CategoryFormatter,
   type ChartColumn,
   type ChartDatum,
@@ -67,7 +74,7 @@ export type ScatterSelection = {
   index: number;
 };
 
-export type ChartScatterProps = {
+type ChartScatterOwnProps = {
   data: ChartDatum[];
   /** The key on the horizontal axis. */
   x: string;
@@ -79,7 +86,7 @@ export type ChartScatterProps = {
   nameKey?: string | undefined;
   /**
    * The key that names a point.
-   * @deprecated Use `nameKey`: on every other plot `name` and `label` name the plot. `ledger/no-deprecated-name` fixes it.
+   * @deprecated Use `nameKey`: `label` names the plot, as on every plot. `ledger/no-deprecated-name` fixes it.
    */
   name?: string | undefined;
   /** The key that puts each point in a group, and the groups with their tones. At most three, so any two points stay apart. */
@@ -121,6 +128,10 @@ export type ChartScatterProps = {
   details?: ((selection: ScatterSelection) => ReactNode) | undefined;
   className?: string | undefined;
 };
+
+/** The part's own props, and the native props and ref of the plot's box: an `id`, `data-*` for a test, a handler. */
+export type ChartScatterProps = ChartScatterOwnProps &
+  Omit<ComponentProps<"div">, keyof ChartScatterOwnProps | "children" | "role">;
 
 type Axis = { key: string; label: string; format: (v: unknown) => string };
 
@@ -254,9 +265,15 @@ export function ChartScatter({
   onSelect,
   details,
   className,
+  "aria-describedby": describedBy,
+  ...native
 }: ChartScatterProps) {
   const { t } = useLedgerLocale();
   const nameKey = nameKeyProp ?? legacyNameKey;
+  useWarnOnce(
+    legacyNameKey !== undefined,
+    "Ledger Chart.Scatter: `name` is deprecated for `nameKey`, the key that names a point; `label` names the plot.",
+  );
 
   const {
     name: frameName,
@@ -273,6 +290,7 @@ export function ChartScatter({
     name: frameName,
     titleId,
     chooses,
+    describedBy,
     count: 0,
     describe: () => "",
   });
@@ -350,7 +368,14 @@ export function ChartScatter({
   if (offstage) return null;
   if (loading)
     return (
-      <PlotSkeleton kind="dots" name={name} size={size} height={height} className={className} />
+      <PlotSkeleton
+        {...native}
+        kind="dots"
+        name={name}
+        size={size}
+        height={height}
+        className={className}
+      />
     );
   // The points drawn: in a group the legend shows. Others at the same place share its tooltip and card.
   const drawn = sets.filter((s) => !hidden.has(s.key)).flatMap((s) => s.rows);
@@ -456,6 +481,9 @@ export function ChartScatter({
   const yWidth = axisWidth(data, [y], formatY ?? format, yDomain, Boolean(yLabel));
   return (
     <Plot
+      {...native}
+      // Choosing, the box is the named group and carries the description; else the svg does.
+      aria-describedby={chooses ? describedBy : undefined}
       name={name}
       size={size}
       height={height}
@@ -476,6 +504,8 @@ export function ChartScatter({
           dataKey={x}
           name={xLabel ?? x}
           tick={<Tick format={(v) => axes[0]?.format(tickValue(v)) ?? String(v)} />}
+          // Recharts thins the ticks by the text they print, not the raw number.
+          tickFormatter={(v: unknown) => axes[0]?.format(tickValue(v)) ?? String(v)}
           axisLine={axisLine}
           tickLine={false}
           height={xLabel ? 36 : 24}

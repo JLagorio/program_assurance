@@ -7,6 +7,8 @@ import * as Stories from "./Toggle.stories";
 
 # Toggle
 
+**Status: Stable.**
+
 A two-state button built on Base UI with the shadcn composition API. Put icons and labels in `children`; give an icon-only toggle an `aria-label`.
 
 ```tsx
@@ -17,7 +19,7 @@ A two-state button built on Base UI with the shadcn composition API. Put icons a
 
 <Canvas of={Stories.ToggleMatrix} />
 
-## Choosing between them
+## When to use it
 
 | Need                                                                                                               | Part                                                                                                       |
 | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
@@ -27,9 +29,22 @@ A two-state button built on Base UI with the shadcn composition API. Put icons a
 | A choice submitted with a form                                                                                     | [Checkbox](?path=/docs/components-checkbox--docs) or [RadioGroup](?path=/docs/components-radiogroup--docs) |
 | An action that happens once: save, export, open                                                                    | [Button](?path=/docs/components-button--docs)                                                              |
 
+## Content
+
+- The label, or an icon-only toggle's `aria-label`, names the state it turns on ("Bold", "Pin to top", "Show as table"), and stays the same whether it is on or off: the pressed state says which.
+- Never a verb that flips with the state ("Show"/"Hide"): a screen reader already says pressed or not pressed.
+
+A label that flips with the state ("Show table", then "Hide table") says the state twice.
+
+<Canvas of={Stories.DoDont} />
+
 ## Variants and state
 
-`variant="default"` is unbordered; `variant="outline"` adds a border. Sizes are `sm` (28px), `default` (32px) and `lg` (36px). The default size is `default`. These are Button's heights under the shadcn names: `sm` sits beside a `small` Button, `default` beside a `medium` one, and `lg` is a step Button does not have.
+`variant="default"` is unbordered; `variant="outline"` adds a border. Sizes are the control scale's `small` (28px), `medium` (32px, the default) and `large` (36px), so a `small` toggle sits beside a `small` Button and a `medium` one beside a `medium` Button; `large` is a step Button does not have. `data-size` reports the word.
+
+`sm`, `default` and `lg` are the deprecated spellings of `small`, `medium` and `large`, kept for one version; `ledger/no-deprecated-name` rewrites them.
+
+<Canvas of={Stories.DeprecatedSizes} />
 
 Hover is the neutral tint. Pressed is the selected palette, `color.background.selected` with `color.text.selected`, and a 1px `color.border.selected` edge at 3:1 on that fill, so a pressed toggle never reads as a hovered one and its state does not rest on a faint fill. The default variant draws the edge out of the flow, so pressing never changes the toggle's size; the outline variant recolours its own border. In forced colours a pressed toggle is Highlight.
 
@@ -37,7 +52,7 @@ Hover is the neutral tint. Pressed is the selected palette, `color.background.se
 
 Use `defaultPressed` for local state, or `pressed` and `onPressedChange(pressed, details)` for controlled state. Calling `details.cancel()` rejects a change. `disabled` blocks activation and removes the toggle from the normal tab order.
 
-Native attributes, event handlers and refs reach the button. `render` composes another action element; it must forward props and refs. Set `nativeButton={false}` for a non-button action. `className` and `style` accept callbacks with `{ pressed, disabled }`. `toggleVariants({ variant, size, className })` exposes the shared styling recipe.
+Native attributes, event handlers and refs reach the button, and its `data-slot` comes after them, so a stray attribute never renames it. `render` composes another action element; it must forward props and refs. Set `nativeButton={false}` for a non-button action. `className` and `style` accept callbacks with `{ pressed, disabled }`. `toggleVariants({ variant, size, className })` exposes the shared styling recipe.
 
 ## Accessibility
 
@@ -55,4 +70,4 @@ For coordinated selection, use [ToggleGroup](?path=/docs/components-togglegroup-
 
 ## Related
 
-[ToggleGroup](?path=/docs/components-togglegroup--docs) · [Switch](?path=/docs/components-switch--docs) · [Button](?path=/docs/components-button--docs) · [Base UI Toggle](https://base-ui.com/react/components/toggle)
+[ToggleGroup](?path=/docs/components-togglegroup--docs) · [Switch](?path=/docs/components-switch--docs) · [Button](?path=/docs/components-button--docs) · [Base UI Toggle](https://base-ui.com/react/components/toggle) · [Upgrading](?path=/docs/guidance-upgrading--docs#toggle-and-togglegroup)

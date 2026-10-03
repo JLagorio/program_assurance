@@ -6,6 +6,8 @@ import * as Stories from "./Spinner.stories";
 
 # Spinner
 
+**Status: Stable.**
+
 Something is in flight and its length is unknown: a save, an export, a refresh. It sits beside what it is about, says its name once when it appears, and goes when the work ends.
 
 <Canvas of={Stories.Playground} />
@@ -65,5 +67,7 @@ Native svg props include `ref`, `id`, `strokeWidth`, `style`, `className`, ARIA 
 Sources: [shadcn Spinner](https://ui.shadcn.com/docs/components/base/spinner), [implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/spinner.tsx), [Polaris Spinner](https://polaris-react.shopify.com/components/feedback-indicators/spinner).
 
 ## Don't
+
+The button that started the work shows it with `isLoading`, keeping its label, its width and focus, never a disabled button whose label changes. Content on its way is a Skeleton, never a large spinner where it will be.
 
 <Canvas of={Stories.Dont} />

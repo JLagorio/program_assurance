@@ -7,6 +7,8 @@ import * as Stories from "./List.stories";
 
 # List
 
+**Status: Stable.**
+
 Bulleted and numbered lists on one inset and two spacings: validation messages, conflicts, the steps of an instruction, the points of a narrative. The marker hangs in the inset, so each item's text lines up with the text above the list. It is a real `ul` or `ol`, so a screen reader says how many items there are.
 
 ```tsx
@@ -64,5 +66,7 @@ The list takes its size and colour from where it sits: an Alert's description, a
 <Controls of={Stories.Playground} />
 
 ## Don't
+
+Several items are a List, which a screen reader counts, never bullets typed into text. Steps the reader follows in order take `ordered`, never bullets.
 
 <Canvas of={Stories.Dont} />

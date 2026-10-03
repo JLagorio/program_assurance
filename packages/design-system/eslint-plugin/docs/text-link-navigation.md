@@ -6,6 +6,7 @@ Reports a TextLink with no destination, or one that renders a button or a native
 
 - A `TextLink` with no `href`, no `render` and no prop spread, so it goes nowhere: `TextLink needs a destination: an href, or a router link in render. An action that reads as text is a Button.`
 - A `TextLink` whose `render` is a native element other than `<a>` (`<button>`, `<span>`), or a kit `Button` or `IconButton`: `TextLink must render an anchor or a router link. Use Button for an action.`
+- A component of the file that hands its props on to a TextLink that has no destination of its own, given neither an `href` nor a spread, or given a `render` that is no link: `<More> forwards its props to <TextLink>, which needs a destination: an href, or a router link in render.` and `<More> forwards render to <TextLink>, which must render an anchor or a router link.`
 
 A custom component in `render`, such as a router `Link` or an application's record link, is accepted. `TextLink`, `Button` and `IconButton` are followed through an alias or a namespace import from `@ledger/design-system`.
 
@@ -94,3 +95,4 @@ The rule takes the plugin's `allow` option, a count of reports per file that may
 - A `TextLink` with a prop spread and no `href` or `render` passes, since the spread may carry one.
 - A `render` function (`render={(props) => …}`) is not read.
 - A TextLink and the part in its `render` are known by what their tags are bound to: the kit's, by name, alias or namespace (inside the kit, by a relative import), another package's by the name it imports (an alias or a namespace resolved), and a local component by the name it is written with, since any part of that name has the same defect. A type of the same name (a type parameter, a local type or interface) hides nothing. A parameter, or a local that shadows an outer name, is no part and is skipped.
+- A component that hands its props on to a TextLink is followed within the file, through up to four such components, when its first parameter carries it: the props object or a rest that still holds it, spread onto the element, or the prop destructured (in the parameter, or from the props object at the top of its body) and written onto it. Of the elements a component hands it to, the first in source order counts, passing over one that renders a component already on the way (a tree that renders itself). A component imported from another file, one declared with `let`, one read from an object (`<parts.Row>`), a component past the fourth and a second element given the same prop are not followed.

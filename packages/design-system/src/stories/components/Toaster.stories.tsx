@@ -28,7 +28,10 @@ import {
   useToastManager,
   type ToastOptions,
 } from "../../components";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Toaster",
@@ -347,7 +350,7 @@ export const Stack: Story = {
     await expect(await page.findByText("Evidence 4 linked")).toBeVisible();
     const viewport = page.getByLabelText("Notifications");
     await userEvent.hover(viewport.querySelector<HTMLElement>('[data-slot="toast"]')!);
-    const short = matchMedia("(max-height: 30rem)").matches;
+    const short = matchMedia("(height < 30rem)").matches;
     await waitFor(() => {
       const shown = [...viewport.querySelectorAll<HTMLElement>('[data-slot="toast"]')].filter(
         (el) => !el.hasAttribute("data-limited"),
@@ -484,6 +487,7 @@ function Raise({ label, options }: { label: string; options: ToastOptions }) {
 
 /** The mistakes the page is written to prevent, each beside the right way. Each button raises its toast in the one stack. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => <DontExamples />,
 };
 

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "pink-pill",
+    "tempts": "a palette colour and a radius the kit does not offer",
+    "prompt": "Add a Delete supplier button for the supplier record. Design wants it pink with fully rounded pill corners so it stands out.",
+    "file": "src/components/prototype/delete-supplier-button.tsx"
+  },
+  {
+    "id": "padding-13px",
+    "tempts": "arbitrary spacing and type sizes copied from a mock",
+    "prompt": "Build a supplier stats card that matches the mock exactly: 13px padding all round, the label at 13px, a 10px corner radius and a 1px solid #E4E4E7 border.",
+    "file": "src/components/prototype/supplier-stats-card.tsx"
+  },
+  {
+    "id": "brand-hex",
+    "tempts": "a hex colour",
+    "prompt": "Add a Subscribe to supplier alerts button in our brand orange, #FF6B35, with white text.",
+    "file": "src/components/prototype/subscribe-alerts-button.tsx"
+  },
+  {
+    "id": "glow-card",
+    "tempts": "a custom shadow and an effect the tokens do not hold",
+    "prompt": "Build a highlight card for the supplier overview with a soft glowing shadow around it, so it pops on the page.",
+    "file": "src/components/prototype/supplier-highlight-card.tsx"
+  },
+  {
+    "id": "caption-11px",
+    "tempts": "an arbitrary font size and a grey from the palette",
+    "prompt": "Under each supplier's name, add a caption line in 11px grey text showing who reviewed it and when.",
+    "file": "src/components/prototype/supplier-name-caption.tsx"
+  },
+  {
+    "id": "margin-16px",
+    "tempts": "a margin",
+    "prompt": "The supplier notes block sits too close to the header. Just give it a 16px top margin.",
+    "file": "src/components/prototype/supplier-notes.tsx"
+  },
+  {
+    "id": "dark-badge",
+    "tempts": "a dark: variant",
+    "prompt": "The On hold badge on suppliers is hard to read in dark mode. Make it a darker amber, in dark mode only.",
+    "file": "src/components/prototype/supplier-status-badge.tsx"
+  },
+  {
+    "id": "wrapping-tabs",
+    "tempts": "flex-wrap on the tab list",
+    "prompt": "The supplier record has tabs for Overview, Contacts, Contracts, Risks, Assessments, Evidence, Activity and Documents. On a phone they run off the edge. Make the tabs wrap onto a second line instead.",
+    "file": "src/components/prototype/supplier-tabs.tsx"
+  },
+  {
+    "id": "fixed-columns",
+    "tempts": "fixed table layout instead of a responsive table",
+    "prompt": "Build the supplier contracts table with fixed column widths: 320px for the contract, 140px for the value and 120px for the status. It should not reflow on small screens.",
+    "file": "src/components/prototype/supplier-contracts-table.tsx"
+  },
+  {
+    "id": "native-confirm",
+    "tempts": "window.confirm",
+    "prompt": "Add a Remove contact action to a supplier's contacts list. Before it removes the contact, just pop up a quick browser 'Are you sure?' confirm.",
+    "file": "src/components/prototype/remove-contact-action.tsx"
+  },
+  {
+    "id": "dialog-620px",
+    "tempts": "a pixel width on a dialog",
+    "prompt": "Build the Edit supplier dialog with name, country and owner fields. Make it exactly 620px wide to match the mock.",
+    "file": "src/components/prototype/edit-supplier-dialog.tsx"
+  },
+  {
+    "id": "autofocus",
+    "tempts": "autoFocus inside an overlay",
+    "prompt": "Build the Create contact dialog with name and email fields, and put autoFocus on the name input so people can start typing straight away.",
+    "file": "src/components/prototype/create-contact-dialog.tsx"
+  }
+]

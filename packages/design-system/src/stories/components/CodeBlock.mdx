@@ -7,6 +7,8 @@ import * as Stories from "./CodeBlock.stories";
 
 # CodeBlock
 
+**Status: Stable.**
+
 Source shown as source: a configuration excerpt, a serialised record, a log, a command the reader will paste. One row per line in the code face, a line-number gutter that stays put when the block scrolls sideways, a cap on the height so a long document scrolls inside the block and not the page, and a Copy when the reader will take the text away. The caller owns highlighting and passes rendered lines, or passes the text as `code` and the block splits it.
 
 It is not a field: a value the reader edits is a [Textarea](?path=/docs/components-textarea--docs). It is not prose: a paragraph is [Text](?path=/docs/primitives-text--docs). A single identifier in a sentence is an [Id](?path=/docs/components-id--docs).
@@ -118,5 +120,7 @@ Native div props and a ref reach the outer box, which names itself last with `da
 - [ScrollArea](?path=/docs/components-scrollarea--docs): a region that scrolls with the kit's bar; the CodeBlock uses the platform's, so the gutter can stick.
 
 ## Don't
+
+Source is shown in a CodeBlock, with its gutter and a Copy where the reader will paste it, never in a read-only Textarea. Prose stays Text, never a sentence set in a code block.
 
 <Canvas of={Stories.Dont} />

@@ -54,20 +54,23 @@ import { ChoiceField, RecordField } from "./fields";
 import { useFormFeedback, type FormIssue } from "./form-feedback";
 import { causeText } from "./sentence";
 import { useDraftGuard } from "./use-draft-guard";
-import { relatedCollection, useRecord } from "./record-lookup";
+import { relatedCollection } from "./record-lookup";
 import { useWorkspace } from "./workspace";
+import { useSchemaCatalog } from "@/lib/collections";
+import { NAME_COLUMNS, useRecordName } from "@/lib/record-names";
 
-const NAME_COLUMNS = ["name", "title", "display_name", "code", "source_id", "email", "label"];
+const NO_COLLECTIONS: Collection[] = [];
 
 /**
  * A record's name as text: a skeleton while it loads, Absent when it cannot be read. A record
  * with no name of its own is never named by its id or its description: a revision reads as its
  * version ("SSP revision 1"), a control as its code and title, and a record about a control
- * (a selected control, a control implementation) as that control.
+ * (a selected control, a control implementation) as that control. The names a page shows are
+ * read together, one request per collection (useRecordName).
  */
 export function RecordName({ collection, id }: { collection: Collection; id: string }) {
-  const workspace = useWorkspace();
-  const query = useRecord(collection, id);
+  const catalog = useSchemaCatalog();
+  const query = useRecordName(collection, id);
   if (query.isError) return <Absent label="Not available" />;
   const record = query.data;
   if (!record)
@@ -92,7 +95,7 @@ export function RecordName({ collection, id }: { collection: Collection; id: str
   if (typeof version === "number")
     return <>{`${capitalize(productRecordNoun(collection.name))} ${version}`}</>;
   for (const key of ["control_id", "selected_control_id"]) {
-    const related = relatedCollection(collection, key, workspace.collections);
+    const related = relatedCollection(collection, key, catalog.data ?? []);
     const target = text(key);
     if (related && target) return <RecordName collection={related} id={target} />;
   }
@@ -185,7 +188,7 @@ function ReferencePicker({
   controlRef: (node: HTMLElement | null) => void;
 }) {
   const workspace = useWorkspace();
-  const selected = useRecord(collection, value || null);
+  const selected = useRecordName(collection, value || null);
   // A party is a person or an organization, in the words PartyField uses.
   const parties = collection.name === "parties";
   const noun = parties ? "person or organization" : productRecordNoun(collection.name);
@@ -274,6 +277,9 @@ export function RecordEditor({
   onStateChange?: ((state: RecordEditorState) => void) | undefined;
 }) {
   const workspace = useWorkspace();
+  // The collection came from the schema, so the schema its references name is already loaded.
+  const catalog = useSchemaCatalog();
+  const collections = catalog.data ?? NO_COLLECTIONS;
   const formId = useId();
   const [baseline] = useState(existing);
   const queryClient = useQueryClient();
@@ -345,8 +351,7 @@ export function RecordEditor({
     if (failure) failureRef.current?.scrollIntoView({ block: "nearest" });
   }, [failure]);
 
-  const targetOf = (column: Column) =>
-    relatedCollection(collection, column.name, workspace.collections);
+  const targetOf = (column: Column) => relatedCollection(collection, column.name, collections);
   // A reference the context fixes (the record this one belongs to) is shown, not asked for.
   const contextual = (column: Column) =>
     presentation === "product" &&
@@ -486,6 +491,7 @@ export function RecordEditor({
       [
         ["records"],
         ["record", workspace.tenantId, collection.name, record.id],
+        ["record-name", workspace.tenantId, collection.name, record.id],
         ["models", workspace.tenantId, collection.name],
         ["model", workspace.tenantId, collection.name],
         ["reference-options", workspace.tenantId, collection.name],
@@ -650,7 +656,7 @@ export function RecordEditor({
             {contextColumns.length ? (
               <KeyValue.Group
                 {...(contextColumns.some((column) => fieldLabel(column).length > 14)
-                  ? { labelWidth: 160 }
+                  ? { labelWidth: "wide" as const }
                   : {})}
               >
                 {contextColumns.map((column) => (

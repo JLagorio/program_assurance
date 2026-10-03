@@ -48,7 +48,7 @@ function assignRef<T>(ref: React.Ref<T> | undefined, value: T | null) {
   else if (ref) ref.current = value;
 }
 
-/** The navigation landmark, named "Breadcrumb" (the `breadcrumb` message) unless `aria-label` names it; the caller owns the list, items, and separators. */
+/** The navigation landmark, named "Breadcrumb" (the `breadcrumb` message) unless `aria-label` names it; the caller owns the list, items, and separators. A base part: a PageHeader.Lead renders it as a record's trail, so its `data-slot` comes before the caller's props and the Lead keeps its name. */
 function Breadcrumb({ className, ...props }: BreadcrumbProps) {
   const { t } = useLedgerLocale();
   return (
@@ -483,7 +483,6 @@ function BreadcrumbList({
     <OverflowContext.Provider value={overflow}>
       <ol
         ref={setListRef}
-        data-slot="breadcrumb-list"
         className={cn(
           "font-body-small text-subtle",
           overflow === "wrap"
@@ -500,6 +499,7 @@ function BreadcrumbList({
           className,
         )}
         {...props}
+        data-slot="breadcrumb-list"
       >
         {collapse
           ? [
@@ -518,12 +518,12 @@ function BreadcrumbItem({ className, ...props }: BreadcrumbItemProps) {
   const overflow = React.useContext(OverflowContext);
   return (
     <li
-      data-slot="breadcrumb-item"
       className={cn(
         overflow === "wrap" ? "inline" : "inline-flex min-w-0 items-center gap-050",
         className,
       )}
       {...props}
+      data-slot="breadcrumb-item"
     />
   );
 }
@@ -662,12 +662,12 @@ function BreadcrumbPage({ className, ref, ...props }: React.ComponentProps<"span
   return (
     <span
       ref={setRef}
-      data-slot="breadcrumb-page"
       role="link"
       aria-disabled="true"
       aria-current="page"
       className={cn("font-regular text-default", truncates && "min-w-0 truncate", className)}
       {...props}
+      data-slot="breadcrumb-page"
     />
   );
 }
@@ -681,7 +681,6 @@ function BreadcrumbSeparator({ children, className, ...props }: React.ComponentP
   const wrap = overflow === "wrap";
   return (
     <li
-      data-slot="breadcrumb-separator"
       role="presentation"
       aria-hidden="true"
       className={cn(
@@ -690,6 +689,7 @@ function BreadcrumbSeparator({ children, className, ...props }: React.ComponentP
         className,
       )}
       {...props}
+      data-slot="breadcrumb-separator"
     >
       {/* The only break opportunity between levels: before the separator, not after it. */}
       {wrap ? <wbr /> : null}
@@ -703,7 +703,6 @@ function BreadcrumbSeparator({ children, className, ...props }: React.ComponentP
 function BreadcrumbEllipsis({ className, ...props }: React.ComponentProps<"span">) {
   return (
     <span
-      data-slot="breadcrumb-ellipsis"
       role="presentation"
       aria-hidden="true"
       className={cn(
@@ -711,6 +710,7 @@ function BreadcrumbEllipsis({ className, ...props }: React.ComponentProps<"span"
         className,
       )}
       {...props}
+      data-slot="breadcrumb-ellipsis"
     >
       <MoreHorizontalIcon />
     </span>

@@ -46,9 +46,9 @@ export type ScrollBarProps = Primitive.Scrollbar.Props;
 export function ScrollBar({ className, orientation = "vertical", ...props }: ScrollBarProps) {
   return (
     <Primitive.Scrollbar
-      data-slot="scroll-area-scrollbar"
       orientation={orientation}
       {...props}
+      data-slot="scroll-area-scrollbar"
       className={classes(
         "flex touch-none select-none p-025 transition-opacity duration-fast data-[orientation=vertical]:h-full data-[orientation=vertical]:w-100 data-[orientation=horizontal]:h-100 data-[orientation=horizontal]:flex-col",
         className,

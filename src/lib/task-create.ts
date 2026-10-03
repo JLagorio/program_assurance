@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { useWorkspace } from "@/components/app/workspace";
 import { database, requireIdentity } from "./database";
+import { calendarDay, INVALID_DUE_DATE } from "./due-dates";
 
 export const createTaskSchema = z
   .object({
@@ -14,10 +15,8 @@ export const createTaskSchema = z
       .max(1000, "Use at most 1000 characters for the title."),
     description: z.string().trim().max(10000, "Use at most 10000 characters for the description."),
     assigneePartyId: z.string().uuid("Choose an existing assignee.").nullable(),
-    dueAt: z
-      .string()
-      .datetime({ offset: true, message: "Enter a valid due date and time." })
-      .nullable(),
+    /** The day the task is due, as an ISO day ("2026-10-14"): a calendar day, never a moment. */
+    dueOn: calendarDay(INVALID_DUE_DATE).nullable(),
     priority: z.enum(["low", "normal", "high", "urgent"]).nullable(),
   })
   .strict();

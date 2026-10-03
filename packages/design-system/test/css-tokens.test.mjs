@@ -4,8 +4,9 @@
 // of the 148 CSS colour names); lengths only 0, 1px, a percentage, a viewport or container length
 // (the window's or the container's own size, structure as in the style rules), or a token; and the
 // conditions of @media and @container taken from the theme (`theme(--breakpoint-lg)`,
-// `theme(--container-compact)`). A var()'s fallback is what the page shows where the variable is
-// not set, so it is read like any value, and a number times a length is that length (`288 *
+// `theme(--container-compact)`, `theme(--query-short-window)`), each theme() and var(--ds-…)
+// naming a key the token build writes. A var()'s fallback is what the page shows where the
+// variable is not set, so it is read like any value, and a number times a length is that length (`288 *
 // 1px` is 288px). `@apply` writes classes no class rule reads, so the stylesheets have none. A
 // literal no token of its value and role holds yet is counted in css-token-allow.json with the
 // reason it stays; the counts are exact, and the list only shrinks (scripts/check-allow-lists.mjs
@@ -21,6 +22,7 @@ import { literalColour } from "../eslint-plugin/colours.js";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const STYLES = path.join(here, "../src/styles");
 const ALLOW = path.join(here, "css-token-allow.json");
+const GENERATED = path.join(here, "../src/generated");
 
 /** The units of a length that is a design value; `%`, viewport and container units are not. */
 const UNITS = "px|rem|em|ch|ex|pt|pc|cm|mm|in|q|lh|rlh|cap|ic";
@@ -210,7 +212,7 @@ test("the kit's stylesheets write lengths and conditions as tokens, or the liter
         problems.push(
           `${key}:${line} writes ${literal}${kind === "condition" ? " in a condition" : ""}. ${
             kind === "condition"
-              ? "Take it from the theme: theme(--breakpoint-…) or theme(--container-…)."
+              ? "Take it from the theme: theme(--breakpoint-…), theme(--container-…) or theme(--query-…)."
               : "Use the token of its value and role: var(--ds-space-…), var(--ds-border-width-…) or a dimension."
           }`,
         );
@@ -229,6 +231,30 @@ test("the kit's stylesheets write lengths and conditions as tokens, or the liter
     }
   }
   assert.deepEqual(problems, [], `\n${problems.join("\n")}`);
+});
+
+test("each theme() and var(--ds-…) in the kit's stylesheets names a key the token build writes", () => {
+  const generated = (file) => fs.readFileSync(path.join(GENERATED, file), "utf8");
+  const declared = (css) => new Set([...css.matchAll(/^\s*(--[\w-]+):/gm)].map(([, name]) => name));
+  const themeKeys = declared(generated("theme.css"));
+  const variables = declared(generated("tokens.css"));
+  const unknown = [];
+  for (const file of fs
+    .readdirSync(STYLES)
+    .filter((each) => each.endsWith(".css"))
+    .sort()) {
+    const text = blank(fs.readFileSync(path.join(STYLES, file), "utf8"), /\/\*[\s\S]*?\*\//g);
+    const lineAt = (offset) => text.slice(0, offset).split("\n").length;
+    for (const { 1: name, index } of text.matchAll(/\btheme\((--[\w-]+)\)/g))
+      if (!themeKeys.has(name)) unknown.push(`src/styles/${file}:${lineAt(index)} theme(${name})`);
+    for (const { 1: name, index } of text.matchAll(/\bvar\((--ds-[\w-]+)/g))
+      if (!variables.has(name)) unknown.push(`src/styles/${file}:${lineAt(index)} var(${name})`);
+  }
+  assert.deepEqual(
+    unknown,
+    [],
+    "Name a token: theme.css holds the theme keys, tokens.css the variables.",
+  );
 });
 
 test("css-token-allow.json names stylesheets that exist, positive counts and a reason each", () => {

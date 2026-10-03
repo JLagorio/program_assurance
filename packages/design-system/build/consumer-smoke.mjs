@@ -239,7 +239,47 @@ console.log(JSON.stringify({ rules: rules.length, allowing: allowing.map(([name]
     throw new Error(
       `The packed configs.package carries kit allowances for ${preset.allowing.join(", ") || "no rules at all"}`,
     );
-  console.log("Packed consumer declarations, Vite bundle, Tailwind CSS and ESLint plugin passed");
+  // The read-only API, each named export imported from the packed entry and asked once, with the
+  // lint data in dist only (eslint-plugin/api.js).
+  fs.writeFileSync(
+    path.join(lintDir, "api.mjs"),
+    `import ledger, * as api from "@ledger/design-system/eslint";
+console.log(JSON.stringify({
+  plugin: typeof ledger.rules["no-margin"]?.create,
+  classify: api.classify("mt-4").rule,
+  suggestClass: api.suggestClass("p-4").replacements,
+  kitPartOf: api.kitPartOf("T.Cell", "@ledger/design-system", { imported: "Table" }),
+  tokenValue: api.tokenValue("space.200")?.px,
+  tokensOfValue: api.tokensOfValue("16px").map(({ name }) => name).includes("space.200"),
+  tokenOfClass: api.tokenOfClass("bg-surface"),
+  classCategories: api.classCategories("p-200").categories,
+  partsSetting: api.partsSetting("font-body-small")[0]?.part,
+}));
+`,
+  );
+  const asked = execFileSync(process.execPath, ["api.mjs"], {
+    cwd: lintDir,
+    encoding: "utf8",
+    env: { ...process.env, NODE_OPTIONS: "" },
+  });
+  const expectedAnswers = {
+    plugin: "function",
+    classify: "ledger/no-margin",
+    suggestClass: ["p-200"],
+    kitPartOf: "Table.Cell",
+    tokenValue: 16,
+    tokensOfValue: true,
+    tokenOfClass: "elevation.surface",
+    classCategories: ["spacing"],
+    partsSetting: "Text",
+  };
+  if (JSON.stringify(JSON.parse(asked)) !== JSON.stringify(expectedAnswers))
+    throw new Error(
+      `The packed read-only API answered ${asked.trim()}, not ${JSON.stringify(expectedAnswers)}`,
+    );
+  console.log(
+    "Packed consumer declarations, Vite bundle, Tailwind CSS, ESLint plugin and its read-only API passed",
+  );
 } finally {
   if (process.argv.includes("--keep")) console.log(`Consumer fixture: ${dir}`);
   else fs.rmSync(dir, { recursive: true, force: true });

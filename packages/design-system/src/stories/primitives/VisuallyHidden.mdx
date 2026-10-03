@@ -7,6 +7,8 @@ import * as Stories from "./VisuallyHidden.stories";
 
 # VisuallyHidden
 
+**Status: Stable.**
+
 Words for assistive technology alone. They stay in the accessibility tree and in reading order, and take no space on screen. Use them where the eye has what it needs from the layout and a screen reader does not: the meaning of a mark beside a name, a heading for a region whose content is its own heading, the word an empty value stands for.
 
 ```tsx
@@ -44,5 +46,7 @@ Words for assistive technology alone. They stay in the accessibility tree and in
 <Controls of={Stories.Playground} />
 
 ## Don't
+
+What a mark means is VisuallyHidden text read in its place, never a `title` on a span, which reaches a mouse after a wait and no one else.
 
 <Canvas of={Stories.Dont} />

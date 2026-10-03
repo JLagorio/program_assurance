@@ -3,12 +3,16 @@
   isolation: isolate;
 }
 [data-slot="tabs-indicator"] {
+  --tabs-indicator-left: var(--active-tab-left);
+  --tabs-indicator-top: var(--active-tab-top);
+  --tabs-indicator-width: var(--active-tab-width);
+  --tabs-indicator-height: var(--active-tab-height);
   position: absolute;
   pointer-events: none;
   inset: 0 auto auto 0;
-  width: var(--active-tab-width);
-  height: var(--active-tab-height);
-  transform: translate(var(--active-tab-left), var(--active-tab-top));
+  width: var(--tabs-indicator-width);
+  height: var(--tabs-indicator-height);
+  transform: translate(var(--tabs-indicator-left), var(--tabs-indicator-top));
   border-radius: var(--ds-radius-small);
   background-color: var(--ds-elevation-surface);
   /* The filled strip's selected chip is outlined in color.border.selected, 3:1 against the track
@@ -30,13 +34,26 @@
     top: auto;
     bottom: 0;
     height: var(--ds-space-025);
-    transform: translateX(var(--active-tab-left));
+    transform: translateX(var(--tabs-indicator-left));
   }
   &[data-orientation="vertical"] {
     left: auto;
     inset-inline-end: 0;
     width: var(--ds-space-025);
-    transform: translateY(var(--active-tab-top));
+    transform: translateY(var(--tabs-indicator-top));
+  }
+}
+/* Base UI measures the active tab against the strip and divides by the strip's scale, so a resize
+   of the strip's container that leaves the tabs where they were (a record's Details rail leaving
+   with its Overview) still writes new values, apart by far less than a pixel, and each one
+   would restart the slide. Rounded to the layout unit, 1/64px, they hold still, and the slide
+   runs once in its duration. */
+@supports (width: round(1px, 1px)) {
+  [data-slot="tabs-indicator"] {
+    --tabs-indicator-left: round(var(--active-tab-left), 1px / 64);
+    --tabs-indicator-top: round(var(--active-tab-top), 1px / 64);
+    --tabs-indicator-width: round(var(--active-tab-width), 1px / 64);
+    --tabs-indicator-height: round(var(--active-tab-height), 1px / 64);
   }
 }
 

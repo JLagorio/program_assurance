@@ -19,7 +19,10 @@ import {
   KbdGroup,
 } from "../../components";
 import { Stack } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/InputGroup",
@@ -59,15 +62,13 @@ export const SearchBox: Story = {
             </InputGroupAddon>
             <InputGroupAddon align="inline-end">
               <InputGroupButton
-                size="icon-xs"
-                aria-label="Clear search"
+                icon={<X />}
+                label="Clear search"
                 onClick={() => {
                   setQuery("");
                   input.current?.focus();
                 }}
-              >
-                <X aria-hidden="true" />
-              </InputGroupButton>
+              />
             </InputGroupAddon>
           </InputGroup>
           <FieldDescription id={`${fieldId}-search-controls-1-message`}>
@@ -81,15 +82,62 @@ export const SearchBox: Story = {
     const canvas = within(canvasElement);
     const input = canvas.getByRole("searchbox", { name: "Search controls" });
     await expect(input).toHaveAccessibleDescription("Search by identifier or title.");
+    // One searchbox needs no unnamed group around it.
+    await expect(input.closest('[data-slot="input-group"]')).not.toHaveAttribute("role");
     await userEvent.click(canvas.getByTestId("search-addon"));
     await expect(input).toHaveFocus();
     await userEvent.tab();
-    await expect(canvas.getByRole("button", { name: "Clear search" })).toHaveFocus();
+    const clear = canvas.getByRole("button", { name: "Clear search" });
+    await expect(clear).toHaveFocus();
+    await expect(clear).toHaveAttribute("data-slot", "input-group-button");
+    await expect(clear).toHaveAttribute("data-size", "xsmall");
     await userEvent.keyboard("{Enter}");
     await expect(input).toHaveValue("");
     await expect(input).toHaveFocus();
     await userEvent.type(input, "AU-2");
     await expect(input).toHaveValue("AU-2");
+  },
+};
+
+/**
+ * InputGroupButton is `xsmall` (24px, the default) or `small` (28px), Button's steps. With `icon`
+ * and `label` it is an icon-only square that `label` names; a small button in an addon leaves a
+ * medium group at 32px, and a small Input makes the group 28px.
+ */
+export const Buttons: Story = {
+  render: () => (
+    <Stack space="space.300" className="w-layout-list max-w-full">
+      <InputGroup data-testid="medium-group">
+        <InputGroupInput aria-label="Share link" defaultValue="https://example.com/r/AC-2" />
+        <InputGroupAddon align="inline-end">
+          <InputGroupButton icon={<X />} label="Clear link" />
+          <InputGroupButton size="small">Copy</InputGroupButton>
+        </InputGroupAddon>
+      </InputGroup>
+      <InputGroup data-testid="small-group">
+        <InputGroupInput size="small" aria-label="Filter rows" placeholder="Filter rows" />
+        <InputGroupAddon align="inline-end">
+          <InputGroupButton icon={<Search />} label="Search rows" size="xsmall" />
+        </InputGroupAddon>
+      </InputGroup>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByTestId("medium-group").getBoundingClientRect().height).toBe(32);
+    await expect(canvas.getByTestId("small-group").getBoundingClientRect().height).toBe(28);
+    const clear = canvas.getByRole("button", { name: "Clear link" });
+    await expect(clear).toHaveAttribute("data-size", "xsmall");
+    await expect(clear.getBoundingClientRect().width).toBe(24);
+    await expect(clear.getBoundingClientRect().height).toBe(24);
+    await expect(clear.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    const copy = canvas.getByRole("button", { name: "Copy" });
+    await expect(copy).toHaveAttribute("data-size", "small");
+    await expect(copy.getBoundingClientRect().height).toBe(28);
+    await expect(canvas.getByRole("button", { name: "Search rows" })).toHaveAttribute(
+      "type",
+      "button",
+    );
   },
 };
 
@@ -185,16 +233,14 @@ export const States: Story = {
               id={`${fieldId}-owner-5`}
               aria-labelledby={`${fieldId}-owner-5-label`}
               aria-describedby={`${fieldId}-owner-5-message`}
-              aria-invalid={Boolean("Choose an owner.") || true}
+              aria-invalid
               placeholder="Search owners"
             />
             <InputGroupAddon>
               <Search aria-hidden="true" />
             </InputGroupAddon>
           </InputGroup>
-          {Boolean("Choose an owner.") ? (
-            <FieldError id={`${fieldId}-owner-5-message`}>{"Choose an owner."}</FieldError>
-          ) : null}
+          <FieldError id={`${fieldId}-owner-5-message`}>{"Choose an owner."}</FieldError>
         </Field>
         <Field data-disabled>
           <FieldLabel
@@ -269,9 +315,7 @@ function HintedSearch({ label }: { label: string }) {
         <Search aria-hidden="true" />
       </InputGroupAddon>
       <InputGroupAddon align="inline-end">
-        <InputGroupButton size="icon-xs" aria-label="Clear search">
-          <X aria-hidden="true" />
-        </InputGroupButton>
+        <InputGroupButton icon={<X />} label="Clear search" />
         <InputGroupText>
           <KbdGroup>
             <Kbd label="Command">⌘</Kbd>
@@ -287,7 +331,6 @@ function HintedSearch({ label }: { label: string }) {
 export const Narrow: Story = {
   name: "In a narrow frame",
   globals: { viewport: { value: "ledgerSmall", isRotated: false } },
-  tags: ["narrow"],
   render: function NarrowExample() {
     const fieldId = useId();
     return (
@@ -334,6 +377,7 @@ export const Narrow: Story = {
 
 /** The mistake the narrow rule is written to prevent, beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Pair
       do={

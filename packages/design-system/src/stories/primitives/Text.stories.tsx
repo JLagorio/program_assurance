@@ -3,7 +3,10 @@ import { Input, TextLink } from "../../components";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Box, Grid, Heading, Inline, Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Primitives/Text",
@@ -42,6 +45,8 @@ const colors = [
   "color.text.success",
   "color.text.information",
 ] as const;
+
+export const Playground: Story = {};
 
 /** The four sizes by the three weights; the text colours; alignment; one, two and three lines clamped, each showing the whole on hover; a paragraph at the reading measure; inverse on a bold fill without a colour. */
 export const TextMatrix: Story = {
@@ -198,6 +203,7 @@ export const WeightsAndColors: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -241,7 +247,7 @@ export const Dont: Story = {
       <Pair
         do={
           <Stack space="space.050">
-            <Heading size="xsmall">Assessment results</Heading>
+            <Heading size="section">Assessment results</Heading>
             <Text as="p" size="small" color="color.text.subtle">
               Two findings carried from the last cycle.
             </Text>
@@ -263,8 +269,6 @@ export const Dont: Story = {
     </Stack>
   ),
 };
-
-export const Playground: Story = {};
 
 export const LabelAssociation: Story = {
   render: () => (

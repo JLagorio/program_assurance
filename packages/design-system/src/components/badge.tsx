@@ -43,9 +43,9 @@ const badgeRecipe = cva(
       },
       size: {
         small:
-          "h-250 px-100 py-025 font-body-small has-data-[icon=inline-end]:pr-075 has-data-[icon=inline-start]:pl-075",
+          "h-250 px-100 py-025 font-body-small has-data-[icon=inline-end]:pe-075 has-data-[icon=inline-start]:ps-075",
         xsmall:
-          "h-200 px-050 py-0 font-body-xsmall has-data-[icon=inline-end]:pr-050 has-data-[icon=inline-start]:pl-050",
+          "h-200 px-050 py-0 font-body-xsmall has-data-[icon=inline-end]:pe-050 has-data-[icon=inline-start]:ps-050",
       },
     },
     defaultVariants: { variant: "default", size: "small" },

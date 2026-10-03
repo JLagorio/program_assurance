@@ -7,6 +7,8 @@ import * as Stories from "./Popover.stories";
 
 # Popover
 
+**Status: Stable.**
+
 An anchored dialog for controls, forms and supporting content. It follows shadcn's Base UI composition, with Ledger's surface, spacing and motion tokens.
 
 ```tsx
@@ -21,6 +23,23 @@ An anchored dialog for controls, forms and supporting content. It follows shadcn
   </PopoverContent>
 </Popover>
 ```
+
+## When to use it
+
+- **A small task at its button**, finished in place: a filter's values, a reason for a change, a date, the settings of one view.
+- **Controls that act on what sits beside them**, applied as they change or with one button that says what it does.
+
+Not for a label or a shortcut: that is a [Tooltip](?path=/docs/components-tooltip--docs). Not for a preview of a link's destination: that is a [HoverCard](?path=/docs/components-hovercard--docs). Not for a list of actions: that is a [DropdownMenu](?path=/docs/components-dropdownmenu--docs). Not for a create or edit form, or a task with several fields: that is a [Dialog](?path=/docs/components-dialog--docs). Never a popover inside a popover. [Overlays](?path=/docs/components-overlays--docs) compares them all.
+
+A create form of several fields belongs in a Dialog, never in a popover that a press outside closes.
+
+<Canvas of={Stories.DoDont} />
+
+## Content
+
+- A title, where there is one, names the task or the setting ("Review schedule", "Owner"), and the trigger says the same words or shows the current value.
+- A button says what it does ("Apply filter", "Clear owner"). A popover whose changes apply as they are made ends with Done, never Save or OK.
+- One short task, whose button the reader sees without scrolling the popover in a window of ordinary height.
 
 ## Composition
 

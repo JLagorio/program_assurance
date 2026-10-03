@@ -6,6 +6,8 @@ import * as Stories from "./Scroller.stories";
 
 # Scroller
 
+**Status: Stable.**
+
 A bounded scrolling region with an arrow at each edge that can still scroll. Select, DropdownMenu, Combobox and horizontal line Tabs compose it, so a long list and a wide strip scroll alike.
 
 ## Anatomy
@@ -27,6 +29,10 @@ The viewport clips on both axes, so every focus ring inside it is drawn inside i
 `ScrollerViewport` is a tab stop only when the keyboard needs it: while it overflows and holds nothing the keyboard can reach (no link, button or field, and no option, menu item, tab, tree item or grid cell that a composite moves focus to), it takes `tabIndex={0}` so the arrow keys can scroll it. It is then a group named by your `aria-label` or `aria-labelledby`, or "Content, scrolls" (the locale's `contentScrolls`) when it has none; your own `role` is kept. A strip that fits, or that holds a button, adds no stop. Pass `tabIndex` to decide yourself; a focusable viewport you did not name still takes the default name. Its own ring is drawn inside it as well.
 
 <Canvas of={Stories.KeyboardStop} />
+
+Name a strip that can become a stop after what it holds. Unnamed, a keyboard reader hears "Content, scrolls", which says it scrolls and nothing of what is in it.
+
+<Canvas of={Stories.DoDont} />
 
 ## Vertical
 

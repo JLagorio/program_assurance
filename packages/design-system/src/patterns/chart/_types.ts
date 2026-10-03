@@ -1,3 +1,5 @@
+import type { ReactElement, ReactNode } from "react";
+
 import type { Tone } from "../../components/badge";
 
 /*
@@ -92,8 +94,23 @@ export type SwatchShape = "square" | "line" | "dot";
 /** One column of a table twin: its heading, and whether it holds numbers (set to the end, tabular). */
 export type TwinColumn = { label: string; numeric: boolean };
 
-/** One row of a table twin: each cell's text in the table and its value in the CSV (numbers raw). */
-export type TwinRow = { key: string; cells: { text: string; csv: string }[] };
+/** A link element (a router's Link, or `<a href>`) a mark or a cell becomes: the kit lends it its class and its text. */
+export type ChartLink = ReactElement<{
+  className?: string | undefined;
+  children?: ReactNode;
+}>;
+
+/** One cell of a table twin: its text in the table, its value in the CSV (numbers raw), and the link the plot's mark carries, named by `label`, so the table opens what the plot opens. */
+export type TwinCell = {
+  text: string;
+  csv: string;
+  link?: ChartLink | undefined;
+  /** The link's accessible name, when its text alone ("3") does not say which mark it is. */
+  label?: string | undefined;
+};
+
+/** One row of a table twin: its cells, the first of which heads the row. */
+export type TwinRow = { key: string; cells: TwinCell[] };
 
 /** The same numbers as the plot, laid out as a table: what the Frame's Table toggle shows and its CSV holds. */
 export type ChartTwin = { columns: TwinColumn[]; rows: TwinRow[] };

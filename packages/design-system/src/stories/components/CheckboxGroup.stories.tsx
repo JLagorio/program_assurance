@@ -17,7 +17,10 @@ import {
   FieldSet,
 } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const families = [
   ["ac", "AC · Access control"],
@@ -25,13 +28,12 @@ const families = [
   ["cm", "CM · Configuration management"],
 ] as const;
 const allFamilies = families.map(([value]) => value);
-const changed = fn();
 
 const meta = {
   title: "Components/CheckboxGroup",
   component: CheckboxGroup,
   parameters: { layout: "padded" },
-  args: { defaultValue: ["ac"], disabled: false, onValueChange: changed },
+  args: { defaultValue: ["ac"], disabled: false, onValueChange: fn() },
   render: (args) => (
     <CheckboxGroup {...args} allValues={allFamilies} className="w-layout-list max-w-full">
       <FieldLegend variant="label">Control families</FieldLegend>
@@ -55,9 +57,8 @@ type Story = StoryObj<typeof meta>;
  * when some are, and a press ticks or clears them all.
  */
 export const Playground: Story = {
-  play: async ({ canvasElement }) => {
+  play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement);
-    changed.mockClear();
     await expect(canvas.getByRole("group", { name: "Control families" }).tagName).toBe("FIELDSET");
     const parent = canvas.getByRole("checkbox", { name: "Every family" });
     const children = families.map(([, name]) => canvas.getByRole("checkbox", { name }));
@@ -65,7 +66,7 @@ export const Playground: Story = {
     await expect(parent.querySelector("svg.lucide-minus")).toBeVisible();
     await userEvent.click(canvas.getByText("Every family"));
     for (const checkbox of [parent, ...children]) await expect(checkbox).toBeChecked();
-    await expect(changed).toHaveBeenLastCalledWith(allFamilies, expect.anything());
+    await expect(args.onValueChange).toHaveBeenLastCalledWith(allFamilies, expect.anything());
     await userEvent.keyboard(" ");
     for (const checkbox of [parent, ...children]) await expect(checkbox).not.toBeChecked();
     await userEvent.click(canvas.getByText("AU · Audit and accountability"));
@@ -197,20 +198,20 @@ export const InField: Story = {
 /** `disabled` reaches every box, the select-all box included, and takes them out of the tab order. */
 export const Disabled: Story = {
   args: { disabled: true },
-  play: async ({ canvasElement }) => {
+  play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement);
-    changed.mockClear();
     for (const checkbox of canvas.getAllByRole("checkbox")) {
       await expect(checkbox).toHaveAttribute("aria-disabled", "true");
       await userEvent.click(checkbox, { pointerEventsCheck: 0 });
     }
-    await expect(changed).not.toHaveBeenCalled();
+    await expect(args.onValueChange).not.toHaveBeenCalled();
     await expect(canvas.getByRole("checkbox", { name: "AC · Access control" })).toBeChecked();
   },
 };
 
 /** Several boxes answer several questions; one answer out of two is a RadioGroup. */
 export const DoDont: Story = {
+  tags: ["!manifest"],
   name: "Do and don't",
   render: () => (
     <Pair

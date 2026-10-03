@@ -1,38 +1,32 @@
 # Status vocabulary
 
-Status is said through one `tone`. The type and the class table live in `packages/design-system/src/components/badge.tsx`:
+The product's statuses, states, decisions and levels: the words each stored value reads as, its tone and its place in the order. What each tone means is the kit's, on the Storybook's Components/Badge page (neutral: no judgment; information: in progress; success: done and good; warning: needs attention; danger: wrong or late). This guide says where the product keeps its values and how a screen draws them.
 
-```ts
-export type Tone = "neutral" | "information" | "success" | "warning" | "danger";
-```
+## Where the values live
 
-The names are the token names, so a tone reads straight through to `color.background.<tone>`, `color.text.<tone>` and `color.icon.<tone>`. It is `information`, never `info`. One `toneClasses` table in that file feeds every part that paints a status: the subtle fill with the tone's text, the bold fill with inverse text, the icon colour for a Dot, the fill for a bar. The tokens are on the Storybook sheet Tokens/Color; the parts are under Components/Badge and Components/Status.
-
-## Who takes a tone
-
-| Prop               | Parts                                                                                                                                                                                                                          |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `tone: Tone`       | `Badge`, `Dot`, `Indicator`, `Alert`, `Progress` and each `ProgressStacked` segment, `Stat` and `Stat.Tile`, `Gates.Item`, `Timeline.Item`, `Eyebrow`, `Prose`, an `ActionBar` state, a `WorkPane` row, a `RecordPicker` badge |
-| `tone: BannerTone` | `Banner`: `information`, `warning` or `danger`. A banner is never neutral and never a success.                                                                                                                                 |
-| `tone: ChartTone`  | A `Chart` series: a `Tone`, `brand` for the one series the reader is asked to look at, or `categorical.1` to `categorical.8` when the categories carry no status (`packages/design-system/src/patterns/chart.tsx`).          |
-
-`AlertDialog`'s `tone` is `primary` or `danger`: the weight of the confirming action, not a status.
-
-## Meanings
-
-| Tone          | Meaning                                  | Examples from the app                                                                                                           |
-| ------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `success`     | Meets the bar                            | Compliant · Passing · Satisfied · Approved · a revision in force                                                                |
-| `warning`     | Needs human attention, not yet a failure | Needs review · Partially satisfied · In remediation · Pending approval · evidence age ("34d") · suspect links · versions behind |
-| `danger`      | Failing the bar                          | Failing · Non-compliant · Other than satisfied · Overdue · Changes requested                                                    |
-| `information` | Informational, automated, in progress    | Automated · In assessment                                                                                                       |
-| `neutral`     | No judgment                              | Not assessed · Accepted · Draft · Superseded · source and method labels                                                         |
+- [`src/lib/status.ts`](../../src/lib/status.ts) holds one map per concept (`taskStatuses`, `determinations`, `remediationStatuses`, `revisionStates`, `severityLevels` and the rest): each stored value's label, tone and rank. `fieldVocabularies` names the map for every stored table and column a screen shows, and `vocabularyFor(table, field)` reads it. `statusLabel`, `statusTone` and `compareStatus` read a value through its map. It is domain code and imports no kit part.
+- [`src/components/app/status.tsx`](../../src/components/app/status.tsx) draws them: `StatusBadge` for a status, state or decision (a Badge in the map's tone), `LevelIndicator` for a severity, impact, likelihood or priority (a Dot and a word), `VocabularyValue` for either by the map's kind, and `FieldStatus` for a stored field by table and column.
+- In a DataTable, `c.status(key, { statuses })` takes the same map: it draws the same badge, sorts by rank and filters by label.
 
 ## Rules
 
-- Control assessment states use the RMF phrasing: **Satisfied / Partially satisfied / Other than satisfied / Not assessed**, not pass/fail synonyms.
-- A count of problems is a `danger` or `warning` badge only when the count itself is the alarm (overdue POA&M items). Otherwise counts are neutral, as in `Tabs` counts and `Count`.
-- `neutral` is the default tone. Reach for colour only when the state genuinely differs from "recorded".
-- `appearance="bold"` on a Badge is the solid fill. One per view, for the status that must win.
-- Severity ladders render through `Indicator`: a Dot plus text, never a pill, so the status column stays the only pill in a row. The old `Severity` component is `Indicator`; `Severity` in the prototype is now only the STIG category type in `src/lib/verification.ts`.
-- Severity maps to tone in the prototype's data layer, not in a component: `poamSeverityTone` (`src/lib/grc-data.ts`) and `alertSeverityTone` (`src/lib/conmon.ts`) give Critical and High `danger`, Moderate `warning`, Low `neutral`. STIG categories give CAT I `danger`, CAT II `warning`, CAT III `neutral`. Revision states are `revisionTone` in `src/lib/control-set.ts`.
+- A screen names the concept's map, or asks `vocabularyFor(table, field)`. It keeps no tone map of its own and never picks a tone for a stored value. A new stored status field gets its map in `status.ts` and its row in `fieldVocabularies`.
+- The concept decides the tone, not the word. Accepted is success on a review, an evidence review and a library assignment, and neutral on a risk, where it records a decision to live with the risk; Closed is success on an operational issue and a risk, and neutral on a program; Active is success on a program, a product or configuration, a CCI and a control publication, where it means in force and in good standing, and information on a campaign and a workstream, where it means work in progress.
+- A value the map does not know reads in words, neutral. That is a gap in the map, not a choice: add the value.
+- A level (severity, impact, likelihood, priority, an import issue's severity) is an Indicator, never a pill, so the status column stays the only pill in a row. Every Low and Very low on an Indicator is neutral: a low level asks nothing of the reader.
+- Control assessment results use the RMF phrasing: Satisfied, Partially satisfied, Other than satisfied, Not assessed (`determinations`), never pass and fail.
+- A missing value is the kit's Absent, which StatusBadge and LevelIndicator draw for an empty value: "Not recorded" to a screen reader unless a label says more.
+- A count is neutral (a Count) unless the count itself is the alarm.
+- `appearance="bold"` on a Badge is the solid fill: one per view, for the status that must win.
+
+## The product's values by tone
+
+| Tone          | Values in the map                                                                                                                                                                                                                                                                                                                                                                                    |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `success`     | Satisfied · Met · Implemented · Authorized · Published · Approved · Done · Completed · Passed · Resolved (an issue, a reference) · Closed (an issue, a risk) · Accepted (a review, an evidence review, an evidence use, a library assignment or target) · Operational · Active (a program, a product or configuration, a CCI, a control)                                                             |
+| `information` | In progress · In review · Active (a campaign, a workstream) · Triaged · Investigating · Responding · In development · Under development · Validating · Importing · Proposed · Alternative; an import Information                                                                                                                                                                                     |
+| `warning`     | Partially satisfied · Partial · Waiting · Suspended · At risk · Deferred · Needs revision · Authorized with conditions · Conditionally applicable · Deprecated · No SSP · Conflicting · Unsupported publication; the levels Moderate, a High task priority and an import Warning                                                                                                                     |
+| `danger`      | Other than satisfied · Not met · Not implemented · Blocked · Failed · Aborted · Overdue · Rejected · Changes requested · Denied · Revoked · Expired · Unresolved; the levels High and Critical severity, High impact, High and Very high risk, an Urgent task priority and an import Error                                                                                                           |
+| `neutral`     | Open · Planned · Not started · Ready · Queued · Not assessed · Not applicable · Applicable · Draft · Superseded · Cancelled · Closed (a program) · Waived · Accepted and Risk accepted (a risk, a remediation item) · Pending · Retired · Withdrawn · Disposition · Already applied · Excluded · Not in baseline · Other (a component's status); the levels Low, Very low and a Normal task priority |
+
+The map is the source; when it changes, this table follows it.

@@ -14,6 +14,8 @@ import * as Stories from "./Sheet.stories";
 
 # Sheet
 
+**Status: Stable.**
+
 A modal panel at an edge of the window: a selection, a review, or a task that must hold focus beside the page's context. Built on [Base UI Dialog](https://base-ui.com/react/components/dialog) with [shadcn’s Sheet composition](https://ui.shadcn.com/docs/components/base/sheet) and Ledger's tokens.
 
 <Canvas of={Stories.EdgesAndScrolling} />
@@ -28,7 +30,7 @@ Not for work beside a list the reader keeps using: that is the Shell's panel, wh
 ## Anatomy
 
 - **SheetContent** brings its portal, the blanket and a close button at the top end (an IconButton named Close, with no tooltip, first in the Tab order where it is drawn, while the first field still takes focus on open), and slides from `side`: `right` by default, `left`, `top` or `bottom`, or `start` and `end`, which follow the reading direction. It records the overlay surface as the current one, so a sticky header or pinned cell inside matches the sheet.
-- **SheetHeader** holds the title (the sheet's h2; headings inside start at h3) and the description, which wrap an unbroken value.
+- **SheetHeader** holds the title (the sheet's h2, a [Heading](?path=/docs/primitives-heading--docs) at `overlay`, 15/22 medium; headings inside start at h3) and the description, which wrap an unbroken value. A record's name as the title is a PageHeader.Title rendered as SheetTitle, and keeps the page title's size.
 - **SheetBody** is the one scrolling region, with the sheet's inset. A toolbar row that should not scroll sits between the header and the body.
 - **SheetFooter** stays outside the scroll, on the sheet's own surface below a hairline. The header, the body and the footer share the sheet's `space.200` inline inset.
 - **SheetPortal** and **SheetOverlay** are exported for a custom popup, as Dialog's are.
@@ -68,6 +70,13 @@ The body takes the height the header, any toolbar row and the footer leave, at l
 
 <Canvas of={Stories.NestedAndRTL} />
 
+## Content
+
+- The title names what the sheet holds: the record under review ("CTRL-0412 Segregation of duties"), or the selection and what it is for ("Add controls to Flight computer"). A selection's title, its trigger and its primary say the same words.
+- The primary says the operation and its object ("Add 12 controls", "Apply filters"), never OK, Submit or Done alone; the secondary is Cancel, or Close for a sheet whose choices apply as they are made.
+- The description says what the sheet acts on or what it leaves out ("Controls already in the baseline are not listed"), never an instruction the reader must keep in mind while the sheet is open.
+- A title that names a record may hold its code, and wraps rather than running past the edge. A failure is said in the body, through an Alert, never in the title.
+
 ## Props
 
 Sheet is Base UI Dialog at an edge, so it takes the same root props, `open`, `defaultOpen`, `onOpenChange` (with the change's `reason` and `cancel()` in its details), `onOpenChangeComplete`, `modal`, `disablePointerDismissal`, `actionsRef` and `handle`, and Ledger's `pending`. SheetContent takes the popup's `initialFocus`, `finalFocus`, `render`, `className` and `style`, and Ledger's `side`, `width` and `showCloseButton`. The types are in [Base UI's API reference](https://base-ui.com/react/components/dialog#api-reference).
@@ -105,3 +114,9 @@ Sheet is Base UI Dialog at an edge, so it takes the same root props, `open`, `de
 ## Related
 
 - [Dialog](?path=/docs/components-dialog--docs), [PickerSheet](?path=/docs/patterns-pickersheet--docs), [PreviewSheet](?path=/docs/patterns-previewsheet--docs), [Overlays](?path=/docs/components-overlays--docs).
+
+## Don't
+
+The title says what the selection is for and where it goes, and the primary says what it adds and how many, never a bare title and Done.
+
+<Canvas of={Stories.Dont} />

@@ -17,7 +17,10 @@ import {
   DialogTrigger,
 } from "../../components";
 import { Box, Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Patterns/Composer",
@@ -101,7 +104,23 @@ const heard = (doc: Document) =>
 
 /** A `#` adapter: Up and Down choose, Enter or Tab inserts, Escape closes the list. The list floats in the kit's positioner, and each list and each move is announced. */
 export const Suggestions: Story = {
-  args: { getSuggestions, hint: "Type # to insert a topic." },
+  args: {
+    // The adapter owns its # trigger and what each topic inserts; Composer owns neither.
+    getSuggestions: (text, caret) => {
+      const start = text.lastIndexOf("#", caret - 1);
+      if (start < 0 || /\s/.test(text.slice(start + 1, caret))) return null;
+      const query = text.slice(start + 1, caret).toLowerCase();
+      return {
+        start,
+        end: caret,
+        items: [
+          { id: "topic-1", label: "Planning", insertText: "[topic:1] " },
+          { id: "topic-2", label: "Delivery", insertText: "[topic:2] " },
+        ].filter((item) => item.label.toLowerCase().includes(query)),
+      };
+    },
+    hint: "Type # to insert a topic.",
+  },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const doc = canvasElement.ownerDocument;
@@ -156,6 +175,7 @@ export const Suggestions: Story = {
 
 /** At the foot of a panel that clips its content: the list is portaled, so the panel cannot cut it, and it opens above the field where the window ends below it, never taller than the room it has. */
 export const SuggestionsAtTheEdge: Story = {
+  tags: ["!manifest"],
   parameters: { layout: "fullscreen" },
   render: () => (
     <Box className="flex h-screen flex-col justify-end overflow-hidden p-200">
@@ -186,6 +206,7 @@ export const SuggestionsAtTheEdge: Story = {
 
 /** In a Dialog: the portaled list belongs to the dialog, so choosing an option leaves the dialog open, and Escape closes the list before the dialog. */
 export const SuggestionsInDialog: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Dialog>
       <DialogTrigger render={<Button />}>Add a note</DialogTrigger>
@@ -251,8 +272,8 @@ export const SaveRecovery: Story = {
     const canvas = within(canvasElement);
     const doc = canvasElement.ownerDocument;
     const field = canvas.getByRole("textbox", { name: "Recoverable draft" });
-    // The keyboard hint is for a keyboard: a touch screen does not show it.
-    if (matchMedia("(pointer: coarse)").matches)
+    // The keyboard hint is for a keyboard: where any pointer is coarse it is left out.
+    if (matchMedia("(any-pointer: coarse)").matches)
       await expect(canvas.queryByText("Ctrl/⌘ + Enter to send")).toBeNull();
     else await expect(field).toHaveAccessibleDescription("Ctrl/⌘ + Enter to send");
     await userEvent.click(field);
@@ -305,6 +326,7 @@ export const ServerReason: Story = {
 };
 
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Pair
       do={<Composer label="Reply" hint="Saved when Send succeeds." onSubmit={() => undefined} />}

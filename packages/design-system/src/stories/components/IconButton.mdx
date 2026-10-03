@@ -7,24 +7,30 @@ import * as Stories from "./IconButton.stories";
 
 # IconButton
 
+**Status: Stable.**
+
 A square [Button](?path=/docs/components-button--docs) with an icon, a required `label` and a tooltip. Name the action, such as “Search” or “Close.” Use a labelled Button when the icon alone would be unclear, a [LinkIconButton](?path=/docs/components-linkbutton--docs) when the icon goes somewhere (opening a record in a new tab), and a [CopyButton](?path=/docs/components-copybutton--docs) with `label` to copy a value.
 
 <Canvas of={Stories.IconButtonMatrix} />
 
+An icon stands alone only where every reader takes it the same way: search, close, more, edit, previous and next. Request evidence or Export to OSCAL keeps its words in a Button. The label says the action and what it acts on (Edit owner), never the drawing (Pencil).
+
+<Canvas of={Stories.DoDont} />
+
 ## Variants and sizes
 
-| Variant | Use |
-| --- | --- |
-| `secondary` | Default raised action. |
-| `subtle` | Toolbars, rows and header controls. |
-| `primary` | Emphasized actions, including the options beside a primary split action. |
+| Variant     | Use                                                                      |
+| ----------- | ------------------------------------------------------------------------ |
+| `secondary` | Default raised action.                                                   |
+| `subtle`    | Toolbars, rows and header controls.                                      |
+| `primary`   | Emphasized actions, including the options beside a primary split action. |
 
-| Size | Button | Icon | Typical placement |
-| --- | --- | --- | --- |
-| `medium` | 32px square | 16px | Beside a default (medium) Button, in a header or a footer. |
-| `small` | 28px square, the default | 14px | Toolbars, the top navigation, a card's corner. |
-| `xsmall` | 24px square | 14px | Beside an xsmall Button, such as the options of a dense split action. |
-| `xxsmall` | 20px square, small radius | 14px | The row control: a table or tree row's disclosure and row actions, a list row's chevron. |
+| Size      | Button                    | Icon | Typical placement                                                                                                                                                                                                                                                                                                        |
+| --------- | ------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `medium`  | 32px square               | 16px | Beside a default (medium) Button, in a header or a footer.                                                                                                                                                                                                                                                               |
+| `small`   | 28px square, the default  | 14px | Toolbars, the top navigation, a card's corner.                                                                                                                                                                                                                                                                           |
+| `xsmall`  | 24px square               | 14px | Beside an xsmall Button, such as the options of a dense split action.                                                                                                                                                                                                                                                    |
+| `xxsmall` | 20px square, small radius | 14px | The row control: a table or tree row's disclosure, the preview eye, a list row's chevron (a row's More fields is its count, "+3", at the same height). Table, DataTable, Tree and Item draw theirs with it. In a row pass `isTooltipDisabled`, so a long list mounts no tooltip per row; the name still says the action. |
 
 The sizes are Button's (`xsmall` 24px, `small` 28px, `medium` 32px) plus the 20px row control; Button defaults to `medium` and IconButton to `small`, so beside a default Button pass `size="medium"`. Where any pointer is coarse every size takes a hit area of at least 24px, centred, so a row keeps its height.
 

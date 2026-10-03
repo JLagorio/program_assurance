@@ -13,9 +13,13 @@ import {
   Input,
   Textarea,
 } from "../../components";
-import { Inline, Stack } from "../../primitives";
-import { Matrix as Grid } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import { Inline, Stack, Text } from "../../primitives";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix: Grid } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Textarea",
@@ -41,6 +45,7 @@ const stateProps = (s: State) => ({
 
 /** Every state down the side; bare and inside a Field across. */
 export const TextareaMatrix: Story = {
+  tags: ["!manifest"],
   render: function FieldExample() {
     const fieldId = useId();
     return (
@@ -83,7 +88,7 @@ export const TextareaMatrix: Story = {
                     rows={3}
                     {...stateProps(state)}
                   />
-                  {Boolean(fieldError1) ? (
+                  {fieldError1 ? (
                     <FieldError
                       id={`${fieldId}-function-1-${encodeURIComponent(String(state))}-${encodeURIComponent(String(col))}-message`}
                     >
@@ -356,6 +361,7 @@ export const InField: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: function FieldExample() {
     const fieldId = useId();
     return (
@@ -530,5 +536,49 @@ export const BoundInField: Story = {
     await userEvent.type(statement, "Quarterly{Enter}review");
     await expect(statement).toHaveValue("Quarterly\nreview");
     await expect(canvas.getByRole("textbox", { name: "Previous statement" })).toBeDisabled();
+  },
+};
+
+function InputApiExample() {
+  const [note, setNote] = useState("");
+  return (
+    <Stack space="space.200" className="w-layout-list max-w-full">
+      <Field>
+        <FieldLabel>Reviewer note</FieldLabel>
+        <Textarea
+          rows={2}
+          value={note}
+          onValueChange={setNote}
+          className={(state) => (state.focused ? "border-focused" : undefined)}
+          style={(state) => (state.dirty ? { fontStyle: "italic" } : undefined)}
+          render={<textarea data-testid="reviewer-note" />}
+        />
+      </Field>
+      <Text>{note ? `${note.length} characters` : "No note yet"}</Text>
+    </Stack>
+  );
+}
+
+/**
+ * Textarea takes Input's API: `onValueChange(value, details)` alongside the native `onChange`,
+ * `render` for the element, and `className` and `style` as functions of the control's state.
+ */
+export const InputApi: Story = {
+  name: "Input's API",
+  render: () => <InputApiExample />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const note = canvas.getByRole("textbox", { name: "Reviewer note" });
+    await expect(note).toBe(canvas.getByTestId("reviewer-note"));
+    await expect(note).toHaveAttribute("data-slot", "textarea");
+    await expect(note).toHaveAttribute("rows", "2");
+    await expect(note).not.toHaveClass("border-focused");
+    await userEvent.type(note, "Seen");
+    await expect(note).toHaveValue("Seen");
+    await expect(canvas.getByText("4 characters")).toBeVisible();
+    await expect(note).toHaveClass("border-focused");
+    await expect(note).toHaveStyle({ fontStyle: "italic" });
+    await userEvent.tab();
+    await expect(note).not.toHaveClass("border-focused");
   },
 };

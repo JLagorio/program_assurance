@@ -8,7 +8,6 @@ import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { ChoiceField, ComboboxField, TextField } from "@/components/app/fields";
 import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, MoreHorizontal, Plus } from "lucide-react";
 import {
   defineColumns,
@@ -41,8 +40,10 @@ import {
   toast,
 } from "@ledger/design-system";
 import { useWorkspace } from "@/components/app/workspace";
-import { database, requireIdentity } from "@/lib/database";
-import { useModelSave, useRow, useRows, type Row } from "@/lib/models";
+import { requireIdentity } from "@/lib/database";
+import { useMappingParts, useSelectedControls } from "@/lib/control-reads";
+import { idSet, useRow, useRows, type Row } from "@/lib/models";
+import { SaveOnceConflict, useSaveOnce } from "@/lib/save-once";
 import {
   isControlStatement,
   requirementMappingBaselines,
@@ -112,6 +113,10 @@ function byReadingOrder(parts: readonly Row<"control_parts">[]) {
     return (a.source_id ?? "").localeCompare(b.source_id ?? "", undefined, { numeric: true });
   };
 }
+/** What a mapping reads of a selected control: its profile and its control. */
+const selectionColumns = ["id", "profile_resolution_id", "control_id"] as const;
+type Selection = Pick<Row<"selected_controls">, (typeof selectionColumns)[number]>;
+
 type ExistingMapping = {
   link: Row<"requirement_control_links">;
   control?: ControlChoice | undefined;
@@ -119,48 +124,6 @@ type ExistingMapping = {
   /** The recorded part's control's parts, which number it. */
   parts?: readonly Row<"control_parts">[] | undefined;
 };
-
-/** Load the complete ancestry of existing targets, including invalid legacy mappings. */
-function useMappingParts(ids: string[]) {
-  const workspace = useWorkspace();
-  return useQuery({
-    queryKey: ["requirement-mapping-parts", workspace.tenantId, ids],
-    retry: false,
-    queryFn: async ({ signal }) => {
-      if (!ids.length) return [] as Row<"control_parts">[];
-      const token = await requireIdentity(workspace);
-      const targets: Row<"control_parts">[] = [];
-      for (let offset = 0; offset < ids.length; offset += 100) {
-        const { data, error } = await database()
-          .from("control_parts")
-          .select()
-          .in("id", ids.slice(offset, offset + 100))
-          .setHeader("Authorization", `Bearer ${token}`)
-          .abortSignal(signal);
-        if (error) throw new Error(error.message);
-        targets.push(...data);
-      }
-      const controlIds = [...new Set(targets.flatMap((part) => part.control_id ?? []))];
-      const parts = new Map(targets.map((part) => [part.id, part]));
-      for (let offset = 0; offset < controlIds.length; offset += 100) {
-        for (let page = 0; ; page += 1000) {
-          const { data, error } = await database()
-            .from("control_parts")
-            .select()
-            .in("control_id", controlIds.slice(offset, offset + 100))
-            .order("id")
-            .range(page, page + 999)
-            .setHeader("Authorization", `Bearer ${token}`)
-            .abortSignal(signal);
-          if (error) throw new Error(error.message);
-          data.forEach((part) => parts.set(part.id, part));
-          if (data.length < 1000) break;
-        }
-      }
-      return [...parts.values()];
-    },
-  });
-}
 
 export function RequirementControlMappings({
   programId,
@@ -177,17 +140,29 @@ export function RequirementControlMappings({
   const identity = useRow("engineering_requirements", requirementId);
   const content = useRow("requirement_revisions", contentId);
   const links = useRows("requirement_control_links", { requirement_revision_id: contentId });
-  const controls = useRows("controls");
   const systems = useRows("systems", { program_id: programId });
-  const baselines = useRows("system_effective_baselines");
+  const systemIds = useMemo(() => idSet(systems.data?.map((row) => row.id)), [systems.data]);
+  const baselines = useRows(
+    "system_effective_baselines",
+    { system_id: systemIds },
+    { enabled: systems.isSuccess },
+  );
   const allocations = useRows("requirement_allocations", { requirement_revision_id: contentId });
-  const selections = useRows("selected_controls");
+  // The selections the mappings record, to tell whether each is still in its system's profile.
+  const recorded = useRows(
+    "selected_controls",
+    { id: idSet(links.data?.map((link) => link.selected_control_id)) },
+    { columns: selectionColumns, enabled: links.isSuccess },
+  );
   const targetIds = useMemo(
     () => (links.data ?? []).flatMap((link) => link.control_part_id ?? []).sort(),
     [links.data],
   );
   const parts = useMappingParts(targetIds);
-  const placeholders = useControlPlaceholders();
+  // The parameters and choices of the mapped controls alone, whose statements the rows quote.
+  const placeholders = useControlPlaceholders(
+    useMemo(() => ({ controlIds: links.data?.map((link) => link.control_id) }), [links.data]),
+  );
   const remove = useRemoveRequirementLink();
   const { confirm, confirmation } = useConfirmation();
   const [adding, setAdding] = useState(false);
@@ -200,6 +175,24 @@ export function RequirementControlMappings({
         allocations: allocations.data ?? [],
       }),
     [systems.data, baselines.data, allocations.data],
+  );
+  // What each allocated system's profile selects: the controls a new mapping chooses from.
+  const offered = useSelectedControls(
+    systems.isSuccess && baselines.isSuccess && allocations.isSuccess
+      ? context.sources.map((source) => source.resolutionId)
+      : undefined,
+    { columns: selectionColumns },
+  );
+  // The controls a mapping names or may name: the recorded ones and the allocated profiles'.
+  const controls = useRows(
+    "controls",
+    {
+      id: idSet([
+        ...(links.data ?? []).map((link) => link.control_id),
+        ...(offered.data ?? []).map((row) => row.control_id),
+      ]),
+    },
+    { columns: ["id", "code", "title"], enabled: links.isSuccess && offered.isSuccess },
   );
   const choices = useMemo<ControlChoice[]>(
     () =>
@@ -216,20 +209,20 @@ export function RequirementControlMappings({
     systems,
     baselines,
     allocations,
-    selections,
+    recorded,
+    offered,
     parts,
   ];
   const ready = queries.every((query) => query.data !== undefined && !query.error);
   const valid =
     identity.data?.program_id === programId &&
     content.data?.engineering_requirement_id === requirementId;
-  const collection = workspace.collections.find(
-    (item) => item.name === "requirement_control_links",
-  );
+  // Every member but a viewer maps the workspace's own requirements, and row-level security
+  // decides each write: the role says it, so the tab does not load the record schema.
   const writer = !readOnly && workspace.role !== "viewer" && valid;
-  const writable = writer && !!collection?.can_insert;
-  const canEdit = writer && !!collection?.can_update;
-  const canRemove = writer && !!collection?.can_delete;
+  const writable = writer;
+  const canEdit = writer;
+  const canRemove = writer;
   const requirementCode = identity.data?.code ?? "Requirement";
   const sourceText = context.allocated
     ? "Choose an allocated system and a control from its effective profile."
@@ -243,7 +236,7 @@ export function RequirementControlMappings({
         const control = controls.data?.find((row) => row.id === link.control_id);
         const part = parts.data?.find((row) => row.id === link.control_part_id);
         const system = systems.data?.find((row) => row.id === link.system_id);
-        const selection = selections.data?.find((row) => row.id === link.selected_control_id);
+        const selection = recorded.data?.find((row) => row.id === link.selected_control_id);
         const baseline = baselines.data?.find((row) => row.system_id === link.system_id);
         return {
           ...link,
@@ -263,7 +256,7 @@ export function RequirementControlMappings({
             selection?.profile_resolution_id !== baseline?.profile_resolution_id,
         };
       }),
-    [links.data, controls.data, parts.data, systems.data, selections.data, baselines.data],
+    [links.data, controls.data, parts.data, systems.data, recorded.data, baselines.data],
   );
   type MappingRow = (typeof rows)[number];
   const focus = useRemovalFocus(rows);
@@ -306,8 +299,6 @@ export function RequirementControlMappings({
           header: "Control",
           priority: 0,
           minWidth: 200,
-          preview: (row) => setPreviewId(row.id),
-          active: (row) => row.id === previewId,
           cell: (row) => (
             <RecordLink table="requirement_control_links" record={row}>
               {row.name}
@@ -382,12 +373,18 @@ export function RequirementControlMappings({
       ]),
     // edit and removeMapping read the row they are given.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [previewId, canEdit, canRemove, requirementCode, placeholders],
+    [canEdit, canRemove, requirementCode, placeholders],
+  );
+  // The preview is the table's, so opening or stepping through it never rebuilds the columns.
+  const tablePreview = useMemo(
+    () => ({ onPreview: (row: MappingRow) => setPreviewId(row.id), activeId: previewId ?? null }),
+    [previewId],
   );
   const table = useDataTable({
     columns,
     data: rows,
     getRowId: (row) => row.id,
+    preview: tablePreview,
     rowLabel: (row) => row.name,
     label: "Requirement control mappings",
     view: "requirement-control-mappings",
@@ -461,8 +458,7 @@ export function RequirementControlMappings({
             },
             {
               key: "rationale",
-              render: (row) =>
-                row.rationale ? <Prose>{row.rationale}</Prose> : <Absent label="Not recorded" />,
+              render: (row) => (row.rationale ? <Prose>{row.rationale}</Prose> : <Absent />),
             },
           ]}
           recordActions={
@@ -507,7 +503,7 @@ export function RequirementControlMappings({
           requirementCode={requirementCode}
           choices={choices}
           sources={context.sources}
-          selections={selections.data ?? []}
+          selections={offered.data ?? []}
           links={links.data ?? []}
           canWrite={!!(editing ? canEdit : writable) && ready}
           initial={editing ?? undefined}
@@ -545,7 +541,7 @@ function MappingDialog({
   requirementCode: string;
   choices: ControlChoice[];
   sources: MappingBaseline[];
-  selections: Row<"selected_controls">[];
+  selections: Selection[];
   links: Row<"requirement_control_links">[];
   canWrite: boolean;
   sourceText: string;
@@ -553,13 +549,17 @@ function MappingDialog({
   onClose: () => void;
 }) {
   const workspace = useWorkspace();
-  const save = useModelSave("requirement_control_links");
-  const placeholders = useControlPlaceholders();
+  // The mapping's id is chosen once, so saving again after an uncertain answer never duplicates it.
+  const save = useSaveOnce("requirement_control_links");
   const formId = useId();
   const feedback = useFormFeedback<MappingField>();
   const [open, setOpen] = useState(true);
   const [mappingId] = useState(() => initial?.link.id ?? crypto.randomUUID());
   const [controlId, setControlId] = useState(initial?.control?.id ?? "");
+  // The parameters and choices of the chosen control alone, whose statements the form quotes.
+  const placeholders = useControlPlaceholders(
+    useMemo(() => ({ controlIds: controlId ? [controlId] : [] }), [controlId]),
+  );
   const [systemId, setSystemId] = useState(
     initial ? (initial.link.system_id ?? "") : sources.length === 1 ? sources[0]!.systemId : "",
   );
@@ -690,36 +690,21 @@ function MappingDialog({
       rationale: rationale.trim() || null,
     };
     try {
-      const token = await requireIdentity(workspace);
-      const { data: existing, error: lookupError } = await database()
-        .from("requirement_control_links")
-        .select()
-        .eq("tenant_id", workspace.tenantId)
-        .eq("id", mappingId)
-        .setHeader("Authorization", `Bearer ${token}`)
-        .maybeSingle();
-      if (lookupError) throw new Error(lookupError.message);
-      if (existing) {
-        const matches = Object.entries(authored).every(
-          ([key, value]) => existing[key as keyof typeof existing] === value,
-        );
-        if (!matches) {
-          if (!initial || existing.revision !== initial.link.revision)
-            throw new Error(
-              "This mapping changed in another session. Your draft is retained; reopen the mapping to load its current values.",
-            );
-          await save.mutateAsync({
-            values: authored,
-            id: mappingId,
-            revision: initial.link.revision,
-          });
-        }
-      } else if (initial)
-        throw new Error("This mapping is no longer available. Your draft is retained.");
-      else
+      try {
         await save.mutateAsync({
-          values: { ...authored, id: mappingId, tenant_id: workspace.tenantId },
+          id: mappingId,
+          values: authored,
+          revision: initial?.link.revision,
         });
+      } catch (cause) {
+        if (cause instanceof SaveOnceConflict)
+          throw new Error(
+            cause.reason === "missing"
+              ? "This mapping is no longer available. Your draft is retained."
+              : "This mapping changed in another session. Your draft is retained; reopen the mapping to load its current values.",
+          );
+        throw cause;
+      }
       await requireIdentity(workspace);
       saved.current = true;
       guard.finish();
@@ -862,7 +847,7 @@ function MappingDialog({
                       setPartId(value ?? "");
                       changed();
                     }}
-                    disabled={!chosenControl}
+                    readOnly={!chosenControl}
                     placeholder="Whole control"
                     noun="statements"
                     emptyMessage="No matching statement prose for this control."
@@ -876,7 +861,9 @@ function MappingDialog({
                           controlId={controlId}
                           placeholders={placeholders}
                         />
-                      ) : chosenControl && parts.isSuccess && !statements.length ? (
+                      ) : !chosenControl ? (
+                        "Choose a control first. Its statements and items narrow the coverage."
+                      ) : parts.isSuccess && !statements.length ? (
                         "This control has no recorded statement prose, so the mapping covers the whole control."
                       ) : (
                         "Leave it empty to map the whole control, or choose an item to narrow the coverage."

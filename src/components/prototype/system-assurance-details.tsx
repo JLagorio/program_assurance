@@ -125,7 +125,7 @@ function OwnerValue({ id }: { id: string | null }) {
         <VisuallyHidden>Loading</VisuallyHidden>
       </>
     );
-  if (!query.data) return <Text color="color.text.subtle">Not available</Text>;
+  if (!query.data) return <Absent label="Not available" />;
   return <Person name={query.data.name} />;
 }
 
@@ -199,7 +199,7 @@ export function SystemAssuranceDetails({
   return (
     <Stack space="space.300">
       <Inspector.Group title="Details">
-        <KeyValue.Group labelWidth={124}>
+        <KeyValue.Group>
           <KeyValue label="Code">
             <Id>{row.code}</Id>
           </KeyValue>
@@ -326,8 +326,16 @@ export function SystemAssuranceDetails({
       {row.categorization_rationale && (
         <Prose label="Categorization rationale">{row.categorization_rationale}</Prose>
       )}
+      {/* A summary of the elements inside, each its code and name with its type as the subtle
+          meta; their controls, requirements and children are on their own previews and records. */}
       {contained.length > 0 && (
-        <Related title="Contains" count={contained.length} layout="list" size="compact">
+        <Related
+          title="Contains"
+          count={contained.length}
+          countMax={9999}
+          layout="list"
+          size="compact"
+        >
           {contained.map((child) => (
             <Item
               key={child.id}
@@ -335,11 +343,6 @@ export function SystemAssuranceDetails({
               idWidth={104}
               title={child.name}
               meta={labelFor(child.system_type)}
-              trailing={
-                child.controlCount === null
-                  ? undefined
-                  : count(child.controlCount, "control", "controls")
-              }
               {...(onDrill
                 ? { onSelect: () => onDrill(child.id) }
                 : {

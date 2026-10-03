@@ -46,12 +46,13 @@ export function ObservationsRegister({
         onDisplayedRowsChange={setDisplayed}
         rows={(observations.data ?? []) as DataRecord[]}
         fill={fill}
-        searchLabel="Search observations"
+        searchLabel="Find observations"
         view={programId ? "program-observations" : "observations"}
+        // Each column says its kind, so the register reads no record schema.
         columns={[
           { key: "title", label: "Observation" },
-          { key: "method", label: "Method", priority: 2 },
-          { key: "observed_at", label: "Observed", priority: 1 },
+          { key: "method", label: "Method", kind: "category", priority: 2 },
+          { key: "observed_at", label: "Observed", kind: "date", priority: 1 },
           {
             key: "result",
             label: "Result",
@@ -65,6 +66,7 @@ export function ObservationsRegister({
                 {
                   key: "program_id",
                   label: "Program",
+                  kind: "text" as const,
                   render: (row: DataRecord) => (
                     <RelationName table="programs" id={row["program_id"] as string | null} />
                   ),
@@ -99,11 +101,7 @@ export function ObservationsRegister({
           <HeadingLevelProvider level={3}>
             <Stack space="space.250">
               <Prose label="Description">
-                {typeof description === "string" && description.trim() ? (
-                  description
-                ) : (
-                  <Absent label="Not recorded" />
-                )}
+                {typeof description === "string" && description.trim() ? description : <Absent />}
               </Prose>
               <ModelFacts
                 record={current}
@@ -158,6 +156,7 @@ export function ObservationsRegister({
               <EntitySection
                 showHeading
                 table="observation_evidence"
+                links="evidence_versions"
                 filters={{ observation_id: current.id }}
                 title="Evidence citations"
                 readOnly

@@ -11,6 +11,8 @@ export type StoredView = {
   pinning: { start: string[]; end: string[] };
   density?: "default" | "compact" | undefined;
   pageSize?: number | undefined;
+  /** The columns the reader wraps. */
+  wrap?: string[] | undefined;
 };
 const record = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
@@ -58,6 +60,8 @@ export function parseStoredView(value: unknown): StoredView | null {
     return null;
   const known = value["known"];
   if (known !== undefined && !ids(known)) return null;
+  const wrap = value["wrap"];
+  if (wrap !== undefined && !ids(wrap)) return null;
   const unique = (list: string[]) => [...new Set(list)];
   const start = unique(pinning["start"]);
   return {
@@ -70,6 +74,7 @@ export function parseStoredView(value: unknown): StoredView | null {
     pinning: { start, end: unique(pinning["end"]).filter((id) => !start.includes(id)) },
     ...(value["density"] ? { density: value["density"] } : {}),
     ...(typeof size === "number" ? { pageSize: size } : {}),
+    ...(wrap === undefined ? {} : { wrap: unique(wrap) }),
   };
 }
 
@@ -139,6 +144,7 @@ export function reconcileStoredView(stored: StoredView, columns: ViewColumn[]): 
     ),
     visibility,
     pinning: { start, end: [...new Set([...end, ...trailing])] },
+    ...(stored.wrap ? { wrap: keep(stored.wrap) } : {}),
   };
 }
 

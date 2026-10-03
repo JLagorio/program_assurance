@@ -6,6 +6,7 @@ export {
   type ChartColumn,
   type ChartDatum,
   type ChartDomain,
+  type ChartLink,
   type ChartReference,
   type ChartSelection,
   type ChartSeries,

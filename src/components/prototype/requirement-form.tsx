@@ -1,13 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { AlertCircle } from "lucide-react";
 import {
   Absent,
-  Alert,
-  AlertAction,
-  AlertDescription,
-  AlertTitle,
-  Button,
   Editable,
   FieldSet,
   KeyValue,
@@ -21,8 +15,9 @@ import {
 } from "@ledger/design-system";
 import { useWorkspace } from "@/components/app/workspace";
 import { useRows, type Row } from "@/lib/models";
-import { useEditRequirement } from "@/lib/requirement-edit";
+import { requirementTypes, useEditRequirement } from "@/lib/requirement-edit";
 import { labelFor } from "@/lib/records";
+import { ReportFailures } from "./work-common";
 
 type FieldName =
   "title" | "statement" | "acceptanceCriteria" | "rationale" | "requirementType" | "ownerPartyId";
@@ -65,9 +60,37 @@ function stored(field: FieldName, value: string) {
   const trimmed = field === "ownerPartyId" || field === "requirementType" ? value : value.trim();
   return (field === "rationale" || field === "ownerPartyId") && !trimmed ? null : trimmed;
 }
+/** The fields drawn as the record's Details rows rather than in its body. */
+const propertyFields: ReadonlySet<FieldName> = new Set(["requirementType", "ownerPartyId"]);
+/** The types the edit accepts, in the order a reader scans them: by their words. */
+const typeOptions: EditableOption<string>[] = requirementTypes
+  .map((value) => ({ value, label: labelFor(value) }))
+  .sort((a, b) => a.label.localeCompare(b.label));
+
+/** Says when its rows come into the page and when they leave it. */
+function Presence({
+  onShow,
+  onHide,
+  children,
+}: {
+  onShow: () => void;
+  onHide: () => void;
+  children: ReactNode;
+}) {
+  const latest = useRef({ onShow, onHide });
+  useEffect(() => {
+    latest.current = { onShow, onHide };
+  });
+  useEffect(() => {
+    latest.current.onShow();
+    return () => latest.current.onHide();
+  }, []);
+  return children;
+}
 
 /**
- * Existing records save one authored field at a time through the kit's inline editing contract.
+ * Existing records save one authored field at a time through the kit's inline editing contract:
+ * the authored text in the body, the type and the owner in Details.
  * The Editables report their drafts, keep a refused value with Try again and Discard, and lock
  * the other rows with a reason while one change saves or waits; the form never remounts or
  * disables around a save, so focus stays on the row that saved.
@@ -77,11 +100,18 @@ export function RequirementForm({
   source,
   readOnly,
   onStateChange,
+  children,
 }: {
   requirementId: string;
   source: Row<"requirement_revisions">;
   readOnly: boolean;
   onStateChange: (state: RequirementEditState) => void;
+  /**
+   * Places the form's two parts, which share one save at a time: `body`, the authored text, in the
+   * record's body; `properties`, the requirement type and the owner as KeyValue rows, in its
+   * Details beside the code, the version and the state.
+   */
+  children: (parts: { body: ReactNode; properties: ReactNode }) => ReactNode;
 }) {
   const cache = useQueryClient();
   // The revision the next save expects. It advances with each save this form makes, and takes a
@@ -101,11 +131,6 @@ export function RequirementForm({
   const parties = useRows("parties");
   const edit = useEditRequirement();
   const original = valuesFor(baseline);
-  const typeOptions: EditableOption<string>[] = (
-    workspace.collections
-      .find((row) => row.name === "requirement_revisions")
-      ?.columns.find((column) => column.name === "requirement_type")?.choices ?? []
-  ).map((value) => ({ value, label: labelFor(value) }));
   const roster = (parties.data ?? []).filter((party) => party.tenant_id === workspace.tenantId);
   const nameCounts = new Map<string, number>();
   for (const party of roster) nameCounts.set(party.name, (nameCounts.get(party.name) ?? 0) + 1);
@@ -144,6 +169,14 @@ export function RequirementForm({
     activeRequest.current = null;
     setPending(null);
     report();
+  };
+  // The type and the owner sit in the record's Details, which leave the page with the Overview tab
+  // while the text stays mounted. Their Editables, and a refused value's Try again, go with them, so
+  // a change of theirs refused before or after they leave is dropped here.
+  const propertiesShown = useRef(false);
+  const propertiesHidden = () => {
+    propertiesShown.current = false;
+    for (const field of propertyFields) dropped(field);
   };
   // A newer revision of the same record (another session's edit, or this form's own save coming
   // back from the server, as it stored it) is taken once nothing is unsaved here.
@@ -199,7 +232,13 @@ export function RequirementForm({
     } catch (cause) {
       inFlight.current = false;
       setSaving(null);
-      setPending(change);
+      if (!propertiesShown.current && propertyFields.has(field)) {
+        // The row left with the Overview tab and took its Try again with it: the refused change is
+        // put back here, so the value shown is the stored one and no other row stays locked.
+        activeRequest.current = null;
+        delete draft.current[field];
+        setValues((previous) => ({ ...previous, [field]: valuesFor(baselineRef.current)[field] }));
+      } else setPending(change);
       report();
       // A refusal is often a newer revision elsewhere: fetch it, so Discard shows what is current.
       void cache.invalidateQueries({
@@ -235,7 +274,7 @@ export function RequirementForm({
           values[field]
         )
       ) : (
-        <Absent label="Not recorded" />
+        <Absent />
       )
     ) : (
       <Editable.Text
@@ -245,7 +284,7 @@ export function RequirementForm({
         placeholder={field === "rationale" ? "Add rationale" : undefined}
         validate={field === "rationale" ? undefined : required(field)}
         lockedReason={lockFor(field)}
-        onChange={(value) => setValues((previous) => ({ ...previous, [field]: value }))}
+        onValueChange={(value) => setValues((previous) => ({ ...previous, [field]: value }))}
         onDraftChange={(value) => track(field, value)}
         onCancel={() => dropped(field)}
         save={(value) => save(field, value)}
@@ -254,7 +293,8 @@ export function RequirementForm({
   /** The owner as text where it cannot be chosen: while the owners load or failed, or read-only. */
   const ownerText = () => {
     const id = values.ownerPartyId;
-    if (!id) return "Unassigned";
+    // No owner is a missing value, read as the empty owner cell reads it.
+    if (!id) return <Absent />;
     const party = roster.find((row) => row.id === id);
     if (party) return party.name;
     if (parties.data === undefined && parties.error)
@@ -266,90 +306,80 @@ export function RequirementForm({
           <VisuallyHidden>Loading</VisuallyHidden>
         </>
       );
-    return <Text color="color.text.subtle">Not available</Text>;
+    return <Absent label="Not available" />;
   };
 
-  return (
+  /** The requirement type and the owner: properties, as KeyValue rows for the record's Details. */
+  const properties = (
+    // Keyed by the discard, as the text is: a confirmed discard resets a row's refused value.
+    <Presence
+      key={generation}
+      onShow={() => {
+        propertiesShown.current = true;
+      }}
+      onHide={propertiesHidden}
+    >
+      <KeyValue label="Requirement type" wrap>
+        {readOnly ? (
+          labelFor(values.requirementType)
+        ) : (
+          <Editable.Select
+            label="Requirement type"
+            value={values.requirementType}
+            options={typeOptions}
+            lockedReason={lockFor("requirementType")}
+            onValueChange={(value) =>
+              setValues((previous) => ({ ...previous, requirementType: value }))
+            }
+            onDraftChange={(value) => track("requirementType", value)}
+            onCancel={() => dropped("requirementType")}
+            save={(value) => save("requirementType", value)}
+          />
+        )}
+      </KeyValue>
+      <KeyValue label="Owner" wrap>
+        {readOnly || parties.data === undefined ? (
+          ownerText()
+        ) : (
+          <Editable.Select
+            label="Owner"
+            value={values.ownerPartyId}
+            options={ownerOptions}
+            emptyLabel="Unassigned"
+            searchable
+            // An owner who left the workspace's roster reads as such, never as an id.
+            render={(value, label) =>
+              value && !known.has(value) ? <Absent label="Not available" /> : label
+            }
+            lockedReason={lockFor("ownerPartyId")}
+            onValueChange={(value) =>
+              setValues((previous) => ({ ...previous, ownerPartyId: value }))
+            }
+            onDraftChange={(value) => track("ownerPartyId", value)}
+            onCancel={() => dropped("ownerPartyId")}
+            save={(value) => {
+              if (value && !known.has(value))
+                return Promise.reject(
+                  new Error("This owner is no longer in the workspace. Choose another."),
+                );
+              return save("ownerPartyId", value);
+            }}
+          />
+        )}
+      </KeyValue>
+    </Presence>
+  );
+  const body = (
     <Stack space="space.250">
+      {/* The owners' failure is said by the failure region the form is drawn in, whose Retry
+          reloads them; the Owner row says "Could not load" in its place. */}
+      <ReportFailures queries={[parties]} />
       {/* Never disabled: a disabled row would drop the focus the Editable keeps on it while it
-          saves. The other rows are locked with the reason instead. */}
-      <FieldSet key={generation} aria-label="Requirement details" aria-busy={saving !== null}>
+          saves. The other rows are locked with the reason instead. Busy while any change saves,
+          the type's and the owner's in Details included. */}
+      <FieldSet key={generation} aria-label="Requirement text" aria-busy={saving !== null}>
         <Stack space="space.250">
-          <Section title="Requirement details">
-            <KeyValue.Group labelWidth={128}>
-              <KeyValue label="Title" wrap>
-                {text("title")}
-              </KeyValue>
-              <KeyValue label="Requirement type" wrap>
-                {readOnly || !typeOptions.length ? (
-                  labelFor(values.requirementType)
-                ) : (
-                  <Editable.Select
-                    label="Requirement type"
-                    value={values.requirementType}
-                    options={typeOptions}
-                    lockedReason={lockFor("requirementType")}
-                    onChange={(value) =>
-                      setValues((previous) => ({ ...previous, requirementType: value }))
-                    }
-                    onDraftChange={(value) => track("requirementType", value)}
-                    onCancel={() => dropped("requirementType")}
-                    save={(value) => save("requirementType", value)}
-                  />
-                )}
-              </KeyValue>
-              <KeyValue label="Owner" wrap>
-                {readOnly || parties.data === undefined ? (
-                  ownerText()
-                ) : (
-                  <Editable.Select
-                    label="Owner"
-                    value={values.ownerPartyId}
-                    options={ownerOptions}
-                    emptyLabel="Unassigned"
-                    searchable
-                    // An owner who left the workspace's roster reads as such, never as an id.
-                    render={(value, label) =>
-                      value && !known.has(value) ? (
-                        <Text color="color.text.subtle">Not available</Text>
-                      ) : (
-                        label
-                      )
-                    }
-                    lockedReason={lockFor("ownerPartyId")}
-                    onChange={(value) =>
-                      setValues((previous) => ({ ...previous, ownerPartyId: value }))
-                    }
-                    onDraftChange={(value) => track("ownerPartyId", value)}
-                    onCancel={() => dropped("ownerPartyId")}
-                    save={(value) => {
-                      if (value && !known.has(value))
-                        return Promise.reject(
-                          new Error("This owner is no longer in the workspace. Choose another."),
-                        );
-                      return save("ownerPartyId", value);
-                    }}
-                  />
-                )}
-              </KeyValue>
-            </KeyValue.Group>
-            {parties.error && (
-              <Alert variant="destructive" role="alert">
-                <AlertCircle aria-hidden />
-                <AlertTitle>The owners could not be loaded</AlertTitle>
-                <AlertDescription>{parties.error.message}</AlertDescription>
-                <AlertAction>
-                  <Button
-                    size="small"
-                    isLoading={parties.isFetching}
-                    onClick={() => void parties.refetch()}
-                  >
-                    Retry loading owners
-                  </Button>
-                </AlertAction>
-              </Alert>
-            )}
-          </Section>
+          <Section title="Title">{text("title")}</Section>
           <Section title="Statement">{text("statement", true)}</Section>
           <Section title="Acceptance criteria">{text("acceptanceCriteria", true)}</Section>
           <Section title="Rationale">{text("rationale", true)}</Section>
@@ -357,4 +387,5 @@ export function RequirementForm({
       </FieldSet>
     </Stack>
   );
+  return children({ body, properties });
 }

@@ -22,6 +22,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type ComponentPropsWithRef,
   type ReactElement,
   type ReactNode,
 } from "react";
@@ -43,12 +44,13 @@ import { IconButton } from "../../components/button";
 import type { DataTableFeatures } from "./features";
 import type { DataTableInstance } from "./use-data-table";
 import { resetView } from "./view-store";
+import { token } from "../../generated/tokens";
 
 /*
- * Three menus. The Columns menu in the toolbar shows and hides columns; the Settings menu beside it
- * holds the rest of the reader's view, the rows' density and Reset view. The column menu on a
- * header's hover sorts, moves, pins and hides that column. All three write the table's state,
- * which the view store persists.
+ * Three menus. The Columns menu in the toolbar shows and hides columns and wraps the ones whose
+ * values are cut; the Settings menu beside it holds the rest of the reader's view, the rows'
+ * density and Reset view. The column menu on a header's hover sorts, moves, pins and hides that
+ * column. All three write the table's state, which the view store persists.
  */
 
 type TableColumn<TData extends RowData> = Column<DataTableFeatures, TData, unknown>;
@@ -151,27 +153,60 @@ function placeColumn<TData extends RowData>(
   table.setColumnOrder(rest);
 }
 
-/** Which columns to show. Items stay open while the reader toggles. */
+/**
+ * The kinds whose values a reader may want whole: text, a name, a person, a custom cell. A code,
+ * a status, a date, a number and a list keep one line (a list shows whole in its card).
+ */
+const ONE_LINE_KINDS: ReadonlySet<string> = new Set([
+  "actions",
+  "id",
+  "status",
+  "date",
+  "number",
+  "list",
+]);
+
+/**
+ * Which columns to show, and which to wrap. Items stay open while the reader toggles. Native
+ * button props and a ref reach the default trigger; a `children` trigger is the caller's own and
+ * takes them itself.
+ */
 export function Columns<TData extends RowData>({
   table,
   label,
   children,
-}: {
+  ...props
+}: Omit<ComponentPropsWithRef<"button">, "children"> & {
   table: DataTableInstance<TData>;
   label?: string | undefined;
   /** The trigger, in place of the default Button. */
-  children?: ReactElement;
+  children?: ReactElement | undefined;
 }) {
   const { t } = useLedgerLocale();
 
   const columns = table.getAllLeafColumns().filter((c) => c.getCanHide());
   const hidden = columns.filter((c) => !c.getIsVisible()).length;
+  // A column whose values are cut can wrap instead, so a reader on any device reads them whole.
+  const meta = table.options.meta;
+  const wrapped = meta?.wrapped ?? [];
+  const toggleWrap = meta?.toggleWrap;
+  const wrappable = toggleWrap
+    ? table
+        .getVisibleLeafColumns()
+        .filter((c) => !ONE_LINE_KINDS.has(c.columnDef.meta?.kind ?? "") && !c.columnDef.meta?.wrap)
+    : [];
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
           children ?? (
-            <Button variant="secondary" size="small" iconBefore={<Columns3 />}>
+            <Button
+              variant="secondary"
+              size="small"
+              iconBefore={<Columns3 />}
+              {...props}
+              data-slot="data-table-columns"
+            >
               {label ?? t("columns")}
               {hidden ? (
                 <span className="tabular-nums text-subtle">
@@ -182,7 +217,7 @@ export function Columns<TData extends RowData>({
           )
         }
       />
-      <DropdownMenuContent align="end" style={{ minWidth: 220 }}>
+      <DropdownMenuContent align="end" style={{ minWidth: token("dimension.part.tableMenu") }}>
         <DropdownMenuGroup>
           <DropdownMenuLabel>{t("show")}</DropdownMenuLabel>
           {columns.map((c) => (
@@ -195,21 +230,46 @@ export function Columns<TData extends RowData>({
             </DropdownMenuCheckboxItem>
           ))}
         </DropdownMenuGroup>
+        {toggleWrap && wrappable.length ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>{t("wrapText")}</DropdownMenuLabel>
+              {wrappable.map((c) => (
+                <DropdownMenuCheckboxItem
+                  key={c.id}
+                  // Its name says what it does, so it is not a second "Owner" beside Show's.
+                  aria-label={t("wrapColumn", { label: labelOf(c) })}
+                  checked={wrapped.includes(c.id)}
+                  onCheckedChange={(checked) => toggleWrap(c.id, checked)}
+                >
+                  {labelOf(c)}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuGroup>
+          </>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
-/** The reader's view of the table beyond the columns: the rows' density, and Reset view last. A gear beside the Columns menu. */
+/**
+ * The reader's view of the table beyond the columns: the rows' density, and Reset view last. A
+ * gear beside the Columns menu. Native button props and a ref reach the default trigger, which
+ * `label` names; a `children` trigger is the caller's own and takes them itself.
+ */
 export function Settings<TData extends RowData>({
   table,
   label,
   children,
-}: {
+  ...props
+}: Omit<ComponentPropsWithRef<"button">, "children" | "aria-label"> & {
   table: DataTableInstance<TData>;
+  /** The gear's name. The locale's "Table settings" unsaid. */
   label?: string | undefined;
   /** The trigger, in place of the default IconButton. */
-  children?: ReactElement;
+  children?: ReactElement | undefined;
 }) {
   const { t } = useLedgerLocale();
 
@@ -226,11 +286,13 @@ export function Settings<TData extends RowData>({
               variant="secondary"
               size="small"
               icon={<Settings2 />}
+              {...props}
+              data-slot="data-table-settings"
             />
           )
         }
       />
-      <DropdownMenuContent align="end" style={{ minWidth: 220 }}>
+      <DropdownMenuContent align="end" style={{ minWidth: token("dimension.part.tableMenu") }}>
         {setDensity ? (
           <>
             <DropdownMenuGroup>
@@ -253,12 +315,17 @@ export function Settings<TData extends RowData>({
   );
 }
 
-/** The per-column menu: sort, move, pin, hide. Rendered in a header's trailing slot, so it appears on hover and focus, and always where nothing can hover. */
+/**
+ * The per-column menu: sort, move, pin, hide. Rendered in a header's trailing slot, so it appears
+ * on hover and focus, and always where any pointer is coarse. Native button props and a ref reach
+ * its trigger, which the column's name names.
+ */
 export function HeaderMenu<TData extends RowData>({
   table,
   column,
   drawn,
-}: {
+  ...props
+}: Omit<ComponentPropsWithRef<"button">, "children" | "aria-label"> & {
   table: DataTableInstance<TData>;
   column: Column<DataTableFeatures, TData, unknown>;
   /** The columns the header row draws, when a responsive table moves the rest into More fields. Move left and Move right step over the rest, so every move shows. */
@@ -375,14 +442,19 @@ export function HeaderMenu<TData extends RowData>({
               variant="subtle"
               size="xxsmall"
               icon={<ChevronDown />}
-              // Where nothing can hover the heading drops its up-down hint for a menu that sorts.
+              {...props}
+              // Where any pointer is coarse the heading drops its up-down hint for a menu that sorts.
               {...(canSort ? { "data-column-menu": "" } : {})}
               // Where focus goes when a move draws another column into More fields.
               data-column-menu-for={column.id}
+              data-slot="header-menu"
             />
           }
         />
-        <DropdownMenuContent align="end" style={{ minWidth: 200 }}>
+        <DropdownMenuContent
+          align="end"
+          style={{ minWidth: token("dimension.part.tableColumnMenu") }}
+        >
           {canSort ? (
             // The sort's two choices are a named group of their own, apart from the actions below.
             <DropdownMenuRadioGroup

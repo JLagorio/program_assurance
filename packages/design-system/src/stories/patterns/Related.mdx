@@ -7,6 +7,8 @@ import * as Stories from "./Related.stories";
 
 # Related
 
+**Status: Stable.**
+
 A card of linked records, in a rail or in the body of a page. Its header is the kind of record, a Count and the way to add one. Its body is a row per record in a rail, or a card per record on a page: the name as the link, a mark, one status, the properties the reader decides by, and the actions that show on hover. Its footer is "See all" when it shows a handful of many. When nothing is linked it is a proper [Empty](?path=/docs/components-empty--docs), the mark, a statement and the way to fill it, never a line of grey text.
 
 On the body of a page: a header with the kind and "+ Add", a card per related record with its name as the link and up to six properties, the actions in a menu that shows on hover, "view all" at the bottom. In the rail, one row per record. A card is metadata with actions on hover, and a card that carries actions of its own cannot be one click target. So the title is the link and the actions are stops of their own, in both layouts.
@@ -57,25 +59,25 @@ The size is the list's; every row in one card is the same height. A card in the 
 
 ## States
 
-| State           | What changes                                                                                                                         |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Hover on a card | `elevation.shadow.raised` under it; the actions appear; the name underlines under the pointer.                                       |
-| Focus in a card | The actions appear while anything in the card has focus, so a keyboard reaches them; the focus ring is on the name or the button.    |
-| Touch           | The actions are always shown where there is no hover or any pointer is coarse (a touch laptop too); there is nothing to reveal them. |
-| A menu open     | The actions stay shown while the card's menu is open, after the pointer and the focus have left the card.                            |
-| Hover on a row  | The Item's: `color.background.neutral.subtle.hovered` across the row.                                                                |
-| Empty           | The compact Empty where the rows would be; the header and its action stay.                                                           |
+| State           | What changes                                                                                                                       |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Hover on a card | `elevation.shadow.raised` under it; the actions appear; the name underlines under the pointer.                                     |
+| Focus in a card | The actions appear while anything in the card has focus, so a keyboard reaches them; the focus ring is on the name or the button.  |
+| Touch           | The actions are always shown where any pointer is coarse (a phone, a tablet, a touch laptop too); there is nothing to reveal them. |
+| A menu open     | The actions stay shown while the card's menu is open, after the pointer and the focus have left the card.                          |
+| Hover on a row  | The Item's: `color.background.neutral.subtle.hovered` across the row.                                                              |
+| Empty           | The compact Empty where the rows would be; the header and its action stay.                                                         |
 
 ## Modifiers
 
-- **`title`**, **`count`**, **`action`**, **`footer`**, **`layout`**, **`size`**, **`empty`** as in Anatomy. `empty` is a string, the Empty's title, or the Empty's title, description, action and icon. Without it the title is the locale's `relatedEmpty`, "Nothing linked yet" in en-US, so a LedgerProvider translates it. Children that render nothing (empty arrays, `false`, empty fragments) are nothing linked.
+- **`title`**, **`count`**, **`action`**, **`footer`**, **`layout`**, **`size`**, **`empty`** as in Anatomy. **`countMax`** is the count's cap, Count's `max`: 99 unsaid, `9999` for a count of rows. `empty` is a string, the Empty's title, or the Empty's title, description, action and icon. Without it the title is the locale's `relatedEmpty`, "Nothing linked yet" in en-US, so a LedgerProvider translates it. Children that render nothing (empty arrays, `false`, empty fragments) are nothing linked.
 - **The rows** take the Item's props: `id`, `leading`, `title`, `meta`, `trailing`, `link` or `onSelect`.
 - **The cards** take **`leading`**, **`title`**, **`link`**, **`meta`**, **`status`**, **`properties`**, **`actions`** and children.
 
 ## Content
 
 - **The title is a noun**, the kind of record: "Linked findings", "Systems", "Team". Never a sentence.
-- **A row is an id and a name**, and one thing at the end: the state as a word, or the date. A rail is too narrow for meta beside the name; a role beside a person's name is as much as fits.
+- **A row is an id and a name**, and one thing more: the state as a word, or the date, at the end. A rail is too narrow for meta beside the name; a role beside a person's name is as much as fits. In a preview, where the rows are of more than one kind (the subsystems and components a system contains), the one thing is the row's kind as its `meta`, and nothing trails: a summary of what is inside, not a collection to count or work through.
 - **A card is the name, the meta, one status and four properties**: the ones the reader decides by. Six is the most; past that the record has them.
 - **The actions are what is done to the link**, not to the record: open in a new tab, edit the link, unlink. Never "Open"; the name is that. Unlink is the menu's last item, in danger.
 - **A handful, then See all.** Five rows in a rail, a row of cards on a page; the footer says how many there are, and the record's tab lists them.
@@ -124,7 +126,7 @@ A Related.Card paints the raised surface and records it as the current one, as C
 
 ### Related.Card
 
-Also exported by name as `RelatedCard`, with `RelatedCardProps`, `RelatedEmpty` and `RelatedLayout`.
+Also exported by name as `RelatedCard`, with `RelatedCardProps`, `RelatedEmpty` and `RelatedLayout`. A card's title link composes the supplied link's native props and ref through Base UI: leave the link empty to show the card's title, or give it children to say something else.
 
 <ArgTypes of={Related.Card} />
 
@@ -141,8 +143,11 @@ Also exported by name as `RelatedCard`, with `RelatedCardProps`, `RelatedEmpty` 
 - [Empty](?path=/docs/components-empty--docs): the compact empty state inside the card.
 - [KeyValue](?path=/docs/components-keyvalue--docs): the properties.
 - [Pages](?path=/docs/layout-pages--docs): supporting context and route content.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#related): the earlier API's spellings and what they are now.
 
 ## Don't
+
+The record's name is the link and the actions are icon buttons, never an Open and an Unlink in every card. A rail card shows five rows and See all, nothing linked is an empty state, never a grey line, and the title is a noun.
 
 <Canvas of={Stories.Dont} />
 
@@ -151,7 +156,3 @@ Also exported by name as `RelatedCard`, with `RelatedCardProps`, `RelatedEmpty` 
 A card can open a preview through a separate action while its title remains a native link. The preview keeps a link to the full record and can include linked history.
 
 <Canvas of={Stories.RecordNavigation} />
-
-## Migration
-
-`Related.Row` and `RelatedRowProps` are removed. Use `Item`: `leading` replaces `lead`, `title` replaces `label`, and `onSelect` or `link` replaces `onClick`. Card links compose native props and refs through Base UI; leave the supplied link empty to use the card title, or supply its own children to override the link text.

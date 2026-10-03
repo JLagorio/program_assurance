@@ -14,6 +14,8 @@ import {
   kitBindingOf,
   kitPartOf,
   partNameOf,
+  propOwnerOf,
+  shadowsOuterName,
 } from "../eslint-plugin/identity.js";
 import { KIT, KIT_SETTINGS, PRODUCT, REPO, STORY } from "./lint-helpers.mjs";
 
@@ -31,6 +33,8 @@ function ask(code, { filename = PRODUCT, settings, sources } = {}) {
           name: partNameOf(context, node.name),
           bound: kitBindingOf(context, node.name, { sources }),
           owner: classOwnerOf(context, node),
+          styleOwner: propOwnerOf(context, node, "style"),
+          shadows: shadowsOuterName(context, node.name),
         });
       },
       "MemberExpression:exit"(node) {
@@ -280,4 +284,67 @@ test("the classes on an element land on what its render puts in its place", () =
   );
   assert.deepEqual(owner('<Button render={<a href="/x" />} />'), self("Button"));
   assert.deepEqual(owner("<Slot render={<span />} />"), self(""));
+});
+
+test("a component of the file hands a prop on through four components, past one that renders itself", () => {
+  const imports = `import { Stack, Text } ${KIT_IMPORT}`;
+  /** Where `<W1 className>`'s classes land, the last element of the snippet. */
+  const last = (code) => owners(`${imports} ${code}`).at(-1);
+  const wrapped = (wrapper, part) => ({ part, via: "wrapper", wrapper });
+  const chain = (n) =>
+    Array.from({ length: n }, (_, i) =>
+      i === n - 1
+        ? `function W${i + 1}(p) { return <Stack {...p} />; }`
+        : `function W${i + 1}(p) { return <W${i + 2} {...p} />; }`,
+    ).join(" ") + ' export const A = () => <W1 className="pt-200" />;';
+  // Four components reach the part; a fifth is past the reach, whatever it hands on.
+  assert.deepEqual(last(chain(4)), wrapped("W1", "Stack"));
+  assert.deepEqual(last(chain(5)), { part: "", via: "self", wrapper: "" });
+  // A props object the body destructures hands its className and its rest on.
+  assert.deepEqual(
+    last(
+      'function W1(props) { const { className, ...rest } = props; return <Text className={className} {...rest} />; } export const A = () => <W1 className="font-semibold" />;',
+    ),
+    wrapped("W1", "Text"),
+  );
+  // A component that renders itself, or two that render each other, pass the turn round and
+  // land on the part they render in the end.
+  assert.deepEqual(
+    last(
+      'function W1(props) { return props.d ? <W1 {...props} d={0} /> : <Text {...props} />; } export const A = () => <W1 d={1} className="font-semibold" />;',
+    ),
+    wrapped("W1", "Text"),
+  );
+  assert.deepEqual(
+    last(
+      'function W1(props) { return props.d ? <W2 {...props} /> : <Text {...props} />; } function W2(props) { return <W1 {...props} d={0} />; } export const A = () => <W1 d={1} className="font-semibold" />;',
+    ),
+    wrapped("W1", "Text"),
+  );
+  // A component that renders only itself hands it to no part.
+  assert.deepEqual(
+    last(
+      'function W1(props) { return <W1 {...props} />; } export const A = () => <W1 className="x" />;',
+    ),
+    { part: "", via: "self", wrapper: "" },
+  );
+});
+
+test("a style lands where the component hands its style, not where its className goes", () => {
+  const imports = `import { Stack } ${KIT_IMPORT}`;
+  const call = ask(
+    `${imports} function W({ className, style }) { return <div className={className}><Stack style={style}>x</Stack></div>; } export const A = () => <W className="min-w-0" style={{ gap: 16 }} />;`,
+  ).elements.find(({ tag }) => tag === "W");
+  assert.deepEqual(call.owner, { part: "", via: "self", wrapper: "" });
+  assert.deepEqual(call.styleOwner, { part: "Stack", via: "wrapper", wrapper: "W" });
+});
+
+test("a parameter or a local shadows only when an outer value has its name", () => {
+  const shadows = (code) => ask(code).elements.map(({ tag, shadows }) => `${tag}:${shadows}`);
+  assert.deepEqual(
+    shadows(
+      `import { Button } ${KIT_IMPORT} export function A(Button, { Action }, props) { const Local = x; return <><Button /><Action /><props.Item /><Local /></>; } export function B() { const Button = x; return <Button />; }`,
+    ),
+    ["Button:true", "Action:false", "props.Item:false", "Local:false", "Button:true"],
+  );
 });

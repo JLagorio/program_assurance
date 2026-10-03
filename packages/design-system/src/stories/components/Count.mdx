@@ -7,6 +7,8 @@ import * as Stories from "./Count.stories";
 
 # Count
 
+**Status: Stable.**
+
 A number in a pill: unread items, rows in a group, results behind a filter, findings on a control. It sits after the name of what it counts and is named by it. Anything above `max`, 99 by default, renders as `99+`. Not the notification circle on a corner.
 
 <Canvas of={Stories.CountMatrix} />
@@ -36,7 +38,7 @@ One size, 20px, the height of a small Badge, so the two sit on one line. The wid
 
 ## States
 
-A Count has one state. Zero is a number: where the reader asks how many (a Section, a Related card, an Item group, a tab's rows), a 0 says "none" where no pill could mean "not counted", so Section, Related and Item.Group show a Count of 0. A Table.Group hides it, since an empty group has no rows to head. A section with nothing in it still says so in words, in its Empty.
+A Count has one state. Zero is a number: where the reader asks how many (a Section, a Related card, an Item group, a tab's rows), a 0 says "none" where no pill could mean "not counted", so Section, Related and Item.Group show a Count of 0, and a tab shows 0 once its rows have loaded. A count not yet known is no Count: while the rows load or after they failed, leave it out rather than show 0 or the last number. A Table.Group hides it, since an empty group has no rows to head. A section with nothing in it still says so in words, in its Empty.
 
 <Canvas of={Stories.InContext} />
 
@@ -45,7 +47,7 @@ A Count has one state. Zero is a number: where the reader asks how many (a Secti
 ## Modifiers
 
 - **`value`** as a number, formatted in the reader's locale, or a string shown as given, when the text is not a number the pill should cap ("12 of 40" is not a Count).
-- **`max`** for the ceiling: 99 by default; 999 or 9999 on a tab that counts rows, one ceiling across a product. 9999 is the most a pill holds; a larger total is a Stat.
+- **`max`** for the ceiling: 99 by default, for a count of things to attend to; `max={9999}` for a count of rows, the one ceiling on every tab strip in a product. A Section's, a Related card's and an Item.Group's `count` take the same cap through their `countMax`. 9999 is the most a pill holds; a larger total is a Stat.
 - **`appearance`** as in Variants; `default` when unsaid.
 
 ## Content
@@ -95,5 +97,7 @@ Count takes a span's native props and a ref, and names itself last with `data-sl
 - [Section](?path=/docs/layout-section--docs), [Related](?path=/docs/patterns-related--docs), [Item](?path=/docs/components-item--docs) groups and [Table](?path=/docs/components-table--docs) groups take a `count`; a [Tabs](?path=/docs/components-tabs--docs) trigger or a [Collapsible](?path=/docs/components-collapsible--docs) trigger composes one after its label.
 
 ## Don't
+
+A Count is a number beside the label that says what it counts, capped at `max`. A severity is an Indicator, a state a Badge and an exact large number a Stat, never a number alone, a word in the pill or six digits.
 
 <Canvas of={Stories.Dont} />

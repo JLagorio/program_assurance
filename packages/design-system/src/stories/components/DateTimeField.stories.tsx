@@ -5,7 +5,10 @@ import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import { Button, DateTimeField, Field, FieldDescription, FieldLabel } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
 import { Stack } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 /* Every story names its zone, so what it shows and submits does not depend on the machine. */
 const LosAngeles = ({ children }: { children: ReactNode }) => (
@@ -265,6 +268,7 @@ export const FormReset: Story = {
 
 /** The mistakes the page is written to prevent. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Pair
       do={

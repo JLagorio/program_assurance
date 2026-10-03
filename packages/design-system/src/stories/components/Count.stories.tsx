@@ -1,11 +1,10 @@
-import { ChevronDown } from "lucide-react";
 import { createRef } from "react";
 import { expect, within } from "storybook/test";
 import {
   Badge,
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
+  CollapsibleHeader,
   Count,
   Indicator,
 } from "../../components";
@@ -14,8 +13,12 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { LedgerProvider } from "../../lib/locale";
 import { Inline, Stack, Text } from "../../primitives";
-import { Matrix as Grid } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix: Grid } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Count",
@@ -32,6 +35,7 @@ const cols = ["3", "12", "140", "1400 · max 999", "1400 · max 9999"] as const;
 
 /** Every appearance at one, two and three digits, past the default ceiling of 99 and past a ceiling of 999, and under a ceiling of 9999, where the number takes the locale's grouping. An added count carries a plus and a removed one a minus, so the two differ by more than their fill. */
 export const CountMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Grid
       rows={appearances}
@@ -101,17 +105,10 @@ export const InContext: Story = {
         <Count value={12} appearance="added" />
         <Count value={3} appearance="removed" />
       </Inline>
-      <Collapsible className="border-t border-default" defaultOpen>
-        <h3>
-          <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
-            Evidence
-            <Count value={7} />
-            <ChevronDown
-              aria-hidden="true"
-              className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
-            />
-          </CollapsibleTrigger>
-        </h3>
+      <Collapsible defaultOpen>
+        <CollapsibleHeader>
+          Evidence <Count value={7} />
+        </CollapsibleHeader>
         <CollapsibleContent>
           <div className="pb-200">
             <Text size="small" color="color.text.subtle">
@@ -126,13 +123,17 @@ export const InContext: Story = {
     const canvas = within(canvasElement);
     // Added and removed read apart in words and in forced colours, not by the fill alone.
     await expect(canvas.getByTestId("rows-changed")).toHaveTextContent("Rows changed+12\u22123");
-    // A Count in a trigger is part of its name.
-    await expect(canvas.getByRole("button", { name: "Evidence 7" })).toBeInTheDocument();
+    // A Count in a trigger is part of its name, and the chevron turns while the panel is open.
+    const trigger = canvas.getByRole("button", { name: "Evidence 7" });
+    const chevron = trigger.querySelector("[data-slot=collapsible-header-icon]");
+    await expect(chevron).not.toBeNull();
+    await expect(getComputedStyle(chevron!).rotate).toBe("180deg");
   },
 };
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair

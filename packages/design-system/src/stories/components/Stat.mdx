@@ -7,20 +7,22 @@ import * as Stories from "./Stat.stories";
 
 # Stat
 
+**Status: Stable.**
+
 A number with its name. `Stat.Tile` is a label, a big tabular number and a one-line note, one cell of a `Stat.Grid`: the headline numbers at the top of a record, framed as a card, or a band between two sections. A tile with `link` is a count that opens the register it counts. A bare `Stat` is the number over its label for an unframed row inside a Section. Numbers are written in the reader's locale, and zero reads muted.
 
 <Canvas of={Stories.StatMatrix} />
 
 ## Anatomy
 
-| Part  | What it is                                                                                                                                  |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Label | `font.body.small` in `color.text.subtle`: what the number counts. Above the number in a Tile, below it in a bare Stat.                      |
-| Value | `font.heading.small` semibold, tabular. `color.text`, or the tone's text colour when the number is a status; zero in `color.text.subtlest`. |
-| Note  | `font.body.small` in `color.text.subtle`, one line under the value. Tile only.                                                              |
-| Trend | Beside the value, `space.150` from it: a Chart.Sparkline of the same count over time, from `trend`. Tile only.                              |
-| Link  | With `link`, the link fills the tile and holds the label, value, trend and note, so the whole tile is one target. Tile only.                |
-| Grid  | Two to six cells across, hairline gutters painted with `color.border`. `card` is bordered and rounded; `band` runs between two rules.       |
+| Part  | What it is                                                                                                                                                                                                                 |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Label | `font.body.small` in `color.text.subtle`: what the number counts. Above the number in a Tile, below it in a bare Stat.                                                                                                     |
+| Value | A [Heading](?path=/docs/primitives-heading--docs) at `page` as a `div` (`font.heading.page`, 20/26 semibold), tabular. `color.text`, or the tone's text colour when the number is a status; zero in `color.text.subtlest`. |
+| Note  | `font.body.small` in `color.text.subtle`, one line under the value. Tile only.                                                                                                                                             |
+| Trend | Beside the value, `space.150` from it: a Chart.Sparkline of the same count over time, from `trend`. Tile only.                                                                                                             |
+| Link  | With `link`, the link fills the tile and holds the label, value, trend and note, so the whole tile is one target. Tile only.                                                                                               |
+| Grid  | Two to six cells across, hairline gutters painted with `color.border`. `card` is bordered and rounded; `band` runs between two rules.                                                                                      |
 
 ## Variants
 
@@ -40,7 +42,7 @@ Not built, and why: no delta or trend arrow ("+3 this week"), because a colour a
 
 ## Sizes
 
-One type size, `font.heading.small`. What varies is the grid: `cols` from two to six, the most it shows. The grid takes its columns from its own width, not the window's, so it reads the same on a page, in an aside and in a 320px panel on a wide screen. Each tile keeps at least 128px: six and five fold to three, every count folds to two, and one column below 257px, so a panel's body and a 320px phone show two across. A short last row shares its width, so the gutter never shows as an empty cell.
+One type size, `font.heading.page`, the page title's. What varies is the grid: `cols` from two to six, the most it shows. The grid takes its columns from its own width, not the window's, so it reads the same on a page, in an aside and in a 320px panel on a wide screen. Each tile keeps at least 128px: six and five fold to three, every count folds to two, and one column below 257px, so a panel's body and a 320px phone show two across. A short last row shares its width, so the gutter never shows as an empty cell.
 
 A parent that sizes the grid to its content (an items-start Stack, an Inline, a popover) makes it as wide as all its tiles side by side, up to the room it has, because each tile asks for its 128px. Up to `cols` tiles, that keeps them across. More tiles than `cols` still fold to `cols` columns, so each tile is wider than it needs: give that grid a width, such as the row's (`w-full`). A value wider than a tile takes a row of its own where the browser supports `calc-size()` and is clipped elsewhere, so keep values short (see Content).
 
@@ -85,14 +87,18 @@ A tile without a link does not hover, focus or disable. A tile that takes the re
 
 | Element | Token                                                                                                               |
 | ------- | ------------------------------------------------------------------------------------------------------------------- |
-| Tile    | `elevation.surface` · `space.200` inline · `space.150` block · `space.025` between lines                            |
-| Value   | `font.heading.small` semibold · tabular · `color.text` / `color.text.<tone>` / `color.text.subtlest` at zero        |
+| Tile    | `utility.elevation.surface.current` · `space.200` inline · `space.150` block · `space.025` between lines            |
+| Value   | `font.heading.page` · tabular · `color.text` / `color.text.<tone>` / `color.text.subtlest` at zero                  |
 | Label   | `font.body.small` · `color.text.subtle`                                                                             |
 | Note    | `font.body.small` · `color.text.subtle`                                                                             |
 | Grid    | `gap-px` painted `color.border` · `card`: `color.border`, `radius.large` · `band`: `color.border` above and below   |
 | Link    | `elevation.surface.hovered` · `elevation.surface.pressed` · the focus ring inside the edge · `motion.duration.fast` |
 | Trend   | `space.150` from the number                                                                                         |
 | Stat    | `space.100` block · `space.050` between value and label                                                             |
+
+A tile paints the surface it sits on, `utility.elevation.surface.current`, so a grid on a card is the card's colour and one in a dialog the dialog's, in both modes.
+
+<Canvas of={Stories.OnACard} />
 
 The toned value is Badge's text colour for the tone, so a danger count and a danger Indicator are the same red. In forced colours the grid paints its hairlines in the text colour and each tile sits on the reader's canvas, so the cells stay apart.
 
@@ -133,7 +139,10 @@ Stat and Stat.Tile keep their configured `label`/`value`/`note` slots. Compose t
 - [Chart](?path=/docs/patterns-chart-overview--docs): a number over time.
 - [KeyValue](?path=/docs/components-keyvalue--docs): a fact that is not a headline.
 - [Badge](?path=/docs/components-badge--docs): the tone table.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#stat): `Tiles` is `Stat.Grid`.
 
 ## Don't
+
+Only the number that is a status carries a tone. Zero reads muted with a note that says what it means, never in success green, and the label is a noun over a one-line note, never a sentence.
 
 <Canvas of={Stories.Dont} />

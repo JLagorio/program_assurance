@@ -8,12 +8,33 @@ import {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
   type RefObject,
 } from "react";
 
 import { token } from "../generated/tokens";
 import { classes } from "../lib/base-ui";
 import { useLedgerLocale } from "../lib/locale";
+
+/**
+ * Package-internal: sets Base UI's writing direction for what it holds only where it differs from
+ * the direction already in force, so a table of popups (a tooltip, a card, a menu per row) shares
+ * the one provider its table or page sets rather than mounting one each.
+ */
+export function MatchDirection({
+  direction,
+  children,
+}: {
+  direction: "ltr" | "rtl";
+  children: ReactNode;
+}) {
+  const inherited = useDirection();
+  return inherited === direction ? (
+    children
+  ) : (
+    <DirectionProvider direction={direction}>{children}</DirectionProvider>
+  );
+}
 
 export type TooltipProviderProps = TooltipPrimitive.Provider.Props;
 
@@ -44,11 +65,11 @@ export function Tooltip<Payload = unknown>({ actionsRef, ...props }: TooltipProp
   const actions = actionsRef ?? own;
   const root = useMemo(() => ({ id, set, actions }), [id, actions]);
   return (
-    <DirectionProvider direction={direction}>
+    <MatchDirection direction={direction}>
       <TooltipRootContext.Provider value={root}>
         <TooltipPrimitive.Root {...props} actionsRef={actions} />
       </TooltipRootContext.Provider>
-    </DirectionProvider>
+    </MatchDirection>
   );
 }
 
@@ -156,7 +177,7 @@ export function TooltipContent({
           {children}
         </span>
       ) : null}
-      <DirectionProvider direction={direction}>
+      <MatchDirection direction={direction}>
         <TooltipPrimitive.Portal data-slot="tooltip-portal">
           <TooltipPrimitive.Positioner
             align={align}
@@ -195,7 +216,7 @@ export function TooltipContent({
             </TooltipPrimitive.Popup>
           </TooltipPrimitive.Positioner>
         </TooltipPrimitive.Portal>
-      </DirectionProvider>
+      </MatchDirection>
     </>
   );
 }

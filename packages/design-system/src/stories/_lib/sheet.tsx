@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import docs from "../../generated/docs.json";
+import { Heading } from "../../primitives";
 
 /* Shared pieces for the token sheets. Everything here is built from the generated
    utilities, so the sheets are the first consumer of the system they document. */
@@ -37,7 +38,9 @@ export function Page({
   return (
     <div className="mx-auto flex max-w-[1180px] flex-col gap-600 py-100">
       <header className="flex flex-col gap-050">
-        <h1 className="font-heading-small text-default">{title}</h1>
+        <Heading size="page" as="h1" color="color.text">
+          {title}
+        </Heading>
         {lede ? <p className="max-w-[72ch] font-body text-subtle">{lede}</p> : null}
       </header>
       {children}
@@ -86,10 +89,10 @@ function SwatchBody({ d }: { d: TokenDoc }) {
       </svg>
     );
   if (d.name === "color.text.disabled")
-    return <button type="button" disabled className="font-heading-small" style={{ color: v }}>Aa</button>;
+    return <button type="button" disabled className="font-heading-page font-medium" style={{ color: v }}>Aa</button>;
   if (d.group === "text")
     return (
-      <span aria-hidden="true" className="font-heading-small" style={{ color: v }}>
+      <span aria-hidden="true" className="font-heading-page font-medium" style={{ color: v }}>
         Aa
       </span>
     );
@@ -132,7 +135,7 @@ export function TokenTable({ rows }: { rows: TokenDoc[] }) {
     <div className="overflow-x-auto rounded-large border border-default">
       <table className="w-full border-collapse font-body">
         <thead>
-          <tr className="border-b border-default bg-surface-sunken text-left font-body-small text-subtlest">
+          <tr className="border-b border-default bg-surface-sunken text-start font-body-small text-subtlest">
             <th className="px-150 py-100 font-medium">Token</th>
             <th className="px-150 py-100 font-medium">Light</th>
             <th className="px-150 py-100 font-medium">Dark</th>

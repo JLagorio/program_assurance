@@ -1,15 +1,27 @@
-import { useEffect, useId, useRef, useState, type ReactElement, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ComponentProps,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { IconButton, ReasonTooltip, labelAndReason } from "../components/button";
 import { LinkIconButton } from "../components/link-button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../components/tooltip";
+import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
-import { Inline } from "../primitives/inline";
 
 /** How long the status waits after it mounts before it speaks: a region is not heard until assistive technology has seen it empty. */
 const REGION_SETTLE = 100;
 
-export type PreviewNavigationProps = {
+/**
+ * The group's native props, `className` and `ref` reach the group. Its name is the locale's
+ * "Record navigation" unless the caller passes an `aria-label`; its role stays `group`.
+ */
+export type PreviewNavigationProps = Omit<ComponentProps<"div">, "children" | "role"> & {
   /** One-based position in the displayed results; zero means outside those results. */
   position: number;
   /** How many records the displayed results hold: every filtered, sorted row, not one table page. */
@@ -51,6 +63,8 @@ export function PreviewNavigation({
   recordLabel,
   showPosition = false,
   openLink,
+  className,
+  ...props
 }: PreviewNavigationProps) {
   const { t, formatNumber } = useLedgerLocale();
   const reasonId = useId();
@@ -125,11 +139,11 @@ export function PreviewNavigation({
     );
   };
   return (
-    <Inline
-      space="space.050"
-      alignBlock="center"
-      role="group"
+    <div
       aria-label={t("recordNavigation")}
+      {...props}
+      role="group"
+      className={cn("flex items-center gap-050", className)}
       data-slot="preview-navigation"
     >
       <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">
@@ -170,6 +184,6 @@ export function PreviewNavigation({
           icon={<ExternalLink />}
         />
       ) : null}
-    </Inline>
+    </div>
   );
 }

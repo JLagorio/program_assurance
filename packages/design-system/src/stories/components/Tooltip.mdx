@@ -7,6 +7,8 @@ import * as Stories from "./Tooltip.stories";
 
 # Tooltip
 
+**Status: Stable.**
+
 A short visual label on hover or keyboard focus, using shadcn's Base UI composition. IconButton already draws one from its `label`; compose a separate tooltip only when its words differ, such as a keyboard shortcut.
 
 ```tsx
@@ -22,6 +24,24 @@ A short visual label on hover or keyboard focus, using shadcn's Base UI composit
 ```
 
 <Canvas of={Stories.Shortcut} />
+
+## When to use it
+
+- **The name of an icon-only control**, which IconButton draws itself from its `label`.
+- **A keyboard shortcut**, or a few words that add to a control's name.
+- **The whole of a value cut short**, which Truncate draws itself.
+
+Not for anything the reader needs to finish the task: an instruction, a rule, an error or a required value sits on the page, in a Field's description, a FieldError or an Alert, since a tooltip shows only to a pointer that rests or a focus that lands. Not for a control or a link: a tooltip holds text, a record's preview is a [HoverCard](?path=/docs/components-hovercard--docs) and a small task a [Popover](?path=/docs/components-popover--docs). Not wrapped around a disabled control to explain it: the reason is the control's `disabledReason`, which keeps it in the Tab order and draws its own tooltip (Unavailable actions). [Overlays](?path=/docs/components-overlays--docs) compares them all.
+
+A rule the reader needs is the Field's description, not a tooltip beside the field: a reader who never rests on the icon never meets it.
+
+<Canvas of={Stories.DoDont} />
+
+## Content
+
+- A few words in sentence case, with no full stop: the control's name or a short phrase ("Copy link", "Search").
+- It says what the control does, not how to work the pointer: "Delete row", never "Click to delete".
+- It adds to the visible label or names an icon; it never repeats a visible label word for word.
 
 ## Composition
 

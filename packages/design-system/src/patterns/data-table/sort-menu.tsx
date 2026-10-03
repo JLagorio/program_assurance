@@ -28,13 +28,14 @@ import type { DataTableInstance } from "./use-data-table";
 
 type TableColumn<TData extends RowData> = Column<DataTableFeatures, TData, unknown>;
 
-const labelOf = <TData extends RowData>(column: TableColumn<TData>) => {
+/** A column's words: its header when that is text, else its id. */
+export const labelOf = <TData extends RowData>(column: TableColumn<TData>) => {
   const header = column.columnDef.header;
   return typeof header === "string" ? header : column.id;
 };
 
 /** The words for each direction follow what the column holds: dates are oldest or newest first, numbers lowest or highest, names A to Z. A column sorted by its own `sortBy`, or a status by its rank, reads ascending or descending. */
-function directionWords<TData extends RowData>(
+export function directionWords<TData extends RowData>(
   column: TableColumn<TData> | undefined,
 ): readonly [keyof LedgerMessages, keyof LedgerMessages] {
   const kind = column?.columnDef.meta?.kind;

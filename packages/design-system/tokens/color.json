@@ -989,8 +989,8 @@
         }
       },
       "subtlest": {
-        "$value": "{color.neutral.700}",
-        "$description": "Use for tertiary text, such as metadata, breadcrumbs, placeholder and helper text. 4.5:1 on every surface and on the resting selected fill, in both modes; not promised on a hovered or pressed fill.",
+        "$value": "{color.neutral.720}",
+        "$description": "Use for tertiary text, such as metadata, breadcrumbs, placeholder and helper text. 4.5:1 on every surface, on the selected fill at rest and under the pointer, and on a highlighted menu item, in both modes; not promised on a pressed fill.",
         "$extensions": {
           "ledger": {
             "dark": "{color.darkNeutral.715}",
@@ -1233,7 +1233,7 @@
         }
       },
       "subtlest": {
-        "$value": "{color.neutral.700}",
+        "$value": "{color.neutral.720}",
         "$description": "Use for icons paired with color.text.subtlest.",
         "$extensions": {
           "ledger": {
@@ -1394,7 +1394,7 @@
       },
       "input": {
         "$value": "{color.neutral.400}",
-        "$description": "Borders of form UI elements, such as text fields, checkboxes, and radio buttons. A light boundary by decision (2026-09-04): the input surface, the hover tint and the focus and danger borders carry the affordance. Increased contrast raises it to 3:1 on every surface.",
+        "$description": "Borders of form UI elements, such as text fields, checkboxes, and radio buttons. A light boundary by decision: the input surface, the hover tint and the focus and danger borders carry the affordance. Increased contrast raises it to 3:1 on every surface.",
         "$extensions": {
           "ledger": {
             "dark": "{color.darkNeutral.500}",
@@ -1667,6 +1667,16 @@
               "introduced": "0.5.0"
             }
           }
+        },
+        "bold": {
+          "$value": "{color.orange.700}",
+          "$description": "A warning mark on a grey track, where the series step is too pale to hold 3:1: a Progress bar's fill and its waiting stripes. One step darker than the series in light; the series step in dark, which holds 3:1 on the track there.",
+          "$extensions": {
+            "ledger": {
+              "dark": "{color.orange.600}",
+              "introduced": "0.7.0"
+            }
+          }
         }
       },
       "danger": {
@@ -1706,7 +1716,7 @@
         "1": {
           "default": {
             "$value": "{color.blue.600}",
-            "$description": "Categorical series 1, blue. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$description": "Categorical series 1, blue. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision, validated in both modes; assign in order, never by rank.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.blue.600}",
@@ -1728,7 +1738,7 @@
         "2": {
           "default": {
             "$value": "{color.orange.600}",
-            "$description": "Categorical series 2, orange. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$description": "Categorical series 2, orange. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision, validated in both modes; assign in order, never by rank.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.orange.600}",
@@ -1750,7 +1760,7 @@
         "3": {
           "default": {
             "$value": "{color.teal.600}",
-            "$description": "Categorical series 3, teal. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$description": "Categorical series 3, teal. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision, validated in both modes; assign in order, never by rank.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.teal.600}",
@@ -1772,7 +1782,7 @@
         "4": {
           "default": {
             "$value": "{color.red.600}",
-            "$description": "Categorical series 4, red. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$description": "Categorical series 4, red. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision, validated in both modes; assign in order, never by rank.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.red.600}",
@@ -1794,7 +1804,7 @@
         "5": {
           "default": {
             "$value": "{color.purple.600}",
-            "$description": "Categorical series 5, purple. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$description": "Categorical series 5, purple. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision, validated in both modes; assign in order, never by rank.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.purple.600}",
@@ -1816,7 +1826,7 @@
         "6": {
           "default": {
             "$value": "{color.green.600}",
-            "$description": "Categorical series 6, green. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$description": "Categorical series 6, green. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision, validated in both modes; assign in order, never by rank.",
             "$extensions": {
               "ledger": {
                 "dark": "{color.green.600}",

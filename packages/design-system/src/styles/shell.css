@@ -1,5 +1,7 @@
 /* The navigation system's own rules: the Shell root's grid, its areas, the flyout, the scrim and the
-   pre-paint state. Page-level layout utilities are in layout.css. */
+   pre-paint state. Page-level layout is in layout.css. The rules select the parts by their
+   `data-slot` and `data-shell-area`, never by a class: none of them is a utility a product can
+   write, so the shell's grid and areas stay the kit's own (TOO-16). */
 /* The breakpoints are the `dimension.breakpoint.*` tokens, read here as Tailwind theme keys
    (`theme(--breakpoint-panel)`), in the shell as `tokenValue("dimension.breakpoint.panel")`, and as
    the `lg:` and `panel:` variants: one source for the CSS, the JavaScript and the docs. */
@@ -10,7 +12,7 @@
    height of the window under the banner: the top nav stops at its edge, so opening it narrows
    everything and covers nothing. An area that is not rendered takes no column. The root sets the
    widths as variables from its state. */
-@utility shell-root {
+[data-slot="shell"] {
   --shell-top: calc(var(--shell-banner, 0px) + var(--ds-dimension-layout-topnav));
   /* SHELLNAV: the tokens, unless a part's `defaultWidth` (--shell-*-default, set inline by the root
      while the part is mounted and never stored) says otherwise; either gives way to a width the
@@ -37,11 +39,6 @@
     var(--shell-width, 100vw) - var(--shell-main-min) - var(--shell-aside-inset, 0px) -
       var(--shell-panel-floor, 0px)
   );
-  /* The stacking order, lowest first: the chrome (banner, top nav), the scrim under a flyout, the
-     flyout itself. Popups and dialogs portal to the body at 50 and win by document order. */
-  --shell-z-chrome: 30;
-  --shell-z-scrim: 40;
-  --shell-z-overlay: 50;
   display: grid;
   grid-template-columns:
     auto minmax(min(var(--shell-main-min), 100%), 1fr) var(--shell-aside-inset, 0px)
@@ -68,41 +65,48 @@
   transition: none;
 }
 /* SHELLNAV: at least the banner token's height, taller when the banner wraps on a narrow screen;
-   the root measures the area and publishes its real height as --shell-banner. */
-@utility shell-banner {
+   the root measures the area and publishes its real height as --shell-banner. The banner and the
+   top nav stack on layer.chrome, the side nav's blanket on layer.blanket and the side nav's
+   overlay on layer.overlay, where popups and dialogs portal too and win by document order. */
+[data-slot="shell-banner"] {
   grid-area: banner;
   position: sticky;
   top: 0;
-  z-index: var(--shell-z-chrome);
+  z-index: var(--ds-layer-chrome);
   min-height: var(--ds-dimension-layout-banner);
 }
-@utility shell-topnav {
+[data-slot="shell-topnav"] {
   grid-area: topnav;
   position: sticky;
   top: var(--shell-banner, 0px);
-  z-index: var(--shell-z-chrome);
+  z-index: var(--ds-layer-chrome);
   height: var(--ds-dimension-layout-topnav);
 }
-/* The start slot takes the side nav's width while the side nav is expanded, so the logo reads as
-   the head of that column and the side nav looks full height; the toggle moves to the slot's end,
-   whichever child it is. */
-@utility shell-topnav-start {
-  width: var(--shell-sidenav-inset, min(var(--shell-sidenav-width), 50vw));
-  & > [data-slot="shell-sidenav-toggle"] {
-    order: 1;
-    margin-inline-start: auto;
+/* From `lg`, the start slot takes the side nav's width while the side nav is expanded beside the
+   page (`data-inline`), so the logo reads as the head of that column and the side nav looks full
+   height; the toggle moves to the slot's end, whichever child it is. */
+@media (width >= theme(--breakpoint-lg)) {
+  [data-slot="shell-topnav-start"][data-inline] {
+    width: var(--shell-sidenav-inset, min(var(--shell-sidenav-width), 50vw));
+    & > [data-slot="shell-sidenav-toggle"] {
+      order: 1;
+      margin-inline-start: auto;
+    }
   }
-}
-@utility shell-sidenav {
-  grid-area: sidenav;
-  position: sticky;
-  top: var(--shell-top);
-  height: calc(100dvh - var(--shell-top));
-  width: var(--shell-sidenav-inset, min(var(--shell-sidenav-width), 50vw));
+  /* The side nav beside the page, expanded or as the icon rail: under the banner and the top nav
+     for the window's height, scrolling inside itself. Below `lg`, and for the flyout, it is the
+     overlay further down. */
+  [data-shell-area="sidenav"]:not([data-overlay]) {
+    grid-area: sidenav;
+    position: sticky;
+    top: var(--shell-top);
+    height: calc(100dvh - var(--shell-top));
+    width: var(--shell-sidenav-inset, min(var(--shell-sidenav-width), 50vw));
+  }
 }
 /* Main also publishes the inset under the page, its bottom padding, so a block that fills the
    window (fill-window) ends where the page does. */
-@utility shell-main {
+[data-slot="shell-main"] {
   grid-area: main;
   min-width: 0;
   --shell-inset-bottom: var(--ds-space-300);
@@ -113,7 +117,7 @@
 /* In place of Main below the large breakpoint the panel sits under the top nav; beside the page,
    from `lg`, it is the height of the window under the banner, and the top nav stops at its edge
    (SHELLNAV, D12: from `lg` to the panel breakpoint the side nav yields its width instead). */
-@utility shell-panel {
+[data-slot="shell-panel"] {
   container: shell-panel / inline-size;
   /* SHELLPANEL (SHB-16): clear of the sticky header at its measured height (Panel.Header publishes
      --shell-panel-header), so a control focused under a header that wraps still shows. */
@@ -148,7 +152,25 @@
     grid-row: 1;
   }
 }
-@container shell-panel (width < 400px) {
+/* SHELLPANEL (PRV-11): Back to a previous frame leads the bar, set apart from the navigation and
+   Close at its end by the title, or by the empty column where there is none. */
+[data-slot="shell-panel-header"]:has(> [data-slot="shell-panel-back"]) {
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  & > [data-slot="shell-panel-back"] {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  & > [data-slot="shell-panel-title"] {
+    grid-column: 2;
+  }
+  & > [data-slot="shell-panel-actions"] {
+    grid-column: 3;
+  }
+  & > [data-slot="shell-panel-close"] {
+    grid-column: 4;
+  }
+}
+@container shell-panel (width < theme(--query-panel-header)) {
   [data-slot="shell-panel-header"]:has(> [data-slot="shell-panel-title"]):has(
       > [data-slot="shell-panel-actions"]
     ) {
@@ -167,11 +189,35 @@
       grid-row: 2;
     }
   }
+  /* The title takes the first row; Back leads the second, the navigation and Close end it. */
+  [data-slot="shell-panel-header"]:has(> [data-slot="shell-panel-title"]):has(
+      > [data-slot="shell-panel-back"]
+    ) {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    row-gap: var(--ds-space-050);
+    & > [data-slot="shell-panel-title"] {
+      grid-column: 1 / -1;
+      grid-row: 1;
+    }
+    & > [data-slot="shell-panel-back"] {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    & > [data-slot="shell-panel-actions"] {
+      grid-column: 2;
+      grid-row: 2;
+      justify-self: end;
+    }
+    & > [data-slot="shell-panel-close"] {
+      grid-column: 3;
+      grid-row: 2;
+    }
+  }
 }
 /* SHELLPANEL (G5-8): in a window under 30rem tall (a phone on its side, a page zoomed to 400%) the
    panel's header scrolls away with its content instead of holding a fixed share of the height;
    Escape still closes the panel. */
-@media (height < 30rem) {
+@media (height < theme(--query-short-window)) {
   [data-slot="shell-panel-header"] {
     position: static;
   }
@@ -182,7 +228,7 @@
 /* SHELLPANEL (G5-8 with SHB-15): beside the page the panel starts under the banner, which scrolls
    away in a short window, so the panel sticks at the top of the window as the side nav does instead
    of leaving the banner's height empty above it. */
-@media (height < 30rem) and (width >= theme(--breakpoint-lg)) {
+@media (height < theme(--query-short-window)) and (width >= theme(--breakpoint-lg)) {
   [data-slot="shell-panel"] {
     top: 0;
     height: 100dvh;
@@ -192,16 +238,22 @@
   grid-area: context;
   min-width: 0;
 }
-/* When the aside follows Main (below the aside breakpoint, or beside an open panel below the wide
-   one), Main takes the height it needs and the aside's row takes the rest of the window, so a
-   short record's Details start right under its content instead of a screen down. */
+/* The node the Aside's content renders into (root.tsx). It moves between this slot and the place
+   the route rendered the Aside, and lays out as if the content were there. */
+[data-shell-aside-host] {
+  display: contents;
+}
+/* When the rail follows Main (from the aside breakpoint beside an open panel below the wide one),
+   Main takes the height it needs and the aside's row takes the rest of the window, so a short
+   record's Details start right under its content instead of a screen down. Below the aside
+   breakpoint the rail is beside Main or is the Details disclosure in the page (VW3-22). */
 @media (width < theme(--breakpoint-aside)) {
-  .shell-root:has(> [data-shell-slot="aside"] > [data-shell-area="aside"]) {
+  [data-slot="shell"]:has(> [data-shell-slot="aside"] [data-shell-area="aside"]) {
     grid-template-rows: auto auto auto minmax(0, 1fr);
   }
 }
 @media (width >= theme(--breakpoint-aside)) and (width < theme(--breakpoint-wide)) {
-  .shell-root:has(> [data-shell-slot="aside"] > [data-shell-area="aside"]):has(
+  [data-slot="shell"]:has(> [data-shell-slot="aside"] [data-shell-area="aside"]):has(
       > [data-shell-slot="panel"] > [data-shell-area="panel"]
     ) {
     grid-template-rows: auto auto auto minmax(0, 1fr);
@@ -211,37 +263,54 @@
   grid-area: panel;
   min-width: 0;
 }
-[data-shell-slot="aside"]:empty,
+/* An area with nothing in it takes no room: the aside's slot keeps its node even while it is empty
+   or the disclosure has taken the content into the page. */
+[data-shell-slot="aside"]:not(:has([data-shell-area="aside"])),
 [data-shell-slot="panel"]:empty {
   display: none;
 }
 [data-shell-area="aside"] {
   border-block-start: 1px solid var(--ds-color-border);
 }
+/* VW3-22: below the aside breakpoint, wherever the rail would follow Main, the Aside is a Details
+   disclosure where the route rendered it in the page: one row flush with the page's content, its
+   content under the row while it is open, and a hairline under them that sets the body apart. No
+   rule above: it follows a page header or a tab strip's own line. */
+[data-shell-area="aside"][data-display="disclosure"] {
+  border-block-start: 0;
+  border-block-end: 1px solid var(--ds-color-border);
+}
+/* The Aside's content folds on the kit's motion only when the reader toggles the disclosure: at
+   first paint and when the display changes (a resize, a panel opening) it shows as it is at once
+   (`data-instant`, root.tsx), so the page never watches the Details collapse into it. */
+[data-shell-area="aside"][data-instant] > [data-slot="collapsible-content"] {
+  animation: none;
+}
 /* The blanket under the side nav's overlay on a narrow screen; a click on it closes the overlay. */
-@utility shell-scrim {
+[data-slot="shell-scrim"] {
   position: fixed;
   inset: 0;
-  z-index: var(--shell-z-scrim);
+  z-index: var(--ds-layer-blanket);
 }
 /* SHELLNAV, D12: the panel is a column beside Main from `lg`. */
 @media (width >= theme(--breakpoint-lg)) {
-  .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]) {
+  [data-slot="shell"]:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]) {
     --shell-panel-inset: min(var(--shell-panel-width), 50vw);
     --shell-panel-floor: min(var(--shell-panel-min), var(--shell-panel-inset));
   }
 }
 @media (width >= theme(--breakpoint-aside)) {
-  .shell-root:not(:has(> [data-shell-slot="panel"] > [data-shell-area="panel"])):has(
-      > [data-shell-slot="aside"] > [data-shell-area="aside"]
+  [data-slot="shell"]:not(:has(> [data-shell-slot="panel"] > [data-shell-area="panel"])):has(
+      > [data-shell-slot="aside"] [data-shell-area="aside"]
     ) {
     --shell-aside-inset: calc(var(--ds-dimension-layout-rail) + var(--ds-space-300));
   }
-  .shell-root:not(:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]))
+  [data-slot="shell"]:not(:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]))
     > [data-shell-slot="aside"] {
     grid-area: aside;
   }
-  .shell-root:not(:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]))
+  [data-slot="shell"]:not(:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]))
+    > [data-shell-slot="aside"]
     [data-shell-area="aside"] {
     border-block-start: 0;
     border-inline-start: 1px solid var(--ds-color-border);
@@ -249,19 +318,24 @@
     min-height: 100%;
   }
 }
-/* SHELLNAV (VW2-14): from `lg`, a collapsed side nav (the icon rail, or hidden) leaves the room
-   the aside needs beside Main, so below the aside breakpoint the aside sits beside Main too,
-   instead of following a long page. The pre-paint attribute covers the first paint. */
+/* SHELLNAV (VW2-14): from `lg`, below the aside breakpoint, the aside sits beside Main whenever the
+   side nav leaves Main its minimum beside it (the root measures it: `data-aside-fits`), instead of
+   following a long page. A collapsed side nav (the icon rail, or hidden) always does, and so does
+   an expanded one at its default width; a side nav the reader widened past that keeps its width,
+   and the aside follows Main. The pre-paint attribute covers a collapsed side nav's first paint. */
 @media (width >= theme(--breakpoint-lg)) and (width < theme(--breakpoint-aside)) {
-  :is(.shell-root[data-sidenav="collapsed"], html[data-shell-sidenav="collapsed"] .shell-root):not(
-      :has(> [data-shell-slot="panel"] > [data-shell-area="panel"])
-    ):has(> [data-shell-slot="aside"] > [data-shell-area="aside"]) {
+  :is(
+      [data-slot="shell"][data-aside-fits],
+      html[data-shell-sidenav="collapsed"] [data-slot="shell"]
+    ):not(:has(> [data-shell-slot="panel"] > [data-shell-area="panel"])):has(
+      > [data-shell-slot="aside"] [data-shell-area="aside"]
+    ) {
     --shell-aside-inset: calc(var(--ds-dimension-layout-rail) + var(--ds-space-300));
     grid-template-rows: auto auto minmax(0, 1fr) auto;
     & > [data-shell-slot="aside"] {
       grid-area: aside;
     }
-    & [data-shell-area="aside"] {
+    & > [data-shell-slot="aside"] [data-shell-area="aside"] {
       border-block-start: 0;
       border-inline-start: 1px solid var(--ds-color-border);
       min-height: 100%;
@@ -270,8 +344,9 @@
 }
 /* SHELLNAV, D12: below `lg` the panel replaces Main (and the aside) under the top nav. */
 @media (width < theme(--breakpoint-lg)) {
-  .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"]) > .shell-main,
-  .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"])
+  [data-slot="shell"]:has(> [data-shell-slot="panel"] > [data-shell-area="panel"])
+    > [data-slot="shell-main"],
+  [data-slot="shell"]:has(> [data-shell-slot="panel"] > [data-shell-area="panel"])
     > [data-shell-slot="aside"] {
     display: none;
   }
@@ -282,27 +357,27 @@
     display: none;
   }
 }
-/* Below the large breakpoint, and for the flyout, the side nav overlays the page. It keeps its grid
-   area and carries no other position class: a stray `relative` outranks the `fixed` here, puts the
-   overlay back in flow, and pushes the header down by its height. The splitter positions against
-   the fixed or sticky area itself. */
-@utility shell-sidenav-overlay {
+/* Below the large breakpoint, and for the flyout, the side nav overlays the page (`data-overlay`). It
+   keeps its grid area and is fixed whatever class it carries, so it never falls back into the flow
+   and pushes the header down by its height. The splitter positions against the fixed or sticky
+   area itself. */
+[data-shell-area="sidenav"][data-overlay] {
   grid-area: sidenav;
   position: fixed;
   inset-block: 0;
   inset-inline-start: 0;
-  z-index: var(--shell-z-overlay);
+  z-index: var(--ds-layer-overlay);
   height: 100dvh;
   width: min(var(--shell-sidenav-width), 90vw);
 }
 /* SHELLNAV (G5-8): in a window under 30rem tall the banner and the top nav scroll away with the
    page instead of pinning a share of the height; the side nav and the panel stick at the top. */
-@media (height < 30rem) {
-  .shell-root {
+@media (height < theme(--query-short-window)) {
+  [data-slot="shell"] {
     --shell-top: 0px;
   }
-  .shell-root > [data-slot="shell-banner"],
-  .shell-root > [data-slot="shell-topnav"] {
+  [data-slot="shell"] > [data-slot="shell-banner"],
+  [data-slot="shell"] > [data-slot="shell-topnav"] {
     position: static;
   }
 }
@@ -313,6 +388,14 @@
   [data-slot="shell-sidenav-expandable-trigger"]
 ):focus-visible {
   outline-offset: 0;
+}
+/* SHELLNAV (G6-13): the current page's bar on its start edge (side-nav.tsx) gives way in forced
+   colours to the Highlight fill that marks the row there, as the selected Tree row's bar does. */
+@media (forced-colors: active) {
+  [data-slot="shell-sidenav-item"][aria-current="page"]::before,
+  [data-slot="shell-sidenav-expandable-trigger"][data-current]::before {
+    display: none;
+  }
 }
 
 /* Before React takes over, the collapsed state the shell script found in storage hides the side
@@ -376,12 +459,25 @@
       &:focus-visible {
         opacity: 1;
       }
+
+      /* SHELLNAV (SHA-8): on a touch screen (any pointer coarse, the kit's touch predicate: a
+         tablet in landscape, a touchscreen laptop) the reader may have no way to call the control
+         up, so it shows at rest in the mark's place. The product name beside it still leads home. */
+      @media (any-pointer: coarse) {
+        opacity: 1;
+      }
     }
 
     &:has(> [data-slot="shell-sidenav-toggle"]:is(:hover, :focus-visible))
       > [data-slot="shell-app-logo"]
       > [data-slot="shell-mark"] {
       opacity: 0;
+    }
+
+    @media (any-pointer: coarse) {
+      & > [data-slot="shell-app-logo"] > [data-slot="shell-mark"] {
+        opacity: 0;
+      }
     }
   }
   /* The opt-in icon rail has the same dimensions before and after hydration. Its compact width
@@ -465,13 +561,13 @@
 }
 
 @media (width >= theme(--breakpoint-wide)) {
-  .shell-root:has(> [data-shell-slot="aside"] > [data-shell-area="aside"]) {
+  [data-slot="shell"]:has(> [data-shell-slot="aside"] [data-shell-area="aside"]) {
     --shell-aside-inset: calc(var(--ds-dimension-layout-rail) + var(--ds-space-300));
   }
-  .shell-root > [data-shell-slot="aside"] {
+  [data-slot="shell"] > [data-shell-slot="aside"] {
     grid-area: aside;
   }
-  .shell-root [data-shell-area="aside"] {
+  [data-slot="shell"] > [data-shell-slot="aside"] [data-shell-area="aside"] {
     border-block-start: 0;
     border-inline-start: 1px solid var(--ds-color-border);
     min-height: 100%;
@@ -479,7 +575,7 @@
 }
 
 @media (width < theme(--breakpoint-lg)) {
-  .shell-root:has(> [data-shell-slot="panel"] > [data-shell-area="panel"])
+  [data-slot="shell"]:has(> [data-shell-slot="panel"] > [data-shell-area="panel"])
     [data-shell-skip="main"] {
     display: none;
   }

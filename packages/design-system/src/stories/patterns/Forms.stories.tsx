@@ -208,7 +208,7 @@ function ControlForm() {
  * runs on submit, then on change; focus goes to the first invalid control.
  */
 export const Fields: Story = {
-  render: () => <ControlForm />,
+  render: ControlForm,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const title = canvas.getByRole("textbox", { name: "Control name" });

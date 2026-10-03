@@ -151,7 +151,7 @@ export function SelectContent({
           align={align}
           alignOffset={alignOffset}
           alignItemWithTrigger={alignItemWithTrigger}
-          className="isolate z-50"
+          className="isolate z-overlay"
         >
           <SelectPrimitive.Popup
             {...props}

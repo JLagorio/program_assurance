@@ -48,6 +48,10 @@ export default {
       filename: STORY,
       settings: KIT_SETTINGS,
     },
+    // A component of this file that hands no children on to its Button leaves them its own.
+    {
+      code: `${kit} const Go = ({ label }) => <Button>{label}</Button>; export const A = () => <Go><PlusIcon className="size-icon-small" /></Go>;`,
+    },
   ],
   invalid: [
     {
@@ -111,6 +115,24 @@ export default {
       // The icon's classes are read through a const and a helper function, as a literal is.
       code: `${kit} const icon = "size-icon-small"; const sized = () => "size-icon-medium"; <><Button><PlusIcon className={icon} />Add</Button><Button><PlusIcon className={sized()} />Add</Button></>`,
       errors: [{ messageId: "button" }, { messageId: "button" }],
+    },
+    {
+      // A component of this file that hands its children on to a Button renders that Button.
+      code: `${kit} const Go = (props) => <Button {...props} />; export const A = () => <Go><PlusIcon className="size-icon-small" />Add</Go>;`,
+      errors: [
+        {
+          messageId: "renderedButton",
+          data: { icon: "PlusIcon", cls: "size-icon-small", wrapper: "Go" },
+        },
+      ],
+    },
+    {
+      // At a breakpoint or important, the icon is still sized by hand.
+      code: `${kit} export const A = () => <><Button><PlusIcon className="md:size-icon-small" />Add</Button><Button><PlusIcon className="!size-icon-small" />Add</Button></>;`,
+      errors: [
+        { messageId: "button", data: { icon: "PlusIcon", cls: "md:size-icon-small" } },
+        { messageId: "button", data: { icon: "PlusIcon", cls: "!size-icon-small" } },
+      ],
     },
   ],
 };

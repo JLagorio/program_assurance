@@ -989,7 +989,7 @@
       "subtlest": {
         "$type": "color",
         "$value": "{color.neutral.800}",
-        "$description": "Use for tertiary text, such as metadata, breadcrumbs, placeholder and helper text. 4.5:1 on every surface and on the resting selected fill, in both modes; not promised on a hovered or pressed fill.",
+        "$description": "Use for tertiary text, such as metadata, breadcrumbs, placeholder and helper text. 4.5:1 on every surface, on the selected fill at rest and under the pointer, and on a highlighted menu item, in both modes; not promised on a pressed fill.",
         "$extensions": {
           "ledger": {
             "introduced": "0.1.0"
@@ -1365,7 +1365,7 @@
       "input": {
         "$type": "color",
         "$value": "{color.neutral.600}",
-        "$description": "Borders of form UI elements, such as text fields, checkboxes, and radio buttons. A light boundary by decision (2026-09-04): the input surface, the hover tint and the focus and danger borders carry the affordance. Increased contrast raises it to 3:1 on every surface.",
+        "$description": "Borders of form UI elements, such as text fields, checkboxes, and radio buttons. A light boundary by decision: the input surface, the hover tint and the focus and danger borders carry the affordance. Increased contrast raises it to 3:1 on every surface.",
         "$extensions": {
           "ledger": {
             "introduced": "0.1.0"
@@ -1640,6 +1640,16 @@
               "introduced": "0.5.0"
             }
           }
+        },
+        "bold": {
+          "$type": "color",
+          "$value": "{color.orange.700}",
+          "$description": "A warning mark on a grey track, where the series step is too pale to hold 3:1: a Progress bar's fill and its waiting stripes. One step darker than the series in light; the series step in dark, which holds 3:1 on the track there.",
+          "$extensions": {
+            "ledger": {
+              "introduced": "0.7.0"
+            }
+          }
         }
       },
       "danger": {
@@ -1679,7 +1689,7 @@
           "default": {
             "$type": "color",
             "$value": "{color.blue.600}",
-            "$description": "Categorical series 1, blue. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$description": "Categorical series 1, blue. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision, validated in both modes; assign in order, never by rank.",
             "$extensions": {
               "ledger": {
                 "introduced": "0.2.0"
@@ -1701,7 +1711,7 @@
           "default": {
             "$type": "color",
             "$value": "{color.orange.600}",
-            "$description": "Categorical series 2, orange. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$description": "Categorical series 2, orange. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision, validated in both modes; assign in order, never by rank.",
             "$extensions": {
               "ledger": {
                 "introduced": "0.2.0"
@@ -1723,7 +1733,7 @@
           "default": {
             "$type": "color",
             "$value": "{color.teal.600}",
-            "$description": "Categorical series 3, teal. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$description": "Categorical series 3, teal. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision, validated in both modes; assign in order, never by rank.",
             "$extensions": {
               "ledger": {
                 "introduced": "0.2.0"
@@ -1745,7 +1755,7 @@
           "default": {
             "$type": "color",
             "$value": "{color.red.600}",
-            "$description": "Categorical series 4, red. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$description": "Categorical series 4, red. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision, validated in both modes; assign in order, never by rank.",
             "$extensions": {
               "ledger": {
                 "introduced": "0.2.0"
@@ -1767,7 +1777,7 @@
           "default": {
             "$type": "color",
             "$value": "{color.purple.600}",
-            "$description": "Categorical series 5, purple. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$description": "Categorical series 5, purple. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision, validated in both modes; assign in order, never by rank.",
             "$extensions": {
               "ledger": {
                 "introduced": "0.2.0"
@@ -1789,7 +1799,7 @@
           "default": {
             "$type": "color",
             "$value": "{color.green.600}",
-            "$description": "Categorical series 6, green. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision (validated 2026-09-04); assign in order, never by rank.",
+            "$description": "Categorical series 6, green. The six hues are in a fixed order that keeps every neighbouring pair apart under deutan and protan vision, validated in both modes; assign in order, never by rank.",
             "$extensions": {
               "ledger": {
                 "introduced": "0.2.0"
@@ -1961,7 +1971,7 @@
             0
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "100": {
         "$type": "color",
@@ -1973,7 +1983,7 @@
             258
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "200": {
         "$type": "color",
@@ -1985,7 +1995,7 @@
             258
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "300": {
         "$type": "color",
@@ -1997,7 +2007,7 @@
             258
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "400": {
         "$type": "color",
@@ -2009,7 +2019,7 @@
             258
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "500": {
         "$type": "color",
@@ -2021,7 +2031,7 @@
             258
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "600": {
         "$type": "color",
@@ -2033,7 +2043,7 @@
             258
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "700": {
         "$type": "color",
@@ -2045,7 +2055,24 @@
             258
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
+      },
+      "720": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [
+            0.525,
+            0.018,
+            258
+          ]
+        },
+        "$description": "Tertiary text and its icons in light: 4.5:1 on every surface, on the selected fill at rest and under the pointer, and on a highlighted menu item.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
       },
       "800": {
         "$type": "color",
@@ -2057,7 +2084,7 @@
             258
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "900": {
         "$type": "color",
@@ -2069,7 +2096,7 @@
             258
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "1000": {
         "$type": "color",
@@ -2081,7 +2108,7 @@
             258
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "1100": {
         "$type": "color",
@@ -2093,7 +2120,7 @@
             258
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "100A": {
         "$type": "color",
@@ -2106,7 +2133,7 @@
           ],
           "alpha": 0.04
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "200A": {
         "$type": "color",
@@ -2119,7 +2146,7 @@
           ],
           "alpha": 0.06
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "300A": {
         "$type": "color",
@@ -2132,7 +2159,7 @@
           ],
           "alpha": 0.1
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "400A": {
         "$type": "color",
@@ -2158,7 +2185,7 @@
           ],
           "alpha": 0.5
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "450A": {
         "$type": "color",
@@ -2208,7 +2235,7 @@
             285
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "100": {
         "$type": "color",
@@ -2220,7 +2247,7 @@
             285
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "200": {
         "$type": "color",
@@ -2232,7 +2259,7 @@
             285
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "250": {
         "$type": "color",
@@ -2244,7 +2271,7 @@
             285
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "300": {
         "$type": "color",
@@ -2256,7 +2283,7 @@
             285
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "350": {
         "$type": "color",
@@ -2268,7 +2295,7 @@
             285
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "400": {
         "$type": "color",
@@ -2280,7 +2307,7 @@
             285
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "500": {
         "$type": "color",
@@ -2292,7 +2319,7 @@
             285
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "600": {
         "$type": "color",
@@ -2304,7 +2331,7 @@
             285
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "700": {
         "$type": "color",
@@ -2316,19 +2343,19 @@
             285
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "715": {
         "$type": "color",
         "$value": {
           "colorSpace": "oklch",
           "components": [
-            0.68,
+            0.72,
             0.02,
             285
           ]
         },
-        "$description": "Tertiary text and its icons in dark: 4.5:1 on the resting selected fill as well as on every surface.",
+        "$description": "Tertiary text and its icons in dark: 4.5:1 on every surface, on the selected fill at rest and under the pointer, and on a highlighted menu item.",
         "$extensions": {
           "ledger": {
             "introduced": "0.7.0"
@@ -2345,7 +2372,7 @@
             285
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "900": {
         "$type": "color",
@@ -2357,7 +2384,7 @@
             285
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "1000": {
         "$type": "color",
@@ -2369,7 +2396,7 @@
             285
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "1100": {
         "$type": "color",
@@ -2381,7 +2408,7 @@
             285
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "-100": {
         "$type": "color",
@@ -2393,7 +2420,7 @@
             285
           ]
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "100A": {
         "$type": "color",
@@ -2406,7 +2433,7 @@
           ],
           "alpha": 0.04
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "200A": {
         "$type": "color",
@@ -2419,7 +2446,7 @@
           ],
           "alpha": 0.07
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "300A": {
         "$type": "color",
@@ -2432,7 +2459,7 @@
           ],
           "alpha": 0.11
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "400A": {
         "$type": "color",
@@ -2458,7 +2485,7 @@
           ],
           "alpha": 0.5
         },
-        "$description": "Draft ramp step, re-spaced 2026-09-02 so the semantic mapping meets AA on it. Tune in step 1."
+        "$description": "Dark neutral ramp step, spaced so the semantic mapping meets AA on it. A part reads the semantic token, never the step."
       },
       "450A": {
         "$type": "color",
@@ -2543,7 +2570,7 @@
             254
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "150": {
         "$type": "color",
@@ -2572,7 +2599,7 @@
             254
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "225": {
         "$type": "color",
@@ -2601,7 +2628,7 @@
             254
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "300": {
         "$type": "color",
@@ -2613,7 +2640,7 @@
             254
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "400": {
         "$type": "color",
@@ -2625,7 +2652,7 @@
             254
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "475": {
         "$type": "color",
@@ -2654,7 +2681,7 @@
             254
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "550": {
         "$type": "color",
@@ -2683,7 +2710,7 @@
             254
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "675": {
         "$type": "color",
@@ -2712,7 +2739,7 @@
             254
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "725": {
         "$type": "color",
@@ -2741,7 +2768,7 @@
             254
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "850": {
         "$type": "color",
@@ -2753,7 +2780,7 @@
             254
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "875": {
         "$type": "color",
@@ -2782,7 +2809,7 @@
             254
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "950": {
         "$type": "color",
@@ -2811,7 +2838,7 @@
             254
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Blue ramp step: brand, selected, information and focus. A part reads the semantic token, never the step."
       },
       "1100": {
         "$type": "color",
@@ -2842,7 +2869,7 @@
             162
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "200": {
         "$type": "color",
@@ -2854,7 +2881,7 @@
             162
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "225": {
         "$type": "color",
@@ -2883,7 +2910,7 @@
             162
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "300": {
         "$type": "color",
@@ -2895,7 +2922,7 @@
             162
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "400": {
         "$type": "color",
@@ -2907,7 +2934,7 @@
             162
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "500": {
         "$type": "color",
@@ -2919,7 +2946,7 @@
             162
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "600": {
         "$type": "color",
@@ -2931,7 +2958,7 @@
             162
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "700": {
         "$type": "color",
@@ -2943,7 +2970,7 @@
             162
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "800": {
         "$type": "color",
@@ -2955,7 +2982,7 @@
             162
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "850": {
         "$type": "color",
@@ -2967,7 +2994,7 @@
             162
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "875": {
         "$type": "color",
@@ -2996,7 +3023,7 @@
             162
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       },
       "1000": {
         "$type": "color",
@@ -3008,7 +3035,7 @@
             162
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Green ramp step: success. A part reads the semantic token, never the step."
       }
     },
     "orange": {
@@ -3022,7 +3049,7 @@
             78
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "200": {
         "$type": "color",
@@ -3034,7 +3061,7 @@
             75
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "225": {
         "$type": "color",
@@ -3063,7 +3090,7 @@
             72
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "300": {
         "$type": "color",
@@ -3075,7 +3102,7 @@
             70
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "400": {
         "$type": "color",
@@ -3087,7 +3114,7 @@
             68
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "500": {
         "$type": "color",
@@ -3099,7 +3126,7 @@
             66
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "600": {
         "$type": "color",
@@ -3111,7 +3138,7 @@
             64
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "700": {
         "$type": "color",
@@ -3123,7 +3150,7 @@
             62
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "800": {
         "$type": "color",
@@ -3135,7 +3162,7 @@
             60
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "850": {
         "$type": "color",
@@ -3147,7 +3174,7 @@
             58
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "875": {
         "$type": "color",
@@ -3176,7 +3203,7 @@
             56
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       },
       "1000": {
         "$type": "color",
@@ -3188,7 +3215,7 @@
             54
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Orange ramp step: warning. A part reads the semantic token, never the step."
       }
     },
     "red": {
@@ -3202,7 +3229,7 @@
             26
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "200": {
         "$type": "color",
@@ -3214,7 +3241,7 @@
             26
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "225": {
         "$type": "color",
@@ -3243,7 +3270,7 @@
             26
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "300": {
         "$type": "color",
@@ -3255,7 +3282,7 @@
             26
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "400": {
         "$type": "color",
@@ -3267,7 +3294,7 @@
             26
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "500": {
         "$type": "color",
@@ -3279,7 +3306,7 @@
             26
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "600": {
         "$type": "color",
@@ -3291,7 +3318,7 @@
             26
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "700": {
         "$type": "color",
@@ -3303,7 +3330,7 @@
             26
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "800": {
         "$type": "color",
@@ -3315,7 +3342,7 @@
             26
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "850": {
         "$type": "color",
@@ -3327,7 +3354,7 @@
             26
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "875": {
         "$type": "color",
@@ -3356,7 +3383,7 @@
             26
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       },
       "1000": {
         "$type": "color",
@@ -3368,7 +3395,7 @@
             26
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Red ramp step: danger. A part reads the semantic token, never the step."
       }
     },
     "teal": {
@@ -3382,7 +3409,7 @@
             192
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "200": {
         "$type": "color",
@@ -3394,7 +3421,7 @@
             192
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "250": {
         "$type": "color",
@@ -3406,7 +3433,7 @@
             192
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "300": {
         "$type": "color",
@@ -3418,7 +3445,7 @@
             192
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "400": {
         "$type": "color",
@@ -3430,7 +3457,7 @@
             192
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "500": {
         "$type": "color",
@@ -3442,7 +3469,7 @@
             192
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "600": {
         "$type": "color",
@@ -3454,7 +3481,7 @@
             192
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "700": {
         "$type": "color",
@@ -3466,7 +3493,7 @@
             192
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "800": {
         "$type": "color",
@@ -3478,7 +3505,7 @@
             192
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "850": {
         "$type": "color",
@@ -3490,7 +3517,7 @@
             192
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "900": {
         "$type": "color",
@@ -3502,7 +3529,7 @@
             192
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "1000": {
         "$type": "color",
@@ -3514,7 +3541,7 @@
             192
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Teal ramp step: accents and chart series only. A part reads the semantic token, never the step."
       }
     },
     "purple": {
@@ -3528,7 +3555,7 @@
             300
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "200": {
         "$type": "color",
@@ -3540,7 +3567,7 @@
             300
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "250": {
         "$type": "color",
@@ -3552,7 +3579,7 @@
             300
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "300": {
         "$type": "color",
@@ -3564,7 +3591,7 @@
             300
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "400": {
         "$type": "color",
@@ -3576,7 +3603,7 @@
             300
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "500": {
         "$type": "color",
@@ -3588,7 +3615,7 @@
             300
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "600": {
         "$type": "color",
@@ -3600,7 +3627,7 @@
             300
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "700": {
         "$type": "color",
@@ -3612,7 +3639,7 @@
             300
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "800": {
         "$type": "color",
@@ -3624,7 +3651,7 @@
             300
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "850": {
         "$type": "color",
@@ -3636,7 +3663,7 @@
             300
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "900": {
         "$type": "color",
@@ -3648,7 +3675,7 @@
             300
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       },
       "1000": {
         "$type": "color",
@@ -3660,7 +3687,7 @@
             300
           ]
         },
-        "$description": "Draft ramp step. Tune in step 1."
+        "$description": "Purple ramp step: accents and chart series only. A part reads the semantic token, never the step."
       }
     }
   },
@@ -3782,7 +3809,7 @@
           "value": 75,
           "unit": "rem"
         },
-        "$description": "1200px. The aside sits beside Main from here while no panel is open; below, it follows Main."
+        "$description": "1200px. The aside sits beside Main from here, whatever the side nav's width, while no panel is open; from `lg` it does while the side nav leaves Main its minimum, and otherwise it follows Main."
       },
       "panel": {
         "$type": "dimension",
@@ -3842,7 +3869,7 @@
           "value": 20,
           "unit": "rem"
         },
-        "$description": "Tailwind's container xs, 320px, restated so the `@xs` variant reads a token. No part switches here yet.",
+        "$description": "Tailwind's container xs, 320px, restated so the `@xs` variant reads a token. A KeyValue.Group whose label column is auto puts each label over its value below it.",
         "$extensions": {
           "ledger": {
             "introduced": "0.7.0"
@@ -3985,7 +4012,7 @@
           "value": 25,
           "unit": "rem"
         },
-        "$description": "400px. Below it a region is compact: a header gives its actions a row of their own under the title, as the panel header does.",
+        "$description": "400px at the default text size. Below it a region is compact (`@compact:`): a header gives its actions a row of their own under the title. In rem, so it scales with the reader's text size; the Shell.Panel header switches on dimension.query.panelHeader, in px.",
         "$extensions": {
           "ledger": {
             "introduced": "0.7.0"
@@ -3999,6 +4026,34 @@
           "unit": "rem"
         },
         "$description": "800px. From here a body shows two panes side by side; below it an open preview replaces the list, as in RecordBrowser.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      }
+    },
+    "query": {
+      "shortWindow": {
+        "$type": "dimension",
+        "$value": {
+          "value": 30,
+          "unit": "rem"
+        },
+        "$description": "A short window: under this height (a phone on its side, a page zoomed to 400%) the banner, the top nav and the panel's header scroll away with the page. A height, so it is no breakpoint: a stylesheet reads it as theme(--query-short-window) in an @media condition, and no class or variant reads it.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "panelHeader": {
+        "$type": "dimension",
+        "$value": {
+          "value": 400,
+          "unit": "px"
+        },
+        "$description": "Under this width a Shell.Panel's header gives its actions a row of their own under the title. In px, so it does not scale with the reader's text size as dimension.container.compact does; a stylesheet reads it as theme(--query-panel-header) in the panel's @container condition, and no class or variant reads it.",
         "$extensions": {
           "ledger": {
             "introduced": "0.7.0"
@@ -4053,7 +4108,7 @@
           "value": 272,
           "unit": "px"
         },
-        "$description": "The rail beside a record page: PreviewRail, the Inspector, the ShowPage rail."
+        "$description": "The rail beside a record page: the Shell's Aside and the Inspector in it. A vertical Attachment, and a Timeline event across at `itemWidth=\"rail\"`, take the same width."
       },
       "measure": {
         "$type": "dimension",
@@ -4234,13 +4289,39 @@
           }
         }
       },
+      "keyValueLabelNarrow": {
+        "$type": "dimension",
+        "$value": {
+          "value": 5.5,
+          "unit": "rem"
+        },
+        "$description": "A KeyValue's narrow label column, 88px at the default text size: labelWidth \"narrow\", for short labels in a card, a glance or a chart's details (Owner, Open). Drawn in rem, so it grows with the reader's text size as the label does.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
       "keyValueLabel": {
         "$type": "dimension",
         "$value": {
           "value": 6.5,
           "unit": "rem"
         },
-        "$description": "A KeyValue's label column, 104px at the default text size, unless labelWidth gives another. It is drawn in rem, so it grows with the reader's text size as the label does.",
+        "$description": "A KeyValue's label column, 104px at the default text size: labelWidth \"default\", a rail's, and the width without a labelWidth. Drawn in rem, so it grows with the reader's text size as the label does.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "keyValueLabelWide": {
+        "$type": "dimension",
+        "$value": {
+          "value": 10,
+          "unit": "rem"
+        },
+        "$description": "A KeyValue's wide label column, 160px at the default text size: labelWidth \"wide\", for labels of about twenty characters (Authorizing official), and the most an \"auto\" column takes before its labels wrap. Drawn in rem, so it grows with the reader's text size as the label does.",
         "$extensions": {
           "ledger": {
             "introduced": "0.7.0"
@@ -4306,6 +4387,294 @@
           "unit": "px"
         },
         "$description": "A PreviewSheet's width, about half the screen, unless its width gives another.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "filterChipValue": {
+        "$type": "number",
+        "$value": 20,
+        "$description": "The widest a FilterChip's value grows before it truncates; its full text is its title. In ch, so it holds about twenty characters at the chip's text size.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          },
+          "org.ledger.css": {
+            "unit": "ch",
+            "sourceType": "dimension"
+          }
+        }
+      },
+      "commandList": {
+        "$type": "dimension",
+        "$value": {
+          "value": 340,
+          "unit": "px"
+        },
+        "$description": "The tallest a Command's list grows before it scrolls inside itself.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "cellCard": {
+        "$type": "dimension",
+        "$value": {
+          "value": 300,
+          "unit": "px"
+        },
+        "$description": "The width of the card a table cell opens: Table.List's full list and a DataTable column's glance.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "composerSuggestions": {
+        "$type": "dimension",
+        "$value": {
+          "value": 280,
+          "unit": "px"
+        },
+        "$description": "The width of a Composer's suggestions list.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "composerSuggestionsHeight": {
+        "$type": "dimension",
+        "$value": {
+          "value": 240,
+          "unit": "px"
+        },
+        "$description": "The tallest a Composer's suggestions list grows before it scrolls, within the room the window leaves.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "tableMenu": {
+        "$type": "dimension",
+        "$value": {
+          "value": 220,
+          "unit": "px"
+        },
+        "$description": "A DataTable's Columns and Settings menus at their narrowest.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "tableColumnMenu": {
+        "$type": "dimension",
+        "$value": {
+          "value": 200,
+          "unit": "px"
+        },
+        "$description": "A DataTable column header's menu at its narrowest.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "tableGroupBy": {
+        "$type": "dimension",
+        "$value": {
+          "value": 200,
+          "unit": "px"
+        },
+        "$description": "A DataTable's Group by menu at its narrowest.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "tablePresets": {
+        "$type": "dimension",
+        "$value": {
+          "value": 240,
+          "unit": "px"
+        },
+        "$description": "A DataTable's Presets menu at its narrowest, where its saved questions are a menu rather than a strip.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "editableSelect": {
+        "$type": "dimension",
+        "$value": {
+          "value": 220,
+          "unit": "px"
+        },
+        "$description": "The width of an EditableSelect's list of choices.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "editableCombobox": {
+        "$type": "dimension",
+        "$value": {
+          "value": 240,
+          "unit": "px"
+        },
+        "$description": "The width of an EditableSelect's searchable popup, for a long list of choices.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "editableComboboxList": {
+        "$type": "dimension",
+        "$value": {
+          "value": 260,
+          "unit": "px"
+        },
+        "$description": "The tallest the list in an EditableSelect's searchable popup grows before it scrolls inside itself.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "recordSearch": {
+        "$type": "dimension",
+        "$value": {
+          "value": 640,
+          "unit": "px"
+        },
+        "$description": "The widest a dialog that searches records grows, a SearchDialog's and a RecordPicker's; a narrower window caps it at the room it leaves.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "relatedCard": {
+        "$type": "dimension",
+        "$value": {
+          "value": 240,
+          "unit": "px"
+        },
+        "$description": "A Related card's narrowest in the cards layout, which fits as many to a row as the row holds.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "recordBrowser": {
+        "$type": "number",
+        "$value": 90,
+        "$description": "A RecordBrowser's width and its cap: most of the window, for its list beside a preview.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          },
+          "org.ledger.css": {
+            "unit": "vw",
+            "sourceType": "dimension"
+          }
+        }
+      },
+      "recordBrowserPreview": {
+        "$type": "dimension",
+        "$value": {
+          "value": 320,
+          "unit": "px"
+        },
+        "$description": "A RecordBrowser's preview column at its narrowest beside the results, which it shares at 40% of the browser's width.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "drawerSmall": {
+        "$type": "dimension",
+        "$value": {
+          "value": 20,
+          "unit": "rem"
+        },
+        "$description": "A Drawer at width \"small\", 320px at the default text size: how wide a side drawer grows, and a bottom or top drawer on a window from sm up, centred. A narrower window caps a side drawer at 75% of its width and runs a bottom or top drawer edge to edge.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "drawer": {
+        "$type": "dimension",
+        "$value": {
+          "value": 24,
+          "unit": "rem"
+        },
+        "$description": "A Drawer at width \"medium\", its default, 384px at the default text size: how wide a side drawer grows, and a bottom or top drawer on a window from sm up, centred. A narrower window caps a side drawer at 75% of its width and runs a bottom or top drawer edge to edge.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "drawerLarge": {
+        "$type": "dimension",
+        "$value": {
+          "value": 47.5,
+          "unit": "rem"
+        },
+        "$description": "A Drawer at width \"large\", 760px at the default text size, Sheet's and Dialog's large: how wide a side drawer grows, and a bottom or top drawer on a window from sm up, centred. A narrower window caps a side drawer at 75% of its width and runs a bottom or top drawer edge to edge.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "toast": {
+        "$type": "dimension",
+        "$value": {
+          "value": 24,
+          "unit": "rem"
+        },
+        "$description": "The widest the Toaster's stack grows, 384px at the default text size; a narrower window leaves space.200 on each side.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "pageHeaderHeading": {
+        "$type": "dimension",
+        "$value": {
+          "value": 14,
+          "unit": "rem"
+        },
+        "$description": "A PageHeader's heading measure, about twenty characters of font.heading.page a line: when the row cannot hold it beside the actions, the actions wrap under it.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "sectionHeading": {
+        "$type": "dimension",
+        "$value": {
+          "value": 12,
+          "unit": "rem"
+        },
+        "$description": "A Section header's heading measure, about twenty-five characters of body text a line: when the row cannot hold it beside the actions, the actions take the next row.",
         "$extensions": {
           "ledger": {
             "introduced": "0.7.0"
@@ -4664,13 +5033,16 @@
       "code": {
         "$type": "fontFamily",
         "$value": [
-          "Geist Mono Variable",
           "Geist Mono",
           "JetBrains Mono",
           "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "Consolas",
+          "Liberation Mono",
           "monospace"
         ],
-        "$description": "Code blocks and data previews only. Never UI text. Geist Mono Variable is the name the packaged mono face takes once fonts.css loads it."
+        "$description": "Code blocks and data previews only. Never UI text. The package ships no mono face, so the stack names faces the machine has: Geist Mono or JetBrains Mono where installed, else the system monospace."
       }
     },
     "weight": {
@@ -4852,6 +5224,98 @@
       }
     },
     "heading": {
+      "display": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.semibold}",
+          "fontSize": {
+            "value": 1.75,
+            "unit": "rem"
+          },
+          "lineHeight": 1.2142857142857142,
+          "letterSpacing": {
+            "value": -0.56,
+            "unit": "px"
+          }
+        },
+        "$description": "Heading `display`: a figure bigger than a Stat's, or the one title of a screen with nothing else on it (sign-in), set as its h1. Never a page or record title.",
+        "$extensions": {
+          "org.ledger.css": {
+            "sourceLineHeight": "2.125rem",
+            "sourceLetterSpacing": "{font.letterSpacing.400}"
+          }
+        }
+      },
+      "page": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.semibold}",
+          "fontSize": {
+            "value": 1.25,
+            "unit": "rem"
+          },
+          "lineHeight": 1.3,
+          "letterSpacing": {
+            "value": -0.3,
+            "unit": "px"
+          }
+        },
+        "$description": "Heading `page`: the page and record title, which PageHeader.Title draws on a page and as a preview's record name, and a Stat's figure.",
+        "$extensions": {
+          "org.ledger.css": {
+            "sourceLineHeight": "1.625rem",
+            "sourceLetterSpacing": "{font.letterSpacing.300}"
+          }
+        }
+      },
+      "overlay": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.medium}",
+          "fontSize": {
+            "value": 0.9375,
+            "unit": "rem"
+          },
+          "lineHeight": 1.4666666666666666,
+          "letterSpacing": {
+            "value": -0.22499999999999998,
+            "unit": "px"
+          }
+        },
+        "$description": "Heading `overlay`: an overlay's title, which DialogTitle, SheetTitle, AlertDialogTitle and DrawerTitle draw; a card's title and a group heading inside an overlay take it too.",
+        "$extensions": {
+          "org.ledger.css": {
+            "sourceLineHeight": "1.375rem",
+            "sourceLetterSpacing": "{font.letterSpacing.300}"
+          }
+        }
+      },
+      "section": {
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.semibold}",
+          "fontSize": {
+            "value": 0.8125,
+            "unit": "rem"
+          },
+          "lineHeight": 1.3846153846153846,
+          "letterSpacing": {
+            "value": -0.10400000000000001,
+            "unit": "px"
+          }
+        },
+        "$description": "Heading `section`: a section's title, which Section.Title draws: body size at semibold.",
+        "$extensions": {
+          "org.ledger.css": {
+            "sourceLineHeight": "1.125rem",
+            "sourceLetterSpacing": "{font.letterSpacing.200}"
+          }
+        }
+      },
       "large": {
         "$type": "typography",
         "$value": {
@@ -4867,8 +5331,11 @@
             "unit": "px"
           }
         },
-        "$description": "Display: a figure bigger than a Stat's, or the one title of a screen with nothing else on it (sign-in). Not a page or record title.",
+        "$description": "Deprecated: font.heading.display, the same style. Kept for one version.",
         "$extensions": {
+          "ledger": {
+            "deprecated": "font.heading.display"
+          },
           "org.ledger.css": {
             "sourceLineHeight": "2.125rem",
             "sourceLetterSpacing": "{font.letterSpacing.400}"
@@ -4890,8 +5357,11 @@
             "unit": "px"
           }
         },
-        "$description": "A Heading medium: a page title set without PageHeader. PageHeader.Title is font.heading.small at semibold.",
+        "$description": "Deprecated: font.heading.page (20/26) for a page or record title. Kept for one version.",
         "$extensions": {
+          "ledger": {
+            "deprecated": "font.heading.page"
+          },
           "org.ledger.css": {
             "sourceLineHeight": "1.75rem",
             "sourceLetterSpacing": "{font.letterSpacing.400}"
@@ -4913,8 +5383,11 @@
             "unit": "px"
           }
         },
-        "$description": "A section heading set with Heading; at semibold, the page and record title (PageHeader.Title) and a Stat's figure.",
+        "$description": "Deprecated: font.heading.page (20/26 semibold) for a page or record title, font.heading.section for a section's title. Kept for one version.",
         "$extensions": {
+          "ledger": {
+            "deprecated": "font.heading.page"
+          },
           "org.ledger.css": {
             "sourceLineHeight": "1.625rem",
             "sourceLetterSpacing": "{font.letterSpacing.300}"
@@ -4936,8 +5409,11 @@
             "unit": "px"
           }
         },
-        "$description": "Dialog and card titles.",
+        "$description": "Deprecated: font.heading.overlay, the same style. Kept for one version.",
         "$extensions": {
+          "ledger": {
+            "deprecated": "font.heading.overlay"
+          },
           "org.ledger.css": {
             "sourceLineHeight": "1.375rem",
             "sourceLetterSpacing": "{font.letterSpacing.300}"
@@ -5190,7 +5666,7 @@
         "value": 2,
         "unit": "px"
       },
-      "$description": "Draft, on a 5px base. Kbd, tiny chips."
+      "$description": "Kbd, tiny chips. The smallest step."
     },
     "small": {
       "$type": "dimension",
@@ -5198,7 +5674,7 @@
         "value": 3,
         "unit": "px"
       },
-      "$description": "Draft. Count chips, the checkbox, skeleton lines, inline hit targets."
+      "$description": "Count chips, the checkbox, skeleton lines, inline hit targets."
     },
     "medium": {
       "$type": "dimension",
@@ -5206,7 +5682,7 @@
         "value": 5,
         "unit": "px"
       },
-      "$description": "Draft. Buttons, inputs, chips, tooltips, menu items."
+      "$description": "Buttons, inputs, chips, tooltips, menu items. The scale's base."
     },
     "large": {
       "$type": "dimension",
@@ -5214,7 +5690,7 @@
         "value": 7,
         "unit": "px"
       },
-      "$description": "Draft. Cards, popovers, hover cards, menus and listboxes."
+      "$description": "Cards, popovers, hover cards, menus and listboxes."
     },
     "xlarge": {
       "$type": "dimension",
@@ -5222,7 +5698,7 @@
         "value": 9,
         "unit": "px"
       },
-      "$description": "Draft. No part yet: a sheet runs flush to the window's edge, and a dialog is xxlarge."
+      "$description": "A large surface of a product's own, between a card and a dialog. No kit part draws it: a sheet runs flush to the window's edge, and a dialog is xxlarge."
     },
     "xxlarge": {
       "$type": "dimension",
@@ -5230,7 +5706,7 @@
         "value": 12,
         "unit": "px"
       },
-      "$description": "Draft. Dialogs, the command palette, a drawer's free edge, spotlight cards."
+      "$description": "Dialogs, the command palette, a drawer's free edge, spotlight cards."
     },
     "full": {
       "$type": "dimension",

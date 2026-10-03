@@ -73,10 +73,8 @@ type EvidenceChoice = {
 const ownerCell = (row: EvidenceChoice) =>
   row.owner ? (
     <Person name={row.owner} />
-  ) : row.ownerMissing ? (
-    <Text color="color.text.subtle">Not available</Text>
   ) : (
-    <Absent label="Not recorded" />
+    <Absent label={row.ownerMissing ? "Not available" : "Not recorded"} />
   );
 
 /** In the browser the artifact's name leads each row and carries the eye; its version follows. */
@@ -122,15 +120,24 @@ export function RequirementEvidence({
   const link = useLinkRequirementEvidence();
   const remove = useRemoveRequirementLink();
   const { confirm, confirmation } = useConfirmation();
-  const collection = workspace.collections.find((item) => item.name === "requirement_evidence");
+  // Every member but a viewer links and unlinks the workspace's own requirement evidence, and
+  // row-level security decides each write: the role says it, so the tab does not load the record
+  // schema.
   const writable =
     !readOnly && workspace.role !== "viewer" && requirement.data?.tenant_id === workspace.tenantId;
-  const canUnlink = writable && !!collection?.can_delete;
+  const canUnlink = writable;
   const contextValid = identity.data?.program_id === programId;
   const queries = [requirement, identity, links, artifacts, versions, parties];
   // Loaded once every query has data; a failed refresh keeps what was loaded.
   const loaded = queries.every((query) => query.data !== undefined);
   const loadFailed = queries.some((query) => query.data === undefined && query.isError);
+  // The browser's state: a failed load, or a failed refresh whose rows stay under the alert. The
+  // alert stays while its Try again runs, so focus stays on it.
+  const browserState = queries.some((query) => query.isError)
+    ? "error"
+    : !loaded
+      ? "loading"
+      : "ready";
   const requirementName = identity.data
     ? `${identity.data.code} · ${requirement.data?.title ?? ""}`
     : (requirement.data?.title ?? "This requirement");
@@ -222,8 +229,6 @@ export function RequirementEvidence({
           minWidth: 200,
           priority: 0,
           hideable: false,
-          preview: (row) => setPreviewId(row.id),
-          active: (row) => row.id === previewId,
           cell: (row) => (
             <RecordLink table="evidence_versions" record={row.version}>
               {row.title}
@@ -248,12 +253,18 @@ export function RequirementEvidence({
       ]),
     // unlink reads the row it is given and the current links.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [previewId, canUnlink, linkFor],
+    [canUnlink, linkFor],
+  );
+  // The preview is the table's, so opening or stepping through it never rebuilds the columns.
+  const tablePreview = useMemo(
+    () => ({ onPreview: (row: EvidenceChoice) => setPreviewId(row.id), activeId: previewId }),
+    [previewId],
   );
   const table = useDataTable({
     data: linked,
     columns,
     getRowId: (row) => row.id,
+    preview: tablePreview,
     rowLabel: (row) => `${row.title}, ${row.versionLabel}`,
     label: "Linked evidence",
     pageSize: 10,
@@ -368,32 +379,20 @@ export function RequirementEvidence({
         <RecordBrowser
           open={surface === "browse"}
           title="Add evidence"
-          description="Search, preview, and select published versions to link to this requirement."
+          description="Find, preview and choose the published versions to link to this requirement."
           records={eligible}
           columns={pickerColumns}
           filters={["kind", "owner", "context"]}
           previewColumn="title"
-          searchPlaceholder="Search evidence"
+          searchPlaceholder="Find evidence to link"
           recordTitle={(row) => row.title}
           recordLabel={(row) => `${row.title}, ${row.versionLabel.toLowerCase()}`}
           recordCode={(row) => row.versionLabel}
-          state={loadFailed ? "error" : loaded ? "ready" : "loading"}
-          error={
-            <Stack space="space.100">
-              <span>The evidence could not be loaded.</span>
-              <span>
-                <Button
-                  size="small"
-                  isLoading={queries.some((query) => query.isFetching)}
-                  onClick={() => {
-                    for (const query of queries) if (query.isError) void query.refetch();
-                  }}
-                >
-                  Retry loading evidence
-                </Button>
-              </span>
-            </Stack>
-          }
+          state={browserState}
+          error="The evidence could not be loaded."
+          onRetry={() => {
+            for (const query of queries) if (query.isError) void query.refetch();
+          }}
           empty={noneEligible}
           renderPreview={(row) => (
             <EvidenceVersionDetails artifact={row.artifact} version={row.version} />

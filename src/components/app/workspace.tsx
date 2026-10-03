@@ -76,11 +76,23 @@ const seededUser = (() => {
   }
 })();
 
-const WorkspaceContext = createContext<Workspace | null>(null);
-export function useWorkspace(): Workspace {
+/**
+ * The signed-in workspace as screens read it: who reads, in which tenant, and in what role. The
+ * record schema is not part of it: a screen reads a collection through `useCollection(name)`, or
+ * the whole schema through `useSchemaCatalog()` (src/lib/collections), which load it on demand.
+ */
+export type WorkspaceContextValue = Workspace;
+
+const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
+export function useWorkspace(): WorkspaceContextValue {
   const workspace = useContext(WorkspaceContext);
   if (!workspace) throw new Error("A signed-in workspace is required.");
   return workspace;
+}
+
+/** Provides the workspace. A screen that never asks for the record schema never loads it. */
+function WorkspaceValue({ workspace, children }: { workspace: Workspace; children: ReactNode }) {
+  return <WorkspaceContext.Provider value={workspace}>{children}</WorkspaceContext.Provider>;
 }
 
 type Session = { signOut: () => Promise<void> };
@@ -314,12 +326,12 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   if (phase === "ready" && workspace)
     return (
-      <WorkspaceContext.Provider value={workspace}>
+      <WorkspaceValue workspace={workspace}>
         <SessionContext.Provider value={session}>
           {children}
           <SignInAgain open={expired} email={workspace.email} onSignOut={() => void leave()} />
         </SessionContext.Provider>
-      </WorkspaceContext.Provider>
+      </WorkspaceValue>
     );
   if (phase === "loading") return <WorkspaceLoading />;
   if (phase === "failed")
@@ -454,7 +466,7 @@ function SignIn({ signedOut }: { signedOut: boolean }) {
   return (
     <Screen title="Sign in">
       <Stack space="space.100">
-        <Heading as="h1" size="large" ref={heading} tabIndex={-1} className="outline-none">
+        <Heading as="h1" size="display" ref={heading} tabIndex={-1} className="outline-none">
           Sign in to Program Assurance
         </Heading>
         <Text as="p" color="color.text.subtle">

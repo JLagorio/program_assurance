@@ -6,7 +6,20 @@ import * as Stories from "./Resizable.stories";
 
 # Resizable
 
+**Status: Stable.**
+
 User-sized panes following [shadcn’s Resizable source](https://ui.shadcn.com/docs/components/base/resizable), built on react-resizable-panels. A plain dividing rule is a Separator; the application shell's side nav and panel have their own splitters.
+
+## When to use it
+
+- **Two or three panes whose share the reader decides**: a list beside its detail, a tree beside the record it opens, a source beside its preview.
+
+Not for a fixed line between content: that is a [Separator](?path=/docs/components-separator--docs). Not for the application's side nav or panel: [Shell](?path=/docs/layout-shell--docs) has its own splitters. Not side by side in a narrow container, a phone or a narrow panel: stack the panes with `orientation="vertical"`, or show one at a time (Narrow containers).
+
+## Content
+
+- Name each handle for what it resizes: `aria-label="Resize the list"`. The default, "Resize", tells several splits apart by nothing.
+- A button that folds a pane says what it will do next: "Hide the tree", then "Show the tree" (Without dragging).
 
 ## Anatomy
 
@@ -22,9 +35,13 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@ledger/de
 </ResizablePanelGroup>;
 ```
 
-Give the group a sized parent. Panels clip their contents; put ScrollArea inside a scrolling pane. `withHandle` adds a visible grip. Sizes are strings for percentages (`"30%"`) and numbers for pixels.
+Give the group a sized parent. Panels clip their contents; put ScrollArea inside a scrolling pane. `withHandle` adds a visible grip.
 
 <Canvas of={Stories.Panes} />
+
+Sizes are strings for percentages (`"30%"`) and numbers for pixels. A share of the split is written `defaultSize="30%"`, never `defaultSize={30}`, which opens a pane 30 pixels wide.
+
+<Canvas of={Stories.DoDont} />
 
 ## Variants and states
 

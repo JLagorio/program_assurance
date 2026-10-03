@@ -7,6 +7,8 @@ import * as Stories from "./ChartSparkline.stories";
 
 # Sparkline
 
+**Status: Stable.**
+
 A trend with no axes, no grid and no legend, beside the number it belongs to: in a Stat tile, in a table's trend column, after a count. The number carries the value; the sparkline carries the shape. A line by default, a wash or bars when asked, with an end dot for the last point and a hairline for a reference. Ninety-six by twenty-four pixels. Unnamed it is decoration; named, it is an image with a tooltip.
 
 <Canvas of={Stories.SparklineMatrix} />
@@ -113,5 +115,7 @@ A sparkline does not choose: nothing to click, nothing to open. The number besid
 - [Table](?path=/docs/components-table--docs): the trend column.
 
 ## Don't
+
+A sparkline sits beside the number it trends, in one tone, the number's status, never alone and made bigger, or in a categorical hue beside a status number.
 
 <Canvas of={Stories.Dont} />

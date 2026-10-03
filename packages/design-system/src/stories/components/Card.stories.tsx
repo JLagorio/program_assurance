@@ -18,6 +18,10 @@ import {
   Input,
   Table,
 } from "../../components";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Card",
@@ -147,7 +151,6 @@ export const Playground: Story = {
 export const OnASmallPhone: Story = {
   name: "On a small phone",
   globals: { viewport: { value: "ledgerSmall", isRotated: false } },
-  tags: ["narrow"],
   render: reviewPreferences,
   play: async ({ canvasElement }) => {
     await waitFor(() => expect(window.innerWidth).toBe(340));
@@ -226,7 +229,6 @@ export const EdgeToEdge: Story = {
 /** In a rail, the header is too narrow to keep a readable title beside its action, so the action takes its own row after the description, at the end; the title and description keep the full width and their words whole. */
 export const InARail: Story = {
   name: "In a rail",
-  tags: ["narrow"],
   render: () => (
     <Card role="region" aria-label="Linked findings" className="w-layout-rail max-w-full">
       <CardHeader>
@@ -264,7 +266,6 @@ export const InARail: Story = {
 /** A card whose action is wide: the header keeps the title's readable measure (12rem, or the title's own width when shorter) beside the action, and where it cannot, the action takes its own row after the description, at the end, as in a rail, so the title never breaks mid-word. The header measures itself, so a card that is resized follows. */
 export const BesideAWideAction: Story = {
   name: "Beside a wide action",
-  tags: ["narrow"],
   render: () => {
     const card = (label: string, width: number) => (
       <Card role="region" aria-label={label} className="max-w-full" style={{ width }}>
@@ -423,5 +424,61 @@ export const Linked: Story = {
     await expect(target).toBe(second);
     await userEvent.click(target as HTMLElement);
     await expect(canvas.getByRole("status")).toHaveTextContent("Opened systems");
+  },
+};
+
+/**
+ * A linked card is one click target: its title's link covers the card. A button inside it sits
+ * under that link, so a press on the button opens the record instead; a card with actions keeps
+ * its title a link and the actions apart, as Related cards do.
+ */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <Pair
+      do={
+        <Card size="small">
+          <CardHeader>
+            <CardTitle render={<h3 />} link={<a href="#evidence" />}>
+              Evidence
+            </CardTitle>
+            <CardDescription>Three linked artifacts</CardDescription>
+          </CardHeader>
+          <CardContent>One awaiting review</CardContent>
+        </Card>
+      }
+      doText="The whole card opens the register, and it holds nothing else to press."
+      dont={
+        <Card size="small">
+          <CardHeader>
+            <CardTitle render={<h3 />} link={<a href="#findings" />}>
+              Findings
+            </CardTitle>
+            <CardDescription>Five open</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button size="small">Add finding</Button>
+          </CardContent>
+        </Card>
+      }
+      dontText="A button inside a linked card: the card's link covers it, so a press opens Findings."
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const evidence = canvas.getByRole("link", { name: "Evidence" });
+    const card = evidence.closest<HTMLElement>('[data-slot="card"]')!;
+    await expect(card.querySelectorAll("a, button")).toHaveLength(1);
+    // The button's middle is under the other card's link, which takes the press.
+    const findings = canvas.getByRole("link", { name: "Findings" });
+    const button = canvas.getByRole("button", { name: "Add finding" });
+    const box = button.getBoundingClientRect();
+    await expect(
+      canvasElement.ownerDocument.elementFromPoint(
+        box.left + box.width / 2,
+        box.top + box.height / 2,
+      ),
+    ).toBe(findings);
   },
 };

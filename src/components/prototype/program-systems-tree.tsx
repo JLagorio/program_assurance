@@ -47,7 +47,7 @@ import {
   RecordLink,
   useEndOnHide,
 } from "./record-preview";
-import { useRows } from "@/lib/models";
+import { idSet, useRows } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
 import { labelFor } from "@/lib/records";
 import { impactLevels, statusEntry } from "@/lib/status";
@@ -234,7 +234,16 @@ export function ProgramSystemsTree({
     elements,
     queries: assuranceQueries,
   } = useSystemAssurance(programId);
-  const components = useRows("system_components");
+  // The program's library components, read by its boundaries: which elements came from the library.
+  const boundaryIds = useMemo(
+    () => idSet(assuranceRows.map((row) => row.boundary_system_id)),
+    [assuranceRows],
+  );
+  const components = useRows(
+    "system_components",
+    { system_id: boundaryIds },
+    { columns: ["id", "defined_component_id", "system_element_id"] },
+  );
   const libraryElementIds = useMemo(
     () =>
       new Set(
@@ -250,9 +259,11 @@ export function ProgramSystemsTree({
   const [libraryTargetId, setLibraryTargetId] = useState<string | null>(null);
   const [libraryOptions, setLibraryOptions] = useState<LibraryOptions>({});
   const [addingProduct, setAddingProduct] = useState(false);
-  const collection = workspace.collections.find((item) => item.name === "systems");
-  const canCreate = !readOnly && workspace.role !== "viewer" && !!collection?.can_insert;
-  const canEdit = !readOnly && workspace.role !== "viewer" && !!collection?.can_update;
+  // Every member but a viewer creates and edits systems, and row-level security decides each write:
+  // the role says it, so the tree does not load the record schema, which is the schema inspector's.
+  const writer = !readOnly && workspace.role !== "viewer";
+  const canCreate = writer;
+  const canEdit = writer;
   const root = elements.find((element) => element.id === rootElementId);
   // A failed refresh keeps the rows the reader has, so the preview stays with them.
   const preview = assuranceRows.find((element) => element.id === previewId);
@@ -276,8 +287,6 @@ export function ProgramSystemsTree({
           minWidth: 220,
           hideable: false,
           priority: 0,
-          preview: (row) => setPreviewId(row.id),
-          active: (row) => row.id === previewId,
           cell: (row) => {
             const TypeIcon = systemIcon(row.system_type);
             return (
@@ -333,7 +342,7 @@ export function ProgramSystemsTree({
           sort: (row) => row.baselineTitle ?? "",
           text: (row) => `${row.baselineTitle ?? "Not set"} · ${baselineSource(row)}`,
           cell: (row) => (
-            <Stack as="span" space="space.0" className="min-w-0 font-body-small">
+            <Stack as="span" space="space.0" className="min-w-0">
               {row.baselineTitle ? (
                 <>
                   <Truncate>{row.baselineTitle}</Truncate>
@@ -401,12 +410,20 @@ export function ProgramSystemsTree({
             ]
           : []),
       ]),
-    [previewId, canCreate, canEdit, libraryElementIds],
+    [canCreate, canEdit, libraryElementIds],
+  );
+  // The preview is the table's, so opening or stepping through it never rebuilds the columns.
+  const tablePreview = useMemo(
+    () => ({ onPreview: (row: TreeRow) => setPreviewId(row.id), activeId: previewId }),
+    [previewId],
   );
   const table = useDataTable({
     columns,
     data: rows,
     getRowId: (row) => row.id,
+    preview: tablePreview,
+    // Each row's handle and actions are named after its element, by code and name.
+    rowLabel: (row) => `${row.code} · ${row.name}`,
     label: "Program systems",
     view: {
       id: rootElementId ? "live-system-assurance-subtree" : "live-program-system-assurance",
@@ -421,45 +438,47 @@ export function ProgramSystemsTree({
       guides: true,
     },
   });
-  const createSystem = (
-    <Button
-      size="small"
-      variant="primary"
-      iconBefore={<Plus />}
-      onClick={() => setEditing(root ? { parent: root } : {})}
-    >
-      Create system
-    </Button>
-  );
-  // At the program root a system can also come from a product: a second path beside the primary.
-  const createAction =
-    canCreate && (!rootElementId || root) ? (
-      root ? (
-        createSystem
-      ) : (
-        <ButtonGroup aria-label="Create system">
-          {createSystem}
-          <ButtonGroupSeparator isDecorative />
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <IconButton
-                  label="More ways to create a system"
-                  icon={<ChevronDown />}
-                  size="small"
-                  variant="primary"
-                />
-              }
-            />
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setAddingProduct(true)}>
-                Add system from product
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </ButtonGroup>
-      )
-    ) : null;
+  /**
+   * The create action: small in the toolbar, medium as the first-record empty's hero action. At
+   * the program root a system can also come from a product, a second path beside the primary.
+   */
+  const createAction = (size: "small" | "medium") => {
+    if (!canCreate || (rootElementId && !root)) return null;
+    const createSystem = (
+      <Button
+        size={size}
+        variant="primary"
+        iconBefore={<Plus />}
+        onClick={() => setEditing(root ? { parent: root } : {})}
+      >
+        Create system
+      </Button>
+    );
+    if (root) return createSystem;
+    return (
+      <ButtonGroup aria-label="Create system">
+        {createSystem}
+        <ButtonGroupSeparator isDecorative />
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <IconButton
+                label="More ways to create a system"
+                icon={<ChevronDown />}
+                size={size}
+                variant="primary"
+              />
+            }
+          />
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setAddingProduct(true)}>
+              Create system from product
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </ButtonGroup>
+    );
+  };
   const displayed = useDisplayedRecords(table);
   const openLibrary = (target: SystemAssuranceRow, options: LibraryOptions) => {
     setLibraryOptions(options);
@@ -520,11 +539,11 @@ export function ProgramSystemsTree({
           illustration: "tree",
           title: "No systems yet",
           description: "Create the first system, then define its nested elements.",
-          action: createAction,
+          action: createAction("medium"),
         }}
         queries={[...assuranceQueries, components]}
         searchLabel="Find an element"
-        action={createAction}
+        action={createAction("small")}
       />
       {preview && (
         <RecordPreviewPanel

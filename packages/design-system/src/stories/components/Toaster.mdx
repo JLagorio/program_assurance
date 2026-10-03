@@ -6,6 +6,8 @@ import * as Stories from "./Toaster.stories";
 
 # Toaster
 
+**Status: Stable.**
+
 Short feedback after the reader's own act, which needs nothing more from them: "Evidence linked", "Export ready". It appears at the bottom end of the screen, leaves on its own, and never holds the only copy of anything the reader needs. The family is Base UI's Toast, with Ledger's surfaces, type, motion, words and defaults.
 
 <Canvas of={Stories.Playground} />
@@ -100,16 +102,14 @@ Toaster takes Base UI's provider props: `timeout` (5000), `limit` (4) and `toast
 
 <Canvas of={Stories.NativeOptions} />
 
-### Migration
-
-`toast.success(message, options)` is `toast.add({ title: message, type: "success", ...options })`: `close` for `dismiss`, `timeout` for `duration`, `0` for `Infinity`, and `actionProps.children` for `action.label`. A manager needs a mounted provider before it shows anything.
-
 ## Related
 
-[Alert](?path=/docs/components-alert--docs), [Banner](?path=/docs/components-banner--docs), [AlertDialog](?path=/docs/components-alertdialog--docs), [Spinner](?path=/docs/components-spinner--docs).
+[Alert](?path=/docs/components-alert--docs), [Banner](?path=/docs/components-banner--docs), [AlertDialog](?path=/docs/components-alertdialog--docs), [Spinner](?path=/docs/components-spinner--docs), [Upgrading](?path=/docs/guidance-upgrading--docs#toaster).
 
 Sources: [shadcn Toast](https://ui.shadcn.com/docs/components/base/toast), [implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/toast.tsx), [Base UI Toast](https://base-ui.com/react/components/toast), [WCAG 2.2.1 Timing Adjustable](https://www.w3.org/WAI/WCAG22/Understanding/timing-adjustable).
 
 ## Don't
+
+A failure the reader must act on is an [Alert](?path=/docs/components-alert--docs) beside what failed, never a toast: a toast leaves before a reader who looked away has read it. A toast is a title and at most one short line, never a paragraph.
 
 <Canvas of={Stories.Dont} />

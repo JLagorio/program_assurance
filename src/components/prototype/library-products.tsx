@@ -5,8 +5,8 @@ import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback"
 import { StatusBadge } from "@/components/app/status";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { useWorkspace } from "@/components/app/workspace";
-import { useModelSave, useRow, useRows, type Row } from "@/lib/models";
-import { elementIdsInOrder, productElementSpecs } from "@/lib/product-items";
+import { idSet, useModelSave, useRow, useRows, type Row } from "@/lib/models";
+import { elementIdsInOrder, productElementSpecs, useElementLibrary } from "@/lib/product-items";
 import {
   useCopyProductRevision,
   useIncludeAllElements,
@@ -33,10 +33,7 @@ import {
   DialogHeader,
   DialogTitle,
   downloadText,
-  DropdownMenu,
-  DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   ErrorSummary,
   Field,
   FieldContent,
@@ -60,9 +57,9 @@ import {
   useLedgerLocale,
 } from "@ledger/design-system";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { AlertCircle, ChevronDown, Plus } from "lucide-react";
+import { AlertCircle, Plus } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent, type RefObject } from "react";
-import { LibraryLoading, LibrarySelect, QueryValue, VersionHistory } from "./library-shared";
+import { LibrarySelect, QueryValue, VersionHistory } from "./library-shared";
 import { canAuthorLibrary, useVersionFocus, type VersionChoice } from "./library-utils";
 import { ProductCollection } from "./product-collection";
 import { ProductRecordDialog } from "./product-record-dialog";
@@ -71,7 +68,7 @@ import { RetainedTabPanels } from "./program-shared";
 import { recordDestination, RecordLink, useDisplayedRecords, useEndOnHide } from "./record-preview";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { RecordTrail, TrailLink } from "./record-trail";
-import { EmptyMessage, MissingRecord } from "./work-common";
+import { EmptyMessage, MissingRecord, QueryState, RecordActions } from "./work-common";
 
 const messageOf = (cause: unknown, fallback = "The request failed.") =>
   cause instanceof Error ? cause.message : fallback;
@@ -97,8 +94,13 @@ export function ProductLibraryIndex() {
   const products = useRows("products");
   const revisions = useRows("product_revisions");
   const configurations = useRows("product_configurations");
+  // The elements whole, since Export writes them; of the systems, only the variants' versions.
   const elements = useRows("product_elements");
-  const systems = useRows("systems");
+  const systems = useRows(
+    "systems",
+    { is_authorization_boundary: true },
+    { columns: ["id", "product_revision_id", "is_authorization_boundary"] },
+  );
   const [creating, setCreating] = useState(false);
   const [selected, setSelected] = useState<ProductLine | null>(null);
   const rows = useMemo(
@@ -134,8 +136,6 @@ export function ProductLibraryIndex() {
           width: 110,
           priority: 1,
           pin: "start",
-          preview: setSelected,
-          active: (row) => row.id === selected?.id,
         }),
         c.text("name", {
           header: "Product",
@@ -159,9 +159,13 @@ export function ProductLibraryIndex() {
         c.number("variants", { header: "Variants", width: 110 }),
         c.status("state", { header: "Status", width: 110, statuses: recordLifecycleStates }),
       ]),
-    [selected?.id],
+    [],
   );
   const table = useDataTable({
+    preview: useMemo(
+      () => ({ onPreview: setSelected, activeId: selected?.id ?? null }),
+      [selected?.id],
+    ),
     data: rows,
     columns,
     getRowId: (row) => row.id,
@@ -279,10 +283,25 @@ export function ProductLibraryIndex() {
 export function ProductLibraryRecord({
   id,
   initialVersion,
+  tab: routeTab,
+  onTabChange,
 }: {
   id: string;
   initialVersion?: string;
+  /** The open tab, when the route keeps it in the address; otherwise the record keeps its own. */
+  tab?: ProductTab | undefined;
+  onTabChange?: ((tab: ProductTab) => void) | undefined;
 }) {
+  const navigate = useNavigate();
+  // Above the version, so choosing another version keeps the reader on the tab they are reading.
+  // Where the route keeps the tab, the address owns it, so Back to an address with no tab shows
+  // Overview; otherwise the record keeps its own.
+  const [ownTab, setOwnTab] = useState<ProductTab>("Overview");
+  const tab = onTabChange ? (routeTab ?? "Overview") : ownTab;
+  function changeTab(next: ProductTab) {
+    if (onTabChange) onTabChange(next);
+    else setOwnTab(next);
+  }
   const product = useRow("products", id);
   const revisions = useRows("product_revisions", { product_id: id });
   const configurations = useRows("product_configurations", { product_id: id });
@@ -309,12 +328,22 @@ export function ProductLibraryRecord({
   );
   const editable = canAuthorLibrary(workspace.role);
   const busy = createRevision.isPending || copyRevision.isPending;
+  function selectVersion(versionId: string) {
+    setSelectedVersion(versionId);
+    // The version is part of the address, so a reload, Back or a shared link keeps it.
+    void navigate({
+      to: "/library/products/$productKey",
+      params: { productKey: id },
+      search: (previous) => ({ ...previous, version: versionId }),
+      replace: true,
+    });
+  }
   async function newVersion() {
     if (busy) return;
     try {
       if (current) {
         const created = await copyRevision.mutateAsync({ sourceRevisionId: current.id });
-        setSelectedVersion(created);
+        selectVersion(created);
         toast.add({
           type: "success",
           title: "Draft version created",
@@ -324,7 +353,7 @@ export function ProductLibraryRecord({
         const row = await createRevision.mutateAsync({
           values: { product_id: id, version_number: 1 },
         });
-        setSelectedVersion(row.id);
+        selectVersion(row.id);
         toast.add({
           type: "success",
           title: "Version 1 created",
@@ -393,9 +422,9 @@ export function ProductLibraryRecord({
           : undefined;
   if (!product.data)
     return (
-      <LibraryLoading query={product}>
+      <QueryState queries={[product]}>
         <MissingRecord backTo="/library/products" kind="Product" />
-      </LibraryLoading>
+      </QueryState>
     );
   return (
     <Page>
@@ -406,14 +435,16 @@ export function ProductLibraryRecord({
         <PageHeader.Heading>
           <PageHeader.Title>{product.data.name}</PageHeader.Title>
         </PageHeader.Heading>
-        {editable && (
-          <PageHeader.Actions>
-            <DropdownMenu>
-              <DropdownMenuTrigger render={<Button iconAfter={<ChevronDown />}>Actions</Button>} />
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setEditProduct(true)}>
-                  Edit product
-                </DropdownMenuItem>
+        <PageHeader.Actions>
+          {/* Every library record's one menu: a viewer keeps Inspect record alone. */}
+          <RecordActions
+            table="products"
+            id={product.data.id}
+            editLabel="Edit product"
+            {...(editable ? { onEdit: () => setEditProduct(true) } : {})}
+          >
+            {editable && (
+              <>
                 <DropdownMenuItem
                   disabledReason={
                     !revisions.data
@@ -444,10 +475,10 @@ export function ProductLibraryRecord({
                     Export OSCAL
                   </DropdownMenuItem>
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </PageHeader.Actions>
-        )}
+              </>
+            )}
+          </RecordActions>
+        </PageHeader.Actions>
       </PageHeader>
       {editProduct && (
         <ProductRecordDialog
@@ -456,7 +487,7 @@ export function ProductLibraryRecord({
           onClose={() => setEditProduct(false)}
         />
       )}
-      <LibraryLoading queries={[revisions, configurations]} retryLabel="Retry loading versions">
+      <QueryState queries={[revisions, configurations]} retryLabel="Retry loading versions">
         {current ? (
           <ProductRevision
             key={current.id}
@@ -464,9 +495,11 @@ export function ProductLibraryRecord({
             revision={current}
             versions={versions}
             configurations={configurations.data ?? []}
-            onVersion={setSelectedVersion}
+            onVersion={selectVersion}
             versionChoice={versionChoice}
             editable={editable}
+            tab={tab}
+            onTab={changeTab}
           />
         ) : (
           <EmptyMessage
@@ -491,13 +524,14 @@ export function ProductLibraryRecord({
             }
           />
         )}
-      </LibraryLoading>
+      </QueryState>
       {confirmation}
     </Page>
   );
 }
 
 const productTabs = ["Overview", "Structure", "Configurations", "Variants", "Versions"] as const;
+export type ProductTab = (typeof productTabs)[number];
 
 function ProductRevision({
   product,
@@ -507,6 +541,8 @@ function ProductRevision({
   onVersion,
   versionChoice,
   editable,
+  tab,
+  onTab,
 }: {
   product: Row<"products">;
   revision: Row<"product_revisions">;
@@ -516,22 +552,42 @@ function ProductRevision({
   /** Where the last version choice came from, which this page's focus reads once it is drawn. */
   versionChoice: RefObject<VersionChoice | null>;
   editable: boolean;
+  tab: ProductTab;
+  onTab: (tab: ProductTab) => void;
 }) {
   const navigate = useNavigate();
-  // A version opened from the history draws on Overview, so focus goes to the rail's select.
+  // Choosing a version keeps the tab, so focus goes to the twin of the control that chose it: the
+  // rail's select on Overview, the history's mark on Versions.
   const versionFocus = useVersionFocus(versionChoice);
   const { formatNumber } = useLedgerLocale();
   const elements = useRows("product_elements", { product_revision_id: revision.id });
   const memberships = useRows("product_configuration_elements", {
     product_revision_id: revision.id,
   });
-  const definedComponents = useRows("defined_components");
-  const componentRevisions = useRows("component_definition_revisions");
-  const definitions = useRows("component_definitions");
-  const systems = useRows("systems");
-  const programs = useRows("programs");
+  // Only the library records these elements pin.
+  const { definedComponents, componentRevisions, definitions } = useElementLibrary(elements.data);
+  // The variants: the systems made from this product's versions, what sits inside them and their
+  // programs' names, never every system and program in the workspace.
+  const versionIds = useMemo(() => idSet(versions.map((row) => row.id)), [versions]);
+  const systems = useRows("systems", { product_revision_id: versionIds });
+  const variantIds = useMemo(
+    () => idSet(systems.data?.filter((row) => row.is_authorization_boundary).map((row) => row.id)),
+    [systems.data],
+  );
+  const insideVariants = useRows(
+    "systems",
+    { boundary_system_id: variantIds },
+    {
+      columns: ["id", "boundary_system_id", "is_authorization_boundary", "product_element_id"],
+      enabled: systems.isSuccess,
+    },
+  );
+  const programs = useRows(
+    "programs",
+    { id: idSet(systems.data?.map((row) => row.program_id)) },
+    { columns: ["id", "name"], enabled: systems.isSuccess },
+  );
   const [variantPreview, setVariantPreview] = useState<VariantLine | null>(null);
-  const [tab, setTab] = useState<(typeof productTabs)[number]>("Overview");
   // A preview belongs to the tab it was opened from: choosing another tab ends it.
   const [previewTab, setPreviewTab] = useState(tab);
   if (previewTab !== tab) {
@@ -574,7 +630,7 @@ function ProductRevision({
           (item) => item.id === variant.product_configuration_id,
         );
         const version = versions.find((item) => item.id === variant.product_revision_id);
-        const inside = (systems.data ?? []).filter(
+        const inside = (insideVariants.data ?? []).filter(
           (item) => item.boundary_system_id === variant.id && !item.is_authorization_boundary,
         );
         const inherited = inside.filter((item) => item.product_element_id).length;
@@ -587,7 +643,7 @@ function ProductRevision({
           added: inside.length - inherited,
         };
       });
-  }, [systems.data, programs.data, configurations, versions]);
+  }, [systems.data, insideVariants.data, programs.data, configurations, versions]);
   const variantColumns = useMemo(
     () =>
       defineColumns<VariantLine>((c) => [
@@ -596,8 +652,6 @@ function ProductRevision({
           width: 150,
           priority: 1,
           pin: "start",
-          preview: setVariantPreview,
-          active: (row) => row.id === variantPreview?.id,
         }),
         c.text("name", {
           header: "Variant",
@@ -628,9 +682,13 @@ function ProductRevision({
         c.number("inherited", { header: "Inherited elements", width: 160 }),
         c.number("added", { header: "Added elements", width: 150 }),
       ]),
-    [variantPreview?.id],
+    [],
   );
   const variantsTable = useDataTable({
+    preview: useMemo(
+      () => ({ onPreview: setVariantPreview, activeId: variantPreview?.id ?? null }),
+      [variantPreview?.id],
+    ),
     data: variantRows,
     columns: variantColumns,
     getRowId: (row) => row.id,
@@ -648,7 +706,13 @@ function ProductRevision({
   };
   return (
     <>
-      <Tabs value={tab} onValueChange={(value) => setTab(value as (typeof productTabs)[number])}>
+      <Tabs
+        value={tab}
+        onValueChange={(value) => {
+          const next = productTabs.find((name) => name === value);
+          if (next) onTab(next);
+        }}
+      >
         <TabsList variant="line" aria-label="Product sections">
           {productTabs.map((name) => (
             <TabsTrigger key={name} value={name}>
@@ -663,9 +727,103 @@ function ProductRevision({
             switch (name) {
               case "Overview":
                 return (
-                  <Prose label="Description" className="max-w-layout-measure">
-                    {product.description || <Absent label="No description" />}
-                  </Prose>
+                  <>
+                    {/* The version's Details, first on Overview: the rail beside it, or on a
+                        phone a closed disclosure above it whose row says the state. Kept to
+                        Overview, since the panel stays mounted while another tab shows. */}
+                    {tab === "Overview" && (
+                      <Shell.Aside
+                        label="Product details"
+                        summary={<StatusBadge statuses={revisionStates} value={revision.state} />}
+                      >
+                        <Inspector.Group title="Details">
+                          <Stack space="space.100">
+                            <KeyValue.Group>
+                              <KeyValue label="Code">
+                                <Id>{product.code}</Id>
+                              </KeyValue>
+                              <KeyValue label="Version">
+                                <LibrarySelect
+                                  inline
+                                  label="Version"
+                                  value={revision.id}
+                                  options={versions.map((version) => ({
+                                    value: version.id,
+                                    label: `${version.version_number} · ${statusLabel(revisionStates, version.state)}`,
+                                  }))}
+                                  triggerRef={versionFocus.select}
+                                  onChange={(id) => {
+                                    versionChoice.current = "select";
+                                    onVersion(id);
+                                  }}
+                                />
+                              </KeyValue>
+                              <KeyValue label="State">
+                                <StatusBadge statuses={revisionStates} value={revision.state} />
+                              </KeyValue>
+                              <KeyValue label="Published">
+                                <DateTime
+                                  value={revision.published_at}
+                                  format="date"
+                                  absentLabel="Not published"
+                                />
+                              </KeyValue>
+                              {revision.effective_from && (
+                                <KeyValue label="Effective from">
+                                  <DateTime value={revision.effective_from} format="date" />
+                                </KeyValue>
+                              )}
+                              {revision.remarks && (
+                                <KeyValue label="Remarks" wrap>
+                                  {revision.remarks}
+                                </KeyValue>
+                              )}
+                            </KeyValue.Group>
+                          </Stack>
+                        </Inspector.Group>
+                        <Inspector.Group title="Contents">
+                          <KeyValue.Group>
+                            <KeyValue label="Elements">
+                              <QueryValue queries={[elements]}>
+                                {() => formatNumber(elements.data?.length ?? 0)}
+                              </QueryValue>
+                            </KeyValue>
+                            <KeyValue label="From the library">
+                              <QueryValue
+                                queries={[
+                                  elements,
+                                  definedComponents,
+                                  componentRevisions,
+                                  definitions,
+                                ]}
+                              >
+                                {() => formatNumber(specs.filter((row) => row.library).length)}
+                              </QueryValue>
+                            </KeyValue>
+                            <KeyValue label="Configurations">
+                              {formatNumber(active.length)}
+                            </KeyValue>
+                            <KeyValue label="Variants">
+                              <QueryValue queries={[systems]}>
+                                {() => formatNumber(variants.length)}
+                              </QueryValue>
+                            </KeyValue>
+                          </KeyValue.Group>
+                        </Inspector.Group>
+                        {revision.state === "published" && (
+                          <Inspector.Group title="OSCAL">
+                            <Text as="p" size="small" color="color.text.subtle">
+                              Export writes a component-definition: one component per element and
+                              one capability per configuration.
+                            </Text>
+                          </Inspector.Group>
+                        )}
+                      </Shell.Aside>
+                    )}
+                    <Prose label="Description" className="max-w-layout-measure">
+                      {product.description || <Absent label="No description" />}
+                    </Prose>
+                  </>
                 );
               case "Structure":
                 return (
@@ -692,7 +850,7 @@ function ProductRevision({
                 return (
                   <ProductCollection
                     table={variantsTable}
-                    queries={[systems, programs]}
+                    queries={[systems, insideVariants, programs]}
                     fill
                     onRowClick={(row) => void navigate(recordDestination("systems", row))}
                     empty={{
@@ -744,83 +902,6 @@ function ProductRevision({
           onSelect={setVariantPreview}
           onClose={() => setVariantPreview(null)}
         />
-      )}
-      {tab === "Overview" && (
-        <Shell.Aside label="Product details">
-          <Inspector.Group title="Details">
-            <Stack space="space.100">
-              <KeyValue.Group>
-                <KeyValue label="Code">
-                  <Id>{product.code}</Id>
-                </KeyValue>
-                <KeyValue label="Version">
-                  <LibrarySelect
-                    inline
-                    label="Version"
-                    value={revision.id}
-                    options={versions.map((version) => ({
-                      value: version.id,
-                      label: `${version.version_number} · ${statusLabel(revisionStates, version.state)}`,
-                    }))}
-                    triggerRef={versionFocus.select}
-                    onChange={(id) => {
-                      versionChoice.current = "select";
-                      onVersion(id);
-                    }}
-                  />
-                </KeyValue>
-                <KeyValue label="State">
-                  <StatusBadge statuses={revisionStates} value={revision.state} />
-                </KeyValue>
-                <KeyValue label="Published">
-                  <DateTime
-                    value={revision.published_at}
-                    format="date"
-                    absentLabel="Not published"
-                  />
-                </KeyValue>
-                {revision.effective_from && (
-                  <KeyValue label="Effective from">
-                    <DateTime value={revision.effective_from} format="date" />
-                  </KeyValue>
-                )}
-                {revision.remarks && (
-                  <KeyValue label="Remarks" wrap>
-                    {revision.remarks}
-                  </KeyValue>
-                )}
-              </KeyValue.Group>
-            </Stack>
-          </Inspector.Group>
-          <Inspector.Group title="Contents">
-            <KeyValue.Group>
-              <KeyValue label="Elements">
-                <QueryValue queries={[elements]}>
-                  {() => formatNumber(elements.data?.length ?? 0)}
-                </QueryValue>
-              </KeyValue>
-              <KeyValue label="From the library">
-                <QueryValue
-                  queries={[elements, definedComponents, componentRevisions, definitions]}
-                >
-                  {() => formatNumber(specs.filter((row) => row.library).length)}
-                </QueryValue>
-              </KeyValue>
-              <KeyValue label="Configurations">{formatNumber(active.length)}</KeyValue>
-              <KeyValue label="Variants">
-                <QueryValue queries={[systems]}>{() => formatNumber(variants.length)}</QueryValue>
-              </KeyValue>
-            </KeyValue.Group>
-          </Inspector.Group>
-          {revision.state === "published" && (
-            <Inspector.Group title="OSCAL">
-              <Text as="p" size="small" color="color.text.subtle">
-                Export writes a component-definition: one component per element and one capability
-                per configuration.
-              </Text>
-            </Inspector.Group>
-          )}
-        </Shell.Aside>
       )}
     </>
   );
@@ -895,8 +976,6 @@ function ConfigurationsTab({
           width: 110,
           priority: 1,
           pin: "start",
-          preview: setConfigurationPreview,
-          active: (row) => row.id === configurationPreview?.id,
         }),
         c.text("name", {
           header: "Configuration",
@@ -969,18 +1048,13 @@ function ConfigurationsTab({
             ]
           : []),
       ]),
-    [
-      editable,
-      canEditVersion,
-      elementIds,
-      includeMutate,
-      saveMutate,
-      revision.id,
-      configurationPreview?.id,
-      formatPlural,
-    ],
+    [editable, canEditVersion, elementIds, includeMutate, saveMutate, revision.id, formatPlural],
   );
   const table = useDataTable({
+    preview: useMemo(
+      () => ({ onPreview: setConfigurationPreview, activeId: configurationPreview?.id ?? null }),
+      [configurationPreview?.id],
+    ),
     data: rows,
     columns,
     getRowId: (row) => row.id,

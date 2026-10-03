@@ -1,6 +1,12 @@
 import { createRef } from "react";
 
-import { Toggle, ToggleGroup, ToggleGroupItem, toggleVariants } from "../src/index";
+import {
+  Toggle,
+  ToggleGroup,
+  ToggleGroupItem,
+  toggleVariants,
+  type ToggleSize,
+} from "../src/index";
 
 const button = createRef<HTMLButtonElement>();
 const group = createRef<HTMLDivElement>();
@@ -8,7 +14,7 @@ const group = createRef<HTMLDivElement>();
 <Toggle
   ref={button}
   variant="outline"
-  size="sm"
+  size="small"
   defaultPressed
   aria-label="Bold"
   render={(props, state) => <button {...props} data-pressed-state={state.pressed} />}
@@ -37,7 +43,7 @@ const selected: readonly Format[] = ["bold"];
   value={selected}
   multiple
   variant="outline"
-  size="lg"
+  size="large"
   spacing={0}
   orientation="vertical"
   loopFocus={false}
@@ -70,8 +76,17 @@ const selected: readonly Format[] = ["bold"];
   <ToggleGroupItem value="bold">Bold</ToggleGroupItem>
 </ToggleGroup>;
 
-const classes: string = toggleVariants({ variant: "outline", size: "default" });
+const classes: string = toggleVariants({ variant: "outline", size: "medium" });
 void classes;
+const sized: ToggleSize = "large";
+void sized;
+
+// The shadcn spellings stay for one version, deprecated.
+<Toggle size="sm" aria-label="Bold" />;
+<Toggle size="default" aria-label="Bold" />;
+<ToggleGroup size="lg" />;
+<ToggleGroupItem value="bold" size="sm" />;
+toggleVariants({ size: "default" });
 
 // @ts-expect-error Single and multiple selection both use arrays.
 <ToggleGroup value="bold" />;
@@ -81,5 +96,5 @@ void classes;
 <ToggleGroup items={[{ value: "bold", label: "Bold" }]} />;
 // @ts-expect-error Icons are native children, not a separate shortcut prop.
 <Toggle icon={<svg />} />;
-// @ts-expect-error Toggle uses the reference size vocabulary.
-<Toggle size="small" />;
+// @ts-expect-error Toggle draws small, medium and large; xsmall is not one of its steps.
+<Toggle size="xsmall" />;

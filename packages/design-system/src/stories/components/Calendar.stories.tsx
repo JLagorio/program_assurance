@@ -1,16 +1,26 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import {
   Button,
   Calendar,
   CalendarDayButton,
+  DatePicker,
+  Field,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
+import { Heading } from "../../primitives";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Calendar",
@@ -32,7 +42,7 @@ function SingleDemo() {
   );
 }
 export const Single: Story = {
-  render: () => <SingleDemo />,
+  render: SingleDemo,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const selected = canvas.getByRole("button", { name: /September 14, 2026/ });
@@ -77,14 +87,17 @@ export const CalendarRange: Story = {
       "data-range-middle",
       "true",
     );
-    // The ends say which end they are; the middle days say selected.
+    // The ends say which end they are; the middle days say selected. A day that is today says so
+    // after its date, so the names allow it and the play holds on any day.
     await expect(
-      canvas.getByRole("button", { name: /September 7, 2026, Start of range/ }),
+      canvas.getByRole("button", { name: /September 7, 2026(?:, Today)?, Start of range/ }),
     ).toBeVisible();
     await expect(
-      canvas.getByRole("button", { name: /October 9, 2026, End of range/ }),
+      canvas.getByRole("button", { name: /October 9, 2026(?:, Today)?, End of range/ }),
     ).toBeVisible();
-    await expect(canvas.getByRole("button", { name: /October 1, 2026, Selected/ })).toBeVisible();
+    await expect(
+      canvas.getByRole("button", { name: /October 1, 2026(?:, Today)?, Selected/ }),
+    ).toBeVisible();
     // The completed range is announced once, politely.
     await waitFor(() =>
       expect(
@@ -96,7 +109,9 @@ export const CalendarRange: Story = {
     // Choosing the start again leaves a one-day range, which is said as its day, not "7 to 7".
     await userEvent.click(canvas.getByRole("button", { name: /September 7, 2026/ }));
     await expect(
-      canvas.getByRole("button", { name: /September 7, 2026, Start of range, End of range/ }),
+      canvas.getByRole("button", {
+        name: /September 7, 2026(?:, Today)?, Start of range, End of range/,
+      }),
     ).toBeVisible();
     await waitFor(() => {
       const lines = [
@@ -266,7 +281,9 @@ export const NavigationLayouts: Story = {
       {(["ltr", "rtl"] as const).flatMap((dir) =>
         ([undefined, "around"] as const).map((navLayout) => (
           <section key={`${dir}-${navLayout}`} aria-label={`${dir} ${navLayout ?? "default"}`}>
-            <h2 className="font-heading-xsmall">{`${dir} · ${navLayout ?? "default"}`}</h2>
+            <Heading size="overlay" as="h2">
+              {`${dir} · ${navLayout ?? "default"}`}
+            </Heading>
             <Calendar
               mode="single"
               dir={dir}
@@ -389,5 +406,52 @@ export const Localized: Story = {
     await expect([...(arabicDays[0]?.textContent ?? "")].length).toBeLessThanOrEqual(2);
     await expect(germanDays[0]).toHaveTextContent("Mo");
     await expect(within(arabic).getAllByRole("button", { name: /١٨/ }).length).toBeGreaterThan(0);
+  },
+};
+
+/** One day in a form is a field that opens the month when the reader asks for it, not a month laid out in the form. */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: function DoAndDont() {
+    const legendId = useId();
+    return (
+      <Pair
+        do={
+          <div style={{ maxWidth: 240 }}>
+            <Field>
+              <FieldLabel>Scheduled completion</FieldLabel>
+              <DatePicker defaultValue="2026-09-18" />
+            </Field>
+          </div>
+        }
+        doText="A DatePicker: one row in the form, and the month opens when the reader asks for it."
+        dont={
+          <FieldSet aria-labelledby={legendId}>
+            <FieldLegend id={legendId} variant="label">
+              Scheduled completion
+            </FieldLegend>
+            <Calendar
+              aria-labelledby={legendId}
+              mode="single"
+              selected={new Date(2026, 8, 18)}
+              defaultMonth={new Date(2026, 8, 1)}
+            />
+          </FieldSet>
+        }
+        dontText="An inline month in the form. It takes the room of six fields for one answer, and every field after it moves down the page."
+      />
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // The Do is one field, named by its label, with no month until it is opened.
+    const field = canvas.getByRole("button", { name: "Scheduled completion" });
+    const row = field.getBoundingClientRect().height;
+    await expect(row).toBeLessThanOrEqual(40);
+    // The Don't lays the month out in the form: one grid, several field rows tall.
+    const grids = canvas.getAllByRole("grid");
+    await expect(grids).toHaveLength(1);
+    await expect(grids[0]!.getBoundingClientRect().height).toBeGreaterThan(5 * row);
   },
 };

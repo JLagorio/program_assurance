@@ -13,7 +13,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as BriefingRouteImport } from './routes/briefing'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as CatalogRouteImport } from './routes/catalog'
-import { Route as ComponentsRouteImport } from './routes/components'
 import { Route as EvidenceRouteImport } from './routes/evidence'
 import { Route as ProgramsRouteImport } from './routes/programs'
 import { Route as RisksRouteImport } from './routes/risks'
@@ -80,11 +79,6 @@ const CampaignsRoute = CampaignsRouteImport.update({
 const CatalogRoute = CatalogRouteImport.update({
   id: '/catalog',
   path: '/catalog',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ComponentsRoute = ComponentsRouteImport.update({
-  id: '/components',
-  path: '/components',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EvidenceRoute = EvidenceRouteImport.update({
@@ -344,7 +338,6 @@ export interface FileRoutesByFullPath {
   '/briefing': typeof BriefingRoute
   '/campaigns': typeof CampaignsRouteWithChildren
   '/catalog': typeof CatalogRoute
-  '/components': typeof ComponentsRoute
   '/evidence': typeof EvidenceRoute
   '/programs': typeof ProgramsRouteWithChildren
   '/risks': typeof RisksRouteWithChildren
@@ -398,7 +391,6 @@ export interface FileRoutesByTo {
   '/briefing': typeof BriefingRoute
   '/campaigns': typeof CampaignsRouteWithChildren
   '/catalog': typeof CatalogRoute
-  '/components': typeof ComponentsRoute
   '/evidence': typeof EvidenceRoute
   '/programs': typeof ProgramsRouteWithChildren
   '/risks': typeof RisksRouteWithChildren
@@ -453,7 +445,6 @@ export interface FileRoutesById {
   '/briefing': typeof BriefingRoute
   '/campaigns': typeof CampaignsRouteWithChildren
   '/catalog': typeof CatalogRoute
-  '/components': typeof ComponentsRoute
   '/evidence': typeof EvidenceRoute
   '/programs': typeof ProgramsRouteWithChildren
   '/risks': typeof RisksRouteWithChildren
@@ -509,7 +500,6 @@ export interface FileRouteTypes {
     | '/briefing'
     | '/campaigns'
     | '/catalog'
-    | '/components'
     | '/evidence'
     | '/programs'
     | '/risks'
@@ -563,7 +553,6 @@ export interface FileRouteTypes {
     | '/briefing'
     | '/campaigns'
     | '/catalog'
-    | '/components'
     | '/evidence'
     | '/programs'
     | '/risks'
@@ -617,7 +606,6 @@ export interface FileRouteTypes {
     | '/briefing'
     | '/campaigns'
     | '/catalog'
-    | '/components'
     | '/evidence'
     | '/programs'
     | '/risks'
@@ -672,7 +660,6 @@ export interface RootRouteChildren {
   BriefingRoute: typeof BriefingRoute
   CampaignsRoute: typeof CampaignsRouteWithChildren
   CatalogRoute: typeof CatalogRoute
-  ComponentsRoute: typeof ComponentsRoute
   EvidenceRoute: typeof EvidenceRoute
   ProgramsRoute: typeof ProgramsRouteWithChildren
   RisksRoute: typeof RisksRouteWithChildren
@@ -730,13 +717,6 @@ declare module '@tanstack/react-router' {
       path: '/catalog'
       fullPath: '/catalog'
       preLoaderRoute: typeof CatalogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/components': {
-      id: '/components'
-      path: '/components'
-      fullPath: '/components'
-      preLoaderRoute: typeof ComponentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/evidence': {
@@ -1156,7 +1136,6 @@ const rootRouteChildren: RootRouteChildren = {
   BriefingRoute: BriefingRoute,
   CampaignsRoute: CampaignsRouteWithChildren,
   CatalogRoute: CatalogRoute,
-  ComponentsRoute: ComponentsRoute,
   EvidenceRoute: EvidenceRoute,
   ProgramsRoute: ProgramsRouteWithChildren,
   RisksRoute: RisksRouteWithChildren,

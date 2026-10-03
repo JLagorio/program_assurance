@@ -30,6 +30,7 @@ import {
   menuLabel,
 } from "../components/menu";
 import { Spinner } from "../components/spinner";
+import { token } from "../generated/tokens";
 import { announce } from "../lib/announce";
 import { cn } from "../lib/cn";
 import { CommandKeys } from "../lib/command-keys";
@@ -104,7 +105,10 @@ export type SearchDialogProps = {
   noResults?: ReactNode;
   /** Where focus goes when the dialog closes: the element that opened it by default. */
   finalFocus?: DialogContentProps["finalFocus"];
-  /** On the dialog's surface, for its width. */
+  /**
+   * On the dialog's surface, for its width.
+   * @accepts layout
+   */
   className?: string | undefined;
   /** On the dialog's surface. The width is 640px at most by default. */
   style?: CSSProperties | undefined;
@@ -293,7 +297,7 @@ export function SearchDialog({
         className={cn("translate-y-0", className)}
         style={{
           top: dialogTop,
-          maxWidth: 640,
+          maxWidth: token("dimension.part.recordSearch"),
           maxHeight: `calc(100dvh - ${dialogTop} - var(--ds-space-200))`,
           ...style,
         }}

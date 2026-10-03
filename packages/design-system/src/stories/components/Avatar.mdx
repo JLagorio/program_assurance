@@ -15,6 +15,8 @@ import * as Stories from "./Avatar.stories";
 
 # Avatar
 
+**Status: Stable.**
+
 A mark that a person, a team or a system is meant: initials by default, a photo when there is one, in five sizes, built on Base UI's Avatar and shadcn's flat parts. Use it beside a name (an owner, an assessor, a reviewer), as a group of the people on a record, or as the account in the side nav. A person's name in a row is a `Person`: the small avatar and the visible name.
 
 It is not a status: presence, health and verification are words beside the person, and a status is a [Badge](?path=/docs/components-badge--docs). It is not a picture of a record; a record's kind is an [Icon](?path=/docs/components-icon--docs).
@@ -34,7 +36,7 @@ It is not a status: presence, health and verification are words beside the perso
 | `Avatar`           | The circle or square. Base UI's Root, which tracks the photo's loading.                                          |
 | `AvatarImage`      | The photo, drawn only once it has loaded.                                                                        |
 | `AvatarFallback`   | The initials (or an icon) the caller writes, shown while the photo loads, when it fails, and when there is none. |
-| `AvatarBadge`      | A mark on the corner, ringed in the surface colour: a dot, or an icon from `medium` up.                          |
+| `AvatarBadge`      | A mark on the corner, ringed in the colour of the surface it sits on: a dot, or an icon from `medium` up.        |
 | `AvatarGroup`      | Overlapping avatars; the overlap is a quarter of their size, near enough on the spacing scale.                   |
 | `AvatarGroupCount` | The +n circle after the avatars the group draws, at their size. With `render={<button />}`, it opens the rest.   |
 | `Person`           | An xsmall avatar, hidden, beside the person's visible name.                                                      |
@@ -58,17 +60,21 @@ Shapes are `circle` for a person and `square` for a team, a system or an organiz
 
 ## Sizes
 
-| `size`   | Box  | Initials | Use                                         |
-| -------- | ---- | -------- | ------------------------------------------- |
-| `xsmall` | 16px | one      | Beside a name in a row: `Person`.           |
-| `small`  | 24px | two      | The default. A group of reviewers in a row. |
-| `medium` | 32px | two      | A card, a rail, the account menu.           |
-| `large`  | 40px | two      | A record's owner in its header.             |
-| `xlarge` | 64px | two      | A person's own record.                      |
+| `size`   | Box  | Initials | Initials' type                      | Use                                         |
+| -------- | ---- | -------- | ----------------------------------- | ------------------------------------------- |
+| `xsmall` | 16px | one      | `font.body.xsmall` at medium, 11/14 | Beside a name in a row: `Person`.           |
+| `small`  | 24px | two      | `font.body.xsmall` at medium, 11/14 | The default. A group of reviewers in a row. |
+| `medium` | 32px | two      | `font.body` at medium, 13/18        | A card, a rail, the account menu.           |
+| `large`  | 40px | two      | `font.body.large` at medium, 15/22  | A record's owner in its header.             |
+| `xlarge` | 64px | two      | `font.heading.page`, 20/26 semibold | A person's own record.                      |
 
 In a group, the +n circle takes its members' size and a type size under theirs, and the overlap scales with them: 4px at xsmall, 6px at small, 8px at medium and large, 16px at xlarge.
 
 <Canvas of={Stories.GroupSizes} />
+
+The ring between overlapping circles, and around a badge, is 2px (`border.width.selected`) of the surface the avatars sit on, `utility.elevation.surface.current`: the page's colour on the page, a card's on a card, a dialog's in a dialog, in both modes.
+
+<Canvas of={Stories.OnACard} />
 
 ## States
 
@@ -88,6 +94,10 @@ Base UI shows the fallback while the image loads or fails. `AvatarFallback.delay
 - **Initials from the name as the person writes it**, one or two letters. Never a placeholder silhouette in place of a known name.
 - **Presence is its own vocabulary**, in words: "online", "away", "invited". Say it in the avatar's `aria-label` ("Dana Whitfield, online") or beside the name, never as a red or green dot alone. A tone on the corner is a status, and presence is not one.
 - **A group says who is in it.** Name the group ("Reviewers: Dana Whitfield, Grace Hoppel and three others"), and let the +n open the rest.
+
+A corner mark with no word for it is colour alone: say what it marks in the avatar's name ("Dana Whitfield, verified").
+
+<Canvas of={Stories.DoDont} />
 
 ## Long content
 

@@ -3,10 +3,15 @@ import { z } from "zod";
 import { useWorkspace } from "@/components/app/workspace";
 import { database, requireIdentity } from "./database";
 
+/** The longest external reference a version keeps; the form counts toward it and never cuts a paste. */
+export const EXTERNAL_REFERENCE_LIMIT = 4000;
 const externalReference = z
   .string()
   .trim()
-  .max(4000)
+  .max(
+    EXTERNAL_REFERENCE_LIMIT,
+    `Use at most ${EXTERNAL_REFERENCE_LIMIT} characters for the external reference.`,
+  )
   .refine((value) => {
     if (!value) return true;
     try {

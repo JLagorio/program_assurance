@@ -5,7 +5,11 @@ import { cn } from "../lib/cn";
 export type IdProps = Omit<ComponentProps<"span">, "children"> & {
   /** The identifier: CTRL-0412, AC-2(3), FND-2231. */
   children: ReactNode;
-  /** The colour or size it takes from its place: `text-subtle` in a row's id column, `break-all` for a hash. */
+  /**
+   * The colour or size it takes from its place: `text-subtle` in a row's id column, `break-all`
+   * for a hash.
+   * @accepts color typography break-all
+   */
   className?: string | undefined;
 };
 

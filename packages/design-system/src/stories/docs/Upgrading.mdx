@@ -1,0 +1,484 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Guidance/Upgrading" />
+
+# Upgrading
+
+What code written against an earlier Ledger API is written as now, family by family. A family's page documents its current API, with at most one line for a deprecated spelling that still works; the earlier spellings live here. Where a rename has one answer, `ledger/no-deprecated-name` reports it and its fix writes the new name ([Lint rules](?path=/docs/guidance-lint-rules--docs)); `CHANGELOG.md` says which version drops each deprecated alias.
+
+## Status
+
+Every family page opens with its status, the first line under its title.
+
+| Status           | What it promises                                                                                                                                                                                                                                                                        |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Stable**       | The API is the contract. A change to it ships in a minor version and is listed in `CHANGELOG.md` under Breaking or Deprecated; a rename keeps an `@deprecated` alias for one version, with a `ledger/no-deprecated-name` fix where it has one answer, and this page says what to write. |
+| **Experimental** | The part ships, is documented and passes every check, but its API is still open: no product screen has used it, so that first use can still change it before it is stable. The status line says why and who owns it.                                                                    |
+| **Deprecated**   | The part still works for one version and then leaves the package. The status line names what to use instead, and this page says how to move.                                                                                                                                            |
+
+A new part is Experimental until a product screen uses it and its page, plays and checks hold, and then Stable ([Testing and review](?path=/docs/guidance-testing-and-review--docs), Ownership and lifecycle). Stable names the contract, not this application's use: the kit serves more than one product, and a stable part that no screen here renders keeps its contract. A page that compares parts or describes a composition (Overlays, Forms, Page composition, Density, the Shell's icon rail and the Primitives overview) documents no part of its own and has no status.
+
+## 0.7.0
+
+What code written for 0.6.0 changes in 0.7.0. Each line links the section below that says what to write.
+
+### Breaking
+
+- **The package resolves `dist/` under every condition but `@ledger/source`**, `development` included; a workspace that compiled the TypeScript source opts in ([Package](?path=/docs/guidance-upgrading--docs#package)).
+- **DataTable fits its frame unless it says `responsive={false}`**, and a row's More fields control is a labelled "+N" ([DataTable](?path=/docs/guidance-upgrading--docs#datatable)).
+- **A tree's chevron is a leading column of its own**, `Table.Disclosure`, and `tree.column` is gone ([Table](?path=/docs/guidance-upgrading--docs#table)).
+- **Chart.Donut's `label` names the ring**, as it names every plot; the words in the middle are `centerLabel` ([Chart](?path=/docs/guidance-upgrading--docs#chart)).
+- **The page shapes that were parts are gone**: IndexPage, ShowPage, RecordHeader, PreviewRail, PreviewSplit, the standalone Panel and Block ([Pages](?path=/docs/guidance-upgrading--docs#pages)).
+- **Below the aside breakpoint, Shell.Aside is a closed Details disclosure where the route renders it**, no longer a block after Main's content ([Shell](?path=/docs/guidance-upgrading--docs#shell)).
+- **The kit's private layout classes are its parts' own**: `sticky-rail`, `sticky-bar`, `min-h-work`, `grid-cols-list-detail`, `grid-cols-main-rail` and the `shell-*` regions ([Layout classes](?path=/docs/guidance-upgrading--docs#layout-classes)).
+- **The document-wide density is gone**: no provider, switch, hook, storage key or script ([Density](?path=/docs/guidance-upgrading--docs#density)).
+- **Tailwind's `2xl` breakpoint is gone**: the kit's seven breakpoints stand, and `2xl:` generates nothing ([Layout classes](?path=/docs/guidance-upgrading--docs#layout-classes)).
+- **`useRequired` is gone**, for a form library's validation ([Field](?path=/docs/guidance-upgrading--docs#field)).
+- **The 0.5.0 disclosure API is gone**: `Collapsible.Group`, a Collapsible's or an Accordion's `title`, `count` and `headingLevel`, and `DisclosureHeading` ([Collapsible](?path=/docs/guidance-upgrading--docs#collapsible)).
+- **`Tiles` and `Related.Row` are gone**, for Stat.Grid and Item ([Stat](?path=/docs/guidance-upgrading--docs#stat), [Related](?path=/docs/guidance-upgrading--docs#related)).
+- **Stepper and Timeline need a `label`** ([Stepper and Timeline](?path=/docs/guidance-upgrading--docs#stepper-and-timeline)).
+- **NativeSelect is gone**, for Select ([Select](?path=/docs/guidance-upgrading--docs#select)).
+- **PickerSheet and RecordBrowser count in one phrase**, "N selected" or "N of M selected", and PickerSheet's `total` counts every row that can be chosen ([PickerSheet and RecordBrowser](?path=/docs/guidance-upgrading--docs#pickersheet-and-recordbrowser)).
+- **These families take Base UI's parts and shadcn's composition**: named flat parts in place of configured props and compound members, `render` in place of `asChild`, and native props and a ref on each part's own element. [Alert](?path=/docs/guidance-upgrading--docs#alert), [AlertDialog](?path=/docs/guidance-upgrading--docs#alertdialog), [Avatar](?path=/docs/guidance-upgrading--docs#avatar), [Badge](?path=/docs/guidance-upgrading--docs#badge), [Breadcrumb](?path=/docs/guidance-upgrading--docs#breadcrumb), [ButtonGroup](?path=/docs/guidance-upgrading--docs#buttongroup), [Card](?path=/docs/guidance-upgrading--docs#card), [Checkbox](?path=/docs/guidance-upgrading--docs#checkbox), [Collapsible](?path=/docs/guidance-upgrading--docs#collapsible) and Accordion, [Combobox](?path=/docs/guidance-upgrading--docs#combobox), [Command](?path=/docs/guidance-upgrading--docs#command), [Dialog and Sheet](?path=/docs/guidance-upgrading--docs#dialog-and-sheet), [Drawer](?path=/docs/guidance-upgrading--docs#drawer), [DropdownMenu](?path=/docs/guidance-upgrading--docs#dropdownmenu), [Empty](?path=/docs/guidance-upgrading--docs#empty), [Field](?path=/docs/guidance-upgrading--docs#field), [HoverCard](?path=/docs/guidance-upgrading--docs#hovercard), [InputGroup](?path=/docs/guidance-upgrading--docs#inputgroup), [Pagination](?path=/docs/guidance-upgrading--docs#pagination), [Popover](?path=/docs/guidance-upgrading--docs#popover), [Progress](?path=/docs/guidance-upgrading--docs#progress), [RadioGroup](?path=/docs/guidance-upgrading--docs#radiogroup), [Resizable](?path=/docs/guidance-upgrading--docs#resizable), [ScrollArea](?path=/docs/guidance-upgrading--docs#scrollarea), [Select](?path=/docs/guidance-upgrading--docs#select), [Switch](?path=/docs/guidance-upgrading--docs#switch), [Tabs](?path=/docs/guidance-upgrading--docs#tabs), [TextLink](?path=/docs/guidance-upgrading--docs#textlink) and the [Shell](?path=/docs/guidance-upgrading--docs#shell)'s navigation, [Toaster](?path=/docs/guidance-upgrading--docs#toaster), [Toggle and ToggleGroup](?path=/docs/guidance-upgrading--docs#toggle-and-togglegroup), and [Tooltip](?path=/docs/guidance-upgrading--docs#tooltip).
+
+### Deprecated
+
+Each still works in 0.7.0 and goes in the next minor version.
+
+- **Heading's `large`, `medium`, `small` and `xsmall`**: `display`, `page`, `section` and `overlay`, the titles the kit draws ([Heading](?path=/docs/guidance-upgrading--docs#heading)).
+- **A KeyValue's `labelWidth` in pixels**: `narrow`, `default` or `wide`, or `auto` in a page body ([KeyValue](?path=/docs/guidance-upgrading--docs#keyvalue)).
+- **Inspector's `groups`** and `InspectorGroupData`: Inspector.Group children ([Inspector](?path=/docs/guidance-upgrading--docs#inspector)).
+- **ActionBar**: a PageHeader, with the record's state in its Details rail ([ActionBar](?path=/docs/guidance-upgrading--docs#actionbar)).
+- **Chart**: Chart.Frame's `status`, Chart.Donut's `name`, Chart.Scatter's `name`, Chart.Area's `baseline` and `formatNumber` ([Chart](?path=/docs/guidance-upgrading--docs#chart)).
+- **Size words**: AlertDialogContent's `size`; `sm`, `default` and `lg` on Card, Switch, SelectTrigger, Toggle and ToggleGroup; `xs`, `sm`, `icon-xs` and `icon-sm` on InputGroupButton ([AlertDialog](?path=/docs/guidance-upgrading--docs#alertdialog), [Card](?path=/docs/guidance-upgrading--docs#card), [Switch](?path=/docs/guidance-upgrading--docs#switch), [Select](?path=/docs/guidance-upgrading--docs#select), [Toggle and ToggleGroup](?path=/docs/guidance-upgrading--docs#toggle-and-togglegroup), [InputGroup](?path=/docs/guidance-upgrading--docs#inputgroup)).
+- **Value and disclosure callbacks**: DatePicker's and Editable's `onChange`, Tree.Item's `expanded` and `onToggle`, and Table.Group's `open` and the table disclosures' `onToggle` ([DatePicker](?path=/docs/guidance-upgrading--docs#datepicker), [Editable](?path=/docs/guidance-upgrading--docs#editable), [Tree](?path=/docs/guidance-upgrading--docs#tree), [Table](?path=/docs/guidance-upgrading--docs#table)).
+- **Names**: DropdownMenuItem's `variant="destructive"`, Item.Group's `labelledBy`, the Shell Profile's `role`, `SideNavSlotProps`, and the class helpers `controlBase` and `controlHeight` ([DropdownMenu](?path=/docs/guidance-upgrading--docs#dropdownmenu), [Item](?path=/docs/guidance-upgrading--docs#item), [Shell](?path=/docs/guidance-upgrading--docs#shell), [Input](?path=/docs/guidance-upgrading--docs#input)).
+- **Message keys**: `moreFieldsFor` and the picker count keys ([Messages](?path=/docs/guidance-upgrading--docs#messages)).
+
+## Package
+
+Every export condition but the package's named `@ledger/source`, `development` included, resolves `dist/`. A workspace that compiled the TypeScript source in development, so that a kit edit hot-reloads, adds `@ledger/source` to its bundler's development conditions and to TypeScript's `customConditions` ([Getting started](?path=/docs/guidance-getting-started--docs), Install). A consumer of the packed tarball changes nothing.
+
+## Layout classes
+
+The kit's own layout rules belong to its parts, not to classes product code writes, and `ledger/no-non-token-class` reports each in product code.
+
+| Written as                                                                                                                                               | Write                                                                                                                                                        |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `lg:sticky-rail` on a column of a page's grid                                                                                                            | `<StickyRail from="lg">` ([StickyRail](?path=/docs/layout-stickyrail--docs))                                                                                 |
+| `sticky-rail`                                                                                                                                            | `<StickyRail>`                                                                                                                                               |
+| `min-h-work` and `grid-cols-list-detail`                                                                                                                 | A [WorkPane](?path=/docs/patterns-workpane--docs), which lays out its list and detail itself; a region as tall as the window is `min-h-dvh` or `fill-window` |
+| `sticky-bar`                                                                                                                                             | A PageHeader; ActionBar, which pinned itself, is deprecated ([ActionBar](?path=/docs/guidance-upgrading--docs#actionbar))                                    |
+| `grid-cols-main-rail`                                                                                                                                    | Shell.Main and Shell.Aside, the Shell's own columns                                                                                                          |
+| `shell-root`, `shell-main`, `shell-banner`, `shell-topnav`, `shell-topnav-start`, `shell-sidenav`, `shell-sidenav-overlay`, `shell-panel`, `shell-scrim` | The Shell's parts, which style themselves; a selector reads their `data-slot` (`[data-slot="shell-scrim"]`)                                                  |
+| `2xl:`                                                                                                                                                   | `wide:` (110rem), the kit's widest breakpoint, `xl:` (80rem), or a container query ([Metrics](?path=/docs/tokens-metrics--docs), Breakpoints)                |
+
+## Messages
+
+The LedgerProvider message keys that changed. A product that passes its own `messages` translates the new keys; the deprecated ones stay for one version and are no longer shown.
+
+| Written as                                                                                     | Write                                                                                                                                                                                                                                                                                           |
+| ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `moreFieldsFor`                                                                                | `showMoreFieldsForOne` and `showMoreFieldsForOther` (`"Show {count} more fields for {label}"`), `hideMoreFieldsForOne` and `hideMoreFieldsForOther` while the fields show, and `showMoreFieldsOne`, `showMoreFieldsOther`, `hideMoreFieldsOne` and `hideMoreFieldsOther` for a row with no name |
+| `pickerNothingChosen`, `pickerChosenOne`, `pickerChosenOther`                                  | `selectedCount` (`"{count} selected"`)                                                                                                                                                                                                                                                          |
+| `pickerChosenOfOne`, `pickerChosenOfOther`, `pickerToChooseFromOne`, `pickerToChooseFromOther` | `selectedCountOf` (`"{count} of {total} selected"`)                                                                                                                                                                                                                                             |
+
+## ActionBar
+
+ActionBar is deprecated and goes in the next minor version, and `ledger/no-deprecated-name` reports the kit's. Its parts are a record page's ([ActionBar](?path=/docs/patterns-actionbar--docs)):
+
+| Written as                   | Write                                                                                                                                                                              |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `crumbs` and `id`            | A Breadcrumb in `PageHeader.Lead`, its last level the record                                                                                                                       |
+| `title` and `context`        | `PageHeader.Title`; the context is a row of the record's Details                                                                                                                   |
+| `states`                     | The record's Details: [Shell.Aside](?path=/docs/layout-shell--docs) holding an [Inspector](?path=/docs/patterns-inspector--docs), with the headline state as the Aside's `summary` |
+| `actions` with one `primary` | `PageHeader.Actions`: one primary Button, and the rest in an overflow DropdownMenu                                                                                                 |
+| An action's `blocked` reason | The Button's `disabledReason`                                                                                                                                                      |
+| `tabs`                       | A line `TabsList` under the PageHeader                                                                                                                                             |
+
+## Alert
+
+- Compose the content as children: `AlertTitle`, `AlertDescription` and `AlertAction`, with `AlertIcon` for the tone's icon.
+- The role follows the tone ([Alert](?path=/docs/components-alert--docs)). A caller that needs `role="alert"` on a tone that is not danger passes it.
+
+## AlertDialog
+
+Compose AlertDialogContent with AlertDialogHeader (AlertDialogMedia, AlertDialogTitle, AlertDialogDescription) and AlertDialogFooter (AlertDialogCancel, then AlertDialogAction). AlertDialogAction stays open while its command runs; `pending` on the root holds the decision, and the caller closes it on success.
+
+`size` on AlertDialogContent is `width`, on Dialog's steps: `size="sm"` is `width="xsmall"` (320px), and `size="default"` is `width="small"` (400px), the default, so it is left out. `width="medium"` (520px) is for a decision whose body lists what it affects ([AlertDialog](?path=/docs/components-alertdialog--docs), Widths).
+
+## Attachment
+
+A card-wide anchor styled with `buttonVariants` and the overlay classes, and an `Attachment.Trigger` with `asChild` around a link, are `Attachment.Link`: an anchor with the same overlay that keeps native link behaviour and takes `render` for a router link.
+
+## Avatar
+
+- Compose the mark: `Avatar` holding an `AvatarImage` and an `AvatarFallback` with the initials (`avatarInitials(name)`), and an `AvatarBadge` for a status mark.
+- A group is `AvatarGroup` with the avatars it shows and an `AvatarGroupCount` for the rest; the caller decides how many show and counts the overflow.
+- `Person`, `avatarInitials` and `avatarHue` keep their contracts.
+
+## Badge
+
+| Written as                                          | Write                                                                                     |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `<Badge tone="success">Verified</Badge>`            | `<Badge variant="secondary" tone="success">`, the subtle status. Spell the variant.       |
+| A neutral `<Badge>Draft</Badge>`                    | `<Badge variant="secondary" tone="neutral">Draft</Badge>`. The default is brand and bold. |
+| `appearance="bold"`, `size="xsmall"`, or `icon={…}` | The same props, on a `secondary` Badge for a status.                                      |
+| A clickable span                                    | A real anchor through `render`, for navigation.                                           |
+
+`Count`, `Dot`, `Indicator`, `Tone`, `tones` and `toneClasses` keep their contracts, and `Avatar.Badge` and `AvatarGroupCount` are Avatar's own parts.
+
+## Breadcrumb
+
+| Written as                     | Write                                                                                                                 |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| `Breadcrumb.Item`              | A `BreadcrumbItem` inside a `BreadcrumbList`, holding a `BreadcrumbLink`, or a `BreadcrumbPage` for the current level |
+| `isCurrent`                    | `BreadcrumbPage`                                                                                                      |
+| `asChild` around a router link | `BreadcrumbLink render={<Link to="/programs" />}`                                                                     |
+| Root `label`                   | `aria-label`                                                                                                          |
+| Separators the root drew       | A `BreadcrumbSeparator` between items, and `BreadcrumbEllipsis` for folded levels                                     |
+
+The list wraps rather than cutting every crumb, and the current page is the regular weight ([Breadcrumb](?path=/docs/components-breadcrumb--docs)).
+
+## ButtonGroup
+
+- `label` is `aria-label`.
+- Text inside the group is a `ButtonGroupText`, and a rule between its buttons a `ButtonGroupSeparator`. The root takes a div's props, a ref and `orientation`.
+
+## Card
+
+- `Card.Header` with `title`, `description` and `action` is a CardHeader holding CardTitle, CardDescription and CardAction; `Card.Body` is CardContent.
+- Put a heading inside CardTitle, or set its element with `render`, where the card's title belongs in the outline.
+- `size="sm"` is `size="small"`; `size="default"` is left out.
+
+## Chart
+
+| Written as                                  | Write                                                                             |
+| ------------------------------------------- | --------------------------------------------------------------------------------- |
+| `status` on Chart.Frame                     | `state`, the word DataTable uses for the same thing                               |
+| `name` on Chart.Donut, the ring's name      | `label`, as on every plot                                                         |
+| `label` on Chart.Donut, the middle's words  | `centerLabel`; `label` names the ring                                             |
+| `name` on Chart.Scatter, the key of a point | `nameKey`; `label` names the plot on every part                                   |
+| `baseline` on Chart.Area                    | Nothing: an Area always starts at zero                                            |
+| `formatNumber` for a chart's values         | `useLedgerLocale().formatNumber`; the parts already format in the reader's locale |
+
+`ledger/no-deprecated-name` writes the Donut's: it fixes `name` to `label`, and moves a `label` that is a number, a figure written as text (`"75%"`, `` `${n}%` ``) or an element, or one beside `name`, to `centerLabel`. Any other words stay as the ring's name.
+
+## Checkbox
+
+| Written as                                     | Write                                                                                                                          |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| A label or a description given to the Checkbox | A horizontal Field: the Checkbox, then a FieldLabel and a FieldDescription ([Checkbox](?path=/docs/components-checkbox--docs)) |
+| `checked="indeterminate"`                      | `indeterminate`, with `checked={false}` so that choosing it selects all; Table.Selection takes the same                        |
+
+## Collapsible
+
+- `Collapsible.Trigger` and `Collapsible.Content` are the flat CollapsibleTrigger and CollapsibleContent. `asChild` is `render`, and `forceMount` is `keepMounted`.
+- A selector on Radix's `data-state` reads `data-open` and `data-closed` on the Root and `data-panel-open` on the trigger ([Collapsible](?path=/docs/components-collapsible--docs), State selectors).
+- A Details block built from a subtle Button and a ChevronDown is a CollapsibleHeader, or a collapsible Section on a page.
+- `Collapsible.Group` is an [Accordion](?path=/docs/components-accordion--docs) with `multiple` and an AccordionItem per section. A Collapsible's `title` and `count` are a CollapsibleHeader's children, and `headingLevel` is the heading-level context: wrap the disclosure in a HeadingLevelProvider. `DisclosureHeading` is a CollapsibleHeader.
+
+## Combobox
+
+The configured Combobox is composed from flat parts on Base UI's Combobox: the root holds the items and the value, `ComboboxInput` is the field, and `ComboboxContent` holds a `ComboboxList` of `ComboboxItem`s, with `ComboboxEmpty` for no match; several values are `ComboboxChips` of `ComboboxChip`s. Resetting a form sets the value; the Combobox does not reset itself ([Combobox](?path=/docs/components-combobox--docs)).
+
+## Command
+
+- `Command.Input`, `.List`, `.Group`, `.Item` and the rest are the flat exports. A key hint is CommandItem's `shortcut`; other trailing content goes in its children.
+- `Command.Dialog` is CommandDialog, with an explicit Command inside it; the filtering and value props belong on Command.
+- On the dialog, `onClose` is `onOpenChange`, `label` is `title`, and `returnFocusRef` is `finalFocus`. The palette's width is a `style` or a `className`.
+
+## DataTable
+
+| Written as                                                     | Write                                                                                                                                                                                                                                                                                   |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `responsive`                                                   | Nothing: a DataTable fits its frame unless it says otherwise, folding lower-priority fields into each row's More fields. Give the name `priority: 0`. `ledger/product-responsive-table`, where a product turns it on, reports `responsive={false}` and no longer asks for `responsive`. |
+| A table that relied on scrolling sideways                      | `responsive={false}`, which keeps every column in the row and scrolls the frame                                                                                                                                                                                                         |
+| A test or a query for a row's "More fields for REQ-001" button | "Show 3 more fields for REQ-001", and "Hide 3 more fields for REQ-001" while they show: the control is a labelled "+3" ([Data table](?path=/docs/patterns-data-table--docs), Responsive containers)                                                                                     |
+| `tree.column`                                                  | Nothing: the tree's chevron is a leading column of its own ([Table](?path=/docs/guidance-upgrading--docs#table))                                                                                                                                                                        |
+
+## DatePicker
+
+`onChange` is `onValueChange`, the name every value control uses; it reports the same ISO day, and `""` when the day is cleared.
+
+## Density
+
+There is no document-wide density: no provider, switch, hook, storage key or before-paint script. Remove their imports and unwrap the provider's children; a table sets its own `density`, and a DataTable offers the reader Compact rows ([Density](?path=/docs/components-density--docs)).
+
+## Dialog and Sheet
+
+The configured title, body, footer and action props are composed parts:
+
+```tsx
+<Dialog open={open} onOpenChange={setOpen}>
+  <DialogTrigger render={<Button />}>Create task</DialogTrigger>
+  <DialogContent width="medium">
+    <DialogHeader>
+      <DialogTitle>Create task</DialogTitle>
+    </DialogHeader>
+    <DialogBody>…the form…</DialogBody>
+    <DialogFooter>
+      <DialogClose render={<Button variant="subtle" />}>Cancel</DialogClose>
+      <Button variant="primary" type="submit" form="create-task">
+        Create task
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+```
+
+- The root's `onOpenChange` can cancel a close, and `pending` holds the dialog while a save runs; the content owns `initialFocus` and `finalFocus`.
+- A Sheet composes the same parts (`SheetContent`, `SheetHeader`, `SheetTitle`, `SheetBody`, `SheetFooter`, `SheetClose`) and takes `side`: `start` and `end`, which follow the reading direction, or a physical edge.
+- Both take a `width` step, never pixels ([Overlays](?path=/docs/components-overlays--docs), Sizes).
+
+## Drawer
+
+Compose `DrawerContent` with `DrawerHeader` (`DrawerTitle`, `DrawerDescription`), `DrawerBody`, `DrawerFooter` and `DrawerClose`. The root takes Base UI's open state, cancellable dismissal, snap points and swipe directions; the content owns `initialFocus` and `finalFocus` and takes a `width` step. The package no longer depends on Vaul ([Drawer](?path=/docs/components-drawer--docs)).
+
+## DropdownMenu
+
+- The configured `trigger` prop is DropdownMenuTrigger's `render`; placement and width move to DropdownMenuContent.
+- `DropdownMenu.Item`, `.Label` and `.Separator` are the flat exports.
+- On an item, `onSelect` is `onClick` for an action, `isSelected` is a CheckboxItem's or a RadioGroup's state, `closeOnSelect` is `closeOnClick`, `tone="danger"` and shadcn's `variant="destructive"` are `variant="danger"`, and `trailing` is `shortcut`.
+- Children written as a `close` callback go: items close through Base UI, and the root takes controlled state or `actionsRef` to close the menu from code.
+
+## Editable
+
+On `Editable.Text` and `Editable.Select`, `onChange` is `onValueChange`, the name every value control uses; it is called with the same values, and the deprecated `onChange` only where `onValueChange` is not given. `ledger/no-deprecated-name` renames it.
+
+## Empty
+
+`message` and `action` are composed parts: an `EmptyHeader` holding `EmptyMedia` (an `EmptyIllustration`), `EmptyTitle` and `EmptyDescription`, then `EmptyContent` with the action ([Empty](?path=/docs/components-empty--docs)). Card and Empty are components now; imports from the package root are unchanged.
+
+## Field
+
+- A Field's `label`, `hint` and `error` are parts inside it: `FieldLabel`, `FieldDescription` and `FieldError`, which bind to the control with no ids ([Field](?path=/docs/components-field--docs)).
+- A group of choices is a Field around a `FieldSet` with a `FieldLegend`. The child cloning and `useFieldControl` are gone.
+- `invalid`, `required` and `disabled` stay on the Field.
+- `useRequired` is gone. A form library's validation (TanStack Form's validators) says a required field is empty, and the Field's FieldError shows it ([Forms](?path=/docs/patterns-forms--docs)).
+
+## Heading
+
+The sizes are the titles the kit draws ([Heading](?path=/docs/primitives-heading--docs)):
+
+| Written as                           | Write                                                                                                                                                                  |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `size="large"`                       | `size="display"`, the same style                                                                                                                                       |
+| `size="medium"`                      | `size="page"`, PageHeader.Title's 20/26; `medium` drew 22/28                                                                                                           |
+| `size="small"`                       | `size="page"` (20/26 semibold) for a page or record title, with `as="h2"` to keep the element `small` drew, or `size="section"` (13/18 semibold) for a section's title |
+| `size="xsmall"`                      | `size="overlay"`, the same style and element                                                                                                                           |
+| A raw `h1`–`h6` with heading classes | A `Heading` at the size it matches, or the part that draws that title: PageHeader.Title, Section.Title, DialogTitle                                                    |
+
+The deprecated sizes draw the steps that replace them for one version: `medium` draws `page`'s 20/26, and `small` draws `page` at medium weight. The `font.heading.large`, `.medium`, `.small` and `.xsmall` steps are deprecated and stay for one version, and `ledger/no-deprecated-token` writes `font-heading-display`, `font-heading-page`, `font-heading-page` and `font-heading-overlay` in their place; a new title takes `page`, `overlay`, `section` or `display` ([Typography](?path=/docs/tokens-typography--docs)).
+
+## HoverCard
+
+| Written as                           | Write                              |
+| ------------------------------------ | ---------------------------------- |
+| `content`                            | HoverCardContent's children        |
+| The trigger element                  | HoverCardTrigger's `render`        |
+| `delay` and `closeDelay` on the root | The same props on HoverCardTrigger |
+| The width shortcut                   | HoverCardContent's `style`         |
+
+## Input
+
+The kit's control classes are not parts. `controlBase`, the class string, is a composed Input, Textarea or InputGroup, which carries the control's classes; `controlHeight` is the `size` prop on Input, Select or a date field.
+
+## InputGroup
+
+Compose the group from its parts: `InputGroupAddon` (with `align`) holding an icon, an `InputGroupText` or an `InputGroupButton`, beside the control, `InputGroupInput` or `InputGroupTextarea`.
+
+On InputGroupButton, `size="xs"` is `size="xsmall"`, the default, and `size="sm"` is `size="small"`. `size="icon-xs"` and `size="icon-sm"` are `size="xsmall"` and `size="small"` with `icon={<Icon />}` and a `label` that names the button.
+
+## Inspector
+
+`groups` is Inspector.Group children, and `InspectorGroupData` goes with it ([Inspector](?path=/docs/patterns-inspector--docs)):
+
+```tsx
+// groups={[{ title: "Ownership", rows: [{ label: "Owner", value: owner }] }]}
+<Inspector>
+  <Inspector.Group title="Ownership">
+    <KeyValue label="Owner">{owner}</KeyValue>
+  </Inspector.Group>
+</Inspector>
+```
+
+## Item
+
+`labelledBy` on Item.Group is `aria-labelledby`, which reaches the list.
+
+## Kbd
+
+`Kbd`, its `label` and `Kbd.Group` keep their meaning. A hand-written `⌘` or `Ctrl` cap is a `KbdShortcut keys="Mod+…"`, which draws the platform's modifier.
+
+## KeyValue
+
+`labelWidth` on a KeyValue or a KeyValue.Group takes a step, not pixels ([KeyValue](?path=/docs/components-keyvalue--docs)):
+
+| Written as                                     | Write                                                                                            |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| A number up to 96                              | `labelWidth="narrow"` (5.5rem)                                                                   |
+| A number from 97 to 131                        | `labelWidth="default"` (6.5rem), the width without one, so it can be left out                    |
+| A number from 132                              | `labelWidth="wide"` (10rem)                                                                      |
+| A width picked for a page body's longest label | `labelWidth="auto"`: the group's longest label, up to `wide`, stacking where the group is narrow |
+
+## Pages
+
+The page shapes that were parts are compositions of the layout parts ([Pages](?path=/docs/layout-pages--docs)):
+
+| Written as              | Write                                                                                                   |
+| ----------------------- | ------------------------------------------------------------------------------------------------------- |
+| `IndexPage`             | A PageHeader over a frameless DataTable with `fill`                                                     |
+| `ShowPage`              | A PageHeader, Section bodies and the Details rail in Shell.Aside                                        |
+| `RecordHeader`          | A PageHeader: the trail in PageHeader.Lead, the name in PageHeader.Title, actions in PageHeader.Actions |
+| `PreviewRail`           | Shell.Aside                                                                                             |
+| `PreviewSplit`, `Panel` | Shell.Panel, the Shell's panel area                                                                     |
+| `Block`                 | Section                                                                                                 |
+
+RecordHeader's `facts` are the record's Details in the rail, Shell.Aside holding an Inspector, and Stepper.Item's `first` and `last` are gone: the Stepper knows its ends. `ledger/no-deprecated-name` reports an import of each removed part from the package with what to write.
+
+## Pagination
+
+The configured Pagination is the flat navigation parts: `Pagination`, `PaginationContent`, `PaginationItem`, `PaginationLink`, `PaginationPrevious`, `PaginationNext` and `PaginationEllipsis`, with PaginationLink a real anchor. The page arithmetic and the row summary ("9–16 of 23") are DataTable's, which draws its own pager ([Pagination](?path=/docs/components-pagination--docs)).
+
+## PickerSheet and RecordBrowser
+
+The count under the rows is one phrase: "3 of 120 selected" where the rows to choose from are known, and "3 selected" while they load, after a failed load, or when there are none. PickerSheet's `total` counts every row that can be chosen, before the search and the filters, so it no longer follows the search ([PickerSheet](?path=/docs/patterns-pickersheet--docs), [RecordBrowser](?path=/docs/patterns-recordbrowser--docs)). A test that read "Nothing chosen yet", "N chosen" or "N to choose from" reads the new phrase; the message keys are under [Messages](?path=/docs/guidance-upgrading--docs#messages).
+
+## Popover
+
+| Written as                             | Write                                                               |
+| -------------------------------------- | ------------------------------------------------------------------- |
+| The configured `trigger`               | PopoverTrigger with `render`                                        |
+| `Popover.Close`                        | `PopoverClose`, with `render` for its Button                        |
+| Placement and `aria-label` on the root | The same props on PopoverContent                                    |
+| `width` and `matchTriggerWidth`        | PopoverContent's `style`; `var(--anchor-width)` matches the trigger |
+
+The content is 288px wide unless its style says otherwise ([Popover](?path=/docs/components-popover--docs)).
+
+## Progress
+
+- `label` is `aria-label` or a `ProgressLabel`; `valueText` is `aria-valuetext`; `showValue` is a `ProgressValue` child.
+- `Progress.Stacked` is `ProgressStacked`, with the same tone, size and segments.
+
+## RadioGroup
+
+- `RadioGroup.Item` is the flat `RadioGroupItem`, and each item's label and description are composed beside it, in a horizontal Field with a FieldLabel ([RadioGroup](?path=/docs/components-radiogroup--docs)).
+- `orientation` goes: the layout places the items, and the arrow keys move along either axis.
+
+## Related
+
+`Related.Row` and `RelatedRowProps` are an [Item](?path=/docs/components-item--docs): `leading` for `lead`, `title` for `label`, and `onSelect` or `link` for `onClick`.
+
+## Resizable
+
+| Written as                         | Write                                                             |
+| ---------------------------------- | ----------------------------------------------------------------- |
+| The compound parts                 | `ResizablePanelGroup`, `ResizablePanel` and `ResizableHandle`     |
+| A size as a bare number of percent | A string, `"30%"`; a number is pixels                             |
+| Saved sizes                        | `useResizableLayout`, with stable ids on the group and its panels |
+
+([Resizable](?path=/docs/components-resizable--docs))
+
+## ScrollArea
+
+- `label` is `viewportProps` holding `role="region"` and an `aria-label`. Sizing classes go on ScrollArea.
+- A root `orientation="horizontal"` or `"both"` is a horizontal ScrollBar child; the overflow decides which bars show.
+- The bar's visibility shortcut and fixed hide delay are gone; Base UI's `data-hovering` and `data-scrolling` style the bar where needed.
+
+## Select
+
+- A configured root is Select, SelectTrigger, SelectValue and SelectContent.
+- The trigger's ref, ARIA, `size`, styles and handlers go on SelectTrigger, where `size` takes `small` or `medium`: shadcn's `size="sm"` is `size="small"`, and `size="default"` is `medium`, the default. The placeholder goes on SelectValue.
+- The compound Item, Group and Separator are the flat exports, with SelectLabel inside a SelectGroup.
+- Labels come through `items` or SelectValue, and a single value that can be empty is handled as `null`.
+
+NativeSelect is gone. A native `<select>` in a form or a filter is a Select: the options' labels in the root's `items`, and the change through `onValueChange`, which reports `null` when the value is cleared.
+
+## Separator
+
+`orientation`, `isDecorative` and a string `className` keep their meaning; nothing is renamed.
+
+## Shell
+
+| Written as                     | Write                                                                       |
+| ------------------------------ | --------------------------------------------------------------------------- |
+| `Shell.Sidebar`                | `Shell.SideNav`, with Header, Body and Footer; the brand is in TopNav.Start |
+| `Shell.TopBar`                 | `Shell.TopNav`, with Start, Middle and End                                  |
+| `Shell.Brand`                  | `Shell.AppLogo`; its `detail` is `secondaryName`                            |
+| `Shell.NavGroup`               | `Shell.SideNav.Section`; its `label` is `heading`                           |
+| `Shell.NavItem`                | `Shell.SideNav.Item`                                                        |
+| `Shell.User`                   | `Shell.Profile`                                                             |
+| `role` on Profile, a job title | `description`                                                               |
+| `SideNavSlotProps`             | `SideNavHeaderProps`, `SideNavBodyProps` or `SideNavFooterProps`            |
+
+A side nav or top nav item that navigates takes the router link through `render`, with its label as the item's children, outside the Link, so its icon and badge stay; an action item renders a button.
+
+Below the aside breakpoint, wherever it would not sit beside Main, Shell.Aside is a closed Details disclosure where the route renders it, no longer a block after Main's content. Render it where a record's Details belong on a phone: right after the PageHeader, or first in a tabbed record's Overview panel, rendered only while that tab is selected. Pass the record's state as `summary`, which the disclosure's row carries, and `heading` for a title other than Details ([Shell](?path=/docs/layout-shell--docs)).
+
+## Skeleton
+
+Shapes, line counts, dimensions and style overrides keep their meaning. A waiting region that set `aria-busy` alone adds a line that names the wait ([Skeleton](?path=/docs/components-skeleton--docs)).
+
+## Stat
+
+`Tiles` is `Stat.Grid` (by name, `StatGrid`): the same row of `Stat.Tile` cells, under the Stat name.
+
+## Stepper and Timeline
+
+`label` is required on both: the list's name, such as "Program setup" or "Activity", so neither renders as an unnamed list. An `aria-label` still overrides it ([Stepper](?path=/docs/components-stepper--docs), [Timeline](?path=/docs/components-timeline--docs)).
+
+## Switch
+
+`size="sm"` is `size="small"`; `size="default"` is `medium`, the default, so it is left out.
+
+The label and the description are composed beside the switch, in a horizontal Field with a FieldLabel; the Switch draws only its track and thumb.
+
+## Table
+
+- `open` on Table.Group is `expanded`.
+- `onToggle` on Table.Group, Table.Tree and Table.Disclosure is `onExpandedChange`, which is called with the next state: `onToggle={() => setOpen(!open)}` is `onExpandedChange={setOpen}`. A caller that passes both hears only `onExpandedChange`.
+
+- A tree's chevron is `Table.Disclosure`, a leading column of its own beside the checkbox, the drag handle and the detail chevron: always first and pinned, so it stays put when the reader reorders, hides or pins a column. DataTable's `tree.column` option is gone, and a folded row's `hint` follows its first value.
+
+## Tabs
+
+| Written as                                                           | Write                                                                        |
+| -------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `Tabs.List`, `Tabs.Tab`, `Tabs.Panel`                                | `TabsList`, `TabsTrigger`, `TabsContent`                                     |
+| Root `activation="automatic"`                                        | List `activateOnFocus` (left out for manual activation)                      |
+| List `label`                                                         | `aria-label`                                                                 |
+| Trigger `count` or `trailing`                                        | A `Count`, a `Badge` or other children; `max={9999}` caps a count of rows    |
+| `asChild`                                                            | `render`, with `nativeButton={false}` for a link trigger                     |
+| `TabListProps`, `TabProps`, `TabPanelProps`                          | `TabsListProps`, `TabsTriggerProps`, `TabsContentProps`                      |
+| An underline strip with no variant                                   | List `variant="line"`; the default is the filled strip                       |
+| Line List `w-full justify-start`, `overflow-x-auto` or `flex-wrap`   | Nothing: a horizontal line strip fills and scrolls through ScrollArea        |
+| `gap-*` on Tabs, `pt-*` on TabsContent or on the panel's first child | Nothing: TabsContent starts its content `space.150` under a horizontal strip |
+
+## TextLink
+
+`asChild`, or a router link passed as the child, is `render`: `<TextLink render={<Link to="/risks" />}>Risks</TextLink>`. `asChild={false}` on a native anchor is left out. The size, the weight and the styles stay as they were.
+
+## Toaster
+
+`toast.success(message, options)` is `toast.add({ title: message, type: "success", ...options })`: `close` for `dismiss`, `timeout` for `duration`, `0` for `Infinity`, and `actionProps.children` for `action.label`. A manager shows nothing until a provider is mounted.
+
+## Toggle and ToggleGroup
+
+- A ToggleGroup's choices are `ToggleGroupItem` children, with an array `value` or `defaultValue`, `onValueChange` and `multiple`; the scalar `items` and `onChange` wrapper and the icon shortcut are gone. Icons, labels, counts and tooltips are the item's children.
+- A group can clear its selection; a caller that requires one keeps the rule in its own `onValueChange`.
+
+On Toggle, ToggleGroup and ToggleGroupItem, `size="sm"` is `size="small"` (28px), `size="default"` is `medium` (32px), the default, and `size="lg"` is `size="large"` (36px).
+
+## Tooltip
+
+| Written as                         | Write                        |
+| ---------------------------------- | ---------------------------- |
+| `content`                          | TooltipContent's children    |
+| The trigger as the Tooltip's child | TooltipTrigger with `render` |
+
+`TooltipProvider` groups the tooltips under it and waits 300ms before the first opens; keyboard focus opens one at once ([Tooltip](?path=/docs/components-tooltip--docs)).
+
+## Tree
+
+On Tree.Item, `expanded` is `isExpanded`, the name that matches `isSelected`, and `onToggle` is `onExpandedChange`, which is called with the branch's next state.

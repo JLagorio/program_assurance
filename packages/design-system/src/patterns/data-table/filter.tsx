@@ -2,14 +2,23 @@ import { useLedgerLocale } from "../../lib/locale";
 import { parseIsoDay } from "../../lib/locale-format";
 import { type ColumnFiltersState, type RowData } from "@tanstack/react-table";
 import { ChevronDown, ListFilter } from "lucide-react";
-import { useId, useMemo, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useId,
+  useMemo,
+  useState,
+  type ComponentPropsWithRef,
+  type HTMLAttributes,
+  type ReactNode,
+  type Ref,
+} from "react";
 import { Count } from "../../components/badge";
 import { Button } from "../../components/button";
 import { Checkbox } from "../../components/checkbox";
 import { FilterChip } from "../../components/chip";
 import { DatePicker, dayFormat } from "../../components/date-picker";
 import { Input } from "../../components/input";
-import { SearchField } from "../../components/search-field";
+import { SearchField, type SearchFieldProps } from "../../components/search-field";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -34,6 +43,12 @@ import { type DataTableInstance } from "./use-data-table";
  * The applied filter reads on the chip. Search is the global filter. Presets are saved questions: a
  * named set of column filters with the count it would show.
  */
+
+/** Hands an element to a caller's ref, a callback or an object. */
+function assignRef<T>(ref: Ref<T> | undefined, value: T | null) {
+  if (typeof ref === "function") ref(value);
+  else if (ref) ref.current = value;
+}
 
 /** Above this many distinct values a text column filters by substring rather than by checkbox. */
 const FACET_LIMIT = 30;
@@ -151,9 +166,7 @@ function RangeBody({
         ? Number(from) > Number(to)
         : String(from) > String(to)
       : false;
-  const invalid = reversed
-    ? { "aria-invalid": true as const, "aria-describedby": reversedId }
-    : {};
+  const invalid = reversed ? { "aria-invalid": true as const, "aria-describedby": reversedId } : {};
   const message = reversed ? (
     <p id={reversedId} className="font-body-small text-danger">
       {t("rangeReversed")}
@@ -217,7 +230,11 @@ function RangeBody({
   );
 }
 
-type FilterProps<TData extends RowData> = {
+/** The native props of the chip, less `value`, which is the chip's own: the chosen value it shows. */
+type FilterProps<TData extends RowData> = Omit<
+  ComponentPropsWithRef<"button">,
+  "children" | "value"
+> & {
   table: DataTableInstance<TData>;
   column: string;
   label?: string | undefined;
@@ -231,7 +248,7 @@ type FilterProps<TData extends RowData> = {
   options?: readonly FilterOption[] | undefined;
 };
 
-/** The chip that filters one column. The popover's body follows the column's kind. */
+/** The chip that filters one column. The popover's body follows the column's kind. Native button props and a ref reach the chip. */
 export function Filter<TData extends RowData>(props: FilterProps<TData>) {
   return <ColumnFilter {...props} />;
 }
@@ -243,6 +260,8 @@ function ColumnFilter<TData extends RowData>({
   width,
   options,
   inline = false,
+  className,
+  ...props
 }: FilterProps<TData> & { inline?: boolean }) {
   const { t, formatNumber, formatDay, formatDayRange, locale } = useLedgerLocale();
 
@@ -271,7 +290,8 @@ function ColumnFilter<TData extends RowData>({
     labels.get(String(value)) ?? (status ? status.label(value) : String(value));
   const chosenKey = JSON.stringify(asArray(raw).map(String));
   const facets = useMemo(() => {
-    if (kind === "number" || kind === "date" || kind === "custom" || kind === "actions") return null;
+    if (kind === "number" || kind === "date" || kind === "custom" || kind === "actions")
+      return null;
     let values: [unknown, number | undefined][];
     if (options) values = options.map((o) => [o.value, o.count]);
     else {
@@ -378,7 +398,15 @@ function ColumnFilter<TData extends RowData>({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
-        render={<FilterChip label={title} value={value} isActive={value !== undefined} />}
+        render={
+          <FilterChip
+            label={title}
+            value={value}
+            isActive={value !== undefined}
+            {...props}
+            className={className}
+          />
+        }
       />
       {/* A long facet scrolls inside the popover, which never runs past the window. */}
       <PopoverContent
@@ -401,13 +429,15 @@ function ColumnFilter<TData extends RowData>({
   );
 }
 
-/** A single toolbar action for several column filters, with their count and a clear action. */
+/** A single toolbar action for several column filters, with their count and a clear action. Native button props and a ref reach the trigger. */
 export function Filters<TData extends RowData>({
   table,
   columns,
   options,
   additionalFilters,
-}: {
+  className,
+  ...props
+}: Omit<ComponentPropsWithRef<"button">, "children"> & {
   table: DataTableInstance<TData>;
   columns: readonly string[];
   /** Each column's values, by column id, for a table the server filters: see Filter's `options`. */
@@ -431,8 +461,10 @@ export function Filters<TData extends RowData>({
             size="small"
             iconBefore={<ListFilter />}
             iconAfter={<ChevronDown />}
-            className={count ? activeTriggerClass : undefined}
+            {...props}
+            className={cn(count ? activeTriggerClass : undefined, className)}
             {...(count ? { "data-active-trigger": "" } : {})}
+            data-slot="data-table-filters"
           >
             {t("filters")}
             {count ? ` (${formatNumber(count)})` : ""}
@@ -471,12 +503,19 @@ export function Filters<TData extends RowData>({
   );
 }
 
-/** The global filter, as a search field: a clear button while there is a query, and Escape clears it. Text and id columns take part; numbers and dates do not. */
+/**
+ * The global filter, as a search field: a clear button while there is a query, and Escape clears
+ * it. Text and id columns take part; numbers and dates do not. SearchField's props reach it as
+ * they do SearchField: the native input props and the ref the input's, `className` and `style`
+ * the frame's. The table holds the query, so the field's value is the table's.
+ */
 export function Search<TData extends RowData>({
   table,
   placeholder,
   width,
-}: {
+  style,
+  ...props
+}: Omit<SearchFieldProps, "value" | "defaultValue" | "onValueChange"> & {
   table: DataTableInstance<TData>;
   placeholder?: string | undefined;
   /** The field's width in pixels, 200 by default (`dimension.part.tableSearch`); it never runs past its row. */
@@ -487,11 +526,12 @@ export function Search<TData extends RowData>({
   return (
     <SearchField
       size="small"
+      aria-label={placeholder ?? t("search")}
+      {...props}
       value={String(table.state.globalFilter ?? "")}
       onValueChange={(next) => table.setGlobalFilter(next)}
       placeholder={placeholder ?? t("search")}
-      aria-label={placeholder ?? t("search")}
-      style={{ width: width ?? token("dimension.part.tableSearch"), maxWidth: "100%" }}
+      style={{ width: width ?? token("dimension.part.tableSearch"), maxWidth: "100%", ...style }}
     />
   );
 }
@@ -609,8 +649,9 @@ function PresetMenuItems<TData extends RowData>({
     return (
       <DropdownMenuRadioItem key={p.id} value={p.id} closeOnClick>
         {p.label}
+        {/* A count, not a shortcut: it is part of the item's name ("Overdue 12"). */}
         {count === undefined ? null : (
-          <DropdownMenuShortcut>
+          <DropdownMenuShortcut aria-hidden={false}>
             <span className="tabular-nums">{formatNumber(count)}</span>
           </DropdownMenuShortcut>
         )}
@@ -647,7 +688,8 @@ function PresetStripItems<TData extends RowData>({
  * `strip` is a ToggleGroup on its own line above the table; `menu` is one small button in the
  * toolbar that reads the current question and opens the list, for a toolbar that also holds
  * search and filters. The button is named by what it shows ("All programs 7"), and `aria-label`
- * (the locale's "Saved questions" unsaid) describes it; on the strip it names the group.
+ * (the locale's "Saved questions" unsaid) describes it; on the strip it names the group. Native
+ * props, `className` and a ref reach the menu's trigger, or the strip's group.
  */
 export function Presets<TData extends RowData>({
   table,
@@ -656,7 +698,11 @@ export function Presets<TData extends RowData>({
   counts,
   "aria-label": ariaLabel,
   className,
-}: {
+  ref,
+  ...props
+}: Omit<HTMLAttributes<HTMLElement>, "children" | "defaultValue"> & {
+  /** The menu's trigger, or the strip's group. */
+  ref?: Ref<HTMLElement> | undefined;
   table: DataTableInstance<TData>;
   presets: Preset[];
   variant?: "strip" | "menu" | undefined;
@@ -667,6 +713,8 @@ export function Presets<TData extends RowData>({
 }) {
   const { t, formatNumber } = useLedgerLocale();
   const descriptionId = useId();
+  // One ref for either root: the menu's trigger button or the strip's group.
+  const setRoot = useCallback((element: HTMLElement | null) => assignRef(ref, element), [ref]);
 
   const current = table.state.columnFilters;
   const active = presets.find((p) => sameQuestion(table, p.filters ?? [], current));
@@ -701,8 +749,11 @@ export function Presets<TData extends RowData>({
                 variant="secondary"
                 size="small"
                 iconAfter={<ChevronDown />}
+                {...props}
+                ref={setRoot}
                 aria-describedby={descriptionId}
                 className={cn("min-w-0 max-w-full", className)}
+                data-slot="data-table-presets"
               >
                 <span
                   className="min-w-0 truncate"
@@ -714,7 +765,10 @@ export function Presets<TData extends RowData>({
               </Button>
             }
           />
-          <DropdownMenuContent align="start" style={{ minWidth: 240 }}>
+          <DropdownMenuContent
+            align="start"
+            style={{ minWidth: token("dimension.part.tablePresets") }}
+          >
             <DropdownMenuRadioGroup
               aria-label={ariaLabel ?? t("savedQuestions")}
               value={active?.id ?? ""}
@@ -738,9 +792,11 @@ export function Presets<TData extends RowData>({
     <Scroller orientation="horizontal" className="max-w-full">
       <ScrollerViewport>
         <ToggleGroup<string>
+          {...props}
+          ref={setRoot}
           aria-label={ariaLabel ?? t("savedQuestions")}
           className={className}
-          size="sm"
+          size="small"
           value={active ? [active.id] : []}
           onValueChange={([id]) => {
             if (id === undefined) return;

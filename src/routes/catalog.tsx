@@ -1,9 +1,6 @@
-import {
-  ControlInspector,
-  LibraryControlTable,
-  type ControlSelector,
-} from "@/components/prototype/library-controls";
+import { ControlInspector } from "@/components/prototype/library-controls";
 import { ProductCollection } from "@/components/prototype/product-collection";
+import { useServerCollection, vocabularyOptions } from "@/components/prototype/collection-question";
 import {
   RecordLink,
   RecordPreviewActions,
@@ -12,15 +9,16 @@ import {
   useDisplayedRecords,
 } from "@/components/prototype/record-preview";
 import { EmptyMessage, QueryState } from "@/components/prototype/work-common";
-import { useRows, type Row } from "@/lib/models";
+import { Constants } from "@/lib/database.types";
+import { idSet, useRows, type Row } from "@/lib/models";
 import { labelFor } from "@/lib/records";
-import { cciStatuses, referenceResolutionStatuses } from "@/lib/status";
+import { serverRead, type ServerRow } from "@/lib/server-table";
+import { cciStatuses, controlPublicationStatuses, referenceResolutionStatuses } from "@/lib/status";
 import { Page } from "@/components/app/shell";
 import { StatusBadge } from "@/components/app/status";
 import {
   Absent,
   Badge,
-  Count,
   DataTable,
   DateTime,
   Id,
@@ -42,10 +40,9 @@ import {
   TabsTrigger,
   TextLink,
   defineColumns,
-  useDataTable,
 } from "@ledger/design-system";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
 const catalogTabs = ["Controls", "CCIs", "Sources"] as const;
 type CatalogTab = (typeof catalogTabs)[number];
@@ -69,22 +66,31 @@ export const Route = createFileRoute("/catalog")({
   component: CatalogPage,
 });
 
+/** A catalog control as the Controls register and its preview read it: never its stored properties. */
+type CatalogControl = ServerRow<
+  "catalog_control_rows",
+  | "id"
+  | "code"
+  | "title"
+  | "source_id"
+  | "status"
+  | "group_id"
+  | "catalog_revision_id"
+  | "family"
+  | "selected_by",
+  "code" | "title" | "source_id" | "status" | "catalog_revision_id" | "selected_by"
+>;
+
 function CatalogPage() {
   const { edition, tab = "Controls" } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
-  const [control, setControl] = useState<Row<"controls"> | null>(null);
-  const [displayedControls, setDisplayedControls] = useState<Row<"controls">[]>([]);
-  const revisions = useRows("catalog_revisions");
-  const allControls = useRows("controls");
-  // Only which profile resolution selects which control: the rest of each selection is not read.
-  const selections = useRows("selected_controls", undefined, {
-    columns: ["id", "profile_resolution_id", "control_id"],
+  const [control, setControl] = useState<CatalogControl | null>(null);
+  const [displayedControls, setDisplayedControls] = useState<CatalogControl[]>([]);
+  const revisions = useRows("catalog_revisions", undefined, {
+    columns: ["id", "catalog_id", "title", "version", "state"],
   });
-  const resolutions = useRows("profile_resolutions");
-  const profileRevisions = useRows("profile_revisions");
-  const profiles = useRows("profiles");
-  const catalogs = useRows("catalogs");
-  const catalogTitle = (row: Row<"catalog_revisions">) =>
+  const catalogs = useRows("catalogs", undefined, { columns: ["id", "title"] });
+  const catalogTitle = (row: Pick<Row<"catalog_revisions">, "catalog_id" | "title">) =>
     catalogs.data?.find((catalog) => catalog.id === row.catalog_id)?.title ?? row.title;
   const editions = useMemo(
     () =>
@@ -94,35 +100,6 @@ function CatalogPage() {
     [revisions.data],
   );
   const current = editions.find((row) => row.id === edition) ?? editions[0];
-  const shown = useMemo(
-    () => (allControls.data ?? []).filter((row) => row.catalog_revision_id === current?.id),
-    [allControls.data, current?.id],
-  );
-  const selectedBy = useMemo(() => {
-    const byRevision = new Map((profileRevisions.data ?? []).map((row) => [row.id, row]));
-    const byProfile = new Map((profiles.data ?? []).map((row) => [row.id, row]));
-    const revisionOf = new Map(
-      (resolutions.data ?? [])
-        .filter((row) => row.state === "published")
-        .map((row) => [row.id, byRevision.get(row.profile_revision_id)]),
-    );
-    const result = new Map<string, ControlSelector[]>();
-    for (const selection of selections.data ?? []) {
-      const revision = revisionOf.get(selection.profile_resolution_id);
-      if (!revision || revision.state !== "published") continue;
-      const items = result.get(selection.control_id) ?? [];
-      if (items.some((item) => item.key === revision.id)) continue;
-      items.push({
-        key: revision.id,
-        label: `${byProfile.get(revision.profile_id)?.title ?? revision.title} · ${revision.version}`,
-        meta: byProfile.get(revision.profile_id)?.code ?? null,
-      });
-      result.set(selection.control_id, items);
-    }
-    for (const items of result.values()) items.sort((a, b) => a.label.localeCompare(b.label));
-    return result;
-  }, [selections.data, resolutions.data, profileRevisions.data, profiles.data]);
-  const controls = allControls;
   return (
     <Page>
       <PageHeader>
@@ -139,37 +116,24 @@ function CatalogPage() {
             search: (previous) => ({ ...previous, tab: next === "Controls" ? undefined : next }),
           });
         }}
-        className="gap-150"
       >
         <TabsList variant="line" aria-label="Catalog views">
           {catalogTabs.map((name) => (
+            // A register's tabs name its views; how many rows each holds is the table's to say.
             <TabsTrigger key={name} value={name}>
               {name}
-              {name === "Controls" && controls.data && <Count value={shown.length} max={9999} />}
             </TabsTrigger>
           ))}
         </TabsList>
         <TabsContent value={tab}>
           {tab === "Controls" && (
-            <QueryState
-              queries={[
-                controls,
-                revisions,
-                catalogs,
-                selections,
-                resolutions,
-                profileRevisions,
-                profiles,
-              ]}
-            >
-              <LibraryControlTable
-                controls={shown}
+            <QueryState queries={[revisions, catalogs]}>
+              <CatalogControls
+                edition={current?.id}
                 selectedId={control?.id}
-                onDisplayedRowsChange={setDisplayedControls}
                 onSelect={setControl}
-                showRelease={false}
-                selectedBy={selectedBy}
-                filters={
+                onDisplayedRowsChange={setDisplayedControls}
+                editionSelect={
                   <Select
                     value={current?.id ?? ""}
                     onValueChange={(value) => {
@@ -212,108 +176,309 @@ function CatalogPage() {
   );
 }
 
-/** What a CCI with no recorded type shows, and the Type filter's value for it. */
-const NO_TYPE = "Not recorded";
+/**
+ * The edition's controls, a page at a time from the server: the code in reading order (AC-2 before
+ * AC-10), the family, and the published profiles that select each control, which the search, the
+ * sort and the filters all reach.
+ */
+const catalogControlRead = (edition: string | undefined) =>
+  serverRead({
+    source: "catalog_control_rows",
+    model: "controls",
+    columns: [
+      "id",
+      "code",
+      "title",
+      "source_id",
+      "status",
+      "group_id",
+      "catalog_revision_id",
+      "family",
+      "selected_by",
+    ],
+    scope: { catalog_revision_id: edition ?? [] },
+    search: ["code", "title", "family"],
+    fields: {
+      code: { sort: "code_order" },
+      status: { labels: controlPublicationStatuses },
+      selectedBy: {
+        column: "selected_by",
+        filter: "list",
+        emptyLabel: NO_PROFILE,
+        sort: false,
+      },
+    },
+    order: [{ column: "code_order" }],
+  });
 
-function CciTable() {
-  const items = useRows("cci_items");
-  const references = useRows("cci_references");
-  const links = useRows("cci_control_links");
-  const controls = useRows("controls");
-  const types = useRows("cci_item_types");
-  const [selected, setSelected] = useState<Row<"cci_items"> | null>(null);
+/** What the Selected by column and its filter call a control no published profile selects. */
+const NO_PROFILE = "No published profile";
+
+/** A published profile revision that selects controls, for the Selected by column. */
+type ControlSelector = { key: string; label: string; meta: ReactNode };
+
+function CatalogControls({
+  edition,
+  editionSelect,
+  selectedId,
+  onSelect,
+  onDisplayedRowsChange,
+}: {
+  edition: string | undefined;
+  /** The edition the rows are drawn from, first among the toolbar's filters. */
+  editionSelect: ReactNode;
+  selectedId: string | undefined;
+  onSelect: (control: CatalogControl) => void;
+  onDisplayedRowsChange: (rows: CatalogControl[]) => void;
+}) {
   const navigate = useNavigate();
-  const rows = useMemo(() => {
-    const controlsById = new Map(controls.data?.map((row) => [row.id, row]));
-    const itemByReference = new Map(references.data?.map((row) => [row.id, row.cci_item_id]));
-    const controlsByItem = new Map<string, Set<string>>();
-    for (const link of links.data ?? []) {
-      const itemId = itemByReference.get(link.cci_reference_id);
-      const control = controlsById.get(link.control_id);
-      if (!itemId || !control) continue;
-      if (!controlsByItem.has(itemId)) controlsByItem.set(itemId, new Set());
-      controlsByItem.get(itemId)!.add(control.code);
-    }
-    // Each item's types in words, in a stable order: a CCI can be policy and technical at once.
-    const typesByItem = new Map<string, Set<string>>();
-    for (const type of types.data ?? []) {
-      if (!typesByItem.has(type.cci_item_id)) typesByItem.set(type.cci_item_id, new Set());
-      typesByItem.get(type.cci_item_id)!.add(labelFor(type.type));
-    }
-    return (items.data ?? []).map((item) => ({
-      ...item,
-      controls: [...(controlsByItem.get(item.id) ?? [])].join(", "),
-      types: [...(typesByItem.get(item.id) ?? [])].sort((a, b) => a.localeCompare(b)),
-    }));
-  }, [items.data, references.data, links.data, controls.data, types.data]);
+  // The edition's families, for the Family filter: the server's rows are one page of them.
+  const groups = useRows(
+    "catalog_groups",
+    { catalog_revision_id: edition ?? [] },
+    { columns: ["id", "source_id", "ordinal"], keepPrevious: true },
+  );
+  // The published profiles that select controls: their names, for Selected by and its filter.
+  const resolutions = useRows(
+    "profile_resolutions",
+    { state: "published" },
+    { columns: ["id", "profile_revision_id"] },
+  );
+  const profileRevisions = useRows(
+    "profile_revisions",
+    { id: idSet(resolutions.data?.map((row) => row.profile_revision_id)), state: "published" },
+    { columns: ["id", "profile_id", "title", "version"], enabled: resolutions.isSuccess },
+  );
+  const profiles = useRows(
+    "profiles",
+    { id: idSet(profileRevisions.data?.map((row) => row.profile_id)) },
+    { columns: ["id", "code", "title"], enabled: profileRevisions.isSuccess },
+  );
+  const selectors = useMemo(() => {
+    const byProfile = new Map((profiles.data ?? []).map((row) => [row.id, row]));
+    return new Map<string, ControlSelector>(
+      (profileRevisions.data ?? []).map((revision) => {
+        const profile = byProfile.get(revision.profile_id);
+        return [
+          revision.id,
+          {
+            key: revision.id,
+            label: `${profile?.title ?? revision.title} · ${revision.version}`,
+            meta: profile?.code ?? null,
+          },
+        ];
+      }),
+    );
+  }, [profileRevisions.data, profiles.data]);
   const columns = useMemo(
     () =>
-      defineColumns<(typeof rows)[number]>((c) => [
+      defineColumns<CatalogControl>((c) => [
+        // Every family's first control is "Policy and Procedures": the code stays beside the title.
         c.id("code", {
-          header: "CCI",
-          width: 180,
-          priority: 0,
+          header: "Control",
+          // Wide enough for "AC-2(13)" and its eye, so a narrowed table keeps it beside the title.
+          width: 112,
+          priority: 1,
+          pin: "start",
           hideable: false,
-          preview: setSelected,
-          active: (row) => row.id === selected?.id,
+        }),
+        c.text("title", {
+          header: "Title",
+          hideable: false,
+          priority: 0,
+          minWidth: 200,
           cell: (row) => (
-            <RecordLink table="cci_items" record={row}>
-              {row.code}
+            <RecordLink table="controls" record={row}>
+              {row.title}
             </RecordLink>
           ),
         }),
-        c.text("definition", { header: "Definition", hideable: false }),
-        c.text("controls", { header: "Mapped controls", width: 180 }),
-        {
-          ...c.list("types", {
-            header: "Type",
-            width: 132,
-            items: (row) => row.types.map((type) => ({ key: type, label: type })),
-          }),
-          // The Type filter offers each type on its own, and a CCI of both is found under either;
-          // one with none is found under Not recorded, as its cell says.
-          getUniqueValues: (row: (typeof rows)[number]) =>
-            row.types.length ? row.types : [NO_TYPE],
-          filterFn: (row, _column, chosen: unknown) =>
-            Array.isArray(chosen) &&
-            chosen.some((value) =>
-              (row.original.types.length ? row.original.types : [NO_TYPE]).includes(String(value)),
-            ),
-        },
-        c.status("status", { header: "Source status", width: 130, statuses: cciStatuses }),
-        c.date("published_on", { header: "Published", width: 125 }),
+        c.text("family", { header: "Family", width: 100, priority: 2 }),
+        c.status("status", {
+          header: "Status",
+          width: 130,
+          priority: 2,
+          statuses: controlPublicationStatuses,
+        }),
+        c.list("selectedBy", {
+          header: "Selected by",
+          width: 240,
+          priority: 3,
+          sortable: false,
+          items: (row) =>
+            row.selected_by
+              .map((id) => selectors.get(id))
+              .filter((selector): selector is ControlSelector => selector !== undefined)
+              .sort((a, b) => a.label.localeCompare(b.label)),
+          // A control no published profile selects is found under that, as its cell says.
+          empty: () => <Absent label={NO_PROFILE} />,
+          emptyLabel: NO_PROFILE,
+        }),
       ]),
-    [selected?.id],
+    [selectors],
   );
-  const table = useDataTable({
-    data: rows,
+  const familyOptions = useMemo(
+    () =>
+      [...(groups.data ?? [])]
+        .sort((a, b) => a.ordinal - b.ordinal)
+        .flatMap((group) => (group.source_id ? [{ value: group.source_id.toUpperCase() }] : [])),
+    [groups.data],
+  );
+  const selectorOptions = useMemo(
+    () => [
+      ...[...selectors.values()]
+        .sort((a, b) => a.label.localeCompare(b.label))
+        .map((selector) => ({ value: selector.key, label: selector.label })),
+      { value: NO_PROFILE },
+    ],
+    [selectors],
+  );
+  const collection = useServerCollection<CatalogControl>(catalogControlRead(edition), {
+    preview: useMemo(
+      () => ({ onPreview: onSelect, activeId: selectedId ?? null }),
+      [selectedId, onSelect],
+    ),
     columns,
-    getRowId: (row) => row.id,
+    // Titles repeat across families (every family's first control is "Policy and Procedures"), so
+    // the row's controls are named by code and title, also once a narrow frame folds the code.
+    rowLabel: (row) => `${row.code} · ${row.title}`,
+    label: "Catalog controls",
+    view: "live-library-controls-v2",
+    resizable: true,
+    reorderable: true,
+  });
+  const { table } = collection;
+  useDisplayedRecords(table, onDisplayedRowsChange);
+  return (
+    <ProductCollection
+      {...collection}
+      queries={[...collection.queries, groups, resolutions, profileRevisions, profiles]}
+      fill
+      noun={{ one: "control", other: "controls" }}
+      onRowClick={(row) => void navigate(recordDestination("controls", row))}
+      empty={{
+        illustration: "shield",
+        title: "No controls yet",
+        description: "Reference catalogs are loaded by a workspace administrator.",
+      }}
+      searchLabel="Find a control"
+      filters={
+        <>
+          {editionSelect}
+          <DataTable.Filter table={table} column="family" options={familyOptions} />
+          <DataTable.Filter
+            table={table}
+            column="status"
+            options={vocabularyOptions(controlPublicationStatuses)}
+          />
+          <DataTable.Filter table={table} column="selectedBy" options={selectorOptions} />
+        </>
+      }
+    />
+  );
+}
+
+/**
+ * The CCIs, a page at a time from the server: each with its types and the codes of the controls
+ * its publication references map to, which the search, the sort and the filters all reach.
+ */
+const cciRead = serverRead({
+  source: "cci_item_rows",
+  model: "cci_items",
+  columns: [
+    "id",
+    "code",
+    "definition",
+    "status",
+    "published_on",
+    "contributor",
+    "types",
+    "controls",
+  ],
+  search: ["code", "definition", "controls"],
+  fields: {
+    types: { filter: "list", emptyLabel: "Not recorded" },
+    status: { labels: cciStatuses },
+    published_on: { filter: "range" },
+  },
+  order: [{ column: "code" }],
+});
+/** What the CCI register and its preview show of an item: never its notes or parameters. */
+type CciItem = ServerRow<
+  "cci_item_rows",
+  "id" | "code" | "definition" | "status" | "published_on" | "contributor" | "types" | "controls",
+  "code" | "definition" | "status" | "published_on" | "types"
+>;
+
+const cciColumns = defineColumns<CciItem>((c) => [
+  c.id("code", {
+    header: "CCI",
+    width: 180,
+    priority: 0,
+    hideable: false,
+    cell: (row) => (
+      <RecordLink table="cci_items" record={row}>
+        {row.code}
+      </RecordLink>
+    ),
+  }),
+  c.text("definition", { header: "Definition", hideable: false }),
+  c.text("controls", { header: "Mapped controls", width: 180 }),
+  // The Type filter offers each type on its own, and a CCI of both is found under either; one
+  // with none is found under Not recorded, as its cell says.
+  c.list("types", {
+    header: "Type",
+    width: 132,
+    items: (row) => row.types.map((type) => ({ key: type, label: labelFor(type) })),
+    emptyLabel: "Not recorded",
+  }),
+  c.status("status", { header: "Source status", width: 130, statuses: cciStatuses }),
+  c.date("published_on", { header: "Published" }),
+]);
+
+const cciTypeOptions = [
+  ...Constants.public.Enums.cci_type.map((type) => ({ value: type, label: labelFor(type) })),
+  { value: "Not recorded" },
+];
+
+function CciTable() {
+  const [selected, setSelected] = useState<CciItem | null>(null);
+  const navigate = useNavigate();
+  const collection = useServerCollection<CciItem>(cciRead, {
+    preview: useMemo(
+      () => ({ onPreview: setSelected, activeId: selected?.id ?? null }),
+      [selected?.id],
+    ),
+    columns: cciColumns,
     label: "Control correlation identifiers",
     view: "live-catalog-ccis",
     resizable: true,
     reorderable: true,
-    virtualize: true,
   });
+  const { table } = collection;
   const displayed = useDisplayedRecords(table);
   return (
     <>
       <ProductCollection
-        table={table}
+        {...collection}
         fill
-        queries={[items, references, links, controls, types]}
         noun={{ one: "CCI", other: "CCIs" }}
         onRowClick={(row) => void navigate(recordDestination("cci_items", row))}
         empty={{
           illustration: "shield",
           title: "No CCIs yet",
-          description: "Import a CCI release to fill the catalog.",
+          description:
+            "CCI releases are loaded into the reference data by a workspace administrator.",
         }}
         searchLabel="Find a CCI"
         filters={
           <>
-            <DataTable.Filter table={table} column="types" />
-            <DataTable.Filter table={table} column="status" />
+            <DataTable.Filter table={table} column="types" options={cciTypeOptions} />
+            <DataTable.Filter
+              table={table}
+              column="status"
+              options={vocabularyOptions(cciStatuses)}
+            />
           </>
         }
       />
@@ -341,40 +506,67 @@ function CciTable() {
                 <KeyValue label="Status">
                   <StatusBadge statuses={cciStatuses} value={selected.status} />
                 </KeyValue>
-                <KeyValue label="Contributor">
-                  {selected.contributor ?? <Absent label="Not recorded" />}
-                </KeyValue>
+                <KeyValue label="Contributor">{selected.contributor ?? <Absent />}</KeyValue>
                 <KeyValue label="Published">
-                  <DateTime value={selected.published_on} absentLabel="Not recorded" />
+                  <DateTime value={selected.published_on} />
                 </KeyValue>
               </KeyValue.Group>
             </Inspector.Group>
             <Inspector.Group title="Publication references">
-              <Stack space="space.200">
-                {references.data
-                  ?.filter((reference) => reference.cci_item_id === selected.id)
-                  .map((reference) => (
-                    <KeyValue.Group key={reference.id}>
-                      <KeyValue label="Publication" wrap>
-                        {reference.publication_title} · {reference.publication_version}
-                      </KeyValue>
-                      <KeyValue label="Index">
-                        <Id>{reference.source_index}</Id>
-                      </KeyValue>
-                      <KeyValue label="Resolution">
-                        <StatusBadge
-                          statuses={referenceResolutionStatuses}
-                          value={reference.resolution_status}
-                        />
-                      </KeyValue>
-                    </KeyValue.Group>
-                  ))}
-              </Stack>
+              <CciReferences itemId={selected.id} />
             </Inspector.Group>
           </Stack>
         </RecordPreviewPanel>
       )}
     </>
+  );
+}
+
+/** One CCI's publication references, read when its preview shows. */
+function CciReferences({ itemId }: { itemId: string }) {
+  const references = useRows(
+    "cci_references",
+    { cci_item_id: itemId },
+    {
+      columns: [
+        "id",
+        "publication_title",
+        "publication_version",
+        "source_index",
+        "resolution_status",
+      ],
+      order: { column: "ordinal" },
+    },
+  );
+  return (
+    <QueryState queries={[references]}>
+      {references.data?.length ? (
+        <Stack space="space.200">
+          {references.data.map((reference) => (
+            <KeyValue.Group key={reference.id}>
+              <KeyValue label="Publication" wrap>
+                {reference.publication_title} · {reference.publication_version}
+              </KeyValue>
+              <KeyValue label="Index">
+                <Id>{reference.source_index}</Id>
+              </KeyValue>
+              <KeyValue label="Resolution">
+                <StatusBadge
+                  statuses={referenceResolutionStatuses}
+                  value={reference.resolution_status}
+                />
+              </KeyValue>
+            </KeyValue.Group>
+          ))}
+        </Stack>
+      ) : (
+        <EmptyMessage
+          compact
+          title="No publication references"
+          description="The CCI release records none for this item."
+        />
+      )}
+    </QueryState>
   );
 }
 
@@ -393,7 +585,9 @@ function sourceName(uri: string) {
 }
 
 function SourcesList() {
-  const sources = useRows("ref_sources");
+  const sources = useRows("ref_sources", undefined, {
+    columns: ["id", "title", "authority", "source_uri", "authoritative", "rights", "notes"],
+  });
   return (
     <QueryState queries={[sources]}>
       <Stack space="space.300">

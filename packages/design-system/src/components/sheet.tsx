@@ -7,6 +7,7 @@ import { useMemo, useRef, type ComponentProps, type CSSProperties } from "react"
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
+import { Heading } from "../primitives/heading";
 import { HeadingLevelProvider } from "../primitives/heading-level";
 import { IconButton } from "./button";
 import {
@@ -63,7 +64,7 @@ export function Sheet<Payload = unknown>({
 }
 export type SheetTriggerProps<Payload = unknown> = Primitive.Trigger.Props<Payload>;
 export function SheetTrigger<Payload = unknown>(props: SheetTriggerProps<Payload>) {
-  return <Primitive.Trigger data-slot="sheet-trigger" {...props} />;
+  return <Primitive.Trigger {...props} data-slot="sheet-trigger" />;
 }
 export type SheetPortalProps = Primitive.Portal.Props;
 /** The sheet's portal, for a custom popup; SheetContent brings its own. */
@@ -79,14 +80,14 @@ export function SheetOverlay({ className, onMouseDown, ...props }: SheetOverlayP
   const press = useBlanketPress();
   return (
     <Primitive.Backdrop
-      data-slot="sheet-overlay"
       {...props}
+      data-slot="sheet-overlay"
       onMouseDown={(event) => {
         press?.(event);
         onMouseDown?.(event);
       }}
       className={classes(
-        "fixed inset-0 z-50 bg-blanket data-open:animate-dim-in data-closed:animate-dim-out",
+        "fixed inset-0 z-overlay bg-blanket data-open:animate-dim-in data-closed:animate-dim-out",
         className,
       )}
     />
@@ -101,8 +102,8 @@ export function SheetClose({ disabled, render, ...props }: SheetCloseProps) {
   const pending = useOverlayPending();
   return (
     <Primitive.Close
-      data-slot="sheet-close"
       {...props}
+      data-slot="sheet-close"
       render={pendingCloseRender(render, pending)}
       disabled={pending || disabled}
     />
@@ -192,12 +193,12 @@ export function SheetContent({
       <SheetPortal>
         <SheetOverlay />
         <Primitive.Popup
-          data-slot="sheet-content"
           data-side={physicalSide}
           dir={dir ?? direction}
           {...(width ? { "data-width": width } : {})}
           {...(pending ? { "aria-busy": true, "data-pending": "" } : {})}
           {...props}
+          data-slot="sheet-content"
           // With the close button first in the DOM, the first field still takes focus by default.
           initialFocus={
             initialFocus === undefined && showCloseButton ? focusPastClose(closeRef) : initialFocus
@@ -208,7 +209,7 @@ export function SheetContent({
             cn(
               // The popup scrolls as a fallback: a SheetBody normally takes the overflow, and in a
               // short window (under 30rem) the header scrolls away with the body and the footer stays.
-              "fixed z-50 flex max-h-dvh flex-col overflow-y-auto overscroll-none bg-surface-overlay text-default shadow-overlay outline-none data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:w-full data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:w-full data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0",
+              "fixed z-overlay flex max-h-dvh flex-col overflow-y-auto overscroll-none bg-surface-overlay text-default shadow-overlay outline-none data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:w-full data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:w-full data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0",
               sheetMotion[motionSide],
             ),
             className,
@@ -242,12 +243,12 @@ export type SheetHeaderProps = ComponentProps<"div">;
 export function SheetHeader({ className, ...props }: SheetHeaderProps) {
   return (
     <div
-      data-slot="sheet-header"
       className={cn(
         "flex shrink-0 flex-col gap-025 border-b border-default py-150 pe-600 ps-200",
         className,
       )}
       {...props}
+      data-slot="sheet-header"
     />
   );
 }
@@ -268,7 +269,7 @@ export function SheetBody({ className, render, ref, ...props }: SheetBodyProps) 
     props: mergeProps<"div">(props, {
       ...bodySlot("sheet-body"),
       className: cn(
-        "min-h-1000 min-w-0 flex-1 overflow-y-auto overscroll-none px-200 py-150 outline-none focus-visible:outline-field-focused [@media(max-height:30rem)]:flex-auto [@media(max-height:30rem)]:shrink-0 [@media(max-height:30rem)]:overflow-visible",
+        "min-h-1000 min-w-0 flex-1 overflow-y-auto overscroll-none px-200 py-150 outline-none focus-visible:outline-field-focused",
         className,
       ),
     }),
@@ -283,23 +284,29 @@ export function SheetFooter({ className, ref, ...props }: SheetFooterProps) {
   const clearance = useFooterClearance(ref);
   return (
     <div
-      data-slot="sheet-footer"
       className={cn(
         "sticky bottom-0 z-10 flex shrink-0 flex-wrap items-center justify-end gap-100 border-t border-default bg-surface-current px-200 py-150",
         className,
       )}
       {...props}
+      data-slot="sheet-footer"
       ref={clearance}
     />
   );
 }
 export type SheetTitleProps = Primitive.Title.Props;
+/**
+ * The sheet's title, its h2: a Heading at `overlay`, 15/22 medium. A PageHeader.Title (PreviewSheet's
+ * record name) renders as it through `render`, keeping its `page` size, and the composing part's
+ * `data-slot` names the element, as Button's does: the slot comes before the caller's props.
+ */
 export function SheetTitle({ className, ...props }: SheetTitleProps) {
   return (
     <Primitive.Title
       data-slot="sheet-title"
+      render={<Heading size="overlay" as="h2" />}
       {...props}
-      className={classes("font-heading-xsmall text-default break-words", className)}
+      className={classes("font-heading-overlay text-default break-words", className)}
     />
   );
 }

@@ -5,8 +5,12 @@ import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import { Button, LinkButton } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Button",
@@ -22,7 +26,7 @@ const sizes = ["medium", "small", "xsmall"] as const;
 
 /** The variants and sizes, plus disabled, selected, loading and icon placement. */
 export const Matrix: Story = {
-  tags: ["matrix"],
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       {variants.map((variant) => (
@@ -141,6 +145,8 @@ function LoadingDemo() {
     </form>
   );
 }
+
+export const Playground: Story = { args: { variant: "primary", size: "medium" } };
 
 /** The submit action keeps its name and focus while pending; a default button does not submit. */
 export const Loading: Story = {
@@ -390,6 +396,7 @@ export const ReasonChangesWhileFocused: Story = {
 
 /** Labelled actions in a header and footer, including a destructive confirmation. */
 export const Emphasis: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="A page header">
@@ -417,6 +424,7 @@ const blockedAction = fn();
 
 /** Navigation is a LinkButton, a real anchor; render composes controls that keep button semantics. */
 export const AsLink: Story = {
+  tags: ["!manifest"],
   name: "Navigation and composition",
   render: () => (
     <Stack space="space.300">
@@ -548,6 +556,7 @@ export const OnTouch: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -596,4 +605,57 @@ export const Dont: Story = {
   },
 };
 
-export const Playground: Story = { args: { variant: "primary", size: "medium" } };
+/**
+ * `truncate` is for a slot narrower than the label: the button narrows to its container and cuts
+ * the label with an ellipsis, the whole label stays its name, and a tooltip shows it on keyboard
+ * focus and hover while it is cut. A label that fits shows no tooltip.
+ */
+export const TruncatedLabel: Story = {
+  name: "Truncated label in a narrow slot",
+  render: () => (
+    <div data-testid="slot" style={{ width: 180 }}>
+      <Stack space="space.100">
+        <Button truncate iconBefore={<Download />}>
+          Export every requirement with its evidence
+        </Button>
+        <Button truncate isFullWidth variant="primary">
+          Publish the assessment package for review
+        </Button>
+        <Button truncate>Export</Button>
+      </Stack>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const slot = canvas.getByTestId("slot").getBoundingClientRect();
+    const exportAll = canvas.getByRole("button", {
+      name: "Export every requirement with its evidence",
+    });
+    const publish = canvas.getByRole("button", {
+      name: "Publish the assessment package for review",
+    });
+    for (const button of [exportAll, publish]) {
+      const box = button.getBoundingClientRect();
+      await expect(box.right).toBeLessThanOrEqual(Math.ceil(slot.right));
+      const label = button.querySelector<HTMLElement>('[data-slot="truncate"]')!;
+      await expect(label.scrollWidth).toBeGreaterThan(label.clientWidth);
+      // The icon keeps its size while the label gives way.
+      const icon = button.querySelector("svg");
+      if (icon) await expect(Math.round(icon.getBoundingClientRect().width)).toBe(14);
+    }
+    await expect(Math.round(publish.getBoundingClientRect().width)).toBe(Math.round(slot.width));
+    // Keyboard focus shows the whole label while it is cut.
+    await userEvent.tab();
+    await expect(exportAll).toHaveFocus();
+    await waitFor(() =>
+      expect(
+        canvasElement.ownerDocument.querySelector('[data-slot="truncate-full-text"]'),
+      ).toHaveTextContent("Export every requirement with its evidence"),
+    );
+    await userEvent.keyboard("{Escape}");
+    // A label that fits is not cut and opens nothing.
+    const fits = canvas.getByRole("button", { name: "Export" });
+    const fitsLabel = fits.querySelector<HTMLElement>('[data-slot="truncate"]')!;
+    await expect(fitsLabel.scrollWidth).toBeLessThanOrEqual(fitsLabel.clientWidth + 1);
+  },
+};

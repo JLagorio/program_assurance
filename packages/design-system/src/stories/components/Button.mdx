@@ -7,6 +7,8 @@ import * as Stories from "./Button.stories";
 
 # Button
 
+**Status: Stable.**
+
 Button starts an action. Use a short label that names what happens, such as “Save changes” or “Export report.”
 
 Use it for something that happens on this page: saving, opening a dialog or a menu, changing state. Do not use it to go somewhere: navigation that looks like a button is a [LinkButton](?path=/docs/components-linkbutton--docs), a real anchor the reader can open in a new tab, and a link in text is a [TextLink](?path=/docs/components-textlink--docs). An icon-only action is an [IconButton](?path=/docs/components-iconbutton--docs); an on/off state is a [Toggle](?path=/docs/components-toggle--docs).
@@ -17,19 +19,19 @@ Leading and trailing icons use a smaller inset on their own side; icon-only cont
 
 ## Choosing between them
 
-| Need | Part |
-| --- | --- |
-| Something happens on this page: save, open a dialog or a menu, change state | Button |
-| The same, shown only as an icon | [IconButton](?path=/docs/components-iconbutton--docs) |
-| Go somewhere, with a button's look | [LinkButton](?path=/docs/components-linkbutton--docs) or LinkIconButton |
-| Go somewhere from inside a sentence, or a record's name in a row | [TextLink](?path=/docs/components-textlink--docs) |
-| One setting that is on or off | [Toggle](?path=/docs/components-toggle--docs) or [Switch](?path=/docs/components-switch--docs) |
-| One choice among a few, shown at once | [ToggleGroup](?path=/docs/components-togglegroup--docs) |
-| Copy a value | [CopyButton](?path=/docs/components-copybutton--docs) |
+| Need                                                                        | Part                                                                                           |
+| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Something happens on this page: save, open a dialog or a menu, change state | Button                                                                                         |
+| The same, shown only as an icon                                             | [IconButton](?path=/docs/components-iconbutton--docs)                                          |
+| Go somewhere, with a button's look                                          | [LinkButton](?path=/docs/components-linkbutton--docs) or LinkIconButton                        |
+| Go somewhere from inside a sentence, or a record's name in a row            | [TextLink](?path=/docs/components-textlink--docs)                                              |
+| One setting that is on or off                                               | [Toggle](?path=/docs/components-toggle--docs) or [Switch](?path=/docs/components-switch--docs) |
+| One choice among a few, shown at once                                       | [ToggleGroup](?path=/docs/components-togglegroup--docs)                                        |
+| Copy a value                                                                | [CopyButton](?path=/docs/components-copybutton--docs)                                          |
 
 ## Hierarchy
 
-One primary per region: a page header, a dialog footer, a toolbar, a card. It is the action the region exists for, and the reader finds it without reading the rest. Every other action beside it is secondary, or subtle where there are several; a destructive action is `danger`, and its confirmation's primary is `danger` too. When a region seems to need two primaries, one of them belongs in an overflow menu or in another region.
+One primary per region: a page header, a dialog footer, a toolbar, a card. It is the action the region exists for, and the reader finds it without reading the rest. Every other action beside it is secondary, or subtle where there are several; a destructive action is `danger`, and its confirmation's primary is `danger` too. When a region seems to need two primaries, one of them belongs in an overflow menu or in another region. A collection among others in a record body or a preview creates through a small secondary; the page header or the preview's record header keeps the one primary. A split primary, a ButtonGroup of the action and its menu, is one control.
 
 <Canvas of={Stories.Emphasis} />
 
@@ -43,23 +45,29 @@ One primary per region: a page header, a dialog footer, a toolbar, a card. It is
 
 ## Variants and sizes
 
-| Variant | Use |
-| --- | --- |
-| `secondary` | Default raised action: Export, Edit, Open. |
-| `primary` | The main action in a header, form or dialog. |
-| `subtle` | Low emphasis actions in toolbars, rows and footers. |
-| `danger` | Destructive actions, with confirmation when appropriate. |
-| `link` | A text styled action, such as Show more. |
+| Variant     | Use                                                      |
+| ----------- | -------------------------------------------------------- |
+| `secondary` | Default raised action: Export, Edit, Open.               |
+| `primary`   | The main action in a header, form or dialog.             |
+| `subtle`    | Low emphasis actions in toolbars, rows and footers.      |
+| `danger`    | Destructive actions, with confirmation when appropriate. |
+| `link`      | A text styled action, such as Show more.                 |
 
-| Size | Height | Typical placement |
-| --- | --- | --- |
-| `medium` | 32px | Default for forms, headers and footers. |
-| `small` | 28px | Toolbars and rows. |
-| `xsmall` | 24px | Dense inline actions. |
+| Size     | Height | Typical placement                       |
+| -------- | ------ | --------------------------------------- |
+| `medium` | 32px   | Default for forms, headers and footers. |
+| `small`  | 28px   | Toolbars and rows.                      |
+| `xsmall` | 24px   | Dense inline actions.                   |
 
 The `link` variant has no fixed height and ignores `size`: it is as tall as its text. `iconBefore` and `iconAfter` take an icon element; Button sizes it to 14px and keeps a 6px gap. `isSelected` applies the selected palette and `aria-pressed`.
 
-The family shares one height axis: `xsmall` 24px, `small` 28px and `medium` 32px on Button, IconButton, LinkButton and LinkIconButton, and the icon-only two add `xxsmall`, the 20px row control. Button defaults to `medium` and IconButton to `small`, so an IconButton beside a default Button takes `size="medium"`. Toggle and ToggleGroup name the same heights the shadcn way: `sm` is 28px, `default` 32px, and `lg` a 36px step Button does not have. ButtonGroupText takes the `size` of the controls beside it.
+The family shares one height axis: `xsmall` 24px, `small` 28px and `medium` 32px on Button, IconButton, LinkButton and LinkIconButton, and the icon-only two add `xxsmall`, the 20px row control. Button defaults to `medium` and IconButton to `small`, so an IconButton beside a default Button takes `size="medium"`. Toggle and ToggleGroup take the same words: `small` 28px, `medium` 32px, and `large`, a 36px step Button does not have. ButtonGroupText takes the `size` of the controls beside it.
+
+## Long labels
+
+A label is short enough for one line in the slot it sits in; a longer one is a sentence and belongs in the region's text. For the one slot that cannot grow, such as a rail, a card's footer or a table cell, `truncate` lets the button narrow to its container and cuts the label with an ellipsis, its icons whole. The whole label stays the accessible name, and a tooltip shows it on hover and on keyboard focus while it is cut; with `disabledReason`, the reason's tooltip names the action. With `isFullWidth` the button fills the slot and cuts the label at its edge. Without `truncate`, a label never wraps or cuts.
+
+<Canvas of={Stories.TruncatedLabel} />
 
 ## Loading and forms
 
@@ -126,5 +134,7 @@ Navigation is a [LinkButton](?path=/docs/components-linkbutton--docs): an anchor
 [IconButton](?path=/docs/components-iconbutton--docs) · [LinkButton](?path=/docs/components-linkbutton--docs) · [CopyButton](?path=/docs/components-copybutton--docs) · [ButtonGroup](?path=/docs/components-buttongroup--docs) · [TextLink](?path=/docs/components-textlink--docs) · [DropdownMenu](?path=/docs/components-dropdownmenu--docs) · [AlertDialog](?path=/docs/components-alertdialog--docs) · [Forms](?path=/docs/patterns-forms--docs)
 
 ## Don't
+
+A region has one primary, named for what happens, never two primaries or an OK. The visible words are the Button's name: an `aria-label` that replaces them leaves a speech-input reader saying words that do nothing, so context goes in a description.
 
 <Canvas of={Stories.Dont} />

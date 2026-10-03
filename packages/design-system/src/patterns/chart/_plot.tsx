@@ -107,8 +107,8 @@ export type PlotWalk = {
 };
 
 const warned = new Set<string>();
-/** A composition mistake said once in the console, never thrown: the plot still renders. */
-function useWarnOnce(when: boolean, message: string) {
+/** A composition mistake or a deprecated spelling said once in the console, never thrown: the plot still renders. */
+export function useWarnOnce(when: boolean, message: string) {
   useEffect(() => {
     if (!when || warned.has(message)) return;
     warned.add(message);
@@ -560,14 +560,20 @@ export function Plot({
 const pattern = [55, 80, 40, 70, 95, 60, 30, 75];
 const linePath = "M0,30 L14,22 L28,26 L42,12 L56,18 L70,8 L84,14 L100,4";
 
-/** The plot's shape in `color.skeleton` while it loads: the marks' silhouette, pulsing, at the plot's height so nothing moves when the data arrives. */
+/**
+ * The plot's shape in `color.skeleton` while it loads: the marks' silhouette, pulsing, at the
+ * plot's height so nothing moves when the data arrives. It takes the part's native props and ref,
+ * so an `id` or a `data-*` reaches the box while it loads as well.
+ */
 export function PlotSkeleton({
   kind,
   name,
   size,
   height,
   className,
-}: {
+  style,
+  ...native
+}: Omit<ComponentProps<"div">, "children" | "role"> & {
   kind: "columns" | "bars" | "line" | "area" | "dots" | "tiles";
   name: string | undefined;
   size?: ChartSize | undefined;
@@ -579,12 +585,13 @@ export function PlotSkeleton({
   const h = height ?? heights[size ?? "medium"];
   return (
     <div
+      {...native}
       role={name ? "group" : undefined}
       aria-label={name ? t("loadingLabel", { label: name }) : undefined}
       aria-busy
       aria-hidden={name ? undefined : true}
       className={cn("relative w-full animate-pulse", className)}
-      style={{ height: h }}
+      style={{ ...style, height: h }}
     >
       {kind === "columns" ? (
         <div className="flex h-full items-end gap-150 border-b border-default pb-025 pe-150 ps-500">

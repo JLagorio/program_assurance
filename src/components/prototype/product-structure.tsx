@@ -12,6 +12,7 @@ import { useRows, type Row } from "@/lib/models";
 import {
   descendantsOf,
   productElementSpecs,
+  useElementLibrary,
   productTree,
   type ProductElementSpec,
   type ProductTreeRow,
@@ -25,6 +26,7 @@ import {
   AlertDescription,
   AlertTitle,
   Badge,
+  Box,
   Button,
   Checkbox,
   CheckboxGroup,
@@ -46,7 +48,6 @@ import {
   FieldSet,
   Icon,
   Id,
-  Inline,
   Inspector,
   KeyValue,
   Stack,
@@ -102,14 +103,14 @@ export function ProductStructure({
   const memberships = useRows("product_configuration_elements", {
     product_revision_id: revision.id,
   });
-  const definedComponents = useRows("defined_components");
-  const componentRevisions = useRows("component_definition_revisions");
-  const definitions = useRows("component_definitions");
-  const library = useLibraryComponentItems();
+  // Only the library records these elements pin.
+  const { definedComponents, componentRevisions, definitions } = useElementLibrary(elements.data);
+  const [picking, setPicking] = useState<{ parentId: string | null } | null>(null);
+  // The library loads when the picker opens: the structure itself never needs all of it.
+  const library = useLibraryComponentItems(undefined, { enabled: picking !== null });
   const remove = useRemoveProductElement();
   const { formatPlural } = useLedgerLocale();
   const [sheet, setSheet] = useState<ElementDialogTarget | null>(null);
-  const [picking, setPicking] = useState<{ parentId: string | null } | null>(null);
   const { confirm, confirmation } = useConfirmation();
   const navigate = useNavigate();
   const [selected, setSelected] = useState<StructureRow | null>(null);
@@ -198,31 +199,31 @@ export function ProductStructure({
           minWidth: 220,
           priority: 0,
           hideable: false,
-          cell: (row) => {
+          // The element's type before its name, and a Library badge on one the library supplies.
+          icon: (row) => {
             const TypeIcon = systemIcon(row.elementType);
             return (
-              <Inline space="space.075" alignBlock="center" className="min-w-0">
-                <Icon label={row.typeLabel} size="medium" color="color.icon.subtle">
-                  <TypeIcon />
-                </Icon>
-                <RecordLink table="product_elements" record={row}>
-                  {row.name}
-                </RecordLink>
-                {row.library && (
-                  <Badge size="xsmall" variant="secondary" tone="information">
-                    Library
-                  </Badge>
-                )}
-              </Inline>
+              <Icon label={row.typeLabel} size="medium" color="color.icon.subtle">
+                <TypeIcon />
+              </Icon>
             );
           },
+          badge: (row) =>
+            row.library ? (
+              <Badge size="xsmall" variant="secondary" tone="information">
+                Library
+              </Badge>
+            ) : null,
+          cell: (row) => (
+            <RecordLink table="product_elements" record={row}>
+              {row.name}
+            </RecordLink>
+          ),
         }),
         c.id("code", {
           header: "Code",
           width: 125,
           priority: 1,
-          preview: setSelected,
-          active: (row) => row.id === selected?.id,
           cell: (row) => <Id>{row.code}</Id>,
         }),
         c.text("typeLabel", { header: "Type", width: 130 }),
@@ -259,9 +260,13 @@ export function ProductStructure({
             ]
           : []),
       ]),
-    [canEdit, selected?.id, confirmRemove],
+    [canEdit, confirmRemove],
   );
   const table = useDataTable({
+    preview: useMemo(
+      () => ({ onPreview: setSelected, activeId: selected?.id ?? null }),
+      [selected?.id],
+    ),
     columns,
     data: rows,
     getRowId: (row) => row.id,
@@ -331,6 +336,10 @@ export function ProductStructure({
           parentLabel={specs.find((row) => row.id === picking.parentId)?.name ?? product.name}
           items={library.items}
           pending={library.pending}
+          failed={library.error !== undefined}
+          onRetry={() => {
+            for (const query of library.queries) if (query.isError) void query.refetch();
+          }}
           onClose={() => setPicking(null)}
           onPick={(item) => {
             setPicking(null);
@@ -602,55 +611,65 @@ function ProductElementDialog({
                       />
                     </Stack>
                   )}
-                  {active.length ? (
+                  {readOnly ? (
+                    // A published version's memberships are facts, not choices someone could make.
+                    <KeyValue.Group>
+                      <KeyValue label="Configurations" wrap>
+                        {active.some((configuration) => chosen.has(configuration.id)) ? (
+                          active
+                            .filter((configuration) => chosen.has(configuration.id))
+                            .map((configuration) => configuration.name)
+                            .join(", ")
+                        ) : (
+                          <Absent label="In no configuration" />
+                        )}
+                      </KeyValue>
+                    </KeyValue.Group>
+                  ) : active.length ? (
                     <CheckboxGroup
                       value={[...chosen]}
                       onValueChange={(value) => setChosen(new Set(value))}
                       allValues={joinable}
-                      disabled={readOnly}
                     >
                       <FieldLegend>Configurations</FieldLegend>
-                      {!readOnly && joinable.length > 1 ? (
+                      {joinable.length > 1 ? (
                         <CheckboxGroupSelectAll>Every configuration</CheckboxGroupSelectAll>
                       ) : null}
-                      <Stack
-                        space="space.100"
-                        className={!readOnly && joinable.length > 1 ? "ps-300" : undefined}
-                      >
-                        {active.map((configuration) => {
-                          const blocked = !parentIn.has(configuration.id);
-                          const inside = chosen.has(configuration.id)
-                            ? leaving(configuration.id)
-                            : 0;
-                          return (
-                            <Field
-                              key={configuration.id}
-                              orientation="horizontal"
-                              disabled={blocked}
-                            >
-                              <Checkbox value={configuration.id} />
-                              <FieldContent>
-                                <FieldLabel>{configuration.name}</FieldLabel>
-                                {blocked && parent ? (
-                                  <FieldDescription>
-                                    Not available: {parent.name} is not in {configuration.name}.
-                                  </FieldDescription>
-                                ) : null}
-                                {!readOnly && inside ? (
-                                  <FieldDescription>
-                                    Unticking removes the{" "}
-                                    {formatPlural(inside, {
-                                      one: "element",
-                                      other: "{count} elements",
-                                    })}{" "}
-                                    inside from {configuration.name} too.
-                                  </FieldDescription>
-                                ) : null}
-                              </FieldContent>
-                            </Field>
-                          );
-                        })}
-                      </Stack>
+                      <Box paddingInlineStart={joinable.length > 1 ? "space.300" : undefined}>
+                        <Stack space="space.100">
+                          {active.map((configuration) => {
+                            const blocked = !parentIn.has(configuration.id);
+                            const inside = chosen.has(configuration.id)
+                              ? leaving(configuration.id)
+                              : 0;
+                            return (
+                              // A configuration the parent is not in stays in the tab order,
+                              // read-only, so its reason is heard where the reader reaches it.
+                              <Field key={configuration.id} orientation="horizontal">
+                                <Checkbox value={configuration.id} readOnly={blocked} />
+                                <FieldContent>
+                                  <FieldLabel>{configuration.name}</FieldLabel>
+                                  {blocked && parent ? (
+                                    <FieldDescription>
+                                      Not available: {parent.name} is not in {configuration.name}.
+                                    </FieldDescription>
+                                  ) : null}
+                                  {inside ? (
+                                    <FieldDescription>
+                                      Unticking removes the{" "}
+                                      {formatPlural(inside, {
+                                        one: "element",
+                                        other: "{count} elements",
+                                      })}{" "}
+                                      inside from {configuration.name} too.
+                                    </FieldDescription>
+                                  ) : null}
+                                </FieldContent>
+                              </Field>
+                            );
+                          })}
+                        </Stack>
+                      </Box>
                     </CheckboxGroup>
                   ) : (
                     <EmptyMessage

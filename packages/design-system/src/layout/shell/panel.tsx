@@ -1,6 +1,6 @@
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
-import { X } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import {
   createContext,
   useContext,
@@ -107,6 +107,10 @@ export type ShellPanelTitleProps = useRender.ComponentProps<"h2">;
 export type ShellPanelActionsProps = ComponentProps<"div">;
 export type ShellPanelCloseProps = Omit<IconButtonProps, "icon" | "label"> & {
   /** The button's name: "Close" and the panel's `label`, or "Close details" when it has none. */
+  label?: string | undefined;
+};
+export type ShellPanelBackProps = Omit<IconButtonProps, "icon" | "label"> & {
+  /** The button's name, "Back to previous record" by default. */
   label?: string | undefined;
 };
 export type ShellPanelBodyProps = ComponentProps<"div">;
@@ -249,7 +253,7 @@ export function PanelSurface({
       data-shell-area="panel"
       data-slot="shell-panel"
       className={cn(
-        "shell-panel flex min-w-0 flex-col overflow-x-hidden overflow-y-auto overscroll-none border-default bg-surface outline-none",
+        "flex min-w-0 flex-col overflow-x-hidden overflow-y-auto overscroll-none border-default bg-surface outline-none",
         className,
       )}
       onKeyDown={(event) => {
@@ -287,7 +291,7 @@ export function PanelSurface({
   );
 }
 
-/** The title, actions and close share the top-nav-height bar; a narrow panel gives the title its own row. */
+/** Back, the title, actions and close share the top-nav-height bar; a narrow panel gives the title its own row. */
 export function PanelHeader({ className, ref, ...props }: ShellPanelHeaderProps) {
   const own = useRef<HTMLDivElement>(null);
   // The header stays over the panel's content as it scrolls. Its measured height is the panel's
@@ -336,7 +340,7 @@ export function PanelTitle({ render, ref, className, ...props }: ShellPanelTitle
     props: mergeProps<"h2">(props, {
       ...slot("shell-panel-title"),
       id: panel?.titleId,
-      className: cn("min-w-0 flex-1 break-words font-body font-semibold", className),
+      className: cn("min-w-0 flex-1 break-words font-heading-section", className),
     }),
   });
 }
@@ -348,6 +352,32 @@ export function PanelActions({ className, ...props }: ShellPanelActionsProps) {
       {...props}
       data-slot="shell-panel-actions"
       className={cn("flex shrink-0 items-center gap-050", className)}
+    />
+  );
+}
+
+/**
+ * Back to the frame before this one, in a panel that stacks frames (a preview opened from a
+ * preview). An arrow, never a chevron, so it reads apart from Previous: it leads the header bar,
+ * set apart from the navigation and Close at its end, wherever it sits among the header's children.
+ * Render it as the header's first child, so it is first in the tab order too, and only while there
+ * is a frame to go back to; `onClick` goes back.
+ */
+export function PanelBack({
+  label,
+  variant = "subtle",
+  size = "small",
+  ...props
+}: ShellPanelBackProps) {
+  const { t } = useLedgerLocale();
+  return (
+    <IconButton
+      {...props}
+      data-slot="shell-panel-back"
+      label={label ?? t("backToPreviousRecord")}
+      variant={variant}
+      size={size}
+      icon={<ArrowLeft className="rtl:rotate-180" />}
     />
   );
 }
@@ -421,6 +451,7 @@ export function PanelSplitter({ label, ...props }: ShellSplitterProps) {
 
 export const Panel = Object.assign(PanelRoot, {
   Header: PanelHeader,
+  Back: PanelBack,
   Title: PanelTitle,
   Actions: PanelActions,
   Close: PanelClose,

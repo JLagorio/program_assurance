@@ -18,8 +18,8 @@ export type AccordionContentProps = AccordionPrimitive.Panel.Props;
 function Accordion({ className, ...props }: AccordionProps) {
   return (
     <AccordionPrimitive.Root
-      data-slot="accordion"
       {...props}
+      data-slot="accordion"
       className={classes("flex w-full flex-col", className)}
     />
   );
@@ -28,8 +28,8 @@ function Accordion({ className, ...props }: AccordionProps) {
 function AccordionItem({ className, ...props }: AccordionItemProps) {
   return (
     <AccordionPrimitive.Item
-      data-slot="accordion-item"
       {...props}
+      data-slot="accordion-item"
       className={classes("not-last:border-b not-last:border-default", className)}
     />
   );
@@ -55,13 +55,13 @@ function AccordionTrigger({
   return (
     <AccordionPrimitive.Header
       render={<Tag />}
-      data-slot="accordion-header"
       {...header}
+      data-slot="accordion-header"
       className={classes("flex", headerClassName)}
     >
       <AccordionPrimitive.Trigger
-        data-slot="accordion-trigger"
         {...props}
+        data-slot="accordion-trigger"
         className={classes(trigger, className)}
       >
         <span data-slot="accordion-trigger-title" className="relative min-w-0 break-words">
@@ -91,8 +91,8 @@ function AccordionTrigger({
 function AccordionContent({ className, children, ...props }: AccordionContentProps) {
   return (
     <AccordionPrimitive.Panel
-      data-slot="accordion-content"
       {...props}
+      data-slot="accordion-content"
       // Folds on its own measured height (motion.css), not an ancestor disclosure's.
       data-collapse-panel="accordion"
       className={classes(

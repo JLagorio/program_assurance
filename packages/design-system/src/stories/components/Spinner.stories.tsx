@@ -3,7 +3,10 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import { Button, Skeleton, Spinner, type SpinnerProps } from "../../components";
 import { Stack } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Spinner",
@@ -34,20 +37,6 @@ function SavingRow(props: SpinnerProps) {
   );
 }
 
-export const Playground: Story = {
-  render: (args) => <SavingRow {...args} />,
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    const spinner = canvas.getByRole("status", { name: "Saving changes" });
-    await expect(spinnerRef).toHaveBeenCalledWith(spinner);
-    await expect(spinner.tagName.toLowerCase()).toBe("svg");
-    await expect(spinner).toHaveAttribute("stroke-width", "3");
-    await expect(spinner).toHaveAttribute("data-operation", "save");
-    await expect(canvas.getAllByRole("status")).toHaveLength(1);
-    await expect(canvas.getByRole("button", { name: "Save" })).toHaveAttribute("aria-busy", "true");
-  },
-};
-
 export const SizesAndAppearance: Story = {
   render: () => (
     <div className="flex flex-col gap-200">
@@ -73,6 +62,20 @@ export const SizesAndAppearance: Story = {
       ))}
     </div>
   ),
+};
+
+export const Playground: Story = {
+  render: (args) => <SavingRow {...args} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const spinner = canvas.getByRole("status", { name: "Saving changes" });
+    await expect(spinnerRef).toHaveBeenCalledWith(spinner);
+    await expect(spinner.tagName.toLowerCase()).toBe("svg");
+    await expect(spinner).toHaveAttribute("stroke-width", "3");
+    await expect(spinner).toHaveAttribute("data-operation", "save");
+    await expect(canvas.getAllByRole("status")).toHaveLength(1);
+    await expect(canvas.getByRole("button", { name: "Save" })).toHaveAttribute("aria-busy", "true");
+  },
 };
 
 function Delayed() {
@@ -156,6 +159,7 @@ export const Announced: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair

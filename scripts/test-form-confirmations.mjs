@@ -1,11 +1,16 @@
 #!/usr/bin/env node
-/** Shared async confirmations retain drafts, nest focus, and hold forms during saves. */
+/**
+ * Shared async confirmations retain drafts, nest focus, and hold forms during saves. Closing a
+ * create or edit Dialog by Cancel, Escape or Discard hands focus back to the control that opened
+ * it, and every focus stop in the dialog keeps its ring in view (A11-12).
+ */
 import assert from "node:assert/strict";
 import { mkdir, mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium } from "playwright";
 import { expect as playwrightExpect } from "playwright/test";
+import { checkFocusRings, expectFocusReturned, openerOf } from "./tests/focus-ring.mjs";
 import { localWorkspace } from "./tests/local-workspace.mjs";
 
 const origin = process.env.APP_TEST_URL || "http://127.0.0.1:8080";
@@ -24,12 +29,13 @@ const task = () => page.getByRole("dialog", { name: "Create task", exact: true }
 // The top navigation also links to My work; destinations are chosen in the side navigation.
 const sideNavigation = () => page.getByRole("navigation", { name: "Side navigation", exact: true });
 const orgName = () => organization().getByRole("textbox", { name: /^Name/ });
+/** Opens Create organization and returns the control that opened it. */
 async function openOrganization() {
-  await page
-    .getByRole("button", { name: /^(Create|Add) organization$/ })
-    .first()
-    .click();
+  const button = page.getByRole("button", { name: /^(Create|Add) organization$/ }).first();
+  const opener = await openerOf(button);
+  await button.click();
   await expect(organization()).toBeVisible();
+  return opener;
 }
 async function cancelDiscard(surface) {
   await expect(prompt()).toBeVisible();
@@ -45,10 +51,17 @@ async function discard() {
 async function footer(surface, primaryLabel) {
   const actions = surface.locator('[data-slot="dialog-footer"]');
   await expect(actions.getByRole("button")).toHaveText(["Cancel", primaryLabel]);
-  const ownsForm = await actions
-    .getByRole("button", { name: primaryLabel, exact: true })
-    .evaluate((button) => button.type === "submit" && button.form instanceof HTMLFormElement);
-  assert.ok(ownsForm, "The primary submits its own form");
+  // While the record's schema loads, the primary keeps its place without a form to submit.
+  const primary = actions.getByRole("button", { name: primaryLabel, exact: true });
+  await expect
+    .poll(
+      () =>
+        primary.evaluate(
+          (button) => button.type === "submit" && button.form instanceof HTMLFormElement,
+        ),
+      { message: "The primary submits its own form" },
+    )
+    .toBe(true);
 }
 async function insert(table, values) {
   const result = await workspace.client
@@ -94,13 +107,41 @@ try {
   await page.getByLabel("Email", { exact: true }).fill(workspace.email);
   await page.getByLabel("Password", { exact: true }).fill(workspace.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await openOrganization();
+  let opener = await openOrganization();
   await footer(organization(), "Create organization");
   // The title names the party type the register fixed, so the dialog offers no way to change it.
   await expect(organization().getByRole("combobox", { name: /^Party type/ })).toHaveCount(0);
+  await checkFocusRings(page, { scope: organization(), label: "Create organization at 1440px" });
   await organization().getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(organization()).toBeHidden();
   await expect(prompt()).toBeHidden();
+  await expectFocusReturned(page, opener, "Cancel on a clean Create organization");
+
+  // A clean dialog closes on Escape with no prompt, and focus goes back to its opener.
+  opener = await openOrganization();
+  await footer(organization(), "Create organization");
+  await page.keyboard.press("Escape");
+  await expect(organization()).toBeHidden();
+  await expect(prompt()).toBeHidden();
+  await expectFocusReturned(page, opener, "Escape on a clean Create organization");
+
+  // Discarding a draft, from Cancel or from Escape, closes the dialog and hands focus back too.
+  opener = await openOrganization();
+  await orgName().fill("Discarded organization draft");
+  await page.keyboard.press("Escape");
+  await discard();
+  await expect(organization()).toBeHidden();
+  await expectFocusReturned(page, opener, "Discard after Escape on Create organization");
+  await page.setViewportSize({ width: 390, height: 844 });
+  opener = await openOrganization();
+  await footer(organization(), "Create organization");
+  await checkFocusRings(page, { scope: organization(), label: "Create organization at 390px" });
+  await orgName().fill("Discarded organization draft");
+  await organization().getByRole("button", { name: "Cancel", exact: true }).click();
+  await discard();
+  await expect(organization()).toBeHidden();
+  await expectFocusReturned(page, opener, "Discard after Cancel on Create organization at 390px");
+  await page.setViewportSize({ width: 1440, height: 1000 });
 
   await openOrganization();
   await orgName().fill("Retained organization draft");
@@ -163,13 +204,23 @@ try {
     .getByRole("button", { name: /^Preview / })
     .first()
     .click();
-  await page
+  // The preview's Edit organization opens the edit Dialog, and gets focus back when it closes.
+  const editOrganization = page
     .locator('[data-shell-area="panel"]')
-    .getByRole("button", { name: "Edit organization", exact: true })
-    .click();
+    .getByRole("button", { name: "Edit organization", exact: true });
+  const editOpener = await openerOf(editOrganization);
+  const editedOrganization = () =>
+    page.getByRole("dialog", { name: "Edit organization", exact: true });
   const editedParty = () => page.getByRole("dialog", { name: "Edit person", exact: true });
-  await page
-    .getByRole("dialog", { name: "Edit organization", exact: true })
+  await editOrganization.click();
+  await expect(editedOrganization()).toBeVisible();
+  await footer(editedOrganization(), "Edit organization");
+  await page.keyboard.press("Escape");
+  await expect(editedOrganization()).toBeHidden();
+  await expect(prompt()).toBeHidden();
+  await expectFocusReturned(page, editOpener, "Escape on a clean Edit organization");
+  await editOrganization.click();
+  await editedOrganization()
     .getByRole("combobox", { name: /^Party type/ })
     .click();
   await page.getByRole("option", { name: "Person", exact: true }).click();
@@ -178,6 +229,7 @@ try {
   await editedParty().getByRole("button", { name: "Cancel", exact: true }).click();
   await discard();
   await expect(editedParty()).toBeHidden();
+  await expectFocusReturned(page, editOpener, "Discard after Cancel on Edit organization");
   // Two SPA entries let browser Back exercise TanStack's async blocker.
   await sideNavigation().getByRole("link", { name: "My work", exact: true }).click();
   await sideNavigation().getByRole("link", { name: "Suppliers", exact: true }).click();
@@ -193,12 +245,12 @@ try {
   await expect(page).toHaveURL(/\/work$/);
   await expect(organization()).toBeHidden();
 
-  await page
-    .getByRole("button", { name: /^(Create|Add) task$/ })
-    .first()
-    .click();
+  const createTask = page.getByRole("button", { name: /^(Create|Add) task$/ }).first();
+  const taskOpener = await openerOf(createTask);
+  await createTask.click();
   await expect(task()).toBeVisible();
   await footer(task(), "Create task");
+  await checkFocusRings(page, { scope: task(), label: "Create task at 1440px" });
   await task()
     .getByRole("textbox", { name: "Task title", exact: true })
     .fill("Retained task draft");
@@ -214,6 +266,7 @@ try {
   await page.keyboard.press("Escape");
   await discard();
   await expect(task()).toBeHidden();
+  await expectFocusReturned(page, taskOpener, "Discard after Escape on Create task");
   // A wizard's page blocker must preserve an open descendant Sheet on Cancel and Escape.
   await sideNavigation().getByRole("link", { name: "Programs", exact: true }).click();
   await page.getByRole("link", { name: "Create program", exact: true }).first().click();
@@ -271,7 +324,7 @@ try {
     1,
     "Retry creates one record; cancelled drafts create none",
   );
-  // LibraryEditor must use the same domain noun as RecordEditor's primary.
+  // A library record's ProductRecordDialog uses the same domain noun as RecordEditor's primary.
   const definition = await insert("component_definitions", {
     code: "FORM-COMPONENT",
     name: "Form naming component",

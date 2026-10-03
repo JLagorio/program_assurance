@@ -7,9 +7,9 @@ import * as Stories from "./ActionBar.stories";
 
 # ActionBar
 
-A work surface's header pinned above the work: the trail ending in the record's id, the title with a few words of context, the record's state axes as facts, and the actions that change that state. It is composed from [PageHeader](?path=/docs/layout-pageheader--docs)'s parts, so it keeps PageHeader's wrap rule.
+**Status: Deprecated.** No product screen uses ActionBar; it stays for one version and then leaves the package. A record page's header is a [PageHeader](?path=/docs/layout-pageheader--docs), with the record's state in its Details rail: [Shell.Aside](?path=/docs/layout-shell--docs) holding an [Inspector](?path=/docs/patterns-inspector--docs).
 
-No product screen uses it. A record page's header is PageHeader, with its state in the Details rail ([Inspector](?path=/docs/patterns-inspector--docs)). A screen that needs its state axes pinned above the work raises it before starting a new use.
+A work surface's header pinned above the work: the trail ending in the record's id, the title with a few words of context, the record's state axes as facts, and the actions that change that state. It is composed from [PageHeader](?path=/docs/layout-pageheader--docs)'s parts, so it keeps PageHeader's wrap rule.
 
 <Canvas of={Stories.Blocked} />
 
@@ -45,3 +45,4 @@ An action with `blocked` stays in the row, disabled, with its reason written und
 - [PageHeader](?path=/docs/layout-pageheader--docs): the header of every record page.
 - [Inspector](?path=/docs/patterns-inspector--docs): where a record's state, owner and dates sit on a record page.
 - [Button](?path=/docs/components-button--docs): `disabledReason` for a single action that cannot run, explained in a tooltip.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#actionbar): each of ActionBar's props and the record page's part that replaces it.

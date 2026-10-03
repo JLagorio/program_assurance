@@ -21,13 +21,18 @@ import { page, userEvent } from "vitest/browser";
  * - long (storybook-long, the 320px frame): after every text grows by 40% and gains an 80
  *   character unbroken token, the page scrolling sideways, text painting past the frame outside a
  *   scroller, or text cut by overflow with no ellipsis (G1-12).
+ * - rtl (storybook-rtl, the direction-sensitive families laid out right to left by the Direction
+ *   global): a text alignment that names a physical side (`text-left`, `text-align: right`) set on
+ *   an element whose direction is right to left, which holds instead of mirroring; and anything
+ *   visible that paints past the page's right edge, its start in right to left, where nothing
+ *   scrolls to it (A11-11). An island that sets `dir="ltr"` (code, an id) keeps its own side.
  * - motion (storybook-dark, which asks for reduced motion): an element whose transition moves it
  *   (transform, translate, rotate, scale, width, height, inset or all) for longer than 0.01 ms, an
  *   animation of those properties still running for longer than 10 ms, and a transition that
  *   started during the render or play and moved something, such as dnd-kit's inline transforms
  *   (G8-8). Opacity and colour may still fade; movement stops.
  */
-export type Gate = "focus" | "touch" | "forced-colors" | "short" | "long" | "motion";
+export type Gate = "focus" | "touch" | "forced-colors" | "short" | "long" | "motion" | "rtl";
 export type GateResult = { count: number; items: string[] };
 
 const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
@@ -647,6 +652,75 @@ export async function longContent(): Promise<GateResult> {
   }
 }
 
+/* ---------- right to left (A11-11) ---------- */
+
+/** Hidden from sight on purpose: a visually hidden label, clipped to nothing, or inside one. */
+const clippedAway = (el: Element): boolean => {
+  for (let a: Element | null = el; a && a !== document.body; a = a.parentElement) {
+    const style = getComputedStyle(a);
+    const rect = a.getBoundingClientRect();
+    if (
+      style.clip.startsWith("rect") ||
+      (style.overflowX !== "visible" && rect.width <= 1 && rect.height <= 1)
+    )
+      return true;
+  }
+  return false;
+};
+
+export async function rightToLeft(): Promise<GateResult> {
+  if (document.documentElement.dir !== "rtl")
+    return result(["the page is not right to left, so this project checks nothing"]);
+  const restore = noMotion();
+  try {
+    await settleAnimations();
+    const items: string[] = [];
+    const elements = [...document.body.querySelectorAll("*")].filter(
+      (el) => !el.parentElement?.closest("svg") && visible(el) && !clippedAway(el),
+    );
+    // A physical alignment, where the element sets it (its parent's differs) and holds text.
+    for (const el of elements) {
+      const style = getComputedStyle(el);
+      if (style.direction !== "rtl" || !/^(left|right)$/.test(style.textAlign)) continue;
+      const parent = el.parentElement ? getComputedStyle(el.parentElement) : null;
+      if (parent && parent.textAlign === style.textAlign && parent.direction === "rtl") continue;
+      if (!(el.textContent ?? "").trim()) continue;
+      items.push(
+        `${describeElement(el)}${where(el)} aligns ${style.textAlign}, which holds in right to left`,
+      );
+    }
+    // What paints past the page's right edge outside every scroller that clips it: in right to
+    // left the page scrolls towards its left only, so nothing reaches it. The outermost only.
+    const edge = document.documentElement.clientWidth;
+    const past = new Map<Element, number>();
+    for (const el of elements) {
+      if (opacityOf(el) < 0.05) continue;
+      const box = boxOf(el.getBoundingClientRect());
+      if (box.r <= edge + 1) continue;
+      let view: Box = { l: -1e9, t: -1e9, r: 1e9, b: 1e9 };
+      for (const clip of clipBoxes(el)) view = meet(view, clip);
+      const shown = meet(box, view);
+      if (area(shown) <= 0 || shown.r <= edge + 1) continue;
+      past.set(el, shown.r - edge);
+    }
+    for (const [el, by] of past) {
+      let outer = true;
+      for (let a = el.parentElement; a; a = a.parentElement)
+        if (past.has(a)) {
+          outer = false;
+          break;
+        }
+      if (outer)
+        items.push(
+          `${describeElement(el)}${where(el)} paints ${Math.round(by)}px past the page's right edge, out of reach in right to left`,
+        );
+    }
+    return result(items);
+  } finally {
+    restore();
+  }
+}
+
 /* ---------- reduced motion (G8-8) ---------- */
 
 /** Properties whose change moves or resizes something on the page. */
@@ -744,13 +818,14 @@ const gates: Record<Gate, () => Promise<GateResult>> = {
   short: shortWindow,
   long: longContent,
   motion: reducedMotion,
+  rtl: rightToLeft,
 };
 
 export const gateHelp: Record<Gate, string> = {
   focus:
     "Give the clipping part ring room (padding the size of the ring) or draw the ring inset on its focusable children (outline-field-focused geometry).",
   touch:
-    "Give the control a 24px hit area (touch-target, or its own size), and show row and card actions without hover where (hover: none) matches.",
+    "Give the control a 24px hit area (touch-target, or its own size), and show row and card actions at rest where any pointer is coarse (`any-pointer-coarse:`, the kit's one touch predicate, src/lib/touch.ts).",
   "forced-colors":
     "Key a forced-colors rule on the state (Highlight/HighlightText, SelectedItem, or a system-colour border or mark) in src/styles/forced-colors.css.",
   short:
@@ -758,6 +833,7 @@ export const gateHelp: Record<Gate, string> = {
   long: "Let titles and values wrap (ids and URLs wrap anywhere) or truncate with an ellipsis and a reveal.",
   motion:
     "Under prefers-reduced-motion: reduce, give the part's movement a 0.01ms duration in src/styles/motion.css (or read useReducedMotion for motion driven from script); a fade may stay.",
+  rtl: "Write the logical class or property (text-start, ps-, pe-, start-, end-, border-s, rounded-s; inset-inline-start, padding-inline-end), so the part mirrors with the page; a physical side stays only under a variant that names one (data-[side=left]).",
 };
 
 /** Runs a gate over the rendered story. */

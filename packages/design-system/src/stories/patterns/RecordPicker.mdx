@@ -7,6 +7,8 @@ import * as Stories from "./RecordPicker.stories";
 
 # RecordPicker
 
+**Status: Stable.**
+
 Pick one record from a list: evidence to link, a requirement to derive from, a person to assign. A [Command](?path=/docs/components-command--docs) dialog whose rows are the code, the name with its meta under it and one badge at the end, with the count of matches in the field and the keys in the footer. Presentational: the caller supplies the records and gets the chosen one back, and the picker closes itself. For choosing many by attribute, the [PickerSheet](?path=/docs/patterns-pickersheet--docs); for choosing by name inside a form, a [Combobox](?path=/docs/components-combobox--docs).
 
 <Canvas of={Stories.RecordPickerStory} />
@@ -31,7 +33,9 @@ Not built, and why: picking several with checkboxes, because many are chosen by 
 
 ## Sizes
 
-One: the Command dialog at its large width, 640px, the list at most 46% of the viewport's height so the field and the footer stay in view. The code is bounded to 40% of the row, so a long identifier truncates, with its whole text as the title, before the name does.
+One: the Command dialog at its large width, 640px, the list at most 46% of the viewport's height so the field and the footer stay in view. The code is bounded to 40% of the row, so a long identifier truncates, with its whole text as the title, before the name does; the name takes the rest of the row, and a cut name or meta line shows whole on hover.
+
+<Canvas of={Stories.LongNames} />
 
 ## States
 
@@ -94,5 +98,7 @@ One: the Command dialog at its large width, 640px, the list at most 46% of the v
 - [Combobox](?path=/docs/components-combobox--docs): one by name, inside a form.
 
 ## Don't
+
+A row is the id, the name, a line of meta and one badge, and the placeholder says what to type, never a paragraph and three badges a row, or Search….
 
 <Canvas of={Stories.Dont} />

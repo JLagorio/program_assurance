@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../components/dropdown-menu";
+import { token } from "../../generated/tokens";
 import { cn } from "../../lib/cn";
 import { useLedgerLocale } from "../../lib/locale";
 
@@ -61,7 +62,7 @@ export function GroupBy<Value extends string>({
           </Button>
         }
       />
-      <DropdownMenuContent align="start" style={{ minWidth: 200 }}>
+      <DropdownMenuContent align="start" style={{ minWidth: token("dimension.part.tableGroupBy") }}>
         <DropdownMenuRadioGroup
           aria-label={t("groupBy")}
           value={value}

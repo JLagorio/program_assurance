@@ -15,11 +15,20 @@ import * as Stories from "./Breadcrumb.stories";
 
 # Breadcrumb
 
+**Status: Stable.**
+
 Show where the reader is in the record tree and provide links to its parent levels. Breadcrumb follows the shadcn Base UI component structure, with Ledger's typography, color, spacing, icon, focus, and motion tokens.
 
 Compose the list, items, links, separators, and current page explicitly. The component does not generate separators or infer the current page. The list keeps the trail on one line in any container: when it does not fit, the middle levels fold behind an ellipsis whose menu lists them as links.
 
 <Canvas of={Stories.BreadcrumbMatrix} />
+
+## When to use it
+
+- **Where a page sits in a record tree**: the levels above the record, each a link to its page, ending at the current page. On a record page the trail sits in [PageHeader](?path=/docs/layout-pageheader--docs)'s Lead, above the title.
+- **A path that changes in place**, such as a chart's drill-down: its levels are buttons that choose a level (In-place state, below).
+
+Not for the steps of a task: that is a [Stepper](?path=/docs/components-stepper--docs). Not for the reader's history or the tabs of one page: a trail is the hierarchy, not the way the reader came. Not for browsing the hierarchy itself: that is a [Tree](?path=/docs/components-tree--docs).
 
 ## Anatomy
 
@@ -329,5 +338,7 @@ Each part accepts its native element's props, including DOM attributes, event ha
 - [Tree](?path=/docs/components-tree--docs): browse the hierarchy the breadcrumb describes.
 
 ## Don't
+
+The trail is the record's real levels by name, the last a BreadcrumbPage and the rest BreadcrumbLinks, never a history of clicks or a button that navigates. A router link through `render` matches exactly: one that matches by prefix marks every parent as the current page too.
 
 <Canvas of={Stories.Dont} />

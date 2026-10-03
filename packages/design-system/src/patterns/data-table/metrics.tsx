@@ -15,7 +15,7 @@ import { useLedgerLocale } from "../../lib/locale";
 
 /** Optional table summaries. Closed by default; open and onOpenChange give the caller state ownership. */
 export function Metrics(props: CollapsibleProps) {
-  return <Collapsible data-slot="data-table-metrics" {...props} />;
+  return <Collapsible {...props} data-slot="data-table-metrics" />;
 }
 
 type MetricsTriggerProps = ComponentPropsWithRef<"button"> & Pick<ButtonProps, "size" | "variant">;
@@ -33,7 +33,6 @@ export function MetricsTrigger({
     <CollapsibleTrigger
       render={
         <Button
-          data-slot="data-table-metrics-trigger"
           size={size}
           variant={variant}
           iconBefore={<BarChart3 />}
@@ -44,6 +43,7 @@ export function MetricsTrigger({
             className,
           )}
           {...props}
+          data-slot="data-table-metrics-trigger"
         >
           {children ?? t("metrics")}
         </Button>
@@ -57,11 +57,11 @@ export function MetricsContent({ className, ...props }: CollapsibleContentProps)
   const { t } = useLedgerLocale();
   return (
     <CollapsibleContent
-      data-slot="data-table-metrics-content"
       role="region"
       aria-label={t("metrics")}
       className={cn("border-b border-default bg-surface-sunken", className)}
       {...props}
+      data-slot="data-table-metrics-content"
     ></CollapsibleContent>
   );
 }

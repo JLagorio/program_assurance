@@ -38,6 +38,15 @@ export default {
       filename: STORY,
       settings: KIT_SETTINGS,
     },
+    // A brand colour under a state that marks the current destination is a navigation link's
+    // active state, not the text-link look.
+    {
+      code: '<nav><Link to="/a" className="data-[status=active]:text-brand">A</Link><a href="/b" aria-current="page" className="aria-[current=page]:text-brand">B</a><NavLink to="/c" className="[&.active]:text-brand">C</NavLink></nav>',
+    },
+    // A component of this file whose TextLink says newTab itself.
+    {
+      code: `${kitImport("TextLink")} const Out = (props) => <TextLink newTab {...props} />; export const A = () => <Out href="https://example.com" target="_blank">Docs</Out>;`,
+    },
   ],
   invalid: [
     {
@@ -114,6 +123,24 @@ export default {
         { messageId: "linkClasses", data: { tag: "a" } },
         { messageId: "linkClasses", data: { tag: "Link" } },
       ],
+    },
+    {
+      // A component of this file that hands target on to a TextLink.
+      code: `${kitImport("TextLink")} const Out = (props) => <TextLink {...props} />; export const A = () => <Out href="https://example.com" target="_blank">Docs</Out>;`,
+      errors: [{ messageId: "forwardedTarget", data: { tag: "Out" } }],
+    },
+    {
+      // The text-link classes at a breakpoint or important fake a link too.
+      code: '<><a href="/x" className="md:text-brand">Docs</a><a href="/y" className="!text-brand">Help</a></>',
+      errors: [
+        { messageId: "linkClasses", data: { tag: "a" } },
+        { messageId: "linkClasses", data: { tag: "a" } },
+      ],
+    },
+    {
+      // A brand colour at rest is the text-link look, whatever marks the current destination.
+      code: '<Link to="/a" className="text-brand data-[status=active]:font-semibold">A</Link>',
+      errors: [{ messageId: "linkClasses", data: { tag: "Link" } }],
     },
   ],
 };

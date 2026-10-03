@@ -16,8 +16,12 @@ import {
   Input,
   KeyValue,
 } from "../../components";
-import { HeadingLevelProvider } from "../../primitives";
+import { HeadingLevelProvider, Stack, Text } from "../../primitives";
 import { Pencil } from "lucide-react";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 const meta = {
   title: "Components/Collapsible",
   component: Collapsible,
@@ -25,15 +29,113 @@ const meta = {
 } satisfies Meta<typeof Collapsible>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-const triggerRef = createRef<HTMLButtonElement>(),
-  panelRef = createRef<HTMLDivElement>();
+/** CollapsibleHeader: the trigger inside a heading, the title at the start and a chevron at the end that turns while the content is open, with the row tint under the pointer and the focus ring on the keyboard. Closed, open, with a Count in the title, with an action after it in the row, and disabled. */
+export const Header: StoryObj<{ onEdit: () => void }> = {
+  args: { onEdit: fn() },
+  render: (args) => (
+    <div className="flex flex-col" style={{ maxWidth: 480 }}>
+      <Collapsible>
+        <CollapsibleHeader>Provenance</CollapsibleHeader>
+        <CollapsibleContent>
+          <div className="flex flex-col pb-200">
+            <KeyValue label="Source">NIST SP 800-53 Rev 5</KeyValue>
+            <KeyValue label="Imported">14 Sept 2026</KeyValue>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+      <Collapsible defaultOpen>
+        <div className="flex min-w-0 flex-wrap items-center gap-100">
+          <CollapsibleHeader>
+            Derivation <Count value={3} />
+          </CollapsibleHeader>
+          <IconButton
+            label="Edit derivation"
+            variant="subtle"
+            size="small"
+            icon={<Pencil />}
+            onClick={args.onEdit}
+          />
+        </div>
+        <CollapsibleContent>
+          <div className="pb-200">Three parent requirements.</div>
+        </CollapsibleContent>
+      </Collapsible>
+      <Collapsible disabled>
+        <CollapsibleHeader>Restricted details</CollapsibleHeader>
+        <CollapsibleContent>Hidden</CollapsibleContent>
+      </Collapsible>
+    </div>
+  ),
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement);
+    const provenance = canvas.getByRole("button", { name: "Provenance" });
+    // The trigger sits inside a heading: an h3 outside every provider, as Accordion's.
+    await expect(canvas.getByRole("heading", { name: "Provenance" }).tagName).toBe("H3");
+    await expect(canvas.getByRole("heading", { name: "Provenance" })).toContainElement(provenance);
+    await expect(provenance).toHaveAttribute("aria-expanded", "false");
+    await expect(turned(provenance)).toBe(false);
+    // Keyboard: Tab reaches it, Enter and Space toggle it, focus stays.
+    await userEvent.tab();
+    await expect(provenance).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    await expect(provenance).toHaveAttribute("aria-expanded", "true");
+    await expect(provenance).toHaveAttribute("data-panel-open");
+    await waitFor(() => expect(canvas.getByText("NIST SP 800-53 Rev 5")).toBeVisible());
+    await waitFor(() => expect(turned(provenance)).toBe(true));
+    // Settled open, the content clips no longer, so a focus ring at its edge shows whole.
+    const content = canvas
+      .getByText("NIST SP 800-53 Rev 5")
+      .closest<HTMLElement>("[data-slot=collapsible-content]")!;
+    await waitFor(() => expect(getComputedStyle(content).overflow).toBe("visible"));
+    await userEvent.keyboard(" ");
+    await expect(provenance).toHaveFocus();
+    await expect(provenance).toHaveAttribute("aria-expanded", "false");
+    await waitFor(() => expect(turned(provenance)).toBe(false));
+    // A Count in the title is part of its name; the action after it is its own stop.
+    const derivation = canvas.getByRole("button", { name: "Derivation 3" });
+    await expect(derivation).toHaveAttribute("aria-expanded", "true");
+    await expect(turned(derivation)).toBe(true);
+    await userEvent.tab();
+    await expect(derivation).toHaveFocus();
+    await userEvent.tab();
+    await expect(canvas.getByRole("button", { name: "Edit derivation" })).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    await expect(args.onEdit).toHaveBeenCalledTimes(1);
+    await expect(derivation).toHaveAttribute("aria-expanded", "true");
+    // Disabled: announced, and the pointer does nothing.
+    const restricted = canvas.getByRole("button", { name: "Restricted details" });
+    await expect(restricted).toHaveAttribute("aria-disabled", "true");
+    await userEvent.click(restricted, { pointerEventsCheck: 0 });
+    await expect(restricted).toHaveAttribute("aria-expanded", "false");
+    // The row tint reaches space.100 before the flush title and ends at the row's end, where the
+    // chevron sits space.100 inside it; the title does not move.
+    const tint = getComputedStyle(provenance, "::before");
+    const bleed = getComputedStyle(canvasElement).getPropertyValue("--ds-space-100").trim();
+    await expect(tint.position).toBe("absolute");
+    await expect(tint.left).toBe(`-${bleed}`);
+    await expect(tint.right).toBe("0px");
+    await expect(getComputedStyle(provenance).paddingInlineEnd).toBe(bleed);
+    const title = provenance.querySelector("[data-slot=collapsible-header-title]")!;
+    await expect(Math.round(title.getBoundingClientRect().left)).toBe(
+      Math.round(provenance.getBoundingClientRect().left),
+    );
+    // Under reduced motion the chevron turns without moving, and the tint changes at once.
+    const icon = provenance.querySelector("[data-slot=collapsible-header-icon]")!;
+    await expect(icon).toHaveClass("motion-reduce:transition-none");
+    await expect(provenance).toHaveClass("motion-reduce:before:transition-none");
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      await expect(getComputedStyle(icon).transitionProperty).toBe("none");
+      await expect(tint.transitionProperty).toBe("none");
+    }
+  },
+};
+
+/** A panel that keeps its content mounted while closed, so a half-written note is still there when it opens again. */
 export const RetainedState: Story = {
   render: () => (
     <Collapsible defaultOpen>
-      <CollapsibleTrigger ref={triggerRef} render={<Button />}>
-        Review details
-      </CollapsibleTrigger>
-      <CollapsibleContent ref={panelRef} keepMounted className="flex">
+      <CollapsibleTrigger render={<Button />}>Review details</CollapsibleTrigger>
+      <CollapsibleContent keepMounted className="flex">
         <div className="py-200">
           <Input aria-label="Review note" defaultValue="Initial note" />
         </div>
@@ -42,17 +144,41 @@ export const RetainedState: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement),
-      trigger = canvas.getByRole("button", { name: "Review details" });
-    await expect(triggerRef.current).toBe(trigger);
+      trigger = canvas.getByRole("button", { name: "Review details" }),
+      panel = canvasElement.querySelector<HTMLElement>("[data-slot=collapsible-content]")!;
+    await expect(trigger).toHaveAttribute("aria-controls", panel.id);
     const note = canvas.getByRole("textbox", { name: "Review note" });
     await userEvent.type(note, " updated");
     await userEvent.click(trigger);
-    await waitFor(() => expect(panelRef.current).not.toBeVisible());
+    await waitFor(() => expect(panel).not.toBeVisible());
     await expect(note).toBeInTheDocument();
     await expect(trigger).toHaveAttribute("aria-expanded", "false");
     await userEvent.keyboard(" ");
     await waitFor(() => expect(note).toBeVisible());
     await expect(note).toHaveValue("Initial note updated");
+  },
+};
+
+const triggerRef = createRef<HTMLButtonElement>(),
+  panelRef = createRef<HTMLDivElement>();
+
+/** The trigger and the content forward their refs to the button and the panel it controls. */
+export const NativeAttributes: Story = {
+  tags: ["!manifest"],
+  render: () => (
+    <Collapsible defaultOpen>
+      <CollapsibleTrigger ref={triggerRef} render={<Button />}>
+        Review details
+      </CollapsibleTrigger>
+      <CollapsibleContent ref={panelRef} data-example="retained">
+        <div className="py-200">Two reviewers signed off.</div>
+      </CollapsibleContent>
+    </Collapsible>
+  ),
+  play: async ({ canvasElement }) => {
+    const trigger = within(canvasElement).getByRole("button", { name: "Review details" });
+    await expect(triggerRef.current).toBe(trigger);
+    await expect(panelRef.current).toHaveAttribute("data-example", "retained");
     await expect(trigger).toHaveAttribute("aria-controls", panelRef.current?.id);
   },
 };
@@ -119,114 +245,12 @@ export const SearchableContent: Story = {
   },
 };
 
-const editProvenance = fn();
-
 /** Whether a disclosure's chevron is turned, from its computed rotation. */
 function turned(trigger: HTMLElement) {
   const icon = trigger.querySelector("[data-slot=collapsible-header-icon]");
   if (!icon) throw new Error("No chevron in the trigger");
   return getComputedStyle(icon).rotate === "180deg";
 }
-
-/** CollapsibleHeader: the trigger inside a heading, the title at the start and a chevron at the end that turns while the content is open, with the row tint under the pointer and the focus ring on the keyboard. Closed, open, with a Count in the title, with an action after it in the row, and disabled. */
-export const Header: Story = {
-  render: () => (
-    <div className="flex flex-col" style={{ maxWidth: 480 }}>
-      <Collapsible>
-        <CollapsibleHeader>Provenance</CollapsibleHeader>
-        <CollapsibleContent>
-          <div className="flex flex-col pb-200">
-            <KeyValue label="Source">NIST SP 800-53 Rev 5</KeyValue>
-            <KeyValue label="Imported">14 Sept 2026</KeyValue>
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-      <Collapsible defaultOpen>
-        <div className="flex min-w-0 flex-wrap items-center gap-100">
-          <CollapsibleHeader>
-            Derivation <Count value={3} />
-          </CollapsibleHeader>
-          <IconButton
-            label="Edit derivation"
-            variant="subtle"
-            size="small"
-            icon={<Pencil />}
-            onClick={editProvenance}
-          />
-        </div>
-        <CollapsibleContent>
-          <div className="pb-200">Three parent requirements.</div>
-        </CollapsibleContent>
-      </Collapsible>
-      <Collapsible disabled>
-        <CollapsibleHeader>Restricted details</CollapsibleHeader>
-        <CollapsibleContent>Hidden</CollapsibleContent>
-      </Collapsible>
-    </div>
-  ),
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    const provenance = canvas.getByRole("button", { name: "Provenance" });
-    // The trigger sits inside a heading: an h3 outside every provider, as Accordion's.
-    await expect(canvas.getByRole("heading", { name: "Provenance" }).tagName).toBe("H3");
-    await expect(canvas.getByRole("heading", { name: "Provenance" })).toContainElement(provenance);
-    await expect(provenance).toHaveAttribute("aria-expanded", "false");
-    await expect(turned(provenance)).toBe(false);
-    // Keyboard: Tab reaches it, Enter and Space toggle it, focus stays.
-    await userEvent.tab();
-    await expect(provenance).toHaveFocus();
-    await userEvent.keyboard("{Enter}");
-    await expect(provenance).toHaveAttribute("aria-expanded", "true");
-    await expect(provenance).toHaveAttribute("data-panel-open");
-    await waitFor(() => expect(canvas.getByText("NIST SP 800-53 Rev 5")).toBeVisible());
-    await waitFor(() => expect(turned(provenance)).toBe(true));
-    // Settled open, the content clips no longer, so a focus ring at its edge shows whole.
-    const content = canvas
-      .getByText("NIST SP 800-53 Rev 5")
-      .closest<HTMLElement>("[data-slot=collapsible-content]")!;
-    await waitFor(() => expect(getComputedStyle(content).overflow).toBe("visible"));
-    await userEvent.keyboard(" ");
-    await expect(provenance).toHaveFocus();
-    await expect(provenance).toHaveAttribute("aria-expanded", "false");
-    await waitFor(() => expect(turned(provenance)).toBe(false));
-    // A Count in the title is part of its name; the action after it is its own stop.
-    const derivation = canvas.getByRole("button", { name: "Derivation 3" });
-    await expect(derivation).toHaveAttribute("aria-expanded", "true");
-    await expect(turned(derivation)).toBe(true);
-    await userEvent.tab();
-    await expect(derivation).toHaveFocus();
-    await userEvent.tab();
-    await expect(canvas.getByRole("button", { name: "Edit derivation" })).toHaveFocus();
-    await userEvent.keyboard("{Enter}");
-    await expect(editProvenance).toHaveBeenCalledTimes(1);
-    await expect(derivation).toHaveAttribute("aria-expanded", "true");
-    // Disabled: announced, and the pointer does nothing.
-    const restricted = canvas.getByRole("button", { name: "Restricted details" });
-    await expect(restricted).toHaveAttribute("aria-disabled", "true");
-    await userEvent.click(restricted, { pointerEventsCheck: 0 });
-    await expect(restricted).toHaveAttribute("aria-expanded", "false");
-    // The row tint reaches space.100 before the flush title and ends at the row's end, where the
-    // chevron sits space.100 inside it; the title does not move.
-    const tint = getComputedStyle(provenance, "::before");
-    const bleed = getComputedStyle(canvasElement).getPropertyValue("--ds-space-100").trim();
-    await expect(tint.position).toBe("absolute");
-    await expect(tint.left).toBe(`-${bleed}`);
-    await expect(tint.right).toBe("0px");
-    await expect(getComputedStyle(provenance).paddingInlineEnd).toBe(bleed);
-    const title = provenance.querySelector("[data-slot=collapsible-header-title]")!;
-    await expect(Math.round(title.getBoundingClientRect().left)).toBe(
-      Math.round(provenance.getBoundingClientRect().left),
-    );
-    // Under reduced motion the chevron turns without moving, and the tint changes at once.
-    const icon = provenance.querySelector("[data-slot=collapsible-header-icon]")!;
-    await expect(icon).toHaveClass("motion-reduce:transition-none");
-    await expect(provenance).toHaveClass("motion-reduce:before:transition-none");
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      await expect(getComputedStyle(icon).transitionProperty).toBe("none");
-      await expect(tint.transitionProperty).toBe("none");
-    }
-  },
-};
 
 /** The header's level is the context's: an h2 in a page's rail (a region wrapped in `HeadingLevelProvider level={2}`), one below a titled Section, and an h3 when nothing sets it. Wrap it in a HeadingLevelProvider for another level. */
 export const HeaderLevels: Story = {
@@ -327,5 +351,52 @@ export const NestedMotion: Story = {
       await expect(half).toBeLessThan(full);
     }
     await waitFor(() => expect(canvas.getByText("15 Sept 2026")).toBeVisible());
+  },
+};
+
+/**
+ * What the reader needs to act stays in view; a closed block holds what they may not need. A
+ * warning inside a closed block is read only by someone who already suspected it was there.
+ */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <Pair
+      do={
+        <Stack space="space.150">
+          <Text>The source edition is withdrawn. Choose a current edition before publishing.</Text>
+          <Collapsible>
+            <CollapsibleHeader>Provenance</CollapsibleHeader>
+            <CollapsibleContent>
+              <KeyValue label="Source">NIST SP 800-53 Rev 4</KeyValue>
+            </CollapsibleContent>
+          </Collapsible>
+        </Stack>
+      }
+      doText="The warning is on the page; the provenance behind it folds away."
+      dont={
+        <Collapsible>
+          <CollapsibleHeader>Provenance</CollapsibleHeader>
+          <CollapsibleContent>
+            <Text>
+              The source edition is withdrawn. Choose a current edition before publishing.
+            </Text>
+            <KeyValue label="Source">NIST SP 800-53 Rev 4</KeyValue>
+          </CollapsibleContent>
+        </Collapsible>
+      }
+      dontText="The warning is inside the closed block, so the reader publishes without meeting it."
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const warning = "The source edition is withdrawn. Choose a current edition before publishing.";
+    // Both blocks are closed, and only the Do's warning is on the page.
+    for (const header of canvas.getAllByRole("button", { name: "Provenance" }))
+      await expect(header).toHaveAttribute("aria-expanded", "false");
+    const shown = canvas.getAllByText(warning);
+    await expect(shown).toHaveLength(1);
+    await expect(shown[0]).toBeVisible();
   },
 };

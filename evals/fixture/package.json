@@ -1,0 +1,9 @@
+{
+  "name": "ledger-eval-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}

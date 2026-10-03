@@ -35,10 +35,9 @@ const hooks = {
 };
 
 // The package is held to the bar its consumer is (TOO-6): ESLint's and typescript-eslint's
-// recommended rules and the rules of hooks, beside the ledger preset. The sites that predated
-// them are counted per file in eslint-suppressions.json, which ESLint applies by itself and which
-// may only shrink: a fixed site fails the run until `npm run lint -- --prune-suppressions` lowers
-// its count (scripts/check-allow-lists.mjs stops it growing).
+// recommended rules and the rules of hooks, beside the ledger preset. A report is fixed at its
+// site: the package keeps no eslint-suppressions.json, which ESLint would apply by itself, and
+// scripts/check-allow-lists.mjs refuses one.
 export default tseslint.config(
   { ignores: ["src/generated/**", "dist/**", "storybook-static/**", "node_modules/**"] },
   // A disable that silences nothing fails the run, so a fixed site loses its comment with its fix.

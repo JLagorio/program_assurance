@@ -7,6 +7,8 @@ import * as Stories from "./Indicator.stories";
 
 # Indicator
 
+**Status: Stable.**
+
 A Dot with a word: severity or health beside a label, in a row or a rail. High, Medium, Low; Healthy, Degraded. Never a pill, so the status column stays the only pill in the row and the eye can tell the rank from the state. The Dot is a 6px circle in the tone's icon colour, tuned to read at small sizes; it marks a status whose word is visible beside it (a row's meta, a gate's name, a timeline entry) and is never the status alone, which would be colour alone. Where there is no room for the word, make room: an Indicator, not a bare Dot. A status indicator is usually an icon per state; this uses the Dot.
 
 <Canvas of={Stories.IndicatorMatrix} />
@@ -99,5 +101,7 @@ Indicator takes a span's native props and a ref, Dot an svg's; each names itself
 - [Alert](?path=/docs/components-alert--docs): the Dot before a title.
 
 ## Don't
+
+A severity is an Indicator and a record's state a Badge, so a row has one pill; the word shows beside the Dot, never a Dot alone, and the lowest rung is neutral, never success green.
 
 <Canvas of={Stories.Dont} />

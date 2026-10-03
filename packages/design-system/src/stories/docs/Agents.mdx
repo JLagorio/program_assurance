@@ -38,7 +38,8 @@ The Storybook serves an MCP endpoint at `/mcp` while it runs (`npm run storybook
 - Using a prop from shadcn, Radix or Base UI that Ledger's part does not expose. Look it up first.
 - Writing a class the lint will reject: an arbitrary value, a Tailwind colour, a margin, a `dark:` variant. Use a token utility or a primitive prop.
 - Copying a kit part into product code instead of importing it. `ledger/no-kit-shadow` names the part to import.
-- Importing a story helper. `Matrix`, `Specimens` and `Pair` lay out the stories and are not package exports, even where a snippet's import line lists them; lay out with Stack, Inline and Grid.
+- Reaching for a part without reading its status, the first line of its page. A Deprecated part is not for new code, and its line names what replaces it; an Experimental part can still change ([Upgrading](?path=/docs/guidance-upgrading--docs#status)).
+- Importing a story helper. `Matrix`, `Specimens` and `Pair` lay out the stories and are not package exports: the stories that use them stay out of `docs-show`, and a story page that shows one is not code to copy. Lay out with Stack, Inline and Grid.
 - Formatting a date with `toLocaleString` or the host's zone. Dates go through DateTime, `c.date` or `useLedgerLocale()`, in the LedgerProvider's zone.
 - Editing `src/generated/` by hand. Change `tokens/` and rebuild.
 - Putting an application composition into a package story. The package documents neutral contracts; the application is verified in the running app.

@@ -1,9 +1,11 @@
 import { StatusBadge } from "@/components/app/status";
-import { useRow, useRows, type Row } from "@/lib/models";
+import { idSet, useRow, useRows, type Row } from "@/lib/models";
+import { useParameterChoices } from "@/lib/parameter-reads";
 import { labelFor } from "@/lib/records";
 import { controlPublicationStatuses } from "@/lib/status";
 import {
   Absent,
+  Box,
   DataTable,
   Heading,
   HeadingLevelProvider,
@@ -47,7 +49,11 @@ export type ControlSummary = Pick<
   "id" | "code" | "title" | "source_id" | "status"
 >;
 
-export function LibraryControlTable({
+/** What a control register row reads: the summary, its family and its edition. */
+export type ControlTableRow = ControlSummary &
+  Pick<Row<"controls">, "group_id" | "catalog_revision_id">;
+
+export function LibraryControlTable<C extends ControlTableRow>({
   controls,
   onSelect,
   label = "Catalog controls",
@@ -58,10 +64,10 @@ export function LibraryControlTable({
   selectedId,
   onDisplayedRowsChange,
 }: {
-  controls: Row<"controls">[];
+  controls: C[];
   selectedId?: string | undefined;
-  onDisplayedRowsChange?: ((rows: Row<"controls">[]) => void) | undefined;
-  onSelect: (control: Row<"controls">) => void;
+  onDisplayedRowsChange?: ((rows: C[]) => void) | undefined;
+  onSelect: (control: C) => void;
   label?: string;
   /**
    * What the rows are drawn from, in the toolbar's views slot beside the search: the catalog's
@@ -76,8 +82,22 @@ export function LibraryControlTable({
   selectedBy?: Map<string, ControlSelector[]> | undefined;
 }) {
   const navigate = useNavigate();
-  const groups = useRows("catalog_groups", {}, { columns: ["id", "source_id"] });
-  const revisions = useRows("catalog_revisions", {}, { columns: ["id", "version"] });
+  // Only the families and editions these controls name.
+  const groupIds = useMemo(() => idSet(controls.map((control) => control.group_id)), [controls]);
+  const editionIds = useMemo(
+    () => idSet(controls.map((control) => control.catalog_revision_id)),
+    [controls],
+  );
+  const groups = useRows(
+    "catalog_groups",
+    { id: groupIds },
+    { columns: ["id", "source_id"], keepPrevious: true },
+  );
+  const revisions = useRows(
+    "catalog_revisions",
+    { id: editionIds },
+    { columns: ["id", "version"], keepPrevious: true },
+  );
   const data = useMemo(() => {
     const families = new Map((groups.data ?? []).map((group) => [group.id, group.source_id]));
     const releases = new Map((revisions.data ?? []).map((revision) => [revision.id, revision]));
@@ -102,8 +122,6 @@ export function LibraryControlTable({
           priority: 1,
           pin: "start",
           hideable: false,
-          preview: onSelect,
-          active: (row) => row.id === selectedId,
         }),
         c.text("title", {
           header: "Title",
@@ -131,14 +149,20 @@ export function LibraryControlTable({
                 width: 240,
                 priority: 3,
                 items: (row) => row.selectedBy,
-                empty: () => <Absent label="None" />,
+                // A control no published profile selects is found under that, as its cell says.
+                empty: () => <Absent label="No published profile" />,
+                emptyLabel: "No published profile",
               }),
             ]
           : []),
       ]),
-    [showRelease, selectedBy, onSelect, selectedId],
+    [showRelease, selectedBy],
   );
   const table = useDataTable({
+    preview: useMemo(
+      () => ({ onPreview: onSelect, activeId: selectedId ?? null }),
+      [selectedId, onSelect],
+    ),
     data,
     columns,
     getRowId: (row) => row.id,
@@ -272,14 +296,19 @@ const NO_PLACEHOLDERS: Placeholders = new Map();
 export type ControlPlaceholders = ReadonlyMap<string, Placeholders>;
 
 /**
- * Every control's parameters, read once for prose a screen shows beside other records: a
- * requirement's control mappings, a statement to choose. Until they load, an insertion reads as
- * its parameter's id.
+ * The parameters behind control prose shown beside other records: a requirement's control
+ * mappings, a statement to choose. Only the `controlIds` controls' parameters and choices load
+ * (`controlIds: undefined` waits for them, and an empty list reads nothing). Until they load, an
+ * insertion reads as its parameter's id.
  */
-export function useControlPlaceholders(): ControlPlaceholders {
+export function useControlPlaceholders(scope: {
+  controlIds: readonly (string | null | undefined)[] | undefined;
+}): ControlPlaceholders {
+  const controlIds = scope.controlIds;
+  const ids = useMemo(() => (controlIds ? idSet(controlIds) : undefined), [controlIds]);
   const parameters = useRows(
     "parameters",
-    {},
+    { control_id: ids ?? [] },
     {
       columns: [
         "id",
@@ -290,12 +319,18 @@ export function useControlPlaceholders(): ControlPlaceholders {
         "selection_count",
         "props",
       ],
+      enabled: ids !== undefined,
+      keepPrevious: true,
     },
   );
   const choices = useRows(
     "parameter_choices",
-    {},
-    { columns: ["id", "parameter_id", "ordinal", "value"] },
+    { parameter_id: idSet(parameters.data?.map((parameter) => parameter.id)) },
+    {
+      columns: ["id", "parameter_id", "ordinal", "value"],
+      enabled: parameters.isSuccess,
+      keepPrevious: true,
+    },
   );
   return useMemo(() => {
     const byParameter = new Map<string, ParameterChoice[]>();
@@ -386,29 +421,34 @@ function PartList({
     .sort((a, b) => a.ordinal - b.ordinal);
   if (!children.length) return null;
   return (
-    <Stack space="space.100" className={nested ? "border-s ps-150" : ""}>
-      {children.map((part) => {
-        const label = propValue(part.props, "label");
-        return (
-          <Stack key={part.id} space="space.075">
-            {(label || part.title || part.prose) && (
-              <Inline space="space.100" alignBlock="baseline">
-                {label && (
-                  <Text color="color.text.subtle" className="shrink-0 tabular-nums">
-                    {label}
-                  </Text>
-                )}
-                <Stack space="space.050" className="min-w-0 flex-1">
-                  {part.title && <Text weight="medium">{part.title}</Text>}
-                  {part.prose && <PartProse text={part.prose} index={index} />}
-                </Stack>
-              </Inline>
-            )}
-            <PartList parts={parts} parentId={part.id} index={index} nested />
-          </Stack>
-        );
-      })}
-    </Stack>
+    <Box
+      className={nested ? "border-s" : undefined}
+      paddingInlineStart={nested ? "space.150" : undefined}
+    >
+      <Stack space="space.100">
+        {children.map((part) => {
+          const label = propValue(part.props, "label");
+          return (
+            <Stack key={part.id} space="space.075">
+              {(label || part.title || part.prose) && (
+                <Inline space="space.100" alignBlock="baseline">
+                  {label && (
+                    <Text color="color.text.subtle" numeric className="shrink-0">
+                      {label}
+                    </Text>
+                  )}
+                  <Stack space="space.050" className="min-w-0 flex-1">
+                    {part.title && <Text weight="medium">{part.title}</Text>}
+                    {part.prose && <PartProse text={part.prose} index={index} />}
+                  </Stack>
+                </Inline>
+              )}
+              <PartList parts={parts} parentId={part.id} index={index} nested />
+            </Stack>
+          );
+        })}
+      </Stack>
+    </Box>
   );
 }
 
@@ -437,7 +477,7 @@ export function ControlStatement({
     <Stack space="space.300">
       {shown.map((part) => (
         <Stack key={part.id} space="space.100">
-          <Heading size="xsmall">{rootTitle(part)}</Heading>
+          <Heading size="overlay">{rootTitle(part)}</Heading>
           <HeadingLevelProvider>
             {part.prose && <PartProse text={part.prose} index={index} />}
             <PartList parts={parts} parentId={part.id} index={index} />
@@ -476,12 +516,9 @@ export function ControlInspector<C extends ControlSummary>({
   );
   const parts = useRows("control_parts", { control_id: control.id });
   const parameters = useRows("parameters", { control_id: control.id });
-  const choices = useRows(
-    "parameter_choices",
-    {},
-    { columns: ["id", "parameter_id", "ordinal", "value"] },
-  );
+  const choices = useParameterChoices(parameters.data);
   const links = useRows("control_links", { control_id: control.id });
+  // Who selects this control, read through the selections it has: never every profile.
   const selected = useRows(
     "selected_controls",
     { control_id: control.id },
@@ -489,15 +526,19 @@ export function ControlInspector<C extends ControlSummary>({
   );
   const resolutions = useRows(
     "profile_resolutions",
-    {},
-    { columns: ["id", "profile_revision_id"] },
+    { id: idSet(selected.data?.map((row) => row.profile_resolution_id)) },
+    { columns: ["id", "profile_revision_id"], enabled: selected.isSuccess },
   );
   const profileRevisions = useRows(
     "profile_revisions",
-    {},
-    { columns: ["id", "profile_id", "title", "version"] },
+    { id: idSet(resolutions.data?.map((row) => row.profile_revision_id)) },
+    { columns: ["id", "profile_id", "title", "version"], enabled: resolutions.isSuccess },
   );
-  const profiles = useRows("profiles", {}, { columns: ["id", "title", "tenant_id"] });
+  const profiles = useRows(
+    "profiles",
+    { id: idSet(profileRevisions.data?.map((row) => row.profile_id)) },
+    { columns: ["id", "title", "tenant_id"], enabled: profileRevisions.isSuccess },
+  );
   const provenance = useRows(
     "selection_provenance",
     selectionId ? { selected_control_id: selectionId } : {},
@@ -571,7 +612,12 @@ export function ControlInspector<C extends ControlSummary>({
             </KeyValue>
           </KeyValue.Group>
           {selecting.length > 0 && (
-            <Section title="Selecting profiles" count={String(selecting.length)} isCollapsible>
+            <Section
+              title="Selecting profiles"
+              count={selecting.length}
+              countMax={9999}
+              isCollapsible
+            >
               <List>
                 {selecting.map((line) => (
                   <List.Item key={line.key}>
@@ -686,14 +732,14 @@ function ImportSource({ id }: { id: string | null }) {
   const source = useRow("profile_imports", id);
   const profile = useRow("profile_revisions", source.data?.imported_profile_revision_id);
   const catalog = useRow("catalog_revisions", source.data?.catalog_revision_id);
-  if (!id) return <Absent label="Not recorded" />;
+  if (!id) return <Absent />;
   const pending = [source, ...(source.data?.imported_profile_revision_id ? [profile] : [])];
   return (
     <QueryValue queries={source.data?.catalog_revision_id ? [...pending, catalog] : pending}>
       {() =>
         profile.data?.title ??
         catalog.data?.title ??
-        (source.data?.href ? <Id>{source.data.href}</Id> : <Absent label="Not recorded" />)
+        (source.data?.href ? <Id>{source.data.href}</Id> : <Absent />)
       }
     </QueryValue>
   );
@@ -716,7 +762,7 @@ function ParameterGroup({
     <Inspector.Group title={propValue(parameter.props, "label") ?? parameter.source_id}>
       <KeyValue.Group>
         <KeyValue label="Label" wrap>
-          {parameter.label ?? <Absent label="Not recorded" />}
+          {parameter.label ?? <Absent />}
         </KeyValue>
         {parameter.usage && (
           <KeyValue label="Usage" wrap>
@@ -789,7 +835,7 @@ function ControlLinks({ links }: { links: readonly Row<"control_links">[] }) {
   return (
     <Stack space="space.300">
       {related.length > 0 && (
-        <Section title="Related controls" count={String(related.length)}>
+        <Section title="Related controls" count={related.length} countMax={9999}>
           <List>
             {related.map((link) => (
               <List.Item key={link.id}>
@@ -800,7 +846,7 @@ function ControlLinks({ links }: { links: readonly Row<"control_links">[] }) {
         </Section>
       )}
       {references.length > 0 && (
-        <Section title="References" count={String(references.length)}>
+        <Section title="References" count={references.length} countMax={9999}>
           <List spacing="loose">
             {references.map((link) => (
               <List.Item key={link.id}>
@@ -811,7 +857,7 @@ function ControlLinks({ links }: { links: readonly Row<"control_links">[] }) {
         </Section>
       )}
       {other.length > 0 && (
-        <Section title="Other links" count={String(other.length)}>
+        <Section title="Other links" count={other.length} countMax={9999}>
           <List>
             {other.map((link) => (
               <List.Item key={link.id}>
@@ -841,7 +887,7 @@ function RelatedControl({ id }: { id: string }) {
             {control.data.code} · {control.data.title}
           </RecordLink>
         ) : (
-          <Text color="color.text.subtle">Not available</Text>
+          <Absent label="Not available" />
         )
       }
     </QueryValue>
@@ -855,7 +901,7 @@ function Reference({ id }: { id: string }) {
     <QueryValue queries={[resource]}>
       {() => {
         const row = resource.data;
-        if (!row) return <Text color="color.text.subtle">Not available</Text>;
+        if (!row) return <Absent label="Not available" />;
         const content = row.source_content as { rlinks?: { href?: unknown }[] } | null;
         const href = content?.rlinks?.find((link) => typeof link.href === "string")?.href as
           string | undefined;

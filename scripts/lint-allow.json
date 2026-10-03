@@ -1,14 +1,5 @@
 {
   "about": "Product lint reports per rule and file when the rule, or its wider reach, landed (TOO-13 layout through primitive props, CNT-18 new-tab links). The counts may only shrink: fix the site and lower or delete its entry (scripts/check-allow-lists.mjs compares with the base branch).",
-  "ledger/use-primitives": {
-    "src/components/app/program-wizard.tsx": 1,
-    "src/components/app/program-wizard/catalog.tsx": 1,
-    "src/components/prototype/add-from-library.tsx": 1,
-    "src/components/prototype/assessment-campaign.tsx": 3,
-    "src/components/prototype/library-controls.tsx": 1,
-    "src/components/prototype/product-structure.tsx": 1,
-    "src/routes/profiles.$profileId.tsx": 1
-  },
   "ledger/prefer-text-link": {
     "src/components/prototype/system-evidence.tsx": 1
   }

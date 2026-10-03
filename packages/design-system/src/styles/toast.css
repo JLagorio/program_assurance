@@ -2,10 +2,10 @@
 @utility toast-viewport {
   inset-inline: var(--ds-space-200);
   bottom: var(--ds-space-200);
-  z-index: 1000;
+  z-index: var(--ds-layer-toast);
   margin-inline: auto;
   width: auto;
-  max-width: 24rem;
+  max-width: var(--ds-dimension-part-toast);
   @media (width >= theme(--breakpoint-sm)) {
     inset-inline-start: auto;
     width: calc(100% - var(--ds-space-400));
@@ -20,7 +20,8 @@
   --peek: var(--ds-space-100);
   --scale: max(0, calc(1 - var(--toast-index) * 0.1));
   --shrink: calc(1 - var(--scale));
-  z-index: calc(1000 - var(--toast-index));
+  /* The frontmost toast over the ones behind it, inside the stack's own layer. */
+  z-index: calc(var(--ds-layer-toast) - var(--toast-index));
   height: var(--height);
   transform: translateX(var(--toast-swipe-movement-x))
     translateY(

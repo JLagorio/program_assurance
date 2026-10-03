@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Copy, Download, Pencil, Pin, Search } from "lucide-react";
+import { Copy, Download, Info, Pencil, Pin, Search } from "lucide-react";
 import { createRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import {
@@ -11,7 +11,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Field,
+  FieldDescription,
+  FieldLabel,
   IconButton,
+  Input,
   Kbd,
   Tooltip,
   TooltipContent,
@@ -21,6 +25,11 @@ import {
 
 import { LedgerProvider } from "../../lib/locale";
 import { Grid, Inline, Text } from "../../primitives";
+
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Tooltip",
@@ -36,12 +45,84 @@ const popupRef = createRef<HTMLDivElement>();
 const renderedPopupRef = createRef<HTMLDivElement>();
 const pressed = fn();
 const renderedPressed = fn();
-const copy = fn();
 const popupIn = (doc: Document) =>
   doc.querySelector<HTMLElement>('[data-slot="tooltip-content"][data-open]');
 
+/**
+ * One shared delay group with TooltipProvider's defaults: the first hover waits 300ms; an adjacent
+ * tooltip opens at once. Keyboard focus opens one without the wait.
+ */
+export const IconButtons: StoryObj<{ onCopy: () => void }> = {
+  args: { onCopy: fn() },
+  render: (args) => (
+    <TooltipProvider>
+      <Inline space="space.100" className="p-800">
+        <IconButton label="Edit" variant="subtle" icon={<Pencil />} />
+        <IconButton label="Copy link" variant="subtle" icon={<Copy />} onClick={args.onCopy} />
+        <IconButton label="Pin to rail" variant="subtle" icon={<Pin />} />
+      </Inline>
+    </TooltipProvider>
+  ),
+  play: async ({ args, canvasElement }) => {
+    const doc = canvasElement.ownerDocument;
+    const canvas = within(canvasElement);
+    const user = userEvent.setup({ document: doc });
+    const edit = canvas.getByRole("button", { name: "Edit" });
+    // The built canvas starts play before passive native hover listeners have attached.
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    await user.hover(edit);
+    await expect(popupIn(doc)).toBeNull();
+    await waitFor(() => expect(popupIn(doc)).toHaveTextContent("Edit"));
+    await waitFor(() => expect(popupIn(doc)).toBeVisible());
+    const copyButton = canvas.getByRole("button", { name: "Copy link" });
+    await user.hover(copyButton);
+    await waitFor(() => expect(popupIn(doc)).toHaveTextContent("Copy link"));
+    await expect(popupIn(doc)).toHaveAttribute("data-instant", "delay");
+    await expect(doc.querySelectorAll('[data-slot="tooltip-content"][data-open]')).toHaveLength(1);
+    const popup = popupIn(doc)!;
+    await waitFor(() => expect(popup).toBeVisible());
+    // The tooltip's layer is layer.tooltip, above a toast (layer.toast), so a toast action's label shows.
+    const root = doc.defaultView!.getComputedStyle(doc.documentElement);
+    await expect(doc.defaultView!.getComputedStyle(popup.parentElement!).zIndex).toBe(
+      root.getPropertyValue("--ds-layer-tooltip").trim(),
+    );
+    await expect(Number(root.getPropertyValue("--ds-layer-tooltip"))).toBeGreaterThan(
+      Number(root.getPropertyValue("--ds-layer-toast")),
+    );
+    // In forced colours the dark fill and the shadow are gone; a CanvasText outline keeps the edge.
+    if (doc.defaultView!.matchMedia("(forced-colors: active)").matches)
+      await expect(doc.defaultView!.getComputedStyle(popup).outlineStyle).toBe("solid");
+    await waitFor(() =>
+      expect(doc.defaultView!.getComputedStyle(popup).pointerEvents).not.toBe("none"),
+    );
+    const box = popup.getBoundingClientRect();
+    const anchor = copyButton.getBoundingClientRect();
+    // user-event omits mouseleave.relatedTarget; cross the trigger edge before the popup center.
+    await user.pointer({
+      target: popup,
+      coords: { clientX: anchor.x + anchor.width / 2, clientY: anchor.top - 1 },
+    });
+    await user.pointer({
+      target: popup,
+      coords: { clientX: box.x + box.width / 2, clientY: box.y + box.height / 2 },
+    });
+    await expect(popup).toHaveAttribute("data-open");
+    await user.click(copyButton);
+    await expect(args.onCopy).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(popupIn(doc)).toBeNull());
+    await user.tab();
+    const pin = canvas.getByRole("button", { name: "Pin to rail" });
+    await expect(pin).toHaveFocus();
+    await waitFor(() => expect(popupIn(doc)).toHaveTextContent("Pin to rail"));
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(popupIn(doc)).toBeNull());
+    await expect(pin).toHaveFocus();
+  },
+};
+
 /** A native link with a shortcut, and a button whose logical placement follows RTL. */
 export const TooltipMatrix: Story = {
+  tags: ["!manifest"],
   name: "Composition",
   render: () => (
     <Grid templateColumns="repeat(2, minmax(0, 1fr))" gap="space.800" className="p-800">
@@ -140,78 +221,6 @@ export const TooltipMatrix: Story = {
     );
     await user.keyboard("{Escape}");
     await waitFor(() => expect(popupIn(doc)).toBeNull());
-  },
-};
-
-/**
- * One shared delay group with TooltipProvider's defaults: the first hover waits 300ms; an adjacent
- * tooltip opens at once. Keyboard focus opens one without the wait.
- */
-export const IconButtons: Story = {
-  render: () => (
-    <TooltipProvider>
-      <Inline space="space.100" className="p-800">
-        <IconButton label="Edit" variant="subtle" icon={<Pencil />} />
-        <IconButton label="Copy link" variant="subtle" icon={<Copy />} onClick={copy} />
-        <IconButton label="Pin to rail" variant="subtle" icon={<Pin />} />
-      </Inline>
-    </TooltipProvider>
-  ),
-  play: async ({ canvasElement }) => {
-    const doc = canvasElement.ownerDocument;
-    const canvas = within(canvasElement);
-    const user = userEvent.setup({ document: doc });
-    copy.mockClear();
-    const edit = canvas.getByRole("button", { name: "Edit" });
-    // The built canvas starts play before passive native hover listeners have attached.
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    await user.hover(edit);
-    await expect(popupIn(doc)).toBeNull();
-    await waitFor(() => expect(popupIn(doc)).toHaveTextContent("Edit"));
-    await waitFor(() => expect(popupIn(doc)).toBeVisible());
-    const copyButton = canvas.getByRole("button", { name: "Copy link" });
-    await user.hover(copyButton);
-    await waitFor(() => expect(popupIn(doc)).toHaveTextContent("Copy link"));
-    await expect(popupIn(doc)).toHaveAttribute("data-instant", "delay");
-    await expect(doc.querySelectorAll('[data-slot="tooltip-content"][data-open]')).toHaveLength(1);
-    const popup = popupIn(doc)!;
-    await waitFor(() => expect(popup).toBeVisible());
-    // The tooltip's layer is layer.tooltip, above a toast (layer.toast), so a toast action's label shows.
-    const root = doc.defaultView!.getComputedStyle(doc.documentElement);
-    await expect(doc.defaultView!.getComputedStyle(popup.parentElement!).zIndex).toBe(
-      root.getPropertyValue("--ds-layer-tooltip").trim(),
-    );
-    await expect(Number(root.getPropertyValue("--ds-layer-tooltip"))).toBeGreaterThan(
-      Number(root.getPropertyValue("--ds-layer-toast")),
-    );
-    // In forced colours the dark fill and the shadow are gone; a CanvasText outline keeps the edge.
-    if (doc.defaultView!.matchMedia("(forced-colors: active)").matches)
-      await expect(doc.defaultView!.getComputedStyle(popup).outlineStyle).toBe("solid");
-    await waitFor(() =>
-      expect(doc.defaultView!.getComputedStyle(popup).pointerEvents).not.toBe("none"),
-    );
-    const box = popup.getBoundingClientRect();
-    const anchor = copyButton.getBoundingClientRect();
-    // user-event omits mouseleave.relatedTarget; cross the trigger edge before the popup center.
-    await user.pointer({
-      target: popup,
-      coords: { clientX: anchor.x + anchor.width / 2, clientY: anchor.top - 1 },
-    });
-    await user.pointer({
-      target: popup,
-      coords: { clientX: box.x + box.width / 2, clientY: box.y + box.height / 2 },
-    });
-    await expect(popup).toHaveAttribute("data-open");
-    await user.click(copyButton);
-    await expect(copy).toHaveBeenCalledTimes(1);
-    await waitFor(() => expect(popupIn(doc)).toBeNull());
-    await user.tab();
-    const pin = canvas.getByRole("button", { name: "Pin to rail" });
-    await expect(pin).toHaveFocus();
-    await waitFor(() => expect(popupIn(doc)).toHaveTextContent("Pin to rail"));
-    await user.keyboard("{Escape}");
-    await waitFor(() => expect(popupIn(doc)).toBeNull());
-    await expect(pin).toHaveFocus();
   },
 };
 
@@ -317,5 +326,60 @@ export const Unavailable: Story = {
     await user.keyboard("{Escape}");
     await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
     await waitFor(() => expect(opener).toHaveFocus());
+  },
+};
+
+/**
+ * A rule the reader needs to finish the task is on the page, in the Field's description, where every
+ * reader meets it. A tooltip shows only to a pointer that rests or a focus that lands on its trigger.
+ */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <Pair
+      do={
+        <Field className="max-w-full" style={{ width: 240 }}>
+          <FieldLabel>Acronym</FieldLabel>
+          <Input defaultValue="ATLAS" />
+          <FieldDescription>Eight characters or fewer, as on the package.</FieldDescription>
+        </Field>
+      }
+      doText="The rule is the Field's description: it stays on the page and is read with the field."
+      dont={
+        <Inline space="space.100" alignBlock="end">
+          <Field className="max-w-full" style={{ width: 200 }}>
+            <FieldLabel>System acronym</FieldLabel>
+            <Input defaultValue="ATLAS" />
+          </Field>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <IconButton
+                  label="Acronym rules"
+                  variant="subtle"
+                  icon={<Info />}
+                  isTooltipDisabled
+                />
+              }
+            />
+            <TooltipContent>Eight characters or fewer, as on the package.</TooltipContent>
+          </Tooltip>
+        </Inline>
+      }
+      dontText="The rule waits in a tooltip: a reader who never rests on the icon never meets it, and the field says nothing."
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const rule = "Eight characters or fewer, as on the package.";
+    await expect(canvas.getByRole("textbox", { name: "Acronym" })).toHaveAccessibleDescription(
+      rule,
+    );
+    await expect(
+      canvas.getByRole("textbox", { name: "System acronym" }),
+    ).toHaveAccessibleDescription("");
+    // Until a pointer rests on the icon the rule is on the page once, in the Do.
+    await expect(canvas.getAllByText(rule)).toHaveLength(1);
   },
 };

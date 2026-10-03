@@ -6,6 +6,8 @@ import * as Stories from "./TimeField.stories";
 
 # TimeField
 
+**Status: Stable.**
+
 A time of day, typed, held and reported as an ISO time (`"17:30"`, the contract of `input type="time"`) and shown on the LedgerProvider locale's clock: "5:30 PM" in en-US, "17:30" in de-DE. It has no date and no zone.
 
 Use it for a wall time that stands on its own: a daily stand-up, office hours, a reminder time. A moment (evidence collected, due at 5 PM on a day) is a [DateTimeField](?path=/docs/components-datetimefield--docs), which pairs this input with a day and names the zone. A duration ("90 minutes") is a number field, not a time.
@@ -59,5 +61,7 @@ Use `value` and `onValueChange` for controlled state or `defaultValue` for uncon
 [DateTimeField](?path=/docs/components-datetimefield--docs) · [DatePicker](?path=/docs/components-datepicker--docs) · [Field](?path=/docs/components-field--docs) · [Input](?path=/docs/components-input--docs)
 
 ## Don't
+
+A TimeField holds a time of day that repeats, with no date. A moment in time is a DateTimeField, never a time alone, which loses the day and the zone.
 
 <Canvas of={Stories.Dont} />

@@ -23,25 +23,35 @@
   --stat-tile-min: calc(2 * var(--ds-space-800));
   display: flex;
   flex-wrap: wrap;
-  gap: 1px;
-  /* The hairlines: the grid's own background shows through the one-pixel gaps. A caller's
+  gap: var(--ds-border-width);
+  /* The hairlines: the grid's own background shows through the one-hairline gaps. A caller's
      `style` still replaces it. */
   background-color: var(--ds-color-border);
   & > * {
     flex: 1 1
       clamp(
-        calc((100% - var(--stat-cols, 4) * 1px) / var(--stat-cols, 4)),
+        calc((100% - var(--stat-cols, 4) * var(--ds-border-width)) / var(--stat-cols, 4)),
         calc(
-          (var(--stat-cols, 4) * var(--stat-tile-min) + (var(--stat-cols, 4) - 1) * 1px - 100%) *
+          (
+              var(--stat-cols, 4) * var(--stat-tile-min) + (var(--stat-cols, 4) - 1) *
+                var(--ds-border-width) - 100%
+            ) *
             1000
         ),
         clamp(
-          calc((100% - var(--stat-fold, 2) * 1px) / var(--stat-fold, 2)),
+          calc((100% - var(--stat-fold, 2) * var(--ds-border-width)) / var(--stat-fold, 2)),
           calc(
-            (var(--stat-fold, 2) * var(--stat-tile-min) + (var(--stat-fold, 2) - 1) * 1px - 100%) *
+            (
+                var(--stat-fold, 2) * var(--stat-tile-min) + (var(--stat-fold, 2) - 1) *
+                  var(--ds-border-width) - 100%
+              ) *
               1000
           ),
-          clamp(calc((100% - 2px) / 2), calc((2 * var(--stat-tile-min) + 1px - 100%) * 1000), 100%)
+          clamp(
+            calc((100% - 2 * var(--ds-border-width)) / 2),
+            calc((2 * var(--stat-tile-min) + var(--ds-border-width) - 100%) * 1000),
+            100%
+          )
         )
       );
     min-inline-size: var(--stat-tile-min);

@@ -6,6 +6,8 @@ import * as Stories from "./PreviewSheet.stories";
 
 # PreviewSheet
 
+**Status: Stable.**
+
 A modal record task surface built from shadcn's Base UI Sheet. It supports focused work such as evidence-version review. Collection browsing normally uses Shell.Panel with PreviewNavigation. The outer header holds global navigation and Close. The body begins with an inner PageHeader for the record's name and commands; metadata follows below it.
 
 <Canvas of={Stories.CollectionTask} />
@@ -35,6 +37,8 @@ Choose this surface when the current task benefits from containing focus; use Sh
 
 The outer header never repeats the visible record name or holds record commands. It contains Back when provided, collection navigation or the fallback full-record link, and Close. Supplying `navigation` suppresses `openTo`; include the full-record destination in that navigation. The footer, when present, contains related links only.
 
+<Canvas of={Stories.DoDont} />
+
 The caller controls `open` and owns dismissal, in-progress work and the related-record stack. Close and Escape dismiss the whole preview from any frame: `onClose` ends every frame, so the next open starts at the root, and focus returns to the control that opened the sheet. Back is the only way to pop one frame. It returns focus to `backFocus`, the control in the parent frame that opened the nested one; give that control a ref, which a parent frame rendered again still fills. Without `backFocus`, focus stays on Back while a deeper frame keeps one, else it goes to the parent frame's title. Keep browser history aligned when that stack is represented in the URL.
 
 <Canvas of={Stories.CompleteReview} />
@@ -53,4 +57,4 @@ Sources: [shadcn Base Sheet](https://ui.shadcn.com/docs/components/base/sheet), 
 
 ## Related
 
-[Shell.Panel](?path=/docs/layout-shell--docs), [PreviewNavigation](?path=/docs/patterns-previewnavigation--docs), [Sheet](?path=/docs/components-sheet--docs), [Pages](?path=/docs/layout-pages--docs).
+[Shell.Panel](?path=/docs/layout-shell--docs), [PreviewNavigation](?path=/docs/patterns-previewnavigation--docs), [Sheet](?path=/docs/components-sheet--docs), [Pages](?path=/docs/layout-pages--docs), [Overlays](?path=/docs/components-overlays--docs).

@@ -3,7 +3,7 @@ import { useId, createRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import {
-  FieldSet,
+  Badge,
   FieldLegend,
   FieldDescription,
   FieldLabel,
@@ -16,9 +16,15 @@ import {
   FieldContent,
   FieldGroup,
   FieldTitle,
+  TextLink,
 } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Checkbox",
@@ -33,6 +39,7 @@ const blockedChange = fn();
 
 /** Independent choices, unavailable and read-only values, and a cancellable change. */
 export const CheckboxMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="Selection states">
@@ -124,6 +131,8 @@ function ParentDemo() {
     </CheckboxGroup>
   );
 }
+
+export const Playground: Story = {};
 
 /** A CheckboxGroup derives the select-all box’s checked and mixed states from the ticked children. See [CheckboxGroup](?path=/docs/components-checkboxgroup--docs). */
 export const Parent: Story = {
@@ -241,7 +250,7 @@ function FormDemo() {
             style={(state) => ({ outlineOffset: state.checked ? 4 : 2 })}
             onClick={rootClick}
           />
-          {Boolean(fieldError2) ? (
+          {fieldError2 ? (
             <FieldError id={`${fieldId}-i-have-reviewed-the-evidence-2-message`}>
               {fieldError2}
             </FieldError>
@@ -381,8 +390,6 @@ export const InvalidAndFocused: Story = {
   },
 };
 
-export const Playground: Story = {};
-
 /**
  * The box's boundary is `color.border.bold`, 3:1 against every surface, so an unticked box can be
  * found (WCAG 1.4.11); a text field's border stays lighter by decision. contrast.test holds the
@@ -518,6 +525,81 @@ export const ChoiceCard: Story = {
   },
 };
 
+const profileCards = [
+  {
+    title: "Moderate baseline",
+    kind: "Reference profile",
+    facts: "Version 5 · 287 of 1,196 catalog controls",
+    checked: true,
+    error: undefined,
+  },
+  {
+    title: "Privacy overlay",
+    kind: "Tailored from Moderate baseline",
+    facts: "Version 2 · 96 of 1,196 catalog controls",
+    checked: true,
+    error: "Choose the Moderate baseline's edition 5 or later for this overlay.",
+  },
+] as const;
+
+/**
+ * A card that needs more than a title: the facts that tell the options apart (a Badge for its kind,
+ * then its version and size) in its FieldDescription, a link to the option's own record beside the
+ * card rather than in it, and a FieldError that belongs to this option alone, inside its
+ * FieldContent, which also edges the card in danger.
+ */
+export const ChoiceCardDetails: Story = {
+  name: "Choice card with facts, a link and an error",
+  render: () => (
+    <FieldGroup className="w-layout-list max-w-full">
+      {profileCards.map((card) => (
+        <Inline key={card.title} space="space.200" alignBlock="start">
+          <Stack grow="fill">
+            <FieldLabel>
+              <Field orientation="horizontal" invalid={card.error ? true : undefined}>
+                <Checkbox defaultChecked={card.checked} />
+                <FieldContent>
+                  <FieldTitle>{card.title}</FieldTitle>
+                  <FieldDescription>
+                    <Badge variant="secondary" tone="neutral" size="xsmall">
+                      {card.kind}
+                    </Badge>{" "}
+                    {card.facts}
+                  </FieldDescription>
+                  {card.error ? <FieldError>{card.error}</FieldError> : null}
+                </FieldContent>
+              </Field>
+            </FieldLabel>
+          </Stack>
+          <TextLink size="small" href={`#${card.title}`} newTab>
+            Open profile
+          </TextLink>
+        </Inline>
+      ))}
+    </FieldGroup>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const overlay = canvas.getByRole("checkbox", { name: "Privacy overlay" });
+    // The title alone names the box; the facts and the error describe it, and the link is not in either.
+    await expect(overlay).toHaveAccessibleDescription(
+      "Tailored from Moderate baseline Version 2 · 96 of 1,196 catalog controls Choose the Moderate baseline's edition 5 or later for this overlay.",
+    );
+    await expect(overlay).toHaveAttribute("aria-invalid", "true");
+    const baseline = canvas.getByRole("checkbox", { name: "Moderate baseline" });
+    await expect(baseline).not.toHaveAttribute("aria-invalid", "true");
+    // The link sits beside the card, so it is never inside the label that chooses.
+    const [link] = canvas.getAllByRole("link", { name: /Open profile/ });
+    await expect(link!.closest("label")).toBeNull();
+    await expect(baseline).toBeChecked();
+    if (matchMedia("(forced-colors: active)").matches) return;
+    // Both are chosen; the one with an error is edged in danger, not in the chosen colour.
+    await expect(getComputedStyle(overlay.closest("label")!).borderTopColor).not.toBe(
+      getComputedStyle(baseline.closest("label")!).borderTopColor,
+    );
+  },
+};
+
 /**
  * Outside a Field a plain label still works: the box is inline, so the text follows it on the same
  * line instead of dropping under it.
@@ -540,5 +622,47 @@ export const InAPlainLabel: Story = {
     await expect(label.getBoundingClientRect().height).toBeLessThan(
       box.getBoundingClientRect().height * 2,
     );
+  },
+};
+
+/**
+ * The label names the choice and stays the same ticked and unticked; the box shows the state. A
+ * label that flips with the state never asks the question, and a screen reader hears a new name
+ * after every press.
+ */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: function NameTheChoice() {
+    const [seeded, setSeeded] = useState(false);
+    return (
+      <Pair
+        do={
+          <Field orientation="horizontal">
+            <Checkbox />
+            <FieldLabel>Seed AC-2 on the payments platform</FieldLabel>
+          </Field>
+        }
+        doText="The label is the choice, ticked or not."
+        dont={
+          <Field orientation="horizontal">
+            <Checkbox checked={seeded} onCheckedChange={setSeeded} />
+            <FieldLabel>{seeded ? "Will seed" : "Excluded"}</FieldLabel>
+          </Field>
+        }
+        dontText="Excluded, then Will seed: the label reports the state and never says what is chosen."
+      />
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const named = canvas.getByRole("checkbox", { name: "Seed AC-2 on the payments platform" });
+    await userEvent.click(named);
+    await expect(named).toBeChecked();
+    await expect(named).toHaveAccessibleName("Seed AC-2 on the payments platform");
+    const flipping = canvas.getByRole("checkbox", { name: "Excluded" });
+    await userEvent.click(flipping);
+    await expect(flipping).toBeChecked();
+    await expect(flipping).toHaveAccessibleName("Will seed");
   },
 };

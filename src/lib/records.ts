@@ -59,7 +59,9 @@ export function labelFor(value: string) {
     )
     .join(" ");
 }
-export function titleColumn(collection: Collection): string {
+/** What names a record's fields: a collection's schema, or any shape that lists its columns. */
+export type ColumnNames = { columns: readonly { name: string }[] };
+export function titleColumn(collection: ColumnNames): string {
   return (
     [
       "name",
@@ -74,7 +76,7 @@ export function titleColumn(collection: Collection): string {
     ].find((name) => collection.columns.some((column) => column.name === name)) ?? "id"
   );
 }
-export function recordTitle(record: DataRecord, collection: Collection): string {
+export function recordTitle(record: DataRecord, collection: ColumnNames): string {
   const value = record[titleColumn(collection)];
   return typeof value === "string" && value.trim() ? value : record.id;
 }

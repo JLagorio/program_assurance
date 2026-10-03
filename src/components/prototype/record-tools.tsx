@@ -1,4 +1,5 @@
 import { ProductCollection, type ProductCollectionProps } from "./product-collection";
+import { useCollectionTable } from "./collection-question";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { useMemo, useState, type ReactNode, useRef } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -16,17 +17,18 @@ import {
   DataTable,
   defineColumns,
   downloadText,
-  useDataTable,
+  Person,
   type EmptyIllustrationKind,
+  type KeyValueLabelWidth,
 } from "@ledger/design-system";
 import { ProductRecordDialog } from "./product-record-dialog";
 import { useWorkspace } from "@/components/app/workspace";
 import { LevelIndicator, VocabularyValue } from "@/components/app/status";
+import { linkedName } from "@/lib/link-name";
 import { useRow, useRows, type TableName, type Filters } from "@/lib/models";
 import {
   displayValue,
   labelFor,
-  systemColumns,
   type Collection,
   type DataRecord,
   type RecordValue,
@@ -75,12 +77,13 @@ export function StateBadge({ value }: { value: unknown }) {
 
 /**
  * A related record's name: a Skeleton while it loads, "Could not load" when the lookup fails (the
- * region's alert says why), "Not available" when the record is missing or hidden, and Absent when
- * there is no relationship. Never a QueryState: one failure is reported once, for its region.
+ * region's alert says why), and Absent when there is no relationship ("Not recorded") or the record
+ * is missing or hidden ("Not available"). Never a QueryState: one failure is reported once, for
+ * its region.
  */
 export function RelationName({ table, id }: { table: TableName; id: string | null | undefined }) {
   const query = useRow(table, id);
-  if (!id) return <Absent label="Not recorded" />;
+  if (!id) return <Absent />;
   const row = query.data as unknown as DataRecord | null | undefined;
   if (row === undefined && query.isError)
     return <Text color="color.text.subtle">Could not load</Text>;
@@ -91,7 +94,7 @@ export function RelationName({ table, id }: { table: TableName; id: string | nul
         <VisuallyHidden>Loading</VisuallyHidden>
       </>
     );
-  if (row === null) return <Text color="color.text.subtle">Not available</Text>;
+  if (row === null) return <Absent label="Not available" />;
   const named = row["name"] ?? row["title"] ?? row["code"] ?? row["source_id"];
   if (named !== null && named !== undefined && named !== "") return <>{String(named)}</>;
   // A revision has no name of its own: it reads as its version, never as its id.
@@ -119,11 +122,17 @@ export type DisplayColumn = {
    * under `key` (a latest revision's severity): it sorts by rank and draws a badge or an indicator. */
   statuses?: StatusVocabulary | undefined;
   /**
-   * What the column is, where neither the schema nor the key says: a derived count is a number. A
-   * person (an assessor, an owner) is drawn with their avatar, and sorts, filters and searches by
-   * the name `value` gives, never by the party's id.
+   * What the column is: a derived count is a number, and a category (a method, a type) is a fixed
+   * list of values, read in words and offered as a filter. It is declared here, never read from the
+   * record schema, so a register or a record page opens without it: where a column leaves it out,
+   * a status the model maps (or a `status`, `state`, `severity`, … key) is a status, and otherwise
+   * its key decides (`_at`, `_on` and `_date` are dates, `_number` a number, `_type`, `kind`,
+   * `method` and `role` a category, anything else text). A person (an assessor, an owner) is drawn
+   * with their avatar, and sorts, filters and searches by their name, never by the party's id: the
+   * name `value` gives, or, for a column keyed by a party id with no `value`, the name ModelTable
+   * reads for it. `render` then draws the fact (ModelFacts) and the table draws the person.
    */
-  kind?: "date" | "number" | "text" | "person" | undefined;
+  kind?: "date" | "number" | "category" | "text" | "person" | undefined;
 };
 export type ModelTableEmpty = {
   title?: string;
@@ -149,7 +158,10 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}(?:$|[T ])/;
 
 type FieldKind = "status" | "date" | "number" | "category" | "text";
 
-/** What a stored field is, from the schema where it is known and from its name where it is not. */
+/**
+ * What a stored field is: a status by its vocabulary, else by the schema where a surface that
+ * loaded it passes it (a preview, a form), else by its name.
+ */
 function fieldKind(
   table: string | undefined,
   collection: Collection | undefined,
@@ -170,18 +182,16 @@ function fieldKind(
   return "text";
 }
 
-/** A field's status vocabulary: the product's map, else the schema's choices or the values in words. */
+/** A column's status vocabulary: the product's map, else the values it holds in words. */
 function fieldVocabulary(
   table: string | undefined,
-  collection: Collection | undefined,
   key: string,
   values: unknown[],
 ): StatusVocabulary {
   const mapped = table ? vocabularyFor(table, key)?.values : undefined;
   if (mapped) return mapped;
-  const choices = collection?.columns.find((item) => item.name === key)?.choices;
-  // An unmapped status keeps the words and tone its value has elsewhere, in the schema's order.
-  const known = neutralVocabulary(choices?.length ? choices : values);
+  // An unmapped status keeps the words and tone its value has elsewhere.
+  const known = neutralVocabulary(values);
   return Object.fromEntries(
     Object.entries(known).map(([value, entry]) => {
       const elsewhere = statusEntry(vocabularyForValue(value), value);
@@ -219,7 +229,11 @@ function identityIndex(columns: DisplayColumn[]) {
   return named < 0 ? 0 : named;
 }
 
-/** A register of records on the kit's DataTable: the toolbar, the kinds from the schema, the two empties. */
+/**
+ * A register of records on the kit's DataTable: the toolbar, the columns' declared kinds, the two
+ * empties. It reads no record schema: a column's kind is declared on it (`kind`, `statuses`) or
+ * follows its key.
+ */
 export function ModelTable({
   model,
   rows,
@@ -228,9 +242,10 @@ export function ModelTable({
   selectedId,
   onDisplayedRowsChange,
   empty,
-  searchLabel = "Search records",
+  searchLabel,
   filters,
   actions,
+  actionVariant,
   commands,
   view,
   fill,
@@ -246,14 +261,19 @@ export function ModelTable({
   onDisplayedRowsChange?: ((rows: DataRecord[]) => void) | undefined;
   /** A string is the description under "Nothing recorded yet". */
   empty?: string | ModelTableEmpty;
-  searchLabel?: string;
+  /** The search's placeholder and name, "Find" and the collection ("Find risks") unsaid; the table
+   * is named by the collection it searches. */
+  searchLabel?: string | undefined;
   /** Column keys to expose as chips; by default every status-like or type-like column. */
   filters?: string[];
   /** The toolbar's trailing actions: the create verb, small. */
   actions?: ReactNode;
+  /** The create action's weight: ProductCollection's `actionVariant`. */
+  actionVariant?: ProductCollectionProps<DataRecord>["actionVariant"];
   commands?: ProductCollectionProps<DataRecord>["commands"];
-  /** Names the reader's column layout in this browser. */
-  view?: string;
+  /** Names the reader's column layout in this browser, and the collection's question in the
+   * address (ProductCollection's `keepQuestion`). */
+  view?: string | undefined;
   /** The register is the page's one block: it takes the rest of the window. */
   fill?: boolean | undefined;
   /** The queries the rows come from: while they load the toolbar stays and the rows are skeletons. */
@@ -264,23 +284,40 @@ export function ModelTable({
   compact?: boolean | undefined;
 }) {
   const navigate = useNavigate();
-  const workspace = useWorkspace();
-  const collection = workspace.collections.find((item) => item.name === model);
+  const primaryIndex = identityIndex(columns);
   const [preview, setPreview] = useState<DataRecord | null>(null);
   useEndOnHide(() => setPreview(null));
   const openPreview = onPreview ?? setPreview;
   const byId = useMemo(() => new Map(rows.map((row) => [row.id, row])), [rows]);
   const byIdRef = useRef(byId);
   byIdRef.current = byId;
+  // A person column named by a party id alone reads its people's names once, for the whole table.
+  const peopleKeys = useMemo(
+    () =>
+      new Set(
+        columns
+          .filter((column) => column.kind === "person" && !column.value)
+          .map((column) => column.key),
+      ),
+    [columns],
+  );
+  const people = useRows("parties", undefined, {
+    columns: ["id", "name"],
+    enabled: peopleKeys.size > 0,
+  });
+  const names = useMemo(
+    () => new Map((people.data ?? []).map((party) => [party.id, party.name])),
+    [people.data],
+  );
   const kinds = useMemo(
     () =>
       new Map(
         columns.map((column) => [
           column.key,
-          column.statuses ? "status" : (column.kind ?? fieldKind(model, collection, column.key)),
+          column.statuses ? "status" : (column.kind ?? fieldKind(model, undefined, column.key)),
         ]),
       ),
-    [columns, model, collection],
+    [columns, model],
   );
   // A derived value joins the row under its key, so the sort, the chips, the search and the export
   // see it. A category reads in words, so the chips, the search and the cells agree; statuses keep
@@ -295,6 +332,11 @@ export function ModelTable({
             const derived = column.value(row);
             if (derived === undefined) delete next[column.key];
             else next[column.key] = derived;
+          } else if (peopleKeys.has(column.key)) {
+            const id = row[column.key];
+            const name = typeof id === "string" ? names.get(id) : undefined;
+            if (name) next[column.key] = name;
+            else delete next[column.key];
           }
           const value = next[column.key];
           const kind = kinds.get(column.key);
@@ -303,7 +345,7 @@ export function ModelTable({
         }
         return next;
       }),
-    [rows, columns, kinds],
+    [rows, columns, kinds, peopleKeys, names],
   );
   const vocabularies = useMemo(
     () =>
@@ -315,15 +357,23 @@ export function ModelTable({
             column.statuses ??
               fieldVocabulary(
                 model,
-                collection,
                 column.key,
                 data.map((row) => row[column.key]),
               ),
           ]),
       ),
-    [columns, kinds, model, collection, data],
+    [columns, kinds, model, data],
   );
-  const primaryIndex = identityIndex(columns);
+  const nouns = noun ?? { one: productRecordNoun(model), other: productCollectionNoun(model) };
+  const placeholder = searchLabel ?? `Find ${nouns.other}`;
+  // The preview is the table's, so the columns are not rebuilt as the reader steps through rows.
+  const tablePreview = useMemo(
+    () => ({
+      onPreview: (row: DataRecord) => openPreview(byIdRef.current.get(row.id) ?? row),
+      activeId: selectedId ?? preview?.id ?? null,
+    }),
+    [openPreview, selectedId, preview?.id],
+  );
   const tableColumns = useMemo(
     () =>
       defineColumns<DataRecord>((c) =>
@@ -347,18 +397,17 @@ export function ModelTable({
           };
           const cell = render ? (row: DataRecord) => render(raw(row)) : plain;
           if (primary)
-            // A readable minimum, so the name shares the spare width with the unsized columns.
-            return c.id(column.key, {
+            // A name, not a code: a readable minimum, so it shares the spare width with the unsized
+            // columns. The table's preview puts the eye at its end.
+            return c.text(column.key, {
               header,
               hideable: false,
               minWidth: 180,
               priority: 0,
               ...size,
-              preview: (row) => openPreview(raw(row)),
-              active: (row) => row.id === (selectedId ?? preview?.id),
               cell: (row) => (
                 <RecordLink table={model} record={raw(row)}>
-                  {render?.(raw(row)) ?? displayValue(row[column.key])}
+                  {render?.(raw(row)) ?? linkedName(model, raw(row), row[column.key])}
                 </RecordLink>
               ),
             });
@@ -385,8 +434,9 @@ export function ModelTable({
                   : {}),
             });
           }
+          // A date takes its kind's width, as every date column does.
           if (kind === "date")
-            return c.date(column.key, { header, width: 130, ...size, ...(render ? { cell } : {}) });
+            return c.date(column.key, { header, ...size, ...(render ? { cell } : {}) });
           if (kind === "number")
             return c.number(column.key, {
               header,
@@ -394,12 +444,31 @@ export function ModelTable({
               ...size,
               ...(render ? { cell } : {}),
             });
+          // A person the table names draws with their avatar; `render` is then the fact's alone. A
+          // person recorded whom the reader cannot see is not available, never "Not recorded".
           if (kind === "person")
-            return c.person(column.key, { header, ...size, ...(render ? { cell } : {}) });
+            return c.person(column.key, {
+              header,
+              ...size,
+              ...(peopleKeys.has(column.key)
+                ? {
+                    cell: (row: DataRecord) => {
+                      const name = row[column.key];
+                      return typeof name === "string" && name ? (
+                        <Person name={name} />
+                      ) : (
+                        <Absent label={raw(row)[column.key] ? "Not available" : "Not recorded"} />
+                      );
+                    },
+                  }
+                : render
+                  ? { cell }
+                  : {}),
+            });
           return c.text(column.key, { header, ...size, cell });
         }),
       ),
-    [columns, primaryIndex, kinds, vocabularies, model, openPreview, selectedId, preview?.id],
+    [columns, primaryIndex, kinds, vocabularies, model, peopleKeys],
   );
   const chips =
     filters ??
@@ -410,12 +479,12 @@ export function ModelTable({
       })
       .map((column) => column.key)
       .slice(0, 3);
-  const table = useDataTable({
+  const table = useCollectionTable({
     columns: tableColumns,
     data,
     getRowId: (row) => row.id,
-    label: searchLabel.replace(/^Search /, "") || "Records",
-    pageSize: 20,
+    label: placeholder.replace(/^(Find|Search) /, "") || "Records",
+    preview: tablePreview,
     resizable: true,
     reorderable: true,
     ...(view ? { view } : {}),
@@ -429,8 +498,8 @@ export function ModelTable({
         table={table}
         fill={fill}
         compact={compact}
-        queries={queries ?? []}
-        noun={noun ?? { one: productRecordNoun(model), other: productCollectionNoun(model) }}
+        queries={[...(queries ?? []), ...(peopleKeys.size ? [people] : [])]}
+        noun={nouns}
         onRowClick={(row) => void navigate(recordDestination(model, byId.get(row.id) ?? row))}
         empty={{
           illustration: message.illustration ?? "records",
@@ -439,11 +508,12 @@ export function ModelTable({
           ...(message.icon ? { icon: message.icon } : {}),
           action: message.action ?? actions,
         }}
-        searchLabel={searchLabel}
+        searchLabel={placeholder}
         filters={chips.map((key) => (
           <DataTable.Filter key={key} table={table} column={key} />
         ))}
         action={actions}
+        actionVariant={actionVariant}
         commands={commands}
       />
       {preview && !onPreview && (
@@ -496,16 +566,24 @@ export function FactValue({
   table,
   field,
   value,
+  kind: declared,
+  collection,
 }: {
-  /** The record's table, so the field's vocabulary and schema type decide; by name without it. */
+  /** The record's table, so the field's vocabulary decides a status. */
   table?: string | undefined;
   field: string;
   value: RecordValue | undefined;
+  /** The fact's declared kind, as its column says it (DisplayColumn's `kind`). */
+  kind?: DisplayColumn["kind"];
+  /**
+   * The record's schema, where the surface has loaded it for its own needs (a preview, a form): it
+   * decides a field no kind is declared for. Without it, the field's name decides; a fact never
+   * loads the schema itself.
+   */
+  collection?: Collection | undefined;
 }) {
-  const workspace = useWorkspace();
-  if (value === null || value === undefined || value === "") return <Absent label="Not recorded" />;
-  const collection = table ? workspace.collections.find((item) => item.name === table) : undefined;
-  const kind = fieldKind(table, collection, field);
+  if (value === null || value === undefined || value === "") return <Absent />;
+  const kind = declared && declared !== "person" ? declared : fieldKind(table, collection, field);
   if (kind === "status" && typeof value === "string") {
     const values =
       (table ? vocabularyFor(table, field)?.values : undefined) ??
@@ -519,7 +597,7 @@ export function FactValue({
   return displayValue(value);
 }
 
-/** Past this many characters a label no longer fits KeyValue's default 104px column. */
+/** Past this many characters a label no longer fits KeyValue's `default` label column. */
 const LONG_LABEL = 14;
 
 export function ModelFacts({
@@ -530,16 +608,17 @@ export function ModelFacts({
 }: {
   record: DataRecord;
   fields: (string | DisplayColumn)[];
-  /** The record's table: its vocabularies and column types format the values. */
+  /** The record's table: its vocabularies format the values; a field's kind is its column's. */
   table?: TableName | undefined;
-  /** The label column; by default 104, or 160 when a label is longer than fits. */
-  labelWidth?: number | undefined;
+  /** The label column: the kit's `default`, or `wide` when a label is longer than fits. */
+  labelWidth?: KeyValueLabelWidth | undefined;
 }) {
   const columns = fields.map((field): DisplayColumn =>
     typeof field === "string" ? { key: field } : field,
   );
   const labels = columns.map((column) => column.label ?? labelFor(column.key.replace(/_id$/, "")));
-  const width = labelWidth ?? (labels.some((label) => label.length > LONG_LABEL) ? 160 : undefined);
+  const width =
+    labelWidth ?? (labels.some((label) => label.length > LONG_LABEL) ? "wide" : undefined);
   if (!columns.length) return null;
   return (
     <KeyValue.Group {...(width === undefined ? {} : { labelWidth: width })}>
@@ -555,40 +634,13 @@ export function ModelFacts({
                 value={value === null || value === undefined ? null : String(value)}
               />
             ) : (
-              <FactValue table={table} field={column.key} value={value} />
+              <FactValue table={table} field={column.key} value={value} kind={column.kind} />
             )}
           </KeyValue>
         );
       })}
     </KeyValue.Group>
   );
-}
-
-/**
- * The record a link table points at, beside the one the section sits on: `issue_observations` on
- * an issue links an observation. A table with a name, a title or an authored required field is a
- * record of its own, which is created, not linked.
- */
-function linkTarget(collection: Collection | undefined, context: Record<string, unknown>) {
-  if (!collection) return undefined;
-  if (collection.columns.some((column) => column.name === "name" || column.name === "title"))
-    return undefined;
-  // Tenant-scoped keys are composite, (tenant_id, x_id): the relation's own column is the rest.
-  const own = (columns: string[]) => columns.filter((column) => !systemColumns.has(column));
-  const relations = collection.relations.filter((relation) => {
-    const columns = own(relation.columns);
-    return relation.target_schema === "public" && columns.length === 1 && !(columns[0]! in context);
-  });
-  if (relations.length !== 1) return undefined;
-  const keys = new Set(collection.relations.flatMap((relation) => relation.columns));
-  const authored = collection.columns.some(
-    (column) =>
-      !systemColumns.has(column.name) &&
-      !keys.has(column.name) &&
-      column.required &&
-      column.default === null,
-  );
-  return authored ? undefined : relations[0]!.target_table;
 }
 
 const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
@@ -610,16 +662,28 @@ export function EntitySection({
   onDisplayedRowsChange,
   description,
   operation,
+  links,
   readOnly = false,
   appendOnly = false,
   fill,
   showHeading = false,
   compact = showHeading,
+  actionVariant = showHeading ? "secondary" : "primary",
+  view,
   queries,
 }: {
   table: TableName;
   /** The section's own heading, among a record body's other sections. */
   showHeading?: boolean;
+  /**
+   * The create action's weight (ProductCollection's `actionVariant`). A headed section is one of a
+   * record body's sections, where the page header keeps the surface's one primary: its create
+   * action is a small secondary unless it says otherwise. A tab whose only content is this
+   * collection keeps the small primary.
+   */
+  actionVariant?: "primary" | "secondary" | undefined;
+  /** Names the reader's column layout and the collection's question in the address: a register's. */
+  view?: string | undefined;
   /**
    * A few rows beside other content: a one-line empty beside an icon and a lean toolbar
    * (ProductCollection's `compact`). A headed section is compact unless it says otherwise; a tab
@@ -640,6 +704,18 @@ export function EntitySection({
    * says Link and the record it points at ("Link observation"); a record table says Create.
    */
   operation?: string | undefined;
+  /**
+   * The record a link table connects to the one the section sits on: `issue_observations` on an
+   * issue links `observations`. Its add action then says Link and that record, and its empty
+   * collection says what to link; without it the table holds records of its own, which are
+   * created. Declared here, so the section opens without the record schema.
+   */
+  links?: TableName | undefined;
+  /**
+   * Nothing is added or edited here. Otherwise every member but a viewer writes: each table a
+   * section writes grants its members insert, update and delete, and row-level security decides
+   * each write.
+   */
   readOnly?: boolean;
   appendOnly?: boolean;
   /** The register is the page's one block: it takes the rest of the window. */
@@ -655,13 +731,13 @@ export function EntitySection({
   const [displayed, setDisplayed] = useState<DataRecord[]>([]);
   // The control that opened the dialog; it takes focus back when the dialog closes.
   const opener = useRef<HTMLElement | null>(null);
-  const collection = workspace.collections.find((item) => item.name === table);
   const context = { ...filters, ...initialValues };
-  const target = linkTarget(collection, context);
+  const target = links;
   const addLabel =
     operation ??
     (target ? `Link ${productRecordNoun(target)}` : productCreateLabel(table, context));
-  const canAdd = !readOnly && workspace.role !== "viewer" && Boolean(collection?.can_insert);
+  // The role says whether the reader may write; the form loads the schema it needs as it opens.
+  const canAdd = !readOnly && workspace.role !== "viewer";
   const open = (next: DataRecord | "new") => {
     opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setEditing(next);
@@ -678,7 +754,7 @@ export function EntitySection({
   };
   const add = (size: "small" | "medium") =>
     canAdd ? (
-      <Button size={size} variant="primary" iconBefore={<Plus />} onClick={() => open("new")}>
+      <Button size={size} variant={actionVariant} iconBefore={<Plus />} onClick={() => open("new")}>
         {addLabel}
       </Button>
     ) : undefined;
@@ -714,7 +790,6 @@ export function EntitySection({
             !readOnly &&
             !appendOnly &&
             workspace.role !== "viewer" &&
-            collection?.can_update &&
             selected["state"] !== "published" &&
             selected["tenant_id"] !== null && (
               <Button size="small" variant="primary" onClick={() => open(selected)}>
@@ -745,13 +820,15 @@ export function EntitySection({
         columns={columns}
         fill={fill}
         compact={compact}
+        view={view}
+        actionVariant={actionVariant}
         onPreview={onOpen ?? setSelected}
         selectedId={selectedId ?? selected?.id}
         onDisplayedRowsChange={(rows) => {
           setDisplayed(rows);
           onDisplayedRowsChange?.(rows);
         }}
-        searchLabel={`Search ${collectionName}`}
+        searchLabel={`Find ${collectionName}`}
         actions={add("small")}
         empty={{
           title: `No ${collectionName} yet`,

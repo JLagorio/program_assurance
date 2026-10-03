@@ -7,6 +7,8 @@ import * as Stories from "./Banner.stories";
 
 # Banner
 
+**Status: Stable.**
+
 A message about the whole site, at the top of the screen in the shell's Banner area: the loss of data or a function, or something site-wide that changes what the reader can do. One at a time, never dismissible, gone when no longer true. On a bar 42rem wide or more it is one line; narrower, on a phone, the message wraps and the bar grows with it. The action is one link or button drawn in the banner's own colour. The kit's inline message is the [Alert](?path=/docs/components-alert--docs).
 
 An Alert is about the record; a Banner is about the site. Feedback after an act is a toast. If the message would be true for one reader and not the next, it is not a banner.
@@ -104,5 +106,7 @@ The `action` keeps its own element, ref, ID, attributes, styles and handlers whi
 - [Badge](?path=/docs/components-badge--docs): the tone table.
 
 ## Don't
+
+A Banner is about the whole site, in one sentence with one action. A message about one record is an Alert and feedback after an act is a toast, never a banner; two sentences and two actions are cut on a wide bar and fill the top of a phone's screen.
 
 <Canvas of={Stories.Dont} />

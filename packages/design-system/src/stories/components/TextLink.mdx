@@ -6,7 +6,22 @@ import * as Stories from "./TextLink.stories";
 
 # TextLink
 
+**Status: Stable.**
+
 Navigation that reads as text, with Ledger's brand color, hover underline and keyboard focus outline. Use `Button variant="link"` for actions.
+
+## When to use it
+
+- **A destination named in text**: a record's name in a row or a cell, a "See all" under a list, a link in a sentence.
+
+Not for an action: that is a [Button](?path=/docs/components-button--docs), `variant="link"` where it reads as text. Not for navigation that looks like a button: that is a [LinkButton](?path=/docs/components-linkbutton--docs). Not for a destination the reader cannot open: that is plain text.
+
+## Content
+
+- The words name the destination: "Full timeline", "AC-2 Account management". Never "Click here" or "Read more", which name nothing heard on their own or in a list of the page's links.
+- A link that opens a new tab is `newTab`, which says so after the name ("(opens in a new tab)").
+
+<Canvas of={Stories.DoDont} />
 
 ## Anatomy
 
@@ -50,13 +65,11 @@ Where any pointer is coarse, a standalone link takes an invisible hit area at le
 
 Native anchor attributes, events and refs pass through. `render` merges rendered-element refs and handlers; put element-specific props on the rendered component.
 
-Migration: replace implicit child composition or `asChild` with `render`. Remove `asChild={false}` from native anchors. Size, weight and Ledger styles are preserved.
-
 <Canvas of={Stories.Playground} />
 <Controls of={Stories.Playground} />
 
 ## Related
 
-[Button](?path=/docs/components-button--docs), [Breadcrumb](?path=/docs/components-breadcrumb--docs), [Item](?path=/docs/components-item--docs).
+[Button](?path=/docs/components-button--docs), [Breadcrumb](?path=/docs/components-breadcrumb--docs), [Item](?path=/docs/components-item--docs), [Upgrading](?path=/docs/guidance-upgrading--docs#textlink).
 
 Sources: [shadcn's native link composition](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/breadcrumb.tsx), [Base UI useRender](https://base-ui.com/react/utils/use-render).

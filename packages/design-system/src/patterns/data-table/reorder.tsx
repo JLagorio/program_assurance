@@ -27,6 +27,7 @@ import { tokenLiterals } from "../../generated/tokens";
 import { cn } from "../../lib/cn";
 // Only a header or a row that can move follows the setting; the rest pass `false`.
 import { useReducedMotion } from "../../lib/use-reduced-motion";
+import { rowSpokenName } from "./row-name";
 import type { DataTableInstance } from "./use-data-table";
 
 /*
@@ -79,7 +80,7 @@ function positionIn(item: { data: { current?: Record<string, unknown> | undefine
   return index >= 0 && total > 0 ? { position: index + 1, total } : null;
 }
 
-/** What a drag says about an item: a row's label, a column's header text, else its id. */
+/** What a drag says about an item: a row's name, a column's header text, else its id. */
 function spokenName<TData extends RowData>(
   table: DataTableInstance<TData>,
   id: string | number,
@@ -88,11 +89,7 @@ function spokenName<TData extends RowData>(
   const key = String(id);
   if (kind === "row") {
     try {
-      const row = table.getRow(key, true);
-      const meta = table.options.meta;
-      return (
-        meta?.rowLabel?.(row.original as never) ?? meta?.tree?.label(row.original as never) ?? key
-      );
+      return rowSpokenName(table.getRow(key, true));
     } catch {
       return key;
     }

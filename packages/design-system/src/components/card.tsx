@@ -158,7 +158,7 @@ export function CardTitle({ className, render, ref, link, children, ...props }: 
     props: mergeProps<"div">(props, {
       ...{ "data-slot": "card-title" },
       className: cn(
-        "col-span-full min-w-0 break-words font-heading-xsmall text-default @3xs/card-header:col-auto",
+        "col-span-full min-w-0 break-words font-heading-overlay text-default @3xs/card-header:col-auto",
         className,
       ),
       children: link ? linked : children,

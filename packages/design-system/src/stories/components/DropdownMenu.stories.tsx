@@ -32,6 +32,10 @@ import {
 import { menuSurface } from "../../components/menu";
 import { LedgerProvider } from "../../lib/locale";
 import { Stack, Text } from "../../primitives";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/DropdownMenu",
@@ -64,7 +68,7 @@ export const ActionLabelWidths: Story = {
         <DropdownMenuTrigger render={<Button size="small">Create system</Button>} />
         <DropdownMenuContent>
           <DropdownMenuItem>Create system</DropdownMenuItem>
-          <DropdownMenuItem>Add system from product</DropdownMenuItem>
+          <DropdownMenuItem>Create system from product</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <DropdownMenu>
@@ -136,9 +140,57 @@ export const ActionLabelWidths: Story = {
   },
 };
 
-/** Native render composition, grouped actions, shortcuts and disabled keyboard behavior. */
-export const DropdownMenuMatrix: Story = {
-  name: "Actions",
+/** Grouped actions: a labelled group, a shortcut, a disabled item and the danger items after a separator. */
+export const Actions: Story = {
+  render: () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger render={<Button variant="secondary" />}>Actions</DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Record</DropdownMenuLabel>
+          <DropdownMenuItem shortcut="E">
+            <Pencil aria-hidden />
+            Edit
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled>Reassign</DropdownMenuItem>
+          <DropdownMenuItem>Duplicate</DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="danger">Archive</DropdownMenuItem>
+        <DropdownMenuItem variant="danger" disabled>
+          Delete
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ),
+  play: async ({ canvasElement }) => {
+    const doc = canvasElement.ownerDocument,
+      page = within(doc.body);
+    const user = userEvent.setup({ document: doc });
+    const trigger = within(canvasElement).getByRole("button", { name: "Actions" });
+    // Built Storybook can start playback before Base UI attaches native keyboard listeners.
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    trigger.focus();
+    await user.keyboard("{ArrowDown}");
+    const menu = await page.findByRole("menu");
+    await waitFor(() => expect(menu).toBeVisible());
+    const edit = page.getByRole("menuitem", { name: "Edit" });
+    await expect(edit).toHaveAttribute("aria-keyshortcuts", "E");
+    await expect(page.getByRole("group", { name: "Record" })).toContainElement(edit);
+    await expect(page.getByRole("menuitem", { name: "Reassign" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("menu")).toBeNull());
+    await waitFor(() => expect(trigger).toHaveFocus());
+  },
+};
+
+/** Native render composition, refs, state callbacks for the popup's class and style, and disabled keyboard behaviour. */
+export const NativeComposition: Story = {
+  name: "Native composition",
+  tags: ["!manifest"],
   render: () => (
     <DropdownMenu onOpenChange={changed}>
       <DropdownMenuTrigger
@@ -366,7 +418,7 @@ export const Submenus: Story = {
             Custom placement
           </DropdownMenuTrigger>
           <DropdownMenuPortal>
-            <MenuPrimitive.Positioner sideOffset={8} collisionPadding={16} className="z-50">
+            <MenuPrimitive.Positioner sideOffset={8} collisionPadding={16} className="z-overlay">
               <MenuPrimitive.Popup className={menuSurface}>
                 <DropdownMenuItem>Copy reference</DropdownMenuItem>
               </MenuPrimitive.Popup>
@@ -705,5 +757,69 @@ export const Dialogs: Story = {
     await user.keyboard("{Escape}");
     await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
     await waitFor(() => expect(opener).toHaveFocus());
+  },
+};
+
+const navigate = fn();
+
+/**
+ * A place to go is a LinkItem, a real link the reader can open in a new tab, and a destructive
+ * action comes last, after a separator. A destination written as an action, and a delete at the
+ * top where the reader's first press lands, are the two slips this menu avoids.
+ */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <Pair
+      do={
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<Button iconAfter={<ChevronDown />} />}>
+            Actions
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem>Edit program</DropdownMenuItem>
+            <DropdownMenuLinkItem href="#traceability">Traceability matrix</DropdownMenuLinkItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="danger">Delete program</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      }
+      doText="The destination is a link item, and the delete is last, apart and in the danger colour."
+      dont={
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<Button iconAfter={<ChevronDown />} />}>
+            Actions
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem>Delete program</DropdownMenuItem>
+            <DropdownMenuItem onClick={navigate}>Traceability matrix</DropdownMenuItem>
+            <DropdownMenuItem>Edit program</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      }
+      dontText="A destination that navigates in a click handler cannot open in a new tab, and the delete sits first."
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    const [right, wrong] = canvas.getAllByRole("button", { name: "Actions" });
+    await userEvent.click(right!);
+    const menu = await page.findByRole("menu");
+    await expect(
+      within(menu).getByRole("menuitem", { name: "Traceability matrix" }),
+    ).toHaveAttribute("href", "#traceability");
+    await expect(within(menu).getAllByRole("menuitem").at(-1)).toHaveTextContent("Delete program");
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("menu")).toBeNull());
+    await userEvent.click(wrong!);
+    const other = await page.findByRole("menu");
+    await expect(
+      within(other).getByRole("menuitem", { name: "Traceability matrix" }),
+    ).not.toHaveAttribute("href");
+    await expect(within(other).getAllByRole("menuitem")[0]).toHaveTextContent("Delete program");
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("menu")).toBeNull());
   },
 };

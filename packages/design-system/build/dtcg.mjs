@@ -76,10 +76,13 @@ export function exportDtcg(source, mode = "light") {
     const extensions = { ...token.$extensions };
     // CSS em tracking is a font-relative ratio. DTCG dimensions admit px/rem only, so retain
     // the ratio as a number token and materialize each typography's tracking at its font size.
-    if (type === "dimension" && /em$/.test(String(input)) && !/rem$/.test(String(input))) {
+    // A part's size in ch (characters at its text size) or vw (a share of the window) is kept
+    // the same way: the number, with its CSS unit beside it.
+    const relative = type === "dimension" && /^-?[\d.]+(em|ch|vw)$/.exec(String(input));
+    if (relative) {
       type = "number";
       value = parseFloat(input);
-      extensions["org.ledger.css"] = { unit: "em", sourceType: "dimension" };
+      extensions["org.ledger.css"] = { unit: relative[1], sourceType: "dimension" };
     } else if (!ref(input)) {
       if (type === "color") value = color(input);
       else if (type === "dimension") value = dimension(input === 0 ? "0px" : input);

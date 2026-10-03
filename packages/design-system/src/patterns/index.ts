@@ -58,6 +58,7 @@ export {
   type ChartHeatmapProps,
   type ChartLegendProps,
   type ChartLineProps,
+  type ChartLink,
   type ChartReference,
   type ChartScaleProps,
   type ChartScatterGroup,
@@ -79,8 +80,10 @@ export {
 } from "./chart";
 export {
   Editable,
+  EditableDate,
   EditableSelect,
   EditableText,
+  type EditableDateProps,
   type EditableOption,
   type EditableProps,
   type EditableSelectProps,

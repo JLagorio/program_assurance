@@ -20,6 +20,10 @@ export default {
     {
       code: `${kit} export function Row(Button) { return <Button render={<Link to="/x" />}>Open</Button>; }`,
     },
+    // A component of this file that hands render on to a LinkButton.
+    {
+      code: `${kitImport("LinkButton")} const Go = (props) => <LinkButton {...props} />; export const A = () => <Go render={<Link to="/tasks" />}>Tasks</Go>;`,
+    },
   ],
   invalid: [
     {
@@ -74,6 +78,26 @@ export default {
       // Another package's Button under another name is judged by the name it imports.
       code: 'import { Button as Btn } from "@/components/ui/button"; <Btn render={<a href="/x" />}>Open</Btn>',
       errors: [{ messageId: "rendersLink" }],
+    },
+    {
+      // A component of this file that hands render on to a Button.
+      code: `${kit} const Go = (props) => <Button {...props} />; export const A = () => <Go render={<Link to="/tasks" />}>Tasks</Go>;`,
+      errors: [
+        {
+          messageId: "forwardedLink",
+          data: { part: "Button", tag: "Link", replacement: "LinkButton", wrapper: "Go" },
+        },
+      ],
+    },
+    {
+      // And onClick, when all it does is navigate.
+      code: `${kit} import { useNavigate } from "@tanstack/react-router"; const Go = (props) => <Button {...props} />; export const A = () => { const navigate = useNavigate(); return <Go onClick={() => navigate({ to: "/tasks" })}>Tasks</Go>; };`,
+      errors: [
+        {
+          messageId: "forwardedNavigates",
+          data: { part: "Button", replacement: "LinkButton", wrapper: "Go" },
+        },
+      ],
     },
   ],
 };

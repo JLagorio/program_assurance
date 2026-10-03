@@ -1,12 +1,16 @@
 import { Check } from "lucide-react";
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
 import { Dot, type Tone } from "../components/badge";
 import { VisuallyHidden } from "../primitives/visually-hidden";
 
-export type GatesProps = {
+/** A Gates takes its list's native props, `className` and `ref` too. */
+export type GatesProps = Omit<
+  ComponentProps<"ul">,
+  "children" | "aria-label" | "aria-labelledby" | "className"
+> & {
   /** Gates.Item rows, in the order they are checked. */
   children: ReactNode;
   /** The list's name when no heading shows it: "Submit gates". */
@@ -16,7 +20,8 @@ export type GatesProps = {
   className?: string | undefined;
 };
 
-export type GateItemProps = {
+/** A Gates.Item takes its row's native props, `className` and `ref` too. */
+export type GateItemProps = Omit<ComponentProps<"li">, "children"> & {
   /** Whether the condition holds. A met gate is a check and a muted label; an unmet one a Dot in its tone. */
   met: boolean;
   /** The unmet colour. `warning` is the default; `danger` for a gate nothing on this record can move. */
@@ -40,15 +45,17 @@ function GatesRoot({
   "aria-label": ariaLabel,
   "aria-labelledby": ariaLabelledBy,
   className,
+  ...props
 }: GatesProps) {
   return (
     // `role="list"` keeps the list, and its count, in WebKit, which drops it from a list without markers.
     <ul
+      {...props}
       role="list"
-      data-slot="gates"
       aria-label={ariaLabelledBy ? undefined : ariaLabel}
       aria-labelledby={ariaLabelledBy}
       className={cn("flex flex-col gap-050", className)}
+      data-slot="gates"
     >
       {children}
     </ul>
@@ -56,12 +63,20 @@ function GatesRoot({
 }
 
 /** One gate. The state is drawn and also spoken, in the locale's words: "Met: Owner", "Not met: Success criterion". */
-export function GateItem({ met, tone = "warning", label, reason, action }: GateItemProps) {
+export function GateItem({
+  met,
+  tone = "warning",
+  label,
+  reason,
+  action,
+  className,
+  ...props
+}: GateItemProps) {
   const { t } = useLedgerLocale();
   // The template keeps the translated word order; the words around the label are spoken, not drawn.
   const [before = "", after = ""] = t(met ? "gateMet" : "gateNotMet").split("{label}");
   return (
-    <li data-slot="gate" className="flex items-start gap-100">
+    <li {...props} className={cn("flex items-start gap-100", className)} data-slot="gate">
       <span className="flex size-200 shrink-0 items-center justify-center">
         {met ? <Check aria-hidden className="size-icon-small icon-success" /> : <Dot tone={tone} />}
       </span>

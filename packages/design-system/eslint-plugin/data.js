@@ -3,7 +3,8 @@
 // file is read the first time a rule asks for it, and then kept:
 // - lint.json, the facts a linted file may need: the Tailwind version the data reflects, the
 //   inputs it was built from (by hash), the name of every @utility, the utilities a leading minus
-//   negates, the variant grammar, the ARIA attribute names and shadcn's theme names;
+//   negates, the variant grammar, the ARIA attribute names, shadcn's theme names and the class
+//   categories (categories.js);
 // - lint-values.json, what only a finding's advice needs: each @utility's file, line and
 //   properties, token values by kind, the token behind each token class, the specialised colour
 //   classes, the Ledger classes for shadcn's theme names and Tailwind's stock scales.
@@ -33,8 +34,9 @@ export const generatedPath = (file) =>
 /* ---------- what the data is built from ---------- */
 
 /** The files the lint data is built from, as paths in the package, sorted: the token build's
-    allowlist and token docs, every stylesheet the kit's Storybook entry reads, where Tailwind
-    finds the kit's @utility names, variants and theme, and the table of shadcn's theme names. */
+    allowlist, token docs and merge config (the grammar the class categories read), every
+    stylesheet the kit's Storybook entry reads, where Tailwind finds the kit's @utility names,
+    variants and theme, and the table of shadcn's theme names. */
 export function inputFiles(root = packageRoot) {
   const sheets = (dir) =>
     fs
@@ -44,6 +46,7 @@ export function inputFiles(root = packageRoot) {
   return [
     "build/vocabulary-aliases.json",
     "src/generated/docs.json",
+    "src/generated/merge-config.ts",
     "src/generated/utilities.json",
     ...sheets("src/generated"),
     ...sheets("src/styles"),

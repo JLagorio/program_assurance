@@ -1,10 +1,12 @@
 import { EmptyMessage, QueryState, type QueryStatus } from "@/components/prototype/work-common";
 import { RecordLink, recordDestination } from "@/components/prototype/record-preview";
+import { questionSearch } from "@/components/prototype/collection-question";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, type ReactNode } from "react";
 import {
   Absent,
   Box,
+  Chart,
   DataTable,
   Grid,
   Id,
@@ -20,15 +22,26 @@ import {
   useLedgerLocale,
   type DataTableEmpty,
   type DataTableInstance,
+  type HeatmapSelection,
   type StatTileProps,
+  type TableQuery,
 } from "@ledger/design-system";
 import { FolderKanban, Plus, ShieldAlert } from "lucide-react";
 import { useRows, type Row, type TableName } from "@/lib/models";
-import { programStatuses, riskStatuses, severityLevels, statusEntry } from "@/lib/status";
+import {
+  determinations,
+  operationalIssueStatuses,
+  programStatuses,
+  riskLevels,
+  riskStatuses,
+  severityLevels,
+  statusEntry,
+} from "@/lib/status";
 import { useWorkspace } from "@/components/app/workspace";
 import { Page } from "@/components/app/shell";
 import { LevelIndicator } from "@/components/app/status";
 import { labelFor } from "@/lib/records";
+import { registerViews } from "@/lib/register-views";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [{ title: "Portfolio — Program Assurance" }] }),
@@ -54,6 +67,26 @@ const openRisk = (status: string) => status !== "closed";
 const openIssue = (status: string) => !["closed", "resolved", "cancelled"].includes(status);
 const unsatisfied = (determination: string) =>
   determination === "partially_satisfied" || determination === "other_than_satisfied";
+
+/*
+ * Each tile and each cell links to the register filtered to what it counts: the register reads its
+ * question from the address, under its view's name (ProductCollection's `keepQuestion`).
+ */
+const openRiskStatuses = Object.keys(riskStatuses).filter(openRisk);
+const openIssueStatuses = Object.keys(operationalIssueStatuses).filter(openIssue);
+const unsatisfiedDeterminations = Object.keys(determinations).filter(unsatisfied);
+const openRisksQuestion: TableQuery = { filters: [{ id: "status", value: openRiskStatuses }] };
+/**
+ * Every record, as the register opens unasked: a View all link opens this rather than the question
+ * the register last asked in this tab, which may be a tile's or a cell's.
+ */
+const everyRecord: TableQuery = { filters: [] };
+
+/** The risk matrix's axes: likelihood rows likeliest first, impact columns least first. */
+const levelsByRank = Object.entries(riskLevels).map(([value, entry]) => ({ value, ...entry }));
+const likelihoodRows = [...levelsByRank].sort((a, b) => b.rank - a.rank);
+const impactColumns = [...levelsByRank].sort((a, b) => a.rank - b.rank);
+const levelOf = (label: string) => levelsByRank.find((level) => level.label === label)?.value;
 
 /**
  * A top-N widget: a named Section whose action is View all, over a DataTable with no toolbar and
@@ -95,6 +128,117 @@ function Widget<T extends { id: string }>({
         )}
       </Stack>
     </Section>
+  );
+}
+
+/**
+ * The risk matrix: open risks counted by the likelihood and impact of their latest assessment, a
+ * heatmap with its table twin one toggle away. Its title is the widget's heading. It loads as the
+ * grid's skeleton. A failure is one alert with Retry above it, as on every widget: a failed refresh
+ * keeps the grid, and a failed load says Could not load in the grid's place, as a Stat tile does.
+ * A cell that holds risks links to the risk register filtered to them; a risk not yet assessed is
+ * counted in the description, not the grid.
+ */
+function RiskMatrix({
+  counts,
+  unassessed,
+  queries,
+}: {
+  /** Open risks by `likelihood|impact`, stored values. */
+  counts: ReadonlyMap<string, number>;
+  /** Open risks whose latest assessment records no likelihood or impact, or that have none. */
+  unassessed: number;
+  queries: QueryStatus[];
+}) {
+  const { formatNumber, formatPlural } = useLedgerLocale();
+  const failed = queries.filter((query) => query.isError);
+  const missing = failed.some((query) => query.data === undefined);
+  const loading = !missing && queries.some(isLoading);
+  const count = (likelihood: string, impact: string) => counts.get(`${likelihood}|${impact}`) ?? 0;
+  const value = (row: string, column: string) => {
+    const likelihood = levelOf(row);
+    const impact = levelOf(column);
+    return likelihood && impact ? count(likelihood, impact) : null;
+  };
+  const most = Math.max(0, ...counts.values());
+  const assessed = [...counts.values()].reduce((sum, n) => sum + n, 0);
+  const cellLink = ({ row, column }: HeatmapSelection) => {
+    const likelihood = levelOf(row);
+    const impact = levelOf(column);
+    if (!likelihood || !impact) return undefined;
+    return (
+      <Link
+        to="/risks"
+        search={questionSearch(registerViews.risks, {
+          filters: [
+            ...(openRisksQuestion.filters ?? []),
+            { id: "likelihood", value: [likelihood] },
+            { id: "impact", value: [impact] },
+          ],
+        })}
+      />
+    );
+  };
+  const notAssessed = unassessed
+    ? formatPlural(unassessed, {
+        one: "{count} open risk is not yet assessed",
+        other: "{count} open risks are not yet assessed",
+      })
+    : undefined;
+  return (
+    <Stack space="space.150" className="min-w-0">
+      {failed.length > 0 && (
+        <QueryState queries={failed} retryLabel="Retry loading the risk matrix" />
+      )}
+      <Chart
+        title="Open risks by likelihood and impact"
+        titleLevel={2}
+        description={
+          notAssessed
+            ? `At their latest assessment. ${notAssessed}.`
+            : "At their latest assessment."
+        }
+        summary={
+          assessed
+            ? formatPlural(assessed, {
+                one: "{count} assessed open risk, placed by its likelihood and impact.",
+                other: "{count} assessed open risks, placed by their likelihood and impact.",
+              })
+            : undefined
+        }
+        // A failed load stands in its place under the alert above, which carries Retry.
+        state={missing ? "empty" : loading ? "loading" : assessed === 0 ? "empty" : "ready"}
+        statusTitle={
+          missing ? "Could not load" : unassessed ? "No assessed open risks" : "No open risks"
+        }
+        statusText={
+          missing
+            ? "The matrix appears here once the open risks load."
+            : "An open risk appears here once its assessment records a likelihood and an impact."
+        }
+      >
+        <Stack space="space.150">
+          <Chart.Heatmap
+            rows={likelihoodRows.map((level) => level.label)}
+            columns={impactColumns.map((level) => level.label)}
+            value={value}
+            scale="sequential"
+            domain={[0, Math.max(1, most)]}
+            zeroStep
+            showValues
+            rowLabel="Likelihood"
+            columnLabel="Impact"
+            link={cellLink}
+          />
+          <Chart.Scale
+            scale="sequential"
+            zeroStep
+            min={formatNumber(0)}
+            max={formatPlural(Math.max(1, most), { one: "{count} risk", other: "{count} risks" })}
+          />
+        </Stack>
+      </Chart>
+    </Stack>
   );
 }
 
@@ -168,7 +312,7 @@ function Portfolio() {
     columns: ["id", "title", "status", "program_id", "owner_party_id", "updated_at"] as const,
   });
   const riskVersions = useRows("risk_revisions", undefined, {
-    columns: ["id", "risk_id", "version_number", "severity"] as const,
+    columns: ["id", "risk_id", "version_number", "severity", "likelihood", "impact"] as const,
   });
   const issues = useRows("operational_issues", undefined, {
     columns: ["id", "status", "severity"] as const,
@@ -197,14 +341,26 @@ function Portfolio() {
     () => new Map((parties.data ?? []).map((row) => [row.id, row.name])),
     [parties.data],
   );
-  const latestSeverity = useMemo(() => {
-    const latest = new Map<string, { version: number; severity: string | null }>();
+  // Each risk's latest assessment: the severity the widget orders by, the likelihood and impact
+  // the matrix places it at.
+  const latestAssessment = useMemo(() => {
+    const latest = new Map<
+      string,
+      {
+        version: number;
+        severity: string | null;
+        likelihood: string | null;
+        impact: string | null;
+      }
+    >();
     for (const version of riskVersions.data ?? []) {
       const current = latest.get(version.risk_id);
       if (!current || current.version < version.version_number)
         latest.set(version.risk_id, {
           version: version.version_number,
           severity: version.severity,
+          likelihood: version.likelihood,
+          impact: version.impact,
         });
     }
     return latest;
@@ -228,7 +384,8 @@ function Portfolio() {
         programs.data &&
         `${formatNumber(programs.data.filter((row) => row.status === "active").length)} active`,
       zero: "No programs recorded yet",
-      link: <Link to="/programs" />,
+      // Every program, whatever the register was last asked.
+      link: <Link to="/programs" search={questionSearch(registerViews.programs, everyRecord)} />,
     },
     {
       label: "Open risks",
@@ -236,9 +393,9 @@ function Portfolio() {
       value: riskVersions.data ? openRisks?.length : undefined,
       note:
         openRisks &&
-        `${formatNumber(openRisks.filter((row) => isSevere(latestSeverity.get(row.id)?.severity)).length)} high or critical`,
+        `${formatNumber(openRisks.filter((row) => isSevere(latestAssessment.get(row.id)?.severity)).length)} high or critical`,
       zero: "No open risks",
-      link: <Link to="/risks" />,
+      link: <Link to="/risks" search={questionSearch(registerViews.risks, openRisksQuestion)} />,
     },
     {
       label: "Open operational issues",
@@ -248,7 +405,14 @@ function Portfolio() {
         openIssues &&
         `${formatNumber(openIssues.filter((row) => isSevere(row.severity)).length)} high or critical`,
       zero: "No open operational issues",
-      link: <Link to="/findings" />,
+      link: (
+        <Link
+          to="/findings"
+          search={questionSearch(registerViews.operationalIssues, {
+            filters: [{ id: "status", value: openIssueStatuses }],
+          })}
+        />
+      ),
     },
     {
       label: "Unsatisfied assessment findings",
@@ -256,10 +420,37 @@ function Portfolio() {
       value: findings.data?.filter((row) => unsatisfied(row.determination)).length,
       note: "Partially or other than satisfied",
       zero: "No findings short of satisfied",
-      link: <Link to="/findings" search={{ tab: "findings" }} />,
+      link: (
+        <Link
+          to="/findings"
+          search={{
+            tab: "findings",
+            ...questionSearch(registerViews.assessmentFindings, {
+              filters: [{ id: "determination", value: unsatisfiedDeterminations }],
+            }),
+          }}
+        />
+      ),
     },
   ];
   const metricQueries = [programs, risks, riskVersions, issues, findings];
+
+  // The matrix: each open risk at its latest assessment's likelihood and impact.
+  const matrix = useMemo(() => {
+    const counts = new Map<string, number>();
+    let unassessed = 0;
+    for (const risk of risks.data ?? []) {
+      if (!openRisk(risk.status)) continue;
+      const latest = latestAssessment.get(risk.id);
+      if (!latest?.likelihood || !latest.impact) {
+        unassessed += 1;
+        continue;
+      }
+      const key = `${latest.likelihood}|${latest.impact}`;
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return { counts, unassessed };
+  }, [risks.data, latestAssessment]);
 
   const riskRows = useMemo<RiskRow[]>(
     () =>
@@ -269,7 +460,7 @@ function Portfolio() {
           id: row.id,
           title: row.title,
           status: row.status,
-          severity: latestSeverity.get(row.id)?.severity ?? null,
+          severity: latestAssessment.get(row.id)?.severity ?? null,
           program: programName.get(row.program_id) ?? null,
           owner: row.owner_party_id ? (partyName.get(row.owner_party_id) ?? null) : null,
           program_id: row.program_id,
@@ -281,7 +472,7 @@ function Portfolio() {
             b.updated_at.localeCompare(a.updated_at),
         )
         .slice(0, TOP),
-    [risks.data, latestSeverity, programName, partyName],
+    [risks.data, latestAssessment, programName, partyName],
   );
   const riskColumns = useMemo(
     () =>
@@ -314,7 +505,8 @@ function Portfolio() {
           statuses: riskStatuses,
         }),
         c.text("program", { header: "Program", minWidth: 140, priority: 3, sortable: false }),
-        c.text("owner", { header: "Owner", minWidth: 120, priority: 4, sortable: false }),
+        // A person, with their avatar, at the kind's width.
+        c.person("owner", { header: "Owner", priority: 4, sortable: false }),
       ]),
     [],
   );
@@ -366,7 +558,7 @@ function Portfolio() {
           sortable: false,
           cell: (row) => <Id>{row.code}</Id>,
         }),
-        c.date("updated_at", { header: "Updated", width: 130, priority: 3, sortable: false }),
+        c.date("updated_at", { header: "Updated", priority: 3, sortable: false }),
       ]),
     [],
   );
@@ -514,9 +706,22 @@ function Portfolio() {
         <Box className="@container">
           <Grid gap="space.400" alignItems="start" className="grid-cols-1 @4xl:grid-cols-3">
             <Stack space="space.400" className="min-w-0 @4xl:col-span-2">
+              <RiskMatrix
+                counts={matrix.counts}
+                unassessed={matrix.unassessed}
+                queries={[risks, riskVersions]}
+              />
               <Widget
                 title="Highest open risks"
-                viewAll={<TextLink render={<Link to="/risks" />}>View all risks</TextLink>}
+                viewAll={
+                  <TextLink
+                    render={
+                      <Link to="/risks" search={questionSearch(registerViews.risks, everyRecord)} />
+                    }
+                  >
+                    View all risks
+                  </TextLink>
+                }
                 table={riskTable}
                 queries={[risks, riskVersions, programs, parties]}
                 retryLabel="Retry loading risks"
@@ -530,7 +735,18 @@ function Portfolio() {
               />
               <Widget
                 title="Recently updated programs"
-                viewAll={<TextLink render={<Link to="/programs" />}>View all programs</TextLink>}
+                viewAll={
+                  <TextLink
+                    render={
+                      <Link
+                        to="/programs"
+                        search={questionSearch(registerViews.programs, everyRecord)}
+                      />
+                    }
+                  >
+                    View all programs
+                  </TextLink>
+                }
                 table={programTable}
                 queries={[programs]}
                 retryLabel="Retry loading programs"

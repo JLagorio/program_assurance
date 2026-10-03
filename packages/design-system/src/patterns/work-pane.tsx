@@ -8,10 +8,12 @@ import {
   useMemo,
   useRef,
   useState,
+  type ComponentProps,
   type CSSProperties,
   type FocusEvent,
   type KeyboardEvent,
   type ReactNode,
+  type Ref,
   type RefObject,
 } from "react";
 
@@ -19,6 +21,7 @@ import { Dot, type Tone } from "../components/badge";
 import { Button } from "../components/button";
 import { Id } from "../components/id";
 import { Item } from "../components/item";
+import { Truncate } from "../components/truncate";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
 import { VisuallyHidden } from "../primitives/visually-hidden";
@@ -28,6 +31,12 @@ import { VisuallyHidden } from "../primitives/visually-hidden";
    column at `dimension.layout.list`, its rows Items that select in place, the chosen one marked,
    and the detail beside it. Narrower than 768px of pane it is a drill-in: the list, then the
    chosen row's detail in its place with a Back that returns to the row. */
+
+/** Hands an element to a caller's ref, a callback or an object. */
+function assignRef<T>(ref: Ref<T> | undefined, value: T | null) {
+  if (typeof ref === "function") ref(value);
+  else if (ref) ref.current = value;
+}
 
 /** Which pane a stacked WorkPane shows: the list, or the chosen row's detail in its place. */
 export type WorkPaneView = "list" | "detail";
@@ -49,11 +58,11 @@ function scrollerOf(node: HTMLElement): HTMLElement | null {
   return null;
 }
 
-/* sticky-rail stops under the shell's header, which is right when the page scrolls. In a scroller of
-   the pane's own the rail sticks to that scroller's top, below whatever its scroll-padding keeps
-   clear for a sticky header (the panel's), and is at most the height left, so the list scrolls
-   inside itself and its last rows stay reachable: the pane sets --rail-top and --rail-max-height,
-   and keeps them as the scroller resizes. */
+/* The list sticks under the shell's header (layout.css), which is right when the page scrolls. In
+   a scroller of the pane's own the list sticks to that scroller's top, below whatever its
+   scroll-padding keeps clear for a sticky header (the panel's), and is at most the height left, so
+   the list scrolls inside itself and its last rows stay reachable: the pane sets --rail-top and
+   --rail-max-height, and keeps them as the scroller resizes. */
 function useRailScroller(pane: RefObject<HTMLDivElement | null>) {
   useLayoutEffect(() => {
     const node = pane.current;
@@ -118,7 +127,8 @@ function visibleName(control: HTMLElement) {
   return (copy.textContent ?? "").trim().toLowerCase();
 }
 
-export type WorkPaneProps = {
+/** A WorkPane takes its outer box's native props, `className` and `ref` too. */
+export type WorkPaneProps = Omit<ComponentProps<"div">, "children"> & {
   /** What the list is: "Catalog controls". It names the list's landmark and the list itself, and stays put above the rows while they scroll. Text, or a VisuallyHidden when the dialog's title already says it. */
   listLabel?: ReactNode;
   /** Above the rows, under the label, staying put with it: the list's search, its filter, its count. Never its name, which is `listLabel`. */
@@ -166,10 +176,21 @@ function WorkPaneRoot({
   defaultView = "list",
   onViewChange,
   backLabel,
+  className,
+  ref,
+  ...props
 }: WorkPaneProps) {
   const { t } = useLedgerLocale();
   const labelId = useId();
-  const pane = useRef<HTMLDivElement>(null);
+  const pane = useRef<HTMLDivElement | null>(null);
+  // The outer box is the pane's own, which it measures, and the caller's.
+  const setPane = useCallback(
+    (element: HTMLDivElement | null) => {
+      pane.current = element;
+      assignRef(ref, element);
+    },
+    [ref],
+  );
   const grid = useRef<HTMLDivElement>(null);
   const aside = useRef<HTMLElement>(null);
   const header = useRef<HTMLDivElement>(null);
@@ -378,23 +399,29 @@ function WorkPaneRoot({
     // the grid inside reads it.
     <WorkPaneContext.Provider value={context}>
       <div
-        ref={pane}
-        data-slot="work-pane"
+        {...props}
+        ref={setPane}
+        className={cn("@container/work-pane w-full min-w-0", className)}
         data-layout={stacked ? "stacked" : "split"}
         data-view={stacked ? (showDetail ? "detail" : "list") : undefined}
-        className="@container/work-pane w-full min-w-0"
+        data-slot="work-pane"
       >
+        {/* layout.css draws the split from @3xl of the pane's own width, by these data-slots: the
+            list column beside the detail, the pair a work surface tall, the list sticking under
+            the shell's header. */}
         <div
           ref={grid}
-          className="grid grid-cols-1 gap-y-300 @3xl/work-pane:min-h-work @3xl/work-pane:grid-cols-list-detail"
+          data-slot="work-pane-grid"
+          className="grid grid-cols-1 gap-y-300"
           style={style}
         >
           <aside
             ref={aside}
+            data-slot="work-pane-list"
             aria-labelledby={listLabel ? labelId : undefined}
             aria-label={listName}
             className={cn(
-              "min-w-0 @3xl/work-pane:sticky-rail @3xl/work-pane:overflow-y-auto @3xl/work-pane:border-e @3xl/work-pane:border-default @3xl/work-pane:pe-200",
+              "min-w-0 @3xl/work-pane:overflow-y-auto @3xl/work-pane:border-e @3xl/work-pane:border-default @3xl/work-pane:pe-200",
               !showList && "hidden",
             )}
             onKeyDown={onListKeyDown}
@@ -453,16 +480,18 @@ type WorkPaneRowState =
     }
   | { tone: Exclude<Tone, "neutral">; meta: ReactNode };
 
-export type WorkPaneRowProps = WorkPaneRowState & {
-  /** The record's id, under the title with the meta. It is also part of the row's name ("AC-2, Account management"), since rows can share a title. */
-  id: ReactNode;
-  /** The row's name, one line. */
-  title: ReactNode;
-  /** The row whose detail is open: a selected fill, and `aria-current` on its button. */
-  isActive?: boolean | undefined;
-  /** Chooses the row. Return a promise to open the detail once it settles (a guard that asks first), and resolve `false` to stay on the list. */
-  onSelect: () => void | boolean | Promise<unknown>;
-};
+/** A WorkPane.Row takes its row's native props, `className` and `ref` too; `id` and `title` are the record's. */
+export type WorkPaneRowProps = WorkPaneRowState &
+  Omit<ComponentProps<"li">, "id" | "title" | "onSelect" | "children"> & {
+    /** The record's id, under the title with the meta. It is also part of the row's name ("AC-2, Account management"), since rows can share a title. */
+    id: ReactNode;
+    /** The row's name, one line. */
+    title: ReactNode;
+    /** The row whose detail is open: a selected fill, and `aria-current` on its button. */
+    isActive?: boolean | undefined;
+    /** Chooses the row. Return a promise to open the detail once it settles (a guard that asks first), and resolve `false` to stay on the list. */
+    onSelect: () => void | boolean | Promise<unknown>;
+  };
 
 /** One row in a WorkPane list: an Item that selects in place, with a Dot for the state and the id under the title. Choosing it opens its detail; stacked, the detail takes the list's place. */
 export function WorkPaneRow({
@@ -472,10 +501,21 @@ export function WorkPaneRow({
   tone = "neutral",
   isActive,
   onSelect,
+  className,
+  ref,
+  ...props
 }: WorkPaneRowProps) {
   const { t } = useLedgerLocale();
   const pane = useContext(WorkPaneContext);
-  const row = useRef<HTMLLIElement>(null);
+  const row = useRef<HTMLLIElement | null>(null);
+  // The row is the pane's, for Back to return to, and the caller's.
+  const setRow = useCallback(
+    (element: HTMLLIElement | null) => {
+      row.current = element;
+      assignRef(ref, element);
+    },
+    [ref],
+  );
   const choose = () => {
     const result = onSelect();
     if (result instanceof Promise)
@@ -503,7 +543,9 @@ export function WorkPaneRow({
   };
   return (
     <Item
-      ref={row}
+      {...props}
+      ref={setRow}
+      className={className}
       leading={<Dot tone={tone} />}
       title={
         <>
@@ -515,7 +557,7 @@ export function WorkPaneRow({
       description={
         <span className="flex min-w-0 items-baseline gap-100">
           <Id aria-hidden>{id}</Id>
-          {meta ? <span className="truncate">{meta}</span> : null}
+          {meta ? <Truncate>{meta}</Truncate> : null}
         </span>
       }
       onSelect={choose}

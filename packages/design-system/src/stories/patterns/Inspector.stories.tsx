@@ -7,7 +7,10 @@ import { Badge, Button, IconButton, KeyValue } from "../../components";
 import { PageHeader } from "../../layout";
 import { Inspector, InspectorGroup } from "../../patterns";
 import { HeadingLevelProvider, Inline, Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const groups = [
   {
@@ -26,19 +29,45 @@ const groups = [
   },
 ];
 
+/** The two groups composed: an Inspector.Group each, its rows KeyValues. */
+const composed = (
+  <>
+    <Inspector.Group title="Ownership">
+      <KeyValue label="Owner">Dana Whitfield</KeyValue>
+      <KeyValue label="Sponsor">Alex Morgan</KeyValue>
+    </Inspector.Group>
+    <Inspector.Group title="Schedule">
+      <KeyValue label="Due">30 Sept 2026</KeyValue>
+      <KeyValue label="Frequency">Quarterly</KeyValue>
+    </Inspector.Group>
+  </>
+);
+
 const meta = {
   title: "Patterns/Inspector",
   component: Inspector,
   subcomponents: { InspectorGroup },
   parameters: { layout: "padded" },
-  args: {
-    groups,
-    footer: (
-      <Button size="small" variant="link">
-        Edit properties
-      </Button>
-    ),
-  },
+  argTypes: { children: { control: false }, footer: { control: false } },
+  render: (args) => (
+    <Inspector
+      {...args}
+      footer={
+        <Button size="small" variant="link">
+          Edit properties
+        </Button>
+      }
+    >
+      <Inspector.Group title="Ownership">
+        <KeyValue label="Owner">Dana Whitfield</KeyValue>
+        <KeyValue label="Sponsor">Alex Morgan</KeyValue>
+      </Inspector.Group>
+      <Inspector.Group title="Schedule">
+        <KeyValue label="Due">30 Sept 2026</KeyValue>
+        <KeyValue label="Frequency">Quarterly</KeyValue>
+      </Inspector.Group>
+    </Inspector>
+  ),
   decorators: [
     (Story) => (
       <div className="max-w-full" style={{ maxWidth: 320 }}>
@@ -57,36 +86,65 @@ function turned(trigger: HTMLElement) {
   return getComputedStyle(icon).rotate === "180deg";
 }
 
-/** The groups as data, every one open, in the order the reader needs them, with a footer action under them. Each title is a button inside a heading at the contextual level, an h3 when nothing sets one, and each group's rows are one definition list. */
-export const Groups: Story = {
+/** Checks the two groups: each title an h3 button, open, its rows one definition list; closing one hides its rows and leaves the other and the footer. */
+async function checkGroups(canvasElement: HTMLElement) {
+  const canvas = within(canvasElement);
+  for (const name of ["Ownership", "Schedule"]) {
+    await expect(canvas.getByRole("heading", { name }).tagName).toBe("H3");
+    await expect(canvas.getByRole("button", { name })).toHaveAttribute("aria-expanded", "true");
+  }
+  // One list of pairs per group, not one list per fact.
+  const lists = canvasElement.querySelectorAll("dl");
+  await expect(lists).toHaveLength(2);
+  for (const list of lists) {
+    await expect(list).toHaveAttribute("data-slot", "key-value-group");
+    await expect(list.querySelectorAll(":scope > div > dt")).toHaveLength(2);
+  }
+  await expect(canvasElement.querySelectorAll("[data-slot=inspector-group]")).toHaveLength(2);
+  const schedule = canvas.getByRole("button", { name: "Schedule" });
+  await userEvent.click(schedule);
+  await expect(schedule).toHaveAttribute("aria-expanded", "false");
+  // A closed group's rows leave the page once the fold ends.
+  await waitFor(() =>
+    expect(canvas.queryByText("Quarterly")?.checkVisibility() ?? false).toBe(false),
+  );
+  await expect(canvas.getByText("Dana Whitfield")).toBeVisible();
+  await expect(canvas.getByRole("button", { name: "Edit properties" })).toBeVisible();
+}
+
+/** The root holds the groups, Inspector.Group children in the order the reader needs them, every one open, with a footer action under them. Each title is a button inside a heading at the contextual level, an h3 when nothing sets one, and each group's rows are one definition list. */
+export const Composition: Story = {
   play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    for (const name of ["Ownership", "Schedule"]) {
-      await expect(canvas.getByRole("heading", { name }).tagName).toBe("H3");
-      await expect(canvas.getByRole("button", { name })).toHaveAttribute("aria-expanded", "true");
-    }
-    // One list of pairs per group, not one list per fact.
-    const lists = canvasElement.querySelectorAll("dl");
-    await expect(lists).toHaveLength(2);
-    for (const list of lists) {
-      await expect(list).toHaveAttribute("data-slot", "key-value-group");
-      await expect(list.querySelectorAll(":scope > div > dt")).toHaveLength(2);
-    }
-    // Every group is an Inspector.Group, so both forms share the header, the keyboard and the fold.
-    await expect(canvasElement.querySelectorAll("[data-slot=inspector-group]")).toHaveLength(2);
-    const schedule = canvas.getByRole("button", { name: "Schedule" });
-    await userEvent.click(schedule);
-    await expect(schedule).toHaveAttribute("aria-expanded", "false");
-    // A closed group's rows leave the page once the fold ends.
-    await waitFor(() =>
-      expect(canvas.queryByText("Quarterly")?.checkVisibility() ?? false).toBe(false),
+    await checkGroups(canvasElement);
+    // The groups are the root's children, the footer after them.
+    const root = canvasElement.querySelector<HTMLElement>("[data-slot=inspector]")!;
+    const groupsInRoot = root.querySelectorAll(":scope > [data-slot=inspector-group]");
+    await expect(groupsInRoot).toHaveLength(2);
+    await expect(root.lastElementChild).toContainElement(
+      within(root).getByRole("button", { name: "Edit properties" }),
     );
-    await expect(canvas.getByText("Dana Whitfield")).toBeVisible();
-    await expect(canvas.getByRole("button", { name: "Edit properties" })).toBeVisible();
   },
 };
 
-const editDetails = fn();
+/** `groups`, deprecated: the same groups as data, which the root renders as Inspector.Groups before any children. It goes in the next minor version; compose the groups instead. */
+export const DataForm: Story = {
+  name: "Data form (deprecated)",
+  tags: ["!manifest"],
+  args: { groups },
+  render: (args) => (
+    <Inspector
+      {...args}
+      footer={
+        <Button size="small" variant="link">
+          Edit properties
+        </Button>
+      }
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    await checkGroups(canvasElement);
+  },
+};
 
 /** Inspector.Group on its own: its rows in a KeyValue.Group (KeyValues given directly become one), open by default, an action beside the title, and `defaultOpen={false}` for the collapsed Details a reader opens when they need provenance or derivation. The chevron turns while the group is open and holds still under reduced motion. */
 export const Group: Story = {
@@ -94,15 +152,7 @@ export const Group: Story = {
     <div>
       <Inspector.Group
         title="Details"
-        action={
-          <IconButton
-            label="Edit details"
-            variant="subtle"
-            size="small"
-            icon={<Pencil />}
-            onClick={editDetails}
-          />
-        }
+        action={<IconButton label="Edit details" variant="subtle" size="small" icon={<Pencil />} />}
       >
         <KeyValue.Group>
           <KeyValue label="Status">
@@ -129,12 +179,16 @@ export const Group: Story = {
     // The rows are one definition list: a KeyValue.Group given, or KeyValues given directly.
     const detailsGroup = details.closest<HTMLElement>("[data-slot=inspector-group]")!;
     await expect(detailsGroup.querySelectorAll("dl")).toHaveLength(1);
-    // The action is outside the heading, its own stop.
+    // The action is outside the heading, its own stop: pressing it leaves the group open.
     await expect(
       within(heading).queryByRole("button", { name: "Edit details" }),
     ).not.toBeInTheDocument();
-    await userEvent.click(canvas.getByRole("button", { name: "Edit details" }));
-    await expect(editDetails).toHaveBeenCalledTimes(1);
+    const edit = canvas.getByRole("button", { name: "Edit details" });
+    details.focus();
+    await userEvent.tab();
+    await expect(edit).toHaveFocus();
+    await userEvent.click(edit);
+    await expect(details).toHaveAttribute("aria-expanded", "true");
     // Open and closed look different: the open group's chevron is turned.
     await expect(details).toHaveAttribute("aria-expanded", "true");
     await expect(turned(details)).toBe(true);
@@ -173,19 +227,28 @@ export const InARail: Story = {
       </PageHeader>
       <aside aria-label="Record details" className="max-w-full" style={{ maxWidth: 320 }}>
         <HeadingLevelProvider level={2}>
-          <Inspector groups={groups} />
-          <Inspector.Group
-            title="Authorization boundary and interconnections"
-            action={
-              <Button size="small" variant="subtle">
-                Edit
-              </Button>
-            }
-          >
-            <KeyValue.Group>
-              <KeyValue label="Boundary">Ground segment</KeyValue>
-            </KeyValue.Group>
-          </Inspector.Group>
+          <Inspector>
+            <Inspector.Group title="Ownership">
+              <KeyValue label="Owner">Dana Whitfield</KeyValue>
+              <KeyValue label="Sponsor">Alex Morgan</KeyValue>
+            </Inspector.Group>
+            <Inspector.Group title="Schedule">
+              <KeyValue label="Due">30 Sept 2026</KeyValue>
+              <KeyValue label="Frequency">Quarterly</KeyValue>
+            </Inspector.Group>
+            <Inspector.Group
+              title="Authorization boundary and interconnections"
+              action={
+                <Button size="small" variant="subtle">
+                  Edit
+                </Button>
+              }
+            >
+              <KeyValue.Group>
+                <KeyValue label="Boundary">Ground segment</KeyValue>
+              </KeyValue.Group>
+            </Inspector.Group>
+          </Inspector>
         </HeadingLevelProvider>
       </aside>
     </Stack>
@@ -260,7 +323,9 @@ const nativeRefs = { rail: createRef<HTMLDivElement>(), group: createRef<HTMLDiv
 export const NativeAttributes: Story = {
   render: () => (
     <Stack space="space.200">
-      <Inspector ref={nativeRefs.rail} data-testid="rail" className="min-w-0" groups={groups} />
+      <Inspector ref={nativeRefs.rail} data-testid="rail" className="min-w-0">
+        {composed}
+      </Inspector>
       <Inspector.Group
         ref={nativeRefs.group}
         data-testid="provenance"
@@ -289,6 +354,7 @@ export const NativeAttributes: Story = {
 
 /** The rail's facts in groups, as label and value rows under a heading that folds; not a hand-built list that leaves the outline and loses the disclosure. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Pair
       do={

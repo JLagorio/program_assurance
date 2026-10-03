@@ -4,11 +4,12 @@ import { DataTable, defineColumns, useDataTable } from "../..";
 import { Badge, Table, type Tone } from "../../components";
 import { Box, Inline, Stack, Text } from "../../primitives";
 
+// Row density is a table's own setting (Table's `density`, the DataTable's Compact rows). No part is
+// called Density, so the meta names no component and MCP lists the page by its title.
 const meta = {
   title: "Components/Density",
-  component: Table,
   parameters: { layout: "padded" },
-} satisfies Meta<typeof Table>;
+} satisfies Meta;
 export default meta;
 type Story = StoryObj;
 

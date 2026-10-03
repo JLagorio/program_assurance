@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useRows, type Row } from "./models";
+import { idSet, useRows, type Row } from "./models";
 import { labelFor } from "./records";
 import type { ElementType, SystemWizardDraft } from "./program-wizard";
 
@@ -50,6 +50,50 @@ type Input = {
   componentRevisions: readonly Row<"component_definition_revisions">[];
   definitions: readonly Row<"component_definitions">[];
 };
+
+/**
+ * The library records some product elements pin: their defined components, those components'
+ * definition versions and the definitions, each read by the ids the read before it names, never
+ * the whole library. `undefined` while the elements load keeps every read waiting; the rows shown
+ * stay while a changed set of elements loads.
+ */
+export function useElementLibrary(
+  elements: readonly Pick<Row<"product_elements">, "defined_component_id">[] | undefined,
+) {
+  const componentIds = useMemo(
+    () => (elements ? idSet(elements.map((row) => row.defined_component_id)) : undefined),
+    [elements],
+  );
+  const definedComponents = useRows(
+    "defined_components",
+    { id: componentIds ?? [] },
+    { enabled: componentIds !== undefined, keepPrevious: true },
+  );
+  const revisionIds = useMemo(
+    () => idSet(definedComponents.data?.map((row) => row.component_definition_revision_id)),
+    [definedComponents.data],
+  );
+  const componentRevisions = useRows(
+    "component_definition_revisions",
+    { id: revisionIds },
+    { enabled: definedComponents.isSuccess, keepPrevious: true },
+  );
+  const definitionIds = useMemo(
+    () => idSet(componentRevisions.data?.map((row) => row.component_definition_id)),
+    [componentRevisions.data],
+  );
+  const definitions = useRows(
+    "component_definitions",
+    { id: definitionIds },
+    { enabled: componentRevisions.isSuccess, keepPrevious: true },
+  );
+  return {
+    definedComponents,
+    componentRevisions,
+    definitions,
+    queries: [definedComponents, componentRevisions, definitions],
+  };
+}
 
 /** Every element of one version, sorted by position then code. */
 export function productElementSpecs(input: Input, revisionId: string): ProductElementSpec[] {

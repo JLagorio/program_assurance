@@ -7,6 +7,8 @@ import * as Stories from "./CopyButton.stories";
 
 # CopyButton
 
+**Status: Stable.**
+
 Puts a value on the clipboard: an identifier the reader will paste into a ticket, a command, a link, a configuration. It is a [Button](?path=/docs/components-button--docs), or with `label` an [IconButton](?path=/docs/components-iconbutton--docs), that copies `text` and says whether it worked. [CodeBlock](?path=/docs/components-codeblock--docs) uses it for its Copy.
 
 Use it where the reader takes a value away. Do not use it for a value they only read, and do not use it to share a record: a link to the record is a [TextLink](?path=/docs/components-textlink--docs) the reader can copy with the browser.
@@ -15,10 +17,10 @@ Use it where the reader takes a value away. Do not use it for a value they only 
 
 ## Two forms
 
-| Form       | How                                     | Where                                                                   |
-| ---------- | --------------------------------------- | ----------------------------------------------------------------------- |
-| Labelled   | Children, “Copy” (the `copy` message) by default | Beside a command or a block, where there is room for a word.            |
-| Icon-only  | `label`, such as “Copy ID”              | Beside an identifier in a line, a row or a details rail.                |
+| Form      | How                                              | Where                                                        |
+| --------- | ------------------------------------------------ | ------------------------------------------------------------ |
+| Labelled  | Children, “Copy” (the `copy` message) by default | Beside a command or a block, where there is room for a word. |
+| Icon-only | `label`, such as “Copy ID”                       | Beside an identifier in a line, a row or a details rail.     |
 
 The two are one prop apart and exclusive: with `label` there are no children. `variant` is `secondary` by default, or `subtle` beside an identifier or inside a block; `primary` is available and rarely right. `size` is `medium` for the labelled form and `small` (28px) for the icon-only one by default.
 
@@ -57,5 +59,7 @@ The two are one prop apart and exclusive: with `label` there are no children. `v
 [CodeBlock](?path=/docs/components-codeblock--docs) · [Id](?path=/docs/components-id--docs) · [IconButton](?path=/docs/components-iconbutton--docs) · [Button](?path=/docs/components-button--docs)
 
 ## Don't
+
+Where a screen has several, each CopyButton names what it copies (Copy ID), never a bare Copy beside every identifier. Copying is secondary or subtle, never a primary that competes with the page's action.
 
 <Canvas of={Stories.Dont} />

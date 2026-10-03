@@ -15,9 +15,13 @@ import {
 } from "../../components";
 import { MODE_STORAGE_KEY, ModeProvider, ModeSwitch, useMode, type ColorMode } from "../../mode";
 import { Box, Inline, Stack, Text } from "../../primitives";
-import { Matrix, Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
 import { measure, settled, type Paint } from "../tokens/_contrast";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix, Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Mode",
@@ -35,6 +39,11 @@ function Resolved() {
     </Text>
   );
 }
+
+export const Playground: Story = {
+  args: { value: "system", showLabels: true },
+  render: (args) => <ModeSwitch {...args} onChange={() => {}} />,
+};
 
 /** The provider and the control together. The choice is stored in this browser and applied to the root, so it outlives the toolbar's setting until you change either. */
 export const Live: Story = {
@@ -64,6 +73,7 @@ export const ControlledStory: Story = { name: "Controlled", render: () => <Contr
 
 /** Each state, icons only and with labels; then the control in a row of chrome. Nothing here touches the root. */
 export const ModeMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Matrix
@@ -88,6 +98,7 @@ export const ModeMatrix: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. Flip the toolbar to dark for the second pair. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -126,11 +137,6 @@ export const Dont: Story = {
       />
     </Stack>
   ),
-};
-
-export const Playground: Story = {
-  args: { value: "system", showLabels: true },
-  render: (args) => <ModeSwitch {...args} onChange={() => {}} />,
 };
 
 /** A controlled read-only field must not silently write the surrounding provider. */

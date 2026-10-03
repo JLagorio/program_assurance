@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
   HeadingLevelProvider,
   IconButton,
+  Person,
   Prose,
   Section,
   Stack,
@@ -42,7 +43,7 @@ import {
   MoreHorizontal,
   Target,
 } from "lucide-react";
-import { useModelSave, useRow, useRows, type Row, type TableName } from "@/lib/models";
+import { idSet, useModelSave, useRow, useRows, type Row, type TableName } from "@/lib/models";
 import { labelFor, type DataRecord } from "@/lib/records";
 import { useWorkspace } from "@/components/app/workspace";
 import { useConfirmation } from "@/components/app/confirmation";
@@ -54,6 +55,7 @@ import { AssessmentTable } from "./assessment-table";
 import { ModelFacts, RelationName, type DisplayColumn } from "./record-tools";
 import {
   DetailFacts,
+  DueDate,
   ModelForm,
   QueryState,
   SchemaLink,
@@ -74,11 +76,7 @@ function focusLanding(target: HTMLElement) {
 
 /** Authored text under its name, or a labelled Absent when there is none. */
 function Described({ label, text }: { label: string; text: unknown }) {
-  return (
-    <Prose label={label}>
-      {typeof text === "string" && text.trim() ? text : <Absent label="Not recorded" />}
-    </Prose>
-  );
+  return <Prose label={label}>{typeof text === "string" && text.trim() ? text : <Absent />}</Prose>;
 }
 
 /** A pinned SSP revision by its version, never its id. */
@@ -111,21 +109,25 @@ export function AssessmentCampaign({
   const workspace = useWorkspace();
   const plans = useRows("assessment_plan_revisions", { campaign_id: campaign.id });
   const events = useRows("assessment_events", { campaign_id: campaign.id });
-  const objectives = useRows("assessment_objectives");
-  const activities = useRows("assessment_activities");
-  const scheduled = useRows("scheduled_assessment_tasks");
+  // A plan's content is read through the campaign's plans, joined on the server: never every
+  // plan's objectives, activities and scheduled tasks in the workspace.
+  const inCampaign = { "assessment_plan_revisions.campaign_id": campaign.id };
+  const objectives = useRows("assessment_objectives", inCampaign);
+  const activities = useRows("assessment_activities", inCampaign);
+  const scheduled = useRows("scheduled_assessment_tasks", inCampaign);
   const procedures = useRows("procedures");
   const revisions = useRows("procedure_revisions");
   const runs = useRows("test_runs");
-  const parties = useRows("parties");
+  const parties = useRows("parties", undefined, { columns: ["id", "name"] });
   const [form, setForm] = useState<FormTarget | null>(null);
   const [selection, setSelection] = useState<FormTarget | null>(null);
   const [displayed, setDisplayed] = useState<Record<string, DataRecord[]>>({});
+  // A name the reader cannot see stays null, so it sorts last and its cell says Absent.
   const partyName = (id: string | null | undefined) =>
-    id ? (parties.data?.find((party) => party.id === id)?.name ?? "Not available") : null;
+    id ? (parties.data?.find((party) => party.id === id)?.name ?? null) : null;
   const planRows = [...(plans.data ?? [])].sort((a, b) => b.version_number - a.version_number);
   const planTitle = (id: string | null | undefined) =>
-    planRows.find((plan) => plan.id === id)?.title ?? "Not available";
+    planRows.find((plan) => plan.id === id)?.title ?? null;
   const inPlans = (id: string | null | undefined) => planRows.some((plan) => plan.id === id);
   const objectiveRows = (objectives.data ?? [])
     .filter((row) => inPlans(row.plan_revision_id))
@@ -150,7 +152,7 @@ export function AssessmentCampaign({
       ...row,
       procedure:
         revisions.data?.find((revision) => revision.id === row.procedure_revision_id)?.title ??
-        "Not available",
+        null,
       assessor: partyName(row.assessor_party_id),
     }));
   const procedureRows = (procedures.data ?? [])
@@ -243,7 +245,8 @@ export function AssessmentCampaign({
       : writable
         ? `${what} It belongs to a draft assessment plan revision: create one under Assessment plans first.`
         : `${what} It belongs to a draft assessment plan revision.`;
-  const runsReady = !runs.isPending && !plans.isPending && !events.isPending;
+  // Counted once the rows it reads are here: a load that failed has no count, never 0.
+  const runsReady = !!runs.data && !!plans.data && !!events.data;
   const noun = (table: TableName) => capitalize(productRecordNoun(table));
   return (
     <Stack space="space.200">
@@ -253,267 +256,326 @@ export function AssessmentCampaign({
           {campaignTabs.map((name) => (
             <TabsTrigger value={name} key={name}>
               {name}
-              {name === "Runs" && runsReady && runRows.length > 0 ? (
-                <Count value={runRows.length} />
-              ) : null}
+              {/* Every strip counts the same way: 0 once the rows load, and up to 9999. */}
+              {name === "Runs" && runsReady ? <Count value={runRows.length} max={9999} /> : null}
             </TabsTrigger>
           ))}
         </TabsList>
-        <TabsContent value="Overview">{overview}</TabsContent>
+        {/* Each tab is a failure region: an outage reads as one alert at its top, whose Retry
+            reloads every failed read in it. */}
+        <TabsContent value="Overview">
+          <QueryState region>{overview}</QueryState>
+        </TabsContent>
         <TabsContent value="Execution" keepMounted>
-          <Stack space="space.300" className="pt-200">
-            <Section title="Assessment plans">
-              <AssessmentTable
-                queries={[plans]}
-                actions={add({
-                  table: "assessment_plan_revisions",
-                  initialValues: {
-                    campaign_id: campaign.id,
-                    version_number: (planRows[0]?.version_number ?? 0) + 1,
-                  },
-                })}
-                model="assessment_plan_revisions"
-                selectedId={
-                  selection?.table === "assessment_plan_revisions"
-                    ? selection.existing?.id
-                    : undefined
-                }
-                onDisplayedRowsChange={keep("assessment_plan_revisions")}
-                compact
-                label="Assessment plans"
-                empty={{
-                  icon: <FileText />,
-                  description:
-                    "An assessment plan revision pins the SSP it assesses and holds the objectives, activities and tasks.",
-                }}
-                rows={planRows}
-                columns={[
-                  { key: "title", label: "Plan" },
-                  { key: "version_number", label: "Version", kind: "number", width: 100 },
-                  {
-                    key: "state",
-                    label: "State",
-                    statuses: revisionStates,
-                    width: 130,
-                    priority: 1,
-                  },
-                  {
-                    label: "SSP revision",
-                    value: (row) => <SspVersion id={row.ssp_revision_id} />,
-                    width: 145,
-                  },
-                ]}
-                onPreview={inspect("assessment_plan_revisions")}
-              />
-            </Section>
-            <Section title="Events">
-              <AssessmentTable
-                queries={[events, plans]}
-                actions={add({
-                  table: "assessment_events",
-                  initialValues: { campaign_id: campaign.id },
-                })}
-                model="assessment_events"
-                selectedId={
-                  selection?.table === "assessment_events" ? selection.existing?.id : undefined
-                }
-                onDisplayedRowsChange={keep("assessment_events")}
-                compact
-                label="Events"
-                empty={{
-                  icon: <CalendarDays />,
-                  illustration: "calendar",
-                  description: planRows[0]
-                    ? "An event schedules a window of assessment work in this campaign."
-                    : "An event schedules a window of assessment work under an assessment plan revision: create one under Assessment plans first.",
-                }}
-                rows={events.data ?? []}
-                columns={[
-                  { key: "title", label: "Event" },
-                  { key: "status", label: "Status", width: 130, priority: 1 },
-                  { key: "starts_at", label: "Starts", width: 140 },
-                  { key: "ends_at", label: "Ends", width: 140 },
-                ]}
-                onPreview={inspect("assessment_events")}
-              />
-            </Section>
-            <Section title="Objectives">
-              <AssessmentTable
-                queries={[plans, objectives]}
-                actions={add({ table: "assessment_objectives" })}
-                model="assessment_objectives"
-                selectedId={
-                  selection?.table === "assessment_objectives" ? selection.existing?.id : undefined
-                }
-                onDisplayedRowsChange={keep("assessment_objectives")}
-                compact
-                label="Objectives"
-                empty={{
-                  icon: <Target />,
-                  illustration: "shield",
-                  description: planEmpty("An objective says what the plan sets out to show."),
-                }}
-                rows={objectiveRows}
-                columns={[
-                  { key: "title", label: "Objective" },
-                  { key: "acceptance_criterion", label: "Acceptance criterion" },
-                  { key: "plan", label: "Plan", width: 180 },
-                ]}
-                onPreview={inspect("assessment_objectives")}
-              />
-            </Section>
-            <Section title="Activities">
-              <AssessmentTable
-                queries={[plans, activities]}
-                actions={add({ table: "assessment_activities" })}
-                model="assessment_activities"
-                selectedId={
-                  selection?.table === "assessment_activities" ? selection.existing?.id : undefined
-                }
-                onDisplayedRowsChange={keep("assessment_activities")}
-                compact
-                label="Activities"
-                empty={{
-                  icon: <ListChecks />,
-                  description: planEmpty(
-                    "An activity records how an objective is examined, interviewed or tested.",
-                  ),
-                }}
-                rows={activityRows}
-                columns={[
-                  { key: "title", label: "Activity" },
-                  { key: "methodLabel", label: "Method", width: 140 },
-                  { key: "plan", label: "Plan", width: 180 },
-                ]}
-                onPreview={inspect("assessment_activities")}
-              />
-            </Section>
-            <Section title="Scheduled assessment tasks">
-              <AssessmentTable
-                queries={[plans, scheduled, parties]}
-                actions={add({ table: "scheduled_assessment_tasks" })}
-                model="scheduled_assessment_tasks"
-                selectedId={
-                  selection?.table === "scheduled_assessment_tasks"
-                    ? selection.existing?.id
-                    : undefined
-                }
-                onDisplayedRowsChange={keep("scheduled_assessment_tasks")}
-                compact
-                label="Scheduled assessment tasks"
-                empty={{
-                  icon: <ListTodo />,
-                  illustration: "tasks",
-                  description: planEmpty("A scheduled task assigns assessment work to an owner."),
-                }}
-                rows={scheduledRows}
-                columns={[
-                  { key: "title", label: "Task" },
-                  { key: "status", label: "Status", width: 130, priority: 1 },
-                  { key: "owner", label: "Owner", kind: "person", width: 180 },
-                  { key: "due_at", label: "Due", width: 140 },
-                ]}
-                onPreview={inspect("scheduled_assessment_tasks")}
-              />
-            </Section>
-          </Stack>
+          <QueryState region>
+            <Stack space="space.300">
+              <Section title="Assessment plans">
+                <AssessmentTable
+                  queries={[plans]}
+                  actions={add({
+                    table: "assessment_plan_revisions",
+                    initialValues: {
+                      campaign_id: campaign.id,
+                      version_number: (planRows[0]?.version_number ?? 0) + 1,
+                    },
+                  })}
+                  model="assessment_plan_revisions"
+                  selectedId={
+                    selection?.table === "assessment_plan_revisions"
+                      ? selection.existing?.id
+                      : undefined
+                  }
+                  onDisplayedRowsChange={keep("assessment_plan_revisions")}
+                  compact
+                  label="Assessment plans"
+                  empty={{
+                    icon: <FileText />,
+                    description:
+                      "An assessment plan revision pins the SSP it assesses and holds the objectives, activities and tasks.",
+                  }}
+                  rows={planRows}
+                  columns={[
+                    { key: "title", label: "Plan" },
+                    { key: "version_number", label: "Version", kind: "number", width: 100 },
+                    {
+                      key: "state",
+                      label: "State",
+                      statuses: revisionStates,
+                      width: 130,
+                      priority: 1,
+                    },
+                    {
+                      label: "SSP revision",
+                      value: (row) => <SspVersion id={row.ssp_revision_id} />,
+                      width: 145,
+                    },
+                  ]}
+                  onPreview={inspect("assessment_plan_revisions")}
+                />
+              </Section>
+              <Section title="Events">
+                <AssessmentTable
+                  queries={[events, plans]}
+                  actions={add({
+                    table: "assessment_events",
+                    initialValues: { campaign_id: campaign.id },
+                  })}
+                  model="assessment_events"
+                  selectedId={
+                    selection?.table === "assessment_events" ? selection.existing?.id : undefined
+                  }
+                  onDisplayedRowsChange={keep("assessment_events")}
+                  compact
+                  label="Events"
+                  empty={{
+                    icon: <CalendarDays />,
+                    illustration: "calendar",
+                    description: planRows[0]
+                      ? "An event schedules a window of assessment work in this campaign."
+                      : "An event schedules a window of assessment work under an assessment plan revision: create one under Assessment plans first.",
+                  }}
+                  rows={events.data ?? []}
+                  columns={[
+                    { key: "title", label: "Event" },
+                    { key: "status", label: "Status", width: 130, priority: 1 },
+                    { key: "starts_at", label: "Starts", width: 140 },
+                    { key: "ends_at", label: "Ends", width: 140 },
+                  ]}
+                  onPreview={inspect("assessment_events")}
+                />
+              </Section>
+              <Section title="Objectives">
+                <AssessmentTable
+                  queries={[plans, objectives]}
+                  actions={add({ table: "assessment_objectives" })}
+                  model="assessment_objectives"
+                  selectedId={
+                    selection?.table === "assessment_objectives"
+                      ? selection.existing?.id
+                      : undefined
+                  }
+                  onDisplayedRowsChange={keep("assessment_objectives")}
+                  compact
+                  label="Objectives"
+                  empty={{
+                    icon: <Target />,
+                    illustration: "shield",
+                    description: planEmpty("An objective says what the plan sets out to show."),
+                  }}
+                  rows={objectiveRows}
+                  columns={[
+                    { key: "title", label: "Objective" },
+                    { key: "acceptance_criterion", label: "Acceptance criterion" },
+                    {
+                      key: "plan",
+                      label: "Plan",
+                      value: (row) => row.plan ?? <Absent label="Not available" />,
+                      width: 180,
+                    },
+                  ]}
+                  onPreview={inspect("assessment_objectives")}
+                />
+              </Section>
+              <Section title="Activities">
+                <AssessmentTable
+                  queries={[plans, activities]}
+                  actions={add({ table: "assessment_activities" })}
+                  model="assessment_activities"
+                  selectedId={
+                    selection?.table === "assessment_activities"
+                      ? selection.existing?.id
+                      : undefined
+                  }
+                  onDisplayedRowsChange={keep("assessment_activities")}
+                  compact
+                  label="Activities"
+                  empty={{
+                    icon: <ListChecks />,
+                    description: planEmpty(
+                      "An activity records how an objective is examined, interviewed or tested.",
+                    ),
+                  }}
+                  rows={activityRows}
+                  columns={[
+                    { key: "title", label: "Activity" },
+                    { key: "methodLabel", label: "Method", width: 140 },
+                    {
+                      key: "plan",
+                      label: "Plan",
+                      value: (row) => row.plan ?? <Absent label="Not available" />,
+                      width: 180,
+                    },
+                  ]}
+                  onPreview={inspect("assessment_activities")}
+                />
+              </Section>
+              <Section title="Scheduled assessment tasks">
+                <AssessmentTable
+                  queries={[plans, scheduled, parties]}
+                  actions={add({ table: "scheduled_assessment_tasks" })}
+                  model="scheduled_assessment_tasks"
+                  selectedId={
+                    selection?.table === "scheduled_assessment_tasks"
+                      ? selection.existing?.id
+                      : undefined
+                  }
+                  onDisplayedRowsChange={keep("scheduled_assessment_tasks")}
+                  compact
+                  label="Scheduled assessment tasks"
+                  empty={{
+                    icon: <ListTodo />,
+                    illustration: "tasks",
+                    description: planEmpty("A scheduled task assigns assessment work to an owner."),
+                  }}
+                  rows={scheduledRows}
+                  columns={[
+                    { key: "title", label: "Task" },
+                    { key: "status", label: "Status", width: 130, priority: 1 },
+                    {
+                      key: "owner",
+                      label: "Owner",
+                      kind: "person",
+                      value: (row) =>
+                        row.owner ? (
+                          <Person name={row.owner} />
+                        ) : (
+                          <Absent label={row.owner_party_id ? "Not available" : "Not recorded"} />
+                        ),
+                      width: 180,
+                    },
+                    // A calendar day, overdue once it is before the reader's today while the task
+                    // is still to do; a completed task's day reads plainly. Wide enough for the day
+                    // and where it stands ("Oct 4, 2026 · Due in 2 days") on one line.
+                    {
+                      key: "due_on",
+                      label: "Due",
+                      minWidth: 200,
+                      value: (row) => <ScheduledDue due={row.due_on} status={row.status} />,
+                    },
+                  ]}
+                  onPreview={inspect("scheduled_assessment_tasks")}
+                />
+              </Section>
+            </Stack>
+          </QueryState>
         </TabsContent>
         <TabsContent value="Procedures" keepMounted>
-          <Stack space="space.300" className="pt-200">
-            <Section title="Procedures">
-              <AssessmentTable
-                queries={[procedures, revisions, runs, events, plans]}
-                actions={add({
-                  table: "procedures",
-                  initialValues: { program_id: campaign.program_id },
-                })}
-                model="procedures"
-                selectedId={selection?.table === "procedures" ? selection.existing?.id : undefined}
-                onDisplayedRowsChange={keep("procedures")}
-                compact
-                label="Procedures"
-                empty={{
-                  icon: <ClipboardList />,
-                  description:
-                    "A procedure describes a repeatable test; its revisions hold the method and the steps.",
-                }}
-                rows={procedureRows}
-                columns={[
-                  { key: "title", label: "Procedure" },
-                  { key: "description", label: "Description" },
-                  { key: "versions", label: "Versions", kind: "number", width: 112 },
-                ]}
-                onPreview={inspect("procedures")}
-              />
-            </Section>
-            <Section title="Procedure revisions">
-              <AssessmentTable
-                queries={[procedures, revisions, runs, events, plans]}
-                actions={add({ table: "procedure_revisions" })}
-                model="procedure_revisions"
-                selectedId={
-                  selection?.table === "procedure_revisions" ? selection.existing?.id : undefined
-                }
-                onDisplayedRowsChange={keep("procedure_revisions")}
-                compact
-                label="Procedure revisions"
-                empty={{
-                  icon: <History />,
-                  description:
-                    "A revision fixes a procedure's method, preconditions and steps for the runs that use it.",
-                }}
-                rows={revisionRows}
-                columns={[
-                  { key: "title", label: "Revision" },
-                  { key: "version_number", label: "Version", kind: "number", width: 100 },
-                  { key: "methodLabel", label: "Method", width: 140 },
-                  {
-                    key: "state",
-                    label: "State",
-                    statuses: revisionStates,
-                    width: 130,
-                    priority: 1,
-                  },
-                ]}
-                onPreview={inspect("procedure_revisions")}
-              />
-            </Section>
-          </Stack>
+          <QueryState region>
+            <Stack space="space.300">
+              <Section title="Procedures">
+                <AssessmentTable
+                  queries={[procedures, revisions, runs, events, plans]}
+                  actions={add({
+                    table: "procedures",
+                    initialValues: { program_id: campaign.program_id },
+                  })}
+                  model="procedures"
+                  selectedId={
+                    selection?.table === "procedures" ? selection.existing?.id : undefined
+                  }
+                  onDisplayedRowsChange={keep("procedures")}
+                  compact
+                  label="Procedures"
+                  empty={{
+                    icon: <ClipboardList />,
+                    description:
+                      "A procedure describes a repeatable test; its revisions hold the method and the steps.",
+                  }}
+                  rows={procedureRows}
+                  columns={[
+                    { key: "title", label: "Procedure" },
+                    { key: "description", label: "Description" },
+                    { key: "versions", label: "Versions", kind: "number", width: 112 },
+                  ]}
+                  onPreview={inspect("procedures")}
+                />
+              </Section>
+              <Section title="Procedure revisions">
+                <AssessmentTable
+                  queries={[procedures, revisions, runs, events, plans]}
+                  actions={add({ table: "procedure_revisions" })}
+                  model="procedure_revisions"
+                  selectedId={
+                    selection?.table === "procedure_revisions" ? selection.existing?.id : undefined
+                  }
+                  onDisplayedRowsChange={keep("procedure_revisions")}
+                  compact
+                  label="Procedure revisions"
+                  empty={{
+                    icon: <History />,
+                    description:
+                      "A revision fixes a procedure's method, preconditions and steps for the runs that use it.",
+                  }}
+                  rows={revisionRows}
+                  columns={[
+                    { key: "title", label: "Revision" },
+                    { key: "version_number", label: "Version", kind: "number", width: 100 },
+                    { key: "methodLabel", label: "Method", width: 140 },
+                    {
+                      key: "state",
+                      label: "State",
+                      statuses: revisionStates,
+                      width: 130,
+                      priority: 1,
+                    },
+                  ]}
+                  onPreview={inspect("procedure_revisions")}
+                />
+              </Section>
+            </Stack>
+          </QueryState>
         </TabsContent>
         <TabsContent value="Runs" keepMounted>
-          <AssessmentTable
-            model="test_runs"
-            fill
-            queries={[runs, events, plans, revisions, parties]}
-            actions={add({ table: "test_runs" })}
-            selectedId={selection?.table === "test_runs" ? selection.existing?.id : undefined}
-            onDisplayedRowsChange={keep("test_runs")}
-            label="Test runs"
-            empty={{
-              illustration: "tasks",
-              description: planRows[0]
-                ? "A test run records one execution of a procedure revision against a configuration baseline."
-                : "A test run executes a procedure under an assessment plan revision: create one on the Execution tab first.",
-            }}
-            rows={runRows}
-            columns={[
-              { key: "title", label: "Run" },
-              { key: "procedure", label: "Procedure revision" },
-              {
-                key: "status",
-                label: "Status",
-                statuses: testRunStatuses,
-                width: 125,
-                priority: 1,
-              },
-              { key: "assessor", label: "Assessor", kind: "person", width: 170 },
-              { key: "completed_at", label: "Completed", width: 140 },
-            ]}
-            onPreview={inspect("test_runs")}
-          />
+          <QueryState region>
+            <AssessmentTable
+              model="test_runs"
+              fill
+              queries={[runs, events, plans, revisions, parties]}
+              actions={add({ table: "test_runs" })}
+              selectedId={selection?.table === "test_runs" ? selection.existing?.id : undefined}
+              onDisplayedRowsChange={keep("test_runs")}
+              label="Test runs"
+              empty={{
+                illustration: "tasks",
+                description: planRows[0]
+                  ? "A test run records one execution of a procedure revision against a configuration baseline."
+                  : "A test run executes a procedure under an assessment plan revision: create one on the Execution tab first.",
+              }}
+              rows={runRows}
+              columns={[
+                { key: "title", label: "Run" },
+                {
+                  key: "procedure",
+                  label: "Procedure revision",
+                  value: (row) => row.procedure ?? <Absent label="Not available" />,
+                },
+                {
+                  key: "status",
+                  label: "Status",
+                  statuses: testRunStatuses,
+                  width: 125,
+                  priority: 1,
+                },
+                {
+                  key: "assessor",
+                  label: "Assessor",
+                  kind: "person",
+                  value: (row) =>
+                    row.assessor ? (
+                      <Person name={row.assessor} />
+                    ) : (
+                      <Absent label={row.assessor_party_id ? "Not available" : "Not recorded"} />
+                    ),
+                  width: 170,
+                },
+                { key: "completed_at", label: "Completed", width: 140 },
+              ]}
+              onPreview={inspect("test_runs")}
+            />
+          </QueryState>
         </TabsContent>
         <TabsContent value="Regression" keepMounted>
-          <QueryState queries={[runs, events, plans]}>
+          <QueryState queries={[runs, events, plans]} region>
             <RegressionComparison runs={runRows} />
           </QueryState>
         </TabsContent>
@@ -558,9 +620,16 @@ const day = (key: string, label: string): DisplayColumn => ({
     typeof row[key] === "string" && row[key] ? (
       <DateTime value={row[key] as string} format="date" />
     ) : (
-      <Absent label="Not recorded" />
+      <Absent />
     ),
 });
+/**
+ * When a scheduled assessment task is due, and where it stands: overdue, due today and due soon
+ * say so beside the day until it is completed; a cancelled task's day has no state.
+ */
+function ScheduledDue({ due, status }: { due: unknown; status: unknown }) {
+  return <DueDate value={due} done={status === "completed"} cancelled={status === "cancelled"} />;
+}
 const owner: DisplayColumn = {
   key: "owner_party_id",
   label: "Owner",
@@ -590,7 +659,11 @@ const inspectorFacts: Partial<Record<TableName, DisplayColumn[]>> = {
     { key: "status", label: "Status" },
     owner,
     day("starts_at", "Starts"),
-    day("due_at", "Due"),
+    {
+      key: "due_on",
+      label: "Due",
+      render: (row) => <ScheduledDue due={row["due_on"]} status={row["status"]} />,
+    },
   ],
   procedures: [owner],
 };
@@ -1105,9 +1178,15 @@ function RunObservations({
   steps: Row<"procedure_steps">[];
   onEdit: (target: FormTarget) => void;
 }) {
-  const observations = useRows("observations");
-  const workspace = useWorkspace();
   const recorded = results.data ?? [];
+  // Only the observations made at this run's step results, read on the server: never every
+  // observation in the workspace. It waits for the results; none recorded asks for nothing.
+  const observations = useRows(
+    "observations",
+    { step_result_id: idSet(recorded.map((result) => result.id)) },
+    { enabled: results.data !== undefined, keepPrevious: true },
+  );
+  const workspace = useWorkspace();
   const rows = (observations.data ?? [])
     .filter(
       (row) => row.step_result_id && recorded.some((result) => result.id === row.step_result_id),
@@ -1126,10 +1205,11 @@ function RunObservations({
       }
       actions={
         writable && recorded.length > 0 ? (
+          // A collection under the run preview's header, which keeps the one primary.
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
-                <Button size="small" variant="primary" iconAfter={<ChevronDown />}>
+                <Button size="small" variant="secondary" iconAfter={<ChevronDown />}>
                   Create observation
                 </Button>
               }
@@ -1224,7 +1304,7 @@ function RegressionComparison({ runs }: { runs: Row<"test_runs">[] }) {
   });
   return (
     // The tab names the collection: the table starts it, and its columns say which runs compare.
-    <Stack space="space.200" className="pt-200">
+    <Stack space="space.200">
       <AssessmentTable
         queries={[results, steps]}
         label="Run comparisons"

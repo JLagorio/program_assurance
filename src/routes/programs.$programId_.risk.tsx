@@ -12,5 +12,5 @@ function ProgramView() {
   const { programId } = Route.useParams();
   const record = useRow("programs", programId);
   useRecordTitle("Program", record.data?.name);
-  return <ProgramWorkspace programId={programId} tab="Risk" view="Residual risk" />;
+  return <ProgramWorkspace programId={programId} tab="POA&M & risk" view="Residual risk" />;
 }

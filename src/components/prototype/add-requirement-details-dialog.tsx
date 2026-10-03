@@ -1,5 +1,4 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { AlertCircle } from "lucide-react";
 import {
   Alert,
@@ -24,8 +23,10 @@ import { ChoiceField, PartyField, TextField } from "@/components/app/fields";
 import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { useWorkspace } from "@/components/app/workspace";
-import { useModelSave, useRow, useRows } from "@/lib/models";
-import { database, requireIdentity } from "@/lib/database";
+import { useCollection, useColumnChoices } from "@/lib/collections";
+import { useRow, useRows } from "@/lib/models";
+import { requireIdentity } from "@/lib/database";
+import { SaveOnceConflict, useSaveOnce } from "@/lib/save-once";
 import { labelFor } from "@/lib/records";
 
 type Fields = {
@@ -46,6 +47,9 @@ const detailFields = [
   "rationale",
 ] as const;
 type DetailField = (typeof detailFields)[number];
+/** The longest title the form takes: a count shows near it, and a longer one is a field error, never cut. */
+const TITLE_LIMIT = 1000;
+const titleTooLong = `Use at most ${TITLE_LIMIT} characters for the title.`;
 
 /** Adds authored content to an existing requirement identity without exposing storage lifecycle fields. */
 export function AddRequirementDetailsDialog({
@@ -63,8 +67,7 @@ export function AddRequirementDetailsDialog({
   const workspace = useWorkspace();
   const requirement = useRow("engineering_requirements", requirementId);
   const parties = useRows("parties");
-  const create = useModelSave("requirement_revisions");
-  const cache = useQueryClient();
+  const save = useSaveOnce("requirement_revisions");
   const formId = useId();
   const feedback = useFormFeedback<DetailField>();
   const [open, setOpen] = useState(true);
@@ -87,19 +90,18 @@ export function AddRequirementDetailsDialog({
     onClose: () => setOpen(false),
     description: "The requirement details you entered will be lost.",
   });
-  const collection = workspace.collections.find((item) => item.name === "requirement_revisions");
-  const types =
-    collection?.columns.find((column) => column.name === "requirement_type")?.choices ?? [];
+  const schema = useCollection("requirement_revisions");
+  const types = useColumnChoices("requirement_revisions", "requirement_type").data ?? [];
   const roster = (parties.data ?? []).filter((party) => party.tenant_id === workspace.tenantId);
   const canWrite =
     workspace.role !== "viewer" &&
-    !!collection?.can_insert &&
+    !!schema.data?.can_insert &&
     requirement.data?.program_id === programId;
   const unavailable = canWrite
     ? undefined
     : workspace.role === "viewer"
       ? "An editor, admin, or owner can create a requirement revision."
-      : requirement.isPending
+      : requirement.isPending || schema.isPending
         ? "The requirement is still loading."
         : "Reload the requirement to add its details.";
   const change = <K extends keyof Fields>(field: K, value: Fields[K]) => {
@@ -107,7 +109,11 @@ export function AddRequirementDetailsDialog({
     setDirty(true);
   };
   const issues: FormIssue<DetailField>[] = [
-    ...(!fields.title.trim() ? [{ field: "title" as const, message: "Enter a title." }] : []),
+    ...(!fields.title.trim()
+      ? [{ field: "title" as const, message: "Enter a title." }]
+      : fields.title.trim().length > TITLE_LIMIT
+        ? [{ field: "title" as const, message: titleTooLong }]
+        : []),
     ...(!types.includes(fields.requirementType)
       ? [{ field: "requirementType" as const, message: "Choose a requirement type." }]
       : []),
@@ -145,38 +151,19 @@ export function AddRequirementDetailsDialog({
       owner_party_id: fields.ownerPartyId,
     };
     try {
-      const token = await requireIdentity(workspace);
       // A stable row ID makes retrying an uncertain response safe without creating a second record.
-      const { data: existing, error: lookupError } = await database()
-        .from("requirement_revisions")
-        .select()
-        .eq("id", contentId)
-        .eq("tenant_id", workspace.tenantId)
-        .setHeader("Authorization", `Bearer ${token}`)
-        .maybeSingle();
-      if (lookupError) throw new Error(lookupError.message);
-      if (existing) {
-        if (
-          !Object.entries(authored).every(
-            ([key, value]) => existing[key as keyof typeof existing] === value,
-          )
-        )
+      try {
+        await save.mutateAsync({
+          id: contentId,
+          values: authored,
+          create: { version_number: 1, state: "draft" },
+        });
+      } catch (cause) {
+        if (cause instanceof SaveOnceConflict && cause.reason === "different")
           throw new Error(
             "These requirement details were already saved with different values. Your current draft has been retained.",
           );
-        await cache.invalidateQueries({
-          queryKey: ["models", workspace.tenantId, "requirement_revisions"],
-        });
-      } else {
-        await create.mutateAsync({
-          values: {
-            ...authored,
-            id: contentId,
-            tenant_id: workspace.tenantId,
-            version_number: 1,
-            state: "draft",
-          },
-        });
+        throw cause;
       }
       await requireIdentity(workspace);
       saved.current = true;
@@ -253,7 +240,7 @@ export function AddRequirementDetailsDialog({
                     value={fields.title}
                     onChange={(value) => change("title", value)}
                     required
-                    maxLength={1000}
+                    characterLimit={TITLE_LIMIT}
                     error={errors.get("title")}
                     controlRef={feedback.ref("title")}
                   />

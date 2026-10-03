@@ -9,7 +9,7 @@ import {
 } from "@tanstack/react-table";
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
 import { PreviewCard as PreviewCardPrimitive } from "@base-ui/react/preview-card";
-import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, MoreHorizontal } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronRight, MoreHorizontal } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   createContext,
@@ -22,25 +22,28 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
+  type ComponentProps,
   type CSSProperties,
+  type FocusEvent,
   type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
+  type Ref,
 } from "react";
 import { announce } from "../../lib/announce";
 import {
   fitFrame,
   shareSlack,
+  identityOf,
   yieldPins,
   type FitColumn,
   type FrameFit,
   type PinnedColumn,
 } from "./responsive";
+import { rowNameOf, rowSpokenName } from "./row-name";
 import { KeyValue } from "../../components/key-value";
-import { Stack } from "../../primitives/stack";
 
-import { AlertDescription, Alert } from "../../components/alert";
+import { Alert, AlertAction, AlertDescription } from "../../components/alert";
 import { Button, IconButton } from "../../components/button";
 import {
   DropdownMenu,
@@ -52,13 +55,15 @@ import {
   DropdownMenuSeparator,
 } from "../../components/dropdown-menu";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "../../components/hover-card";
+import { MatchDirection } from "../../components/tooltip";
 import { Id } from "../../components/id";
 import { TablePagination } from "./pagination";
 import { Skeleton } from "../../components/skeleton";
 import { PreviewEye, Table, headerTrailingWidth, previewValueClass } from "../../components/table";
-import { tokenLiterals } from "../../generated/tokens";
+import { token, tokenLiterals } from "../../generated/tokens";
 import { cn } from "../../lib/cn";
 import { useFillWindow } from "../../lib/use-fill-window";
+import { useTouch } from "../../lib/touch";
 import {
   Empty,
   EmptyHeader,
@@ -76,7 +81,8 @@ import { GroupBy } from "./group-by";
 import { Metrics, MetricsContent, MetricsTrigger } from "./metrics";
 import { ColumnSortable, DragContext, RowSortable, useColumnDrag, useRowDrag } from "./reorder";
 import { SelectionBar } from "./selection-bar";
-import { DataTableSort } from "./sort-menu";
+import { focusPlace, stopCell, syncTabOrder, touchedRows, treegridKeys } from "./treegrid";
+import { DataTableSort, directionWords, labelOf } from "./sort-menu";
 import type { DataTableInstance } from "./use-data-table";
 
 /*
@@ -86,7 +92,19 @@ import type { DataTableInstance } from "./use-data-table";
  * one part here; nothing is a second table.
  */
 
-/** `refreshing` keeps the rows drawn while new ones load: the table is busy, and says so. */
+/** The SelectionBar, as the toolbar slot finds it. */
+const SELECTION_BAR = '[data-slot="data-table-selection-bar"]';
+
+/** Hands an element to a caller's ref, a callback or an object. */
+function assignRef<T>(ref: Ref<T> | undefined, value: T | null) {
+  if (typeof ref === "function") ref(value);
+  else if (ref) ref.current = value;
+}
+
+/**
+ * `refreshing` keeps the rows drawn while new ones load: the table is busy, and says so. `error`
+ * keeps any rows `data` still holds, usable, under the error: a refresh that failed.
+ */
 export type DataTableState = "ready" | "loading" | "refreshing" | "empty" | "error";
 
 /** What the empty state says when a search or a filter left nothing. Each part has a localized default; the default action clears the table's search and column filters. */
@@ -122,7 +140,7 @@ export type DataTableEmpty = {
 /** What one row is, in the words the result status uses: `{ one: "task", other: "tasks" }`. */
 export type DataTableNoun = { one: string; other: string };
 
-export type DataTableProps<TData extends RowData> = {
+export type DataTableOwnProps<TData extends RowData> = {
   table: DataTableInstance<TData>;
   /** Search, filters and actions. Sits above the header, flush with the table's edge. */
   toolbar?: ReactNode;
@@ -139,8 +157,14 @@ export type DataTableProps<TData extends RowData> = {
   narrowed?: boolean | undefined;
   /** What a row is, for the polite result status after a search, a filter or a page ("8 of 24 tasks"). "row" and "rows" unsaid. */
   noun?: DataTableNoun | undefined;
-  /** What the error state says. */
+  /**
+   * What the error state says. With no rows it stands under the header in place of them; a failed
+   * refresh (`state="error"` while `data` still holds the rows the reader had) keeps those rows
+   * usable, with the alert above the table.
+   */
   error?: ReactNode;
+  /** With `state="error"`, Try again in the error's alert runs this: refetch what failed. None unsaid. */
+  onRetry?: (() => void) | undefined;
   /**
    * The row opens something: the record, a peek. A click on a control or a link in the row, or one
    * that ends a text selection, is not a row click. With Cmd, Ctrl or Shift, or the middle button,
@@ -155,10 +179,21 @@ export type DataTableProps<TData extends RowData> = {
   maxHeight?: number | undefined;
   /** The register is the page's one block: it takes the rest of the window, the rows scroll under the header, and the pagination sits at the bottom. Wins over `maxHeight`. */
   fill?: boolean | undefined;
-  /** Fit the container and disclose lower-priority fields within the row instead of horizontal scrolling. */
+  /**
+   * Fit the container: lower-priority fields move into each row's More fields ("+3") instead of
+   * the table scrolling sideways. On unsaid. `responsive={false}` keeps every column in the row
+   * and scrolls the frame sideways, for a wide comparison or a table whose cells hold drafts.
+   */
   responsive?: boolean | undefined;
   className?: string | undefined;
 };
+
+/**
+ * The register's props, and the native attributes of its root `div`, which also takes the ref; its
+ * `data-slot` is `data-table`.
+ */
+export type DataTableProps<TData extends RowData> = DataTableOwnProps<TData> &
+  Omit<ComponentProps<"div">, keyof DataTableOwnProps<TData> | "children">;
 
 type F = DataTableFeatures;
 
@@ -227,16 +262,6 @@ function fittedHeaderStyle<T extends RowData>(
   return { width, minWidth: width };
 }
 
-/** A row's readable name, for its controls and the announcements: the author's `rowLabel`, else undefined. */
-const rowLabelOf = <TData extends RowData>(row: Row<F, TData>): string | undefined => {
-  const label = row.table.options.meta?.rowLabel?.(row.original as never);
-  return label ? label : undefined;
-};
-
-/** A row's name for what is said about it: its label, the tree's label, else its id. */
-const rowSpokenName = <TData extends RowData>(row: Row<F, TData>): string =>
-  rowLabelOf(row) ?? row.table.options.meta?.tree?.label(row.original as never) ?? row.id;
-
 /** Whether the table previews its rows: through `preview` on the hook, or an id column's `preview`. */
 const idPreviewMeta = <TData extends RowData>(table: Row<F, TData>["table"]) =>
   table.getAllLeafColumns().find((c) => c.columnDef.meta?.preview)?.columnDef.meta;
@@ -292,22 +317,12 @@ const sizeStyle = (
   return Object.keys(style).length ? style : undefined;
 };
 
-/* Where nothing can hover. The header's column menu and grip are then always shown beside the
-   heading, so the column is drawn that much wider (`headerTrailingWidth`) and the heading keeps the
-   room it has at rest where a pointer can hover. Layout only: the stored sizes, the resize handle's
-   value and the export do not change. */
-const hoverNoneQuery = "(hover: none)";
-const subscribeHoverNone = (change: () => void) => {
-  const query = window.matchMedia(hoverNoneQuery);
-  query.addEventListener("change", change);
-  return () => query.removeEventListener("change", change);
-};
-const useHoverNone = () =>
-  useSyncExternalStore(
-    subscribeHoverNone,
-    () => window.matchMedia(hoverNoneQuery).matches,
-    () => false,
-  );
+/* Where any pointer is coarse (useTouch, the kit's one touch predicate), the header's column menu
+   and grip are always shown beside the heading. A table that scrolls sideways draws the column
+   that much wider (`headerTrailingWidth`), so the heading keeps the room it has at rest where a
+   pointer hovers. A responsive table keeps the author's widths, so the controls never fold a
+   column away on a phone: the heading gives them its room and shows whole in its tooltip. Layout
+   only: the stored sizes, the resize handle's value and the export do not change. */
 
 /** Which trailing controls a column's header carries: the column menu, when it would hold an item, and the drag grip. */
 const headerControls = <TData extends RowData>(column: Column<F, TData, unknown>) => {
@@ -323,7 +338,7 @@ const headerControls = <TData extends RowData>(column: Column<F, TData, unknown>
   return { menu, grip };
 };
 
-/** How much wider a column is drawn where nothing can hover: its header's trailing controls. */
+/** How much wider a column is drawn where any pointer is coarse: its header's trailing controls. */
 const touchExtra = <TData extends RowData>(column: Column<F, TData, unknown>, touch: boolean) => {
   if (!touch) return 0;
   const { menu, grip } = headerControls(column);
@@ -443,7 +458,7 @@ function HeaderCell<TData extends RowData>({
 }: {
   header: Header<F, TData, unknown>;
   table: DataTableInstance<TData>;
-  /** Nothing can hover: the trailing controls sit beside the heading and the column is wider. */
+  /** Some pointer is coarse: the trailing controls sit beside the heading and the column is wider. */
   touch: boolean;
 }) {
   const layout = useContext(ResponsiveLayoutContext);
@@ -560,31 +575,36 @@ function TreeIndent<TData extends RowData>({
         aria-hidden
         data-tree-guides=""
         className="pointer-events-none absolute inset-y-0 flex items-stretch"
-        style={{ insetInlineStart: 10 }}
+        // At the middle of the 20px row control (size-250) the row draws below.
+        style={{ insetInlineStart: `calc(${token("space.250")} / 2)` }}
       >
         {Array.from({ length: depth }, (_, level) => (
           <span key={level} className="w-200 shrink-0 border-s border-default" />
         ))}
       </span>
       {hasChildren ? (
-        <button
-          type="button"
-          aria-label={expanded ? t("collapseLabel", { label }) : t("expandLabel", { label })}
+        // The kit's 20px row control, on the row's own fill so the guides do not run through it.
+        // No tooltip: its name says it, and a row mounts none of its own.
+        <IconButton
+          label={expanded ? t("collapseLabel", { label }) : t("expandLabel", { label })}
           aria-expanded={expanded}
+          variant="subtle"
+          size="xxsmall"
+          isTooltipDisabled
           onClick={(event) => {
             event.stopPropagation();
             row.toggleExpanded();
           }}
-          className="relative inline-flex size-250 shrink-0 touch-target items-center justify-center rounded-small bg-surface-current icon-subtle outline-none transition-colors duration-fast ease-standard group-hover/row:bg-surface-hovered group-data-[selected]/row:bg-selected hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused"
-        >
-          <ChevronRight
-            aria-hidden
-            className={cn(
-              "size-icon-small transition-transform duration-fast ease-standard",
-              expanded ? "rotate-90" : direction === "rtl" && "rotate-180",
-            )}
-          />
-        </button>
+          className="bg-surface-current group-hover/row:bg-surface-hovered group-data-[selected]/row:bg-selected"
+          icon={
+            <ChevronRight
+              className={cn(
+                "transition-transform duration-fast ease-standard motion-reduce:transition-none",
+                expanded ? "rotate-90" : direction === "rtl" && "rotate-180",
+              )}
+            />
+          }
+        />
       ) : (
         <span aria-hidden className="block size-250 shrink-0" />
       )}
@@ -598,6 +618,7 @@ function BodyCell<TData extends RowData>({
   row,
   hintAt,
   previewAt,
+  headerAt,
 }: {
   cell: Cell<F, TData, unknown>;
   row: Row<F, TData>;
@@ -605,6 +626,8 @@ function BodyCell<TData extends RowData>({
   hintAt: string | undefined;
   /** The column whose cell carries the preview eye, when an id column has `preview`. */
   previewAt: string | undefined;
+  /** The column whose cell names its row, drawn as `th scope="row"`. */
+  headerAt: string | undefined;
 }) {
   const { t } = useLedgerLocale();
   const popups = useContext(SharedPopupsContext);
@@ -615,15 +638,16 @@ function BodyCell<TData extends RowData>({
   const record = row.original as never;
   const pin = useContext(PinsContext).get(cell.column.id) ?? UNPINNED;
   const preview = previewAt === cell.column.id ? previewOf(row) : undefined;
-  // The eye says whose preview it opens: the row's label, the tree's, or the value beside it.
-  const shown = cell.getValue();
-  const eyeName =
-    rowLabelOf(row) ??
-    options?.tree?.label(row.original as never) ??
-    (typeof shown === "string" && shown ? shown : undefined);
+  // The eye says whose preview it opens: the row's name, or the value beside it.
+  const shown = preview ? cell.getValue() : undefined;
+  const eyeName = preview
+    ? (rowNameOf(row) ?? (typeof shown === "string" && shown ? shown : undefined))
+    : undefined;
   const eyeLabel = preview && eyeName ? t("previewLabel", { label: eyeName }) : undefined;
-  // The cell that names its row, when the author says which.
-  const names = options?.rowHeader === cell.column.id;
+  // The cell that names its row: the identity, unless the author names another or none.
+  const names = headerAt === cell.column.id;
+  // The author wraps the column, or the reader does from the Columns menu.
+  const wrap = Boolean(meta?.wrap) || (options?.wrapped?.includes(cell.column.id) ?? false);
 
   // A folded row's hint sits after its first value.
   const hint =
@@ -643,7 +667,7 @@ function BodyCell<TData extends RowData>({
   const body = withGuides(
     hint ? (
       <span className="flex min-w-0 items-center gap-100">
-        <span className="min-w-0 truncate">{content}</span>
+        <span className={cn("min-w-0", wrap ? "break-words" : "truncate")}>{content}</span>
         {hint}
       </span>
     ) : (
@@ -708,7 +732,7 @@ function BodyCell<TData extends RowData>({
           edge={pin.edge}
         />
       );
-    const label = rowLabelOf(row);
+    const label = rowNameOf(row);
     return (
       <Table.Cell
         className="max-w-none px-0 text-center"
@@ -725,9 +749,11 @@ function BodyCell<TData extends RowData>({
             <IconButton
               label={label ? t("rowActionsFor", { label }) : t("rowActions")}
               variant="subtle"
+              // Its name says it; a row mounts no tooltip of its own.
+              isTooltipDisabled
               // The column is as wide as the button, and its cell cuts what overflows, so the
               // ring is drawn inside the button's edge, where the cell cannot clip it.
-              className="opacity-0 focus-visible:opacity-100 focus-visible:outline-field-focused group-hover/row:opacity-100 data-popup-open:opacity-100 [@media(hover:none)]:opacity-100"
+              className="opacity-0 focus-visible:opacity-100 focus-visible:outline-field-focused group-hover/row:opacity-100 data-popup-open:opacity-100 any-pointer-coarse:opacity-100"
               icon={<MoreHorizontal />}
             />
           }
@@ -740,12 +766,11 @@ function BodyCell<TData extends RowData>({
     return (
       <Table.Cell
         align={meta?.align}
-        {...(meta?.wrap ? { wrap: true } : {})}
+        {...(wrap ? { wrap: true } : {})}
         {...(names ? { rowHeader: true } : {})}
         pinned={pin.pinned}
         offset={pin.offset}
         edge={pin.edge}
-        {...(typeof content === "string" ? { title: content } : {})}
         {...(meta?.editable ? { onKeyDown: enterMovesDown } : {})}
       >
         <span
@@ -754,8 +779,10 @@ function BodyCell<TData extends RowData>({
         >
           <span
             className={cn(
-              "min-w-0 flex-1 overflow-x-clip text-ellipsis whitespace-nowrap",
-              LINK_KEEPS_RING,
+              "min-w-0 flex-1",
+              wrap
+                ? "whitespace-normal break-words"
+                : cn("overflow-x-clip text-ellipsis whitespace-nowrap", LINK_KEEPS_RING),
               previewValueClass(preview.isActive),
             )}
           >
@@ -773,7 +800,7 @@ function BodyCell<TData extends RowData>({
   return (
     <Table.Cell
       align={meta?.align}
-      {...(meta?.wrap ? { wrap: true } : { className: LINK_KEEPS_RING })}
+      {...(wrap ? { wrap: true } : { className: LINK_KEEPS_RING })}
       {...(names ? { rowHeader: true } : {})}
       pinned={pin.pinned}
       offset={pin.offset}
@@ -892,6 +919,7 @@ type BodyRowProps<TData extends RowData> = {
   dataPinned: boolean;
   hintAt: string | undefined;
   previewAt: string | undefined;
+  headerAt: string | undefined;
   columnCount: number;
   isPinnedRow: boolean;
   moreOpen: boolean;
@@ -904,9 +932,8 @@ type BodyRowProps<TData extends RowData> = {
   choiceGroup: string;
   /** The parent's one handler for a click on the row, the middle button's included. */
   onRowClick?: ((row: Row<F, TData>, event: MouseEvent<HTMLTableRowElement>) => void) | undefined;
-  onKeyDown?: ((event: KeyboardEvent<HTMLTableRowElement>) => void) | undefined;
+  /** In a treegrid, the row itself holds the rows' one tab stop (rather than one of its cells). */
   treeTabStop: boolean;
-  onTreeFocus: (id: string) => void;
 };
 
 /** What in a row takes its own click: a control, a link, a form field. */
@@ -938,8 +965,8 @@ const rowLink = (element: HTMLElement, href: string | undefined) =>
  * The props that hold are stable by construction: the leading columns, the fitted layout and the
  * handlers are memoized, and `onRowClick` is read through a ref. New `data` or new column
  * definitions redraw every row, so a consumer keeps both stable (useMemo) to keep the memo.
- * In tree mode the row carries the treegrid aria and takes the arrow keys; with a detail it carries
- * the chevron and the detail row after it.
+ * In tree mode the row carries the treegrid aria and is a tab stop while it holds the rows' one
+ * stop; with a detail it carries the chevron and the detail row after it.
  */
 const BodyRow = memo(function BodyRow<TData extends RowData>({
   row,
@@ -954,6 +981,7 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
   dataPinned,
   hintAt,
   previewAt,
+  headerAt,
   columnCount,
   isPinnedRow,
   moreOpen,
@@ -963,11 +991,9 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
   rowIndex,
   choiceGroup,
   onRowClick,
-  onKeyDown,
   treeTabStop,
-  onTreeFocus,
 }: BodyRowProps<TData>) {
-  const { t } = useLedgerLocale();
+  const { t, formatNumber, formatPlural } = useLedgerLocale();
   const options = row.table.options.meta;
   const single = Boolean(options?.singleSelection);
   const tree = Boolean(options?.tree);
@@ -977,12 +1003,13 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
   const layout = useContext(ResponsiveLayoutContext);
   const moreId = useId();
   const rowElement = useRef<HTMLTableRowElement | null>(null);
+  const setNodeRef = drag.setNodeRef;
   const setRowElement = useCallback(
     (element: HTMLTableRowElement | null) => {
       rowElement.current = element;
-      drag.setNodeRef?.(element);
+      setNodeRef?.(element);
     },
-    [drag.setNodeRef],
+    [setNodeRef],
   );
   useLayoutEffect(() => {
     const element = rowElement.current;
@@ -1024,13 +1051,23 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
       )
     : undefined;
   const identityValue = identity?.getValue();
-  const label = rowLabelOf(row);
-  const moreLabel = t("moreFieldsFor", {
-    label:
-      label ??
-      options?.tree?.label(row.original as never) ??
-      (typeof identityValue === "string" ? identityValue : row.id),
-  });
+  const label = rowNameOf(row);
+  // Named by the row, like every row control, never by its id: a row with nothing readable keeps
+  // the generic name. It says how many fields it shows or hides: "Show 3 more fields for REQ-001".
+  const moreName =
+    label ?? (typeof identityValue === "string" && identityValue ? identityValue : undefined);
+  const moreCount = overflowCells.length;
+  const named = moreName ? { label: moreName } : undefined;
+  const moreLabel = formatPlural(
+    moreCount,
+    moreOpen
+      ? named
+        ? { one: t("hideMoreFieldsForOne", named), other: t("hideMoreFieldsForOther", named) }
+        : { one: t("hideMoreFieldsOne"), other: t("hideMoreFieldsOther") }
+      : named
+        ? { one: t("showMoreFieldsForOne", named), other: t("showMoreFieldsForOther", named) }
+        : { one: t("showMoreFieldsOne"), other: t("showMoreFieldsOther") },
+  );
 
   const pins = leadingPins(leading, dataPinned);
   return (
@@ -1050,11 +1087,8 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
           ? {
               "aria-level": row.depth + 1,
               ...(row.getCanExpand() ? { "aria-expanded": isExpanded } : {}),
+              // The table takes the keys and follows the focus: see treegrid.ts.
               tabIndex: treeTabStop ? 0 : -1,
-              onFocus: (event: { target: EventTarget; currentTarget: EventTarget }) => {
-                if (event.target === event.currentTarget) onTreeFocus(row.id);
-              },
-              onKeyDown,
             }
           : {})}
         {...(onRowClick
@@ -1088,7 +1122,7 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
           <Table.Disclosure
             hasChildren={row.getCanExpand()}
             expanded={isExpanded}
-            onToggle={() => row.toggleExpanded()}
+            onExpandedChange={(next) => row.toggleExpanded(next)}
             label={options?.tree?.label(row.original as never) ?? row.id}
             width={leadingSizes.tree}
             {...pins("tree")}
@@ -1118,15 +1152,17 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
                     : t("open")
               }
               variant="subtle"
-              className="size-250"
+              size="xxsmall"
+              isTooltipDisabled
               aria-expanded={isDetailOpen}
               aria-controls={detailId}
               onClick={() => options?.toggleDetail?.(row.id)}
               icon={
                 <ChevronRight
                   className={cn(
-                    "transition-transform duration-fast ease-standard",
-                    isDetailOpen && "rotate-90",
+                    "transition-transform duration-fast ease-standard motion-reduce:transition-none",
+                    // Closed points to the reading direction's end: left in a right-to-left table.
+                    isDetailOpen ? "rotate-90" : "rtl:rotate-180",
                   )}
                 />
               }
@@ -1136,7 +1172,14 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
         {cells
           .filter((cell) => !layout || layout.ids.has(cell.column.id))
           .map((cell) => (
-            <BodyCell key={cell.id} cell={cell} row={row} hintAt={hintAt} previewAt={previewAt} />
+            <BodyCell
+              key={cell.id}
+              cell={cell}
+              row={row}
+              hintAt={hintAt}
+              previewAt={previewAt}
+              headerAt={headerAt}
+            />
           ))}
 
         {layout?.collapsed && (
@@ -1144,21 +1187,37 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
             className="max-w-none px-0 text-center"
             onClick={(event) => event.stopPropagation()}
           >
-            <IconButton
-              variant="subtle"
-              size="small"
-              label={moreLabel}
+            {/* The count of the fields the row folds, "+3", never a chevron: a chevron opens a
+                tree's branch or a group. The 20px row control; its cell is as narrow as the
+                column and cuts what overflows, so its ring is drawn inside its edge. It needs no
+                tooltip: the name says what it shows. */}
+            <button
+              type="button"
+              data-slot="data-table-more-fields"
+              aria-label={moreLabel}
               aria-expanded={moreOpen}
               aria-controls={moreId}
-              icon={<ChevronDown className={moreOpen ? "rotate-180" : undefined} />}
+              // Open, it takes the selected fill, which forced colours replace, so it carries the
+              // mark of a toolbar trigger in force and turns Highlight there.
+              {...(moreOpen ? { "data-active-trigger": "" } : {})}
               onClick={() => onMoreToggle(row.id)}
-            />
+              className={cn(
+                "relative inline-flex h-250 min-w-250 max-w-full touch-target items-center justify-center rounded-small px-050 font-body-small font-medium tabular-nums outline-none transition-colors duration-fast ease-standard focus-visible:outline-field-focused motion-reduce:transition-none",
+                moreOpen
+                  ? "bg-selected text-selected hover:bg-selected-hovered active:bg-selected-pressed"
+                  : "bg-neutral-subtle text-subtle hover:bg-neutral-subtle-hovered hover:text-default active:bg-neutral-subtle-pressed",
+              )}
+            >
+              <span aria-hidden>+{formatNumber(moreCount)}</span>
+            </button>
           </Table.Cell>
         )}
       </Table.Row>
       {layout?.collapsed && moreOpen && (
         <Table.Detail id={moreId} colSpan={columnCount}>
-          <Stack space="space.150">
+          {/* One list: the labels share one column, and stack over their values where the row
+              is too narrow for both, as in a narrow panel. */}
+          <KeyValue.Group>
             {overflowCells.map((cell) => (
               <KeyValue
                 key={cell.id}
@@ -1172,7 +1231,7 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </KeyValue>
             ))}
-          </Stack>
+          </KeyValue.Group>
         </Table.Detail>
       )}
       {detail && isDetailOpen ? (
@@ -1183,68 +1242,6 @@ const BodyRow = memo(function BodyRow<TData extends RowData>({
     </>
   );
 }) as <TData extends RowData>(props: BodyRowProps<TData>) => ReactNode;
-
-/** The arrow keys on a treegrid: up and down move between rows, right opens or steps in, left closes or steps out. */
-function treeKeys<TData extends RowData>(
-  table: DataTableInstance<TData>,
-  direction: "ltr" | "rtl",
-) {
-  return (event: KeyboardEvent<HTMLTableRowElement>) => {
-    const tr = event.currentTarget;
-    const id = tr.dataset["rowId"];
-    if (!id || event.target !== tr) return;
-    const row = table.getRow(id);
-    const siblings = [
-      ...(tr.parentElement?.querySelectorAll<HTMLTableRowElement>("tr[data-row-id]") ?? []),
-    ];
-    const focusAt = (el: HTMLTableRowElement | undefined) => {
-      if (!el) return;
-      el.focus();
-    };
-    const at = siblings.indexOf(tr);
-    switch (
-      direction === "rtl" && event.key === "ArrowLeft"
-        ? "ArrowRight"
-        : direction === "rtl" && event.key === "ArrowRight"
-          ? "ArrowLeft"
-          : event.key
-    ) {
-      case "ArrowDown":
-        focusAt(siblings[at + 1]);
-        break;
-      case "ArrowUp":
-        focusAt(siblings[at - 1]);
-        break;
-      case "ArrowRight":
-        if (row.getCanExpand() && !row.getIsExpanded()) row.toggleExpanded(true);
-        else focusAt(siblings[at + 1]);
-        break;
-      case "ArrowLeft":
-        if (row.getIsExpanded()) row.toggleExpanded(false);
-        else {
-          const parent = row.getParentRow();
-          if (parent) focusAt(siblings.find((el) => el.dataset["rowId"] === parent.id));
-        }
-        break;
-      case "Home":
-        focusAt(siblings[0]);
-        break;
-      case "End":
-        focusAt(siblings[siblings.length - 1]);
-        break;
-      case "Enter": {
-        // The row opens what its name opens: the name's link, else the row's own click.
-        const link = tr.querySelector<HTMLAnchorElement>("a[href]");
-        if (link) link.click();
-        else tr.click();
-        break;
-      }
-      default:
-        return;
-    }
-    event.preventDefault();
-  };
-}
 
 /** The empty state. With no records at all it stands alone on its dashed frame; under the header, the table's rules bound it, so it has no frame of its own. */
 function EmptyState({
@@ -1455,7 +1452,11 @@ function GlanceCard<TData extends RowData>({
             ? table.getColumn(payload.columnId)?.columnDef.meta?.glance?.(row.original as never)
             : null;
         return glance ? (
-          <HoverCardContent align="start" alignOffset={0} style={{ width: 300 }}>
+          <HoverCardContent
+            align="start"
+            alignOffset={0}
+            style={{ width: token("dimension.part.cellCard") }}
+          >
             {glance}
           </HoverCardContent>
         ) : null;
@@ -1472,19 +1473,24 @@ function DataTableRoot<TData extends RowData>({
   narrowed: narrowedOutside = false,
   noun,
   error,
+  onRetry,
   onRowClick,
   rowHref,
   loadingRows,
   maxHeight,
   fill,
-  responsive = false,
+  responsive = true,
   className,
+  style,
+  ref,
+  ...native
 }: DataTableProps<TData>) {
   const { t, direction, formatNumber, formatPlural } = useLedgerLocale();
   const options = table.options.meta;
   const selectable = Boolean(table.options.enableRowSelection);
   const single = Boolean(options?.singleSelection);
   const choiceGroup = useId();
+  const errorId = useId();
   const hasTree = Boolean(options?.tree) && !options?.tree?.guides;
   const handle = Boolean(options?.reorderRows);
   const detailColumn = Boolean(options?.detail) && options?.detailColumn !== false;
@@ -1501,11 +1507,22 @@ function DataTableRoot<TData extends RowData>({
   const headerGroups = table.getHeaderGroups();
   const requestedColumns = table.getVisibleLeafColumns();
   const root = useRef<HTMLDivElement>(null);
-  const touch = useHoverNone();
+  const touch = useTouch();
   const [frameWidth, setFrameWidth] = useState(0);
   const [releasedKey, setReleasedKey] = useState(NONE_RELEASED);
   const [moreOpenIds, setMoreOpenIds] = useState<ReadonlySet<string>>(() => new Set());
-  const [focusedTreeRow, setFocusedTreeRow] = useState<string | null>(null);
+  // A treegrid's one tab stop in its rows: a row, or one cell of it (its place among the row's
+  // cells). The ref is what the tab order follows between renders; the state redraws the rows.
+  const [treeStop, setTreeStop] = useState<{ row: string | null; cell: boolean }>({
+    row: null,
+    cell: false,
+  });
+  const treeStopAt = useRef<{ row: string | null; index: number | null }>({
+    row: null,
+    index: null,
+  });
+  // A treegrid's scroll frame as drawn: a new one whenever the register draws its table anew.
+  const [frameElement, setFrameElement] = useState<HTMLDivElement | null>(null);
   const toggleMore = useCallback((id: string) => {
     setMoreOpenIds((previous) => {
       const next = new Set(previous);
@@ -1531,11 +1548,12 @@ function DataTableRoot<TData extends RowData>({
             table.state.columnSizing[column.id] !== undefined ||
             Boolean(column.getIsPinned());
           const action = column.columnDef.meta?.kind === "actions";
+          // Where any pointer is coarse, the header's controls take their room from the heading,
+          // which ends in an ellipsis and shows whole on focus, rather than widening the column:
+          // a column widened for its menu would fold a neighbour on a phone.
           return {
             id: column.id,
-            width:
-              (sized ? column.getSize() : (column.columnDef.minSize ?? 120)) +
-              touchExtra(column, touch),
+            width: sized ? column.getSize() : (column.columnDef.minSize ?? 120),
             priority: column.columnDef.meta?.priority,
             action,
             pin: column.getIsPinned(),
@@ -1611,6 +1629,8 @@ function DataTableRoot<TData extends RowData>({
     ...table.state.columnPinning.end,
     JSON.stringify(table.state.columnSizing),
     fit?.key ?? "",
+    // A column the reader wraps redraws its rows and their heights.
+    JSON.stringify(options?.wrapped ?? []),
   ].join(" ");
   // The preview is the hook's `preview`, or the id column's; either puts the eye on the first value.
   const tablePreview = options?.preview;
@@ -1625,6 +1645,20 @@ function DataTableRoot<TData extends RowData>({
         : false;
   const previewAt = tablePreview || idMeta?.preview ? previewColumn(visibleColumns) : undefined;
   const hintAt = tree ? previewColumn(visibleColumns) : undefined;
+  // The cell that names each row, `th scope="row"`: the author's column, none with `false`, else
+  // the identity, the column a responsive row keeps longest. A row of one cell has nothing for a
+  // header to name, so its cell stays a `td`.
+  const headerAt =
+    options?.rowHeader === false || columnCount < 2
+      ? undefined
+      : (options?.rowHeader ??
+        identityOf(
+          requestedColumns.map((column) => ({
+            id: column.id,
+            priority: column.columnDef.meta?.priority,
+            action: column.columnDef.meta?.kind === "actions",
+          })),
+        )?.id);
   const fixed = responsive || options?.layout === "fixed";
   // The leading columns are always pinned, so every start offset begins after them.
   const before = lead;
@@ -1691,12 +1725,46 @@ function DataTableRoot<TData extends RowData>({
           return sum + (sized ? c.getSize() : (c.columnDef.minSize ?? 120)) + touchExtra(c, touch);
         }, lead)
       : undefined;
-  // Stable handlers, so a row redraws for what it shows and not because its parent did.
+  // A treegrid's keys and its one tab stop, on the table: the arrows move between rows and cells,
+  // and the controls in its rows leave the Tab order but those in the cell that holds the stop.
   const treeKeyDown = useCallback(
-    (event: KeyboardEvent<HTMLTableRowElement>) => treeKeys(table, direction)(event),
+    (event: KeyboardEvent<HTMLTableElement>) => treegridKeys(table, direction)(event),
     [table, direction],
   );
-  const onKeyDown = tree ? treeKeyDown : undefined;
+  const treeFocus = useCallback((event: FocusEvent<HTMLTableElement>) => {
+    const place = focusPlace(event.currentTarget, event.target);
+    if (!place) return;
+    treeStopAt.current = { row: place.rowId, index: place.index };
+    syncTabOrder(event.currentTarget, place.cell);
+    setTreeStop((current) =>
+      current.row === place.rowId && current.cell === (place.cell !== null)
+        ? current
+        : { row: place.rowId, cell: place.cell !== null },
+    );
+  }, []);
+  const isTree = Boolean(tree);
+  useLayoutEffect(() => {
+    // The treegrid's own table, never one nested in a detail row.
+    const host = frameElement ?? frame.current;
+    const treeTable = isTree
+      ? (host?.querySelector<HTMLTableElement>(":scope > table") ?? null)
+      : null;
+    if (!treeTable) return;
+    const stop = () => stopCell(treeTable, treeStopAt.current.row, treeStopAt.current.index);
+    syncTabOrder(treeTable, stop());
+    const observer = new MutationObserver((records) => {
+      const rows = touchedRows(treeTable, records);
+      if (rows === null) syncTabOrder(treeTable, stop());
+      else if (rows.size > 0) syncTabOrder(treeTable, stop(), rows);
+    });
+    observer.observe(treeTable, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["tabindex"],
+    });
+    return () => observer.disconnect();
+  }, [isTree, frameElement]);
   const latestRowClick = useRef(onRowClick);
   const latestRowHref = useRef(rowHref);
   useLayoutEffect(() => {
@@ -1741,14 +1809,58 @@ function DataTableRoot<TData extends RowData>({
   // the density estimate covers records that have not been measured yet.
   const virtual = options?.virtualize && !groupBy ? options.virtualize : undefined;
   const frame = useRef<HTMLDivElement>(null);
+  const setFrame = useCallback((element: HTMLDivElement | null) => {
+    frame.current = element;
+    // Only a treegrid follows its frame, since its tab order is kept on the table; any other
+    // register stays at null and draws nothing more for it.
+    setFrameElement(element?.querySelector(':scope > table[role="treegrid"]') ? element : null);
+  }, []);
   // The register that is the page: its root takes the rest of the window from its own top edge,
   // and the toolbar, the frame and the pagination share that height as a column.
   const top = useFillWindow(root, Boolean(fill));
+  // While rows are chosen the SelectionBar takes the Toolbar's place in the slot. The slot keeps
+  // the height the Toolbar had, so the rows stay under the pointer when the bar is the shorter,
+  // as it is where the Toolbar takes two rows on a phone.
+  const toolbarSlot = useRef<HTMLDivElement | null>(null);
+  const toolbarHeight = useRef(0);
+  const observeToolbar = useCallback((slot: HTMLDivElement | null) => {
+    toolbarSlot.current = slot;
+    if (!slot || typeof ResizeObserver === "undefined") return;
+    // The Toolbar folds and unfolds as its frame changes: the height to keep is its latest.
+    const observer = new ResizeObserver(() => {
+      if (!slot.querySelector(SELECTION_BAR))
+        toolbarHeight.current = slot.getBoundingClientRect().height;
+    });
+    observer.observe(slot);
+    return () => {
+      observer.disconnect();
+      toolbarSlot.current = null;
+    };
+  }, []);
+  useLayoutEffect(() => {
+    const slot = toolbarSlot.current;
+    if (!slot) return;
+    const held =
+      toolbarHeight.current > 0 && slot.querySelector(SELECTION_BAR)
+        ? `${toolbarHeight.current}px`
+        : "";
+    if (slot.style.minHeight !== held) slot.style.minHeight = held;
+  });
+  // The caller's ref reaches the root beside the table's own.
+  const latestRef = useRef(ref);
+  latestRef.current = ref;
+  const setRoot = useCallback((element: HTMLDivElement | null) => {
+    root.current = element;
+    assignRef(latestRef.current, element);
+  }, []);
+  // The caller's attributes, then the table's own: its slot names it whatever the caller passes.
   const rootProps = {
-    ref: root,
+    ...native,
+    ref: setRoot,
     ...(fill ? { "data-fill": "" } : {}),
     className: cn(fill && "fill-window", className) || undefined,
-    style: fill ? ({ "--fill-top": `${top}px` } as CSSProperties) : undefined,
+    style: fill ? ({ ...style, "--fill-top": `${top}px` } as CSSProperties) : style,
+    "data-slot": "data-table",
   };
   const virtualizer = useVirtualizer({
     count: virtual ? rows.length : 0,
@@ -1783,13 +1895,17 @@ function DataTableRoot<TData extends RowData>({
         ...(virtual ? items.flatMap((item) => rows[item.index] ?? []) : rows),
         ...bottomRows,
       ];
-  const treeTabStop = renderedRows.some((row) => row.id === focusedTreeRow)
-    ? focusedTreeRow
-    : renderedRows[0]?.id;
-  // Refreshing keeps the rows it has while new ones load.
+  // The row that holds the stop, the first while the stopped row is gone; a cell of it holds it
+  // instead while one is the stop and still drawn.
+  const stoppedRowShown = renderedRows.some((row) => row.id === treeStop.row);
+  const treeTabStop = stoppedRowShown ? treeStop.row : renderedRows[0]?.id;
+  const treeCellStop = stoppedRowShown && treeStop.cell;
+  // Refreshing keeps the rows it has while new ones load, and so does a refresh that failed: the
+  // rows the reader had stay usable, with the error above them.
   const drawing = state === "ready" || state === "refreshing";
   const busy = state === "loading" || state === "refreshing";
-  const showRows = drawing && allRows.length > 0;
+  const showRows = (drawing || state === "error") && allRows.length > 0;
+  const stale = state === "error" && showRows;
   const isEmpty = state === "empty" || (drawing && allRows.length === 0);
   // A server page that comes back empty (rows deleted from the last page) is a page to leave, not
   // an empty register: the toolbar, the header and the pager stay, with the way to the first page.
@@ -1834,6 +1950,19 @@ function DataTableRoot<TData extends RowData>({
     table.setPageIndex(0);
     refocus();
   };
+  // Try again goes with the alert once the table loads again, so focus moves on as it does after
+  // Clear filters and never falls to the page. A retry that fails at once keeps it where it is.
+  const retried = useRef(false);
+  const latestRefocus = useRef(refocus);
+  useLayoutEffect(() => {
+    latestRefocus.current = refocus;
+  });
+  useEffect(() => {
+    if (state === "error" || !retried.current) return;
+    retried.current = false;
+    const active = document.activeElement;
+    if (!active || active === document.body) latestRefocus.current();
+  }, [state]);
 
   // The result, said once the reader stops asking: after a search, a filter, a saved question or
   // a page, one polite line through the page's announcer ("8 of 24 tasks", "No matching tasks").
@@ -1886,6 +2015,35 @@ function DataTableRoot<TData extends RowData>({
     }, RESULT_STATUS_DELAY);
     return () => clearTimeout(timer);
   }, [settled, question, resultMessage, narrowedOutside]);
+  // A new sort is said once it settles, from a header, the Sort menu or a column menu alike:
+  // "Sorted by Due, Newest first". The first settled sort is the page's own and is not said, nor
+  // is one restored as the table opens (a kept question, the URL's), which arrives just after it.
+  const sorting = table.state.sorting;
+  const sortKey = JSON.stringify(sorting);
+  const sortedColumn = sorting[0] ? table.getColumn(sorting[0].id) : undefined;
+  const sortMessage =
+    sorting[0] && sortedColumn
+      ? t("sortAnnounced", {
+          label: labelOf(sortedColumn),
+          direction: t(directionWords(sortedColumn)[sorting[0].desc ? 1 : 0]),
+        })
+      : t("sortRemoved");
+  const saidSort = useRef<{ key: string; at: number } | null>(null);
+  useEffect(() => {
+    if (!settled) return;
+    const now = performance.now();
+    const said = saidSort.current;
+    if (!said || (sortKey !== said.key && now - said.at < RESULT_STATUS_DELAY)) {
+      saidSort.current = { key: sortKey, at: said?.at ?? now };
+      return;
+    }
+    if (sortKey === said.key) return;
+    const timer = setTimeout(() => {
+      saidSort.current = { key: sortKey, at: said.at };
+      announce(sortMessage);
+    }, RESULT_STATUS_DELAY);
+    return () => clearTimeout(timer);
+  }, [settled, sortKey, sortMessage]);
   // A load the reader waits for is said once it outlasts a glance: "Findings, loading". A quick one
   // is not, and the result that follows is said as above.
   const loadingMessage = label ? t("loadingLabel", { label }) : t("loading");
@@ -1907,22 +2065,26 @@ function DataTableRoot<TData extends RowData>({
   }, [coveredStart, coveredEnd, framed]);
 
   // No records at all: nothing to search, filter, sort or page, so the register is only its empty
-  // state, on its own frame, and the action in it creates the first record.
+  // state, on its own frame, and the action in it creates the first record. It sits in the same
+  // MatchDirection as the table, so the root stays one element when the first record arrives and
+  // what watches it (the responsive fit, the fill) keeps watching the frame that is drawn.
   if (!framed)
     return (
-      <div {...rootProps}>
-        <EmptyState
-          className={fill ? "flex-1" : undefined}
-          frame="dashed"
-          size={empty?.size}
-          icon={empty?.icon}
-          illustration={empty?.illustration ?? "records"}
-          title={empty?.title ?? t("nothingHere")}
-          description={empty?.description}
-          action={empty?.action}
-          secondary={empty?.secondary}
-        />
-      </div>
+      <MatchDirection direction={direction}>
+        <div {...rootProps}>
+          <EmptyState
+            className={fill ? "flex-1" : undefined}
+            frame="dashed"
+            size={empty?.size}
+            icon={empty?.icon}
+            illustration={empty?.illustration ?? "records"}
+            title={empty?.title ?? t("nothingHere")}
+            description={empty?.description}
+            action={empty?.action}
+            secondary={empty?.secondary}
+          />
+        </div>
+      </MatchDirection>
     );
 
   // While only some rows are drawn (a virtual window, a server page), each drawn row says its place
@@ -1957,6 +2119,7 @@ function DataTableRoot<TData extends RowData>({
       dataPinned={dataPinned}
       hintAt={hintAt}
       previewAt={previewAt}
+      headerAt={headerAt}
       columnCount={columnCount}
       isPinnedRow={isPinnedRow}
       moreOpen={moreOpenIds.has(row.id)}
@@ -1964,9 +2127,7 @@ function DataTableRoot<TData extends RowData>({
       virtualIndex={virtualIndex}
       onMeasure={virtualIndex === undefined ? undefined : measureRow}
       onRowClick={rowClickHandler}
-      onKeyDown={onKeyDown}
-      treeTabStop={row.id === treeTabStop}
-      onTreeFocus={setFocusedTreeRow}
+      treeTabStop={row.id === treeTabStop && !treeCellStop}
     />
   );
 
@@ -1976,6 +2137,30 @@ function DataTableRoot<TData extends RowData>({
         {key === "detail" ? t("details") : key === "tree" ? t("parts") : t("reorder")}
       </span>
     </Table.Header>
+  );
+
+  // The error, with Try again when the caller can retry. With no rows it stands where they would;
+  // over rows kept from before, it sits above the table and says they are the last ones loaded.
+  const failure = (
+    <Alert tone="danger" role="alert">
+      <AlertDescription id={errorId}>
+        {error ?? t(stale ? "rowsStale" : "rowsError")}
+      </AlertDescription>
+      {onRetry ? (
+        <AlertAction>
+          <Button
+            size="small"
+            aria-describedby={errorId}
+            onClick={() => {
+              retried.current = true;
+              onRetry();
+            }}
+          >
+            {t("retry")}
+          </Button>
+        </AlertAction>
+      ) : null}
+    </Alert>
   );
 
   const states = (
@@ -1989,15 +2174,13 @@ function DataTableRoot<TData extends RowData>({
             </Table.Row>
           ))
         : null}
-      {state === "error" ? (
+      {state === "error" && !stale ? (
         <Table.Row isStatic>
           <Table.Cell
             colSpan={columnCount}
             className="h-auto max-w-none whitespace-normal px-150 py-150"
           >
-            <Alert tone="danger" role="alert">
-              <AlertDescription>{error ?? t("rowsError")}</AlertDescription>
-            </Alert>
+            {failure}
           </Table.Cell>
         </Table.Row>
       ) : null}
@@ -2049,13 +2232,13 @@ function DataTableRoot<TData extends RowData>({
         <PinsContext.Provider value={drawnPins}>
           <DragContext table={table}>
             <Table
-              frameRef={frame}
+              frameRef={setFrame}
               density={options?.density ?? "default"}
               label={label}
               {...(fill ? { fill } : maxHeight === undefined ? {} : { maxHeight })}
               // A tree is a treegrid, with its arrow keys. An editable table stays a table: Tab
               // moves across its cells, so it does not claim a grid's arrow-key model.
-              {...(tree ? { role: "treegrid" } : {})}
+              {...(tree ? { role: "treegrid", onKeyDown: treeKeyDown, onFocus: treeFocus } : {})}
               {...(busy ? { "aria-busy": true } : {})}
               {...(rowCountAttribute === undefined ? {} : { "aria-rowcount": rowCountAttribute })}
               className={cn("border-b border-default", fixed && "table-fixed")}
@@ -2113,8 +2296,8 @@ function DataTableRoot<TData extends RowData>({
                   <Table.Group
                     key={group.id}
                     colSpan={columnCount}
-                    open={group.getIsExpanded()}
-                    onToggle={() => group.toggleExpanded()}
+                    expanded={group.getIsExpanded()}
+                    onExpandedChange={(next) => group.toggleExpanded(next)}
                     title={String(group.groupingValue ?? "")}
                     count={group.getLeafRows().length}
                   >
@@ -2203,44 +2386,53 @@ function DataTableRoot<TData extends RowData>({
     state !== "loading" &&
     (stranded || (!isEmpty && !fitsOnePage));
 
+  // One writing direction for the register's popups (the row menu, the glance, the table's
+  // tooltip and cards), set here only where the page has not set it already.
   return (
-    <div {...rootProps} data-responsive={responsive || undefined}>
-      {toolbar ? (
-        <div data-slot="data-table-toolbar" className="shrink-0 pb-200">
-          {toolbar}
-        </div>
-      ) : null}
-      {/* Refreshing: the rows stay, and a quiet bar over the header's top edge says more are coming. */}
-      {state === "refreshing" ? (
-        <div aria-hidden className="relative h-0">
-          <div
-            data-slot="data-table-refreshing"
-            className="absolute inset-x-0 top-0 z-30 h-025 animate-pulse rounded-full bg-brand-bold motion-reduce:animate-none"
+    <MatchDirection direction={direction}>
+      <div {...rootProps} data-responsive={responsive || undefined}>
+        {toolbar ? (
+          <div ref={observeToolbar} data-slot="data-table-toolbar" className="shrink-0 pb-200">
+            {toolbar}
+          </div>
+        ) : null}
+        {stale ? (
+          <div data-slot="data-table-error" className="shrink-0 pb-150">
+            {failure}
+          </div>
+        ) : null}
+        {/* Refreshing: the rows stay, and a quiet bar over the header's top edge says more are coming. */}
+        {state === "refreshing" ? (
+          <div aria-hidden className="relative h-0">
+            <div
+              data-slot="data-table-refreshing"
+              className="absolute inset-x-0 top-0 z-10 h-025 animate-pulse rounded-full bg-brand-bold motion-reduce:animate-none"
+            />
+          </div>
+        ) : null}
+        {/* A reorderable or resizable table says where a column moved, or how wide it now is, from its menu, in one polite status. */}
+        {options?.reorderable || options?.resizable ? (
+          <ColumnMoveStatus>{body}</ColumnMoveStatus>
+        ) : (
+          body
+        )}
+        <RowActionsMenu table={table} handle={popups.actions} />
+        <GlanceCard table={table} handle={popups.glance} />
+        {showPager ? (
+          <TablePagination
+            page={table.state.pagination.pageIndex + 1}
+            pageCount={Math.max(1, table.getPageCount())}
+            onPageChange={(p) => table.setPageIndex(p - 1)}
+            total={table.getRowCount()}
+            pageSize={pageSize}
+            pageSizes={options?.pageSizes}
+            onPageSizeChange={(size) => table.setPageSize(size)}
+            label={label ? t("paginationLabel", { label }) : undefined}
+            className="shrink-0 pt-100"
           />
-        </div>
-      ) : null}
-      {/* A reorderable or resizable table says where a column moved, or how wide it now is, from its menu, in one polite status. */}
-      {options?.reorderable || options?.resizable ? (
-        <ColumnMoveStatus>{body}</ColumnMoveStatus>
-      ) : (
-        body
-      )}
-      <RowActionsMenu table={table} handle={popups.actions} />
-      <GlanceCard table={table} handle={popups.glance} />
-      {showPager ? (
-        <TablePagination
-          page={table.state.pagination.pageIndex + 1}
-          pageCount={Math.max(1, table.getPageCount())}
-          onPageChange={(p) => table.setPageIndex(p - 1)}
-          total={table.getRowCount()}
-          pageSize={pageSize}
-          pageSizes={options?.pageSizes}
-          onPageSizeChange={(size) => table.setPageSize(size)}
-          label={label ? t("paginationLabel", { label }) : undefined}
-          className="shrink-0 pt-100"
-        />
-      ) : null}
-    </div>
+        ) : null}
+      </div>
+    </MatchDirection>
   );
 }
 

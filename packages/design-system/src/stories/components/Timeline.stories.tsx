@@ -10,7 +10,7 @@ import {
   Button,
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
+  CollapsibleHeader,
   Count,
   Dot,
   DropdownMenu,
@@ -37,7 +37,6 @@ import {
 } from "../../components";
 import {
   Check,
-  ChevronDown,
   ChevronRight,
   Download,
   MoreHorizontal,
@@ -50,8 +49,12 @@ import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { createRef, useState, type ReactNode } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import { Box, HeadingLevelProvider, Inline, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Timeline",
@@ -155,6 +158,7 @@ const three = (size?: "small" | "medium" | "large") => (
 
 /** Every tone as a marker; the states; icon markers; the three sizes; the four places the time can sit; and across, centred with the time above and start-aligned with it below. */
 export const TimelineMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Box className="max-w-layout-measure">
@@ -821,7 +825,14 @@ export const Releases: Story = {
   ),
 };
 
-/** A workflow across a header, start-aligned in a scrolling area, each stage with its file and its owner; a project's journey, centred; and a pipeline down a panel with a collapsible detail under a row. */
+/** Whether a disclosure's chevron is turned, from its computed rotation. */
+function turned(trigger: HTMLElement) {
+  const icon = trigger.querySelector("[data-slot=collapsible-header-icon]");
+  if (!icon) throw new Error("No chevron in the trigger");
+  return getComputedStyle(icon).rotate === "180deg";
+}
+
+/** A workflow across a header, start-aligned in a scrolling area, each stage with its file and its owner; a project's journey, centred; and a pipeline down a panel with a collapsible detail under a row, a CollapsibleHeader whose chevron turns while it is open. */
 export const Runs: Story = {
   render: () => (
     <Stack space="space.600">
@@ -919,16 +930,8 @@ export const Runs: Story = {
           meta="12s"
           time="3m ago"
         >
-          <Collapsible className="border-t border-default border-t-0">
-            <h3>
-              <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
-                Alex Johnson
-                <ChevronDown
-                  aria-hidden="true"
-                  className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
-                />
-              </CollapsibleTrigger>
-            </h3>
+          <Collapsible>
+            <CollapsibleHeader>Alex Johnson</CollapsibleHeader>
             <CollapsibleContent>
               <div className="pb-200">
                 <Text size="small" color="color.text.subtle">
@@ -953,16 +956,8 @@ export const Runs: Story = {
           time="now"
           emphasis
         >
-          <Collapsible defaultOpen className="border-t border-default border-t-0">
-            <h3>
-              <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
-                Michael Rodriguez
-                <ChevronDown
-                  aria-hidden="true"
-                  className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
-                />
-              </CollapsibleTrigger>
-            </h3>
+          <Collapsible defaultOpen>
+            <CollapsibleHeader>Michael Rodriguez</CollapsibleHeader>
             <CollapsibleContent>
               <div className="pb-200">
                 <Text size="small" color="color.text.subtle">
@@ -976,6 +971,18 @@ export const Runs: Story = {
       </Timeline>
     </Stack>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const open = canvas.getByRole("button", { name: "Michael Rodriguez" });
+    const closed = canvas.getByRole("button", { name: "Alex Johnson" });
+    await expect(open).toHaveAttribute("aria-expanded", "true");
+    await waitFor(() => expect(turned(open)).toBe(true));
+    await expect(turned(closed)).toBe(false);
+    await userEvent.click(closed);
+    await waitFor(() => expect(turned(closed)).toBe(true));
+    await userEvent.click(closed);
+    await waitFor(() => expect(turned(closed)).toBe(false));
+  },
 };
 
 function ActivitySheet() {
@@ -1022,6 +1029,7 @@ export const InASheet: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -1170,7 +1178,6 @@ export const FeedComposition: Story = {
 /** Four releases across a small phone: the strip keeps the width its stages need and scrolls inside its container instead of running past the window. */
 export const Narrow: Story = {
   globals: { viewport: { value: "ledgerSmall", isRotated: false } },
-  tags: ["narrow"],
   render: () => (
     <Timeline label="Releases" orientation="horizontal">
       <Timeline.Item time="Jan 2025" title="v1.0" meta="Initial release" />
@@ -1320,11 +1327,14 @@ export const RelativeTimes: Story = {
 
 const longTitle =
   "Verified by Priya Natarajan-Whitfield after the second reviewer signed the evidence";
+const longMeta = "Priya Natarajan-Whitfield for the Northwind supplier assurance board";
 
 /**
  * A long title and a long stamp in a narrow list. Beside the title the stamp takes at most half the
  * line and is cut first; a title longer than the rest is cut, and shows whole on hover and while
- * its row has keyboard focus. With `wrap` and the time below, nothing is cut.
+ * its row has keyboard focus. A long meta line is cut on a row that does not open, and shows whole
+ * on hover; on a row that opens, whose link lies over it, it wraps. With `wrap` and the time
+ * below, nothing is cut.
  */
 export const LongContent: Story = {
   name: "Long content",
@@ -1338,8 +1348,14 @@ export const LongContent: Story = {
             time="vor 2 Stunden und 14 Minuten"
             dateTime="2026-09-02T14:10"
             timeTitle="2. September 2026, 14:10 MESZ"
+            meta={longMeta}
             onSelect={() => undefined}
           />
+        </Timeline>
+      </Box>
+      <Box className="w-full" style={{ maxWidth: 320 }}>
+        <Timeline label="Read only">
+          <Timeline.Item tone="neutral" title="Evidence reviewed" meta={longMeta} time="2h ago" />
         </Timeline>
       </Box>
       <Box className="w-full" style={{ maxWidth: 320 }}>
@@ -1379,6 +1395,22 @@ export const LongContent: Story = {
       ),
     );
     await userEvent.keyboard("{Escape}");
+    // On the row that opens, the meta wraps: its reveal would sit under the row's link.
+    const openingMeta = within(cutList).getByText(longMeta);
+    await expect(openingMeta.closest('[data-slot="truncate"]')).toBeNull();
+    await expect(cut(openingMeta)).toBe(false);
+    // On a row that does not open, the meta is one line, cut, and shows whole on hover.
+    const readOnly = canvas.getByRole("list", { name: "Read only" });
+    const meta = within(readOnly).getByText(longMeta);
+    await expect(meta).toHaveAttribute("data-slot", "truncate");
+    await expect(cut(meta)).toBe(true);
+    await userEvent.hover(meta);
+    await waitFor(() =>
+      expect(document.querySelector('[data-slot="truncate-full-text"]')).toHaveTextContent(
+        longMeta,
+      ),
+    );
+    await userEvent.unhover(meta);
     // Wrapped, the title takes the lines it needs and the stamp under it is whole.
     const wrapped = canvas.getByRole("list", { name: "Wrapped" });
     const wrappedTitle = within(wrapped).getByText(longTitle);

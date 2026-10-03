@@ -15,8 +15,11 @@ function Page() {
   return (
     <Findings
       tab={tab ?? "issues"}
+      // Over the address's other parameters: each register's question stays in it.
       onTabChange={(next) =>
-        void navigate({ search: { tab: next === "issues" ? undefined : next } })
+        void navigate({
+          search: (current) => ({ ...current, tab: next === "issues" ? undefined : next }),
+        })
       }
     />
   );

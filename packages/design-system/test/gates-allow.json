@@ -12,12 +12,10 @@
     "forced-colors": {
       "Badge.stories.tsx::Semantic Variants": "The play asserts a token colour, which forced colours replace with a system colour.",
       "Badge.stories.tsx::States": "The play asserts a token colour, which forced colours replace with a system colour.",
-      "Banner.stories.tsx::Banners": "The play asserts a token colour, which forced colours replace with a system colour.",
       "Checkbox.stories.tsx::Invalid and focused": "The play asserts a token colour, which forced colours replace with a system colour.",
       "Field.stories.tsx::Composition": "The play asserts a token colour, which forced colours replace with a system colour.",
       "Field.stories.tsx::Validation": "The play asserts a token colour, which forced colours replace with a system colour.",
       "InputGroup.stories.tsx::Bound in a Field": "The play asserts a token colour, which forced colours replace with a system colour.",
-      "Stat.stories.tsx::Frames": "The play asserts a token colour, which forced colours replace with a system colour.",
       "Mode.stories.tsx::Increased Contrast": "The play measures contrast between tokens, which forced colours replace with system colours.",
       "Color.stories.tsx::Increased Contrast": "The play measures contrast between tokens, which forced colours replace with system colours.",
       "Color.stories.tsx::Text": "The token sheet paints swatches in both modes for axe to measure; forced colours replace their colours.",
@@ -29,21 +27,7 @@
     "about": "Stories whose focus stops lost half or more of their ring when the gate landed (audit G3). The number is how many stops may; fix the part and lower it.",
     "stories": {
       "components-attachment--group": 1,
-      "components-keyvalue--control-in-a-value": 1,
-      "components-keyvalue--cut-value-and-label": 1,
-      "patterns-data-table--moving-columns-narrow": 6,
-      "patterns-data-table--name-link-focus": 4,
-      "patterns-data-table--register-narrow": 8,
-      "patterns-data-table--render-budget": 11,
-      "patterns-data-table--responsive-containers": 3,
-      "patterns-data-table--responsive-grouped-headers": 2,
-      "patterns-data-table--responsive-virtual-rows": 16,
-      "patterns-data-table--row-controls-phone": 6,
-      "patterns-data-table--sort-menu-folded": 6,
-      "patterns-toolbar--narrowest-frame": 4,
-      "patterns-toolbar--panel-minimum": 4,
-      "patterns-toolbar--phone": 4,
-      "patterns-toolbar--phone-long-primary": 4
+      "components-keyvalue--cut-value-and-label": 1
     }
   },
   "touch": {

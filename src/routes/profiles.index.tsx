@@ -7,6 +7,7 @@ import { ProductRecordDialog } from "@/components/prototype/product-record-dialo
 import { RecordLink, useDisplayedRecords } from "@/components/prototype/record-preview";
 import { RecordSummaryPreview } from "@/components/prototype/record-summary-preview";
 import { useRows, type Row } from "@/lib/models";
+import { useResolutionCounts } from "@/lib/profile-reads";
 import { revisionStates } from "@/lib/status";
 import {
   Absent,
@@ -50,16 +51,11 @@ function ProfilesIndex() {
   const workspace = useWorkspace();
   const locale = useLedgerLocale();
   const profiles = useRows("profiles");
-  // Only what the register shows: the selections are counted, never read, so they come as ids.
+  // Only what the register shows: each resolution's selections are counted by Postgres, never read.
   const revisions = useRows("profile_revisions", undefined, {
     columns: ["id", "profile_id", "created_at", "version", "state"],
   });
-  const resolutions = useRows("profile_resolutions", undefined, {
-    columns: ["id", "profile_revision_id", "resolved_at"],
-  });
-  const selections = useRows("selected_controls", undefined, {
-    columns: ["id", "profile_resolution_id"],
-  });
+  const resolutions = useResolutionCounts();
   const [creating, setCreating] = useState(false);
   const [selected, setSelected] = useState<ProfileRow | null>(null);
   const rows = useMemo(
@@ -78,14 +74,11 @@ function ProfilesIndex() {
           version: revision?.version ?? null,
           status: revision?.state ?? null,
           // A count, so the column sorts as a number; nothing when no resolution is recorded.
-          selection: resolution
-            ? (selections.data?.filter((item) => item.profile_resolution_id === resolution.id)
-                .length ?? 0)
-            : null,
+          selection: resolution ? resolution.selections : null,
           drafts: versions.some((item) => item.state === "draft") ? "Has draft" : "No draft",
         };
       }),
-    [profiles.data, revisions.data, resolutions.data, selections.data],
+    [profiles.data, revisions.data, resolutions.data],
   );
   const columns = useMemo(
     () =>
@@ -106,8 +99,6 @@ function ProfilesIndex() {
         c.id("code", {
           header: "Identifier",
           width: 210,
-          preview: setSelected,
-          active: (row) => row.id === selected?.id,
         }),
         c.text("kind", { header: "Source", width: 160 }),
         c.text("version", { header: "Latest revision", width: 150 }),
@@ -115,9 +106,13 @@ function ProfilesIndex() {
         c.text("drafts", { header: "Drafts", width: 110 }),
         c.number("selection", { header: "Controls", width: 115 }),
       ]),
-    [selected?.id],
+    [],
   );
   const table = useDataTable({
+    preview: useMemo(
+      () => ({ onPreview: setSelected, activeId: selected?.id ?? null }),
+      [selected?.id],
+    ),
     data: rows,
     columns,
     getRowId: (row) => row.id,
@@ -146,7 +141,7 @@ function ProfilesIndex() {
       )}
       <ProductCollection
         table={table}
-        queries={[profiles, revisions, resolutions, selections]}
+        queries={[profiles, revisions, resolutions]}
         fill
         onRowClick={(row) => {
           void navigate({ to: "/profiles/$profileId", params: { profileId: row.id } });
@@ -155,7 +150,7 @@ function ProfilesIndex() {
           illustration: "shield",
           title: "No profiles yet",
           description:
-            "A profile is a versioned control selection with its source imports and tailoring. Author the first, or import a shared reference.",
+            "A profile is a versioned control selection with its source imports and tailoring. Shared reference profiles are loaded by a workspace administrator.",
           action: canCreate ? (
             <Button
               size="small"

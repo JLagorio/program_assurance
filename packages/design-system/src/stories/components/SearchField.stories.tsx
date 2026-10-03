@@ -21,8 +21,12 @@ import {
 } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
 import { Stack, Text } from "../../primitives";
-import { Matrix } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/SearchField",
@@ -64,6 +68,7 @@ const sizes = ["medium", "small"] as const;
 
 /** Both sizes, empty and typed, disabled and read-only. The clear button shows only while there is a query the reader can change. */
 export const States: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Matrix
       rows={states}
@@ -364,6 +369,7 @@ export const RightToLeft: Story = {
 
 /** A search finds; a record's value is typed. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Pair
       do={

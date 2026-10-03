@@ -6,9 +6,11 @@ import * as Stories from "./Section.stories";
 
 # Section
 
-Optional presentation for a titled block of a page. `title`, `count`, `description` and `action` render the built-in header; leave `title` out and compose Section.Header, Section.Heading, Section.Title, Section.Description and Section.Actions yourself when the heading needs a badge or two actions. Native section props and refs pass through every part.
+**Status: Stable.**
 
-The title is semibold at body size, and a one-line title sits centred on its action's row. A rule is opt-in with `divided`: it is drawn inside the header's end, `space.100` above the content, so the content starts clear of it and keeps its own flow.
+Optional presentation for a titled block of a page. `title`, `count`, `description` and `action` render the built-in header (a count of rows takes `countMax={9999}`, the cap a tab strip's counts take, where Count's own is 99); leave `title` out and compose Section.Header, Section.Heading, Section.Title, Section.Description and Section.Actions yourself when the heading needs a badge or two actions. Native section props and refs pass through every part.
+
+The title is a [Heading](?path=/docs/primitives-heading--docs) at `section`, semibold at body size (13/18), and a one-line title sits centred on its action's row. A rule is opt-in with `divided`: it is drawn inside the header's end, `space.100` above the content, so the content starts clear of it and keeps its own flow.
 
 <Canvas of={Stories.Presentation} />
 <Canvas of={Stories.Composed} />
@@ -42,6 +44,8 @@ A titled Section at the top of its outline, its title an h2, is a region named b
 <Canvas of={Stories.Collapsible} />
 
 Use it where a page body has a block the reader may not need. Do not build one from a subtle Button with a ChevronDown or a native `<details>`: neither is in the heading outline, and neither chevron turns. In a rail of facts, the collapsed group is [Inspector.Group](?path=/docs/patterns-inspector--docs) with `defaultOpen={false}`.
+
+<Canvas of={Stories.DoDont} />
 
 Use Stack or Grid directly when no titled region is needed. Section imposes no distinction between work, reference, forms or narrative.
 

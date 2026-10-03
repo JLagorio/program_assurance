@@ -5,8 +5,12 @@ import { expect, fn, userEvent, within } from "storybook/test";
 
 import { Button, IconButton, Item, Separator, Toggle } from "../../components";
 import { Box, Inline, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Separator",
@@ -19,6 +23,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Horizontal between blocks, vertical between groups in a toolbar, and decorative under a heading. */
 export const SeparatorMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="Horizontal, between two blocks in a Stack">
@@ -32,10 +37,10 @@ export const SeparatorMatrix: Story = {
       </Specimens>
       <Specimens title="Vertical, between groups in a toolbar row">
         <Inline space="space.050" alignBlock="center">
-          <Toggle aria-label="Bold" size="sm">
+          <Toggle aria-label="Bold" size="small">
             <Bold aria-hidden />
           </Toggle>
-          <Toggle aria-label="Italic" size="sm">
+          <Toggle aria-label="Italic" size="small">
             <Italic aria-hidden />
           </Toggle>
           <Separator orientation="vertical" />
@@ -89,6 +94,7 @@ export const SeparatorMatrix: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -163,8 +169,11 @@ const compositionEvents = {
   element: fn(),
 };
 
+export const Playground: Story = {};
+
 /** Native props target the divider; render composes the same contract onto a horizontal rule. */
 export const NativeComposition: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Box style={{ width: "100%", maxWidth: 360 }}>
@@ -255,5 +264,3 @@ export const NativeComposition: Story = {
     await expect(compositionEvents.element).toHaveBeenCalledTimes(1);
   },
 };
-
-export const Playground: Story = {};

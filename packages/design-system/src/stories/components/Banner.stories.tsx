@@ -4,8 +4,12 @@ import { expect, fn, userEvent, within } from "storybook/test";
 
 import { AlertTitle, Dot, Alert, Banner } from "../../components";
 import { Stack } from "../../primitives";
-import { Matrix } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Banner",
@@ -18,6 +22,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Every tone alone, with an action, and on a phone. A bar narrower than 42rem wraps its message, with the action after the last word; a wider one is one line. */
 export const BannerMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Matrix
       rows={["information", "warning", "danger"] as const}
@@ -48,13 +53,44 @@ export const BannerMatrix: Story = {
   },
 };
 
+export const Playground: Story = {};
+
 /** The three messages a banner carries: something changed, something is about to, something is lost. */
+export const Banners: Story = {
+  render: () => (
+    <Stack space="space.100">
+      <Banner tone="information" action={<a href="#what-changed">See what changed</a>}>
+        The control catalogue moved to revision 5.2 overnight.
+      </Banner>
+      <Banner tone="warning" action={<a href="#renew">Ask for an extension</a>}>
+        The audit window closes in three days; evidence uploads lock after that.
+      </Banner>
+      <Banner tone="danger">
+        We have lost the connection to the evidence store. Uploads are not being saved.
+      </Banner>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const [information, warning] = canvas.getAllByRole("status");
+    await expect(information).toHaveTextContent("The control catalogue moved");
+    await expect(warning).toHaveTextContent("The audit window closes");
+    await expect(canvas.getByRole("alert")).toHaveTextContent("We have lost the connection");
+    await expect(within(information!).getByRole("link", { name: "See what changed" })).toHaveClass(
+      "underline",
+    );
+    await expect(information!.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+  },
+};
+
 const bannerRef = createRef<HTMLDivElement>();
 const actionRef = createRef<HTMLButtonElement>();
 const bannerClick = fn();
 const actionClick = fn();
 
-export const Banners: Story = {
+/** The outer message and the action each take their own native props, refs and handlers; a root click handler hears the action's click. */
+export const NativeAttributes: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.100">
       <Banner
@@ -85,9 +121,6 @@ export const Banners: Story = {
       <Banner tone="warning" action={<a href="#renew">Ask for an extension</a>}>
         The audit window closes in three days; evidence uploads lock after that.
       </Banner>
-      <Banner tone="danger">
-        We have lost the connection to the evidence store. Uploads are not being saved.
-      </Banner>
     </Stack>
   ),
   play: async ({ canvasElement }) => {
@@ -113,11 +146,11 @@ export const Banners: Story = {
     await userEvent.tab({ shift: true });
     await expect(action).toHaveFocus();
     await expect(getComputedStyle(action).outlineStyle).toBe("solid");
-    await expect(getComputedStyle(action).outlineColor).toBe(getComputedStyle(action).color);
+    // The ring takes the banner's text colour; forced colours replace both with system colours.
+    if (!matchMedia("(forced-colors: active)").matches)
+      await expect(getComputedStyle(action).outlineColor).toBe(getComputedStyle(action).color);
     await expect(actionClick).toHaveBeenCalledTimes(2);
     await expect(bannerClick).toHaveBeenCalledTimes(2);
-    await expect(canvas.getByRole("status")).toHaveTextContent("The audit window closes");
-    await expect(canvas.getByRole("alert")).toHaveTextContent("We have lost the connection");
     await expect(notice.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
   },
 };
@@ -165,6 +198,7 @@ export const LongMessage: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -215,5 +249,3 @@ export const Dont: Story = {
     </Stack>
   ),
 };
-
-export const Playground: Story = {};

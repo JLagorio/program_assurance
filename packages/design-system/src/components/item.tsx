@@ -15,10 +15,13 @@ import {
 
 import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
+import { useLedgerLocale } from "../lib/locale";
 import { headingTag, useHeadingLevel } from "../primitives/heading-level";
+import { IconButton } from "./button";
 import { Empty, EmptyHeader, EmptyTitle } from "./empty";
 import { Count } from "./badge";
 import { Id } from "./id";
+import { textOf } from "./option-text";
 import { Truncate, type TruncateLines } from "./truncate";
 
 /* Every row is six cells on one grid: toggle · leading · id · body · trailing ·
@@ -107,6 +110,7 @@ function ItemRoot({
   children,
   ...props
 }: ItemProps) {
+  const { t } = useLedgerLocale();
   const group = useContext(GroupContext);
   const size = group?.size ?? "default";
   const flush = group?.flush ?? false;
@@ -182,18 +186,26 @@ function ItemRoot({
   const chevron = (
     <ChevronRight
       aria-hidden
-      className="size-icon-small transition-transform duration-fast ease-standard group-data-open/item:rotate-90"
+      className="size-icon-small transition-transform duration-fast ease-standard group-data-open/item:rotate-90 motion-reduce:transition-none"
     />
   );
   // The chevron sits over the title's stretched overlay (z-10 within the row), so it opens the row
   // instead of following the link, with a 24px hit area on touch.
+  // It is the kit's 20px row control, named by the title, with no tooltip of its own.
   const toggle = !collapsible ? null : interactive ? (
     <CollapsiblePrimitive.Trigger
       aria-labelledby={titleId}
-      className="relative z-10 inline-flex size-250 shrink-0 touch-target items-center justify-center rounded-small icon-subtle outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered hover:icon-default focus-visible:outline-focused"
-    >
-      {chevron}
-    </CollapsiblePrimitive.Trigger>
+      render={
+        <IconButton
+          label={textOf(title) || t("expand")}
+          variant="subtle"
+          size="xxsmall"
+          isTooltipDisabled
+          className="z-10"
+          icon={chevron}
+        />
+      }
+    />
   ) : (
     <span className="inline-flex size-250 shrink-0 items-center justify-center icon-subtle">
       {chevron}
@@ -302,6 +314,8 @@ export type ItemGroupProps = Omit<ComponentProps<"div">, "title"> & {
   title?: ReactNode;
   /** A Count after the title: how many rows. */
   count?: number | undefined;
+  /** The most `count` shows before it reads as `max+`, as Count's `max`: `9999` for a count of rows. 99 unsaid. */
+  countMax?: number | undefined;
   /** At the end of the heading's line: a read-out ("2 of 5 complete") or one small button. */
   trailing?: ReactNode;
   /** `compact` tightens every row from `space.100` to `space.050` above and below, for a rail. */
@@ -326,6 +340,7 @@ export function ItemGroup({
   empty,
   title,
   count,
+  countMax,
   trailing,
   size = "default",
   labelledBy,
@@ -374,12 +389,12 @@ export function ItemGroup({
           {title ? (
             <HeadingTag
               id={headingId}
-              className="min-w-0 break-words font-body font-semibold text-default"
+              className="min-w-0 break-words font-heading-section text-default"
             >
               {title}
             </HeadingTag>
           ) : null}
-          {count !== undefined ? <Count value={count} /> : null}
+          {count !== undefined ? <Count value={count} max={countMax} /> : null}
           {trailing ? (
             <span className="ms-auto flex shrink-0 items-center gap-100 font-body-small text-subtle tabular-nums">
               {trailing}

@@ -5,8 +5,12 @@ import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import { Badge, Absent, KeyValue, Person, TextLink } from "../../components";
 import { Editable } from "../../patterns";
 import { Box, Stack } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/KeyValue",
@@ -17,28 +21,24 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Whether the browser takes a clip margin, which lets a value clip with room for a focus ring. */
-const clipMargin = () => CSS.supports("overflow-clip-margin", "4px");
-
-/** How far a focus ring reaches past its control: outline-focused's width plus its offset. */
-const ringReach = () => {
-  const root = getComputedStyle(document.documentElement);
-  return (
-    parseFloat(root.getPropertyValue("--ds-border-width-focused")) +
-    parseFloat(root.getPropertyValue("--ds-space-025"))
-  );
+/**
+ * How far a focused element's ring reaches past its box across: its outline's width plus its
+ * offset, which is negative for a ring drawn inside the edge.
+ */
+const ringReach = (el: Element) => {
+  const style = getComputedStyle(el);
+  return Math.max(0, parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset));
 };
 
-/** The box a value paints inside: its own, grown by its clip margin. */
-const clipBox = (value: Element) => {
-  const rect = value.getBoundingClientRect();
-  const margin = parseFloat(getComputedStyle(value).overflowClipMargin) || 0;
-  return {
-    left: rect.left - margin,
-    right: rect.right + margin,
-    top: rect.top - margin,
-    bottom: rect.bottom + margin,
-  };
+/**
+ * Whether a focused element's ring lies inside `box` across. A value clips at its own box in
+ * every browser (no clip margin, which Safari lacks), so the ring must fit it.
+ */
+const ringInside = (el: Element, box: DOMRect) => {
+  const rect = el.getBoundingClientRect();
+  const reach = ringReach(el);
+  expect(rect.left - reach).toBeGreaterThanOrEqual(box.left - 0.5);
+  expect(rect.right + reach).toBeLessThanOrEqual(box.right + 0.5);
 };
 
 /** The tooltip that shows a cut value in full, once it has opened. */
@@ -51,6 +51,7 @@ const revealed = () =>
 
 /** Label widths, every kind of value, a wrapping one, a truncating one that reveals itself, and an absent one. */
 export const KeyValueMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="Values">
@@ -72,10 +73,10 @@ export const KeyValueMatrix: Story = {
           </KeyValue>
         </Box>
       </Specimens>
-      <Specimens title="Label widths: 104 (default) and 160">
+      <Specimens title="Label widths: default (104) and wide (160)">
         <Box style={{ width: 360 }}>
           <KeyValue label="Owner">Dana Whitfield</KeyValue>
-          <KeyValue label="Authorizing official" labelWidth={160}>
+          <KeyValue label="Authorizing official" labelWidth="wide">
             Marcus Oyelaran
           </KeyValue>
         </Box>
@@ -95,24 +96,13 @@ export const KeyValueMatrix: Story = {
   ),
 };
 
-/** A rail: one label width down the column, the facts in the order the reader asks for them. */
-const ownerRef = createRef<HTMLDListElement>();
-const inspectOwner = fn();
+export const Playground: Story = {};
 
+/** A rail: one label width down the column, the facts in the order the reader asks for them. */
 export const InRail: Story = {
   render: () => (
-    <Box style={{ width: 300 }} className="border-s border-default ps-200">
-      <KeyValue
-        ref={ownerRef}
-        id="record-owner"
-        data-field="owner"
-        title="Record owner"
-        label="Owner"
-        labelWidth={160}
-        className="py-075"
-        style={{ gridTemplateColumns: "104px minmax(0, 1fr)", maxWidth: 300 }}
-        onMouseEnter={inspectOwner}
-      >
+    <Box style={{ maxWidth: 300 }} className="border-s border-default ps-200">
+      <KeyValue label="Owner">
         <Person name="Dana Whitfield" />
       </KeyValue>
       <KeyValue label="Frequency">Quarterly</KeyValue>
@@ -129,9 +119,56 @@ export const InRail: Story = {
     </Box>
   ),
   play: async ({ canvasElement }) => {
-    inspectOwner.mockClear();
     const canvas = within(canvasElement);
-    const owner = canvas.getByTitle("Record owner");
+    const terms = canvas.getAllByRole("term");
+    await expect(terms.map((term) => term.textContent)).toEqual([
+      "Owner",
+      "Frequency",
+      "Last verified",
+      "Next due",
+      "Status",
+      "Assessor",
+    ]);
+    // One label width down the rail, so the values start in one column.
+    const starts = canvas
+      .getAllByRole("definition")
+      .map((value) => Math.round(value.getBoundingClientRect().left));
+    await expect(new Set(starts).size).toBe(1);
+    // A value that fits carries no title and opens nothing.
+    const frequency = canvas.getByText("Quarterly");
+    await expect(frequency).not.toHaveAttribute("title");
+    await userEvent.hover(frequency);
+    await new Promise((resolve) => setTimeout(resolve, 450));
+    await expect(document.querySelector('[data-slot="truncate-full-text"]')).toBeNull();
+  },
+};
+
+const ownerRef = createRef<HTMLDListElement>();
+const inspectOwner = fn();
+
+/** Native `dl` props, a class, a style and a ref reach the pair's element. */
+export const NativeAttributes: Story = {
+  tags: ["!manifest"],
+  render: () => (
+    <Box style={{ width: 300, maxWidth: "100%" }}>
+      <KeyValue
+        ref={ownerRef}
+        id="record-owner"
+        data-field="owner"
+        title="Record owner"
+        label="Owner"
+        labelWidth="wide"
+        className="py-075"
+        style={{ gridTemplateColumns: "104px minmax(0, 1fr)", maxWidth: 300 }}
+        onMouseEnter={inspectOwner}
+      >
+        <Person name="Dana Whitfield" />
+      </KeyValue>
+    </Box>
+  ),
+  play: async ({ canvasElement }) => {
+    inspectOwner.mockClear();
+    const owner = within(canvasElement).getByTitle("Record owner");
     await expect(ownerRef.current).toBe(owner);
     await expect(owner.tagName).toBe("DL");
     await expect(owner).toHaveAttribute("id", "record-owner");
@@ -143,18 +180,14 @@ export const InRail: Story = {
     await expect(within(owner).getByRole("term")).toHaveTextContent("Owner");
     await expect(within(owner).getByRole("definition")).toHaveTextContent("Dana Whitfield");
     await userEvent.hover(owner);
-    await expect(inspectOwner).toHaveBeenCalledTimes(1);
-    // A value that fits carries no title and opens nothing.
-    const frequency = canvas.getByText("Quarterly");
-    await expect(frequency).not.toHaveAttribute("title");
-    await userEvent.hover(frequency);
-    await new Promise((resolve) => setTimeout(resolve, 450));
-    await expect(document.querySelector('[data-slot="truncate-full-text"]')).toBeNull();
+    // At least once: the test browser's own pointer may rest where the pair renders.
+    await expect(inspectOwner).toHaveBeenCalled();
   },
 };
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -168,13 +201,13 @@ export const Dont: Story = {
         doText="One label width down the rail, so the values make a column."
         dont={
           <Box style={{ maxWidth: 300 }}>
-            <KeyValue label="Owner" labelWidth={64}>
+            <KeyValue label="Owner" labelWidth="narrow">
               Dana Whitfield
             </KeyValue>
-            <KeyValue label="Frequency" labelWidth={96}>
+            <KeyValue label="Frequency" labelWidth="default">
               Quarterly
             </KeyValue>
-            <KeyValue label="Last verified" labelWidth={120}>
+            <KeyValue label="Last verified" labelWidth="wide">
               12 Aug 2026
             </KeyValue>
           </Box>
@@ -221,8 +254,6 @@ export const Dont: Story = {
   ),
 };
 
-export const Playground: Story = {};
-
 /** An identifier or a timestamp with no spaces: `wrap` breaks it inside the rail rather than past it; without `wrap` it truncates and shows the whole on hover. */
 export const Unbroken: Story = {
   render: () => (
@@ -253,7 +284,9 @@ export const Unbroken: Story = {
 /**
  * A value that is a control, a TextLink or an Editable, truncates across only: the ellipsis shows,
  * and the control's focus ring and its touch area (24px on its line, where a pointer is coarse)
- * reach above and below the row instead of being cut to it.
+ * reach above and below the row instead of being cut to it. A link that is the whole value is cut
+ * to the value's width, with its own ellipsis, and draws its ring inside its edge, so the clip
+ * cannot take any side of it in any browser; its whole text shows on hover and on keyboard focus.
  */
 export const ControlInAValue: Story = {
   render: () => (
@@ -272,16 +305,34 @@ export const ControlInAValue: Story = {
     const link = canvas.getByRole("link", { name: /EV-2201 Bank reconciliation/ });
     const value = link.closest("dd")!;
     const style = getComputedStyle(value);
+    // The value clips across only, at its own box: no clip margin, in every browser.
     await expect(style.overflowX).toBe("clip");
-    // Where the browser takes a clip margin the value clips on both axes, with the ring's reach
-    // all round; elsewhere it clips across only.
-    if (clipMargin()) {
-      await expect(style.overflowY).toBe("clip");
-      await expect(parseFloat(style.overflowClipMargin)).toBeGreaterThanOrEqual(ringReach());
-    } else await expect(style.overflowY).toBe("visible");
+    await expect(style.overflowY).toBe("visible");
+    await expect(parseFloat(style.overflowClipMargin) || 0).toBe(0);
     await expect(style.textOverflow).toBe("ellipsis");
     await expect(style.whiteSpace).toBe("nowrap");
-    await expect(value.scrollWidth).toBeGreaterThan(value.clientWidth);
+    // The link is cut to the value's width and ends in its own ellipsis.
+    const linkStyle = getComputedStyle(link);
+    await expect(linkStyle.display).toBe("inline-block");
+    await expect(linkStyle.textOverflow).toBe("ellipsis");
+    await expect(link.scrollWidth).toBeGreaterThan(link.clientWidth);
+    await expect(link.getBoundingClientRect().right).toBeLessThanOrEqual(
+      value.getBoundingClientRect().right + 0.5,
+    );
+    // Focused, its ring is inside its own edge, so the whole ring is inside the value's clip.
+    await userEvent.tab();
+    await expect(link).toHaveFocus();
+    await expect(parseFloat(getComputedStyle(link).outlineOffset)).toBeLessThan(0);
+    ringInside(link, value.getBoundingClientRect());
+    // The link, not the value, is what is cut, and focus still reveals the whole text.
+    const full = await revealed();
+    await expect(full).toHaveTextContent(
+      "EV-2201 Bank reconciliation for July, signed by the controller",
+    );
+    await userEvent.tab();
+    await waitFor(() =>
+      expect(document.querySelector('[data-slot="truncate-full-text"]')).toBeNull(),
+    );
     const box = link.getBoundingClientRect();
     const at = (dy: number) =>
       canvasElement.ownerDocument.elementFromPoint(
@@ -352,7 +403,7 @@ export const CutValueAndLabel: Story = {
 export const Group: Story = {
   render: () => (
     <Box style={{ maxWidth: 320 }} className="border-s border-default ps-200">
-      <KeyValue.Group labelWidth={124} aria-label="Details">
+      <KeyValue.Group labelWidth="wide" aria-label="Details">
         <KeyValue label="Owner">
           <Person name="Dana Whitfield" />
         </KeyValue>
@@ -386,8 +437,10 @@ export const Group: Story = {
     // One label width down the group: every value starts at the same place.
     const starts = rows.map((row) => Math.round(row.children[1]!.getBoundingClientRect().left));
     await expect(new Set(starts).size).toBe(1);
+    // `wide` is dimension.part.keyValueLabelWide, 10rem: 160px at the default text size.
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
     const label = rows[0]!.children[0]!.getBoundingClientRect();
-    await expect(Math.round(label.width)).toBeGreaterThanOrEqual(124);
+    await expect(Math.round(label.width)).toBe(Math.round(10 * rem));
     await expect(within(group).getByText("Not recorded")).toHaveAttribute(
       "data-slot",
       "visually-hidden",
@@ -441,6 +494,7 @@ export const GroupInANarrowPanel: Story = {
 
 /** `columns` keeps label beside value at any width, as a rail of one-line rows needs; `stacked` always puts the label over the value. The label column grows with the reader's text size: 104 at the default 16px is 130 at 20px. */
 export const GroupLayouts: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="columns">
@@ -487,6 +541,155 @@ export const GroupLayouts: Story = {
 };
 
 /**
+ * `labelWidth` is a named step: `narrow` (88px) for short labels in a card, a glance or a chart's
+ * details, `default` (104px) for a rail, `wide` (160px) for labels of about twenty characters, each
+ * at the default text size and growing with the reader's. `auto` is as wide as the group's longest
+ * label, up to `wide`, for a page body: a short set of labels takes a short column, and a label
+ * past `wide` wraps.
+ */
+export const LabelWidths: Story = {
+  tags: ["!manifest"],
+  name: "Label widths",
+  render: () => (
+    <Stack space="space.300">
+      {(["narrow", "default", "wide"] as const).map((width) => (
+        <Specimens key={width} title={width}>
+          <Box style={{ width: 360, maxWidth: "100%" }} data-testid={`width-${width}`}>
+            <KeyValue.Group labelWidth={width} layout="columns">
+              <KeyValue label="Owner">Dana Whitfield</KeyValue>
+              <KeyValue label="Next due">12 Nov 2026</KeyValue>
+            </KeyValue.Group>
+          </Box>
+        </Specimens>
+      ))}
+      <Specimens title="auto: the longest label sets the column">
+        <Box style={{ width: 360, maxWidth: "100%" }} data-testid="width-auto">
+          <KeyValue.Group labelWidth="auto" layout="columns">
+            <KeyValue label="Owner">Dana Whitfield</KeyValue>
+            <KeyValue label="Frequency">Quarterly</KeyValue>
+            <KeyValue label="Last verified">12 Aug 2026</KeyValue>
+          </KeyValue.Group>
+        </Box>
+      </Specimens>
+      <Specimens title="auto: a label past wide wraps">
+        <Box style={{ width: 360, maxWidth: "100%" }} data-testid="width-auto-long">
+          <KeyValue.Group labelWidth="auto" layout="columns">
+            <KeyValue label="Owner">Dana Whitfield</KeyValue>
+            <KeyValue label="Authorizing official for the boundary">Marcus Oyelaran</KeyValue>
+          </KeyValue.Group>
+        </Box>
+      </Specimens>
+    </Stack>
+  ),
+  play: async ({ canvas }) => {
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const terms = (id: string) =>
+      Array.from(canvas.getByTestId(id).querySelectorAll("dt")).map((term) =>
+        term.getBoundingClientRect(),
+      );
+    const values = (id: string) =>
+      Array.from(canvas.getByTestId(id).querySelectorAll("dd")).map(
+        (value) => value.getBoundingClientRect().left,
+      );
+    // Each step is its token, in rem: 5.5, 6.5 and 10rem.
+    for (const [width, size] of [
+      ["narrow", 5.5],
+      ["default", 6.5],
+      ["wide", 10],
+    ] as const)
+      for (const term of terms(`width-${width}`))
+        await expect(Math.round(term.width)).toBe(Math.round(size * rem));
+    // auto: one column down the group, as wide as its longest label and narrower than wide.
+    const auto = terms("width-auto");
+    await expect(new Set(auto.map((term) => Math.round(term.width))).size).toBe(1);
+    await expect(auto[0]!.width).toBeLessThan(10 * rem);
+    await expect(new Set(values("width-auto").map(Math.round)).size).toBe(1);
+    const longest = canvas.getByText("Last verified");
+    await expect(longest.scrollWidth).toBeLessThanOrEqual(longest.clientWidth + 1);
+    await expect(longest.getBoundingClientRect().height).toBeLessThan(
+      parseFloat(getComputedStyle(longest).lineHeight) * 1.5,
+    );
+    // A label past wide: the column stops at wide and the label wraps, whole.
+    const long = terms("width-auto-long");
+    await expect(Math.round(long[1]!.width)).toBe(Math.round(10 * rem));
+    const wrapped = canvas.getByText("Authorizing official for the boundary");
+    await expect(wrapped.getBoundingClientRect().height).toBeGreaterThan(
+      parseFloat(getComputedStyle(wrapped).lineHeight) * 1.5,
+    );
+    await expect(new Set(values("width-auto-long").map(Math.round)).size).toBe(1);
+  },
+};
+
+/**
+ * An `auto` label column in an `auto` group: labels beside their values while the group is at
+ * least 20rem (`dimension.container.xs`) wide, and over them below it, as a page body narrows to a
+ * panel or a phone.
+ */
+export const AutoLabelColumn: Story = {
+  name: "Auto label column",
+  render: () => (
+    <Stack space="space.300">
+      {[480, 260].map((width) => (
+        <Box
+          key={width}
+          data-testid={`page-${width}`}
+          style={{ width, maxWidth: "100%" }}
+          className="border-s border-default ps-200"
+        >
+          <KeyValue.Group labelWidth="auto">
+            <KeyValue label="Requirement reference">REQ-001</KeyValue>
+            <KeyValue label="Planned completion">12 Nov 2026</KeyValue>
+            <KeyValue label="Owner">Dana Whitfield</KeyValue>
+          </KeyValue.Group>
+        </Box>
+      ))}
+    </Stack>
+  ),
+  play: async ({ canvas }) => {
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const rowsOf = (width: number) =>
+      Array.from(
+        canvas
+          .getByTestId(`page-${width}`)
+          .querySelectorAll<HTMLElement>('[data-slot="key-value"]'),
+      );
+    const beside = (row: HTMLElement) =>
+      Math.abs(
+        row.children[0]!.getBoundingClientRect().top - row.children[1]!.getBoundingClientRect().top,
+      ) < 4;
+    for (const width of [480, 260]) {
+      const group = canvas
+        .getByTestId(`page-${width}`)
+        .querySelector<HTMLElement>('[data-slot="key-value-group"]')!;
+      await expect(group).toHaveAttribute("data-label-width", "auto");
+      const rows = rowsOf(width);
+      if (group.getBoundingClientRect().width >= 20 * rem) {
+        for (const row of rows) await expect(beside(row)).toBe(true);
+        // The values make one column, after the longest label.
+        const starts = rows.map((row) => Math.round(row.children[1]!.getBoundingClientRect().left));
+        await expect(new Set(starts).size).toBe(1);
+      } else
+        for (const row of rows) {
+          await expect(beside(row)).toBe(false);
+          const [term, value] = [row.children[0]!, row.children[1]!];
+          await expect(value.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+            term.getBoundingClientRect().bottom - 1,
+          );
+          // Stacked, label and value have the row's width: the label is not cut, and a long
+          // value (an id, a URN) truncates in the row rather than running past it.
+          for (const part of [term, value])
+            await expect(
+              Math.abs(part.getBoundingClientRect().width - row.clientWidth),
+            ).toBeLessThan(1);
+          await expect(term.scrollWidth).toBeLessThanOrEqual(term.clientWidth + 1);
+        }
+    }
+    // The 260px body is under 20rem at any text size the story runs at, so it stacks.
+    await expect(beside(rowsOf(260)[0]!)).toBe(false);
+  },
+};
+
+/**
  * The group ends at the value: a KeyValue inside a row's value, as a peek's facts would be, is its
  * own definition list again rather than a row of a list it does not sit in.
  */
@@ -520,16 +723,17 @@ function NextAction() {
     <Editable.Text
       label="Next action"
       value={value}
-      onChange={setValue}
+      onValueChange={setValue}
       save={() => Promise.resolve()}
     />
   );
 }
 
 /**
- * A control at either edge of a value keeps its whole focus ring, and an Editable's field keeps
- * its sides: where the browser takes a clip margin, the value clips with the ring's reach all
- * round instead of at its own edge.
+ * A control at either edge of a value keeps its whole focus ring, and an Editable its tint, ring
+ * and field, in every browser: a link draws its ring inside its own edge, the value keeps
+ * `space.050` at its end, and a value that is an Editable does not clip, so the Editable reaches
+ * past the text column and stays on it, in line with the plain values.
  */
 export const RingRoom: Story = {
   name: "Ring room",
@@ -542,26 +746,38 @@ export const RingRoom: Story = {
         <KeyValue label="Next action">
           <NextAction />
         </KeyValue>
+        <KeyValue label="Frequency">Quarterly</KeyValue>
       </KeyValue.Group>
     </Box>
   ),
   play: async ({ canvas }) => {
-    const inside = (box: DOMRect, reach: number, clip: ReturnType<typeof clipBox>) => {
-      expect(box.left - reach).toBeGreaterThanOrEqual(clip.left - 0.5);
-      expect(box.right + reach).toBeLessThanOrEqual(clip.right + 0.5);
-      expect(box.top - reach).toBeGreaterThanOrEqual(clip.top - 0.5);
-      expect(box.bottom + reach).toBeLessThanOrEqual(clip.bottom + 0.5);
-    };
     const link = canvas.getByRole("link", { name: "Dana Whitfield" });
     await userEvent.tab();
     await expect(link).toHaveFocus();
-    if (clipMargin())
-      inside(link.getBoundingClientRect(), ringReach(), clipBox(link.closest("dd")!));
-    // The Editable's field reaches past the value's text column by its bleed; it stays whole.
-    await userEvent.click(canvas.getByRole("button", { name: /Next action/ }));
+    ringInside(link, link.closest("dd")!.getBoundingClientRect());
+    // The Editable's value does not clip: nothing between the Editable and the rail cuts its
+    // reach, and the Editable's text starts where the plain value's does.
+    const row = canvas.getByRole("button", { name: /Next action/ });
+    const value = row.closest("dd")!;
+    const rail = value.closest("dl")!.parentElement!;
+    for (let el = row.parentElement; el && el !== rail; el = el.parentElement)
+      await expect(getComputedStyle(el).overflowX).toBe("visible");
+    await userEvent.tab();
+    await expect(row).toHaveFocus();
+    ringInside(row, rail.getBoundingClientRect());
+    const plain = canvas.getByText("Quarterly").closest("dd")!;
+    await expect(
+      Math.abs(row.getBoundingClientRect().left - plain.getBoundingClientRect().left),
+    ).toBeLessThan(0.5);
+    // The field reaches past the value's text column by its bleed and keeps both sides; at the
+    // end it stays inside the value, so the value is not taken for cut text.
+    await userEvent.keyboard("{Enter}");
     const field = await canvas.findByRole("textbox", { name: "Next action" });
     await expect(field).toHaveFocus();
-    if (clipMargin()) inside(field.getBoundingClientRect(), 0, clipBox(field.closest("dd")!));
+    const box = field.getBoundingClientRect();
+    await expect(box.left).toBeGreaterThanOrEqual(rail.getBoundingClientRect().left - 0.5);
+    await expect(box.right).toBeLessThanOrEqual(value.getBoundingClientRect().right + 0.5);
+    await expect(value.scrollWidth).toBeLessThanOrEqual(value.clientWidth);
     await userEvent.keyboard("{Escape}");
     await expect(canvas.getByRole("button", { name: /Next action/ })).toHaveFocus();
   },

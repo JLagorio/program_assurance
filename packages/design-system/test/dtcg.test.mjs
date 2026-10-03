@@ -41,7 +41,7 @@ test("every shipped token has a conformant 2025.10 value in both mode exports", 
 });
 test("font-relative tracking survives the export boundary at the actual type size", () => {
   const exported = exportDtcg(source);
-  const heading = exported.font.heading.large;
+  const heading = exported.font.heading.display;
   const sourceTracking = heading.$extensions["org.ledger.css"].sourceLetterSpacing;
   assert.match(sourceTracking, /^\{/);
   const key = sourceTracking.slice(1, -1).split(".").at(-1);
@@ -53,6 +53,18 @@ test("font-relative tracking survives the export boundary at the actual type siz
       parseFloat(source.font.letterSpacing[key].$value) * px(heading.$value.fontSize) * 1000,
     ) / 1000,
   );
+});
+test("a part's size in ch or vw crosses the export boundary as a number with its CSS unit", () => {
+  const exported = exportDtcg(source);
+  for (const [name, unit] of [
+    ["filterChipValue", "ch"],
+    ["recordBrowser", "vw"],
+  ]) {
+    const part = exported.dimension.part[name];
+    assert.equal(part.$type, "number", name);
+    assert.equal(part.$value, parseFloat(source.dimension.part[name].$value), name);
+    assert.deepEqual(part.$extensions["org.ledger.css"], { unit, sourceType: "dimension" }, name);
+  }
 });
 test("interchange validation rejects string dimensions, invalid composites, cycles and missing aliases", () => {
   for (const doc of [

@@ -40,7 +40,8 @@ async function columnIndex(header) {
 async function cell(system, header) {
   const index = await columnIndex(header);
   assert.ok(index >= 0, `The systems table has a ${header} column`);
-  return row(system).locator("td").nth(index);
+  // The system's name is the row's header cell (`th`), so count it with the data cells.
+  return row(system).locator("th, td").nth(index);
 }
 const impact = (system, dimension) =>
   cell(
@@ -421,12 +422,13 @@ try {
   );
   await expect(fact(baselineDetails, "Selected controls")).toHaveText(String(low.count));
   const controls = page.getByRole("table", { name: "Controls", exact: true });
-  await expect(controls.locator("tr[data-row-id]")).toHaveCount(Math.min(50, low.count));
+  // A product collection's page: 25 rows.
+  await expect(controls.locator("tr[data-row-id]")).toHaveCount(Math.min(25, low.count));
   await expect(
-    page.getByRole("complementary", { name: "Record details", exact: true }),
+    page.getByRole("complementary", { name: "System details", exact: true }),
   ).toHaveCount(0);
   await tabs().getByRole("tab", { name: "Overview", exact: true }).click();
-  const rail = page.getByRole("complementary", { name: "Record details", exact: true });
+  const rail = page.getByRole("complementary", { name: "System details", exact: true });
   await expect(rail).toContainText("Moderate");
   await expect(rail.getByRole("link", { name: root.name, exact: true })).toHaveCount(1);
   await expect(rail.getByRole("link", { name: parent.name, exact: true })).toHaveCount(1);

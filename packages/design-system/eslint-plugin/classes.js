@@ -98,7 +98,9 @@ export const structural = [
   /^(static|relative|absolute|fixed|sticky)$/,
   /^-?(inset|inset-x|inset-y|top|right|bottom|left|start|end)-(0|full|px|1\/2)$/,
   /^(inset|inset-x|inset-y|top|right|bottom|left|start|end)-auto$/, // auto has no negative
-  /^z-(0|10|20|30|40|50|auto)$/,
+  // A part's stacking inside itself (a sticky header over its rows, a pinned cell over the middle);
+  // between the page's regions a layer token stacks it (`z-chrome`, `z-overlay`, …, layer.*).
+  /^z-(0|10|20|auto)$/,
   /^(isolate|isolation-auto)$/,
   /^flex-(row|col|row-reverse|col-reverse|wrap|nowrap|wrap-reverse|1|auto|initial|none)$/,
   /^(grow|grow-0|shrink|shrink-0)$/,
@@ -432,6 +434,49 @@ function vocabularyOf(parsed) {
   };
 }
 
+/* ---------- a physical side ---------- */
+
+/** Each class that names a physical side, with the logical class that mirrors with the page. */
+const PHYSICAL_SIDES = [
+  [/^text-left$/, "text-start"],
+  [/^text-right$/, "text-end"],
+  [/^(-?)(p|scroll-p|scroll-m)l-(.+)$/, "$1$2s-$3"],
+  [/^(-?)(p|scroll-p|scroll-m)r-(.+)$/, "$1$2e-$3"],
+  [/^(-?)left-(.+)$/, "$1start-$2"],
+  [/^(-?)right-(.+)$/, "$1end-$2"],
+  [/^border-l(-.+)?$/, "border-s$1"],
+  [/^border-r(-.+)?$/, "border-e$1"],
+  [/^rounded-l(-.+)?$/, "rounded-s$1"],
+  [/^rounded-r(-.+)?$/, "rounded-e$1"],
+  [/^rounded-tl(-.+)?$/, "rounded-ss$1"],
+  [/^rounded-tr(-.+)?$/, "rounded-se$1"],
+  [/^rounded-bl(-.+)?$/, "rounded-es$1"],
+  [/^rounded-br(-.+)?$/, "rounded-ee$1"],
+  [/^(float|clear)-left$/, "$1-start"],
+  [/^(float|clear)-right$/, "$1-end"],
+];
+/** A half inset centres the element with a translate, the same either way the page reads. */
+const CENTRES = /^-?(left|right)-1\/2$/;
+/** A variant that names a physical side (`data-[side=left]:`, `data-[swipe-direction=right]:`) or
+    a direction (`ltr:`, `rtl:`), under which a physical side is the meaning. */
+const NAMES_A_SIDE = /\b(left|right)\b|^(ltr|rtl)$/;
+
+/**
+ * The logical class for one that names a physical side (`text-left`, `pl-200`, `right-0`,
+ * `border-l`, `rounded-r-large`), which holds when the page reads right to left: under the class's
+ * variants and `!`, and only when it passes every class rule itself, so `pl-4`, whose twin is a
+ * stock step too, keeps its stock advice. Undefined for any other class, at a half inset, and
+ * under a variant that names a side or a direction.
+ */
+function logicalTwin(parsed) {
+  if (CENTRES.test(parsed.base) || parsed.variants.some((variant) => NAMES_A_SIDE.test(variant)))
+    return undefined;
+  const side = PHYSICAL_SIDES.find(([pattern]) => pattern.test(parsed.base));
+  if (!side) return undefined;
+  const twin = withVariants(parsed, parsed.base.replace(side[0], side[1]));
+  return closureFailures(twin).length === 0 ? twin : undefined;
+}
+
 /* ---------- one owner per class ---------- */
 
 /** What classify says of a class no rule reports. */
@@ -466,6 +511,13 @@ function ownerOf({ cls, variants, base, important }) {
   if (value) return owned("no-static-design-value", value);
   const entry = deprecatedClass(base);
   if (entry) return owned("no-deprecated-token", "deprecated", { entry });
+  // A physical side, whose logical twin passes: the twin, as the one class that stands for it.
+  const logical = logicalTwin({ variants, base, important });
+  if (logical)
+    return owned("no-non-token-class", "physical", {
+      logical,
+      replacements: Object.freeze([logical]),
+    });
   if (!isKnown(base)) {
     // A shadcn theme name, with the Ledger classes for its job.
     const vocabulary = vocabularyOf({ variants, base, important });
@@ -505,7 +557,9 @@ let ownersVersion = 0;
  * 5. no-alpha-token: an opacity modifier on a token colour (`bg-brand-bold/50`). On any other colour
  *    the state token would not be the whole fix, so the class goes on down the list.
  * 6. no-static-design-value, then no-deprecated-token.
- * 7. no-non-token-class, for a class no other rule owns that is neither a token nor structure:
+ * 7. no-non-token-class, for a class that names a physical side whose logical twin passes
+ *    (`text-left`, `pl-200`, `right-0`: logicalTwin), and for a class no other rule owns that is
+ *    neither a token nor structure:
  *    a shadcn theme name (`text-muted-foreground`, `bg-muted/50`), with the Ledger classes for its
  *    job (vocabularyOf), a palette colour with alpha (`bg-red-500/50`), a minus on a padding, gap
  *    or size, which Tailwind does not negate (`-p-200`, `-w-full`), or any other unknown class.

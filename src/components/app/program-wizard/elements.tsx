@@ -86,8 +86,12 @@ export function ElementsStep({
   previews,
   libraryItems,
   libraryPending,
+  libraryFailed = false,
+  onRetryLibrary,
   productItems,
   productPending,
+  productFailed = false,
+  onRetryProducts,
   newSystem,
   editing,
   onEditingChange,
@@ -103,8 +107,16 @@ export function ElementsStep({
   previews: Map<string, ProgramTailoringPreview>;
   libraryItems: LibraryComponentItem[];
   libraryPending: boolean;
+  /** A read behind `libraryItems` failed: the library picker says so instead of offering nothing. */
+  libraryFailed?: boolean | undefined;
+  /** Try again in that failure: refetch what failed. */
+  onRetryLibrary?: (() => void) | undefined;
   productItems: ProductConfigurationItem[];
   productPending: boolean;
+  /** A read behind `productItems` failed: the product picker says so instead of offering nothing. */
+  productFailed?: boolean | undefined;
+  /** Try again in that failure: refetch what failed. */
+  onRetryProducts?: (() => void) | undefined;
   newSystem: () => SystemWizardDraft;
   /** The row the element Sheet is open on. */
   editing: SheetEditing | null;
@@ -446,7 +458,7 @@ export function ElementsStep({
             depth={depth}
             hasChildren={hasChildren}
             isExpanded={expanded.has(item.key)}
-            onToggle={() => toggle(item.key)}
+            onExpandedChange={() => toggle(item.key)}
             isSelected={editing?.elementKey === item.key}
             onSelect={() => onEditingChange({ systemKey: parentSystem.key, elementKey: item.key })}
             hint={hint({ systemKey: parentSystem.key, elementKey: item.key }, item.code, brings)}
@@ -537,7 +549,7 @@ export function ElementsStep({
               depth={0}
               hasChildren={item.elements.length > 0}
               isExpanded={expanded.has(item.key)}
-              onToggle={() => toggle(item.key)}
+              onExpandedChange={() => toggle(item.key)}
               isSelected={editing?.systemKey === item.key && !editing.elementKey}
               onSelect={() => onEditingChange({ systemKey: item.key, elementKey: null })}
               hint={hint({ systemKey: item.key, elementKey: null }, item.code, adopts)}
@@ -745,7 +757,7 @@ export function ElementsStep({
                   </Section>
                   {system.product && editingProduct ? (
                     <Inspector.Group title="From a product">
-                      <KeyValue.Group labelWidth={160}>
+                      <KeyValue.Group labelWidth="wide">
                         <KeyValue label="Product" wrap>
                           {editingProduct.item ? (
                             // A new tab, so reading the product never leaves the draft.
@@ -766,10 +778,17 @@ export function ElementsStep({
                           )}
                         </KeyValue>
                         <KeyValue label="Configuration" wrap>
-                          {editingProduct.item?.configurationName ?? <Absent />}
+                          {/* A product no longer published has no configuration to read. */}
+                          {editingProduct.item?.configurationName ?? (
+                            <Absent label="Not available" />
+                          )}
                         </KeyValue>
                         <KeyValue label="Version">
-                          {editingProduct.item ? `v${editingProduct.item.version}` : <Absent />}
+                          {editingProduct.item ? (
+                            `v${editingProduct.item.version}`
+                          ) : (
+                            <Absent label="Not available" />
+                          )}
                         </KeyValue>
                         <KeyValue label="Elements inherited">{editingProduct.inherited}</KeyValue>
                         <KeyValue label="Removed">{editingProduct.removed}</KeyValue>
@@ -810,7 +829,7 @@ export function ElementsStep({
                   </Section>
                   {element.productElementId ? (
                     <Inspector.Group title="From a product">
-                      <KeyValue.Group labelWidth={160}>
+                      <KeyValue.Group labelWidth="wide">
                         <KeyValue label="Product element" wrap>
                           {editingProductElement
                             ? `${editingProductElement.code} · ${editingProductElement.name}`
@@ -820,7 +839,7 @@ export function ElementsStep({
                           {editingProduct?.item ? (
                             `${editingProduct.item.productName} v${editingProduct.item.version} · ${editingProduct.item.configurationName}`
                           ) : (
-                            <Absent />
+                            <Absent label="Not available" />
                           )}
                         </KeyValue>
                       </KeyValue.Group>
@@ -829,12 +848,12 @@ export function ElementsStep({
                   {element.library ? (
                     <Stack space="space.150">
                       <Inspector.Group title="From the library">
-                        <KeyValue.Group labelWidth={160}>
+                        <KeyValue.Group labelWidth="wide">
                           <KeyValue label="Definition" wrap>
                             {editingMeta?.definition?.definitionName ?? "No longer published"}
                           </KeyValue>
                           <KeyValue label="Version">
-                            {editingMeta?.definition?.version ?? <Absent />}
+                            {editingMeta?.definition?.version ?? <Absent label="Not available" />}
                           </KeyValue>
                           <KeyValue label="Claimed controls">{editingMeta?.claims ?? 0}</KeyValue>
                           <KeyValue label="Will seed">{editingMeta?.seed ?? 0}</KeyValue>
@@ -883,6 +902,8 @@ export function ElementsStep({
           parentLabel={addingParent?.name || addingSystem.name || "the system"}
           items={libraryItems}
           pending={libraryPending}
+          failed={libraryFailed}
+          onRetry={onRetryLibrary}
           onClose={() => setAddingOpen(false)}
           onPick={(item) => {
             addElement(
@@ -913,6 +934,8 @@ export function ElementsStep({
           actionLabel="Create system from product"
           items={productItems}
           pending={productPending}
+          failed={productFailed}
+          onRetry={onRetryProducts}
           onClose={() => setPickingProduct(false)}
           onPick={(item) => {
             setPickingProduct(false);

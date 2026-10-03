@@ -13,3 +13,6 @@ src/lib/nist-baselines.ts
 src/lib/cnssi-1253.ts
 src/lib/cci-catalog.ts
 src/lib/cci-text
+
+# Agent eval output (npm run eval:lint)
+evals/results

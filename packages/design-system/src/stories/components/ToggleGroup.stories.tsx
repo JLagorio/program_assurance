@@ -13,23 +13,25 @@ import {
 } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
 import { Stack, Text } from "../../primitives";
-import { Matrix, Specimens } from "../_lib/matrix";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix, Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/ToggleGroup",
   component: ToggleGroup,
   parameters: { layout: "padded" },
-  args: {
-    "aria-label": "Text alignment",
-    defaultValue: ["left"],
-    children: (
-      <>
-        <ToggleGroupItem value="left">Left</ToggleGroupItem>
-        <ToggleGroupItem value="center">Center</ToggleGroupItem>
-        <ToggleGroupItem value="right">Right</ToggleGroupItem>
-      </>
-    ),
-  },
+  args: { "aria-label": "Text alignment", defaultValue: ["left"] },
+  render: (args) => (
+    <ToggleGroup {...args}>
+      <ToggleGroupItem value="left">Left</ToggleGroupItem>
+      <ToggleGroupItem value="center">Center</ToggleGroupItem>
+      <ToggleGroupItem value="right">Right</ToggleGroupItem>
+    </ToggleGroup>
+  ),
 } satisfies Meta<typeof ToggleGroup>;
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -44,11 +46,12 @@ const lines = (group: HTMLElement) =>
 
 /** Variants, inherited sizes, default spacing and connected items. */
 export const ToggleGroupMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Matrix
         rows={["default", "outline"] as const}
-        cols={["sm", "default", "lg"] as const}
+        cols={["small", "medium", "large"] as const}
         render={(variant, size) => (
           <ToggleGroup
             aria-label={`${variant} ${size} view`}
@@ -86,12 +89,13 @@ export const ToggleGroupMatrix: Story = {
     const canvas = within(canvasElement);
     for (const variant of ["default", "outline"]) {
       for (const [size, height] of [
-        ["sm", 28],
-        ["default", 32],
-        ["lg", 36],
+        ["small", 28],
+        ["medium", 32],
+        ["large", 36],
       ] as const) {
         const group = canvas.getByRole("group", { name: `${variant} ${size} view` });
         await expect(group).toHaveAttribute("data-slot", "toggle-group");
+        await expect(group).toHaveAttribute("data-size", size);
         await expect(getComputedStyle(group).columnGap).toBe("8px");
         // In a table cell the group keeps one line at every width; the Matrix scrolls instead.
         await expect(getComputedStyle(group).flexWrap).toBe("nowrap");
@@ -100,6 +104,7 @@ export const ToggleGroupMatrix: Story = {
         const table = items.getByRole("button", { name: "Table" });
         const board = items.getByRole("button", { name: "Board" });
         await expect(table).toHaveAttribute("data-slot", "toggle-group-item");
+        await expect(table).toHaveAttribute("data-size", size);
         await expect(table.getBoundingClientRect().height).toBe(height);
         await expect(table).toHaveAttribute("aria-pressed", "true");
         await userEvent.click(table);
@@ -196,8 +201,11 @@ function Selection() {
   );
 }
 
+export const Playground: Story = {};
+
 /** Selection, cancellation, native refs and orientation-aware roving focus. */
 export const ViewsStory: Story = {
+  tags: ["!manifest"],
   name: "Selection and keyboard",
   render: () => <Selection />,
   play: async ({ canvasElement }) => {
@@ -280,6 +288,7 @@ function Severity({ label }: { label: string }) {
 
 /** A spaced group in a row narrower than its items wraps them onto the next line, every choice in view and in reach. A joined group, a group in a table cell and a group in a horizontal Scroller (a saved-views strip) keep one line; the Scroller scrolls it, so a joined group that must fit a narrower row goes in one. */
 export const NarrowRow: Story = {
+  tags: ["!manifest"],
   name: "Narrow row",
   render: () => (
     <Stack space="space.300">
@@ -465,4 +474,91 @@ export const TabStopOnThePressedItem: Story = {
   },
 };
 
-export const Playground: Story = {};
+/**
+ * `spacing` counts 4px steps on the space scale: 1 is `space.050`, 2 (the default) `space.100`, 4
+ * `space.200`. A number between two steps takes the smaller one.
+ */
+export const Spacing: Story = {
+  tags: ["!manifest"],
+  render: () => (
+    <Specimens title="Gaps on the space scale">
+      {([1, 2, 4, 7] as const).map((spacing) => (
+        <ToggleGroup
+          key={spacing}
+          aria-label={`Spacing ${spacing}`}
+          spacing={spacing}
+          size="small"
+          defaultValue={["day"]}
+        >
+          <ToggleGroupItem value="day">Day</ToggleGroupItem>
+          <ToggleGroupItem value="week">Week</ToggleGroupItem>
+        </ToggleGroup>
+      ))}
+    </Specimens>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    for (const [spacing, gap] of [
+      [1, "4px"],
+      [2, "8px"],
+      [4, "16px"],
+      [7, "24px"],
+    ] as const) {
+      const group = canvas.getByRole("group", { name: `Spacing ${spacing}` });
+      await expect(getComputedStyle(group).columnGap).toBe(gap);
+      await expect(group).toHaveAttribute("data-spacing", String(spacing));
+    }
+  },
+};
+
+/** `sm`, `default` and `lg` are deprecated spellings for one version; the group and its items report the new word. */
+export const DeprecatedSizes: Story = {
+  name: "Deprecated size spellings",
+  render: () => (
+    <ToggleGroup aria-label="Legacy size" size="sm" defaultValue={["day"]}>
+      <ToggleGroupItem value="day">Day</ToggleGroupItem>
+      <ToggleGroupItem value="week">Week</ToggleGroupItem>
+    </ToggleGroup>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const group = canvas.getByRole("group", { name: "Legacy size" });
+    await expect(group).toHaveAttribute("data-size", "small");
+    const day = canvas.getByRole("button", { name: "Day" });
+    await expect(day).toHaveAttribute("data-size", "small");
+    await expect(day.getBoundingClientRect().height).toBe(28);
+  },
+};
+
+/**
+ * The group's `aria-label` names what its items choose between. Without it a screen reader hears
+ * Table and Board with no word for the choice they make.
+ */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <Pair
+      do={
+        <ToggleGroup aria-label="View" defaultValue={["table"]}>
+          <ToggleGroupItem value="table">Table</ToggleGroupItem>
+          <ToggleGroupItem value="board">Board</ToggleGroupItem>
+        </ToggleGroup>
+      }
+      doText="View, then Table or Board: the group says what is being chosen."
+      dont={
+        <ToggleGroup defaultValue={["table"]}>
+          <ToggleGroupItem value="table">Table</ToggleGroupItem>
+          <ToggleGroupItem value="board">Board</ToggleGroupItem>
+        </ToggleGroup>
+      }
+      dontText="An unnamed group: two pressed-or-not buttons, and nothing says they choose the view."
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const [named, unnamed] = canvas.getAllByRole("group");
+    await expect(named).toHaveAccessibleName("View");
+    await expect(unnamed).toHaveAccessibleName("");
+  },
+};

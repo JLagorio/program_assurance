@@ -1,5 +1,8 @@
 /* shadcn's Base UI drawer geometry, with Ledger surfaces, spacing and motion.
-   The measured size, swipe and nested-stack variables are owned by Base UI. */
+   The measured size, swipe and nested-stack variables are owned by Base UI.
+   A drawer's width step (`data-width`, `medium` without one) is how wide a side drawer grows,
+   within 75% of the window, and how wide a bottom or top drawer grows on a window from `sm` up,
+   centred; on a phone a bottom or top drawer runs edge to edge. */
 @utility drawer-overlay {
   opacity: max(var(--drawer-overlay-min-opacity, 0), calc(1 - var(--drawer-swipe-progress)));
   transition: opacity var(--ds-motion-duration-slow) var(--ds-motion-easing-standard);
@@ -22,6 +25,7 @@
   }
 }
 @utility drawer-popup {
+  --drawer-step: var(--ds-dimension-part-drawer);
   --bleed: var(--ds-space-600);
   --peek: var(--ds-space-200);
   --stack-height: var(--drawer-frontmost-height, var(--drawer-height, 0px));
@@ -50,6 +54,12 @@
     height var(--ds-motion-duration-slow) var(--ds-motion-easing-standard);
   will-change: transform;
   interpolate-size: allow-keywords;
+  &[data-width="small"] {
+    --drawer-step: var(--ds-dimension-part-drawer-small);
+  }
+  &[data-width="large"] {
+    --drawer-step: var(--ds-dimension-part-drawer-large);
+  }
   &[data-nested-drawer-open] {
     overflow: hidden;
   }
@@ -62,6 +72,10 @@
   &[data-swipe-axis="y"] {
     inset-inline: 0;
     --drawer-content-max-height: calc(100dvh - var(--ds-space-600));
+    @media (width >= theme(--breakpoint-sm)) {
+      max-width: var(--drawer-step);
+      margin-inline: auto;
+    }
     &[data-snap-points] {
       --drawer-content-height: 100dvh;
     }
@@ -76,16 +90,22 @@
   &[data-swipe-axis="x"] {
     inset-block: 0;
     flex-direction: row;
-    --drawer-content-width: min(75vw, 24rem);
+    --drawer-content-width: min(75vw, var(--drawer-step));
     &::after {
       inset-block: 0;
       width: var(--bleed);
     }
   }
+  /* A closed drawer sits two hairlines past the window's edge: the outline forced colours draw
+     around it, a hairline outside its box, leaves with it, and a hairline more covers rounding. */
   &[data-swipe-direction="down"] {
     bottom: 0;
     transform-origin: bottom;
-    --closed-transform: translate3d(0, calc(100% + var(--drawer-inset, 0px) + 2px), 0);
+    --closed-transform: translate3d(
+      0,
+      calc(100% + var(--drawer-inset, 0px) + 2 * var(--ds-border-width)),
+      0
+    );
     --translate-y: calc(
       var(--drawer-snap-point-offset, 0px) + var(--drawer-swipe-movement-y) -
         var(--stack-peek-offset) - var(--stack-shrink) * var(--stack-height)
@@ -97,7 +117,11 @@
   &[data-swipe-direction="up"] {
     top: 0;
     transform-origin: top;
-    --closed-transform: translate3d(0, calc(-100% - var(--drawer-inset, 0px) - 2px), 0);
+    --closed-transform: translate3d(
+      0,
+      calc(-100% - var(--drawer-inset, 0px) - 2 * var(--ds-border-width)),
+      0
+    );
     --translate-y: calc(
       var(--drawer-snap-point-offset, 0px) + var(--drawer-swipe-movement-y) +
         var(--stack-peek-offset) + var(--stack-shrink) * var(--stack-height)
@@ -109,7 +133,11 @@
   &[data-swipe-direction="left"] {
     left: 0;
     transform-origin: left;
-    --closed-transform: translate3d(calc(-100% - var(--drawer-inset, 0px) - 2px), 0, 0);
+    --closed-transform: translate3d(
+      calc(-100% - var(--drawer-inset, 0px) - 2 * var(--ds-border-width)),
+      0,
+      0
+    );
     --translate-x: calc(
       var(--drawer-swipe-movement-x) + var(--stack-peek-offset) + var(--stack-shrink) * 100%
     );
@@ -120,7 +148,11 @@
   &[data-swipe-direction="right"] {
     right: 0;
     transform-origin: right;
-    --closed-transform: translate3d(calc(100% + var(--drawer-inset, 0px) + 2px), 0, 0);
+    --closed-transform: translate3d(
+      calc(100% + var(--drawer-inset, 0px) + 2 * var(--ds-border-width)),
+      0,
+      0
+    );
     --translate-x: calc(
       var(--drawer-swipe-movement-x) - var(--stack-peek-offset) - var(--stack-shrink) * 100%
     );

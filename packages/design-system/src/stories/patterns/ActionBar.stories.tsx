@@ -6,9 +6,12 @@ import { BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from "../../compo
 const requestEvidence = fn();
 const markSatisfied = fn();
 
+// ActionBar is deprecated: its stories stay in the sidebar and in every test run, and leave the
+// manifest MCP reads, so an agent is never offered it as code to copy.
 const meta = {
   title: "Patterns/ActionBar",
   component: ActionBar,
+  tags: ["!manifest"],
   parameters: { layout: "padded" },
   args: {
     crumbs: (

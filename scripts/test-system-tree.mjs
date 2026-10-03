@@ -180,12 +180,21 @@ try {
   const mobileRow = table().locator(`tr[data-row-id="${child.id}"]`);
   await expect(mobileRow.getByRole("link", { name: edited.name, exact: true })).toBeVisible();
   await expect(mobileRow.getByRole("button", { name: /^Preview / })).toBeVisible();
+  // The tree names its rows by code and name (ProgramSystemsTree's rowLabel).
+  // "+N", named by how many fields it shows and by the row: "Show 3 more fields for …", and
+  // "Hide 3 more fields for …" while they show, so the row it controls is read before it opens.
+  const editedLabel = `${edited.code} · ${edited.name}`.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const moreFields = mobileRow.getByRole("button", {
-    name: `More fields for ${child.code}`,
-    exact: true,
+    name: new RegExp(`^Show \\d+ more fields? for ${editedLabel}$`),
   });
-  await moreFields.click();
+  await expect(moreFields).toHaveAttribute("aria-expanded", "false");
   const fieldDetails = page.locator(`[id="${await moreFields.getAttribute("aria-controls")}"]`);
+  await moreFields.click();
+  await expect(
+    mobileRow.getByRole("button", {
+      name: new RegExp(`^Hide \\d+ more fields? for ${editedLabel}$`),
+    }),
+  ).toHaveAttribute("aria-expanded", "true");
   await expect(fieldDetails.getByText(child.code, { exact: true })).toBeVisible();
   await expect(fieldDetails.getByText("Hardware", { exact: true })).toBeVisible();
   await expect(fieldDetails.getByText("Confidentiality", { exact: true })).toBeVisible();

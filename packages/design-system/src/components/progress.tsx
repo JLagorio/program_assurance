@@ -1,5 +1,5 @@
 import { Progress as Primitive } from "@base-ui/react/progress";
-import { createContext, useContext, type ComponentProps } from "react";
+import { createContext, useContext, type ComponentProps, type CSSProperties } from "react";
 import { classes } from "../lib/base-ui";
 import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
@@ -9,25 +9,38 @@ import { toneClasses, type Tone } from "./badge";
 export type ProgressSize = "small" | "medium" | "large";
 const sizes: Record<ProgressSize, string> = { small: "h-050", medium: "h-075", large: "h-100" };
 
-/* A bar is a non-text element, so its fill holds 3:1 against the track. The bold fills do, except
-   warning's, a light orange made to carry dark text; a warning bar takes the chart's warning,
-   the colour a warning bar in a chart has. */
+/* A bar is a non-text element, so its fill holds 3:1 against the track on every surface. The bold
+   fills do, except warning's, a light orange made to carry dark text; a warning bar takes
+   `color.chart.warning.bold`, the warning orange that holds 3:1 on the track and on the surface in
+   both modes, the sunken surface included. */
 const barFill: Record<Tone, string> = {
   ...(Object.fromEntries(Object.entries(toneClasses).map(([t, c]) => [t, c.fill])) as Record<
     Tone,
     string
   >),
-  warning: "bg-chart-warning",
+  warning: "bg-chart-warning-bold",
 };
-/* The stripes of an indeterminate bar: the tone's icon colour, and a darker grey than the neutral
-   icon for the neutral tone, so they read against the track. */
+/* The stripes of an indeterminate bar, drawn in currentColor: the tone's icon colour, a darker
+   grey than the neutral icon for the neutral tone, and the warning bar's own orange for warning,
+   since the warning icon's orange is under 3:1 on the track over a sunken surface. A chart colour
+   has no text utility, so warning's is a style (`warningInk`). */
 const stripes: Record<Tone, string> = {
   ...(Object.fromEntries(Object.entries(toneClasses).map(([t, c]) => [t, c.icon])) as Record<
     Tone,
     string
   >),
   neutral: "icon-subtle",
+  warning: "",
 };
+const warningInk: CSSProperties = { color: token("color.chart.warning.bold") };
+type StyleProp<State> = CSSProperties | ((state: State) => CSSProperties | undefined) | undefined;
+/** The warning ink under the caller's style, which wins, for a static style or a Base UI state function. */
+function inked<State>(tone: Tone, style: StyleProp<State>): StyleProp<State> {
+  if (tone !== "warning") return style;
+  return typeof style === "function"
+    ? (state: State) => ({ ...warningInk, ...style(state) })
+    : { ...warningInk, ...style };
+}
 
 const ProgressContext = createContext<{ tone: Tone; size: ProgressSize }>({
   tone: "information",
@@ -94,12 +107,13 @@ export function ProgressTrack({ className, ...props }: ProgressTrackProps) {
 }
 export type ProgressIndicatorProps = Primitive.Indicator.Props;
 /** The fill. Indeterminate, it is the hatched bar (motion.css draws the stripes, which stand still under reduced motion). */
-export function ProgressIndicator({ className, ...props }: ProgressIndicatorProps) {
+export function ProgressIndicator({ className, style, ...props }: ProgressIndicatorProps) {
   const { tone } = useContext(ProgressContext);
   return (
     <Primitive.Indicator
       {...props}
       data-slot="progress-indicator"
+      style={inked(tone, style)}
       className={classes(
         cn(
           "h-full rounded-full transition-all duration-fast ease-standard motion-reduce:transition-none data-indeterminate:w-full",
@@ -137,7 +151,7 @@ export type StackedSegment = {
   /** The segment's count; it is drawn as its share of the total of all segments. Zero is skipped. */
   value: number;
   tone: Tone;
-  /** `hatched` is what is not known or not covered: a hole in the record, drawn in the tone's icon colour over the track, never a flat fill. */
+  /** `hatched` is what is not known or not covered: a hole in the record, drawn in the tone's icon colour (warning's in the warning bar's orange) over the track, never a flat fill. */
   appearance?: "solid" | "hatched" | undefined;
   /** What the segment is, with its count ("41 verified"): the tooltip, the button's name, and a line of the bar's description. An interactive segment falls back to its key when no title is supplied; prefer a descriptive title. */
   title?: string | undefined;
@@ -160,15 +174,16 @@ const hatch = {
   backgroundImage: `repeating-linear-gradient(135deg, transparent 0 ${token("space.025")}, currentColor ${token("space.025")} calc(${token("space.025")} + ${token("border.width")}))`,
 } as const;
 /* The bar does not clip its segments, so a focused segment's ring shows whole around it; the end
-   segments carry the bar's rounding instead. */
+   segments carry the bar's rounding instead. A hatched segment draws its hatch in currentColor:
+   the tone's icon colour, and for warning the warning bar's orange, as a waiting bar's stripes are. */
 const segmentClass = (s: StackedSegment) =>
   cn(
     "h-full transition-colors duration-fast ease-standard first:rounded-s-full last:rounded-e-full motion-reduce:transition-none",
-    s.appearance === "hatched" ? toneClasses[s.tone].icon : barFill[s.tone],
+    s.appearance === "hatched" ? s.tone !== "warning" && toneClasses[s.tone].icon : barFill[s.tone],
   );
 const segmentStyle = (s: StackedSegment, total: number) => ({
   width: `${(s.value / total) * 100}%`,
-  ...(s.appearance === "hatched" ? hatch : {}),
+  ...(s.appearance === "hatched" ? { ...hatch, ...(s.tone === "warning" ? warningInk : {}) } : {}),
 });
 
 /** Segmented proportional bar. One primitive for every coverage read-out. Native span props and the ref reach the bar. */

@@ -22,6 +22,8 @@
   --container-7xl: 80rem;
   --container-compact: 25rem;
   --container-split: 50rem;
+  --query-short-window: 30rem;
+  --query-panel-header: 400px;
   --shadow-raised: var(--ds-elevation-shadow-raised);
   --shadow-overlay: var(--ds-elevation-shadow-overlay);
   --shadow-overflow: var(--ds-elevation-shadow-overflow);

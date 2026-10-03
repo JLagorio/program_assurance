@@ -47,6 +47,7 @@ export {
   type AlertDialogProps,
   type AlertDialogTitleProps,
   type AlertDialogTriggerProps,
+  type AlertDialogWidth,
 } from "./alert-dialog";
 export {
   Attachment,
@@ -182,11 +183,7 @@ export {
   type EmptyDescriptionProps,
   type EmptyContentProps,
 } from "./empty";
-export {
-  ErrorSummary,
-  type ErrorSummaryIssue,
-  type ErrorSummaryProps,
-} from "./error-summary";
+export { ErrorSummary, type ErrorSummaryIssue, type ErrorSummaryProps } from "./error-summary";
 export { FilterChip, type FilterChipProps } from "./chip";
 export { CodeBlock, type CodeBlockProps } from "./code-block";
 export {
@@ -213,8 +210,10 @@ export {
   CommandLoading,
   CommandSeparator,
   CommandShortcut,
+  type CommandCountProps,
   type CommandDialogProps,
   type CommandEmptyProps,
+  type CommandFooterProps,
   type CommandInputProps,
   type CommandItemProps,
   type CommandShortcutProps,
@@ -254,6 +253,7 @@ export {
   DateLabel,
   DateTime,
   RelativeTime,
+  type DateLabelKind,
   type DateLabelProps,
   type DateLabelState,
   type DateTimeFormat,
@@ -313,6 +313,7 @@ export {
   type DrawerCloseProps,
   DrawerContent,
   type DrawerContentProps,
+  type DrawerWidth,
   DrawerHeader,
   type DrawerHeaderProps,
   DrawerBody,
@@ -391,6 +392,7 @@ export {
   KeyValue,
   KeyValueGroup,
   type KeyValueGroupProps,
+  type KeyValueLabelWidth,
   type KeyValueLayout,
   type KeyValueProps,
 } from "./key-value";
@@ -591,7 +593,13 @@ export {
   type ToastUpdateOptions,
   type ToasterProps,
 } from "./toaster";
-export { Toggle, toggleVariants, type ToggleProps } from "./toggle";
+export {
+  Toggle,
+  toggleVariants,
+  type ToggleProps,
+  type ToggleSize,
+  type ToggleStyleProps,
+} from "./toggle";
 export {
   ToggleGroup,
   ToggleGroupItem,
@@ -653,7 +661,7 @@ export {
 
 export { type InputProps, Input } from "./input";
 
-export { type TextareaProps, Textarea } from "./textarea";
+export { type TextareaProps, type TextareaState, Textarea } from "./textarea";
 
 export {
   type InputGroupProps,
@@ -661,6 +669,9 @@ export {
   type InputGroupAddonProps,
   InputGroupAddon,
   type InputGroupButtonProps,
+  type InputGroupButtonSize,
+  type InputGroupIconButtonProps,
+  type InputGroupTextButtonProps,
   InputGroupButton,
   type InputGroupTextProps,
   InputGroupText,

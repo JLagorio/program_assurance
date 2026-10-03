@@ -8,11 +8,29 @@ import * as Stories from "./Tabs.stories";
 
 # Tabs
 
-Related views within one page, using [shadcn's Base UI Tabs](https://ui.shadcn.com/docs/components/base/tabs) and [Base UI Tabs](https://base-ui.com/react/components/tabs). Use short view names; use a ToggleGroup or filters to narrow the same rows.
+**Status: Stable.**
+
+Related views within one page, using [shadcn's Base UI Tabs](https://ui.shadcn.com/docs/components/base/tabs) and [Base UI Tabs](https://base-ui.com/react/components/tabs).
+
+## When to use it
+
+- **Views of one record or one page** that the reader moves between, each filling the panel: a record's Overview, Controls, Evidence and History.
+- **A collection per view**, each a register of its own, with its count in the tab.
+
+Not for narrowing the rows the reader is already in (All, Open, Closed): that is a [ToggleGroup](?path=/docs/components-togglegroup--docs), a filter or a saved view in the [Toolbar](?path=/docs/patterns-toolbar--docs). Not for steps taken in order: that is a [Stepper](?path=/docs/components-stepper--docs). Not for sections read down the page: those are [Sections](?path=/docs/layout-section--docs), or a [Collapsible](?path=/docs/components-collapsible--docs) for one the reader opens. Not for moving between the product's pages: that is the Shell's side nav.
+
+**At most about seven primary tabs.** Each tab is a view a reader comes back to. Beyond about seven, group or fold: the strip scrolls rather than folding the rest into a menu, so the reader no longer sees every view at once and hunts for one. Merge views that hold the same kind of work into one tab under Section headings, fold a view read rarely into the Overview (its Details, or a section such as the record's activity), and fold a view with little of its own into the view it belongs with. A strip never wraps onto a second row.
+
+## Content
+
+- A tab is one or two words, a noun in sentence case that names what its panel shows ("Controls", "Evidence", "Activity"). Never a verb, and never the word tab.
+- The tabs on a strip name views of the same thing, in the order the reader works through them, Overview first where there is one.
+- A count after the label says how many records the panel holds: a [Count](?path=/docs/components-count--docs) with `max={9999}`, the one cap on every strip in a product, never a number written into the words. It shows `0` once the rows have loaded, and no count while they load or after they failed: a count is never a guess.
+- A state after the label is a [Badge](?path=/docs/components-badge--docs) ("Draft"); an icon is decoration, never the only name.
 
 ## Anatomy
 
-Compose `Tabs`, `TabsList`, `TabsTrigger` and `TabsContent`. Match each Trigger's `value` to its Content. Put counts, badges and icons in the Trigger's children: a count is a [Count](?path=/docs/components-count--docs) after the label, with the same `max` on every strip in a product (999 or 9999 for rows), and a state is a Badge. Name the List with `aria-label` or `aria-labelledby`. Keep a strip to the views a reader switches between; a long run of tabs is a sign that some belong in a Details section or a menu.
+Compose `Tabs`, `TabsList`, `TabsTrigger` and `TabsContent`. Match each Trigger's `value` to its Content. Put counts, badges and icons in the Trigger's children: a count is a [Count](?path=/docs/components-count--docs) after the label, `max={9999}` (Content), and a state is a Badge. Name the List with `aria-label` or `aria-labelledby`.
 
 ```tsx
 <Tabs defaultValue="controls">
@@ -43,6 +61,8 @@ The default filled strip fits its content and scrolls, from its start, in a cont
 
 <Canvas of={Stories.LateCountsOnAPhone} />
 
+Under a horizontal strip, filled or line, the panel's content starts `space.150` (12px) below the strip's edge. TabsContent carries that space as its own top padding, so it is the same on every screen and stays with the panel wherever the strip sits. Do not add padding, a margin or a gap to Tabs or TabsContent for it, and do not set `display: contents` on either, which drops the panel's entrance. Beside a vertical strip, Tabs puts `space.100` between the strip and the panel.
+
 Set `orientation="vertical"` on Tabs for a vertical strip and Up/Down navigation. Direction follows LedgerProvider; `dir="ltr"` or `dir="rtl"` overrides both layout and keyboard direction.
 
 <Canvas of={Stories.Orientation} />
@@ -62,6 +82,10 @@ Inactive panels unmount by default. `keepMounted` retains their state; hidden pa
 Reduced motion disables both indicator movement and panel entrance. The Motion story samples rendered frames for filled, line, RTL, vertical and reused-panel examples; the dark test project uses reduced motion. Keyboard, link and retained-state stories run in both color modes.
 
 <Canvas of={Stories.Motion} />
+
+The indicator's position and size round to the layout unit (1/64px). A resize of the strip's container that leaves the tabs where they were, such as a record's Details rail leaving with its Overview, then writes the same values, so the slide runs once and arrives in its 240ms rather than starting over on every frame of the resize.
+
+<Canvas of={Stories.ResizeDuringChange} />
 
 In forced-colors mode, system-color outlines and underlines preserve the selected tab in both variants.
 
@@ -89,21 +113,15 @@ Root accepts `value`/`onValueChange` or `defaultValue`, including numeric values
 
 <ArgTypes of={TabsContent} />
 
-### Migration and API
-
-| Previous API                                                       | Current API                                                                                   |
-| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
-| `Tabs.List`, `Tabs.Tab`, `Tabs.Panel`                              | `TabsList`, `TabsTrigger`, `TabsContent`                                                      |
-| Root `activation="automatic"`                                      | List `activateOnFocus` (omit for manual activation)                                           |
-| List `label`                                                       | `aria-label`                                                                                  |
-| Trigger `count` / `trailing`                                       | Compose `Count`, `Badge` or other children; use `max={9999}` to preserve the former count cap |
-| `asChild`                                                          | `render`; add `nativeButton={false}` for a link trigger                                       |
-| `TabListProps`, `TabProps`, `TabPanelProps`                        | `TabsListProps`, `TabsTriggerProps`, `TabsContentProps`                                       |
-| Line styling by default                                            | List `variant="line"`; the new default is a filled strip                                      |
-| Line List `w-full justify-start`, `overflow-x-auto` or `flex-wrap` | Remove these overrides; horizontal line tabs fill and scroll through ScrollArea               |
-
 ## Related
 
 - [ToggleGroup](?path=/docs/components-togglegroup--docs): view options or filters over the same rows.
 - [Count](?path=/docs/components-count--docs): a count inside a tab. [Badge](?path=/docs/components-badge--docs): a state label inside a tab.
 - [Pages](?path=/docs/layout-pages--docs): record page composition and controlled routing.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#tabs): the earlier API's spellings and what they are now.
+
+## Don't
+
+A filter over one list is a ToggleGroup or a toolbar filter, never tabs. A tab is a noun that names its view, with a Count for its records, never a verb or a count typed into the words.
+
+<Canvas of={Stories.Dont} />

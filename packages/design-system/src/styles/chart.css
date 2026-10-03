@@ -1,7 +1,9 @@
 /* Recharts under the kit. The chart parts set the paint and the marks inline from the tokens; these
    rules reach what a prop cannot: the layers' opacity transition when a legend dims them, the
    tooltip's portal, the wrapper's cursor, the focus ring on the plot's svg and the Frame's header
-   at a narrow width. The only lengths named are the header's container steps. */
+   at a narrow width. The only lengths named are the header's container steps. The recharts classes
+   named here are recharts' own, so the package pins recharts to one version, and
+   test/pinned-libraries.test.mjs fails when the installed recharts stops writing one of them. */
 .recharts-wrapper .recharts-layer,
 .recharts-wrapper .recharts-rectangle,
 .recharts-wrapper .recharts-sector,

@@ -186,11 +186,11 @@ export function LinkIconButton({
   const carry = useRef(false);
   const link = (
     <LinkButtonBase
-      data-slot="link-icon-button"
       aria-label={label}
       iconBefore={icon}
       size={squareSize(size).base}
       {...props}
+      data-slot="link-icon-button"
       carry={carry}
       className={iconOnly(size, className)}
     />

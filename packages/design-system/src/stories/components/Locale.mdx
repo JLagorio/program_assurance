@@ -6,6 +6,8 @@ import * as Stories from "./Locale.stories";
 
 # Locale
 
+**Status: Stable.**
+
 **LedgerProvider** gives every part under it the reader's locale, time zone and writing direction, and the kit's own words. Every date, number and label a part shows goes through it: DateTime, RelativeTime and DateLabel, DataTable's `c.date`, the Calendar's first day of the week, a typed day in a DatePicker, Pagination's words, Shell's landmark names. Mount one near the root, with the reader's zone.
 
 <Canvas of={Stories.ReadersZone} />

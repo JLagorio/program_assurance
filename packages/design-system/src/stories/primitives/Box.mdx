@@ -7,28 +7,30 @@ import * as Stories from "./Box.stories";
 
 # Box
 
+**Status: Stable.**
+
 The fundamental block: padding on any edge, a fill or a surface, and the element it is. Nothing else. There are no margin props, because a component decides its inside and its parent decides the space around it: the distance between siblings is Stack's and Inline's, and the one negative margin is Bleed's. Every value is a token, so an invalid padding is a type error and a valid one is a literal class the scanner sees. A Box is never a link or a button; a surface is named, not counted, so nesting does not step the background; and a class held to tokens, not a style prop per property, is the escape hatch.
 
 <Canvas of={Stories.BoxMatrix} />
 
 ## Anatomy
 
-| Part            | What it is                                                                                                                                                  |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Element         | A `div`, or the container, landmark or list part `as` names. Never `a` or `button`.                                                                        |
+| Part            | What it is                                                                                                                                                                     |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Element         | A `div`, or the container, landmark or list part `as` names. Never `a` or `button`.                                                                                            |
 | Padding         | `padding` on every side; `paddingInline` and `paddingBlock` per axis; `paddingInlineStart`, `paddingInlineEnd`, `paddingBlockStart`, `paddingBlockEnd` per edge. Space tokens. |
-| Fill            | `backgroundColor`: a semantic background (`color.background.*`) or an elevation surface (`elevation.surface.*`).                                            |
-| Text colour     | Set by the fill: a bold, bolder or boldest fill paints `color.text.inverse`; the warning bold, which is light, paints `color.text.warning.inverse`.         |
-| Current surface | A surface fill is published as `utility.elevation.surface.current`, so a sticky or masking child paints the surface it is on and matches.                  |
+| Fill            | `backgroundColor`: a semantic background (`color.background.*`) or an elevation surface (`elevation.surface.*`).                                                               |
+| Text colour     | Set by the fill: a bold, bolder or boldest fill paints `color.text.inverse`; the warning bold, which is light, paints `color.text.warning.inverse`.                            |
+| Current surface | A surface fill is published as `utility.elevation.surface.current`, so a sticky or masking child paints the surface it is on and matches.                                      |
 
 ## Variants
 
-| Box              | Use                                                                                                                                    |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Plain            | Padding only: the inset of a region, a cell, a rail.                                                                                   |
-| Surface          | `elevation.surface`, `.sunken`, `.raised`, `.overlay`: the page, the well, the card, the popover. The shadow or hairline is a class.    |
-| Fill             | A semantic background: a chip, a callout, a selected row. A bold fill paints its text inverse by itself.                               |
-| Landmark or list | `as="section"` with `aria-labelledby`, `as="article"`, `as="ul"` and `"li"`: the element is the semantics, the Box is the inset.       |
+| Box              | Use                                                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Plain            | Padding only: the inset of a region, a cell, a rail.                                                                                 |
+| Surface          | `elevation.surface`, `.sunken`, `.raised`, `.overlay`: the page, the well, the card, the popover. The shadow or hairline is a class. |
+| Fill             | A semantic background: a chip, a callout, a selected row. A bold fill paints its text inverse by itself.                             |
+| Landmark or list | `as="section"` with `aria-labelledby`, `as="article"`, `as="ul"` and `"li"`: the element is the semantics, the Box is the inset.     |
 
 Not built, and why: margin props (the parent owns the distance); width and height props (a Box is as wide as its parent gives it, and the widths a layout needs are a Grid's template and the layout tokens); `as="a"` or `"button"` (TextLink and Button carry the ring, the pressed face and the name); a style prop for the rest (a class is the escape hatch, and the lint holds it to tokens); automatic layer stepping (a surface is named, not counted: a card inside a card is a decision, not a default).
 
@@ -36,18 +38,18 @@ Not built, and why: margin props (the parent owns the distance); width and heigh
 
 The space scale, on any edge:
 
-| Token       | px  | Where                                                |
-| ----------- | --- | ---------------------------------------------------- |
-| `space.025` | 2   | Hairline: a chip's block inset.                      |
-| `space.050` | 4   | Tight: icon to text.                                 |
-| `space.075` | 6   | Compact: a small control's block inset.              |
-| `space.100` | 8   | A rail's inset, a row's block inset, a chip's inline. |
-| `space.150` | 12  | A cell, a card header.                               |
-| `space.200` | 16  | A card, a form grid, a dialog body.                  |
-| `space.250` | 20  | Comfortable.                                         |
-| `space.300` | 24  | Relaxed: a dialog's inset, a page section.           |
-| `space.400` | 32  | A page gutter.                                       |
-| `space.500` to `space.1000` | 40 to 80 | Sections, a hero. Rare inside a Box.     |
+| Token                       | px       | Where                                                 |
+| --------------------------- | -------- | ----------------------------------------------------- |
+| `space.025`                 | 2        | Hairline: a chip's block inset.                       |
+| `space.050`                 | 4        | Tight: icon to text.                                  |
+| `space.075`                 | 6        | Compact: a small control's block inset.               |
+| `space.100`                 | 8        | A rail's inset, a row's block inset, a chip's inline. |
+| `space.150`                 | 12       | A cell, a card header.                                |
+| `space.200`                 | 16       | A card, a form grid, a dialog body.                   |
+| `space.250`                 | 20       | Comfortable.                                          |
+| `space.300`                 | 24       | Relaxed: a dialog's inset, a page section.            |
+| `space.400`                 | 32       | A page gutter.                                        |
+| `space.500` to `space.1000` | 40 to 80 | Sections, a hero. Rare inside a Box.                  |
 
 The scale, with every token, is on the [Space](?path=/docs/tokens-space--docs) sheet.
 
@@ -69,12 +71,12 @@ The scale, with every token, is on the [Space](?path=/docs/tokens-space--docs) s
 
 ## Style
 
-| Element         | Token                                                                                           |
-| --------------- | ----------------------------------------------------------------------------------------------- |
-| Padding         | `space.*`, as `p-*`, `px-*`, `py-*`, `pt-*`, `pb-*`, `ps-*`, `pe-*`                            |
-| Fill            | `color.background.*` · `elevation.surface`, `.sunken`, `.raised`, `.overlay`                    |
-| Inverse text    | `color.text.inverse` on `*.bold`, `*.bolder`, `*.boldest` · `color.text.warning.inverse` on `warning.bold` |
-| Current surface | `utility.elevation.surface.current`, set from the surface the Box paints                        |
+| Element                | Token                                                                                                                                       |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Padding                | `space.*`, as `p-*`, `px-*`, `py-*`, `pt-*`, `pb-*`, `ps-*`, `pe-*`                                                                         |
+| Fill                   | `color.background.*` · `elevation.surface`, `.sunken`, `.raised`, `.overlay`                                                                |
+| Inverse text           | `color.text.inverse` on `*.bold`, `*.bolder`, `*.boldest` · `color.text.warning.inverse` on `warning.bold`                                  |
+| Current surface        | `utility.elevation.surface.current`, set from the surface the Box paints                                                                    |
 | Radius, border, shadow | By class: `rounded-*` from `radius.*`, `border-default` from `color.border`, `shadow-raised` and `shadow-overlay` from `elevation.shadow.*` |
 
 ## Accessibility
@@ -104,5 +106,7 @@ The scale, with every token, is on the [Space](?path=/docs/tokens-space--docs) s
 - [Space](?path=/docs/tokens-space--docs) and [Color](?path=/docs/tokens-color--docs): the scales the props are typed on.
 
 ## Don't
+
+The parent owns the distance between children, never a margin on a child. A thing that is pressed is a Button, never a Box with a role, and a fill is the Box's token, never a class.
 
 <Canvas of={Stories.Dont} />

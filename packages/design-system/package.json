@@ -1,9 +1,12 @@
 {
   "name": "@ledger/design-system",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "description": "Ledger: tokens, primitives and components. Versioned CSS token source with DTCG 2025.10 interchange exports.",
   "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "sideEffects": [
     "*.css"
   ],
@@ -45,7 +48,7 @@
     "test:layout": "vitest run --project storybook-narrow --project storybook-contained",
     "lint": "eslint .",
     "test:consumer": "node build/consumer-smoke.mjs",
-    "test:gates": "vitest run --project storybook-touch --project storybook-short --project storybook-long"
+    "test:gates": "vitest run --project storybook-touch --project storybook-short --project storybook-long --project storybook-rtl"
   },
   "devDependencies": {
     "@tailwindcss/node": "^4.3.3",
@@ -90,7 +93,7 @@
     "lucide-react": "^0.575.0",
     "react-day-picker": "^10.0.1",
     "react-resizable-panels": "^4.6.5",
-    "recharts": "^3.8.0",
+    "recharts": "3.8.0",
     "tailwind-merge": "^3.0.0"
   },
   "repository": {

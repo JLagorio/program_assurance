@@ -151,3 +151,18 @@ test("a layout stored under another author version is discarded", () => {
     else delete globalThis.localStorage;
   }
 });
+
+test("the columns the reader wraps are kept, validated and reconciled with the columns", () => {
+  for (const value of [
+    { ...valid, wrap: "name" },
+    { ...valid, wrap: [1] },
+    { ...valid, wrap: [""] },
+  ])
+    assert.equal(parseStoredView(value), null);
+  const parsed = parseStoredView({ ...valid, wrap: ["name", "old", "name"] });
+  assert.deepEqual(parsed.wrap, ["name", "old"]);
+  // A wrapped column the table no longer has is forgotten; a layout with none keeps none.
+  const restored = reconcileStoredView(parsed, [{ id: "name" }, { id: "new" }]);
+  assert.deepEqual(restored.wrap, ["name"]);
+  assert.equal(reconcileStoredView(parseStoredView(valid), [{ id: "name" }]).wrap, undefined);
+});

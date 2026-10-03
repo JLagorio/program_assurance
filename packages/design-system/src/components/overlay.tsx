@@ -12,6 +12,7 @@ import {
   type RefObject,
 } from "react";
 
+import { token } from "../generated/tokens";
 import { useLedgerLocale } from "../lib/locale";
 import { Button, IconButton, type ButtonProps } from "./button";
 
@@ -25,6 +26,20 @@ import { Button, IconButton, type ButtonProps } from "./button";
  */
 export const overlaySurface = {
   "--ds-utility-elevation-surface-current": "var(--ds-elevation-surface-overlay)",
+} as CSSProperties;
+
+/** The window less a `space.200` gutter on each side: the room a centred dialog keeps. */
+export const dialogRoom = (extent: "100%" | "100dvh") =>
+  `calc(${extent} - 2 * ${token("space.200")})`;
+
+/**
+ * A centred popup's frame, Dialog's and AlertDialog's: as wide as the window leaves beside the
+ * gutter, up to its width step, and never taller than the window less the gutter, so it scrolls
+ * instead of running past the edge.
+ */
+export const dialogFrame = {
+  width: dialogRoom("100%"),
+  maxHeight: dialogRoom("100dvh"),
 } as CSSProperties;
 
 type StyleProp<State> = CSSProperties | ((state: State) => CSSProperties | undefined) | undefined;

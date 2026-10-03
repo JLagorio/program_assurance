@@ -2,10 +2,23 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useRef, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
-import { Button, TextLink, Truncate, useIsTruncated } from "../../components";
+import {
+  Button,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Table,
+  TextLink,
+  Truncate,
+  useIsTruncated,
+} from "../../components";
 import { Box, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Truncate",
@@ -47,6 +60,7 @@ const closed = () =>
 
 /** One line, two and three, cut in a narrow column; a text that fits stays as it is and reveals nothing. */
 export const TruncateMatrix: Story = {
+  tags: ["!manifest"],
   decorators: [(Story) => <Story />],
   render: () => (
     <Stack space="space.300">
@@ -244,7 +258,9 @@ export const UseIsTruncatedHook: Story = {
 export const RightToLeft: Story = {
   render: () => (
     <div dir="rtl" lang="ar">
-      <Truncate data-testid="rtl">إدارة الحسابات المؤقتة والطارئة الآلية للمستخدمين ذوي الامتيازات</Truncate>
+      <Truncate data-testid="rtl">
+        إدارة الحسابات المؤقتة والطارئة الآلية للمستخدمين ذوي الامتيازات
+      </Truncate>
     </div>
   ),
   play: async ({ canvas }) => {
@@ -256,6 +272,7 @@ export const RightToLeft: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   decorators: [(Story) => <Story />],
   render: () => (
     <Stack space="space.400">
@@ -296,6 +313,68 @@ export const Dont: Story = {
 };
 
 export const Playground: Story = {};
+
+/**
+ * In a Table's body cell a one-line Truncate mounts no tooltip of its own: the table's one reveal
+ * shows the cut line whole. A Truncate in a card the cell opens sits outside the table, although
+ * the cell renders it, and reveals itself.
+ */
+export const InTableCell: Story = {
+  render: () => (
+    <Table label="Controls with long names">
+      <thead>
+        <tr>
+          <Table.Header width={150}>Control</Table.Header>
+          <Table.Header>Statement</Table.Header>
+        </tr>
+      </thead>
+      <tbody>
+        <Table.Row>
+          <Table.Cell>
+            <Truncate data-testid="in-cell">{longName}</Truncate>
+          </Table.Cell>
+          <Table.Cell>
+            <Popover>
+              <PopoverTrigger render={<Button size="small" variant="subtle" />}>
+                Open
+              </PopoverTrigger>
+              <PopoverContent>
+                <Box style={{ width: 200 }}>
+                  <Truncate data-testid="in-card">{longName}</Truncate>
+                </Box>
+              </PopoverContent>
+            </Popover>
+          </Table.Cell>
+        </Table.Row>
+      </tbody>
+    </Table>
+  ),
+  play: async ({ canvas }) => {
+    const inCell = canvas.getByTestId("in-cell");
+    await expect(inCell).toHaveAttribute("data-reveal", "cell");
+    await expect(inCell.scrollWidth).toBeGreaterThan(inCell.clientWidth);
+    // The table's reveal shows the cut line whole; the Truncate's own tooltip never opens.
+    await userEvent.hover(inCell);
+    await waitFor(() =>
+      expect(document.querySelector('[data-slot="table-cell-reveal"]')).toHaveTextContent(longName),
+    );
+    await expect(document.querySelector('[data-slot="truncate-full-text"]')).toBeNull();
+    await userEvent.unhover(inCell);
+    // A card opened from the cell is outside the table: its Truncate reveals itself.
+    await userEvent.click(canvas.getByRole("button", { name: "Open" }));
+    const inCard = await waitFor(() => {
+      const found = document.querySelector<HTMLElement>('[data-testid="in-card"]');
+      expect(found).not.toBeNull();
+      expect(found).not.toHaveAttribute("data-reveal");
+      return found!;
+    });
+    await expect(inCard.scrollWidth).toBeGreaterThan(inCard.clientWidth);
+    await userEvent.hover(inCard);
+    const popup = await revealed();
+    await expect(popup).toHaveTextContent(longName);
+    await userEvent.keyboard("{Escape}");
+  },
+};
 
 /** A cut name in a table cell's link keeps the link's focus ring whole: one line clips across only. */
 export const FocusRingStaysWhole: Story = {

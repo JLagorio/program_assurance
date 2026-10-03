@@ -14,8 +14,8 @@ export function Collapsible(props: CollapsibleProps) {
 export function CollapsibleTrigger({ className, ...props }: CollapsibleTriggerProps) {
   return (
     <Primitive.Trigger
-      data-slot="collapsible-trigger"
       {...props}
+      data-slot="collapsible-trigger"
       className={classes(
         "rounded-small outline-none focus-visible:outline-focused data-disabled:pointer-events-none data-disabled:text-disabled",
         className,
@@ -39,8 +39,8 @@ const disclosureTrigger =
 export function DisclosureTrigger({ className, children, ...props }: CollapsibleTriggerProps) {
   return (
     <Primitive.Trigger
-      data-slot="collapsible-header-trigger"
       {...props}
+      data-slot="collapsible-header-trigger"
       className={classes(disclosureTrigger, className)}
     >
       <span data-slot="collapsible-header-title" className="relative min-w-0 break-words">
@@ -61,7 +61,7 @@ export function CollapsibleHeader(props: CollapsibleHeaderProps) {
   return (
     <Tag
       data-slot="collapsible-header"
-      className="flex min-w-0 grow font-body font-semibold text-default"
+      className="flex min-w-0 grow font-heading-section text-default"
     >
       <DisclosureTrigger {...props} />
     </Tag>

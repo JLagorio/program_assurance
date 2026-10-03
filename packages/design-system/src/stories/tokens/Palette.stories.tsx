@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Group, Mode, Page, Spec, under } from "../_lib/sheet";
+import * as tokenSheet from "../_lib/sheet";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Group, Mode, Page, Spec, under } = tokenSheet;
 
 const meta = { title: "Tokens/Palette", parameters: { layout: "padded" } } satisfies Meta;
 export default meta;
@@ -42,7 +45,7 @@ export const Ramps: Story = {
   render: () => (
     <Page
       title="Palette"
-      lede="Tier 0. Eight ramps with numbered step names, so the semantic-to-step mapping reads line for line. Alpha steps (100A–500A) are the hover, pressed and hairline fills. Every value is a draft; tune here, never in a semantic token."
+      lede="Tier 0. Eight ramps with numbered step names, so the semantic-to-step mapping reads line for line. Alpha steps (100A–500A) are the hover, pressed and hairline fills. A value is tuned here, never in a semantic token."
     >
       {ramps.map((r) => (
         <Group key={r.key} title={r.title}>

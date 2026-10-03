@@ -85,7 +85,7 @@ try {
     title: "Review the control implementation",
     description: "Check the authored control statement and its evidence.",
     assigneePartyId: party.id,
-    dueAt: "2026-12-31T16:30:00.000Z",
+    dueOn: "2026-12-31",
     priority: "high",
   };
   const requestId = randomUUID();
@@ -100,7 +100,8 @@ try {
   assert.equal(task.description, values.description);
   assert.equal(task.status, "open");
   assert.equal(task.priority, "high");
-  assert.equal(new Date(task.due_at).toISOString(), values.dueAt);
+  // A task is due on a calendar day, stored and read back as that day.
+  assert.equal(task.due_on, values.dueOn);
   assert.equal(task.created_by, workspace.userId);
   assert.equal(task.updated_by, workspace.userId);
   assert.equal(assignment.task_id, task.id);
@@ -129,7 +130,7 @@ try {
     title: "Intentionally unassigned task",
     description: "",
     assigneePartyId: null,
-    dueAt: null,
+    dueOn: null,
     priority: null,
   };
   const unassigned = await data(create(minimal));
@@ -137,7 +138,7 @@ try {
   const plain = await data(client.from("tasks").select().eq("id", unassigned.taskId).single());
   assert.equal(plain.description, null);
   assert.equal(plain.priority, null);
-  assert.equal(plain.due_at, null);
+  assert.equal(plain.due_on, null);
   assert.equal(plain.workstream_id, null);
   console.log("PASS concurrent retry and optional values stay unassigned/unset");
 
@@ -146,8 +147,12 @@ try {
   await reject({ ...values, workstreamId: wrongWorkstream.id });
   await reject({ ...values, assigneePartyId: randomUUID() });
   await reject({ ...values, priority: "made-up-priority" });
-  await reject({ ...values, dueAt: "2026-02-30T12:00:00Z" });
-  await reject({ ...values, dueAt: "2026-12-31T16:30:00" });
+  await reject({ ...values, dueOn: "2026-02-30" });
+  await reject({ ...values, dueOn: "2026-12-31T16:30:00Z" });
+  await reject({ ...values, dueOn: "Dec 31, 2026" });
+  // A due moment is not a field the command accepts.
+  const { dueOn: _dueOn, ...withoutDay } = values;
+  await reject({ ...withoutDay, dueAt: "2026-12-31T16:30:00.000Z" });
   await reject({ ...values, requesterPartyId: party.id });
   outsider = await localWorkspace("task-outsider");
   const foreignProgram = await data(

@@ -7,6 +7,8 @@ import * as Stories from "./ChartArea.stories";
 
 # Area
 
+**Status: Stable.**
+
 A [Line](?path=/docs/patterns-chart-line--docs) with a wash under it: the hue at 12%, so the plot says "how much" where a line alone says "which way". Stacked, the washes are parts of a whole over time, and the top edge is the total. Everything a Line takes, an Area takes; the difference is the fill and `stacked`. It lives in a [Chart](?path=/docs/patterns-chart-overview--docs) Frame.
 
 <Canvas of={Stories.AreaMatrix} />
@@ -35,7 +37,9 @@ A [Line](?path=/docs/patterns-chart-line--docs) with a wash under it: the hue at
 
 ## Sizes
 
-`size` is the plot's height: `small` 120px, `medium` 200px (the default), `large` 320px, or `height` in pixels; unsaid, the Frame's, and `large` in the Frame's expanded Dialog. As on a Line, `data`, `x` and `series` may be left to the Frame, or given here and learned by it.
+`size` is the plot's height: `small` 120px, `medium` 200px (the default), `large` 320px, or `height` in pixels; unsaid, the Frame's, and `large` in the Frame's expanded Dialog. As on a Line, `data`, `x` and `series` may be left to the Frame, or given here and learned by it, and every category keeps a label fitted to the room up to the next point.
+
+<Canvas of={Stories.LongCategories} />
 
 The value axis starts at zero, since a wash measures from it: a cropped wash exaggerates as a cropped bar does. There is no `baseline` here (the prop is ignored, and deprecated); a trend where the change matters more than the size is a [Line](?path=/docs/patterns-chart-line--docs) with `baseline="auto"`.
 
@@ -94,7 +98,10 @@ The value axis starts at zero, since a wash measures from it: a cropped wash exa
 - [Chart](?path=/docs/patterns-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
 - [Line](?path=/docs/patterns-chart-line--docs): the same without the wash.
 - [Bar](?path=/docs/patterns-chart-bar--docs) stacked: parts of a whole per category, when the categories are not ordered.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#chart): `baseline` goes; an Area starts at zero.
 
 ## Don't
+
+Stack only the parts of one whole. Series that are not parts, or that cross, are lines, never stacked or overlapping areas.
 
 <Canvas of={Stories.Dont} />

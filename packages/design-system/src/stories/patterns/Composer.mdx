@@ -6,9 +6,18 @@ import * as Stories from "./Composer.stories";
 
 # Composer
 
+**Status: Stable.**
+
 A shared text composer for messages, comments and other short drafts. Ledger owns keyboard completion, submission progress and recovery. The consuming application owns recipients, permissions, persistence, suggestion identity and serialized text. Owner: Ledger maintainers; consumers own their adapters.
 
 <Canvas of={Stories.ComposerMatrix} />
+
+## When to use it
+
+- **A comment on a record**: the Composer sits at the top of the record's Comments section, above the [Timeline](?path=/docs/components-timeline--docs) that lists them newest first. Its `label` names the record ("Comment on this task") and `submitLabel` the action ("Comment"). A send that lands clears the draft and keeps focus in the field for the next one; a rejected send keeps the draft, and its `errorMessage` says whether sending again could post it twice.
+- **A short message or note** that is written and sent where the reader is, with no other fields to fill.
+
+Not for a record's fields or a longer form with more than the text: that is a Dialog with a Textarea in a Field. Not for a value edited in place: that is [Editable](?path=/docs/patterns-editable--docs).
 
 ## Anatomy
 
@@ -71,5 +80,7 @@ The textarea keeps focus while suggestions are navigated, and has `aria-haspopup
 - [Popover](?path=/docs/components-popover--docs), whose positioner places the suggestion list.
 
 ## Don't
+
+The `hint` says when the message is saved (Saved when Send succeeds), never a promise of autosave when the message is sent only on request.
 
 <Canvas of={Stories.Dont} />

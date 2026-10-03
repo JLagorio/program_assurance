@@ -7,6 +7,8 @@ import * as Stories from "./Inline.stories";
 
 # Inline
 
+**Status: Stable.**
+
 A row with one gap. Children sit start to end with one space token between them, aligned on the block axis as the row says, wrapping when told to with a row space of their own. A separator is drawn between children and hidden from a screen reader. A separator does not belong on a list element. Here it also renders inline-level, as a `span` with `display="inline-flex"`, so a chip and a word can sit inside a sentence.
 
 <Canvas of={Stories.InlineMatrix} />
@@ -115,5 +117,7 @@ Keyed children keep their state when separated items are reordered or removed. U
 - [Space](?path=/docs/tokens-space--docs): the scale.
 
 ## Don't
+
+A dot between items is `separator`, never a child. A row that can grow wraps with `shouldWrap`, and a list of chips is `as="ul"` with `li` children and no separator.
 
 <Canvas of={Stories.Dont} />

@@ -25,8 +25,10 @@ import {
   SelectTrigger,
   SelectValue,
   Skeleton,
+  Text,
   Textarea,
   VisuallyHidden,
+  useLedgerLocale,
 } from "@ledger/design-system";
 import type { Row } from "@/lib/models";
 import { sentence } from "./sentence";
@@ -84,14 +86,14 @@ export function TextField({
   placeholder?: string | undefined;
   /**
    * A hard cap the browser enforces by cutting what is typed or pasted past it, with no message.
-   * For several lines of text prefer `characterLimit`, and let the form's own check report an
-   * over-long single line on submit.
+   * Prefer `characterLimit`, which never cuts a paste.
    */
   maxLength?: number | undefined;
   /**
-   * With `multiline`: the most characters the answer may have, as a soft limit. A count under the
-   * box says how many are left or how many too many, and the text is never cut. The form's own
-   * check still reports an over-long answer on submit.
+   * The most characters the answer may have, as a soft limit: the text is never cut. Under several
+   * lines a count always says how many are left or how many too many; under one line it appears
+   * once the answer nears the limit. The form's own check reports an over-long answer with a
+   * FieldError on submit.
    */
   characterLimit?: number | undefined;
   rows?: number | undefined;
@@ -126,8 +128,44 @@ export function TextField({
         <Input ref={ref} {...shared} onChange={(event) => onChange(event.target.value)} />
       )}
       {description ? <FieldDescription>{description}</FieldDescription> : null}
+      {!multiline && characterLimit !== undefined ? (
+        <LineCount length={value.length} limit={characterLimit} />
+      ) : null}
       {error ? <FieldError>{error}</FieldError> : null}
     </Field>
+  );
+}
+
+/** From this share of a one-line limit, the count shows: early enough to stop before it. */
+const NEAR_LIMIT = 0.8;
+
+/**
+ * A one-line answer's count, in the words a Textarea's count uses: how many characters are left
+ * once the answer nears its limit, and how many too many past it, so a paste that runs over is
+ * seen at once, not cut. It describes the input through the Field.
+ */
+function LineCount({ length, limit }: { length: number; limit: number }) {
+  const { formatPlural, messages } = useLedgerLocale();
+  if (length < limit * NEAR_LIMIT) return null;
+  const over = length - limit;
+  return (
+    <FieldDescription>
+      {over > 0 ? (
+        <Text color="color.text.danger" numeric>
+          {formatPlural(over, {
+            one: messages.charactersOverOne,
+            other: messages.charactersOverOther,
+          })}
+        </Text>
+      ) : (
+        <Text numeric>
+          {formatPlural(-over, {
+            one: messages.charactersLeftOne,
+            other: messages.charactersLeftOther,
+          })}
+        </Text>
+      )}
+    </FieldDescription>
   );
 }
 
@@ -333,6 +371,12 @@ export type ComboboxFieldProps = FieldFrameProps & {
   onRetry?: (() => void) | undefined;
   /** The most options the list mounts; past it, the list says how many of the matches it shows. */
   limit?: number | undefined;
+  /**
+   * Keeps the field's Tab stop and value but takes no choice, for a choice that waits on another
+   * answer: pair it with a `description` that says why ("Choose a program first."), which a
+   * disabled field would take out of the tab order with it.
+   */
+  readOnly?: boolean | undefined;
 };
 
 /**
@@ -358,6 +402,7 @@ export function ComboboxField({
   loadError,
   onRetry,
   limit = 100,
+  readOnly = false,
 }: ComboboxFieldProps) {
   const [query, setQuery] = useState("");
   const words = listWords(noun);
@@ -376,6 +421,7 @@ export function ComboboxField({
       <Combobox<ComboboxOption>
         items={options}
         limit={limit}
+        readOnly={readOnly}
         value={chosen}
         isItemEqualToValue={(item, selected) => item.value === selected.value}
         filter={matches}
@@ -385,7 +431,7 @@ export function ComboboxField({
         <ComboboxInput
           ref={bind(controlRef)}
           placeholder={placeholder}
-          showClear={!required}
+          showClear={!required && !readOnly}
           onKeyDown={retryOnEnter(enterRetries, onRetry)}
         />
         <ComboboxContent>

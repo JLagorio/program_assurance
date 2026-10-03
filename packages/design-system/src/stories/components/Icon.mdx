@@ -7,6 +7,8 @@ import * as Stories from "./Icon.stories";
 
 # Icon
 
+**Status: Stable.**
+
 A Lucide glyph with its size, colour and name decided in one place. With a `label` the icon is an image with that name, for a mark that stands for something on its own: an authorization boundary on a tree row, a met check in a cell, an overdue clock. Without one it is decoration beside the word that says the same, and it is hidden from assistive technology. The sizes and colours are the ones on [Tokens/Icons](?path=/docs/tokens-icons--docs).
 
 ```tsx
@@ -58,5 +60,7 @@ A Lucide glyph with its size, colour and name decided in one place. With a `labe
 - [IconButton](?path=/docs/components-iconbutton--docs): an icon that acts.
 
 ## Don't
+
+A mark that stands alone is an Icon with a `label`, never an `aria-label` on a span, which names nothing. Beside its word an icon takes no label, or the word is said twice.
 
 <Canvas of={Stories.Dont} />

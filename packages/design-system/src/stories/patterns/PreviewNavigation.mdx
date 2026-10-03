@@ -5,6 +5,8 @@ import * as Stories from "./PreviewNavigation.stories";
 
 # PreviewNavigation
 
+**Status: Stable.**
+
 The collection controls for a record preview beside a register: previous and next through the table's displayed results, the announced record and position, and a link that opens the full record in a new tab. It belongs in the preview's outer bar, `Shell.Panel.Actions`, immediately before Close. That bar is navigation only: the record's visible name and its actions are an inner PageHeader at the start of the panel's body, its title an h2, as [Shell](?path=/docs/layout-shell--docs) describes.
 
 <Canvas of={Stories.Collection} />
@@ -49,6 +51,10 @@ The outer bar has no `Shell.Panel.Title`, so the panel takes its accessible name
 ## What the caller owns
 
 The application owns selection, the row order and real record destinations; the part imports no router and holds no rows. The order is the whole filtered and sorted set, with expanded tree rows in place, not the table's current page: supply a one-based `position` and the `total` of that set, and a callback for each adjacent record. When Next crosses the edge of a table page, the caller turns the table to the page that holds the new record, so the active row stays in view. Leave a callback out at an endpoint, or pass a position at the end, and that button is unavailable. Pass the record's name as `recordLabel`, so the announcement says which record arrived.
+
+A position and a total counted on the table's current page are wrong as soon as the result has a second page: the reader hears 3 of 25 where the result holds 62, and Next stops at the page's end. Without `recordLabel` every step is heard as a number alone.
+
+<Canvas of={Stories.DoDont} />
 
 `openLink` is an anchor or router link with the record's real destination, `target="_blank"` and `rel="noopener noreferrer"`; it must lead to that record, not its collection. The part gives it its icon, accessible name and tooltip. A preview inside a selection task (RecordBrowser, PickerSheet) belongs to the task and opens no record of its own: leave `openLink` out, and the bar is previous and next alone.
 

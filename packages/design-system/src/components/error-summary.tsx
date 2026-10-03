@@ -116,12 +116,12 @@ export function ErrorSummary({
   };
   return (
     <Alert
-      data-slot="error-summary"
       tone="danger"
       role="alert"
       tabIndex={-1}
       aria-labelledby={titleId}
       {...props}
+      data-slot="error-summary"
       ref={setRef as Ref<HTMLDivElement>}
       className={cn("outline-none", className)}
     >

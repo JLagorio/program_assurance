@@ -1,0 +1,16 @@
+/* OVERLAYS (G5): in a short window (dimension.query.shortWindow: a phone on its side, a page zoomed
+   to 400%) the body of a Dialog, an AlertDialog, a Sheet or a Drawer grows to its content instead
+   of scrolling inside the share of the height its header and footer leave, so the whole popup
+   scrolls as one, the header with it, while the footer stays held at the bottom. The Shell's bars
+   and the Toaster switch on the same threshold with the same comparison. */
+@media (height < theme(--query-short-window)) {
+  :is(
+    [data-slot="dialog-body"],
+    [data-slot="alert-dialog-body"],
+    [data-slot="sheet-body"],
+    [data-slot="drawer-body"]
+  ) {
+    flex: 1 0 auto;
+    overflow: visible;
+  }
+}

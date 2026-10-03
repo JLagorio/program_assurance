@@ -7,6 +7,8 @@ import * as Stories from "./CommandPalette.stories";
 
 # CommandPalette
 
+**Status: Stable.**
+
 A ⌘K palette over a page or a record: a field at the top, the commands under headings, a shortcut at the end of the ones that have one, the keys in the footer. Choosing a command closes the palette and runs it. The commands are plain objects the caller supplies, so the palette stays presentational and every page can reuse it; `useCommandPalette` holds the open state and toggles it on ⌘K on Apple platforms and Ctrl+K elsewhere, anywhere on the page. It runs a command; it does not pick a record, which is the [RecordPicker](?path=/docs/patterns-recordpicker--docs), and it does not search the product, which is the [SearchDialog](?path=/docs/patterns-searchdialog--docs) behind the top nav's search.
 
 <Canvas of={Stories.CommandPaletteStory} />
@@ -103,5 +105,7 @@ The palette's open state, toggled by its shortcut anywhere on the page. Takes `{
 - [Kbd](?path=/docs/components-kbd--docs): the keys in the footer and the hints.
 
 ## Don't
+
+A command is a verb and its object, under a heading that names its kind, never nouns in one list.
 
 <Canvas of={Stories.Dont} />

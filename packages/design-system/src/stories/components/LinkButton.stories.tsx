@@ -5,8 +5,12 @@ import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import { Button, LinkButton, LinkIconButton, TextLink } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/LinkButton",
@@ -23,7 +27,7 @@ const openTip = () => document.querySelector('[data-slot="tooltip-content"][data
 
 /** The four variants in the three sizes, with icons on either side. Each one is an anchor. */
 export const Matrix: Story = {
-  tags: ["matrix"],
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       {variants.map((variant) => (
@@ -78,19 +82,25 @@ export const Matrix: Story = {
 };
 
 // A router adapter forwards the props and the ref it receives to its anchor, as a router's Link
-// does. This one keeps the demonstration in the canvas.
+// does, and navigates in place of the browser. This one keeps the demonstration in the canvas.
 const DemoRouterLink = forwardRef<
   HTMLAnchorElement,
   Omit<ComponentProps<"a">, "href"> & { to: string }
->(function DemoRouterLink({ to, ...props }, ref) {
-  return <a ref={ref} href={to} {...props} />;
+>(function DemoRouterLink({ to, onClick, ...props }, ref) {
+  return (
+    <a
+      ref={ref}
+      href={to}
+      {...props}
+      onClick={(event: MouseEvent<HTMLAnchorElement>) => {
+        onClick?.(event);
+        event.preventDefault();
+      }}
+    />
+  );
 });
 
-const routerCalls = {
-  link: fn(),
-  adapter: fn((event: MouseEvent<HTMLAnchorElement>) => event.preventDefault()),
-};
-const routerRef = createRef<HTMLAnchorElement>();
+export const Playground: Story = { args: { variant: "primary", size: "medium" } };
 
 /**
  * A router link comes in through `render`. The anchor keeps the router's href and handlers and
@@ -100,40 +110,60 @@ export const RouterLink: Story = {
   render: () => (
     <Inline space="space.100" alignBlock="center" shouldWrap>
       <LinkButton
-        ref={routerRef}
         variant="primary"
         iconBefore={<Plus />}
-        onClick={routerCalls.link}
-        render={<DemoRouterLink to="#programs-new" onClick={routerCalls.adapter} />}
+        render={<DemoRouterLink to="#programs-new" />}
       >
         Create program
       </LinkButton>
-      <LinkButton render={<DemoRouterLink to="#my-work" onClick={routerCalls.adapter} />}>
-        Open my work
-      </LinkButton>
+      <LinkButton render={<DemoRouterLink to="#my-work" />}>Open my work</LinkButton>
     </Inline>
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    routerCalls.link.mockClear();
-    routerCalls.adapter.mockClear();
     const create = canvas.getByRole("link", { name: "Create program" });
-    await expect(routerRef.current).toBe(create);
     await expect(create.tagName).toBe("A");
     await expect(create).toHaveAttribute("href", "#programs-new");
     await expect(create).not.toHaveAttribute("role");
     await expect(create).not.toHaveAttribute("type");
-    await userEvent.click(create);
-    await expect(routerCalls.link).toHaveBeenCalledTimes(1);
-    await expect(routerCalls.adapter).toHaveBeenCalledTimes(1);
     create.focus();
-    await userEvent.keyboard("{Enter}");
-    await expect(routerCalls.adapter).toHaveBeenCalledTimes(2);
-    // Space scrolls a page; it never follows a link, and LinkButton does not make it.
-    await userEvent.keyboard(" ");
-    await expect(routerCalls.adapter).toHaveBeenCalledTimes(2);
     await userEvent.tab();
     await expect(canvas.getByRole("link", { name: "Open my work" })).toHaveFocus();
+  },
+};
+
+const routerRef = createRef<HTMLAnchorElement>();
+const linkClick = fn();
+const routerNavigate = fn();
+
+/** A ref on LinkButton reaches the anchor the router adapter renders, and its `onClick` and the router's both run. */
+export const NativeAttributes: Story = {
+  tags: ["!manifest"],
+  render: () => (
+    <LinkButton
+      ref={routerRef}
+      data-example="router"
+      onClick={linkClick}
+      render={<DemoRouterLink to="#programs-new" onClick={routerNavigate} />}
+    >
+      Create program
+    </LinkButton>
+  ),
+  play: async ({ canvasElement }) => {
+    linkClick.mockClear();
+    routerNavigate.mockClear();
+    const create = within(canvasElement).getByRole("link", { name: "Create program" });
+    await expect(routerRef.current).toBe(create);
+    await expect(create).toHaveAttribute("data-example", "router");
+    await userEvent.click(create);
+    await expect(linkClick).toHaveBeenCalledTimes(1);
+    await expect(routerNavigate).toHaveBeenCalledTimes(1);
+    create.focus();
+    await userEvent.keyboard("{Enter}");
+    await expect(routerNavigate).toHaveBeenCalledTimes(2);
+    // Space scrolls a page; it never follows a link, and LinkButton does not make it.
+    await userEvent.keyboard(" ");
+    await expect(routerNavigate).toHaveBeenCalledTimes(2);
   },
 };
 
@@ -292,6 +322,7 @@ export const ReasonChangesWhileFocused: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -329,5 +360,3 @@ export const Dont: Story = {
     </Stack>
   ),
 };
-
-export const Playground: Story = { args: { variant: "primary", size: "medium" } };

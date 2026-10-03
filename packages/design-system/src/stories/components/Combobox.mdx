@@ -13,6 +13,8 @@ import * as Stories from "./Combobox.stories";
 
 # Combobox
 
+**Status: Stable.**
+
 Search for a value and choose it, with shadcn's Base UI Combobox composition. Root owns the selection, filtering, popup state and form serialization. ComboboxInput composes the shared InputGroup with its chevron and clear controls.
 
 ```tsx
@@ -48,6 +50,10 @@ Use a Combobox when the reader finds the value by typing: records by name or ide
 - Two or three options the reader should compare are a [RadioGroup](?path=/docs/components-radiogroup--docs).
 - Choosing many records by their attributes, with a table to compare them, is a [PickerSheet](?path=/docs/patterns-pickersheet--docs); one record from one kind outside a form is a [RecordPicker](?path=/docs/patterns-recordpicker--docs).
 - Finding a record to open is the [SearchDialog](?path=/docs/patterns-searchdialog--docs), and running a command is the [CommandPalette](?path=/docs/patterns-commandpalette--docs).
+
+Four priorities in a Combobox make the reader type where a glance would do: they are a Select.
+
+<Canvas of={Stories.DoDont} />
 
 ## Variants and states
 

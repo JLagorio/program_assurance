@@ -26,9 +26,9 @@ export function Switch({ className, size: sizeProp = "medium", ...props }: Switc
   const size: ControlSize = legacySizes[sizeProp] ?? (sizeProp as ControlSize);
   return (
     <SwitchPrimitive.Root
+      {...props}
       data-slot="switch"
       data-size={size}
-      {...props}
       disabled={props.disabled || field.disabled}
       aria-required={props["aria-required"] ?? ((props.required ?? field.required) || undefined)}
       className={classes(

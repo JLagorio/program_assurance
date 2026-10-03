@@ -7,6 +7,8 @@ import * as Stories from "./Tree.stories";
 
 # Tree
 
+**Status: Stable.**
+
 A hierarchy the reader opens and closes: control families, a system's composition, a folder of evidence. The caller owns the data, the open set and the selection and renders one row per visible node; the tree draws the indent guides, the chevron on rows that have children, and owns the keyboard: one tab stop, the arrows move and open, Enter selects. The ARIA tree pattern is the model.
 
 A tree is for two or more levels. One level is a collapsible [Item](?path=/docs/components-item--docs) list; a hierarchy with columns is [Table.Tree](?path=/docs/components-table--docs).
@@ -65,7 +67,7 @@ Rows stack with no space between them. The indent is 16px per level, the guide d
 ## Modifiers
 
 - **`depth`** and **`lines`**: how deep, and which ancestors' guides to draw. A last child under each ancestor clears that ancestor's line.
-- **`hasChildren`**, **`isExpanded`**, **`onToggle`** on a branch; **`isSelected`**, **`onSelect`** on a selectable row. `expanded` is the deprecated name for `isExpanded` and is still read for one version.
+- **`hasChildren`**, **`isExpanded`**, **`onExpandedChange`** on a branch: the chevron, Right and Left call it with the branch's next state, as every disclosure in the kit does (Table.Group, Table.Tree, Table.Disclosure). **`isSelected`**, **`onSelect`** on a selectable row. `expanded` and `onToggle` are the deprecated names for `isExpanded` and `onExpandedChange`, still read for one version.
 - **`hint`** for a code, a kind or a profile beside the name. It is cut before the label is.
 - **`trailing`** for a Count, a Badge or a Dot. A click on it selects the row, as a click on the label does.
 - **`actions`** for the row's controls: a menu button, a remove button. A click on one runs the control and leaves the selection alone.
@@ -83,17 +85,17 @@ Rows stack with no space between them. The indent is 16px per level, the guide d
 
 ## Style
 
-| Element  | Token                                                                                                                                                      |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Row      | `dimension.control.medium` 32px `small` · `dimension.control.xsmall` 24px `xsmall` · `radius.medium` · `space.100` end padding · `space.075` between parts |
-| Guide    | 16px column (`space.200`) · 1px `color.border`                                                                                                             |
-| Chevron  | 20px · `color.icon.subtle`, `color.icon` on hover · `radius.small` · rotates in `motion.duration.fast`                                                     |
-| Leaf dot | 4px · `color.background.neutral.pressed`                                                                                                                   |
-| Label    | `font.body` · `color.text` · one line, cut with an ellipsis                                                                                                |
-| Hint     | `font.body.small` · `color.text.subtle` · one line, cut before the label                                                                                   |
-| Hover    | `color.background.neutral.subtle.hovered`                                                                                                                  |
-| Selected | `color.background.selected` · a 2px (`space.025`) bar in `color.background.selected.bold` at the start edge, `space.050` from the top and bottom           |
-| Focus    | The focus outline                                                                                                                                          |
+| Element  | Token                                                                                                                                                                      |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Row      | `dimension.control.medium` 32px `small` · `dimension.control.xsmall` 24px `xsmall` · `radius.medium` · `space.100` end padding · `space.075` between parts                 |
+| Guide    | 16px column (`space.200`) · 1px `color.border`                                                                                                                             |
+| Chevron  | `IconButton size="xxsmall"`, the kit's 20px row control, with no tooltip · `color.text.subtle`, `color.text` on hover · `radius.small` · rotates in `motion.duration.fast` |
+| Leaf dot | 4px · `color.background.neutral.pressed`                                                                                                                                   |
+| Label    | `font.body` · `color.text` · one line, cut with an ellipsis                                                                                                                |
+| Hint     | `font.body.small` · `color.text.subtle` · one line, cut before the label                                                                                                   |
+| Hover    | `color.background.neutral.subtle.hovered`                                                                                                                                  |
+| Selected | `color.background.selected` · a 2px (`space.025`) bar in `color.background.selected.bold` at the start edge, `space.050` from the top and bottom                           |
+| Focus    | The focus outline                                                                                                                                                          |
 
 The selected fill is the one a table row and a list row take, so a selection reads the same everywhere; the bar at the start edge is its second cue, because the fill alone is about 1.1:1 against the surface. A table row's selection is carried by its checkbox instead. In a right-to-left tree the bar sits on the right and a closed branch's chevron points left.
 
@@ -138,7 +140,10 @@ The keyboard behavior follows the [WAI-ARIA tree view pattern](https://www.w3.or
 - [Table](?path=/docs/components-table--docs): `Table.Tree`, a hierarchy with columns.
 - [Item](?path=/docs/components-item--docs): one level of nesting, as a collapsible list.
 - [Collapsible](?path=/docs/components-collapsible--docs): one section that opens.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#tree): Tree.Item's earlier `expanded` and `onToggle`.
 
 ## Don't
+
+Icons go on every row or on none, and one level of nesting is a collapsible Item list, never a tree. A collapsed branch that holds the selected row takes `isSelected` itself, so the reader still sees where they are, and a tree item never holds a tree: entries with columns of their own are a Table.Tree.
 
 <Canvas of={Stories.Dont} />

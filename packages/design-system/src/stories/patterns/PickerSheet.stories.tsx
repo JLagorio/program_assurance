@@ -1,7 +1,7 @@
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
-import { DataTable, PickerSheet, defineColumns, useDataTable } from "../..";
+import { DataTable, PickerSheet, defineColumns, useDataTable, type DataTableState } from "../..";
 import {
   Button,
   Field,
@@ -14,8 +14,10 @@ import {
   Textarea,
 } from "../../components";
 import { Box, Inline, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Patterns/PickerSheet",
@@ -72,6 +74,8 @@ function PickerStates() {
     data: catalogue,
     getRowId: (r) => r.id,
     selectable: true,
+    // The sample's statements repeat, so a row is known by its code: "Select REQ-0101".
+    rowLabel: (r) => r.id,
     label: "Requirements",
     initialState: { sorting: [{ id: "id", desc: false }] },
   });
@@ -142,27 +146,28 @@ function PickerStates() {
     columns: detailColumns,
     data: chosenRows,
     getRowId: (r) => r.id,
+    rowLabel: (r) => r.id,
     label: "Chosen requirements",
   });
 
-  const undefinedItems = [
+  const responsibilityItems = [
     { value: "", label: "Responsibility" },
     ...responsibilities.map((r) => ({ value: r, label: r })),
   ];
-  const undefinedItems2 = [
+  const coverageItems = [
     { value: "", label: "Coverage" },
     ...coverages.map((c) => ({ value: c, label: c })),
   ];
   return (
     <Stack space="space.200">
-      <Specimens title="PickerSheet">
+      <Inline space="space.150" rowSpace="space.150" alignBlock="center" shouldWrap>
         <Button variant="secondary" onClick={() => setOpen(true)}>
           Allocate requirements
         </Button>
         <Text size="small" color="color.text.subtle">
           {chosen.size} chosen so far
         </Text>
-      </Specimens>
+      </Inline>
       {frame === "choose" ? (
         <PickerSheet
           open={open}
@@ -203,21 +208,18 @@ function PickerStates() {
               </Text>
               <Box style={{ width: 140 }}>
                 <Select<string>
-                  items={undefinedItems}
+                  items={responsibilityItems}
                   defaultValue=""
                   onValueChange={(value) => {
                     if (value === null) return;
                     return value && applyAll({ responsibility: value as Fields["responsibility"] });
                   }}
                 >
-                  <SelectTrigger
-                    className={"w-full " + "[&>select]:h-control-small"}
-                    aria-label="Responsibility for all"
-                  >
+                  <SelectTrigger className="w-full" aria-label="Responsibility for all">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {undefinedItems.map((item) => (
+                    {responsibilityItems.map((item) => (
                       <SelectItem key={item.value} value={item.value}>
                         {item.label}
                       </SelectItem>
@@ -227,21 +229,18 @@ function PickerStates() {
               </Box>
               <Box style={{ width: 120 }}>
                 <Select<string>
-                  items={undefinedItems2}
+                  items={coverageItems}
                   defaultValue=""
                   onValueChange={(value) => {
                     if (value === null) return;
                     return value && applyAll({ coverage: value as Fields["coverage"] });
                   }}
                 >
-                  <SelectTrigger
-                    className={"w-full " + "[&>select]:h-control-small"}
-                    aria-label="Coverage for all"
-                  >
+                  <SelectTrigger className="w-full" aria-label="Coverage for all">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {undefinedItems2.map((item) => (
+                    {coverageItems.map((item) => (
                       <SelectItem key={item.value} value={item.value}>
                         {item.label}
                       </SelectItem>
@@ -263,7 +262,7 @@ function PickerStates() {
 /** Frame one is a DataTable in the sheet, passed as `table`: the search drives its global filter, and the count, the total and Clear come from its selection. The family and state facets, a sortable id column and a selection that survives the search; frame two is a second DataTable whose responsibility and coverage cells edit in place, with a defaults row and "Does not apply" per row. Open it. */
 export const PickerSheetStory: Story = {
   name: "Picker sheet",
-  render: () => <PickerStates />,
+  render: PickerStates,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const page = within(canvasElement.ownerDocument.body);
@@ -272,19 +271,19 @@ export const PickerSheetStory: Story = {
     const dialog = within(await page.findByRole("dialog", { name: "Allocate requirements" }));
     await expect(dialog.queryByRole("button", { name: "Back" })).toBeNull();
     await expect(dialog.getByRole("searchbox", { name: "Search requirements" })).toHaveFocus();
-    await expect(dialog.getByRole("status")).toHaveTextContent("28 to choose from");
+    await expect(dialog.getByRole("status")).toHaveTextContent("0 of 28 selected");
     await expect(dialog.getByRole("button", { name: "Cancel" })).toHaveAttribute(
       "data-button-variant",
       "subtle",
     );
-    await userEvent.click(dialog.getByRole("checkbox", { name: "Select row REQ-0101" }));
-    await expect(dialog.getByRole("status")).toHaveTextContent("1 chosen of 28");
-    // The selection survives a search: the count keeps it, "of" the rows on offer.
+    await userEvent.click(dialog.getByRole("checkbox", { name: "Select REQ-0101" }));
+    await expect(dialog.getByRole("status")).toHaveTextContent("1 of 28 selected");
+    // The selection survives a search, and so does the count: the total does not follow it.
     await userEvent.type(dialog.getByRole("searchbox", { name: "Search requirements" }), "encrypt");
-    await waitFor(() => expect(dialog.getByText("1 chosen of 4")).toBeVisible());
+    await waitFor(() => expect(dialog.getByText("1 of 28 selected")).toBeVisible());
     await userEvent.keyboard("{Escape}");
     await expect(dialog.getByRole("searchbox", { name: "Search requirements" })).toHaveValue("");
-    await expect(dialog.getByText("1 chosen of 28")).toBeVisible();
+    await expect(dialog.getByText("1 of 28 selected")).toBeVisible();
     await userEvent.click(dialog.getByRole("button", { name: "Continue with 1" }));
     await userEvent.click(dialog.getByRole("button", { name: "Back" }));
     await expect(dialog.getByRole("button", { name: "Continue with 1" })).toBeEnabled();
@@ -369,15 +368,16 @@ function SearchTheTable() {
     data: catalogue,
     getRowId: (r) => r.id,
     selectable: true,
+    rowLabel: (r) => r.id,
     label: "Requirements",
   });
   return (
     <Stack space="space.200">
-      <Specimens title="PickerSheet">
+      <Inline space="space.150" rowSpace="space.150" alignBlock="center" shouldWrap>
         <Button variant="secondary" onClick={() => setOpen(true)}>
           Allocate requirements
         </Button>
-      </Specimens>
+      </Inline>
       <PickerSheet
         open={open}
         onClose={() => setOpen(false)}
@@ -419,11 +419,11 @@ export const SearchWithNoMatch: Story = {
     await userEvent.type(search, "zzzzqq");
     await expect(await dialog.findByText("Nothing matches")).toBeVisible();
     await expect(dialog.queryByText("Every requirement is already allocated here")).toBeNull();
-    await expect(dialog.getByText("0 to choose from")).toBeVisible();
+    await expect(dialog.getByText("0 of 28 selected")).toBeVisible();
     await userEvent.click(dialog.getByRole("button", { name: "Clear filters" }));
     await expect(search).toHaveValue("");
-    await expect(dialog.getByText("28 to choose from")).toBeVisible();
-    await expect(dialog.getByRole("checkbox", { name: "Select row REQ-0101" })).toBeVisible();
+    await expect(dialog.getByText("0 of 28 selected")).toBeVisible();
+    await expect(dialog.getByRole("checkbox", { name: "Select REQ-0101" })).toBeVisible();
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
   },
@@ -443,6 +443,7 @@ function PendingPicker() {
     data: catalogue,
     getRowId: (r) => r.id,
     selectable: true,
+    rowLabel: (r) => r.id,
     label: "Requirements",
   });
   const count = Object.keys(table.state.rowSelection).length;
@@ -455,14 +456,14 @@ function PendingPicker() {
   };
   return (
     <Stack space="space.200">
-      <Specimens title="PickerSheet">
+      <Inline space="space.150" rowSpace="space.150" alignBlock="center" shouldWrap>
         <Button variant="secondary" onClick={() => setOpen(true)}>
           Allocate requirements
         </Button>
         <Text size="small" color="color.text.subtle">
           {closedBy}
         </Text>
-      </Specimens>
+      </Inline>
       <PickerSheet
         open={open}
         initialFocus={rationale}
@@ -521,7 +522,7 @@ export const PendingAndFailure: Story = {
     await userEvent.click(opener);
     popup = await page.findByRole("dialog", { name: "Allocate requirements" });
     const dialog = within(popup);
-    await userEvent.click(dialog.getByRole("checkbox", { name: "Select row REQ-0101" }));
+    await userEvent.click(dialog.getByRole("checkbox", { name: "Select REQ-0101" }));
     const primary = dialog.getByRole("button", { name: "Allocate 1 to Flight computer" });
     await userEvent.click(primary);
     await waitFor(() => expect(popup).toHaveAttribute("aria-busy", "true"));
@@ -543,10 +544,159 @@ export const PendingAndFailure: Story = {
     await expect(alert).toHaveTextContent("The allocation could not be saved");
     await expect(popup).not.toHaveAttribute("aria-busy");
     await expect(popup.querySelector('[data-slot="sheet-body"]')).not.toHaveAttribute("inert");
-    await expect(dialog.getByText("1 chosen of 28")).toBeVisible();
+    await expect(dialog.getByText("1 of 28 selected")).toBeVisible();
     await expect(
       dialog.getByRole("button", { name: "Allocate 1 to Flight computer" }),
     ).toBeEnabled();
+  },
+};
+
+/** The loads each LoadingAndFailedLoad run is waiting on; its play function settles them. */
+const waitingLoads: Array<(result: "ready" | "error") => void> = [];
+const noRows: Catalogue[] = [];
+
+function LoadingPicker() {
+  const [open, setOpen] = useState(false);
+  const [state, setState] = useState<DataTableState>("loading");
+  const load = () => {
+    setState("loading");
+    waitingLoads.push((result) => setState(result));
+  };
+  const table = useDataTable({
+    columns: catalogueColumns,
+    data: state === "ready" ? catalogue : noRows,
+    getRowId: (r) => r.id,
+    selectable: true,
+    rowLabel: (r) => r.id,
+    label: "Requirements",
+  });
+  return (
+    <Stack space="space.200">
+      <Inline space="space.150" rowSpace="space.150" alignBlock="center" shouldWrap>
+        <Button
+          variant="secondary"
+          onClick={() => {
+            load();
+            setOpen(true);
+          }}
+        >
+          Allocate requirements
+        </Button>
+      </Inline>
+      <PickerSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Allocate requirements"
+        subtitle="Flight computer"
+        table={table}
+        search={{ placeholder: "Search requirements" }}
+        state={state}
+        action={{ label: "Allocate to Flight computer", onClick: () => setOpen(false) }}
+      >
+        <DataTable
+          table={table}
+          responsive
+          state={state}
+          error="The requirements could not be loaded."
+          onRetry={load}
+        />
+      </PickerSheet>
+    </Stack>
+  );
+}
+
+/** The picker's own count in its footer. */
+const countIn = (popup: HTMLElement) =>
+  popup.querySelector<HTMLElement>('[data-slot="picker-sheet-count"] [role="status"]')!;
+
+/**
+ * `state` says where the rows on offer are, as the DataTable's does. While they load, and when
+ * they fail to load, what there is to choose from is not known: the footer counts only what is
+ * chosen, "0 selected", and never "0 of 0", which would read as an empty library. Try again loads
+ * them, and the count says of how many.
+ */
+export const LoadingAndFailedLoad: Story = {
+  render: () => <LoadingPicker />,
+  play: async ({ canvasElement }) => {
+    waitingLoads.length = 0;
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Allocate requirements" }));
+    const popup = await page.findByRole("dialog", { name: "Allocate requirements" });
+    const dialog = within(popup);
+    await expect(countIn(popup)).toHaveTextContent(/^0 selected$/);
+    await expect(dialog.queryByText(/ of \d+ selected$/)).toBeNull();
+    waitingLoads.shift()?.("error");
+    const retry = await dialog.findByRole("button", { name: "Try again" });
+    await expect(dialog.getByText("The requirements could not be loaded.")).toBeVisible();
+    await expect(countIn(popup)).toHaveTextContent(/^0 selected$/);
+    await expect(dialog.queryByText(/ of \d+ selected$/)).toBeNull();
+    await userEvent.click(retry);
+    await waitFor(() => expect(waitingLoads).toHaveLength(1));
+    await expect(countIn(popup)).toHaveTextContent(/^0 selected$/);
+    waitingLoads.shift()?.("ready");
+    await waitFor(() => expect(countIn(popup)).toHaveTextContent("0 of 28 selected"));
+    await closeSheet(canvasElement);
+  },
+};
+
+function NarrowFilteredPicker() {
+  const [open, setOpen] = useState(false);
+  const table = useDataTable({
+    columns: catalogueColumns,
+    data: catalogue,
+    getRowId: (r) => r.id,
+    selectable: true,
+    rowLabel: (r) => r.id,
+    label: "Requirements",
+    initialState: { columnFilters: [{ id: "family", value: ["AC"] }] },
+  });
+  return (
+    <Stack space="space.200">
+      <Inline space="space.150" rowSpace="space.150" alignBlock="center" shouldWrap>
+        <Button variant="secondary" onClick={() => setOpen(true)}>
+          Allocate requirements
+        </Button>
+      </Inline>
+      <PickerSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Allocate requirements"
+        table={table}
+        search={{ placeholder: "Search requirements" }}
+        filters={
+          <>
+            <DataTable.Filter table={table} column="family" />
+            <DataTable.Filter table={table} column="state" />
+          </>
+        }
+        width="small"
+        action={{ label: "Allocate to Flight computer", onClick: () => setOpen(false) }}
+      >
+        <DataTable table={table} responsive />
+      </PickerSheet>
+    </Stack>
+  );
+}
+
+/**
+ * In a sheet too narrow for its filters they fold into the toolbar's More, which counts the
+ * filters that apply and says so in its name ("More filters, 1 applied"), from the table's column
+ * filters or the sheet's `activeFilters`. A narrowed list never reads as all of it.
+ */
+export const FoldedFilters: Story = {
+  render: () => <NarrowFilteredPicker />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Allocate requirements" }));
+    const popup = await page.findByRole("dialog", { name: "Allocate requirements" });
+    const dialog = within(popup);
+    await expect(
+      await dialog.findByRole("button", { name: "More filters, 1 applied" }),
+    ).toBeVisible();
+    await expect(countIn(popup)).toHaveTextContent("0 of 28 selected");
+    await closeSheet(canvasElement);
   },
 };
 
@@ -564,13 +714,14 @@ function Footer({ children }: { children: ReactNode }) {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
         do={
           <Footer>
             <span className="flex items-center gap-100 font-body-small text-subtle">
-              <span className="tabular-nums">12 chosen of 28</span>
+              <span className="tabular-nums">12 of 28 selected</span>
               <Button variant="link" size="small">
                 Clear
               </Button>
@@ -596,7 +747,7 @@ export const Dont: Story = {
       <Pair
         do={
           <Footer>
-            <span className="font-body-small text-subtle tabular-nums">28 to choose from</span>
+            <span className="font-body-small text-subtle tabular-nums">0 of 28 selected</span>
             <Inline space="space.100" rowSpace="space.100" shouldWrap>
               <Button>Cancel</Button>
               <Button variant="primary" disabled>
@@ -605,10 +756,10 @@ export const Dont: Story = {
             </Inline>
           </Footer>
         }
-        doText="Nothing chosen: the action waits, disabled, and the footer says what there is to choose from."
+        doText="Nothing chosen: the action waits, disabled, and the footer says how many there are to choose from."
         dont={
           <Footer>
-            <span className="font-body-small text-subtle tabular-nums">0 chosen</span>
+            <span className="font-body-small text-subtle tabular-nums">0 selected</span>
             <Inline space="space.100" rowSpace="space.100" shouldWrap>
               <Button>Cancel</Button>
               <Button variant="primary">Allocate to Flight computer</Button>
@@ -633,11 +784,11 @@ function SingleChoicePicker() {
   });
   return (
     <Stack space="space.200">
-      <Specimens title="PickerSheet">
+      <Inline space="space.150" rowSpace="space.150" alignBlock="center" shouldWrap>
         <Button variant="secondary" onClick={() => setOpen(true)}>
           Derive from a requirement
         </Button>
-      </Specimens>
+      </Inline>
       <PickerSheet
         open={open}
         onClose={() => setOpen(false)}
@@ -671,7 +822,7 @@ export const SingleChoice: Story = {
     await expect(
       popup.querySelector('[data-slot="picker-sheet-toolbar"] [data-slot="toolbar-filters"]'),
     ).not.toBeNull();
-    await expect(dialog.getByRole("status")).toHaveTextContent("28 to choose from");
+    await expect(dialog.getByRole("status")).toHaveTextContent("0 of 28 selected");
     await userEvent.click(dialog.getByRole("radio", { name: "Select REQ-0103" }));
     await expect(dialog.getByRole("status")).toHaveTextContent("REQ-0103");
     await expect(dialog.getByRole("button", { name: "Derive requirement" })).toBeEnabled();

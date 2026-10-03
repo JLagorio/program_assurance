@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { csvCell, fileName, twinCsv } from "../src/patterns/chart/_csv.ts";
-import { fitLabel, spreadLabels } from "../src/patterns/chart/_labels.ts";
+import { fitLabel, pointStep, spreadLabels } from "../src/patterns/chart/_labels.ts";
 import { MAX_TIME_TICKS, timeTicks, wallTime, zonedTime } from "../src/patterns/chart/_time.ts";
 import {
   niceScale,
@@ -219,4 +219,18 @@ test("a category label fits its band: whole, on two lines, or cut, never dropped
   assert.ok(one[0].endsWith("…"));
   assert.ok(measure(one[0]) <= 30);
   assert.equal(fitLabel("Supercalifragilistic", 24, measure).length, 1);
+});
+
+test("a point axis keeps every label while a slot holds three characters, then steps evenly", () => {
+  const months9 = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"];
+  assert.equal(pointStep(months9, 60, measure), 1);
+  assert.equal(pointStep(months9, 16.5, measure), 2);
+  // Never past the count: one label at most, at the first point.
+  assert.equal(pointStep(months9, 1, measure), months9.length);
+  assert.equal(pointStep([], 10, measure), 1);
+  assert.equal(pointStep(months9, 0, measure), 1);
+  // A long label asks only for its shortest cut (three characters and an ellipsis).
+  const steps = ["Authorization package", "Kickoff"];
+  assert.equal(pointStep(steps, 40, measure), 1);
+  assert.equal(pointStep(steps, 20, measure), 2);
 });

@@ -15,6 +15,8 @@ import {
 } from "react";
 
 import { cn } from "../lib/cn";
+import { useLedgerLocale } from "../lib/locale";
+import { IconButton } from "./button";
 import { textOf } from "./option-text";
 import { Truncate } from "./truncate";
 
@@ -220,7 +222,12 @@ export type TreeItemProps = Omit<ComponentProps<"div">, "onSelect"> & {
    * @deprecated Use `isExpanded`, the name that matches `isSelected`; `expanded` is read for one version.
    */
   expanded?: boolean | undefined;
-  /** Opens or closes the branch: the chevron, Right and Left. */
+  /** Called with the branch's next state when the chevron, Right or Left opens or closes it. */
+  onExpandedChange?: ((expanded: boolean) => void) | undefined;
+  /**
+   * Opens or closes the branch: the chevron, Right and Left.
+   * @deprecated Use `onExpandedChange`, which is called with the next state, as every disclosure in the kit is; `onToggle` is still called for one version where `onExpandedChange` is not given.
+   */
   onToggle?: (() => void) | undefined;
   /** The row is selected. It is the initial tab stop; keyboard focus can move independently. A row that takes neither this nor `onSelect` is not selectable and carries no `aria-selected`. */
   isSelected?: boolean | undefined;
@@ -246,7 +253,8 @@ export function TreeItem({
   hasChildren = false,
   isExpanded,
   expanded: deprecatedExpanded,
-  onToggle,
+  onExpandedChange,
+  onToggle: deprecatedToggle,
   isSelected,
   onSelect,
   children,
@@ -258,8 +266,15 @@ export function TreeItem({
   onKeyDown,
   ...props
 }: TreeItemProps) {
+  const { t } = useLedgerLocale();
   const size = useContext(TreeContext)?.size ?? "small";
   const expanded = isExpanded ?? deprecatedExpanded ?? false;
+  // The next state to `onExpandedChange`; the deprecated `onToggle` only where it is not given,
+  // so a caller part-way through the rename never toggles twice.
+  const onToggle = () => {
+    if (onExpandedChange) onExpandedChange(!expanded);
+    else deprecatedToggle?.();
+  };
   const selected = isSelected ?? false;
   const selectable = Boolean(onSelect) || isSelected !== undefined;
   const guides = lines ?? Array.from({ length: depth }, () => true);
@@ -268,6 +283,7 @@ export function TreeItem({
   const hintId = `${id}-hint`;
   const trailingId = `${id}-trailing`;
   const label = cutText(children);
+  const plainLabel = textOf(children);
   const trailingText = cutText(trailing, true);
   // The hint's words, a code and a profile in a fragment included, are its own tooltip.
   const hintText = hint ? textOf(hint) : "";
@@ -323,7 +339,7 @@ export function TreeItem({
         break;
       case "ArrowRight":
         if (hasChildren && !expanded) {
-          onToggle?.();
+          onToggle();
           e.preventDefault();
         } else if (hasChildren && expanded) {
           const child = items[i + 1];
@@ -332,7 +348,7 @@ export function TreeItem({
         break;
       case "ArrowLeft":
         if (hasChildren && expanded) {
-          onToggle?.();
+          onToggle();
           e.preventDefault();
         } else {
           focus(
@@ -399,25 +415,35 @@ export function TreeItem({
         ))}
       </span>
       {hasChildren ? (
-        <button
-          type="button"
+        // The kit's 20px row control, for the pointer: the row itself takes the keys (Right and
+        // Left open and close it) and says whether it is open, so the twisty is no stop of its own
+        // and hidden from assistive technology.
+        <IconButton
+          label={
+            expanded
+              ? t("collapseLabel", { label: plainLabel })
+              : t("expandLabel", { label: plainLabel })
+          }
+          variant="subtle"
+          size="xxsmall"
+          isTooltipDisabled
           tabIndex={-1}
           aria-hidden
           onClick={(e) => {
             e.stopPropagation();
             e.currentTarget.closest<HTMLElement>('[role="treeitem"]')?.focus();
-            onToggle?.();
+            onToggle();
           }}
-          className="relative inline-flex size-250 shrink-0 touch-target items-center justify-center rounded-small icon-subtle outline-none transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered hover:icon-default motion-reduce:transition-none"
-        >
-          <ChevronRight
-            className={cn(
-              "size-icon-small transition-transform duration-fast ease-standard motion-reduce:transition-none",
-              // Closed points to the reading direction's end: left in a right-to-left tree.
-              expanded ? "rotate-90" : "rtl:rotate-180",
-            )}
-          />
-        </button>
+          icon={
+            <ChevronRight
+              className={cn(
+                "transition-transform duration-fast ease-standard motion-reduce:transition-none",
+                // Closed points to the reading direction's end: left in a right-to-left tree.
+                expanded ? "rotate-90" : "rtl:rotate-180",
+              )}
+            />
+          }
+        />
       ) : (
         <span aria-hidden className="inline-flex size-250 shrink-0 items-center justify-center">
           <span className="size-050 rounded-full bg-neutral-pressed" />

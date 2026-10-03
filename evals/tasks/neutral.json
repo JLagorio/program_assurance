@@ -1,0 +1,22 @@
+[
+  {
+    "id": "contacts-register",
+    "prompt": "Build the supplier contacts register: name, role, email and when we last contacted them, with a search and a way to create a contact.",
+    "file": "src/components/prototype/contacts-register.tsx"
+  },
+  {
+    "id": "record-header",
+    "prompt": "Build the supplier record's page header: a breadcrumb back to Suppliers, the supplier's name, and an Actions menu with Edit supplier and Archive supplier.",
+    "file": "src/components/prototype/supplier-record-header.tsx"
+  },
+  {
+    "id": "reviews-empty",
+    "prompt": "When a supplier has no reviews yet, the Reviews tab should show a proper empty state with a way to start the first review.",
+    "file": "src/components/prototype/supplier-reviews-empty.tsx"
+  },
+  {
+    "id": "details-panel",
+    "prompt": "Build the supplier Details panel: status, owner, country and when it was last reviewed, as labelled properties.",
+    "file": "src/components/prototype/supplier-details.tsx"
+  }
+]

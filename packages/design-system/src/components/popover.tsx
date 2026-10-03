@@ -22,7 +22,7 @@ export function Popover<Payload = unknown>(props: PopoverProps<Payload>) {
 export type PopoverTriggerProps<Payload = unknown> = PopoverPrimitive.Trigger.Props<Payload>;
 
 export function PopoverTrigger<Payload = unknown>(props: PopoverTriggerProps<Payload>) {
-  return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />;
+  return <PopoverPrimitive.Trigger {...props} data-slot="popover-trigger" />;
 }
 
 export type PopoverContentProps = PopoverPrimitive.Popup.Props &
@@ -88,10 +88,9 @@ export function PopoverContent({
           collisionPadding={collisionPadding}
           positionMethod={positionMethod}
           sticky={sticky}
-          className="isolate z-50"
+          className="isolate z-overlay"
         >
           <PopoverPrimitive.Popup
-            data-slot="popover-content"
             dir={dir ?? direction}
             className={classes(
               "flex flex-col gap-100 overflow-y-auto rounded-large border border-default bg-surface-overlay p-150 font-body-small text-default shadow-overlay outline-none data-open:animate-enter data-closed:animate-exit data-instant:animate-none motion-reduce:animate-none",
@@ -103,6 +102,7 @@ export function PopoverContent({
                 : { ...defaults, ...style }
             }
             {...props}
+            data-slot="popover-content"
           />
         </PopoverPrimitive.Positioner>
       </PopoverPrimitive.Portal>
@@ -115,15 +115,19 @@ export type PopoverHeaderProps = ComponentProps<"div">;
 export function PopoverHeader({ className, ...props }: PopoverHeaderProps) {
   return (
     <div
-      data-slot="popover-header"
       className={cn("flex flex-col gap-025 font-body-small", className)}
       {...props}
+      data-slot="popover-header"
     />
   );
 }
 
 export type PopoverTitleProps = PopoverPrimitive.Title.Props;
 
+/**
+ * The popover's title. Another part may render as it through `render`, so the composing part's
+ * `data-slot` names the element, as Button's does: the slot comes before the caller's props.
+ */
 export function PopoverTitle({ className, ...props }: PopoverTitleProps) {
   return (
     <PopoverPrimitive.Title
@@ -149,5 +153,5 @@ export function PopoverDescription({ className, ...props }: PopoverDescriptionPr
 export type PopoverCloseProps = PopoverPrimitive.Close.Props;
 
 export function PopoverClose(props: PopoverCloseProps) {
-  return <PopoverPrimitive.Close data-slot="popover-close" {...props} />;
+  return <PopoverPrimitive.Close {...props} data-slot="popover-close" />;
 }

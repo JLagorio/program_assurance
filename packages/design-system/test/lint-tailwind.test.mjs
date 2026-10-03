@@ -214,7 +214,7 @@ test("every @utility the kit declares passes ledger/no-non-token-class", () => {
     [],
     "an @utility is declared but ledger/no-non-token-class rejects it",
   );
-  assert.ok(facts.utilities.includes("sticky-rail") && facts.utilities.includes("stat-grid-6"));
+  assert.ok(facts.utilities.includes("fill-window") && facts.utilities.includes("stat-grid-6"));
 });
 
 test("the structural list repeats no kit @utility, and admits no name by wildcard", () => {
@@ -265,12 +265,12 @@ async function withUtilities(utilities, check) {
 
 test("an @utility the CSS gains passes, and one it loses fails, with no edit to the plugin", async () => {
   assert.equal(isKnown("new-rail"), false);
-  assert.equal(isKnown("sticky-rail"), true);
+  assert.equal(isKnown("fill-window"), true);
   await withUtilities(
-    [...facts.utilities.filter((name) => name !== "sticky-rail"), "new-rail"],
+    [...facts.utilities.filter((name) => name !== "fill-window"), "new-rail"],
     (known) => {
       assert.equal(known("new-rail"), true, "a declared @utility is admitted");
-      assert.equal(known("sticky-rail"), false, "a removed @utility is not");
+      assert.equal(known("fill-window"), false, "a removed @utility is not");
       assert.equal(known("page-header"), true);
     },
   );
@@ -332,12 +332,13 @@ test("--fix writes each paired token class, and each passes every Ledger class r
     else assert.deepEqual(closureFailures(cls), [], `${spellings[index]} → ${cls}`);
   });
   // What is left is a margin, which is no-margin's, or a token class another rule reports (a
-  // deprecated one), which the rule does not ask for.
+  // deprecated one, or a physical side such as pl-200, whose logical twin is the class to write),
+  // which the rule does not ask for.
   assert.deepEqual(
     left.filter(
       (cls) => !isMargin(classesOf(cls)[0].base) && !closureFailures(tokenClassOf(cls)).length,
     ),
     [],
   );
-  assert.ok(written.length - left.length > 1000, `${written.length - left.length} fixed`);
+  assert.ok(written.length - left.length > 900, `${written.length - left.length} fixed`);
 });

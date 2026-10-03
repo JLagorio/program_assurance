@@ -40,7 +40,10 @@ import {
   Textarea,
 } from "../../components";
 import { Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Field",
@@ -466,6 +469,66 @@ export const Composition: Story = {
   },
 };
 
+/**
+ * In a horizontal Field a Checkbox, a Radio or a Switch sits on the first line of its label,
+ * however many lines the label wraps to, with a bare FieldLabel or a FieldContent beside it.
+ * Beside a medium Switch the text steps down `space.025`, so its first line centres on the track.
+ */
+export const ChoiceAlignment: Story = {
+  render: () => (
+    <FieldGroup className="w-layout-rail max-w-full">
+      <Field orientation="horizontal">
+        <Checkbox />
+        <FieldLabel>Include the controls inherited from the common control provider</FieldLabel>
+      </Field>
+      <RadioGroup defaultValue="inherit" aria-label="Assessment results">
+        <Field orientation="horizontal">
+          <RadioGroupItem value="inherit" />
+          <FieldLabel>Inherit the provider's assessment results for this boundary</FieldLabel>
+        </Field>
+      </RadioGroup>
+      <Field orientation="horizontal">
+        <Switch />
+        <FieldLabel>Notify the owner when a finding on this boundary changes status</FieldLabel>
+      </Field>
+      <Field orientation="horizontal">
+        <Switch size="small" />
+        <FieldContent>
+          <FieldLabel>Send a weekly digest of open findings to the program owner</FieldLabel>
+          <FieldDescription>Every Monday morning.</FieldDescription>
+        </FieldContent>
+      </Field>
+      <Field orientation="horizontal">
+        <Checkbox />
+        <FieldContent>
+          <FieldLabel>Require a second reviewer before a determination is published</FieldLabel>
+          <FieldDescription>A colleague confirms the determination.</FieldDescription>
+        </FieldContent>
+      </Field>
+    </FieldGroup>
+  ),
+  play: async ({ canvas }) => {
+    const cases: Array<[HTMLElement, string]> = [
+      [canvas.getByRole("checkbox", { name: /inherited from the common/ }), "inherited from"],
+      [canvas.getByRole("radio", { name: /assessment results/ }), "assessment results"],
+      [canvas.getByRole("switch", { name: /changes status/ }), "changes status"],
+      [canvas.getByRole("switch", { name: /weekly digest/ }), "weekly digest"],
+      [canvas.getByRole("checkbox", { name: /second reviewer/ }), "second reviewer"],
+    ];
+    for (const [control, words] of cases) {
+      const label = canvas.getByText(new RegExp(words));
+      const style = getComputedStyle(label);
+      const line = parseFloat(style.lineHeight);
+      const box = label.getBoundingClientRect();
+      // The label wraps, and the control centres on its first line, not on the wrapped text.
+      await expect(box.height).toBeGreaterThan(line * 1.5);
+      const firstLine = box.top + parseFloat(style.paddingTop) + line / 2;
+      const rect = control.getBoundingClientRect();
+      await expect(Math.abs(rect.top + rect.height / 2 - firstLine)).toBeLessThanOrEqual(1);
+    }
+  },
+};
+
 function ValidatedOwner() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [saved, setSaved] = useState("");
@@ -620,6 +683,7 @@ export const Errors: Story = {
 
 /** The message belongs to the Field; red text beside a control is not heard when focus reaches it. */
 export const DoDont: Story = {
+  tags: ["!manifest"],
   name: "Do and don't",
   render: () => (
     <Pair

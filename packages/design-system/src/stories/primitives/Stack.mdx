@@ -7,6 +7,8 @@ import * as Stories from "./Stack.stories";
 
 # Stack
 
+**Status: Stable.**
+
 A column with one gap. Children sit top to bottom with one space token between them, and the children carry no margin of their own: the parent owns the distance, so the rhythm of a form, a rail or a page body changes in one place. `space`, `alignBlock`, `alignInline`, `spread`, `grow` and `shrink`, on a `div`, a `span` or a list element. The child has no margin; the container has the distance. Here the orientation is the primitive's name; a row is an Inline.
 
 <Canvas of={Stories.StackMatrix} />
@@ -102,5 +104,7 @@ One space token between every child:
 - [Space](?path=/docs/tokens-space--docs): the scale.
 
 ## Don't
+
+The Stack's `space` sets the distance between its children, never a margin under each. Steps are `as="ol"` with `li` children, and one child needs no Stack.
 
 <Canvas of={Stories.Dont} />

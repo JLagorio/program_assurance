@@ -4,10 +4,14 @@ import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import { Chart } from "../..";
 import { Button, KeyValue } from "../../components";
-import { Box, Stack } from "../../primitives";
+import { Box, Stack, Text } from "../../primitives";
 import { bySource, bySystem, componentFacts, sourceSeries } from "../_lib/chart-data";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Patterns/Chart/Treemap",
@@ -22,6 +26,7 @@ const systems = bySystem.map((s) => ({ key: s.name, label: s.name }));
 
 /** Every treemap in both modes: four systems with their components; small; one branch alone; loading. */
 export const TreemapMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="Four systems · small · one branch (its tone inherited)">
@@ -107,10 +112,10 @@ function Drilling() {
                   return f ? (
                     <Stack space="space.150">
                       <div>
-                        <KeyValue label="Owner" labelWidth={88}>
+                        <KeyValue label="Owner" labelWidth="narrow">
                           {f.owner}
                         </KeyValue>
-                        <KeyValue label="Assessed" labelWidth={88}>
+                        <KeyValue label="Assessed" labelWidth="narrow">
                           {f.assessed}
                         </KeyValue>
                       </div>
@@ -179,10 +184,10 @@ export const Details: Story = {
             return f ? (
               <Stack space="space.150">
                 <div>
-                  <KeyValue label="Owner" labelWidth={88}>
+                  <KeyValue label="Owner" labelWidth="narrow">
                     {f.owner}
                   </KeyValue>
-                  <KeyValue label="Open" labelWidth={88}>
+                  <KeyValue label="Open" labelWidth="narrow">
                     {`${f.open} findings`}
                   </KeyValue>
                 </div>
@@ -342,8 +347,54 @@ export const AsATable: Story = {
   },
 };
 
+/** The plot's box takes native props and a ref: an `id`, `data-*` for a test, a handler. `aria-describedby` describes the plot: its svg, an image, when it chooses nothing; its group when its tiles are the tab stops. */
+export const NativeAttributes: Story = {
+  render: () => (
+    <Stack space="space.300">
+      <Box style={{ width: "100%", maxWidth: 480 }}>
+        <Chart.Treemap
+          data={bySystem}
+          size="small"
+          label="Findings by system"
+          data-testid="systems-plot"
+          aria-describedby="systems-note"
+          ref={(node) => node?.setAttribute("data-ref", "")}
+        />
+        <Text id="systems-note" size="small" color="color.text.subtle">
+          Open findings, sized by count.
+        </Text>
+      </Box>
+      <Box style={{ width: "100%", maxWidth: 480 }}>
+        <Chart.Treemap
+          data={bySystem}
+          size="small"
+          label="Systems to choose"
+          onSelect={() => {}}
+          aria-describedby="choose-note"
+        />
+        <Text id="choose-note" size="small" color="color.text.subtle">
+          Choose a component for its findings.
+        </Text>
+      </Box>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const box = canvas.getByTestId("systems-plot");
+    await expect(box).toHaveAttribute("data-chart-plot");
+    await expect(box).toHaveAttribute("data-ref");
+    await expect(
+      canvas.getByRole("img", { name: "Findings by system" }),
+    ).toHaveAccessibleDescription("Open findings, sized by count.");
+    await expect(
+      canvas.getByRole("group", { name: "Systems to choose" }),
+    ).toHaveAccessibleDescription("Choose a component for its findings.");
+  },
+};
+
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair

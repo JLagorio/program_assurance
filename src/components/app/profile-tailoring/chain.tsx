@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Badge, Inline, KeyValue, TextLink } from "@ledger/design-system";
+import { Badge, Inline, KeyValue, TextLink, type KeyValueLabelWidth } from "@ledger/design-system";
 import type { ChainHop } from "@/lib/profile-chain";
 
 /**
@@ -17,7 +17,7 @@ export function ProfileChain({
   /** The catalog revision's id and version; `title` is the catalog record's stable name, not the document's. */
   catalog: { id: string; title: string; version: string } | null | undefined;
   pending?: { label: string; outCount: number; inCount: number } | undefined;
-  labelWidth?: number | undefined;
+  labelWidth?: KeyValueLabelWidth | undefined;
 }) {
   const hops = [...chain].reverse();
   const widthProps = labelWidth === undefined ? {} : { labelWidth };

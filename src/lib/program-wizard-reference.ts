@@ -174,7 +174,8 @@ export type WizardSelectionProvenance = {
 };
 export type WizardFamilyPreview = {
   groupId: string | null;
-  sourceId: string;
+  /** The family's code ("ac"); `null` for controls the catalog groups under nothing. */
+  sourceId: string | null;
   title: string;
   base: number;
   out: number;
@@ -809,7 +810,7 @@ export function previewProgramTailoring(
       const group = root ? groupById.get(root) : undefined;
       entry = {
         groupId: root,
-        sourceId: group?.source_id ?? "—",
+        sourceId: group?.source_id ?? null,
         title: group?.title ?? "Ungrouped",
         base: 0,
         out: 0,
@@ -831,8 +832,11 @@ export function previewProgramTailoring(
     if (isIn) entry.in += 1;
     if (selected.has(control.id)) entry.effective += 1;
   }
+  // By code, and the controls the catalog groups under nothing after every family.
   const families = [...familyMap.values()].sort((a, b) =>
-    a.sourceId.localeCompare(b.sourceId, "en", { numeric: true }),
+    a.sourceId === null || b.sourceId === null
+      ? Number(a.sourceId === null) - Number(b.sourceId === null)
+      : a.sourceId.localeCompare(b.sourceId, "en", { numeric: true }),
   );
   return {
     valid: errors.length === 0,

@@ -2,6 +2,7 @@ import type { ReactNode, Ref } from "react";
 import { Clock } from "lucide-react";
 import {
   Absent,
+  DateLabel,
   DateTime,
   Empty,
   EmptyDescription,
@@ -20,7 +21,7 @@ import {
 } from "@ledger/design-system";
 import { EvidenceFile } from "@/components/app/evidence-file";
 import { StatusBadge } from "@/components/app/status";
-import { useWorkspace } from "@/components/app/workspace";
+import { useCollection } from "@/lib/collections";
 import { useRows, type Row } from "@/lib/models";
 import { labelFor, type DataRecord } from "@/lib/records";
 import { evidenceReviewDecisions, revisionStates } from "@/lib/status";
@@ -32,14 +33,10 @@ import { QueryState } from "./work-common";
  */
 export function EvidenceFacts({ facts }: { facts: [string, ReactNode][] }) {
   return (
-    <KeyValue.Group labelWidth={168}>
+    <KeyValue.Group labelWidth="wide">
       {facts.map(([name, value]) => (
         <KeyValue key={name} label={name} wrap>
-          {value === null || value === undefined || value === "" ? (
-            <Absent label="Not recorded" />
-          ) : (
-            value
-          )}
+          {value === null || value === undefined || value === "" ? <Absent /> : value}
         </KeyValue>
       ))}
     </KeyValue.Group>
@@ -162,9 +159,9 @@ export function EvidenceVersionDetails({
   /** The file control, for the surrounding dialog's `initialFocus`. */
   triggerRef?: Ref<HTMLButtonElement> | undefined;
 }) {
-  const workspace = useWorkspace();
   const parties = useRows("parties");
-  const collection = workspace.collections.find((row) => row.name === "evidence_versions");
+  const schema = useCollection("evidence_versions");
+  const collection = schema.data;
   return (
     <Stack space="space.250">
       <Section title="Artifact">
@@ -188,7 +185,10 @@ export function EvidenceVersionDetails({
             ["State", <StatusBadge statuses={revisionStates} value={version.state} />],
             ["Collected", version.collected_at ? <DateTime value={version.collected_at} /> : null],
             ["Published", version.published_at ? <DateTime value={version.published_at} /> : null],
-            ["Expires", version.expires_at ? <DateTime value={version.expires_at} /> : null],
+            [
+              "Expires",
+              version.expires_at ? <DateLabel kind="expiry" value={version.expires_at} /> : null,
+            ],
             [
               "External reference",
               version.external_uri ? <ExternalReference uri={version.external_uri} /> : null,
@@ -205,14 +205,19 @@ export function EvidenceVersionDetails({
         {version.provenance ? <Prose label="Provenance">{version.provenance}</Prose> : null}
       </Section>
       <EvidenceReviews versionId={version.id} />
-      {showFile && collection ? (
-        <EvidenceFile
-          collection={collection}
-          record={version as DataRecord}
-          onBusyChange={onFileBusyChange}
-          onDirtyChange={onFileDirtyChange}
-          triggerRef={triggerRef}
-        />
+      {showFile ? (
+        // The file region keeps its place while the record schema loads, and says so if it fails.
+        <QueryState queries={[schema]} retryLabel="Retry loading the evidence file">
+          {collection ? (
+            <EvidenceFile
+              collection={collection}
+              record={version as DataRecord}
+              onBusyChange={onFileBusyChange}
+              onDirtyChange={onFileDirtyChange}
+              triggerRef={triggerRef}
+            />
+          ) : null}
+        </QueryState>
       ) : null}
     </Stack>
   );

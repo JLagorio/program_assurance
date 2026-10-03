@@ -19,8 +19,12 @@ import {
   varianceSeries,
   windows,
 } from "../_lib/chart-data";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Patterns/Chart/Bar",
@@ -54,6 +58,7 @@ const churnRows = churn.map((d) => ({ ...d, net: d.gained + d.lost }));
 
 /** Every arrangement in both modes: one series, grouped, stacked; horizontal with end labels, a target per bar, floating values; a line over the bars, axis titles, the skeleton; the three heights. */
 export const BarMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="One series (brand) · grouped (the categorical set) · stacked (the status tones)">
@@ -600,10 +605,10 @@ export const Details: Story = {
             return (
               <Stack space="space.150">
                 <div>
-                  <KeyValue label="Family" labelWidth={88}>
+                  <KeyValue label="Family" labelWidth="narrow">
                     {familyNames[code] ?? code}
                   </KeyValue>
-                  <KeyValue label="Target" labelWidth={88}>
+                  <KeyValue label="Target" labelWidth="narrow">
                     {`${String(s.datum["target"])} satisfied`}
                   </KeyValue>
                 </div>
@@ -619,6 +624,7 @@ export const Details: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair

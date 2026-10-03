@@ -8,7 +8,10 @@ import {
   FieldLabel,
   type DateRangePreset,
 } from "../../components";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const presets: DateRangePreset[] = [
   { label: "September 2026", value: { start: "2026-09-01", end: "2026-09-30" } },
@@ -59,6 +62,10 @@ export const Playground: Story = {
     await expect(trigger).toHaveTextContent(/Sep 7\s–\s11, 2026/);
     await expect(trigger).toHaveAccessibleDescription("September 7, 2026 to September 11, 2026");
     const popup = within(await openMonths(trigger, "Reporting period"));
+    // The months open on the range's first day, the one day in the Tab order.
+    await waitFor(() =>
+      expect(popup.getByRole("button", { name: /September 7, 2026/ })).toHaveFocus(),
+    );
     await userEvent.click(popup.getByRole("button", { name: /September 14, 2026/ }));
     await expect(popup.getByText("Choose the end date.")).toBeVisible();
     await expect(args.onValueChange).not.toHaveBeenCalled();
@@ -94,6 +101,11 @@ export const WithPresets: Story = {
     await expect(trigger).toHaveTextContent("Choose dates");
     await expect(trigger).toHaveAccessibleDescription(/The days the report covers/);
     const popup = within(await openMonths(trigger, "Reporting period"));
+    // With no range the months open on today, past the presets before them. Near a month's end the
+    // next month also shows today as an outside day, so the check reads the focused day's name.
+    await waitFor(() =>
+      expect(trigger.ownerDocument.activeElement).toHaveAccessibleName(/, Today$/),
+    );
     const presetGroup = within(popup.getByRole("group", { name: "Presets" }));
     await userEvent.click(presetGroup.getByRole("button", { name: "Q3 2026" }));
     await closed(trigger);
@@ -145,10 +157,14 @@ export const MinAndMax: Story = {
     await expect(popup.getByRole("button", { name: "Q4 2026" })).not.toHaveAttribute(
       "aria-disabled",
     );
-    await expect(popup.getByRole("button", { name: "Previous month" })).toHaveAttribute(
-      "aria-disabled",
-      "true",
-    );
+    // The months open on today's month, held inside the limits, so the check holds on any day:
+    // stepping back stops at the month of `min`, and the control says it is unavailable there.
+    const previous = () => popup.getByRole("button", { name: "Previous month" });
+    for (let step = 0; step < 4 && previous().getAttribute("aria-disabled") !== "true"; step += 1) {
+      await userEvent.click(previous());
+    }
+    await expect(popup.getAllByRole("grid")[0]).toHaveAccessibleName("September 2026");
+    await expect(previous()).toHaveAttribute("aria-disabled", "true");
     await userEvent.keyboard("{Escape}");
     await closed(trigger);
   },
@@ -156,6 +172,7 @@ export const MinAndMax: Story = {
 
 /** The mistakes the page is written to prevent. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Pair
       do={

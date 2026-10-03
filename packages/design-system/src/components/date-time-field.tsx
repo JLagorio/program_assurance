@@ -85,7 +85,10 @@ export type DateTimeFieldProps = {
   onEntryError?: ((message: string | null) => void) | undefined;
   /** The month's own options, as on DatePicker. */
   calendarProps?: DatePickerProps["calendarProps"];
-  /** Layout only; reaches the field's root. */
+  /**
+   * Layout only; reaches the field's root.
+   * @accepts layout
+   */
   className?: string | undefined;
   /** The day input. */
   ref?: Ref<HTMLInputElement> | undefined;
@@ -418,17 +421,13 @@ export function DateTimeField({
                 <PopoverTrigger
                   render={
                     <InputGroupButton
-                      size="icon-xs"
+                      icon={<CalendarIcon />}
+                      label={t("chooseDate")}
                       disabled={isDisabled}
-                      className="relative touch-target"
-                      {...(labelledBy
-                        ? { "aria-labelledby": `${chooseId} ${labelledBy}` }
-                        : { "aria-label": t("chooseDate") })}
+                      {...(labelledBy ? { "aria-labelledby": `${chooseId} ${labelledBy}` } : {})}
                     />
                   }
-                >
-                  <CalendarIcon aria-hidden />
-                </PopoverTrigger>
+                />
               </InputGroupAddon>
             </InputGroup>
             <DayPopup

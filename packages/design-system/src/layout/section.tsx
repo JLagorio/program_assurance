@@ -10,6 +10,7 @@ import {
 } from "../components/collapsible";
 import { cn } from "../lib/cn";
 import { useLandmarkTitle, useRegisterTitle } from "../lib/landmark-title";
+import { Heading as HeadingText } from "../primitives/heading";
 import {
   HeadingLevelScope,
   headingTag,
@@ -22,6 +23,8 @@ export type SectionProps = Omit<ComponentProps<"section">, "title"> & {
   /** The heading, for the built-in header. Leave it out and compose Section.Header, Section.Heading, Section.Title and Section.Actions yourself. */
   title?: ReactNode | undefined;
   count?: number | string | null | undefined;
+  /** The most a number in `count` shows before it reads as `max+`, as Count's `max`: `9999` for a count of rows, as on a tab strip. 99 unsaid. */
+  countMax?: number | undefined;
   description?: ReactNode | undefined;
   action?: ReactNode | undefined;
   /** Draw a rule under the heading when the content needs separation; the content starts `space.100` below it. */
@@ -57,6 +60,7 @@ const SectionContext = createContext<{
 function SectionRoot({
   title,
   count,
+  countMax,
   description,
   action,
   divided = false,
@@ -94,7 +98,7 @@ function SectionRoot({
                 {count != null ? (
                   <>
                     {" "}
-                    <Count value={count} />
+                    <Count value={count} max={countMax} />
                   </>
                 ) : null}
               </DisclosureTrigger>
@@ -102,7 +106,7 @@ function SectionRoot({
           ) : (
             <>
               <Title>{title}</Title>
-              {count != null ? <Count value={count} /> : null}
+              {count != null ? <Count value={count} max={countMax} /> : null}
             </>
           )}
         </div>
@@ -167,20 +171,22 @@ export function Heading({ className, ...props }: SectionHeadingProps) {
     />
   );
 }
-/** The Section's heading, and a region's accessible name, at the Section's level: an h2 outside every HeadingLevelProvider, one below the surrounding level inside one (an h3 in a titled Section). Body size, semibold, as a disclosure's header. `render` sets another element outright. */
+/** The Section's heading, and a region's accessible name: a Heading at `section`, 13/18 semibold, the size of a disclosure's header, at the Section's level: an h2 outside every HeadingLevelProvider, one below the surrounding level inside one (an h3 in a titled Section). `render` sets another element outright, which keeps the `section` size. */
 export function Title({ render, ref, className, ...props }: SectionTitleProps) {
   const section = useContext(SectionContext);
   const surrounding = useHeadingLevel();
   useRegisterTitle(section?.setHasTitle);
   return useRender({
-    defaultTagName: headingTag(section?.level ?? surrounding ?? 2),
-    render,
+    render: render ?? (
+      <HeadingText size="section" as={headingTag(section?.level ?? surrounding ?? 2)} />
+    ),
     ref,
     state: { slot: "section-title" },
     props: mergeProps<"h2">(props, {
       ...{ "data-slot": "section-title" },
       id: section?.titleId,
-      className: cn("min-w-0 break-words font-body font-semibold text-default", className),
+      // The size's class rides along, so a title rendered as another element keeps it.
+      className: cn("min-w-0 break-words font-heading-section text-default", className),
     }),
   });
 }

@@ -16,7 +16,12 @@ import {
 } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
 import { Inline, Stack, Text } from "../../primitives";
-import { Matrix as Grid, Specimens } from "../_lib/matrix";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix: Grid, Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Switch",
@@ -31,6 +36,7 @@ const blockedChange = fn();
 
 /** Sizes, checked states, disabled and read-only behavior, plus cancellation and RTL. A read-only switch that is on takes the neutral fill, not the brand one. */
 export const SwitchMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Grid
@@ -191,6 +197,8 @@ function SettingsDemo() {
     </Stack>
   );
 }
+
+export const Playground: Story = {};
 
 /**
  * A settings list: each switch applies the moment it moves, and a status says what changed, so
@@ -480,8 +488,6 @@ export const BoundInField: Story = {
   },
 };
 
-export const Playground: Story = {};
-
 /**
  * The off track is `color.background.input.track`, 3:1 against every surface with the thumb at
  * 3:1 on it, so an off switch reads as a control and not a faint pill (WCAG 1.4.11). It is not the
@@ -503,5 +509,59 @@ export const Boundary: Story = {
     await expect(getComputedStyle(control).backgroundColor).toBe(
       getComputedStyle(canvas.getByTestId("track")).backgroundColor,
     );
+  },
+};
+
+/**
+ * A switch applies at once, and a status says so. Inside a form that waits for Save, the reader
+ * turns it on and cannot tell whether anything changed: there the answer is a Checkbox.
+ */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: function AppliesAtOnce() {
+    const [digest, setDigest] = useState(true);
+    return (
+      <Pair
+        do={
+          <Stack space="space.100">
+            <Field orientation="horizontal">
+              <Switch checked={digest} onCheckedChange={setDigest} />
+              <FieldLabel>Weekly digest</FieldLabel>
+            </Field>
+            <Text size="small" color="color.text.subtle" role="status">
+              {digest ? "Weekly digest on. Saved." : "Weekly digest off. Saved."}
+            </Text>
+          </Stack>
+        }
+        doText="The change saves itself and the status says so; there is no Save button."
+        dont={
+          <form aria-label="Notification settings" onSubmit={(event) => event.preventDefault()}>
+            <Stack space="space.150">
+              <Field orientation="horizontal">
+                <Switch />
+                <FieldLabel>Email digest</FieldLabel>
+              </Field>
+              <Inline>
+                <Button type="submit">Save settings</Button>
+              </Inline>
+            </Stack>
+          </form>
+        }
+        dontText="A switch that waits for Save settings: it looks applied before it is. In a form, use a Checkbox."
+      />
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const digest = canvas.getByRole("switch", { name: "Weekly digest" });
+    await userEvent.click(digest);
+    await expect(digest).not.toBeChecked();
+    await expect(canvas.getByRole("status")).toHaveTextContent("Weekly digest off. Saved.");
+    // The other switch is part of a form that only a Save button submits.
+    const waiting = canvas.getByRole("switch", { name: "Email digest" });
+    await expect(
+      within(waiting.closest("form")!).getByRole("button", { name: "Save settings" }),
+    ).toBeVisible();
   },
 };

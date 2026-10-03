@@ -89,8 +89,8 @@ function currentOpener(): HTMLElement | null {
 }
 
 /**
- * Add from products on an existing program: pick a published version and configuration, then
- * name, categorize and baseline the variant. Back returns to the choice with what was entered
+ * Create system from product, on an existing program: pick a published version and configuration,
+ * then name, categorize and baseline the variant. Back returns to the choice with what was entered
  * kept; cancelling that second choice returns to the details. Its elements arrive as published;
  * prune or extend them in the tree afterwards.
  */
@@ -114,6 +114,10 @@ export function AddProductSystem({
         open
         items={products.items}
         pending={products.pending}
+        failed={products.error !== undefined}
+        onRetry={() => {
+          for (const query of products.queries) if (query.isError) void query.refetch();
+        }}
         onClose={() => (item ? setFrame("details") : onClose())}
         onPick={(picked) => {
           setItem(picked);
@@ -327,7 +331,7 @@ function VariantDialog({
         finalFocus={() => (goingBack.current ? false : opener?.isConnected ? opener : true)}
       >
         <DialogHeader>
-          <DialogTitle>Add system from product</DialogTitle>
+          <DialogTitle>Create system from product</DialogTitle>
           <DialogDescription>
             {item.productName} · {item.configurationName} · v{item.version} ·{" "}
             {formatPlural(item.elements.length, {
@@ -455,7 +459,7 @@ function VariantDialog({
             type="submit"
             form={formId}
           >
-            Add system from product
+            Create system from product
           </Button>
         </DialogFooter>
       </DialogContent>

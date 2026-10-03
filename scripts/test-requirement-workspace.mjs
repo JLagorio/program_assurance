@@ -32,16 +32,17 @@ async function linked(revisionId) {
     client.from("requirement_evidence").select().eq("requirement_revision_id", revisionId),
   );
 }
-/** A cell by the record name it starts with: a name cell also holds the row's preview eye. */
+/** The cell that names a row, by the record name it starts with: the row's header in a DataTable, which also holds the row's preview eye. */
 function nameCell(scope, name) {
   const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return scope.getByRole("cell", { name: new RegExp(`^${escaped}(\\s|$)`) });
+  const named = new RegExp(`^${escaped}(\\s|$)`);
+  return scope.getByRole("rowheader", { name: named }).or(scope.getByRole("cell", { name: named }));
 }
 function picker() {
   return page.getByRole("dialog", { name: "Add evidence", exact: true });
 }
 async function chooseEvidence(title) {
-  await picker().getByRole("searchbox", { name: "Search evidence", exact: true }).fill(title);
+  await picker().getByRole("searchbox", { name: "Find evidence to link", exact: true }).fill(title);
   const row = picker()
     .getByRole("row")
     .filter({ has: nameCell(page, title) });
@@ -178,7 +179,9 @@ try {
     "Creation replaces the chooser without stacking dialogs",
   );
   await create.getByRole("button", { name: "Cancel", exact: true }).click();
-  await picker().getByText("1 selected", { exact: true }).waitFor();
+  await picker()
+    .getByText(/^1 of [\d,]+ selected$/)
+    .waitFor();
   await picker().getByRole("button", { name: "Create evidence artifact", exact: true }).click();
   await create
     .getByRole("textbox", { name: "Artifact title", exact: true })
@@ -204,9 +207,11 @@ try {
   );
   await prepare.getByRole("button", { name: "Back to evidence browser", exact: true }).click();
   // The newly published version returns already chosen beside the earlier choice.
-  await picker().getByText("2 selected", { exact: true }).waitFor();
   await picker()
-    .getByRole("searchbox", { name: "Search evidence", exact: true })
+    .getByText(/^2 of [\d,]+ selected$/)
+    .waitFor();
+  await picker()
+    .getByRole("searchbox", { name: "Find evidence to link", exact: true })
     .fill("New linked evidence");
   assert.ok(
     await picker()
@@ -228,7 +233,9 @@ try {
   await picker().getByRole("button", { name: "Link evidence (2)", exact: true }).click();
   await picker().getByRole("alert").filter({ hasText: "Temporary test service failure" }).waitFor();
   assert.equal((await linked(parent.current.id)).length, 0);
-  await picker().getByText("2 selected", { exact: true }).waitFor();
+  await picker()
+    .getByText(/^2 of [\d,]+ selected$/)
+    .waitFor();
   await page.unroute(rpc);
   await picker().getByRole("button", { name: "Link evidence (2)", exact: true }).click();
   await picker().waitFor({ state: "hidden" });

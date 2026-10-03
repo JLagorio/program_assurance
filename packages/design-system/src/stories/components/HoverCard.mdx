@@ -7,6 +7,8 @@ import * as Stories from "./HoverCard.stories";
 
 # HoverCard
 
+**Status: Stable.**
+
 A supplementary preview of a link's destination, built from shadcn's Base UI PreviewCard composition. The trigger stays a link; the preview can contain a [Glance](?path=/docs/patterns-glance--docs) or other supporting content available at that destination.
 
 ```tsx
@@ -17,6 +19,21 @@ A supplementary preview of a link's destination, built from shadcn's Base UI Pre
   </HoverCardContent>
 </HoverCard>
 ```
+
+## When to use it
+
+- **A peek at a link's destination**: a record's code, name, state and owner in a [Glance](?path=/docs/patterns-glance--docs), so the reader can decide whether to follow the link.
+
+Not for an action: the card holds no button the reader must reach, since a keyboard or touch reader may never open it; actions sit at the destination or in a [Popover](?path=/docs/components-popover--docs). Not for a short label: that is a [Tooltip](?path=/docs/components-tooltip--docs). Not for the record itself: the link goes there, and a preview the reader works in is the Shell's panel or a [PreviewSheet](?path=/docs/patterns-previewsheet--docs). [Overlays](?path=/docs/components-overlays--docs) compares them all.
+
+Hold the card on a link to the record, never on plain text, and put no action in it: a keyboard or a touch never opens a card on text.
+
+<Canvas of={Stories.DoDont} />
+
+## Content
+
+- The record's own words, as its page has them: its code and name first, then the two or three facts a reader decides on.
+- Nothing that is not also at the destination, and no instruction the reader needs.
 
 ## Composition and placement
 

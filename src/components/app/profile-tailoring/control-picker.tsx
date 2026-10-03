@@ -2,10 +2,11 @@ import { StatusBadge } from "@/components/app/status";
 import { discardChanges, useConfirmation } from "@/components/app/confirmation";
 import { useFormFeedback } from "@/components/app/form-feedback";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
-import type { Row } from "@/lib/models";
+import type { WizardControl } from "@/lib/program-wizard-reference";
 import type { TailoringDecision } from "@/lib/program-wizard";
 import { controlPublicationStatuses } from "@/lib/status";
 import {
+  Absent,
   Alert,
   AlertTitle,
   Button,
@@ -132,7 +133,7 @@ export function ControlPicker({
     setSelected(controlId);
     return true;
   }
-  async function remove(target: Row<"controls">) {
+  async function remove(target: WizardControl) {
     if (
       !(await confirm({
         title: "Remove this decision?",
@@ -205,8 +206,8 @@ export function ControlPicker({
                 <SearchField
                   ref={searchRef}
                   size="small"
-                  aria-label="Search catalog controls"
-                  placeholder="Find a control"
+                  aria-label="Find a catalog control"
+                  placeholder="Find a catalog control"
                   value={search}
                   onValueChange={setSearch}
                 />
@@ -318,10 +319,10 @@ function ControlDecisionEditor({
   headingRef,
 }: {
   formId: string;
-  control: Row<"controls">;
+  control: WizardControl;
   decisions: TailoringDecision[];
   onChange: (next: TailoringDecision[]) => void;
-  onRemove: (control: Row<"controls">) => Promise<boolean>;
+  onRemove: (control: WizardControl) => Promise<boolean>;
   readOnly: boolean;
   baseIds: string[];
   onDirty: (dirty: boolean) => void;
@@ -367,7 +368,7 @@ function ControlDecisionEditor({
     >
       <Stack space="space.200">
         <Stack space="space.075">
-          <Heading size="xsmall" ref={headingRef} tabIndex={-1}>
+          <Heading size="overlay" ref={headingRef} tabIndex={-1}>
             {control.code} · {control.title}
           </Heading>
           {control.status === "withdrawn" ? (
@@ -385,7 +386,7 @@ function ControlDecisionEditor({
                     {existing.action === "exclude" ? "Tailored out" : "Tailored in"}
                   </KeyValue>
                   <KeyValue label="Rationale" wrap>
-                    <Prose>{existing.rationale || "Not recorded"}</Prose>
+                    {existing.rationale ? <Prose>{existing.rationale}</Prose> : <Absent />}
                   </KeyValue>
                 </KeyValue.Group>
               ) : (

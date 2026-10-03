@@ -11,6 +11,8 @@ import {
   AvatarGroupCount,
   Person,
   Button,
+  Card,
+  CardContent,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -19,7 +21,12 @@ import {
   type AvatarSize,
 } from "../../components";
 import { Inline, Stack } from "../../primitives";
-import { Matrix } from "../_lib/matrix";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Avatar",
@@ -42,6 +49,7 @@ const photo =
   );
 
 export const AvatarMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Matrix
       rows={["xsmall", "small", "medium", "large", "xlarge"] as const}
@@ -155,8 +163,16 @@ export const ImageLoading: Story = {
 const sizes = ["xsmall", "small", "medium", "large", "xlarge"] as const satisfies AvatarSize[];
 const reviewers = ["Dana Whitfield", "Grace Hoppel", "Priya Natarajan"];
 const overlaps = { xsmall: 4, small: 6, medium: 8, large: 8, xlarge: 16 } as const;
+/** The initials' type at each size, as size / line height and weight: body steps at medium, then the page title's step. */
+const initialsType = {
+  xsmall: ["11px", "14px", "500"],
+  small: ["11px", "14px", "500"],
+  medium: ["13px", "18px", "500"],
+  large: ["15px", "22px", "500"],
+  xlarge: ["20px", "26px", "600"],
+} as const;
 
-/** A group at every size: the +n circle is as large as the avatars it follows, with type a step under theirs, and the overlap is about a quarter of their size. */
+/** A group at every size: the +n circle is as large as the avatars it follows, with type a step under theirs, and the overlap is about a quarter of their size. The initials take a body step at medium weight up to large, and `font.heading.page` at xlarge. */
 export const GroupSizes: Story = {
   render: () => (
     <Stack space="space.200">
@@ -168,7 +184,13 @@ export const GroupSizes: Story = {
           data-testid={`group-${size}`}
         >
           {reviewers.map((name) => (
-            <Avatar key={name} size={size} aria-hidden="true" variant="tinted" hue={avatarHue(name)}>
+            <Avatar
+              key={name}
+              size={size}
+              aria-hidden="true"
+              variant="tinted"
+              hue={avatarHue(name)}
+            >
               <AvatarFallback>{avatarInitials(name, size === "xsmall" ? 1 : 2)}</AvatarFallback>
             </Avatar>
           ))}
@@ -185,11 +207,44 @@ export const GroupSizes: Story = {
         group.querySelectorAll<HTMLElement>('[data-slot="avatar"]'),
         (el) => el.getBoundingClientRect(),
       );
-      const count = group.querySelector('[data-slot="avatar-group-count"]')!.getBoundingClientRect();
+      const count = group
+        .querySelector('[data-slot="avatar-group-count"]')!
+        .getBoundingClientRect();
       await expect(count.width).toBe(first!.width);
       await expect(count.height).toBe(first!.height);
       await expect(Math.round(first!.right - second!.left)).toBe(overlaps[size]);
+      const type = getComputedStyle(group.querySelector<HTMLElement>('[data-slot="avatar"]')!);
+      await expect([type.fontSize, type.lineHeight, type.fontWeight]).toEqual(initialsType[size]);
     }
+  },
+};
+
+/** The ring between overlapping avatars is the colour of the surface they sit on (`utility.elevation.surface.current`), so on a card, in a dialog or on the page the circles stay circles in both modes. */
+export const OnACard: Story = {
+  name: "On a card",
+  render: () => (
+    <Card data-testid="card" className="w-layout-rail max-w-full">
+      <CardContent>
+        <AvatarGroup role="group" aria-label={`Reviewers: ${reviewers.join(", ")}`}>
+          {reviewers.map((name) => (
+            <Avatar key={name} aria-hidden="true" variant="tinted" hue={avatarHue(name)}>
+              <AvatarFallback>{avatarInitials(name)}</AvatarFallback>
+              <AvatarBadge tone="success" />
+            </Avatar>
+          ))}
+        </AvatarGroup>
+      </CardContent>
+    </Card>
+  ),
+  play: async ({ canvasElement }) => {
+    // Forced colours draw no shadows, so there is no ring to compare.
+    if (window.matchMedia("(forced-colors: active)").matches) return;
+    const card = within(canvasElement).getByTestId("card");
+    const surface = getComputedStyle(card).backgroundColor;
+    for (const part of card.querySelectorAll<HTMLElement>(
+      '[data-slot="avatar"], [data-slot="avatar-badge"]',
+    ))
+      await expect(getComputedStyle(part).boxShadow).toContain(surface);
   },
 };
 
@@ -200,7 +255,14 @@ export const HiddenMembers: Story = {
   render: () => (
     <AvatarGroup role="group" aria-label="Reviewers">
       {reviewers.map((name) => (
-        <Avatar key={name} size="small" role="img" aria-label={name} variant="tinted" hue={avatarHue(name)}>
+        <Avatar
+          key={name}
+          size="small"
+          role="img"
+          aria-label={name}
+          variant="tinted"
+          hue={avatarHue(name)}
+        >
           <AvatarFallback>{avatarInitials(name)}</AvatarFallback>
         </Avatar>
       ))}
@@ -244,3 +306,39 @@ export const HiddenMembers: Story = {
 };
 
 export const Playground: Story = {};
+
+/**
+ * What the corner marks is a word in the avatar's name ("Dana Whitfield, verified"), and the mark
+ * repeats it. A green dot alone says nothing to a screen reader or to a reader who cannot tell the
+ * tones apart.
+ */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <Pair
+      do={
+        <Avatar size="medium" role="img" aria-label="Dana Whitfield, verified">
+          <AvatarFallback>DW</AvatarFallback>
+          <AvatarBadge tone="success" />
+        </Avatar>
+      }
+      doText="The name says verified, and the mark repeats it."
+      dont={
+        <Avatar size="medium" role="img" aria-label="Marcus Oyelaran">
+          <AvatarFallback>MO</AvatarFallback>
+          <AvatarBadge tone="success" />
+        </Avatar>
+      }
+      dontText="The mark is the only sign that he is verified: colour alone, and no word for it."
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const named = canvas.getByRole("img", { name: "Dana Whitfield, verified" });
+    const colourOnly = canvas.getByRole("img", { name: "Marcus Oyelaran" });
+    for (const avatar of [named, colourOnly])
+      await expect(avatar.querySelector('[data-slot="avatar-badge"]')).not.toBeNull();
+    await expect(colourOnly).not.toHaveAccessibleName(/verified/);
+  },
+};

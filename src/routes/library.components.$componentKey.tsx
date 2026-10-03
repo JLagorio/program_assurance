@@ -44,7 +44,8 @@ function ComponentPage() {
     <ComponentLibraryRecord
       id={componentKey}
       {...(version ? { initialVersion: version } : {})}
-      tab={isComponentTab(tab) ? tab : undefined}
+      // The address owns the tab, so Back to an address without one is Overview again.
+      tab={isComponentTab(tab) ? tab : "Overview"}
       onTabChange={(next) => void navigate({ search: (previous) => ({ ...previous, tab: next }) })}
     />
   );

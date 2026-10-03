@@ -7,6 +7,8 @@ import * as Stories from "./FileTrigger.stories";
 
 # FileTrigger
 
+**Status: Stable.**
+
 A [Button](?path=/docs/components-button--docs) that opens the browser's file picker and hands the chosen files to `onSelect`. The native file input is in the document, hidden, so it takes no space, no focus and no place in the accessibility tree; the button is the control, and the picker returns focus to it when it closes.
 
 Use it where the reader attaches a file from a compact spot: a form row, a composer, a toolbar. Where files can also be dropped, or where the files must be checked against a type or a size, use [DropZone](?path=/docs/components-dropzone--docs), which puts a FileTrigger inside a drop region and does the checking. Do not use `<Input type="file">`: its button loses its frame and the control reads as a line of text.
@@ -67,5 +69,7 @@ In a [ButtonGroup](?path=/docs/components-buttongroup--docs) a FileTrigger is a 
 [DropZone](?path=/docs/components-dropzone--docs) · [Attachment](?path=/docs/components-attachment--docs) · [Button](?path=/docs/components-button--docs) · [Field](?path=/docs/components-field--docs). Reference: [React Aria FileTrigger](https://react-spectrum.adobe.com/react-aria/FileTrigger.html).
 
 ## Don't
+
+A file is chosen through a FileTrigger, a real button named by its field, never an Input with `type="file"`, whose browser button loses its frame and reads as text.
 
 <Canvas of={Stories.DoDont} />

@@ -41,13 +41,6 @@
     }
   },
   {
-    "file": "components.tsx",
-    "path": "/components",
-    "title": "Design system",
-    "family": "exception",
-    "reason": "Design system demonstration, outside product register rules."
-  },
-  {
     "file": "evidence.tsx",
     "path": "/evidence",
     "title": "Evidence",
@@ -93,7 +86,7 @@
     "path": "/",
     "title": "Portfolio",
     "family": "dashboard",
-    "reason": "The dashboard shape: a band of linked Stat tiles that open their registers, top-N widgets with View all and no toolbar or pager, and a Timeline activity feed."
+    "reason": "The dashboard shape: a band of linked Stat tiles that open their registers filtered to what they count, a risk-matrix chart whose cells open the filtered risk register, top-N widgets with View all and no toolbar or pager, and a Timeline activity feed."
   },
   {
     "file": "issues.$issueId.tsx",
@@ -207,21 +200,13 @@
     "family": "record",
     "model": "programs",
     "tabList": "Program work",
-    "collectionTabs": [
-      "System",
-      "Library",
-      "Requirements",
-      "Assessment campaigns",
-      "Evidence",
-      "Risk",
-      "Activity"
-    ],
+    "collectionTabs": ["System", "Library", "Requirements", "Assessment campaigns", "Evidence"],
     "tabExceptions": {
-      "Overview": "Metrics, properties and multiple sections.",
+      "Overview": "Metrics, properties, multiple sections and the program's activity Timeline.",
       "Controls": "Controls are grouped by system.",
       "Schedule": "Tasks, gates and responsibilities are distinct collections.",
       "Findings": "Operational issues and observations are distinct collections.",
-      "POA&M": "Plans and remediation items are distinct collections."
+      "POA&M & risk": "POA&M plans, remediation items and risks are distinct collections."
     }
   },
   {

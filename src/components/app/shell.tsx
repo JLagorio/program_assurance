@@ -1,8 +1,17 @@
 import { RecordPreviewProvider } from "@/components/prototype/record-preview";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   announce,
+  Box,
   Button,
   Dialog,
   DialogBody,
@@ -11,7 +20,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   Inline,
   KbdShortcut,
   KeyValue,
@@ -22,6 +36,9 @@ import {
   Shell,
   Stack,
   Text,
+  useLedgerLocale,
+  useMode,
+  type ColorMode,
   type SearchResult,
 } from "@ledger/design-system";
 import {
@@ -105,17 +122,25 @@ const sections: ReadonlyArray<readonly [page: string, section: string]> = [
 const sectionFor = (pathname: string) =>
   sections.find(([page]) => within(pathname, page))?.[1] ?? pathname;
 
+/** Whether a Page is already drawn above: the route's root, which rises in once. */
+const InPage = createContext(false);
+
 /**
- * A page's root in Main, the one every route starts with: its PageHeader, then its body, one
- * `space.200` apart. It shrinks inside Main rather than widening it (`min-w-0`), and it rises in
- * once as the page opens (`animate-rise`: motion.duration.moderate, nothing under reduced motion);
- * a tab or a filter in the address keeps the page, so it does not rise again.
+ * A page's root in Main, the one every register, record and dashboard starts with: its
+ * PageHeader, then its body, one `space.200` apart. It shrinks inside Main rather than widening it
+ * (`min-w-0`), and it rises in once as the page opens (`animate-rise`: motion.duration.moderate,
+ * nothing under reduced motion); a tab or a filter in the address keeps the page, so it does not
+ * rise again. A Page inside another (a record's not-found state inside the route's root) keeps the
+ * same spacing and does not rise a second time.
  */
 export function Page({ children }: { children: ReactNode }) {
+  const nested = useContext(InPage);
   return (
-    <Stack space="space.200" className="min-w-0 animate-rise">
-      {children}
-    </Stack>
+    <InPage.Provider value>
+      <Stack space="space.200" className={nested ? "min-w-0" : "min-w-0 animate-rise"}>
+        {children}
+      </Stack>
+    </InPage.Provider>
   );
 }
 
@@ -177,7 +202,11 @@ function PrototypeLayout({ children }: { children: ReactNode }) {
           <RecordSearch />
         </Shell.TopNav.Middle>
         <Shell.TopNav.End>
-          <ModeSwitch />
+          {/* The three mode icons stay in the row while it has room; below its fold they leave it,
+              and the mode is chosen in the account menu and Settings, as it is at every width. */}
+          <Box className="@max-3xl/topnav:hidden">
+            <ModeSwitch />
+          </Box>
           <Shell.TopNav.Item
             icon={<CircleHelp />}
             label="Help and shortcuts"
@@ -210,6 +239,8 @@ function PrototypeLayout({ children }: { children: ReactNode }) {
         </Shell.SideNav.Body>
         <Shell.SideNav.Footer>
           <AccountMenu>
+            <AppearanceItems />
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
               <Settings aria-hidden />
               Settings
@@ -231,7 +262,7 @@ function PrototypeLayout({ children }: { children: ReactNode }) {
           </DialogHeader>
           <DialogBody>
             <Stack space="space.300">
-              <KeyValue.Group labelWidth={200}>
+              <KeyValue.Group labelWidth="wide">
                 <KeyValue label="Search records">
                   <KbdShortcut keys="Mod+K" />
                 </KeyValue>
@@ -270,7 +301,7 @@ function PrototypeLayout({ children }: { children: ReactNode }) {
           </DialogHeader>
           <DialogBody>
             <Stack space="space.200">
-              <KeyValue.Group labelWidth={120}>
+              <KeyValue.Group>
                 <KeyValue label="Workspace" wrap>
                   {workspace.name}
                 </KeyValue>
@@ -303,6 +334,34 @@ function PrototypeLayout({ children }: { children: ReactNode }) {
         </DialogContent>
       </Dialog>
     </Shell>
+  );
+}
+
+/** Each mode and the kit's message that names it, the words ModeSwitch's buttons say. */
+const appearance = [
+  { value: "light", message: "lightMode" },
+  { value: "dark", message: "darkMode" },
+  { value: "system", message: "systemMode" },
+] as const satisfies readonly { value: ColorMode; message: string }[];
+
+/**
+ * The colour mode as the account menu's choice, one radio row per mode: the same choice as the top
+ * nav's ModeSwitch, which a phone's top nav has no room for.
+ */
+function AppearanceItems() {
+  const { mode, setMode } = useMode();
+  const { t } = useLedgerLocale();
+  return (
+    <DropdownMenuGroup>
+      <DropdownMenuLabel>Appearance</DropdownMenuLabel>
+      <DropdownMenuRadioGroup value={mode} onValueChange={(next: ColorMode) => setMode(next)}>
+        {appearance.map((option) => (
+          <DropdownMenuRadioItem key={option.value} value={option.value} closeOnClick>
+            {t(option.message)}
+          </DropdownMenuRadioItem>
+        ))}
+      </DropdownMenuRadioGroup>
+    </DropdownMenuGroup>
   );
 }
 

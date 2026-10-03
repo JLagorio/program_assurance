@@ -14,7 +14,7 @@ A type token is one font shorthand: family, weight, size, leading and its letter
 | --- | --- | --- |
 | `font.family.body` | Geist Variable, Geist, Inter, system sans | Everything. Identifiers, dates and numbers use it too. |
 | `font.family.heading` | Same as body | A token so a theme may split them. |
-| `font.family.code` | Geist Mono Variable, Geist Mono, JetBrains Mono, monospace | Code blocks and data previews only. Never UI text. |
+| `font.family.code` | Geist Mono, JetBrains Mono, system monospace | Code blocks and data previews only. Never UI text. |
 
 ## Loading the faces
 
@@ -30,20 +30,20 @@ The package ships Geist. `fonts.css` brings Geist's variable font from `@fontsou
 
 The bundler copies the font files with the rest of the build, so the page needs no font service and no link in its head. Each face covers one script range (Latin, Latin Extended, Cyrillic, Vietnamese) and downloads only when text in that range and style is on screen. `font-display: swap` shows text at once in the fallback, Inter and then the system sans, and swaps to Geist when it arrives. Without `fonts.css` the stack still names Geist, so a machine that has it installed uses it, and every other machine falls back.
 
-The mono face is not packaged yet: `font.family.code` names Geist Mono Variable first, and until `fonts.css` ships it, code falls back to Geist Mono where installed, then JetBrains Mono and the system monospace.
+`fonts.css` ships no mono face. `font.family.code` names faces the machine has: Geist Mono or JetBrains Mono where one is installed, else the system monospace (`ui-monospace` in Safari, then SF Mono, Menlo, Consolas or Liberation Mono).
 
 <Canvas of={Stories.PackagedFaces} />
 
 ## Scale
 
-`font.body` is the UI size. Weight 600 marks a title (a page's, a record's, a section's, a panel's) and a Stat's figure, never running text.
+`font.body` is the UI size. The heading ramp is the four titles the kit draws, each a Heading `size` of the same name; weight 600 marks a title (a page's, a record's, a section's, a panel's) and a Stat's figure, never running text.
 
 | Token | Utility | Size | Weight | Use |
 | --- | --- | --- | --- | --- |
-| `font.heading.large` | `font-heading-large` | 28/34 | semibold | Display: a figure bigger than a Stat's, the one title of a screen with nothing else (sign-in). Not a page or record title. |
-| `font.heading.medium` | `font-heading-medium` | 22/28 | semibold | A Heading `medium`: a page title set without PageHeader. |
-| `font.heading.small` | `font-heading-small` | 20/26 | medium | A section heading set with Heading; at semibold, PageHeader.Title, a preview's record title and a Stat's figure; an Empty's title. |
-| `font.heading.xsmall` | `font-heading-xsmall` | 15/22 | medium | Dialog and card titles. |
+| `font.heading.display` | `font-heading-display` | 28/34 | semibold | Heading `display`: a figure bigger than a Stat's, the one title of a screen with nothing else (sign-in). Not a page or record title. |
+| `font.heading.page` | `font-heading-page` | 20/26 | semibold | Heading `page`: the page and record title (PageHeader.Title, on a page and as a preview's record name) and a Stat's figure. |
+| `font.heading.overlay` | `font-heading-overlay` | 15/22 | medium | Heading `overlay`: an overlay's title (DialogTitle, SheetTitle, AlertDialogTitle, DrawerTitle), a card's title, a group inside an overlay. |
+| `font.heading.section` | `font-heading-section` | 13/18 | semibold | Heading `section`: a section's title (Section.Title), the body size at semibold. |
 | `font.heading.xxsmall` | `font-heading-xxsmall` | 11/14 | medium | Eyebrows, group headings, menu section labels. The component adds the uppercase. |
 | `font.body.large` | `font-body-large` | 15/22 | regular | Reading text and dialog body. |
 | `font.body` | `font-body` | 13/18 | regular | Controls, cells, tabs, inputs, menu items. |
@@ -51,7 +51,18 @@ The mono face is not packaged yet: `font.family.code` names Geist Mono Variable 
 | `font.body.xsmall` | `font-body-xsmall` | 11/14 | regular | Eyebrow, counts, metadata. |
 | `font.code` | `font-code` | 12/18 | regular | Code blocks only. |
 
-Text takes the body ramp as `size` (`large`, `medium`, `small`, `xsmall`). Heading takes the heading ramp the same way (`large`, `medium`, `small`, `xsmall`). Eyebrow is `font.heading.xxsmall`, uppercased.
+Text takes the body ramp as `size` (`large`, `medium`, `small`, `xsmall`). Heading takes the heading ramp the same way (`page`, `overlay`, `section`, `display`). Eyebrow is `font.heading.xxsmall`, uppercased.
+
+### Deprecated, for one version
+
+These steps are deprecated and stay for one version. Nothing in the kit sets them: Heading's deprecated sizes draw the steps that replace them, and `ledger/no-deprecated-token` writes the replacement in place of the class. A new title never takes one.
+
+| Token | Size | Weight | Replaced by |
+| --- | --- | --- | --- |
+| `font.heading.large` | 28/34 | semibold | `font.heading.display`, the same style. |
+| `font.heading.medium` | 22/28 | semibold | `font.heading.page`, 20/26, for a page title. |
+| `font.heading.small` | 20/26 | medium | `font.heading.page` for a page or record title; `font.heading.section` for a section's title. |
+| `font.heading.xsmall` | 15/22 | medium | `font.heading.overlay`, the same style. |
 
 ## Weight
 
@@ -59,7 +70,7 @@ Text takes the body ramp as `size` (`large`, `medium`, `small`, `xsmall`). Headi
 | --- | --- | --- |
 | `font.weight.regular` | `font-regular` | Body, cells, controls. |
 | `font.weight.medium` | `font-medium` | Labels, UI headings, emphasis inside body text. |
-| `font.weight.semibold` | `font-semibold` | Page and record titles only. |
+| `font.weight.semibold` | `font-semibold` | Titles (a page's, a record's, a section's, a panel's) and a Stat's figure. Never running text. |
 
 ## Letter-spacing
 
@@ -68,9 +79,9 @@ Tracking tightens as size grows. Each composite carries its own step; there is n
 | Token | Value | Carried by |
 | --- | --- | --- |
 | `font.letterSpacing.100` | -0.004em | `font.body.small`, `font.body.xsmall` |
-| `font.letterSpacing.200` | -0.008em | `font.body`, `font.body.large` |
-| `font.letterSpacing.300` | -0.015em | `font.heading.small`, `font.heading.xsmall` |
-| `font.letterSpacing.400` | -0.02em | `font.heading.medium`, `font.heading.large` |
+| `font.letterSpacing.200` | -0.008em | `font.body`, `font.body.large`, `font.heading.section` |
+| `font.letterSpacing.300` | -0.015em | `font.heading.page`, `font.heading.overlay` |
+| `font.letterSpacing.400` | -0.02em | `font.heading.display` |
 | `font.letterSpacing.500` | 0.06em | `font.heading.xxsmall`: uppercase micro labels |
 | `font.letterSpacing.0` | 0 | `font.code` |
 

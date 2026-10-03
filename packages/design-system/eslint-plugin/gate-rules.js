@@ -7,12 +7,14 @@ import path from "node:path";
 import { classSites } from "./class-sites.js";
 import { isNamedColour, literalColour } from "./colours.js";
 import {
-  classOwnerOf,
   displayNameOf,
+  forwardedTo,
   isKitSourceFile,
   jsxTag,
   kitSrcOf,
   partNameOf,
+  propOwnerOf,
+  shadowsOuterName,
 } from "./identity.js";
 import { PLAIN_LAYOUT, presetAdvice, styleSpaceUse } from "./advice.js";
 import { classesOf } from "./classes.js";
@@ -104,6 +106,20 @@ function insideOverlay(context, node) {
       if (OVERLAY.test(name)) return name;
     }
   return "";
+}
+
+/** The overlay a component of this file hands the children of `opening` on to, as `{ overlay,
+    wrapper }`, when a node reaches it among those children (not through a prop): `<Pane><input
+    autoFocus /></Pane>` with `const Pane = (props) => <DialogContent {...props} />`. */
+function forwardedOverlay(context, node) {
+  for (let child = node, parent = node.parent; parent; child = parent, parent = parent.parent) {
+    if (parent.type !== "JSXElement") continue;
+    if (!parent.children.includes(child)) continue;
+    const forwarded = forwardedTo(context, parent.openingElement, "children");
+    const name = forwarded ? kitName(context, forwarded.element.name) : "";
+    if (OVERLAY.test(name)) return { overlay: name, wrapper: forwarded.wrapper };
+  }
+  return undefined;
 }
 
 /** The names of the function components around a node, innermost first. */
@@ -314,7 +330,8 @@ const PRESET_PROPS =
 
 /**
  * Each `dimension.part.*` token, with the part it sizes and the files under the kit's src that
- * draw that part: a part's own size is read by that part alone. A product sizes the part through
+ * draw that part (a stylesheet among them, which reads it as `var(--ds-dimension-part-…)`): a
+ * part's own size is read by that part alone. A product sizes the part through
  * its props, and another kit part is not that part (test/lint-gates.test.mjs holds this map to the
  * tokens and to where the kit reads them).
  */
@@ -335,7 +352,9 @@ export const PART_TOKENS = Object.freeze({
   "dimension.part.skeletonBlock": { part: "Skeleton", files: ["components/skeleton.tsx"] },
   "dimension.part.emptyMeasure": { part: "Empty", files: ["components/empty.tsx"] },
   "dimension.part.keyValue": { part: "KeyValue", files: ["components/key-value.tsx"] },
+  "dimension.part.keyValueLabelNarrow": { part: "KeyValue", files: ["components/key-value.tsx"] },
   "dimension.part.keyValueLabel": { part: "KeyValue", files: ["components/key-value.tsx"] },
+  "dimension.part.keyValueLabelWide": { part: "KeyValue", files: ["components/key-value.tsx"] },
   "dimension.part.codeBlock": { part: "CodeBlock", files: ["components/code-block.tsx"] },
   "dimension.part.itemId": { part: "Item", files: ["components/item.tsx"] },
   "dimension.part.filter": { part: "DataTable.Filter", files: ["patterns/data-table/filter.tsx"] },
@@ -344,6 +363,52 @@ export const PART_TOKENS = Object.freeze({
     files: ["patterns/data-table/filter.tsx"],
   },
   "dimension.part.previewSheet": { part: "PreviewSheet", files: ["patterns/preview-sheet.tsx"] },
+  "dimension.part.filterChipValue": { part: "FilterChip", files: ["components/chip.tsx"] },
+  "dimension.part.commandList": { part: "Command", files: ["components/command.tsx"] },
+  "dimension.part.cellCard": {
+    part: "Table.List",
+    files: ["components/table.tsx", "patterns/data-table/data-table.tsx"],
+  },
+  "dimension.part.composerSuggestions": { part: "Composer", files: ["patterns/composer.tsx"] },
+  "dimension.part.composerSuggestionsHeight": {
+    part: "Composer",
+    files: ["patterns/composer.tsx"],
+  },
+  "dimension.part.tableMenu": {
+    part: "DataTable.Columns",
+    files: ["patterns/data-table/columns-menu.tsx"],
+  },
+  "dimension.part.tableColumnMenu": {
+    part: "DataTable.HeaderMenu",
+    files: ["patterns/data-table/columns-menu.tsx"],
+  },
+  "dimension.part.tableGroupBy": {
+    part: "DataTable.GroupBy",
+    files: ["patterns/data-table/group-by.tsx"],
+  },
+  "dimension.part.tablePresets": {
+    part: "DataTable.Presets",
+    files: ["patterns/data-table/filter.tsx"],
+  },
+  "dimension.part.editableSelect": { part: "EditableSelect", files: ["patterns/editable.tsx"] },
+  "dimension.part.editableCombobox": { part: "EditableSelect", files: ["patterns/editable.tsx"] },
+  "dimension.part.editableComboboxList": {
+    part: "EditableSelect",
+    files: ["patterns/editable.tsx"],
+  },
+  "dimension.part.recordSearch": {
+    part: "SearchDialog",
+    files: ["patterns/search-dialog.tsx", "patterns/record-picker.tsx"],
+  },
+  "dimension.part.relatedCard": { part: "Related", files: ["patterns/related.tsx"] },
+  "dimension.part.recordBrowser": { part: "RecordBrowser", files: ["patterns/record-browser.tsx"] },
+  "dimension.part.recordBrowserPreview": { part: "RecordBrowser", files: ["styles/layout.css"] },
+  "dimension.part.drawerSmall": { part: "Drawer", files: ["styles/drawer.css"] },
+  "dimension.part.drawer": { part: "Drawer", files: ["styles/drawer.css"] },
+  "dimension.part.drawerLarge": { part: "Drawer", files: ["styles/drawer.css"] },
+  "dimension.part.toast": { part: "Toaster", files: ["styles/toast.css"] },
+  "dimension.part.pageHeaderHeading": { part: "PageHeader", files: ["styles/layout.css"] },
+  "dimension.part.sectionHeading": { part: "Section", files: ["styles/layout.css"] },
 });
 /** The linted file's path under the kit's src, in the kit's own source. */
 function kitFileOf(context) {
@@ -676,6 +741,9 @@ export const gateRules = defineRules({
       // `tag` is fitted to the message limit (a long component name gives way to its last part).
       autoFocus:
         "<{{tag}} autoFocus> is inside {{overlay}}, where it races the overlay's own focus and can lose where focus returns on close. Give {{overlay}} initialFocus, a ref to this element, and finalFocus where the opener goes away.{{note}}",
+      // `wrapper` is the component of this file that hands its children on to the overlay.
+      forwarded:
+        "<{{tag}} autoFocus> is inside <{{wrapper}}>, which forwards its children to <{{overlay}}>, where it races the overlay's own focus. Give {{overlay}} initialFocus, a ref to this element, and finalFocus where the opener goes away.{{note}}",
     },
     create(context) {
       // Each component of this file rendered inside an overlay, with that overlay's name.
@@ -683,20 +751,23 @@ export const gateRules = defineRules({
       // Which components of this file each component renders, so content two levels down counts.
       const renders = new Map();
       const pending = [];
-      const report = (node, overlay) => {
+      const report = (node, overlay, wrapper) => {
         const written = tag(node.parent.name);
+        const messageId = wrapper ? "forwarded" : "autoFocus";
         const words = (name) =>
-          render(gateRules["no-overlay-autofocus"].meta.messages.autoFocus, {
+          render(gateRules["no-overlay-autofocus"].meta.messages[messageId], {
             tag: name,
             overlay,
+            wrapper,
             note: "",
           });
         context.report({
           node,
-          messageId: "autoFocus",
+          messageId,
           data: {
             tag: fitted([written, written.split(".").at(-1), "the element"], words),
             overlay,
+            ...(wrapper ? { wrapper } : {}),
           },
         });
       };
@@ -711,14 +782,23 @@ export const gateRules = defineRules({
             report(node, overlay);
             return;
           }
+          // Among the children of a component of this file that hands them on to an overlay.
+          const forwarded = forwardedOverlay(context, element);
+          if (forwarded) {
+            report(node, forwarded.overlay, forwarded.wrapper);
+            return;
+          }
           const components = componentsOf(node);
           if (components.length > 0) pending.push({ node, components });
         },
         JSXOpeningElement(node) {
           const name = tag(node.name);
           if (!/^[A-Z]/.test(name) || name.includes(".")) return;
-          const overlay = insideOverlay(context, node);
-          if (overlay && !insideRendered.has(name)) insideRendered.set(name, overlay);
+          if (!insideRendered.has(name)) {
+            const overlay =
+              insideOverlay(context, node) || forwardedOverlay(context, node)?.overlay || "";
+            if (overlay) insideRendered.set(name, overlay);
+          }
           for (const owner of componentsOf(node)) {
             if (!renders.has(owner)) renders.set(owner, new Set());
             renders.get(owner).add(name);
@@ -781,12 +861,12 @@ export const gateRules = defineRules({
       };
       return {
         JSXOpeningElement(node) {
-          check(
-            attribute(node, "isLoading")?.value,
-            attribute(node, "disabled")?.value,
-            node,
-            true,
-          );
+          const loading = attribute(node, "isLoading")?.value;
+          const disabled = attribute(node, "disabled")?.value;
+          // Any component that takes both is judged, a parameter's too; a parameter or a local that
+          // shadows an outer name (the kit's Button) is not that name's part, and is left alone.
+          if (!loading || !disabled || shadowsOuterName(context, node.name)) return;
+          check(loading, disabled, node, true);
         },
         ObjectExpression(node) {
           const find = (name) =>
@@ -804,6 +884,11 @@ export const gateRules = defineRules({
     messages: {
       style: "{{part}} sets {{property}} in style{{width}}. {{advice}}{{note}}",
       className: '{{part}} sets its width with "{{cls}}"{{width}}. {{advice}}{{note}}',
+      // `wrapper` is the component of this file that hands its style or className on to `part`.
+      forwardedStyle:
+        "<{{wrapper}}> forwards style to <{{part}}>, which then sets {{property}} in style{{width}}. {{advice}}{{note}}",
+      forwardedClassName:
+        '<{{wrapper}}> forwards className to <{{part}}>, which then sets its width with "{{cls}}"{{width}}. {{advice}}{{note}}',
     },
     create(context) {
       // A const style object shared by several overlays is reported once, where it is written.
@@ -816,11 +901,27 @@ export const gateRules = defineRules({
       return {
         JSXOpeningElement(node) {
           const name = kitName(context, node.name);
-          if (!SIZED_OVERLAY.test(name)) return;
+          /** The overlay a component of this file hands `prop` on to: `{ part, wrapper }`. */
+          const through = (prop) => {
+            const forwarded = forwardedTo(context, node, prop);
+            const part = forwarded ? kitName(context, forwarded.element.name) : "";
+            return SIZED_OVERLAY.test(part) ? { part, wrapper: forwarded.wrapper } : undefined;
+          };
+          const self = SIZED_OVERLAY.test(name) ? { part: name } : undefined;
+          const style = attribute(node, "style");
+          const styleTo = self ?? (style ? through("style") : undefined);
+          // A className reaches a component of the file as an attribute or in a spread.
+          const classTo =
+            self ??
+            (node.attributes.some(
+              (item) => item.type === "JSXSpreadAttribute" || item.name.name === "className",
+            )
+              ? through("className")
+              : undefined);
+          if (!styleTo && !classTo) return;
           // Every object its style can be: a branch, a const, a map's entry, a spread, a style
           // callback's return, useMemo, a same-file helper's (values.styleObjects).
-          const style = attribute(node, "style");
-          for (const object of style ? styleObjects(context, style.value) : [])
+          for (const object of style && styleTo ? styleObjects(context, style.value) : [])
             for (const property of object.properties) {
               const key = keyName(property);
               if (!WIDTH_PROPS.has(key) || reported.has(property)) continue;
@@ -836,10 +937,16 @@ export const gateRules = defineRules({
                     : undefined;
               context.report({
                 node: property,
-                messageId: "style",
-                data: { part: name, property: key, ...sized(name, px) },
+                messageId: styleTo.wrapper ? "forwardedStyle" : "style",
+                data: {
+                  part: styleTo.part,
+                  property: key,
+                  ...(styleTo.wrapper ? { wrapper: styleTo.wrapper } : {}),
+                  ...sized(styleTo.part, px),
+                },
               });
             }
+          if (!classTo) return;
           // Its className, through a const, a map, a helper or a spread too (class-sites.js).
           const sites = classSites(context).classSitesOf(node);
           const width = sites
@@ -849,8 +956,13 @@ export const gateRules = defineRules({
             const base = classesOf(width)[0]?.base ?? width;
             context.report({
               node: sites[0].at,
-              messageId: "className",
-              data: { part: name, cls: width, ...sized(name, widthOfClass(base)) },
+              messageId: classTo.wrapper ? "forwardedClassName" : "className",
+              data: {
+                part: classTo.part,
+                cls: width,
+                ...(classTo.wrapper ? { wrapper: classTo.wrapper } : {}),
+                ...sized(classTo.part, widthOfClass(base)),
+              },
             });
           }
         },
@@ -881,13 +993,32 @@ export const gateRules = defineRules({
         "{{part}} renders a link (<{{tag}}>). Use {{replacement}} with render={<{{tag}} … />}: Base UI's Button expects a native button, and a link must stay a link.{{note}}",
       navigates:
         "{{part}} navigates from onClick. Use {{replacement}} with the router Link in render, so the destination can be opened in a new tab, copied and announced as a link.{{note}}",
+      // `wrapper` is the component of this file that hands render or onClick on to `part`.
+      forwardedLink:
+        "<{{wrapper}}> forwards render to <{{part}}>, which then renders a link (<{{tag}}>). Use {{replacement}} with render={<{{tag}} … />}: Base UI's Button expects a native button, and a link must stay a link.{{note}}",
+      forwardedNavigates:
+        "<{{wrapper}}> forwards onClick to <{{part}}>, which then navigates. Use {{replacement}} with the router Link in render, so the destination can be opened in a new tab, copied and announced as a link.{{note}}",
     },
     create: (context) => ({
       JSXOpeningElement(node) {
         const name = kitName(context, node.name);
-        if (name !== "Button" && name !== "IconButton") return;
-        const replacement = name === "Button" ? "LinkButton" : "LinkIconButton";
-        let rendered = unwrap(attribute(node, "render")?.value);
+        const isButton = (part) => part === "Button" || part === "IconButton";
+        /** The Button a prop of this element reaches: its own, or the one a component of this
+            file hands the prop on to, with that component's name. */
+        const target = (prop) => {
+          if (isButton(name)) return { part: name };
+          if (!attribute(node, prop)) return undefined;
+          const forwarded = forwardedTo(context, node, prop);
+          const part = forwarded ? kitName(context, forwarded.element.name) : "";
+          return isButton(part) ? { part, wrapper: forwarded.wrapper } : undefined;
+        };
+        const said = (to, own, forwarded) =>
+          to.wrapper
+            ? { messageId: forwarded, wrapper: to.wrapper }
+            : { messageId: own, wrapper: undefined };
+        const replacementOf = (part) => (part === "Button" ? "LinkButton" : "LinkIconButton");
+        const renderTo = target("render");
+        let rendered = renderTo && unwrap(attribute(node, "render")?.value);
         // A render function, `(props) => <Link {...props} />`, renders what it returns.
         if (
           rendered?.type === "ArrowFunctionExpression" ||
@@ -911,21 +1042,34 @@ export const gateRules = defineRules({
             attribute(opening, "href") ||
             attribute(opening, "to")
           ) {
+            const { messageId, wrapper } = said(renderTo, "rendersLink", "forwardedLink");
             context.report({
               node: attribute(node, "render"),
-              messageId: "rendersLink",
-              data: { part: name, tag: renderedName, replacement },
+              messageId,
+              data: {
+                part: renderTo.part,
+                tag: renderedName,
+                replacement: replacementOf(renderTo.part),
+                ...(wrapper ? { wrapper } : {}),
+              },
             });
             return;
           }
         }
         const onClick = attribute(node, "onClick");
-        if (onClick && onlyNavigates(context, onClick.value))
+        const clickTo = onClick && target("onClick");
+        if (clickTo && onlyNavigates(context, onClick.value)) {
+          const { messageId, wrapper } = said(clickTo, "navigates", "forwardedNavigates");
           context.report({
             node: onClick,
-            messageId: "navigates",
-            data: { part: name, replacement },
+            messageId,
+            data: {
+              part: clickTo.part,
+              replacement: replacementOf(clickTo.part),
+              ...(wrapper ? { wrapper } : {}),
+            },
           });
+        }
       },
     }),
   },
@@ -959,12 +1103,31 @@ export const gateRules = defineRules({
       const exempt = (node, key) =>
         preset !== undefined && PRESET_PROPS.test(key) && insideConst(node, preset);
       /** Where a style is written, as styleSpaceUse reads it: the kit's own source, a plain
-          element use-primitives reads, or the layout primitive the element is. */
+          element use-primitives reads, or the layout primitive the style lands on (the element,
+          its render, or the part a component of the file hands its style to, which need not be
+          the one its className reaches); `wrapper` names that component. */
       const kit = isKitSourceFile(context);
       const whereOf = (element) => {
         if (!element) return { kit };
         const plain = element.name.type === "JSXIdentifier" && PLAIN_LAYOUT.test(element.name.name);
-        return { kit, plain, part: plain ? undefined : classOwnerOf(context, element).part };
+        if (plain) return { kit, plain };
+        const owner = propOwnerOf(context, element, "style");
+        return { kit, plain, part: owner.part, wrapper: owner.via === "wrapper" && owner.wrapper };
+      };
+      /** styleSpaceUse's words, placed on the part a component of the file hands the style to,
+          whose props the component need not take, while the finding `data` keeps in its limit. */
+      const spaceUse = (key, value, element, data) => {
+        const where = whereOf(element);
+        const use = styleSpaceUse(key, value, where);
+        if (!use || !where.wrapper) return use;
+        const placed = `For the <${where.part}> inside <${where.wrapper}>, ${use.charAt(0).toLowerCase()}${use.slice(1)}`;
+        return fitted([placed, use], (words) =>
+          render(gateRules["no-style-design-value"].meta.messages.spaceLength, {
+            ...data,
+            use: words,
+            note: "",
+          }),
+        );
       };
       const judge = (entries, attribute, element) => {
         for (const { object, given } of entries)
@@ -1022,7 +1185,7 @@ export const gateRules = defineRules({
               // utility and prop; a part of a sum, or a const's, keeps its token.
               const use =
                 problem.kind === "length" && problem.whole && unwrapValue(property.value) === leaf
-                  ? styleSpaceUse(key, problem.value, whereOf(element))
+                  ? spaceUse(key, problem.value, element, data)
                   : undefined;
               if (use) {
                 context.report({

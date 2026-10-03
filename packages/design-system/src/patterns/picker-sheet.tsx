@@ -16,8 +16,10 @@ import {
   type SheetProps,
   type SheetWidth,
 } from "../components/sheet";
+import { Truncate } from "../components/truncate";
 import { useLedgerLocale } from "../lib/locale";
-import type { DataTableInstance } from "./data-table";
+import type { LedgerLocale } from "../lib/locale-format";
+import type { DataTableInstance, DataTableState } from "./data-table";
 import { Toolbar } from "./toolbar";
 
 /** Why the sheet asked to close, from Base UI: `reason` is `escape-key`, `outside-press` or `close-press` (the close button or Cancel). */
@@ -61,8 +63,8 @@ export type PickerSheetProps<TData extends RowData = RowData> = {
   /**
    * The DataTable the reader chooses from. The search field drives its global filter, so a search
    * with no match shows the table's own filtered empty with Clear filters, never "nothing to add";
-   * and, unless they are given, `selected` is its selection, `total` the rows that search and
-   * filters keep and that can be chosen, and `onClear` clears its selection. Pass the whole
+   * and, unless they are given, `selected` is its selection, `total` every row that can be
+   * chosen, search and filters aside, and `onClear` clears its selection. Pass the whole
    * collection as the table's `data`.
    */
   table?: DataTableInstance<TData> | undefined;
@@ -70,12 +72,21 @@ export type PickerSheetProps<TData extends RowData = RowData> = {
   search?: PickerSheetSearch | undefined;
   /** Filters after the search field, such as `DataTable.Filter`s. They fold into the toolbar's More when the sheet is too narrow for them. */
   filters?: ReactNode;
+  /** How many filters apply: More counts them and says so in its name ("More filters, 2 applied") while the filters are folded, so a narrowed list never reads as all of it. The table's column filters unsaid. */
+  activeFilters?: number | undefined;
   /** A row under search and filters that does not scroll: a default applied to every chosen row. */
   toolbar?: ReactNode;
   /** How many rows are chosen. The footer reads it out and the action waits for it. From `table` unsaid. */
   selected?: number | undefined;
-  /** How many rows are on offer after search and filters. From `table` unsaid. */
+  /** How many rows there are to choose from, search and filters aside: the "28" of "3 of 28 selected". From `table` unsaid. */
   total?: number | undefined;
+  /**
+   * Where the rows on offer are, as the DataTable's `state`. While they are `loading`, and when
+   * they failed to load (`error` with none on offer), what there is to choose from is not known, so
+   * the footer counts only what is chosen ("0 selected") and never says "0 of 0". A failed refresh
+   * that keeps its rows still counts them. `ready` unsaid.
+   */
+  state?: DataTableState | undefined;
   /**
    * The footer's read-out in place of the count. A `table` that chooses one record
    * (`selectable: "single"`) reads the chosen row's `rowLabel` unsaid.
@@ -120,13 +131,31 @@ const chosenIn = (selection: Record<string, boolean>) =>
   Object.values(selection).filter(Boolean).length;
 
 /**
- * The rows on offer: every row the search and filters keep that can be chosen, nested ones
- * included, whether or not its parent is open or its page is shown. A group's band is not a row
- * to choose, and a server-filtered table says how many through `rowCount`.
+ * Package-internal: what PickerSheet and RecordBrowser say of a selection, in the locale's words:
+ * "3 of 28 selected" where the total to choose from is known, "3 selected" where it is not, and
+ * "0 selected" where there is nothing to choose from. The total does not follow the search: a
+ * chosen row the search hides is still one of it.
  */
-const onOfferIn = <TData extends RowData>(table: DataTableInstance<TData>) =>
+export function selectedCount(
+  t: LedgerLocale["t"],
+  formatNumber: LedgerLocale["formatNumber"],
+  selected: number,
+  total: number | undefined,
+) {
+  return total === undefined || total === 0
+    ? t("selectedCount", { count: formatNumber(selected) })
+    : t("selectedCountOf", { count: formatNumber(selected), total: formatNumber(total) });
+}
+
+/**
+ * Package-internal: the rows there are to choose from, search and filters aside, so a chosen row
+ * the search hides is still counted among them: every row that can be chosen, nested ones included,
+ * whether or not its parent is open or its page is shown. A group's band is not a row to choose,
+ * and a server-paged table says how many through `rowCount`.
+ */
+export const onOfferIn = <TData extends RowData>(table: DataTableInstance<TData>) =>
   table.options.rowCount ??
-  table.getFilteredRowModel().flatRows.filter((row) => row.getCanSelect()).length;
+  table.getCoreRowModel().flatRows.filter((row) => row.getCanSelect()).length;
 
 /** The chosen record's name, in a table that chooses one: its `rowLabel`, else nothing. */
 const chosenNameIn = <TData extends RowData>(table: DataTableInstance<TData>) => {
@@ -152,9 +181,11 @@ export function PickerSheet<TData extends RowData = RowData>({
   table,
   search,
   filters,
+  activeFilters: activeFiltersProp,
   toolbar,
   selected: selectedProp,
   total: totalProp,
+  state = "ready",
   summary: summaryProp,
   onClear: onClearProp,
   action,
@@ -164,27 +195,17 @@ export function PickerSheet<TData extends RowData = RowData>({
   width = "large",
   children,
 }: PickerSheetProps<TData>) {
-  const locale = useLedgerLocale();
-  const { t, formatPlural, formatNumber } = locale;
+  const { t, formatNumber } = useLedgerLocale();
   const selected = selectedProp ?? (table ? chosenIn(table.state.rowSelection) : 0);
-  const total = totalProp ?? (table ? onOfferIn(table) : undefined);
+  // Rows that are loading, or failed to load, are not "0 of 0": the total waits for them.
+  const offered = totalProp ?? (table ? onOfferIn(table) : undefined);
+  const total = state === "loading" || (state === "error" && !offered) ? undefined : offered;
   const onClear = onClearProp ?? (table ? () => table.resetRowSelection() : undefined);
+  // The selection patterns' one count: "3 of 28 selected", "3 selected" while the total is not known.
   const summary =
     summaryProp ??
     (selected === 1 && table ? chosenNameIn(table) : undefined) ??
-    (selected === 0
-      ? total !== undefined
-        ? formatPlural(total, {
-            one: t("pickerToChooseFromOne"),
-            other: t("pickerToChooseFromOther"),
-          })
-        : t("pickerNothingChosen")
-      : total !== undefined
-        ? formatPlural(selected, {
-            one: t("pickerChosenOfOne", { total: formatNumber(total) }),
-            other: t("pickerChosenOfOther", { total: formatNumber(total) }),
-          })
-        : formatPlural(selected, { one: t("pickerChosenOne"), other: t("pickerChosenOther") }));
+    selectedCount(t, formatNumber, selected, total);
   const query = table ? String(table.state.globalFilter ?? "") : (search?.value ?? "");
   const setQuery = (value: string) => {
     if (table) table.setGlobalFilter(value);
@@ -192,7 +213,7 @@ export function PickerSheet<TData extends RowData = RowData>({
   };
   const searchName = search?.placeholder ?? t("search");
   const hasToolbar = Boolean(search || filters || toolbar);
-  const activeFilters = table ? table.state.columnFilters.length : undefined;
+  const activeFilters = activeFiltersProp ?? (table ? table.state.columnFilters.length : undefined);
   const step = typeof width === "string" ? width : undefined;
   return (
     <Sheet
@@ -268,9 +289,9 @@ export function PickerSheet<TData extends RowData = RowData>({
               data-slot="picker-sheet-count"
               className="flex min-w-0 items-center gap-100 font-body-small text-subtle"
             >
-              <span role="status" className="min-w-0 truncate tabular-nums">
+              <Truncate role="status" className="min-w-0 tabular-nums">
                 {summary}
-              </span>
+              </Truncate>
               {selected > 0 && onClear ? (
                 <Button
                   variant="link"

@@ -7,6 +7,8 @@ import * as Stories from "./PageSkeleton.stories";
 
 # PageSkeleton
 
+**Status: Stable.**
+
 What a screen looks like before its data arrives, in the shape of the page that is coming, drawn from the [Skeleton](?path=/docs/components-skeleton--docs)'s shapes so the real page lands on the same lines. The router shows it while a route is pending. A page loads progressively: a section that loads on its own draws its own Skeleton inside a page that has already landed.
 
 <Canvas of={Stories.PageSkeletonMatrix} />
@@ -30,7 +32,9 @@ Not built, and why: a dashboard shape, because a dashboard's widgets load on the
 
 ## Sizes
 
-`rows` sets how many table rows a register draws, 8 by default, about a screen. The skeleton is as wide as the page, and its lines follow the page's width below their own (the Narrow story).
+`rows` sets how many table rows a register draws, 8 by default, about a screen. The skeleton is as wide as the page, and its lines follow the page's width below their own.
+
+<Canvas of={Stories.Narrow} />
 
 ## States
 
@@ -85,6 +89,6 @@ One state: waiting. It says what it is waiting for once, and the shapes stay unt
 
 ## Don't
 
-<Canvas of={Stories.Dont} />
+A page on its way is a PageSkeleton in the page's shape, never a spinner. A section that loads on its own draws its own Skeleton, never the page skeleton under a section that has loaded.
 
-<Canvas of={Stories.Narrow} />
+<Canvas of={Stories.Dont} />

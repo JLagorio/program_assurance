@@ -40,6 +40,12 @@ export default {
       code: `${kit} export function Ids<Id extends string>({ ids }: { ids: Id[] }) { return <TextLink href="/x">{ids.map((i) => <Id key={i} className="text-brand">{i}</Id>)}</TextLink>; }`,
       only: "ts",
     },
+    // A colour on the elements inside is not the Id's own (no-restyle reports it).
+    { code: `${kit} <Id className="[&_span]:text-brand">REQ-1</Id>` },
+    // A component of this file whose Id is the text of a link.
+    {
+      code: `${kit} function Code({ className }) { return <TextLink href="/r"><Id className={className}>REQ-1</Id></TextLink>; } export const A = () => <Code className="text-brand" />;`,
+    },
   ],
   invalid: [
     {
@@ -90,6 +96,16 @@ export default {
       // A const, a map entry and a spread carry the classes as a literal does.
       code: `${kit} const blue = "text-brand"; const tones = { link: "text-brand" }; <><Id className={blue}>X-1</Id><Id className={tones[tone]}>X-2</Id><Id {...{ className: "text-brand" }}>X-3</Id></>`,
       errors: [{ messageId: "blue" }, { messageId: "blue" }, { messageId: "blue" }],
+    },
+    {
+      // At a breakpoint, the Id is still blue.
+      code: `${kit} <Id className="md:text-brand">REQ-1</Id>`,
+      errors: [{ messageId: "blue", data: { tag: "Id" } }],
+    },
+    {
+      // A component of this file that hands its className on to an Id with no link around it.
+      code: `${kit} function Code({ className }) { return <Id className={className}>REQ-1</Id>; } export const A = () => <Code className="text-brand" />;`,
+      errors: [{ messageId: "forwarded", data: { wrapper: "Code" } }],
     },
   ],
 };

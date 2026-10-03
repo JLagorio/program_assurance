@@ -7,11 +7,20 @@ import * as Stories from "./Badge.stories";
 
 # Badge
 
+**Status: Stable.**
+
 A compact label built on the shadcn Base UI Badge foundation and adapted to Ledger. One Badge combines six visual treatments with semantic tones, subtle or bold emphasis, two density sizes, optional icons, and rendered-link composition. Every combination uses the same pill anatomy.
 
 `variant` chooses the treatment and its defaults; `tone` chooses the palette; `appearance` adjusts the emphasis of filled treatments; `size` adjusts density. With no props, Badge is the standard brand-filled `default` variant. A `tone` without a `variant` is a status: the `secondary` treatment, the subtle fill in that tone, so `<Badge tone="warning">` never renders a loud bold pill by accident. Bold is asked for, with `appearance="bold"` or an explicit `variant="default"`.
 
 <Canvas of={Stories.Matrix} />
+
+## When to use it
+
+- **A record's status, in one or two words**: Verified, In review, Overdue. A `tone` alone makes it the subtle status pill, one to a row, in the status column or beside the title.
+- **A category the reader scans a list for**: a record's type, or a marker such as "Inherited".
+
+Not for a number: that is a [Count](?path=/docs/components-count--docs), after the name of what it counts. Not for severity or health beside a label, where a dot and a word say it: that is an [Indicator](?path=/docs/components-indicator--docs), never a pill. Not for a filter the reader can change or clear: that is a [FilterChip](?path=/docs/components-filterchip--docs). Not for something the reader presses: a badge with a click handler has no keyboard behaviour, so an action is a [Button](?path=/docs/components-button--docs), and a destination is a link through `render` (Links, below).
 
 ## Anatomy
 
@@ -167,6 +176,8 @@ Use `icon={<CircleCheck aria-hidden="true" />}` for a leading icon, or place ico
 
 <Canvas of={Stories.OneBold} />
 
+A badge that goes somewhere is a link through `render` (`render={<a href="#evidence" />}`), never a Badge with an `onClick`: that is a span, with no link and no keyboard behaviour.
+
 <Canvas of={Stories.Dont} />
 
 <Canvas of={Stories.StatusGuidance} />
@@ -194,21 +205,10 @@ Use `icon={<CircleCheck aria-hidden="true" />}` for a leading icon, or place ico
 
 <Controls of={Stories.Playground} />
 
-## Migration
-
-| Previous use                                        | Updated use                                                                                                |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `<Badge tone="success">Verified</Badge>`            | Renders as `<Badge variant="secondary" tone="success">`, the subtle status. Spell the variant for clarity. |
-| Neutral `<Badge>Draft</Badge>`                      | `<Badge variant="secondary" tone="neutral">Draft</Badge>`. The unconfigured default is now brand/bold.     |
-| `appearance="bold"`, `size="xsmall"`, or `icon={…}` | Keep these conveniences on Badge. Use `secondary` for existing status compositions.                        |
-| A clickable span                                    | Supply a real anchor through `render` for navigation.                                                      |
-| `BadgeProps`                                        | Continue using the same export; it now also includes variants and Base UI render composition.              |
-
-All Badge uses now share the shadcn-derived pill shape, including semantic tones. Existing semantic palettes and compact heights remain, while small labels adopt the shared padding and border anatomy. `Count`, `Dot`, `Indicator`, `Tone`, `tones`, and `toneClasses` keep their existing contracts. `Avatar.Badge` and `AvatarGroupCount` remain separate Avatar parts with their existing APIs. The checked-in shadcn reference and the unrelated reui Badge remain separate code.
-
 ## Related
 
 - [Count](?path=/docs/components-count--docs): numeric counts.
 - [Indicator](?path=/docs/components-indicator--docs): a status dot and a word.
 - [FilterChip](?path=/docs/components-filterchip--docs): a filter the reader can change.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#badge): the earlier API's spellings and what they are now.
 - Reference: [shadcn Base UI Badge](https://ui.shadcn.com/docs/components/base/badge). The checked-in application reference is the foundation for this adaptation.

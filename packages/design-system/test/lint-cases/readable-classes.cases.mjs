@@ -113,6 +113,10 @@ export default {
       filename: STORY,
       settings: KIT_SETTINGS,
     },
+    // A component of this file whose rest no longer carries className hands it on to nothing.
+    {
+      code: `${kit} import { k } from "./k"; const Go = ({ className, ...rest }) => <Button {...rest} />; export const A = () => <Go className={k}>Go</Go>;`,
+    },
   ],
   invalid: [
     {
@@ -333,6 +337,20 @@ export default {
       filename: STORY,
       settings: KIT_SETTINGS,
       errors: [{ messageId: "prop", data: { subject: "<Box> className", prop: "w", advice: BOX } }],
+    },
+    {
+      // A component of this file that hands its className on to a Button.
+      code: `${kit} import { k } from "./k"; const Go = (props) => <Button {...props} />; export const A = () => <Go className={k}>Go</Go>;`,
+      errors: [
+        {
+          messageId: "imported",
+          data: {
+            subject: "<Go> forwards className to <Button>, whose className",
+            source: "./k",
+            advice: RENDERED,
+          },
+        },
+      ],
     },
   ],
 };

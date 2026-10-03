@@ -1,8 +1,10 @@
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useId, useLayoutEffect, useRef, useState, type FormEvent } from "react";
+import { useId, useLayoutEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import {
+  Alert,
+  AlertDescription,
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -39,7 +41,13 @@ import {
   type DialogWidth,
   type ErrorSummaryIssue,
 } from "../../components";
-import { Heading, Stack } from "../../primitives";
+import { Heading, Inline, Stack, Text } from "../../primitives";
+import * as pairLayout from "../_lib/pair";
+import * as typeStyle from "../_lib/type-style";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
+const { typeOf, ramp } = typeStyle;
 
 const meta = {
   title: "Components/Dialog",
@@ -175,7 +183,7 @@ function CreateTask({ taken }: { taken?: string | undefined }) {
             </Button>
           </DialogFooter>
           <AlertDialog open={discarding} onOpenChange={setDiscarding}>
-            <AlertDialogContent size="sm">
+            <AlertDialogContent width="xsmall">
               <AlertDialogHeader>
                 <AlertDialogTitle>Discard this task?</AlertDialogTitle>
                 <AlertDialogDescription>
@@ -202,6 +210,50 @@ function CreateTask({ taken }: { taken?: string | undefined }) {
   );
 }
 
+const widths: DialogWidth[] = ["small", "medium", "large", "xlarge", "fullscreen"];
+
+/** Every prop on DialogContent, in a form of a few fields. */
+export const Playground: StoryObj<typeof DialogContent> = {
+  args: { width: "medium", showCloseButton: true },
+  argTypes: {
+    width: { control: "inline-radio", options: widths },
+    showCloseButton: { control: "boolean" },
+  },
+  render: (args) => (
+    <Dialog>
+      <DialogTrigger render={<Button />}>Edit member</DialogTrigger>
+      <DialogContent {...args}>
+        <DialogHeader>
+          <DialogTitle>Edit member</DialogTitle>
+        </DialogHeader>
+        <DialogBody>
+          <Field>
+            <FieldLabel>Display name</FieldLabel>
+            <Input defaultValue="Dana Whitfield" />
+          </Field>
+        </DialogBody>
+        <DialogFooter>
+          <DialogClose render={<Button variant="subtle" />}>Cancel</DialogClose>
+          <DialogClose render={<Button variant="primary" />}>Save member</DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement),
+      body = within(canvasElement.ownerDocument.body);
+    const trigger = canvas.getByRole("button", { name: "Edit member" });
+    await userEvent.click(trigger);
+    const popup = await body.findByRole("dialog", { name: "Edit member" });
+    await waitFor(() =>
+      expect(within(popup).getByRole("textbox", { name: "Display name" })).toBeVisible(),
+    );
+    await userEvent.click(within(popup).getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(trigger).toHaveFocus());
+  },
+};
+
 /**
  * A create form, the default create and edit surface. The first field takes focus through
  * `initialFocus`, never `autoFocus`, so focus returns to the opener. Submitting with the title empty
@@ -218,6 +270,11 @@ export const Form: Story = {
     const popup = await body.findByRole("dialog", { name: "Create task" });
     const dialog = within(popup);
     await expect(popup).toHaveAccessibleDescription("Describe the work. You can assign it later.");
+    // The dialog's title is Heading's `overlay` size, its h2.
+    await expect(typeOf(dialog.getByRole("heading", { name: "Create task" }))).toEqual({
+      tag: "H2",
+      ...ramp.overlay,
+    });
     const title = dialog.getByRole("textbox", { name: "Title" });
     await waitFor(() => expect(title).toHaveFocus());
     // Close comes first in the Tab order, where it is drawn, and the first field still takes focus.
@@ -310,7 +367,6 @@ export const FormSaveFails: Story = {
   },
 };
 
-const widths: DialogWidth[] = ["small", "medium", "large", "xlarge", "fullscreen"];
 const expectedWidth: Record<DialogWidth, number> = {
   small: 400,
   medium: 520,
@@ -322,7 +378,7 @@ const expectedWidth: Record<DialogWidth, number> = {
 /**
  * The five widths: `small` for a short question, `medium` (the default) for a form of a few fields,
  * `large` for two columns or a table, `xlarge` for a table beside a preview, `fullscreen` for a task
- * that needs the window. Each narrows to the window less a 1rem gutter.
+ * that needs the window. Each narrows to the window less a `space.200` gutter on each side.
  */
 export const Widths: Story = {
   render: () => (
@@ -469,7 +525,7 @@ export const Scrollable: Story = {
         </DialogHeader>
         <DialogBody className="pt-0">
           <div data-testid="sticky-label" className="sticky top-0 bg-surface-current pb-100 pt-250">
-            <Heading size="xsmall">Sixty changes</Heading>
+            <Heading size="overlay">Sixty changes</Heading>
           </div>
           {Array.from({ length: 60 }, (_, i) => (
             <p key={i} className="py-100 font-body">
@@ -772,7 +828,7 @@ export const CustomPortal: Story = {
       <DialogPortal>
         <DialogOverlay />
         <BaseDialog.Popup
-          className="fixed inset-x-200 top-1000 z-50 mx-auto rounded-large bg-surface-overlay p-250 text-default shadow-overlay"
+          className="fixed inset-x-200 top-1000 z-overlay mx-auto rounded-large bg-surface-overlay p-250 text-default shadow-overlay"
           style={{ maxWidth: 440 }}
         >
           <DialogTitle>Custom review surface</DialogTitle>
@@ -784,29 +840,28 @@ export const CustomPortal: Story = {
   ),
 };
 
-/** Every prop on DialogContent, in a form of a few fields. */
-export const Playground: StoryObj<typeof DialogContent> = {
-  args: { width: "medium", showCloseButton: true },
-  argTypes: {
-    width: { control: "inline-radio", options: widths },
-    showCloseButton: { control: "boolean" },
-  },
-  render: (args) => (
+/**
+ * A caller's attributes reach each part, and each part's `data-slot` comes last, so a stray
+ * attribute never renames the part a selector, a sticky footer or a test looks for. The title and
+ * the description are the exception: a PageHeader.Title renders as a title part, and names it.
+ */
+export const NativeAttributes: Story = {
+  render: () => (
     <Dialog>
-      <DialogTrigger render={<Button />}>Edit member</DialogTrigger>
-      <DialogContent {...args}>
-        <DialogHeader>
+      <DialogTrigger data-testid="trigger" data-slot="mine" render={<Button />}>
+        Edit member
+      </DialogTrigger>
+      <DialogContent data-testid="content" data-slot="mine">
+        <DialogHeader data-testid="header" data-slot="mine">
           <DialogTitle>Edit member</DialogTitle>
         </DialogHeader>
         <DialogBody>
-          <Field>
-            <FieldLabel>Display name</FieldLabel>
-            <Input defaultValue="Dana Whitfield" />
-          </Field>
+          <p className="font-body">Dana Whitfield</p>
         </DialogBody>
-        <DialogFooter>
-          <DialogClose render={<Button variant="subtle" />}>Cancel</DialogClose>
-          <DialogClose render={<Button variant="primary" />}>Save member</DialogClose>
+        <DialogFooter data-testid="footer" data-slot="mine">
+          <DialogClose data-testid="close" data-slot="mine" render={<Button variant="subtle" />}>
+            Cancel
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -814,14 +869,114 @@ export const Playground: StoryObj<typeof DialogContent> = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement),
       body = within(canvasElement.ownerDocument.body);
-    const trigger = canvas.getByRole("button", { name: "Edit member" });
+    const trigger = canvas.getByTestId("trigger");
+    await expect(trigger).toHaveAttribute("data-slot", "dialog-trigger");
     await userEvent.click(trigger);
-    const popup = await body.findByRole("dialog", { name: "Edit member" });
-    await waitFor(() =>
-      expect(within(popup).getByRole("textbox", { name: "Display name" })).toBeVisible(),
-    );
-    await userEvent.click(within(popup).getByRole("button", { name: "Cancel" }));
+    await body.findByRole("dialog", { name: "Edit member" });
+    for (const [id, slot] of [
+      ["content", "dialog-content"],
+      ["header", "dialog-header"],
+      ["footer", "dialog-footer"],
+      ["close", "dialog-close"],
+    ] as const)
+      await expect(body.getByTestId(id)).toHaveAttribute("data-slot", slot);
+    await userEvent.click(body.getByTestId("close"));
     await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
-    await waitFor(() => expect(trigger).toHaveFocus());
+  },
+};
+
+/** A dialog's words, drawn without the dialog: its title, what its body says, and its footer. */
+function DialogWords({
+  title,
+  children,
+  footer,
+}: {
+  title: string;
+  children?: ReactNode;
+  footer: ReactNode;
+}) {
+  return (
+    <Stack space="space.150">
+      <Text weight="semibold">{title}</Text>
+      {children}
+      <Inline space="space.100" alignInline="end" shouldWrap>
+        {footer}
+      </Inline>
+    </Stack>
+  );
+}
+
+/** The mistakes the page is written to prevent, each beside the right way. */
+export const Dont: Story = {
+  tags: ["!manifest"],
+  render: () => (
+    <Stack space="space.400">
+      <Pair
+        do={
+          <DialogWords
+            title="Create task"
+            footer={
+              <>
+                <Button variant="subtle">Cancel</Button>
+                <Button variant="primary">Create task</Button>
+              </>
+            }
+          />
+        }
+        doText="The trigger, the title and the primary say the same operation, and Cancel comes before it."
+        dont={
+          <DialogWords
+            title="New"
+            footer={
+              <>
+                <Button variant="primary">OK</Button>
+                <Button>Cancel</Button>
+              </>
+            }
+          />
+        }
+        dontText="A title that names no operation, an OK that says nothing, and the primary before Cancel."
+      />
+      <Pair
+        do={
+          <DialogWords
+            title="Edit risk"
+            footer={
+              <>
+                <Button variant="subtle">Cancel</Button>
+                <Button variant="primary">Save risk</Button>
+              </>
+            }
+          >
+            <Alert tone="danger" role="note">
+              <AlertDescription>
+                The risk was not saved: the server did not answer. Saving again will not create it
+                twice.
+              </AlertDescription>
+            </Alert>
+          </DialogWords>
+        }
+        doText="A failure is said in the body, with what retrying does, and the title still names the operation."
+        dont={
+          <DialogWords
+            title="Error: request failed (504)"
+            footer={<Button variant="primary">OK</Button>}
+          />
+        }
+        dontText="A failure in the title takes the operation's name away, and OK leaves the reader with no way to retry."
+      />
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const [cancel, create] = [
+      canvas.getAllByRole("button", { name: "Cancel" })[0]!,
+      canvas.getByRole("button", { name: "Create task" }),
+    ];
+    // Cancel comes before the primary in the reading order.
+    await expect(
+      cancel.compareDocumentPosition(create) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    await expect(canvas.getByText(/Saving again will not create it twice/)).toBeVisible();
   },
 };

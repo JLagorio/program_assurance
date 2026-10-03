@@ -8,7 +8,10 @@
 //                     from (utilities.json, docs.json, the kit's stylesheets and the vocabulary
 //                     aliases) and of them all, the name of every @utility, the utilities that
 //                     take a leading minus, the variant grammar, the ARIA attribute names
-//                     (aria-query's, and the ARIA 1.3 names it lacks) and shadcn's theme names
+//                     (aria-query's, and the ARIA 1.3 names it lacks), shadcn's theme names and
+//                     the class categories (build/class-categories.mjs): the grammar the kit's cn()
+//                     merges by, tailwind-merge's default config with the kit's merge config, each
+//                     of its groups' category and each @utility's, from the CSS it sets
 //   lint-values.json  what only a finding's advice needs, read when a rule first asks for it: each
 //                     @utility's file, line and properties; each token's value by kind (px, ms, type
 //                     metrics, OKLab per mode with alpha composited over the mode's surface), its
@@ -24,9 +27,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseColour } from "../eslint-plugin/colours.js";
 import { inputHashes, inputsHash } from "../eslint-plugin/data.js";
+import { classCategories } from "./class-categories.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = path.join(root, "src/generated");
@@ -38,6 +42,15 @@ const tailwind = createRequire(require.resolve("@tailwindcss/node"))(
   "tailwindcss/package.json",
 ).version;
 const { aria } = require("aria-query");
+/** tailwind-merge, which the kit's cn() merges classes with, and its version: the class categories
+    reflect its grammar. Its package.json is not in its exports, so it is read beside its entry. */
+const tailwindMerge = require("tailwind-merge");
+const tailwindMergeVersion = JSON.parse(
+  fs.readFileSync(
+    path.join(path.dirname(require.resolve("tailwind-merge")), "../package.json"),
+    "utf8",
+  ),
+).version;
 /** WAI-ARIA 1.3 attributes aria-query 5.3 does not list yet, which Tailwind's aria- variants take
     as any other name. Drop one when aria-query lists it (test/lint-data.test.mjs says when). */
 export const ARIA_1_3 = ["actions", "colindextext", "rowindextext"];
@@ -134,6 +147,16 @@ function propertiesOf(css) {
     const match = /^\s*(--[\w-]+|[a-z][a-z-]*)\s*:.*;\s*$/.exec(line);
     if (match && !match[1].startsWith("--tw-") && !found.includes(match[1])) found.push(match[1]);
   }
+  return found;
+}
+
+/** The properties Tailwind's own `--tw-*` custom properties in a candidate's CSS feed, by name
+    (`--tw-mask-radial-shape` feeds `mask-radial-shape`), for a class that sets nothing else
+    (`mask-circle`). */
+function tailwindPropertiesOf(css) {
+  const found = [];
+  for (const [, name] of css.matchAll(/^\s*--tw-([\w-]+)\s*:.*;\s*$/gm))
+    if (!found.includes(name)) found.push(name);
   return found;
 }
 
@@ -280,6 +303,7 @@ const FAMILIES = [
   ["motion", "duration"],
   ["dimension.breakpoint", "breakpoint"],
   ["dimension.container", "container"],
+  ["dimension.query", "query"],
   ["dimension.layout", "layout"],
   ["dimension.part", "part"],
   ["dimension.control", "control"],
@@ -349,6 +373,8 @@ function tokenValues(docs) {
       case "dimension":
         entry.kind = "length";
         if (/em$/.test(light) && !/rem$/.test(light)) entry.em = Number.parseFloat(light);
+        // A part's size in ch or vw has no px value: it is kept as written.
+        else if (/^-?[\d.]+(ch|vw)$/.test(light)) entry.css = light;
         else entry.px = px(light);
         break;
       case "duration":
@@ -672,6 +698,12 @@ export async function lintData() {
   const common = { about, tailwind, inputsHash: inputsHash(inputs) };
   const utilities = declaredUtilities();
   const aliases = vocabularyAliases(readJson(VOCABULARY).aliases, utilitiesJson);
+  // Every class Tailwind lists for the kit.
+  const tailwindClasses = design.getClassList().map(([name]) => name);
+  // The kit's merge config, as cn() extends tailwind-merge with it (src/lib/cn.ts).
+  const { mergeConfig } = await import(
+    pathToFileURL(path.join(root, "src/generated/merge-config.ts")).href
+  );
   const facts = {
     ...common,
     inputs,
@@ -682,6 +714,22 @@ export async function lintData() {
     ariaNames: [...aria.keys().map((name) => name.replace(/^aria-/, "")), ...ARIA_1_3].sort(),
     // A class no rule admits may be one of shadcn's theme names; only its advice is a value.
     aliases: Object.keys(aliases).sort(),
+    // What a class changes, which a rule asks of every class on a kit part.
+    categories: classCategories({
+      tailwindMerge,
+      version: tailwindMergeVersion,
+      mergeConfig,
+      utilities,
+      listed: {
+        classes: tailwindClasses,
+        propertiesOf: (cls) => {
+          const css = cssOf(cls);
+          if (!css) return null;
+          const own = propertiesOf(css);
+          return own.length ? own : tailwindPropertiesOf(css);
+        },
+      },
+    }),
   };
   const classes = classTokens(utilitiesJson.classes, docs);
   const tokens = tokenValues(docs);
@@ -700,6 +748,8 @@ export async function lintData() {
     facts,
     values,
     files: { "lint.json": `${stringify(facts)}\n`, "lint-values.json": `${stringify(values)}\n` },
+    // Every class Tailwind lists for the kit, for the tests that classify each one.
+    tailwindClasses,
   };
 }
 

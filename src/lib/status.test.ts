@@ -7,7 +7,10 @@ import {
   fieldVocabularies,
   impactLevels,
   neutralVocabulary,
+  programStatuses,
+  recordLifecycleStates,
   revisionStates,
+  riskStatuses,
   severityLevels,
   statusEntry,
   statusLabel,
@@ -135,6 +138,22 @@ describe("status vocabulary", () => {
     expect(statusTone(taskStatuses, "someday_maybe")).toBe("neutral");
     expect(statusTone(revisionStates, "published")).toBe("success");
     expect(statusEntry(taskStatuses, "toString")).toBeUndefined();
+  });
+
+  it("keeps the tone decisions: one map decides", () => {
+    // Active is success for a program as for a product or a configuration.
+    expect(statusTone(programStatuses, "active")).toBe("success");
+    expect(statusTone(programStatuses, "active")).toBe(statusTone(recordLifecycleStates, "active"));
+    // A risk's Accepted records a decision to live with it: neutral, not success.
+    expect(statusTone(riskStatuses, "accepted")).toBe("neutral");
+    // Every Low (and Very low) on an Indicator is neutral.
+    const levels = new Set(
+      registered.map(([, values]) => values).filter((values) => vocabularyKind(values) === "level"),
+    );
+    expect(levels.size).toBeGreaterThan(3);
+    for (const values of levels)
+      for (const low of ["low", "very_low"])
+        if (statusEntry(values, low)) expect(statusTone(values, low), low).toBe("neutral");
   });
 
   it("sorts by rank with unknown values last", () => {

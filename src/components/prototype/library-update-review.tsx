@@ -26,7 +26,7 @@ import { TextField } from "@/components/app/fields";
 import { useFormFeedback } from "@/components/app/form-feedback";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { useUpdateLibraryAssignment } from "@/lib/library-apply";
-import { useRows, type Row } from "@/lib/models";
+import { idSet, useRows, type Row } from "@/lib/models";
 import type { StatusVocabulary } from "@/lib/status";
 import { ProductCollection } from "./product-collection";
 import { QueryState } from "./work-common";
@@ -91,9 +91,10 @@ function LineChange({ line, version }: { line: Line; version: number }) {
   );
 }
 
+// A review in control order: the headings name the columns and do not sort them.
 const changeColumns = defineColumns<Line>((c) => [
-  c.text("control", { header: "Control", priority: 0, minWidth: 200 }),
-  c.status("outcome", { header: "Outcome", width: 200, statuses: outcomes }),
+  c.text("control", { header: "Control", priority: 0, minWidth: 200, sortable: false }),
+  c.status("outcome", { header: "Outcome", width: 200, statuses: outcomes, sortable: false }),
 ]);
 
 /** A narrative whose text the reader has something to read about. */
@@ -116,10 +117,15 @@ function ChangesTable({ lines, version }: { lines: Line[]; version: number }) {
     label: "Changes by control",
     detail: (line) => <LineChange line={line} version={version} />,
     initialDetails: lines.filter(changes).map((line) => line.id),
+    // A review inside a dialog has no columns to manage: no Columns, no heading menu to hide one.
+    pinnable: false,
+    hideable: false,
   });
   return (
+    // A review inside a dialog: search the changes, in the order they are listed; no Settings.
     <ProductCollection
       table={table}
+      compact
       sort={false}
       keepQuestion={false}
       searchLabel="Find control changes"
@@ -161,7 +167,21 @@ export function LibraryUpdateReview({
   const newImplementations = useRows("defined_component_implementations", {
     component_definition_revision_id: newRevision.revisionId,
   });
-  const controls = useRows("controls", {}, { columns: ["id", "code", "title"] });
+  // Only the controls the two versions claim, by the code and title each line names them with.
+  const controls = useRows(
+    "controls",
+    {
+      id: idSet(
+        [...(currentImplementations.data ?? []), ...(newImplementations.data ?? [])].map(
+          (row) => row.control_id,
+        ),
+      ),
+    },
+    {
+      columns: ["id", "code", "title"],
+      enabled: currentImplementations.isSuccess && newImplementations.isSuccess,
+    },
+  );
   const update = useUpdateLibraryAssignment();
   const formId = useId();
   const [open, setOpen] = useState(true);

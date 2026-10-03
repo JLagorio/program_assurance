@@ -4,10 +4,14 @@ import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import { Chart } from "../..";
 import { Button, KeyValue, Stat } from "../../components";
-import { Box, Grid, Inline, Stack } from "../../primitives";
+import { Box, Grid, Inline, Stack, Text } from "../../primitives";
 import { byFamily, bySource, statusSeries } from "../_lib/chart-data";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const coverage = [
   { key: "s", label: "Satisfied", value: 298, tone: "success" as const },
@@ -20,7 +24,7 @@ const meta = {
   title: "Patterns/Chart/Donut",
   component: Chart.Donut,
   parameters: { layout: "padded" },
-  args: { slices: coverage, centerLabel: "80%", caption: "satisfied", name: "Control coverage" },
+  args: { slices: coverage, centerLabel: "80%", caption: "satisfied", label: "Control coverage" },
 } satisfies Meta<typeof Chart.Donut>;
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -30,23 +34,24 @@ const sectorsIn = (root: Element) => root.querySelectorAll("path.recharts-sector
 
 /** Every ring in both modes: 64, 120 and 160 across; a gauge; one value on the track; loading. */
 export const DonutMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="64 · 120 with a number and a caption · 160 · a gauge">
         <Chart.Donut
           size={64}
           thickness={8}
-          name="Done"
+          label="Done"
           slices={[{ key: "a", label: "Done", value: 3, tone: "success" }]}
           max={4}
         />
-        <Chart.Donut centerLabel="80%" caption="satisfied" name="Coverage" slices={coverage} />
+        <Chart.Donut centerLabel="80%" caption="satisfied" label="Coverage" slices={coverage} />
         <Chart.Donut
           size={160}
           thickness={16}
           centerLabel="5"
           caption="open"
-          name="Open findings"
+          label="Open findings"
           slices={[
             { key: "o", label: "Open", value: 5, tone: "danger" },
             { key: "c", label: "Closed", value: 59, tone: "neutral" },
@@ -58,7 +63,7 @@ export const DonutMatrix: Story = {
           thickness={16}
           centerLabel="72"
           caption="posture"
-          name="Risk posture"
+          label="Risk posture"
           value={72}
           max={100}
           tone="warning"
@@ -69,7 +74,7 @@ export const DonutMatrix: Story = {
           <Chart.Donut
             centerLabel="80%"
             caption="satisfied"
-            name="Coverage, textured"
+            label="Coverage, textured"
             slices={coverage}
             texture
           />
@@ -77,13 +82,13 @@ export const DonutMatrix: Story = {
         </Inline>
       </Specimens>
       <Specimens title="One value on the track · loading · a gauge loading">
-        <Chart.Donut centerLabel="62%" caption="assessed" name="Assessed" value={62} max={100} />
-        <Chart.Donut name="Coverage" slices={coverage} loading />
+        <Chart.Donut centerLabel="62%" caption="assessed" label="Assessed" value={62} max={100} />
+        <Chart.Donut label="Coverage" slices={coverage} loading />
         <Chart.Donut
           arc="half"
           size={160}
           thickness={16}
-          name="Risk posture"
+          label="Risk posture"
           value={72}
           max={100}
           loading
@@ -120,7 +125,7 @@ export const BesideStat: Story = {
       <Chart.Donut
         centerLabel="80%"
         caption="satisfied"
-        name="Control coverage"
+        label="Control coverage"
         slices={coverage}
       />
       <Stack space="space.050">
@@ -141,7 +146,7 @@ export const Gauge: Story = {
         thickness={20}
         centerLabel="72"
         caption="risk posture"
-        name="Risk posture"
+        label="Risk posture"
         value={72}
         max={100}
         tone="warning"
@@ -152,7 +157,7 @@ export const Gauge: Story = {
         thickness={20}
         centerLabel="41"
         caption="readiness"
-        name="Readiness"
+        label="Readiness"
         value={41}
         max={100}
         tone="danger"
@@ -182,13 +187,13 @@ export const Details: Story = {
       <Chart.Donut
         centerLabel="80%"
         caption="satisfied"
-        name="Control coverage"
+        label="Control coverage"
         size={160}
         thickness={16}
         slices={coverage}
         details={(s) => (
           <Stack space="space.150">
-            <KeyValue label="Families" labelWidth={88}>
+            <KeyValue label="Families" labelWidth="narrow">
               {`${byFamily.filter((f) => f[s.slice.key === "s" ? "satisfied" : s.slice.key === "p" ? "partial" : s.slice.key === "o" ? "other" : "notAssessed"] > 0).length} of 6`}
             </KeyValue>
             <Button
@@ -237,7 +242,7 @@ export const Narrow: Story = {
             thickness={20}
             centerLabel="72"
             caption="posture"
-            name="Risk posture"
+            label="Risk posture"
             value={72}
             max={100}
             tone="warning"
@@ -247,10 +252,10 @@ export const Narrow: Story = {
             thickness={16}
             centerLabel="80%"
             caption="satisfied"
-            name="Control coverage"
+            label="Control coverage"
             slices={coverage}
           />
-          <Chart.Donut size={160} thickness={16} name="Coverage" slices={coverage} loading />
+          <Chart.Donut size={160} thickness={16} label="Coverage" slices={coverage} loading />
         </Stack>
       </Box>
       <Grid
@@ -265,7 +270,7 @@ export const Narrow: Story = {
           thickness={16}
           centerLabel="80%"
           caption="satisfied"
-          name="Control coverage, in a tile"
+          label="Control coverage, in a tile"
           slices={coverage}
         />
         <Chart.Donut
@@ -274,7 +279,7 @@ export const Narrow: Story = {
           thickness={20}
           centerLabel="72"
           caption="posture"
-          name="Risk posture, in a tile"
+          label="Risk posture, in a tile"
           value={72}
           max={100}
           tone="warning"
@@ -408,7 +413,7 @@ export const SmallShare: Story = {
         thickness={16}
         centerLabel="371"
         caption="current"
-        name="Accounts reviewed"
+        label="Accounts reviewed"
         slices={[
           { key: "c", label: "Current", value: 371, tone: "success" },
           { key: "x", label: "Expired", value: 1, tone: "danger" },
@@ -434,8 +439,119 @@ export const SmallShare: Story = {
   },
 };
 
+/** `label` names the ring, as it names every plot, and `centerLabel` is the number in the middle. In a Frame the title names the ring and neither is needed for the name. */
+export const Naming: Story = {
+  render: () => (
+    <Inline space="space.600" rowSpace="space.300" alignBlock="center" shouldWrap>
+      <Chart.Donut
+        label="Control coverage"
+        centerLabel="80%"
+        caption="satisfied"
+        slices={coverage}
+      />
+      <Box style={{ maxWidth: 320 }}>
+        <Chart title="Open findings" size="small">
+          <Chart.Donut
+            centerLabel="5"
+            caption="open"
+            slices={[
+              { key: "o", label: "Open", value: 5, tone: "danger" },
+              { key: "c", label: "Closed", value: 59, tone: "neutral" },
+            ]}
+          />
+        </Chart>
+      </Box>
+    </Inline>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const ring = canvas.getByRole("img", { name: "Control coverage" });
+    // The name is the ring's, never printed in the hole; the middle is `centerLabel`.
+    const box = ring.closest("[data-chart-plot]")!;
+    await expect(within(box as HTMLElement).queryByText("Control coverage")).toBeNull();
+    await expect(within(box as HTMLElement).getByText("80%")).toBeVisible();
+    // In a Frame the title names the ring.
+    await expect(canvas.getByRole("img", { name: "Open findings" })).toBeVisible();
+    await expect(canvas.getByText("5")).toBeVisible();
+  },
+};
+
+/** The earlier spelling, for one version: `name` still names the ring, and a `label` beside it, or one that is not a string, still draws the middle, each with a warning in development. `ledger/no-deprecated-name` rewrites them as `label` and `centerLabel`. */
+export const EarlierSpelling: Story = {
+  tags: ["!manifest"],
+  name: "Deprecated spellings",
+  render: () => (
+    <Inline space="space.600" rowSpace="space.300" alignBlock="center" shouldWrap>
+      <Chart.Donut label="62%" caption="assessed" name="Assessed" value={62} max={100} />
+      <Chart.Donut label={298} caption="satisfied" slices={coverage} name="Satisfied controls" />
+      <Chart.Donut name="Coverage by slice" slices={coverage} />
+    </Inline>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // `label` beside `name`: the middle, the ring named by `name`.
+    const assessed = canvas.getByRole("meter", { name: "Assessed" });
+    await expect(assessed).toHaveAttribute("aria-valuenow", "62");
+    await expect(canvas.getByText("62%")).toBeInTheDocument();
+    // A number in `label` is the middle.
+    await expect(canvas.getByRole("img", { name: "Satisfied controls" })).toBeVisible();
+    await expect(canvas.getByText("298")).toBeVisible();
+    // `name` alone names the ring.
+    await expect(canvas.getByRole("img", { name: "Coverage by slice" })).toBeVisible();
+  },
+};
+
+/** The ring's box takes native props and a ref: an `id`, `data-*` for a test, a handler. `aria-describedby` describes the ring: its svg, an image, when it chooses nothing; its group when its slices are the tab stops. */
+export const NativeAttributes: Story = {
+  render: () => (
+    <Inline space="space.600" alignBlock="start" shouldWrap>
+      <Stack space="space.100">
+        <Chart.Donut
+          slices={coverage}
+          centerLabel="80%"
+          caption="satisfied"
+          label="Control coverage"
+          data-testid="coverage-ring"
+          aria-describedby="coverage-note"
+          ref={(node) => node?.setAttribute("data-ref", "")}
+        />
+        <Text id="coverage-note" size="small" color="color.text.subtle">
+          Controls assessed this quarter.
+        </Text>
+      </Stack>
+      <Stack space="space.100">
+        <Chart.Donut
+          slices={coverage}
+          centerLabel="80%"
+          caption="satisfied"
+          label="Control coverage by slice"
+          onSelect={() => {}}
+          data-testid="coverage-slices"
+          aria-describedby="slices-note"
+        />
+        <Text id="slices-note" size="small" color="color.text.subtle">
+          Choose a slice for its controls.
+        </Text>
+      </Stack>
+    </Inline>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const box = canvas.getByTestId("coverage-ring");
+    await expect(box).toHaveAttribute("data-chart-plot");
+    await expect(box).toHaveAttribute("data-ref");
+    await expect(canvas.getByRole("img", { name: "Control coverage" })).toHaveAccessibleDescription(
+      "Controls assessed this quarter.",
+    );
+    const group = canvas.getByRole("group", { name: "Control coverage by slice" });
+    await expect(group).toBe(canvas.getByTestId("coverage-slices"));
+    await expect(group).toHaveAccessibleDescription("Choose a slice for its controls.");
+  },
+};
+
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -453,7 +569,7 @@ export const Dont: Story = {
         dont={
           <Chart.Donut
             centerLabel="5"
-            name="Open findings"
+            label="Open findings"
             slices={[
               { key: "o", label: "Open", value: 5, tone: "danger" },
               { key: "c", label: "Closed", value: 59, tone: "neutral" },
@@ -479,7 +595,7 @@ export const Dont: Story = {
         dont={
           <Inline space="space.200" rowSpace="space.200" alignBlock="center" shouldWrap>
             <Chart.Donut
-              name="Findings by source"
+              label="Findings by source"
               slices={bySource.map((s, i) => ({
                 key: s.source,
                 label: s.source,
@@ -506,7 +622,7 @@ export const Dont: Story = {
             thickness={16}
             centerLabel="72"
             caption="posture"
-            name="Risk posture"
+            label="Risk posture"
             value={72}
             max={100}
             tone="warning"
@@ -520,7 +636,7 @@ export const Dont: Story = {
             thickness={16}
             centerLabel="72"
             caption="posture"
-            name="Risk posture, with a remainder slice"
+            label="Risk posture, with a remainder slice"
             slices={[
               { key: "p", label: "Posture", value: 72, tone: "warning" },
               { key: "r", label: "To 100", value: 28, tone: "neutral" },

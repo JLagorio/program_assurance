@@ -1,6 +1,6 @@
 import { useRender } from "@base-ui/react/use-render";
 import { Link2 } from "lucide-react";
-import { useId, type ReactElement, type ReactNode } from "react";
+import { useId, type ComponentProps, type ReactElement, type ReactNode } from "react";
 
 import { Count } from "../components/badge";
 import { hasRenderedChildren, Item, type ItemSize } from "../components/item";
@@ -10,6 +10,7 @@ import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
 import { headingTag, useHeadingLevel } from "../primitives/heading-level";
 import { Card, raisedSurface } from "../components/card";
+import { token } from "../generated/tokens";
 import {
   Empty,
   EmptyContent,
@@ -38,11 +39,14 @@ export type RelatedEmpty =
       icon?: ReactNode;
     };
 
-export type RelatedProps = {
+/** A Related takes its Card's native props, `className` and `ref` too; `title` is the heading's. */
+export type RelatedProps = Omit<ComponentProps<"div">, "title" | "children"> & {
   /** The kind of record linked, a noun: "Linked findings", "Systems", "Team". A heading at the contextual level, an h3 outside every HeadingLevelProvider; a long one wraps. */
   title: ReactNode;
   /** A Count after the title: how many are linked. */
   count?: number | undefined;
+  /** The most `count` shows before it reads as `max+`, as Count's `max`: `9999` for a count of rows. 99 unsaid. */
+  countMax?: number | undefined;
   /** At the end of the heading's line: one small button ("Link", "Add") or a TextLink. */
   action?: ReactNode;
   /** Under the rows, after a rule: "See all 14" as a TextLink when the card shows a handful of many. */
@@ -62,6 +66,7 @@ export type RelatedProps = {
 function RelatedRoot({
   title,
   count,
+  countMax,
   action,
   footer,
   layout = "list",
@@ -69,6 +74,7 @@ function RelatedRoot({
   empty,
   className,
   children,
+  ...props
 }: RelatedProps) {
   const { t } = useLedgerLocale();
   const headingId = useId();
@@ -82,15 +88,15 @@ function RelatedRoot({
         : empty;
   const emptyIcon = "icon" in emptyProps ? emptyProps.icon : <Link2 />;
   return (
-    <Card className={cn("flex flex-col", className)}>
+    <Card {...props} className={cn("flex flex-col", className)}>
       <div className="flex items-center gap-100 border-b border-default px-200 py-100">
         <HeadingTag
           id={headingId}
-          className="min-w-0 break-words font-body font-semibold text-default"
+          className="min-w-0 break-words font-heading-section text-default"
         >
           {title}
         </HeadingTag>
-        {count !== undefined ? <Count value={count} /> : null}
+        {count !== undefined ? <Count value={count} max={countMax} /> : null}
         {action ? (
           <span className="ms-auto flex shrink-0 items-center gap-100">{action}</span>
         ) : null}
@@ -121,7 +127,9 @@ function RelatedRoot({
         <ul
           aria-labelledby={headingId}
           className="grid gap-150 p-200 stagger-children"
-          style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}
+          style={{
+            gridTemplateColumns: `repeat(auto-fit, minmax(${token("dimension.part.relatedCard")}, 1fr))`,
+          }}
         >
           {children}
         </ul>
@@ -141,7 +149,8 @@ function RelatedRoot({
   );
 }
 
-export type RelatedCardProps = {
+/** A Related.Card takes its list item's native props, `className` and `ref` too; `title` is the record's name. */
+export type RelatedCardProps = Omit<ComponentProps<"li">, "title" | "children"> & {
   /** The mark before the title, 32px: a medium Avatar, square for a thing and round for a person. It spans the title and the meta line. */
   leading?: ReactNode;
   /** The record's name, one line. With `link`, it is the link. A name that is cut shows in full in a tooltip on hover and on keyboard focus of the link. */
@@ -176,7 +185,9 @@ export function RelatedCard({
   properties,
   actions,
   className,
+  style,
   children,
+  ...props
 }: RelatedCardProps) {
   const text = <Truncate>{title}</Truncate>;
   const titleClass = "block min-w-0 font-body font-medium text-default";
@@ -194,11 +205,13 @@ export function RelatedCard({
   });
   return (
     <li
+      {...props}
       className={cn(
         "group/related-card flex list-none flex-col gap-100 rounded-large border border-default bg-surface-raised p-150 transition-shadow duration-fast ease-standard animate-rise hover:shadow-raised",
         className,
       )}
-      style={raisedSurface}
+      style={{ ...raisedSurface, ...style }}
+      data-slot="related-card"
     >
       <div className="flex items-center gap-100">
         {leading ? <span className="flex shrink-0 items-center">{leading}</span> : null}
@@ -213,8 +226,9 @@ export function RelatedCard({
         </div>
         {actions ? (
           // Shown while a menu of its own is open (Base UI marks the trigger `data-popup-open`), and
-          // always without hover: on a touch screen, and wherever any pointer is coarse.
-          <span className="flex h-250 shrink-0 items-center gap-025 opacity-0 transition-opacity duration-fast ease-standard focus-within:opacity-100 group-hover/related-card:opacity-100 has-[[data-popup-open]]:opacity-100 has-[[data-state=open]]:opacity-100 any-pointer-coarse:opacity-100 motion-reduce:transition-none [@media(hover:none)]:opacity-100">
+          // always wherever any pointer is coarse (the kit's touch predicate), where the reader may
+          // not be able to hover.
+          <span className="flex h-250 shrink-0 items-center gap-025 opacity-0 transition-opacity duration-fast ease-standard focus-within:opacity-100 group-hover/related-card:opacity-100 has-[[data-popup-open]]:opacity-100 has-[[data-state=open]]:opacity-100 any-pointer-coarse:opacity-100 motion-reduce:transition-none">
             {actions}
           </span>
         ) : null}
@@ -222,7 +236,7 @@ export function RelatedCard({
       {properties?.length ? (
         <div className="flex flex-col gap-025">
           {properties.slice(0, 6).map((p) => (
-            <KeyValue key={p.label} label={p.label} labelWidth={96}>
+            <KeyValue key={p.label} label={p.label} labelWidth="narrow">
               {p.value}
             </KeyValue>
           ))}

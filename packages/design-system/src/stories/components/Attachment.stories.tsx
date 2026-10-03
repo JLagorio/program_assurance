@@ -25,8 +25,12 @@ import { announce } from "../../lib/announce";
 import { DOWNLOAD_REVOKE_DELAY, downloadText } from "../../lib/download";
 import { Box, Stack, Text } from "../../primitives";
 import preview from "../_assets/attachment-preview.svg";
-import { Matrix } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Attachment",
@@ -55,6 +59,7 @@ const heard = () =>
   ).at(-1);
 
 export const AttachmentMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Matrix
       rows={states}
@@ -697,6 +702,7 @@ export const FileSizes: Story = {
 
 /** A failure says so in words; a danger border alone says nothing to a reader who cannot see it or tell the colour. */
 export const DoDont: Story = {
+  tags: ["!manifest"],
   name: "Do and don't",
   render: () => (
     <Pair

@@ -59,6 +59,7 @@ import {
 import { Skeleton } from "../../components/skeleton";
 import { Spinner } from "../../components/spinner";
 import { Table } from "../../components/table";
+import { TextLink } from "../../components/text-link";
 import { Toggle } from "../../components/toggle";
 import { headingTag, useHeadingLevel, type HeadingLevel } from "../../primitives/heading-level";
 import {
@@ -92,7 +93,8 @@ import {
 
 /* ---------- legend ---------- */
 
-export type ChartLegendProps = {
+/** A Chart.Legend takes its list's native props, `className` and `ref` too. */
+export type ChartLegendProps = Omit<ComponentProps<"ul">, "children"> & {
   series: ChartSeries[];
   /** A square for bars and areas, a stroke for lines, a dot for points. */
   swatch?: SwatchShape | undefined;
@@ -102,7 +104,13 @@ export type ChartLegendProps = {
 };
 
 /** Swatch and label per series. Inside a Frame the items are toggle buttons: a mouse hover or keyboard focus dims the other series, and a click hides or shows its own; a hidden series' swatch hollows. */
-export function ChartLegend({ series, swatch = "square", texture, className }: ChartLegendProps) {
+export function ChartLegend({
+  series,
+  swatch = "square",
+  texture,
+  className,
+  ...props
+}: ChartLegendProps) {
   const frame = useContext(FrameContext);
   const textured = texture ?? frame?.texture ?? false;
   const items = series.map((s, i) => ({
@@ -114,8 +122,9 @@ export function ChartLegend({ series, swatch = "square", texture, className }: C
   if (!frame)
     return (
       <ul
-        data-slot="chart-legend"
+        {...props}
         className={cn("flex flex-wrap items-center gap-x-200 gap-y-050", className)}
+        data-slot="chart-legend"
       >
         {items.map((it) => (
           <li key={it.key} className="flex items-center gap-075 font-body-small text-subtle">
@@ -127,8 +136,9 @@ export function ChartLegend({ series, swatch = "square", texture, className }: C
     );
   return (
     <ul
-      data-slot="chart-legend"
+      {...props}
       className={cn("flex flex-wrap items-center gap-x-100 gap-y-050", className)}
+      data-slot="chart-legend"
     >
       {items.map((it) => {
         const off = frame.hidden.has(it.key);
@@ -580,7 +590,12 @@ function ChartFrameView({
           {tools ? (
             <span data-slot="chart-frame-tools" className="flex flex-wrap items-center gap-050">
               {valuesToggle ? (
-                <Toggle size="sm" pressed={values} onPressedChange={setValues} disabled={!showing}>
+                <Toggle
+                  size="small"
+                  pressed={values}
+                  onPressedChange={setValues}
+                  disabled={!showing}
+                >
                   <Hash className="size-icon-small" aria-hidden />
                   {t("chartValues")}
                 </Toggle>
@@ -588,7 +603,7 @@ function ChartFrameView({
               {twin ? (
                 // Its name stays "Table"; `aria-pressed` says whether the table shows.
                 <Toggle
-                  size="sm"
+                  size="small"
                   pressed={showTable}
                   onPressedChange={setShowTable}
                   disabled={!showing}
@@ -762,7 +777,7 @@ function ChartFrameView({
   );
 }
 
-/** The twin as a Table: the category heads each row (`th scope="row"`), and each cell keeps its full width, so the table sizes to its content and scrolls in its own frame past the Frame's width, rather than clipping a word or a value. */
+/** The twin as a Table: the category heads each row (`th scope="row"`), and each cell keeps its full width, so the table sizes to its content and scrolls in its own frame past the Frame's width, rather than clipping a word or a value. A cell whose mark links in the plot is the same link here. */
 function TwinTable({ twin, label }: { twin: ChartTwin; label: string }) {
   return (
     <div>
@@ -785,7 +800,13 @@ function TwinTable({ twin, label }: { twin: ChartTwin; label: string }) {
                   rowHeader={i === 0}
                   className={cn("max-w-none", twin.columns[i]?.numeric && "text-end tabular-nums")}
                 >
-                  {cell.text}
+                  {cell.link ? (
+                    <TextLink render={cell.link} aria-label={cell.label}>
+                      {cell.text}
+                    </TextLink>
+                  ) : (
+                    cell.text
+                  )}
                 </Table.Cell>
               ))}
             </Table.Row>

@@ -4,12 +4,21 @@ import { expect, within } from "storybook/test";
 
 import { Absent, Eyebrow, KeyValue, Prose, tones } from "../../components";
 import { Box, Inline, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
 
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
+
+/**
+ * Typography: Eyebrow, Absent and Prose, the three parts between Text and Heading. No one of them
+ * names the page, so the meta names no `component` and MCP lists the page by its title; the three
+ * are its `subcomponents`, and the Playground renders the Eyebrow.
+ */
 const meta = {
   title: "Components/Typography",
-  component: Eyebrow,
+  subcomponents: { Eyebrow, Absent, Prose },
   parameters: { layout: "padded" },
   args: { children: "Rationale" },
 } satisfies Meta<typeof Eyebrow>;
@@ -18,6 +27,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Eyebrow in every tone and as a heading; Absent; Prose in every tone. */
 export const TypographyMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="Eyebrow">
@@ -34,12 +44,12 @@ export const TypographyMatrix: Story = {
           <dd>SHA-256 with RSA</dd>
         </dl>
       </Specimens>
-      <Specimens title="Absent, and Absent with a label for a screen reader">
+      <Specimens title="Absent, heard as Not recorded, and Absent with a label that says more">
         <Text>
           Assessor: <Absent />
         </Text>
         <Text>
-          Assessor: <Absent label="Not recorded" />
+          Due: <Absent label="No due date" />
         </Text>
       </Specimens>
       <Stack space="space.200" className="max-w-layout-measure">
@@ -84,6 +94,7 @@ export const InRail: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -129,7 +140,14 @@ export const Dont: Story = {
   ),
 };
 
-export const Playground: Story = {};
+/** The Eyebrow's tone and words as controls. */
+export const Playground: StoryObj<typeof Eyebrow> = {
+  argTypes: {
+    tone: { control: "select", options: tones },
+    as: { control: "inline-radio", options: ["div", "h2", "h3", "h4"] },
+  },
+  render: (args) => <Eyebrow {...args}>{args.children}</Eyebrow>,
+};
 
 const statement = `The organization disables accounts that have been inactive for 90 days.
 
@@ -248,12 +266,12 @@ export const ProseLarge: Story = {
   },
 };
 
-/** Absent with a `label`: the dash is hidden from a screen reader, which hears the label in its place. */
-export const AbsentLabelled: Story = {
+/** A bare Absent: the dash is hidden from a screen reader, which hears the locale's `absent` message, "Not recorded", in its place. */
+export const AbsentDefault: Story = {
   render: () => (
     <Box style={{ maxWidth: 300 }}>
       <KeyValue label="Assessor">
-        <Absent label="Not recorded" />
+        <Absent />
       </KeyValue>
     </Box>
   ),
@@ -264,6 +282,26 @@ export const AbsentLabelled: Story = {
       "data-slot",
       "visually-hidden",
     );
+  },
+};
+
+/** Absent with a `label` that says more than the default: the reader hears the label in place of the dash. */
+export const AbsentLabelled: Story = {
+  render: () => (
+    <Box style={{ maxWidth: 300 }}>
+      <KeyValue label="Due">
+        <Absent label="No due date" />
+      </KeyValue>
+    </Box>
+  ),
+  play: async ({ canvasElement }) => {
+    const absent = canvasElement.querySelector<HTMLElement>('[data-slot="absent"]')!;
+    await expect(absent.querySelector('[aria-hidden="true"]')).toHaveTextContent("—");
+    await expect(within(absent).getByText("No due date")).toHaveAttribute(
+      "data-slot",
+      "visually-hidden",
+    );
+    await expect(within(absent).queryByText("Not recorded")).toBeNull();
   },
 };
 

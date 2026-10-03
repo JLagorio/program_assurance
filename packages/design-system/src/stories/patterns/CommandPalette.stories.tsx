@@ -20,7 +20,10 @@ import {
 
 import { CommandPalette, useCommandPalette, type PaletteCommand } from "../..";
 import { Stack } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Patterns/CommandPalette",
@@ -88,7 +91,7 @@ const press = (init: KeyboardEventInit) =>
  */
 export const CommandPaletteStory: Story = {
   name: "Command palette",
-  render: () => <PaletteDemo />,
+  render: PaletteDemo,
   play: async ({ canvasElement }) => {
     const page = within(canvasElement.ownerDocument.body);
     const apple = getModifierKey() === "meta";
@@ -270,6 +273,7 @@ function Rows({ children }: { children: ReactNode }) {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair

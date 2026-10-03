@@ -3,27 +3,27 @@
     "$type": "dimension",
     "xsmall": {
       "$value": "2px",
-      "$description": "Draft, on a 5px base. Kbd, tiny chips."
+      "$description": "Kbd, tiny chips. The smallest step."
     },
     "small": {
       "$value": "3px",
-      "$description": "Draft. Count chips, the checkbox, skeleton lines, inline hit targets."
+      "$description": "Count chips, the checkbox, skeleton lines, inline hit targets."
     },
     "medium": {
       "$value": "5px",
-      "$description": "Draft. Buttons, inputs, chips, tooltips, menu items."
+      "$description": "Buttons, inputs, chips, tooltips, menu items. The scale's base."
     },
     "large": {
       "$value": "7px",
-      "$description": "Draft. Cards, popovers, hover cards, menus and listboxes."
+      "$description": "Cards, popovers, hover cards, menus and listboxes."
     },
     "xlarge": {
       "$value": "9px",
-      "$description": "Draft. No part yet: a sheet runs flush to the window's edge, and a dialog is xxlarge."
+      "$description": "A large surface of a product's own, between a card and a dialog. No kit part draws it: a sheet runs flush to the window's edge, and a dialog is xxlarge."
     },
     "xxlarge": {
       "$value": "12px",
-      "$description": "Draft. Dialogs, the command palette, a drawer's free edge, spotlight cards."
+      "$description": "Dialogs, the command palette, a drawer's free edge, spotlight cards."
     },
     "full": {
       "$value": "9999px",

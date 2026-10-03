@@ -7,9 +7,28 @@ import * as Stories from "./Separator.stories";
 
 # Separator
 
+**Status: Stable.**
+
 A hairline between siblings: two blocks in a stack or two groups in a toolbar. Built on the shadcn Base UI Separator, with Ledger's `color.border` and parent-owned spacing. Rows, menus and tables already draw their own rules.
 
 <Canvas of={Stories.SeparatorMatrix} />
+
+## When to use it
+
+- **Between two groups that are siblings** where space alone does not part them: the groups of actions in a toolbar, two blocks in a stack that hold different kinds of content.
+- **Vertical, in a flex row**, between groups of controls.
+
+Not between rows, menu items or table rows: [Item](?path=/docs/components-item--docs).Group, the [DropdownMenu](?path=/docs/components-dropdownmenu--docs)'s own separator and a [Table](?path=/docs/components-table--docs) draw their rules. Not around a container that has an edge or a surface of its own, such as a [Card](?path=/docs/components-card--docs), and not under a heading: a [Section](?path=/docs/layout-section--docs) draws that rule with `divided`. Not to divide a form's sections with a word in the rule: that is a `FieldSeparator` ([Field](?path=/docs/components-field--docs), Parts). Not as a drag handle: that is [Resizable](?path=/docs/components-resizable--docs)'s.
+
+## Content
+
+- A separator says nothing of its own. What the groups are is said by their headings or labels, not by the rule.
+- A rule a screen reader announces, such as the one between a toolbar's groups, may take an `aria-label` that says what it divides ("Editing actions", in Native composition below). A rule that only draws a line is `isDecorative`.
+- One rule between two groups, never one at the start or the end of a list or a row.
+
+A list of rows is an Item.Group or a Table, which draw their own hairlines, never text with a Separator between each row. A rule never opens or closes a stack: with nothing on one side it is a border, which the container draws. A vertical rule goes in a flex row such as an Inline, never in a column, where it has no height to stretch to and draws nothing.
+
+<Canvas of={Stories.Dont} />
 
 ## Anatomy
 
@@ -19,13 +38,13 @@ Ledger retains its existing border paint instead of the reference's background-f
 
 ## Variants and composition
 
-| Option | Behavior |
-| --- | --- |
-| `orientation="horizontal"` | Default. Spans its container between stacked blocks. |
-| `orientation="vertical"` | Stretches inside a flex row, such as an Inline or toolbar. |
-| `isDecorative` | Hides a purely visual rule from assistive technology. Defaults to `false`. |
-| `render` | Replaces the default element or composes a custom component. |
-| `className` / `style` | Accept a value or a callback receiving `{ orientation }`. |
+| Option                     | Behavior                                                                   |
+| -------------------------- | -------------------------------------------------------------------------- |
+| `orientation="horizontal"` | Default. Spans its container between stacked blocks.                       |
+| `orientation="vertical"`   | Stretches inside a flex row, such as an Inline or toolbar.                 |
+| `isDecorative`             | Hides a purely visual rule from assistive technology. Defaults to `false`. |
+| `render`                   | Replaces the default element or composes a custom component.               |
+| `className` / `style`      | Accept a value or a callback receiving `{ orientation }`.                  |
 
 Native props and refs reach the rendered element. Base UI merges props, event handlers, classes, styles and refs from a rendered element. A render callback or custom component must forward the supplied props and ref.
 
@@ -35,9 +54,7 @@ Native props and refs reach the rendered element. Base UI merges props, event ha
 <Separator
   orientation="vertical"
   aria-label="Editing actions"
-  className={({ orientation }) =>
-    orientation === "vertical" ? "border-bold" : undefined
-  }
+  className={({ orientation }) => (orientation === "vertical" ? "border-bold" : undefined)}
 />
 ```
 
@@ -50,7 +67,7 @@ Native props and refs reach the rendered element. Base UI merges props, event ha
 
 ## Props
 
-`SeparatorProps` includes the Base UI primitive props and Ledger's optional `isDecorative`. See the [Base UI API](https://base-ui.com/react/components/separator#api-reference) for native composition and state callbacks.
+`SeparatorProps` includes the Base UI primitive props and Ledger's optional `isDecorative`. Separator takes native div props, its ref, `render`, and class and style callbacks, and carries `data-slot="separator"` and `data-orientation`. See the [Base UI API](https://base-ui.com/react/components/separator#api-reference) for native composition and state callbacks.
 
 <ArgTypes of={Separator} />
 
@@ -58,17 +75,10 @@ Native props and refs reach the rendered element. Base UI merges props, event ha
 
 <Controls of={Stories.Playground} />
 
-## Migration
-
-Existing `orientation`, `isDecorative` and string `className` callers continue to work. Separator now uses Base UI and also accepts native div props, refs, `render`, and callback classes/styles. No consumer rename is required.
-
-`data-slot="separator"` and `data-orientation` are available for integration. The existing one-pixel `color.border` appearance and parent-owned spacing remain. Decorative separators retain their previous hidden semantics.
-
 ## Related
 
 - [Stack](?path=/docs/primitives-stack--docs) and [Inline](?path=/docs/primitives-inline--docs): the gap around the rule.
 - [Toolbar](?path=/docs/patterns-toolbar--docs): groups separated vertically.
 - [Item](?path=/docs/components-item--docs): rows with their own separators.
 - [Resizable](?path=/docs/components-resizable--docs): an interactive resize handle.
-
-<Canvas of={Stories.Dont} />
+- [Upgrading](?path=/docs/guidance-upgrading--docs#separator): the earlier API's spellings and what they are now.

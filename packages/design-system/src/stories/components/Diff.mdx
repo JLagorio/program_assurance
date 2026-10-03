@@ -7,6 +7,8 @@ import * as Stories from "./Diff.stories";
 
 # Diff
 
+**Status: Stable.**
+
 What changed between two versions of a text: a revised statement, a library update against the copy in use, a tailored narrative against its baseline. Removed lines are marked −, added lines +, the words that changed inside an edited line are struck through or underlined, and unchanged runs fold behind a button so the reader sees the change, not two full copies.
 
 It compares; it does not edit or decide. The caller owns what the two texts are and what happens next (accept the update, keep the tailoring). One text on its own is [CodeBlock](?path=/docs/components-codeblock--docs) for source or [Text](?path=/docs/primitives-text--docs) for prose; what happened to a record over time is a [Timeline](?path=/docs/components-timeline--docs); two values per record across many records is a [DataTable](?path=/docs/patterns-data-table--docs) column, with a Diff in the row's preview when the reader needs the change.
@@ -17,7 +19,7 @@ It compares; it does not edit or decide. The caller owns what the two texts are 
 
 | Part       | What it is                                                                                                                                                                                  |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Frame      | A group named `Changes from {beforeLabel} to {afterLabel}`, on `elevation.surface` with a 1px `color.border` and `radius.medium`.                                                           |
+| Frame      | A group named `Changes from {beforeLabel} to {afterLabel}`, on the surface it sits on (`utility.elevation.surface.current`) with a 1px `color.border` and `radius.medium`.                  |
 | Header     | The legend (− and the earlier text's label, + and the later's) and the summary at the end: "3 changed, 1 added, 1 removed", or "No differences". Side by side, each label heads its column. |
 | Line       | A row: optional line numbers, the marker (+, − or blank) and the text, which keeps its spacing and wraps. Removed lines on `color.background.danger.subtler`, added on `.success.subtler`.  |
 | Word marks | Inside an edited line, the removed words in a `<del>`, struck through on `color.background.danger.subtle`; the added words in an `<ins>`, underlined on `color.background.success.subtle`.  |
@@ -122,5 +124,7 @@ The legend, the summary, the hidden prefixes and the fold's words come from the 
 - [Collapsible](?path=/docs/components-collapsible--docs): the disclosure under each fold.
 
 ## Don't
+
+What changed is a Diff, which marks the changed words in more than colour, never two full copies the reader compares by eye.
 
 <Canvas of={Stories.Dont} />

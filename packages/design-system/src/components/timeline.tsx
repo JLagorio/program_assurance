@@ -91,8 +91,8 @@ const TimelineContext = createContext<Ctx>({
 const GroupContext = createContext<{ first: boolean; last: boolean } | null>(null);
 
 export type TimelineProps = Omit<ComponentProps<"ol">, "children" | "className"> & {
-  /** The list's accessible name: "Activity", "History", "Releases". */
-  label?: string | undefined;
+  /** The list's accessible name, required so the events are never an unnamed list: "Activity", "History", "Releases". An `aria-label` overrides it. */
+  label: string;
   /** `vertical`, the default, reads down with the rail on the left: a feed, a history. `horizontal` reads across with the rail on top: releases, a journey. Groups are vertical only. */
   orientation?: TimelineOrientation | undefined;
   /** The marker's scale, and with it the row. `medium` (20px) is the default: a ring holding a Dot, a disc with an icon, an `xsmall` Avatar. `small` (16px) is a bare Dot for a dense log. `large` (24px) is a `small` Avatar or a disc for a feed of people and a workflow's stages. */
@@ -230,7 +230,7 @@ export type TimelineItemProps = Omit<ComponentProps<"li">, "title" | "children" 
   icon?: ReactElement<{ className?: string | undefined }> | undefined;
   /** What happened, one line. It truncates, and shows whole on hover and on keyboard focus of the row while it is cut. On a row that opens, this is the link or button, stretched over the row. A Badge may sit inside it; a name may lead it. */
   title: ReactNode;
-  /** Under the title, one line, subtle: who, and the kind. */
+  /** Under the title, subtle: who, and the kind. One line that shows whole on hover while it is cut; it wraps where the list's titles wrap and on a row that opens. */
   meta?: ReactNode;
   /** Under the meta, `font.body.small`, wrapping: what the event amounts to, in a sentence. */
   description?: ReactNode;
@@ -432,8 +432,15 @@ export function TimelineItem({
     clickable && "transition-colors duration-fast ease-standard hover:bg-neutral-subtle-hovered",
     isActive && "bg-selected hover:bg-selected-hovered",
   );
+  // One line that shows whole on hover while it is cut. Where titles wrap it wraps too, and so it
+  // does on a row that opens, whose stretched link lies over it and would take the hover.
+  const metaClass = "max-w-full font-body-xsmall text-subtle";
   const metaEl = meta ? (
-    <span className="block max-w-full truncate font-body-xsmall text-subtle">{meta}</span>
+    wrap || clickable ? (
+      <span className={cn("block break-words", metaClass)}>{meta}</span>
+    ) : (
+      <Truncate className={metaClass}>{meta}</Truncate>
+    )
   ) : null;
   const descriptionEl = description ? (
     <span className="block max-w-full break-words font-body-small text-subtle">{description}</span>

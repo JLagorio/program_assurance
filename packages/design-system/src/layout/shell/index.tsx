@@ -60,6 +60,7 @@ export type {
 } from "./side-nav";
 export type {
   ShellPanelActionsProps,
+  ShellPanelBackProps,
   ShellPanelBodyProps,
   ShellPanelCloseProps,
   ShellPanelFocusTarget,

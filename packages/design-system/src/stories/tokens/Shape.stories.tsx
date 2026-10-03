@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Group, Page, Spec, under } from "../_lib/sheet";
+import * as tokenSheet from "../_lib/sheet";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Group, Page, Spec, under } = tokenSheet;
 
 const meta = { title: "Tokens/Shape", parameters: { layout: "padded" } } satisfies Meta;
 export default meta;

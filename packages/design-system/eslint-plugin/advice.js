@@ -11,6 +11,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { SPACE_KEYS } from "./classes.js";
+import { lintValues } from "./data.js";
 import { bleedSteps, lengthOfKey, lengthPx, nearestSpace } from "./nearest.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -382,14 +383,38 @@ export function styleSpaceUse(property, value, { kit = false, plain = false, par
 export const OVERLAY_PRESETS =
   JSON.parse(fs.readFileSync(path.join(here, "components.json"), "utf8")).presets ?? {};
 
+/** A Drawer's width steps, which its stylesheet (styles/drawer.css) draws from a role token each
+    rather than a map in its source, by step and token. */
+const DRAWER_STEPS = {
+  small: "dimension.part.drawerSmall",
+  medium: "dimension.part.drawer",
+  large: "dimension.part.drawerLarge",
+};
+let drawerPreset;
+/** DrawerContent's steps with their widths from the tokens, read the first time they are asked; a
+    step's width is null while the lint data is stale. */
+function drawerPresetNow() {
+  if (!drawerPreset) {
+    const tokens = lintValues()?.tokens ?? {};
+    drawerPreset = {
+      prop: "width",
+      steps: Object.fromEntries(
+        Object.entries(DRAWER_STEPS).map(([step, name]) => [step, tokens[name]?.px ?? null]),
+      ),
+    };
+  }
+  return drawerPreset;
+}
+
 /**
  * What a sized overlay takes in place of a width written by hand, as a sentence: the step of its
  * own map nearest `width` (px, when the lint can read one), both when two are as near, or every
- * step; for a DrawerContent, which takes none, that it spans the window's edge.
+ * step. A DrawerContent's steps are its tokens' (drawerPresetNow).
  */
 export function presetAdvice(part, width) {
-  const preset = OVERLAY_PRESETS[part];
-  if (!preset) return "A drawer spans the window's edge and takes no width: drop it.";
+  const preset =
+    OVERLAY_PRESETS[part] ?? (part === "DrawerContent" ? drawerPresetNow() : undefined);
+  if (!preset) return "";
   const steps = Object.entries(preset.steps);
   const value = (name, size) => `${preset.prop}="${name}"${size === null ? "" : ` (${size}px)`}`;
   const sized = steps.filter(([, size]) => size !== null);

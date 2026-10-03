@@ -14,7 +14,6 @@ import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
 import {
   compareDays,
-  dateToDay,
   formatIsoDay,
   parseInstant,
   parseIsoDay,
@@ -116,7 +115,10 @@ type DateTimeOwnProps = {
    * dense list whose rows or preview already show the full value.
    */
   focusable?: boolean | undefined;
-  /** What a screen reader hears where there is no value, as Absent's `label`. */
+  /**
+   * What a screen reader hears where there is no value, as Absent's `label`: "No due date".
+   * Without it, "Not recorded", the locale's default.
+   */
   absentLabel?: string | undefined;
   ref?: Ref<HTMLTimeElement> | undefined;
 };
@@ -260,7 +262,7 @@ export type RelativeTimeProps = Omit<DateTimeProps, "format" | "showTimeZone"> &
  * exact value is in the tooltip and the `<time>` element. A day reads relative to today.
  */
 export function RelativeTime({ value, now, unitStyle = "long", ...props }: RelativeTimeProps) {
-  const { locale, formatRelative } = useLedgerLocale();
+  const { locale, formatRelative, zonedParts } = useLedgerLocale();
   const read = useRead(value, "RelativeTime");
   const [clock, setClock] = useState(() => (now === undefined ? Date.now() : +now));
   const current = now === undefined ? clock : +now;
@@ -271,9 +273,10 @@ export function RelativeTime({ value, now, unitStyle = "long", ...props }: Relat
     text = words.text;
     next = words.next;
   } else if (read?.kind === "day") {
+    // Today is the reader's: the day the provider's zone is on.
     text = relativeDay(
       read.day,
-      dateToDay(new Date(current)),
+      zonedParts(current),
       new Intl.RelativeTimeFormat(locale, { numeric: "auto", style: unitStyle }),
     );
   }
@@ -288,23 +291,35 @@ export function RelativeTime({ value, now, unitStyle = "long", ...props }: Relat
 
 /** Where a due date stands against now. */
 export type DateLabelState = "overdue" | "today" | "soon" | "upcoming" | "complete";
+/** What the date is: a date the work is due by, or the day a thing stops holding. */
+export type DateLabelKind = "due" | "expiry";
 
 export type DateLabelProps = Omit<ComponentProps<"span">, "children"> & {
   /** The due date: an ISO day, compared with the reader's today, or an instant, compared with now in the provider's zone. Nothing shows Absent. */
   value: DateTimeValue;
   /** The work is done: the date shows plainly, never due or overdue. */
   complete?: boolean | undefined;
+  /**
+   * What the date is, which picks the words: `due` (the default) reads Overdue, Due today and Due
+   * tomorrow; `expiry`, the day an approval or evidence stops holding, reads Expired, Expires today
+   * and Expires tomorrow. The states and tones are the same.
+   */
+  kind?: DateLabelKind | undefined;
   /** How many days ahead read as soon ("Due tomorrow", "Due in 2 days"), in the warning tone. 2 by default; 0 turns it off. */
   soonWithin?: number | undefined;
   /** The moment the state is judged from; by default the clock at render. */
   now?: Date | number | undefined;
   /** How the date shows, as on DateTime: a day's `date` and an instant's `datetime` by default. */
   format?: DateTimeFormat | undefined;
-  /** What a screen reader hears where there is no value. */
+  /**
+   * What a screen reader hears where there is no value, as DateTime's `absentLabel`: "No due
+   * date". Without it, "Not recorded", the locale's default.
+   */
   absentLabel?: string | undefined;
 };
 
-const stateLook: Record<DateLabelState, { className: string; icon: ReactNode }> = {
+/** Each due state's tone and icon, shared by DateLabel and Editable.Date's `due`. */
+export const dueStateLook: Record<DateLabelState, { className: string; icon: ReactNode }> = {
   overdue: { className: toneClasses.danger.subtle, icon: <CircleAlert aria-hidden /> },
   today: { className: toneClasses.warning.subtle, icon: <Clock aria-hidden /> },
   soon: { className: toneClasses.warning.subtle, icon: <Clock aria-hidden /> },
@@ -313,36 +328,37 @@ const stateLook: Record<DateLabelState, { className: string; icon: ReactNode }> 
 };
 
 /**
- * A due date that says where it stands: overdue, due today and due soon each carry an icon and
- * words beside the date as well as a tone, so the state never rests on colour. A completed item's
- * date shows plainly.
+ * Where a due date stands against now and the words that say so, or null where there is no date.
+ * Today is the reader's: the day the LedgerProvider's zone is on, for a calendar day as for an
+ * instant, so a day reads overdue from the reader's midnight and a server render agrees with the
+ * browser's. DateLabel and Editable.Date's `due` read it.
  */
-export function DateLabel({
-  value,
-  complete = false,
-  soonWithin = 2,
-  now,
-  format,
-  absentLabel,
-  className,
-  ...props
-}: DateLabelProps) {
+export function useDueState(
+  value: DateTimeValue,
+  {
+    complete = false,
+    kind = "due",
+    soonWithin = 2,
+    now,
+    part = "DateLabel",
+  }: {
+    complete?: boolean | undefined;
+    kind?: DateLabelKind | undefined;
+    soonWithin?: number | undefined;
+    now?: Date | number | undefined;
+    /** The part asking, for the warning a value that is no date earns. */
+    part?: string | undefined;
+  } = {},
+): { state: DateLabelState; words: string | null } | null {
   const { t, locale, zonedParts } = useLedgerLocale();
-  const read = useRead(value, "DateLabel");
-  if (!read)
-    return (
-      <DateTime
-        value={value}
-        {...(absentLabel ? { absentLabel } : {})}
-        {...(className ? { className } : {})}
-      />
-    );
+  const read = useRead(value, part);
+  if (!read) return null;
   const moment = now === undefined ? Date.now() : +now;
   let state: DateLabelState = "upcoming";
   let days = 0;
   if (complete) state = "complete";
   else {
-    const today = read.kind === "day" ? dateToDay(new Date(moment)) : zonedParts(moment);
+    const today = zonedParts(moment);
     const dueDay = read.kind === "day" ? read.day : zonedParts(read.instant);
     const order = compareDays(dueDay, today);
     days = Math.round(
@@ -354,21 +370,51 @@ export function DateLabel({
     else if (order === 0) state = "today";
     else if (soonWithin > 0 && days <= soonWithin) state = "soon";
   }
+  const relative = new Intl.RelativeTimeFormat(locale, { numeric: "auto" }).format(days, "day");
+  const expiry = kind === "expiry";
   const words: Record<DateLabelState, string | null> = {
-    overdue: t("dateOverdue"),
-    today: t("dateDueToday"),
-    soon: t("dateDueSoon", {
-      relative: new Intl.RelativeTimeFormat(locale, { numeric: "auto" }).format(days, "day"),
-    }),
+    overdue: t(expiry ? "dateExpired" : "dateOverdue"),
+    today: t(expiry ? "dateExpiresToday" : "dateDueToday"),
+    soon: t(expiry ? "dateExpiresSoon" : "dateDueSoon", { relative }),
     upcoming: null,
     complete: null,
   };
-  const look = stateLook[state];
+  return { state, words: words[state] };
+}
+
+/**
+ * A due date that says where it stands: overdue, due today and due soon each carry an icon and
+ * words beside the date as well as a tone, so the state never rests on colour. A completed item's
+ * date shows plainly. An expiry (`kind="expiry"`) says Expired, Expires today and Expires soon.
+ */
+export function DateLabel({
+  value,
+  complete = false,
+  kind = "due",
+  soonWithin = 2,
+  now,
+  format,
+  absentLabel,
+  className,
+  ...props
+}: DateLabelProps) {
+  const due = useDueState(value, { complete, kind, soonWithin, now, part: "DateLabel" });
+  if (!due)
+    return (
+      <DateTime
+        value={value}
+        {...(absentLabel ? { absentLabel } : {})}
+        {...(className ? { className } : {})}
+      />
+    );
+  const { state, words } = due;
+  const look = dueStateLook[state];
   return (
     <span
       {...props}
       data-slot="date-label"
       data-state={state}
+      data-kind={kind}
       className={cn(
         "inline-flex max-w-full items-center gap-050 rounded-small px-075 py-025 font-body-small whitespace-nowrap [&>svg]:size-icon-small [&>svg]:shrink-0",
         look.className,
@@ -377,10 +423,10 @@ export function DateLabel({
     >
       {look.icon}
       <DateTime value={value} {...(format ? { format } : {})} />
-      {words[state] ? (
+      {words ? (
         <>
           <span aria-hidden="true">·</span>
-          <span className="font-medium">{words[state]}</span>
+          <span className="font-medium">{words}</span>
         </>
       ) : null}
     </span>

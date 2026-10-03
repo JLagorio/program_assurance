@@ -12,7 +12,21 @@ import * as Stories from "./InputGroup.stories";
 
 # InputGroup
 
+**Status: Stable.**
+
 Compose an input or textarea with icons, units and actions using shadcn's InputGroup parts. The group supplies the shared border and focus/invalid appearance.
+
+## When to use it
+
+- **A field with something joined to it**: a unit ("days"), a prefix ("$"), an icon, a keyboard hint, or a button that acts on the value (clear, copy).
+
+Not for a field with nothing beside it: that is an [Input](?path=/docs/components-input--docs) or a [Textarea](?path=/docs/components-textarea--docs). Not for buttons joined with no field: that is a [ButtonGroup](?path=/docs/components-buttongroup--docs). Not for searching a collection: that is a [SearchField](?path=/docs/components-searchfield--docs).
+
+## Content
+
+- A unit or a prefix is the shortest form the reader knows ("days", "$") and never repeats the label.
+- An icon-only button's `label` names its action and its object: "Clear link", "Clear search".
+- The label is the Field's; an addon never stands in for it.
 
 ## Anatomy
 
@@ -36,7 +50,11 @@ Addons are InputGroupAddon children, and the control is InputGroupInput or Input
 
 ## Variants and states
 
-Addon alignment is `inline-start` (default), `inline-end`, `block-start` or `block-end`. Inline positions follow text direction. Block addons create a header or footer around the control. InputGroupButton supports `xs`, `sm`, `icon-xs` and `icon-sm`, with Ledger Button variants.
+Addon alignment is `inline-start` (default), `inline-end`, `block-start` or `block-end`. Inline positions follow text direction. Block addons create a header or footer around the control.
+
+InputGroupButton takes Ledger Button variants (`subtle` by default) and Button's `xsmall` (24px, the default) or `small` (28px). With `icon` and `label` it is an icon-only square that `label` names: a clear, a copy or a calendar button. It shows no tooltip, since the field beside it says what it acts on; a control that needs one outside a field is an [IconButton](?path=/docs/components-iconbutton--docs). `xs` and `sm` are the deprecated spellings of `xsmall` and `small`, and `icon-xs` and `icon-sm` the deprecated square forms that `icon` and `label` replace, each kept for one version. The group takes its height from the control in it: a `size="small"` Input or SelectTrigger makes it 28px, and a small button in an addon leaves it as it is.
+
+<Canvas of={Stories.Buttons} />
 
 `align` places an addon; the DOM places it in the focus order. Write the control first and the addons after it: an addon takes its position from `align`, so an interactive addon aligned `inline-start` still follows the input in the Tab order, the order a screen reader meets them in.
 
@@ -54,7 +72,7 @@ A keyboard hint, an InputGroupText holding a [Kbd](?path=/docs/components-kbd--d
 
 ## Accessibility
 
-Label the control with Field or an explicit accessible name. The group and its addons are not groups of their own to assistive technology: InputGroup takes `role="group"` only when it is given a name (`aria-label` or `aria-labelledby`), for a frame that holds several controls. Decorative icons use `aria-hidden`; explanatory text and actions remain available to assistive technology. Give icon buttons accessible names. Addon buttons are real keyboard stops and default to `type="button"`. Clicking non-interactive addon space focuses the input or textarea; custom click handlers can cancel this.
+Label the control with Field or an explicit accessible name. The group and its addons are not groups of their own to assistive technology: InputGroup takes `role="group"` only when it is given a name (`aria-label` or `aria-labelledby`), for a frame that holds several controls, and drops an unnamed `group` role a composing part hands it, as Combobox's input does. Decorative icons use `aria-hidden`; explanatory text and actions remain available to assistive technology. Give icon buttons accessible names. Addon buttons are real keyboard stops and default to `type="button"`. Clicking non-interactive addon space focuses the input or textarea; custom click handlers can cancel this.
 
 <Canvas of={Stories.SearchBox} />
 
@@ -70,8 +88,10 @@ Group and Addon accept native div props and refs; Text accepts span props. Input
 
 ## Related
 
-[Input](?path=/docs/components-input--docs) · [Textarea](?path=/docs/components-textarea--docs) · [Combobox](?path=/docs/components-combobox--docs) · [shadcn InputGroup](https://ui.shadcn.com/docs/components/base/input-group)
+[Input](?path=/docs/components-input--docs) · [Textarea](?path=/docs/components-textarea--docs) · [Combobox](?path=/docs/components-combobox--docs) · [shadcn InputGroup](https://ui.shadcn.com/docs/components/base/input-group) · [Upgrading](?path=/docs/guidance-upgrading--docs#inputgroup)
 
 ## Don't
+
+In a row too crowded for a field, the search is an icon button that opens it in a dialog, never a field squeezed beside the row's actions until it is too narrow to type in.
 
 <Canvas of={Stories.Dont} />

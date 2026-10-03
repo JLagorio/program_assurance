@@ -49,8 +49,8 @@ export function FieldSet({ className, disabled, render, ...props }: FieldSetProp
   return (
     <FieldSetStateContext.Provider value={state}>
       <FieldsetPrimitive.Root
-        data-slot="field-set"
         {...(props as FieldsetPrimitive.Root.Props)}
+        data-slot="field-set"
         disabled={resolved}
         render={render}
         className={cn("flex min-w-0 flex-col gap-100", className)}
@@ -106,17 +106,17 @@ export function FieldLegend({
   if (inFieldSet)
     return (
       <FieldsetPrimitive.Legend
-        data-slot="field-legend"
-        data-variant={variant}
         render={<legend />}
         {...(props as FieldsetPrimitive.Legend.Props)}
+        data-slot="field-legend"
+        data-variant={variant}
         className={classes}
       >
         {content}
       </FieldsetPrimitive.Legend>
     );
   return (
-    <legend data-slot="field-legend" data-variant={variant} className={classes} {...props}>
+    <legend {...props} data-slot="field-legend" data-variant={variant} className={classes}>
       {content}
     </legend>
   );
@@ -126,24 +126,34 @@ export type FieldGroupProps = ComponentProps<"div">;
 export function FieldGroup({ className, ...props }: FieldGroupProps) {
   return (
     <div
+      {...props}
       data-slot="field-group"
       className={cn(
-        "group/field-group @container/field-group flex w-full min-w-0 flex-col gap-200 data-[slot=checkbox-group]:gap-150",
+        "group/field-group @container/field-group flex w-full min-w-0 flex-col gap-200",
         className,
       )}
-      {...props}
     />
   );
 }
 
+/* A choice control (Checkbox, Radio, Switch) sits on the first line of its label, however many
+   lines the label wraps to: the row aligns to the top, the 16px box and radio fill the label's
+   16px line (font.body.small), and beside a medium Switch (20px) the text steps down space.025 so
+   its first line centres on the track. Any other control centres on its label. */
 const fieldVariants = cva("group/field flex min-w-0 gap-050", {
   variants: {
     orientation: {
       vertical: "flex-col",
-      horizontal:
+      horizontal: [
         "flex-row items-center gap-100 has-[>[data-slot=field-content]]:items-start *:data-[slot=field-label]:flex-auto",
-      responsive:
+        "has-[>[data-slot=checkbox],>[data-slot=radio-group-item],>[data-slot=switch]]:items-start",
+        "has-[>[data-slot=switch][data-size=medium]]:*:data-[slot=field-label]:pt-025 has-[>[data-slot=switch][data-size=medium]]:*:data-[slot=field-content]:pt-025",
+      ],
+      responsive: [
         "flex-col @md/field-group:flex-row @md/field-group:items-center @md/field-group:gap-100 @md/field-group:has-[>[data-slot=field-content]]:items-start @md/field-group:*:data-[slot=field-label]:flex-auto",
+        "@md/field-group:has-[>[data-slot=checkbox],>[data-slot=radio-group-item],>[data-slot=switch]]:items-start",
+        "@md/field-group:has-[>[data-slot=switch][data-size=medium]]:*:data-[slot=field-label]:pt-025 @md/field-group:has-[>[data-slot=switch][data-size=medium]]:*:data-[slot=field-content]:pt-025",
+      ],
     },
   },
   defaultVariants: { orientation: "vertical" },
@@ -248,9 +258,9 @@ export type FieldContentProps = ComponentProps<"div">;
 export function FieldContent({ className, ...props }: FieldContentProps) {
   return (
     <div
+      {...props}
       data-slot="field-content"
       className={cn("group/field-content flex min-w-0 flex-1 flex-col gap-025", className)}
-      {...props}
     />
   );
 }
@@ -304,12 +314,12 @@ export function FieldLabel({ className, required, children, id, ...props }: Fiel
   );
   if (bound)
     return (
-      <FieldPrimitive.Label data-slot="field-label" id={labelId} className={classes} {...props}>
+      <FieldPrimitive.Label {...props} data-slot="field-label" id={labelId} className={classes}>
         {content}
       </FieldPrimitive.Label>
     );
   return (
-    <label data-slot="field-label" id={id} className={classes} {...props}>
+    <label {...props} data-slot="field-label" id={id} className={classes}>
       {content}
     </label>
   );
@@ -330,10 +340,10 @@ export function FieldTitle({ className, onClick, onPointerDown, ...props }: Fiel
   if (field)
     return (
       <FieldPrimitive.Label
-        data-slot="field-title"
         nativeLabel={false}
         render={<div />}
         {...(props as FieldPrimitive.Label.Props)}
+        data-slot="field-title"
         // The wrapping label chooses; the title only names. Base UI's own label handlers would
         // move focus on press, so they are skipped; the caller's own handlers still run.
         onClick={(event) => {
@@ -349,11 +359,11 @@ export function FieldTitle({ className, onClick, onPointerDown, ...props }: Fiel
     );
   return (
     <div
-      data-slot="field-title"
-      className={classes}
       {...props}
       {...(onClick ? { onClick } : {})}
       {...(onPointerDown ? { onPointerDown } : {})}
+      data-slot="field-title"
+      className={classes}
     />
   );
 }
@@ -370,19 +380,19 @@ export function FieldDescription({ className, ...props }: FieldDescriptionProps)
   );
   if (field)
     return (
-      <FieldPrimitive.Description data-slot="field-description" className={classes} {...props} />
+      <FieldPrimitive.Description {...props} data-slot="field-description" className={classes} />
     );
-  return <p data-slot="field-description" className={classes} {...props} />;
+  return <p {...props} data-slot="field-description" className={classes} />;
 }
 
 export type FieldSeparatorProps = ComponentProps<"div">;
 export function FieldSeparator({ children, className, ...props }: FieldSeparatorProps) {
   return (
     <div
+      {...props}
       data-slot="field-separator"
       data-content={!!children}
       className={cn("flex min-h-250 items-center gap-100 font-body-small", className)}
-      {...props}
     >
       <Separator isDecorative className="min-w-0 flex-1" />
       {children && (
@@ -437,17 +447,17 @@ export function FieldError({ className, children, errors, match, ...props }: Fie
     const text = content ? { children: content } : {};
     return (
       <FieldPrimitive.Error
-        data-slot="field-error"
         {...(props as FieldPrimitive.Error.Props)}
         {...text}
         {...(match !== undefined ? { match } : content ? { match: true } : {})}
+        data-slot="field-error"
         className={classes}
       />
     );
   }
   if (!content) return null;
   return (
-    <div data-slot="field-error" className={classes} {...props}>
+    <div {...props} data-slot="field-error" className={classes}>
       {content}
     </div>
   );

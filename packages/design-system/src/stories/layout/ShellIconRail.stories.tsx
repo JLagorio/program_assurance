@@ -12,10 +12,12 @@ import {
   shellScriptFor,
 } from "../..";
 
+/** Shell's icon rail: `collapsedSideNav="icons"` keeps the side nav as a rail of destination icons. */
 const meta = {
   title: "Layout/Shell/Icon rail",
+  component: Shell,
   parameters: { layout: "fullscreen" },
-} satisfies Meta;
+} satisfies Meta<typeof Shell>;
 export default meta;
 type Story = StoryObj;
 
@@ -123,15 +125,63 @@ async function checkMarkOverlay(toggle: HTMLElement, mark: HTMLElement) {
   await expect(Math.abs(buttonBox.y - markBox.y)).toBeLessThanOrEqual(0.5);
 }
 
+/** On a touch screen (any pointer coarse, the kit's touch predicate) the reader may not be able to
+    call the control up, so it shows at rest. */
+const touch = () => window.matchMedia("(any-pointer: coarse)").matches;
+
 async function checkMarkVisibility(
   toggle: HTMLElement,
   mark: HTMLElement,
   expandedControl: boolean,
 ) {
+  const shown = expandedControl || touch();
   await waitFor(() => {
-    expect(getComputedStyle(toggle).opacity).toBe(expandedControl ? "1" : "0");
-    expect(getComputedStyle(mark).opacity).toBe(expandedControl ? "0" : "1");
+    expect(getComputedStyle(toggle).opacity).toBe(shown ? "1" : "0");
+    expect(getComputedStyle(mark).opacity).toBe(shown ? "0" : "1");
   });
+}
+
+/**
+ * Every declaration block under an `(any-pointer: coarse)` condition, each with the selectors
+ * around it, walked through grouping and nested rules, whether the stylesheet arrives nested or
+ * flattened.
+ */
+function touchRules(doc: Document) {
+  const found: string[] = [];
+  const walk = (rules: CSSRuleList, inside: boolean, selectors: string) => {
+    for (const rule of Array.from(rules)) {
+      const media = rule instanceof CSSMediaRule ? rule.conditionText : "";
+      const under = inside || /any-pointer:\s*coarse/.test(media);
+      const within = rule instanceof CSSStyleRule ? `${selectors} ${rule.selectorText}` : selectors;
+      if (under && "style" in rule && rule.style instanceof CSSStyleDeclaration)
+        found.push(`${within} { ${rule.style.cssText} }`);
+      if ("cssRules" in rule && rule.cssRules instanceof CSSRuleList)
+        walk(rule.cssRules, under, within);
+    }
+  };
+  for (const sheet of Array.from(doc.styleSheets)) {
+    try {
+      walk(sheet.cssRules, false, "");
+    } catch {
+      // A cross-origin sheet (a font) is not ours to read.
+    }
+  }
+  return found;
+}
+
+/**
+ * On a touch screen the expand control shows at rest in the mark's place. A desktop test browser
+ * has a fine pointer, so this reads the rule the kit ships for a coarse one: the control at full
+ * opacity, the mark hidden under it.
+ */
+async function checkTouchRule(doc: Document) {
+  const rules = touchRules(doc);
+  await expect(
+    rules.some((text) => text.includes("shell-sidenav-toggle") && /opacity:\s*1/.test(text)),
+  ).toBe(true);
+  await expect(rules.some((text) => text.includes("shell-mark") && /opacity:\s*0/.test(text))).toBe(
+    true,
+  );
 }
 
 async function checkDesktop(canvasElement: HTMLElement, direction: "ltr" | "rtl") {
@@ -145,6 +195,7 @@ async function checkDesktop(canvasElement: HTMLElement, direction: "ltr" | "rtl"
   await expect(start).toHaveAttribute("data-collapsed", "icons");
   await checkMarkOverlay(toggle, mark);
   await checkMarkVisibility(toggle, mark, false);
+  await checkTouchRule(canvasElement.ownerDocument);
   const collapsedMarkBox = mark.getBoundingClientRect();
   const collapsedTitleBox = title.getBoundingClientRect();
   await waitFor(() => expect(nav.getBoundingClientRect().width).toBe(56));
@@ -250,7 +301,7 @@ async function checkDesktop(canvasElement: HTMLElement, direction: "ltr" | "rtl"
 
 export const Desktop: Story = {
   globals: { viewport: { value: "ledgerWide", isRotated: false } },
-  render: () => <IconRailDemo />,
+  render: IconRailDemo,
   play: ({ canvasElement }) => checkDesktop(canvasElement, "ltr"),
 };
 

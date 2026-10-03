@@ -1,6 +1,6 @@
 import {
   createTableHook,
-  type ColumnDef,
+  type ColumnHelper,
   type Row,
   type RowData,
   type RowSelectionState,
@@ -9,7 +9,7 @@ import {
 } from "@tanstack/react-table";
 import type { Density } from "../../mode/density";
 
-import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { warnOnce } from "../../components/date-picker";
 import { useLedgerLocale } from "../../lib/locale";
@@ -34,8 +34,13 @@ const hook = createTableHook({
 
 export const { useTableContext, useCellContext, useHeaderContext } = hook;
 
-/** One column of a list whose value types differ, typed as TanStack types its own `columns()` helper. */
-export type DataTableColumn<TData extends RowData> = ColumnDef<DataTableFeatures, TData, any>;
+/** One column of a list whose value types differ: an element of what TanStack's own `columns()`
+    helper returns, which is `ColumnDef<…, any>`. Its value type is erased, as TanStack erases it,
+    also in a column written where this type is expected; a column written on its own keeps the
+    value type `createDataTableColumnHelper` checks (test/data-table-column.types.tsx). */
+export type DataTableColumn<TData extends RowData> = ReturnType<
+  ColumnHelper<DataTableFeatures, TData>["columns"]
+>[number];
 
 type TanStackOptions<TData extends RowData> = Omit<
   TableOptions<DataTableFeatures, TData>,
@@ -72,16 +77,20 @@ export type DataTableOptions<TData extends RowData> = Partial<TanStackOptions<TD
   label?: string | undefined;
   /**
    * A row's readable name: its code, its title. Its controls say it ("Select REQ-001", "Row
-   * actions for REQ-001", "Reorder REQ-001", "Show details for REQ-001"), and so do the moves a
-   * screen reader hears. Unset, the controls keep their generic names and a move says the tree's
-   * `label` or the row's id.
+   * actions for REQ-001", "Reorder REQ-001", "Preview REQ-001", "Show details for REQ-001",
+   * "More fields for REQ-001"), and so do the moves a screen reader hears. Unset, the name is the
+   * tree's `label`, else the text of the column that names the row (the lowest `priority`, else
+   * the first) or of an `id` column; the row's id never is. Give it when that text is not the name
+   * a reader knows the row by.
    */
   rowLabel?: ((row: TData) => string) | undefined;
   /**
-   * The column whose cell names its row: the id or the name. It is drawn as `th scope="row"`, so a
-   * screen reader says the row's identity with every other cell and control in it. None unsaid.
+   * The column whose cell names its row, drawn as `th scope="row"`, so a screen reader says the
+   * row's identity with every other cell and control in it. Unset, it is the column with the
+   * lowest `priority`, else the first, never the actions: the one a responsive row keeps longest.
+   * `false` draws every cell as a `td`.
    */
-  rowHeader?: string | undefined;
+  rowHeader?: string | false | undefined;
   /**
    * The row's preview: the eye at the end of each row's first value opens it, and the row whose id
    * is `activeId` reads active. The same as `c.id`'s `preview` and `active`, held by the table
@@ -103,10 +112,10 @@ export type DataTableOptions<TData extends RowData> = Partial<TanStackOptions<TD
   /** `fixed` makes every width authoritative and leaves the slack to the unsized columns; on by itself when the table resizes or reorders. `auto` lets the browser fit content. */
   layout?: "auto" | "fixed" | undefined;
   /**
-   * Names the table so the reader's layout (order, widths, visibility, pins, density, page size)
-   * persists in this browser. A name, or `{ id, version, scope }`: raise `version` when the
-   * columns change and every older stored layout is discarded; `scope` (a tenant, a user) keeps
-   * two readers in one browser apart.
+   * Names the table so the reader's layout (order, widths, visibility, pins, wrapped columns,
+   * density, page size) persists in this browser. A name, or `{ id, version, scope }`: raise
+   * `version` when the columns change and every older stored layout is discarded; `scope` (a
+   * tenant, a user) keeps two readers in one browser apart.
    */
   view?: string | DataTableView | undefined;
   /** The rows' height at first: `compact` (36px) for a picker's table; `default` (40px) unsaid. The reader changes it from the Settings menu, and the choice persists with `view`. */
@@ -232,6 +241,19 @@ export function useDataTable<TData extends RowData>({
   const view = viewName(viewOption);
   const viewVersion = typeof viewOption === "object" ? viewOption.version : undefined;
   const [density, setDensity] = useState<Density>(defaultDensity);
+  // The columns the reader wraps from the Columns menu, kept with the view as the density is.
+  const [wrapped, setWrapped] = useState<readonly string[]>([]);
+  const toggleWrap = useCallback(
+    (columnId: string, wrap: boolean) =>
+      setWrapped((current) =>
+        wrap
+          ? current.includes(columnId)
+            ? current
+            : [...current, columnId]
+          : current.filter((id) => id !== columnId),
+      ),
+    [],
+  );
   // A detail row has its own open set, not TanStack's expansion, so a treegrid's rows can open
   // their parts and their detail at the same time and one never closes the other.
   // `initialDetails` says which start open; a table with no tree still reads `initialState.expanded`.
@@ -363,6 +385,9 @@ export function useDataTable<TData extends RowData>({
       density,
       defaultDensity,
       setDensity,
+      wrapped,
+      setWrapped,
+      toggleWrap,
       ...(tree
         ? {
             tree: {

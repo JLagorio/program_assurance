@@ -22,8 +22,10 @@
 @import "./layout.css";
 @import "./touch.css";
 @import "./stat.css";
+@import "./avatar.css";
 @import "./shell.css";
 @import "./drawer.css";
+@import "./overlay.css";
 @import "./toast.css";
 @import "./banner.css";
 @import "./forced-colors.css";

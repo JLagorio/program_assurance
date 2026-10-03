@@ -6,12 +6,13 @@ export { readView, writeView, clearView, viewKey } from "./view-state";
 import type { DataTableInstance } from "./use-data-table";
 
 /*
- * The reader's view: column order, widths, visibility, pins, density and page size, per table, per
- * browser. This keeps the layout; `useTableQuery` keeps the question (search, sort, filters, page)
- * in the URL or the session. Read before the first paint and applied over the author's defaults;
- * written on every change of those slices. A stored column the table no longer has is dropped; a
- * column added since the layout was stored takes the author's place, visibility and pin; a column
- * the reader cannot hide shows. A layout stored under another author version is discarded.
+ * The reader's view: column order, widths, visibility, pins, wrapped columns, density and page
+ * size, per table, per browser. This keeps the layout; `useTableQuery` keeps the question (search,
+ * sort, filters, page) in the URL or the session. Read before the first paint and applied over the
+ * author's defaults; written on every change of those slices. A stored column the table no longer
+ * has is dropped; a column added since the layout was stored takes the author's place, visibility
+ * and pin; a column the reader cannot hide shows. A layout stored under another author version is
+ * discarded.
  */
 
 /** Reads the stored view before the first paint, applies it, and stores every change after that. */
@@ -24,6 +25,7 @@ export function useViewStore<TData extends RowData>(
   const skipWrite = useRef(false);
   const { columnOrder, columnSizing, columnVisibility, columnPinning } = table.state;
   const density = table.options.meta?.density;
+  const wrapped = table.options.meta?.wrapped;
   const pageSize =
     table.options.meta?.pageSize === undefined ? undefined : table.state.pagination.pageSize;
   const slot = view ? `${view}\u0000${version}` : null;
@@ -39,6 +41,7 @@ export function useViewStore<TData extends RowData>(
     table.resetColumnVisibility();
     table.resetColumnPinning();
     table.options.meta?.setDensity?.(table.options.meta.defaultDensity ?? "default");
+    table.options.meta?.setWrapped?.([]);
     if (table.options.meta?.pageSize !== undefined) table.setPageSize(table.options.meta.pageSize);
     const raw = readView(view, version);
     if (raw) {
@@ -64,6 +67,7 @@ export function useViewStore<TData extends RowData>(
       table.setColumnVisibility(stored.visibility);
       table.setColumnPinning(stored.pinning);
       if (stored.density) table.options.meta?.setDensity?.(stored.density);
+      if (stored.wrap?.length) table.options.meta?.setWrapped?.(stored.wrap);
       if (stored.pageSize && table.options.meta?.pageSizes?.includes(stored.pageSize))
         table.setPageSize(stored.pageSize);
     }
@@ -88,10 +92,20 @@ export function useViewStore<TData extends RowData>(
         pinning: { start: columnPinning.start, end: columnPinning.end },
         ...(density ? { density } : {}),
         ...(pageSize === undefined ? {} : { pageSize }),
+        ...(wrapped?.length ? { wrap: [...wrapped] } : {}),
       },
       version,
     );
-  }, [slot, columnOrder, columnSizing, columnVisibility, columnPinning, density, pageSize]);
+  }, [
+    slot,
+    columnOrder,
+    columnSizing,
+    columnVisibility,
+    columnPinning,
+    density,
+    pageSize,
+    wrapped,
+  ]);
 }
 
 /** Back to the author's layout, and the store forgets the reader's. */
@@ -101,6 +115,7 @@ export function resetView<TData extends RowData>(table: DataTableInstance<TData>
   table.resetColumnVisibility();
   table.resetColumnPinning();
   table.options.meta?.setDensity?.(table.options.meta.defaultDensity ?? "default");
+  table.options.meta?.setWrapped?.([]);
   if (table.options.meta?.pageSize !== undefined) table.setPageSize(table.options.meta.pageSize);
   const view = table.options.meta?.view;
   if (view) clearView(view);

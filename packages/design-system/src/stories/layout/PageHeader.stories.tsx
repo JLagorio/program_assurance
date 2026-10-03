@@ -2,6 +2,7 @@ import { expect, waitFor, within } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ChevronDown, MoreHorizontal } from "lucide-react";
 import {
+  Badge,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -20,7 +21,15 @@ import {
   PageHeaderLead,
   PageHeaderTitle,
   Section,
+  Stack,
+  Toolbar,
 } from "../..";
+import * as pairLayout from "../_lib/pair";
+import * as typeStyle from "../_lib/type-style";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { typeOf, ramp } = typeStyle;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Layout/PageHeader",
@@ -96,7 +105,10 @@ export const Record: Story = {
     await expect(canvas.queryByRole("banner")).toBeNull();
     const header = headerOf(canvasElement).getBoundingClientRect();
     const lead = canvas.getByRole("navigation", { name: "Breadcrumb" }).getBoundingClientRect();
-    const title = canvas.getByRole("heading", { level: 1 }).getBoundingClientRect();
+    const heading = canvas.getByRole("heading", { level: 1 });
+    // The page and record title is Heading's `page` size: 20/26 semibold, an h1.
+    await expect(typeOf(heading)).toEqual({ tag: "H1", ...ramp.page });
+    const title = heading.getBoundingClientRect();
     const action = canvas.getByRole("button", { name: "Actions" }).getBoundingClientRect();
     await expect(Math.round(lead.right)).toBe(Math.round(header.right));
     await expect(Math.round(title.left)).toBe(Math.round(lead.left));
@@ -158,7 +170,6 @@ export const Constrained: Story = {
 /** A full-label primary beside a long title on a phone: the actions take the next row, right-aligned, and the title keeps its measure instead of breaking a word a line. */
 export const Stacked: Story = {
   globals: { viewport: { value: "ledgerPhone", isRotated: false } },
-  tags: ["narrow"],
   render: () => (
     <PageHeader>
       <PageHeader.Lead render={<Breadcrumb />}>
@@ -257,5 +268,117 @@ export const TitleLevels: Story = {
     await expect(canvas.queryByRole("banner")).toBeNull();
     const dialog = canvas.getByRole("dialog", { name: "Version review" });
     await expect(dialog.querySelector('[data-slot="page-header"]')?.tagName).toBe("DIV");
+  },
+};
+
+/** A register's header is its name, and a record's is its trail, its name and its actions: the create action is the toolbar's, and the record's facts are labelled properties in its Details. */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <HeadingLevelProvider level={2}>
+      <Stack space="space.400">
+        <Pair
+          do={
+            <Stack space="space.200" data-testid="register-do">
+              <PageHeader>
+                <PageHeader.Heading>
+                  <PageHeader.Title>Risks</PageHeader.Title>
+                </PageHeader.Heading>
+              </PageHeader>
+              <Toolbar
+                search=""
+                onSearch={() => {}}
+                placeholder="Find risks"
+                actions={
+                  <Button size="small" variant="primary">
+                    Create risk
+                  </Button>
+                }
+              />
+            </Stack>
+          }
+          doText="The register's name alone; Create risk is the toolbar's small primary, beside the search and the filters it creates into."
+          dont={
+            <Stack space="space.200" data-testid="register-dont">
+              <PageHeader>
+                <PageHeader.Heading>
+                  <PageHeader.Title>Risks</PageHeader.Title>
+                </PageHeader.Heading>
+                <PageHeader.Actions>
+                  <Button variant="primary">Create risk</Button>
+                </PageHeader.Actions>
+              </PageHeader>
+            </Stack>
+          }
+          dontText="Create risk in the page header. It sits away from the table it adds to, and a second primary arrives with the toolbar."
+        />
+        <Pair
+          do={
+            <div data-testid="record-do">
+              <PageHeader>
+                <PageHeader.Lead render={<Breadcrumb />}>
+                  <BreadcrumbList>
+                    <BreadcrumbItem>
+                      <BreadcrumbLink href="#requirements">Requirements</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>REQ-104</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </BreadcrumbList>
+                </PageHeader.Lead>
+                <PageHeader.Heading>
+                  <PageHeader.Title>Review privileged access</PageHeader.Title>
+                </PageHeader.Heading>
+                <PageHeader.Actions>
+                  <Button variant="primary">Edit requirement</Button>
+                </PageHeader.Actions>
+              </PageHeader>
+            </div>
+          }
+          doText="The trail with the code, the name and one primary. Status, owner and due are labelled properties in the Details rail."
+          dont={
+            <div data-testid="record-dont">
+              <PageHeader>
+                <PageHeader.Heading>
+                  <PageHeader.Title>REQ-104 Review privileged access</PageHeader.Title>
+                  <PageHeader.Description>
+                    Owner Dana Whitfield · Due 30 Sept 2026
+                  </PageHeader.Description>
+                </PageHeader.Heading>
+                <PageHeader.Actions>
+                  <Badge variant="secondary" tone="success">
+                    Approved
+                  </Badge>
+                  <Button>Request changes</Button>
+                  <Button variant="primary">Edit requirement</Button>
+                </PageHeader.Actions>
+              </PageHeader>
+            </div>
+          }
+          dontText="The code in the name, the status, owner and due in the header and two buttons. The facts lose their labels, and the row wraps on a phone."
+        />
+      </Stack>
+    </HeadingLevelProvider>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const header = (id: string) =>
+      canvas.getByTestId(id).querySelector<HTMLElement>('[data-slot="page-header"]')!;
+    const create = (id: string) =>
+      within(canvas.getByTestId(id)).getByRole("button", { name: "Create risk" });
+    // The register's create action sits in its toolbar, not in the header.
+    await expect(header("register-do")).not.toContainElement(create("register-do"));
+    await expect(header("register-dont")).toContainElement(create("register-dont"));
+    // The record's header holds the trail, the name and one action, and none of its facts.
+    const record = header("record-do");
+    await expect(within(record).getByRole("navigation", { name: "Breadcrumb" })).toBeVisible();
+    await expect(within(record).getAllByRole("button")).toHaveLength(1);
+    await expect(record.querySelector('[data-slot="badge"]')).toBeNull();
+    await expect(record.querySelector('[data-slot="page-header-description"]')).toBeNull();
+    const crowded = header("record-dont");
+    await expect(crowded.querySelector('[data-slot="badge"]')).not.toBeNull();
+    await expect(within(crowded).getAllByRole("button")).toHaveLength(2);
   },
 };

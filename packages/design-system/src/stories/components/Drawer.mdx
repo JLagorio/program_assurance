@@ -6,7 +6,26 @@ import * as Stories from "./Drawer.stories";
 
 # Drawer
 
+**Status: Experimental.** No product screen opens a Drawer, so its API can still change before it is stable; owner: Ledger maintainers.
+
 A gesture-driven panel using [shadcn’s Base UI composition](https://ui.shadcn.com/docs/components/base/drawer) and [Base UI Drawer](https://base-ui.com/react/components/drawer). Use Sheet for a side panel that needs no swipe gestures.
+
+## When to use it
+
+- **A quick task under the thumb on a narrow screen**: the actions for a selected item, a sort or a filter choice, a short confirmation, which the reader can swipe away.
+- **Content at a snap point** that the reader drags open further when they need it.
+
+Not for a create or edit form: that is a [Dialog](?path=/docs/components-dialog--docs). Not for a modal selection or review beside the page on a wide screen: that is a [Sheet](?path=/docs/components-sheet--docs). Not for a short list of actions on a wide screen: that is a [DropdownMenu](?path=/docs/components-dropdownmenu--docs). Not for a record's details while the list stays usable: that is the Shell's panel. [Overlays](?path=/docs/components-overlays--docs) compares them all.
+
+## Content
+
+- The title says what the drawer acts on or the task ("Control actions"); the description names the object ("For the selected control").
+- Each action is a verb and its object; the drawer ends with Done or Cancel, never OK.
+- One screen of content at its snap point; more than that is a page.
+
+Each action names its object and the drawer ends with Done; "Options", bare verbs and OK leave the reader to remember what they selected.
+
+<Canvas of={Stories.DoDont} />
 
 ## Anatomy
 
@@ -26,7 +45,7 @@ A gesture-driven panel using [shadcn’s Base UI composition](https://ui.shadcn.
 </Drawer>
 ```
 
-Content composes Portal, the modal Overlay, Base UI Viewport/Popup and the text-selectable Content region, and records the overlay surface as the current one, so a sticky header or pinned cell inside matches the drawer. Header, Body, Title, Description, Footer and Close are explicit parts; the title is the drawer's h2 and headings inside start at h3. Portal, Overlay and SwipeHandle are also exported for custom native compositions.
+Content composes Portal, the modal Overlay, Base UI Viewport/Popup and the text-selectable Content region inside Base UI's VirtualKeyboardProvider, and records the overlay surface as the current one, so a sticky header or pinned cell inside matches the drawer. Header, Body, Title, Description, Footer and Close are explicit parts; the title is the drawer's h2, a [Heading](?path=/docs/primitives-heading--docs) at `overlay` (15/22 medium), and headings inside start at h3. Portal, Overlay and SwipeHandle are also exported for custom native compositions.
 
 DrawerBody is the one scrolling region between the header and the footer, with the drawer's inset, at least 80px tall. Base UI lets a swipe that starts in it scroll it, and dismiss once it is at its edge. Read-only content that overflows makes it a tab stop, "Content, scrolls". In a window under 30rem tall the drawer scrolls as one, with the footer held at the bottom.
 
@@ -34,9 +53,21 @@ DrawerBody is the one scrolling region between the header and the footer, with t
 
 ## Variants and states
 
-`swipeDirection` is `down` by default; `up`, `left` and `right` use physical edges. `showSwipeHandle` defaults to false. Root supports controlled or uncontrolled open state, native snap points and modal modes. Put long content in DrawerBody. Side drawers default to 75% of the viewport, capped at 24rem; vertical drawers leave space above the panel.
+`swipeDirection` is `down` by default; `up`, `left` and `right` use physical edges. `showSwipeHandle` defaults to false. Root supports controlled or uncontrolled open state, native snap points and modal modes. Put long content in DrawerBody. A bottom or top drawer leaves space above or below the panel.
 
 <Canvas of={Stories.Positions} />
+
+`width` on DrawerContent is how wide the drawer grows, at the default text size and growing with the reader's:
+
+| `width`            | Width | Use                                                     |
+| ------------------ | ----- | ------------------------------------------------------- |
+| `small`            | 320px | A short list of actions, a sort or one filter.          |
+| `medium` (default) | 384px | A few actions with their descriptions, a filter.        |
+| `large`            | 760px | Content that needs a table's width: a list with fields. |
+
+A bottom or top drawer takes its width centred on a window from `sm` (640px) up, so on a desktop it reads as a panel under the thumb rather than a band across the screen, and runs edge to edge on a phone. A side drawer takes its width within 75% of the window, so a strip of the page stays in view to tap. The widths are `dimension.part.drawerSmall`, `dimension.part.drawer` and `dimension.part.drawerLarge`.
+
+<Canvas of={Stories.Widths} />
 <Canvas of={Stories.SnapPoints} />
 
 Drawer has no `pending` prop. For pending work, cancel the native `onOpenChange` event details while the command runs, and disable the close controls; the same callback receives Escape, outside press, close button and swipe requests. Dialog, Sheet and AlertDialog have `pending`.
@@ -45,7 +76,7 @@ Drawer has no `pending` prop. For pending work, cancel the native `onOpenChange`
 
 ## Accessibility
 
-Supply a Title or an accessible name. Description is optional and creates its relationship only when rendered. Include an accessible Close action; the swipe handle is decorative. Base UI handles focus trapping, restoration, Escape, scroll locking and nested popups. Content accepts native `initialFocus`, `finalFocus`, refs, render and state callbacks. Specify a surviving finalFocus target if the opener disappears.
+Supply a Title or an accessible name. Description is optional and creates its relationship only when rendered. Include an accessible Close action; the swipe handle is decorative. Base UI handles focus trapping, restoration, Escape, scroll locking and nested popups. On a phone, Base UI's VirtualKeyboardProvider, which DrawerContent wraps, keeps a focused field clear of the software keyboard: it scrolls DrawerBody so the field shows above the keyboard, rather than moving the drawer, and sets `--drawer-keyboard-inset` on the viewport while the keyboard is up. A footer that holds a field of its own offsets itself by `var(--drawer-keyboard-inset, 0px)`. Content accepts native `initialFocus`, `finalFocus`, refs, render and state callbacks. Specify a surviving finalFocus target if the opener disappears.
 
 Nested drawers must be nested in the React tree. Ledger’s CSS follows Base UI’s measured swipe, snap and stack variables and honors reduced motion.
 
@@ -53,7 +84,7 @@ Nested drawers must be nested in the React tree. Ledger’s CSS follows Base UI�
 
 ## Props
 
-Drawer takes Base UI Drawer's root props, `open`, `defaultOpen`, `onOpenChange` (with the change's `reason` and `cancel()` in its details), `onOpenChangeComplete`, `modal`, `disablePointerDismissal`, `actionsRef`, `handle`, `swipeDirection`, `snapPoints`, `snapPoint`, `defaultSnapPoint`, `onSnapPointChange` and `snapToSequentialPoints`, and Ledger's `showSwipeHandle`. DrawerContent takes the popup's `initialFocus`, `finalFocus`, refs, `render` and `className`. The types are in [Base UI's API reference](https://base-ui.com/react/components/drawer#api-reference).
+Drawer takes Base UI Drawer's root props, `open`, `defaultOpen`, `onOpenChange` (with the change's `reason` and `cancel()` in its details), `onOpenChangeComplete`, `modal`, `disablePointerDismissal`, `actionsRef`, `handle`, `swipeDirection`, `snapPoints`, `snapPoint`, `defaultSnapPoint`, `onSnapPointChange` and `snapToSequentialPoints`, and Ledger's `showSwipeHandle`. DrawerContent takes Ledger's `width` and the popup's `initialFocus`, `finalFocus`, refs, `render` and `className`. A custom composition puts Base UI's `Drawer.VirtualKeyboardProvider` around the portal, as the Custom Composition story does. The types are in [Base UI's API reference](https://base-ui.com/react/components/drawer#api-reference).
 
 <ArgTypes of={Drawer} />
 <ArgTypes of={DrawerContent} />
@@ -63,4 +94,4 @@ Drawer takes Base UI Drawer's root props, `open`, `defaultOpen`, `onOpenChange` 
 
 ## Related
 
-[Sheet](?path=/docs/components-sheet--docs), [Dialog](?path=/docs/components-dialog--docs), [Popover](?path=/docs/components-popover--docs).
+[Sheet](?path=/docs/components-sheet--docs), [Dialog](?path=/docs/components-dialog--docs), [Popover](?path=/docs/components-popover--docs), [Overlays](?path=/docs/components-overlays--docs). [Upgrading](?path=/docs/guidance-upgrading--docs#drawer): the Vaul composition and what it is now.

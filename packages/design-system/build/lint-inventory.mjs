@@ -1,16 +1,21 @@
 // Compile the package's public value exports into data that ESLint can load without TypeScript
 // or the component source tree: each part's name, its home, the module under src that declares it
 // (so the lint can tell the kit's own Card from a private one of the same name inside the kit), and
-// its styling props (so a finding can offer a prop before a class). Keep this file build-only;
-// consumers import the generated JSON.
+// its styling props (so a finding can offer a prop before a class), in components.json; and what
+// each part and member sets itself, by prop and value, and its className's contract, in
+// parts.json (build/lint-parts.mjs). Keep this file build-only; consumers import the generated
+// JSON.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 
+import { partsData } from "./lint-parts.mjs";
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const entry = path.join(root, "src/index.ts");
 export const inventoryPath = path.join(root, "eslint-plugin/components.json");
+export const partsPath = path.join(root, "eslint-plugin/parts.json");
 
 /** The module's value type follows named, aliased and star exports, excluding type-only exports. */
 export function publicComponentNames(program, entryFile) {
@@ -161,19 +166,19 @@ export function publicComponentStyleProps(program, entryFile, srcDir) {
 }
 
 /**
- * Each sized overlay's width steps, read from the part's own source, the kit's one place for them:
+ * Each sized overlay's width steps, read from the source that keeps them, the kit's one place for them:
  * the prop that takes a step, and each step's name with its width in px, in the order its type
- * lists them (null for a step with no width of its own, such as fullscreen). DialogContent and
- * SheetContent keep theirs in a map (dialogWidths, sheetWidths); AlertDialogContent in the
- * max-width classes it gives each `size`. ledger/overlay-width-preset names the step nearest a
+ * lists them (null for a step with no width of its own, such as fullscreen). Each keeps them in a
+ * map: DialogContent and AlertDialogContent share dialogWidths, each taking the steps its own type
+ * names, and SheetContent has sheetWidths. ledger/overlay-width-preset names the step nearest a
  * width written by hand from these, part by part, since a Sheet's small is not a Dialog's.
  */
 const PRESET_SOURCES = {
   AlertDialogContent: {
-    file: "components/alert-dialog.tsx",
-    prop: "size",
-    type: "AlertDialogContentProps",
-    classes: true,
+    file: "components/dialog.tsx",
+    prop: "width",
+    type: "AlertDialogWidth",
+    map: "dialogWidths",
   },
   DialogContent: {
     file: "components/dialog.tsx",
@@ -196,7 +201,7 @@ const unionLiterals = (node) =>
   );
 
 /** One overlay's steps from its source file (PRESET_SOURCES), or an error that names what moved. */
-function presetOf(part, { file, prop, type, map, classes }, srcDir) {
+function presetOf(part, { file, prop, type, map }, srcDir) {
   const where = path.join(srcDir, file);
   const source = ts.createSourceFile(
     where,
@@ -211,20 +216,12 @@ function presetOf(part, { file, prop, type, map, classes }, srcDir) {
   };
   let names;
   let widths;
-  let classText;
   const visit = (node) => {
-    // The steps' names: a type alias's union (DialogWidth), or the prop's type in a props type.
-    if (ts.isTypeAliasDeclaration(node) && node.name.text === type) {
-      if (!classes) names = unionLiterals(node.type);
-      else
-        ts.forEachChild(node.type, function member(child) {
-          if (ts.isPropertySignature(child) && child.name.getText(source) === prop && child.type)
-            names = unionLiterals(child.type);
-          ts.forEachChild(child, member);
-        });
-    }
+    // The steps' names: a type alias's union (DialogWidth).
+    if (ts.isTypeAliasDeclaration(node) && node.name.text === type)
+      names = unionLiterals(node.type);
     // A map of the steps' widths: a number, or a style whose maxWidth is one.
-    if (map && ts.isVariableDeclaration(node) && node.name.getText(source) === map) {
+    if (ts.isVariableDeclaration(node) && node.name.getText(source) === map) {
       const init = node.initializer;
       if (!init || !ts.isObjectLiteralExpression(init)) fail(`${map} is not an object literal`);
       widths = {};
@@ -240,23 +237,10 @@ function presetOf(part, { file, prop, type, map, classes }, srcDir) {
           max && ts.isNumericLiteral(max) ? Number(max.text) : null;
       }
     }
-    // The class list that sizes each step: `max-w-[440px] … data-[size=sm]:max-w-[320px]`.
-    if (classes && ts.isStringLiteralLike(node) && node.text.includes(`data-[${prop}=`))
-      classText = node.text;
     ts.forEachChild(node, visit);
   };
   visit(source);
-  if (!names?.length) fail(`no string union named ${type}${classes ? `'s ${prop}` : ""}`);
-  if (classes) {
-    if (!classText) fail(`no class list with data-[${prop}=…]`);
-    widths = {};
-    for (const token of classText.split(/\s+/)) {
-      const step = /^data-\[(\w+)=(\w+)\]:max-w-\[(\d+)px\]$/.exec(token);
-      if (step && step[1] === prop) widths[step[2]] = Number(step[3]);
-      const base = /^max-w-\[(\d+)px\]$/.exec(token);
-      if (base) widths.default = Number(base[1]);
-    }
-  }
+  if (!names?.length) fail(`no string union named ${type}`);
   if (!widths) fail(`no map named ${map}`);
   const steps = Object.fromEntries(names.map((name) => [name, widths[name] ?? null]));
   if (!Object.values(steps).some((width) => width !== null)) fail("no step with a width");
@@ -312,13 +296,37 @@ const printed = (value) =>
     },
   );
 
+/** parts.json: what each public part and member sets itself, read from the kit's source
+    (build/lint-parts.mjs). `srcDir` is the kit's src, for a program over another tree. */
+export function partsInventory(
+  program,
+  { entryFile = entry, srcDir = path.join(root, "src") } = {},
+) {
+  const built = buildProgram(program);
+  return {
+    about:
+      "Generated by build/lint-inventory.mjs from the kit's source; do not edit. Run npm run build:lint.",
+    parts: partsData(built, entryFile, srcDir, publicComponentNames(built, entryFile)),
+  };
+}
+
+/** Writes parts.json; returns the names it describes. */
+export function writePartsData(program) {
+  const parts = partsInventory(program);
+  fs.writeFileSync(partsPath, `${printed(parts)}\n`);
+  return Object.keys(parts.parts);
+}
+
 export function writeLintInventory(program) {
-  const inventory = packageInventory(program);
+  const built = buildProgram(program);
+  const inventory = packageInventory(built);
   fs.writeFileSync(inventoryPath, `${printed(inventory)}\n`);
-  return inventory.components;
+  return { components: inventory.components, parts: writePartsData(built) };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const components = writeLintInventory();
-  console.log(`ESLint inventory: ${components.length} public component names`);
+  const { components, parts } = writeLintInventory();
+  console.log(
+    `ESLint inventory: ${components.length} public component names, ${parts.length} parts and members`,
+  );
 }

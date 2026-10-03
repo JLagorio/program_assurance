@@ -6,6 +6,8 @@ import * as Stories from "./DatePicker.stories";
 
 # DatePicker
 
+**Status: Stable.**
+
 One calendar day in a form, held and reported as an ISO day (`"2026-09-18"`, the contract of `input type="date"`) and shown in the LedgerProvider's locale ("Sep 18, 2026"). A day has no time and no zone, so it never shifts between readers. It is Ledger's composition of [Popover](?path=/docs/components-popover--docs) and [Calendar](?path=/docs/components-calendar--docs), with Today and Clear under the month.
 
 Use it for a day: a due date, a planned completion, a milestone. For a moment in time (collected at, due at 5 PM) use [DateTimeField](?path=/docs/components-datetimefield--docs); for a time of day alone, [TimeField](?path=/docs/components-timefield--docs); for a range, [DateRangePicker](?path=/docs/components-daterangepicker--docs). An approximate or remembered date ("March 2024") is an [Input](?path=/docs/components-input--docs) with the format in its hint.
@@ -77,8 +79,10 @@ Use `value` and `onValueChange` for controlled state or `defaultValue` for uncon
 
 ## Related
 
-[Calendar](?path=/docs/components-calendar--docs) · [DateRangePicker](?path=/docs/components-daterangepicker--docs) · [DateTimeField](?path=/docs/components-datetimefield--docs) · [TimeField](?path=/docs/components-timefield--docs) · [DateTime](?path=/docs/components-datetime--docs) · [Field](?path=/docs/components-field--docs) · [Forms](?path=/docs/patterns-forms--docs)
+[Calendar](?path=/docs/components-calendar--docs) · [DateRangePicker](?path=/docs/components-daterangepicker--docs) · [DateTimeField](?path=/docs/components-datetimefield--docs) · [TimeField](?path=/docs/components-timefield--docs) · [DateTime](?path=/docs/components-datetime--docs) · [Field](?path=/docs/components-field--docs) · [Forms](?path=/docs/patterns-forms--docs) · [Upgrading](?path=/docs/guidance-upgrading--docs#datepicker)
 
 ## Don't
+
+The placeholder says what to do and the hint what the date means, never a format such as MM/DD/YYYY. A date the reader already knows, a month and a year, is typed into an Input, and one day in a form is a DatePicker, never a month laid out inline.
 
 <Canvas of={Stories.Dont} />

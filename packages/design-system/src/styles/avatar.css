@@ -1,0 +1,22 @@
+/* AvatarGroup: each member after the first overlaps the one before it by about a quarter of the
+   members' size, on the negative space scale: 4px at xsmall, 6px at small, 8px at medium and
+   large, 16px at xlarge. The size is read from the members, so the group takes none of its own;
+   in a group that mixes sizes an xsmall member sets the overlap, else an xlarge one. The +n count
+   overlaps like a member. The overlap is the members' inline-start margin, so a member takes no
+   margin class: a utility emitted after this one (ms-*) at the same weight would replace it. */
+@utility avatar-group {
+  --avatar-group-overlap: var(--ds-space-negative-075);
+  &:has([data-slot="avatar"][data-size="large"]),
+  &:has([data-slot="avatar"][data-size="medium"]) {
+    --avatar-group-overlap: var(--ds-space-negative-100);
+  }
+  &:has([data-slot="avatar"][data-size="xlarge"]) {
+    --avatar-group-overlap: var(--ds-space-negative-200);
+  }
+  &:has([data-slot="avatar"][data-size="xsmall"]) {
+    --avatar-group-overlap: var(--ds-space-negative-050);
+  }
+  & > * + * {
+    margin-inline-start: var(--avatar-group-overlap);
+  }
+}

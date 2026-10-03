@@ -27,8 +27,10 @@ export function Tabs({ className, orientation = "horizontal", dir, ...props }: T
           orientation={orientation}
           {...props}
           data-slot="tabs"
+          // Across, the panel carries the space under the strip (TabsContent); beside a vertical
+          // strip the root spaces the two.
           className={classes(
-            "group/tabs flex min-w-0 gap-100 data-[orientation=horizontal]:flex-col",
+            "group/tabs flex min-w-0 data-[orientation=horizontal]:flex-col data-[orientation=vertical]:gap-100",
             className,
           )}
         />
@@ -115,7 +117,13 @@ export function TabsTrigger({ className, ...props }: TabsTriggerProps) {
 
 export type TabsContentProps = TabsPrimitive.Panel.Props;
 
+/**
+ * One view's panel. Under a horizontal strip it starts `space.150` (12px) below the strip's line,
+ * as its own top padding, so the space is the same on every screen and stays with the panel
+ * wherever the strip sits; do not add padding, a margin or a gap for it.
+ */
 export function TabsContent({ className, value, ref, ...props }: TabsContentProps) {
+  const { orientation } = useContext(TabsLayoutContext);
   const panel = useRef<HTMLDivElement | null>(null);
   const previousValue = useRef(value);
   const mergedRef = useCallback(
@@ -153,7 +161,10 @@ export function TabsContent({ className, value, ref, ...props }: TabsContentProp
       data-slot="tabs-content"
       value={value}
       className={classes(
-        "flex-1 outline-none focus-visible:outline-focused [&[hidden]]:hidden",
+        cn(
+          "flex-1 outline-none focus-visible:outline-focused [&[hidden]]:hidden",
+          orientation === "horizontal" && "pt-150",
+        ),
         className,
       )}
     />

@@ -24,7 +24,7 @@ import { Truncate } from "./truncate";
 
 export type StepState = "done" | "current" | "upcoming" | "blocked";
 
-export type StepperOrientation = "horizontal" | "vertical";
+export type StepperOrientation = "horizontal" | "vertical" | "responsive";
 
 type Slot = {
   index: number;
@@ -38,12 +38,12 @@ type Slot = {
 const StepperContext = createContext<Slot | null>(null);
 
 export type StepperProps = ComponentProps<"ol"> & {
-  /** `horizontal` puts labels under markers on one line, for a header; `vertical` stacks them down the left, preferred wherever it fits: a wizard's rail, a panel. */
+  /** `horizontal` puts labels under markers on one line, for a header; `vertical` stacks them down the start edge, preferred wherever it fits: a wizard's rail, a panel. `responsive` reads its own container: vertical while it is narrower than `@md` (`dimension.container.md`, 448px), horizontal from there, for a wizard whose path sits in a rail beside the form on a wide screen and above it on a narrow one. */
   orientation?: StepperOrientation | undefined;
   /** Markers show the step's number in place of the dot; done and blocked keep their icon: numbers make the order plain. The number is drawn, not read: the list already says "3 of 6". */
   numbered?: boolean | undefined;
-  /** The list's accessible name: "RMF steps", "Program setup". */
-  label?: string | undefined;
+  /** The list's accessible name, required so the path is never an unnamed list: "RMF steps", "Program setup". An `aria-label` overrides it. */
+  label: string;
   /** Stepper.Item rows, in order. */
   children: ReactNode;
 };
@@ -103,7 +103,12 @@ function StepperRoot({
       data-orientation={orientation}
       className={cn(
         "group/stepper",
-        orientation === "horizontal" ? "flex items-start" : "flex flex-col",
+        orientation === "horizontal"
+          ? "flex items-start"
+          : orientation === "vertical"
+            ? "flex flex-col"
+            : // Down the page in a container narrower than `@md`, across from there.
+              "flex items-start @max-md/stepper:flex-col @max-md/stepper:items-stretch",
         className,
       )}
       style={
@@ -126,7 +131,15 @@ function StepperRoot({
       ))}
     </ol>
   );
-  if (orientation !== "horizontal") return list;
+  if (orientation === "vertical") return list;
+  // A responsive path is its own container, and it runs across only where four steps fit
+  // (`@md` is wider than `dimension.part.steps`), so it never scrolls.
+  if (orientation === "responsive")
+    return (
+      <div data-slot="stepper-frame" className="@container/stepper w-full min-w-0">
+        {list}
+      </div>
+    );
   // Four steps need about `dimension.part.steps`, 420px; narrower than that the strip scrolls:
   // arrows where a pointer can hover, a swipe on touch, and the arrow keys once a step or the
   // strip has focus.
@@ -141,8 +154,9 @@ function StepperRoot({
 
 const marker: Record<StepState, string> = {
   done: "border-success bg-success-bold text-inverse",
-  current: "border-w-selected border-selected bg-surface text-selected",
-  upcoming: "border-bold bg-surface text-subtle",
+  // The ring is filled with the surface the path sits on: a page, a card, a dialog.
+  current: "border-w-selected border-selected bg-surface-current text-selected",
+  upcoming: "border-bold bg-surface-current text-subtle",
   blocked: "border-danger bg-danger-bold text-inverse",
 };
 
@@ -262,35 +276,44 @@ export function StepperItem({
       className={cn(
         "group/step relative flex min-w-0 flex-1 flex-col items-center text-center",
         "group-data-[orientation=vertical]/stepper:flex-none group-data-[orientation=vertical]/stepper:flex-row group-data-[orientation=vertical]/stepper:items-stretch group-data-[orientation=vertical]/stepper:gap-150 group-data-[orientation=vertical]/stepper:text-start",
+        // A responsive path in a container narrower than `@md` is drawn down the page, as above.
+        "@max-md/stepper:flex-none @max-md/stepper:flex-row @max-md/stepper:items-stretch @max-md/stepper:gap-150 @max-md/stepper:text-start",
         className,
       )}
     >
-      <span className="flex w-full items-center group-data-[orientation=vertical]/stepper:hidden">
+      <span className="flex w-full items-center group-data-[orientation=vertical]/stepper:hidden @max-md/stepper:hidden">
         {rail("h", first, doneBehind)}
         {circle}
         {rail("h", last, doneAhead)}
       </span>
-      <span className="hidden flex-col items-center group-data-[orientation=vertical]/stepper:flex">
+      <span className="hidden flex-col items-center group-data-[orientation=vertical]/stepper:flex @max-md/stepper:flex">
         {circle}
         {rail("v", last, doneAhead)}
       </span>
-      <span className="flex min-w-0 max-w-full flex-col items-center px-050 pt-075 group-data-[orientation=vertical]/stepper:flex-1 group-data-[orientation=vertical]/stepper:items-start group-data-[orientation=vertical]/stepper:px-0 group-data-[orientation=vertical]/stepper:pb-200 group-data-[orientation=vertical]/stepper:pt-0">
+      <span
+        className={cn(
+          "flex min-w-0 max-w-full flex-col items-center px-050 pt-075",
+          "group-data-[orientation=vertical]/stepper:flex-1 group-data-[orientation=vertical]/stepper:items-start group-data-[orientation=vertical]/stepper:px-0 group-data-[orientation=vertical]/stepper:pb-200 group-data-[orientation=vertical]/stepper:pt-0",
+          "@max-md/stepper:flex-1 @max-md/stepper:items-start @max-md/stepper:px-0 @max-md/stepper:pb-200 @max-md/stepper:pt-0",
+        )}
+      >
         <Tag
           {...tagProps}
           className={cn(
-            "flex max-w-full flex-col items-center outline-none group-data-[orientation=vertical]/stepper:items-start",
+            "flex max-w-full flex-col items-center outline-none group-data-[orientation=vertical]/stepper:items-start @max-md/stepper:items-start",
             asButton &&
               "cursor-pointer text-start after:absolute after:inset-0 after:rounded-medium focus-visible:after:outline-focused",
             // Down the page the step's ring stops short of the gap under it, so it never crosses
             // the next step's marker.
-            asButton && "group-data-[orientation=vertical]/stepper:after:bottom-100",
+            asButton &&
+              "group-data-[orientation=vertical]/stepper:after:bottom-100 @max-md/stepper:after:bottom-100",
             asButton && !onSelect && "cursor-default",
           )}
         >
           {text}
         </Tag>
         {children ? (
-          <span className="relative block w-full pt-100 group-data-[orientation=vertical]/stepper:pt-075">
+          <span className="relative block w-full pt-100 group-data-[orientation=vertical]/stepper:pt-075 @max-md/stepper:pt-075">
             {children}
           </span>
         ) : null}

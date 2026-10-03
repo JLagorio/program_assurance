@@ -4,8 +4,12 @@ import { expect, userEvent, waitFor, within } from "storybook/test";
 import { Diff, diffText } from "../../components";
 import { LedgerProvider } from "../../mode";
 import { Box, Inline as Row, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Diff",
@@ -236,6 +240,7 @@ Review: quarterly.`;
 
 /** The states: no differences (the text folded behind one button), a new text, a removed text, and a paragraph rewritten from scratch, which is marked as a whole line with no word marks. */
 export const States: Story = {
+  tags: ["!manifest"],
   args: { before: "", after: "" },
   render: () => (
     <Stack space="space.400" className="max-w-layout-measure">
@@ -547,6 +552,7 @@ export const Counts: Story = {
 
 /** Do show what changed; don't make the reader find it in two full copies. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   args: { before: "", after: "" },
   render: () => (
     <Pair

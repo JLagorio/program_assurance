@@ -15,12 +15,14 @@
       "migration": "Preserve intentional family scales and document their dimensions. Do not globally replace small/medium with one abbreviated enum or reinterpret layout choices as fixed heights. Controls that share a height use ControlSize words (xsmall, small, medium); a shadcn spelling (sm, default, xs) on a control moves to the full word with a deprecated alias and a ledger/no-deprecated-name fixer.",
       "familyValues": {
         "Button": "xsmall 24px, small 28px, medium 32px (default); link has natural height.",
-        "IconButton": "small 28px (default), medium 32px.",
+        "IconButton": "xxsmall 20px (a row control), xsmall 24px, small 28px (default), medium 32px.",
         "Input, Combobox, SearchField, NumberField, DatePicker, TimeField, DateTimeField": "ControlSize: small 28px, medium 32px (default).",
         "SelectTrigger": "ControlSize: small 28px, medium 32px (default); sm and default are deprecated spellings of small and medium.",
-        "Switch": "sm and default (shadcn spellings); ControlSize is pending.",
-        "Toggle, ToggleGroup, AlertDialog, Card": "shadcn spellings (sm, default) pending migration to full words; AlertDialog's size is a width preset aligned with DialogContent width.",
-        "InputGroupButton": "xs, sm, icon-xs, icon-sm (shadcn); an icon form with a required label is pending.",
+        "Switch": "ControlSize: small (24 × 16px), medium (32 × 20px, default); sm and default are deprecated spellings of small and medium.",
+        "Toggle, ToggleGroup, ToggleGroupItem": "small 28px, medium 32px (default), large 36px; sm, default and lg are deprecated spellings of small, medium and large. data-size reports the word.",
+        "InputGroupButton": "xsmall 24px (default), small 28px; icon with a required label makes it square. xs and sm are deprecated spellings of xsmall and small; icon-xs and icon-sm are the deprecated square forms that icon and label replace.",
+        "Card": "Inset: medium (default), small; default and sm are deprecated spellings of medium and small.",
+        "AlertDialogContent": "No size: the popup's width is `width`, on DialogContent's steps (xsmall 320px, small 400px by default, medium 520px). size=\"sm\" and size=\"default\" are deprecated spellings of width=\"xsmall\" and width=\"small\".",
         "Badge": "small 20px (default), xsmall 16px.",
         "Attachment": "xsmall, small, medium (default).",
         "Timeline": "Marker scale: small 16px, medium 20px (default), large 24px.",
@@ -284,6 +286,10 @@
         "iconAfter": {
           "meaning": "A rendered ReactElement after the label, commonly a direction or disclosure cue.",
           "migration": "Preserve position in the prop name and preserve the accessible label independently."
+        },
+        "truncate": {
+          "meaning": "Opt-in for a slot narrower than the label: the button narrows to its container, the label cuts with an ellipsis and keeps the whole text as the accessible name and a tooltip while it is cut.",
+          "migration": "Off by default; a label never wraps or cuts without it. Not on IconButton, whose name is its label."
         }
       }
     },
@@ -370,7 +376,7 @@
     "Chart.Donut": {
       "domTarget": "Plot div (named group or aria-hidden decoration) contains a Recharts SVG and optional portaled details card. className targets the Plot div; no general DOM spread or public ref is supported.",
       "controlledBehavior": "Caller owns data and loading. Frame owns hidden/highlighted series; the plot owns picked details and clears them on dismissal. onSelect reports a selection and does not persist or control selection; details optionally opens the local card.",
-      "defaultBehavior": "arc=full, size=120px outer diameter, thickness=12px. Half arc height is size/2+4. name/format/loading/texture inherit Frame; label is visual center content and does not name the chart. Hidden slices are omitted and share denominator uses shown total; omitted caption/label/details renders none.",
+      "defaultBehavior": "arc=full, size=120px outer diameter, thickness=12px. Half arc height is size/2+4. label (else the Frame's title) names the ring; centerLabel is the visual centre content; name is a deprecated alias of label for one version; format/loading/texture inherit Frame. Hidden slices are omitted and share denominator uses shown total; omitted caption/centerLabel/details renders none.",
       "reviewSources": [
         "packages/design-system/src/patterns/chart/donut.tsx",
         "packages/design-system/src/patterns/chart/_shared.tsx",
@@ -390,7 +396,7 @@
       }
     },
     "Chart.Heatmap": {
-      "domTarget": "Overflow div contains a named semantic table, cell spans or selection buttons and a portaled details card. className targets div; no public ref/DOM spread.",
+      "domTarget": "Overflow div contains a named semantic table, cell spans, selection buttons or the caller's links (`link`) and a portaled details card. className targets div; no public ref/DOM spread.",
       "controlledBehavior": "Caller owns rows/columns/value callback and loading. Local picked cell drives details; onSelect is a notification. Unlike other plots, heatmap does not inherit Frame loading/legend state.",
       "defaultBehavior": "scale=sequential, midpoint=0, size=medium=32px cells (small=24, large=40). Domain derives from numeric cells or [0,1] when absent; format uses locale. showValues defaults true for function-valued status scale, false otherwise. null/undefined values remain empty; optional row/column labels are absent.",
       "reviewSources": [
@@ -460,7 +466,7 @@
     "Chart.Scatter": {
       "domTarget": "Plot div (named group or aria-hidden decoration) contains a Recharts SVG and optional portaled details card. className targets the Plot div; no general DOM spread or public ref is supported.",
       "controlledBehavior": "Caller owns data and loading. Frame owns hidden/highlighted series; the plot owns picked details and clears them on dismissal. onSelect reports a selection and does not persist or control selection; details optionally opens the local card.",
-      "defaultBehavior": "Props override Frame name, format/formatX, loading, sync and texture; otherwise Frame context wins, then locale formatters, no name, loading=false, no sync and texture=false. Missing label outside Frame makes the plot decorative. Plot geometry defaults to medium=200px independently of Frame size; explicit height overrides size. Missing details/onSelect adds no selection action. Data and series stay caller-owned; optional overlays and labels are absent unless enabled. tone=brand. Groups apply only with both groupBy and a nonempty groups list; otherwise all records form one group. Missing z yields ordinary points; missing name leaves the point unnamed.",
+      "defaultBehavior": "Props override Frame name, format/formatX, loading, sync and texture; otherwise Frame context wins, then locale formatters, no name, loading=false, no sync and texture=false. Missing label outside Frame makes the plot decorative. Plot geometry defaults to medium=200px independently of Frame size; explicit height overrides size. Missing details/onSelect adds no selection action. Data and series stay caller-owned; optional overlays and labels are absent unless enabled. tone=brand. Groups apply only with both groupBy and a nonempty groups list; otherwise all records form one group. Missing z yields ordinary points; missing nameKey leaves the point unnamed (name is its deprecated alias).",
       "reviewSources": [
         "packages/design-system/src/patterns/chart/scatter.tsx",
         "packages/design-system/src/patterns/chart/_shared.tsx",
@@ -548,7 +554,7 @@
       }
     },
     "CodeBlock": {
-      "domTarget": "Outer div with a named focusable scrolling region and preformatted lines. className reaches outer div; no native/ref prop bag.",
+      "domTarget": "Outer div; native div props and the ref reach it, and its data-slot comes after them. Inside it, a named focusable scrolling region holds the preformatted lines.",
       "controlledBehavior": "Copy button owns temporary copied/failed feedback and announces clipboard rejection. Source lines/copy text remain caller-owned; no editor or selection API.",
       "defaultBehavior": "start=1, maxHeight=560px, wrap=false. Label falls back to localized Code. copy undefined omits the button; an empty copy string still enables copying. Line highlighting is caller-rendered ReactNode content.",
       "reviewSources": ["packages/design-system/src/components/code-block.tsx"]
@@ -893,11 +899,11 @@
     "Heading": {
       "domTarget": "The actual as element receives native attributes/events and HTMLElement ref. id remains a DOM id. Polymorphic element choices are restricted to documented semantic tags.",
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
-      "defaultBehavior": "size is required. Default tag: large=div, medium=h1, small=h2, xsmall=h3; as overrides it. Omitted color inherits. Style prop is intentionally excluded.",
+      "defaultBehavior": "size is required: page 20/26 semibold (h1), section 13/18 semibold (h2), overlay 15/22 medium (h3) and display 28/34 semibold (div), the titles the kit draws; large, medium, small and xsmall are deprecated for one version (large=div, medium=h1, small=h2, xsmall=h3). as overrides the tag. Omitted color inherits. Style prop is intentionally excluded.",
       "reviewSources": ["packages/design-system/src/primitives/heading.tsx"],
       "props": {
         "size": {
-          "meaning": "Required heading typography scale also selects default semantic tag; large intentionally defaults to div."
+          "meaning": "Required heading typography scale also selects default semantic tag; display (and the deprecated large) intentionally defaults to div and takes no contextual level."
         }
       }
     },
@@ -919,13 +925,13 @@
       }
     },
     "Id": {
-      "domTarget": "span containing visible identifier text; className/style reach the span. It has no DOM id prop.",
+      "domTarget": "span containing visible identifier text; native span props (a DOM id included) and the ref reach it, and its data-slot comes after them.",
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
       "defaultBehavior": "Inherits surrounding font and adds tabular numerals; no prefix, parsing or empty fallback.",
       "reviewSources": ["packages/design-system/src/components/id.tsx"]
     },
     "Id.List": {
-      "domTarget": "span containing displayed identifier spans, or the empty string fallback. No arbitrary DOM/ref forwarding.",
+      "domTarget": "span containing displayed identifier spans, or the empty word; native span props and the ref reach it, and its data-slot comes after them.",
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
       "defaultBehavior": "empty defaults to an em dash. ids is caller data, not HTML ids; empty array renders the fallback. Ordering follows the array.",
       "reviewSources": ["packages/design-system/src/components/id.tsx"],
@@ -983,27 +989,27 @@
       }
     },
     "Kbd": {
-      "domTarget": "kbd element with optional aria-label; no arbitrary DOM/ref forwarding.",
+      "domTarget": "kbd element; native props and the ref reach it, and its data-slot comes after them. label or aria-label is read in place of a glyph.",
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
       "defaultBehavior": "Children are the visible key notation. label overrides spoken notation when supplied; visual key styling is fixed.",
       "reviewSources": ["packages/design-system/src/components/kbd.tsx"]
     },
     "Kbd.Group": {
-      "domTarget": "Outer kbd groups Kbd children in the fixed inline row; no arbitrary DOM/ref forwarding.",
+      "domTarget": "Outer kbd groups Kbd children in the fixed inline row; native props and the ref reach it, and its data-slot comes after them.",
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
       "defaultBehavior": "Kbd.Group and flat KbdGroup are the same implementation. No separators or platform key mapping are generated.",
       "reviewSources": ["packages/design-system/src/components/kbd.tsx"]
     },
     "KbdGroup": {
-      "domTarget": "Outer kbd groups Kbd children in the fixed inline row; no arbitrary DOM/ref forwarding.",
+      "domTarget": "Outer kbd groups Kbd children in the fixed inline row; native props and the ref reach it, and its data-slot comes after them.",
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
       "defaultBehavior": "Kbd.Group and flat KbdGroup are the same implementation. No separators or platform key mapping are generated.",
       "reviewSources": ["packages/design-system/src/components/kbd.tsx"]
     },
     "KeyValue": {
-      "domTarget": "dl with dt/dd entries; no arbitrary DOM/ref forwarding.",
+      "domTarget": "dl with a dt and a dd on its own; inside a KeyValue.Group, a div row of the group's dl. Native props and the ref reach it, and its data-slot comes after them.",
       "controlledBehavior": "Stateless presentation. The caller owns content and any controls supplied as children; no implicit value, checked or selected state.",
-      "defaultBehavior": "labelWidth=104px. wrap omitted truncates values; string values gain a title when truncated. wrap=true permits wrapping and omits that automatic title.",
+      "defaultBehavior": "labelWidth=\"default\" (dimension.part.keyValueLabel, 6.5rem; narrow 5.5rem, wide 10rem, auto = the group's longest label up to wide, stacked under 20rem; a pixel number is deprecated), the group's inside a KeyValue.Group. A label wraps and is never cut. Without wrap the value truncates across only, and a cut value shows its whole text in a tooltip on hover and on keyboard focus of a control inside it; a value that is an Editable does not clip. wrap=true lets the value wrap instead.",
       "reviewSources": ["packages/design-system/src/components/key-value.tsx"]
     },
     "LedgerProvider": {

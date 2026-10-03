@@ -7,6 +7,8 @@ import * as Stories from "./ChartScatter.stories";
 
 # Scatter
 
+**Status: Stable.**
+
 A point per record on two value axes: where each thing sits on two measures at once. Findings by how long they have been open and what they expose; systems by cost and open findings. Points fall into groups of a tone, three at most; a bubble's area follows a third value; two references make quadrants. Each point is a record, so a click opens its card. It lives in a [Chart](?path=/docs/patterns-chart-overview--docs) Frame.
 
 <Canvas of={Stories.ScatterMatrix} />
@@ -56,14 +58,16 @@ A point per record on two value axes: where each thing sits on two measures at o
 
 ## Modifiers
 
-- **`z`** for a bubble, **`zLabel`** for what its size is called; **`nameKey`** for the key that names a point. `name` still names the key and is deprecated for `nameKey`, since `name` and `label` name the plot on every other part.
+- **`z`** for a bubble, **`zLabel`** for what its size is called; **`nameKey`** for the key that names a point. For one version `name` still names the key, with a warning in development, and is deprecated for `nameKey`: `label` names the plot on every part.
 - **`groupBy`** and **`groups`** for the groups and their tones; **`tone`** for every point when there are none.
 - **`xDomain`** and **`yDomain`** pin an axis' ends (a number or `"auto"` each); with both ends pinned the ticks are round steps across them, and **`xTicks`** and **`yTicks`** set them outright.
 - **`format`** for every axis without its own; **`formatX`**, **`formatY`** and **`formatZ`** for each axis, in its ticks, the tooltip, the card and the table.
 - **`reference`**, **`xLabel`**, **`yLabel`** as on the other parts.
 - **`onSelect`** and **`details`** as in States; the selection is `{ datum, group, index }`.
 - **`loading`** draws the skeleton; the Frame sets it from `state="loading"`.
-- **`label`** names the plot outside a Frame.
+- **`label`** names the plot outside a Frame; native props and a ref reach the plot's box, and `aria-describedby` describes the plot: its svg when it chooses nothing, its group when its points are the tab stops.
+
+<Canvas of={Stories.NativeAttributes} />
 
 ## Content
 
@@ -91,7 +95,7 @@ A point per record on two value axes: where each thing sits on two measures at o
 ## Accessibility
 
 - **Named by the Frame**, or by `label`: a scatter that chooses nothing is an image (`role="img"`) with no tab stop, and the table is the way in: one row per point, a column per axis. When `onSelect` or `details` is set, the plot is a group and each point a named button and a tab stop ("POA-102, Open: Days open 212 d, Exposure $420K"); Enter and Space choose it as a click does. One that chooses and has no name is named "Chart", with a warning in development.
-- **The table is one toggle away.** In a Frame the scatter lays its points out as the Frame's table twin and CSV: the point's `name` under "Point", its group's label under "Group", the Frame's `columns` with `place: "before"`, a column per axis headed by `xLabel`, `yLabel` and `zLabel`, then the columns after. The groups stay one column of words: the legend's groups never become a column each. The legend keys the groups when the Frame is given no `series`.
+- **The table is one toggle away.** In a Frame the scatter lays its points out as the Frame's table twin and CSV: the point's name (its `nameKey`) under "Point", its group's label under "Group", the Frame's `columns` with `place: "before"`, a column per axis headed by `xLabel`, `yLabel` and `zLabel`, then the columns after. The groups stay one column of words: the legend's groups never become a column each. The legend keys the groups when the Frame is given no `series`.
 - **A chosen point's card is a dialog**: the point says it opens one (`aria-haspopup`, `aria-expanded`), and focus returns to that point when it closes.
 - **Three groups keep every pair apart** under deutan and protan vision; the legend carries their names, and the tooltip and the card say the group in words.
 - **A point's hit area is 24px** whatever its size, so a small point still takes a click.
@@ -112,7 +116,10 @@ A point per record on two value axes: where each thing sits on two measures at o
 - [Chart](?path=/docs/patterns-chart-overview--docs): the Frame, the tones, choosing a mark, the motion.
 - [Heatmap](?path=/docs/patterns-chart-heatmap--docs): the same two dimensions when both are ordinal scales, with a count per cell: the risk matrix.
 - [Bar](?path=/docs/patterns-chart-bar--docs): one measure per category.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#chart): `name` is `nameKey`.
 
 ## Don't
+
+Three groups at most, in the status tones when the groups are statuses, never five owners in five hues that deutan vision cannot tell apart.
 
 <Canvas of={Stories.Dont} />

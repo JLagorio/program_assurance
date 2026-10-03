@@ -4,8 +4,11 @@ import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import { PreviewNavigation, PreviewSheet, Section } from "../..";
 import { Badge, Button, Fact, Id, Table, TextLink } from "../../components";
-import { Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
+import { Inline, Stack, Text } from "../../primitives";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Patterns/PreviewSheet",
@@ -56,7 +59,7 @@ const openTooltip = () => document.querySelector('[data-slot="tooltip-content"][
 
 /** A version review in a collection: PreviewNavigation in the outer header carries the full-record link, so `openTo` is left out, and the status names the record as it steps. */
 export const CollectionTask: Story = {
-  render: () => <CollectionReview />,
+  render: CollectionReview,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const page = within(canvasElement.ownerDocument.body);
@@ -146,7 +149,7 @@ function PreviewSheetStates() {
     );
   return (
     <Stack space="space.200">
-      <Specimens title="PreviewSheet">
+      <Inline space="space.150" rowSpace="space.150" alignBlock="center" shouldWrap>
         <Button variant="secondary" onClick={() => setOpen("plain")}>
           Facts only
         </Button>
@@ -156,7 +159,7 @@ function PreviewSheetStates() {
         <Button variant="secondary" onClick={() => setOpen("stack")}>
           Compact header, a frame deeper
         </Button>
-      </Specimens>
+      </Inline>
       <PreviewSheet
         open={open !== null}
         onClose={close}
@@ -422,5 +425,65 @@ export const CompleteReview: Story = {
     await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
     await expect(canvas.queryByRole("button", { name: "Review requirement" })).toBeNull();
     await expect(canvas.getByRole("button", { name: "Requirement queue" })).toHaveFocus();
+  },
+};
+
+/** A version review whose footer holds the related links, or the full-record link again. */
+function ReviewWithLinks({ repeat, trigger }: { repeat: boolean; trigger: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>{trigger}</Button>
+      <PreviewSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        id="REQ-0118"
+        title="Review telemetry requirement"
+        openTo={<a href="#requirement-0118">Open requirement</a>}
+        links={
+          repeat ? (
+            <TextLink href="#requirement-0118">Open the full requirement</TextLink>
+          ) : (
+            <TextLink href="#control-si-7">SI-7, the control it implements</TextLink>
+          )
+        }
+      >
+        Evidence is ready for review.
+      </PreviewSheet>
+    </>
+  );
+}
+
+/** The footer holds related destinations; the full record is the outer header's link, once. */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <Pair
+      do={<ReviewWithLinks repeat={false} trigger="Review, related links" />}
+      doText="links for related records, here the control the requirement implements; the full record is the outer header's link."
+      dont={<ReviewWithLinks repeat trigger="Review, repeated link" />}
+      dontText="The full-record link again in the footer. The reader meets two ways to the same place, and the footer's job, the related records, is gone."
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    const toRecord = (dialog: HTMLElement) =>
+      within(dialog)
+        .getAllByRole("link")
+        .filter((link) => link.getAttribute("href") === "#requirement-0118");
+    for (const [trigger, count] of [
+      ["Review, related links", 1],
+      ["Review, repeated link", 2],
+    ] as const) {
+      const opener = canvas.getByRole("button", { name: trigger });
+      await userEvent.click(opener);
+      const dialog = await page.findByRole("dialog", { name: "Review telemetry requirement" });
+      await expect(toRecord(dialog)).toHaveLength(count);
+      await userEvent.keyboard("{Escape}");
+      await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
+      await waitFor(() => expect(opener).toHaveFocus());
+    }
   },
 };

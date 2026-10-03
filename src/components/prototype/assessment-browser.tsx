@@ -5,6 +5,7 @@ import {
   Button,
   Count,
   DateTime,
+  Person,
   Prose,
   Stack,
   Tabs,
@@ -25,13 +26,11 @@ import { type DataRecord } from "@/lib/records";
 import { productCreateLabel, productRecordNoun } from "@/lib/product-records";
 import { RecordPreviewActions, RecordPreviewPanel, useEndOnHide } from "./record-preview";
 import { AssessmentTable } from "./assessment-table";
+import type { AssessmentKind } from "./assessment-tabs";
 import { ProgramCollection } from "./program-shared";
 import { RelationName } from "./record-tools";
 import { DetailFacts, ModelForm, QueryState, SchemaLink, type FormTarget } from "./work-common";
 
-/** The browser's tabs, in order; Scopes shows only within a program. */
-export const ASSESSMENT_TABS = ["Campaigns", "Events", "Objectives", "Scopes"] as const;
-export type AssessmentKind = (typeof ASSESSMENT_TABS)[number];
 type AssessmentRecordKind = Exclude<AssessmentKind, "Scopes">;
 const tables: Record<AssessmentRecordKind, FormTarget["table"]> = {
   Campaigns: "assessment_campaigns",
@@ -40,18 +39,19 @@ const tables: Record<AssessmentRecordKind, FormTarget["table"]> = {
 };
 
 type CampaignRow = Row<"assessment_campaigns"> & {
-  program: string;
+  /** The program's name; null when the reader cannot see it. */
+  program: string | null;
+  /** The owner's name; null when none is recorded or the reader cannot see them. */
   owner: string | null;
   events: number;
 };
 
+/** What a missing name reads as: none recorded, or one recorded that the reader cannot see. */
+const hidden = (id: string | null | undefined) => (id ? "Not available" : "Not recorded");
+
 /** Authored text under its name, or a labelled Absent when there is none. */
 function Described({ label, text }: { label: string; text: unknown }) {
-  return (
-    <Prose label={label}>
-      {typeof text === "string" && text.trim() ? text : <Absent label="Not recorded" />}
-    </Prose>
-  );
+  return <Prose label={label}>{typeof text === "string" && text.trim() ? text : <Absent />}</Prose>;
 }
 
 const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
@@ -67,8 +67,9 @@ export function AssessmentBrowser({
   onTabChange,
 }: {
   programId?: string;
-  /** The tab, when the route keeps it in the URL; local otherwise. */
+  /** The tab the address names, where the route keeps it; with no `onTabChange` the tab is local. */
   tab?: AssessmentKind | undefined;
+  /** Puts the chosen tab in the address, as a new history entry. */
   onTabChange?: ((tab: AssessmentKind) => void) | undefined;
 }) {
   const workspace = useWorkspace();
@@ -82,11 +83,17 @@ export function AssessmentBrowser({
   const systems = useRows("systems", programId ? { program_id: programId } : {});
   const scopes = useRows("scopes");
   const [localTab, setLocalTab] = useState<AssessmentKind>("Campaigns");
-  // Scopes belongs to a program's browser; elsewhere a stale "Scopes" reads as Campaigns.
-  const tab = routeTab && (programId || routeTab !== "Scopes") ? routeTab : localTab;
+  // Where the route keeps the tab, the address owns it: each choice is a step in the history, and
+  // an address without one is Campaigns. Scopes belongs to a program's browser; elsewhere a stale
+  // "Scopes" reads as Campaigns.
+  const tab = onTabChange
+    ? routeTab && (programId || routeTab !== "Scopes")
+      ? routeTab
+      : "Campaigns"
+    : localTab;
   const setTab = (next: AssessmentKind) => {
-    setLocalTab(next);
-    onTabChange?.(next);
+    if (onTabChange) onTabChange(next);
+    else setLocalTab(next);
   };
   const [campaignId, setCampaignId] = useState<string | null>(null);
   const [form, setForm] = useState<FormTarget | null>(null);
@@ -96,25 +103,25 @@ export function AssessmentBrowser({
   // A campaign's event count opens the Events tab; its button leaves with the Campaigns panel, so
   // focus goes to the tab the reader is now on.
   const eventsTab = useRef<HTMLButtonElement>(null);
+  // A name the reader cannot see stays null, so it sorts last and its cell says Absent.
   const partyName = useCallback(
     (id: string | null | undefined) =>
-      id ? (parties.data?.find((party) => party.id === id)?.name ?? "Not available") : null,
+      id ? (parties.data?.find((party) => party.id === id)?.name ?? null) : null,
     [parties.data],
   );
   const campaignRows = useMemo<CampaignRow[]>(
     () =>
       (campaigns.data ?? []).map((campaign) => ({
         ...campaign,
-        program:
-          programs.data?.find((program) => program.id === campaign.program_id)?.name ??
-          "Not available",
+        program: programs.data?.find((program) => program.id === campaign.program_id)?.name ?? null,
         owner: partyName(campaign.owner_party_id),
         events: (events.data ?? []).filter((event) => event.campaign_id === campaign.id).length,
       })),
     [campaigns.data, programs.data, events.data, partyName],
   );
-  const campaignTitle = (id: string | null | undefined) =>
-    campaignRows.find((campaign) => campaign.id === id)?.title ?? "Not available";
+  const campaignName = (id: string | null | undefined) =>
+    campaignRows.find((campaign) => campaign.id === id)?.title ?? null;
+  const campaignTitle = (id: string | null | undefined) => campaignName(id) ?? "Not available";
   const planRows = (plans.data ?? []).filter((plan) =>
     campaignRows.some((campaign) => campaign.id === plan.campaign_id),
   );
@@ -123,7 +130,7 @@ export function AssessmentBrowser({
     .filter((event) => campaignRows.some((campaign) => campaign.id === event.campaign_id))
     .map((event) => ({
       ...event,
-      campaign: campaignTitle(event.campaign_id),
+      campaign: campaignName(event.campaign_id),
       plan: planOf(event.plan_revision_id)?.version_number ?? null,
     }));
   const objectiveRows = (objectives.data ?? [])
@@ -132,8 +139,8 @@ export function AssessmentBrowser({
       const plan = planOf(objective.plan_revision_id);
       return {
         ...objective,
-        campaign: campaignTitle(plan?.campaign_id),
-        plan: plan?.title ?? "Not available",
+        campaign: campaignName(plan?.campaign_id),
+        plan: plan?.title ?? null,
       };
     });
   const systemIds = useMemo(
@@ -228,13 +235,19 @@ export function AssessmentBrowser({
               ["Status", <StatusBadge statuses={campaignStatuses} value={row.status} />],
               [
                 "Program",
-                <TextLink
-                  render={<Link to="/programs/$programId" params={{ programId: row.program_id }} />}
-                >
-                  {row.program}
-                </TextLink>,
+                row.program ? (
+                  <TextLink
+                    render={
+                      <Link to="/programs/$programId" params={{ programId: row.program_id }} />
+                    }
+                  >
+                    {row.program}
+                  </TextLink>
+                ) : (
+                  <Absent label="Not available" />
+                ),
               ],
-              ["Owner", row.owner],
+              ["Owner", row.owner ?? <Absent label={hidden(row.owner_party_id)} />],
               ["Starts", day(row.starts_at)],
               ["Ends", day(row.ends_at)],
               ["Events", row.events],
@@ -283,11 +296,12 @@ export function AssessmentBrowser({
           {kinds.map((name) => (
             <TabsTrigger value={name} key={name} {...(name === "Events" ? { ref: eventsTab } : {})}>
               {name}
-              {counts[name] ? <Count value={counts[name]} /> : null}
+              {/* Every strip counts the same way: 0 once the rows load, and up to 9999. */}
+              {counts[name] !== undefined ? <Count value={counts[name]} max={9999} /> : null}
             </TabsTrigger>
           ))}
         </TabsList>
-        <TabsContent value="Campaigns" keepMounted className="pt-200">
+        <TabsContent value="Campaigns" keepMounted>
           <AssessmentTable<CampaignRow>
             model="assessment_campaigns"
             fill
@@ -319,7 +333,15 @@ export function AssessmentBrowser({
               { label: "Campaign", key: "title" },
               ...(programId
                 ? []
-                : [{ label: "Program", key: "program" as const, width: 180, priority: 3 }]),
+                : [
+                    {
+                      label: "Program",
+                      key: "program" as const,
+                      value: (row: CampaignRow) => row.program ?? <Absent label="Not available" />,
+                      width: 180,
+                      priority: 3,
+                    },
+                  ]),
               {
                 label: "Status",
                 key: "status",
@@ -327,7 +349,19 @@ export function AssessmentBrowser({
                 width: 120,
                 priority: 1,
               },
-              { label: "Owner", key: "owner", kind: "person", width: 180, priority: 4 },
+              {
+                label: "Owner",
+                key: "owner",
+                kind: "person",
+                value: (row) =>
+                  row.owner ? (
+                    <Person name={row.owner} />
+                  ) : (
+                    <Absent label={hidden(row.owner_party_id)} />
+                  ),
+                width: 180,
+                priority: 4,
+              },
               { label: "Starts", key: "starts_at", width: 120, priority: 2 },
               { label: "Ends", key: "ends_at", width: 120, priority: 5 },
               {
@@ -360,7 +394,7 @@ export function AssessmentBrowser({
             ]}
           />
         </TabsContent>
-        <TabsContent value="Events" keepMounted className="pt-200">
+        <TabsContent value="Events" keepMounted>
           <AssessmentTable
             model="assessment_events"
             selectedId={
@@ -390,7 +424,13 @@ export function AssessmentBrowser({
             }}
             columns={[
               { label: "Event", key: "title" },
-              { label: "Campaign", key: "campaign", width: 190, priority: 3 },
+              {
+                label: "Campaign",
+                key: "campaign",
+                value: (row) => row.campaign ?? <Absent label="Not available" />,
+                width: 190,
+                priority: 3,
+              },
               { label: "Plan version", key: "plan", kind: "number", width: 135, priority: 5 },
               {
                 label: "Status",
@@ -405,7 +445,7 @@ export function AssessmentBrowser({
             onPreview={inspect("assessment_events")}
           />
         </TabsContent>
-        <TabsContent value="Objectives" keepMounted className="pt-200">
+        <TabsContent value="Objectives" keepMounted>
           <AssessmentTable
             model="assessment_objectives"
             selectedId={
@@ -437,8 +477,18 @@ export function AssessmentBrowser({
             columns={[
               { label: "Objective", key: "title" },
               { label: "Statement", key: "description" },
-              { label: "Campaign", key: "campaign", width: 190 },
-              { label: "Plan", key: "plan", width: 190 },
+              {
+                label: "Campaign",
+                key: "campaign",
+                value: (row) => row.campaign ?? <Absent label="Not available" />,
+                width: 190,
+              },
+              {
+                label: "Plan",
+                key: "plan",
+                value: (row) => row.plan ?? <Absent label="Not available" />,
+                width: 190,
+              },
               {
                 label: "Target",
                 value: (row) =>
@@ -451,7 +501,7 @@ export function AssessmentBrowser({
                       Requirement revision
                     </SchemaLink>
                   ) : (
-                    <Absent label="Not recorded" />
+                    <Absent />
                   ),
                 width: 170,
               },
@@ -460,7 +510,7 @@ export function AssessmentBrowser({
           />
         </TabsContent>
         {programId && (
-          <TabsContent value="Scopes" keepMounted className="pt-200">
+          <TabsContent value="Scopes" keepMounted>
             <QueryState queries={[systems]}>
               <ProgramCollection
                 name="scopes"

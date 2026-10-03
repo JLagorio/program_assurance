@@ -1,27 +1,55 @@
-import { RecordPreviewActions, RecordPreviewPanel } from "./record-preview";
+import {
+  RecordLink,
+  RecordPreviewActions,
+  RecordPreviewPanel,
+  recordDestination,
+  useDisplayedRecords,
+  useEndOnHide,
+} from "./record-preview";
+import { ProductCollection } from "./product-collection";
+import { useServerCollection, vocabularyOptions } from "./collection-question";
+import { RecordSummaryPreview, type RecordSummaryField } from "./record-summary-preview";
 import { LibrarySelect } from "./library-shared";
-import { EmptyMessage, MissingRecord, RecordActions, VersionName } from "./work-common";
-import { useState, type ReactNode } from "react";
+import { DueDate, EmptyMessage, MissingRecord, RecordActions, VersionName } from "./work-common";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
+  Absent,
   Button,
+  DataTable,
+  DateTime,
+  Editable,
   HeadingLevelProvider,
   Inspector,
   PageHeader,
+  Person,
   Section,
   Shell,
   Stack,
   Tabs,
   TabsList,
   TabsTrigger,
+  defineColumns,
+  toast,
 } from "@ledger/design-system";
 import { Plus } from "lucide-react";
 import { useRows, useRow, type Row } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
+import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { Page } from "@/components/app/shell";
+import { useSetPlannedCompletion } from "@/lib/due-dates";
 import { type DataRecord } from "@/lib/records";
-import { revisionStates, severityLevels } from "@/lib/status";
-import { StatusBadge } from "@/components/app/status";
+import {
+  remediationStatuses,
+  revisionStates,
+  riskLevels,
+  riskStatuses,
+  severityLevels,
+  type StatusVocabulary,
+} from "@/lib/status";
+import { registerViews } from "@/lib/register-views";
+import { LevelIndicator, StatusBadge } from "@/components/app/status";
+import { serverRead, useServerResult, type ServerRow } from "@/lib/server-table";
 import {
   downloadJson,
   EntityEditor,
@@ -36,9 +64,11 @@ import { RecordTrail, TrailLink } from "./record-trail";
 import { RetainedTabPanels } from "./program-shared";
 
 const asRecords = (rows: unknown[] | undefined) => (rows ?? []) as DataRecord[];
+/** A person: in a table, their avatar and name, sorted and found by the name; as a fact, the name. */
 const party = (key = "owner_party_id", label = "Owner"): DisplayColumn => ({
   key,
   label,
+  kind: "person",
   render: (row) => <RelationName table="parties" id={row[key] as string | null} />,
 });
 const program: DisplayColumn = {
@@ -47,6 +77,101 @@ const program: DisplayColumn = {
   render: (row) => <RelationName table="programs" id={row["program_id"] as string | null} />,
 };
 const status: DisplayColumn = { key: "status" };
+/**
+ * Where a remediation item stands for its dates: a completed item's dates read plainly, and a
+ * cancelled or risk-accepted item's carry no due state, since its remediation will not happen.
+ */
+const remediationEnd = (itemStatus: unknown) => ({
+  done: itemStatus === "completed",
+  cancelled: itemStatus === "cancelled" || itemStatus === "risk_accepted",
+});
+/**
+ * A commitment's planned completion, marked overdue or due until it is completed. Only the latest
+ * commitment is still due: an earlier one was replaced by it, so its day reads plainly.
+ */
+const plannedCompletion = (itemStatus: unknown, latestId: string | undefined): DisplayColumn => ({
+  key: "planned_completion_date",
+  label: "Planned",
+  // Wide enough for the day and where it stands ("Oct 4, 2026 · Due in 2 days") on one line.
+  minWidth: 200,
+  render: (row) => {
+    const end = remediationEnd(itemStatus);
+    return (
+      <DueDate
+        value={row["planned_completion_date"]}
+        done={end.done || Boolean(row["actual_completion_date"])}
+        cancelled={end.cancelled || row["id"] !== latestId}
+      />
+    );
+  },
+});
+/**
+ * The shown commitment's planned completion in its item's Details: a calendar day, set in place
+ * while the commitment is a draft and saved as its next revision. A published commitment, or a
+ * viewer, reads the day and where it stands until the item is completed. An unsaved day is asked
+ * about before the page is left, as a form's draft is.
+ */
+function PlannedCompletion({
+  version,
+  itemStatus,
+  latest,
+}: {
+  version: Row<"poam_item_revisions">;
+  /** The remediation item's status, which decides whether its dates are still due. */
+  itemStatus: string;
+  /** The commitment is the item's latest: an earlier one was replaced, so its day reads plainly. */
+  latest: boolean;
+}) {
+  const workspace = useWorkspace();
+  const setPlanned = useSetPlannedCompletion();
+  const [day, setDay] = useState(version.planned_completion_date ?? "");
+  const [draft, setDraft] = useState<string | null>(null);
+  // A newer revision of the commitment (this save's own, read back, or another session's) shows
+  // its day; a save made before it comes back is made at the revision that save returned.
+  const [shown, setShown] = useState(version.revision);
+  if (version.revision !== shown) {
+    setShown(version.revision);
+    setDay(version.planned_completion_date ?? "");
+  }
+  const savedRevision = useRef(0);
+  const guard = useDraftGuard({
+    dirty: draft !== null,
+    // The day stays on the page; nothing closes it.
+    onClose: () => {},
+    description: "The planned completion date you were changing will be lost.",
+  });
+  const end = remediationEnd(itemStatus);
+  if (workspace.role === "viewer" || version.state !== "draft")
+    return (
+      <DueDate
+        value={version.planned_completion_date}
+        done={end.done || Boolean(version.actual_completion_date)}
+        cancelled={end.cancelled || !latest}
+      />
+    );
+  return (
+    <>
+      <Editable.Date
+        label="Planned completion"
+        value={day}
+        due={!end.cancelled && latest}
+        complete={end.done || Boolean(version.actual_completion_date)}
+        placeholder="No planned completion"
+        onValueChange={setDay}
+        onDraftChange={setDraft}
+        save={async (next) => {
+          const row = await setPlanned.mutateAsync({
+            id: version.id,
+            revision: Math.max(version.revision, savedRevision.current),
+            day: next,
+          });
+          savedRevision.current = Math.max(savedRevision.current, row.revision);
+        }}
+      />
+      {guard.confirmation}
+    </>
+  );
+}
 const versionColumns: DisplayColumn[] = [
   { key: "version_number", label: "Version" },
   { key: "state" },
@@ -70,17 +195,195 @@ function RegisterRoot({ page, children }: { page: boolean; children: ReactNode }
   return page ? <Page>{children}</Page> : <Stack space="space.200">{children}</Stack>;
 }
 
+/**
+ * A risk as the register and its preview read it: the risk's own fields, which its Edit needs, its
+ * program and owner by name, and its latest assessment's severity, likelihood and impact.
+ */
+type RiskRow = ServerRow<
+  "risk_rows",
+  | "id"
+  | "tenant_id"
+  | "title"
+  | "program_id"
+  | "scope_id"
+  | "owner_party_id"
+  | "status"
+  | "revision"
+  | "created_at"
+  | "updated_at"
+  | "program_name"
+  | "owner_name"
+  | "severity"
+  | "likelihood"
+  | "impact",
+  "tenant_id" | "title" | "program_id" | "status" | "revision" | "created_at" | "updated_at"
+>;
+
+/**
+ * The risks, a page at a time from the server, newest change first: each with its latest
+ * assessment, which the sort and the filters reach as the Portfolio's tiles and matrix ask them.
+ */
+const riskRead = serverRead({
+  source: "risk_rows",
+  model: "risks",
+  // A new assessment changes a risk's latest severity, likelihood and impact.
+  models: ["risk_revisions"],
+  columns: [
+    "id",
+    "tenant_id",
+    "title",
+    "program_id",
+    "scope_id",
+    "owner_party_id",
+    "status",
+    "revision",
+    "created_at",
+    "updated_at",
+    "program_name",
+    "owner_name",
+    "severity",
+    "likelihood",
+    "impact",
+  ],
+  search: ["title", "program_name", "owner_name"],
+  fields: {
+    // The program and the owner sort, and are found, by their names.
+    program_id: { column: "program_name", filter: false },
+    owner_party_id: { column: "owner_name", filter: false },
+    status: { labels: riskStatuses, sort: "status_rank" },
+    severity: { labels: severityLevels, sort: "severity_rank" },
+    likelihood: { labels: riskLevels, sort: "likelihood_rank" },
+    impact: { labels: riskLevels, sort: "impact_rank" },
+  },
+  order: [{ column: "updated_at", ascending: false }],
+});
+
+/** A person the register names: their name, else why there is none. */
+const riskOwner = (row: RiskRow) =>
+  row.owner_name ? (
+    <Person name={row.owner_name} />
+  ) : (
+    <Absent label={row.owner_party_id ? "Not available" : "Not recorded"} />
+  );
+const riskProgram = (row: RiskRow) => row.program_name ?? <Absent label="Not available" />;
+/** A level of the latest assessment, drawn as its indicator; a risk with none is not assessed. */
+const riskLevel = (levels: StatusVocabulary, key: "severity" | "likelihood" | "impact") =>
+  function Level(row: RiskRow) {
+    return <LevelIndicator levels={levels} value={row[key]} absentLabel="Not assessed" />;
+  };
+
+/** The register's columns, one list for every render: stepping through the preview rebuilds none. */
+const riskColumns = defineColumns<RiskRow>((c) => [
+  c.text("title", {
+    header: "Risk",
+    hideable: false,
+    minWidth: 180,
+    priority: 0,
+    cell: (row) => (
+      <RecordLink table="risks" record={row}>
+        {row.title}
+      </RecordLink>
+    ),
+  }),
+  // In a narrow register the severity and the status stay beside the risk longest. The program
+  // takes the width its names need, the owner a person's, and the risk the rest.
+  c.text("program_id", { header: "Program", priority: 3, width: 200, cell: riskProgram }),
+  c.person("owner_party_id", { header: "Owner", priority: 4, cell: riskOwner }),
+  c.status("severity", {
+    header: "Latest severity",
+    width: 140,
+    priority: 1,
+    statuses: severityLevels,
+    cell: riskLevel(severityLevels, "severity"),
+  }),
+  c.status("status", { header: "Status", width: 140, priority: 2, statuses: riskStatuses }),
+  c.date("updated_at", { header: "Updated", priority: 5 }),
+  c.status("likelihood", {
+    header: "Likelihood",
+    width: 140,
+    priority: 6,
+    statuses: riskLevels,
+    cell: riskLevel(riskLevels, "likelihood"),
+  }),
+  c.status("impact", {
+    header: "Impact",
+    width: 140,
+    priority: 7,
+    statuses: riskLevels,
+    cell: riskLevel(riskLevels, "impact"),
+  }),
+]);
+
+/**
+ * What the risk preview says of a risk, beside its name: the register's columns. The program and
+ * the owner are read by their ids, which the preview's Edit saves, so a changed owner reads at once.
+ */
+const riskFields: RecordSummaryField<RiskRow>[] = [
+  {
+    key: "program_id",
+    label: "Program",
+    render: (row) => <RelationName table="programs" id={row.program_id} />,
+  },
+  {
+    key: "owner_party_id",
+    label: "Owner",
+    render: (row) => <RelationName table="parties" id={row.owner_party_id} />,
+  },
+  { key: "severity", label: "Latest severity", statuses: severityLevels },
+  { key: "status", label: "Status", statuses: riskStatuses },
+  { key: "updated_at", label: "Updated", render: (row) => <DateTime value={row.updated_at} /> },
+  { key: "likelihood", label: "Likelihood", statuses: riskLevels },
+  { key: "impact", label: "Impact", statuses: riskLevels },
+];
+
 export function RiskList({ headingScope = "page" }: { headingScope?: "page" | "section" }) {
   const workspace = useWorkspace(),
     navigate = useNavigate();
-  const query = useRows("risks"),
-    versions = useRows("risk_revisions");
   const [creating, setCreating] = useState(false);
-  const rows = query.data;
-  const latest = (id: string) =>
-    versions.data
-      ?.filter((row) => row.risk_id === id)
-      .sort((a, b) => b.version_number - a.version_number)[0];
+  const [preview, setPreview] = useState<RiskRow | null>(null);
+  // A preview belongs to its tab: it ends when the register's tab hides this collection.
+  useEndOnHide(() => setPreview(null));
+  const collection = useServerCollection<RiskRow>(riskRead, {
+    columns: riskColumns,
+    preview: useMemo(
+      () => ({ onPreview: setPreview, activeId: preview?.id ?? null }),
+      [preview?.id],
+    ),
+    label: "Risks",
+    // Names the reader's column layout and the question's parameters in the address, which the
+    // Portfolio's links ask: `risk-register.filters`.
+    view: registerViews.risks,
+    resizable: true,
+    reorderable: true,
+  });
+  const { table } = collection;
+  const displayed = useDisplayedRecords(table);
+  const readResult = useServerResult(riskRead);
+  const [exporting, setExporting] = useState(false);
+  /** Every risk the question leaves, across its pages, as the register shows them. */
+  const exportRisks = () => {
+    setExporting(true);
+    readResult({
+      search: String(table.state.globalFilter ?? ""),
+      sorting: table.state.sorting,
+      filters: table.state.columnFilters,
+    })
+      .then((rows) => downloadJson("risk-register.json", rows))
+      .catch((cause: unknown) =>
+        toast.add({
+          type: "error",
+          title: "The risks were not exported",
+          description: cause instanceof Error ? cause.message : "Try again.",
+        }),
+      )
+      .finally(() => setExporting(false));
+  };
+  const create = (size: "small" | "medium") =>
+    workspace.role !== "viewer" ? (
+      <Button size={size} variant="primary" iconBefore={<Plus />} onClick={() => setCreating(true)}>
+        Create risk
+      </Button>
+    ) : undefined;
   return (
     <RegisterRoot page={headingScope === "page"}>
       {headingScope === "page" ? (
@@ -99,63 +402,58 @@ export function RiskList({ headingScope = "page" }: { headingScope?: "page" | "s
           }
         />
       )}
-      <ModelTable
-        model="risks"
+      <ProductCollection
+        {...collection}
         fill
-        rows={asRecords(rows)}
-        queries={[query, versions]}
-        columns={[
-          { key: "title", label: "Risk" },
-          // In a narrow register the severity and the status stay beside the risk longest. The
-          // program and owner take the width their names need, and the risk the rest.
-          { ...program, priority: 3, width: 200 },
-          { ...party(), priority: 4, width: 140 },
-          {
-            key: "severity",
-            label: "Latest severity",
-            priority: 1,
-            // The latest assessment's severity: the column sorts by its rank and filters by it.
-            value: (row) => latest(row.id)?.severity ?? null,
-            statuses: severityLevels,
-          },
-          { ...status, priority: 2 },
-          { key: "updated_at", label: "Updated", priority: 5 },
-        ]}
+        noun={{ one: "risk", other: "risks" }}
+        onRowClick={(row) => void navigate(recordDestination("risks", row))}
         empty={{
+          illustration: "records",
           title: "No risks yet",
           description:
             "Record a risk when an identified threat or vulnerability requires assessment and treatment.",
-          action:
-            workspace.role !== "viewer" ? (
-              <Button variant="primary" iconBefore={<Plus />} onClick={() => setCreating(true)}>
-                Create risk
-              </Button>
-            ) : undefined,
+          action: create("medium"),
         }}
-        searchLabel="Search risks"
-        view="risk-register"
-        commands={[
-          {
-            label: "Export risks",
-            onSelect: () => downloadJson("risk-register.json", query.data),
-            disabled: !query.data,
-          },
-        ]}
-        actions={
+        searchLabel="Find risks"
+        // Every question a link asks of the register has a chip the reader can see and clear: the
+        // Open risks tile filters the status, a risk matrix cell the likelihood and the impact too.
+        filters={
           <>
-            {workspace.role !== "viewer" && (
-              <Button
-                size="small"
-                variant="primary"
-                iconBefore={<Plus />}
-                onClick={() => setCreating(true)}
-              >
-                Create risk
-              </Button>
-            )}
+            <DataTable.Filter
+              table={table}
+              column="status"
+              options={vocabularyOptions(riskStatuses)}
+            />
+            <DataTable.Filter
+              table={table}
+              column="severity"
+              options={vocabularyOptions(severityLevels)}
+            />
+            <DataTable.Filter
+              table={table}
+              column="likelihood"
+              options={vocabularyOptions(riskLevels)}
+            />
+            <DataTable.Filter
+              table={table}
+              column="impact"
+              options={vocabularyOptions(riskLevels)}
+            />
           </>
         }
+        commands={[{ label: "Export risks", onSelect: exportRisks, disabled: exporting }]}
+        action={create("small")}
       />
+      {preview && (
+        <RecordSummaryPreview
+          model="risks"
+          record={preview}
+          rows={displayed}
+          onSelect={setPreview}
+          onClose={() => setPreview(null)}
+          fields={riskFields}
+        />
+      )}
     </RegisterRoot>
   );
 }
@@ -197,18 +495,20 @@ export function RiskRecord({
   const [editing, setEditing] = useState<DataRecord | null>(null),
     [localTab, setLocalTab] = useState<RiskTab>("overview"),
     [selected, setSelected] = useState<string | null>(null);
-  const tab = routeTab ?? localTab;
+  // Where the route keeps the tab, the address owns it, so Back to an address with no tab shows the
+  // first; otherwise the screen keeps its own.
+  const tab = onTabChange ? (routeTab ?? "overview") : localTab;
   const select = (next: RiskTab) => {
-    setLocalTab(next);
-    onTabChange?.(next);
+    if (onTabChange) onTabChange(next);
+    else setLocalTab(next);
   };
   const record = query.data;
   const assessment =
     versions.data?.find((row) => row.id === selected) ??
     versions.data?.slice().sort((a, b) => b.version_number - a.version_number)[0];
   return (
-    <Stack space="space.250">
-      <QueryState query={query}>
+    <Page>
+      <QueryState query={query} region>
         {record ? (
           <>
             <PageHeader>
@@ -246,6 +546,37 @@ export function RiskRecord({
                   <>
                     {name === "overview" && (
                       <>
+                        {/* The Details, first in Overview: a rail beside it, or on a phone a
+                            Details disclosure under the tabs. Only while Overview is shown, since
+                            the panel stays mounted behind the other tabs. */}
+                        {tab === "overview" && (
+                          <Shell.Aside
+                            label="Risk details"
+                            summary={<StatusBadge statuses={riskStatuses} value={record.status} />}
+                          >
+                            <Inspector.Group title="Details">
+                              <ModelFacts
+                                table="risks"
+                                record={record as DataRecord}
+                                fields={[
+                                  program,
+                                  party(),
+                                  "status",
+                                  {
+                                    key: "scope_id",
+                                    label: "Scope",
+                                    render: (row) => (
+                                      <RelationName
+                                        table="scopes"
+                                        id={row["scope_id"] as string | null}
+                                      />
+                                    ),
+                                  },
+                                ]}
+                              />
+                            </Inspector.Group>
+                          </Shell.Aside>
+                        )}
                         <Section title="Latest assessment">
                           <QueryState query={versions}>
                             {assessment ? (
@@ -343,6 +674,7 @@ export function RiskRecord({
                         {assessment ? (
                           <EntitySection
                             table="risk_observations"
+                            links="observations"
                             filters={{ risk_revision_id: assessment.id }}
                             title="Supporting observations"
                             columns={[
@@ -369,6 +701,7 @@ export function RiskRecord({
                     {name === "work" && (
                       <EntitySection
                         table="task_risks"
+                        links="tasks"
                         filters={{ risk_id: id }}
                         title="Risk work"
                         columns={[
@@ -398,34 +731,12 @@ export function RiskRecord({
                 )}
               </RetainedTabPanels>
             </Tabs>
-            {tab === "overview" && (
-              <Shell.Aside label="Risk details">
-                <Inspector.Group title="Details">
-                  <ModelFacts
-                    table="risks"
-                    record={record as DataRecord}
-                    fields={[
-                      program,
-                      party(),
-                      "status",
-                      {
-                        key: "scope_id",
-                        label: "Scope",
-                        render: (row) => (
-                          <RelationName table="scopes" id={row["scope_id"] as string | null} />
-                        ),
-                      },
-                    ]}
-                  />
-                </Inspector.Group>
-              </Shell.Aside>
-            )}
           </>
         ) : (
           <MissingRecord backTo="/register" kind="Risk" />
         )}
       </QueryState>
-    </Stack>
+    </Page>
   );
 }
 /** The draft assessment's edit, in its section's action; the trigger stays while its dialog is open. */
@@ -467,10 +778,12 @@ export function Register({
   onTabChange?: ((tab: RegisterTab) => void) | undefined;
 } = {}) {
   const [localTab, setLocalTab] = useState<RegisterTab>("poam");
-  const tab = routeTab ?? localTab;
+  // Where the route keeps the tab, the address owns it, so Back to an address with no tab shows the
+  // first; otherwise the screen keeps its own.
+  const tab = onTabChange ? (routeTab ?? "poam") : localTab;
   const select = (next: RegisterTab) => {
-    setLocalTab(next);
-    onTabChange?.(next);
+    if (onTabChange) onTabChange(next);
+    else setLocalTab(next);
   };
   const findings = useRows("assessment_findings"),
     links = useRows("finding_risks");
@@ -479,7 +792,7 @@ export function Register({
       !links.data?.some((link) => link.finding_id === row.id) && row.determination !== "satisfied",
   );
   return (
-    <Stack space="space.200">
+    <Page>
       <PageHeader>
         <PageHeader.Heading>
           <PageHeader.Title>POA&M & risk register</PageHeader.Title>
@@ -536,7 +849,7 @@ export function Register({
                     title: "Nothing unrolled",
                     description: "No unresolved finding is awaiting a recorded risk relationship.",
                   }}
-                  searchLabel="Search findings"
+                  searchLabel="Find assessment findings"
                 />
               )}
               {name === "documents" && (
@@ -560,7 +873,7 @@ export function Register({
           )}
         </RetainedTabPanels>
       </Tabs>
-    </Stack>
+    </Page>
   );
 }
 export function PoamRecord({ id }: { id: string }) {
@@ -569,12 +882,12 @@ export function PoamRecord({ id }: { id: string }) {
   const [editing, setEditing] = useState<DataRecord | null>(null),
     [selected, setSelected] = useState<string | null>(null);
   const record = query.data;
-  const version =
-    versions.data?.find((row) => row.id === selected) ??
-    versions.data?.slice().sort((a, b) => b.version_number - a.version_number)[0];
+  // The latest commitment is the one still due; an earlier one was replaced by it.
+  const latest = versions.data?.slice().sort((a, b) => b.version_number - a.version_number)[0];
+  const version = versions.data?.find((row) => row.id === selected) ?? latest;
   return (
-    <Stack space="space.250">
-      <QueryState query={query}>
+    <Page>
+      <QueryState query={query} region>
         {record ? (
           <>
             <PageHeader>
@@ -598,7 +911,10 @@ export function PoamRecord({ id }: { id: string }) {
                 onCancel={() => setEditing(null)}
               />
             )}
-            <Shell.Aside label="Remediation item details">
+            <Shell.Aside
+              label="Remediation item details"
+              summary={<StatusBadge statuses={remediationStatuses} value={record.status} />}
+            >
               <Inspector.Group title="Details">
                 <ModelFacts
                   table="poam_items"
@@ -616,19 +932,47 @@ export function PoamRecord({ id }: { id: string }) {
                         />
                       ),
                     },
+                    // The commitment shown below is a fact of the rail like the others: its label
+                    // beside the value, which is the chooser once there is more than one.
+                    ...(version
+                      ? [
+                          {
+                            key: "remediation_commitment",
+                            label: "Remediation commitment",
+                            render: () =>
+                              (versions.data?.length ?? 0) > 1 ? (
+                                <LibrarySelect
+                                  inline
+                                  label="Remediation commitment"
+                                  value={version.id}
+                                  options={(versions.data ?? []).map((item) => ({
+                                    value: item.id,
+                                    label: `Version ${item.version_number}`,
+                                  }))}
+                                  onChange={setSelected}
+                                />
+                              ) : (
+                                `Version ${version.version_number}`
+                              ),
+                          },
+                          // The shown commitment's planned completion, set in place while it is
+                          // a draft.
+                          {
+                            key: "planned_completion_date",
+                            label: "Planned completion",
+                            render: () => (
+                              <PlannedCompletion
+                                key={version.id}
+                                version={version}
+                                itemStatus={record.status}
+                                latest={version.id === latest?.id}
+                              />
+                            ),
+                          },
+                        ]
+                      : []),
                   ]}
                 />
-                {version && (
-                  <LibrarySelect
-                    label="Remediation commitment"
-                    value={version.id}
-                    options={(versions.data ?? []).map((item) => ({
-                      value: item.id,
-                      label: `Version ${item.version_number}`,
-                    }))}
-                    onChange={setSelected}
-                  />
-                )}
               </Inspector.Group>
             </Shell.Aside>
             <EntitySection
@@ -639,13 +983,18 @@ export function PoamRecord({ id }: { id: string }) {
               title="Remediation commitments"
               columns={[
                 ...versionColumns,
-                { key: "planned_completion_date", label: "Planned" },
+                plannedCompletion(record.status, latest?.id),
                 { key: "actual_completion_date", label: "Completed" },
               ]}
             />
             <QueryState query={versions}>
               {version ? (
-                <PoamVersion key={version.id} version={version} />
+                <PoamVersion
+                  key={version.id}
+                  version={version}
+                  itemStatus={record.status}
+                  latest={version.id === latest?.id}
+                />
               ) : (
                 <EmptyMessage
                   compact
@@ -659,10 +1008,21 @@ export function PoamRecord({ id }: { id: string }) {
           <MissingRecord backTo="/register" kind="Remediation item" />
         )}
       </QueryState>
-    </Stack>
+    </Page>
   );
 }
-function PoamVersion({ version }: { version: Row<"poam_item_revisions"> }) {
+function PoamVersion({
+  version,
+  itemStatus,
+  latest,
+}: {
+  version: Row<"poam_item_revisions">;
+  /** The remediation item's status, which decides whether its dates are still due. */
+  itemStatus: string;
+  /** The commitment is the item's latest; an earlier one's milestones were replaced with it. */
+  latest: boolean;
+}) {
+  const end = remediationEnd(itemStatus);
   const workspace = useWorkspace();
   const canEdit = workspace.role !== "viewer" && version.state === "draft";
   const [editing, setEditing] = useState<DataRecord | null>(null);
@@ -694,7 +1054,7 @@ function PoamVersion({ version }: { version: Row<"poam_item_revisions"> }) {
             "description",
             { key: "remediation_plan", label: "Plan" },
             "resources",
-            { key: "planned_completion_date", label: "Planned" },
+            // The planned completion is in the item's Details, beside the commitment it belongs to.
             { key: "actual_completion_date", label: "Completed" },
             { key: "completion_rationale", label: "Rationale" },
           ]}
@@ -709,7 +1069,20 @@ function PoamVersion({ version }: { version: Row<"poam_item_revisions"> }) {
           { key: "sequence_number", label: "Sequence" },
           { key: "title" },
           party(),
-          { key: "planned_date", label: "Planned" },
+          {
+            key: "planned_date",
+            label: "Planned",
+            minWidth: 200,
+            // Overdue or due until the milestone, or its remediation item, is completed; an
+            // earlier commitment's milestones read plainly.
+            render: (row) => (
+              <DueDate
+                value={row["planned_date"]}
+                done={end.done || row["status"] === "completed" || Boolean(row["completed_date"])}
+                cancelled={end.cancelled || !latest || row["status"] === "cancelled"}
+              />
+            ),
+          },
           { key: "completed_date", label: "Completed" },
           status,
         ]}
@@ -718,6 +1091,7 @@ function PoamVersion({ version }: { version: Row<"poam_item_revisions"> }) {
       <EntitySection
         showHeading
         table="poam_item_risks"
+        links="risk_revisions"
         filters={{ poam_item_revision_id: version.id }}
         title="Linked risk assessments"
         columns={[
@@ -741,8 +1115,8 @@ export function PoamDocument({ id }: { id: string }) {
   const [editingRevision, setEditingRevision] = useState(false);
   const [revision, setRevision] = useState<DataRecord | null>(null);
   return (
-    <Stack space="space.250">
-      <QueryState query={query}>
+    <Page>
+      <QueryState query={query} region>
         {query.data ? (
           <>
             <PageHeader>
@@ -869,6 +1243,6 @@ export function PoamDocument({ id }: { id: string }) {
           <MissingRecord backTo="/register" kind="POA&M plan" />
         )}
       </QueryState>
-    </Stack>
+    </Page>
   );
 }

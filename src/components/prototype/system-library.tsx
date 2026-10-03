@@ -15,7 +15,6 @@ import {
   List,
   Prose,
   Stack,
-  Text,
   defineColumns,
   useDataTable,
   type Preset,
@@ -31,7 +30,7 @@ import {
 import { Plus } from "lucide-react";
 import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
-import { useRows } from "@/lib/models";
+import { idSet, useRows } from "@/lib/models";
 import { labelFor } from "@/lib/records";
 import { implementationStatuses } from "@/lib/status";
 import { libraryUses, type LibraryUseRow } from "@/lib/library-use";
@@ -85,13 +84,43 @@ export function SystemLibrary({
   const workspace = useWorkspace();
   const navigate = useNavigate();
   const components = useRows("system_components", { system_id: element.boundary_system_id });
-  const definedComponents = useRows("defined_components");
+  // Each read asks for what the boundary's components name, never a whole table.
+  const scope = useMemo(
+    () => ({
+      components: idSet(components.data?.map((row) => row.id)),
+      defined: idSet(components.data?.map((row) => row.defined_component_id)),
+      people: idSet(components.data?.map((row) => row.applied_by ?? row.created_by)),
+    }),
+    [components.data],
+  );
+  const definedComponents = useRows(
+    "defined_components",
+    { id: scope.defined },
+    { enabled: components.isSuccess, keepPrevious: true },
+  );
+  // Every version of the library's definitions, so a newer published one is found.
   const revisions = useRows("component_definition_revisions");
   const definitions = useRows("component_definitions");
-  const contributions = useRows("component_contributions");
-  const implementations = useRows("defined_component_implementations");
-  const parties = useRows("parties");
-  const controls = useRows("controls");
+  const contributions = useRows(
+    "component_contributions",
+    { system_component_id: scope.components },
+    { enabled: components.isSuccess, keepPrevious: true },
+  );
+  const implementations = useRows(
+    "defined_component_implementations",
+    { id: idSet(contributions.data?.map((row) => row.library_implementation_id)) },
+    { enabled: contributions.isSuccess, keepPrevious: true },
+  );
+  const parties = useRows(
+    "parties",
+    { auth_user_id: scope.people },
+    { columns: ["id", "auth_user_id", "name"], enabled: components.isSuccess },
+  );
+  const controls = useRows(
+    "controls",
+    { id: idSet(implementations.data?.map((row) => row.control_id)) },
+    { columns: ["id", "code"], enabled: implementations.isSuccess, keepPrevious: true },
+  );
   const [includeInside, setIncludeInside] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   // A preview belongs to its tab: it ends when the system's Library tab hides.
@@ -137,64 +166,45 @@ export function SystemLibrary({
           header: "Item",
           minWidth: 200,
           priority: 0,
-          preview: (row) => setSelectedId(row.id),
-          active: (row) => row.id === selectedId,
           hideable: false,
+          // Under the name: a baseline's control count, a component definition's component.
+          description: (row) => row.detail,
           cell: (row) => (
-            <Stack space="space.0" className="min-w-0">
-              <RecordLink
-                table={
-                  row.definitionId
-                    ? "component_definitions"
-                    : row.revisionId
-                      ? "profile_resolutions"
-                      : "systems"
-                }
-                record={{
-                  id: row.definitionId ?? row.revisionId ?? row.elementId,
-                  program_id: programId,
-                }}
-              >
-                {row.name}
-              </RecordLink>
-              {row.detail && (
-                <Text size="xsmall" color="color.text.subtle">
-                  {row.detail}
-                </Text>
-              )}
-            </Stack>
+            <RecordLink
+              table={
+                row.definitionId
+                  ? "component_definitions"
+                  : row.revisionId
+                    ? "profile_resolutions"
+                    : "systems"
+              }
+              record={{
+                id: row.definitionId ?? row.revisionId ?? row.elementId,
+                program_id: programId,
+              }}
+            >
+              {row.name}
+            </RecordLink>
           ),
         }),
         c.text("kind", { header: "Kind", width: 170 }),
         c.text("version", {
           header: "Version",
           width: 150,
-          cell: (row) => (
-            <Inline space="space.075" alignBlock="center">
-              {row.version ? <Text>{row.version}</Text> : <Absent label="Not recorded" />}
-              {row.updateAvailable && (
-                <Badge variant="secondary" size="xsmall" tone="warning">
-                  v{row.updateAvailable.version} available
-                </Badge>
-              )}
-            </Inline>
-          ),
+          badge: (row) =>
+            row.updateAvailable ? (
+              <Badge variant="secondary" size="xsmall" tone="warning">
+                v{row.updateAvailable.version} available
+              </Badge>
+            ) : null,
         }),
-        c.date("appliedAt", { header: "Applied", width: 120 }),
+        c.date("appliedAt", { header: "Applied" }),
         c.text("source", {
           header: "Source",
           width: 200,
-          cell: (row) =>
-            includeInside && row.elementId !== element.id ? (
-              <Stack space="space.0" className="min-w-0">
-                <Text>{row.source}</Text>
-                <Text size="xsmall" color="color.text.subtle">
-                  on {row.elementCode}
-                </Text>
-              </Stack>
-            ) : (
-              row.source
-            ),
+          // With everything inside shown, a row applied below this element says where.
+          description: (row) =>
+            includeInside && row.elementId !== element.id ? `on ${row.elementCode}` : null,
         }),
         c.number("changedHere", {
           header: "Changed here",
@@ -206,9 +216,13 @@ export function SystemLibrary({
         c.text("updateFlag", { header: "Update", width: 140 }),
         c.text("changeFlag", { header: "Change", width: 140 }),
       ]),
-    [includeInside, element.id, selectedId, programId],
+    [includeInside, element.id, programId],
   );
   const table = useDataTable({
+    preview: useMemo(
+      () => ({ onPreview: (row: Line) => setSelectedId(row.id), activeId: selectedId ?? null }),
+      [selectedId],
+    ),
     columns,
     data,
     getRowId: (row) => row.id,
@@ -325,13 +339,11 @@ export function SystemLibrary({
                 {selected.category && (
                   <KeyValue label="Category">{labelFor(selected.category)}</KeyValue>
                 )}
-                <KeyValue label="Version">
-                  {selected.version ?? <Absent label="Not recorded" />}
-                </KeyValue>
+                <KeyValue label="Version">{selected.version ?? <Absent />}</KeyValue>
                 <KeyValue label="Source">{selected.source}</KeyValue>
                 <KeyValue label="Element">{selected.elementCode}</KeyValue>
                 <KeyValue label="Applied">
-                  <DateTime value={selected.appliedAt} format="date" absentLabel="Not recorded" />
+                  <DateTime value={selected.appliedAt} format="date" />
                 </KeyValue>
                 {selected.appliedByName && (
                   <KeyValue label="Applied by">{selected.appliedByName}</KeyValue>

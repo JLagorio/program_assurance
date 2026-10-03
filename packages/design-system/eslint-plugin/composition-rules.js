@@ -1,6 +1,6 @@
 // Observable, local composition errors. Cross-file workflow behavior belongs in browser tests.
 import { classSites } from "./class-sites.js";
-import { kitPartOf, partNameOf } from "./identity.js";
+import { forwardedTo, kitPartOf, partNameOf } from "./identity.js";
 import { defineRules } from "./report.js";
 
 const attribute = (node, name) =>
@@ -107,27 +107,31 @@ function propState(context, node, name, missing) {
 
 export const compositionRules = defineRules({
   "product-responsive-table": {
-    description: "Product DataTable instances explicitly enable responsive column adaptation.",
+    description:
+      "A product DataTable stays responsive: it never turns responsive off, nor leaves it to a spread.",
     messages: {
-      // `state` is how the prop is written (propState).
-      responsive:
-        "<{{tag}}> {{state}}, so a narrow frame scrolls it sideways instead of folding lower-priority columns into More fields. Write responsive after any prop spreads.{{note}}",
+      // `state` is how the prop is written (propState): `sets responsive={false}`.
+      off: "<{{tag}}> {{state}}, so a narrow frame scrolls it sideways instead of folding lower-priority columns into More fields. A DataTable is responsive by default: remove the prop.{{note}}",
+      spread:
+        "<{{tag}}> leaves responsive to a prop spread, which can turn it off and scroll the table sideways instead of folding lower-priority columns into More fields. Write responsive after the spread.{{note}}",
     },
     create: (context) => ({
       JSXOpeningElement(node) {
-        if (
-          importedKitName(context, node.name) !== "DataTable" ||
-          explicitProp(node, "responsive", true)
-        )
-          return;
-        context.report({
-          node,
-          messageId: "responsive",
-          data: {
-            tag: tagOf(context, node),
-            state: propState(context, node, "responsive", "leaves responsive off"),
-          },
-        });
+        if (importedKitName(context, node.name) !== "DataTable") return;
+        const index = node.attributes.findLastIndex(
+          (item) => item.type === "JSXAttribute" && item.name.name === "responsive",
+        );
+        const spread = node.attributes
+          .slice(index + 1)
+          .some((item) => item.type === "JSXSpreadAttribute");
+        const tag = tagOf(context, node);
+        if (spread) context.report({ node, messageId: "spread", data: { tag } });
+        else if (index >= 0 && !explicitProp(node, "responsive", true))
+          context.report({
+            node,
+            messageId: "off",
+            data: { tag, state: propState(context, node, "responsive", "") },
+          });
       },
     }),
   },
@@ -207,18 +211,54 @@ export const compositionRules = defineRules({
       destination:
         "TextLink needs a destination: an href, or a router link in render. An action that reads as text is a Button.{{note}}",
       anchor: "TextLink must render an anchor or a router link. Use Button for an action.{{note}}",
+      // `wrapper` is the component of this file that hands its props on to the TextLink.
+      forwardedDestination:
+        "<{{wrapper}}> forwards its props to <TextLink>, which needs a destination: an href, or a router link in render. An action that reads as text is a Button.{{note}}",
+      forwardedAnchor:
+        "<{{wrapper}}> forwards render to <TextLink>, which must render an anchor or a router link. Use Button for an action.{{note}}",
     },
     create(context) {
       const names = kitNames(context);
+      const spreads = (node) => node.attributes.some((item) => item.type === "JSXSpreadAttribute");
+      /** The TextLink a component of this file hands `prop` on to, as its element. */
+      const textLinkFor = (node, prop) => {
+        const forwarded = forwardedTo(context, node, prop);
+        return forwarded && names.name(forwarded.element.name) === "TextLink"
+          ? forwarded
+          : undefined;
+      };
       return {
         JSXOpeningElement(node) {
-          if (names.name(node.name) !== "TextLink") return;
           const render = attribute(node, "render");
-          if (
-            !render &&
-            !attribute(node, "href") &&
-            !node.attributes.some((item) => item.type === "JSXSpreadAttribute")
-          ) {
+          let wrapper;
+          if (names.name(node.name) !== "TextLink") {
+            // A component of this file that hands its props on to a TextLink, which sets no
+            // destination of its own, needs one from its caller.
+            if (!/^[A-Z]/.test(node.name.name ?? "")) return;
+            if (render) {
+              const forwarded = textLinkFor(node, "render");
+              if (!forwarded) return;
+              wrapper = forwarded.wrapper;
+            } else {
+              const forwarded = textLinkFor(node, "href");
+              const own = forwarded?.element;
+              if (
+                own &&
+                !attribute(own, "href") &&
+                !attribute(own, "render") &&
+                own.attributes.filter((item) => item.type === "JSXSpreadAttribute").length === 1 &&
+                !attribute(node, "href") &&
+                !spreads(node)
+              )
+                context.report({
+                  node,
+                  messageId: "forwardedDestination",
+                  data: { wrapper: forwarded.wrapper },
+                });
+              return;
+            }
+          }
+          if (!wrapper && !render && !attribute(node, "href") && !spreads(node)) {
             context.report({ node, messageId: "destination" });
             return;
           }
@@ -229,7 +269,12 @@ export const compositionRules = defineRules({
           if (
             /^[a-z]/.test(rendered) ? rendered !== "a" : ["Button", "IconButton"].includes(rendered)
           )
-            context.report({ node: render, messageId: "anchor" });
+            context.report({
+              node: render,
+              ...(wrapper
+                ? { messageId: "forwardedAnchor", data: { wrapper } }
+                : { messageId: "anchor" }),
+            });
         },
       };
     },
@@ -240,12 +285,24 @@ export const compositionRules = defineRules({
       // `tag` is the late cancel as written, `footer` the footer, `surface` what it closes.
       order:
         "<{{tag}}> dismisses the {{surface}} but comes after the primary action in <{{footer}}>. Put it first: the safe answer leads, and the primary ends the footer, where a keyboard reader reaches it last.{{note}}",
+      // `footer` is a component of this file that hands its children on to `part`.
+      forwarded:
+        "<{{tag}}> dismisses the {{surface}} but comes after the primary action in <{{footer}}>, which forwards its children to <{{part}}>. Put it first: the safe answer leads, and the primary ends the footer.{{note}}",
     },
     create(context) {
       const names = kitNames(context);
       return {
         JSXElement(node) {
-          if (!FOOTERS.test(names.name(node.openingElement.name))) return;
+          let part = names.name(node.openingElement.name);
+          let forwarded;
+          if (!FOOTERS.test(part)) {
+            // A component of this file that hands its children on to a footer.
+            if (!/^[A-Z]/.test(node.openingElement.name.name ?? "")) return;
+            if (!node.children.some((child) => child.type !== "JSXText")) return;
+            forwarded = forwardedTo(context, node.openingElement, "children");
+            part = forwarded ? names.name(forwarded.element.name) : "";
+            if (!FOOTERS.test(part)) return;
+          }
           const buttons = [];
           const visit = (child) => {
             if (!child) return;
@@ -278,16 +335,16 @@ export const compositionRules = defineRules({
           node.children.forEach(visit);
           const firstPrimary = buttons.findIndex((button) => button.primary);
           if (firstPrimary < 0) return;
-          const footer = names.name(node.openingElement.name);
           for (const [index, button] of buttons.entries())
             if (button.cancel && index > firstPrimary)
               context.report({
                 node: button.node,
-                messageId: "order",
+                messageId: forwarded ? "forwarded" : "order",
                 data: {
                   tag: tagOf(context, button.node.openingElement),
                   footer: tagOf(context, node.openingElement),
-                  surface: SURFACE[/^(\w+?)Footer$/.exec(footer)[1]],
+                  surface: SURFACE[/^(\w+?)Footer$/.exec(part)[1]],
+                  ...(forwarded ? { part } : {}),
                 },
               });
         },

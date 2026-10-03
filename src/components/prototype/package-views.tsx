@@ -22,6 +22,7 @@ import {
 import { Plus } from "lucide-react";
 import { useRow, useRows } from "@/lib/models";
 import { useWorkspace } from "@/components/app/workspace";
+import { Page } from "@/components/app/shell";
 import { type DataRecord } from "@/lib/records";
 import { revisionStates } from "@/lib/status";
 import { RecordTrail, TrailLink } from "./record-trail";
@@ -36,11 +37,7 @@ import {
 
 /** Authored text under its name, keeping its line breaks; a labelled Absent when there is none. */
 function Described({ label, text }: { label: string; text: unknown }) {
-  return (
-    <Prose label={label}>
-      {typeof text === "string" && text.trim() ? text : <Absent label="Not recorded" />}
-    </Prose>
-  );
+  return <Prose label={label}>{typeof text === "string" && text.trim() ? text : <Absent />}</Prose>;
 }
 
 const packageFacts: DisplayColumn[] = [
@@ -57,6 +54,7 @@ const packageFacts: DisplayColumn[] = [
   {
     key: "owner_party_id",
     label: "Owner",
+    kind: "person",
     render: (row) => <RelationName table="parties" id={row["owner_party_id"] as string | null} />,
   },
 ];
@@ -115,7 +113,7 @@ export function Packages() {
       </Button>
     ) : undefined;
   return (
-    <Stack space="space.200">
+    <Page>
       <PageHeader>
         <PageHeader.Heading>
           <PageHeader.Title>Authorization packages</PageHeader.Title>
@@ -144,7 +142,7 @@ export function Packages() {
         onPreview={setPreview}
         selectedId={preview?.id}
         onDisplayedRowsChange={setPreviewRows}
-        searchLabel="Search packages"
+        searchLabel="Find authorization packages"
         view="authorization-packages"
         empty={{
           illustration: "document",
@@ -190,7 +188,7 @@ export function Packages() {
           />
         </RecordPreviewPanel>
       )}
-    </Stack>
+    </Page>
   );
 }
 /** The version table's columns, one list for every render, so stepping the preview keeps its page. */
@@ -209,8 +207,8 @@ export function PackageRecord({ id }: { id: string }) {
   const [displayedVersions, setDisplayedVersions] = useState<DataRecord[]>([]);
   const row = query.data;
   return (
-    <Stack space="space.250">
-      <QueryState query={query} shape="record">
+    <Page>
+      <QueryState query={query} shape="record" region>
         {row ? (
           <>
             <PageHeader>
@@ -287,7 +285,7 @@ export function PackageRecord({ id }: { id: string }) {
           <MissingRecord backTo="/packages" kind="Authorization package" />
         )}
       </QueryState>
-    </Stack>
+    </Page>
   );
 }
 function PackageVersion({
@@ -410,6 +408,7 @@ function PackageVersion({
                 {
                   key: "reviewer_party_id",
                   label: "Reviewer",
+                  kind: "person",
                   render: (row) => (
                     <RelationName table="parties" id={row["reviewer_party_id"] as string} />
                   ),
@@ -435,6 +434,7 @@ function PackageVersion({
                 {
                   key: "decision_maker_party_id",
                   label: "Decision maker",
+                  kind: "person",
                   render: (row) => (
                     <RelationName table="parties" id={row["decision_maker_party_id"] as string} />
                   ),
@@ -490,6 +490,7 @@ export function Briefing() {
       {
         key: "decision_maker_party_id",
         label: "Decision maker",
+        kind: "person",
         render: (row) => (
           <RelationName table="parties" id={row["decision_maker_party_id"] as string} />
         ),
@@ -501,7 +502,7 @@ export function Briefing() {
     [decidedOn],
   );
   return (
-    <Stack space="space.250">
+    <Page>
       <PageHeader>
         <PageHeader.Heading>
           <PageHeader.Title>Authorization decisions</PageHeader.Title>
@@ -509,107 +510,112 @@ export function Briefing() {
       </PageHeader>
       {/* The columns follow Main's own width, not the window's: the decisions take two thirds and
           the packages list one while Main has room, and the list drops under the decisions when a
-          preview panel or a phone narrows it. */}
-      <Box className="@container">
-        <Grid gap="space.400" alignItems="start" className="grid-cols-1 @4xl:grid-cols-3">
-          <Stack space="space.250" className="min-w-0 @4xl:col-span-2">
-            <ModelTable
-              model="authorization_decisions"
-              rows={(decisions.data ?? []) as DataRecord[]}
-              queries={[decisions, versions, packages]}
-              view="authorization-decisions"
-              searchLabel="Search authorization decisions"
-              columns={columns}
-              onPreview={setSelection}
-              selectedId={selection?.id}
-              onDisplayedRowsChange={setDisplayedDecisions}
-              empty={{
-                illustration: "document",
-                title: "No authorization decisions yet",
-                description: "A decision is recorded on a published authorization package version.",
-                action: (
-                  <LinkButton render={<Link to="/packages" />}>
-                    Open authorization packages
-                  </LinkButton>
-                ),
-              }}
-            />
-            {current && (
-              <RecordPreviewPanel
-                // A decision is named, as in its row, by the package version it was made on; the
-                // decision and its dates are properties below.
-                title={decidedOn(current["package_revision_id"]) ?? "Authorization decision"}
-                label="Authorization decision preview"
-                defaultWidth={480}
-                onClose={() => setSelection(null)}
-                navigation={
-                  <RecordPreviewActions
-                    table="authorization_decisions"
-                    record={current}
-                    rows={displayedDecisions}
-                    onSelect={setSelection}
-                  />
-                }
-              >
-                <Stack space="space.250">
-                  <ModelFacts
-                    record={current}
-                    table="authorization_decisions"
-                    fields={[
-                      { key: "decision", label: "Decision" },
-                      {
-                        key: "decision_maker_party_id",
-                        label: "Decision maker",
-                        render: (row) => (
-                          <RelationName
-                            table="parties"
-                            id={row["decision_maker_party_id"] as string}
-                          />
-                        ),
-                      },
-                      { key: "decided_at", label: "Decided" },
-                      { key: "effective_on", label: "Effective" },
-                      { key: "expires_on", label: "Expires" },
-                    ]}
-                  />
-                  <Described label="Rationale" text={current["rationale"]} />
-                  <Described label="Conditions" text={current["conditions"]} />
-                </Stack>
-              </RecordPreviewPanel>
-            )}
-          </Stack>
-          <QueryState queries={[packages, versions]}>
-            <HeadingLevelProvider level={2}>
-              <Related
-                title="Packages for review"
-                size="default"
-                {...(publishedPackages.length ? { count: publishedPackages.length } : {})}
+          preview panel or a phone narrows it. The page is one failure region: an outage of the
+          decisions and the packages they name reads as one alert above both. */}
+      <QueryState region>
+        <Box className="@container">
+          <Grid gap="space.400" alignItems="start" className="grid-cols-1 @4xl:grid-cols-3">
+            <Stack space="space.250" className="min-w-0 @4xl:col-span-2">
+              <ModelTable
+                model="authorization_decisions"
+                rows={(decisions.data ?? []) as DataRecord[]}
+                queries={[decisions, versions, packages]}
+                view="authorization-decisions"
+                searchLabel="Find authorization decisions"
+                columns={columns}
+                onPreview={setSelection}
+                selectedId={selection?.id}
+                onDisplayedRowsChange={setDisplayedDecisions}
                 empty={{
-                  title: "No published package versions",
-                  description: "A package appears here once one of its versions is published.",
+                  illustration: "document",
+                  title: "No authorization decisions yet",
+                  description:
+                    "A decision is recorded on a published authorization package version.",
                   action: (
-                    <TextLink size="small" render={<Link to="/packages" />}>
+                    <LinkButton render={<Link to="/packages" />}>
                       Open authorization packages
-                    </TextLink>
+                    </LinkButton>
                   ),
                 }}
-              >
-                {publishedPackages.map((row) => (
-                  <Item
-                    key={row.id}
-                    title={row.title}
-                    link={<Link to="/packages/$pkgId" params={{ pkgId: row.id }} />}
-                    trailing={formatPlural(published(row.id).length, {
-                      one: "{count} published version",
-                      other: "{count} published versions",
-                    })}
-                  />
-                ))}
-              </Related>
-            </HeadingLevelProvider>
-          </QueryState>
-        </Grid>
-      </Box>
-    </Stack>
+              />
+              {current && (
+                <RecordPreviewPanel
+                  // A decision is named, as in its row, by the package version it was made on; the
+                  // decision and its dates are properties below.
+                  title={decidedOn(current["package_revision_id"]) ?? "Authorization decision"}
+                  label="Authorization decision preview"
+                  defaultWidth={480}
+                  onClose={() => setSelection(null)}
+                  navigation={
+                    <RecordPreviewActions
+                      table="authorization_decisions"
+                      record={current}
+                      rows={displayedDecisions}
+                      onSelect={setSelection}
+                    />
+                  }
+                >
+                  <Stack space="space.250">
+                    <ModelFacts
+                      record={current}
+                      table="authorization_decisions"
+                      fields={[
+                        { key: "decision", label: "Decision" },
+                        {
+                          key: "decision_maker_party_id",
+                          label: "Decision maker",
+                          kind: "person",
+                          render: (row) => (
+                            <RelationName
+                              table="parties"
+                              id={row["decision_maker_party_id"] as string}
+                            />
+                          ),
+                        },
+                        { key: "decided_at", label: "Decided" },
+                        { key: "effective_on", label: "Effective" },
+                        { key: "expires_on", label: "Expires" },
+                      ]}
+                    />
+                    <Described label="Rationale" text={current["rationale"]} />
+                    <Described label="Conditions" text={current["conditions"]} />
+                  </Stack>
+                </RecordPreviewPanel>
+              )}
+            </Stack>
+            <QueryState queries={[packages, versions]}>
+              <HeadingLevelProvider level={2}>
+                <Related
+                  title="Packages for review"
+                  size="default"
+                  {...(publishedPackages.length ? { count: publishedPackages.length } : {})}
+                  empty={{
+                    title: "No published package versions",
+                    description: "A package appears here once one of its versions is published.",
+                    action: (
+                      <TextLink size="small" render={<Link to="/packages" />}>
+                        Open authorization packages
+                      </TextLink>
+                    ),
+                  }}
+                >
+                  {publishedPackages.map((row) => (
+                    <Item
+                      key={row.id}
+                      title={row.title}
+                      link={<Link to="/packages/$pkgId" params={{ pkgId: row.id }} />}
+                      trailing={formatPlural(published(row.id).length, {
+                        one: "{count} published version",
+                        other: "{count} published versions",
+                      })}
+                    />
+                  ))}
+                </Related>
+              </HeadingLevelProvider>
+            </QueryState>
+          </Grid>
+        </Box>
+      </QueryState>
+    </Page>
   );
 }

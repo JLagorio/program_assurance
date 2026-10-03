@@ -56,6 +56,8 @@ export const defaultMessages = {
   nextMonth: "Next month",
   selection: "Selection",
   selectedCount: "{count} selected",
+  selectedCountOf: "{count} of {total} selected",
+  selectionShown: "{count}. Actions: {actions}.",
   selectAllCount: "Select all {count}",
   selectAll: "Select all",
   selectPage: "Select all rows on this page",
@@ -90,6 +92,8 @@ export const defaultMessages = {
   sortBy: "Sort by",
   sortedBy: "Sort: {label}",
   sortedByDirection: "Sort: {label}, {direction}",
+  sortAnnounced: "Sorted by {label}, {direction}",
+  sortRemoved: "Not sorted",
   sortDirection: "Direction",
   ascending: "Ascending",
   descending: "Descending",
@@ -124,14 +128,28 @@ export const defaultMessages = {
   clearAllFilters: "Clear all filters",
   details: "Details",
   moreFields: "More fields",
+  wrapText: "Wrap text",
+  wrapColumn: "Wrap {label}",
+  /** @deprecated A responsive row's control says its count: `showMoreFieldsFor…` and `hideMoreFieldsFor…`. Kept for one version. */
   moreFieldsFor: "More fields for {label}",
+  showMoreFieldsOne: "Show {count} more field",
+  showMoreFieldsOther: "Show {count} more fields",
+  hideMoreFieldsOne: "Hide {count} more field",
+  hideMoreFieldsOther: "Hide {count} more fields",
+  showMoreFieldsForOne: "Show {count} more field for {label}",
+  showMoreFieldsForOther: "Show {count} more fields for {label}",
+  hideMoreFieldsForOne: "Hide {count} more field for {label}",
+  hideMoreFieldsForOther: "Hide {count} more fields for {label}",
   columnMoved: "{label}, {position} of {total}",
   columnFolded: "{label}, moved into More fields",
   parts: "Parts",
   detailsLabel: "{label}, details",
   reorder: "Reorder",
   rowsError: "The rows could not be loaded.",
+  rowsStale: "The rows could not be refreshed. These are the last ones loaded.",
   nothingHere: "Nothing here",
+  /** What a bare Absent speaks in place of its dash. */
+  absent: "Not recorded",
   nothingToShow: "Nothing to show yet",
   noResults: "No results found",
   noMatches: "Nothing matches",
@@ -209,6 +227,9 @@ export const defaultMessages = {
   dateOverdue: "Overdue",
   dateDueToday: "Due today",
   dateDueSoon: "Due {relative}",
+  dateExpired: "Expired",
+  dateExpiresToday: "Expires today",
+  dateExpiresSoon: "Expires {relative}",
   preview: "Preview",
   previewRow: "Preview row",
   previewLabel: "Preview {label}",
@@ -239,6 +260,7 @@ export const defaultMessages = {
   editableDiscardNamed: "Discard the change to {label}",
   editableSaveNamed: "Save {label}",
   editableCancelNamed: "Cancel editing {label}",
+  editableChooseDateNamed: "Choose a date for {label}",
   editableMultilineHint:
     "Enter adds a line. Control or Command plus Enter saves. Escape cancels. Leaving the field saves.",
   composerSuggestions: "Suggestions",
@@ -368,12 +390,19 @@ export const defaultMessages = {
   fileAdded: "Added {name}.",
   filesAddedOne: "Added {count} file.",
   filesAddedOther: "Added {count} files.",
+  /** @deprecated PickerSheet and RecordBrowser count with `selectedCount` and `selectedCountOf`. Kept for one version. */
   pickerNothingChosen: "Nothing chosen yet",
+  /** @deprecated PickerSheet and RecordBrowser count with `selectedCount` and `selectedCountOf`. Kept for one version. */
   pickerToChooseFromOne: "{count} to choose from",
+  /** @deprecated PickerSheet and RecordBrowser count with `selectedCount` and `selectedCountOf`. Kept for one version. */
   pickerToChooseFromOther: "{count} to choose from",
+  /** @deprecated PickerSheet and RecordBrowser count with `selectedCount` and `selectedCountOf`. Kept for one version. */
   pickerChosenOne: "{count} chosen",
+  /** @deprecated PickerSheet and RecordBrowser count with `selectedCount` and `selectedCountOf`. Kept for one version. */
   pickerChosenOther: "{count} chosen",
+  /** @deprecated PickerSheet and RecordBrowser count with `selectedCount` and `selectedCountOf`. Kept for one version. */
   pickerChosenOfOne: "{count} chosen of {total}",
+  /** @deprecated PickerSheet and RecordBrowser count with `selectedCount` and `selectedCountOf`. Kept for one version. */
   pickerChosenOfOther: "{count} chosen of {total}",
   tableRowOne: "row",
   tableRowOther: "rows",
@@ -416,13 +445,13 @@ export type LedgerDirection = "ltr" | "rtl";
 export type PluralForms = Partial<Record<Intl.LDMLPluralRule, string>> & { other: string };
 export type LedgerLocaleOptions = {
   /** BCP 47 locale shared by server and client. Defaults to en-US, never the host environment. */
-  locale?: string;
+  locale?: string | undefined;
   /** Logical writing direction, applied to the provider scope and exposed for portals. */
-  direction?: LedgerDirection;
+  direction?: LedgerDirection | undefined;
   /** Time zone for timestamps. Date-only calendar values use formatCalendarDate instead. */
-  timeZone?: string;
+  timeZone?: string | undefined;
   /** Translated messages. Nested providers inherit untranslated messages. */
-  messages?: Partial<LedgerMessages>;
+  messages?: Partial<LedgerMessages> | undefined;
 };
 
 const interpolate = (message: string, params: Record<string, string | number> = {}) =>

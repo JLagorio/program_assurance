@@ -14,7 +14,23 @@ import * as Stories from "./Card.stories";
 
 # Card
 
+**Status: Stable.**
+
 A raised container for a table, chart, form or set of facts. Compose its header, content and footer as needed. A card whose whole purpose is to open one record or register is a linked card: its title's link stretches over it.
+
+## When to use it
+
+- **A block that stands beside others**: a chart, a short table, a small form or a set of facts among other cards, on a dashboard, in a grid or in a rail.
+- **A whole card that opens one record or register**: a linked card, whose title's link covers it.
+
+Not for a titled block of a page's own body: that is a [Section](?path=/docs/layout-section--docs), a heading over its content on the page. Not for a register that is the page: its [DataTable](?path=/docs/patterns-data-table--docs) has no frame and fills the window. Not for a headline count: that is a linked [Stat.Tile](?path=/docs/components-stat--docs). Not for related records that carry their own actions: that is [Related](?path=/docs/patterns-related--docs), whose titles link and whose actions sit apart. Not for one fact: that is a [KeyValue](?path=/docs/components-keyvalue--docs).
+
+## Content
+
+- The title names what the card holds, as a noun: "Evidence", "Open findings by family". A linked card's title is the destination's name, since it names the link.
+- The description adds what the title cannot, a count or a scope: "Three linked artifacts".
+- One action in CardAction, a verb and its object ("Add evidence"); a linked card has none.
+- The content is the card's one job. A card that needs a second heading inside it is two cards, or a page.
 
 ## Anatomy
 
@@ -57,6 +73,10 @@ Headers and footers are undivided by default. Add `className="border-b"` to Card
 
 <Canvas of={Stories.Linked} />
 
+A button inside a linked card sits under the title's link, so a press on it opens the card's destination instead.
+
+<Canvas of={Stories.DoDont} />
+
 ## Accessibility
 
 Every part is a native div by default. CardTitle does not choose a heading level: set it with `render={<h2 />}` (or h3, one below the heading the card sits under), or compose a heading inside it. Name a region with `role="region"` and `aria-labelledby` when a landmark is useful. Links and buttons inside the card keep their own semantics and focus.
@@ -75,12 +95,8 @@ A linked card's link is named by its title alone, and it is the card's one Tab s
 
 Every part accepts native div props and refs, and names itself last with `data-slot` (`card`, `card-header`, `card-title`, `card-description`, `card-action`, `card-content`, `card-footer`; a title's link is `card-link`). Root `style` overrides merge with the raised-surface default. CardTitle takes `render` for its element, as Section.Title does, and `link`, which keeps the supplied link's own props, ref and handlers.
 
-### Migration
-
-Replace `Card.Header title/description/action` with CardHeader containing CardTitle, CardDescription and CardAction. Replace `Card.Body` with CardContent. Add a heading inside CardTitle, or set it with `render`, to preserve the original outline. Write `size="small"` for `size="sm"`, and leave out `size="default"`. Card lives in the components layer; application imports come from the package root.
-
 ## Related
 
-[Section](?path=/docs/layout-section--docs), [Table](?path=/docs/components-table--docs), [Empty](?path=/docs/components-empty--docs), [Related](?path=/docs/patterns-related--docs).
+[Section](?path=/docs/layout-section--docs), [Table](?path=/docs/components-table--docs), [Empty](?path=/docs/components-empty--docs), [Related](?path=/docs/patterns-related--docs), [Upgrading](?path=/docs/guidance-upgrading--docs#card).
 
 Sources: [shadcn Card](https://ui.shadcn.com/docs/components/base/card), [Base UI catalog implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/card.tsx).

@@ -64,7 +64,7 @@ export function DiscardChanges({ onDiscard }: { onDiscard: () => void }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger render={<Button />}>Discard changes</AlertDialogTrigger>
-      <AlertDialogContent size="sm">
+      <AlertDialogContent width="xsmall">
         <AlertDialogHeader>
           <AlertDialogTitle>Discard your changes?</AlertDialogTitle>
           <AlertDialogDescription>

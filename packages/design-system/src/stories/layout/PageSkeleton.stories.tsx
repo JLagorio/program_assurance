@@ -4,7 +4,10 @@ import { expect, waitFor, within } from "storybook/test";
 import { PageSkeleton } from "../..";
 import { Skeleton, Spinner } from "../../components";
 import { Box, Inline, Stack, Text, VisuallyHidden } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Layout/PageSkeleton",
@@ -72,6 +75,7 @@ export const Record: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -115,7 +119,6 @@ export const Playground: Story = {};
 /** The page's shape on a small phone: the head's lines follow the width and nothing runs past the window. */
 export const Narrow: Story = {
   globals: { viewport: { value: "ledgerSmall", isRotated: false } },
-  tags: ["narrow"],
   render: () => (
     <Stack space="space.600">
       <PageSkeleton rows={4} />

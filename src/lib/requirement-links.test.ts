@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
 
-const { allocateRequirement, removeRequirementLink } = await import("./requirement-links");
+const { allocateRequirement, allocateRequirementsToSystem, removeRequirementLink } =
+  await import("./requirement-links");
 
 type Result = { data: unknown; error: { code?: string; message: string } | null };
 type Call = { table: string; steps: [string, unknown[]][] };
@@ -279,5 +280,104 @@ describe("allocating a requirement", () => {
     await expect(allocateRequirement(client, context, { ...request, targets: [] })).rejects.toThrow(
       "Choose a system.",
     );
+  });
+});
+
+describe("allocating many requirements to one system", () => {
+  const targets = Array.from({ length: 538 }, (_, index) => ({
+    id: id(1000 + index),
+    requirementRevisionId: id(5000 + index),
+  }));
+  const request = { systemId: id(30), targets, rationale: "  Owns the boundary  " };
+
+  it("writes every chosen requirement in one insert on a first attempt", async () => {
+    const { client, calls } = fakeClient([{ data: null, error: null }]);
+    await expect(allocateRequirementsToSystem(client, context, request)).resolves.toMatchObject({
+      created: 538,
+    });
+    expect(calls).toHaveLength(1);
+    const rows = calls[0]!.steps.find(([name]) => name === "insert")?.[1][0] as {
+      id: string;
+      requirement_revision_id: string;
+      system_id: string;
+      rationale: string;
+    }[];
+    expect(rows).toHaveLength(538);
+    expect(rows[0]).toEqual({
+      id: id(1000),
+      tenant_id: tenantId,
+      requirement_revision_id: id(5000),
+      system_id: id(30),
+      rationale: "Owns the boundary",
+    });
+  });
+
+  it("on a retry, looks up its ids a hundred at a time and inserts only the rest", async () => {
+    const landed = targets.slice(0, 120).map((target) => ({
+      id: target.id,
+      requirement_revision_id: target.requirementRevisionId,
+      system_id: id(30),
+      rationale: "Owns the boundary",
+    }));
+    const { client, calls } = fakeClient([
+      { data: landed.slice(0, 100), error: null },
+      { data: landed.slice(100), error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: [], error: null },
+      { data: null, error: null },
+    ]);
+    await expect(
+      allocateRequirementsToSystem(client, context, { ...request, retry: true }),
+    ).resolves.toMatchObject({ created: 418 });
+    const lookups = calls.filter((call) => steps(call)?.includes("in"));
+    expect(lookups).toHaveLength(6);
+    expect(
+      lookups.every(
+        (call) => (call.steps.find(([name]) => name === "in")?.[1][1] as string[]).length <= 100,
+      ),
+    ).toBe(true);
+    const rows = calls.at(-1)!.steps.find(([name]) => name === "insert")?.[1][0] as unknown[];
+    expect(rows).toHaveLength(418);
+  });
+
+  it("refuses a retry when one of its rows now says something else", async () => {
+    const { client } = fakeClient([
+      {
+        data: [
+          {
+            id: id(1000),
+            requirement_revision_id: id(5000),
+            system_id: id(99),
+            rationale: "Owns the boundary",
+          },
+        ],
+        error: null,
+      },
+    ]);
+    await expect(
+      allocateRequirementsToSystem(client, context, {
+        ...request,
+        targets: targets.slice(0, 1),
+        retry: true,
+      }),
+    ).rejects.toThrow("An allocation changed after this attempt");
+  });
+
+  it("says another session allocated one of them when the insert meets a duplicate", async () => {
+    const { client } = fakeClient([
+      { data: null, error: { code: "23505", message: "duplicate key value" } },
+    ]);
+    await expect(allocateRequirementsToSystem(client, context, request)).rejects.toThrow(
+      "allocated to this system in another session",
+    );
+  });
+
+  it("needs at least one requirement", async () => {
+    const { client } = fakeClient([]);
+    await expect(
+      allocateRequirementsToSystem(client, context, { ...request, targets: [] }),
+    ).rejects.toThrow("Choose a requirement.");
   });
 });

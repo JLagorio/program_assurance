@@ -7,7 +7,7 @@ import {
   AlertDescription,
   AlertTitle,
   Button,
-  DateTimeField,
+  DatePicker,
   Dialog,
   DialogBody,
   DialogClose,
@@ -64,7 +64,7 @@ const fieldFor: Record<keyof CreateTaskInput, TaskField> = {
   workstreamId: "workstream",
   description: "description",
   assigneePartyId: "assignee",
-  dueAt: "due",
+  dueOn: "due",
   priority: "priority",
 };
 
@@ -121,8 +121,8 @@ export function CreateTaskDialog({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [assignee, setAssignee] = useState<string | null>(null);
+  // The day the task is due, as the DatePicker reports it: an ISO day, "" for none.
   const [due, setDue] = useState("");
-  const [dueEntryError, setDueEntryError] = useState<string | null>(null);
   const [priority, setPriority] = useState<CreateTaskInput["priority"]>(null);
   const [dirty, setDirty] = useState(false);
   const [failure, setFailure] = useState<{ title: string; message: string } | null>(null);
@@ -181,16 +181,13 @@ export function CreateTaskDialog({
     title,
     description,
     assigneePartyId: assignee,
-    dueAt: due || null,
+    dueOn: due || null,
     priority,
   };
   const extra: FormIssue<TaskField>[] = validWorkstream
     ? []
     : [{ field: "workstream", message: "Choose a workstream in this program." }];
-  const check = validate(
-    values,
-    dueEntryError ? [{ field: "due", message: dueEntryError }, ...extra] : extra,
-  );
+  const check = validate(values, extra);
   // Validate on submit, then on change: each field's error follows the value once submitted.
   const errors = new Map(
     feedback.submitted ? check.issues.map((issue) => [issue.field, issue.message] as const) : [],
@@ -235,8 +232,6 @@ export function CreateTaskDialog({
       setEarly(true);
       return;
     }
-    // The due field holds Enter on a half-typed moment and reports it as its entry error, as it
-    // does when focus leaves it, so `check` already counts it.
     const attempt = check;
     if (!feedback.report(attempt.issues) || !attempt.data) return;
     // The fields lock while the save runs; the primary stays focusable while it loads.
@@ -405,7 +400,7 @@ export function CreateTaskDialog({
                           setChosenWorkstream(value);
                           changed();
                         }}
-                        disabled={!effectiveProgramId}
+                        readOnly={!effectiveProgramId}
                         noun="workstreams"
                         loading={
                           !!effectiveProgramId && workstreams.isPending && !workstreams.isError
@@ -450,21 +445,18 @@ export function CreateTaskDialog({
                     gap="space.200"
                     templateColumns={{ base: "minmax(0,1fr)", sm: "repeat(2,minmax(0,1fr))" }}
                   >
+                    {/* A task is due on a day, which reads the same day in every zone. */}
                     <Field invalid={errors.has("due") ? true : undefined}>
-                      <FieldLabel>Due date and time</FieldLabel>
-                      <DateTimeField
+                      <FieldLabel>Due date</FieldLabel>
+                      <DatePicker
                         ref={feedback.ref("due")}
                         value={due}
                         onValueChange={(value) => {
                           setDue(value);
                           changed();
                         }}
-                        onEntryError={setDueEntryError}
                       />
-                      {/* The field shows its own entry error; only the schema's message is added. */}
-                      {errors.has("due") && errors.get("due") !== dueEntryError ? (
-                        <FieldError>{errors.get("due")}</FieldError>
-                      ) : null}
+                      {errors.has("due") ? <FieldError>{errors.get("due")}</FieldError> : null}
                     </Field>
                     <ChoiceField
                       label="Priority"

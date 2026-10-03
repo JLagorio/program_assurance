@@ -3,8 +3,12 @@ import { expect, fn, spyOn, userEvent, waitFor, within } from "storybook/test";
 
 import { CopyButton, Id, KeyValue } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/CopyButton",
@@ -32,7 +36,6 @@ function stubClipboard(result: "resolve" | "reject" = "resolve") {
 }
 
 const copied = fn();
-const failedCopy = fn();
 
 /**
  * The labelled form: "Copy" beside something the reader will paste. After a click the icon becomes
@@ -40,17 +43,17 @@ const failedCopy = fn();
  * the width stay as they were.
  */
 export const Labelled: Story = {
-  render: () => (
+  args: { onCopied: fn() },
+  render: (args) => (
     <Inline space="space.100" alignBlock="center" shouldWrap>
       <Text as="span" size="small">
         <Id>npm run local:start</Id>
       </Text>
-      <CopyButton text="npm run local:start" size="small" onCopied={copied} />
+      <CopyButton text="npm run local:start" size="small" onCopied={args.onCopied} />
     </Inline>
   ),
-  play: async ({ canvasElement }) => {
+  play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement);
-    copied.mockClear();
     const write = stubClipboard();
     try {
       const button = canvas.getByRole("button", { name: "Copy" });
@@ -62,7 +65,7 @@ export const Labelled: Story = {
       await userEvent.hover(button);
       await expect(openTip()).toBeNull();
       await userEvent.click(button);
-      await waitFor(() => expect(copied).toHaveBeenCalledWith("npm run local:start"));
+      await waitFor(() => expect(args.onCopied).toHaveBeenCalledWith("npm run local:start"));
       await expect(write).toHaveBeenCalledWith("npm run local:start");
       await waitFor(() => expect(openTip()).toHaveTextContent("Copied"));
       await expect(status(canvasElement)).toHaveTextContent("Copied");
@@ -73,7 +76,7 @@ export const Labelled: Story = {
       // A second copy while the first result shows is a new status line, so it is heard again.
       const firstLine = status(canvasElement).firstElementChild;
       await userEvent.click(button);
-      await waitFor(() => expect(copied).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(args.onCopied).toHaveBeenCalledTimes(2));
       await waitFor(() => expect(status(canvasElement).firstElementChild).not.toBe(firstLine));
       await expect(status(canvasElement)).toHaveTextContent("Copied");
       // The result goes away by itself.
@@ -90,6 +93,7 @@ export const Labelled: Story = {
  * focus, then "Copied" takes its place for a moment.
  */
 export const IdCopy: Story = {
+  tags: ["!manifest"],
   name: "Copy an id",
   render: () => (
     <Stack space="space.200" className="max-w-layout-measure">
@@ -144,29 +148,29 @@ export const IdCopy: Story = {
  */
 export const CopyFails: Story = {
   name: "When copying fails",
-  render: () => (
+  args: { onCopyError: fn() },
+  render: (args) => (
     <Inline space="space.100" alignBlock="center">
-      <CopyButton text="CTRL-0412" label="Copy ID" onCopyError={failedCopy} />
-      <CopyButton text="npm run local:start" onCopyError={failedCopy} />
+      <CopyButton text="CTRL-0412" label="Copy ID" onCopyError={args.onCopyError} />
+      <CopyButton text="npm run local:start" onCopyError={args.onCopyError} />
     </Inline>
   ),
-  play: async ({ canvasElement }) => {
+  play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement);
-    failedCopy.mockClear();
     const write = stubClipboard("reject");
     try {
       const icon = canvas.getByRole("button", { name: "Copy ID" });
       await userEvent.click(icon);
       await waitFor(() => expect(openTip()).toHaveTextContent("Could not copy"));
-      await expect(failedCopy).toHaveBeenCalledTimes(1);
-      await expect(failedCopy.mock.calls[0]?.[0]).toBeInstanceOf(DOMException);
+      await expect(args.onCopyError).toHaveBeenCalledTimes(1);
+      await expect(args.onCopyError).toHaveBeenCalledWith(expect.any(DOMException));
       await expect(icon.querySelector("svg")).toHaveClass("icon-danger");
       await userEvent.keyboard("{Escape}");
       await waitFor(() => expect(openTip()).toBeNull());
       const labelled = canvas.getByRole("button", { name: "Copy" });
       await userEvent.click(labelled);
       await waitFor(() => expect(openTip()).toHaveTextContent("Could not copy"));
-      await expect(failedCopy).toHaveBeenCalledTimes(2);
+      await expect(args.onCopyError).toHaveBeenCalledTimes(2);
       await waitFor(() =>
         expect(
           [...canvasElement.ownerDocument.querySelectorAll('[data-copy-button-status=""]')].some(
@@ -182,6 +186,7 @@ export const CopyFails: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair

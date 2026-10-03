@@ -20,8 +20,12 @@ import {
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { Search } from "lucide-react";
 import { Grid as GridPrimitive, Inline, Stack } from "../../primitives";
-import { Matrix as Grid, Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix: Grid, Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Input",
@@ -45,6 +49,7 @@ const stateProps = (s: State) => ({
 
 /** Every state down the side; bare, inside a Field, and inside an InputGroup across. */
 export const InputMatrix: Story = {
+  tags: ["!manifest"],
   render: function FieldExample() {
     const fieldId = useId();
     return (
@@ -84,7 +89,7 @@ export const InputMatrix: Story = {
                     }
                     {...stateProps(state)}
                   />
-                  {Boolean(fieldError1) ? (
+                  {fieldError1 ? (
                     <FieldError
                       id={`${fieldId}-program-name-1-${encodeURIComponent(String(state))}-${encodeURIComponent(String(col))}-message`}
                     >
@@ -232,6 +237,24 @@ function FormDemo() {
   );
 }
 
+export const Playground: Story = {
+  render: function FieldExample(args) {
+    const fieldId = useId();
+    return (
+      <Field>
+        <FieldLabel id={`${fieldId}-program-name-18-label`} htmlFor={`${fieldId}-program-name-18`}>
+          {"Program name"}
+        </FieldLabel>
+        <Input
+          id={`${fieldId}-program-name-18`}
+          aria-labelledby={`${fieldId}-program-name-18-label`}
+          {...args}
+        />
+      </Field>
+    );
+  },
+};
+
 /** Inside a Field with a label, a hint and, on submit, the error. Press Create with a field empty. */
 export const InField: Story = {
   render: () => <FormDemo />,
@@ -312,6 +335,7 @@ export const Widths: Story = {
 
 /** The `type` and the input mode come from the value; the icon, unit or shortcut at either end from an InputGroup. */
 export const Kinds: Story = {
+  tags: ["!manifest"],
   render: function FieldExample() {
     const fieldId = useId();
     return (
@@ -397,6 +421,7 @@ export const Kinds: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: function FieldExample() {
     const fieldId = useId();
     return (
@@ -474,11 +499,9 @@ export const Dont: Story = {
                   aria-describedby={`${fieldId}-owner-14-message`}
                   defaultValue="j.doe"
                 />
-                {Boolean("Choose a person who is on the program.") ? (
-                  <FieldError id={`${fieldId}-owner-14-message`}>
-                    {"Choose a person who is on the program."}
-                  </FieldError>
-                ) : null}
+                <FieldError id={`${fieldId}-owner-14-message`}>
+                  {"Choose a person who is on the program."}
+                </FieldError>
               </Field>
             </div>
           }
@@ -496,9 +519,7 @@ export const Dont: Story = {
                   aria-describedby={`${fieldId}-owner-15-message`}
                   defaultValue="j.doe"
                 />
-                {Boolean("Invalid input") ? (
-                  <FieldError id={`${fieldId}-owner-15-message`}>{"Invalid input"}</FieldError>
-                ) : null}
+                <FieldError id={`${fieldId}-owner-15-message`}>{"Invalid input"}</FieldError>
               </Field>
             </div>
           }
@@ -537,24 +558,6 @@ export const Dont: Story = {
           dontText="A field the width of the page for a five-letter answer. The width lies about the answer."
         />
       </Stack>
-    );
-  },
-};
-
-export const Playground: Story = {
-  render: function FieldExample(args) {
-    const fieldId = useId();
-    return (
-      <Field>
-        <FieldLabel id={`${fieldId}-program-name-18-label`} htmlFor={`${fieldId}-program-name-18`}>
-          {"Program name"}
-        </FieldLabel>
-        <Input
-          id={`${fieldId}-program-name-18`}
-          aria-labelledby={`${fieldId}-program-name-18-label`}
-          {...args}
-        />
-      </Field>
     );
   },
 };

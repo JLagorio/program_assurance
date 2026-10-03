@@ -1,8 +1,10 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertCircle } from "lucide-react";
 import {
   Alert,
+  AlertAction,
   AlertDescription,
+  AlertTitle,
   Button,
   Dialog,
   DialogBody,
@@ -13,9 +15,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Skeleton,
+  Stack,
+  VisuallyHidden,
 } from "@ledger/design-system";
 import { RecordEditor, type RecordEditorState } from "@/components/app/record-browser";
 import { useWorkspace } from "@/components/app/workspace";
+import { useCollection } from "@/lib/collections";
 import { productRecordNoun } from "@/lib/product-records";
 import { recordTitle, type DataRecord } from "@/lib/records";
 
@@ -34,10 +40,47 @@ export type ProductRecordFormProps = {
 
 /**
  * Form content only, for a Dialog that already owns its focus and dismissal lifecycle: the
- * editor's body and footer, or, when the record cannot be written here, a body that says why and
- * a footer that closes.
+ * editor's body and footer; while the record's schema loads, skeleton fields over the operation's
+ * primary, loading; when the schema cannot be read, an alert with Retry; and when the record
+ * cannot be written here, a body that says why and a footer that closes.
  */
-export function ProductRecordForm({
+export function ProductRecordForm(props: ProductRecordFormProps) {
+  const schema = useCollection(props.table);
+  // The form replaces its loading frame once the schema lands, and the footer the reader may have
+  // been on goes with it: focus then moves to the first field, as it does when the dialog opens.
+  const marker = useRef<HTMLSpanElement>(null);
+  const waited = useRef(schema.isPending);
+  const loaded = !schema.isPending;
+  useEffect(() => {
+    if (!loaded || !waited.current) return;
+    waited.current = false;
+    const frame = requestAnimationFrame(() => {
+      const dialog = marker.current?.closest<HTMLElement>('[role="dialog"]');
+      const active = document.activeElement;
+      if (!dialog) return;
+      const kept =
+        active instanceof HTMLElement &&
+        active !== document.body &&
+        dialog.contains(active) &&
+        !active.closest('[data-slot="dialog-footer"]');
+      if (kept) return;
+      dialog
+        .querySelector<HTMLElement>(
+          '[data-slot="dialog-body"] :is(input, textarea, select, button, [tabindex="0"]):not([disabled])',
+        )
+        ?.focus();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [loaded]);
+  return (
+    <>
+      <span hidden ref={marker} />
+      <FormContent {...props} schema={schema} />
+    </>
+  );
+}
+
+function FormContent({
   table,
   operationLabel,
   existing,
@@ -46,9 +89,55 @@ export function ProductRecordForm({
   onClose,
   onStateChange,
   readOnly = false,
-}: ProductRecordFormProps) {
+  schema,
+}: ProductRecordFormProps & { schema: ReturnType<typeof useCollection> }) {
   const workspace = useWorkspace();
-  const collection = workspace.collections.find((item) => item.name === table);
+  const collection = schema.data ?? undefined;
+  if (schema.isPending)
+    return (
+      <>
+        <DialogBody>
+          <Stack space="space.250" aria-busy="true">
+            <Skeleton lines={2} />
+            <Skeleton lines={2} />
+            <Skeleton lines={2} />
+            <VisuallyHidden role="status">Loading the form…</VisuallyHidden>
+          </Stack>
+        </DialogBody>
+        <DialogFooter>
+          <DialogClose render={<Button variant="subtle" />}>Cancel</DialogClose>
+          {/* The operation keeps its place while the form loads. */}
+          <Button variant="primary" isLoading>
+            {operationLabel ??
+              `${existing ? "Edit" : "Create"} ${productRecordNoun(table, existing ?? initialValues)}`}
+          </Button>
+        </DialogFooter>
+      </>
+    );
+  if (schema.isError)
+    return (
+      <>
+        <DialogBody>
+          <Alert variant="destructive" role="alert">
+            <AlertCircle aria-hidden />
+            <AlertTitle>The form could not be loaded</AlertTitle>
+            <AlertDescription>{schema.error.message}</AlertDescription>
+            <AlertAction>
+              <Button
+                size="small"
+                isLoading={schema.isFetching}
+                onClick={() => void schema.refetch()}
+              >
+                Retry loading
+              </Button>
+            </AlertAction>
+          </Alert>
+        </DialogBody>
+        <DialogFooter>
+          <DialogClose render={<Button variant="primary" />}>Close</DialogClose>
+        </DialogFooter>
+      </>
+    );
   const canWrite =
     !!collection &&
     !readOnly &&
@@ -128,8 +217,7 @@ export function ProductRecordDialog({
   /** Where focus goes when the dialog closes; the control that opened it unsaid. */
   finalFocus?: DialogContentProps["finalFocus"];
 }) {
-  const workspace = useWorkspace();
-  const collection = workspace.collections.find((item) => item.name === props.table);
+  const collection = useCollection(props.table).data ?? undefined;
   const stateRef = useRef<ProductEditorState | null>(null);
   const [open, setOpen] = useState(true);
   const [opener] = useState(currentOpener);

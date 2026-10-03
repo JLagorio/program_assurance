@@ -3,7 +3,7 @@
 
 /** The floating surface. */
 export const menuSurface =
-  "relative z-50 overflow-hidden rounded-large border border-default bg-surface-overlay p-050 shadow-overlay outline-none";
+  "relative z-overlay overflow-hidden rounded-large border border-default bg-surface-overlay p-050 shadow-overlay outline-none";
 
 /**
  * Compact rows grow taller for a description line or an avatar. A label stays on one line: the
@@ -45,5 +45,8 @@ export const menuItemDescription =
 /** A section heading inside the list. */
 export const menuLabel = "px-100 pb-050 pt-075 font-heading-xxsmall uppercase text-subtlest";
 
-/** A hairline between sections. */
-export const menuSeparator = "my-050 border-t border-default";
+/**
+ * A hairline between sections, with `space.050` above and below it. The rule is the separator's
+ * own `::before`, inside its padding, so the space belongs to the separator and no margin is set.
+ */
+export const menuSeparator = "py-050 before:block before:border-t before:border-default";

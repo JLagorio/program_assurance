@@ -2,11 +2,17 @@ import { useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Box, Input, ModeSwitch, Shell } from "@ledger/design-system";
 import { Database, FileText, Home, LayoutDashboard } from "lucide-react";
-import { domains, labelFor } from "@/lib/records";
+import { useSchemaCatalog } from "@/lib/collections";
+import { domains, labelFor, type Collection } from "@/lib/records";
 import { AccountMenu, useWorkspace } from "./workspace";
+
+const NO_COLLECTIONS: Collection[] = [];
 
 export function SchemaLayout({ children }: { children: ReactNode }) {
   const workspace = useWorkspace();
+  // The inspector's navigation lists the collections the schema names; it loads with the inspector.
+  const catalog = useSchemaCatalog();
+  const collections = catalog.data ?? NO_COLLECTIONS;
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   // The page Main shows once it has rendered; a filter in the search keeps the page.
   const page = useRouterState({
@@ -18,9 +24,7 @@ export function SchemaLayout({ children }: { children: ReactNode }) {
     ...domains,
     {
       label: "Supporting records",
-      tables: workspace.collections
-        .map((collection) => collection.name)
-        .filter((name) => !known.has(name)),
+      tables: collections.map((collection) => collection.name).filter((name) => !known.has(name)),
     },
   ];
   return (
@@ -62,7 +66,7 @@ export function SchemaLayout({ children }: { children: ReactNode }) {
           {groups.map((group) => {
             const tables = group.tables.filter(
               (name) =>
-                workspace.collections.some((collection) => collection.name === name) &&
+                collections.some((collection) => collection.name === name) &&
                 labelFor(name).toLowerCase().includes(filter.toLowerCase()),
             );
             return tables.length ? (

@@ -1,7 +1,7 @@
 import { ProductCollection } from "./product-collection";
+import { useServerCollection, useServerPresetCounts } from "./collection-question";
 import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import {
   Absent,
@@ -18,15 +18,10 @@ import {
   type Preset,
 } from "@ledger/design-system";
 import { useWorkspace } from "@/components/app/workspace";
-import { database, requireIdentity } from "@/lib/database";
-import { useRows, type Row } from "@/lib/models";
 import { labelFor } from "@/lib/records";
-import { isControlStatement } from "@/lib/requirement-control-mappings";
-import {
-  requirementIdentityLinks,
-  requirementTree,
-  type RequirementTreeNode,
-} from "@/lib/requirement-tree";
+import { requirementTypes } from "@/lib/requirement-edit";
+import type { RequirementTreeNode } from "@/lib/requirement-tree";
+import { serverRead, useServerRows, type ServerRow } from "@/lib/server-table";
 import { ProgramEditor } from "./program-shared";
 import {
   RecordLink,
@@ -44,22 +39,195 @@ type Allocation = {
   /** The allocated system, whose record the allocation's name opens. */
   systemId: string | null;
 };
+type ControlSource = { id: string; label: string; relationship: string; needsReview: boolean };
 type RequirementView = {
   id: string;
   code: string;
   revisionId: string | null;
+  /** The latest revision's title, else the code: a requirement with no details recorded. */
   name: string;
-  statement: string;
+  /** `null` for a requirement with no details recorded. */
+  statement: string | null;
   requirementType: string | null;
   /** The owner's name; `null` with no owner recorded, or when the owner is not in the workspace. */
   owner: string | null;
   ownerMissing: boolean;
   allocations: Allocation[];
-  controlSources: { id: string; label: string; relationship: string; needsReview: boolean }[];
-  allocation: "Allocated" | "Unallocated" | "Details not recorded";
-  controlMapping: "Control linked" | "No control linked" | "Details not recorded" | "Needs review";
+  controlSources: ControlSource[];
+  allocation: string;
+  controlMapping: string;
 };
 type RequirementNode = RequirementTreeNode<RequirementView>;
+
+/**
+ * A requirement as the program's requirement view gives it: its latest revision's fields, its
+ * owner by name, its allocations and linked controls, their states, and the requirements above it.
+ */
+type RequirementRow = ServerRow<
+  "program_requirement_rows",
+  | "id"
+  | "code"
+  | "revision_id"
+  | "title"
+  | "statement"
+  | "requirement_type"
+  | "owner_party_id"
+  | "owner_name"
+  | "allocation"
+  | "control_mapping"
+  | "allocations"
+  | "control_sources"
+  | "ancestors",
+  "code" | "allocation" | "control_mapping" | "allocations" | "control_sources" | "ancestors"
+>;
+
+/** The words a requirement type reads as, so the search finds a requirement by them. */
+const requirementTypeLabels = Object.fromEntries(
+  requirementTypes.map((type) => [type, { label: labelFor(type) }]),
+);
+
+/** The models the view derives a requirement's row from: a write to any marks the pages stale. */
+const requirementModels = [
+  "requirement_revisions",
+  "requirement_allocations",
+  "requirement_control_links",
+  "requirement_decompositions",
+] as const;
+
+/**
+ * A program's requirements, a page at a time from the server: top-down through each requirement
+ * tree in code order (a requirement's parts right after it), with every field the rows draw
+ * derived on the server, where the search, the sort and the filters reach them too.
+ */
+const requirementRead = (programId: string) =>
+  serverRead({
+    source: "program_requirement_rows",
+    model: "engineering_requirements",
+    models: requirementModels,
+    columns: [
+      "id",
+      "code",
+      "revision_id",
+      "title",
+      "statement",
+      "requirement_type",
+      "owner_party_id",
+      "owner_name",
+      "allocation",
+      "control_mapping",
+      "allocations",
+      "control_sources",
+      "ancestors",
+    ],
+    scope: { program_id: programId },
+    search: ["code", "title", "statement", "owner_name", "allocated_to", "linked_controls"],
+    fields: {
+      code: { sort: "code_order", filter: false },
+      name: { column: "title", filter: false },
+      allocatedTo: { column: "allocated_to", filter: false },
+      controlSources: { column: "linked_controls", filter: false },
+      requirementType: { column: "requirement_type", labels: requirementTypeLabels },
+      owner: { column: "owner_name" },
+      controlMapping: { column: "control_mapping" },
+    },
+    order: [{ column: "tree_order" }],
+  });
+
+/** Whether any of the program's requirements has several parents or sits in a cycle: a count. */
+const unstructuredRead = (programId: string) =>
+  serverRead({
+    source: "program_requirement_rows",
+    model: "engineering_requirements",
+    models: requirementModels,
+    columns: ["id"],
+    scope: { program_id: programId, unstructured: true },
+  });
+const countOnly = { pageIndex: 0, pageSize: 1 };
+
+/** A JSON list's objects, whatever else it holds. */
+const objects = (value: unknown) =>
+  (Array.isArray(value) ? value : []).filter(
+    (item): item is Record<string, unknown> =>
+      !!item && typeof item === "object" && !Array.isArray(item),
+  );
+const text = (value: unknown) => (typeof value === "string" ? value : null);
+
+/** One requirement as the table draws it. */
+function requirementView(row: RequirementRow): RequirementView {
+  return {
+    id: row.id,
+    code: row.code,
+    revisionId: row.revision_id,
+    name: row.title ?? row.code,
+    statement: row.statement,
+    requirementType: row.requirement_type ? labelFor(row.requirement_type) : null,
+    owner: row.owner_name,
+    ownerMissing: !!row.owner_party_id && !row.owner_name,
+    allocations: objects(row.allocations).map((item) => ({
+      id: String(item["id"]),
+      name: text(item["name"]) ?? "Target unavailable",
+      kind: text(item["kind"]) ?? "",
+      rationale: text(item["rationale"]),
+      systemId: text(item["system_id"]),
+    })),
+    controlSources: objects(row.control_sources).map((item) => {
+      const needsReview = item["needs_review"] === true;
+      const part = text(item["part_name"]);
+      return {
+        id: String(item["id"]),
+        label: text(item["label"]) ?? "Control unavailable",
+        relationship: needsReview
+          ? `Needs review · ${part ? labelFor(part) : "Target unavailable"}`
+          : labelFor(text(item["relationship_type"]) ?? ""),
+        needsReview,
+      };
+    }),
+    allocation: row.allocation,
+    controlMapping: row.control_mapping,
+  };
+}
+
+/**
+ * The page's requirements as the table draws them. In the tree's own order each nests under the
+ * nearest requirement above it on the page, so the tree read top-down is the page as the server
+ * ordered it; a part whose parent is on an earlier page, or that a search or a filter leaves on its
+ * own, starts a row of its own. In an order the reader chose, each requirement is a row of its own.
+ */
+function requirementNodes(rows: RequirementRow[], { sorted }: { sorted: boolean }) {
+  const nodes = new Map<string, RequirementNode>();
+  const top: RequirementNode[] = [];
+  for (const row of rows) {
+    const node: RequirementNode = { ...requirementView(row), parts: [] };
+    const holder = sorted
+      ? undefined
+      : [...row.ancestors]
+          .reverse()
+          .map((id) => nodes.get(id))
+          .find((found) => found !== undefined);
+    if (holder) holder.parts.push(node);
+    else top.push(node);
+    nodes.set(row.id, node);
+  }
+  return top;
+}
+
+const requirementParts = (row: RequirementNode) => row.parts;
+const requirementCode = (row: RequirementNode) => row.code;
+const partsHint = (_: RequirementNode, count: number) => (
+  <Text size="xsmall" color="color.text.subtle">
+    {count} part{count === 1 ? "" : "s"}
+  </Text>
+);
+/** The states a filter offers: the server's rows are one page, so their values are not all. */
+const allocationOptions = ["Allocated", "Unallocated", "Details not recorded"].map((value) => ({
+  value,
+}));
+const controlMappingOptions = [
+  "Control linked",
+  "No control linked",
+  "Needs review",
+  "Details not recorded",
+].map((value) => ({ value }));
 
 const presets: Preset[] = [
   { id: "all", label: "All requirements" },
@@ -79,50 +247,6 @@ const presets: Preset[] = [
     filters: [{ id: "controlMapping", value: ["No control linked"] }],
   },
 ];
-
-/** Fetch only the reference statements these requirements actually link to. */
-function useControlStatements(ids: string[], enabled: boolean) {
-  const workspace = useWorkspace();
-  return useQuery({
-    queryKey: ["requirement-control-statements", workspace.tenantId, ids],
-    enabled,
-    retry: false,
-    queryFn: async ({ signal }) => {
-      const token = await requireIdentity(workspace);
-      const records: Row<"control_parts">[] = [];
-      for (let offset = 0; offset < ids.length; offset += 100) {
-        const { data, error } = await database()
-          .from("control_parts")
-          .select("*")
-          .in("id", ids.slice(offset, offset + 100))
-          .setHeader("Authorization", `Bearer ${token}`)
-          .abortSignal(signal);
-        if (error) throw new Error(error.message);
-        records.push(...data);
-      }
-      const seen = new Set(records.map((record) => record.id));
-      let parents = records.flatMap((record) => record.parent_part_id ?? []);
-      while (parents.length) {
-        const missing = [...new Set(parents)].filter((id) => !seen.has(id));
-        if (!missing.length) break;
-        missing.forEach((id) => seen.add(id));
-        parents = [];
-        for (let offset = 0; offset < missing.length; offset += 100) {
-          const { data, error } = await database()
-            .from("control_parts")
-            .select()
-            .in("id", missing.slice(offset, offset + 100))
-            .setHeader("Authorization", `Bearer ${token}`)
-            .abortSignal(signal);
-          if (error) throw new Error(error.message);
-          records.push(...data);
-          parents.push(...data.flatMap((record) => record.parent_part_id ?? []));
-        }
-      }
-      return records;
-    },
-  });
-}
 
 function AllocationsDetail({ row, programId }: { row: RequirementNode; programId: string }) {
   const columns = useMemo(
@@ -189,16 +313,6 @@ export function RequirementsTable({
 }) {
   const workspace = useWorkspace();
   const navigate = useNavigate();
-  const requirements = useRows("engineering_requirements", { program_id: programId });
-  const revisions = useRows("requirement_revisions");
-  const allocations = useRows("requirement_allocations");
-  const decompositions = useRows("requirement_decompositions");
-  const controlLinks = useRows("requirement_control_links");
-  const controls = useRows("controls");
-  const systems = useRows("systems", { program_id: programId });
-  const providers = useRows("provider_capabilities");
-  const processes = useRows("security_processes", { program_id: programId });
-  const parties = useRows("parties");
   const [adding, setAdding] = useState(false);
   const [localPreviewId, setLocalPreviewId] = useState<string>();
   const [localTab, setLocalTab] = useState<RequirementTab>("Overview");
@@ -206,146 +320,23 @@ export function RequirementsTable({
   const selectedTab = onPreviewTabChange ? (previewTab ?? "Overview") : localTab;
   const openPreview = onPreview ?? setLocalPreviewId;
   const changePreviewTab = onPreviewTabChange ?? setLocalTab;
-  const previewRef = useRef({ selectedId, openPreview });
-  previewRef.current = { selectedId, openPreview };
-
-  const latest = useMemo(() => {
-    const values = new Map<string, Row<"requirement_revisions">>();
-    for (const revision of revisions.data ?? []) {
-      const current = values.get(revision.engineering_requirement_id);
-      if (!current || current.version_number < revision.version_number)
-        values.set(revision.engineering_requirement_id, revision);
-    }
-    return values;
-  }, [revisions.data]);
-  const activeRevisionIds = useMemo(
-    () =>
-      new Set(
-        (requirements.data ?? []).flatMap((row) => {
-          const revision = latest.get(row.id);
-          return revision ? [revision.id] : [];
-        }),
-      ),
-    [requirements.data, latest],
+  // The preview is the table's, so opening or stepping through it never rebuilds the columns; the
+  // handler is read when the eye is pressed, whichever opener the caller passes.
+  const opener = useRef(openPreview);
+  opener.current = openPreview;
+  const tablePreview = useMemo(
+    () => ({
+      onPreview: (row: RequirementNode) => opener.current(row.id),
+      activeId: selectedId ?? null,
+    }),
+    [selectedId],
   );
-  const partIds = useMemo(
-    () =>
-      [
-        ...new Set(
-          (controlLinks.data ?? [])
-            .filter((link) => activeRevisionIds.has(link.requirement_revision_id))
-            .flatMap((link) => link.control_part_id ?? []),
-        ),
-      ].sort(),
-    [controlLinks.data, activeRevisionIds],
+  const read = useMemo(() => requirementRead(programId), [programId]);
+  // Whether any requirement stands outside the tree, which the notice above the table says.
+  const unstructured = useServerRows(
+    useMemo(() => unstructuredRead(programId), [programId]),
+    countOnly,
   );
-  const statements = useControlStatements(
-    partIds,
-    controlLinks.isSuccess && revisions.isSuccess && requirements.isSuccess,
-  );
-  const projection = useMemo(() => {
-    const systemById = new Map((systems.data ?? []).map((row) => [row.id, row]));
-    const providerById = new Map((providers.data ?? []).map((row) => [row.id, row]));
-    const processById = new Map((processes.data ?? []).map((row) => [row.id, row]));
-    const partyById = new Map((parties.data ?? []).map((row) => [row.id, row]));
-    const statementById = new Map((statements.data ?? []).map((row) => [row.id, row]));
-    const controlById = new Map((controls.data ?? []).map((row) => [row.id, row]));
-    const rows: RequirementView[] = (requirements.data ?? [])
-      .map<RequirementView>((requirement) => {
-        const revision = latest.get(requirement.id);
-        const targetRows = (allocations.data ?? [])
-          .filter((row) => row.requirement_revision_id === revision?.id)
-          .map((row) => {
-            const systemId =
-              (row as typeof row & { system_id?: string | null }).system_id ??
-              row.composition_node_id;
-            const target = systemId
-              ? systemById.get(systemId)
-              : row.provider_capability_id
-                ? providerById.get(row.provider_capability_id)
-                : row.security_process_id
-                  ? processById.get(row.security_process_id)
-                  : undefined;
-            return {
-              id: row.id,
-              systemId: systemId && target ? systemId : null,
-              name: target ? `${target.code} · ${target.name}` : "Target unavailable",
-              kind: systemId
-                ? "System element"
-                : row.provider_capability_id
-                  ? "Provider capability"
-                  : "Security process",
-              rationale: row.rationale,
-            };
-          });
-        const sources = (controlLinks.data ?? [])
-          .filter((link) => link.requirement_revision_id === revision?.id)
-          .map((link) => {
-            const statement = link.control_part_id
-              ? statementById.get(link.control_part_id)
-              : undefined;
-            const control = controlById.get(link.control_id);
-            const needsReview =
-              !!link.control_part_id &&
-              (!statement || !isControlStatement(statement, statements.data ?? []));
-            return {
-              id: link.id,
-              label: control ? `${control.code} · ${control.title}` : "Control unavailable",
-              relationship: needsReview
-                ? `Needs review · ${statement ? labelFor(statement.name) : "Target unavailable"}`
-                : labelFor(link.relationship_type),
-              needsReview,
-            };
-          });
-        return {
-          id: requirement.id,
-          code: requirement.code,
-          revisionId: revision?.id ?? null,
-          name: revision?.title ?? requirement.code,
-          statement: revision?.statement ?? "Details not recorded",
-          requirementType: revision ? labelFor(revision.requirement_type) : null,
-          owner: revision?.owner_party_id
-            ? (partyById.get(revision.owner_party_id)?.name ?? null)
-            : null,
-          ownerMissing: !!revision?.owner_party_id && !partyById.has(revision.owner_party_id),
-          allocations: targetRows,
-          controlSources: sources,
-          allocation: targetRows.length
-            ? "Allocated"
-            : revision
-              ? "Unallocated"
-              : "Details not recorded",
-          controlMapping: sources.some((source) => source.needsReview)
-            ? "Needs review"
-            : sources.length
-              ? "Control linked"
-              : revision
-                ? "No control linked"
-                : "Details not recorded",
-        };
-      })
-      .sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true }));
-    return {
-      ...requirementTree(
-        rows,
-        requirementIdentityLinks(decompositions.data ?? [], revisions.data ?? []),
-      ),
-      byId: new Map(rows.map((row) => [row.id, row])),
-    };
-  }, [
-    requirements.data,
-    revisions.data,
-    latest,
-    allocations.data,
-    controlLinks.data,
-    controls.data,
-    decompositions.data,
-    systems.data,
-    providers.data,
-    processes.data,
-    parties.data,
-    statements.data,
-  ]);
 
   const columns = useMemo(
     () =>
@@ -356,8 +347,6 @@ export function RequirementsTable({
           priority: 1,
           pin: "start",
           hideable: false,
-          preview: (row) => previewRef.current.openPreview(row.id),
-          active: (row) => row.id === previewRef.current.selectedId,
           // The name is the row's one link; the code is its identifier.
           cell: (row) => <Id>{row.code}</Id>,
         }),
@@ -375,7 +364,11 @@ export function RequirementsTable({
             </RecordLink>
           ),
         }),
-        c.text("statement", { header: "Statement", minWidth: 200 }),
+        c.text("statement", {
+          header: "Statement",
+          minWidth: 200,
+          cell: (row) => row.statement ?? <Absent label="Details not recorded" />,
+        }),
         c.list("allocatedTo", {
           header: "Allocated to",
           width: 240,
@@ -403,16 +396,18 @@ export function RequirementsTable({
             </Text>
           ),
         }),
-        c.text("requirementType", { header: "Type", width: 140 }),
+        c.text("requirementType", {
+          header: "Type",
+          width: 140,
+          cell: (row) => row.requirementType ?? <Absent />,
+        }),
         c.person("owner", {
           header: "Owner",
           cell: (row) =>
             row.owner ? (
               <Person name={row.owner} />
-            ) : row.ownerMissing ? (
-              <Text color="color.text.subtle">Not available</Text>
             ) : (
-              <Absent label="Not recorded" />
+              <Absent label={row.ownerMissing ? "Not available" : "Not recorded"} />
             ),
         }),
         c.text("allocation", { header: "Allocation", width: 150 }),
@@ -420,25 +415,21 @@ export function RequirementsTable({
       ]),
     [programId],
   );
-  const table = useDataTable({
+  const collection = useServerCollection<RequirementNode, RequirementRow>(read, {
     columns,
-    data: projection.rows,
+    rows: requirementNodes,
     getRowId: (row) => row.id,
+    preview: tablePreview,
     // The eye and the row's announcements name the requirement, not only its code.
     rowLabel: (row) => `${row.code} · ${row.name}`,
     label: "Engineering requirements",
     view: "live-requirements-workspace",
     resizable: true,
     reorderable: true,
-    pageSize: 25,
     tree: {
-      children: (row) => row.parts,
-      label: (row) => row.code,
-      hint: (_, count) => (
-        <Text size="xsmall" color="color.text.subtle">
-          {count} part{count === 1 ? "" : "s"}
-        </Text>
-      ),
+      children: requirementParts,
+      label: requirementCode,
+      hint: partsHint,
       initialExpanded: true,
     },
     detailColumn: false,
@@ -452,28 +443,12 @@ export function RequirementsTable({
       },
     },
   });
+  const { table } = collection;
   const visibleRows = useDisplayedRecords(table);
-  const queries = [
-    requirements,
-    revisions,
-    allocations,
-    decompositions,
-    controlLinks,
-    controls,
-    systems,
-    providers,
-    processes,
-    parties,
-    statements,
-  ];
-  const error = queries.find((query) => query.error)?.error;
-  // A query waiting on a failed one (the control statements) is not loading: it is not fetching.
-  const loading = queries.some((query) => query.isPending && query.fetchStatus !== "idle");
-  const canCreate =
-    workspace.role !== "viewer" &&
-    workspace.collections.some(
-      (collection) => collection.name === "engineering_requirements" && collection.can_insert,
-    );
+  const presetCounts = useServerPresetCounts(read, presets);
+  // Every member but a viewer writes requirements, and row-level security decides each write: the
+  // role says it, so the tab does not load the record schema, which is the schema inspector's.
+  const canCreate = workspace.role !== "viewer";
   const newRequirement = canCreate ? (
     <Button size="small" variant="primary" iconBefore={<Plus />} onClick={() => setAdding(true)}>
       Create engineering requirement
@@ -482,7 +457,7 @@ export function RequirementsTable({
   return (
     <>
       <Stack space="space.150">
-        {!loading && !error && projection.unstructuredCount > 0 && (
+        {(unstructured.data?.count ?? 0) > 0 && (
           <Alert role="status">
             <AlertDescription>
               Some requirements have multiple parents or circular relationships. They remain listed
@@ -491,7 +466,7 @@ export function RequirementsTable({
           </Alert>
         )}
         <ProductCollection
-          table={table}
+          {...collection}
           fill={fill}
           onRowClick={(row) =>
             void navigate({
@@ -505,12 +480,12 @@ export function RequirementsTable({
             description: "Create the first engineering requirement for this program.",
             action: newRequirement,
           }}
-          queries={queries}
           searchLabel="Find a requirement"
           views={
             <DataTable.Presets
               table={table}
               presets={presets}
+              counts={presetCounts}
               variant="menu"
               aria-label="Saved views"
             />
@@ -518,8 +493,12 @@ export function RequirementsTable({
           action={newRequirement}
           filters={
             <>
-              <DataTable.Filter table={table} column="allocation" />
-              <DataTable.Filter table={table} column="controlMapping" />
+              <DataTable.Filter table={table} column="allocation" options={allocationOptions} />
+              <DataTable.Filter
+                table={table}
+                column="controlMapping"
+                options={controlMappingOptions}
+              />
             </>
           }
         />

@@ -5,7 +5,10 @@ import { expect, userEvent, waitFor, within } from "storybook/test";
 import { DateLabel, DateTime, RelativeTime, TextLink } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
 import { Stack } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 /* Every story names its zone and its now, so what it shows does not depend on the machine. */
 const LosAngeles = ({ children }: { children: ReactNode }) => (
@@ -59,7 +62,7 @@ export const Formats: Story = {
         </LedgerProvider>
       </Row>
       <Row label="No value">
-        <DateTime value={null} absentLabel="Not recorded" />
+        <DateTime value={null} />
       </Row>
     </Stack>
   ),
@@ -257,8 +260,50 @@ export const DueDates: Story = {
   },
 };
 
+/**
+ * An expiry is the day a thing stops holding (an authorization, a piece of evidence), not work that
+ * falls due: `kind="expiry"` keeps DateLabel's states and tones and says Expired, Expires today and
+ * Expires tomorrow.
+ */
+export const Expiries: Story = {
+  render: () => (
+    <Stack space="space.100">
+      <Row label="Expired">
+        <DateLabel kind="expiry" value="2026-09-22" now={NOW} />
+      </Row>
+      <Row label="Today">
+        <DateLabel kind="expiry" value="2026-09-25" now={NOW} />
+      </Row>
+      <Row label="Soon">
+        <DateLabel kind="expiry" value="2026-09-26" now={NOW} />
+      </Row>
+      <Row label="Later">
+        <DateLabel kind="expiry" value="2026-10-30" now={NOW} />
+      </Row>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const labels = [...canvasElement.querySelectorAll('[data-slot="date-label"]')];
+    await expect(labels.map((label) => label.getAttribute("data-state"))).toEqual([
+      "overdue",
+      "today",
+      "soon",
+      "upcoming",
+    ]);
+    await expect(labels.every((label) => label.getAttribute("data-kind") === "expiry")).toBe(true);
+    const shown = labels.map((label) => (label as HTMLElement).innerText.replace(/\s+/g, " "));
+    await expect(shown).toEqual([
+      "Sep 22, 2026 · Expired",
+      "Sep 25, 2026 · Expires today",
+      "Sep 26, 2026 · Expires tomorrow",
+      "Oct 30, 2026",
+    ]);
+  },
+};
+
 /** The mistakes the page is written to prevent. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Pair

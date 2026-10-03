@@ -1,5 +1,9 @@
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
 import {
+  createContext,
   useCallback,
+  useContext,
   useEffect,
   useId,
   useLayoutEffect,
@@ -14,6 +18,14 @@ import {
 
 import { cn } from "../lib/cn";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
+
+/**
+ * Package-internal: the cell a Truncate sits in shows a cut value whole itself. A Table's body cell
+ * that truncates sets it, since the table's one reveal (on hover, on keyboard focus and after a
+ * long press) shows a cut part of the cell whole; a Truncate there mounts no tooltip of its own, so
+ * a register of status badges and names mounts one tooltip, not one per cell.
+ */
+export const CellRevealsCut = createContext(false);
 
 /* Overflow-aware truncation. The text is cut with CSS; the whole of it stays in the DOM, so a
    screen reader reads it all. The eye gets the rest from a tooltip that opens only while the text
@@ -35,12 +47,25 @@ const lineClasses: Record<TruncateLines, string> = {
 const FOCUSABLE_HOST =
   'a[href], button, summary, [role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"], [role="option"], [role="treeitem"]';
 
-/** Whether the element's content is cut: wider than its box on one line, taller than its clamp on several. */
+/** Whether a child cuts its own text with an ellipsis: a link cut to a KeyValue's value. */
+const childIsCut = (el: HTMLElement) =>
+  Array.from(el.children).some(
+    (child) =>
+      child instanceof HTMLElement &&
+      child.scrollWidth > child.clientWidth + 1 &&
+      getComputedStyle(child).textOverflow === "ellipsis",
+  );
+
+/**
+ * Whether the element's content is cut: wider than its box on one line, taller than its clamp on
+ * several, or held by a child that truncates itself.
+ */
 function isCut(el: HTMLElement, maxLines: TruncateLines) {
   if (el.scrollWidth > el.clientWidth + 1) return true;
   // One line lets the block axis overflow on purpose (a focus ring, a touch area), so only the
   // inline axis says whether it is cut.
-  return maxLines > 1 && el.scrollHeight > el.clientHeight + 1;
+  if (maxLines > 1) return el.scrollHeight > el.clientHeight + 1;
+  return childIsCut(el);
 }
 
 const fullTextOf = (el: HTMLElement) => (el.textContent ?? "").replace(/\s+/g, " ").trim();
@@ -53,7 +78,8 @@ export type UseIsTruncatedOptions = {
 };
 
 /**
- * Whether an element's text is cut by its truncation or clamp right now. It measures after every
+ * Whether an element's text is cut by its truncation or clamp right now, or by a child that
+ * truncates itself with an ellipsis (a link cut to a KeyValue's value). It measures after every
  * render and again whenever the element resizes or its text changes, so it follows a panel
  * opening, a column resizing and a value arriving. For an element you truncate yourself; a
  * Truncate reveals its own text.
@@ -101,9 +127,60 @@ export type TruncateProps = Omit<ComponentPropsWithoutRef<"span">, "children"> &
 /**
  * Text cut to one, two or three lines with an ellipsis, and the whole of it in a tooltip while it
  * is cut: on hover, and on keyboard focus of the link or button it sits in or of a control inside
- * it. Nothing is shown while the text fits. A `title` of your own replaces the tooltip.
+ * it. Nothing is shown while the text fits. A `title` of your own replaces the tooltip. In a
+ * Table's cell the table's own reveal shows a cut line whole, so a one-line Truncate there mounts
+ * no tooltip of its own.
  */
-export function Truncate({
+export function Truncate(props: TruncateProps) {
+  const cellReveals = useContext(CellRevealsCut);
+  // The cell's reveal reads one line by its width and shows the element's own text: a clamp or
+  // words of the caller's own keep the Truncate's tooltip.
+  return cellReveals && (props.maxLines ?? 1) === 1 && props.fullText === undefined ? (
+    <RevealedByCell {...props} />
+  ) : (
+    <OwnReveal {...props} />
+  );
+}
+
+/**
+ * A one-line Truncate in a cell that reveals it. Context crosses a portal, so a dialog, a card or a
+ * menu opened from the cell carries the cell's context but not its reveal: a Truncate drawn outside
+ * the cell finds no cell around it and shows itself whole instead.
+ */
+function RevealedByCell(props: TruncateProps) {
+  const [inCell, setInCell] = useState(true);
+  const probe = useCallback((node: HTMLElement | null) => {
+    if (node && !node.closest("td, th")) setInCell(false);
+  }, []);
+  return inCell ? <CutInCell {...props} probe={probe} /> : <OwnReveal {...props} />;
+}
+
+/** The cut element alone, marked for the cell's reveal. */
+function CutInCell({
+  maxLines = 1,
+  fullText: _fullText,
+  render,
+  className,
+  children,
+  ref,
+  probe,
+  ...props
+}: TruncateProps & { probe: (node: HTMLElement | null) => void }) {
+  return useRender({
+    render: render ?? <span />,
+    ref: ref ? [ref, probe] : probe,
+    props: mergeProps<"span">(props, {
+      className: cn(!render && "block", lineClasses[maxLines], className),
+      children,
+      "data-slot": "truncate",
+      "data-max-lines": maxLines,
+      // The table's reveal shows a Truncate so marked; any other reveals itself.
+      "data-reveal": "cell",
+    } as ComponentPropsWithoutRef<"span">),
+  });
+}
+
+function OwnReveal({
   maxLines = 1,
   fullText,
   render,

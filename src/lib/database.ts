@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { collectionSchema, type Collection, type DataRecord, titleColumn } from "./records";
+import { type Collection, type DataRecord, titleColumn } from "./records";
 
 let instance: SupabaseClient | undefined;
 export function database(): SupabaseClient {
@@ -26,13 +26,17 @@ export function database(): SupabaseClient {
   });
   return instance;
 }
+/**
+ * The signed-in workspace: who reads and which tenant they read in. The record schema the
+ * inspector and the generic forms read is not part of it; it loads when a screen asks for it
+ * (`useSchemaCatalog` and `useCollection` in collections.ts).
+ */
 export type Workspace = {
   tenantId: string;
   name: string;
   email: string;
   userId: string;
   role: string;
-  collections: Collection[];
 };
 export async function loadWorkspace(): Promise<Workspace | null> {
   const db = database();
@@ -51,7 +55,7 @@ export async function loadWorkspace(): Promise<Workspace | null> {
     .setHeader("Authorization", authorization);
   if (error) throw new Error(`Could not open the workspace: ${error.message}`);
   const id = z.string().uuid().parse(tenantId);
-  const [tenant, membership, schema] = await Promise.all([
+  const [tenant, membership] = await Promise.all([
     db
       .from("tenants")
       .select("name")
@@ -65,9 +69,8 @@ export async function loadWorkspace(): Promise<Workspace | null> {
       .eq("user_id", auth.user.id)
       .setHeader("Authorization", authorization)
       .single(),
-    db.rpc("app_schema").setHeader("Authorization", authorization),
   ]);
-  for (const result of [tenant, membership, schema])
+  for (const result of [tenant, membership])
     if (result.error) throw new Error(result.error.message);
   const { data: current } = await db.auth.getSession();
   if (current.session?.user.id !== auth.user.id)
@@ -78,10 +81,9 @@ export async function loadWorkspace(): Promise<Workspace | null> {
     email: auth.user.email ?? "",
     userId: auth.user.id,
     role: membership.data!.role as string,
-    collections: z.array(collectionSchema).parse(schema.data),
   };
 }
-export async function requireIdentity(workspace: Workspace): Promise<string> {
+export async function requireIdentity(workspace: Pick<Workspace, "userId">): Promise<string> {
   const { data, error } = await database().auth.getSession();
   if (error) throw error;
   if (data.session?.user.id !== workspace.userId)

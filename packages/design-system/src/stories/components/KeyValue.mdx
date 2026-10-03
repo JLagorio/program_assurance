@@ -7,7 +7,9 @@ import * as Stories from "./KeyValue.stories";
 
 # KeyValue
 
-One rail row: a label column and a value. Owner, Frequency, Last verified, each on its own line with the label in a fixed column so the values make a column too. On its own it is a definition list of one pair, valid wherever it sits; a rail's rows go in one **KeyValue.Group**, which makes them one definition list and gives them one label width.
+**Status: Stable.**
+
+One rail row: a label column and a value. Owner, Frequency, Last verified, each on its own line with the label in one column so the values make a column too. On its own it is a definition list of one pair, valid wherever it sits; a rail's rows go in one **KeyValue.Group**, which makes them one definition list and gives them one label width.
 
 It is one of two ways to write a fact. A [Fact](?path=/docs/components-fact--docs) is inline, label then value on one baseline, for the strip under a record's title; a KeyValue is a row, for the rail and the inspector.
 
@@ -15,11 +17,11 @@ It is one of two ways to write a fact. A [Fact](?path=/docs/components-fact--doc
 
 ## Anatomy
 
-| Part  | What it is                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Label | `dt` in the label column, `labelWidth` wide (104 by default, or the group's), `font.body` in `color.text.subtle`. A label longer than its column wraps to the next line, its first line on the value's baseline; it is never cut (the Cut Value, Whole Label story).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| Value | `dd` in the rest, `font.body` in `color.text`: text, a Badge, a Person, a TextLink, an Absent. Truncates unless `wrap`, which also breaks an unbroken identifier or timestamp inside the rail (the Unbroken story). A cut value, plain or composed (a code and a title, a TextLink), shows its whole text in a tooltip on hover and when a control inside it takes keyboard focus, through [Truncate](?path=/docs/components-truncate--docs). It truncates across only, so a control in the value keeps its focus ring and touch area above and below the row (the Control In A Value story); where the browser takes a clip margin it clips with the ring's reach, `space.050`, all round, so a control at either edge keeps its whole ring and an Editable's field its sides (the Ring Room story). |
-| Row   | `space.050` above and below, `space.150` between label and value, baselines aligned.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Part  | What it is                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Label | `dt` in the label column, `labelWidth` wide (`default`, 104px, without one, or the group's), `font.body` in `color.text.subtle`. A label longer than its column wraps to the next line, its first line on the value's baseline; it is never cut (the Cut Value, Whole Label story).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Value | `dd` in the rest, `font.body` in `color.text`: text, a Badge, a Person, a TextLink, an Absent. Truncates unless `wrap`, which also breaks an unbroken identifier or timestamp inside the rail (the Unbroken story). A cut value, plain or composed (a code and a title, a TextLink), shows its whole text in a tooltip on hover and when a control inside it takes keyboard focus, through [Truncate](?path=/docs/components-truncate--docs). It truncates across only, at its own box, so a control in the value keeps its focus ring and touch area above and below the row (the Control In A Value story). Across, a link draws its ring inside its own edge and a link that is the whole value is cut to the value's width with its own ellipsis; the value keeps `space.050` at its end for a control that ends there; a value that is an [Editable](?path=/docs/patterns-editable--docs) does not clip, so the Editable's tint, ring and field keep their sides and its text stays on the column (the Ring Room story). |
+| Row   | `space.050` above and below, `space.150` between label and value, baselines aligned.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
 ## Variants
 
@@ -34,7 +36,7 @@ KeyValue has one appearance. What varies is the value:
 | A statement            | Text with `wrap`. |
 | Nothing                | An Absent.        |
 
-Not built, and why: an editable value, because that is an [Editable](?path=/docs/patterns-editable--docs) inside the value; a named width scale, because the label widths in use are still being settled.
+Not built, and why: an editable value, because that is an [Editable](?path=/docs/patterns-editable--docs) inside the value.
 
 ## KeyValue.Group
 
@@ -58,7 +60,22 @@ A row's own `labelWidth` overrides the group's; give the width to the group once
 
 ## Sizes
 
-One size, `font.body`. The row is as wide as its rail; the label column is `labelWidth`, the same for every row in one rail, and the value takes the rest. The Glance uses 88, a rail 104; a rail with long labels ("Authorizing official") sets 160 on its KeyValue.Group. The width is in pixels at the default text size and is drawn in rem, so the column grows with the reader's text size as the label does: 104 is 130 at 20px (the Group Layouts story). Without a `labelWidth` the column is `dimension.part.keyValueLabel`, 6.5rem.
+One size, `font.body`. The row is as wide as its rail; the label column is `labelWidth`, the same for every row in one rail, and the value takes the rest. The column is a named step on the dimension tokens, drawn in rem, so it grows with the reader's text size as the label does: `default` is 104px at 16px and 130px at 20px (the Group Layouts story).
+
+| `labelWidth`        | Column                                  | Token                                  | Use                                                                                                       |
+| ------------------- | --------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `narrow`            | 88px                                    | `dimension.part.keyValueLabelNarrow`   | Short labels in a card, a Glance or a chart's details: Owner, Open, Target.                               |
+| `default` (or none) | 104px                                   | `dimension.part.keyValueLabel`         | A rail: Owner, Frequency, Last verified.                                                                  |
+| `wide`              | 160px                                   | `dimension.part.keyValueLabelWide`     | Labels of about twenty characters: Authorizing official.                                                  |
+| `auto`              | The group's longest label, up to `wide` | `dimension.part.keyValueLabelWide` cap | A page body, whose labels the screen does not know ahead: the column fits them, and a longer label wraps. |
+
+`auto` makes the group one grid whose rows share its two columns, so every value starts after the longest label. In the `auto` layout the group is a container, and below 20rem (`dimension.container.xs`) each label goes over its value, as the named steps do when the value has less than 8rem. A rail keeps a named step: its width is known, and `auto` would move the values whenever a label changes.
+
+A number of pixels (`labelWidth={144}`) is deprecated for one version: it is drawn as its rem, and `ledger/no-deprecated-name` writes the nearest step (up to 96 `narrow`, under 132 `default`, from 132 `wide`); in a page body, write `auto` instead.
+
+<Canvas of={Stories.LabelWidths} />
+
+<Canvas of={Stories.AutoLabelColumn} />
 
 <Canvas of={Stories.InRail} />
 
@@ -68,32 +85,32 @@ A KeyValue has one state. Its value may: a Badge is a state, a TextLink hovers. 
 
 ## Modifiers
 
-- **`labelWidth`**: the label column, the same down one rail; on the KeyValue.Group once.
+- **`labelWidth`**: the label column, `narrow`, `default`, `wide` or `auto`, the same down one rail; on the KeyValue.Group once.
 - **`wrap`** for a value that is a sentence.
 - **The value** as in Variants.
 
 ## Content
 
 - **The label is a noun**, one or two words, no colon: "Owner", "Last verified", "Next due". The column is the colon.
-- **Keep a label to one line at its width**: about 14 characters in the default 104 column, about 20 at 160. A longer label wraps rather than being cut, so nothing is lost, but a rail of two-line labels reads slowly: give the KeyValue.Group a `labelWidth` that fits its longest label ("Authorizing official" takes 160), or shorten the label. Three lines means the label is a sentence; say it in the value or a description.
+- **Keep a label to one line at its width**: about 14 characters at `default`, about 20 at `wide`. A longer label wraps rather than being cut, so nothing is lost, but a rail of two-line labels reads slowly: give the KeyValue.Group the step that fits its longest label ("Authorizing official" takes `wide`), `auto` in a page body, or shorten the label. Three lines means the label is a sentence; say it in the value or a description.
 - **The value is one thing.** Two facts are two rows.
 - **Nothing there is an Absent**, not an empty row and not "N/A", which is a different fact.
 - **The order is the order the reader asks:** who, how often, when last, when next, then the rest.
 
 ## Style
 
-| Element | Token                                                               |
-| ------- | ------------------------------------------------------------------- |
-| Label   | `font.body` · `color.text.subtle` · `labelWidth` column             |
-| Value   | `font.body` · `color.text`                                          |
-| Row     | `space.050` block · `space.150` between columns · baselines aligned |
+| Element | Token                                                                  |
+| ------- | ---------------------------------------------------------------------- |
+| Label   | `font.body` · `color.text.subtle` · `labelWidth` column                |
+| Value   | `font.body` · `color.text` · `space.050` at the end while it truncates |
+| Row     | `space.050` block · `space.150` between columns · baselines aligned    |
 
 ## Accessibility
 
 - **It is a definition list**: `dl`, `dt`, `dd`, so a screen reader hears "Owner, Dana Whitfield" as a pair. In a KeyValue.Group a rail is one list of pairs.
 - **The label is never cut.** It wraps inside its column, so a sighted reader, a screen reader and a touch reader all read the same label.
 - **A cut value shows its whole text** in a tooltip on hover and on keyboard focus of a control inside it. The tooltip is a visual copy: the full text is in the DOM and read by a screen reader. A value that matters whole takes `wrap`, so no one has to hover; a touch screen has no hover.
-- **A control in the value keeps its ring and its touch area.** The value clips with the ellipsis across and leaves the block axis visible, so an [Editable](?path=/docs/patterns-editable--docs) or a [TextLink](?path=/docs/components-textlink--docs) keeps its focus ring and, where a pointer is coarse, a touch area at least 24px tall. Where the browser takes a clip margin (Chromium and Firefox; Chromium needs the clip on both axes for one), the value clips on both axes with the ring's reach, `space.050`, all round, which holds the ring and the 24px touch area on its 20px line. A value cut at its end still cuts the ring of a link that runs past it there.
+- **A control in the value keeps its ring and its touch area,** in every browser, with no clip margin. The value clips with the ellipsis across and leaves the block axis visible, so a control keeps its focus ring above and below and, where a pointer is coarse, a touch area at least 24px tall. Across: a [TextLink](?path=/docs/components-textlink--docs) draws the kit's ring inside its own edge, as a link in a table cell does; a link that is the whole value is cut to the value's width, so its ring and its ellipsis are its own and focus on it reveals the whole text; the value keeps `space.050` at its end for a control that ends there; and a value that is an [Editable](?path=/docs/patterns-editable--docs) does not clip, since the Editable truncates its own text and keeps its reach inside its box at the end. A link inside a composed value (a code and a title) stays inline, so where it runs past the value's end its ring is cut there; focus on it still shows the whole value in the tooltip.
 - **The label is text, not a heading.** A rail's sections are headed by an Eyebrow or a Collapsible; the label names one fact.
 - **Contrast:** the label in `color.text.subtle` passes 4.5:1; the gate runs the matrix.
 
@@ -105,7 +122,7 @@ A KeyValue has one state. Its value may: a Badge is a state, a TextLink hovers. 
 
 ## Props
 
-Native props and refs target the row's root: the `dl` on its own, the row `div` inside a KeyValue.Group. Use IDs, data attributes and event handlers directly; `className` merges with the default row classes, and caller `style` can override the columns computed from `labelWidth`. The inner `dt`/`dd`, the wrapping label and the reveal of a cut value are preserved.
+Native props and refs target the row's root: the `dl` on its own, the row `div` inside a KeyValue.Group. Use IDs, data attributes and event handlers directly; `className` merges with the default row classes, and caller `style` can override the columns computed from `labelWidth`. On a KeyValue.Group with an `auto` column, the caller's `style` can override the group's columns. The inner `dt`/`dd`, the wrapping label and the reveal of a cut value are preserved.
 
 <ArgTypes of={KeyValue} />
 
@@ -127,7 +144,10 @@ Native `dl` props, a ref and `render` target the group's list.
 - [Typography](?path=/docs/components-typography--docs): `Eyebrow` to head a group of rows, `Prose` for a paragraph, `Absent` for nothing.
 - [Truncate](?path=/docs/components-truncate--docs): the reveal a cut value uses.
 - [Glance](?path=/docs/patterns-glance--docs), [Panel](?path=/docs/layout-shell--docs): where rails of KeyValues live.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#keyvalue): a pixel `labelWidth` is a named step.
 
 ## Don't
+
+A rail keeps one label width down its rows, so the values make a column. A statement wraps rather than being cut, a label takes no colon, and a missing value is an Absent, never N/A.
 
 <Canvas of={Stories.Dont} />

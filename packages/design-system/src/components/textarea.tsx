@@ -14,11 +14,29 @@ import {
 } from "react";
 
 import { announce } from "../lib/announce";
+import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
 import { fieldControl, useFieldControlState } from "./controls";
 
-export type TextareaProps = ComponentProps<"textarea"> & {
+/** Base UI Field.Control's state, which `className` and `style` callbacks receive, as on Input. */
+export type TextareaState = FieldPrimitive.Control.State;
+
+export type TextareaProps = Omit<ComponentProps<"textarea">, "className" | "style"> & {
+  /** A class, or a function of the control's state (`focused`, `dirty`, `valid`, `disabled` …), as on Input. */
+  className?: string | ((state: TextareaState) => string | undefined) | undefined;
+  /** A style, or a function of the control's state, as on Input. */
+  style?: CSSProperties | ((state: TextareaState) => CSSProperties | undefined) | undefined;
+  /**
+   * Replaces the textarea, or composes it with another component, as Input's `render` does. The
+   * element must forward its props and ref to a textarea.
+   */
+  render?: FieldPrimitive.Control.Props["render"];
+  /**
+   * Called with the new text on every change, as on Input: `onValueChange(value, details)`, with
+   * the native event in `details.event`. The native `onChange` still runs.
+   */
+  onValueChange?: FieldPrimitive.Control.Props["onValueChange"];
   /**
    * The expected answer length in lines, and the box's height: two for a note, four for a
    * description, eight for a narrative. With `autoResize` it is the smallest the box gets. 3 by
@@ -63,11 +81,13 @@ const ANNOUNCE_AFTER = 1000;
 /**
  * Several lines of text. A native textarea on Base UI's Field.Control, so inside a Field it takes
  * the label, hint and error ids and the Field's `invalid`, `disabled` and `required`, as Input
- * does. Explicit ids and ARIA still win.
+ * does. Explicit ids and ARIA still win. It takes Input's API as well: `onValueChange`, `render`,
+ * and `className` and `style` as functions of the control's state.
  */
 export function Textarea({
   className,
   style,
+  render,
   rows = 3,
   autoResize = false,
   maxRows,
@@ -191,18 +211,24 @@ export function Textarea({
   const control = (
     <FieldPrimitive.Control
       data-slot="textarea"
-      render={<textarea />}
+      render={render ?? <textarea />}
       {...({ ...props, rows, onChange: handleChange } as unknown as FieldPrimitive.Control.Props)}
       ref={setElement as unknown as FieldPrimitive.Control.Props["ref"]}
       {...(describedBy ? { "aria-describedby": describedBy } : {})}
       {...(limited ? { "data-count": countMessage } : {})}
       {...(over > 0 ? { "data-over-limit": "" } : {})}
       {...(field.required && props["aria-required"] === undefined ? { "aria-required": true } : {})}
-      style={{ ...sizing, ...style }}
-      className={cn(
-        fieldControl,
-        "flex py-075 data-over-limit:border-danger",
-        autoResize ? "resize-none" : "resize-y",
+      style={
+        typeof style === "function"
+          ? (state: TextareaState) => ({ ...sizing, ...style(state) })
+          : { ...sizing, ...style }
+      }
+      className={classes(
+        cn(
+          fieldControl,
+          "flex py-075 data-over-limit:border-danger",
+          autoResize ? "resize-none" : "resize-y",
+        ),
         className,
       )}
     />

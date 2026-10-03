@@ -16,8 +16,12 @@ import {
   byWeek,
   findingSeries,
 } from "../_lib/chart-data";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Patterns/Chart/Line",
@@ -32,6 +36,29 @@ type Story = StoryObj<typeof meta>;
 const kickoffDate = new Date(2026, 4, 4);
 
 const open = [{ key: "open", label: "Open", tone: "brand" as const }];
+
+/** Open findings at each milestone of an assessment, in order: names longer than a tick's usual room. */
+const byMilestone = [
+  { milestone: "Kickoff", open: 2 },
+  { milestone: "Evidence collection", open: 9 },
+  { milestone: "Control testing", open: 16 },
+  { milestone: "Findings review", open: 12 },
+  { milestone: "Authorization package", open: 5 },
+];
+
+/** A category tick's printed words: its lines joined, without the whole name its title keeps. */
+const printed = (text: Element) =>
+  Array.from(text.childNodes)
+    .filter((n) => n.nodeName !== "title")
+    .map((n) => n.textContent ?? "")
+    .join(" ");
+/** The category ticks of the Frame named `name`. */
+const categoryTicks = (canvasElement: HTMLElement, name: string) =>
+  Array.from(
+    within(canvasElement)
+      .getByRole("figure", { name })
+      .querySelectorAll(".recharts-xAxis-tick-labels text"),
+  );
 const openPlan = [
   { key: "open", label: "Open", tone: "brand" as const },
   { key: "plan", label: "Plan", tone: "neutral" as const },
@@ -39,6 +66,7 @@ const openPlan = [
 
 /** Every line in both modes: plain, smooth with dots, end labels; a band, a limit and a milestone, a cropped baseline, a gap; emphasis, axis titles, the skeleton. */
 export const LineMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="Plain · smooth with dots · end labels">
@@ -395,6 +423,67 @@ export const Zones: Story = {
   },
 };
 
+/** Long category names fit the room up to the next point, not a fixed number of characters. At 720px every milestone prints whole, the last on two lines where the plot's edge leaves it less room; at 340px every milestone keeps a label, on two lines or cut with an ellipsis, the whole name its title, and the first and the last move in from the plot's edges rather than past them. In a 200px card nine months cannot each hold three characters, so the labels step over every other month, whole, rather than shrink each to a letter. */
+export const LongCategories: Story = {
+  render: () => (
+    <Stack space="space.400">
+      <Box style={{ width: "100%", maxWidth: 720 }}>
+        <Chart title="Open findings by milestone" series={open} data={byMilestone} x="milestone">
+          <Chart.Line />
+        </Chart>
+      </Box>
+      <Box style={{ width: "100%", maxWidth: 340 }}>
+        <Chart
+          title="Open findings by milestone, narrow"
+          series={open}
+          data={byMilestone}
+          x="milestone"
+        >
+          <Chart.Line />
+        </Chart>
+      </Box>
+      <Box style={{ width: "100%", maxWidth: 200 }}>
+        <Chart title="Open findings, card" series={open} data={byMonth} x="month">
+          <Chart.Line size="small" />
+        </Chart>
+      </Box>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const names = byMilestone.map((d) => d.milestone);
+    const figure = (name: string) => within(canvasElement).getByRole("figure", { name });
+    // At any width every milestone keeps a label inside the svg, none over its neighbour, and a
+    // cut one keeps its whole name as its title.
+    for (const name of ["Open findings by milestone", "Open findings by milestone, narrow"]) {
+      await waitFor(() => expect(categoryTicks(canvasElement, name)).toHaveLength(names.length));
+      const svg = figure(name).querySelector(".recharts-surface")!.getBoundingClientRect();
+      const ticks = categoryTicks(canvasElement, name);
+      const boxes = ticks.map((t) => t.getBoundingClientRect());
+      for (const [i, text] of ticks.entries()) {
+        await expect(printed(text).replace(/…/g, "").trim().length).toBeGreaterThanOrEqual(3);
+        if (printed(text) !== names[i])
+          await expect(text.querySelector("title")?.textContent).toBe(names[i]);
+        const box = boxes[i]!;
+        await expect(box.left).toBeGreaterThanOrEqual(svg.left - 0.5);
+        await expect(box.right).toBeLessThanOrEqual(svg.right + 0.5);
+        if (i > 0) await expect(boxes[i - 1]!.right).toBeLessThanOrEqual(box.left + 0.5);
+      }
+    }
+    // With the room, every name whole, however long.
+    if (figure("Open findings by milestone").getBoundingClientRect().width >= 600)
+      await expect(categoryTicks(canvasElement, "Open findings by milestone").map(printed)).toEqual(
+        names,
+      );
+    // A card: whole month names, stepping evenly from the first.
+    const card = categoryTicks(canvasElement, "Open findings, card").map(printed);
+    await expect(card.length).toBeGreaterThanOrEqual(3);
+    await expect(card.length).toBeLessThan(byMonth.length);
+    const at = card.map((m) => byMonth.findIndex((d) => d.month === m));
+    await expect(at[0]).toBe(0);
+    for (const [i, index] of at.entries()) if (i > 0) await expect(index - at[i - 1]!).toBe(at[1]);
+  },
+};
+
 /** In a narrow plot (here a 300px frame, a panel's width, and a 200px card) the labels above it share one row: the window's and the milestone's move apart rather than overlap, the milestone's keeping closest to its line, and none leaves the plot's width, so none sits on the axis ticks. Each stays over its mark, a window's middle over its window: where the row is too short for them so (the third chart and the card), the window's label shortens before a milestone's, with an ellipsis and its whole text as its title. At the plot's start a milestone's label begins at its line, and two milestones on one date share one label (the fourth chart); there the first milestone's label gives way to the second's, and the window's beside them shortens only as far as the row needs, still over its window. The labels inside the plot are drawn over the lines, ringed in the surface, so the plan line runs behind "Tolerable". */
 export const NarrowLabels: Story = {
   render: () => (
@@ -647,10 +736,10 @@ export const Details: Story = {
           details={(s) => (
             <Stack space="space.150">
               <div>
-                <KeyValue label="Net" labelWidth={88}>
+                <KeyValue label="Net" labelWidth="narrow">
                   {`${Number(s.datum["closed"]) - Number(s.datum["open"]) >= 0 ? "+" : ""}${Number(s.datum["closed"]) - Number(s.datum["open"])} closed`}
                 </KeyValue>
-                <KeyValue label="Plan" labelWidth={88}>
+                <KeyValue label="Plan" labelWidth="narrow">
                   {`${String(s.datum["plan"])} open`}
                 </KeyValue>
               </div>
@@ -668,6 +757,7 @@ export const Details: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair

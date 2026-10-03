@@ -232,10 +232,15 @@ export function mapWorkflow(ctx) {
       if (!text(record.observed) || !methods.has(method)) continue;
       const key = `${run.id}/${record.step ?? j}`,
         pointer = `${path}/records/${j}`;
+      // The run is not imported, so there is no step result to carry the source's result: the
+      // observation is named by its run and step, and says the recorded result in its text.
+      const outcome = text(record.result);
       const observed = ctx.add("observations", key, pointer, {
         program_id: m.program.get(program) ?? null,
-        title: `${run.id} — ${record.step ?? `observation ${j + 1}`} (${record.result})`,
-        description: record.observed,
+        title: `${run.id} — ${record.step ?? `observation ${j + 1}`}`,
+        description: outcome
+          ? `${record.observed}\n\nRecorded result: ${outcome}.`
+          : record.observed,
         method,
         observed_at: ctx.timestamp(record.at, `${pointer}/at`),
         observer_party_id: ctx.party(run.operator, `${path}/operator`),
@@ -620,7 +625,8 @@ export function mapWorkflow(ctx) {
       description: text(t.note),
       status,
       completed_at: completed,
-      due_at: ctx.timestamp(t.due, `${p}/due`),
+      // A task is due on a calendar day.
+      due_on: ctx.date(t.due, `${p}/due`),
       created_at: ctx.timestamp(t.createdAt, `${p}/createdAt`) ?? ctx.importedAt,
     });
     m.task.set(t.id, task);

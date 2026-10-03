@@ -11,6 +11,7 @@ import {
   useState,
   type ComponentProps,
   type KeyboardEvent,
+  type RefObject,
 } from "react";
 import { flushSync } from "react-dom";
 import type { Modifiers } from "react-day-picker";
@@ -264,6 +265,19 @@ type DayPopupProps = {
   returnTo: () => HTMLElement | null;
 };
 
+/**
+ * Package-internal: a month popup's `initialFocus`. DayPicker keeps one day in the Tab order, the
+ * chosen day, else today, else the first day that may be chosen, and that day takes focus however
+ * the month opened. A month with no day that may be chosen, or not yet drawn, keeps the popover's
+ * own first focus: the popup itself when a touch opened it, so no on-screen keyboard rises, else
+ * its first control.
+ */
+export function calendarInitialFocus(popup: RefObject<HTMLElement | null>) {
+  return (openType: string): HTMLElement | true | null =>
+    popup.current?.querySelector<HTMLElement>('button[data-day][tabindex="0"]') ??
+    (openType === "touch" ? popup.current : true);
+}
+
 /** The month with Today and Clear under it, in a popover named after its field. */
 export function DayPopup({
   day,
@@ -277,11 +291,14 @@ export function DayPopup({
 }: DayPopupProps) {
   const { t } = useLedgerLocale();
   const today = dateToDay(new Date());
+  const popup = useRef<HTMLDivElement>(null);
   return (
     <PopoverContent
+      ref={popup}
       {...(labelledBy
         ? { "aria-labelledby": labelledBy }
         : { "aria-label": label ?? t("chooseDate") })}
+      initialFocus={calendarInitialFocus(popup)}
       finalFocus={returnTo}
       align={align}
       className="gap-0 p-0"
@@ -289,7 +306,6 @@ export function DayPopup({
     >
       <Calendar
         mode="single"
-        autoFocus
         {...(constraints.startMonth ? { startMonth: constraints.startMonth } : {})}
         {...(constraints.endMonth ? { endMonth: constraints.endMonth } : {})}
         {...calendarProps}
@@ -355,7 +371,10 @@ type DatePickerOwnProps = DayConstraintProps & {
   "aria-labelledby"?: string | undefined;
   /** Open on first render; for a sheet that exists to pick this day, and for the docs. */
   defaultOpen?: boolean | undefined;
-  /** Layout only. */
+  /**
+   * Layout only.
+   * @accepts layout
+   */
   className?: string | undefined;
   /** The name when there is no visible label. */
   "aria-label"?: string | undefined;
@@ -515,7 +534,7 @@ export function DatePicker({
       <>
         {hiddenInput}
         <Popover open={open && !isDisabled} onOpenChange={(next) => setOpen(next && !isDisabled)}>
-          <InputGroup data-entry="type" className={className}>
+          <InputGroup data-slot="date-picker" data-entry="type" className={className}>
             <InputGroupInput
               {...(triggerProps as ComponentProps<typeof InputGroupInput>)}
               ref={(node: HTMLInputElement | null) => {
@@ -559,17 +578,13 @@ export function DatePicker({
               <PopoverTrigger
                 render={
                   <InputGroupButton
-                    size="icon-xs"
+                    icon={<CalendarIcon />}
+                    label={t("chooseDate")}
                     disabled={isDisabled}
-                    className="relative touch-target"
-                    {...(labelledBy
-                      ? { "aria-labelledby": `${chooseId} ${labelledBy}` }
-                      : { "aria-label": t("chooseDate") })}
+                    {...(labelledBy ? { "aria-labelledby": `${chooseId} ${labelledBy}` } : {})}
                   />
                 }
-              >
-                <CalendarIcon aria-hidden />
-              </PopoverTrigger>
+              />
             </InputGroupAddon>
           </InputGroup>
           {popup}
@@ -595,6 +610,7 @@ export function DatePicker({
               form={form}
               disabled={isDisabled}
               {...triggerProps}
+              data-slot="date-picker"
               data-entry="pick"
               aria-label={ariaLabel}
               aria-labelledby={labelledBy}

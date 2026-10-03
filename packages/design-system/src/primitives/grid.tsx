@@ -10,7 +10,13 @@ import { spaceClasses, type LayoutElement, type SpaceToken } from "./tokens";
 
 const alignItems = { start: "items-start", center: "items-center", end: "items-end", baseline: "items-baseline", stretch: "items-stretch" } as const;
 const justifyContent = { start: "justify-start", center: "justify-center", end: "justify-end", "space-between": "justify-between", "space-around": "justify-around", "space-evenly": "justify-evenly", stretch: "justify-stretch" } as const;
-export type ResponsiveTemplate = { base?: string; sm?: string; md?: string; lg?: string; xl?: string };
+export type ResponsiveTemplate = {
+  base?: string | undefined;
+  sm?: string | undefined;
+  md?: string | undefined;
+  lg?: string | undefined;
+  xl?: string | undefined;
+};
 // Each breakpoint's template travels as a CSS variable the static class reads, so Tailwind sees one class per breakpoint.
 // The base template is a class too, never an inline grid-template-columns, so the breakpoint classes can override it.
 const responsiveCols = { base: "grid-cols-(--ds-grid-base)", sm: "sm:grid-cols-(--ds-grid-sm)", md: "md:grid-cols-(--ds-grid-md)", lg: "lg:grid-cols-(--ds-grid-lg)", xl: "xl:grid-cols-(--ds-grid-xl)" } as const;

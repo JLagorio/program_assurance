@@ -5,7 +5,12 @@ import { expect, userEvent, within } from "storybook/test";
 
 import { Toggle } from "../../components";
 import { Stack, Text } from "../../primitives";
-import { Matrix, Specimens } from "../_lib/matrix";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix, Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Toggle",
@@ -51,15 +56,16 @@ function PinnedRecord() {
 
 /** Standard variants and sizes, independent state, and a controlled record action. */
 export const ToggleMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Matrix
         rows={["default", "outline"] as const}
-        cols={["sm", "default", "lg", "pressed", "disabled"] as const}
+        cols={["small", "medium", "large", "pressed", "disabled"] as const}
         render={(variant, state) => (
           <Toggle
             variant={variant}
-            size={state === "sm" || state === "lg" ? state : "default"}
+            size={state === "small" || state === "large" ? state : "medium"}
             aria-label={`${variant} ${state} bold`}
             defaultPressed={state === "pressed"}
             disabled={state === "disabled"}
@@ -75,13 +81,14 @@ export const ToggleMatrix: Story = {
     const canvas = within(canvasElement);
     for (const variant of ["default", "outline"]) {
       for (const [size, height] of [
-        ["sm", 28],
-        ["default", 32],
-        ["lg", 36],
+        ["small", 28],
+        ["medium", 32],
+        ["large", 36],
       ] as const) {
         const toggle = canvas.getByRole("button", { name: `${variant} ${size} bold` });
         await expect(toggle).toHaveAttribute("type", "button");
         await expect(toggle).toHaveAttribute("data-slot", "toggle");
+        await expect(toggle).toHaveAttribute("data-size", size);
         await expect(toggle.getBoundingClientRect().height).toBe(height);
         await expect(toggle).toHaveAttribute("aria-pressed", "false");
         await userEvent.click(toggle);
@@ -120,12 +127,61 @@ export const ToggleMatrix: Story = {
 export const Playground: Story = {};
 
 /**
+ * `sm`, `default` and `lg` are the deprecated spellings of `small`, `medium` and `large`, kept for
+ * one version: each draws and reports its new word, and `ledger/no-deprecated-name` rewrites them.
+ */
+export const DeprecatedSizes: Story = {
+  tags: ["!manifest"],
+  name: "Deprecated size spellings",
+  render: () => (
+    <Specimens title="Deprecated spellings draw the new sizes">
+      <Toggle size="sm" aria-label="Legacy sm bold">
+        <Bold aria-hidden />
+      </Toggle>
+      <Toggle size="default" aria-label="Legacy default bold">
+        <Bold aria-hidden />
+      </Toggle>
+      <Toggle size="lg" aria-label="Legacy lg bold">
+        <Bold aria-hidden />
+      </Toggle>
+    </Specimens>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    for (const [legacy, word, height] of [
+      ["sm", "small", 28],
+      ["default", "medium", 32],
+      ["lg", "large", 36],
+    ] as const) {
+      const toggle = canvas.getByRole("button", { name: `Legacy ${legacy} bold` });
+      await expect(toggle).toHaveAttribute("data-size", word);
+      await expect(toggle.getBoundingClientRect().height).toBe(height);
+    }
+  },
+};
+
+/** A caller's `data-slot` never renames the part: the toggle's identity comes after its props. */
+export const Identity: Story = {
+  render: () => (
+    <Toggle aria-label="Bold" data-slot="format-bold" data-testid="bold" className="w-fit">
+      <Bold aria-hidden />
+    </Toggle>
+  ),
+  play: async ({ canvasElement }) => {
+    const toggle = within(canvasElement).getByTestId("bold");
+    await expect(toggle).toHaveAttribute("data-slot", "toggle");
+    await expect(toggle).toHaveClass("w-fit");
+  },
+};
+
+/**
  * Pressed is the selected palette with a 1px `color.border.selected` edge, so a pressed toggle
  * never looks like a hovered one: hover stays the neutral tint and adds no edge. The edge is drawn
  * out of the flow, so pressing never changes the toggle's size. In forced colours pressed is
  * Highlight.
  */
 export const PressedAgainstHover: Story = {
+  tags: ["!manifest"],
   name: "Pressed against hover",
   render: () => (
     <Stack space="space.200">
@@ -167,5 +223,41 @@ export const PressedAgainstHover: Story = {
     await userEvent.click(pressed);
     await expect(pressed).toHaveAttribute("aria-pressed", "true");
     await expect(pressed.getBoundingClientRect().width).toBe(size.width);
+  },
+};
+
+/**
+ * The name says what pressing turns on and stays the same; the pressed state says whether it is on.
+ * A name that flips with the state says the state twice, and a speech user cannot know which word
+ * to say.
+ */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: function ConstantName() {
+    const [shown, setShown] = useState(false);
+    return (
+      <Pair
+        do={<Toggle variant="outline">Show as table</Toggle>}
+        doText="One name, pressed or not: a screen reader hears Show as table, pressed."
+        dont={
+          <Toggle variant="outline" pressed={shown} onPressedChange={setShown}>
+            {shown ? "Hide table" : "Show table"}
+          </Toggle>
+        }
+        dontText="Show table, then Hide table: the words change with the state the button already reports."
+      />
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const constant = canvas.getByRole("button", { name: "Show as table" });
+    await userEvent.click(constant);
+    await expect(constant).toHaveAttribute("aria-pressed", "true");
+    await expect(constant).toHaveAccessibleName("Show as table");
+    const flipping = canvas.getByRole("button", { name: "Show table" });
+    await userEvent.click(flipping);
+    await expect(flipping).toHaveAttribute("aria-pressed", "true");
+    await expect(flipping).toHaveAccessibleName("Hide table");
   },
 };

@@ -7,11 +7,33 @@ import * as Stories from "./Inspector.stories";
 
 # Inspector
 
+**Status: Stable.**
+
 Groups of a record's facts: state, owner, identifiers and dates, as label and value rows under a title that folds. It is the Details rail beside a record's work area, and the Details block in a preview or a panel. The surrounding layout owns where it sits and how it scrolls.
 
-`Inspector` takes the groups as data, opens every one and renders each as an Inspector.Group. `Inspector.Group` is one group on its own, with its facts as children and an action beside its title. A group's KeyValue rows go in one [KeyValue.Group](?path=/docs/components-keyvalue--docs), so a screen reader hears one list of pairs per group, and the group gives them one label width; KeyValues given directly, and nothing else, become one KeyValue.Group. A row of Badges or a short list sits beside or instead of it.
+`Inspector` is the root: it holds `Inspector.Group` children in the order the reader needs them, then a `footer`. Each group is one name and its facts as children, with an action beside its title. A group's KeyValue rows go in one [KeyValue.Group](?path=/docs/components-keyvalue--docs), so a screen reader hears one list of pairs per group, and the group gives them one label width; KeyValues given directly, and nothing else, become one KeyValue.Group. A row of Badges or a short list sits beside or instead of it.
 
-<Canvas of={Stories.Groups} />
+```tsx
+<Inspector
+  footer={
+    <Button size="small" variant="link">
+      Edit properties
+    </Button>
+  }
+>
+  <Inspector.Group title="Ownership">
+    <KeyValue label="Owner">Dana Whitfield</KeyValue>
+    <KeyValue label="Sponsor">Alex Morgan</KeyValue>
+  </Inspector.Group>
+  <Inspector.Group title="Schedule">
+    <KeyValue label="Due">30 Sept 2026</KeyValue>
+  </Inspector.Group>
+</Inspector>
+```
+
+<Canvas of={Stories.Composition} />
+
+`groups` is deprecated: the same groups as data (`{ title, rows: [{ label, value }] }`), which the root renders as open Inspector.Groups before any children. It goes in the next minor version; compose the groups instead, which also gives each group its action, its `defaultOpen` and rows that are more than a label and a value. `ledger/no-deprecated-name` reports it.
 
 ## Group
 
@@ -23,9 +45,13 @@ Each group's title is a [CollapsibleHeader](?path=/docs/components-collapsible--
 
 ## Heading level
 
-A group's heading takes the contextual level, an h3 when nothing sets one. On a record page the rail sits under the page's h1, so wrap the rail's content in `HeadingLevelProvider level={2}` and its groups are h2s; in a titled Shell.Panel the body already starts at 3, under the panel's h2; under a preview's h2 record title, the content after the header goes one below with a HeadingLevelProvider, and the groups are h3s.
+A group's heading takes the contextual level, an h3 when nothing sets one. In a [Shell](?path=/docs/layout-shell--docs) Aside rail the groups sit under the page's h1, so the Aside starts its content at 2 and the groups are h2s; in a titled Shell.Panel the body already starts at 3, under the panel's h2; under a preview's h2 record title, the content after the header goes one below with a HeadingLevelProvider, and the groups are h3s. A rail outside the Shell sets the level itself with `HeadingLevelProvider level={2}`.
 
 <Canvas of={Stories.InARail} />
+
+## In the Details disclosure
+
+Below the aside breakpoint a record's Shell.Aside is a Details disclosure in the page, closed until the reader opens it (Shell's Record details at 390px). Its row is the h2 and its content one level below, so the groups there are h3s. A group named as the disclosure ("Details", or the Aside's `heading`) is the disclosure's own content: its title, which would repeat the row's, steps aside, and its rows show while the disclosure is open. Its action stays, at the end of a row above them. The other groups keep their titles and fold as in the rail.
 
 ## When to use it
 
@@ -36,7 +62,7 @@ A group's heading takes the contextual level, an h3 when nothing sets one. On a 
 
 ## Accessibility
 
-- Every group title is a button inside a heading, so the rail is in the heading outline and each group's state is announced ("Provenance, collapsed, button"). Enter and Space toggle it; focus stays on it. Both forms behave the same, because the data form is made of Inspector.Groups.
+- Every group title is a button inside a heading, so the rail is in the heading outline and each group's state is announced ("Provenance, collapsed, button"). Enter and Space toggle it; focus stays on it.
 - A group's facts are one definition list ("list, 4 items"), not one list per fact.
 - Open and closed look different by more than colour: the chevron turns. Under reduced motion it turns without moving and the rows appear without the fold.
 - The action is its own tab stop after the title, outside the heading, and names what it acts on ("Edit details").
@@ -62,6 +88,8 @@ Inspector and Inspector.Group take their root's native `div` props, a `className
 
 ## Don't
 
+The rail's facts are Inspector.Groups of KeyValue rows under a heading that folds, never bold text over a hand-built row of facts.
+
 <Canvas of={Stories.Dont} />
 
 ## Related
@@ -70,3 +98,4 @@ Inspector and Inspector.Group take their root's native `div` props, a `className
 - [Collapsible](?path=/docs/components-collapsible--docs): the disclosure header each group's title is.
 - [Section](?path=/docs/layout-section--docs): the collapsible block on a page body.
 - [Shell](?path=/docs/layout-shell--docs): the Aside and the Panel it sits in.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#inspector): `groups` is Inspector.Group children.

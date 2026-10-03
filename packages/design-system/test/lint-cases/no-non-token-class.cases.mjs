@@ -53,7 +53,7 @@ export default {
     // The name markers and the chart library's tick class generate no CSS and are admitted by
     // name; the kit's @utility names come from its CSS (lint.json).
     { code: '<span className="group/row peer recharts-cartesian-axis-tick-value" />' },
-    { code: '<div className="page-header stat-grid-3 touch-target-block-after shell-panel" />' },
+    { code: '<div className="page-header stat-grid-3 touch-target-block-after fill-window" />' },
     {
       // A cva recipe's classes are read; its variant names are not classes.
       code: `const recipe = cva("inline-flex [&>svg]:size-150!", {
@@ -69,6 +69,14 @@ const element = <span className={cn(recipe(), "!text-default")} />;`,
     },
     { code: 'const A = () => <DayPicker classNames={{ root: "font-body", months: "flex" }} />;' },
     { code: 'export const label = "Open the record"; export const status = "draft";' },
+    // A component's own *Class prop that holds a word no class is spelt like holds data, and a
+    // lone string shaped like alpha or a palette colour that Tailwind does not place is data.
+    {
+      code: 'export const A = ({ level }) => <><Marker impactClass="high" /><Banner securityClass={level ? "secret" : "unclassified"} /><ScrollLink activeClass="active" to="top" /></>;',
+    },
+    {
+      code: 'export const CATALOG = "sp-800-53/5"; export const REVISION = "rev-5/1"; export const COLOR = "status-red-500";',
+    },
     // A helper the settings do not name is not read.
     { code: 'export const c = mergeClasses("bg-red-500");' },
     // A `class` key on a data object whose value is not shaped like classes is data, not a class
@@ -192,9 +200,85 @@ const element = <span className={cn(recipe(), "!text-default")} />;`,
         "stat-grid-7",
       ].map((cls) => ({ messageId: "unknown", data: { cls } })),
     },
+    // A layout rule the kit keeps inside a part, which was once a class a product could write,
+    // names the part that owns it and what to write instead; the class generates no CSS.
     {
       code: '<div className="grid-cols-main-rail" />',
-      errors: [{ messageId: "unknown", data: { cls: "grid-cols-main-rail" } }],
+      errors: [
+        {
+          messageId: "partOwn",
+          data: {
+            cls: "grid-cols-main-rail",
+            owner: "the Shell's",
+            advice: "Render the rail as Shell.Aside beside Main.",
+          },
+        },
+      ],
+    },
+    {
+      code: '<div className="min-w-0 lg:sticky-rail" />',
+      errors: [
+        {
+          messageId: "partOwn",
+          data: {
+            cls: "lg:sticky-rail",
+            owner: "StickyRail's",
+            advice: 'Wrap the column in <StickyRail from="lg">.',
+          },
+        },
+      ],
+    },
+    {
+      code: '<div className="sticky-rail" />',
+      errors: [
+        {
+          messageId: "partOwn",
+          data: {
+            cls: "sticky-rail",
+            owner: "StickyRail's",
+            advice:
+              'Wrap the column in <StickyRail>; from="lg" sticks it from the large breakpoint.',
+          },
+        },
+      ],
+    },
+    {
+      code: '<div className="shell-panel" />',
+      errors: [
+        {
+          messageId: "partOwn",
+          data: {
+            cls: "shell-panel",
+            owner: "the Shell's",
+            advice: "Compose the Shell's parts, which place and style themselves.",
+          },
+        },
+      ],
+    },
+    {
+      code: '<div className="min-h-work grid-cols-list-detail" />',
+      errors: ["min-h-work", "grid-cols-list-detail"].map((cls) => ({
+        messageId: "partOwn",
+        data: {
+          cls,
+          owner: "WorkPane's",
+          advice:
+            "Use a WorkPane for a list beside its detail, or min-h-dvh for a region as tall as the window.",
+        },
+      })),
+    },
+    {
+      code: '<div className="sticky-bar" />',
+      errors: [
+        {
+          messageId: "partOwn",
+          data: {
+            cls: "sticky-bar",
+            owner: "ActionBar's",
+            advice: "Put a record's actions in PageHeader.Actions.",
+          },
+        },
+      ],
     },
     {
       // Alpha on a Tailwind palette colour is this rule's, not no-alpha-token's: the colour is no
@@ -521,6 +605,95 @@ const element = <span className={cn(recipe(), "!text-default")} />;`,
       ],
     },
     {
+      // A physical side holds when the page reads right to left: its logical twin, which passes,
+      // is the suggestion, under the class's variants. A variant that names a side or a
+      // direction keeps it, a half inset centres, and a stock step names its twin's token.
+      code: '<div className="text-left hover:pl-200 -right-100 border-l rounded-tr-large data-[side=left]:-right-025 rtl:text-right left-1/2 pl-4" />',
+      errors: [
+        {
+          messageId: "physical",
+          data: { cls: "text-left", logical: "text-start" },
+          suggestions: [
+            replace(
+              '<div className="text-start hover:pl-200 -right-100 border-l rounded-tr-large data-[side=left]:-right-025 rtl:text-right left-1/2 pl-4" />',
+            ),
+          ],
+        },
+        {
+          messageId: "physical",
+          data: { cls: "hover:pl-200", logical: "hover:ps-200" },
+          suggestions: [
+            replace(
+              '<div className="text-left hover:ps-200 -right-100 border-l rounded-tr-large data-[side=left]:-right-025 rtl:text-right left-1/2 pl-4" />',
+            ),
+          ],
+        },
+        {
+          messageId: "physical",
+          data: { cls: "-right-100", logical: "-end-100" },
+          suggestions: [
+            replace(
+              '<div className="text-left hover:pl-200 -end-100 border-l rounded-tr-large data-[side=left]:-right-025 rtl:text-right left-1/2 pl-4" />',
+            ),
+          ],
+        },
+        {
+          messageId: "physical",
+          data: { cls: "border-l", logical: "border-s" },
+          suggestions: [
+            replace(
+              '<div className="text-left hover:pl-200 -right-100 border-s rounded-tr-large data-[side=left]:-right-025 rtl:text-right left-1/2 pl-4" />',
+            ),
+          ],
+        },
+        {
+          messageId: "physical",
+          data: { cls: "rounded-tr-large", logical: "rounded-se-large" },
+          suggestions: [
+            replace(
+              '<div className="text-left hover:pl-200 -right-100 border-l rounded-se-large data-[side=left]:-right-025 rtl:text-right left-1/2 pl-4" />',
+            ),
+          ],
+        },
+        {
+          ...stock("pl-4", "spacing step 4 (16px)", "16px is ps-200 (space.200)."),
+          suggestions: [
+            same(
+              '<div className="text-left hover:pl-200 -right-100 border-l rounded-tr-large data-[side=left]:-right-025 rtl:text-right left-1/2 ps-200" />',
+            ),
+          ],
+        },
+      ],
+    },
+    {
+      // A stacking order past a part's own steps names the layers, and the layer of its number,
+      // which an editor suggestion writes under the class's variants; z-0 to z-20 stay a part's.
+      code: '<div className="z-10 z-50 focus:z-30 z-45" />',
+      errors: [
+        {
+          ...stock(
+            "z-50",
+            "z-index 50",
+            "Use z-overlay, the layer at 50. Layers stack the page's regions (z-chrome 30, z-blanket 40, z-overlay 50, z-toast 1000, z-tooltip 1100); a part's own stacking inside itself takes z-0, z-10 or z-20.",
+          ),
+          suggestions: [same('<div className="z-10 z-overlay focus:z-30 z-45" />')],
+        },
+        {
+          ...stock(
+            "focus:z-30",
+            "z-index 30",
+            "Use z-chrome, the layer at 30. Layers stack the page's regions (z-chrome 30, z-blanket 40, z-overlay 50, z-toast 1000, z-tooltip 1100); a part's own stacking inside itself takes z-0, z-10 or z-20.",
+          ),
+          suggestions: [same('<div className="z-10 z-50 focus:z-chrome z-45" />')],
+        },
+        stock(
+          "z-45",
+          "z-index 45",
+          "Layers stack the page's regions (z-chrome 30, z-blanket 40, z-overlay 50, z-toast 1000, z-tooltip 1100); a part's own stacking inside itself takes z-0, z-10 or z-20.",
+        ),
+      ],
+    },
+    {
       // On an element use-primitives reads, in a product, a padding or a gap is its primitive's
       // prop, with no class suggestion; space-y is a Stack's space, which needs no margins. A size
       // whose type step sets a weight is named with it and never picked; an outline's width is on
@@ -539,7 +712,7 @@ const element = <span className={cn(recipe(), "!text-default")} />;`,
         stock(
           "text-xl",
           "text size xl (20px)",
-          "20px is font-heading-small (weight 500, a section heading set with Heading; at…).",
+          "20px is font-heading-page (weight 600, heading `page`: the page and record title…).",
         ),
         stock(
           "outline-2",
@@ -730,6 +903,11 @@ const element = <span className={cn(recipe(), "!text-default")} />;`,
           'With "dark:text-gray-100", grey is text-default (primary text, such as body copy, sentence case…).',
         ),
       ],
+    },
+    {
+      // A *Class attribute whose words read as classes is read as className is.
+      code: 'export const A = () => <Widget iconClass="flex bogus-thing" />;',
+      errors: [{ messageId: "unknown", data: { cls: "bogus-thing" }, line: 1, column: 42 }],
     },
   ],
 };

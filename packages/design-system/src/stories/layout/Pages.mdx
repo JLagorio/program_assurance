@@ -9,13 +9,13 @@ Mount the application shell once around the router outlet. Routes compose normal
 
 ## A record
 
-The trail is `PageHeader.Lead` with the record's code as its last level, the name is the h1, and one Actions menu sits at the end of the title's row (a destination in it is a link item). Tabs follow when the record has more than one view. On Overview the body is Sections, a description is Prose, and the Details rail is the shell's Aside: an Inspector group named Details with the state, owner, identifiers and dates as KeyValue rows, the ones a reader changes in place as Editables. The rail belongs to Overview and leaves with it; a tab that is a register starts with its Toolbar and table, with no heading over them, and fills the work area.
+The trail is `PageHeader.Lead` with the record's code as its last level, the name is the h1, and one Actions menu sits at the end of the title's row (a destination in it is a link item). Tabs follow when the record has more than one view. On Overview the body is Sections, a description is Prose, and the Details are the shell's Aside: an Inspector group named Details with the state, owner, identifiers and dates as KeyValue rows, the ones a reader changes in place as Editables. The Aside is rendered first in Overview's panel and carries the status as its `summary`: beside the Sections it is the rail, and on a phone a Details disclosure above them, closed, its row showing the status. It belongs to Overview and leaves with it; a tab that is a register starts with its Toolbar and table, with no heading over them, and fills the work area.
 
 <Canvas of={Stories.Record} />
 
 ## A register
 
-A page that is one collection: the name alone in the PageHeader, then a DataTable with `fill`, which takes the rest of the window, and `responsive`, which folds lower-priority fields into each row's More fields on a narrow screen instead of scrolling sideways. Its [Toolbar](?path=/docs/patterns-toolbar--docs) is the table's `toolbar`: the search first, the saved views in `views`, the filters, Columns, Settings and the collection's overflow as its children, and the one small primary at the end. The name is a TextLink to the record. A failed refresh keeps the rows under one Alert with Retry.
+A page that is one collection: the name alone in the PageHeader, then a DataTable with `fill`, which takes the rest of the window; on a narrow screen it folds lower-priority fields into each row's More fields ("+3") instead of scrolling sideways. Its [Toolbar](?path=/docs/patterns-toolbar--docs) is the table's `toolbar`: the search first, the saved views in `views`, the filters, Columns, Settings and the collection's overflow as its children, and the one small primary at the end. The name is a TextLink to the record. A failed refresh keeps the rows under one Alert with Retry.
 
 <Canvas of={Stories.Register} />
 
@@ -39,7 +39,7 @@ The page keeps what focus or an anchor scrolls into view clear of the sticky ban
 ## Regions and behavior
 
 - **Main** contains the page header, filters, tabs and work area. Keep these visible controls in the route.
-- **Aside** provides supporting context, such as a record's Details. It follows Main below the `aside` breakpoint (`dimension.breakpoint.aside`, 75rem: 1200px at the default root size) and sits beside it above that, and from the large breakpoint while the side nav is collapsed. When a Panel is also open, Aside follows Main until the `wide` breakpoint (110rem, 1760px). The breakpoints are tokens; [Metrics](?path=/docs/tokens-metrics--docs) lists them.
+- **Aside** provides supporting context, such as a record's Details. It sits beside Main from the `aside` breakpoint (`dimension.breakpoint.aside`, 75rem: 1200px at the default root size), and from the large breakpoint whenever the side nav leaves Main its minimum width beside it: collapsed, or expanded at its default width. Below the aside breakpoint, wherever it would not sit beside Main (below the large breakpoint, beside a side nav the reader widened past that, beside an open Panel), it is a Details disclosure where the route rendered it in the page, closed until the reader opens it, its row carrying the record's state. From the aside breakpoint with a Panel open, it follows Main until the `wide` breakpoint (110rem, 1760px). The breakpoints are tokens; [Metrics](?path=/docs/tokens-metrics--docs) lists them.
 - **Panel** holds a selected record or task. From the large breakpoint (64rem, 1024px) it is a resizable column beside Main that runs the full height of the window under the banner; the top nav stops at its edge. Up to the `panel` breakpoint (80rem, 1280px) an open panel shows the side nav collapsed, so the register stays in view beside it, and closing the panel gives the side nav back as the reader left it. Below the large breakpoint it replaces the visible work area under the top nav while Main stays mounted. Close or Escape returns focus to the opener when it still exists.
 - **Sheet** is the modal surface for a workflow that needs focus containment. Compose it with the existing Base UI components.
 
@@ -54,3 +54,8 @@ The examples test route cleanup, retained context, tab relationships, queue stat
 ## Extending
 
 Compose a new route from Stack, Inline, Grid, PageHeader and the controls it needs. Add a pattern when a repeated interaction earns one, for example record selection, coordinated filtering or calendar scheduling. Layout ownership stays in Shell.
+
+## Related
+
+- [Shell](?path=/docs/layout-shell--docs): the areas a page renders into.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#pages): the page shapes that were parts (IndexPage, ShowPage, RecordHeader, PreviewRail, Block) and what each is now.

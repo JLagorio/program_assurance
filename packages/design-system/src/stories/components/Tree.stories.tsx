@@ -6,8 +6,12 @@ import { createRef, useState } from "react";
 
 import { Badge, Button, Count, IconButton, Id, Item, Tree } from "../../components";
 import { Box, Stack } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Tree",
@@ -33,6 +37,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Depth, guide lines, an open and a closed branch, a leaf, the selected row and a trailing slot; then the same tree at xsmall, and one with icons. */
 export const TreeMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="small (32px), text only">
@@ -106,7 +111,7 @@ function FamiliesDemo() {
         depth={0}
         hasChildren
         isExpanded={open["finance"]}
-        onToggle={() => toggle("finance")}
+        onExpandedChange={() => toggle("finance")}
         isSelected={sel === "finance"}
         onSelect={() => setSel("finance")}
         trailing={<Count value={12} />}
@@ -119,7 +124,7 @@ function FamiliesDemo() {
             depth={1}
             hasChildren
             isExpanded={open["payables"]}
-            onToggle={() => toggle("payables")}
+            onExpandedChange={() => toggle("payables")}
             isSelected={
               sel === "payables" || (!open["payables"] && ["ctrl-0412", "ctrl-0418"].includes(sel))
             }
@@ -156,7 +161,7 @@ function FamiliesDemo() {
             lines={[false]}
             hasChildren
             isExpanded={open["receivables"]}
-            onToggle={() => toggle("receivables")}
+            onExpandedChange={() => toggle("receivables")}
             isSelected={sel === "receivables"}
             onSelect={() => setSel("receivables")}
           >
@@ -178,7 +183,7 @@ function FamiliesDemo() {
         depth={0}
         hasChildren
         isExpanded={open["security"]}
-        onToggle={() => toggle("security")}
+        onExpandedChange={() => toggle("security")}
         isSelected={sel === "security"}
         onSelect={() => setSel("security")}
         trailing={<Count value={9} />}
@@ -189,6 +194,8 @@ function FamiliesDemo() {
   );
 }
 
+export const Playground: Story = {};
+
 /** A working tree: click a row to select it, its chevron to open it; Tab in once, then the arrows move and open, Enter selects. A collapsed parent shows its hidden child's selection. */
 export const Families: Story = {
   render: () => <FamiliesDemo />,
@@ -197,14 +204,17 @@ export const Families: Story = {
     const finance = canvas.getByRole("treeitem", { name: /Finance/ });
     const payables = canvas.getByRole("treeitem", { name: /Payables/ });
     const control = () => canvas.getByRole("treeitem", { name: /CTRL-0412/ });
+    // Out towards the parent and in towards the children, mirrored in right to left.
+    const rtl = getComputedStyle(finance).direction === "rtl";
+    const [out, inward] = rtl ? ["{ArrowRight}", "{ArrowLeft}"] : ["{ArrowLeft}", "{ArrowRight}"];
     await userEvent.click(control());
-    await userEvent.keyboard("{ArrowLeft}");
+    await userEvent.keyboard(out);
     await expect(payables).toHaveFocus();
-    await userEvent.keyboard("{ArrowLeft}");
+    await userEvent.keyboard(out);
     await expect(payables).toHaveAttribute("aria-expanded", "false");
     await expect(payables).toHaveAttribute("aria-selected", "true");
     await expect(canvas.queryByRole("treeitem", { name: /CTRL-0412/ })).not.toBeInTheDocument();
-    await userEvent.keyboard("{ArrowRight}{ArrowRight}");
+    await userEvent.keyboard(`${inward}${inward}`);
     await expect(control()).toHaveFocus();
     await userEvent.keyboard("{ArrowDown} ");
     await expect(canvas.getByRole("treeitem", { name: /CTRL-0418/ })).toHaveAttribute(
@@ -219,7 +229,11 @@ export const Families: Story = {
       "true",
     );
     const chevron = within(payables).getByRole("button", { hidden: true });
-    // The 20px chevron takes a 24px hit area on a touch screen, without moving the row.
+    // The chevron is the kit's 20px row control, out of the Tab order (the row takes the keys), and
+    // takes a 24px hit area on a touch screen without moving the row.
+    await expect(chevron).toHaveAttribute("data-slot", "icon-button");
+    await expect(chevron.getBoundingClientRect().width).toBe(20);
+    await expect(chevron).toHaveAttribute("tabindex", "-1");
     await expect(chevron).toHaveClass("touch-target");
     await expect(getComputedStyle(chevron).position).toBe("relative");
     await userEvent.click(chevron);
@@ -237,6 +251,7 @@ export const Families: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -358,8 +373,6 @@ export const Dont: Story = {
     </Stack>
   ),
 };
-
-export const Playground: Story = {};
 
 function TreeDemo() {
   const [selected, setSelected] = useState("");
@@ -545,7 +558,7 @@ function LongNamesDemo() {
           depth={0}
           hasChildren
           isExpanded={open}
-          onToggle={() => setOpen((value) => !value)}
+          onExpandedChange={setOpen}
           isSelected={selected === "ground"}
           onSelect={() => setSelected("ground")}
           hint="SYS-01 · Moderate baseline, tailored for the ground segment"
@@ -722,7 +735,7 @@ function ReceivablesRightToLeft() {
             lines={[false]}
             hasChildren
             isExpanded={open["collections"] ?? false}
-            onToggle={() => toggle("collections")}
+            onExpandedChange={(next) => setOpen((value) => ({ ...value, collections: next }))}
             isSelected={selected === "collections"}
             onSelect={() => setSelected("collections")}
           >
@@ -748,9 +761,12 @@ function ReceivablesRightToLeft() {
  * The selected row is the selected fill and a 2px bar at its start edge in the selected colour, a
  * second cue at 3:1 on the fill, so the selection never rests on a faint tint alone; in forced
  * colours the row is Highlight. In a right-to-left tree the bar is on the right and a closed
- * branch's chevron points left. `expanded`, the old name for `isExpanded`, still opens a branch.
+ * branch's chevron points left. `expanded` and `onToggle`, the old names for `isExpanded` and
+ * `onExpandedChange`, still open a branch; Collections reports its next state through
+ * `onExpandedChange`.
  */
 export const SelectedAndRightToLeft: Story = {
+  tags: ["!manifest"],
   name: "Selected and right to left",
   render: () => (
     <Stack space="space.300">
@@ -769,7 +785,7 @@ export const SelectedAndRightToLeft: Story = {
           </Tree>
         </Box>
       </Specimens>
-      <Specimens title="Right to left, with the deprecated expanded">
+      <Specimens title="Right to left, with the deprecated expanded and onToggle">
         <Box className="w-layout-list max-w-full" dir="rtl">
           <ReceivablesRightToLeft />
         </Box>
@@ -800,9 +816,10 @@ export const SelectedAndRightToLeft: Story = {
       const box = selected.getBoundingClientRect();
       const barLeft = parseFloat(bar.left);
       const barRight = parseFloat(bar.right);
-      // The bar hugs the row's start edge: the left in LTR, the right in RTL.
-      if (treeName === "Payables") await expect(barLeft).toBe(0);
-      else await expect(barRight).toBe(0);
+      // The bar hugs the row's start edge: the left in LTR, the right in RTL. The Receivables tree
+      // is right to left by its own provider, and so is every tree under the Direction toolbar.
+      if (getComputedStyle(selected).direction === "rtl") await expect(barRight).toBe(0);
+      else await expect(barLeft).toBe(0);
       await expect(box.width).toBeGreaterThan(0);
     }
     const rtl = canvas.getByRole("tree", { name: "Receivables" });
@@ -830,5 +847,11 @@ export const SelectedAndRightToLeft: Story = {
     await expect(closed).toHaveFocus();
     await userEvent.keyboard("{ArrowRight}");
     await expect(closed).toHaveAttribute("aria-expanded", "false");
+    // The deprecated `expanded` and `onToggle` still close a branch: Right moves out, then closes.
+    const receivables = within(rtl).getByRole("treeitem", { name: "Receivables" });
+    await userEvent.keyboard("{ArrowRight}");
+    await expect(receivables).toHaveFocus();
+    await userEvent.keyboard("{ArrowRight}");
+    await expect(receivables).toHaveAttribute("aria-expanded", "false");
   },
 };

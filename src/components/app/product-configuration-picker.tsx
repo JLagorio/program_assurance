@@ -1,12 +1,5 @@
 import type { ProductConfigurationItem } from "@/lib/product-items";
-import {
-  DataTable,
-  Id,
-  Inline,
-  PickerSheet,
-  defineColumns,
-  useDataTable,
-} from "@ledger/design-system";
+import { DataTable, Id, PickerSheet, defineColumns, useDataTable } from "@ledger/design-system";
 import { useMemo, useRef, useState } from "react";
 
 type ProductConfigurationRow = ProductConfigurationItem & {
@@ -25,12 +18,9 @@ const columns = defineColumns<ProductConfigurationRow>((c) => [
   c.text("configuration", {
     header: "Configuration",
     minWidth: 160,
-    cell: (row) => (
-      <Inline space="space.075" alignBlock="baseline" shouldWrap>
-        {row.configurationName}
-        <Id>{row.configurationCode}</Id>
-      </Inline>
-    ),
+    // The configuration's name, its code on the muted line under it.
+    cell: (row) => row.configurationName,
+    description: (row) => <Id>{row.configurationCode}</Id>,
   }),
   c.number("version", { header: "Version", width: 90 }),
   c.number("elementCount", { header: "Elements", width: 96 }),
@@ -43,6 +33,8 @@ export function ProductConfigurationPicker({
   open,
   items,
   pending = false,
+  failed = false,
+  onRetry,
   title = "From a product",
   actionLabel,
   defaultChosenId = null,
@@ -52,6 +44,10 @@ export function ProductConfigurationPicker({
   open: boolean;
   items: ProductConfigurationItem[];
   pending?: boolean | undefined;
+  /** A read behind `items` failed: with nothing to offer, the table says so instead of "empty". */
+  failed?: boolean | undefined;
+  /** Try again in that failure: refetch what failed. */
+  onRetry?: (() => void) | undefined;
   /** The operation, in the words of the trigger that opened the sheet. */
   title?: string | undefined;
   /** The primary's words, when it repeats the operation; otherwise it names the chosen configuration. */
@@ -75,6 +71,8 @@ export function ProductConfigurationPicker({
     [items],
   );
   const chosen = items.find((item) => item.id === chosenId) ?? null;
+  // Loading and a failure leave the total unknown: never "0 of 0" or an empty list.
+  const state = failed && !items.length ? "error" : pending ? "loading" : "ready";
   const table = useDataTable({
     columns,
     // One record: a radio per row, and a click on the row chooses it.
@@ -96,7 +94,8 @@ export function ProductConfigurationPicker({
       subtitle="A published version and one of its configurations"
       width="xlarge"
       table={table}
-      search={{ placeholder: "Search products" }}
+      state={state}
+      search={{ placeholder: "Find a product" }}
       action={{
         label:
           actionLabel ??
@@ -113,7 +112,9 @@ export function ProductConfigurationPicker({
       <DataTable
         responsive
         table={table}
-        state={pending ? "loading" : "ready"}
+        state={state}
+        error="The products could not be loaded."
+        onRetry={onRetry}
         empty={{
           illustration: "records",
           title: "Nothing published to add",

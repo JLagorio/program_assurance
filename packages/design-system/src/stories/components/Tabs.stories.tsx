@@ -11,10 +11,19 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
+  ToggleGroup,
+  ToggleGroupItem,
 } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
 import { Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
+import * as direction from "../_lib/direction";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
+const { along, arrows, isRtl, scrolledFromStart, startSlack } = direction;
 
 const meta = {
   title: "Components/Tabs",
@@ -38,11 +47,18 @@ const ringInside = async (tab: HTMLElement, viewport: HTMLElement) => {
   await expect(parseFloat(style.outlineOffset)).toBe(-parseFloat(style.outlineWidth));
   const clip = viewport.getBoundingClientRect();
   const box = tab.getBoundingClientRect();
+  // Sideways, a right-to-left strip may stop a pixel short of its end (startSlack).
+  const slack = 0.5 + startSlack(viewport);
   await expect(box.top).toBeGreaterThanOrEqual(clip.top - 0.5);
   await expect(box.bottom).toBeLessThanOrEqual(clip.top + viewport.clientHeight + 0.5);
-  await expect(box.left).toBeGreaterThanOrEqual(clip.left - 0.5);
-  await expect(box.right).toBeLessThanOrEqual(clip.left + viewport.clientWidth + 0.5);
+  await expect(box.left).toBeGreaterThanOrEqual(clip.left - slack);
+  await expect(box.right).toBeLessThanOrEqual(clip.left + viewport.clientWidth + slack);
 };
+/** The space from the strip's bottom edge to where the panel's content starts. */
+const spaceUnder = (list: HTMLElement, panel: HTMLElement) =>
+  panel.getBoundingClientRect().top +
+  parseFloat(getComputedStyle(panel).paddingTop) -
+  list.closest<HTMLElement>('[data-slot="scroller"]')!.getBoundingClientRect().bottom;
 const inStrip = (viewport: HTMLElement, tab: HTMLElement) => {
   const bounds = viewport.getBoundingClientRect();
   const box = tab.getBoundingClientRect();
@@ -97,9 +113,7 @@ export const ResponsiveWidths: Story = {
     const filledViewport = scrollViewport(filled);
     const filledTabs = within(filled).getAllByRole("tab");
     await expect(filledViewport.scrollWidth).toBeGreaterThan(filledViewport.clientWidth);
-    await expect(filledTabs[0]!.getBoundingClientRect().left).toBeGreaterThanOrEqual(
-      filledViewport.getBoundingClientRect().left,
-    );
+    await expect(along(filledTabs[0]!).start).toBeGreaterThanOrEqual(along(filledViewport).start);
     await expect(filledViewport).toHaveAttribute("tabindex", "-1");
     await userEvent.keyboard("{Shift}");
     filledTabs[0]!.focus();
@@ -109,7 +123,9 @@ export const ResponsiveWidths: Story = {
     await waitFor(() => expect(inStrip(filledViewport, filledTabs.at(-1)!)).toBe(true));
     await ringInside(filledTabs.at(-1)!, filledViewport);
     await userEvent.keyboard("{Home}");
-    await waitFor(() => expect(filledViewport.scrollLeft).toBe(0));
+    await waitFor(() =>
+      expect(scrolledFromStart(filledViewport)).toBeLessThanOrEqual(startSlack(filledViewport)),
+    );
 
     for (const width of [720, 390, 280]) {
       const list = canvas.getByRole("tablist", { name: `${width}px record views` });
@@ -126,8 +142,7 @@ export const ResponsiveWidths: Story = {
       }
       // The strip scrolls when its tabs need more room than its container gives it, whatever the
       // window: the 720px frame fits on the canvas and scrolls on a phone or in a 320px panel.
-      const needed =
-        tabs.at(-1)!.getBoundingClientRect().right - tabs[0]!.getBoundingClientRect().left;
+      const needed = along(tabs.at(-1)!).end - along(tabs[0]!).start;
       const fits = needed <= viewport.clientWidth + 1;
       if (root.clientWidth >= 720) await expect(fits).toBe(true);
       if (width === 280) await expect(fits).toBe(false);
@@ -154,21 +169,27 @@ export const ResponsiveWidths: Story = {
         await expect(forward.getBoundingClientRect().height).toBe(
           list.getBoundingClientRect().height,
         );
-        await expect(forward.getBoundingClientRect().right).toBe(
-          viewport.getBoundingClientRect().right,
-        );
+        // Forward sits at the strip's end: the right, or the left in right to left.
+        await expect(along(forward).end).toBe(along(viewport).end);
         await userEvent.click(forward);
-        await waitFor(() => expect(viewport.scrollLeft).toBeGreaterThan(0));
+        await waitFor(() => expect(scrolledFromStart(viewport)).toBeGreaterThan(0));
         const back = await within(root).findByRole("button", { name: "Scroll back" });
         await userEvent.click(back);
-        await waitFor(() => expect(viewport.scrollLeft).toBe(0));
+        // Back at the start: 0, or within the pixel a right-to-left strip may stop short by.
+        await waitFor(() =>
+          expect(scrolledFromStart(viewport)).toBeLessThanOrEqual(startSlack(viewport)),
+        );
       }
       // A click between two labels lands on the nearer tab: each tab's hit area reaches half way
       // across the gap, and the strip scrolls no further for it.
-      const [one, two] = [tabs[0]!.getBoundingClientRect(), tabs[1]!.getBoundingClientRect()];
-      const middle = (one.top + one.bottom) / 2;
-      await expect(document.elementFromPoint(one.right + 2, middle)).toBe(tabs[0]);
-      await expect(document.elementFromPoint(two.left - 2, middle)).toBe(tabs[1]);
+      const [one, two] = [along(tabs[0]!), along(tabs[1]!)];
+      const box = tabs[0]!.getBoundingClientRect();
+      const middle = (box.top + box.bottom) / 2;
+      // Just past the first tab's end, and just before the second's start, either way it reads:
+      // `along` negates a right-to-left line, so its points are negated back to the screen's.
+      const x = (at: number) => (isRtl(tabs[0]!) ? -at : at);
+      await expect(document.elementFromPoint(x(one.end + 2), middle)).toBe(tabs[0]);
+      await expect(document.elementFromPoint(x(two.start - 2), middle)).toBe(tabs[1]);
       await userEvent.keyboard("{Shift}");
       tabs[0]!.focus();
       await ringInside(tabs[0]!, viewport);
@@ -176,14 +197,12 @@ export const ResponsiveWidths: Story = {
       const last = tabs.at(-1)!;
       await waitFor(() => expect(last).toHaveFocus());
       await expect(last).toHaveAttribute("aria-selected", "true");
-      await waitFor(() =>
-        expect(last.getBoundingClientRect().right).toBeLessThanOrEqual(
-          viewport.getBoundingClientRect().right + 1,
-        ),
-      );
+      await waitFor(() => expect(along(last).end).toBeLessThanOrEqual(along(viewport).end + 1));
       await ringInside(last, viewport);
       await userEvent.keyboard("{Home}");
-      await waitFor(() => expect(viewport.scrollLeft).toBe(0));
+      await waitFor(() =>
+        expect(scrolledFromStart(viewport)).toBeLessThanOrEqual(startSlack(viewport)),
+      );
     }
   },
 };
@@ -252,7 +271,7 @@ export const LateCountsOnAPhone: Story = {
     const evidence = within(list).getByRole("tab", { name: "Evidence" });
     await expect(viewport.scrollWidth).toBeGreaterThan(viewport.clientWidth);
     await waitFor(() => expect(inStrip(viewport, evidence)).toBe(true));
-    const before = viewport.scrollLeft;
+    const before = scrolledFromStart(viewport);
     await expect(before).toBeGreaterThan(0);
     await waitFor(() =>
       expect(within(list).getByRole("tab", { name: /^Controls/ })).toHaveAccessibleName(
@@ -260,7 +279,7 @@ export const LateCountsOnAPhone: Story = {
       ),
     );
     // The counts widened the tabs before it; the strip followed the selected tab.
-    await waitFor(() => expect(viewport.scrollLeft).toBeGreaterThan(before));
+    await waitFor(() => expect(scrolledFromStart(viewport)).toBeGreaterThan(before));
     await waitFor(() => expect(inStrip(viewport, evidence)).toBe(true));
     await userEvent.click(canvas.getByRole("button", { name: "Open the activity" }));
     const activity = within(list).getByRole("tab", { name: "Activity" });
@@ -272,6 +291,7 @@ export const LateCountsOnAPhone: Story = {
 
 /** Shadcn's default and line variants, manual and automatic activation, and overflow. */
 export const Variants: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="Default · manual activation">
@@ -335,15 +355,21 @@ export const Variants: Story = {
     const overview = manual.getByRole("tab", { name: "Overview" });
     const controls = manual.getByRole("tab", { name: "Controls" });
     overview.focus();
-    await userEvent.keyboard("{ArrowRight}");
+    // The next tab, towards the strip's end: ArrowRight, or ArrowLeft in right to left.
+    await userEvent.keyboard(arrows(overview).next);
     await waitFor(() => expect(controls).toHaveFocus());
     await expect(overview).toHaveAttribute("aria-selected", "true");
     await userEvent.keyboard("{Enter}");
     await expect(controls).toHaveAttribute("aria-selected", "true");
     const panel = canvas.getByRole("tabpanel", { name: "Controls" });
+    // The panel carries the space under the strip, space.150, as its own top padding; it is
+    // measured once the panel's entrance has settled.
+    await expect(getComputedStyle(panel).paddingTop).toBe("12px");
+    const manualList = canvas.getByRole("tablist", { name: "Manual views" });
+    await waitFor(() => expect(spaceUnder(manualList, panel)).toBeCloseTo(12, 0));
     await expect(controls).toHaveAttribute("aria-controls", panel.id);
     await expect(panel).toHaveAttribute("aria-labelledby", controls.id);
-    await userEvent.keyboard("{ArrowRight}");
+    await userEvent.keyboard(arrows(controls).next);
     const disabled = manual.getByRole("tab", { name: "Evidence" });
     await waitFor(() => expect(disabled).toHaveFocus());
     await userEvent.keyboard("{Enter} ");
@@ -351,11 +377,16 @@ export const Variants: Story = {
     await expect(controls).toHaveAttribute("aria-selected", "true");
     await userEvent.keyboard("{End}");
     await waitFor(() => expect(manual.getByRole("tab", { name: "History" })).toHaveFocus());
-    await userEvent.keyboard("{ArrowRight}");
+    await userEvent.keyboard(arrows(controls).next);
     await waitFor(() => expect(overview).toHaveFocus());
     await userEvent.keyboard(" ");
     await expect(overview).toHaveAttribute("aria-selected", "true");
     const line = canvas.getByRole("tablist", { name: "Record views" });
+    // A line strip spaces its panel the same way: space.150 from the strip's edge, including its
+    // scrollbar where a touch reader keeps one.
+    const linePanel = canvas.getByRole("tabpanel", { name: "Controls 340" });
+    await expect(getComputedStyle(linePanel).paddingTop).toBe("12px");
+    await waitFor(() => expect(spaceUnder(line, linePanel)).toBeCloseTo(12, 0));
     const viewport = scrollViewport(line);
     await expect(viewport.scrollWidth).toBeGreaterThan(viewport.clientWidth);
     await expect(viewport).toHaveAttribute("tabindex", "-1");
@@ -365,11 +396,14 @@ export const Variants: Story = {
     await expect(selected.getBoundingClientRect().height).toBe(32);
     const indicator = line.querySelector<HTMLElement>('[data-slot="tabs-indicator"]')!;
     await waitFor(() =>
-      expect(indicator.getBoundingClientRect().width).toBe(selected.getBoundingClientRect().width),
+      expect(indicator.getBoundingClientRect().width).toBeCloseTo(
+        selected.getBoundingClientRect().width,
+        2,
+      ),
     );
     await expect(indicator.getBoundingClientRect().height).toBe(2);
     selected.focus();
-    await userEvent.keyboard("{ArrowRight}");
+    await userEvent.keyboard(arrows(selected).next);
     await waitFor(() =>
       expect(lineTabs.getByRole("tab", { name: "Evidence Draft" })).toHaveAttribute(
         "aria-selected",
@@ -384,20 +418,18 @@ export const Variants: Story = {
       ),
     );
     await waitFor(() =>
-      expect(
-        lineTabs.getByRole("tab", { name: "Overview" }).getBoundingClientRect().left,
-      ).toBeGreaterThanOrEqual(viewport.getBoundingClientRect().left),
+      expect(along(lineTabs.getByRole("tab", { name: "Overview" })).start).toBeGreaterThanOrEqual(
+        along(viewport).start,
+      ),
     );
     await userEvent.keyboard("{End}");
     const history = lineTabs.getByRole("tab", { name: "History" });
     await waitFor(() => expect(history).toHaveAttribute("aria-selected", "true"));
-    await waitFor(() =>
-      expect(history.getBoundingClientRect().right).toBeLessThanOrEqual(
-        viewport.getBoundingClientRect().right + 1,
-      ),
-    );
+    await waitFor(() => expect(along(history).end).toBeLessThanOrEqual(along(viewport).end + 1));
     await userEvent.keyboard("{Home}");
-    await waitFor(() => expect(viewport.scrollLeft).toBe(0));
+    await waitFor(() =>
+      expect(scrolledFromStart(viewport)).toBeLessThanOrEqual(startSlack(viewport)),
+    );
   },
 };
 
@@ -420,7 +452,7 @@ function Editing() {
           } else setValue(next);
         }}
         render={<section aria-label="Review editor" />}
-        className={(state) => (state.orientation === "horizontal" ? "gap-200" : "gap-100")}
+        className={(state) => (state.orientation === "horizontal" ? "max-w-layout-measure" : "")}
       >
         <TabsList ref={listRef} aria-label="Review views">
           <TabsTrigger
@@ -482,6 +514,7 @@ export const EditingAndMounting: Story = {
 
 /** Locale direction and vertical keyboard navigation are supplied to Base UI itself. */
 export const Orientation: Story = {
+  tags: ["!manifest"],
   render: () => (
     <LedgerProvider direction="rtl">
       <Stack space="space.400">
@@ -623,7 +656,7 @@ export const Links: Story = {
       await expect(controls).toHaveAttribute("aria-selected", "true");
       await fireEvent.click(controls, { ctrlKey: true });
       await fireEvent.click(controls, { metaKey: true });
-      await userEvent.keyboard("{ArrowRight}");
+      await userEvent.keyboard(arrows(controls).next);
       const evidence = canvas.getByRole("tab", { name: "Evidence" });
       await waitFor(() => expect(evidence).toHaveFocus());
       await expect(controls).toHaveAttribute("aria-selected", "true");
@@ -757,5 +790,188 @@ export const Motion: Story = {
       }
       await expect(within(root).getAllByRole("tabpanel")).toHaveLength(1);
     }
+  },
+};
+
+/**
+ * A line strip whose container widens while the selected tab changes, as a record's Details rail
+ * leaves with its Overview. The indicator slides once and arrives in its motion duration: its
+ * position and width round to the layout unit, so a resize that leaves the tabs where they were
+ * does not restart the slide. Under reduced motion it moves at once.
+ */
+export const ResizeDuringChange: Story = {
+  name: "Resize during a change",
+  render: () => (
+    <Tabs defaultValue="Overview" style={{ width: "70%" }}>
+      <TabsList variant="line" aria-label="Resizing views">
+        {views.map((view) => (
+          <TabsTrigger key={view} value={view}>
+            {view}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+      {views.map((view) => (
+        <TabsContent key={view} value={view}>
+          <Text>{view} content</Text>
+        </TabsContent>
+      ))}
+    </Tabs>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const list = canvas.getByRole("tablist", { name: "Resizing views" });
+    const root = list.closest<HTMLElement>('[data-slot="tabs"]')!;
+    const indicator = list.querySelector<HTMLElement>('[data-slot="tabs-indicator"]')!;
+    const target = within(list).getByRole("tab", { name: "History" });
+    /** How far the indicator is from covering a tab: the larger of its offset and its width's. */
+    const away = (tab: HTMLElement) => {
+      const line = indicator.getBoundingClientRect();
+      const box = tab.getBoundingClientRect();
+      return Math.max(Math.abs(line.left - box.left), Math.abs(line.width - box.width));
+    };
+    // Measured in the face the reader sees: a label that reflows when the font arrives moves the
+    // tab, and the indicator with it, which is a second slide the resize did not cause. Laying the
+    // labels out first starts the loads that `ready` waits for.
+    void list.offsetWidth;
+    await document.fonts.ready;
+    await waitFor(() =>
+      expect(away(within(list).getByRole("tab", { name: "Overview" }))).toBeLessThan(0.5),
+    );
+    // The slide's duration is motion.duration.moderate, and nothing under reduced motion.
+    const moderate = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue("--ds-motion-duration-moderate"),
+    );
+    const duration = parseFloat(getComputedStyle(indicator).transitionDuration) * 1000;
+    await expect(duration).toBe(reduced ? 0 : moderate);
+    // Every slide that starts, a restarted one included.
+    let slides = 0;
+    const counted = (event: TransitionEvent) => {
+      if (event.propertyName === "transform") slides += 1;
+    };
+    indicator.addEventListener("transitionrun", counted);
+    try {
+      const run = await new Promise<{ began: number; arrived: number | null; frame: number }>(
+        (resolve) => {
+          let began: number | null = null;
+          let arrived: number | null = null;
+          let last = 0;
+          let frame = 0;
+          let step = 0;
+          const tick = (now: number) => {
+            began ??= now;
+            if (now > began) frame = Math.max(frame, now - last);
+            last = now;
+            if (arrived === null && away(target) < 0.5) arrived = now;
+            // An uneven step every frame for as long as the slide lasts, so each frame lands the
+            // strip's measurements on a new fraction of a pixel.
+            const resizing = now - began < Math.max(moderate, 200);
+            root.style.width = resizing ? `${Math.min(99.9, 70 + ++step * 0.37)}%` : "100%";
+            if (now - began < 3 * moderate) requestAnimationFrame(tick);
+            else resolve({ began, arrived, frame });
+          };
+          fireEvent.click(target);
+          requestAnimationFrame(tick);
+        },
+      );
+      await expect(target).toHaveAttribute("aria-selected", "true");
+      await expect(run.arrived).not.toBeNull();
+      if (reduced) {
+        await expect(slides).toBe(0);
+        await expect(run.arrived).toBe(run.began);
+      } else {
+        await expect(slides).toBe(1);
+        // The slide may start on the frame after the click, when the new position is written, and
+        // is seen on the first frame after it ends: within its duration and two frames, where a
+        // slide restarted by the resize takes about twice its duration.
+        await expect(run.arrived! - run.began).toBeLessThanOrEqual(duration + 2 * run.frame);
+      }
+      await expect(away(target)).toBeLessThan(0.5);
+    } finally {
+      indicator.removeEventListener("transitionrun", counted);
+      root.style.width = "70%";
+    }
+  },
+};
+
+/** The mistakes the page is written to prevent, each beside the right way. */
+export const Dont: Story = {
+  tags: ["!manifest"],
+  render: () => (
+    <Stack space="space.400">
+      <Pair
+        do={
+          <Stack space="space.150">
+            <ToggleGroup aria-label="Show findings" defaultValue={["open"]} variant="outline">
+              <ToggleGroupItem value="all">All</ToggleGroupItem>
+              <ToggleGroupItem value="open">Open</ToggleGroupItem>
+              <ToggleGroupItem value="closed">Closed</ToggleGroupItem>
+            </ToggleGroup>
+            <Text size="small">The open findings.</Text>
+          </Stack>
+        }
+        doText="A ToggleGroup, or a filter in the toolbar, narrows the rows the reader is already in."
+        dont={
+          <Tabs defaultValue="open">
+            <TabsList variant="line" aria-label="Findings by status">
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="open">Open</TabsTrigger>
+              <TabsTrigger value="closed">Closed</TabsTrigger>
+            </TabsList>
+            {["all", "open", "closed"].map((value) => (
+              <TabsContent key={value} value={value}>
+                <Text size="small">The same findings list.</Text>
+              </TabsContent>
+            ))}
+          </Tabs>
+        }
+        dontText="Tabs that only narrow one list: each reads as a view of its own, and the filter sits apart from the list's other filters."
+      />
+      <Pair
+        do={
+          <Tabs defaultValue="controls">
+            <TabsList variant="line" aria-label="Record views">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="controls">
+                Controls <Count value={340} max={9999} />
+              </TabsTrigger>
+              <TabsTrigger value="evidence">
+                Evidence <Count value={0} max={9999} />
+              </TabsTrigger>
+            </TabsList>
+            {["overview", "controls", "evidence"].map((value) => (
+              <TabsContent key={value} value={value}>
+                <Text size="small">The {value} view.</Text>
+              </TabsContent>
+            ))}
+          </Tabs>
+        }
+        doText="Nouns that name each view, Overview first, and a Count with the product's one cap, 0 included once the rows load."
+        dont={
+          <Tabs defaultValue="controls">
+            <TabsList variant="line" aria-label="Record views, worded as actions">
+              <TabsTrigger value="overview">Summary tab</TabsTrigger>
+              <TabsTrigger value="controls">View controls (340)</TabsTrigger>
+              <TabsTrigger value="evidence">See evidence</TabsTrigger>
+            </TabsList>
+            {["overview", "controls", "evidence"].map((value) => (
+              <TabsContent key={value} value={value}>
+                <Text size="small">The {value} view.</Text>
+              </TabsContent>
+            ))}
+          </Tabs>
+        }
+        dontText="Verbs and the word tab read as buttons, and a count typed into the words has no cap and reads differently on every strip."
+      />
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("group", { name: "Show findings" })).toBeVisible();
+    await expect(canvas.getByRole("tab", { name: "Controls 340" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await expect(canvas.getByRole("tab", { name: "Evidence 0" })).toBeVisible();
   },
 };

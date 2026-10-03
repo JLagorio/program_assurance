@@ -4,7 +4,8 @@ import { Box, Grid, Stack, Text } from "../../primitives";
 
 /**
  * A do beside a don't: the same intent built the right way and the wrong way, each with one line
- * that says why. The pairs are the page's "Don't" section; the ratchet asks every family for one.
+ * that says why. A family with a likely misuse has a pair (Guidance/Writing stories). A story that
+ * renders one is tagged `!manifest`, so MCP never offers the Don't as code to copy.
  * The halves sit side by side while each can have 280px of the pair's own width and stack when
  * they cannot, so a pair follows the space it is given: a phone, a 320px panel or the canvas. It
  * never widens the column it sits in (`min-w-0`): a wide example scrolls or wraps inside its half.

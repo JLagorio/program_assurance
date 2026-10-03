@@ -1,5 +1,6 @@
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { ProductCollection } from "./product-collection";
+import { useCollectionTable } from "./collection-question";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
@@ -10,7 +11,6 @@ import {
   useDisplayedRecords,
   useEndOnHide,
 } from "./record-preview";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { EmptyMessage, QueryState, type QueryStatus } from "./work-common";
 import {
   Absent,
@@ -42,17 +42,20 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Skeleton,
   Stack,
   Text,
   TextLink,
+  VisuallyHidden,
   defineColumns,
   useDataTable,
 } from "@ledger/design-system";
 import { FileText, ListChecks, MoreHorizontal, TriangleAlert } from "lucide-react";
 import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
-import { database, requireIdentity } from "@/lib/database";
-import { useRow, useRows, type Row } from "@/lib/models";
+import { useControlStatements, useSelectedControls } from "@/lib/control-reads";
+import { idSet, useRow, useRows, type Row } from "@/lib/models";
+import { programRequirementScope } from "@/lib/requirement-reads";
 import type { DataRecord } from "@/lib/records";
 import { assembleSsp, sspSelectionGaps, type SspControlAssembly } from "@/lib/ssp-assembly";
 import {
@@ -183,38 +186,12 @@ function OpenSystems({ programId }: { programId: string }) {
   );
 }
 
-function useSspParts(ids: string[], enabled: boolean) {
-  const workspace = useWorkspace();
-  return useQuery({
-    queryKey: ["ssp-assembly-parts", workspace.tenantId, ids],
-    enabled,
-    retry: false,
-    // A saved statement changes the ids; the parts already shown stay while the new set loads.
-    placeholderData: keepPreviousData,
-    queryFn: async ({ signal }) => {
-      const token = await requireIdentity(workspace);
-      const rows: Row<"control_parts">[] = [];
-      const seen = new Set<string>();
-      let pending = ids;
-      while (pending.length) {
-        const batch = [...new Set(pending)].filter((id) => !seen.has(id));
-        pending = [];
-        batch.forEach((id) => seen.add(id));
-        for (let offset = 0; offset < batch.length; offset += 100) {
-          const { data, error } = await database()
-            .from("control_parts")
-            .select()
-            .in("id", batch.slice(offset, offset + 100))
-            .setHeader("Authorization", `Bearer ${token}`)
-            .abortSignal(signal);
-          if (error) throw new Error(error.message);
-          rows.push(...data);
-          pending.push(...data.flatMap((row) => row.parent_part_id ?? []));
-        }
-      }
-      return rows;
-    },
-  });
+/** A control's row: the assembly, named by its code and title together. */
+type ControlRow = SspControlAssembly & { name: string };
+
+/** Rows from several scoped reads of one table, each once. */
+function uniqueById<T extends { id: string }>(rows: readonly T[]): T[] {
+  return [...new Map(rows.map((row) => [row.id, row])).values()];
 }
 
 /** Boundary SSP assembly. Every selected control is visible, even before anyone
@@ -392,26 +369,160 @@ function SspAssemblyPlan({
   onEdit: (editor: Editor) => void;
 }) {
   const workspace = useWorkspace();
-  const selections = useRows("selected_controls");
-  const effectiveBaselines = useRows("system_effective_baselines");
-  const controls = useRows("controls");
+  // Every read is scoped on the server to this program, this boundary or this SSP revision, or to
+  // the ids the reads before it name: never a whole tenant-wide table.
   const systems = useRows("systems", { program_id: programId });
+  const boundarySystemIds = useMemo(
+    () =>
+      idSet(
+        systems.data
+          ?.filter((row) => row.boundary_system_id === plan.system_id)
+          .map((row) => row.id),
+      ),
+    [systems.data, plan.system_id],
+  );
+  const effectiveBaselines = useRows(
+    "system_effective_baselines",
+    { system_id: boundarySystemIds },
+    { enabled: systems.isSuccess },
+  );
+  // The SSP's own selection, then the other baselines its elements resolve to (their additions
+  // are the selection gaps).
+  const planSelections = useSelectedControls([plan.profile_resolution_id]);
+  const otherResolutionIds = useMemo(
+    () =>
+      effectiveBaselines.data
+        ?.map((row) => row.profile_resolution_id)
+        .filter((id) => id !== plan.profile_resolution_id),
+    [effectiveBaselines.data, plan.profile_resolution_id],
+  );
+  const otherSelections = useSelectedControls(otherResolutionIds);
   const implementations = useRows("implemented_requirements", { ssp_revision_id: plan.id });
   const statements = useRows("implementation_statements", { ssp_revision_id: plan.id });
-  const contributions = useRows("component_contributions");
-  const components = useRows("system_components");
-  const componentElements = useRows("system_component_element_links");
+  const planContributions = useRows("component_contributions", { ssp_revision_id: plan.id });
   const requirements = useRows("engineering_requirements", { program_id: programId });
-  const contents = useRows("requirement_revisions");
-  const requirementLinks = useRows("requirement_implementations");
-  const controlMappings = useRows("requirement_control_links");
-  const allocations = useRows("requirement_allocations");
-  const requirementEvidence = useRows("requirement_evidence");
-  const implementationEvidence = useRows("implementation_evidence");
-  const artifacts = useRows("evidence_artifacts");
-  const versions = useRows("evidence_versions");
+  const contents = useRows(
+    "requirement_revisions",
+    programRequirementScope(programId, "requirement_revisions"),
+  );
+  const requirementLinks = useRows(
+    "requirement_implementations",
+    programRequirementScope(programId, "requirement_implementations"),
+  );
+  const controlMappings = useRows(
+    "requirement_control_links",
+    programRequirementScope(programId, "requirement_control_links"),
+  );
+  const allocations = useRows(
+    "requirement_allocations",
+    programRequirementScope(programId, "requirement_allocations"),
+  );
+  const requirementEvidence = useRows(
+    "requirement_evidence",
+    programRequirementScope(programId, "requirement_evidence"),
+  );
   const acceptances = useRows("inheritance_acceptances", { ssp_revision_id: plan.id });
-  const offerings = useRows("offered_implementations");
+  // The selections a mapping recorded, which may belong to another baseline (a child's, an
+  // earlier one): only to tell whether the mapping still matches.
+  const sourceSelections = useRows(
+    "selected_controls",
+    { id: idSet(controlMappings.data?.map((row) => row.selected_control_id)) },
+    { enabled: controlMappings.isSuccess },
+  );
+  const selectionData = useMemo(
+    () =>
+      uniqueById([
+        ...(planSelections.data ?? []),
+        ...(otherSelections.data ?? []),
+        ...(sourceSelections.data ?? []),
+      ]),
+    [planSelections.data, otherSelections.data, sourceSelections.data],
+  );
+  const controls = useRows(
+    "controls",
+    {
+      id: idSet([
+        ...(planSelections.data ?? []).map((row) => row.control_id),
+        ...(otherSelections.data ?? []).map((row) => row.control_id),
+      ]),
+    },
+    { enabled: planSelections.isSuccess && otherSelections.isSuccess },
+  );
+  // A provider's offering this SSP accepted, and the contribution behind it in the provider's SSP.
+  const offerings = useRows(
+    "offered_implementations",
+    { id: idSet(acceptances.data?.map((row) => row.offered_implementation_id)) },
+    { enabled: acceptances.isSuccess },
+  );
+  const offeredContributions = useRows(
+    "component_contributions",
+    { id: idSet(offerings.data?.map((row) => row.component_contribution_id)) },
+    { enabled: offerings.isSuccess },
+  );
+  const contributionData = useMemo(
+    () => uniqueById([...(planContributions.data ?? []), ...(offeredContributions.data ?? [])]),
+    [planContributions.data, offeredContributions.data],
+  );
+  const componentIds = useMemo(
+    () => idSet(planContributions.data?.map((row) => row.system_component_id)),
+    [planContributions.data],
+  );
+  const components = useRows(
+    "system_components",
+    { id: componentIds },
+    { enabled: planContributions.isSuccess },
+  );
+  // The bridge view is keyed by the system component's id.
+  const componentElements = useRows(
+    "system_component_element_links",
+    { id: componentIds },
+    { enabled: planContributions.isSuccess },
+  );
+  // Evidence recorded on this SSP's narratives, statements and contributions, read by each.
+  const evidenceOnNarratives = useRows(
+    "implementation_evidence",
+    { implemented_requirement_id: idSet(implementations.data?.map((row) => row.id)) },
+    { enabled: implementations.isSuccess },
+  );
+  const evidenceOnStatements = useRows(
+    "implementation_evidence",
+    { implementation_statement_id: idSet(statements.data?.map((row) => row.id)) },
+    { enabled: statements.isSuccess },
+  );
+  const evidenceOnContributions = useRows(
+    "implementation_evidence",
+    { component_contribution_id: idSet(planContributions.data?.map((row) => row.id)) },
+    { enabled: planContributions.isSuccess },
+  );
+  const implementationEvidenceData = useMemo(
+    () =>
+      uniqueById([
+        ...(evidenceOnNarratives.data ?? []),
+        ...(evidenceOnStatements.data ?? []),
+        ...(evidenceOnContributions.data ?? []),
+      ]),
+    [evidenceOnNarratives.data, evidenceOnStatements.data, evidenceOnContributions.data],
+  );
+  const evidenceSettled =
+    evidenceOnNarratives.isSuccess &&
+    evidenceOnStatements.isSuccess &&
+    evidenceOnContributions.isSuccess &&
+    requirementEvidence.isSuccess;
+  const versions = useRows(
+    "evidence_versions",
+    {
+      id: idSet([
+        ...implementationEvidenceData.map((row) => row.evidence_version_id),
+        ...(requirementEvidence.data ?? []).map((row) => row.evidence_version_id),
+      ]),
+    },
+    { enabled: evidenceSettled },
+  );
+  const artifacts = useRows(
+    "evidence_artifacts",
+    { id: idSet(versions.data?.map((row) => row.artifact_id)) },
+    { enabled: versions.isSuccess },
+  );
   const resolution = useRow("profile_resolutions", plan.profile_resolution_id);
   const profile = useRow("profile_revisions", resolution.data?.profile_revision_id);
   const profileRecord = useRow("profiles", profile.data?.profile_id);
@@ -425,17 +536,21 @@ function SspAssemblyPlan({
       ].sort(),
     [statements.data, controlMappings.data],
   );
-  const parts = useSspParts(
-    partIds,
-    statements.data !== undefined && controlMappings.data !== undefined,
-  );
+  // A saved statement changes the ids; the parts already shown stay while the new set loads.
+  const parts = useControlStatements(partIds, {
+    enabled: statements.data !== undefined && controlMappings.data !== undefined,
+    keepPrevious: true,
+  });
   const queries = [
-    selections,
+    planSelections,
+    otherSelections,
+    sourceSelections,
     controls,
     systems,
     implementations,
     statements,
-    contributions,
+    planContributions,
+    offeredContributions,
     components,
     componentElements,
     requirements,
@@ -444,7 +559,9 @@ function SspAssemblyPlan({
     controlMappings,
     allocations,
     requirementEvidence,
-    implementationEvidence,
+    evidenceOnNarratives,
+    evidenceOnStatements,
+    evidenceOnContributions,
     artifacts,
     versions,
     acceptances,
@@ -460,13 +577,13 @@ function SspAssemblyPlan({
     () =>
       assembleSsp({
         plan,
-        selections: selections.data ?? [],
+        selections: selectionData,
         controls: controls.data ?? [],
         parts: parts.data ?? [],
         systems: systems.data ?? [],
         implementations: implementations.data ?? [],
         statements: statements.data ?? [],
-        contributions: contributions.data ?? [],
+        contributions: contributionData,
         components: components.data ?? [],
         componentElements: componentElements.data ?? [],
         requirements: requirements.data ?? [],
@@ -475,7 +592,7 @@ function SspAssemblyPlan({
         controlMappings: controlMappings.data ?? [],
         allocations: allocations.data ?? [],
         requirementEvidence: requirementEvidence.data ?? [],
-        implementationEvidence: implementationEvidence.data ?? [],
+        implementationEvidence: implementationEvidenceData,
         artifacts: artifacts.data ?? [],
         versions: versions.data ?? [],
         acceptances: acceptances.data ?? [],
@@ -484,13 +601,13 @@ function SspAssemblyPlan({
       }),
     [
       plan,
-      selections.data,
+      selectionData,
       controls.data,
       parts.data,
       systems.data,
       implementations.data,
       statements.data,
-      contributions.data,
+      contributionData,
       components.data,
       componentElements.data,
       requirements.data,
@@ -499,7 +616,7 @@ function SspAssemblyPlan({
       controlMappings.data,
       allocations.data,
       requirementEvidence.data,
-      implementationEvidence.data,
+      implementationEvidenceData,
       artifacts.data,
       versions.data,
       acceptances.data,
@@ -508,10 +625,12 @@ function SspAssemblyPlan({
     ],
   );
   const [selectedId, setSelectedId] = useState<string>();
-  const gapsReady = [selections, controls, systems, effectiveBaselines].every(settled);
+  const gapsReady = [planSelections, otherSelections, controls, systems, effectiveBaselines].every(
+    settled,
+  );
   const selectionGaps = sspSelectionGaps({
     plan,
-    selections: selections.data ?? [],
+    selections: selectionData,
     controls: controls.data ?? [],
     systems: systems.data ?? [],
     effectiveBaselines: effectiveBaselines.data ?? [],
@@ -522,45 +641,52 @@ function SspAssemblyPlan({
     setEvidenceId(undefined);
   });
   const navigate = useNavigate();
-  const selected = rows.find((row) => row.id === selectedId);
+  // Each control is named by its code and title together ("AC-2(1) Automated system account
+  // management"), so the code never folds away from a title that repeats across families.
+  const controlRows = useMemo<ControlRow[]>(
+    () => rows.map((row) => ({ ...row, name: `${row.code} ${row.title}` })),
+    [rows],
+  );
+  const selected = controlRows.find((row) => row.id === selectedId);
   const editable = plan.state === "draft" && workspace.role !== "viewer";
-  // A control with an implementation opens its control record; one without has only its selection.
-  const controlRecord = useMemo(
-    () => (row: SspControlAssembly) =>
-      row.implementation
-        ? ({
-            table: "implemented_requirements",
-            record: { ...row.implementation, program_id: programId },
-          } as const)
-        : ({ table: "selected_controls", record: row.selection } as const),
+  // A control with an implementation opens its control record. One without has no page of its
+  // own: its name, its row and the eye open its preview, where the implementation is created.
+  const controlRecord = useCallback(
+    (row: SspControlAssembly) =>
+      row.implementation ? { ...row.implementation, program_id: programId } : null,
     [programId],
   );
+  const openPreview = useCallback((row: SspControlAssembly) => {
+    setSelectedId(row.id);
+    setEvidenceId(undefined);
+  }, []);
+  const selectedRecord = selected ? controlRecord(selected) : null;
   const columns = useMemo(
     () =>
-      defineColumns<SspControlAssembly>((c) => [
-        c.id("code", {
+      defineColumns<ControlRow>((c) => [
+        c.id("name", {
           header: "Control",
-          width: 130,
-          priority: 1,
-          pin: "start",
-          hideable: false,
-          preview: (row) => {
-            setSelectedId(row.id);
-            setEvidenceId(undefined);
-          },
-          active: (row) => row.id === selectedId,
-        }),
-        c.text("title", {
-          header: "Title",
-          minWidth: 180,
+          minWidth: 240,
           priority: 0,
           hideable: false,
           cell: (row) => {
-            const { table: model, record } = controlRecord(row);
-            return (
-              <RecordLink table={model} record={record}>
-                {row.title}
+            const record = controlRecord(row);
+            return record ? (
+              <RecordLink table="implemented_requirements" record={record}>
+                {row.name}
               </RecordLink>
+            ) : (
+              <Button
+                variant="link"
+                truncate
+                onClick={(event) => {
+                  // The row's own click would open it a second time.
+                  event.stopPropagation();
+                  openPreview(row);
+                }}
+              >
+                {row.name}
+              </Button>
             );
           },
         }),
@@ -575,7 +701,7 @@ function SspAssemblyPlan({
                 value={row.implementation.implementation_status}
               />
             ) : (
-              <Absent label="Not recorded" />
+              <Absent />
             ),
         }),
         c.text("narrative", { header: "Control narrative", width: 160 }),
@@ -583,15 +709,21 @@ function SspAssemblyPlan({
         c.number("requirementCount", { header: "Requirements", width: 130 }),
         c.number("evidenceCount", { header: "Evidence", width: 105 }),
       ]),
-    [selectedId, controlRecord],
+    [controlRecord, openPreview],
   );
-  const table = useDataTable({
+  // Each preview is its table's, so opening or stepping through one never rebuilds the columns.
+  const controlPreview = useMemo(
+    () => ({ onPreview: openPreview, activeId: selectedId ?? null }),
+    [openPreview, selectedId],
+  );
+  const table = useCollectionTable({
     columns,
-    data: rows,
+    data: controlRows,
     getRowId: (row) => row.id,
+    preview: controlPreview,
     label: "SSP control assembly",
-    view: "ssp-control-assembly",
-    pageSize: 20,
+    // v2: the code is part of the control's name, no longer a column of its own.
+    view: "ssp-control-assembly-v2",
     resizable: true,
   });
   const displayedRows = useDisplayedRecords(table);
@@ -614,8 +746,6 @@ function SspAssemblyPlan({
           header: "Requirement",
           minWidth: 200,
           priority: 0,
-          preview: (row) => setRequirementPreviewId(row.id),
-          active: (row) => row.id === requirementPreviewId,
           cell: (row) => (
             <RecordLink table="engineering_requirements" record={row.requirement}>
               {row.title}
@@ -640,12 +770,20 @@ function SspAssemblyPlan({
           ),
         }),
       ]),
+    [],
+  );
+  const requirementPreviewOptions = useMemo(
+    () => ({
+      onPreview: (row: (typeof requirementRows)[number]) => setRequirementPreviewId(row.id),
+      activeId: requirementPreviewId ?? null,
+    }),
     [requirementPreviewId],
   );
   const requirementTable = useDataTable({
     columns: requirementColumns,
     data: requirementRows,
     getRowId: (row) => row.id,
+    preview: requirementPreviewOptions,
     label: "SSP supporting requirements",
     view: "ssp-supporting-requirements",
   });
@@ -669,10 +807,6 @@ function SspAssemblyPlan({
           header: "Evidence",
           minWidth: 200,
           priority: 0,
-          preview: (row) => {
-            if (row.version && row.artifact) setEvidenceId(row.id);
-          },
-          active: (row) => row.id === evidenceId,
           cell: (row) =>
             row.version ? (
               <RecordLink table="evidence_versions" record={row.version}>
@@ -712,12 +846,22 @@ function SspAssemblyPlan({
           ),
         }),
       ]),
+    [],
+  );
+  const evidencePreview = useMemo(
+    () => ({
+      onPreview: (row: (typeof evidenceRows)[number]) => {
+        if (row.version && row.artifact) setEvidenceId(row.id);
+      },
+      activeId: evidenceId ?? null,
+    }),
     [evidenceId],
   );
   const evidenceTable = useDataTable({
     columns: evidenceColumns,
     data: evidenceRows,
     getRowId: (row) => row.id,
+    preview: evidencePreview,
     label: "SSP supporting evidence",
     view: "ssp-supporting-evidence",
   });
@@ -823,6 +967,20 @@ function SspAssemblyPlan({
       </>
     );
   };
+  // A detail waits for every record behind it: a line while they load, and a missing value once
+  // one failed with nothing to show (the collection's alert below carries Retry).
+  const failed = queries.some((query) => query.isError && query.data === undefined);
+  const held = (value: ReactNode) =>
+    ready ? (
+      value
+    ) : failed ? (
+      <Absent label="Could not load" />
+    ) : (
+      <>
+        <Skeleton shape="line" width={64} />
+        <VisuallyHidden>Loading</VisuallyHidden>
+      </>
+    );
   return (
     <Stack space="space.200">
       {boundaryBaselineDiffers && (
@@ -854,35 +1012,26 @@ function SspAssemblyPlan({
         </Alert>
       )}
       <Section title="SSP details" isCollapsible>
-        {ready ? (
-          <KeyValue.Group labelWidth={160}>
-            <KeyValue label="Stored baseline" wrap>
-              {profileRecord.data?.title ?? <Absent label="Not recorded" />}
-            </KeyValue>
-            <KeyValue label="Selected controls">{rows.length}</KeyValue>
-            <KeyValue label="Control narratives">{authored}</KeyValue>
-            <KeyValue label="Related requirements">{linkedRequirements}</KeyValue>
-            <KeyValue label="Linked evidence versions">{linkedEvidence}</KeyValue>
-            {resolution.data?.resolver_name === "archived-demo-explicit-selection" && (
-              <KeyValue label="Source">Imported demo selection</KeyValue>
-            )}
-          </KeyValue.Group>
-        ) : (
-          <Text as="p" color="color.text.subtle">
-            {/* A load that failed with nothing to show is not one still in progress; the
-                collection's alert below carries Retry. */}
-            {queries.some((query) => query.isError && query.data === undefined)
-              ? "The SSP details could not be loaded."
-              : "The SSP details appear once its records have loaded."}
-          </Text>
-        )}
+        <KeyValue.Group labelWidth="auto">
+          <KeyValue label="Stored baseline" wrap>
+            {held(profileRecord.data?.title ?? <Absent />)}
+          </KeyValue>
+          <KeyValue label="Selected controls">{held(rows.length)}</KeyValue>
+          <KeyValue label="Control narratives">{held(authored)}</KeyValue>
+          <KeyValue label="Related requirements">{held(linkedRequirements)}</KeyValue>
+          <KeyValue label="Linked evidence versions">{held(linkedEvidence)}</KeyValue>
+          {ready && resolution.data?.resolver_name === "archived-demo-explicit-selection" && (
+            <KeyValue label="Source">Imported demo selection</KeyValue>
+          )}
+        </KeyValue.Group>
       </Section>
       <ProductCollection
         table={table}
         queries={[...context, ...queries]}
         onRowClick={(row) => {
-          const { table: model, record } = controlRecord(row);
-          void navigate(recordDestination(model, record));
+          const record = controlRecord(row);
+          if (record) void navigate(recordDestination("implemented_requirements", record));
+          else openPreview(row);
         }}
         empty={{
           illustration: "shield",
@@ -906,19 +1055,16 @@ function SspAssemblyPlan({
             setEvidenceId(undefined);
           }}
           navigation={
-            // The row finds its place among the displayed rows; the full record is the control's own.
+            // The row finds its place among the displayed rows. The full record is the control's
+            // implementation; a control with none yet has no page beyond this preview.
             <RecordPreviewActions
-              table={controlRecord(selected).table}
+              table="implemented_requirements"
               record={selected}
-              destination={recordDestination(
-                controlRecord(selected).table,
-                controlRecord(selected).record,
-              )}
+              {...(selectedRecord
+                ? { destination: recordDestination("implemented_requirements", selectedRecord) }
+                : { openLink: false })}
               rows={displayedRows}
-              onSelect={(row) => {
-                setSelectedId(row.id);
-                setEvidenceId(undefined);
-              }}
+              onSelect={openPreview}
             />
           }
         >
@@ -981,10 +1127,27 @@ function SspAssemblyPlan({
               <Stack space="space.150">
                 {selected.implementation?.description ? (
                   <Prose>{selected.implementation.description}</Prose>
+                ) : selected.implementation ? (
+                  <EmptyMessage
+                    compact
+                    title="No narrative recorded"
+                    {...(editable
+                      ? {
+                          description:
+                            "Edit the control implementation to say how this control is met.",
+                        }
+                      : {})}
+                  />
                 ) : (
-                  <Text as="p" color="color.text.subtle">
-                    No control implementation narrative recorded.
-                  </Text>
+                  <EmptyMessage
+                    compact
+                    title="No control implementation yet"
+                    description={
+                      editable
+                        ? "Create the control implementation to say how this control is met."
+                        : "How this control is met is recorded in its control implementation."
+                    }
+                  />
                 )}
                 {selected.implementation?.not_applicable_rationale && (
                   <Prose label="Not applicable rationale">
@@ -1086,12 +1249,14 @@ function SspAssemblyPlan({
                       <Stack space="space.100">
                         {contribution?.description ? (
                           <Prose>{contribution.description}</Prose>
-                        ) : (
-                          <Text as="p" color="color.text.subtle">
-                            Pinned provider narrative unavailable.
-                          </Text>
-                        )}
+                        ) : null}
                         <KeyValue.Group>
+                          {/* The pinned narrative could not be read: said where it would be. */}
+                          {!contribution?.description && (
+                            <KeyValue label="Provider narrative">
+                              <Absent label="Unavailable" />
+                            </KeyValue>
+                          )}
                           <KeyValue label="Accepted">
                             <DateTime value={acceptance.accepted_at} />
                           </KeyValue>

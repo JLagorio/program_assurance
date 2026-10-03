@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import {
   Badge,
@@ -13,6 +15,13 @@ import {
   Text,
   TextLink,
 } from "../..";
+import * as pairLayout from "../_lib/pair";
+import * as typeStyle from "../_lib/type-style";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { typeOf, ramp } = typeStyle;
+const { Pair } = pairLayout;
+
 const meta = {
   title: "Layout/Section",
   component: Section,
@@ -37,7 +46,8 @@ export const Presentation: Story = {
     const canvas = within(canvasElement);
     const center = (box: DOMRect) => (box.top + box.bottom) / 2;
     const title = canvas.getByRole("heading", { name: "Evidence" });
-    await expect(getComputedStyle(title).fontWeight).toBe("600");
+    // The section title is Heading's `section` size: 13/18 semibold, an h2 outside a provider.
+    await expect(typeOf(title)).toEqual({ tag: "H2", ...ramp.section });
     const action = canvas.getByRole("button", { name: "Attach file" });
     await expect(
       Math.abs(center(title.getBoundingClientRect()) - center(action.getBoundingClientRect())),
@@ -171,7 +181,6 @@ export const Composed: Story = {
 export const ComposedOnASmallPhone: Story = {
   name: "Composed on a small phone",
   globals: { viewport: { value: "ledgerSmall", isRotated: false } },
-  tags: ["narrow"],
   render: () => <RecordedRuns />,
   play: async ({ canvasElement }) => {
     await waitFor(() => expect(window.innerWidth).toBe(340));
@@ -191,7 +200,6 @@ export const ComposedOnASmallPhone: Story = {
 /** In a 320px panel on a wide screen the header reads its own width, not the window's: a long title with two actions puts them on the next row, while a short title keeps its action beside it, because the heading's measure is never wider than the heading itself. */
 export const InANarrowPanel: Story = {
   name: "In a narrow panel",
-  tags: ["narrow"],
   render: () => (
     <div style={{ maxWidth: 320 }}>
       <Stack space="space.400">
@@ -252,7 +260,7 @@ export const Nested: Story = {
     <Stack space="space.400">
       <Section title="Requirement details">
         <Section title="Statement">
-          <Heading size="xsmall">Rationale</Heading>
+          <Heading size="section">Rationale</Heading>
           <Text>The system enforces approved authorizations for logical access.</Text>
         </Section>
       </Section>
@@ -335,6 +343,9 @@ export const Collapsible: Story = {
           <KeyValue label="Selected controls">287</KeyValue>
         </Stack>
       </Section>
+      <Section title="Control selections" count={1196} countMax={9999} isCollapsible>
+        <Text>The resolved profile selects these controls.</Text>
+      </Section>
       <Section title="Reference notes" isCollapsible defaultOpen divided>
         <Stack space="space.050">
           <Text>Two controls cite a withdrawn enhancement.</Text>
@@ -345,6 +356,8 @@ export const Collapsible: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    // A count of rows caps at countMax rather than Count's 99, as on a tab strip.
+    await expect(canvas.getByRole("button", { name: "Control selections 1,196" })).toBeVisible();
     const trigger = canvas.getByRole("button", { name: "Baseline details 12" });
     const heading = canvas.getByRole("heading", { name: "Baseline details 12" });
     await expect(heading.tagName).toBe("H2");
@@ -482,5 +495,44 @@ export const InAPreviewPanel: Story = {
     await expect(title).toHaveAttribute("data-slot", "page-header-title");
     await expect(within(panel).getByRole("heading", { name: "Evidence" }).tagName).toBe("H3");
     await expect(canvas.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+  },
+};
+
+/** A block the reader opens when they need it is a collapsible Section, not a button with a chevron above some content. */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: function DoAndDont() {
+    const [open, setOpen] = useState(false);
+    return (
+      <Pair
+        do={
+          <Section title="Provenance" isCollapsible>
+            <KeyValue label="Source">NIST SP 800-53 Rev 5</KeyValue>
+          </Section>
+        }
+        doText="isCollapsible: the title is a button inside the heading, so the block stays in the outline, and the chevron turns while it is open."
+        dont={
+          <Stack space="space.100">
+            <div>
+              <Button variant="subtle" iconAfter={<ChevronDown />} onClick={() => setOpen(!open)}>
+                Derivation
+              </Button>
+            </div>
+            {open ? <KeyValue label="Parent">REQ-0042</KeyValue> : null}
+          </Stack>
+        }
+        dontText="A subtle Button with a ChevronDown. It is in no heading, so the outline loses the block, it says nothing of whether it is open, and its chevron never turns."
+      />
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const section = canvas.getByRole("button", { name: "Provenance" });
+    await expect(canvas.getByRole("heading", { name: "Provenance" })).toContainElement(section);
+    await expect(section).toHaveAttribute("aria-expanded", "false");
+    const imitation = canvas.getByRole("button", { name: "Derivation" });
+    await expect(canvas.queryByRole("heading", { name: "Derivation" })).toBeNull();
+    await expect(imitation).not.toHaveAttribute("aria-expanded");
   },
 };

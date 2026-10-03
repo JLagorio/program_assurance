@@ -6,7 +6,23 @@ import * as Stories from "./Textarea.stories";
 
 # Textarea
 
+**Status: Stable.**
+
 Several lines of free text: a note, description or implementation statement. This follows shadcn's native textarea implementation with Ledger styling.
+
+## When to use it
+
+- **Authored text of more than one line**: a description, a rationale, an implementation statement, a review note, a comment that is part of a form.
+- **Text whose line breaks matter**: a statement whose paragraphs a [Prose](?path=/docs/components-typography--docs) block shows as written.
+
+Not for one line, a name or a title: that is an [Input](?path=/docs/components-input--docs). Not for a comment or a message the reader sends, with suggestions as they type: that is a [Composer](?path=/docs/patterns-composer--docs). Not for one authored value edited where it is shown on a record: that is an [Editable](?path=/docs/patterns-editable--docs)'s multiline text. Not for code or a configuration excerpt shown to the reader: that is a [CodeBlock](?path=/docs/components-codeblock--docs).
+
+## Content
+
+- The label, the hint and the error are the Field's, in its words ([Field](?path=/docs/components-field--docs), Content).
+- The hint says what the text is for and who reads it ("Explain the evidence supporting this decision"); a length the text must keep to is `characterLimit`'s count, not a sentence in the hint.
+- `rows` is the length of the answer expected, so the box's height says how much to write: two lines for a note, four for a description, eight for a narrative.
+- A placeholder is an example of the opening words, or nothing; never the label or an instruction.
 
 ## Anatomy
 
@@ -47,7 +63,9 @@ In a Field the label, hint, error, invalid state and requirement reach the texta
 
 ## Props
 
-`TextareaProps` is the native textarea contract, including `ref`, `rows`, `name`, `value`, `defaultValue`, `onChange`, `onBlur`, `required` and ARIA attributes, plus `autoResize`, `maxRows` and `characterLimit`. Ref and event targets are HTMLTextAreaElement. Styling and layout pass through native className and style. With `characterLimit` the Textarea renders the count after the box, so the box and its count are siblings in the Field.
+`TextareaProps` is the native textarea contract, including `ref`, `rows`, `name`, `value`, `defaultValue`, `onChange`, `onBlur`, `required` and ARIA attributes, plus `autoResize`, `maxRows` and `characterLimit`. Ref and event targets are HTMLTextAreaElement. It takes Input's API as well: `onValueChange(value, details)` beside the native `onChange`, `render` to replace or compose the element (which forwards its props and ref to a textarea), and `className` and `style` as a value or a function of the control's state (`focused`, `dirty`, `touched`, `valid`, `disabled`). With `characterLimit` the Textarea renders the count after the box, so the box and its count are siblings in the Field.
+
+<Canvas of={Stories.InputApi} />
 
 <ArgTypes of={Textarea} />
 

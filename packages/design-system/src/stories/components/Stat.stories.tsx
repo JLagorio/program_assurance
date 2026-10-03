@@ -2,14 +2,20 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createRef, useState, type MouseEvent } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
-import { Absent, Stat, tones } from "../../components";
+import { Absent, Card, CardContent, Stat, tones } from "../../components";
 import { Shell } from "../../layout";
 import { LedgerProvider } from "../../lib/locale";
 import { Chart } from "../../patterns";
 import { Box, Grid, Stack, Text } from "../../primitives";
 import { byMonth } from "../_lib/chart-data";
-import { Matrix, Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+import * as typeStyle from "../_lib/type-style";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix, Specimens } = storyLayout;
+const { Pair } = pairLayout;
+const { typeOf, ramp } = typeStyle;
 
 const meta = {
   title: "Components/Stat",
@@ -38,6 +44,7 @@ const expectedColumns = (width: number, cols: 2 | 3 | 4 | 5 | 6) => {
 
 /** Stat and Stat.Tile in every tone and at zero; Stat.Grid as a card and as a band. */
 export const StatMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Matrix
@@ -93,6 +100,14 @@ export const StatMatrix: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    // A figure is Heading's `page` size as a div, with tabular numerals, in a Stat and a tile alike.
+    for (const figure of [
+      canvasElement.querySelector('[data-slot="stat"]')!.firstElementChild!,
+      canvasElement.querySelector('[data-slot="stat-tile"]')!.children[1]!,
+    ]) {
+      await expect(typeOf(figure)).toEqual({ tag: "DIV", ...ramp.page });
+      await expect(getComputedStyle(figure).fontVariantNumeric).toBe("tabular-nums");
+    }
     for (const [name, cols] of [
       ["Card, 3 columns", 3],
       ["Band, 4 columns", 4],
@@ -118,13 +133,62 @@ export const StatMatrix: Story = {
   },
 };
 
+export const Playground: Story = {};
+
 /** The three frames: a card at the top of a record, a band between two sections, and bare Stats in a row of a Section. The bare row is a Grid whose columns follow its own width (as many 128px columns as fit), not the window's, like Stat.Grid. */
+export const Frames: Story = {
+  render: () => (
+    <Stack space="space.400">
+      <Stat.Grid>
+        <Stat.Tile label="Controls" value={80} note="Across 6 families" />
+        <Stat.Tile label="Verified" value={41} tone="success" note="51% of scope" />
+        <Stat.Tile label="Overdue" value={3} tone="danger" note="Oldest 12 days" />
+        <Stat.Tile label="Blocked" value={0} note="Nothing waiting on you" />
+      </Stat.Grid>
+      <Stat.Grid cols={3} frame="band">
+        <Stat.Tile label="Evidence items" value={214} />
+        <Stat.Tile label="Expiring" value={9} tone="warning" />
+        <Stat.Tile label="Assessors" value={5} />
+      </Stat.Grid>
+      <Grid
+        columnGap="space.400"
+        templateColumns="repeat(auto-fit, minmax(min(100%, 8rem), 1fr))"
+        role="group"
+        aria-label="Summary row"
+      >
+        <Stat label="Objectives in scope" value={124} />
+        <Stat label="With a procedure" value={118} tone="warning" />
+        <Stat label="Objectives run" value={97} />
+        <Stat label="Steps with no artifact" value={0} />
+      </Grid>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const grid = canvasElement.querySelector<HTMLElement>('[data-slot="stat-grid"]')!;
+    await expect(grid).toHaveClass("stat-grid", "stat-grid-4", "border-default");
+    // A zero reads muted.
+    const blocked = within(grid)
+      .getByText("Blocked")
+      .closest<HTMLElement>('[data-slot="stat-tile"]')!;
+    await expect(within(blocked).getByText("0")).toHaveClass("text-subtlest");
+    // The bare row takes its columns from its own width: four across when each has 8rem.
+    const row = canvas.getByRole("group", { name: "Summary row" });
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const across = Math.max(1, Math.min(4, Math.floor((row.clientWidth + 32) / (8 * rem + 32))));
+    const tops = [...row.children].map((child) => (child as HTMLElement).offsetTop);
+    await expect(tops.filter((top) => top === tops[0])).toHaveLength(across);
+  },
+};
+
 const statRef = createRef<HTMLDivElement>();
 const tileRef = createRef<HTMLDivElement>();
 const gridRef = createRef<HTMLDivElement>();
 const inspectStat = fn();
 
-export const Frames: Story = {
+/** A ref, native props, a class and a style reach Stat.Grid, Stat.Tile and a bare Stat, each named last with `data-slot`. */
+export const NativeAttributes: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Stat.Grid
@@ -150,33 +214,18 @@ export const Frames: Story = {
           note="Nothing waiting on you"
         />
       </Stat.Grid>
-      <Stat.Grid cols={3} frame="band">
-        <Stat.Tile label="Evidence items" value={214} />
-        <Stat.Tile label="Expiring" value={9} tone="warning" />
-        <Stat.Tile label="Assessors" value={5} />
-      </Stat.Grid>
-      <Grid
-        columnGap="space.400"
-        templateColumns="repeat(auto-fit, minmax(min(100%, 8rem), 1fr))"
+      <Stat
+        ref={statRef}
+        id="scope-metric"
         role="group"
-        aria-label="Summary row"
-      >
-        <Stat
-          ref={statRef}
-          id="scope-metric"
-          role="group"
-          aria-label="Scope metric"
-          data-metric="scope"
-          className="py-150"
-          style={{ minWidth: 0 }}
-          onMouseEnter={inspectStat}
-          label="Objectives in scope"
-          value={124}
-        />
-        <Stat label="With a procedure" value={118} tone="warning" />
-        <Stat label="Objectives run" value={97} />
-        <Stat label="Steps with no artifact" value={0} />
-      </Grid>
+        aria-label="Scope metric"
+        data-metric="scope"
+        className="py-150"
+        style={{ minWidth: 0 }}
+        onMouseEnter={inspectStat}
+        label="Objectives in scope"
+        value={124}
+      />
     </Stack>
   ),
   play: async ({ canvasElement }) => {
@@ -195,7 +244,7 @@ export const Frames: Story = {
     await expect(getComputedStyle(grid).backgroundColor).toBe("rgba(0, 0, 0, 0)");
     await expect(grid).toHaveClass("stat-grid", "stat-grid-4", "border-default");
     await expect(tile).toHaveAttribute("id", "blocked-metric");
-    await expect(tile).toHaveClass("py-200", "bg-surface");
+    await expect(tile).toHaveClass("py-200", "bg-surface-current");
     await expect(tile).not.toHaveClass("py-150");
     await expect(tile).toHaveStyle({ minWidth: "0px" });
     await expect(within(tile).getByText("0")).toHaveClass("text-subtlest");
@@ -210,12 +259,6 @@ export const Frames: Story = {
     await expect(tile).toHaveAttribute("data-slot", "stat-tile");
     await userEvent.hover(stat);
     await expect(inspectStat).toHaveBeenCalledTimes(1);
-    // The bare row takes its columns from its own width: four across when each has 8rem.
-    const row = canvas.getByRole("group", { name: "Summary row" });
-    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
-    const across = Math.max(1, Math.min(4, Math.floor((row.clientWidth + 32) / (8 * rem + 32))));
-    const tops = [...row.children].map((child) => (child as HTMLElement).offsetTop);
-    await expect(tops.filter((top) => top === tops[0])).toHaveLength(across);
   },
 };
 
@@ -342,6 +385,7 @@ export const SizedToItsContent: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -585,4 +629,23 @@ export const WithATrend: Story = {
   },
 };
 
-export const Playground: Story = {};
+/** A tile paints the surface it sits on (`utility.elevation.surface.current`), so a grid on a card is the card's colour and one in a dialog the dialog's, in both modes, never the page's. */
+export const OnACard: Story = {
+  name: "On a card",
+  render: () => (
+    <Card data-testid="card" style={{ maxWidth: 480 }}>
+      <CardContent>
+        <Stat.Grid cols={2}>
+          <Stat.Tile label="Open risks" value={12} note="3 high or critical" />
+          <Stat.Tile label="Overdue tasks" value={0} />
+        </Stat.Grid>
+      </CardContent>
+    </Card>
+  ),
+  play: async ({ canvasElement }) => {
+    const card = within(canvasElement).getByTestId("card");
+    const surface = getComputedStyle(card).backgroundColor;
+    for (const tile of card.querySelectorAll<HTMLElement>('[data-slot="stat-tile"]'))
+      await expect(getComputedStyle(tile).backgroundColor).toBe(surface);
+  },
+};

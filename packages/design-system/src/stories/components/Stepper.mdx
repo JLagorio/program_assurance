@@ -7,6 +7,8 @@ import * as Stories from "./Stepper.stories";
 
 # Stepper
 
+**Status: Stable.**
+
 Progress through an ordered path: the RMF steps, a program's milestones, a wizard. One step is `current`, the steps behind it are `done`, the ones ahead `upcoming`, and `blocked` is the step that failed. The list knows each step's place and its neighbour's state, so the rail is in the success colour behind every completed step and a hairline ahead.
 
 A path is fixed and has three or more steps. Two steps are a [Badge](?path=/docs/components-badge--docs); a percentage is a [Progress](?path=/docs/components-progress--docs) bar; a set of conditions that are met or not is [Gates](?path=/docs/patterns-gates--docs); events in time are a [Timeline](?path=/docs/components-timeline--docs).
@@ -29,6 +31,7 @@ A path is fixed and has three or more steps. Two steps are a [Badge](?path=/docs
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `horizontal` | Labels under markers on one line: a record's milestone header, the top of a form.                                                                                                                                                                                |
 | `vertical`   | Markers down the start edge with labels beside them: a wizard's rail, a panel. Preferred wherever it fits, because the labels and metas can wrap.                                                                                                                |
+| `responsive` | Follows its own container: vertical while the container is narrower than `@md` (`dimension.container.md`, 448px), horizontal from there. A wizard whose path sits in a rail beside the form on a wide screen and above the form on a narrow one.                 |
 | `numbered`   | The marker shows the step's number; done and blocked keep their icon: numbers make the order plain on a long path.                                                                                                                                               |
 | Interactive  | A step with `onSelect` is a button the reader can move to; a step without one only reports. Mix them: done steps open, the rest do not. While any step takes `onSelect`, the current step is a button too, and activating it runs its own `onSelect` or nothing. |
 
@@ -46,6 +49,10 @@ One size: the marker 16px, the label `font.body.small`, the meta `font.body.xsma
 
 <Canvas of={Stories.Narrow} />
 
+`responsive` reads the Stepper's own container, not the window, so the same path turns wherever its container changes width: a rail, a column above a form, a panel. It runs across only from `@md`, where four steps fit without scrolling, so it has no strip and no arrows. Its container sets its width (a grid track, a column), as for any container query: a Stepper whose parent sizes to its content has no width to read.
+
+<Canvas of={Stories.Responsive} />
+
 ## States
 
 | State      | What changes                                                                                                                                                  |
@@ -59,7 +66,7 @@ One size: the marker 16px, the label `font.body.small`, the meta `font.body.xsma
 
 ## Modifiers
 
-- **`orientation`**, **`numbered`** as in Variants; **`label`** names the list.
+- **`orientation`**, **`numbered`** as in Variants; **`label`**, required, names the list.
 - **`meta`** for the date, the owner or the reason under the label. It may wrap; the label does not.
 - **`children`** for what a milestone carries under its label. Anything interactive in it is its own stop beside the step's button.
 - **`onSelect`** on the steps the reader may move to. On a wizard that is every done step and the next one; on a milestone header, every step, to open the milestone.
@@ -79,23 +86,23 @@ A wizard gives `onSelect` to every done step and to the next one. The step the r
 
 ## Style
 
-| Element | Token                                                                                                                                                                                                                                                                                             |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Marker  | 16px · `radius.full` · done `color.border.success` on `color.background.success.bold` · blocked `color.border.danger` on `color.background.danger.bold` · current `color.border.selected` at `border.width.selected` on `elevation.surface` · upcoming `color.border.bold` on `elevation.surface` |
-| Number  | `font.body.xsmall` medium · `color.text.selected` when current, `color.text.subtle` when upcoming                                                                                                                                                                                                 |
-| Rail    | 1px · `color.border.success` behind a done step · `color.border` otherwise                                                                                                                                                                                                                        |
-| Label   | `font.body.small` · current semibold `color.text` · done medium `color.text` · upcoming medium `color.text.subtle` · blocked medium `color.text.danger`                                                                                                                                           |
-| Meta    | `font.body.xsmall` · `color.text.subtle` · tabular                                                                                                                                                                                                                                                |
-| Spacing | horizontal: label `space.075` under the marker, `space.050` inline · vertical: `space.150` between marker and text, `space.200` under each step                                                                                                                                                   |
-| Hover   | Label underline on a selectable step                                                                                                                                                                                                                                                              |
-| Focus   | The focus outline, `radius.medium`, around the step; inside it across                                                                                                                                                                                                                             |
-| Motion  | Marker colours in `motion.duration.fast`                                                                                                                                                                                                                                                          |
+| Element | Token                                                                                                                                                                                                                                                                                                                                                      |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Marker  | 16px · `radius.full` · done `color.border.success` on `color.background.success.bold` · blocked `color.border.danger` on `color.background.danger.bold` · current `color.border.selected` at `border.width.selected`, upcoming `color.border.bold`, both on the surface the path sits on (`utility.elevation.surface.current`: the page, a card, a dialog) |
+| Number  | `font.body.xsmall` medium · `color.text.selected` when current, `color.text.subtle` when upcoming                                                                                                                                                                                                                                                          |
+| Rail    | 1px · `color.border.success` behind a done step · `color.border` otherwise                                                                                                                                                                                                                                                                                 |
+| Label   | `font.body.small` · current semibold `color.text` · done medium `color.text` · upcoming medium `color.text.subtle` · blocked medium `color.text.danger`                                                                                                                                                                                                    |
+| Meta    | `font.body.xsmall` · `color.text.subtle` · tabular                                                                                                                                                                                                                                                                                                         |
+| Spacing | horizontal: label `space.075` under the marker, `space.050` inline · vertical: `space.150` between marker and text, `space.200` under each step                                                                                                                                                                                                            |
+| Hover   | Label underline on a selectable step                                                                                                                                                                                                                                                                                                                       |
+| Focus   | The focus outline, `radius.medium`, around the step; inside it across                                                                                                                                                                                                                                                                                      |
+| Motion  | Marker colours in `motion.duration.fast`                                                                                                                                                                                                                                                                                                                   |
 
 Done is green and blocked is red, the product's status tones, because on a milestone header the states are the story and colour carries it alongside the icon. The upcoming ring is `color.border.bold`, 3:1 against the surface, so the path ahead reads as clearly as the path behind.
 
 ## Accessibility
 
-- **The list is an ordered list**, `role="list"` so WebKit keeps the role once its markers are removed, and named by `label`; a screen reader hears "RMF steps, list, 6 items" and moves step by step. Name every Stepper.
+- **The list is an ordered list**, `role="list"` so WebKit keeps the role once its markers are removed, and named by `label`; a screen reader hears "RMF steps, list, 6 items" and moves step by step. `label` is required, so no Stepper is an unnamed list.
 - **Each step's name starts with its state.** The label is prefixed, visually hidden, with "Completed", "Current", "Not started" or "Blocked", then the label and the meta: "Current: Implement". The drawn number is not read; the list already says "3 of 6".
 - **The current step carries `aria-current="step"`**: on its button where the path can be moved along, on its `li` where it only reports.
 - **One button per step.** A step that can be moved to is a single button holding its marker and text, so it is one tab stop with one name. A step that only reports is not focusable.
@@ -130,5 +137,7 @@ Native `ol` props and refs reach Stepper; native `li` props and refs reach Stepp
 - [Tabs](?path=/docs/components-tabs--docs): sections the reader may take in any order.
 
 ## Don't
+
+A Stepper is three or more steps in a fixed order, each one or two words with its date or owner under it, vertical in a rail, and a blocked step says why on itself. Two states are a Badge, never a path.
 
 <Canvas of={Stories.Dont} />

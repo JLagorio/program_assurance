@@ -391,6 +391,7 @@ export function ChartBar({
   if (loading)
     return (
       <PlotSkeleton
+        {...native}
         kind={horizontal ? "bars" : "columns"}
         name={name}
         size={size}

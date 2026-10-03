@@ -13,8 +13,12 @@ import {
 } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
 import { Stack, Text } from "../../primitives";
-import { Matrix } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/NumberField",
@@ -59,6 +63,7 @@ const sizes = ["medium", "small"] as const;
 
 /** Both sizes in every state. Read-only keeps the value selectable and drops the steppers; disabled dims the field and its steppers. */
 export const States: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Matrix
       rows={states}
@@ -331,6 +336,7 @@ export const RightToLeft: Story = {
 
 /** A number field holds a quantity; an identifier made of digits is text. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Pair
       do={

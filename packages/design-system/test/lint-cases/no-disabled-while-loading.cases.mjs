@@ -7,6 +7,13 @@ export default {
     { code: "<Button isLoading={saving}>Save</Button>" },
     { code: "<Button disabled={saving}>Save</Button>" },
     { code: "const action = { isLoading: adding, disabled: empty };" },
+    // A parameter that shadows the import is no part at all, and neither is a local that does.
+    {
+      code: 'import { Button } from "@ledger/design-system"; export function Row(Button) { return <Button isLoading={saving} disabled={saving}>Save</Button>; }',
+    },
+    {
+      code: 'import { Button } from "@ledger/design-system"; export function Row({ as }) { const Button = as; return <Button isLoading={saving} disabled={saving}>Save</Button>; }',
+    },
   ],
   invalid: [
     {
@@ -72,6 +79,18 @@ export default {
       only: "ts",
       errors: [
         { messageId: "pending", data: { tag: "Button", flags: "save.isPending", them: "it" } },
+      ],
+    },
+    // A component a caller hands in, as a parameter that shadows nothing, is judged as any
+    // component that takes both props is; so is one read from the props object.
+    {
+      code: "export function Row({ Action, saving }) { return <Action isLoading={saving} disabled={saving} />; }",
+      errors: [{ messageId: "pending", data: { tag: "Action", flags: "saving", them: "it" } }],
+    },
+    {
+      code: "export function Row(props) { return <props.Action isLoading={props.saving} disabled={props.saving} />; }",
+      errors: [
+        { messageId: "pending", data: { tag: "props.Action", flags: "props.saving", them: "it" } },
       ],
     },
   ],

@@ -4,7 +4,12 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Button, TextLink, Truncate } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
-import { Matrix as Grid, Specimens } from "../_lib/matrix";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix: Grid, Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/TextLink",
@@ -17,6 +22,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Inherited, small and medium sizes by weight; a TextLink beside a Button link, which is an action and not navigation. */
 export const TextLinkMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Grid
@@ -184,7 +190,9 @@ export const NewTab: Story = {
     await expect(icon.top).toBeGreaterThanOrEqual(last.top - 1);
     await expect(icon.bottom).toBeLessThanOrEqual(last.bottom + 1);
     // A target and a rel of the caller's win.
-    const named = canvas.getByRole("link", { name: "Open in the catalog window (opens in a new tab)" });
+    const named = canvas.getByRole("link", {
+      name: "Open in the catalog window (opens in a new tab)",
+    });
     await expect(named).toHaveAttribute("target", "catalog-window");
     await expect(named).toHaveAttribute("rel", "noopener");
     // In a row field the Truncate goes around the link, so the words and the icon are cut on one
@@ -254,5 +262,38 @@ export const RenderComposition: Story = {
     await expect(canvas.getByRole("status")).toHaveTextContent("Ready");
     await userEvent.keyboard("{Enter}");
     await expect(canvas.getByRole("status")).toHaveTextContent("inner outer");
+  },
+};
+
+/**
+ * A link's words name where it goes, so a list of the page's links still makes sense. "Click here"
+ * says how to use a link, not where it leads.
+ */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <Pair
+      do={
+        <Text>
+          Read the <TextLink href="#timeline">full timeline</TextLink> before the review.
+        </Text>
+      }
+      doText="The link is the destination's name."
+      dont={
+        <Text>
+          To read the full timeline before the review,{" "}
+          <TextLink href="#timeline">click here</TextLink>.
+        </Text>
+      }
+      dontText="Click here: heard on its own, from a list of links, it names no destination."
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const [named, vague] = canvas.getAllByRole("link");
+    await expect(named).toHaveAccessibleName("full timeline");
+    await expect(vague).toHaveAccessibleName("click here");
+    await expect(named).toHaveAttribute("href", vague!.getAttribute("href"));
   },
 };

@@ -5,8 +5,12 @@ import { Chart } from "../..";
 import { Button, KeyValue } from "../../components";
 import { Box, Stack } from "../../primitives";
 import { assessors, byAssessor, byMonth, byWeek, findingSeries } from "../_lib/chart-data";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Patterns/Chart/Area",
@@ -19,8 +23,25 @@ type Story = StoryObj<typeof meta>;
 
 const open = [{ key: "open", label: "Open", tone: "brand" as const }];
 
+/** Findings open and closed at each milestone of an assessment, in order: long names. */
+const byMilestone = [
+  { milestone: "Kickoff", open: 2, closed: 0 },
+  { milestone: "Evidence collection", open: 9, closed: 1 },
+  { milestone: "Control testing", open: 16, closed: 4 },
+  { milestone: "Findings review", open: 12, closed: 9 },
+  { milestone: "Authorization package", open: 5, closed: 17 },
+];
+
+/** A category tick's printed words: its lines joined, without the whole name its title keeps. */
+const printed = (text: Element) =>
+  Array.from(text.childNodes)
+    .filter((n) => n.nodeName !== "title")
+    .map((n) => n.textContent ?? "")
+    .join(" ");
+
 /** Every area in both modes: one series, stacked, smooth with end labels; textured, a time axis, a shared domain; stacked with end labels on each band's top, a band and a limit, the skeleton. */
 export const AreaMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="One series · stacked · smooth with end labels">
@@ -194,6 +215,59 @@ export const Textured: Story = {
   ),
 };
 
+/** Long category names fit the room up to the next point, as on a Line: whole at 640px, however long; at 340px every milestone keeps a label inside the plot, on two lines or cut with an ellipsis and its whole name as its title. */
+export const LongCategories: Story = {
+  render: () => (
+    <Stack space="space.400">
+      {[640, 340].map((width) => (
+        <Box key={width} style={{ width: "100%", maxWidth: width }}>
+          <Chart
+            title={`Findings by milestone, ${width}px`}
+            series={findingSeries}
+            data={byMilestone}
+            x="milestone"
+          >
+            <Chart.Area stacked />
+          </Chart>
+        </Box>
+      ))}
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const names = byMilestone.map((d) => d.milestone);
+    const ticksOf = (name: string) =>
+      Array.from(
+        canvas.getByRole("figure", { name }).querySelectorAll(".recharts-xAxis-tick-labels text"),
+      );
+    // At any width every milestone keeps a label inside the svg, none over its neighbour, and a
+    // cut one keeps its whole name as its title.
+    for (const width of [640, 340]) {
+      const name = `Findings by milestone, ${width}px`;
+      await waitFor(() => expect(ticksOf(name)).toHaveLength(names.length));
+      const svg = canvas
+        .getByRole("figure", { name })
+        .querySelector(".recharts-surface")!
+        .getBoundingClientRect();
+      const ticks = ticksOf(name);
+      const boxes = ticks.map((t) => t.getBoundingClientRect());
+      for (const [i, text] of ticks.entries()) {
+        await expect(printed(text).replace(/…/g, "").trim().length).toBeGreaterThanOrEqual(3);
+        if (printed(text) !== names[i])
+          await expect(text.querySelector("title")?.textContent).toBe(names[i]);
+        const box = boxes[i]!;
+        await expect(box.left).toBeGreaterThanOrEqual(svg.left - 0.5);
+        await expect(box.right).toBeLessThanOrEqual(svg.right + 0.5);
+        if (i > 0) await expect(boxes[i - 1]!.right).toBeLessThanOrEqual(box.left + 0.5);
+      }
+    }
+    // With the room, every name whole, however long.
+    const wide = canvas.getByRole("figure", { name: "Findings by milestone, 640px" });
+    if (wide.getBoundingClientRect().width >= 600)
+      await expect(ticksOf("Findings by milestone, 640px").map(printed)).toEqual(names);
+  },
+};
+
 /** A click in a month's column opens its card, as on a Line. */
 export const Details: Story = {
   render: () => (
@@ -213,7 +287,7 @@ export const Details: Story = {
           stacked
           details={(s) => (
             <Stack space="space.150">
-              <KeyValue label="Total" labelWidth={88}>
+              <KeyValue label="Total" labelWidth="narrow">
                 {String(Number(s.datum["open"]) + Number(s.datum["closed"]))}
               </KeyValue>
               <Button
@@ -230,6 +304,7 @@ export const Details: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair

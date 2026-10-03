@@ -1,11 +1,13 @@
+import { useRender } from "@base-ui/react/use-render";
 import { useLedgerLocale } from "../../lib/locale";
-import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 import {
+  useCallback,
   useContext,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
+  type ComponentProps,
   type ReactNode,
   type RefObject,
 } from "react";
@@ -13,14 +15,17 @@ import {
 import { token } from "../../generated/tokens";
 import { cn } from "../../lib/cn";
 import { toneClasses, type Tone } from "../../components/badge";
-import { Popover } from "../../components/popover";
 import {
+  Card,
   CardHead,
   FrameContext,
   divergingColor,
+  faintEdge,
+  faintStep,
   useFrame,
   useFrameReport,
   sequentialColor,
+  type ChartLink,
   type ChartSize,
   type Formatter,
   type FrameReport,
@@ -34,7 +39,7 @@ export type HeatmapScale =
 /** What was chosen on a heatmap: the cell's row, column and value. */
 export type HeatmapSelection = { row: string; column: string; value: number };
 
-export type ChartHeatmapProps = {
+type ChartHeatmapOwnProps = {
   /** The row names, top to bottom. */
   rows: string[];
   /** The column names, left to right. */
@@ -66,14 +71,36 @@ export type ChartHeatmapProps = {
   onSelect?: ((selection: HeatmapSelection) => void) | undefined;
   /** More about the chosen cell, in a card anchored to it. The card's head (the row, the column and the value) is the kit's. */
   details?: ((selection: HeatmapSelection) => ReactNode) | undefined;
-  /** Which cells choose, when `onSelect` or `details` is set. Every cell with a value but zero when unsaid: a zero has nothing to open. */
+  /**
+   * The link element (a router's Link, or `<a href>`) a cell opens: the register filtered to the
+   * cell's row and column. The cell becomes that link, named by its place and value, so a modifier
+   * or middle click opens it in a new tab; the table twin's value links to the same place. Return
+   * `undefined` to leave a cell as it is. A cell that links does not also choose: `onSelect` and
+   * `details` apply to the cells it returns nothing for.
+   */
+  link?: ((selection: HeatmapSelection) => ChartLink | undefined) | undefined;
+  /** Which cells choose or link, when `onSelect`, `details` or `link` is set. Every cell with a value but zero when unsaid: a zero has nothing to open. */
   selectable?: ((selection: HeatmapSelection) => boolean) | undefined;
   className?: string | undefined;
 };
 
+/** The part's own props, and the native props and ref of the grid's box (its scroller): an `id`, `data-*` for a test, a handler. `aria-describedby` describes the table. */
+export type ChartHeatmapProps = ChartHeatmapOwnProps &
+  Omit<ComponentProps<"div">, keyof ChartHeatmapOwnProps | "children" | "role">;
+
 const cellHeights: Record<ChartSize, string> = { small: "h-300", medium: "h-400", large: "h-500" };
 
+/** A cell that opens something, a button or a link: it fills its cell, its ring drawn above its neighbours. */
+const opener =
+  "relative block h-full w-full cursor-pointer rounded-xsmall outline-none focus-visible:z-20 focus-visible:outline-focused";
+
 type Paint = { style?: { backgroundColor: string } | undefined; className?: string | undefined };
+
+/** A colour-scale step's paint: its fill, and the edge a faint step wears (`faintStep`). */
+const stepPaint = (color: string, faint: boolean): Paint => ({
+  style: { backgroundColor: color },
+  className: faint ? faintEdge : undefined,
+});
 
 /** The sequential step a value falls in: five equal bins across [min, max]. */
 const sequentialStep = (v: number, min: number, max: number) => {
@@ -145,7 +172,26 @@ function useColumnWidth(table: RefObject<HTMLTableElement | null>, key: string) 
   return width;
 }
 
-/** A grid of rows by columns with a value painted in each cell: one hue for how much, two for above and below, or the status tones. A cell that chooses is a button. */
+/** The cell a link fills: the caller's link element, with the cell's class, its name and its face. */
+function CellLink({
+  link,
+  label,
+  className,
+  children,
+}: {
+  link: ChartLink;
+  label: string;
+  className: string;
+  children: ReactNode;
+}) {
+  return useRender({
+    defaultTagName: "a",
+    render: link,
+    props: { className, "aria-label": label, children, ...{ "data-slot": "chart-heatmap-link" } },
+  });
+}
+
+/** A grid of rows by columns with a value painted in each cell: one hue for how much, two for above and below, or the status tones. A cell that chooses is a button; a cell that links is the link. */
 export function ChartHeatmap({
   rows,
   columns,
@@ -163,10 +209,14 @@ export function ChartHeatmap({
   loading: loadingProp,
   onSelect,
   details,
+  link,
   selectable,
   className,
+  "aria-describedby": describedBy,
+  ref: callerRef,
+  ...native
 }: ChartHeatmapProps) {
-  const { t, direction } = useLedgerLocale();
+  const { t } = useLedgerLocale();
   const frame = useContext(FrameContext);
   const { name, format, loading, offstage, expanded } = useFrame(
     label,
@@ -179,6 +229,15 @@ export function ChartHeatmap({
   const [picked, setPicked] = useState<HeatmapSelection | null>(null);
   const anchor = useRef<HTMLButtonElement | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
+  // The caller's ref and the grid's own reach the same box.
+  const setScroller = useCallback(
+    (node: HTMLDivElement | null) => {
+      scroller.current = node;
+      if (typeof callerRef === "function") callerRef(node);
+      else if (callerRef) callerRef.current = node;
+    },
+    [callerRef],
+  );
   const tableRef = useRef<HTMLTableElement>(null);
   const overflows = useOverflow(scroller, tableRef);
   const columnWidth = useColumnWidth(tableRef, `${columns.join("\u0000")}|${size}`);
@@ -194,7 +253,26 @@ export function ChartHeatmap({
   }, [values, domain]);
   const status = typeof scale === "function";
   const printed = showValues ?? (status || Boolean(frame?.values));
-  // The twin is the grid pivoted: a row per row, a column per column, every value printed.
+  const canChoose = useCallback(
+    (selection: HeatmapSelection) => (selectable ? selectable(selection) : selection.value !== 0),
+    [selectable],
+  );
+  /** The link a cell with a value opens, when `link` gives one and the cell may open anything. */
+  const linkOf = useCallback(
+    (selection: HeatmapSelection) => (link && canChoose(selection) ? link(selection) : undefined),
+    [link, canChoose],
+  );
+  /** A cell's name: its row and column, then its value or "none". */
+  const cellName = useCallback(
+    (r: string, c: string, v: number | null | undefined) =>
+      t("chartPoint", {
+        category: t("chartMarkIn", { group: r, label: c }),
+        values: typeof v === "number" ? format(v) : t("chartNoValue"),
+      }),
+    [t, format],
+  );
+  // The twin is the grid pivoted: a row per row, a column per column, every value printed, and a
+  // cell that links in the grid links here too.
   const table = useMemo<TwinSource>(
     () => ({
       kind: "custom",
@@ -207,17 +285,21 @@ export function ChartHeatmap({
           key: r,
           cells: [
             { text: r, csv: r },
-            ...columns.map((_, ci) => {
+            ...columns.map((c, ci) => {
               const v = values[ri]?.[ci];
-              return typeof v === "number"
-                ? { text: format(v), csv: String(v) }
-                : { text: "", csv: "" };
+              if (typeof v !== "number") return { text: "", csv: "" };
+              const to = linkOf({ row: r, column: c, value: v });
+              return {
+                text: format(v),
+                csv: String(v),
+                ...(to ? { link: to, label: cellName(r, c, v) } : {}),
+              };
             }),
           ],
         })),
       }),
     }),
-    [rows, columns, values, rowLabel, t, format],
+    [rows, columns, values, rowLabel, t, format, linkOf, cellName],
   );
   const report = useMemo<FrameReport>(
     () => ({ format, table, values: !status && showValues === undefined }),
@@ -228,13 +310,14 @@ export function ChartHeatmap({
   const chooses = Boolean(onSelect || details);
   const paint = (v: number, r: string, c: string): Paint => {
     if (typeof scale === "function") return { className: toneClasses[scale(v, r, c)].subtle };
-    if (scale === "diverging")
-      return { style: { backgroundColor: divergingColor(divergingStep(v, min, max, midpoint)) } };
-    if (zeroStep && v === 0) return { style: { backgroundColor: token("color.chart.track") } };
-    return { style: { backgroundColor: sequentialColor(sequentialStep(v, min, max)) } };
+    if (scale === "diverging") {
+      const step = divergingStep(v, min, max, midpoint);
+      return stepPaint(divergingColor(step), faintStep(step));
+    }
+    if (zeroStep && v === 0) return stepPaint(token("color.chart.track"), faintStep("zero"));
+    const step = sequentialStep(v, min, max);
+    return stepPaint(sequentialColor(step), faintStep(step));
   };
-  const canChoose = (selection: HeatmapSelection) =>
-    selectable ? selectable(selection) : selection.value !== 0;
   const choose = (selection: HeatmapSelection, el: HTMLButtonElement) => {
     onSelect?.(selection);
     if (details) {
@@ -256,7 +339,8 @@ export function ChartHeatmap({
     // Relative, so the cells' visually hidden values stay inside the scroller. The padding at the
     // end and the bottom is the focus ring's room, which the scroller would otherwise clip.
     <div
-      ref={scroller}
+      {...native}
+      ref={setScroller}
       className={cn(
         "relative overflow-x-auto pe-025 pb-050",
         overflows && "rounded-xsmall outline-none focus-visible:outline-field-focused",
@@ -269,6 +353,7 @@ export function ChartHeatmap({
       <table
         ref={tableRef}
         aria-label={name ? (loading ? t("loadingLabel", { label: name }) : name) : undefined}
+        aria-describedby={describedBy}
         aria-busy={loading || undefined}
         className="border-collapse"
       >
@@ -313,13 +398,10 @@ export function ChartHeatmap({
                 const v = values[ri]?.[ci];
                 const has = !loading && typeof v === "number";
                 const p: Paint = has ? paint(v, r, c) : {};
-                const place = t("chartMarkIn", { group: r, label: c });
-                const title = t("chartPoint", {
-                  category: place,
-                  values: has ? format(v) : t("chartNoValue"),
-                });
+                const title = cellName(r, c, has ? v : undefined);
                 const chosen = picked !== null && picked.row === r && picked.column === c;
                 const selection = has ? { row: r, column: c, value: v } : null;
+                const to = selection ? linkOf(selection) : undefined;
                 const face = (
                   <span
                     data-slot="chart-heatmap-cell"
@@ -327,7 +409,10 @@ export function ChartHeatmap({
                     className={cn(
                       "flex h-full w-full items-center justify-center rounded-xsmall font-body-small tabular-nums",
                       p.className,
-                      loading ? "animate-pulse bg-skeleton" : !has && "bg-neutral-subtle",
+                      // No value is an outline and no fill, dashed, so it never reads as a low one.
+                      loading
+                        ? "animate-pulse bg-skeleton"
+                        : !has && "border border-dashed border-bold",
                       picked !== null && !chosen && "opacity-disabled",
                     )}
                     style={p.style}
@@ -346,16 +431,19 @@ export function ChartHeatmap({
                 );
                 return (
                   <td key={c} className={cn("min-w-500 pb-025 pe-025", cellHeights[size])}>
-                    {chooses && selection && canChoose(selection) ? (
+                    {to ? (
+                      // Links navigate: the cell is the caller's link, named by its place and value.
+                      <CellLink link={to} label={title} className={opener}>
+                        {face}
+                      </CellLink>
+                    ) : chooses && selection && canChoose(selection) ? (
                       <button
                         type="button"
+                        aria-label={title}
                         // A card is a dialog: the cell says it opens one, and whether it is open.
                         aria-haspopup={details ? "dialog" : undefined}
                         aria-expanded={details ? chosen : undefined}
-                        className={cn(
-                          "relative block h-full w-full cursor-pointer rounded-xsmall outline-none focus-visible:z-20 focus-visible:outline-focused",
-                          chosen && "z-20 outline-focused",
-                        )}
+                        className={cn(opener, chosen && "z-20 outline-focused")}
                         onClick={(e) => choose(selection, e.currentTarget)}
                       >
                         {face}
@@ -371,43 +459,14 @@ export function ChartHeatmap({
         </tbody>
       </table>
       {picked && details ? (
-        <Popover
-          open
-          onOpenChange={(open) => {
-            if (!open) close();
-          }}
-        >
-          <PopoverPrimitive.Portal>
-            <PopoverPrimitive.Positioner
-              anchor={anchor}
-              side="top"
-              align="center"
-              sideOffset={6}
-              collisionPadding={8}
-              className="isolate z-50"
-            >
-              <PopoverPrimitive.Popup
-                data-slot="popover-content"
-                dir={direction}
-                aria-label={name ? t("detailsLabel", { label: name }) : t("details")}
-                finalFocus={false}
-                className="flex flex-col gap-150 rounded-large border border-default bg-surface-overlay p-150 font-body text-default shadow-overlay outline-none data-open:animate-enter data-closed:animate-exit data-instant:animate-none motion-reduce:animate-none"
-                style={{
-                  width: 280,
-                  maxWidth: "var(--available-width)",
-                  transformOrigin: "var(--transform-origin)",
-                }}
-              >
-                <CardHead
-                  title={t("chartMarkIn", { group: picked.row, label: picked.column })}
-                  subtitle={dimensions || undefined}
-                  value={format(picked.value)}
-                />
-                {details(picked)}
-              </PopoverPrimitive.Popup>
-            </PopoverPrimitive.Positioner>
-          </PopoverPrimitive.Portal>
-        </Popover>
+        <Card anchor={anchor} label={name} onClose={close} refocus={() => anchor.current?.focus()}>
+          <CardHead
+            title={t("chartMarkIn", { group: picked.row, label: picked.column })}
+            subtitle={dimensions || undefined}
+            value={format(picked.value)}
+          />
+          {details(picked)}
+        </Card>
       ) : null}
     </div>
   );
@@ -416,7 +475,8 @@ export function ChartHeatmap({
 /** A status step on a key: the tone its cells wear, and what the tone means. */
 export type ChartScaleStep = { tone: Tone; label: string };
 
-export type ChartScaleProps = {
+/** A Chart.Scale takes its box's native props, `className` and `ref` too. */
+export type ChartScaleProps = Omit<ComponentProps<"div">, "children"> & {
   /** Which key: the sequential or diverging ramp, or the status tones of a tone-function Heatmap. */
   scale: "sequential" | "diverging" | "status";
   /** What the low end and the high end read as: "0" and "40 findings"; "−20%" and "+20%". With `domain`, they replace the end thresholds. */
@@ -446,15 +506,18 @@ export function ChartScale({
   zeroStep,
   steps: statusSteps,
   className,
+  ...props
 }: ChartScaleProps) {
   const { format } = useFrame(undefined, formatProp, undefined);
   if (scale === "status")
     return (
       <div
+        {...props}
         className={cn(
           "flex flex-wrap items-center gap-x-200 gap-y-050 self-start font-body-xsmall text-subtle",
           className,
         )}
+        data-slot="chart-scale"
       >
         {statusSteps?.map((s) => (
           <span key={`${s.tone}-${s.label}`} className="inline-flex items-center gap-075">
@@ -468,16 +531,17 @@ export function ChartScale({
         ))}
       </div>
     );
+  // Each step's fill, and the edge a faint one wears, as the grid's cells do.
   const steps =
     scale === "diverging"
-      ? [
-          divergingColor("negative.bold"),
-          divergingColor("negative"),
-          divergingColor("midpoint"),
-          divergingColor("positive"),
-          divergingColor("positive.bold"),
-        ]
-      : ([1, 2, 3, 4, 5] as const).map((s) => sequentialColor(s));
+      ? (["negative.bold", "negative", "midpoint", "positive", "positive.bold"] as const).map(
+          (s) => ({ color: divergingColor(s), edge: faintStep(s) ? faintEdge : undefined }),
+        )
+      : ([1, 2, 3, 4, 5] as const).map((s) => ({
+          color: sequentialColor(s),
+          edge: faintStep(s) ? faintEdge : undefined,
+        }));
+  const zeroEdge = faintStep("zero") ? faintEdge : undefined;
   const zero = zeroStep && scale === "sequential";
   const edges = domain && scale === "sequential" ? thresholds(domain[0], domain[1]) : null;
   const swatch = edges ? "h-100 w-400 rounded-xsmall" : "h-100 w-300 rounded-xsmall";
@@ -488,13 +552,17 @@ export function ChartScale({
     // at the ramp's end. A box as wide as its step holds each, so a longer one runs on past it.
     const at = cn(text, "w-400 shrink-0 whitespace-nowrap");
     return (
-      <div className={cn("inline-flex items-start gap-100 self-start", className)}>
+      <div
+        {...props}
+        className={cn("inline-flex items-start gap-100 self-start", className)}
+        data-slot="chart-scale"
+      >
         {zero ? (
           <div className="flex flex-col gap-050">
             <span
               data-slot="chart-scale-step"
               aria-hidden
-              className={swatch}
+              className={cn(swatch, zeroEdge)}
               style={{ backgroundColor: token("color.chart.track") }}
             />
             <span className={text}>{format(0)}</span>
@@ -502,12 +570,12 @@ export function ChartScale({
         ) : null}
         <div className="flex flex-col gap-050">
           <div className="flex gap-025" aria-hidden>
-            {steps.map((c, i) => (
+            {steps.map((step, i) => (
               <span
                 key={i}
                 data-slot="chart-scale-step"
-                className={swatch}
-                style={{ backgroundColor: c }}
+                className={cn(swatch, step.edge)}
+                style={{ backgroundColor: step.color }}
               />
             ))}
           </div>
@@ -524,22 +592,26 @@ export function ChartScale({
     );
   }
   return (
-    <div className={cn("inline-flex flex-col gap-050 self-start", className)}>
+    <div
+      {...props}
+      className={cn("inline-flex flex-col gap-050 self-start", className)}
+      data-slot="chart-scale"
+    >
       <div className="flex gap-100" aria-hidden>
         {zero ? (
           <span
             data-slot="chart-scale-step"
-            className={swatch}
+            className={cn(swatch, zeroEdge)}
             style={{ backgroundColor: token("color.chart.track") }}
           />
         ) : null}
         <span className="flex gap-025">
-          {steps.map((c, i) => (
+          {steps.map((step, i) => (
             <span
               key={i}
               data-slot="chart-scale-step"
-              className={swatch}
-              style={{ backgroundColor: c }}
+              className={cn(swatch, step.edge)}
+              style={{ backgroundColor: step.color }}
             />
           ))}
         </span>

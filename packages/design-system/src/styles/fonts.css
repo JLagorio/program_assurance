@@ -10,7 +10,7 @@
    Import it once, beside the package's other stylesheets:
      @import "@ledger/design-system/fonts.css";
 
-   font.family.code names Geist Mono Variable first; it falls back to JetBrains Mono and the
-   system monospace until the package ships @fontsource-variable/geist-mono too. */
+   This file ships no mono face. font.family.code names faces the machine has: Geist Mono or
+   JetBrains Mono where installed, else the system monospace. */
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/geist/wght-italic.css";

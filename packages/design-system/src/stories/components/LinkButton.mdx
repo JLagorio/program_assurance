@@ -7,6 +7,8 @@ import * as Stories from "./LinkButton.stories";
 
 # LinkButton
 
+**Status: Stable.**
+
 Navigation that looks like a button: “View requirements”, “Create program” when it opens a page, “Open my work”. LinkButton is an anchor, or the application's router Link through `render`, with [Button](?path=/docs/components-button--docs)'s variants, sizes, icon slots and insets. Because it is a real link, the reader can middle-click it, copy its address or open it in a new tab, and Base UI's native-button check never sees it. LinkIconButton is its icon-only form.
 
 Use Button for an action that happens on this page, and [TextLink](?path=/docs/components-textlink--docs) for a link inside a sentence or a record name in a table. A Button that navigates from `onClick`, or a Button that renders a router Link, is the mistake this part replaces.
@@ -15,12 +17,12 @@ Use Button for an action that happens on this page, and [TextLink](?path=/docs/c
 
 ## Variants and sizes
 
-| Variant     | Use                                                                   |
-| ----------- | --------------------------------------------------------------------- |
-| `secondary` | The default: a destination beside other actions.                     |
-| `primary`   | The main destination of a region, such as Continue to review.        |
-| `subtle`    | A low-emphasis destination in a toolbar, a row or a card footer.      |
-| `danger`    | A destination that leads to a destructive task, rarely.               |
+| Variant     | Use                                                              |
+| ----------- | ---------------------------------------------------------------- |
+| `secondary` | The default: a destination beside other actions.                 |
+| `primary`   | The main destination of a region, such as Continue to review.    |
+| `subtle`    | A low-emphasis destination in a toolbar, a row or a card footer. |
+| `danger`    | A destination that leads to a destructive task, rarely.          |
 
 Sizes are Button's: `medium` 32px (the default), `small` 28px and `xsmall` 24px. `iconBefore` and `iconAfter` take an icon element, drawn at 14px and hidden from assistive technology, and the icon's side takes the smaller inset. `isFullWidth` fills the container. There is no `link` variant: a link that looks like text is a TextLink.
 
@@ -85,5 +87,7 @@ A reason that comes or goes while the link has focus leaves focus on it: a repor
 [Button](?path=/docs/components-button--docs) · [IconButton](?path=/docs/components-iconbutton--docs) · [TextLink](?path=/docs/components-textlink--docs) · [DropdownMenu](?path=/docs/components-dropdownmenu--docs) (a destination inside a menu is a LinkItem)
 
 ## Don't
+
+Navigation is a LinkButton, a real anchor the reader can open in a new tab, never a Button that navigates from `onClick`. A link inside a sentence is a TextLink, never a button-shaped link.
 
 <Canvas of={Stories.Dont} />

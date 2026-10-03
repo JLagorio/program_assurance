@@ -10,7 +10,7 @@ Row density belongs to each table. `default` gives rows 40px of height; `compact
 
 ## Usage
 
-Set `density` on a plain Table. The frame sets `data-density="compact"`, which changes the row-height token for its contents. Keep that attribute on the table frame so nearby lists and cards retain their spacing.
+Set `density` on a plain Table. The frame sets `data-density="compact"`, which changes the row-height token for its contents. Keep that attribute on the table frame so nearby lists and cards retain their spacing. The `Density` type names the two values.
 
 <Canvas of={Stories.Tables} />
 
@@ -28,11 +28,8 @@ For a compact default, pass `density: "compact"` to `useDataTable`. The reader c
 
 Changing row height preserves labels, focus order and control targets. The Columns menu exposes the current choice as a checkbox item. Offer density per table, so a choice in one view does not change unrelated content.
 
-## Migration
-
-The former global density provider, switch, hook, storage helpers and scripts are removed. Remove their imports and unwrap the provider's children. Use `Table density` or the DataTable view setting; no document-wide storage key or before-paint script is needed. The `Density` type remains exported.
-
 ## Related
 
 - [Table](?path=/docs/components-table--docs): native table structure and density prop.
 - [DataTable](?path=/docs/patterns-data-table--docs): view preferences, Columns menu and reset.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#density): the earlier API's spellings and what they are now.

@@ -1,5 +1,6 @@
 import type { ComponentProps } from "react";
 
+import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
 
 export type FilterChipProps = {
@@ -14,7 +15,7 @@ export type FilterChipProps = {
 } & Omit<ComponentProps<"button">, "className" | "disabled">;
 
 /** A value longer than this truncates with an ellipsis; its full text is its title. */
-const valueMeasure = { maxWidth: "20ch" };
+const valueMeasure = { maxWidth: token("dimension.part.filterChipValue") };
 
 /**
  * A filter the reader adds to a toolbar: dashed with a plus until it holds a value, then solid and

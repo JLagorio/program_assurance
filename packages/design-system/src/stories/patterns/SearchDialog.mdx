@@ -7,6 +7,8 @@ import * as Stories from "./SearchDialog.stories";
 
 # SearchDialog
 
+**Status: Stable.**
+
 The product's search: find a record of any type by its name or its identifier and open it. A dialog over the page, a field at the top, the results under their record type, each row the identifier, the name with a line of meta under it and one status at the end, and the keys in the footer. It opens from the top nav's [TopNav.Search](?path=/docs/layout-shell--docs) or ⌘K (Ctrl+K elsewhere). It finds a record; it does not run a command, which is the [CommandPalette](?path=/docs/patterns-commandpalette--docs), and it does not pick a record for a field or a link, which is the [RecordPicker](?path=/docs/patterns-recordpicker--docs) (one record from one kind) or a [Combobox](?path=/docs/components-combobox--docs) (by name, inside a form). A search that narrows one register is that register's [Toolbar](?path=/docs/patterns-toolbar--docs) search.
 
 <Canvas of={Stories.SearchDialogStory} />
@@ -84,5 +86,7 @@ A result is `{ id, title, identifier?, meta?, badge?, group?, keywords?, disable
 - [Announcer](?path=/docs/components-announcer--docs): where the count is spoken.
 
 ## Don't
+
+Records are found in a SearchDialog, each its identifier, its name, a line of meta and one status, never as commands in the CommandPalette.
 
 <Canvas of={Stories.Dont} />

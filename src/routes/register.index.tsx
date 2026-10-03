@@ -11,5 +11,11 @@ export const Route = createFileRoute("/register/")({
 function Page() {
   const { tab } = Route.useSearch();
   const navigate = Route.useNavigate();
-  return <Register tab={tab} onTabChange={(next) => void navigate({ search: { tab: next } })} />;
+  // The tab over the address's other parameters: each register's question stays in it.
+  return (
+    <Register
+      tab={tab}
+      onTabChange={(next) => void navigate({ search: (current) => ({ ...current, tab: next }) })}
+    />
+  );
 }

@@ -7,6 +7,8 @@ import * as Stories from "./Gates.stories";
 
 # Gates
 
+**Status: Stable.**
+
 The conditions an action waits on, what a record still needs, a phase's entry and exit criteria. A met gate is a check and its label, muted. An unmet gate is a Dot in its tone, the label, the reason under it and the action that meets it. A list, never a score: the reader sees which, and why. The nearest thing elsewhere is a pull request's merge checks: a set, where a progress tracker is a sequence.
 
 <Canvas of={Stories.GatesStory} />
@@ -114,5 +116,7 @@ The Dot is Badge's, so an unmet gate in `warning` is the same amber as a warning
 - [Badge](?path=/docs/components-badge--docs): the tone table and the Dot.
 
 ## Don't
+
+A reason goes under an unmet gate only, the gates are a list that says which and why, never a score, and a gate the reader can meet from here has one link named for it, never a primary button on every gate.
 
 <Canvas of={Stories.Dont} />

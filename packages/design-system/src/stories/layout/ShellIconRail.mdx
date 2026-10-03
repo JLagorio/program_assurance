@@ -5,7 +5,7 @@ import * as Stories from "./ShellIconRail.stories";
 
 # Shell icon rail
 
-Set `collapsedSideNav="icons"` on Shell to retain destination icons, the active destination and the profile avatar in a 56px rail on desktop. Names remain accessible and appear in tooltips on hover or focus. Activating an expandable group restores the full navigation and opens its children. The default collapsed mode remains `"hidden"`. With the default app mark, the collapsed expand control occupies the mark’s existing position and appears on hover or keyboard focus. The mark is visible at rest, and the product name keeps its position through collapse and expansion. Phone navigation keeps its separate visible toggle.
+Set `collapsedSideNav="icons"` on Shell to retain destination icons, the active destination and the profile avatar in a 56px rail on desktop. Names remain accessible and appear in tooltips on hover or focus. Activating an expandable group restores the full navigation and opens its children. The default collapsed mode remains `"hidden"`. With the default app mark, the collapsed expand control occupies the mark’s existing position and appears on hover or keyboard focus; on a touch screen (`(any-pointer: coarse)`, the kit's touch predicate: a tablet in landscape, a touchscreen laptop) it shows at rest in the mark’s place. Otherwise the mark is visible at rest, and the product name keeps its position through collapse and expansion and still leads home. Phone navigation keeps its separate visible toggle.
 
 <Canvas of={Stories.Desktop} />
 

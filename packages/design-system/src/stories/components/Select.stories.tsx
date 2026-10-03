@@ -28,6 +28,10 @@ import {
 import { menuSurface } from "../../components/menu";
 import { LedgerProvider } from "../../lib/locale";
 import { Stack } from "../../primitives";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const statuses = [
   {
@@ -91,8 +95,46 @@ const valueRef = createRef<HTMLSpanElement>();
 const popupRef = createRef<HTMLDivElement>();
 const changed = fn();
 
+/**
+ * The usage to copy: a Select in a Field, its labels in `items` so the closed trigger reads the
+ * chosen value's words, and one SelectItem per value.
+ */
+export const Usage: Story = {
+  render: () => (
+    <Field className="max-w-layout-measure">
+      <FieldLabel>Priority</FieldLabel>
+      <Select
+        name="priority"
+        items={{ low: "Low", medium: "Medium", high: "High" }}
+        defaultValue="medium"
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Choose a priority" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="low">Low</SelectItem>
+          <SelectItem value="medium">Medium</SelectItem>
+          <SelectItem value="high">High</SelectItem>
+        </SelectContent>
+      </Select>
+    </Field>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const trigger = canvas.getByRole("combobox", { name: "Priority" });
+    await expect(trigger).toHaveTextContent("Medium");
+    await userEvent.click(trigger);
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(await body.findByRole("option", { name: "High" }));
+    await waitFor(() => expect(trigger).toHaveTextContent("High"));
+    await waitFor(() => expect(body.queryByRole("listbox")).toBeNull());
+    await waitFor(() => expect(trigger).toHaveFocus());
+  },
+};
+
 /** Grouped choices, keyboard selection and the native trigger contract. */
 export const SelectMatrix: Story = {
+  tags: ["!manifest"],
   name: "Choices",
   render: () => (
     <Stack space="space.200" className="pt-600">
@@ -272,7 +314,7 @@ function FormDemo() {
               <StatusItems />
             </SelectContent>
           </Select>
-          {Boolean(fieldError4) ? (
+          {fieldError4 ? (
             <FieldError id={`${fieldId}-status-4-message`}>{fieldError4}</FieldError>
           ) : (
             <FieldDescription id={`${fieldId}-status-4-message`}>
@@ -840,5 +882,46 @@ export const Descriptions: Story = {
     await expect(trigger).toHaveTextContent(/^Moderate$/);
     await user.keyboard("{Escape}");
     await waitFor(() => expect(body.queryByRole("listbox")).toBeNull());
+  },
+};
+
+/** The mistake the page is written to prevent, beside the right way. */
+export const Dont: Story = {
+  tags: ["!manifest"],
+  render: () => (
+    <Pair
+      do={
+        <Field>
+          <FieldLabel>Status</FieldLabel>
+          <Select items={{ open: "Open", closed: "Closed" }} defaultValue="open">
+            <SelectTrigger>
+              <SelectValue placeholder="Choose a status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="open">Open</SelectItem>
+              <SelectItem value="closed">Closed</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+      }
+      doText="A Field's label names the choice, so it stays in view once a value is chosen."
+      dont={
+        <Select items={{ open: "Open", closed: "Closed" }} defaultValue="open">
+          <SelectTrigger aria-label="Status of the finding">
+            <SelectValue placeholder="Select status…" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="open">Open</SelectItem>
+            <SelectItem value="closed">Closed</SelectItem>
+          </SelectContent>
+        </Select>
+      }
+      dontText="The placeholder is the only label: once a value is chosen, nothing on screen says what the field is."
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("combobox", { name: "Status" })).toHaveTextContent("Open");
+    await expect(canvas.queryByText("Status of the finding")).toBeNull();
   },
 };

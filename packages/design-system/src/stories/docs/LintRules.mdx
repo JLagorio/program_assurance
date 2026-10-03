@@ -18,7 +18,7 @@ Reports a class with an arbitrary value (`text-[13px]`, `w-[240px]`, `bg-[#eee]`
 - Tailwind 4's variable shorthand, for a value or an opacity, typed or not (`w-(--rail)`, `bg-(image:--hero)`, `bg-brand-bold/(--alpha)`): `"w-(--rail)" reads a CSS variable the lint cannot compare with a token.`
 - A Ledger token's own variable, in the shorthand or in brackets, typed or not (`bg-(--ds-elevation-surface)`, `bg-[var(--ds-elevation-surface)]`, `bg-(color:--ds-elevation-surface)`). Where a token class generates the same CSS, the finding names it and `--fix` writes it: `"bg-(--ds-elevation-surface)" writes a token's variable by hand. Use "bg-surface", the token utility that generates the same CSS.` Where none does (`divide-[var(--ds-color-border)]`, or a type hint that sends the value to another property, `bg-(length:--ds-elevation-surface)`), it is reported as an arbitrary value.
 
-One report per class. The rule reads classes wherever the class rules do: `className`, `class` and any `*ClassName` attribute or object key (a `class` value that reads as no classes, such as OSCAL's `"sp800-53a"`, is data), a slot map (a `classNames` object, by its values at any depth; a `classNames` string is a prefix), a readable object spread onto an element, the class helpers (`cn`, `clsx`, `twMerge` and `classes`; `cx`, `twJoin` and `classNames` where the file imports them; `cva`, and `tv` where imported, by their configs; the names in `settings.ledger.classFunctions` and `settings.ledger.variantFunctions`; a known helper imported under another name or read from a namespace; and a const that holds a helper, `const merge = cn`), a className callback, and what a class site reads in the same file: a `const`; a `let` or `var` with each value assigned to it, and text appended after a space; a destructured slot; the defaults a component gives its props; an entry of a map, a list, an enum or an `Object.freeze` (every entry, for a key known only at runtime); a key a helper's object computes from a same-file value (`cn({ [active]: on })`); each entry of a list a `.map` callback walks; what a function, a `useMemo`, a `useCallback` or a `useState` gives, and what each call gives a same-file function's parameter (`note("text-danger")`); a `[…].join(" ")`, `.filter(Boolean)`, `.trim()`, `.concat()`, `Object.values()` or a spread argument; a template hole that brings its own space (`` `flex${on ? " gap-100" : ""}` ``); and a DOM element's classes, written to `className` (`el.className = "…"`, `+=`) or given to `classList.add` and `classList.toggle`. A module-level string or map whose strings read as classes is reported where it is declared, through an `Object.freeze`, a same-file spread, each branch of a condition, a template's own text and the values of `Object.fromEntries` or `new Map`, but not its data: a bare word no rule knows (`"danger"`, `"none"`), or a key whose values across its records are mostly not classes. A bare word is no evidence that a map holds classes (`"flex"` is also a CSS value, `"hidden"` an attribute), so a style object, a list of attributes or a list of views is no class map.
+One report per class. The rule reads classes wherever the class rules do: `className`, `class` (a `class` value that reads as no classes, such as OSCAL's `"sp800-53a"`, is data), any `*ClassName` attribute or object key, any `*Class` attribute of an element (`containerClass`, `iconClass`) for the strings in it that read as classes or are each a class Tailwind places (a word no class is spelt like is the prop's data: `impactClass="high"`, react-scroll's `activeClass="active"`), a slot map (a `classNames` object, by its values at any depth; a `classNames` string is a prefix), a readable object spread onto an element, the class helpers (`cn`, `clsx`, `twMerge` and `classes`; `cx`, `twJoin` and `classNames` where the file imports them; `cva`, and `tv` where imported, by their configs; the names in `settings.ledger.classFunctions` and `settings.ledger.variantFunctions`; a known helper imported under another name or read from a namespace; and a const that holds a helper, `const merge = cn`), a className callback, and what a class site reads in the same file: a `const`; a `let` or `var` with each value assigned to it, and text appended after a space; a destructured slot; the defaults a component gives its props; an entry of a map, a list, an enum or an `Object.freeze` (every entry, for a key known only at runtime); a key a helper's object computes from a same-file value (`cn({ [active]: on })`); each entry of a list a `.map` callback walks; what a function, a `useMemo`, a `useCallback` or a `useState` gives, and what each call gives a same-file function's parameter (`note("text-danger")`); a `[…].join(" ")`, `.filter(Boolean)`, `.trim()`, `.concat()`, `Object.values()` or a spread argument; a template hole that brings its own space (`` `flex${on ? " gap-100" : ""}` ``); and a DOM element's classes, written to `className` (`el.className = "…"`, `+=`) or given to `classList.add` and `classList.toggle`. A module-level string or map whose strings read as classes is reported where it is declared, through an `Object.freeze`, a same-file spread, each branch of a condition, a template's own text and the values of `Object.fromEntries` or `new Map`, but not its data: a bare word no rule knows (`"danger"`, `"none"`), or a key whose values across its records are mostly not classes. A bare word is no evidence that a map holds classes (`"flex"` is also a CSS value, `"hidden"` an attribute), so a style object, a list of attributes or a list of views is no class map.
 
 Not reported: a grid template whose tracks carry no length (`grid-cols-[auto_1fr]`, `grid-cols-[minmax(0,1fr)_auto]`, `grid-rows-[subgrid]`). Its tracks size to content or share the free space, which is structure. Nor are the two variables the kit reads as structure: Grid's responsive columns (`grid-cols-(--ds-grid-md)`) and a disclosure panel's measured height (`h-(--accordion-panel-height)`, `h-(--collapsible-panel-height)`).
 
@@ -32,7 +32,7 @@ A token is a decision made once. A 13px text or a 240px column written in place 
 
 - A token utility or a primitive prop, chosen by the value's role.
 - A size takes a space key or a layout dimension: `w-1000`, `min-h-800`, `size-150`, `w-layout-panel`, `max-w-layout-measure`, `min-w-control-medium`.
-- Type is `font-body-small` or `font-heading-small`, and a weight `font-medium`; a colour is its token (`bg-neutral`, `text-subtle`); a radius is `rounded-small` to `rounded-full`.
+- Type is `font-body-small` or `font-heading-page`, and a weight `font-medium`; a colour is its token (`bg-neutral`, `text-subtle`); a radius is `rounded-small` to `rounded-full`.
 - Space and layout go through the primitives' props: `padding` on Box, `space` on Stack and Inline, `templateColumns` and `gap` on Grid.
 - A column's width is `width` or `minWidth` on its Table.Header or DataTable column; a dialog's is `width` on DialogContent (`small` to `fullscreen`).
 - A value no token holds is a kit change, proposed through `/ledger-add-part`.
@@ -115,7 +115,7 @@ No fix where the class is written in a template, with an escape or beside an ent
 
 ### Allowances
 
-In the kit, `test/lint-allow.json` holds a count of this rule's reports per file that predate it; a file with more reports fails, and so does one with fewer until its count is lowered, so the list only shrinks. The rule is off in the kit's stories, where a story's own frame may take a fixed width. The application's list, `scripts/lint-allow.json`, has no entry for it, and `scripts/check-allow-lists.mjs` rejects a new one. A comment that turns the rule off is reported by [`ledger/no-inline-config`](#ledgerno-inline-config), except a line or next-line disable that names it and says why after `--`; those are counted and may only shrink too.
+In the kit, `test/lint-allow.json` may hold a count of this rule's reports per file that predate it; a file with more reports fails, and so does one with fewer until its count is lowered, so the list only shrinks. The rule is off in the kit's stories, where a story's own frame may take a fixed width. The application's list, `scripts/lint-allow.json`, has no entry for it, and `scripts/check-allow-lists.mjs` rejects a new one. A comment that turns the rule off is reported by [`ledger/no-inline-config`](#ledgerno-inline-config), except a line or next-line disable that names it and says why after `--`; those are counted and may only shrink too.
 
 ### Limits
 
@@ -124,7 +124,7 @@ In the kit, `test/lint-allow.json` holds a count of this rule's reports per file
 - A line disable, an allowance or a bulk suppression of this rule waives the whole class at its site: a variable shorthand, or a palette colour with bracketed alpha (`max-w-(--dialog-width)`, `bg-red-500/[0.5]`), is reported by no other rule there.
 - A class built at runtime is not one the lint can check. A template or a concatenation that glues a value to a word (`` `w-[${width}px]` ``, `"bg-" + tone`) leaves no fragment to report: [`ledger/no-non-token-class`](#ledgerno-non-token-class) reports it once as a class built at runtime, and the whole classes beside it are still read.
 - A value in `style` is [`ledger/no-style-design-value`](#ledgerno-style-design-value)'s, and a value in a stylesheet is not read.
-- A class the lint cannot follow is not seen: one passed in through a prop (a received `className` is the caller's), imported from another file, returned by a function from another file, or held in a variable changed other than by assigning it (`k++`, `k.a = …`, text appended with no space before it). A module-level string is checked where it is declared only when at least half of its words are classes the lint knows, and a module-level map only when most of its strings other than bare words are, so a string of stock classes exported for another file passes, and so does a map a call builds (`(() => ({ … }))()`, a function that returns one) that no class site in the file reads. A `Map` read with `.get`, and a pair destructured from `Object.entries(…)`, are not followed to their values.
+- A class the lint cannot follow is not seen: one passed in through a prop (a received `className` is the caller's), imported from another file, returned by a function from another file, or held in a variable changed other than by assigning it (`k++`, `k.a = …`, text appended with no space before it). A module-level string is checked where it is declared only when at least half of its words are classes the lint knows, or when each word is one it knows or one no data is spelt like and one at least is the latter (a bracketed value, a class with alpha or a Tailwind palette colour, on a utility Tailwind places: `export const width = "w-[240px]"`, but not the identifiers `"sp-800-53/5"` or `"items-[0]"`), and a module-level map only when most of its strings other than bare words are, so a string of other stock classes exported for another file passes (`"p-4 shadow-md"`), and so does a map a call builds (`(() => ({ … }))()`, a function that returns one) that no class site in the file reads. A `Map` read with `.get`, and a pair destructured from `Object.entries(…)`, are not followed to their values.
 
 ## ledger/no-alpha-token
 
@@ -134,7 +134,7 @@ Reports an opacity modifier on a colour class (`bg-brand-bold/80`): a state is a
 
 - A colour token with a numeric opacity modifier: `bg-`, `text-`, `icon-`, `border-`, `shadow-`, `ring-`, `outline-`, `decoration-`, `divide-`, `fill-`, `stroke-`, `from-`, `via-`, `to-`, `accent-` or `caret-`, a token's name, then `/` and a number (`bg-brand-bold/80`, `text-default/60`), with or without variants (`hover:bg-neutral/50`). The finding names the token the alpha dims and the state tokens it stands for, from the tokens that exist, picked by the alpha: at `/30` or below a tint, the token's subtle, subtler or subtlest form (or the grey ladder's), only one nearer the page than the token itself, the one or two nearest the colour the alpha makes over the page in both modes; at `/60` or above its own hovered and pressed states, or its quieter tints where it has no state (`text-default/60`); in between, the nearest tint and the hovered state. A band with nothing names nothing, never the other band's states: the quietest grey (`text-subtlest/60`) and a faded chart series (`stroke-chart-brand/10`) are told that a tint or a state is its own token. A variant that asks for a state the token has names that state alone. For example `"bg-brand-bold/10" dims bg-brand-bold with alpha, which changes its contrast and its dark value. A tint of it is bg-brand-subtlest.`, and `"hover:bg-neutral/50" dims bg-neutral with alpha, … That state is its own token: hover:bg-neutral-hovered.` A token with neither a tint nor a state, such as `border-brand`, is told that a tint or a state is its own token.
 
-One report per class. The rule reads classes wherever the class rules do: `className`, `class` and any `*ClassName` attribute or object key (a `class` value that reads as no classes, such as OSCAL's `"sp800-53a"`, is data), a slot map (a `classNames` object, by its values at any depth; a `classNames` string is a prefix), a readable object spread onto an element, the class helpers (`cn`, `clsx`, `twMerge` and `classes`; `cx`, `twJoin` and `classNames` where the file imports them; `cva`, and `tv` where imported, by their configs; the names in `settings.ledger.classFunctions` and `settings.ledger.variantFunctions`; a known helper imported under another name or read from a namespace; and a const that holds a helper, `const merge = cn`), a className callback, and what a class site reads in the same file: a `const`; a `let` or `var` with each value assigned to it, and text appended after a space; a destructured slot; the defaults a component gives its props; an entry of a map, a list, an enum or an `Object.freeze` (every entry, for a key known only at runtime); a key a helper's object computes from a same-file value (`cn({ [active]: on })`); each entry of a list a `.map` callback walks; what a function, a `useMemo`, a `useCallback` or a `useState` gives, and what each call gives a same-file function's parameter (`note("text-danger")`); a `[…].join(" ")`, `.filter(Boolean)`, `.trim()`, `.concat()`, `Object.values()` or a spread argument; a template hole that brings its own space (`` `flex${on ? " gap-100" : ""}` ``); and a DOM element's classes, written to `className` (`el.className = "…"`, `+=`) or given to `classList.add` and `classList.toggle`. A module-level string or map whose strings read as classes is reported where it is declared, through an `Object.freeze`, a same-file spread, each branch of a condition, a template's own text and the values of `Object.fromEntries` or `new Map`, but not its data: a bare word no rule knows (`"danger"`, `"none"`), or a key whose values across its records are mostly not classes. A bare word is no evidence that a map holds classes (`"flex"` is also a CSS value, `"hidden"` an attribute), so a style object, a list of attributes or a list of views is no class map. A class has one owner, so this rule is the only one that reports these. Under a variant Tailwind does not generate (`hovr:bg-brand-bold/50`) the class is [`ledger/no-unknown-variant`](#ledgerno-unknown-variant)'s, since it generates nothing whatever its colour. Alpha on a colour that is no token is [`ledger/no-non-token-class`](#ledgerno-non-token-class)'s, since a state token alone would not fix it: a Tailwind palette colour (`bg-red-500/50`, `text-white/70`) with its own message, and any other word (`bg-muted/50`). A `dark:` class is [`ledger/no-dark-variant`](#ledgerno-dark-variant)'s.
+One report per class. The rule reads classes wherever the class rules do: `className`, `class` (a `class` value that reads as no classes, such as OSCAL's `"sp800-53a"`, is data), any `*ClassName` attribute or object key, any `*Class` attribute of an element (`containerClass`, `iconClass`) for the strings in it that read as classes or are each a class Tailwind places (a word no class is spelt like is the prop's data: `impactClass="high"`, react-scroll's `activeClass="active"`), a slot map (a `classNames` object, by its values at any depth; a `classNames` string is a prefix), a readable object spread onto an element, the class helpers (`cn`, `clsx`, `twMerge` and `classes`; `cx`, `twJoin` and `classNames` where the file imports them; `cva`, and `tv` where imported, by their configs; the names in `settings.ledger.classFunctions` and `settings.ledger.variantFunctions`; a known helper imported under another name or read from a namespace; and a const that holds a helper, `const merge = cn`), a className callback, and what a class site reads in the same file: a `const`; a `let` or `var` with each value assigned to it, and text appended after a space; a destructured slot; the defaults a component gives its props; an entry of a map, a list, an enum or an `Object.freeze` (every entry, for a key known only at runtime); a key a helper's object computes from a same-file value (`cn({ [active]: on })`); each entry of a list a `.map` callback walks; what a function, a `useMemo`, a `useCallback` or a `useState` gives, and what each call gives a same-file function's parameter (`note("text-danger")`); a `[…].join(" ")`, `.filter(Boolean)`, `.trim()`, `.concat()`, `Object.values()` or a spread argument; a template hole that brings its own space (`` `flex${on ? " gap-100" : ""}` ``); and a DOM element's classes, written to `className` (`el.className = "…"`, `+=`) or given to `classList.add` and `classList.toggle`. A module-level string or map whose strings read as classes is reported where it is declared, through an `Object.freeze`, a same-file spread, each branch of a condition, a template's own text and the values of `Object.fromEntries` or `new Map`, but not its data: a bare word no rule knows (`"danger"`, `"none"`), or a key whose values across its records are mostly not classes. A bare word is no evidence that a map holds classes (`"flex"` is also a CSS value, `"hidden"` an attribute), so a style object, a list of attributes or a list of views is no class map. A class has one owner, so this rule is the only one that reports these. Under a variant Tailwind does not generate (`hovr:bg-brand-bold/50`) the class is [`ledger/no-unknown-variant`](#ledgerno-unknown-variant)'s, since it generates nothing whatever its colour. Alpha on a colour that is no token is [`ledger/no-non-token-class`](#ledgerno-non-token-class)'s, since a state token alone would not fix it: a Tailwind palette colour (`bg-red-500/50`, `text-white/70`) with its own message, and any other word (`bg-muted/50`). A `dark:` class is [`ledger/no-dark-variant`](#ledgerno-dark-variant)'s.
 
 ### Why
 
@@ -211,7 +211,7 @@ In the kit, `test/lint-allow.json` may hold a count of this rule's reports per f
 
 - A bracketed opacity or one read from a variable (`bg-brand-bold/[0.5]`, `bg-brand-bold/(--alpha)`) is [`ledger/no-arbitrary-value`](#ledgerno-arbitrary-value)'s, and an opacity in `style` or in a stylesheet is not read.
 - A class built at runtime is not one the lint can check. A template or a concatenation that glues a value to a word (`` `text-${tone}-600` ``, `"bg-" + tone`) leaves no fragment to report: [`ledger/no-non-token-class`](#ledgerno-non-token-class) reports it once as a class built at runtime, and the whole classes beside it are still read.
-- A class the lint cannot follow is not seen: one passed in through a prop (a received `className` is the caller's), imported from another file, returned by a function from another file, or held in a variable changed other than by assigning it (`k++`, `k.a = …`, text appended with no space before it). A module-level string is checked where it is declared only when at least half of its words are classes the lint knows, and a module-level map only when most of its strings other than bare words are, so a string of stock classes exported for another file passes, and so does a map a call builds (`(() => ({ … }))()`, a function that returns one) that no class site in the file reads. A `Map` read with `.get`, and a pair destructured from `Object.entries(…)`, are not followed to their values.
+- A class the lint cannot follow is not seen: one passed in through a prop (a received `className` is the caller's), imported from another file, returned by a function from another file, or held in a variable changed other than by assigning it (`k++`, `k.a = …`, text appended with no space before it). A module-level string is checked where it is declared only when at least half of its words are classes the lint knows, or when each word is one it knows or one no data is spelt like and one at least is the latter (a bracketed value, a class with alpha or a Tailwind palette colour, on a utility Tailwind places: `export const width = "w-[240px]"`, but not the identifiers `"sp-800-53/5"` or `"items-[0]"`), and a module-level map only when most of its strings other than bare words are, so a string of other stock classes exported for another file passes (`"p-4 shadow-md"`), and so does a map a call builds (`(() => ({ … }))()`, a function that returns one) that no class site in the file reads. A `Map` read with `.get`, and a pair destructured from `Object.entries(…)`, are not followed to their values.
 
 ## ledger/no-dark-variant
 
@@ -228,7 +228,7 @@ Reports a class with the `dark:` variant: every colour is a token that flips by 
   - A class that sets no colour, alpha on a token, a deprecated token, or any class while the lint data is stale gets the rule's own words: `"dark:w-[1px]" uses the dark variant. The colour mode flips every token by itself: drop the class, and give a colour its token.`
 - It is the one rule that reports such a class, whatever else is wrong with its base (`dark:bg-white`, `dark:bg-red-500/50`, `dark:w-[1px]`, a margin such as `dark:mt-4`, a deprecated token under `dark:`), since dropping the class is the whole fix. It comes first among the class rules, so a `dark:` class stays reported where another rule is off or waived: a `dark:` margin in `primitives/bleed.tsx`, or on a line that disables [`ledger/no-margin`](#ledgerno-margin).
 
-One report per class. The rule reads classes wherever the class rules do: `className`, `class` and any `*ClassName` attribute or object key (a `class` value that reads as no classes, such as OSCAL's `"sp800-53a"`, is data), a slot map (a `classNames` object, by its values at any depth; a `classNames` string is a prefix), a readable object spread onto an element, the class helpers (`cn`, `clsx`, `twMerge` and `classes`; `cx`, `twJoin` and `classNames` where the file imports them; `cva`, and `tv` where imported, by their configs; the names in `settings.ledger.classFunctions` and `settings.ledger.variantFunctions`; a known helper imported under another name or read from a namespace; and a const that holds a helper, `const merge = cn`), a className callback, and what a class site reads in the same file: a `const`; a `let` or `var` with each value assigned to it, and text appended after a space; a destructured slot; the defaults a component gives its props; an entry of a map, a list, an enum or an `Object.freeze` (every entry, for a key known only at runtime); a key a helper's object computes from a same-file value (`cn({ [active]: on })`); each entry of a list a `.map` callback walks; what a function, a `useMemo`, a `useCallback` or a `useState` gives, and what each call gives a same-file function's parameter (`note("text-danger")`); a `[…].join(" ")`, `.filter(Boolean)`, `.trim()`, `.concat()`, `Object.values()` or a spread argument; a template hole that brings its own space (`` `flex${on ? " gap-100" : ""}` ``); and a DOM element's classes, written to `className` (`el.className = "…"`, `+=`) or given to `classList.add` and `classList.toggle`. A module-level string or map whose strings read as classes is reported where it is declared, through an `Object.freeze`, a same-file spread, each branch of a condition, a template's own text and the values of `Object.fromEntries` or `new Map`, but not its data: a bare word no rule knows (`"danger"`, `"none"`), or a key whose values across its records are mostly not classes. A bare word is no evidence that a map holds classes (`"flex"` is also a CSS value, `"hidden"` an attribute), so a style object, a list of attributes or a list of views is no class map.
+One report per class. The rule reads classes wherever the class rules do: `className`, `class` (a `class` value that reads as no classes, such as OSCAL's `"sp800-53a"`, is data), any `*ClassName` attribute or object key, any `*Class` attribute of an element (`containerClass`, `iconClass`) for the strings in it that read as classes or are each a class Tailwind places (a word no class is spelt like is the prop's data: `impactClass="high"`, react-scroll's `activeClass="active"`), a slot map (a `classNames` object, by its values at any depth; a `classNames` string is a prefix), a readable object spread onto an element, the class helpers (`cn`, `clsx`, `twMerge` and `classes`; `cx`, `twJoin` and `classNames` where the file imports them; `cva`, and `tv` where imported, by their configs; the names in `settings.ledger.classFunctions` and `settings.ledger.variantFunctions`; a known helper imported under another name or read from a namespace; and a const that holds a helper, `const merge = cn`), a className callback, and what a class site reads in the same file: a `const`; a `let` or `var` with each value assigned to it, and text appended after a space; a destructured slot; the defaults a component gives its props; an entry of a map, a list, an enum or an `Object.freeze` (every entry, for a key known only at runtime); a key a helper's object computes from a same-file value (`cn({ [active]: on })`); each entry of a list a `.map` callback walks; what a function, a `useMemo`, a `useCallback` or a `useState` gives, and what each call gives a same-file function's parameter (`note("text-danger")`); a `[…].join(" ")`, `.filter(Boolean)`, `.trim()`, `.concat()`, `Object.values()` or a spread argument; a template hole that brings its own space (`` `flex${on ? " gap-100" : ""}` ``); and a DOM element's classes, written to `className` (`el.className = "…"`, `+=`) or given to `classList.add` and `classList.toggle`. A module-level string or map whose strings read as classes is reported where it is declared, through an `Object.freeze`, a same-file spread, each branch of a condition, a template's own text and the values of `Object.fromEntries` or `new Map`, but not its data: a bare word no rule knows (`"danger"`, `"none"`), or a key whose values across its records are mostly not classes. A bare word is no evidence that a map holds classes (`"flex"` is also a CSS value, `"hidden"` an attribute), so a style object, a list of attributes or a list of views is no class map.
 
 ### Why
 
@@ -298,7 +298,7 @@ In the kit, `test/lint-allow.json` may hold a count of this rule's reports per f
 - A colour in `style` is [`ledger/no-style-design-value`](#ledgerno-style-design-value)'s.
 - A line disable, an allowance or a bulk suppression of this rule waives the whole class at its site: whatever else a `dark:` class holds (`dark:mt-[13px]`, `dark:bg-red-500`) is reported by no other rule there.
 - A class built at runtime is not one the lint can check. A template or a concatenation that glues a value to a word (`` `text-${tone}-600` ``, `"bg-" + tone`) leaves no fragment to report: [`ledger/no-non-token-class`](#ledgerno-non-token-class) reports it once as a class built at runtime, and the whole classes beside it are still read.
-- A class the lint cannot follow is not seen: one passed in through a prop (a received `className` is the caller's), imported from another file, returned by a function from another file, or held in a variable changed other than by assigning it (`k++`, `k.a = …`, text appended with no space before it). A module-level string is checked where it is declared only when at least half of its words are classes the lint knows, and a module-level map only when most of its strings other than bare words are, so a string of stock classes exported for another file passes, and so does a map a call builds (`(() => ({ … }))()`, a function that returns one) that no class site in the file reads. A `Map` read with `.get`, and a pair destructured from `Object.entries(…)`, are not followed to their values.
+- A class the lint cannot follow is not seen: one passed in through a prop (a received `className` is the caller's), imported from another file, returned by a function from another file, or held in a variable changed other than by assigning it (`k++`, `k.a = …`, text appended with no space before it). A module-level string is checked where it is declared only when at least half of its words are classes the lint knows, or when each word is one it knows or one no data is spelt like and one at least is the latter (a bracketed value, a class with alpha or a Tailwind palette colour, on a utility Tailwind places: `export const width = "w-[240px]"`, but not the identifiers `"sp-800-53/5"` or `"items-[0]"`), and a module-level map only when most of its strings other than bare words are, so a string of other stock classes exported for another file passes (`"p-4 shadow-md"`), and so does a map a call builds (`(() => ({ … }))()`, a function that returns one) that no class site in the file reads. A `Map` read with `.get`, and a pair destructured from `Object.entries(…)`, are not followed to their values.
 
 ## ledger/no-unknown-variant
 
@@ -319,7 +319,7 @@ A variant a product declares in its own CSS (`@custom-variant theme-sepia (…)`
 
 A class has one owner, so it is reported once. A `dark:` class is [`ledger/no-dark-variant`](#ledgerno-dark-variant)'s and a margin [`ledger/no-margin`](#ledgerno-margin)'s, whatever variant they carry, since their fix takes the class away; any other class under an unknown variant is this rule's, before any rule that judges its base, since the class generates nothing whatever its base holds.
 
-It reads classes wherever the class rules do: `className`, `class` and any `*ClassName` attribute or object key, a slot map, a readable object spread onto an element, the class helpers (`cn`, `clsx`, `twMerge`, `classes`, `cx`, `twJoin`, `classNames`, `cva`, `tv` and the names in `settings.ledger.classFunctions` and `settings.ledger.variantFunctions`), a className callback, and what a class site reads in the same file, as [`ledger/no-non-token-class`](#ledgerno-non-token-class)'s page describes.
+It reads classes wherever the class rules do: `className`, `class`, any `*ClassName` attribute or object key, any `*Class` attribute of an element (`containerClass`) for the strings in it that read as classes or are each a class Tailwind places (a word no class is spelt like is the prop's data: `impactClass="high"`), a slot map, a readable object spread onto an element, the class helpers (`cn`, `clsx`, `twMerge`, `classes`, `cx`, `twJoin`, `classNames`, `cva`, `tv` and the names in `settings.ledger.classFunctions` and `settings.ledger.variantFunctions`), a className callback, and what a class site reads in the same file, as [`ledger/no-non-token-class`](#ledgerno-non-token-class)'s page describes.
 
 ### Why
 
@@ -345,8 +345,8 @@ export function QueueItem({ name }: { name: string }) {
 ```
 
 ```tsx reported
-export function RecordTitle({ name }: { name: string }) {
-  return <h2 className="font-heading-small tablet:font-heading-medium">{name}</h2>;
+export function Caption({ text }: { text: string }) {
+  return <p className="font-body-small tablet:font-body">{text}</p>;
 }
 ```
 
@@ -371,8 +371,8 @@ export function QueueItem({ name }: { name: string }) {
 ```
 
 ```tsx allowed
-export function RecordTitle({ name }: { name: string }) {
-  return <h2 className="font-heading-small @split:font-heading-medium">{name}</h2>;
+export function Caption({ text }: { text: string }) {
+  return <p className="font-body-small @split:font-body">{text}</p>;
 }
 ```
 
@@ -411,7 +411,7 @@ Reports a margin class: the space between siblings comes from Stack, Inline and 
 - The same class under a variant or with `!`: `md:mt-200`, `hover:!mb-100`.
 - A margin at a stock key, an arbitrary value or a variable (`mt-4`, `mt-[13px]`, `-mx-(--gutter)`). A class has one owner, and every margin is this rule's alone, whatever else is wrong with it: moving the space to the parent takes the whole class away. A margin under `dark:` (`dark:mt-4`) is [`ledger/no-dark-variant`](#ledgerno-dark-variant)'s, whose fix drops the class.
 
-It reads every place the lint reads classes: `className`, `class` and any `*ClassName` attribute or object key (a `class` value that reads as no classes, such as OSCAL's `"sp800-53a"`, is data), a slot map (a `classNames` object, by its values at any depth; a `classNames` string is a prefix), a readable object spread onto an element, the class helpers (`cn`, `clsx`, `twMerge` and `classes`; `cx`, `twJoin` and `classNames` where the file imports them; `cva`, and `tv` where imported, by their configs; the names in `settings.ledger.classFunctions` and `settings.ledger.variantFunctions`; a known helper imported under another name or read from a namespace; and a const that holds a helper, `const merge = cn`), a className callback, and what a class site reads in the same file: a `const`; a `let` or `var` with each value assigned to it, and text appended after a space; a destructured slot; the defaults a component gives its props; an entry of a map, a list, an enum or an `Object.freeze` (every entry, for a key known only at runtime); a key a helper's object computes from a same-file value (`cn({ [active]: on })`); each entry of a list a `.map` callback walks; what a function, a `useMemo`, a `useCallback` or a `useState` gives, and what each call gives a same-file function's parameter (`note("text-danger")`); a `[…].join(" ")`, `.filter(Boolean)`, `.trim()`, `.concat()`, `Object.values()` or a spread argument; a template hole that brings its own space (`` `flex${on ? " gap-100" : ""}` ``); and a DOM element's classes, written to `className` (`el.className = "…"`, `+=`) or given to `classList.add` and `classList.toggle`. A module-level string or map whose strings read as classes is reported where it is declared, through an `Object.freeze`, a same-file spread, each branch of a condition, a template's own text and the values of `Object.fromEntries` or `new Map`, but not its data: a bare word no rule knows (`"danger"`, `"none"`), or a key whose values across its records are mostly not classes. A bare word is no evidence that a map holds classes (`"flex"` is also a CSS value, `"hidden"` an attribute), so a style object, a list of attributes or a list of views is no class map. There are two messages, a margin's and a negative margin's, below.
+It reads every place the lint reads classes: `className`, `class` (a `class` value that reads as no classes, such as OSCAL's `"sp800-53a"`, is data), any `*ClassName` attribute or object key, any `*Class` attribute of an element (`containerClass`, `iconClass`) for the strings in it that read as classes or are each a class Tailwind places (a word no class is spelt like is the prop's data: `impactClass="high"`, react-scroll's `activeClass="active"`), a slot map (a `classNames` object, by its values at any depth; a `classNames` string is a prefix), a readable object spread onto an element, the class helpers (`cn`, `clsx`, `twMerge` and `classes`; `cx`, `twJoin` and `classNames` where the file imports them; `cva`, and `tv` where imported, by their configs; the names in `settings.ledger.classFunctions` and `settings.ledger.variantFunctions`; a known helper imported under another name or read from a namespace; and a const that holds a helper, `const merge = cn`), a className callback, and what a class site reads in the same file: a `const`; a `let` or `var` with each value assigned to it, and text appended after a space; a destructured slot; the defaults a component gives its props; an entry of a map, a list, an enum or an `Object.freeze` (every entry, for a key known only at runtime); a key a helper's object computes from a same-file value (`cn({ [active]: on })`); each entry of a list a `.map` callback walks; what a function, a `useMemo`, a `useCallback` or a `useState` gives, and what each call gives a same-file function's parameter (`note("text-danger")`); a `[…].join(" ")`, `.filter(Boolean)`, `.trim()`, `.concat()`, `Object.values()` or a spread argument; a template hole that brings its own space (`` `flex${on ? " gap-100" : ""}` ``); and a DOM element's classes, written to `className` (`el.className = "…"`, `+=`) or given to `classList.add` and `classList.toggle`. A module-level string or map whose strings read as classes is reported where it is declared, through an `Object.freeze`, a same-file spread, each branch of a condition, a template's own text and the values of `Object.fromEntries` or `new Map`, but not its data: a bare word no rule knows (`"danger"`, `"none"`), or a key whose values across its records are mostly not classes. A bare word is no evidence that a map holds classes (`"flex"` is also a CSS value, `"hidden"` an attribute), so a style object, a list of attributes or a list of views is no class map. There are two messages, a margin's and a negative margin's, below.
 
 A margin of `auto` (`m-auto`, `mx-auto`, `ms-auto`) is not reported.
 
@@ -465,7 +465,7 @@ export const groupTitle = "mb-100 truncate";
 
 export function GroupTitle({ children }: { children: string }) {
   return (
-    <Heading size="xsmall" className={groupTitle}>
+    <Heading size="overlay" className={groupTitle}>
       {children}
     </Heading>
   );
@@ -522,12 +522,12 @@ Neither. The change is one of structure, deciding which parent owns the space, s
 
 ### Allowances
 
-The rule takes the plugin's `allow` option: a count of reports per file that may only shrink. A file with more reports than its count fails, and one with fewer fails until the count is lowered. The kit keeps its counts in `test/lint-allow.json`, and `configs.package` turns the rule off in `primitives/bleed.tsx`, the one place a negative margin is written. This repository's application passes no allowance for the rule, so every report there fails. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
+The rule takes the plugin's `allow` option: a count of reports per file that may only shrink. A file with more reports than its count fails, and one with fewer fails until the count is lowered. `configs.package` turns the rule off in `primitives/bleed.tsx`, the one place a negative margin is written, and neither the kit's `test/lint-allow.json` nor this repository's `scripts/lint-allow.json` has an entry for it, so every other report fails. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
 
 ### Limits
 
 - A class built at runtime is not one the lint can check. A template or a concatenation that glues a value to a word (`` `mt-${size}` ``, `"bg-" + tone`) leaves no fragment to report: [`ledger/no-non-token-class`](#ledgerno-non-token-class) reports it once as a class built at runtime, and the whole classes beside it are still read.
-- A class the lint cannot follow is not seen: one passed in through a prop (a received `className` is the caller's), imported from another file, returned by a function from another file, or held in a variable changed other than by assigning it (`k++`, `k.a = …`, text appended with no space before it). A module-level string is checked where it is declared only when at least half of its words are classes the lint knows, and a module-level map only when most of its strings other than bare words are, so a string of stock classes exported for another file passes, and so does a map a call builds (`(() => ({ … }))()`, a function that returns one) that no class site in the file reads. A `Map` read with `.get`, and a pair destructured from `Object.entries(…)`, are not followed to their values.
+- A class the lint cannot follow is not seen: one passed in through a prop (a received `className` is the caller's), imported from another file, returned by a function from another file, or held in a variable changed other than by assigning it (`k++`, `k.a = …`, text appended with no space before it). A module-level string is checked where it is declared only when at least half of its words are classes the lint knows, or when each word is one it knows or one no data is spelt like and one at least is the latter (a bracketed value, a class with alpha or a Tailwind palette colour, on a utility Tailwind places: `export const width = "w-[240px]"`, but not the identifiers `"sp-800-53/5"` or `"items-[0]"`), and a module-level map only when most of its strings other than bare words are, so a string of other stock classes exported for another file passes (`"p-4 shadow-md"`), and so does a map a call builds (`(() => ({ … }))()`, a function that returns one) that no class site in the file reads. A `Map` read with `.get`, and a pair destructured from `Object.entries(…)`, are not followed to their values.
 - `space-x-*` and `space-y-*` are not reported, though Tailwind writes them as margins on the children.
 - Where the rule is off, no other rule reports a margin: in `primitives/bleed.tsx` a stock or arbitrary margin (`mt-4`, `mt-[13px]`) passes, since it is this rule's alone. A `dark:` margin there is still [`ledger/no-dark-variant`](#ledgerno-dark-variant)'s.
 - A line disable, an allowance or a bulk suppression of this rule waives the whole class at its site: a margin that is also a stock key, an arbitrary value or a variable (`my-2`, `-mx-[13px]`, `-ms-(--overlap)`) is reported by no other rule there. A `dark:` margin is not waived with it.
@@ -548,7 +548,7 @@ Each report names what the class fixes and the token of its role nearest the val
 - `ring` and `ring-<n>`: "a ring width; use outline-focused".
 - `bg-`, `text-` or `border-` with `white`, `black`, `current` or `inherit`, and `text-transparent`: a literal colour, with the roles its hue plays for the utility, each with its purpose, ranked with its `dark:` twin on the same site in both modes; `current`, `inherit` and `transparent` ask for the token of the role.
 
-A report reads `"opacity-50" is a numeric opacity. Ledger has opacity-disabled (0.4, opacity of disabled elements when a disabled…) or opacity-loading (0.2, opacity of content in a loading state).` While the lint data is stale, a report names the scale to pick from instead (`Use rounded-xsmall…rounded-full.`). The class is reported under any variant or with `!`, wherever the lint reads classes: `className`, `class` and any `*ClassName` attribute or object key (a `class` value that reads as no classes, such as OSCAL's `"sp800-53a"`, is data), a slot map (a `classNames` object, by its values at any depth; a `classNames` string is a prefix), a readable object spread onto an element, the class helpers (`cn`, `clsx`, `twMerge` and `classes`; `cx`, `twJoin` and `classNames` where the file imports them; `cva`, and `tv` where imported, by their configs; the names in `settings.ledger.classFunctions` and `settings.ledger.variantFunctions`; a known helper imported under another name or read from a namespace; and a const that holds a helper, `const merge = cn`), a className callback, and what a class site reads in the same file: a `const`; a `let` or `var` with each value assigned to it, and text appended after a space; a destructured slot; the defaults a component gives its props; an entry of a map, a list, an enum or an `Object.freeze` (every entry, for a key known only at runtime); a key a helper's object computes from a same-file value (`cn({ [active]: on })`); each entry of a list a `.map` callback walks; what a function, a `useMemo`, a `useCallback` or a `useState` gives, and what each call gives a same-file function's parameter (`note("text-danger")`); a `[…].join(" ")`, `.filter(Boolean)`, `.trim()`, `.concat()`, `Object.values()` or a spread argument; a template hole that brings its own space (`` `flex${on ? " gap-100" : ""}` ``); and a DOM element's classes, written to `className` (`el.className = "…"`, `+=`) or given to `classList.add` and `classList.toggle`. A module-level string or map whose strings read as classes is reported where it is declared, through an `Object.freeze`, a same-file spread, each branch of a condition, a template's own text and the values of `Object.fromEntries` or `new Map`, but not its data: a bare word no rule knows (`"danger"`, `"none"`), or a key whose values across its records are mostly not classes. A bare word is no evidence that a map holds classes (`"flex"` is also a CSS value, `"hidden"` an attribute), so a style object, a list of attributes or a list of views is no class map.
+A report reads `"opacity-50" is a numeric opacity. Ledger has opacity-disabled (0.4, opacity of disabled elements when a disabled…) or opacity-loading (0.2, opacity of content in a loading state).` While the lint data is stale, a report names the scale to pick from instead (`Use rounded-xsmall…rounded-full.`). The class is reported under any variant or with `!`, wherever the lint reads classes: `className`, `class` (a `class` value that reads as no classes, such as OSCAL's `"sp800-53a"`, is data), any `*ClassName` attribute or object key, any `*Class` attribute of an element (`containerClass`, `iconClass`) for the strings in it that read as classes or are each a class Tailwind places (a word no class is spelt like is the prop's data: `impactClass="high"`, react-scroll's `activeClass="active"`), a slot map (a `classNames` object, by its values at any depth; a `classNames` string is a prefix), a readable object spread onto an element, the class helpers (`cn`, `clsx`, `twMerge` and `classes`; `cx`, `twJoin` and `classNames` where the file imports them; `cva`, and `tv` where imported, by their configs; the names in `settings.ledger.classFunctions` and `settings.ledger.variantFunctions`; a known helper imported under another name or read from a namespace; and a const that holds a helper, `const merge = cn`), a className callback, and what a class site reads in the same file: a `const`; a `let` or `var` with each value assigned to it, and text appended after a space; a destructured slot; the defaults a component gives its props; an entry of a map, a list, an enum or an `Object.freeze` (every entry, for a key known only at runtime); a key a helper's object computes from a same-file value (`cn({ [active]: on })`); each entry of a list a `.map` callback walks; what a function, a `useMemo`, a `useCallback` or a `useState` gives, and what each call gives a same-file function's parameter (`note("text-danger")`); a `[…].join(" ")`, `.filter(Boolean)`, `.trim()`, `.concat()`, `Object.values()` or a spread argument; a template hole that brings its own space (`` `flex${on ? " gap-100" : ""}` ``); and a DOM element's classes, written to `className` (`el.className = "…"`, `+=`) or given to `classList.add` and `classList.toggle`. A module-level string or map whose strings read as classes is reported where it is declared, through an `Object.freeze`, a same-file spread, each branch of a condition, a template's own text and the values of `Object.fromEntries` or `new Map`, but not its data: a bare word no rule knows (`"danger"`, `"none"`), or a key whose values across its records are mostly not classes. A bare word is no evidence that a map holds classes (`"flex"` is also a CSS value, `"hidden"` an attribute), so a style object, a list of attributes or a list of views is no class map.
 
 None of these classes is a token utility, and a class has one owner: this rule reports them, since it names the token, and [`ledger/no-non-token-class`](#ledgerno-non-token-class) leaves them to it. Under `dark:` the class is [`ledger/no-dark-variant`](#ledgerno-dark-variant)'s (`dark:bg-white`), under a variant Tailwind does not generate [`ledger/no-unknown-variant`](#ledgerno-unknown-variant)'s (`tablet:rounded`), and with an opacity modifier it is no longer the stock spelling (`bg-white/50` is [`ledger/no-non-token-class`](#ledgerno-non-token-class)'s, as a palette colour with alpha).
 
@@ -658,13 +658,13 @@ No fix. An editor suggestion only when one token holds the class's value: `durat
 
 ### Allowances
 
-The rule takes the plugin's `allow` option: a count of reports per file that may only shrink. A file with more reports than its count fails, and one with fewer fails until the count is lowered. The kit keeps its counts in `test/lint-allow.json`. This repository's application passes no allowance for the rule, so every report there fails. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
+The rule takes the plugin's `allow` option: a count of reports per file that may only shrink. A file with more reports than its count fails, and one with fewer fails until the count is lowered. Neither the kit's `test/lint-allow.json` nor this repository's `scripts/lint-allow.json` has an entry for it, so every report fails. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
 
 ### Limits
 
 - It knows the stock spellings listed above and no others: a stock value under another name (`rounded-md`, `shadow-lg`, `bg-gray-100`) is [`ledger/no-non-token-class`](#ledgerno-non-token-class)'s alone.
 - A class built at runtime is not one the lint can check. A template or a concatenation that glues a value to a word (`` `text-${tone}-600` ``, `"bg-" + tone`) leaves no fragment to report: [`ledger/no-non-token-class`](#ledgerno-non-token-class) reports it once as a class built at runtime, and the whole classes beside it are still read.
-- A class the lint cannot follow is not seen: one passed in through a prop (a received `className` is the caller's), imported from another file, returned by a function from another file, or held in a variable changed other than by assigning it (`k++`, `k.a = …`, text appended with no space before it). A module-level string is checked where it is declared only when at least half of its words are classes the lint knows, and a module-level map only when most of its strings other than bare words are, so a string of stock classes exported for another file passes, and so does a map a call builds (`(() => ({ … }))()`, a function that returns one) that no class site in the file reads. A `Map` read with `.get`, and a pair destructured from `Object.entries(…)`, are not followed to their values.
+- A class the lint cannot follow is not seen: one passed in through a prop (a received `className` is the caller's), imported from another file, returned by a function from another file, or held in a variable changed other than by assigning it (`k++`, `k.a = …`, text appended with no space before it). A module-level string is checked where it is declared only when at least half of its words are classes the lint knows, or when each word is one it knows or one no data is spelt like and one at least is the latter (a bracketed value, a class with alpha or a Tailwind palette colour, on a utility Tailwind places: `export const width = "w-[240px]"`, but not the identifiers `"sp-800-53/5"` or `"items-[0]"`), and a module-level map only when most of its strings other than bare words are, so a string of other stock classes exported for another file passes (`"p-4 shadow-md"`), and so does a map a call builds (`(() => ({ … }))()`, a function that returns one) that no class site in the file reads. A `Map` read with `.get`, and a pair destructured from `Object.entries(…)`, are not followed to their values.
 - A value in `style` is [`ledger/no-style-design-value`](#ledgerno-style-design-value)'s, and a value in a stylesheet is outside the lint.
 
 ## ledger/no-non-token-class
@@ -673,17 +673,19 @@ Reports a class that is neither a token utility nor a documented structural util
 
 ### Reports
 
-- A class from Tailwind's stock theme that Ledger does not use: a palette colour (`bg-red-500`, `text-zinc-600`) or a stock scale (`p-4`, `text-sm`, `font-bold`, `rounded-md`, `shadow-lg`). It names the Ledger token nearest the value, only from the family the utility's role names: a space for padding, gap, inset and translate (`"p-4" is Tailwind's spacing step 4 (16px), which Ledger's tokens replace. 16px is p-200 (space.200).`), a type style for a text size, then a weight, a radius and a drop shadow. A value between two steps names both, and one off the scale the scale's range. A colour names the roles its hue plays, each with its purpose (`Red is bg-danger-bold (a vibrant background for critical information…) or bg-accent-red-bolder (a red fill that carries no meaning, for…).`), in the state its variant asks for (a hovered token under `hover:`, a disabled one under `disabled:`); a colour and its `dark:` twin on the same site are ranked together, in both modes (`With "dark:bg-gray-900", grey is bg-surface-raised … or bg-surface …`). A stock width or height names no token: `"w-4" is Tailwind's width step 4 (16px). A width is a layout part's, a part's preset or computed from its container (w-full, a grid track).` (a height's example is `h-full`, a size's `size-full`). On an element [`ledger/use-primitives`](#ledgeruse-primitives) reads, in a product (a plain layout element or a layout primitive), a padding or a gap is named as its primitive's prop instead, since that rule reports the class there: `16px is space.200: padding="space.200" on a Box.` `space-x-*` and `space-y-*` set margins on the children, so they name the parent's space (`space="space.200" on a Stack, which spaces its children without margins`). A text size whose type style also sets a weight names it (`20px is font-heading-small (weight 500, …)`), an outline's width the border widths and `outline-focused`, and `ease-in-out`, `ease-out` and `ease-in` their Ledger curves (`ease-standard`, `ease-enter`, `ease-exit`). A grey's roles differ by elevation, not by value, so a grey pair names two roles unless the site names its role with a token twin, and a pale tint written as a colour is its hue's (`#fef2f2` is red), not a grey's.
+- A class from Tailwind's stock theme that Ledger does not use: a palette colour (`bg-red-500`, `text-zinc-600`) or a stock scale (`p-4`, `text-sm`, `font-bold`, `rounded-md`, `shadow-lg`). It names the Ledger token nearest the value, only from the family the utility's role names: a space for padding, gap, inset and translate (`"p-4" is Tailwind's spacing step 4 (16px), which Ledger's tokens replace. 16px is p-200 (space.200).`), a type style for a text size, then a weight, a radius and a drop shadow. A value between two steps names both, and one off the scale the scale's range. A colour names the roles its hue plays, each with its purpose (`Red is bg-danger-bold (a vibrant background for critical information…) or bg-accent-red-bolder (a red fill that carries no meaning, for…).`), in the state its variant asks for (a hovered token under `hover:`, a disabled one under `disabled:`); a colour and its `dark:` twin on the same site are ranked together, in both modes (`With "dark:bg-gray-900", grey is bg-surface-raised … or bg-surface …`). A stock width or height names no token: `"w-4" is Tailwind's width step 4 (16px). A width is a layout part's, a part's preset or computed from its container (w-full, a grid track).` (a height's example is `h-full`, a size's `size-full`). On an element [`ledger/use-primitives`](#ledgeruse-primitives) reads, in a product (a plain layout element or a layout primitive), a padding or a gap is named as its primitive's prop instead, since that rule reports the class there: `16px is space.200: padding="space.200" on a Box.` `space-x-*` and `space-y-*` set margins on the children, so they name the parent's space (`space="space.200" on a Stack, which spaces its children without margins`). A text size whose type style also sets a weight names it (`20px is font-heading-page (weight 600, …)`; a type step the tokens mark replaced is never named), an outline's width the border widths and `outline-focused`, and `ease-in-out`, `ease-out` and `ease-in` their Ledger curves (`ease-standard`, `ease-enter`, `ease-exit`). A stacking order past a part's own steps (`z-30`, `z-50`; a part keeps `z-0`, `z-10` and `z-20` inside itself) names the layers that stack the page's regions, and the layer of its number where there is one (`"z-50" is Tailwind's z-index 50, which Ledger's tokens replace. Use z-overlay, the layer at 50.`). A grey's roles differ by elevation, not by value, so a grey pair names two roles unless the site names its role with a token twin, and a pale tint written as a colour is its hue's (`#fef2f2` is red), not a grey's.
 - A misspelt token class, named when one token class of the same utility is nearest (one edit under six letters, else two): `"bg-surfce" is "bg-surface" misspelt, so it generates no CSS.` Another utility is another property, so `w-row` is never `h-row` nor `border-w-bold` `border-bold`; another emphasis or state of one token (`bg-danger-bolder`, `bg-brand-subtle`) is a value, not a slip; and a class that ends in a Tailwind value keyword is never respelled: a sizing utility at a viewport length (`min-h-dvw`, which generates `min-height: 100dvw`) is Tailwind's own, and reported as unknown. A Ledger-shaped space key that is no key names the keys either side of it (`"p-210" names no key on Ledger's space scale, so it generates no CSS. 210 falls between p-200 (16px) and p-250 (20px).`), and a step past a numbered series its range (`"fill-chart-categorical-9" steps past fill-chart-categorical-*, which runs 1 to 7, so it generates no CSS.`). Any other word in a class position is reported as unknown.
 - The same class under a variant or with `!`: `hover:bg-gray-100`, `!bg-red-500`.
+- A class that names a physical side, whose logical twin is a class Ledger has: `text-left`, `pl-200`, `-right-100`, `border-l`, `rounded-tr-large`. A physical side holds when the page reads right to left, so a right-aligned figure ends up at the start and a leading inset at the end; the twin mirrors with the page: `"text-left" names a physical side, which holds when the page reads right to left. Use "text-start", which mirrors with it.` Under a variant that names a side or a direction (`data-[side=left]:-right-025`, a drawer's `data-[swipe-direction=right]:`, `rtl:`, `ltr:`) the physical side is the meaning and passes, and so does a half inset (`left-1/2` with `-translate-x-1/2`), which centres the same either way. A stock step's advice names its twin's token too (`"pl-4" … 16px is ps-200`).
 - A Tailwind palette colour with an opacity modifier, with its own message, which names the roles its hue plays as the colour shows over each mode's page: `"bg-red-500/50" is a Tailwind palette colour with alpha; neither is on the tokens. Red is bg-danger-subtle (…) or bg-accent-red-subtler (…).` A prefix with no colour tokens (`ring-black/10`) is told to use the token for its role. Alpha on a shadcn theme name (`bg-muted/50`) is named as below; on any other word that is no token (`bg-unknown/50`), it is reported as unknown.
 - A shadcn theme name, which generates no CSS in Ledger, named as the Ledger class for its job: `"text-muted-foreground" is shadcn's secondary text colour, which generates no CSS in Ledger. Use text-subtle.` Where the job has two classes it names both and when each fits (`bg-muted`: `bg-neutral` for a neutral fill, `bg-surface-sunken` for a recessed region), and `bg-accent` adds that Ledger's `accent-*` colours are hues with no meaning. Under a state variant its entry keys, the name takes that state's class: a selected, checked or pressed item (`data-[state=on]:bg-accent`, `aria-selected:`, `data-[state=selected]:bg-muted`) is `bg-selected` or `text-selected`, and a placeholder (`placeholder:text-muted-foreground`) `text-subtlest`; cmdk's `data-[selected=true]` marks the highlighted item, so it keeps the hover background. With alpha it names the colour and leaves the shade to a state token: `"bg-muted/50" is shadcn's muted background with alpha, …; a shade of it is a state token, never alpha.` The names and their classes are one table, `build/vocabulary-aliases.json`, which the token build checks (each name generates no CSS and is no Ledger class, and each class is one the allowlist lists) and the [Coming from shadcn](?path=/docs/guidance-coming-from-shadcn--docs) page shows. `border-input` and `bg-input` are Ledger's own tokens too, and pass.
 - A leading minus on a padding, gap or size, which Tailwind does not negate, so the class generates no CSS, with its own message: `"-p-200" generates no CSS: padding cannot be negative. Drop the minus, or pull the content outward with Bleed.` A size says only to drop the minus (`"-size-full" generates no CSS: width and height cannot be negative. Drop the minus.`). A minus on any other utility Tailwind does not negate (`-border-default`, `-line-clamp-2`) is reported as unknown, and a minus where Tailwind negates the utility (`-inset-x-100`, `-translate-y-full`, `-indent-200`) passes.
 - A spelling Tailwind generates no CSS for, though it looks like structure: an alignment value another property takes (`items-between`), `inert` (an attribute, not a class), `-mt-auto`, `grid-cols-0`, `float-both`, `size-screen`, a chart library class other than the one the kit's chart reads, and a kit utility its CSS does not declare (`stat-grid-7`).
+- A layout rule the kit keeps inside one of its parts, which generates no CSS as a class, with the part that owns it and what to write instead: `sticky-rail` is StickyRail's (`"lg:sticky-rail" is StickyRail's own layout, kept inside the part, so the class generates no CSS. Wrap the column in <StickyRail from="lg">.`), the `shell-*` regions and `grid-cols-main-rail` the Shell's (compose its parts; the rail is Shell.Aside beside Main), `min-h-work` and `grid-cols-list-detail` WorkPane's (a WorkPane, or `min-h-dvh` for a region as tall as the window), and `sticky-bar` ActionBar's (a record's actions go in PageHeader.Actions).
 - A class built at runtime: a template or a concatenation that glues a value to a word, reported once where it is written, whatever element it reaches: `"bg-${tone}" builds a class name at runtime, which Tailwind cannot generate and the lint cannot check.` Its fragments (`bg-`) and the value it glues are not reported as classes, and only the glued words are quoted; the whole classes beside it are read as usual. A hole whose every value brings its own space, or is empty (`` `flex${on ? " gap-100" : ""}` ``), glues nothing: the word beside it and the hole's classes are read.
 - Stale lint data, once per file at line 1, whichever of this rule, [`ledger/no-arbitrary-value`](#ledgerno-arbitrary-value) and [`ledger/no-unknown-variant`](#ledgerno-unknown-variant) runs first on the file: `"src/generated/lint.json" is stale: src/styles/layout.css has changed since the token build wrote it. Run npm run build:tokens in @ledger/design-system.` In the kit's checkout the data is stale when an input it was built from (the allowlist, the token docs or a stylesheet) has changed since; anywhere, when `lint-values.json` comes from another build than `lint.json`. The finding is about the package's build, not the file, and the rules still judge the file. The Lint rules page says what the lint data holds, under "What the lint knows of Tailwind".
 
-It reads every place the lint reads classes: `className`, `class` and any `*ClassName` attribute or object key (a `class` value that reads as no classes, such as OSCAL's `"sp800-53a"`, is data), a slot map (a `classNames` object, by its values at any depth; a `classNames` string is a prefix), a readable object spread onto an element, the class helpers (`cn`, `clsx`, `twMerge` and `classes`; `cx`, `twJoin` and `classNames` where the file imports them; `cva`, and `tv` where imported, by their configs; the names in `settings.ledger.classFunctions` and `settings.ledger.variantFunctions`; a known helper imported under another name or read from a namespace; and a const that holds a helper, `const merge = cn`), a className callback, and what a class site reads in the same file: a `const`; a `let` or `var` with each value assigned to it, and text appended after a space; a destructured slot; the defaults a component gives its props; an entry of a map, a list, an enum or an `Object.freeze` (every entry, for a key known only at runtime); a key a helper's object computes from a same-file value (`cn({ [active]: on })`); each entry of a list a `.map` callback walks; what a function, a `useMemo`, a `useCallback` or a `useState` gives, and what each call gives a same-file function's parameter (`note("text-danger")`); a `[…].join(" ")`, `.filter(Boolean)`, `.trim()`, `.concat()`, `Object.values()` or a spread argument; a template hole that brings its own space (`` `flex${on ? " gap-100" : ""}` ``); and a DOM element's classes, written to `className` (`el.className = "…"`, `+=`) or given to `classList.add` and `classList.toggle`. A module-level string or map whose strings read as classes is reported where it is declared, through an `Object.freeze`, a same-file spread, each branch of a condition, a template's own text and the values of `Object.fromEntries` or `new Map`, but not its data: a bare word no rule knows (`"danger"`, `"none"`), or a key whose values across its records are mostly not classes. A bare word is no evidence that a map holds classes (`"flex"` is also a CSS value, `"hidden"` an attribute), so a style object, a list of attributes or a list of views is no class map. A class the lint can say no more of: `"items-between" is neither a token utility nor a documented structural utility.`
+It reads every place the lint reads classes: `className`, `class` (a `class` value that reads as no classes, such as OSCAL's `"sp800-53a"`, is data), any `*ClassName` attribute or object key, any `*Class` attribute of an element (`containerClass`, `iconClass`) for the strings in it that read as classes or are each a class Tailwind places (a word no class is spelt like is the prop's data: `impactClass="high"`, react-scroll's `activeClass="active"`), a slot map (a `classNames` object, by its values at any depth; a `classNames` string is a prefix), a readable object spread onto an element, the class helpers (`cn`, `clsx`, `twMerge` and `classes`; `cx`, `twJoin` and `classNames` where the file imports them; `cva`, and `tv` where imported, by their configs; the names in `settings.ledger.classFunctions` and `settings.ledger.variantFunctions`; a known helper imported under another name or read from a namespace; and a const that holds a helper, `const merge = cn`), a className callback, and what a class site reads in the same file: a `const`; a `let` or `var` with each value assigned to it, and text appended after a space; a destructured slot; the defaults a component gives its props; an entry of a map, a list, an enum or an `Object.freeze` (every entry, for a key known only at runtime); a key a helper's object computes from a same-file value (`cn({ [active]: on })`); each entry of a list a `.map` callback walks; what a function, a `useMemo`, a `useCallback` or a `useState` gives, and what each call gives a same-file function's parameter (`note("text-danger")`); a `[…].join(" ")`, `.filter(Boolean)`, `.trim()`, `.concat()`, `Object.values()` or a spread argument; a template hole that brings its own space (`` `flex${on ? " gap-100" : ""}` ``); and a DOM element's classes, written to `className` (`el.className = "…"`, `+=`) or given to `classList.add` and `classList.toggle`. A module-level string or map whose strings read as classes is reported where it is declared, through an `Object.freeze`, a same-file spread, each branch of a condition, a template's own text and the values of `Object.fromEntries` or `new Map`, but not its data: a bare word no rule knows (`"danger"`, `"none"`), or a key whose values across its records are mostly not classes. A bare word is no evidence that a map holds classes (`"flex"` is also a CSS value, `"hidden"` an attribute), so a style object, a list of attributes or a list of views is no class map. A class the lint can say no more of: `"items-between" is neither a token utility nor a documented structural utility.`
 
 A class has one owner, so it is reported once. This rule reports a class no other class rule owns; the others come first, in this order: a `dark:` class is [`ledger/no-dark-variant`](#ledgerno-dark-variant)'s, any other margin at any key (`mt-4`, `mt-[13px]`) [`ledger/no-margin`](#ledgerno-margin)'s, any other class under a variant Tailwind does not generate (`hovr:bg-red-500`, `tablet:truncate`) [`ledger/no-unknown-variant`](#ledgerno-unknown-variant)'s, an arbitrary value or a variable shorthand (`w-[240px]`, `w-(--rail)`) [`ledger/no-arbitrary-value`](#ledgerno-arbitrary-value)'s, alpha on a token (`bg-brand-bold/50`) [`ledger/no-alpha-token`](#ledgerno-alpha-token)'s, a stock class that fixes a design value (`rounded`, `opacity-50`, `bg-white`) [`ledger/no-static-design-value`](#ledgerno-static-design-value)'s, which names the token that owns it, and a deprecated token [`ledger/no-deprecated-token`](#ledgerno-deprecated-token)'s. The owner is the rule whose fix takes the whole class away or rewrites it.
 
@@ -697,7 +699,8 @@ The token utility for the job; [Which token](?path=/docs/guidance-which-token--d
 
 - A colour: the role's token, such as `text-subtle`, `bg-danger-subtle` or `border-default`. A palette colour with alpha is one of these too: a tone's subtle emphasis (`bg-danger-subtle`) or a surface (`bg-surface-sunken`), never a colour with a modifier. Text takes it as `color` (`color="color.text.danger"`) and a Box as `backgroundColor`; a Heading's `color` is only the text colour or its inverse on a bold fill, since a tone is for a word, not a title.
 - Space and size: the space scale's key on any spacing or sizing property (`p-200`, `gap-100`, `w-400`), or a primitive's prop (`space="space.200"`, `padding="space.200"`).
-- Type: `font-body`, `font-body-small` or `font-heading-small`, or Text's `size` and `weight`.
+- A side: the logical one, which mirrors when the page reads right to left: `text-start` and `text-end`, `ps-` and `pe-`, `start-` and `end-`, `border-s` and `border-e`, `rounded-s`, `rounded-e`, `rounded-ss`, `rounded-se`, `rounded-es` and `rounded-ee`.
+- Type: `font-body`, `font-body-small` or `font-heading-page`, or Text's `size` and `weight`; a title is a Heading.
 - Radius and shadow: `rounded-xsmall` to `rounded-full`, `shadow-raised`, `shadow-overlay`.
 - A shadcn theme name: the Ledger class its message names, from the Coming from shadcn page's table (`text-muted-foreground` is `text-subtle`, `bg-background` is `bg-surface`).
 - A class that depends on a value: a map from each value to its whole class (`{ danger: "bg-danger-subtle", success: "bg-success-subtle" }`, read as `background[tone]`), which Tailwind generates and the rule checks entry by entry, or the part's own prop where it has one, such as a Badge's `tone`.
@@ -733,13 +736,13 @@ export function SummaryCard({ children }: { children: string }) {
 ```
 
 ```tsx reported
-import { Box, Text } from "@ledger/design-system";
+import { Text } from "@ledger/design-system";
 
 export function ControlRow({ selected, name }: { selected: boolean; name: string }) {
   return (
-    <Box padding="space.100" className={selected ? "bg-selected" : "bg-surfce"}>
+    <div className={selected ? "bg-selected" : "bg-surfce"}>
       <Text>{name}</Text>
-    </Box>
+    </div>
   );
 }
 ```
@@ -803,35 +806,35 @@ export function ControlRow({ selected, name }: { selected: boolean; name: string
 ```
 
 ```tsx allowed
-import { Box, Text } from "@ledger/design-system";
+import { Text } from "@ledger/design-system";
 
 const background = { danger: "bg-danger-subtle", success: "bg-success-subtle" } as const;
 
 export function Callout({ tone, children }: { tone: keyof typeof background; children: string }) {
   return (
-    <Box padding="space.200" className={background[tone]}>
+    <div className={background[tone]}>
       <Text>{children}</Text>
-    </Box>
+    </div>
   );
 }
 ```
 
 ### Suggestions and fixes
 
-No fix. An editor suggestion only where one class stands for the class: a misspelt token class's respelling (`bg-surfce` offers `bg-surface`, under the same variants and `!`), and the token of a stock value's role that holds exactly its value (`p-4` offers `p-200`, `text-xs` `font-body-small`, `rounded-xl` `rounded-xxlarge`). A colour is offered only when one role of its hue holds it within ΔE 0.02 in both modes, which a palette colour alone never is, since no token keeps one colour in both; with its `dark:` twin, the pair can be. When two roles hold it, both are named and neither is offered, and a grey pair is offered only where the site names its role with a token twin (`bg-white dark:bg-surface`), since a white page is the surface and a grey as pale is sunken or raised. A padding or a gap named as a primitive's prop is never offered as a class. A value between two steps, a value two tokens hold, a shadow, a width and a colour's roles are named, never offered, since which one is right depends on the role.
+No fix. An editor suggestion only where one class stands for the class: a misspelt token class's respelling (`bg-surfce` offers `bg-surface`, under the same variants and `!`), a physical side's logical twin (`hover:pl-200` offers `hover:ps-200`), and the token of a stock value's role that holds exactly its value (`p-4` offers `p-200`, `text-xs` `font-body-small`, `rounded-xl` `rounded-xxlarge`, `z-50` `z-overlay`). A colour is offered only when one role of its hue holds it within ΔE 0.02 in both modes, which a palette colour alone never is, since no token keeps one colour in both; with its `dark:` twin, the pair can be. When two roles hold it, both are named and neither is offered, and a grey pair is offered only where the site names its role with a token twin (`bg-white dark:bg-surface`), since a white page is the surface and a grey as pale is sunken or raised. A padding or a gap named as a primitive's prop is never offered as a class. A value between two steps, a value two tokens hold, a shadow, a width and a colour's roles are named, never offered, since which one is right depends on the role.
 
 A shadcn theme name names its job, so its Ledger class is an editor suggestion, one for each class when the table names two (`bg-muted` offers `bg-neutral` and `bg-surface-sunken`), under the same variants and `!`. None is offered with alpha, since dropping the alpha changes the look; for a class written in a template, which a suggestion does not rewrite; or for a name whose Ledger class does another job (`bg-border`, a line drawn as a fill, which is `border-default` on a border or a Separator). A suggestion never runs under `--fix`, and it writes only a class no Ledger rule reports.
 
 ### Allowances
 
-The rule takes the plugin's `allow` option: a count of reports per file that may only shrink. A file with more reports than its count fails, and one with fewer fails until the count is lowered. The kit keeps its counts in `test/lint-allow.json`, and the rule is an error in its stories too, so the parts a story demonstrates stay on the tokens. This repository's application passes no allowance for the rule, so every report there fails. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
+The rule takes the plugin's `allow` option: a count of reports per file that may only shrink. A file with more reports than its count fails, and one with fewer fails until the count is lowered. The rule is an error in the kit's stories too, so the parts a story demonstrates stay on the tokens, and neither the kit's `test/lint-allow.json` nor this repository's `scripts/lint-allow.json` has an entry for it, so every report fails. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
 
 ### Limits
 
 - Only the class after the last `:` is checked here. Its variants are [`ledger/no-unknown-variant`](#ledgerno-unknown-variant)'s, which reports a class under one Tailwind does not generate (`hovr:bg-surface`, `tablet:truncate`) whatever its base.
 - A class is checked against the allowlist, not against Tailwind at lint time. Every spelling the allowlist admits generates CSS in the Tailwind release the lint data reflects (the Lint rules page names it); on another release a spelling may generate none, and a class Tailwind generates that the allowlist leaves out is reported.
 - A class built at runtime is reported as one, not read: which class it makes depends on the value, so the rule cannot say whether that class is a token.
-- A class the lint cannot follow is not seen: one passed in through a prop (a received `className` is the caller's), imported from another file, returned by a function from another file, or held in a variable changed other than by assigning it (`k++`, `k.a = …`, text appended with no space before it). A module-level string is checked where it is declared only when at least half of its words are classes the lint knows, and a module-level map only when most of its strings other than bare words are, so a string of stock classes exported for another file passes, and so does a map a call builds (`(() => ({ … }))()`, a function that returns one) that no class site in the file reads. A `Map` read with `.get`, and a pair destructured from `Object.entries(…)`, are not followed to their values.
+- A class the lint cannot follow is not seen: one passed in through a prop (a received `className` is the caller's), imported from another file, returned by a function from another file, or held in a variable changed other than by assigning it (`k++`, `k.a = …`, text appended with no space before it). A module-level string is checked where it is declared only when at least half of its words are classes the lint knows, or when each word is one it knows or one no data is spelt like and one at least is the latter (a bracketed value, a class with alpha or a Tailwind palette colour, on a utility Tailwind places: `export const width = "w-[240px]"`, but not the identifiers `"sp-800-53/5"` or `"items-[0]"`), and a module-level map only when most of its strings other than bare words are, so a string of other stock classes exported for another file passes (`"p-4 shadow-md"`), and so does a map a call builds (`(() => ({ … }))()`, a function that returns one) that no class site in the file reads. A `Map` read with `.get`, and a pair destructured from `Object.entries(…)`, are not followed to their values.
 - The nearest token comes from the lint data (`lint-values.json`). While the data is stale, a stock class is reported as unknown, since stale data is no guide to what the CSS generates today.
 - A class in a stylesheet or in `@apply` is outside the lint; a value in `style` is [`ledger/no-style-design-value`](#ledgerno-style-design-value)'s.
 
@@ -849,7 +852,7 @@ A class whose token carries a deprecation in `tokens/`, as the token build lists
 
 A class has one owner, so it is reported once. Under `dark:` it is [`ledger/no-dark-variant`](#ledgerno-dark-variant)'s (`dark:fill-chart-categorical-8`), whose fix drops the class; the rewrite this rule would write, `dark:fill-chart-categorical-7`, would still be reported. Under a variant Tailwind does not generate (`hovr:fill-chart-categorical-8`) it is [`ledger/no-unknown-variant`](#ledgerno-unknown-variant)'s, since the class generates nothing whatever its token.
 
-The class is reported wherever the lint reads classes: `className`, `class` and any `*ClassName` attribute or object key (a `class` value that reads as no classes, such as OSCAL's `"sp800-53a"`, is data), a slot map (a `classNames` object, by its values at any depth; a `classNames` string is a prefix), a readable object spread onto an element, the class helpers (`cn`, `clsx`, `twMerge` and `classes`; `cx`, `twJoin` and `classNames` where the file imports them; `cva`, and `tv` where imported, by their configs; the names in `settings.ledger.classFunctions` and `settings.ledger.variantFunctions`; a known helper imported under another name or read from a namespace; and a const that holds a helper, `const merge = cn`), a className callback, and what a class site reads in the same file: a `const`; a `let` or `var` with each value assigned to it, and text appended after a space; a destructured slot; the defaults a component gives its props; an entry of a map, a list, an enum or an `Object.freeze` (every entry, for a key known only at runtime); a key a helper's object computes from a same-file value (`cn({ [active]: on })`); each entry of a list a `.map` callback walks; what a function, a `useMemo`, a `useCallback` or a `useState` gives, and what each call gives a same-file function's parameter (`note("text-danger")`); a `[…].join(" ")`, `.filter(Boolean)`, `.trim()`, `.concat()`, `Object.values()` or a spread argument; a template hole that brings its own space (`` `flex${on ? " gap-100" : ""}` ``); and a DOM element's classes, written to `className` (`el.className = "…"`, `+=`) or given to `classList.add` and `classList.toggle`. A module-level string or map whose strings read as classes is reported where it is declared, through an `Object.freeze`, a same-file spread, each branch of a condition, a template's own text and the values of `Object.fromEntries` or `new Map`, but not its data: a bare word no rule knows (`"danger"`, `"none"`), or a key whose values across its records are mostly not classes. A bare word is no evidence that a map holds classes (`"flex"` is also a CSS value, `"hidden"` an attribute), so a style object, a list of attributes or a list of views is no class map.
+The class is reported wherever the lint reads classes: `className`, `class` (a `class` value that reads as no classes, such as OSCAL's `"sp800-53a"`, is data), any `*ClassName` attribute or object key, any `*Class` attribute of an element (`containerClass`, `iconClass`) for the strings in it that read as classes or are each a class Tailwind places (a word no class is spelt like is the prop's data: `impactClass="high"`, react-scroll's `activeClass="active"`), a slot map (a `classNames` object, by its values at any depth; a `classNames` string is a prefix), a readable object spread onto an element, the class helpers (`cn`, `clsx`, `twMerge` and `classes`; `cx`, `twJoin` and `classNames` where the file imports them; `cva`, and `tv` where imported, by their configs; the names in `settings.ledger.classFunctions` and `settings.ledger.variantFunctions`; a known helper imported under another name or read from a namespace; and a const that holds a helper, `const merge = cn`), a className callback, and what a class site reads in the same file: a `const`; a `let` or `var` with each value assigned to it, and text appended after a space; a destructured slot; the defaults a component gives its props; an entry of a map, a list, an enum or an `Object.freeze` (every entry, for a key known only at runtime); a key a helper's object computes from a same-file value (`cn({ [active]: on })`); each entry of a list a `.map` callback walks; what a function, a `useMemo`, a `useCallback` or a `useState` gives, and what each call gives a same-file function's parameter (`note("text-danger")`); a `[…].join(" ")`, `.filter(Boolean)`, `.trim()`, `.concat()`, `Object.values()` or a spread argument; a template hole that brings its own space (`` `flex${on ? " gap-100" : ""}` ``); and a DOM element's classes, written to `className` (`el.className = "…"`, `+=`) or given to `classList.add` and `classList.toggle`. A module-level string or map whose strings read as classes is reported where it is declared, through an `Object.freeze`, a same-file spread, each branch of a condition, a template's own text and the values of `Object.fromEntries` or `new Map`, but not its data: a bare word no rule knows (`"danger"`, `"none"`), or a key whose values across its records are mostly not classes. A bare word is no evidence that a map holds classes (`"flex"` is also a CSS value, `"hidden"` an attribute), so a style object, a list of attributes or a list of views is no class map.
 
 ### Why
 
@@ -928,14 +931,14 @@ It autofixes with `--fix` where the token has a replacement. The fix writes the 
 
 ### Allowances
 
-The rule takes the plugin's `allow` option: a count of reports per file that may only shrink. A file with more reports than its count fails, and one with fewer fails until the count is lowered. The kit keeps its counts in `test/lint-allow.json`. This repository's application passes no allowance for the rule, so every report there fails. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
+The rule takes the plugin's `allow` option: a count of reports per file that may only shrink. A file with more reports than its count fails, and one with fewer fails until the count is lowered. Neither the kit's `test/lint-allow.json` nor this repository's `scripts/lint-allow.json` has an entry for it, so every report fails. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
 
 ### Limits
 
 - It knows one class per deprecated token, the one the token build names for it. The other utilities Tailwind makes from the same token pass: `bg-chart-categorical-8` and `stroke-chart-categorical-8` are not reported.
 - A token read another way is outside it: a CSS variable (`var(--ds-color-chart-categorical-8)`), a value in `style` or a stylesheet, or a prop value, which the part's type checks.
 - A class built at runtime is not one the lint can check. A template or a concatenation that glues a value to a word (`` `fill-chart-categorical-${index}` ``, `"bg-" + tone`) leaves no fragment to report: [`ledger/no-non-token-class`](#ledgerno-non-token-class) reports it once as a class built at runtime, and the whole classes beside it are still read.
-- A class the lint cannot follow is not seen: one passed in through a prop (a received `className` is the caller's), imported from another file, returned by a function from another file, or held in a variable changed other than by assigning it (`k++`, `k.a = …`, text appended with no space before it). A module-level string is checked where it is declared only when at least half of its words are classes the lint knows, and a module-level map only when most of its strings other than bare words are, so a string of stock classes exported for another file passes, and so does a map a call builds (`(() => ({ … }))()`, a function that returns one) that no class site in the file reads. A `Map` read with `.get`, and a pair destructured from `Object.entries(…)`, are not followed to their values.
+- A class the lint cannot follow is not seen: one passed in through a prop (a received `className` is the caller's), imported from another file, returned by a function from another file, or held in a variable changed other than by assigning it (`k++`, `k.a = …`, text appended with no space before it). A module-level string is checked where it is declared only when at least half of its words are classes the lint knows, or when each word is one it knows or one no data is spelt like and one at least is the latter (a bracketed value, a class with alpha or a Tailwind palette colour, on a utility Tailwind places: `export const width = "w-[240px]"`, but not the identifiers `"sp-800-53/5"` or `"items-[0]"`), and a module-level map only when most of its strings other than bare words are, so a string of other stock classes exported for another file passes (`"p-4 shadow-md"`), and so does a map a call builds (`(() => ({ … }))()`, a function that returns one) that no class site in the file reads. A `Map` read with `.get`, and a pair destructured from `Object.entries(…)`, are not followed to their values.
 
 ## ledger/no-deprecated-name
 
@@ -945,12 +948,16 @@ Reports a kit part, prop or value that was renamed or removed, with its replacem
 
 - A renamed part written as JSX (`<Shell.Sidebar>`, `<Shell.NavItem>`, `<Tiles>`, `<Collapsible.Group>`), matched by its name after an alias or a namespace import from the kit, or from a module whose path ends in `/shell`, is resolved. It names the replacement, and says what else changes where the move is more than a new name ("with Header, Body and Footer; the brand moves to Shell.TopNav.Start").
 - A renamed part used as a value outside JSX (`const Nav = Shell.Sidebar`). It names the replacement and says what else changes, as the JSX report does, and is never fixed.
-- The import of a removed page shape (`ShowPage`, `IndexPage`, `RecordHeader`) or of a retired hook, script or helper (`useDensity`, `densityScript`, `controlBase`), reported at the import: a hook or a script is never JSX, and a removed part may share its name with a local component.
-- A renamed prop value on a kit part: `size="sm"` on Switch, SelectTrigger or Card is `size="small"`, and `variant="destructive"` on DropdownMenuItem is `variant="danger"`.
-- A renamed prop on a kit part: `expanded` on Tree.Item is `isExpanded`, `label` on Chart.Donut is `centerLabel`, and a prop that moved with its part's rename, such as `label` on Shell.SideNav.Section, which is `heading`.
-- A prop with no one-to-one replacement, with what to do instead: `baseline` on Chart.Area, since an Area always starts at zero.
+- The import of a removed layout part, with what replaces it: `IndexPage` (a PageHeader over a DataTable with `fill`), `ShowPage` (PageHeader, Section and Shell.Aside), `RecordHeader` (PageHeader), `PreviewRail` (Shell.Aside), `PreviewSplit` and the standalone `Panel` (Shell.Panel) and `Block` (Section); or of a retired hook, script or helper (`useDensity`, `densityScript`, `controlBase`). Each is reported at the import: a hook or a script is never JSX, and a removed part may share its name with a local component.
+- A deprecated part still exported for one version, where the kit's is used: `ActionBar` is a PageHeader, with the trail in PageHeader.Lead, the verbs in PageHeader.Actions and the state in the Details rail (Shell.Aside), and a blocked action a Button with `disabledReason`. A product's own component of the same name is not reported.
+- A renamed prop value on a kit part: `size="sm"` on Switch, SelectTrigger, Card, Toggle, ToggleGroup, ToggleGroupItem or InputGroupButton is `size="small"` (and `default` is `medium`, `lg` is `large`, InputGroupButton's `xs` is `xsmall`), `variant="destructive"` on DropdownMenuItem is `variant="danger"`, and Heading's sizes are the titles the kit draws: `size="large"` is `display`, `medium` is `page` (20/26, the page title's size, where `medium` drew 22/28) and `xsmall` is `overlay`.
+- A prop renamed with its values: `size="sm"` on AlertDialogContent is `width="xsmall"`, and `size="default"` is `width="small"`. A value it cannot read (`size={size}`) names the new prop alone.
+- A renamed prop on a kit part: `expanded` on Tree.Item is `isExpanded`, `open` on Table.Group is `expanded`, `name` on Chart.Donut is `label` and `name` on Chart.Scatter is `nameKey`, `role` on Shell.Profile is `description` (the person's job title, never an ARIA role), `onChange` on Editable.Text and Editable.Select is `onValueChange`, and a prop that moved with its part's rename, such as `label` on Shell.SideNav.Section, which is `heading`.
+- A prop whose meaning moved, where the old meaning is certain: a Chart.Donut `label` that draws the middle is `centerLabel`, since `label` names the ring as it does on every plot. It is read as the middle beside `name`, or when it is a number, a figure written as text (`"75%"`, `` `${n}%` ``) or an element, and never beside `centerLabel`; any other string is the ring's name and passes.
+- A number of pixels where the prop takes a named step: KeyValue's and KeyValue.Group's `labelWidth={88}` is `labelWidth="narrow"`; up to 96 is `narrow`, under 132 the default, from 132 `wide`, and the finding adds that a group in a page body takes `labelWidth="auto"`. A number under a condition or a fallback (`long ? 160 : undefined`) is reported where it is written.
+- A prop or a value with no one-to-one replacement, with what to do instead: `baseline` on Chart.Area, since an Area always starts at zero; `onToggle` on Table.Group, Table.Tree, Table.Disclosure and Tree.Item, which is `onExpandedChange`, called with the next state; InputGroupButton's `size="icon-xs"` and `size="icon-sm"`, an icon-only button that takes `size`, `icon` and a `label`; Heading's `size="small"`, which was both a page title and a section's, so a page or record title is `size="page"` (with `as="h2"` to stay an h2) and a section's title `size="section"`; and Inspector's `groups`, whose groups are composed as `Inspector.Group` children.
 
-The renames live in two maps in `eslint-plugin/index.js`, `deprecatedNames` for parts and `deprecatedAttributes` for props and values; a part's named export (`ChartDonut`, `ItemGroup`) shares its compound's prop renames.
+The renames live in two maps in `eslint-plugin/deprecations.js`, `deprecatedNames` for parts and `deprecatedAttributes` for props and values; a part's named export (`ChartDonut`, `ItemGroup`, `KeyValueGroup`) shares its compound's prop renames.
 
 ### Why
 
@@ -959,7 +966,7 @@ A rename ships with an `@deprecated` alias for one version, and with a fix in th
 ### Instead
 
 - The replacement the report names, following its note where it has one; `--fix` writes the one-to-one renames.
-- For example, `Shell.SideNav.Item` for `Shell.NavItem`, `Stat.Grid` for `Tiles`, `size="small"` for `size="sm"`, `isExpanded` for `expanded`.
+- For example, `Shell.SideNav.Item` for `Shell.NavItem`, `Stat.Grid` for `Tiles`, `size="small"` for `size="sm"`, `isExpanded` for `expanded`, `labelWidth="wide"` for `labelWidth={160}`, `centerLabel` for a Donut's middle.
 - A register is a PageHeader over a DataTable with `fill`; a record page is PageHeader, Section bodies and the Details rail in Shell.Aside.
 - Density is a table's own: Table `density`, or Compact rows in a DataTable's Columns menu.
 
@@ -986,6 +993,18 @@ import { Switch } from "@ledger/design-system";
 
 export function NotifyOwners({ on }: { on: boolean }) {
   return <Switch size="sm" checked={on} aria-label="Notify owners" />;
+}
+```
+
+```tsx reported
+import { AlertDialogContent, AlertDialogTitle } from "@ledger/design-system";
+
+export function RemoveAllocation() {
+  return (
+    <AlertDialogContent size="sm">
+      <AlertDialogTitle>Remove this allocation?</AlertDialogTitle>
+    </AlertDialogContent>
+  );
 }
 ```
 
@@ -1041,12 +1060,16 @@ export function RiskBand({ open, high }: { open: number; high: number }) {
 
 - A part renamed under the same root: `Shell.NavItem` becomes `Shell.SideNav.Item`, the closing tag with it, and a prop that moved with the part is renamed too (`label` becomes `heading` on `Shell.SideNav.Section`). An alias or a namespace prefix is kept: `DsShell.NavItem` becomes `DsShell.SideNav.Item`, `Kit.Shell.NavItem` becomes `Kit.Shell.SideNav.Item`.
 - A renamed prop (`expanded` becomes `isExpanded`) and a renamed literal value, in its own quotes (`size='sm'` becomes `size='small'`).
+- A Donut's `label` that draws the middle becomes `centerLabel`, and its `name` becomes `label` once the `label` is gone, on the next pass: `<Chart.Donut label="64%" name="Coverage" />` becomes `<Chart.Donut centerLabel="64%" label="Coverage" />`.
+- A label width in pixels becomes its step, as a string where the number was the whole value (`labelWidth={88}` becomes `labelWidth="narrow"`) and in place where it was a branch (`{long ? "wide" : undefined}`).
+- A prop renamed with its values, in one fix: `<AlertDialogContent size="sm">` becomes `<AlertDialogContent width="xsmall">`.
 
 It offers no fix, and reports only:
 
-- when the move is more than a new name (`Shell.Sidebar`, `Tiles`, `Collapsible.Group`), for a removed or retired import, for a prop with only a note, and for a part used as a value;
+- when the move is more than a new name (`Shell.Sidebar`, `Tiles`, `Collapsible.Group`, `ActionBar`), for a removed or retired import, for a prop or a value with only a note, and for a part used as a value;
+- for a prop renamed with its values whose value is not a literal (`size={size}`), which may need its new spelling too;
 - when the tag's root is not the kit's import where it is written: a local object, another package's part, or a parameter or variable that shadows the import;
-- for a prop whose new name the element already sets. The tag is still renamed, and the old prop stays, reported on the new part until one of the two is removed.
+- for a prop whose new name the element already sets. The tag is still renamed, and the old prop stays, reported on the new part until one of the two is removed. The same holds for a prop renamed with its values: `<AlertDialogContent size="sm" width="medium">` keeps both until one goes.
 
 It offers no editor suggestions.
 
@@ -1058,7 +1081,7 @@ In the kit, `test/lint-allow.json` may hold a count of this rule's reports per f
 
 - A part's tag is matched by what it is bound to: the kit's name through an alias or a namespace (three levels deep too, `Kit.Shell.SideNav.Section`), another package's by the name it imports, and a local object by its name, so another package's part or a local object that shares a renamed name (`Shell.NavItem`) is reported too, though never fixed. A type of the same name hides nothing. A parameter, or a local that shadows the kit's import, is no part and is neither reported nor fixed.
 - Prop and value renames are read only on parts imported from `@ledger/design-system`, by name, alias or namespace, and in the kit's own source on parts it imports by a relative path, where a part that composes another passes the new names (DataTable's pagination hands SelectTrigger `size="small"`). The kit's stories are not read for them: a story shows the old prop beside the new while the part still takes it.
-- Only a literal value is read: `size={size}`, a value in a constant and a prop in a spread (`{...props}`) are not seen.
+- Only a literal value is read: `size={size}`, a value in a constant and a prop in a spread (`{...props}`) are not seen, except that a prop renamed with its values (AlertDialogContent's `size`) is reported by its name whatever its value. A label width or a Donut `label` the rule cannot read (`labelWidth={width}`, `label={title}`, a template of words) may already be the new spelling, so it is left alone.
 - A renamed part reached by destructuring (`const { Sidebar } = Shell`) is not seen.
 - A deprecated token's class is [`ledger/no-deprecated-token`](#ledgerno-deprecated-token)'s.
 
@@ -1169,7 +1192,7 @@ The rule takes the plugin's `allow` option, a count of reports per file that may
 
 - It judges a kit part only. A plain element, a local look-alike and another package's part are not checked; the token rules still read what they can of them.
 - A class glued together at runtime (`` `bg-${tone}` ``) is [`ledger/no-non-token-class`](#ledgerno-non-token-class)'s, which reports it as built at runtime.
-- A wrapper that spreads its props onto a part (`const Mine = (props) => <Button {...props} />`) is not the part, so a class given to it is not checked here.
+- A component of the file that hands its `className` on to a part (`const Mine = (props) => <Button {...props} />`) is read as that part, and the finding says so: `<Mine> forwards className to <Button>, whose className is imported from "./theme", …`. One imported from another file is not the part, so a class given to it is not checked here.
 - A parameter whose default is an object, read through another name (`const t = tones; t.a` with `{ tones = { a: "…" } }`), reads as that default.
 - In the kit's own source, a relative import that stays inside its `src` is the kit, read where it is declared; in a product only `@ledger/design-system` is. A value from another package is that package's: its classes are not Ledger's vocabulary.
 - The part's styling props come from its type, as the package's build reads it (`eslint-plugin/components.json`): the choices it declares and its `is…` flags. A part with none gets the second half of the advice alone.
@@ -1182,9 +1205,9 @@ Reports a neutral colour, weight or type token on a Table.Cell, where only a sta
 
 - A `Table.Cell` whose `className` holds a neutral text colour (`text-default`, `text-subtle`, `text-subtlest`, `text-brand`, `text-selected`, `text-inverse`, `text-disabled`), a type style (`font-body`, `font-body-large`, `font-body-small`, `font-body-xsmall`, `font-heading-*`, `font-code`) or a weight (`font-regular`, `font-medium`, `font-semibold`).
 
-One report per cell, on its `className`, naming every such class it holds. A status colour (`text-danger`, `text-warning`, `text-success`, `text-information`) is not reported.
+One report per cell, on its `className`, naming every such class it holds, also at a breakpoint, in a state or with `!` (`md:font-semibold`). A status colour (`text-danger`, `text-warning`, `text-success`, `text-information`) is not reported, nor a class that styles the elements inside the cell (`[&_svg]:text-subtle`), which is [`ledger/no-restyle`](#ledgerno-restyle)'s.
 
-The cell is the kit's `Table.Cell`, imported from `@ledger/design-system` by name, alias (`<T.Cell>`) or namespace (`<L.Table.Cell>`). An element whose `render` puts the cell in its place (`<Slot render={<Table.Cell />} className="…">`, or a render function that spreads its props onto the cell) styles the cell, and the finding says so: `<Slot> renders <Table.Cell>, which is one style.`
+The cell is the kit's `Table.Cell`, imported from `@ledger/design-system` by name, alias (`<T.Cell>`) or namespace (`<L.Table.Cell>`). An element whose `render` puts the cell in its place (`<Slot render={<Table.Cell />} className="…">`, or a render function that spreads its props onto the cell) styles the cell, and the finding says so: `<Slot> renders <Table.Cell>, which is one style.` So does a component of the file that hands its `className` on to the cell (`const Cell = (props) => <Table.Cell {...props} />`), at each `<Cell className="…">`: `<Cell> forwards className to <Table.Cell>, which is one style.`
 
 ### Why
 
@@ -1280,7 +1303,8 @@ The rule is off in the package preset, so the kit keeps no allowance for it. The
 
 - It judges the kit's `Table.Cell` only: a local object named `Table`, another package's `Table`, a parameter named `Table` and a type-only import are not checked.
 - Only the cell's own `className`. A styled element inside the cell (`<Table.Cell><span className="font-semibold">`), a `Table.Header`, a `Table.Id`, a plain `td` and a DataTable column's `cell` renderer are not checked.
-- The classes are read as the class rules read them: through a condition, a template, a class helper, a same-file `const` or map entry, and an object spread onto the element that sets `className` and is not written over by a later one (JSX keeps the last). One with a variant (`hover:text-subtle`), one passed in through a prop, imported from another file or returned by a call the lint cannot follow, and one built at runtime are not seen.
+- The classes are read as the class rules read them: through a condition, a template, a class helper, a same-file `const` or map entry, and an object spread onto the element that sets `className` and is not written over by a later one (JSX keeps the last). One passed in through a prop, imported from another file or returned by a call the lint cannot follow, and one built at runtime are not seen.
+- A component that hands its `className` on to the cell is followed within the file, through up to four such components, when its first parameter carries it: the props object or a rest that still holds it, spread onto the element, or `className` destructured (in the parameter, or from the props object at the top of its body) and written onto it. Of the elements a component hands it to, the first in source order counts, passing over one that renders a component already on the way (a tree that renders itself). A component imported from another file, one declared with `let`, one read from an object (`<parts.Row>`), a component past the fourth and a second element given the same prop are not followed.
 - It does not run on the kit's own source.
 
 ## ledger/id-not-blue
@@ -1291,6 +1315,7 @@ Reports an Id coloured `text-brand` with no link or button around it: an Id is b
 
 - An `Id` whose `className` holds `text-brand` and that has no `a`, `Link`, `TextLink`, `button` or `Button` element around it. The finding leads with the Id as written: `<Id> is blue (text-brand) with no link or button around it, and blue means link, so it reads as a link that goes nowhere. Drop text-brand, or make the Id the text of the TextLink that opens its record.`
 - The same on an element whose `render` puts an `Id` in its place (`<Badge render={<Id />} className="text-brand">`): `<Badge> renders <Id> in blue (text-brand) with no link or button around it, and blue means link.` A link or a button that renders the Id is its link.
+- The same through a component of the file that hands its `className` on to an `Id` (`function Code({ className }) { return <Id className={className} />; }`), when that Id has no link or button around it: `<Code> forwards className to <Id>, which is then blue (text-brand) with no link or button around it, and blue means link.`
 
 The Id is the kit's, imported from `@ledger/design-system` by name, alias (`<Code>`) or namespace (`<L.Id>`). A `TextLink` or a `Button` around it counts when it is the kit's, by the same import; `a`, `Link` and `button` count by their tag.
 
@@ -1386,7 +1411,8 @@ The rule is off in the package preset, so the kit keeps no allowance for it. The
 ### Limits
 
 - It judges the kit's `Id` only: `Table.Id` and `Id.List` are not checked, and a local component, another package's part or a parameter named `Id` is not the kit's. A `Button` that is not the kit's is no button around it.
-- Only `text-brand` as a class of its own in the Id's `className`, read as the class rules read them: through a condition, a template, a class helper, a same-file `const` or map entry, and an object spread onto the element that sets `className` and is not written over by a later one (JSX keeps the last). One with a variant (`hover:text-brand`), one passed in through a prop, imported from another file or returned by a call the lint cannot follow, and one built at runtime are not seen.
+- Only `text-brand` as a class of its own in the Id's `className`, read as the class rules read them: through a condition, a template, a class helper, a same-file `const` or map entry, and an object spread onto the element that sets `className` and is not written over by a later one (JSX keeps the last). `text-brand` at a breakpoint, in a state or with `!` counts; one that colours the elements inside the Id (`[&_span]:text-brand`) is [`ledger/no-restyle`](#ledgerno-restyle)'s. One passed in through a prop, imported from another file or returned by a call the lint cannot follow, and one built at runtime are not seen.
+- A component that hands its `className` on to an Id is followed within the file, through up to four such components, when its first parameter carries it: the props object or a rest that still holds it, spread onto the element, or `className` destructured (in the parameter, or from the props object at the top of its body) and written onto it. Of the elements a component hands it to, the first in source order counts, passing over one that renders a component already on the way (a tree that renders itself). A component imported from another file, one declared with `let`, one read from an object (`<parts.Row>`), a component past the fourth and a second element given the same prop are not followed.
 - The link must be an element around the Id in the same JSX: an `a`, `Link` or `button`, the kit's Button, TextLink, LinkButton or LinkIconButton, or an element whose `render` puts one of those in its place (`<DialogTrigger render={<Button />}>`). An Id that another component places inside a link is reported, and so is one inside a NavLink or any other part that renders a link.
 - It does not run on the kit's own source.
 
@@ -1497,9 +1523,10 @@ Reports a link that imitates TextLink by hand, and a link that opens a new tab w
 
 ### Reports
 
-- An `a`, `Link` or `NavLink` whose `className` carries `text-brand` or `hover:underline`: `<a> carries the text-link classes. Compose it with TextLink render and drop text-brand and hover:underline.`
+- An `a`, `Link` or `NavLink` whose `className` carries `text-brand` or `hover:underline`, also at a breakpoint, on hover or focus or with `!` (`md:text-brand`), though not `text-brand` under a state that marks the current destination (`aria-[current=page]:`, `aria-selected:`, `data-[status=active]:`, `data-active:`, `[&.active]:`), which is a navigation link's active state: `<a> carries the text-link classes. Compose it with TextLink render and drop text-brand and hover:underline.`
 - An `a`, `Link` or `NavLink` with `target="_blank"` that no element holds in a prop: `<a target="_blank"> opens a new tab without saying so. Use TextLink newTab (render={<a … />} for a router link).`
 - A TextLink with `target="_blank"` and no `newTab`: `target="_blank" on <TextLink> opens a new tab without saying so. Use newTab, which sets rel and says "(opens in a new tab)", and drop target and rel.`
+- A component of the file that hands `target` on to a TextLink with no `newTab`, given `target="_blank"`: `target="_blank" on <Out>, which forwards target to <TextLink>, opens a new tab without saying so. Use newTab, which sets rel and says "(opens in a new tab)", and drop target and rel.`
 - A link with `target="_blank"` in a TextLink's `render`, also through a condition or a fallback, when the TextLink has no `newTab`: `target="_blank" on <a> in a TextLink's render opens a new tab the TextLink does not announce. Give the TextLink newTab, which sets rel and says "(opens in a new tab)", and drop target.`
 - A `Button` with `variant="link"` and `asChild`: `<Button variant="link" asChild> wraps a link in a Button styled as text. A link that reads as text is TextLink (render={<Link … />} for a router link); variant="link" is for an action.`
 
@@ -1606,12 +1633,13 @@ Neither. Moving a link into TextLink changes the element and its props, so the r
 
 ### Allowances
 
-The rule takes the plugin's `allow` option: a count of reports per file that may only shrink. A file with more reports than its count fails, and one with fewer fails until the count is lowered. The kit keeps its counts in `test/lint-allow.json`, and this repository's root config reads the application's from `scripts/lint-allow.json`, where they hold the sites that predate the rule's reach onto new-tab links. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
+The rule takes the plugin's `allow` option: a count of reports per file that may only shrink. A file with more reports than its count fails, and one with fewer fails until the count is lowered. The kit's `test/lint-allow.json` has no entry for it. This repository's root config reads the application's counts from `scripts/lint-allow.json`, where one holds a site that predates the rule's reach onto new-tab links. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
 
 ### Limits
 
 - It knows the links by their tag, `a`, `Link` and `NavLink`; a router link under another name is not checked. A TextLink or a Button that is not the kit's (a local component, another package's part, a parameter, a story's own component in the kit) is not checked.
 - It reads `target` only when it is the string `"_blank"`, so a target held in a variable or passed in through a spread is not seen. A link's classes are read as the class rules read them: through a condition, a template, a class helper, a same-file `const` or map entry, and an object spread onto the element that sets `className` and is not written over by a later one (JSX keeps the last); one passed in through a prop or imported from another file is not.
+- A component that hands `target` on to a TextLink is followed within the file, through up to four such components, when its first parameter carries it: the props object or a rest that still holds it, spread onto the element, or `target` destructured (in the parameter, or from the props object at the top of its body) and written onto it. Of the elements a component hands it to, the first in source order counts, passing over one that renders a component already on the way (a tree that renders itself). A component imported from another file, one declared with `let`, one read from an object (`<parts.Row>`), a component past the fourth and a second element given the same prop are not followed.
 - A link that another part holds in a prop (`render`, `openLink`) is that part's to announce, so it is reported only in a TextLink's `render`.
 - The text-link classes are `text-brand` and `hover:underline`; other classes that imitate a link, such as `underline` alone, are not reported.
 
@@ -1731,8 +1759,9 @@ Reports an icon sized by hand as a child of a Button or an IconButton, where the
 - An element with a `size-icon-*` class written as a direct child of a `Button`. The finding leads with the icon as written and its size class, and names the slot: `<PlusIcon> is sized by hand ("size-icon-small") as a Button's child, where the Button can neither size it nor swap it for the spinner. Pass it bare: iconBefore={<PlusIcon />} or iconAfter.`
 - The same inside an `IconButton`, whose `icon` prop takes it: `… The IconButton sizes its icon and names it from label: pass it bare, icon={<XIcon />}.`
 - The same inside an element whose `render` puts a kit Button or IconButton in its place, which then holds the element's children (`<DialogTrigger render={<Button />}>`): `<PlusIcon> is sized by hand ("size-icon-small") inside <DialogTrigger>, which renders a Button that sizes its own icons. Pass it bare in that Button's iconBefore or iconAfter.`
+- The same among the children of a component of the file that hands its children on to a Button or IconButton (`const Go = (props) => <Button {...props} />`): `<PlusIcon> is sized by hand ("size-icon-small") inside <Go>, which renders a Button that sizes its own icons. Pass it bare in that Button's iconBefore or iconAfter.`
 
-The class is read from the child's own `className`, as the class rules read them: through a condition, a template, a class helper, a same-file `const` or map entry, and an object spread onto the element that sets `className` and is not written over by a later one (JSX keeps the last). Each such icon is reported once, on the icon element.
+The class is read from the child's own `className`, as the class rules read them: through a condition, a template, a class helper, a same-file `const` or map entry, and an object spread onto the element that sets `className` and is not written over by a later one (JSX keeps the last), also at a breakpoint, in a state or with `!` (`md:size-icon-small`). Each such icon is reported once, on the icon element.
 
 The Button and the IconButton are the kit's, imported from `@ledger/design-system` by name, alias (`<Action>`) or namespace (`<Kit.Button>`); inside the kit, a relative import of the part is the part. A type of the same name (a type parameter, a local type or interface) hides nothing.
 
@@ -1840,7 +1869,8 @@ In the kit, `test/lint-allow.json` may hold a count of this rule's reports per f
 
 - It judges the kit's `Button` and `IconButton` only: LinkButton and LinkIconButton are not checked, and a local component, another package's part, a parameter named `Button` and, in the kit's stories, a story's own `Button` are not the kit's.
 - Only a direct child element is read. An icon inside a fragment or a wrapper, one held in a variable (`{icon}`), or one a component renders is not seen.
-- Only the child's own `className`: a class passed in through a prop or imported from another file, a `size-icon-*` class with a variant or `!`, or another size (`size-150`) is not seen.
+- Only the child's own `className`: a class passed in through a prop or imported from another file, or another size (`size-150`), is not seen.
+- A component that hands its children on to a Button is followed within the file, through up to four such components, when its first parameter carries it: the props object or a rest that still holds it, spread onto the element, or `children` destructured (in the parameter, or from the props object at the top of its body) and written onto it. Of the elements a component hands it to, the first in source order counts, passing over one that renders a component already on the way (a tree that renders itself). A component imported from another file, one declared with `let`, one read from an object (`<parts.Row>`), a component past the fourth and a second element given the same prop are not followed.
 - An icon already in a slot that still carries a size class is not reported.
 
 ## ledger/no-native-confirm
@@ -1909,7 +1939,7 @@ export function DiscardChanges({ onDiscard }: { onDiscard: () => void }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger render={<Button />}>Discard changes</AlertDialogTrigger>
-      <AlertDialogContent size="sm">
+      <AlertDialogContent width="xsmall">
         <AlertDialogHeader>
           <AlertDialogTitle>Discard your changes?</AlertDialogTitle>
           <AlertDialogDescription>
@@ -1964,6 +1994,7 @@ Reports a TextLink with no destination, or one that renders a button or a native
 
 - A `TextLink` with no `href`, no `render` and no prop spread, so it goes nowhere: `TextLink needs a destination: an href, or a router link in render. An action that reads as text is a Button.`
 - A `TextLink` whose `render` is a native element other than `<a>` (`<button>`, `<span>`), or a kit `Button` or `IconButton`: `TextLink must render an anchor or a router link. Use Button for an action.`
+- A component of the file that hands its props on to a TextLink that has no destination of its own, given neither an `href` nor a spread, or given a `render` that is no link: `<More> forwards its props to <TextLink>, which needs a destination: an href, or a router link in render.` and `<More> forwards render to <TextLink>, which must render an anchor or a router link.`
 
 A custom component in `render`, such as a router `Link` or an application's record link, is accepted. `TextLink`, `Button` and `IconButton` are followed through an alias or a namespace import from `@ledger/design-system`.
 
@@ -2052,6 +2083,7 @@ The rule takes the plugin's `allow` option, a count of reports per file that may
 - A `TextLink` with a prop spread and no `href` or `render` passes, since the spread may carry one.
 - A `render` function (`render={(props) => …}`) is not read.
 - A TextLink and the part in its `render` are known by what their tags are bound to: the kit's, by name, alias or namespace (inside the kit, by a relative import), another package's by the name it imports (an alias or a namespace resolved), and a local component by the name it is written with, since any part of that name has the same defect. A type of the same name (a type parameter, a local type or interface) hides nothing. A parameter, or a local that shadows an outer name, is no part and is skipped.
+- A component that hands its props on to a TextLink is followed within the file, through up to four such components, when its first parameter carries it: the props object or a rest that still holds it, spread onto the element, or the prop destructured (in the parameter, or from the props object at the top of its body) and written onto it. Of the elements a component hands it to, the first in source order counts, passing over one that renders a component already on the way (a tree that renders itself). A component imported from another file, one declared with `let`, one read from an object (`<parts.Row>`), a component past the fourth and a second element given the same prop are not followed.
 
 ## ledger/dialog-footer-order
 
@@ -2062,6 +2094,7 @@ Reports a Cancel or close control that comes after the primary action in a dialo
 - In a `DialogFooter`, `AlertDialogFooter`, `SheetFooter` or `DrawerFooter`, any cancel that follows the first primary. The finding names the cancel and the footer as written, and what the cancel dismisses: `<DialogClose> dismisses the dialog but comes after the primary action in <DialogFooter>. Put it first: the safe answer leads, and the primary ends the footer, where a keyboard reader reaches it last.` Each late cancel is its own report.
 - A cancel is a `Button` whose text is exactly `Cancel`, or a close part (`DialogClose`, `SheetClose`, `DrawerClose`, `AlertDialogCancel`) that is not itself the primary.
 - A primary is an `AlertDialogAction`, or a `Button` or close part with `variant="primary"`, written on it or on the element in its `render`.
+- The same among the children of a component of the file that hands them on to a footer (`const Actions = ({ children }) => <DialogFooter>{children}</DialogFooter>`): `<Button> dismisses the dialog but comes after the primary action in <Actions>, which forwards its children to <DialogFooter>.`
 
 The footer's children are read through fragments, wrapping elements such as an `Inline`, and the right-hand side of `&&`. Kit names are followed through an alias or a namespace import from `@ledger/design-system` (`import { DialogFooter as Footer }`, `<Kit.DialogFooter>`).
 
@@ -2179,6 +2212,7 @@ The rule takes the plugin's `allow` option, a count of reports per file that may
 ### Limits
 
 - It reads the footer's own JSX in the file. Buttons that a component renders from inside the footer (`<DialogFooter><FormActions /></DialogFooter>`) are not seen.
+- A component that hands its children on to a footer is followed within the file, through up to four such components, when its first parameter carries it: the props object or a rest that still holds it, spread onto the element, or `children` destructured (in the parameter, or from the props object at the top of its body) and written onto it. Of the elements a component hands it to, the first in source order counts, passing over one that renders a component already on the way (a tree that renders itself). A component imported from another file, one declared with `let`, one read from an object (`<parts.Row>`), a component past the fourth and a second element given the same prop are not followed.
 - The two branches of a conditional are never compared with each other, since only one of them renders; only the right-hand side of `&&` is read.
 - A cancel is known by its exact text or by being a close part: a `Button` labelled `Keep editing`, or one whose label is a variable, counts only when it is a close part. A primary is known by a written `variant="primary"`; a variant from a variable is not read.
 - Controls inside a nested dialog, sheet or drawer part within the footer are skipped.
@@ -2192,6 +2226,7 @@ Reports `autoFocus` inside an overlay's content, where it takes over from the ov
 
 - `autoFocus` on any element inside the content or popup of a Dialog, Sheet, AlertDialog, Drawer, Popover, HoverCard, DropdownMenu, ContextMenu or Command (`DialogContent`, `PopoverContent`, `DropdownMenuContent` and so on, or the same part named `…Popup`), or inside a `PickerSheet`, `RecordBrowser`, `PreviewSheet`, `CommandDialog` or `CommandPalette`.
 - `autoFocus` inside a component of the same file that such content renders, directly or through other components of the file: `<SheetContent><FilterFields /></SheetContent>` with `autoFocus` in `FilterFields`.
+- `autoFocus` among the children of a component of the same file that hands its children on to such content (`const Pane = (props) => <DialogContent {...props} />` with `<Pane><input autoFocus /></Pane>`): `<input autoFocus> is inside <Pane>, which forwards its children to <DialogContent>, where it races the overlay's own focus.`
 
 `autoFocus={false}` is not reported; any other value is. The overlay parts are followed through an alias or a namespace import. The finding leads with the element as written and names the overlay part it is inside: `<Input autoFocus> is inside DialogContent, where it races the overlay's own focus and can lose where focus returns on close. Give DialogContent initialFocus, a ref to this element, and finalFocus where the opener goes away.` A component name too long for the message limit gives way to its last part.
 
@@ -2342,11 +2377,11 @@ Neither. The fix needs a ref on the field and `initialFocus` on the content, whi
 
 ### Allowances
 
-The rule takes the plugin's `allow` option, a count of reports per file that may only shrink. It runs in both presets; `configs.package` turns it off in the kit's stories, where a Don't story shows the mistake on purpose. The kit's `test/lint-allow.json` counts the kit's sites that predate it; this repository's `scripts/lint-allow.json` has no entry for it, so every report in the application fails. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
+The rule takes the plugin's `allow` option, a count of reports per file that may only shrink. It runs in both presets; `configs.package` turns it off in the kit's stories, where a Don't story shows the mistake on purpose. Neither the kit's `test/lint-allow.json` nor this repository's `scripts/lint-allow.json` has an entry for it, so every report fails: the kit's date pickers open their month through `initialFocus`, as a screen's dialog does. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
 
 ### Limits
 
-- Components are followed within the file only. A field component imported from another file and rendered inside the overlay is not read, nor is a local overlay wrapper under another name (`FormDialog`) that renders the kit's content.
+- Components are followed within the file only. A field component imported from another file and rendered inside the overlay is not read, nor is an overlay wrapper imported from another file; one of the same file that hands its children on to the kit's content (`FormDialog`) is read, through up to four such components, its props destructured in the parameter or at the top of its body; one declared with `let` or read from an object is not.
 - A component is matched by its name, so two components of the same name in one file are one to the rule.
 - Focus moved by code, such as a ref callback or an effect that calls `focus()`, and an `autoFocus` passed through a spread, are not seen.
 - The overlay content is known by what its tag is bound to: the kit's, by name, alias or namespace (inside the kit, by a relative import), another package's by the name it imports (an alias or a namespace resolved), and a local component by the name it is written with, since any part of that name has the same defect. A type of the same name (a type parameter, a local type or interface) hides nothing. A parameter, or a local that shadows an outer name, is no part and is skipped.
@@ -2487,6 +2522,7 @@ The rule takes the plugin's `allow` option, a count of reports per file that may
 - It compares names, not values: `const busy = save.isPending` with `isLoading={save.isPending} disabled={busy}` is not seen, and neither is a flag that reaches the two props through different variables.
 - Props that arrive through a spread (`{...buttonProps}`) or from another file are not read; an object literal is checked where it is written.
 - A name read by both props for different reasons is still reported, since the rule cannot tell why `disabled` reads it.
+- Any component with both props is judged, one a caller hands in as a parameter (`({ Action }) => <Action … />`) or reads from the props object (`<props.Action … />`) too; a parameter or a local that shadows an outer name, such as the kit's `Button`, is not that part, and is left alone.
 
 ## ledger/overlay-width-preset
 
@@ -2497,7 +2533,7 @@ Reports a width set on Dialog, Sheet, AlertDialog or Drawer content through `sty
 - A width property in the `style` of `DialogContent`, `SheetContent`, `AlertDialogContent` or `DrawerContent`: `width`, `minWidth`, `maxWidth`, `inlineSize`, `minInlineSize` or `maxInlineSize`, whatever its value, in any object the style can be, as [`ledger/no-style-design-value`](#ledgerno-style-design-value) follows one in the same file: the attribute's object, a branch, a `const` or a map's entry, an object spread into it, a Base UI style callback's return, a `useMemo`, a same-file function's return and the objects a same-file helper is handed. An object reached twice is reported once, where it is written. The message: `DialogContent sets maxWidth in style (620px). Use width="medium" (520px), the nearest step; the kit owns the steps and their narrowing to the window.`
 - A width class in the content's `className`: any `w-*`, `min-w-*`, `max-w-*` or `size-*`, also under a variant or with `!`, read as the class rules read them: through a condition, a template, a class helper, a same-file `const` or map entry, and an object spread onto the element that sets `className` and is not written over by a later one (JSX keeps the last). The message quotes the first one it finds: `SheetContent sets its width with "w-96" (384px). Use width="medium" (420px), the nearest step; the kit owns the steps and their narrowing to the window.`
 
-The step named is the one of the part's own map nearest the width the lint reads (a number, a length such as `"30rem"`, a width token class, a stock step or an arbitrary length), both when two are as near, and every step when it reads none (`90vw`, `w-full`, a variable). Each part keeps its own map, which `npm run build:lint` reads from its source into `components.json`: Dialog's `dialogWidths` (small 400px, medium 520px, large 760px, xlarge 960px, fullscreen), Sheet's `sheetWidths` (small 320px, medium 420px, large 760px, xlarge 960px, fullscreen), and AlertDialog's `size` (default 440px, sm 320px). `DrawerContent` takes no width: `A drawer spans the window's edge and takes no width: drop it.` A property set to `undefined` is not reported. The parts are followed through an alias or a namespace import. In the kit's own source, a width that is the part's own role token, `token("dimension.part.…")` read from the kit's generated tokens in the file that draws that part, is not reported: a sized overlay of the kit takes its width from its role token (CommandDialog's `dimension.part.command` in `components/command.tsx`), the kit's one place for it as the Dialog and Sheet steps are theirs, or from its own size prop falling back to it (PreviewSheet's `width ?? token("dimension.part.previewSheet")`). Another part's token, the token in another file, and a product's `token()` are widths like any other.
+The step named is the one of the part's own map nearest the width the lint reads (a number, a length such as `"30rem"`, a width token class, a stock step or an arbitrary length), both when two are as near, and every step when it reads none (`90vw`, `w-full`, a variable). Each part keeps its own map, which `npm run build:lint` reads from its source into `components.json`: Dialog's `dialogWidths` (small 400px, medium 520px, large 760px, xlarge 960px, fullscreen), Sheet's `sheetWidths` (small 320px, medium 420px, large 760px, xlarge 960px, fullscreen), and AlertDialog's steps of the same `dialogWidths` (xsmall 320px, small 400px, medium 520px). Drawer's steps are drawn by its stylesheet from a role token each, so the lint reads their widths from the tokens: small 320px (`dimension.part.drawerSmall`), medium 384px (`dimension.part.drawer`) and large 760px (`dimension.part.drawerLarge`). A property set to `undefined` is not reported. The parts are followed through an alias or a namespace import. In the kit's own source, a width that is the part's own role token, `token("dimension.part.…")` read from the kit's generated tokens in the file that draws that part, is not reported: a sized overlay of the kit takes its width from its role token (CommandDialog's `dimension.part.command` in `components/command.tsx`), the kit's one place for it as the Dialog and Sheet steps are theirs, or from its own size prop falling back to it (PreviewSheet's `width ?? token("dimension.part.previewSheet")`). Another part's token, the token in another file, and a product's `token()` are widths like any other.
 
 ### Why
 
@@ -2505,7 +2541,7 @@ A dialog's width is a decision about the task, and Ledger makes it once: a few n
 
 ### Instead
 
-A `width` step on `DialogContent` and `SheetContent`, and `size` on `AlertDialogContent`. The steps are `"small"`, `"medium"` (the default), `"large"`, `"xlarge"` and `"fullscreen"`, chosen by the task, on a Sheet at the start or end edge; an AlertDialog takes `size="sm"` or the default; `DrawerContent` takes no width, since a drawer spans the window's edge.
+A `width` step on `DialogContent`, `SheetContent`, `AlertDialogContent` and `DrawerContent`. The steps are `"small"`, `"medium"` (the default), `"large"`, `"xlarge"` and `"fullscreen"`, chosen by the task, on a Sheet at the start or end edge; an AlertDialog takes `"xsmall"`, `"small"` (its default) or `"medium"`; a `DrawerContent` takes `"small"`, `"medium"` (the default) or `"large"`, how wide a side drawer grows within the window and how wide a bottom or top drawer is from `sm` up.
 
 ### Examples
 
@@ -2611,7 +2647,7 @@ import {
 export function RemoveAllocation({ open }: { open: boolean }) {
   return (
     <AlertDialog open={open}>
-      <AlertDialogContent size="sm">
+      <AlertDialogContent width="xsmall">
         <AlertDialogHeader>
           <AlertDialogTitle>Remove this allocation?</AlertDialogTitle>
         </AlertDialogHeader>
@@ -2627,11 +2663,11 @@ Neither. The message names the nearest step as a starting point, but the step is
 
 ### Allowances
 
-The rule takes the plugin's `allow` option, a count of reports per file that may only shrink. It runs in both presets; `configs.package` turns it off in the kit's stories, where a Don't story shows the mistake on purpose. The kit's `test/lint-allow.json` counts the kit's sites that predate it, in the patterns that build on a dialog or a sheet; this repository's `scripts/lint-allow.json` has no entry for it, so every report in the application fails. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
+The rule takes the plugin's `allow` option, a count of reports per file that may only shrink. It runs in both presets; `configs.package` turns it off in the kit's stories, where a Don't story shows the mistake on purpose. Neither the kit's `test/lint-allow.json` nor this repository's `scripts/lint-allow.json` has an entry for it, so every report fails: a pattern of the kit that builds on a dialog at a width no step gives reads its own role token (SearchDialog's `dimension.part.recordSearch`, RecordBrowser's `dimension.part.recordBrowser`). A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
 
 ### Limits
 
-- Only the four content parts are read. A width on the `Dialog` root, on a wrapper inside the content, or on a local component that renders the content under another name is not seen.
+- Only the four content parts are read. A width on the `Dialog` root, on a wrapper inside the content, or on a component imported from another file that renders the content is not seen. A component of the same file that hands its `style` or `className` on to the content is read (`<Pane> forwards style to <DialogContent>, which then sets maxWidth in style (480px).`), through up to four such components, its props destructured in the parameter or at the top of its body; one declared with `let` or read from an object is not, and of the elements it hands the prop to, the first counts.
 - A style from another file (an imported object, or `style={withStyle(base, style)}` with an imported helper) is not read, nor a spread onto the content (`<DialogContent {...props} />`), nor a class that reaches the content through a prop.
 - Every width class is reported, a structural one such as `w-full` included.
 - The content part is known by what its tag is bound to: the kit's, by name, alias or namespace (inside the kit, by a relative import), another package's by the name it imports (an alias or a namespace resolved), and a local component by the name it is written with, since any part of that name has the same defect. A type of the same name (a type parameter, a local type or interface) hides nothing. A parameter, or a local that shadows an outer name, is no part and is skipped.
@@ -2745,6 +2781,7 @@ Reports a Button or IconButton that renders a link, or whose `onClick` does noth
 
 - A `Button` or `IconButton` whose `render` is a link: an `<a>`, a `Link` or `NavLink` (also as a member, `Router.Link`), or any element with `href` or `to`. A render function counts by the element it returns. The message names the element: `Button renders a link (<Link>). Use LinkButton with render={<Link … />}: Base UI's Button expects a native button, and a link must stay a link.`
 - A `Button` or `IconButton` whose `onClick` handler is one navigation and nothing else: `navigate(…)`, `router.navigate(…)`, `location.assign(…)` or `location.replace(…)`, `history.push(…)`, or an assignment to `location` or `location.href`, also behind `void` or `await`, and also when the handler is a `const` in the same file. The message: `Button navigates from onClick. Use LinkButton with the router Link in render, so the destination can be opened in a new tab, copied and announced as a link.`
+- Either one through a component of the file that hands `render` or `onClick` on to a Button or IconButton (`const Go = (props) => <Button {...props} />`): `<Go> forwards render to <Button>, which then renders a link (<Link>).` and `<Go> forwards onClick to <Button>, which then navigates.`, each with the same advice.
 
 For an `IconButton` both messages name `LinkIconButton`. An element is reported once: a link in `render` is reported before its `onClick` is read. The names are followed through an alias or a namespace import (`import { Button as Action }`, `<Kit.Button>`).
 
@@ -2865,6 +2902,7 @@ The rule takes the plugin's `allow` option, a count of reports per file that may
 - Other ways of leaving the page, such as `window.open(…)`, `router.push(…)` on a router object or a `redirect()`, are not recognised.
 - A `render` element that is a custom component with neither `href` nor `to` (`render={<RecordLink record={record} />}`) is not recognised as a link.
 - The Button or IconButton is known by what its tag is bound to: the kit's, by name, alias or namespace (inside the kit, by a relative import), another package's by the name it imports (an alias or a namespace resolved), and a local component by the name it is written with, since any part of that name has the same defect. A type of the same name (a type parameter, a local type or interface) hides nothing. A parameter, or a local that shadows an outer name, is no part and is skipped.
+- A component that hands `render` or `onClick` on to a Button is followed within the file, through up to four such components, when its first parameter carries it: the props object or a rest that still holds it, spread onto the element, or the prop destructured (in the parameter, or from the props object at the top of its body) and written onto it. Of the elements a component hands it to, the first in source order counts, passing over one that renders a component already on the way (a tree that renders itself). A component imported from another file, one declared with `let`, one read from an object (`<parts.Row>`), a component past the fourth and a second element given the same prop are not followed.
 
 ## ledger/no-style-design-value
 
@@ -2887,7 +2925,7 @@ The rule follows the value to where it is written, in the same file: a branch of
 
 When the literal is written somewhere else, the finding says where: `style.paddingInlineStart is a literal length (16px, from INDENT on line 12).`, or `(288px, from line 30)` for a call's argument. When the literal is the whole value and the property's role has a token scale, the finding names the token of that scale with the literal's value, or the two nearest: a padding, a gap or an inset on the spacing scale (`space.*`), a border or outline width on the border width scale (`border.width.*`), a radius on the radius scale (`radius.*`) and a font size on the type scale, as its class: `On the spacing scale 16px is space.200: token("space.200").`, `Nearest on the radius scale: token("radius.large") (7px) or token("radius.xlarge") (9px).` A value two tokens hold names both. A width or a height names no token, since its role is not the property's (a popup, a measure, a control height and a container size can share a value): `A width is a layout part's, a part's preset or computed from its container.` A literal colour names the roles its hue plays for the property, as tokens: `style.color is a literal colour (#e00). … Red is token("color.text.danger") or token("color.text.accent.red").` A length inside a larger value (`calc(100dvh - 2rem)`) names none.
 
-A padding or a gap whose literal is its whole value, written in the style itself, at a space step exactly names the prop that takes that step and its utility. In a product, on a plain layout element or a layout primitive, it names the prop alone, since [`ledger/use-primitives`](#ledgeruse-primitives) reports the utility there: `style.padding is a literal length (16px). Use padding="space.200" on a Box; style is for computed values (a measured size, a CSS variable).`; a gap on a Box names a Stack or an Inline in the Box's place, since a Box has no gap. On any other element the prop leads and the utility follows (`Use padding="space.200" on a Box, or p-200`), and in the kit's own source the utility leads (`Use p-200, or padding="space.200" on a Box`). `gap` names `space` on a Stack or an Inline, `rowGap` a Stack's, `columnGap` an Inline's. A negative offset keeps its sign (`top: -8` is `-top-100`), and a radius of 9999 or `50%` is `radius.full`. Every other message says: `Use a token utility or a primitive prop; style is for computed values (a measured size, a CSS variable).` A `var(--…)` reference and a `url(…)` are taken out of the value before it is read, but a `var()`'s fallback is read, since it is what the page shows wherever the variable is not set (`var(--w, 288px)` gives 288px). Zero is never reported, in any unit (`0`, `"0px"`, `"0rem"`), and neither is relative colour syntax built on a token (`oklch(from var(--ds-color-background-brand) l c h / 0.5)`). A style object used by several elements, or reached twice, is reported once, where it is written, and a colour in a module's list of colours is [`ledger/no-raw-colour`](#ledgerno-raw-colour)'s, reported once where the list is.
+A padding or a gap whose literal is its whole value, written in the style itself, at a space step exactly names the prop that takes that step and its utility. In a product, on a plain layout element or a layout primitive, it names the prop alone, since [`ledger/use-primitives`](#ledgeruse-primitives) reports the utility there: `style.padding is a literal length (16px). Use padding="space.200" on a Box; style is for computed values (a measured size, a CSS variable).`; a gap on a Box names a Stack or an Inline in the Box's place, since a Box has no gap. Through a component of the file that hands its `style` to a layout primitive, the advice is for that primitive, wherever the component's `className` goes: `For the <Stack> inside <Pane>, use space="space.200"`. On any other element the prop leads and the utility follows (`Use padding="space.200" on a Box, or p-200`), and in the kit's own source the utility leads (`Use p-200, or padding="space.200" on a Box`). `gap` names `space` on a Stack or an Inline, `rowGap` a Stack's, `columnGap` an Inline's. A negative offset keeps its sign (`top: -8` is `-top-100`), and a radius of 9999 or `50%` is `radius.full`. Every other message says: `Use a token utility or a primitive prop; style is for computed values (a measured size, a CSS variable).` A `var(--…)` reference and a `url(…)` are taken out of the value before it is read, but a `var()`'s fallback is read, since it is what the page shows wherever the variable is not set (`var(--w, 288px)` gives 288px). Zero is never reported, in any unit (`0`, `"0px"`, `"0rem"`), and neither is relative colour syntax built on a token (`oklch(from var(--ds-color-background-brand) l c h / 0.5)`). A style object used by several elements, or reached twice, is reported once, where it is written, and a colour in a module's list of colours is [`ledger/no-raw-colour`](#ledgerno-raw-colour)'s, reported once where the list is.
 
 A viewport length is not a design value: `100dvh`, `90vw`, a fraction such as `10dvh` inside `min()`, and every other viewport unit (`vh`, `vw`, `dvh`, `dvw`, `svh`, `svw`, `lvh`, `lvw`, `vi`, `vb`, `vmin`, `vmax`) are the window's own size, structure the way `100%` is, so `calc(100dvh - 2rem)` is reported for its `2rem` only. In the kit's own source, the widths and heights of the Dialog and Sheet preset maps (`dialogWidths` in `components/dialog.tsx`, `sheetWidths` in `components/sheet.tsx`) are not read: each map is the kit's one place for its width steps, which `width="small" | … | "fullscreen"` chooses. Anything else written in one, a colour, a padding or a radius, is read as anywhere else, and a map of the same name elsewhere is reported as any other.
 
@@ -2951,7 +2989,7 @@ import { Box, Text } from "@ledger/design-system";
 export function Legend() {
   return (
     <Box padding="space.200">
-      <Text className="text-subtle">Coverage by control family</Text>
+      <Text color="color.text.subtle">Coverage by control family</Text>
     </Box>
   );
 }
@@ -2990,7 +3028,7 @@ Neither. A literal in style becomes a token utility, a primitive prop or a `toke
 
 ### Allowances
 
-The rule takes the plugin's `allow` option, a count of reports per file that may only shrink. It runs in both presets; `configs.package` turns it off in the kit's stories, where a Don't story shows the mistake on purpose. The kit's `test/lint-allow.json` counts the kit's sites that predate it, which wait on a role token or a named kit constant; this repository's `scripts/lint-allow.json` has no entry for it, so every report in the application fails. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
+The rule takes the plugin's `allow` option, a count of reports per file that may only shrink. It runs in both presets; `configs.package` turns it off in the kit's stories, where a Don't story shows the mistake on purpose. Neither the kit's `test/lint-allow.json` nor this repository's `scripts/lint-allow.json` has an entry for it, so every report fails: a part's own size in the kit reads its role token, `token("dimension.part.…")`, and a drawing is on a token's steps (`calc(n * token("space.025"))`). A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
 
 ### Limits
 
@@ -3221,6 +3259,305 @@ The rule takes the plugin's `allow` option like every ledger rule, a count of re
 - It reads comments only. A config file that turns a ledger rule off, an `ignores` entry and an `eslint-suppressions.json` are outside it; in this repository `check-allow-lists` rejects a suppressions file that carries a ledger rule.
 - A reason is any text after `--`. The rule checks that one is there, not that it is true.
 
+## ledger/no-restyle
+
+Reports a class on a kit part that changes what the part sets itself, and a class that styles the elements inside the one it is on.
+
+### Reports
+
+- A class in a part's `className` that changes something the part sets: a class in the same group as one the part puts on its element, or in a group that replaces it where `cn()` merges (`py-200` over a part's `pt-150`). What a part sets is read from the kit's source into `eslint-plugin/parts.json`: the classes its root always carries, in every state they name; the classes each value of a prop adds, in the states the prop names, a flag's and a given prop's only where the element writes it; and the classes it makes from several props, where one of those props is written or, with none written, those the build can tell it sets then (a default Alert's neutral fill, a default Badge's brand bold fill). A width, a media condition and a variant that always holds on the part are no state: `sm:`, `max-lg:`, `@3xl:`, `motion-safe:`, `not-print:`, `supports-[…]:`, `[&]:`, the part's own `data-[slot=…]:`, `enabled:` and a negated state (`not-hover:`) change what the prop sets as the bare class would. The finding names how the part sets it:
+  - a prop whose value is this class and nothing else: `"tabular-nums" on <Text> is its numeric prop. Write numeric and drop the class.`, with an editor suggestion that writes the prop in the class's place;
+  - a prop that sets the same thing: `"font-heading-overlay" on <Text> changes the type its size prop sets. Drop it; "font-heading-overlay" is Heading size="overlay".`;
+  - the part itself: `"pt-200" on <TabsContent> changes the padding it sets itself (pt-150, components/tabs.tsx:125). Drop it; a different padding is a change to Tabs.`, quoting at most 48 characters of what it sets, the setting in the class's own states first;
+  - a class under a width or a condition, or beside the prop it changes: `"sm:bg-danger-bold" on <Button> changes the background its variant prop sets. Drop it; a different background is a change to Button.`;
+  - a class the part already sets, in the same states: `"rounded-large" on <Card> repeats what it sets itself (components/card.tsx:39). Drop it; it changes nothing.`
+- A class outside a part's className contract, where the kit gives it one with an `@accepts` tag: the date and number fields, the search field and the search dialog take layout, and Id takes colour, type and `break-all`. `"pt-200" on <DatePicker> is outside what its className takes (layout). Drop it; anything else is a change to DatePicker.`
+- A class on a kit part inside a table cell (a column's `cell` renderer, or a `Table.Cell` around it) that carries the type, weight or neutral colour `ledger/cell-plain` forbids on the cell: `"font-body-small" on <Stack> restyles the table cell it is drawn in. Cells are one style: drop "font-body-small".`
+- A class whose variant styles the elements inside the one it is on, `*:`, `**:`, or an arbitrary variant that steps from `&` to a descendant or a child at depth 0, after a state or an attribute of the element too (`[&_button]:`, `[&>li]:`, `[&:hover_svg]:`, `[&[data-state=open]>svg]:`, `[:where(&)_svg]:`), where it reaches a kit part: the element itself when it is a kit part other than a layout primitive, whose inside is the kit's; a kit component written inside it (for `**:` and `_`) or among its children (for `*:` and `>`); or a part's own element the selector can name, with a class that is more than its placement. The finding names the part: `"[&_button]:bg-danger-bold" styles the elements inside the one it is on and reaches <Button>, a kit part this file does not own.`
+
+One report per class, at the string it is written in. The part is the kit's, imported from `@ledger/design-system` by name, alias or namespace, or put in the element's place by a `render` prop, which then owns the classes (`the <Button> <DialogTrigger> renders`). A component of the file that hands its `className` on to a part puts the classes given to it on that part: `"pt-200" on <Pad>, which forwards className to <TabsContent>, changes the padding it sets itself (pt-150, components/tabs.tsx:125).` A component imported from another file is not followed.
+
+### Why
+
+A part owns what it sets itself. A class that changes it makes this screen's part differ from every other screen's, where nothing in the kit says so, and the next change to the part does not reach it. When the screen needs something the part does not offer, the part is what changes: the screen is the kit's first consumer, and a part that breaks on a screen is fixed in the kit, through `/ledger-add-part`.
+
+What a part does not set (a border on a Stack, the dividers between a RadioGroup's choices) stays the caller's, and so does its placement: where it sits, how big it is and how it flows among its siblings, except where a prop sets nothing else, such as Button's `isFullWidth`; hiding a part, and placement at a breakpoint or a container size, are always the caller's. A part's interaction (pointer events, text selection, the cursor), transforms, text flow (wrapping, truncation, clamping) and overflow are how it behaves and looks, judged as its colour and type are: `truncate` on a Text is its `maxLines`, which also shows the cut words in a tooltip. An interaction state no prop sets (a hover, a focus, an aria or data state of the element or its group) is the caller's; a width, a media condition or a variant that always holds is no state, so a colour or a type under it changes what the part sets everywhere it holds.
+
+A table cell is one style, `font.body` in the text colour: the content a column draws in a cell takes the cell's type, as the cell does (see [Table](?path=/docs/components-table--docs)).
+
+A variant that reaches into the elements inside styles parts the screen does not own, with classes every token rule admits, so nothing else would see it.
+
+### Instead
+
+- Write the prop the finding names: `numeric`, `align="end"`, `isFullWidth`, `color="color.text.subtle"`, `maxLines={1}`.
+- Drop a class that changes what the part sets itself. A different space, type or colour for that part everywhere is a change to the part; for one use, it is a prop the part does not have yet, which is also a change to the part.
+- In a table cell, drop the type and the neutral colour. What differs in a cell is data: a status is a Badge, a severity an Indicator.
+- Instead of reaching inside, set each part through its own props, or put the class on the part itself where the part leaves it to the caller.
+
+### Examples
+
+#### Reported
+
+```tsx reported
+import { Inline, Text } from "@ledger/design-system";
+
+export function PartLabel({ label, title }: { label: string; title: string }) {
+  return (
+    <Inline space="space.100">
+      <Text color="color.text.subtle" className="shrink-0 tabular-nums">
+        {label}
+      </Text>
+      <Text>{title}</Text>
+    </Inline>
+  );
+}
+```
+
+```tsx reported
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ledger/design-system";
+
+export function RecordTabs() {
+  return (
+    <Tabs defaultValue="overview">
+      <TabsList variant="line" aria-label="Record sections">
+        <TabsTrigger value="overview">Overview</TabsTrigger>
+      </TabsList>
+      <TabsContent value="overview" className="pt-200">
+        Overview
+      </TabsContent>
+    </Tabs>
+  );
+}
+```
+
+```tsx reported
+import { Stack, Truncate, defineColumns } from "@ledger/design-system";
+
+type System = { id: string; baseline: string; source: string };
+
+export const columns = defineColumns<System>((c) => [
+  c.custom("baseline", {
+    header: "Baseline",
+    cell: (row) => (
+      <Stack as="span" space="space.0" className="min-w-0 font-body-small">
+        <Truncate>{row.baseline}</Truncate>
+      </Stack>
+    ),
+  }),
+]);
+```
+
+```tsx reported
+import { Badge, Button, Inline, Text } from "@ledger/design-system";
+
+export function Actions({ title }: { title: string }) {
+  return (
+    <Inline space="space.100" className="[&_button]:bg-danger-bold">
+      <Button className="sm:bg-danger-bold">Discard</Button>
+      <Badge className="bg-danger-bold">Overdue</Badge>
+      <Text className="truncate">{title}</Text>
+    </Inline>
+  );
+}
+```
+
+#### Allowed
+
+```tsx allowed
+import { Inline, Text } from "@ledger/design-system";
+
+export function PartLabel({ label, title }: { label: string; title: string }) {
+  return (
+    <Inline space="space.100">
+      <Text color="color.text.subtle" numeric className="shrink-0">
+        {label}
+      </Text>
+      <Text>{title}</Text>
+    </Inline>
+  );
+}
+```
+
+```tsx allowed
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ledger/design-system";
+
+export function RecordTabs() {
+  return (
+    <Tabs defaultValue="overview">
+      <TabsList variant="line" aria-label="Record sections">
+        <TabsTrigger value="overview">Overview</TabsTrigger>
+      </TabsList>
+      <TabsContent value="overview">Overview</TabsContent>
+    </Tabs>
+  );
+}
+```
+
+```tsx allowed
+import { Box, Button, Grid, Stack, Text } from "@ledger/design-system";
+
+export function Note({ text, names }: { text: string; names: string[] }) {
+  return (
+    <Stack space="space.100" className="min-w-0 max-w-layout-measure border-t border-default">
+      <Text>{text}</Text>
+      <Grid templateColumns="1fr 1fr" className="*:min-w-0">
+        {names.map((name) => (
+          <Box key={name} backgroundColor="elevation.surface" className="hover:bg-surface-hovered">
+            <Button className="md:w-full">{name}</Button>
+          </Box>
+        ))}
+      </Grid>
+    </Stack>
+  );
+}
+```
+
+```tsx allowed
+import { Id, Section } from "@ledger/design-system";
+import { useRef } from "react";
+
+export function StepHeading({ step, code }: { step: string; code: string }) {
+  const heading = useRef<HTMLHeadingElement>(null);
+  return (
+    <Section>
+      <Section.Header>
+        <Section.Heading>
+          <Section.Title ref={heading} tabIndex={-1} className="outline-none">
+            {step} <Id className="text-subtle">{code}</Id>
+          </Section.Title>
+        </Section.Heading>
+      </Section.Header>
+    </Section>
+  );
+}
+```
+
+### Suggestions and fixes
+
+An editor suggestion writes the prop in the class's place where that is certain: the prop's value puts this one class on the part and nothing else (no class the part makes from several props reads it), the class has no variant and is written once in a plain `className` string on the element itself, and the element neither sets that prop nor spreads props. The suggestion renders the same. Nothing runs under `--fix`: dropping a class changes what renders, which is the author's decision.
+
+### Allowances
+
+The rule is off in the package preset, so the kit keeps no allowance for it. The application's list, `scripts/lint-allow.json`, has no entry for it, and `scripts/check-allow-lists.mjs` rejects a new one. A comment that turns the rule off is reported by [`ledger/no-inline-config`](#ledgerno-inline-config), except a line or next-line disable that names it and says why after `--`; those are counted and may only shrink too.
+
+### Limits
+
+- It runs on product code only, never on the kit's own source, where patterns compose components by design.
+- A class another Ledger rule reports is that rule's alone: a class rule's (a margin, a palette colour, an unknown variant), the padding, gap, display and grid template `ledger/use-primitives` judges on a layout primitive, and the type and neutral colour `ledger/cell-plain` judges on a `Table.Cell`.
+- A focus target (a literal `tabIndex={-1}`) may carry `outline-none`, `outline-hidden` and `outline-focused`. A class a part's `@accepts` contract takes passes, whatever the part sets.
+- What a part sets is what the build could read in its source; where it stopped (`unread` in parts.json), the part may set more than the rule knows. What it makes from several props counts with none of them written only where the build can tell the value then: a default, a known test, a helper's `if`s and returns; a value it cannot follow counts only where one of the props is written. A prop with a value of its own counts as set whether or not the element writes it. A class in no category is not judged.
+- The classes are read as the class rules read them: through a condition, a template, a helper, a same-file `const` or map, and a spread that sets `className`. One passed in through a prop, imported from another file or built at runtime is not seen (`ledger/readable-classes` reports it on a kit part).
+- A class that styles the inside of an element is reported where a kit part is written inside it in the same file, or where the element is one; a part another component renders there, or `children` handed in, is not seen. A kit component's inside may hold any tag, so a tag selector (`[&_p]:`) that reaches one is reported even where the component draws no such tag; a layout or type primitive's own element is matched by the tag it renders. A variant that reaches a sibling (`[&+div]:`) is not judged.
+- A cell is a `cell` renderer handed to a column builder (the parameter of the function `defineColumns` takes, or one typed `ColumnKinds`), or a `Table.Cell` or `Table.Tree` around the element. A renderer passed by name is not followed.
+
+## ledger/use-heading
+
+Reports a raw `h1` to `h6` that carries type classes, which copy a title's look by hand.
+
+### Reports
+
+- An `h1` to `h6` whose `className` carries a type class, under any variant: a type style (`font-heading-page`, `font-body`, `font-code`), a weight (`font-semibold`, `font-bold`), a size (`text-xl`, `text-[20px]`), a line height (`leading-tight`) or a tracking (`tracking-tight`). The finding lists the type classes and names the Heading size they match: `<h2> carries type classes ("font-heading-page"), which copy a title's look by hand. Write <Heading size="page" as="h2">, or the kit part that draws this title (PageHeader.Title, Section.Title, DialogTitle).`
+- The size comes from the classes: `font-heading-page` is `page`, `font-heading-section` or `font-body` at `font-semibold` is `section`, `font-heading-overlay` is `overlay` and `font-heading-display` is `display`; the earlier steps name the size that replaced them (`font-heading-xsmall` is `overlay`, `font-heading-large` is `display`, `font-heading-medium` is `page`, and `font-heading-small` is `page` at `font-semibold`). Classes that match no size (`text-xl font-bold`) name the four sizes to choose from.
+- An `h1` to `h6` in the `render` of a kit part that sets its own type, such as DialogTitle or Section.Title: `<h3> in DialogTitle's render carries type classes ("font-heading-overlay"), which change the type DialogTitle sets for its title. Render the bare element, render={<h3 />}, and let the part draw the type.`
+
+A class that is not type passes: layout, colour, `sr-only`, and `outline-none` on a focus target. The classes are read as the class rules read them, through a condition, a template, a class helper, a same-file `const` or map, and a spread that sets `className`.
+
+### Why
+
+A title in the kit is one of four sizes, each the title of a part: `page` is PageHeader.Title's, `section` Section.Title's, `overlay` the title of a Dialog, Sheet, AlertDialog or Drawer, and `display` the one size above them. Those parts render a Heading, so a title set with Heading matches the screen it sits in and follows the ramp when it changes ([Heading](?path=/docs/primitives-heading--docs)). Type classes on a raw heading copy one of those looks, or invent a fifth, and drift from the ramp the next time it changes: the record title that is 22px on one screen and 20px on the next. The element is the page's outline, chosen by the page; the size is the design's, chosen by the title it matches.
+
+### Instead
+
+- A title the kit draws: `PageHeader.Title` for the page or record, `Section.Title` for a section, `DialogTitle` (or `SheetTitle`, `AlertDialogTitle`, `DrawerTitle`) for an overlay.
+- Any other title: `<Heading size="page" as="h2">`, at the size it matches, with `as` for the level the outline needs.
+- A part's title at another level: `render={<h3 />}`, bare; the part keeps its type.
+- A heading that only the outline needs, such as a focus target or one read by a screen reader alone, carries no type classes: `<h2 tabIndex={-1} className="sr-only outline-none">`.
+
+### Examples
+
+#### Reported
+
+```tsx reported
+export function RecordTitle({ name }: { name: string }) {
+  return <h1 className="font-heading-page">{name}</h1>;
+}
+```
+
+```tsx reported
+import { Stack, Text } from "@ledger/design-system";
+
+export function GroupTitle({ title, count }: { title: string; count: number }) {
+  return (
+    <Stack space="space.050">
+      <h3 className="font-body font-semibold">{title}</h3>
+      <Text>{count} records</Text>
+    </Stack>
+  );
+}
+```
+
+```tsx reported
+import { DialogTitle } from "@ledger/design-system";
+
+export function RemoveTitle() {
+  return (
+    <DialogTitle render={<h2 className="font-heading-page" />}>Remove this allocation?</DialogTitle>
+  );
+}
+```
+
+#### Allowed
+
+```tsx allowed
+import { Heading } from "@ledger/design-system";
+
+export function RecordTitle({ name }: { name: string }) {
+  return (
+    <Heading size="page" as="h1">
+      {name}
+    </Heading>
+  );
+}
+```
+
+```tsx allowed
+import { DialogTitle } from "@ledger/design-system";
+
+export function RemoveTitle() {
+  return <DialogTitle render={<h3 />}>Remove this allocation?</DialogTitle>;
+}
+```
+
+```tsx allowed
+export function StepHeading({ title }: { title: string }) {
+  return (
+    <h2 tabIndex={-1} className="sr-only outline-none">
+      {title}
+    </h2>
+  );
+}
+```
+
+### Suggestions and fixes
+
+The rule offers no `--fix`: the element changes, and the size is a design decision the author confirms. It offers an editor suggestion where the `className` is one plain string and the file can name Heading (it imports the kit's Heading, the kit as a namespace, or other parts by name, to which the suggestion adds Heading), and the heading sets no `style`, which Heading does not take:
+
+- A raw heading whose classes match a size becomes a Heading of that size and level, without its type classes and keeping the rest: `<h2 className="font-heading-page text-subtle">` becomes `<Heading size="page" as="h2" className="text-subtle">`.
+- A heading in a part's `render` drops its type classes: `render={<h2 className="font-heading-page" />}` becomes `render={<h2 />}`.
+
+Classes that match no size get no suggestion.
+
+### Allowances
+
+The rule takes the plugin's `allow` option: a count of reports per file that may only shrink. It is in the recommended preset as an error and not in the package preset, since the kit's parts draw their titles from their own classes. Neither the kit's `test/lint-allow.json` nor the application's `scripts/lint-allow.json` has an entry for it. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
+
+### Limits
+
+- It reads the elements by their tag, `h1` to `h6`; a component that renders a heading, or a heading created with `createElement`, is not checked.
+- A class passed in through a prop, imported from another file or built at runtime is not seen.
+- A heading in the `render` of a kit part that sets no type of its own, or of a component that is not the kit's, is read as a raw heading.
+- A Heading with type classes is [`ledger/no-restyle`](#ledgerno-restyle)'s, which reports a class that changes the type its `size` sets.
+
 ## ledger/use-primitives
 
 Reports layout written as classes: on a plain element, where a primitive belongs, and on a primitive, where its props belong.
@@ -3229,6 +3566,7 @@ Reports layout written as classes: on a plain element, where a primitive belongs
 
 - A plain `div`, `span`, `section`, `article`, `aside`, `header`, `footer`, `main`, `nav`, `ul`, `ol`, `li`, `form`, `fieldset`, `p`, `label` or `h1` to `h6` whose `className` has a display class (`flex`, `inline-flex`, `grid`, `inline-grid`) or a padding or gap class (`p-`, `px-`, `py-`, `pt-`, `pb-`, `ps-`, `pe-`, `gap-`), with no variant. The finding lists the layout classes and names, in one sentence, the part they make with its props and their token values: `<div> carries layout classes (flex, gap-100). Use <Inline space="space.100">.`
 - A Box, Stack, Inline, Flex or Grid from the kit whose `className` sets what one of its props sets: padding, a gap, its display, or grid columns and rows. The finding lists the classes and says, in one sentence, what to write instead: `<Stack> carries layout classes (p-200, gap-100). Use space="space.100" and wrap it in <Box padding="space.200"> (a Stack has no padding).`
+- The same through a component of the file that hands its `className` on to a primitive (`const Pane = (props) => <Stack {...props} />`), at each `<Pane className="…">`: `<Pane> forwards className to <Stack>, which then carries layout classes (pt-200). For the <Stack> inside <Pane>: wrap it in <Box paddingBlockStart="space.200"> (a Stack has no padding).` The props are the Stack's, which `Pane` need not take: give it one that hands them on, or change the Stack inside it.
 
 The part and its props are computed from the classes:
 
@@ -3300,6 +3638,17 @@ export function BoardColumns() {
 }
 ```
 
+```tsx reported
+import { Stack, type StackProps } from "@ledger/design-system";
+
+// A component of the file that hands its className on to a Stack.
+const Pane = (props: StackProps) => <Stack {...props} />;
+
+export function Notes() {
+  return <Pane className="pt-200">Three requirements have no evidence.</Pane>;
+}
+```
+
 #### Allowed
 
 ```tsx allowed
@@ -3366,31 +3715,33 @@ Neither. Moving a layout from classes to a primitive or its props changes the el
 
 ### Allowances
 
-The rule takes the plugin's `allow` option: a count of reports per file that may only shrink. A file with more reports than its count fails, and one with fewer fails until the count is lowered. The rule is off in `configs.package`. This repository's root config reads the application's counts from `scripts/lint-allow.json`, where they hold the sites that predate the rule's reach onto the primitives. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
+The rule takes the plugin's `allow` option: a count of reports per file that may only shrink. A file with more reports than its count fails, and one with fewer fails until the count is lowered. The rule is off in `configs.package`. This repository's `scripts/lint-allow.json` has no entry for it, so every report in the application fails. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
 
 ### Limits
 
 - It reads the classes that reach `className` as the class rules read them: through a condition, a template, a class helper, a same-file `const` or map entry, and an object spread onto the element that sets `className` and is not written over by a later one (JSX keeps the last); a class passed in through a prop or imported from another file is not seen.
+- A component that hands its `className` on to a primitive is followed within the file, through up to four such components, when its first parameter carries it: the props object or a rest that still holds it, spread onto the element, or `className` destructured (in the parameter, or from the props object at the top of its body) and written onto it. Of the elements a component hands it to, the first in source order counts, passing over one that renders a component already on the way (a tree that renders itself). A component imported from another file, one declared with `let`, one read from an object (`<parts.Row>`), a component past the fourth and a second element given the same prop are not followed.
 - On a plain element, a class under a variant (`md:flex`, `md:p-200`) is not reported, nor the physical padding sides `pl-` and `pr-`, nor an element outside the list above, such as `button`, `dl` or `table`.
 - On a primitive, only padding, gap, display and grid template classes are read; the other layout classes (alignment, position, size) are left to the part's props or to the classes as written.
 
 ## ledger/product-responsive-table
 
-Reports a kit DataTable without `responsive` after any prop spread.
+Reports a kit DataTable that turns `responsive` off, or leaves it to a prop spread.
 
 ### Reports
 
-- A `DataTable` whose last `responsive` is missing, is not the literal `true` (bare `responsive` or `responsive={true}`), or is followed by a prop spread that could replace it. The finding says how the prop is written (`leaves responsive off`, `sets responsive={false}`, `leaves responsive to a prop spread`): `<DataTable> leaves responsive off, so a narrow frame scrolls it sideways instead of folding lower-priority columns into More fields. Write responsive after any prop spreads.`
+- A `DataTable` whose last `responsive` is not the literal `true`: `responsive={false}`, a string, or an expression the rule cannot read. The finding says how the prop is written: `<DataTable> sets responsive={false}, so a narrow frame scrolls it sideways instead of folding lower-priority columns into More fields. A DataTable is responsive by default: remove the prop.`
+- A `DataTable` with a prop spread after its last `responsive`, or with a spread and no `responsive`, since the spread can turn it off: `<DataTable> leaves responsive to a prop spread, which can turn it off and scroll the table sideways instead of folding lower-priority columns into More fields. Write responsive after the spread.`
 
-Only a `DataTable` imported from `@ledger/design-system` is checked, through an alias or a namespace import too; a local component of the same name, or a type import, is not.
+A `DataTable` that leaves the prop out passes: it is responsive by default. Only a `DataTable` imported from `@ledger/design-system` is checked, through an alias or a namespace import too; a local component of the same name, or a type import, is not.
 
 ### Why
 
-A product register has to fit the space it is given: beside an open preview panel, in a narrow window, on a phone. A responsive DataTable measures its container and keeps the record's name and the row actions, moving lower-priority fields into each row's More fields disclosure, so no field disappears and no table scrolls sideways. Without it the table scrolls, which hides columns without saying so. The product patterns' Registers section is the contract (product patterns (`docs/guides/product-patterns.md`)); the Data table page describes the responsive mode ([Data table](?path=/docs/patterns-data-table--docs)).
+A product register has to fit the space it is given: beside an open preview panel, in a narrow window, on a phone. A responsive DataTable measures its container and keeps the record's name and the row actions, moving lower-priority fields into each row's More fields ("+3"), so no field disappears and no table scrolls sideways. `responsive={false}` makes it scroll instead, which hides columns without saying so. Every product DataTable is responsive: the product patterns' Registers section is the contract (product patterns (`docs/guides/product-patterns.md`)), and the Data table page describes the responsive mode ([Data table](?path=/docs/patterns-data-table--docs)).
 
 ### Instead
 
-`responsive` on the DataTable, after any prop spread: `<DataTable table={table} responsive />`. Give the name column `priority: 0` and a readable width in `defineColumns`.
+Leave `responsive` out: `<DataTable table={table} />`. Behind a prop spread, write `responsive` after it: `<DataTable {...props} responsive />`. Give the name column `priority: 0` and a readable width in `defineColumns`, so the name stays in the row when the rest fold.
 
 ### Examples
 
@@ -3405,7 +3756,7 @@ const columns = defineColumns<Risk>((c) => [c.text("title", { header: "Risk", pr
 
 export function RiskTable({ risks }: { risks: Risk[] }) {
   const table = useDataTable({ columns, data: risks });
-  return <DataTable table={table} />;
+  return <DataTable table={table} responsive={false} />;
 }
 ```
 
@@ -3429,7 +3780,7 @@ const columns = defineColumns<Risk>((c) => [c.text("title", { header: "Risk", pr
 
 export function RiskTable({ risks }: { risks: Risk[] }) {
   const table = useDataTable({ columns, data: risks });
-  return <DataTable table={table} responsive />;
+  return <DataTable table={table} />;
 }
 ```
 
@@ -3444,15 +3795,16 @@ export function RegisterTable(props: ComponentProps<typeof DataTable>) {
 
 ### Suggestions and fixes
 
-Neither. The rule offers no `--fix` and no editor suggestion: a table made responsive also needs its column priorities and widths chosen, which only the author can do.
+Neither. The rule offers no `--fix` and no editor suggestion: a table made responsive again also needs its column priorities and widths chosen, which only the author can do.
 
 ### Allowances
 
-The rule is in neither preset: a horizontally scrolling comparison table remains a supported kit use, so a product turns it on for the files that follow its contract. This repository's root `eslint.config.js` turns it on, as an error, for the application's product files (`src/routes`, `src/components/app`, `src/components/prototype`, `src/lib` and `src/router.tsx`). It takes the plugin's `allow` option, a count of reports per file that may only shrink; `scripts/lint-allow.json` has no entry for it, so every report fails. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
+The rule is in neither preset: a horizontally scrolling comparison table (`responsive={false}`) remains a supported kit use, so a product turns it on for the files that follow its contract. This repository's root `eslint.config.js` turns it on, as an error, for the application's product files (`src/routes`, `src/components/app`, `src/components/prototype`, `src/lib` and `src/router.tsx`). It takes the plugin's `allow` option, a count of reports per file that may only shrink; `scripts/lint-allow.json` has no entry for it, so every report fails. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](#ledgerno-inline-config).
 
 ### Limits
 
 - A `responsive` that comes from an expression (`responsive={wide}`) is reported, since the rule cannot read its value.
+- A spread is reported whatever it holds, since the rule cannot read it: write `responsive` after it.
 - A wrapper component that renders the kit's `DataTable` is checked where it renders it, not where it is used.
 - It does not check the columns: a name column without `priority: 0` or a readable width still passes.
 

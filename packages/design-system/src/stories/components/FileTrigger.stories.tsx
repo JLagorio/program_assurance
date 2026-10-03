@@ -16,7 +16,10 @@ import {
   formatFileSize,
 } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/FileTrigger",
@@ -312,6 +315,7 @@ export const InAButtonGroup: Story = {
 
 /** A native file input styled as a field reads as one line of text, and its button is not a Ledger button. */
 export const DoDont: Story = {
+  tags: ["!manifest"],
   name: "Do and don't",
   render: () => (
     <Pair

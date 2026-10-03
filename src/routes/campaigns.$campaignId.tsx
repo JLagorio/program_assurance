@@ -44,7 +44,9 @@ function CampaignDetail() {
   useRecordTitle("Assessment campaign", campaign?.title);
   return (
     <Page>
-      <QueryState queries={[query]}>
+      {/* The page is one failure region, and each of its tabs another: an outage reads as one
+          alert where it happened, whose Retry reloads every failed read in it. */}
+      <QueryState queries={[query]} region>
         {campaign ? (
           <>
             <PageHeader>
@@ -74,50 +76,54 @@ function CampaignDetail() {
                 onClose={() => setEditing(false)}
               />
             )}
-            {tab === "Overview" && (
-              <Shell.Aside label="Assessment campaign details">
-                <Inspector.Group title="Details">
-                  <KeyValue.Group>
-                    <KeyValue label="Status">
-                      <StatusBadge statuses={campaignStatuses} value={campaign.status} />
-                    </KeyValue>
-                    <KeyValue label="Owner">
-                      <RelationName table="parties" id={campaign.owner_party_id} />
-                    </KeyValue>
-                    <KeyValue label="Starts">
-                      <DateTime
-                        value={campaign.starts_at}
-                        format="date"
-                        absentLabel="Not recorded"
-                      />
-                    </KeyValue>
-                    <KeyValue label="Ends">
-                      <DateTime value={campaign.ends_at} format="date" absentLabel="Not recorded" />
-                    </KeyValue>
-                  </KeyValue.Group>
-                </Inspector.Group>
-              </Shell.Aside>
-            )}
             <AssessmentCampaign
               key={campaign.id}
               campaign={campaign}
               overview={
-                <Section title="Description">
-                  {campaign.description ? (
-                    <Box className="max-w-layout-measure">
-                      <Prose>{campaign.description}</Prose>
-                    </Box>
-                  ) : (
-                    <Absent label="No description recorded" />
-                  )}
-                </Section>
+                <Stack space="space.250" className="min-w-0">
+                  {/* The Details, first in Overview: the rail beside it, or on a phone a closed
+                      disclosure under the tabs whose row says the status. Overview's panel is
+                      drawn only while it is chosen, so the rail never stands beside another tab. */}
+                  <Shell.Aside
+                    label="Assessment campaign details"
+                    summary={<StatusBadge statuses={campaignStatuses} value={campaign.status} />}
+                  >
+                    <Inspector.Group title="Details">
+                      <KeyValue.Group>
+                        <KeyValue label="Status">
+                          <StatusBadge statuses={campaignStatuses} value={campaign.status} />
+                        </KeyValue>
+                        <KeyValue label="Owner">
+                          <RelationName table="parties" id={campaign.owner_party_id} />
+                        </KeyValue>
+                        <KeyValue label="Starts">
+                          <DateTime value={campaign.starts_at} format="date" />
+                        </KeyValue>
+                        <KeyValue label="Ends">
+                          <DateTime value={campaign.ends_at} format="date" />
+                        </KeyValue>
+                      </KeyValue.Group>
+                    </Inspector.Group>
+                  </Shell.Aside>
+                  <Section title="Description">
+                    {campaign.description ? (
+                      <Box className="max-w-layout-measure">
+                        <Prose>{campaign.description}</Prose>
+                      </Box>
+                    ) : (
+                      <Absent label="No description recorded" />
+                    )}
+                  </Section>
+                </Stack>
               }
               tab={tab}
+              // The tab joins the address's other parameters, so each collection keeps the
+              // question it asks there.
               onTab={(next) =>
                 void navigate({
                   to: "/campaigns/$campaignId",
                   params: { campaignId },
-                  search: { tab: next },
+                  search: (current) => ({ ...current, tab: next }),
                 })
               }
             />

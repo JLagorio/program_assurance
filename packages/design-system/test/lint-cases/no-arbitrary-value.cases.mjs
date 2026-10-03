@@ -32,6 +32,13 @@ export default {
     // So is a margin, or a dark: class, that writes a token's variable: no-margin's fix and
     // no-dark-variant's take the whole class.
     { code: '<div className="mt-(--ds-space-200) dark:bg-(--ds-elevation-surface)" />' },
+    // A key of an object is a name, not an attribute, and a bare word alone is no class list.
+    { code: 'const slots = { containerClass: "w-[240px]" }; export default slots;' },
+    { code: 'export const shape = "rounded";' },
+    // A bracket after a word Tailwind does not place is data, and so is a word in a *Class prop.
+    {
+      code: 'export const SORT = "items-[0]"; export const A = () => <Marker levelClass="[0]" />;',
+    },
   ],
   invalid: [
     {
@@ -327,6 +334,18 @@ export default {
           "Grey is text-subtlest (tertiary text, such as metadata, breadcrumbs…).",
         ),
       ],
+    },
+    {
+      // A component's own name for its classes (containerClass, iconClass) is read as className.
+      code: 'export const A = () => <Widget containerClass="w-[240px]" />;',
+      errors: [{ messageId: "arbitrary", data: { cls: "w-[240px]", advice: WIDTH } }],
+      output: null,
+    },
+    {
+      // A module-level string that can only be classes is read where it is declared.
+      code: 'export const width = "w-[240px]";',
+      errors: [{ messageId: "arbitrary", data: { cls: "w-[240px]", advice: WIDTH } }],
+      output: null,
     },
   ],
 };

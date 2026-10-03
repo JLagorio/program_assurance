@@ -3,7 +3,6 @@ import {
   useId,
   useRef,
   useState,
-  useSyncExternalStore,
   type KeyboardEvent,
   type ReactNode,
   type Ref,
@@ -12,8 +11,10 @@ import {
 import { Button, Textarea } from "../components";
 import { Popover, PopoverContent } from "../components/popover";
 import { announce } from "../lib/announce";
+import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
+import { useTouch } from "../lib/touch";
 import { Box } from "../primitives";
 
 export type ComposerSuggestion = {
@@ -39,7 +40,7 @@ export type ComposerSuggestions = {
 };
 
 type DraftProps =
-  | { value: string; onValueChange: (value: string) => void; defaultValue?: never }
+  | { value: string; onValueChange: (value: string) => void; defaultValue?: undefined }
   | {
       value?: undefined;
       defaultValue?: string | undefined;
@@ -90,23 +91,6 @@ export type ComposerProps = DraftProps & {
   className?: string | undefined;
 };
 
-/* A touch screen's primary pointer is coarse, and its keyboard has no Control or Command key to
-   press Enter with: the default keyboard hint is left out there. */
-const COARSE = "(pointer: coarse)";
-const canMatch = () => typeof window !== "undefined" && typeof window.matchMedia === "function";
-const subscribeCoarse = (change: () => void) => {
-  if (!canMatch()) return () => {};
-  const query = window.matchMedia(COARSE);
-  query.addEventListener("change", change);
-  return () => query.removeEventListener("change", change);
-};
-const useCoarsePointer = () =>
-  useSyncExternalStore(
-    subscribeCoarse,
-    () => canMatch() && window.matchMedia(COARSE).matches,
-    () => false,
-  );
-
 /** A text draft with optional completion suggestions and serialized, recoverable submission. */
 export function Composer({
   label,
@@ -133,7 +117,9 @@ export function Composer({
   onValueChange,
 }: ComposerProps) {
   const { t, formatPlural } = useLedgerLocale();
-  const coarse = useCoarsePointer();
+  // Where any pointer is coarse the reader may be on the touch screen, whose keyboard has no
+  // Control or Command key to press Enter with: the default keyboard hint is left out there.
+  const coarse = useTouch();
   const hint = hintProp === undefined ? (coarse ? null : t("composerSendHint")) : hintProp;
   const [draft, setDraft] = useState(defaultValue);
   const value = controlledValue ?? draft;
@@ -365,9 +351,11 @@ export function Composer({
             id={listId}
             role="listbox"
             aria-label={suggestionsLabel ?? t("composerSuggestions")}
-            data-slot="composer-suggestions"
             className="gap-0 overscroll-none p-0 py-050 font-body"
-            style={{ width: 280, maxHeight: "min(240px, var(--available-height))" }}
+            style={{
+              width: token("dimension.part.composerSuggestions"),
+              maxHeight: `min(${token("dimension.part.composerSuggestionsHeight")}, var(--available-height))`,
+            }}
           >
             {(open ? suggestions.items : shownList.current).map((option, index) => (
               <li

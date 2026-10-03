@@ -1,0 +1,56 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { StickyRail } from "../..";
+import * as Stories from "./StickyRail.stories";
+
+<Meta of={Stories} />
+
+# StickyRail
+
+**Status: Stable.**
+
+A column of a page's grid that stays in view under the shell's banner and top nav while the page scrolls: a wizard's steps beside its form. It stops `space.300` under them (the Shell's `--shell-top`; outside a Shell, the top nav's height) and is at most the window's height under them. In a scroller of its own, a dialog's body or a panel, it sticks to that scroller instead: an ancestor sets `--rail-top`, where the rail stops in it, and `--rail-max-height`, the scroller's height.
+
+`from="lg"` is for a rail the page's Grid puts beside the content from the large breakpoint and stacks above it below: below `lg` it stays in the flow and scrolls away with the page, so a phone never keeps the steps over the form. Without `from` it always sticks.
+
+A rail that the grid stacks above the content on a phone and has no `from` sticks there too, and covers the form the reader is filling in.
+
+<Canvas of={Stories.DoDont} />
+
+```tsx
+<Grid gap="space.300" templateColumns={{ lg: "200px minmax(0,1fr)" }}>
+  <StickyRail from="lg">
+    <Stepper orientation="responsive" label="Program setup">
+      …
+    </Stepper>
+  </StickyRail>
+  <Stack space="space.250">…the step's form…</Stack>
+</Grid>
+```
+
+<Canvas of={Stories.WizardSteps} />
+<Canvas of={Stories.Always} />
+
+## When to use it
+
+- **Use it** for a short column that orients the reader while they work down a long page beside it: a wizard's steps, the contents of a long document.
+- **Not** for a record's Details: those are the [Shell](?path=/docs/layout-shell--docs)'s Aside, which the Shell places beside Main and turns into a Details disclosure on a phone.
+- **Not** for a list beside its detail: that is a [WorkPane](?path=/docs/patterns-workpane--docs), whose list sticks the same way.
+- **Not** for a page frame or a register's table: Main scrolls the page, and DataTable `fill` takes the rest of the window.
+
+## Accessibility
+
+The rail is a plain `div`: it adds no landmark or role. What it holds names itself, as a Stepper's list does by its `label`. Its content keeps the reading and tab order of where it is rendered, before the content beside it.
+
+## Props
+
+<ArgTypes of={StickyRail} />
+
+StickyRail renders one `div`, forwards its native props, a `className` and its ref to it, shrinks in its grid track (`min-w-0`) and names itself last with `data-slot="sticky-rail"`.
+
+## Related
+
+- [Shell](?path=/docs/layout-shell--docs): the banner and the top nav it stops under, and the Aside for a record's Details.
+- [Stepper](?path=/docs/components-stepper--docs): a wizard's steps.
+- [Grid](?path=/docs/primitives-grid--docs): the page's columns.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#layout-classes): `lg:sticky-rail` and `sticky-rail` are a StickyRail.

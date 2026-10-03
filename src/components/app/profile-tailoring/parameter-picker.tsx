@@ -48,15 +48,7 @@ import {
   type WorkPaneView,
 } from "@ledger/design-system";
 import { AlertCircle } from "lucide-react";
-import {
-  type ComponentProps,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-  type RefObject,
-} from "react";
+import { type ComponentProps, useEffect, useId, useRef, useState, type RefObject } from "react";
 import { ChoiceField, TextField } from "../fields";
 import { parameterName } from "./names";
 import { focusAfterConfirmation, showOpenRow } from "./reveal-detail";
@@ -194,7 +186,7 @@ export function ParameterPicker({
                 <SearchField
                   ref={searchRef}
                   size="small"
-                  aria-label="Search parameters"
+                  aria-label="Find a parameter"
                   placeholder="Find a parameter"
                   value={search}
                   onValueChange={setSearch}
@@ -413,7 +405,7 @@ function ParameterEditor({
       }}
     >
       <Stack space="space.200">
-        <Heading size="xsmall" ref={headingRef} tabIndex={-1}>
+        <Heading size="overlay" ref={headingRef} tabIndex={-1}>
           {parameterName(item.parameter, item.choices)}
         </Heading>
         <HeadingLevelProvider>

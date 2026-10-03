@@ -105,7 +105,7 @@ The rule takes the plugin's `allow` option, a count of reports per file that may
 
 - It judges a kit part only. A plain element, a local look-alike and another package's part are not checked; the token rules still read what they can of them.
 - A class glued together at runtime (`` `bg-${tone}` ``) is [`ledger/no-non-token-class`](no-non-token-class.md)'s, which reports it as built at runtime.
-- A wrapper that spreads its props onto a part (`const Mine = (props) => <Button {...props} />`) is not the part, so a class given to it is not checked here.
+- A component of the file that hands its `className` on to a part (`const Mine = (props) => <Button {...props} />`) is read as that part, and the finding says so: `<Mine> forwards className to <Button>, whose className is imported from "./theme", …`. One imported from another file is not the part, so a class given to it is not checked here.
 - A parameter whose default is an object, read through another name (`const t = tones; t.a` with `{ tones = { a: "…" } }`), reads as that default.
 - In the kit's own source, a relative import that stays inside its `src` is the kit, read where it is declared; in a product only `@ledger/design-system` is. A value from another package is that package's: its classes are not Ledger's vocabulary.
 - The part's styling props come from its type, as the package's build reads it (`eslint-plugin/components.json`): the choices it declares and its `is…` flags. A part with none gets the second half of the advice alone.

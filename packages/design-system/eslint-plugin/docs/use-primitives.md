@@ -6,6 +6,7 @@ Reports layout written as classes: on a plain element, where a primitive belongs
 
 - A plain `div`, `span`, `section`, `article`, `aside`, `header`, `footer`, `main`, `nav`, `ul`, `ol`, `li`, `form`, `fieldset`, `p`, `label` or `h1` to `h6` whose `className` has a display class (`flex`, `inline-flex`, `grid`, `inline-grid`) or a padding or gap class (`p-`, `px-`, `py-`, `pt-`, `pb-`, `ps-`, `pe-`, `gap-`), with no variant. The finding lists the layout classes and names, in one sentence, the part they make with its props and their token values: `<div> carries layout classes (flex, gap-100). Use <Inline space="space.100">.`
 - A Box, Stack, Inline, Flex or Grid from the kit whose `className` sets what one of its props sets: padding, a gap, its display, or grid columns and rows. The finding lists the classes and says, in one sentence, what to write instead: `<Stack> carries layout classes (p-200, gap-100). Use space="space.100" and wrap it in <Box padding="space.200"> (a Stack has no padding).`
+- The same through a component of the file that hands its `className` on to a primitive (`const Pane = (props) => <Stack {...props} />`), at each `<Pane className="…">`: `<Pane> forwards className to <Stack>, which then carries layout classes (pt-200). For the <Stack> inside <Pane>: wrap it in <Box paddingBlockStart="space.200"> (a Stack has no padding).` The props are the Stack's, which `Pane` need not take: give it one that hands them on, or change the Stack inside it.
 
 The part and its props are computed from the classes:
 
@@ -77,6 +78,17 @@ export function BoardColumns() {
 }
 ```
 
+```tsx reported
+import { Stack, type StackProps } from "@ledger/design-system";
+
+// A component of the file that hands its className on to a Stack.
+const Pane = (props: StackProps) => <Stack {...props} />;
+
+export function Notes() {
+  return <Pane className="pt-200">Three requirements have no evidence.</Pane>;
+}
+```
+
 ### Allowed
 
 ```tsx allowed
@@ -143,10 +155,11 @@ Neither. Moving a layout from classes to a primitive or its props changes the el
 
 ## Allowances
 
-The rule takes the plugin's `allow` option: a count of reports per file that may only shrink. A file with more reports than its count fails, and one with fewer fails until the count is lowered. The rule is off in `configs.package`. This repository's root config reads the application's counts from `scripts/lint-allow.json`, where they hold the sites that predate the rule's reach onto the primitives. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](no-inline-config.md).
+The rule takes the plugin's `allow` option: a count of reports per file that may only shrink. A file with more reports than its count fails, and one with fewer fails until the count is lowered. The rule is off in `configs.package`. This repository's `scripts/lint-allow.json` has no entry for it, so every report in the application fails. A comment that turns the rule off, a block disable, or a line disable with no reason after `--` is reported by [`ledger/no-inline-config`](no-inline-config.md).
 
 ## Limits
 
 - It reads the classes that reach `className` as the class rules read them: through a condition, a template, a class helper, a same-file `const` or map entry, and an object spread onto the element that sets `className` and is not written over by a later one (JSX keeps the last); a class passed in through a prop or imported from another file is not seen.
+- A component that hands its `className` on to a primitive is followed within the file, through up to four such components, when its first parameter carries it: the props object or a rest that still holds it, spread onto the element, or `className` destructured (in the parameter, or from the props object at the top of its body) and written onto it. Of the elements a component hands it to, the first in source order counts, passing over one that renders a component already on the way (a tree that renders itself). A component imported from another file, one declared with `let`, one read from an object (`<parts.Row>`), a component past the fourth and a second element given the same prop are not followed.
 - On a plain element, a class under a variant (`md:flex`, `md:p-200`) is not reported, nor the physical padding sides `pl-` and `pr-`, nor an element outside the list above, such as `button`, `dl` or `table`.
 - On a primitive, only padding, gap, display and grid template classes are read; the other layout classes (alignment, position, size) are left to the part's props or to the classes as written.

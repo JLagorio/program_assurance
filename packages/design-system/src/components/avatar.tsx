@@ -45,7 +45,7 @@ const sizes: Record<AvatarSize, { box: string; type: string; initials: 1 | 2; sq
     initials: 2,
     square: "rounded-medium",
   },
-  xlarge: { box: "size-800", type: "font-heading-medium", initials: 2, square: "rounded-large" },
+  xlarge: { box: "size-800", type: "font-heading-page", initials: 2, square: "rounded-large" },
 };
 
 const hues = ["blue", "teal", "green", "orange", "red", "purple"] as const;
@@ -88,10 +88,11 @@ const neutral = "border border-default bg-neutral text-subtle";
 const GroupContext = createContext(false);
 const RootContext = createContext<{ size: AvatarSize; radius: string } | null>(null);
 
-/** A ring of `border.width.selected` (2px) in the surface colour, so overlapping circles stay
-    circles. */
+/** A ring of `border.width.selected` (2px) in the colour of the surface the avatars sit on
+    (`utility.elevation.surface.current`: the page, a card, a dialog), so overlapping circles stay
+    circles on any of them. */
 const ring = {
-  boxShadow: `0 0 0 ${token("border.width.selected")} ${token("elevation.surface")}`,
+  boxShadow: `0 0 0 ${token("border.width.selected")} ${token("utility.elevation.surface.current")}`,
 } as const;
 
 export type AvatarProps = Primitive.Root.Props & {
@@ -225,17 +226,13 @@ export function Avatar({
 }
 
 export type AvatarGroupProps = ComponentProps<"div">;
-/** Overlapping avatars. The overlap is a quarter of the members' size, near enough on the spacing scale: 4px at xsmall, 6px at small, 8px at medium and large, 16px at xlarge. */
+/** Overlapping avatars. The overlap is a quarter of the members' size, near enough on the spacing scale: 4px at xsmall, 6px at small, 8px at medium and large, 16px at xlarge (the `avatar-group` utility in styles/avatar.css). */
 export function AvatarGroup({ className, ...props }: AvatarGroupProps) {
   return (
     <GroupContext.Provider value={true}>
       <div
         {...props}
-        className={cn(
-          // eslint-disable-next-line ledger/no-margin -- Overlap is the geometry of an avatar group.
-          "group/avatar-group flex items-center [&>*+*]:-ms-075 has-[[data-slot=avatar][data-size=xsmall]]:[&>*+*]:-ms-050 has-[[data-slot=avatar][data-size=medium]]:[&>*+*]:-ms-100 has-[[data-slot=avatar][data-size=large]]:[&>*+*]:-ms-100 has-[[data-slot=avatar][data-size=xlarge]]:[&>*+*]:-ms-200",
-          className,
-        )}
+        className={cn("avatar-group group/avatar-group flex items-center", className)}
         data-slot="avatar-group"
       />
     </GroupContext.Provider>

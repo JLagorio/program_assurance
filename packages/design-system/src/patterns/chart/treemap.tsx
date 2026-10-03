@@ -1,5 +1,5 @@
 import { useLedgerLocale } from "../../lib/locale";
-import { useMemo, useState, type FocusEvent, type ReactNode } from "react";
+import { useMemo, useState, type ComponentProps, type FocusEvent, type ReactNode } from "react";
 import { Tooltip, Treemap } from "recharts";
 
 import { token } from "../../generated/tokens";
@@ -52,7 +52,7 @@ export type TreemapSelection = {
   id?: string | undefined;
 };
 
-export type ChartTreemapProps = {
+type ChartTreemapOwnProps = {
   data: TreemapNodeInput[];
   /** What each level of the hierarchy is called, from the top, for the table twin's headings: `["System", "Component"]`. The Frame's `xLabel` for the top level, then "Group" and "Name", when unsaid. */
   levels?: string[] | undefined;
@@ -70,6 +70,10 @@ export type ChartTreemapProps = {
   details?: ((selection: TreemapSelection) => ReactNode) | undefined;
   className?: string | undefined;
 };
+
+/** The part's own props, and the native props and ref of the plot's box: an `id`, `data-*` for a test, a handler. */
+export type ChartTreemapProps = ChartTreemapOwnProps &
+  Omit<ComponentProps<"div">, keyof ChartTreemapOwnProps | "children" | "role">;
 
 type ToneNode = {
   name: string;
@@ -360,6 +364,8 @@ export function ChartTreemap({
   onSelect,
   details,
   className,
+  "aria-describedby": describedBy,
+  ...native
 }: ChartTreemapProps) {
   const { t } = useLedgerLocale();
 
@@ -377,6 +383,7 @@ export function ChartTreemap({
     name: frameName,
     titleId,
     chooses,
+    describedBy,
     count: 0,
     describe: () => "",
   });
@@ -426,7 +433,14 @@ export function ChartTreemap({
   if (offstage) return null;
   if (loading)
     return (
-      <PlotSkeleton kind="tiles" name={name} size={size} height={height} className={className} />
+      <PlotSkeleton
+        {...native}
+        kind="tiles"
+        name={name}
+        size={size}
+        height={height}
+        className={className}
+      />
     );
   const choose = (node: Clicked) => {
     const selection: TreemapSelection = {
@@ -458,6 +472,9 @@ export function ChartTreemap({
   ) : null;
   return (
     <Plot
+      {...native}
+      // Choosing, the box is the named group and carries the description; else the svg does.
+      aria-describedby={chooses ? describedBy : undefined}
       name={name}
       size={size}
       height={height}

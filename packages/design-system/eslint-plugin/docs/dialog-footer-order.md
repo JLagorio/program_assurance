@@ -7,6 +7,7 @@ Reports a Cancel or close control that comes after the primary action in a dialo
 - In a `DialogFooter`, `AlertDialogFooter`, `SheetFooter` or `DrawerFooter`, any cancel that follows the first primary. The finding names the cancel and the footer as written, and what the cancel dismisses: `<DialogClose> dismisses the dialog but comes after the primary action in <DialogFooter>. Put it first: the safe answer leads, and the primary ends the footer, where a keyboard reader reaches it last.` Each late cancel is its own report.
 - A cancel is a `Button` whose text is exactly `Cancel`, or a close part (`DialogClose`, `SheetClose`, `DrawerClose`, `AlertDialogCancel`) that is not itself the primary.
 - A primary is an `AlertDialogAction`, or a `Button` or close part with `variant="primary"`, written on it or on the element in its `render`.
+- The same among the children of a component of the file that hands them on to a footer (`const Actions = ({ children }) => <DialogFooter>{children}</DialogFooter>`): `<Button> dismisses the dialog but comes after the primary action in <Actions>, which forwards its children to <DialogFooter>.`
 
 The footer's children are read through fragments, wrapping elements such as an `Inline`, and the right-hand side of `&&`. Kit names are followed through an alias or a namespace import from `@ledger/design-system` (`import { DialogFooter as Footer }`, `<Kit.DialogFooter>`).
 
@@ -124,6 +125,7 @@ The rule takes the plugin's `allow` option, a count of reports per file that may
 ## Limits
 
 - It reads the footer's own JSX in the file. Buttons that a component renders from inside the footer (`<DialogFooter><FormActions /></DialogFooter>`) are not seen.
+- A component that hands its children on to a footer is followed within the file, through up to four such components, when its first parameter carries it: the props object or a rest that still holds it, spread onto the element, or `children` destructured (in the parameter, or from the props object at the top of its body) and written onto it. Of the elements a component hands it to, the first in source order counts, passing over one that renders a component already on the way (a tree that renders itself). A component imported from another file, one declared with `let`, one read from an object (`<parts.Row>`), a component past the fourth and a second element given the same prop are not followed.
 - The two branches of a conditional are never compared with each other, since only one of them renders; only the right-hand side of `&&` is read.
 - A cancel is known by its exact text or by being a close part: a `Button` labelled `Keep editing`, or one whose label is a variable, counts only when it is a close part. A primary is known by a written `variant="primary"`; a variant from a variable is not read.
 - Controls inside a nested dialog, sheet or drawer part within the footer are skipped.

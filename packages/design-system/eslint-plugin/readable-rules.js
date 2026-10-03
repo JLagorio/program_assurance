@@ -103,11 +103,14 @@ function propName(context, node) {
   return memberKey(chain[0]) ?? context.sourceCode.getText(chain[0].property);
 }
 
-/** What a finding leads with: the part and the attribute, or the element that renders the part. */
+/** What a finding leads with: the part and the attribute, the element that renders the part, or
+    the component of the file that hands its className on to the part. */
 const subjectOf = (site) =>
   site.owner.via === "render"
     ? `<${site.owner.wrapper}> renders <${site.owner.part}>, whose ${site.attribute}`
-    : `<${site.owner.part}> ${site.attribute}`;
+    : site.owner.via === "wrapper"
+      ? `<${site.owner.wrapper}> forwards className to <${site.owner.part}>, whose ${site.attribute}`
+      : `<${site.owner.part}> ${site.attribute}`;
 
 /** What to write instead: the part's own styling props first, then the classes where they are
     read. When the element renders the part, the subject has named both, so the advice is short. */
@@ -115,7 +118,7 @@ function adviceFor(site) {
   const part = site.owner.part;
   const props = Object.hasOwn(STYLE_PROPS, part) ? STYLE_PROPS[part].slice(0, SHOWN_PROPS) : [];
   if (!props.length) return "Write the classes here, or in a map in this file.";
-  if (site.owner.via === "render")
+  if (site.owner.via !== "self")
     return `Use its prop (${props.join(", ")}), or write layout classes here or in a map in this file.`;
   return `Use ${/^[AEIOU]/.test(part) ? "an" : "a"} ${part} prop (${props.join(", ")}); for layout the part leaves to its caller, write the classes here or in a map in this file.`;
 }

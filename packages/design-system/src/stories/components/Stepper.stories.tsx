@@ -6,19 +6,24 @@ import {
   AvatarGroup,
   Badge,
   Button,
+  Card,
+  CardContent,
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
+  CollapsibleHeader,
   Person,
   Stepper,
 } from "../../components";
-import { ChevronDown } from "lucide-react";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { createRef, useRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
-import { Box, Inline, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import { Box, Heading, Inline, Stack, Text } from "../../primitives";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Stepper",
@@ -38,6 +43,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Every state on one path, plain and numbered; vertical, plain and numbered, with steps that can be moved to. */
 export const StepperMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="Horizontal: done, done, current, blocked, upcoming">
@@ -86,10 +92,35 @@ export const StepperMatrix: Story = {
           </Stepper>
         </Box>
       </Specimens>
+      <Specimens title="On a card: the rings are filled with the card's surface">
+        <Card style={{ width: 280, maxWidth: "100%" }}>
+          <CardContent>
+            <Stepper label="On a card" orientation="vertical">
+              <Stepper.Item state="done" label="Request sent" />
+              <Stepper.Item state="current" label="Awaiting evidence" />
+              <Stepper.Item state="upcoming" label="Close" />
+            </Stepper>
+          </CardContent>
+        </Card>
+      </Specimens>
     </Stack>
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    // The current and upcoming rings take the surface the path sits on, here the card's, in
+    // either mode.
+    const onCard = canvas.getByRole("list", { name: "On a card" });
+    const card = onCard.closest<HTMLElement>('[data-slot="card"]')!;
+    for (const state of ["current", "upcoming"]) {
+      const ring = [
+        ...onCard.querySelectorAll<HTMLElement>(
+          `[data-slot="stepper-marker"][data-state="${state}"]`,
+        ),
+      ].find((marker) => marker.getBoundingClientRect().height > 0)!;
+      await expect(getComputedStyle(ring).backgroundColor).toBe(
+        getComputedStyle(card).backgroundColor,
+      );
+    }
     const states = canvas.getByRole("list", { name: "States" });
     // A list whose markers are removed says it is a list, so WebKit keeps "3 of 6".
     await expect(states).toHaveAttribute("role", "list");
@@ -133,63 +164,31 @@ export const StepperMatrix: Story = {
   },
 };
 
-/** Where a path is drawn: a milestone header on a record, and a wizard's rail. */
-const stepperRef = createRef<HTMLOListElement>();
-const stepRef = createRef<HTMLLIElement>();
-const selectStep = fn();
-const stepperClick = fn();
-const guardStep = fn();
+export const Playground: Story = {};
 
-export const Paths: Story = {
-  render: () => (
+/** Where a path is drawn: a milestone header on a record, and a wizard's rail. */
+export const Paths: StoryObj<{ onSelect: () => void }> = {
+  args: { onSelect: fn() },
+  render: (args) => (
     <Stack space="space.600">
-      <Stepper
-        ref={stepperRef}
-        id="milestone-path"
-        data-path="milestones"
-        label="Milestones"
-        aria-label="Milestone navigation"
-        style={{ minWidth: 640 }}
-        className="gap-100"
-        onClick={stepperClick}
-      >
-        <Stepper.Item
-          ref={stepRef}
-          id="milestone-a"
-          data-step="a"
-          title="Milestone A"
-          className="rounded-medium"
-          style={{ scrollMarginTop: 32 }}
-          state="done"
-          label="MS-A"
-          meta="4 Mar · Complete"
-          onSelect={() => selectStep("MS-A")}
-        />
-        <Stepper.Item
-          state="done"
-          label="MS-B"
-          meta="29 Jul · Complete"
-          onSelect={() => selectStep("MS-B")}
-        />
+      <Stepper label="Milestones">
+        <Stepper.Item state="done" label="MS-A" meta="4 Mar · Complete" onSelect={args.onSelect} />
+        <Stepper.Item state="done" label="MS-B" meta="29 Jul · Complete" onSelect={args.onSelect} />
         <Stepper.Item
           state="current"
           label="MS-C"
           meta="18 Sep · 10d out"
-          onSelect={() => selectStep("MS-C")}
+          onSelect={args.onSelect}
         />
         <Stepper.Item
           state="blocked"
           label="MS-D"
           meta="2 Dec · 2 findings"
-          onClickCapture={(event) => {
-            guardStep();
-            event.preventDefault();
-          }}
-          onSelect={() => selectStep("MS-D")}
+          onSelect={args.onSelect}
         />
-        <Stepper.Item state="upcoming" label="MS-E" meta="14 Jan" onSelect={() => undefined} />
+        <Stepper.Item state="upcoming" label="MS-E" meta="14 Jan" />
       </Stepper>
-      <Box style={{ width: 280 }}>
+      <Box style={{ maxWidth: 280 }}>
         <Stepper label="Program setup" orientation="vertical" numbered>
           <Stepper.Item state="done" label="Program" meta="Aurora" onSelect={() => undefined} />
           <Stepper.Item
@@ -203,6 +202,85 @@ export const Paths: Story = {
         </Stepper>
       </Box>
     </Stack>
+  ),
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement);
+    const list = canvas.getByRole("list", { name: "Milestones" });
+    await expect(list).toHaveAttribute("data-orientation", "horizontal");
+    // A click, Space and Enter each select a step; the next Tab reaches the next step.
+    await userEvent.click(within(list).getByRole("button", { name: /MS-A/ }));
+    await userEvent.keyboard(" ");
+    await expect(args.onSelect).toHaveBeenCalledTimes(2);
+    await userEvent.tab();
+    await expect(within(list).getByRole("button", { name: /MS-B/ })).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
+    await expect(args.onSelect).toHaveBeenCalledTimes(3);
+    // The current step of a path the reader moves along is a button carrying the state itself.
+    const current = within(list).getByRole("button", { name: /MS-C/ });
+    await expect(current).toHaveAttribute("aria-current", "step");
+    await expect(current).toHaveAccessibleName("Current: MS-C 18 Sep · 10d out");
+    await expect(current.closest("li")).not.toHaveAttribute("aria-current");
+    const vertical = canvas.getByRole("list", { name: "Program setup" });
+    await expect(vertical).toHaveAttribute("data-orientation", "vertical");
+  },
+};
+
+const stepperRef = createRef<HTMLOListElement>();
+const stepRef = createRef<HTMLLIElement>();
+const selectStep = fn();
+const stepperClick = fn();
+const guardStep = fn();
+
+/** A ref, native props, a class and a style reach the path's `ol` and a step's `li`; a capture handler can stop a step before `onSelect`. */
+export const NativeAttributes: Story = {
+  tags: ["!manifest"],
+  render: () => (
+    <Stepper
+      ref={stepperRef}
+      id="milestone-path"
+      data-path="milestones"
+      label="Milestones"
+      aria-label="Milestone navigation"
+      style={{ minWidth: 640 }}
+      className="gap-100"
+      onClick={stepperClick}
+    >
+      <Stepper.Item
+        ref={stepRef}
+        id="milestone-a"
+        data-step="a"
+        title="Milestone A"
+        className="rounded-medium"
+        style={{ scrollMarginTop: 32 }}
+        state="done"
+        label="MS-A"
+        meta="4 Mar · Complete"
+        onSelect={() => selectStep("MS-A")}
+      />
+      <Stepper.Item
+        state="done"
+        label="MS-B"
+        meta="29 Jul · Complete"
+        onSelect={() => selectStep("MS-B")}
+      />
+      <Stepper.Item
+        state="current"
+        label="MS-C"
+        meta="18 Sep · 10d out"
+        onSelect={() => selectStep("MS-C")}
+      />
+      <Stepper.Item
+        state="blocked"
+        label="MS-D"
+        meta="2 Dec · 2 findings"
+        onClickCapture={(event) => {
+          guardStep();
+          event.preventDefault();
+        }}
+        onSelect={() => selectStep("MS-D")}
+      />
+      <Stepper.Item state="upcoming" label="MS-E" meta="14 Jan" onSelect={() => undefined} />
+    </Stepper>
   ),
   play: async ({ canvasElement }) => {
     selectStep.mockClear();
@@ -219,7 +297,6 @@ export const Paths: Story = {
     await expect(step.tagName).toBe("LI");
     await expect(list).toHaveAttribute("id", "milestone-path");
     await expect(list).toHaveAttribute("data-path", "milestones");
-    await expect(list).toHaveAttribute("data-orientation", "horizontal");
     await expect(list).toHaveClass("group/stepper", "gap-100");
     await expect(list).toHaveStyle({ minWidth: "640px" });
     await expect(step).toHaveAttribute("id", "milestone-a");
@@ -229,45 +306,34 @@ export const Paths: Story = {
     await userEvent.click(first);
     await userEvent.keyboard(" ");
     await expect(selectStep).toHaveBeenCalledTimes(2);
-    await expect(selectStep).toHaveBeenLastCalledWith("MS-A");
     await expect(stepperClick).toHaveBeenCalledTimes(2);
-    await userEvent.tab();
-    await userEvent.keyboard("{Enter}");
-    await expect(selectStep).toHaveBeenLastCalledWith("MS-B");
     await userEvent.click(blocked);
     await userEvent.keyboard("{Enter}");
     await expect(guardStep).toHaveBeenCalledTimes(2);
-    await expect(selectStep).toHaveBeenCalledTimes(3);
-    // The current step of a path the reader moves along is a button carrying the state itself.
-    const current = within(list).getByRole("button", { name: /MS-C/ });
-    await expect(current).toHaveAttribute("aria-current", "step");
-    await expect(current).toHaveAccessibleName("Current: MS-C 18 Sep · 10d out");
-    await expect(current.closest("li")).not.toHaveAttribute("aria-current");
+    await expect(selectStep).toHaveBeenCalledTimes(2);
     await expect(within(list).getByRole("button", { name: /MS-E/ })).toHaveAccessibleName(
       "Not started: MS-E 14 Jan",
     );
-    const vertical = canvas.getByRole("list", { name: "Program setup" });
-    await expect(vertical).toHaveAttribute("data-orientation", "vertical");
-    await expect(vertical.style.minWidth).toBe("");
   },
 };
 
-/** A rail of milestones: each step carries its record under the label, the owner and the open task behind a Collapsible, and the rail runs past it. */
+/** Whether a disclosure's chevron is turned, from its computed rotation. */
+function turned(trigger: HTMLElement) {
+  const icon = trigger.querySelector("[data-slot=collapsible-header-icon]");
+  if (!icon) throw new Error("No chevron in the trigger");
+  return getComputedStyle(icon).rotate === "180deg";
+}
+
+/** A rail of milestones: each step carries its record under the label, the owner and the open task behind a CollapsibleHeader, whose chevron turns while it is open, and the rail runs past it. */
 export const Milestones: Story = {
   render: () => (
     <Box style={{ maxWidth: 520 }}>
       <Stepper label="Activation" orientation="vertical">
         <Stepper.Item state="done" label="Contract signed" meta="12 Aug">
-          <Collapsible className="border-t border-default border-t-0">
-            <h3>
-              <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
-                <Person name="Maya Brooks" />
-                <ChevronDown
-                  aria-hidden="true"
-                  className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
-                />
-              </CollapsibleTrigger>
-            </h3>
+          <Collapsible>
+            <CollapsibleHeader>
+              <Person name="Maya Brooks" />
+            </CollapsibleHeader>
             <CollapsibleContent>
               <div className="pb-200">
                 <Text size="small" color="color.text.subtle">
@@ -278,16 +344,10 @@ export const Milestones: Story = {
           </Collapsible>
         </Stepper.Item>
         <Stepper.Item state="current" label="Workspace provisioning" meta="Due 18 Sep">
-          <Collapsible defaultOpen className="border-t border-default border-t-0">
-            <h3>
-              <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
-                <Person name="Nina Patel" />
-                <ChevronDown
-                  aria-hidden="true"
-                  className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
-                />
-              </CollapsibleTrigger>
-            </h3>
+          <Collapsible defaultOpen>
+            <CollapsibleHeader>
+              <Person name="Nina Patel" />
+            </CollapsibleHeader>
             <CollapsibleContent>
               <div className="pb-200">
                 <Stack space="space.100">
@@ -333,16 +393,10 @@ export const Milestones: Story = {
           </Collapsible>
         </Stepper.Item>
         <Stepper.Item state="upcoming" label="Launch readiness">
-          <Collapsible className="border-t border-default border-t-0">
-            <h3>
-              <CollapsibleTrigger className="group/collapsible flex w-full items-center gap-100 py-100 text-start font-body font-semibold hover:bg-neutral-subtle-hovered">
-                <Person name="Leah Stone" />
-                <ChevronDown
-                  aria-hidden="true"
-                  className="ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-[state=open]/collapsible:rotate-180"
-                />
-              </CollapsibleTrigger>
-            </h3>
+          <Collapsible>
+            <CollapsibleHeader>
+              <Person name="Leah Stone" />
+            </CollapsibleHeader>
             <CollapsibleContent>
               <div className="pb-200">
                 <Text size="small" color="color.text.subtle">
@@ -355,10 +409,25 @@ export const Milestones: Story = {
       </Stepper>
     </Box>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const open = canvas.getByRole("button", { name: /Nina Patel/ });
+    const closed = canvas.getByRole("button", { name: /Maya Brooks/ });
+    // Each owner is a heading over what the step carries, and its chevron says open or closed.
+    await expect(open.closest("h3")).not.toBeNull();
+    await expect(open).toHaveAttribute("aria-expanded", "true");
+    await waitFor(() => expect(turned(open)).toBe(true));
+    await expect(turned(closed)).toBe(false);
+    await userEvent.click(closed);
+    await waitFor(() => expect(turned(closed)).toBe(true));
+    await userEvent.click(closed);
+    await waitFor(() => expect(turned(closed)).toBe(false));
+  },
 };
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -467,12 +536,9 @@ export const Dont: Story = {
   },
 };
 
-export const Playground: Story = {};
-
 /** Five steps on a small phone: the strip keeps the width its labels need and scrolls inside its container, arrows at the edges where a pointer can hover, instead of running past the window. */
 export const Narrow: Story = {
   globals: { viewport: { value: "ledgerSmall", isRotated: false } },
-  tags: ["narrow"],
   render: () => (
     <Stepper label="Authorization steps">
       <Stepper.Item state="done" label="Categorize" meta="Done 3 Aug" />
@@ -493,6 +559,76 @@ export const Narrow: Story = {
     await waitFor(() => expect(viewport).toHaveAttribute("tabindex", "0"));
     await expect(viewport).toHaveAttribute("role", "group");
     await expect(viewport).toHaveAccessibleName("Authorization steps, scrolls");
+  },
+};
+
+/** A path that follows its own container: down the page while the container is narrower than `@md` (448px), across from there. */
+const across = (list: HTMLElement) => getComputedStyle(list).flexDirection === "row";
+const roomAcross = (list: HTMLElement) =>
+  list.closest<HTMLElement>('[data-slot="stepper-frame"]')!.clientWidth >= 448;
+
+function ResponsivePath({ label }: { label: string }) {
+  return (
+    <Stepper label={label} orientation="responsive" numbered>
+      <Stepper.Item state="done" label="Program" meta="Aurora" onSelect={() => undefined} />
+      <Stepper.Item
+        state="done"
+        label="Framework"
+        meta="NIST 800-53 r5"
+        onSelect={() => undefined}
+      />
+      <Stepper.Item state="current" label="Systems" meta="2 scopes" />
+      <Stepper.Item state="upcoming" label="Review" />
+    </Stepper>
+  );
+}
+
+/**
+ * `orientation="responsive"` reads the Stepper's own container, not the window: in a 240px rail
+ * beside a form it runs down the page, and above the form, where the container is `@md` (448px) or
+ * wider, it runs across. It runs across only where the steps fit, so it never scrolls.
+ */
+export const Responsive: Story = {
+  tags: ["!manifest"],
+  render: () => (
+    <Stack space="space.400">
+      <Specimens title="In a 240px rail beside the form: down the page">
+        <Box style={{ width: 240, maxWidth: "100%" }}>
+          <ResponsivePath label="Program setup, in the rail" />
+        </Box>
+      </Specimens>
+      <Specimens title="Above the form, 560px: across">
+        <Box style={{ width: 560, maxWidth: "100%" }}>
+          <ResponsivePath label="Program setup, above the form" />
+        </Box>
+      </Specimens>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const rail = canvas.getByRole("list", { name: "Program setup, in the rail" });
+    const above = canvas.getByRole("list", { name: "Program setup, above the form" });
+    for (const list of [rail, above]) {
+      await expect(list).toHaveAttribute("data-orientation", "responsive");
+      // No strip to scroll: the list sits in its container frame, with no Scroller around it.
+      await expect(list.parentElement).toHaveAttribute("data-slot", "stepper-frame");
+      await expect(across(list)).toBe(roomAcross(list));
+      // Each step shows one marker, the one for the way the path runs.
+      const shown = [
+        ...list.querySelectorAll("li")[0]!.querySelectorAll("[data-slot=stepper-marker]"),
+      ].filter((marker) => marker.getBoundingClientRect().height > 0);
+      await expect(shown).toHaveLength(1);
+    }
+    await expect(across(rail)).toBe(false);
+    await expect(
+      within(rail).getByRole("button", { name: "Completed: Framework NIST 800-53 r5" }),
+    ).toBeVisible();
+    // The container decides: widen the rail and the path turns across; narrow it and it turns back.
+    const box = rail.closest<HTMLElement>('[data-slot="stepper-frame"]')!.parentElement!;
+    box.style.width = "560px";
+    await waitFor(() => expect(across(rail)).toBe(roomAcross(rail)));
+    box.style.width = "240px";
+    await waitFor(() => expect(across(rail)).toBe(false));
   },
 };
 
@@ -522,13 +658,15 @@ function WizardDemo() {
         </Stepper>
       </Box>
       <Stack space="space.200">
-        <h2
+        <Heading
+          size="page"
+          as="h2"
           ref={heading}
           tabIndex={-1}
-          className="font-heading-small outline-none focus-visible:outline-focused"
+          className="outline-none focus-visible:outline-focused"
         >
           {steps[index]}
-        </h2>
+        </Heading>
         <Text color="color.text.subtle">
           Step {index + 1} of {steps.length}
         </Text>

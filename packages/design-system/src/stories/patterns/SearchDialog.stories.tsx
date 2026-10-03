@@ -13,7 +13,10 @@ import {
 } from "../../components";
 import { SearchDialog, type SearchResult } from "../../patterns";
 import { Inline, Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Patterns/SearchDialog",
@@ -151,6 +154,33 @@ function Demo({
     </Stack>
   );
 }
+
+/** The props as controls. The button opens the dialog; loading and error show their states over the records. */
+export const Playground: Story = {
+  args: {
+    results: records,
+    title: "Search",
+    placeholder: "Search programs, risks and controls",
+    loading: false,
+    error: false,
+  },
+  argTypes: {
+    loading: { control: "boolean" },
+    error: { control: "boolean" },
+    open: { control: false },
+    results: { control: false },
+    initialResults: { control: false },
+  },
+  render: (args) => {
+    const [open, setOpen] = useState(false);
+    return (
+      <Inline>
+        <Button onClick={() => setOpen(true)}>Search records</Button>
+        <SearchDialog {...args} open={open} onOpenChange={setOpen} />
+      </Inline>
+    );
+  },
+};
 
 /** The dialog over the records it matches itself. The arrows move and the field's active descendant follows the highlighted row as the results change; Enter opens the record, the dialog closes and focus returns to the button that opened it. */
 export const SearchDialogStory: Story = {
@@ -455,33 +485,6 @@ export const Phone: Story = {
   },
 };
 
-/** The props as controls. The button opens the dialog; loading and error show their states over the records. */
-export const Playground: Story = {
-  args: {
-    results: records,
-    title: "Search",
-    placeholder: "Search programs, risks and controls",
-    loading: false,
-    error: false,
-  },
-  argTypes: {
-    loading: { control: "boolean" },
-    error: { control: "boolean" },
-    open: { control: false },
-    results: { control: false },
-    initialResults: { control: false },
-  },
-  render: (args) => {
-    const [open, setOpen] = useState(false);
-    return (
-      <Inline>
-        <Button onClick={() => setOpen(true)}>Search records</Button>
-        <SearchDialog {...args} open={open} onOpenChange={setOpen} />
-      </Inline>
-    );
-  },
-};
-
 /** The rows as a list, for a pair. */
 function Rows({ placeholder, children }: { placeholder: string; children: ReactNode }) {
   return (
@@ -496,6 +499,7 @@ function Rows({ placeholder, children }: { placeholder: string; children: ReactN
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Pair
       do={

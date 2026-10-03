@@ -7,28 +7,30 @@ import * as Stories from "./Flex.stories";
 
 # Flex
 
+**Status: Stable.**
+
 The general flex container, for the layouts Stack and Inline do not express: a row distributed `space-around`, a column whose children stretch, a wrap with its own column and row gaps. Stack and Inline are Flex with the choices made; reach for them first, and for Flex when the choice they made is the wrong one. There is no reverse direction and no reverse wrap: a reversed row reads in one order and tabs in the other.
 
 <Canvas of={Stories.FlexMatrix} />
 
 ## Anatomy
 
-| Part      | What it is                                                                                     |
-| --------- | ---------------------------------------------------------------------------------------------- |
-| Container | A flex box: a `div`, or the layout element `as` names.                                         |
-| Direction | `row` or `column`. No reverse.                                                                 |
-| Gap       | `gap` on both axes; `rowGap` and `columnGap` over it.                                          |
-| Main axis | `justifyContent`: `start`, `center`, `end`, `space-between`, `space-around`, `space-evenly`.   |
-| Cross axis | `alignItems`: `start`, `center`, `end`, `baseline`, `stretch`.                                |
-| Wrap      | `wrap` or `nowrap`.                                                                            |
+| Part       | What it is                                                                                   |
+| ---------- | -------------------------------------------------------------------------------------------- |
+| Container  | A flex box: a `div`, or the layout element `as` names.                                       |
+| Direction  | `row` or `column`. No reverse.                                                               |
+| Gap        | `gap` on both axes; `rowGap` and `columnGap` over it.                                        |
+| Main axis  | `justifyContent`: `start`, `center`, `end`, `space-between`, `space-around`, `space-evenly`. |
+| Cross axis | `alignItems`: `start`, `center`, `end`, `baseline`, `stretch`.                               |
+| Wrap       | `wrap` or `nowrap`.                                                                          |
 
 ## Variants
 
-| Flex     | Use                                                                                                          |
-| -------- | ------------------------------------------------------------------------------------------------------------ |
-| Row      | A row that Inline cannot say: `space-around`, `space-evenly`, or children stretched to the tallest.          |
-| Column   | A column that Stack cannot say: a `baseline` alignment, children distributed `space-around`.                  |
-| Wrapping | Cells of their own width with a column gap and a row gap that differ, and a distribution across each row.    |
+| Flex     | Use                                                                                                       |
+| -------- | --------------------------------------------------------------------------------------------------------- |
+| Row      | A row that Inline cannot say: `space-around`, `space-evenly`, or children stretched to the tallest.       |
+| Column   | A column that Stack cannot say: a `baseline` alignment, children distributed `space-around`.              |
+| Wrapping | Cells of their own width with a column gap and a row gap that differ, and a distribution across each row. |
 
 Not built, and why: `row-reverse` and `column-reverse` (the eye reads one order and the keyboard another; write the children in the order they should read); `wrap-reverse` (the same); `inline-flex` (Inline's `display`, for a row inside text); a per-child `alignSelf` or `order` (a child that sits differently carries its own class, and order is DOM order); a responsive direction (a layout that changes at a breakpoint is a Grid with one template per breakpoint).
 
@@ -55,12 +57,12 @@ Not built, and why: `row-reverse` and `column-reverse` (the eye reads one order 
 
 ## Style
 
-| Element   | Token                                                          |
-| --------- | -------------------------------------------------------------- |
-| Gap       | `space.*`, as `gap-*`, `gap-x-*`, `gap-y-*`                    |
-| Direction | `flex-row`, `flex-col`                                         |
-| Axes      | `justify-*`, `items-*`                                         |
-| Wrap      | `flex-wrap`, `flex-nowrap`                                     |
+| Element   | Token                                       |
+| --------- | ------------------------------------------- |
+| Gap       | `space.*`, as `gap-*`, `gap-x-*`, `gap-y-*` |
+| Direction | `flex-row`, `flex-col`                      |
+| Axes      | `justify-*`, `items-*`                      |
+| Wrap      | `flex-wrap`, `flex-nowrap`                  |
 
 ## Accessibility
 
@@ -85,5 +87,7 @@ Not built, and why: `row-reverse` and `column-reverse` (the eye reads one order 
 - [Space](?path=/docs/tokens-space--docs): the scale.
 
 ## Don't
+
+A row with one gap is an Inline, a column a Stack and two columns with a fixed rail a Grid; Flex is for what those cannot say, never a stand-in for them.
 
 <Canvas of={Stories.Dont} />

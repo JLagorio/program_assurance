@@ -12,8 +12,12 @@ import {
   tones,
 } from "../../components";
 import { Stack } from "../../primitives";
-import { Matrix } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix } = storyLayout;
+const { Pair } = pairLayout;
 const meta = {
   title: "Components/Progress",
   component: Progress,
@@ -22,12 +26,28 @@ const meta = {
 } satisfies Meta<typeof Progress>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-const progressRef = createRef<HTMLDivElement>();
+export const LabelAndValue: Story = {
+  render: () => (
+    <Progress value={41} max={80} tone="success">
+      <ProgressLabel>Controls verified</ProgressLabel>
+      <ProgressValue>{(_, value) => `${value} of 80`}</ProgressValue>
+    </Progress>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("progressbar", { name: "Controls verified" })).toHaveAttribute(
+      "aria-valuenow",
+      "41",
+    );
+    await expect(canvas.getByText("41 of 80")).toBeVisible();
+  },
+};
+
 /** A value in its range, a range that does not start at zero, a value past the end (clamped), and `value={null}`: a wait whose length is unknown, a hatched bar whose stripes move, never a full one. */
 export const ValuesAndRanges: Story = {
   render: () => (
     <Stack space="space.300">
-      <Progress ref={progressRef} value={64} aria-label="Assessment progress">
+      <Progress value={64} aria-label="Assessment progress">
         <ProgressValue />
       </Progress>
       <Progress
@@ -47,7 +67,7 @@ export const ValuesAndRanges: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement),
       progress = canvas.getByRole("progressbar", { name: "Assessment progress" });
-    await expect(progressRef.current).toBe(progress);
+    await expect(progress).toHaveAttribute("aria-valuenow", "64");
     if (matchMedia("(forced-colors: active)").matches) {
       for (const bar of canvas.getAllByRole("progressbar")) {
         const track = bar.querySelector('[data-slot="progress-track"]')!;
@@ -88,19 +108,23 @@ export const ValuesAndRanges: Story = {
   },
 };
 
-/** Every tone, determinate and waiting. Each fill holds 3:1 against the track on the page, raised and overlay surfaces; a warning bar is `color.chart.warning`, since the warning bold fill is a light orange made to carry dark text. */
+/** Every tone, determinate and waiting, on the page and on the sunken surface (a metrics strip, a pinned row). Each fill holds 3:1 against the track on every surface; a warning bar, filled or waiting, is `color.chart.warning.bold`, since the warning bold fill is a light orange made to carry dark text. */
 export const Tones: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Matrix
       rows={tones}
-      cols={["64%", "Waiting"] as const}
+      cols={["64%", "Waiting", "64% on sunken"] as const}
       rowLabel="tone"
       render={(tone, col) => (
-        <div style={{ width: 240, maxWidth: "100%" }}>
+        <div
+          style={{ width: 240, maxWidth: "100%" }}
+          className={col === "64% on sunken" ? "bg-surface-sunken p-100" : undefined}
+        >
           <Progress
             tone={tone}
-            value={col === "64%" ? 64 : null}
-            aria-label={`${tone}, ${col === "64%" ? "64 percent" : "waiting"}`}
+            value={col === "Waiting" ? null : 64}
+            aria-label={`${tone}, ${col === "Waiting" ? "waiting" : col === "64%" ? "64 percent" : "64 percent on sunken"}`}
           />
         </div>
       )}
@@ -108,37 +132,27 @@ export const Tones: Story = {
   ),
   play: async ({ canvasElement }) => {
     const bars = within(canvasElement).getAllByRole("progressbar");
-    await expect(bars).toHaveLength(tones.length * 2);
+    await expect(bars).toHaveLength(tones.length * 3);
     const indicator = (name: string) =>
       within(canvasElement)
         .getByRole("progressbar", { name })
         .querySelector<HTMLElement>('[data-slot="progress-indicator"]')!;
-    await expect(indicator("warning, 64 percent")).toHaveClass("bg-chart-warning");
+    await expect(indicator("warning, 64 percent")).toHaveClass("bg-chart-warning-bold");
     await expect(indicator("warning, 64 percent")).not.toHaveClass("bg-warning-bold");
-    if (!matchMedia("(forced-colors: active)").matches)
-      for (const tone of tones) {
-        const fill = getComputedStyle(indicator(`${tone}, 64 percent`)).backgroundColor;
-        const track = getComputedStyle(
-          indicator(`${tone}, 64 percent`).closest<HTMLElement>('[data-slot="progress-track"]')!,
-        ).backgroundColor;
-        await expect(fill, `${tone} fill differs from its track`).not.toBe(track);
-      }
-  },
-};
-export const LabelAndValue: Story = {
-  render: () => (
-    <Progress value={41} max={80} tone="success">
-      <ProgressLabel>Controls verified</ProgressLabel>
-      <ProgressValue>{(_, value) => `${value} of 80`}</ProgressValue>
-    </Progress>
-  ),
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    await expect(canvas.getByRole("progressbar", { name: "Controls verified" })).toHaveAttribute(
-      "aria-valuenow",
-      "41",
-    );
-    await expect(canvas.getByText("41 of 80")).toBeVisible();
+    if (!matchMedia("(forced-colors: active)").matches) {
+      for (const tone of tones)
+        for (const name of [`${tone}, 64 percent`, `${tone}, 64 percent on sunken`]) {
+          const fill = getComputedStyle(indicator(name)).backgroundColor;
+          const track = getComputedStyle(
+            indicator(name).closest<HTMLElement>('[data-slot="progress-track"]')!,
+          ).backgroundColor;
+          await expect(fill, `${name}: the fill differs from its track`).not.toBe(track);
+        }
+      // A waiting warning bar's stripes are the filled bar's orange, not the warning icon's.
+      await expect(getComputedStyle(indicator("warning, waiting")).color).toBe(
+        getComputedStyle(indicator("warning, 64 percent")).backgroundColor,
+      );
+    }
   },
 };
 function Coverage() {
@@ -202,6 +216,7 @@ export const StackedCoverage: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -238,6 +253,23 @@ export const Dont: Story = {
       />
     </Stack>
   ),
+};
+
+const progressRef = createRef<HTMLDivElement>();
+
+/** A ref and native attributes reach the progressbar itself. */
+export const NativeAttributes: Story = {
+  tags: ["!manifest"],
+  render: () => (
+    <Progress ref={progressRef} value={64} aria-label="Assessment progress" data-example="native" />
+  ),
+  play: async ({ canvasElement }) => {
+    const progress = within(canvasElement).getByRole("progressbar", {
+      name: "Assessment progress",
+    });
+    await expect(progressRef.current).toBe(progress);
+    await expect(progress).toHaveAttribute("data-example", "native");
+  },
 };
 
 /** The styled track and indicator also compose with a native Base UI root. */

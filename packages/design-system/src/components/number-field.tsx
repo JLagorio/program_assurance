@@ -43,7 +43,10 @@ export type NumberFieldProps = Omit<
     allowWheelScrub?: boolean | undefined;
     /** The visible input. `inputRef` is Base UI's hidden input that carries the value in a form. */
     ref?: Ref<HTMLInputElement> | undefined;
-    /** Classes for the root, where the field's width is set. */
+    /**
+     * Classes for the root, where the field's width is set.
+     * @accepts layout
+     */
     className?: string | undefined;
     /** Style for the root, such as a width. */
     style?: CSSProperties | undefined;

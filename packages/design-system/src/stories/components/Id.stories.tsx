@@ -4,8 +4,12 @@ import { expect, within } from "storybook/test";
 
 import { Id, Table, TextLink } from "../../components";
 import { Box, Inline, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Id",
@@ -18,6 +22,7 @@ type Story = StoryObj<typeof meta>;
 
 /** An Id in text, in a title, in a link, in a cell, a hash, and the list with many and with none. */
 export const IdMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="In text, in a title, in a link">
@@ -83,8 +88,11 @@ export const IdMatrix: Story = {
 
 const idRef = createRef<HTMLSpanElement>();
 
+export const Playground: Story = {};
+
 /** Native span props, a class and a ref reach the Id, and it names itself last with `data-slot="id"`; Id.List takes the same on its run. */
 export const NativeAttributes: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Text>
       Finding{" "}
@@ -135,6 +143,7 @@ export const InRows: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -167,5 +176,3 @@ export const Dont: Story = {
     </Stack>
   ),
 };
-
-export const Playground: Story = {};

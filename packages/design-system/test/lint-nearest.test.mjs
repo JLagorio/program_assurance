@@ -374,15 +374,17 @@ test("a value is named in its own terms: zero, a pill, a weight, an outline, a d
   assert.match(pill.words[0], /^100px rounds its ends as a pill: rounded-full \(/);
   assert.match(styleLengthHint("borderRadius", "9999px"), /token\("radius\.full"\)/);
   assert.match(styleLengthHint("borderRadius", "50%"), /token\("radius\.full"\)/);
-  // A size whose step sets a weight the size did not is named with it, never picked.
+  // A size whose step sets a weight the size did not is named with it, never picked; a deprecated
+  // step (font-heading-small, kept for one version) is never named.
   for (const advice of [stock("text-xl"), arbitrary("text-[20px]")]) {
     assert.equal(advice.replacement, undefined);
-    assert.match(advice.words[0], /^20px is font-heading-small \(weight 500, /);
+    assert.match(advice.words[0], /^20px is font-heading-page \(weight 600, /);
+    assert.doesNotMatch(advice.words.join(" "), /font-heading-small/);
   }
   assert.equal(stock("text-xs").replacement, "font-body-small");
   assert.match(
     styleLengthHint("fontSize", "20px"),
-    /font-heading-small, which also sets weight 500/,
+    /font-heading-page, which also sets weight 600/,
   );
   // An outline's width is on the border width scale; a ring is the focus outline.
   for (const advice of [stock("outline-2"), arbitrary("outline-[2px]")])

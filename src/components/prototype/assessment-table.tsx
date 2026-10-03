@@ -1,11 +1,11 @@
 import { ProductCollection } from "./product-collection";
+import { useCollectionTable } from "./collection-question";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Absent,
   DataTable,
   defineColumns,
-  useDataTable,
   type EmptyIllustrationKind,
 } from "@ledger/design-system";
 import { useNavigate } from "@tanstack/react-router";
@@ -92,6 +92,7 @@ export function AssessmentTable<T extends { id: string }>({
   queries,
   sort,
   compact,
+  actionVariant,
 }: {
   rows: T[];
   model?: TableName | undefined;
@@ -128,6 +129,13 @@ export function AssessmentTable<T extends { id: string }>({
   /** A few rows beside other content (a section of a tab, a preview): ProductCollection's
    * compact form, with a one-line empty beside `empty.icon`. */
   compact?: boolean | undefined;
+  /**
+   * The create action's weight (ProductCollection's `actionVariant`). Unsaid it follows `compact`:
+   * a compact table sits beside other content, where the page header or the preview's record
+   * header keeps the surface's one primary, so its create action is a small secondary. A tab whose
+   * only content is this table keeps the small primary.
+   */
+  actionVariant?: "primary" | "secondary" | undefined;
 }) {
   const navigate = useNavigate();
   const [preview, setPreview] = useState<T | null>(null);
@@ -170,7 +178,7 @@ export function AssessmentTable<T extends { id: string }>({
     (column: AssessmentColumn<T>) => (row: T) => {
       if (column.value) return column.value(row);
       const value = column.key ? row[column.key] : undefined;
-      if (isNothing(value)) return <Absent label="Not recorded" />;
+      if (isNothing(value)) return <Absent />;
       const statuses = column.key ? vocabularies.get(column.key) : undefined;
       if (statuses) return <VocabularyValue values={statuses} value={String(value)} />;
       return String(value);
@@ -201,8 +209,6 @@ export function AssessmentTable<T extends { id: string }>({
               priority: 0,
               ...size,
               hideable: false,
-              preview: (row) => openPreview(raw(row)),
-              active: (row) => row.id === (selectedId ?? preview?.id),
               cell: (row) => (
                 <RecordLink table={model} record={raw(row)}>
                   {cell(row)}
@@ -239,8 +245,16 @@ export function AssessmentTable<T extends { id: string }>({
             });
           }
           const drawn = column.value ? { cell } : {};
+          // A date takes its kind's width, so date columns line up across registers; a readable
+          // minimum still holds, for a due day that also says its state ("Due in 2 days").
           if (kind === "date")
-            return c.date(key, { header: column.label, ...drawn, ...size, ...first });
+            return c.date(key, {
+              header: column.label,
+              ...drawn,
+              ...(column.minWidth === undefined ? {} : { minWidth: column.minWidth }),
+              ...(column.priority === undefined ? {} : { priority: column.priority }),
+              ...first,
+            });
           if (kind === "number")
             return c.number(key, { header: column.label, ...drawn, ...size, ...first });
           if (kind === "person")
@@ -258,18 +272,20 @@ export function AssessmentTable<T extends { id: string }>({
             ]
           : []),
       ]),
-    [
-      columns,
-      cellOf,
-      vocabularies,
-      model,
-      openPreview,
-      onEdit,
-      selectedId,
-      preview?.id,
-      label,
-      primaryIndex,
-    ],
+    [columns, cellOf, vocabularies, model, onEdit, label, primaryIndex],
+  );
+  // The preview is the table's, so opening or stepping through it never rebuilds the columns. A
+  // register without a model has no record to preview.
+  const activeId = selectedId ?? preview?.id ?? null;
+  const tablePreview = useMemo(
+    () =>
+      model
+        ? {
+            onPreview: (row: T) => openPreview(byIdRef.current.get(row.id) ?? row),
+            activeId,
+          }
+        : undefined,
+    [model, openPreview, activeId],
   );
   const primaryColumn = columns[primaryIndex];
   const noun = model ? productRecordNoun(model) : label.toLowerCase();
@@ -280,13 +296,13 @@ export function AssessmentTable<T extends { id: string }>({
     const value = primaryColumn?.key ? record[primaryColumn.key] : undefined;
     return isNothing(value) ? noun.charAt(0).toUpperCase() + noun.slice(1) : String(value);
   };
-  const table = useDataTable({
+  const table = useCollectionTable({
     columns: tableColumns,
     data,
     getRowId: (row) => row.id,
+    preview: tablePreview,
     rowLabel: (row: T) => nameOf(byIdRef.current.get(row.id) ?? row),
     label,
-    pageSize: 20,
     resizable: true,
     reorderable: true,
     ...(view ? { view } : {}),
@@ -303,6 +319,7 @@ export function AssessmentTable<T extends { id: string }>({
         queries={queries ?? []}
         keepQuestion={keepQuestion ?? true}
         compact={compact}
+        actionVariant={actionVariant}
         {...(sort === undefined ? {} : { sort })}
         noun={{
           one: noun,

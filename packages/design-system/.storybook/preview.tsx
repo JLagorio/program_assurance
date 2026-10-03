@@ -48,14 +48,31 @@ const withContrast: Decorator = (Story, ctx) => (
   </>
 );
 
+/**
+ * The Direction axis lays every story out right to left: `dir="rtl"` on <html>, so a popup that
+ * portals to the body mirrors too, and `direction="rtl"` on the LedgerProvider, so a part that
+ * reads the direction (the arrow keys, a tooltip's side, a chevron) follows. The storybook-rtl
+ * test project renders the direction-sensitive families this way. Set before the story renders,
+ * so its first paint and its play are already right to left.
+ */
+const directionOf = (ctx: { globals: Record<string, unknown> }) =>
+  ctx.globals["direction"] === "rtl" ? "rtl" : "ltr";
+
 /** One tooltip provider per page, as the Shell mounts for a product: the second tooltip shows at once. */
-const withTooltips: Decorator = (Story) => (
-  <LedgerProvider>
-    <TooltipProvider delay={300} timeout={300}>
-      <Story />
-    </TooltipProvider>
-  </LedgerProvider>
-);
+const withTooltips: Decorator = (Story, ctx) => {
+  const direction = directionOf(ctx);
+  if (typeof document !== "undefined") {
+    if (direction === "rtl") document.documentElement.dir = "rtl";
+    else document.documentElement.removeAttribute("dir");
+  }
+  return (
+    <LedgerProvider {...(direction === "rtl" ? { direction } : {})}>
+      <TooltipProvider delay={300} timeout={300}>
+        <Story />
+      </TooltipProvider>
+    </LedgerProvider>
+  );
+};
 
 /**
  * The Frame axis puts the story in a 320px container on the canvas, standing in for a panel or a
@@ -112,6 +129,7 @@ const preview: Preview = {
             "Which token",
             "Agents",
             "Coming from shadcn",
+            "Upgrading",
             "Token grammar",
             "Lint rules",
             "Lint rules reference",
@@ -165,6 +183,18 @@ const preview: Preview = {
         ],
       },
     },
+    direction: {
+      description: "Direction",
+      toolbar: {
+        title: "Direction",
+        icon: "transfer",
+        dynamicTitle: true,
+        items: [
+          { value: "ltr", title: "Left to right" },
+          { value: "rtl", title: "Right to left" },
+        ],
+      },
+    },
     contrast: {
       description: "Contrast",
       toolbar: {
@@ -179,7 +209,13 @@ const preview: Preview = {
       },
     },
   },
-  initialGlobals: { design: "ledger", mode: "light", contrast: "no-preference", frame: "canvas" },
+  initialGlobals: {
+    design: "ledger",
+    mode: "light",
+    contrast: "no-preference",
+    frame: "canvas",
+    direction: "ltr",
+  },
   decorators: [withFrame, withMode, withContrast, withTooltips],
 };
 

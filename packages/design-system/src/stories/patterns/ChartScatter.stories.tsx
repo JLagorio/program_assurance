@@ -3,10 +3,14 @@ import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import { Chart } from "../..";
 import { Button, KeyValue } from "../../components";
-import { Box, Stack } from "../../primitives";
+import { Box, Stack, Text } from "../../primitives";
 import { riskGroups } from "../_lib/chart-data";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 /** Open findings on two measures: how long each has been open, and what it exposes. POA-118 and POA-131 sit at the same place. */
 const findings = [
@@ -111,7 +115,6 @@ const findings = [
   },
 ];
 const dollars = (v: number) => `$${v}K`;
-const daysOpen = (v: string | number | Date) => `${String(v)} d`;
 
 const meta = {
   title: "Patterns/Chart/Scatter",
@@ -132,6 +135,7 @@ const owners = [...new Set(findings.map((r) => r.owner))].map((o) => ({ key: o, 
 
 /** Every scatter in both modes: one tone, three groups, a bubble with quadrants; axis titles, the skeleton. */
 export const ScatterMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="One tone · three groups · a bubble with quadrants">
@@ -230,8 +234,8 @@ export const Groups: Story = {
           groups={riskGroups}
           xLabel="Days open"
           yLabel="Exposure"
-          formatX={daysOpen}
-          formatY={dollars}
+          formatX={(days) => `${String(days)} d`}
+          formatY={(value) => `$${value}K`}
           size="large"
         />
       </Chart>
@@ -264,7 +268,7 @@ export const Bubbles: Story = {
           xDomain={[0, 240]}
           xTicks={[0, 60, 120, 180, 240]}
           yDomain={[0, 600]}
-          formatY={dollars}
+          formatY={(v) => `$${v}K`}
           size="large"
         />
       </Chart>
@@ -300,16 +304,16 @@ export const Details: Story = {
           groups={riskGroups}
           xLabel="Days open"
           yLabel="Exposure"
-          formatX={daysOpen}
-          formatY={dollars}
+          formatX={(v) => `${String(v)} d`}
+          formatY={(v) => `$${v}K`}
           size="large"
           details={(s) => (
             <Stack space="space.150">
               <div>
-                <KeyValue label="Title" labelWidth={72} wrap>
+                <KeyValue label="Title" labelWidth="narrow" wrap>
                   {String(s.datum["title"])}
                 </KeyValue>
-                <KeyValue label="Owner" labelWidth={72}>
+                <KeyValue label="Owner" labelWidth="narrow">
                   {String(s.datum["owner"])}
                 </KeyValue>
               </div>
@@ -443,8 +447,88 @@ export const AsATable: Story = {
   },
 };
 
+/** The earlier spelling, for one version: `name` is still the key that names a point, with a warning in development, and the plot is still named by the Frame or `label`. `ledger/no-deprecated-name` rewrites it as `nameKey`. */
+export const EarlierSpelling: Story = {
+  tags: ["!manifest"],
+  name: "Deprecated spellings",
+  render: () => (
+    <Box style={{ maxWidth: 560 }}>
+      <Chart title="Findings by age and exposure">
+        <Chart.Scatter data={findings} x="age" y="exposure" name="id" xLabel="Days open" />
+      </Chart>
+    </Box>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("img", { name: "Findings by age and exposure" })).toBeVisible();
+    // The points are named by the datum's `id`, as `nameKey="id"` names them.
+    await userEvent.click(canvas.getByRole("button", { name: "Table" }));
+    const table = await canvas.findByRole("table", {
+      name: "Findings by age and exposure, as a table",
+    });
+    const rows = within(table).getAllByRole("row").slice(1);
+    await expect(rows.map((r) => r.querySelector("th, td")?.textContent)).toEqual(
+      findings.map((f) => f.id),
+    );
+    await userEvent.click(canvas.getByRole("button", { name: "Table" }));
+    await waitFor(() => expect(canvas.queryByRole("table")).not.toBeInTheDocument());
+  },
+};
+
+/** The plot's box takes native props and a ref: an `id`, `data-*` for a test, a handler. `aria-describedby` describes the plot: its svg, an image, when it chooses nothing; its group when its points are the tab stops. */
+export const NativeAttributes: Story = {
+  render: () => (
+    <Stack space="space.300">
+      <Box style={{ width: "100%", maxWidth: 480 }}>
+        <Chart.Scatter
+          data={findings}
+          x="age"
+          y="exposure"
+          nameKey="id"
+          size="small"
+          label="Findings by age and exposure"
+          data-testid="findings-plot"
+          aria-describedby="findings-note"
+          ref={(node) => node?.setAttribute("data-ref", "")}
+        />
+        <Text id="findings-note" size="small" color="color.text.subtle">
+          Open findings only.
+        </Text>
+      </Box>
+      <Box style={{ width: "100%", maxWidth: 480 }}>
+        <Chart.Scatter
+          data={findings}
+          x="age"
+          y="exposure"
+          nameKey="id"
+          size="small"
+          label="Findings to choose"
+          onSelect={() => {}}
+          aria-describedby="choose-note"
+        />
+        <Text id="choose-note" size="small" color="color.text.subtle">
+          Choose a point for its finding.
+        </Text>
+      </Box>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const box = canvas.getByTestId("findings-plot");
+    await expect(box).toHaveAttribute("data-chart-plot");
+    await expect(box).toHaveAttribute("data-ref");
+    await expect(
+      canvas.getByRole("img", { name: "Findings by age and exposure" }),
+    ).toHaveAccessibleDescription("Open findings only.");
+    await expect(
+      canvas.getByRole("group", { name: "Findings to choose" }),
+    ).toHaveAccessibleDescription("Choose a point for its finding.");
+  },
+};
+
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair

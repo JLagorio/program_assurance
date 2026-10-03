@@ -45,7 +45,7 @@ async function waitEdit(field, next, edits) {
   await expect.poll(async () => (await records())[0]?.[field]).toEqual(next);
   await expect.poll(async () => (await history()).length).toBe(initialEvents + edits);
   await expect(
-    page.getByRole("group", { name: "Requirement details", exact: true }),
+    page.getByRole("group", { name: "Requirement text", exact: true }),
   ).not.toHaveAttribute("aria-busy", "true");
   const rows = await records();
   assert.equal(rows.length, 1, "Editing does not create revision records");
@@ -157,9 +157,10 @@ try {
     await route.continue();
   });
   await editText("Title", "Updated boundary requirement");
-  await expect(
-    page.getByRole("group", { name: "Requirement details", exact: true }),
-  ).toHaveAttribute("aria-busy", "true");
+  await expect(page.getByRole("group", { name: "Requirement text", exact: true })).toHaveAttribute(
+    "aria-busy",
+    "true",
+  );
   await page.getByRole("button", { name: /^Close (details|.+ preview)$/ }).click();
   await expect(panel).toBeVisible();
   assert.equal((await records())[0].title, original.title);

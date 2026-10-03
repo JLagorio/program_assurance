@@ -1,5 +1,9 @@
 #!/usr/bin/env node
-/** Browser regressions for shared headers, record openers, date sorting and element draft guards. */
+/**
+ * Browser regressions for shared headers, record openers, date sorting and element draft guards,
+ * failed and slow loads (tests/failed-loads.mjs), and focus rings a register or a preview keeps in
+ * view at desktop and phone widths (tests/focus-ring.mjs).
+ */
 import assert from "node:assert/strict";
 import { mkdir, mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -7,6 +11,7 @@ import { join } from "node:path";
 import { chromium } from "playwright";
 import { expect as playwrightExpect } from "playwright/test";
 import { checkFailedLoads } from "./tests/failed-loads.mjs";
+import { checkFocusRings } from "./tests/focus-ring.mjs";
 import { localWorkspace } from "./tests/local-workspace.mjs";
 import { checkRetainedTabs } from "./tests/retained-tabs.mjs";
 
@@ -170,7 +175,8 @@ try {
     sample.task = await insert("tasks", {
       program_id: program.id,
       title: `Task ${sample.key} ${suffix}`,
-      due_at: sample.date,
+      // A task is due on a calendar day: the sample's day.
+      due_on: sample.date?.slice(0, 10) ?? null,
     });
     await insert("task_assignments", {
       task_id: sample.task.id,
@@ -179,6 +185,16 @@ try {
     });
   }
   const chronological = [samples[2], samples[3], samples[0], samples[1]];
+  // A lifecycle gate with one criterion: its preview opens the criterion as a nested frame.
+  const lifecycleGate = await insert("lifecycle_gates", {
+    program_id: program.id,
+    title: `Pattern gate ${suffix}`,
+    sequence_number: 1,
+  });
+  const criterion = await insert("gate_criteria", {
+    gate_id: lifecycleGate.id,
+    title: `Pattern criterion ${suffix}`,
+  });
   const product = await insert("products", {
     code: `PAT-${suffix}`,
     name: `Pattern product ${suffix}`,
@@ -261,6 +277,29 @@ try {
     description: "Stored control narrative",
     implementation_status: "partial",
   });
+  // One published library component, so Add from library has a row to count once its reads land.
+  const libraryDefinition = await insert("component_definitions", {
+    code: `LIB-${suffix}`,
+    name: `Pattern library policy ${suffix}`,
+    category: "organizational_baseline",
+  });
+  const libraryVersion = await insert("component_definition_revisions", {
+    component_definition_id: libraryDefinition.id,
+    version_number: 1,
+  });
+  await insert("defined_components", {
+    component_definition_revision_id: libraryVersion.id,
+    name: `Pattern audit policy ${suffix}`,
+    component_type: "policy",
+  });
+  await data(
+    client
+      .from("component_definition_revisions")
+      .update({ state: "published", revision: libraryVersion.revision + 1 })
+      .eq("id", libraryVersion.id)
+      .select()
+      .single(),
+  );
 
   browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
@@ -324,7 +363,7 @@ try {
   ).toBeVisible();
   await expect(supplierPanel.getByRole("button", { name: "Previous record" })).toBeDisabled();
   await page
-    .getByRole("searchbox", { name: "Search organizations", exact: true })
+    .getByRole("searchbox", { name: "Find organizations", exact: true })
     .fill(supplier.name);
   await expect(supplierPanel.getByRole("status")).toHaveText(
     `${zetaSupplier.name}, outside the current results`,
@@ -332,11 +371,23 @@ try {
   await expect(supplierPanel.getByRole("button", { name: "Next record" })).toBeDisabled();
   await supplierPanel.getByRole("button", { name: /^Close (details|.+ preview)$/ }).click();
   await page
-    .getByRole("searchbox", { name: "Search organizations", exact: true })
+    .getByRole("searchbox", { name: "Find organizations", exact: true })
     .fill("No matching supplier");
   await page.getByRole("button", { name: "Clear filters", exact: true }).click();
   await expect(supplierTable.locator("tbody tr[data-row-id]")).toHaveCount(3);
+  // Every focus stop in the register, from its search through its rows, keeps its ring in view.
+  const supplierSearch = page.getByRole("searchbox", { name: "Find organizations", exact: true });
+  await checkFocusRings(page, {
+    scope: page.getByRole("main"),
+    start: supplierSearch,
+    label: "Suppliers register at 1600px",
+  });
   await page.setViewportSize({ width: 390, height: 844 });
+  await checkFocusRings(page, {
+    scope: page.getByRole("main"),
+    start: supplierSearch,
+    label: "Suppliers register at 390px",
+  });
   await tableRow(supplierTable, supplier.id)
     .getByRole("button", { name: /^Preview / })
     .click();
@@ -344,6 +395,11 @@ try {
     supplierPanel.getByRole("heading", { name: supplier.name, exact: true }),
   ).toBeVisible();
   await expect(supplierPanel.getByRole("button", { name: "Previous record" })).toBeVisible();
+  await checkFocusRings(page, {
+    scope: supplierPanel,
+    start: supplierPanel,
+    label: "Supplier preview at 390px",
+  });
   await page.screenshot({ path: join(screenshots, "supplier-preview-390.png") });
   await supplierPanel.getByRole("button", { name: /^Close (details|.+ preview)$/ }).click();
   await page.setViewportSize({ width: 1600, height: 1000 });
@@ -373,7 +429,7 @@ try {
   );
   // Reconnect refetch failures preserve the mounted table and its current search.
   const organizationSearch = page.getByRole("searchbox", {
-    name: "Search organizations",
+    name: "Find organizations",
     exact: true,
   });
   await organizationSearch.fill(supplier.name);
@@ -393,16 +449,23 @@ try {
   await expect(organizationSearch).toHaveValue(supplier.name);
   await expect(tableRow(supplierTable, supplier.id)).toBeVisible();
   console.log("PASS failed refresh retains records and table state through Retry");
-  // The same recovery on other registers, a record page's secondary collection, a picker in a
-  // dialog, and a register the server searches (G4-19).
+  // The same recovery on other registers, a record page's secondary collection, a refresh under
+  // a nested preview frame, a failed and a slow picker, and a register the server searches (G4-19).
   await checkFailedLoads(page, {
     origin,
     registers: [
-      { path: "/evidence", table: "evidence_artifacts", heading: "Evidence" },
-      { path: "/work", table: "tasks", heading: "My work" },
+      // Server-paged registers read their views a page at a time.
+      { path: "/evidence", table: "evidence_artifact_rows", heading: "Evidence" },
+      { path: "/work", table: "task_rows", heading: "My work" },
       { path: "/programs", table: "programs", heading: "Programs" },
     ],
-    program: { id: program.id, name: program.name },
+    program: { id: program.id, code: program.code, name: program.name },
+    nested: {
+      gate: { id: lifecycleGate.id, title: lifecycleGate.title },
+      criterion: { id: criterion.id, title: criterion.title },
+    },
+    system: { id: boundary.id },
+    library: { name: libraryDefinition.name },
     search: { path: "/records/parties", table: "parties", term: "Zeta" },
   });
   await page.goto(`${origin}/programs/${program.id}?tab=Schedule`);
@@ -542,7 +605,8 @@ try {
   // Browser Back is a user route change even while the modal makes page links inert.
   await page.evaluate(() => history.back());
   await keepEditing();
-  await expect(page).toHaveURL(productUrl);
+  // The Structure tab is in the address, and the kept draft keeps the reader on it.
+  await expect(page).toHaveURL(`${productUrl}?tab=Structure`);
   await expectDraft();
   await elementSheet().getByRole("button", { name: "Cancel", exact: true }).click();
   await discardChanges();

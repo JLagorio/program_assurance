@@ -19,7 +19,7 @@ import {
   ShieldAlert,
   ShieldCheck,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import {
   Breadcrumb,
@@ -75,13 +75,19 @@ import {
   getModifierKey,
   IconButton,
   Input,
+  KeyValue,
   TabsList,
   TabsTrigger,
+  TextLink,
 } from "../../components";
 import { ModeSwitch } from "../../mode";
-import { Box, Inline, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import { Box, Heading, Inline, Text } from "../../primitives";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Layout/Shell",
@@ -321,7 +327,7 @@ function Demo({
               alignBlock="center"
               className="border-b border-default py-100"
             >
-              <Text size="small" color="color.text.subtle" className="tabular-nums">
+              <Text size="small" color="color.text.subtle" numeric>
                 {p.id}
               </Text>
               <Text>{p.title}</Text>
@@ -346,6 +352,76 @@ function Demo({
     </Shell>
   );
 }
+
+/**
+ * A table's search inside the panel: Escape clears the query and leaves the panel open, and a
+ * second Escape in the empty field still belongs to the field. Escape from the panel's surface,
+ * outside any field, closes it and returns focus to the opener.
+ */
+export const PanelTable: Story = {
+  name: "Table in a panel",
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
+  render: function Render() {
+    const [open, setOpen] = useState(false);
+    return (
+      <Shell>
+        <Shell.TopNav>
+          <Shell.TopNav.Start>
+            <Text>Program Assurance</Text>
+          </Shell.TopNav.Start>
+        </Shell.TopNav>
+        <Shell.Main>
+          <Stack space="space.200">
+            <PageHeader>
+              <PageHeader.Heading>
+                <PageHeader.Title>Controls</PageHeader.Title>
+              </PageHeader.Heading>
+            </PageHeader>
+            <Inline space="space.100">
+              <Button onClick={() => setOpen(true)}>Preview AC-2</Button>
+            </Inline>
+          </Stack>
+        </Shell.Main>
+        {open && (
+          <Shell.Panel
+            title="AC-2 Account management"
+            defaultWidth={560}
+            onClose={() => setOpen(false)}
+          >
+            <PanelEvidenceTable />
+          </Shell.Panel>
+        )}
+      </Shell>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const opener = canvas.getByRole("button", { name: "Preview AC-2" });
+    opener.focus();
+    await userEvent.keyboard("{Enter}");
+    const panel = await canvas.findByRole("complementary", { name: "AC-2 Account management" });
+    await waitFor(() => expect(panel).toHaveFocus());
+    const search = within(panel).getByRole("searchbox", { name: "Search evidence" });
+    await userEvent.click(search);
+    await userEvent.keyboard("export");
+    await waitFor(() => expect(within(panel).queryByText("Joiner and leaver log")).toBeNull());
+    // The first Escape clears the query; the panel and the reader's place in it stay.
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(search).toHaveValue(""));
+    await expect(await within(panel).findByText("Joiner and leaver log")).toBeVisible();
+    await expect(search).toHaveFocus();
+    // The field is empty now: its Escape is still the field's, not the panel's.
+    await userEvent.keyboard("{Escape}");
+    await expect(
+      canvas.getByRole("complementary", { name: "AC-2 Account management" }),
+    ).toBeInTheDocument();
+    // Escape from the panel's surface, outside any field, closes it.
+    panel.focus();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(canvas.queryByRole("complementary")).toBeNull());
+    await waitFor(() => expect(opener).toHaveFocus());
+  },
+};
 
 export const Frame: Story = {
   render: () => <Demo />,
@@ -418,7 +494,6 @@ export const Frame: Story = {
 export const NarrowSearch: Story = {
   name: "Search at 320px",
   globals: { viewport: { value: "ledgerNarrow", isRotated: false } },
-  tags: ["narrow"],
   render: () => <Demo />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
@@ -676,6 +751,19 @@ export const Shortcut: Story = {
     if (!window.matchMedia("(min-width: 64rem)").matches) return;
     const toggle = canvas.getByRole("button", { name: "Collapse side navigation" });
     await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    // The toggle names its keys, and its tooltip draws them in the platform's glyphs: Control on
+    // every platform (⌃ on a Mac), since Command+[ is the browser's Back there.
+    await expect(toggle).toHaveAttribute("aria-keyshortcuts", "Control+[");
+    await userEvent.hover(toggle);
+    const doc = canvasElement.ownerDocument;
+    await waitFor(() => {
+      const keys = doc.querySelector(
+        '[data-slot="tooltip-content"][data-open] [data-slot="kbd-shortcut"]',
+      );
+      expect(keys).not.toBeNull();
+      expect(keys).toHaveTextContent(getModifierKey() === "meta" ? "⌃[" : "Ctrl[");
+    });
+    await userEvent.unhover(toggle);
     // user-event reads a bare "[" as the start of a key code; "[[" is the character.
     const shortcut = () => userEvent.keyboard("{Control>}[[{/Control}");
     await shortcut();
@@ -797,6 +885,7 @@ export const Remembered: Story = {
 
 /** Every part on its own: the items and their states, the levels, the logo's forms, the buttons, the end list. */
 export const ShellMatrix: Story = {
+  tags: ["!manifest"],
   parameters: { layout: "padded" },
   render: () => (
     <Stack space="space.400">
@@ -932,14 +1021,12 @@ const railGroups = [
     rows: [
       { label: "Id", value: "PRG-014" },
       { label: "Kind", value: "Program" },
-      { label: "Phase", value: "Authorise" },
       { label: "Framework", value: "NIST 800-53 r5, moderate" },
     ],
   },
   {
     title: "Ownership",
     rows: [
-      { label: "Owner", value: "Sarah Chen" },
       { label: "ISSO", value: "Dana Whitfield" },
       { label: "AO", value: "Col. Reyes" },
     ],
@@ -949,7 +1036,6 @@ const railGroups = [
     rows: [
       { label: "Created", value: "12 Mar 2026" },
       { label: "Last change", value: "Yesterday" },
-      { label: "Next gate", value: "12 Sep 2026" },
     ],
   },
   {
@@ -963,11 +1049,47 @@ const railGroups = [
 ];
 const tabs = ["Overview", "Controls", "Evidence", "Findings"] as const;
 
-/** A route composes its header, tabs and supporting context inside the persistent shell. */
-function RecordDemo() {
+/** The record's state, which the Details disclosure's row carries on a phone. */
+const phase = (
+  <Badge variant="secondary" tone="information">
+    Authorise
+  </Badge>
+);
+
+/** The record's Details: the state, the owner and the next gate first, then the other groups. */
+function RecordDetails() {
+  return (
+    <Shell.Aside label="Record properties" summary={phase}>
+      <Inspector>
+        <Inspector.Group title="Details">
+          <KeyValue label="Phase">{phase}</KeyValue>
+          <KeyValue label="Owner">
+            <TextLink href="#people-sarah-chen">Sarah Chen</TextLink>
+          </KeyValue>
+          <KeyValue label="Next gate">12 Sep 2026</KeyValue>
+        </Inspector.Group>
+        {railGroups.map((group) => (
+          <Inspector.Group key={group.title} title={group.title}>
+            {group.rows.map((row) => (
+              <KeyValue key={row.label} label={row.label}>
+                {row.value}
+              </KeyValue>
+            ))}
+          </Inspector.Group>
+        ))}
+      </Inspector>
+    </Shell.Aside>
+  );
+}
+
+/** A route composes its header, tabs and supporting context inside the persistent shell. The Details are rendered at the top of Overview: the rail beside Main where it fits, the Details disclosure there where it does not. */
+function RecordDemo({
+  sideNavWidth,
+  shortcut,
+}: { sideNavWidth?: number | undefined; shortcut?: boolean | undefined } = {}) {
   const [tab, setTab] = useState<(typeof tabs)[number]>("Overview");
   return (
-    <Shell>
+    <Shell sideNavShortcut={shortcut}>
       <Shell.TopNav>
         <Shell.TopNav.Start toggle={<Shell.SideNav.ToggleButton />}>
           <Shell.AppLogo
@@ -983,7 +1105,7 @@ function RecordDemo() {
           <EndItems />
         </Shell.TopNav.End>
       </Shell.TopNav>
-      <Shell.SideNav>
+      <Shell.SideNav defaultWidth={sideNavWidth}>
         <Shell.SideNav.Body>
           <Nav />
         </Shell.SideNav.Body>
@@ -1006,9 +1128,6 @@ function RecordDemo() {
             </PageHeader.Lead>
             <PageHeader.Heading>
               <PageHeader.Title>{"Payload integration"}</PageHeader.Title>
-              <div className="pt-050 flex flex-wrap items-center gap-100 font-body-small text-subtle">
-                {"Authorise · Sarah Chen"}
-              </div>
             </PageHeader.Heading>
             <PageHeader.Actions>
               <>
@@ -1017,17 +1136,8 @@ function RecordDemo() {
               </>
             </PageHeader.Actions>
           </PageHeader>
-          <Tabs
-            value={tab}
-            onValueChange={(value) => setTab(value as typeof tab)}
-            className="gap-150"
-          >
-            <TabsList
-              variant="line"
-              activateOnFocus
-              aria-label="Record"
-              className="w-full justify-start"
-            >
+          <Tabs value={tab} onValueChange={(value) => setTab(value as typeof tab)}>
+            <TabsList variant="line" activateOnFocus aria-label="Record">
               {tabs.map((t) => (
                 <TabsTrigger key={t} value={t}>
                   {t}
@@ -1035,7 +1145,8 @@ function RecordDemo() {
               ))}
             </TabsList>
             <TabsContent value={tab}>
-              <Stack space="space.300" className="min-w-0 pt-200">
+              <Stack space="space.300" className="min-w-0">
+                {tab === "Overview" ? <RecordDetails /> : null}
                 <Section title={tab} count={tab === "Overview" ? undefined : 12}>
                   <Stack space="space.100">
                     <Text color="color.text.subtle">
@@ -1050,7 +1161,7 @@ function RecordDemo() {
                         alignBlock="center"
                         className="border-b border-default py-100"
                       >
-                        <Text size="small" color="color.text.subtle" className="tabular-nums">
+                        <Text size="small" color="color.text.subtle" numeric>
                           {p.id}
                         </Text>
                         <Text>{p.title}</Text>
@@ -1065,9 +1176,6 @@ function RecordDemo() {
                 </Section>
               </Stack>
             </TabsContent>
-            <Shell.Aside label="Record properties">
-              {tab === "Overview" ? <Inspector groups={railGroups} /> : null}
-            </Shell.Aside>
           </Tabs>
         </Stack>
       </Shell.Main>
@@ -1181,6 +1289,157 @@ export const LabelledPanel: Story = {
   },
 };
 
+/** A preview whose record opens another record's preview in the same panel: Back pops a frame. */
+function PanelBackDemo({ titled = false, width }: { titled?: boolean; width?: number }) {
+  const [frames, setFrames] = useState(["REQ-001 Access control"]);
+  const [position, setPosition] = useState(1);
+  const shown = frames.at(-1) ?? "";
+  return (
+    <Shell>
+      <Shell.TopNav>
+        <Shell.TopNav.Start>
+          <Text>Program Assurance</Text>
+        </Shell.TopNav.Start>
+      </Shell.TopNav>
+      <Shell.Main>
+        <PageHeader>
+          <PageHeader.Heading>
+            <PageHeader.Title>Requirements</PageHeader.Title>
+          </PageHeader.Heading>
+        </PageHeader>
+      </Shell.Main>
+      <Shell.Panel
+        label="Requirement preview"
+        defaultWidth={width}
+        onClose={() => setFrames(["REQ-001 Access control"])}
+      >
+        <Shell.Panel.Splitter />
+        <Shell.Panel.Header>
+          {frames.length > 1 ? (
+            <Shell.Panel.Back onClick={() => setFrames((list) => list.slice(0, -1))} />
+          ) : null}
+          {titled ? <Shell.Panel.Title>{shown}</Shell.Panel.Title> : null}
+          <Shell.Panel.Actions>
+            <PreviewNavigation
+              position={position}
+              total={3}
+              onPrevious={position > 1 ? () => setPosition((value) => value - 1) : undefined}
+              onNext={position < 3 ? () => setPosition((value) => value + 1) : undefined}
+              openLink={<a href="#requirement" target="_blank" rel="noopener noreferrer" />}
+            />
+          </Shell.Panel.Actions>
+          <Shell.Panel.Close />
+        </Shell.Panel.Header>
+        <Shell.Panel.Body>
+          <Stack space="space.150">
+            {/* An untitled panel's body is at level 2: the record's name is its h2. */}
+            {titled ? null : (
+              <PageHeader>
+                <PageHeader.Heading>
+                  <PageHeader.Title>{shown}</PageHeader.Title>
+                </PageHeader.Heading>
+              </PageHeader>
+            )}
+            <Button onClick={() => setFrames((list) => [...list, "SYS-004 Ground segment"])}>
+              Preview the allocated system
+            </Button>
+          </Stack>
+        </Shell.Panel.Body>
+      </Shell.Panel>
+    </Shell>
+  );
+}
+
+/** The header's boxes, read once it has laid out. */
+function panelHeaderParts(panel: HTMLElement) {
+  const header = panel.querySelector<HTMLElement>('[data-slot="shell-panel-header"]')!;
+  const part = (name: string) => header.querySelector<HTMLElement>(`[data-slot="${name}"]`);
+  return {
+    header,
+    back: part("shell-panel-back"),
+    actions: part("shell-panel-actions")!,
+    close: part("shell-panel-close")!,
+    title: part("shell-panel-title"),
+  };
+}
+
+/**
+ * A nested frame's Back: an arrow, apart from Previous's chevron, that leads the header bar and is
+ * first in its tab order, set apart from the navigation and Close at the bar's end. It is there
+ * only while there is a frame to go back to.
+ */
+export const PanelBack: Story = {
+  name: "Panel back",
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
+  render: () => <PanelBackDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const panel = await canvas.findByRole("complementary", { name: "Requirement preview" });
+    const content = within(panel);
+    await expect(content.queryByRole("button", { name: "Back to previous record" })).toBeNull();
+    await userEvent.click(content.getByRole("button", { name: "Preview the allocated system" }));
+    const back = await content.findByRole("button", { name: "Back to previous record" });
+    const { header, actions, close } = panelHeaderParts(panel);
+    await expect(header.firstElementChild).toBe(back);
+    await expect(back.querySelector("svg.lucide-arrow-left")).not.toBeNull();
+    await waitFor(() => {
+      const headerBox = header.getBoundingClientRect();
+      const backBox = back.getBoundingClientRect();
+      const actionsBox = actions.getBoundingClientRect();
+      const closeBox = close.getBoundingClientRect();
+      const padding = parseFloat(getComputedStyle(header).paddingInlineStart);
+      // At the start of the bar, on the same line as the navigation and Close at its end.
+      expect(Math.abs(backBox.left - (headerBox.left + padding))).toBeLessThanOrEqual(1);
+      expect(Math.abs(backBox.top - actionsBox.top)).toBeLessThanOrEqual(8);
+      expect(actionsBox.left - backBox.right).toBeGreaterThanOrEqual(32);
+      expect(actionsBox.right).toBeLessThanOrEqual(closeBox.left);
+    });
+    // First in the tab order: the next stop is the navigation.
+    back.focus();
+    await userEvent.tab();
+    await expect(content.getByRole("button", { name: "Previous record" })).toHaveFocus();
+    await userEvent.click(back);
+    await waitFor(() =>
+      expect(content.queryByRole("button", { name: "Back to previous record" })).toBeNull(),
+    );
+    const recordName = content.getByRole("heading", { name: "REQ-001 Access control" });
+    await expect(recordName).toBeVisible();
+    // The outer bar holds navigation only; the record's name is the body's h2, a PageHeader.Title.
+    await expect(recordName.tagName).toBe("H2");
+    await expect(recordName).toHaveAttribute("data-slot", "page-header-title");
+  },
+};
+
+/** A titled panel under 400px: the title takes the first row, and Back leads the second, with the navigation and Close at its end. */
+export const PanelBackNarrow: Story = {
+  name: "Panel back · 240px",
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
+  render: () => <PanelBackDemo titled width={240} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const panel = await canvas.findByRole("complementary", { name: "REQ-001 Access control" });
+    await userEvent.click(
+      within(panel).getByRole("button", { name: "Preview the allocated system" }),
+    );
+    const back = await within(panel).findByRole("button", { name: "Back to previous record" });
+    const { header, actions, close, title } = panelHeaderParts(panel);
+    await waitFor(() => {
+      const headerBox = header.getBoundingClientRect();
+      const backBox = back.getBoundingClientRect();
+      const titleBox = title!.getBoundingClientRect();
+      const padding = parseFloat(getComputedStyle(header).paddingInlineStart);
+      expect(Math.abs(panel.getBoundingClientRect().width - 240)).toBeLessThanOrEqual(1);
+      expect(titleBox.bottom).toBeLessThanOrEqual(backBox.top);
+      expect(Math.abs(backBox.left - (headerBox.left + padding))).toBeLessThanOrEqual(1);
+      expect(backBox.right).toBeLessThan(actions.getBoundingClientRect().left);
+      expect(actions.getBoundingClientRect().right).toBeLessThanOrEqual(
+        close.getBoundingClientRect().left,
+      );
+      expect(header.scrollWidth).toBeLessThanOrEqual(header.clientWidth);
+    });
+  },
+};
+
 /** A side nav column on its own, for a pair. */
 function NavBox({ children }: { children: React.ReactNode }) {
   return (
@@ -1195,6 +1454,7 @@ function NavBox({ children }: { children: React.ReactNode }) {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   parameters: { layout: "padded" },
   render: () => (
     <Stack space="space.400">
@@ -1489,7 +1749,9 @@ function PanelHeaderWidthDemo({
               {bodyHeader ? (
                 <PageHeader>
                   <PageHeader.Heading>
-                    <h2 className="font-heading-small">{title}</h2>
+                    <Heading size="page" as="h2">
+                      {title}
+                    </Heading>
                   </PageHeader.Heading>
                   <PageHeader.Actions>
                     <Button size="small" variant="primary">
@@ -1738,7 +2000,9 @@ function ResizableShellDemo({
           <Shell.SideNav.Splitter />
         </Shell.SideNav>
         <Shell.Main>
-          <h1 className="font-heading-medium">Programs</h1>
+          <Heading size="page" as="h1">
+            Programs
+          </Heading>
           <Button onClick={() => setPanelOpen(true)}>Open details</Button>
         </Shell.Main>
         {panelOpen && (
@@ -1875,43 +2139,98 @@ export const RightToLeftSplitters: Story = {
   },
 };
 
-/** On a phone the rail follows the page and starts where the page's content ends, not a screen down; the end items are one menu. */
+/** The Details disclosure's button, named by its heading and the state its row carries. */
+const detailsToggle = /^Details\s*Authorise$/;
+
+/**
+ * On a phone the Details are a disclosure where the route rendered them, at the top of Overview:
+ * one row under the tab strip that names them and carries the record's state, closed until the
+ * reader opens it, so the state is one tap from the top and the sections keep their place. Its
+ * button is an h2's; the content sits one level below, and the Details group it is named after is
+ * its content, with no second title. Another tab has no Details, and the strip stays where it
+ * was. The end items are one menu.
+ */
 export const RecordRailPhone: Story = {
-  name: "Record rail at 390px",
+  name: "Record details at 390px",
   globals: { viewport: { value: "ledgerPhone", isRotated: false } },
-  tags: ["narrow"],
   render: () => <RecordDemo />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    const box = (el: Element) => el.getBoundingClientRect();
     await waitFor(() => expect(window.innerWidth).toBe(390));
-    const main = canvas.getByRole("main");
-    const aside = canvas.getByRole("complementary", { name: "Record properties" });
-    const contentBottom = Math.max(
-      ...Array.from(main.querySelectorAll("*")).map((el) => el.getBoundingClientRect().bottom),
+    // Inside Main it is a named region, not a second complementary landmark.
+    const details = await canvas.findByRole("region", { name: "Record properties" });
+    await expect(canvas.getByRole("main")).toContainElement(details);
+    await expect(canvas.queryByRole("complementary", { name: "Record properties" })).toBeNull();
+    // At the top of Overview: under the tab strip, before the first section.
+    const tablist = canvas.getByRole("tablist", { name: "Record" });
+    await expect(box(details).top).toBeGreaterThanOrEqual(box(tablist).bottom - 1);
+    await expect(box(details).bottom).toBeLessThanOrEqual(
+      box(canvas.getByRole("heading", { name: "Overview" })).top + 1,
     );
-    await expect(aside.getBoundingClientRect().top - contentBottom).toBeLessThan(64);
+    // One row, closed, its button an h2's.
+    const toggle = within(details).getByRole("button", { name: detailsToggle });
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await expect(toggle.closest("h2")).not.toBeNull();
+    await expect(within(details).getByText("Sarah Chen").checkVisibility()).toBe(false);
+    // A press opens it: the Details group's rows with no second Details title, then the other
+    // groups one level below the disclosure.
+    await expect(details).toHaveAttribute("data-instant");
+    await userEvent.click(toggle);
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    // The reader's own toggle folds and unfolds on the kit's motion.
+    await expect(details).not.toHaveAttribute("data-instant");
+    await waitFor(() => expect(within(details).getByText("Sarah Chen")).toBeVisible());
+    await expect(within(details).queryByRole("heading", { name: "Details" })).toBeNull();
+    await expect(within(details).getByRole("heading", { name: "Identity" }).tagName).toBe("H3");
+    // The keyboard: Enter closes it and Space opens it again, focus staying on the button.
+    toggle.focus();
+    await userEvent.keyboard("{Enter}");
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await expect(toggle).toHaveFocus();
+    await userEvent.keyboard(" ");
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await expect(toggle).toHaveFocus();
+    // Another tab has no Details, and the strip stays put.
+    const stripTop = box(tablist).top;
+    await userEvent.click(canvas.getByRole("tab", { name: "Controls" }));
+    await waitFor(() =>
+      expect(canvas.queryByRole("region", { name: "Record properties" })).toBeNull(),
+    );
+    await expect(Math.abs(box(tablist).top - stripTop)).toBeLessThanOrEqual(1);
     await expect(canvas.getByRole("button", { name: "More" })).toBeVisible();
     await expect(canvas.queryByRole("button", { name: "Help" })).toBeNull();
   },
 };
 
-/**
- * Between the large breakpoint and the aside breakpoint (here 1100px) the rail follows the page
- * while the side nav is expanded; collapsed, the side nav leaves the room the rail needs, and the
- * rail sits beside Main with its divider the page's height.
- */
-export const RecordRailLaptop: Story = {
-  name: "Record rail at 1100px",
-  parameters: {
-    viewport: {
-      options: {
-        shellLaptop: {
-          name: "Small laptop (1100 by 800)",
-          styles: { width: "1100px", height: "800px" },
-        },
+const shellLaptop = {
+  viewport: {
+    options: {
+      shellLaptop: {
+        name: "Small laptop (1100 by 800)",
+        styles: { width: "1100px", height: "800px" },
       },
     },
   },
+};
+
+/** The rail beside Main from the top of the page to its end, with Main at least its minimum. */
+async function checkRailBeside(main: HTMLElement, aside: HTMLElement) {
+  const box = (el: HTMLElement) => el.getBoundingClientRect();
+  await waitFor(() => expect(box(aside).left).toBeGreaterThanOrEqual(box(main).right - 1));
+  await expect(Math.abs(box(aside).top - box(main).top)).toBeLessThanOrEqual(1);
+  await expect(box(aside).bottom).toBeGreaterThanOrEqual(box(main).bottom - 1);
+  await expect(box(main).width).toBeGreaterThanOrEqual(mainMinimum());
+}
+
+/**
+ * Between the large breakpoint and the aside breakpoint (here 1100px) the rail sits beside Main
+ * whenever the side nav leaves Main its minimum beside it: expanded at its default width, and
+ * collapsed. Its divider runs the page's height.
+ */
+export const RecordRailLaptop: Story = {
+  name: "Record rail at 1100px",
+  parameters: shellLaptop,
   globals: { viewport: { value: "shellLaptop", isRotated: false } },
   render: () => <RecordDemo />,
   play: async ({ canvasElement }) => {
@@ -1919,18 +2238,188 @@ export const RecordRailLaptop: Story = {
     await waitFor(() => expect(window.innerWidth).toBe(1100));
     const main = canvas.getByRole("main");
     const aside = canvas.getByRole("complementary", { name: "Record properties" });
-    const box = (el: HTMLElement) => el.getBoundingClientRect();
-    // Expanded: the rail follows the page.
-    await waitFor(() => expect(box(aside).top).toBeGreaterThanOrEqual(box(main).bottom - 1));
-    // Collapsed: beside Main, from the top of the page to its end.
+    // Expanded at its default width: beside Main.
+    await checkRailBeside(main, aside);
+    // Collapsed: beside Main still.
     await userEvent.click(canvas.getByRole("button", { name: "Collapse side navigation" }));
-    await waitFor(() => expect(box(aside).left).toBeGreaterThanOrEqual(box(main).right - 1));
-    await expect(Math.abs(box(aside).top - box(main).top)).toBeLessThanOrEqual(1);
-    await expect(box(aside).bottom).toBeGreaterThanOrEqual(box(main).bottom - 1);
-    await expect(box(main).width).toBeGreaterThanOrEqual(mainMinimum());
-    // Expanded again, it follows the page again.
+    await checkRailBeside(main, aside);
+    // Expanded again: beside Main.
     await userEvent.click(canvas.getByRole("button", { name: "Expand side navigation" }));
-    await waitFor(() => expect(box(aside).top).toBeGreaterThanOrEqual(box(main).bottom - 1));
+    await checkRailBeside(main, aside);
+  },
+};
+
+/**
+ * A side nav wider than leaves Main its minimum beside the rail (480px at 1100px) keeps its width,
+ * and the Details are the disclosure at the top of Overview, closed; collapsing the side nav gives
+ * the rail its place beside Main, and expanding it makes them the disclosure again. The content
+ * moves between the two without mounting again, at once: the rows are the same nodes. Focus on a
+ * control inside stays on it, the disclosure opening around it; a control the change replaces
+ * hands focus to the first control left.
+ */
+export const RecordRailWideSideNav: Story = {
+  name: "Record rail beside a wide side nav at 1100px",
+  parameters: shellLaptop,
+  globals: { viewport: { value: "shellLaptop", isRotated: false } },
+  render: () => <RecordDemo sideNavWidth={480} shortcut />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() => expect(window.innerWidth).toBe(1100));
+    const main = canvas.getByRole("main");
+    const nav = canvas.getByRole("navigation", { name: "Side navigation" });
+    const box = (el: HTMLElement) => el.getBoundingClientRect();
+    await expect(Math.round(box(nav).width)).toBe(480);
+    const details = await canvas.findByRole("region", { name: "Record properties" });
+    await expect(main).toContainElement(details);
+    await expect(within(details).getByRole("button", { name: detailsToggle })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+    const framework = within(details).getByText("NIST 800-53 r5, moderate");
+    // The content, which folds on the kit's motion only when the reader toggles it.
+    const content = (area: HTMLElement) =>
+      area.querySelector<HTMLElement>(':scope > [data-slot="collapsible-content"]');
+    await userEvent.click(canvas.getByRole("button", { name: "Collapse side navigation" }));
+    const aside = await canvas.findByRole("complementary", { name: "Record properties" });
+    await checkRailBeside(main, aside);
+    await expect(within(aside).queryByRole("button", { name: detailsToggle })).toBeNull();
+    await expect(within(aside).getByText("NIST 800-53 r5, moderate")).toBe(framework);
+    await expect(framework).toBeVisible();
+    // A change of display shows the content as it is at once: the rail does not unfold.
+    await expect(content(aside)?.getAnimations() ?? []).toHaveLength(0);
+    await userEvent.click(canvas.getByRole("button", { name: "Expand side navigation" }));
+    const again = await canvas.findByRole("region", { name: "Record properties" });
+    await expect(main).toContainElement(again);
+    await expect(within(again).getByText("NIST 800-53 r5, moderate")).toBe(framework);
+    // Nor does the disclosure fold the Details away in the page: it is closed at once.
+    await expect(content(again)?.getAnimations() ?? []).toHaveLength(0);
+    await expect(framework.checkVisibility()).toBe(false);
+    // Focus on a control in the rail stays on it when the display changes under it (Control and
+    // [ toggle the side nav): the disclosure opens around it, and the rail shows it again.
+    const shortcut = () => userEvent.keyboard("{Control>}[[{/Control}");
+    await userEvent.click(canvas.getByRole("button", { name: "Collapse side navigation" }));
+    const rail = await canvas.findByRole("complementary", { name: "Record properties" });
+    const owner = within(rail).getByRole("link", { name: "Sarah Chen" });
+    owner.focus();
+    await shortcut();
+    const opened = await canvas.findByRole("region", { name: "Record properties" });
+    await expect(opened).toContainElement(owner);
+    await expect(owner).toHaveFocus();
+    await expect(owner).toBeVisible();
+    const row = within(opened).getByRole("button", { name: detailsToggle });
+    await expect(row).toHaveAttribute("aria-expanded", "true");
+    await shortcut();
+    await expect(
+      await canvas.findByRole("complementary", { name: "Record properties" }),
+    ).toContainElement(owner);
+    await expect(owner).toHaveFocus();
+    // A control the change replaces (a group's title is an h2 in the rail and an h3 in the
+    // disclosure) hands focus to the first control left: the disclosure's row, then the rail's
+    // first group.
+    within(rail).getByRole("button", { name: "Identity" }).focus();
+    await shortcut();
+    const disclosure = await canvas.findByRole("region", { name: "Record properties" });
+    await expect(within(disclosure).getByRole("button", { name: detailsToggle })).toHaveFocus();
+    await shortcut();
+    const railLast = await canvas.findByRole("complementary", { name: "Record properties" });
+    await expect(within(railLast).getByRole("button", { name: "Details" })).toHaveFocus();
+  },
+};
+
+/** Whether each record's Details were in the document as they mounted, by record. */
+const detailsMounted: Record<string, boolean[]> = {};
+
+/** A Details value that notes, as it mounts, whether it is in the document. */
+function MountedInPage({ record }: { record: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useLayoutEffect(() => {
+    (detailsMounted[record] ??= []).push(ref.current?.isConnected === true);
+  }, [record]);
+  return <span ref={ref}>{record}</span>;
+}
+
+const swapRecords = ["Payload integration", "Ground segment"] as const;
+
+/** One record's page: its header, its Details right after it, then its work. */
+function SwapRecordPage({ name }: { name: string }) {
+  return (
+    <Stack space="space.200" className="min-w-0">
+      <PageHeader>
+        <PageHeader.Heading>
+          <PageHeader.Title>{name}</PageHeader.Title>
+        </PageHeader.Heading>
+      </PageHeader>
+      <Shell.Aside label={`${name} details`} summary={phase}>
+        <Inspector>
+          <Inspector.Group title="Details">
+            <KeyValue label="Record">
+              <MountedInPage record={name} />
+            </KeyValue>
+            <KeyValue label="Owner">Sarah Chen</KeyValue>
+          </Inspector.Group>
+        </Inspector>
+      </Shell.Aside>
+      <Section title="Work">
+        <Text color="color.text.subtle">The record&apos;s work, under its Details.</Text>
+      </Section>
+    </Stack>
+  );
+}
+
+/** A page that a button replaces with the next record's, as a route change does. */
+function RecordChangeDemo() {
+  const [index, setIndex] = useState(0);
+  const name = swapRecords[index % swapRecords.length] ?? swapRecords[0];
+  return (
+    <Shell>
+      <Shell.Main>
+        <Stack space="space.200" className="min-w-0">
+          <Inline>
+            <Button onClick={() => setIndex((current) => current + 1)}>Next record</Button>
+          </Inline>
+          {/* A new key: the page goes and the next one mounts in the same commit. */}
+          <SwapRecordPage key={name} name={name} />
+        </Stack>
+      </Shell.Main>
+    </Shell>
+  );
+}
+
+/**
+ * On a phone, a record that replaces another (a route change) mounts its Details in the document:
+ * the content goes back to the shell's slot before the old page's elements leave, so what the next
+ * record's Details measure as they mount is in the page. The disclosure then sits under the new
+ * record's header, closed, before its work.
+ */
+export const RecordChangePhone: Story = {
+  name: "Record change at 390px",
+  globals: { viewport: { value: "ledgerPhone", isRotated: false } },
+  render: () => <RecordChangeDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const box = (el: Element) => el.getBoundingClientRect();
+    await waitFor(() => expect(window.innerWidth).toBe(390));
+    const main = canvas.getByRole("main");
+    const first = await canvas.findByRole("region", { name: "Payload integration details" });
+    await expect(main).toContainElement(first);
+    for (const record of ["Ground segment", "Payload integration"]) {
+      for (const key of Object.keys(detailsMounted)) delete detailsMounted[key];
+      await userEvent.click(canvas.getByRole("button", { name: "Next record" }));
+      const details = await canvas.findByRole("region", { name: `${record} details` });
+      await expect(main).toContainElement(details);
+      await expect(canvas.getAllByRole("region", { name: / details$/ })).toHaveLength(1);
+      const mounted = detailsMounted[record] ?? [];
+      await expect(mounted.length).toBeGreaterThan(0);
+      await expect(mounted.every(Boolean)).toBe(true);
+      const toggle = within(details).getByRole("button", { name: detailsToggle });
+      await expect(toggle).toHaveAttribute("aria-expanded", "false");
+      await expect(box(details).top).toBeGreaterThanOrEqual(
+        box(canvas.getByRole("heading", { level: 1, name: record })).bottom - 1,
+      );
+      await expect(box(details).bottom).toBeLessThanOrEqual(
+        box(canvas.getByRole("heading", { name: "Work" })).top + 1,
+      );
+    }
   },
 };
 
@@ -2306,7 +2795,7 @@ export const OverlayFocusPhone: Story = {
     await expect(topNav).toHaveAttribute("inert");
     await expect(main).toHaveAttribute("inert");
     // The blanket closes the overlay on a press but is no control: hidden, out of the tab order.
-    const scrim = canvasElement.querySelector<HTMLElement>(".shell-scrim");
+    const scrim = canvasElement.querySelector<HTMLElement>('[data-slot="shell-scrim"]');
     await expect(scrim).toHaveAttribute("aria-hidden", "true");
     await expect(scrim).toHaveAttribute("tabindex", "-1");
     // Tab goes round: the three links, Done, Settings, then the overlay's Close, and back to the
@@ -2535,12 +3024,40 @@ function CurrentPageDemo() {
   );
 }
 
+/** A token's colour as the browser computes it, drawn through a probe, to compare with a part's. */
+function tokenColour(doc: Document, variable: string) {
+  const probe = doc.createElement("span");
+  probe.style.backgroundColor = `var(${variable})`;
+  doc.body.append(probe);
+  const colour = getComputedStyle(probe).backgroundColor;
+  probe.remove();
+  return colour;
+}
+
+/** The current row's bar: 2px of color.background.selected.bold on its start edge. In forced colours the Highlight fill marks the row, and the bar gives way. */
+async function checkCurrentBar(row: HTMLElement) {
+  const bar = getComputedStyle(row, "::before");
+  if (window.matchMedia("(forced-colors: active)").matches) {
+    await expect(bar.display).toBe("none");
+    return;
+  }
+  await expect(bar.content).not.toBe("none");
+  await expect(bar.position).toBe("absolute");
+  await expect(bar.width).toBe("2px");
+  // On the start edge: the left, or the right in right to left.
+  await expect(getComputedStyle(row).direction === "rtl" ? bar.right : bar.left).toBe("0px");
+  await expect(bar.backgroundColor).toBe(
+    tokenColour(row.ownerDocument, "--ds-color-background-selected-bold"),
+  );
+}
+
 /**
  * The current page stays visible wherever it is. In the icon rail a group that holds the current
  * page takes the current colour, since its items are hidden, and an item with a count keeps the
  * count in its name and shows a dot. Expanded, the group opens on the current page by default;
- * closed, the group shows the current colour again. A label the side nav's width cuts shows its
- * whole name in a tooltip, and so does the profile's name.
+ * closed, the group shows the current colour again. The current row carries a bar on its start
+ * edge as well as the fill, so it reads apart by more than colour, in dark as in light. A label
+ * the side nav's width cuts shows its whole name in a tooltip, and so does the profile's name.
  */
 export const CurrentPage: Story = {
   name: "Current page",
@@ -2554,17 +3071,19 @@ export const CurrentPage: Story = {
     await waitFor(() => expect(nav).toHaveAttribute("data-collapsed", "icons"));
     const group = within(nav).getByRole("button", { name: "Findings and assets" });
     await expect(group).toHaveAttribute("data-current");
+    await checkCurrentBar(group);
     const queue = within(nav).getByRole("link", { name: "My queue 3" });
     await expect(getComputedStyle(queue, "::after").content).not.toBe("none");
+    await expect(getComputedStyle(queue, "::before").content).toBe("none");
     // Expanded: the group is open on its current item, which takes the current colour back.
     await userEvent.click(canvas.getByRole("button", { name: "Expand side navigation" }));
     await waitFor(() => expect(nav).not.toHaveAttribute("data-collapsed"));
     await expect(group).toHaveAttribute("aria-expanded", "true");
     await expect(group).not.toHaveAttribute("data-current");
-    await expect(within(nav).getByRole("link", { name: "Findings" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
+    await expect(getComputedStyle(group, "::before").content).toBe("none");
+    const findings = within(nav).getByRole("link", { name: "Findings" });
+    await expect(findings).toHaveAttribute("aria-current", "page");
+    await checkCurrentBar(findings);
     await expect(getComputedStyle(queue, "::after").content).toBe("none");
     // Closed, the group holds the current page out of view and says so.
     await userEvent.click(group);
@@ -2592,6 +3111,94 @@ export const CurrentPage: Story = {
         ),
       ).toBe(true),
     );
+  },
+};
+
+const longProduct = "Program Assurance for Northwind Defense Systems";
+const longTenant = "Northwind Corporation, Aerospace and Defense division";
+const longDescription = "Compliance lead for aerospace programs and their suppliers";
+
+function LongNamesDemo() {
+  return (
+    <Shell>
+      <Shell.TopNav>
+        <Shell.TopNav.Start>
+          <Shell.SideNav.ToggleButton />
+          <Shell.AppLogo
+            name={longProduct}
+            secondaryName={longTenant}
+            render={<a href="#home" />}
+          />
+        </Shell.TopNav.Start>
+      </Shell.TopNav>
+      <Shell.SideNav>
+        <Shell.SideNav.Body>
+          <Nav />
+        </Shell.SideNav.Body>
+        <Shell.SideNav.Footer>
+          <Shell.Profile
+            avatar={
+              <Avatar size="small" hue={avatarHue("Sarah Chen")}>
+                <AvatarFallback>{avatarInitials("Sarah Chen", 2)}</AvatarFallback>
+              </Avatar>
+            }
+            name="Sarah Chen"
+            description={longDescription}
+            onClick={() => undefined}
+          />
+        </Shell.SideNav.Footer>
+      </Shell.SideNav>
+      <Shell.Main>
+        <PageHeader>
+          <PageHeader.Heading>
+            <PageHeader.Title>Programs</PageHeader.Title>
+          </PageHeader.Heading>
+        </PageHeader>
+      </Shell.Main>
+    </Shell>
+  );
+}
+
+/** Whether a tooltip now open says every one of the words. */
+const tooltipSays = (doc: Document, ...words: string[]) =>
+  [...doc.querySelectorAll('[data-slot="tooltip-content"][data-open]')].some((el) =>
+    words.every((word) => el.textContent?.includes(word)),
+  );
+
+/**
+ * A product name and a tenant longer than the start slot: each truncates, and both show whole in
+ * a tooltip on keyboard focus and on hover of the logo. The profile's description, cut by the side
+ * nav's width, shows whole under the name.
+ */
+export const LongNames: Story = {
+  name: "Long names",
+  globals: { viewport: { value: "ledgerDesktop", isRotated: false } },
+  render: () => <LongNamesDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const doc = canvasElement.ownerDocument;
+    await waitFor(() => expect(window.innerWidth).toBe(1200));
+    const logo = canvas.getByRole("link", { name: longProduct });
+    const name = logo.querySelector<HTMLElement>('[data-slot="shell-app-name"]')!;
+    const tenant = logo.querySelector<HTMLElement>('[data-slot="shell-app-secondary-name"]')!;
+    await expect(name.scrollWidth).toBeGreaterThan(name.clientWidth);
+    await expect(tenant.scrollWidth).toBeGreaterThan(tenant.clientWidth);
+    // Keyboard: from the toggle to the logo, whose tooltip holds both names whole.
+    canvas.getByRole("button", { name: "Collapse side navigation" }).focus();
+    await userEvent.tab();
+    await expect(logo).toHaveFocus();
+    await waitFor(() => expect(tooltipSays(doc, longProduct, longTenant)).toBe(true));
+    await userEvent.tab();
+    await waitFor(() => expect(tooltipSays(doc, longProduct)).toBe(false));
+    // Pointer: the same tooltip on hover.
+    await userEvent.hover(logo);
+    await waitFor(() => expect(tooltipSays(doc, longProduct, longTenant)).toBe(true));
+    await userEvent.unhover(logo);
+    // The profile's name fits; its cut description shows whole under it.
+    const profile = canvas.getByRole("button", { name: /^Sarah Chen/ });
+    await userEvent.hover(profile);
+    await waitFor(() => expect(tooltipSays(doc, "Sarah Chen", longDescription)).toBe(true));
+    await userEvent.unhover(profile);
   },
 };
 
@@ -3097,73 +3704,3 @@ function PanelEvidenceTable() {
     />
   );
 }
-
-/**
- * A table's search inside the panel: Escape clears the query and leaves the panel open, and a
- * second Escape in the empty field still belongs to the field. Escape from the panel's surface,
- * outside any field, closes it and returns focus to the opener.
- */
-export const PanelTable: Story = {
-  name: "Table in a panel",
-  globals: { viewport: { value: "ledgerWide", isRotated: false } },
-  render: function Render() {
-    const [open, setOpen] = useState(false);
-    return (
-      <Shell>
-        <Shell.TopNav>
-          <Shell.TopNav.Start>
-            <Text>Program Assurance</Text>
-          </Shell.TopNav.Start>
-        </Shell.TopNav>
-        <Shell.Main>
-          <Stack space="space.200">
-            <PageHeader>
-              <PageHeader.Heading>
-                <PageHeader.Title>Controls</PageHeader.Title>
-              </PageHeader.Heading>
-            </PageHeader>
-            <Inline space="space.100">
-              <Button onClick={() => setOpen(true)}>Preview AC-2</Button>
-            </Inline>
-          </Stack>
-        </Shell.Main>
-        {open && (
-          <Shell.Panel
-            title="AC-2 Account management"
-            defaultWidth={560}
-            onClose={() => setOpen(false)}
-          >
-            <PanelEvidenceTable />
-          </Shell.Panel>
-        )}
-      </Shell>
-    );
-  },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    const opener = canvas.getByRole("button", { name: "Preview AC-2" });
-    opener.focus();
-    await userEvent.keyboard("{Enter}");
-    const panel = await canvas.findByRole("complementary", { name: "AC-2 Account management" });
-    await waitFor(() => expect(panel).toHaveFocus());
-    const search = within(panel).getByRole("searchbox", { name: "Search evidence" });
-    await userEvent.click(search);
-    await userEvent.keyboard("export");
-    await waitFor(() => expect(within(panel).queryByText("Joiner and leaver log")).toBeNull());
-    // The first Escape clears the query; the panel and the reader's place in it stay.
-    await userEvent.keyboard("{Escape}");
-    await waitFor(() => expect(search).toHaveValue(""));
-    await expect(await within(panel).findByText("Joiner and leaver log")).toBeVisible();
-    await expect(search).toHaveFocus();
-    // The field is empty now: its Escape is still the field's, not the panel's.
-    await userEvent.keyboard("{Escape}");
-    await expect(
-      canvas.getByRole("complementary", { name: "AC-2 Account management" }),
-    ).toBeInTheDocument();
-    // Escape from the panel's surface, outside any field, closes it.
-    panel.focus();
-    await userEvent.keyboard("{Escape}");
-    await waitFor(() => expect(canvas.queryByRole("complementary")).toBeNull());
-    await waitFor(() => expect(opener).toHaveFocus());
-  },
-};

@@ -8,13 +8,32 @@ import {
   PaginationNext,
   PaginationEllipsis,
 } from "../../components";
+import { TablePagination } from "../../patterns";
 import * as Stories from "./Pagination.stories";
 
 <Meta of={Stories} />
 
 # Pagination
 
+**Status: Stable.**
+
 Navigation between pages using [shadcn’s flat Pagination parts](https://ui.shadcn.com/docs/components/base/pagination). The caller owns page state, URLs and result counts.
+
+## When to use it
+
+- **Pages whose address names them**: a feed or a list whose page is in its URL (`?page=2`), composed from these parts with PaginationLink.
+- **Pages of a table that pages in memory**: TablePagination, which a [DataTable](?path=/docs/patterns-data-table--docs) draws itself whenever it pages.
+
+Not for the steps of a task: that is a [Stepper](?path=/docs/components-stepper--docs). Not for moving from one record to the next in a preview: that is [PreviewNavigation](?path=/docs/patterns-previewnavigation--docs). Not for a long list the reader scrolls through: a DataTable with `virtualize` draws only the rows in view.
+
+## Content
+
+- Name each region for what it pages ("Control pages", "Evidence pages"). Unnamed, it is "Pagination", and two on one page cannot be told apart.
+- A page is its number. Previous and Next keep their words, or `text` says the order the list reads in ("Newer", "Older").
+- The current page is `isActive`, never only bold text: it is said as the current page and drawn as one.
+- TablePagination's range says the rows shown and the total ("9–16 of 23").
+
+<Canvas of={Stories.DoDont} />
 
 ## Anatomy
 
@@ -52,7 +71,9 @@ Previous and Next carry their words where the pagination has 384px (`dimension.c
 <Canvas of={Stories.InANarrowPanel} />
 <Canvas of={Stories.AtTheEndOfARow} />
 
-For in-memory tables, compose buttons inside PaginationItem: each page a subtle small Button with `aria-current="page"` on the current one, and the arrows IconButtons that take `disabled` with `focusableWhenDisabled` at the first and last page. The arrow stays in the tab order with `aria-disabled`, so a reader who presses Next to the end keeps focus on it instead of falling to the page. The internal DataTable pagination pattern owns page calculation, empty results and row-range text, using those same parts.
+## TablePagination
+
+`TablePagination` is the pager under a table that pages in memory, built from these parts: the row range ("9–16 of 23", "0 rows"), then Rows per page when `pageSizes` offers more than one size, then the pages at the end. Each page is a subtle small Button with `aria-current="page"` on the current one; the first, the last, the current page and its neighbours show, with an ellipsis where pages are skipped. The arrows take `disabled` with `focusableWhenDisabled` at the first and last page, so they stay in the tab order with `aria-disabled` and a reader who presses Next to the end keeps focus on it instead of falling to the page. The caller owns `page`, `pageSize` and `total`, and says a new page back through `onPageChange`; the pager says nothing itself, so a caller that pages without DataTable says the new range in its own status. DataTable draws one whenever it pages and says the range after every page. A pager of URLs composes the parts above with PaginationLink instead.
 
 <Canvas of={Stories.InMemoryTable} />
 <Canvas of={Stories.ManyPages} />
@@ -75,6 +96,7 @@ Pagination owns no page state: it takes native `aria-label` and explicit childre
 <ArgTypes of={PaginationLink} />
 <ArgTypes of={PaginationPrevious} />
 <ArgTypes of={PaginationNext} />
+<ArgTypes of={TablePagination} />
 
 ## Related
 

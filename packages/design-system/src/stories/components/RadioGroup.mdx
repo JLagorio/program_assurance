@@ -7,6 +7,8 @@ import * as Stories from "./RadioGroup.stories";
 
 # RadioGroup
 
+**Status: Stable.**
+
 One answer from a set of visible choices, on the shadcn Base UI composition. `RadioGroupItem` draws the circle and its dot; the question and the options' labels come from a Field around a FieldSet, which ties them together with no ids and aligns each circle with its label's first line.
 
 ```tsx
@@ -39,6 +41,10 @@ One answer from a set of visible choices, on the shadcn Base UI composition. `Ra
 
 The [Forms](?path=/docs/patterns-forms--docs) page has the table of which control answers which question.
 
+Two checkboxes that untick each other are heard as two separate choices, with no question and no arrow keys.
+
+<Canvas of={Stories.DoDont} />
+
 ## Selection and layout
 
 Use `defaultValue` for local state, or `value` and `onValueChange(value, details)` for controlled state. A controlled group with no answer yet passes a value no item has, such as `""`, never `undefined`: `undefined` leaves the group uncontrolled on its first render, and Base UI keeps that mode. Selecting an item clears the previous selection; selecting it again keeps it selected. `details.cancel()` rejects a change. `disabled` blocks interaction; `readOnly` allows focus while keeping the selected value unchanged. Both props can apply to the group or an individual item.
@@ -59,7 +65,7 @@ A read-only group keeps its answer and its Tab stop but not the brand fill or th
 
 ## Choice cards
 
-When each option needs a title and a line of explanation, wrap each option's horizontal Field in a FieldLabel: a press anywhere on the card chooses it, and the card shows hover, the chosen state and the one keyboard focus ring. The FieldTitle names the radio and the FieldDescription describes it once. See [Checkbox](?path=/docs/components-checkbox--docs#choice-cards) for the same card around a checkbox.
+When each option needs a title and a line of explanation, wrap each option's horizontal Field in a FieldLabel: a press anywhere on the card chooses it, and the card shows hover, the chosen state and the one keyboard focus ring. The FieldTitle names the radio and the FieldDescription describes it once. See [Checkbox](?path=/docs/components-checkbox--docs#choice-cards) for the same card around a checkbox, and for a card with the facts that tell options apart, a link to the option's record beside it, and an error that belongs to one option: the radio card takes them the same way. An error about the choice as a whole (nothing chosen) is the group Field's FieldError.
 
 <Canvas of={Stories.ChoiceCard} />
 

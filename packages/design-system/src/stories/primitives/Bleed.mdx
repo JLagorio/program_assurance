@@ -7,26 +7,28 @@ import * as Stories from "./Bleed.stories";
 
 # Bleed
 
+**Status: Stable.**
+
 The one place a negative margin is written: a child that escapes its parent's padding, by the token that padding is. A strip that runs to a card's edges, a table that meets a card body's sides, a list of rows that reaches a panel's top and bottom, a rail row's hover fill to the rail's edge. `all`, `inline` or `block`, and a scale that stops short, because a bleed is never larger than the padding it escapes. Here the scale is the tokens with a negative in the source, `space.025` to `space.400`, the page gutter.
 
 <Canvas of={Stories.BleedMatrix} />
 
 ## Anatomy
 
-| Part    | What it is                                                                                          |
-| ------- | --------------------------------------------------------------------------------------------------- |
-| Wrapper | A `div`, or the layout element `as` names, with a negative margin on the axis named. The child inside keeps its own padding and fill. |
-| `inline` | Escapes the inline padding: left and right.                                                       |
-| `block` | Escapes the block padding: top and bottom.                                                          |
-| `all`   | Both.                                                                                               |
+| Part     | What it is                                                                                                                            |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Wrapper  | A `div`, or the layout element `as` names, with a negative margin on the axis named. The child inside keeps its own padding and fill. |
+| `inline` | Escapes the inline padding: left and right.                                                                                           |
+| `block`  | Escapes the block padding: top and bottom.                                                                                            |
+| `all`    | Both.                                                                                                                                 |
 
 ## Variants
 
-| Bleed  | Use                                                                                                       |
-| ------ | --------------------------------------------------------------------------------------------------------- |
-| Inline | A strip, a table, a row's hover fill: to the card's or the rail's sides.                                  |
-| Block  | Rows to a panel's top and bottom, a tab strip to a card header's top.                                     |
-| All    | A cover on a card, a media block under the radius.                                                        |
+| Bleed  | Use                                                                      |
+| ------ | ------------------------------------------------------------------------ |
+| Inline | A strip, a table, a row's hover fill: to the card's or the rail's sides. |
+| Block  | Rows to a panel's top and bottom, a tab strip to a card header's top.    |
+| All    | A cover on a card, a media block under the radius.                       |
 
 Not built, and why: a bleed beyond `space.400` (nothing is padded more than a page gutter, so nothing has more to escape); one edge at a time (a child that escapes one side only is a layout of two columns, not a bleed); a bleed on a Box (the Bleed is its own element, so the child keeps its padding and fill and the negative margin is in one place); a bleed that clips (the child hangs past the parent's radius unless it has its own; the card's `overflow` is the card's decision).
 
@@ -34,17 +36,17 @@ Not built, and why: a bleed beyond `space.400` (nothing is padded more than a pa
 
 The tokens with a negative in the source:
 
-| Token       | px  | Escapes                                            |
-| ----------- | --- | -------------------------------------------------- |
-| `space.025` | 2   | A hairline inset.                                  |
-| `space.050` | 4   | A tight inset.                                     |
-| `space.075` | 6   | A small control's inset.                            |
-| `space.100` | 8   | A rail's inset, a compact row's.                    |
-| `space.150` | 12  | A cell's, a card header's.                          |
-| `space.200` | 16  | A card's, a dialog body's.                          |
-| `space.250` | 20  |                                                     |
-| `space.300` | 24  | A dialog's, a page section's.                       |
-| `space.400` | 32  | A page gutter.                                      |
+| Token       | px  | Escapes                          |
+| ----------- | --- | -------------------------------- |
+| `space.025` | 2   | A hairline inset.                |
+| `space.050` | 4   | A tight inset.                   |
+| `space.075` | 6   | A small control's inset.         |
+| `space.100` | 8   | A rail's inset, a compact row's. |
+| `space.150` | 12  | A cell's, a card header's.       |
+| `space.200` | 16  | A card's, a dialog body's.       |
+| `space.250` | 20  |                                  |
+| `space.300` | 24  | A dialog's, a page section's.    |
+| `space.400` | 32  | A page gutter.                   |
 
 The bleed equals the padding it escapes. A bleed larger than the padding hangs outside the parent; smaller, it stops short of the edge and reads as a mistake in the inset.
 
@@ -62,8 +64,8 @@ The bleed equals the padding it escapes. A bleed larger than the padding hangs o
 
 ## Style
 
-| Element | Token                                                          |
-| ------- | -------------------------------------------------------------- |
+| Element | Token                                                                                                                          |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | Margin  | `space.negative.*`, read by `m-negative-*`, `mx-negative-*`, `my-negative-*`: the negative token, not the positive one negated |
 
 ## Accessibility
@@ -90,5 +92,7 @@ The bleed equals the padding it escapes. A bleed larger than the padding hangs o
 - [Space](?path=/docs/tokens-space--docs): the scale and its negatives.
 
 ## Don't
+
+A Bleed escapes by the token its parent is padded with, never a negative margin in a style or a bleed larger than the padding.
 
 <Canvas of={Stories.Dont} />

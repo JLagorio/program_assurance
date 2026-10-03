@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type ReactNode } from "react";
+import { useCallback, useRef, useState, type ReactNode, type RefObject } from "react";
 
 import { Popover, PopoverContent } from "../../components/popover";
 import { useLedgerLocale } from "../../lib/locale";
@@ -60,7 +60,7 @@ export function CardHead({
       </div>
       {subtitle ? <span className="font-body-xsmall text-subtle">{subtitle}</span> : null}
       {value !== undefined ? (
-        <span className="font-heading-small tabular-nums text-default">{value}</span>
+        <span className="font-heading-page font-medium tabular-nums text-default">{value}</span>
       ) : null}
       {rows?.length ? (
         <div className="flex flex-col gap-025 pt-025">
@@ -80,7 +80,8 @@ export function CardHead({
 
 /**
  * The details card: the kit's PopoverContent anchored to the chosen mark, above it, closed by
- * Escape or a click outside, focus back on the plot after.
+ * Escape or a click outside, focus back on the plot after. The mark is a rectangle in the plot's
+ * pixels (a bar, a point, a slice), or an element of its own (a Heatmap's cell).
  */
 export function Card({
   anchor,
@@ -89,15 +90,17 @@ export function Card({
   refocus,
   children,
 }: {
-  anchor: Anchor;
+  anchor: Anchor | RefObject<Element | null>;
   label: string | undefined;
   onClose: () => void;
-  /** Where focus goes when the card closes: back to the plot. */
+  /** Where focus goes when the card closes: back to the plot, or the cell. */
   refocus: () => void;
   children: ReactNode;
 }) {
   const { t } = useLedgerLocale();
   const anchorRef = useRef<HTMLDivElement>(null);
+  const element = "current" in anchor ? anchor : null;
+  const rect = "current" in anchor ? null : anchor;
 
   return (
     <Popover
@@ -106,14 +109,16 @@ export function Card({
         if (!open) onClose();
       }}
     >
-      <div
-        ref={anchorRef}
-        aria-hidden
-        className="pointer-events-none absolute"
-        style={{ left: anchor.x, top: anchor.y, width: anchor.width, height: anchor.height }}
-      />
+      {rect ? (
+        <div
+          ref={anchorRef}
+          aria-hidden
+          className="pointer-events-none absolute"
+          style={{ left: rect.x, top: rect.y, width: rect.width, height: rect.height }}
+        />
+      ) : null}
       <PopoverContent
-        anchor={anchorRef}
+        anchor={element ?? anchorRef}
         side="top"
         align="center"
         sideOffset={6}

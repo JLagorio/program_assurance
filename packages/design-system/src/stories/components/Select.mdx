@@ -7,6 +7,8 @@ import * as Stories from "./Select.stories";
 
 # Select
 
+**Status: Stable.**
+
 Choose one value, or a few, from a short list the reader does not need to search, with shadcn's Base UI Select parts. Ledger supplies the control geometry, the menu styling, locale direction and the Field binding.
 
 ```tsx
@@ -85,6 +87,7 @@ With Base UI 1.7, form reset is caller-owned: reset controlled values in the for
 
 ## Content
 
+- A visible FieldLabel names the Select. The placeholder is never its only name: once a value is chosen the placeholder is gone, and nothing would say what the field is.
 - The placeholder says the action and the noun: "Choose a status", "Choose a revision". It never says "Select…", "Optional" or repeats the label; the Field marks a required field.
 - Option labels are short nouns in sentence case, the words the record shows. Put the difference between two similar options in `description`, not in a longer label.
 - Order options by meaning (the workflow order of statuses, severity from high to low), and alphabetically only when they have no order of their own.
@@ -98,13 +101,9 @@ Base UI coordinates nested Select, Dialog and Drawer popups. Escape dismisses th
 
 <Canvas of={Stories.Dialogs} />
 
-## Migration and API
-
-Replace a configured root with Select, SelectTrigger, SelectValue and SelectContent. Move trigger refs, ARIA, size, styles and event handlers to Trigger; `size` takes `small` and `medium`. Move the placeholder to Value. Replace compound Item, Group and Separator with the flat exports and put SelectLabel inside SelectGroup. Supply labels through `items` or Value, and handle nullable single values explicitly.
-
-The implementation follows [shadcn Select](https://ui.shadcn.com/docs/components/base/select) and [Base UI Select](https://base-ui.com/react/components/select), on the installed Base UI version. Content adds five positioning props to Popup; Ledger adds token styling and the locale, Field and dialog integration.
-
 ## Props
+
+Select follows [shadcn Select](https://ui.shadcn.com/docs/components/base/select) and [Base UI Select](https://base-ui.com/react/components/select), on the installed Base UI version. SelectContent adds five positioning props to Base UI's Popup; Ledger adds the token styling and the locale, Field and dialog integration.
 
 ### SelectTrigger
 
@@ -120,4 +119,10 @@ The implementation follows [shadcn Select](https://ui.shadcn.com/docs/components
 
 ## Related
 
-[Combobox](?path=/docs/components-combobox--docs) · [RadioGroup](?path=/docs/components-radiogroup--docs) · [Field](?path=/docs/components-field--docs) · [Forms](?path=/docs/patterns-forms--docs) · [DropdownMenu](?path=/docs/components-dropdownmenu--docs)
+[Combobox](?path=/docs/components-combobox--docs) · [RadioGroup](?path=/docs/components-radiogroup--docs) · [Field](?path=/docs/components-field--docs) · [Forms](?path=/docs/patterns-forms--docs) · [DropdownMenu](?path=/docs/components-dropdownmenu--docs) · [Upgrading](?path=/docs/guidance-upgrading--docs#select)
+
+## Don't
+
+A Field's label names the Select, never its placeholder alone, which is gone once a value is chosen.
+
+<Canvas of={Stories.Dont} />

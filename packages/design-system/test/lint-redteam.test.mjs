@@ -100,11 +100,18 @@ const CLASS_PART_RULES = {
     planted: "font-semibold",
     imports: kitImport("Table"),
     element: (attribute) => `<Table.Cell ${attribute}>x</Table.Cell>`,
+    // A class that styles the elements inside a kit part is no-restyle's finding (descendant).
+    allows: {
+      "descendant variant": "a weight on the elements inside, which no-restyle reports on a part",
+    },
   },
   "id-not-blue": {
     planted: "text-brand",
     imports: kitImport("Id"),
     element: (attribute) => `<Id ${attribute}>X-1</Id>`,
+    allows: {
+      "descendant variant": "a colour on the elements inside, which no-restyle reports on a part",
+    },
   },
   "button-icon-slot": {
     planted: "size-icon-small",
@@ -125,6 +132,13 @@ const CLASS_PART_RULES = {
     planted: "hover:underline",
     element: (attribute) => `<a href="/records" ${attribute}>Records</a>`,
   },
+  "use-heading": {
+    planted: "font-heading-page",
+    element: (attribute) => `<h2 ${attribute}>Scope</h2>`,
+    allows: {
+      "descendant variant": "a type on the elements inside the heading, which is theirs",
+    },
+  },
   "product-line-tabs": {
     planted: "flex-wrap",
     imports: kitImport("TabsList"),
@@ -135,6 +149,12 @@ const CLASS_PART_RULES = {
     planted: "max-w-layout-measure",
     imports: kitImport("DialogContent"),
     element: (attribute) => `<DialogContent ${attribute} />`,
+  },
+  "no-restyle": {
+    // A weight Text's weight prop sets, which a breakpoint changes as the bare class would.
+    planted: "font-semibold",
+    imports: kitImport("Text"),
+    element: (attribute) => `<Text ${attribute}>12</Text>`,
   },
 };
 
@@ -243,8 +263,10 @@ const CLASS_CARRIERS = {
  * reads it, since Tailwind generates it; a part rule, which judges what lands on its part, does not.
  */
 const PART_SILENT_CARRIERS = {
+  // The class written last is one no rule reports on any of the elements (`truncate` on a Text is
+  // its maxLines, which no-restyle reports).
   "spread overridden by className": (c, element) =>
-    `export const A = () => ${element(`{...{ className: "${c}" }} className="truncate"`)};`,
+    `export const A = () => ${element(`{...{ className: "${c}" }} className="shrink-0"`)};`,
 };
 
 /**
@@ -279,6 +301,15 @@ const TOKEN_CONTROLS = {
   "attribute names in a list": {
     because: "a list of HTML attribute names is data, though `hidden` is also a class",
     code: 'const reachability = ["disabled", "tabindex", "href", "contenteditable", "hidden"]; export const watched = reachability;',
+  },
+  "a word in a *Class attribute": {
+    because: "a component's own *Class prop that holds a word no class is spelt like holds data",
+    code: 'export const A = ({ level }) => <><Marker impactClass="high" /><Banner securityClass={level ? "secret" : "unclassified"} /><ScrollLink activeClass="active" to="top" /></>;',
+  },
+  "identifiers shaped like classes": {
+    because:
+      "a lone string shaped like an arbitrary value, alpha or a palette colour that Tailwind does not place is data",
+    code: 'export const CATALOG = "sp-800-53/5"; export const REVISION = "rev-5/1"; export const SORT = "items-[0]"; export const COLOR = "status-red-500";',
   },
 };
 
@@ -344,7 +375,7 @@ const PART_RULES = {
     family: "policy",
     part: "DataTable",
     module: "./data-table",
-    bad: (T) => `<${T} />`,
+    bad: (T) => `<${T} responsive={false} />`,
   },
   "overlay-width-preset": {
     family: "behaviour",
@@ -396,6 +427,12 @@ const PART_RULES = {
     module: "../components/button",
     bad: (T) => `<${T} className={theme.cls}>Save</${T}>`,
   },
+  "no-restyle": {
+    family: "policy",
+    part: "Text",
+    module: "../primitives/text",
+    bad: (T) => `<${T} className="tabular-nums">12</${T}>`,
+  },
 };
 
 const lookAlike = ({ part, member }) =>
@@ -426,6 +463,14 @@ const IDENTITY_CARRIERS = {
   "forwarding wrapper": {
     code: ({ part, member = "", bad }) =>
       `${kitImport(part)} const Mine = (props) => <${part}${member} {...props} />; export const A = () => ${bad("Mine")};`,
+  },
+  "forwarding wrapper, props destructured in its body": {
+    code: ({ part, member = "", bad }) =>
+      `${kitImport(part)} function Mine(props) { const { ...rest } = props; return <${part}${member} {...rest} />; } export const A = () => ${bad("Mine")};`,
+  },
+  "forwarding wrapper that renders itself first": {
+    code: ({ part, member = "", bad }) =>
+      `${kitImport(part)} function Mine(props) { return props.depth ? <Mine {...props} depth={0} /> : <${part}${member} {...props} />; } export const A = () => ${bad("Mine")};`,
   },
   "local look-alike": {
     silentFor: ["policy"],

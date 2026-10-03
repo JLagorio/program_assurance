@@ -15,8 +15,8 @@ export function Checkbox({ className, ...props }: CheckboxProps) {
   const field = useFieldControlState();
   return (
     <CheckboxPrimitive.Root
-      data-slot="checkbox"
       {...props}
+      data-slot="checkbox"
       disabled={props.disabled || field.disabled}
       aria-required={props["aria-required"] ?? ((props.required ?? field.required) || undefined)}
       className={classes(

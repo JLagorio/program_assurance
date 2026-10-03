@@ -2,7 +2,10 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect } from "storybook/test";
 
 import { Input, Textarea } from "../../components";
-import { Group, Page, Spec, under } from "../_lib/sheet";
+import * as tokenSheet from "../_lib/sheet";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Group, Page, Spec, under } = tokenSheet;
 
 const meta = { title: "Tokens/Typography", parameters: { layout: "padded" } } satisfies Meta;
 export default meta;
@@ -11,9 +14,10 @@ type Story = StoryObj<typeof meta>;
 const sample = "Control SC-7(5) · Boundary protection · Deny by default, allow by exception";
 
 const composites = [
-  "font.heading.medium",
-  "font.heading.small",
-  "font.heading.xsmall",
+  "font.heading.display",
+  "font.heading.page",
+  "font.heading.overlay",
+  "font.heading.section",
   "font.body.large",
   "font.body",
   "font.body.small",

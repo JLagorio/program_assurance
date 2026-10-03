@@ -50,30 +50,42 @@ import {
   defineColumns,
   displayedRows,
   showRow,
+  tokenValue,
   useDataTable,
   type Tone,
 } from "../..";
 
-const meta = { title: "Layout/Pages", parameters: { layout: "fullscreen" } } satisfies Meta;
+// Each story is a whole workspace built from this file's own routes, not code to copy, so none is
+// in the manifest; the page's prose and Guidance/Recipes carry the composition.
+const meta = {
+  title: "Layout/Pages",
+  tags: ["!manifest"],
+  parameters: { layout: "fullscreen" },
+} satisfies Meta;
 export default meta;
 type Story = StoryObj;
 const RecordContext = createContext("Unavailable");
 
 /* ---------- a record page ---------- */
 
-/** The record's Details rail: state, owner, identifiers and dates, the two a reader changes in place as Editables. */
+/** The record's Details: state, owner, identifiers and dates, the two a reader changes in place as Editables. The rail beside the body where it fits; on a phone a Details disclosure at the top of Overview, its row carrying the status. */
 function RecordDetails() {
   const initialOwner = useContext(RecordContext);
   const [owner, setOwner] = useState(initialOwner);
   const [status, setStatus] = useState("In progress");
+  const badge = (
+    <Badge variant="secondary" tone={status === "Verified" ? "success" : "information"}>
+      {status}
+    </Badge>
+  );
   return (
-    <Shell.Aside label="Details">
+    <Shell.Aside label="Details" summary={badge}>
       <Inspector.Group title="Details">
         <KeyValue label="Status">
           <Editable.Select<string>
             label="Status"
             value={status}
-            onChange={setStatus}
+            onValueChange={setStatus}
             save={async () => {}}
             options={["In progress", "Ready for review", "Verified"]}
             render={(value) => (
@@ -87,7 +99,7 @@ function RecordDetails() {
           <Editable.Select
             label="Owner"
             value={owner}
-            onChange={setOwner}
+            onValueChange={setOwner}
             save={async () => {}}
             options={[initialOwner, "Amara Bell", "Dan Whitfield", "Priya Raghavan", "Sarah Chen"]}
             render={(name) => <Person name={name} />}
@@ -155,7 +167,7 @@ function EvidenceTab() {
   );
 }
 
-/** A record: the trail in the Lead with the code as its last level, the name as the h1, one Actions menu; tabs; on Overview the body's Sections and the Details rail beside them. */
+/** A record: the trail in the Lead with the code as its last level, the name as the h1, one Actions menu; tabs; on Overview the Details, rendered first, and the body's Sections: the rail beside them where it fits, a Details disclosure above them on a phone. */
 function RecordPage() {
   const [tab, setTab] = useState("overview");
   return (
@@ -197,26 +209,29 @@ function RecordPage() {
             <TabsTrigger value="evidence">Evidence</TabsTrigger>
           </TabsList>
           <TabsContent value="overview">
-            <Stack space="space.300" className="max-w-layout-measure pt-200">
-              <Section title="Statement">
-                <Prose>
-                  Privileged access to the platform and its supporting services is reviewed every
-                  quarter, and access that is no longer needed is revoked within five working days.
-                </Prose>
-              </Section>
-              <Section title="Acceptance criteria" count={2}>
-                <Prose>
-                  {"Every privileged account has a named owner.\nA revoked account cannot sign in."}
-                </Prose>
-              </Section>
+            <Stack space="space.300">
+              <RecordDetails />
+              <Stack space="space.300" className="max-w-layout-measure">
+                <Section title="Statement">
+                  <Prose>
+                    Privileged access to the platform and its supporting services is reviewed every
+                    quarter, and access that is no longer needed is revoked within five working
+                    days.
+                  </Prose>
+                </Section>
+                <Section title="Acceptance criteria" count={2}>
+                  <Prose>
+                    {
+                      "Every privileged account has a named owner.\nA revoked account cannot sign in."
+                    }
+                  </Prose>
+                </Section>
+              </Stack>
             </Stack>
           </TabsContent>
           <TabsContent value="evidence">
-            <div className="pt-200">
-              <EvidenceTab />
-            </div>
+            <EvidenceTab />
           </TabsContent>
-          {tab === "overview" && <RecordDetails />}
         </Tabs>
       </Stack>
     </RecordContext.Provider>
@@ -563,10 +578,11 @@ function Workspace({ initial = "record" }: { initial?: "record" | "queue" | "reg
 
 /** A record page: the trail, the name and one Actions menu; tabs; the body's Sections on Overview with the Details rail beside them, which leaves with the tab; and a tab that is a register, which fills the work area. */
 export const Record: Story = {
-  render: () => <Workspace />,
+  render: Workspace,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const shell = canvasElement.querySelector(".shell-root");
+    const shell = canvasElement.querySelector('[data-slot="shell"]');
+    const asideOf = () => canvasElement.querySelector('[data-slot="shell-aside"]');
     // One h1, the name; the code is the trail's last level, not the title.
     await expect(canvas.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     const trail = canvas.getByRole("navigation", { name: "Breadcrumb" });
@@ -576,12 +592,25 @@ export const Record: Story = {
     await expect(
       canvasElement.querySelector('[data-slot="page-header-description"]'),
     ).not.toBeInTheDocument();
-    // The Details rail is the Aside, outside Main, with its group at h2 under the page's h1.
-    const aside = await canvas.findByRole("complementary", { name: "Details" });
-    await expect(canvas.getByRole("main")).not.toContainElement(aside);
-    await expect(within(aside).getByRole("heading", { name: "Details" }).tagName).toBe("H2");
-    await expect(within(aside).getByText("Alex Morgan")).toBeVisible();
-    await expect(within(aside).getByText("REQ-104")).toBeVisible();
+    if (window.matchMedia(`(width >= ${tokenValue("dimension.breakpoint.aside")})`).matches) {
+      // The Details rail is the Aside, outside Main, with its group at h2 under the page's h1.
+      const aside = await canvas.findByRole("complementary", { name: "Details" });
+      await expect(canvas.getByRole("main")).not.toContainElement(aside);
+      await expect(within(aside).getByRole("heading", { name: "Details" }).tagName).toBe("H2");
+      await expect(within(aside).getByText("Alex Morgan")).toBeVisible();
+      await expect(within(aside).getByText("REQ-104")).toBeVisible();
+    } else {
+      // On a phone the Details are a disclosure at the top of Overview, inside Main: its row, an
+      // h2's button, carries the status, closed until the reader opens it.
+      const details = await canvas.findByRole("region", { name: "Details" });
+      await expect(canvas.getByRole("main")).toContainElement(details);
+      const toggle = within(details).getByRole("button", { name: /^Details\s*In progress$/ });
+      await expect(toggle.closest("h2")).not.toBeNull();
+      await expect(toggle).toHaveAttribute("aria-expanded", "false");
+      await userEvent.click(toggle);
+      await waitFor(() => expect(within(details).getByText("Alex Morgan")).toBeVisible());
+      await expect(within(details).getByText("REQ-104")).toBeVisible();
+    }
     // The body's Sections sit under the h1.
     await expect(canvas.getByRole("heading", { name: "Statement" }).tagName).toBe("H2");
     const screen = within(canvasElement.ownerDocument.body);
@@ -600,9 +629,7 @@ export const Record: Story = {
     await waitFor(() => expect(actions).toHaveFocus());
     // A tab that is a register: the Toolbar first, no heading over it, no rail beside it.
     await userEvent.click(canvas.getByRole("tab", { name: "Evidence" }));
-    await waitFor(() =>
-      expect(canvas.queryByRole("complementary", { name: "Details" })).not.toBeInTheDocument(),
-    );
+    await waitFor(() => expect(asideOf()).not.toBeInTheDocument());
     const panel = canvas.getByRole("tabpanel", { name: "Evidence" });
     await expect(panel).toBeVisible();
     await expect(within(panel).queryByRole("heading")).toBeNull();
@@ -611,8 +638,8 @@ export const Record: Story = {
       within(panel).getByRole("link", { name: "Quarterly access review" }),
     ).toHaveAttribute("href", "#evidence-EVD-210");
     await userEvent.click(canvas.getByRole("button", { name: "Queue route" }));
-    await expect(canvasElement.querySelector(".shell-root")).toBe(shell);
-    await expect(canvas.queryByRole("complementary", { name: "Details" })).not.toBeInTheDocument();
+    await expect(canvasElement.querySelector('[data-slot="shell"]')).toBe(shell);
+    await expect(asideOf()).not.toBeInTheDocument();
   },
 };
 

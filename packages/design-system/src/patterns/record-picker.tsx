@@ -14,6 +14,8 @@ import {
   CommandLoading,
 } from "../components/command";
 import { Id } from "../components/id";
+import { Truncate } from "../components/truncate";
+import { token } from "../generated/tokens";
 import { announce } from "../lib/announce";
 import { CommandKeys } from "../lib/command-keys";
 import { useLedgerLocale } from "../lib/locale";
@@ -100,7 +102,7 @@ export function RecordPicker({
       }}
       title={title}
       description={description ?? t("searchDescription")}
-      style={{ maxWidth: 640 }}
+      style={{ maxWidth: token("dimension.part.recordSearch") }}
     >
       <Command label={title}>
         {/* The first field takes focus as the dialog opens, and focus goes back to the opener on close. */}
@@ -156,10 +158,11 @@ export function RecordPicker({
                 >
                   {code}
                 </Id>
+                {/* The name takes the rest of the row; a cut name or meta shows whole on hover. */}
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate">{r.title}</span>
+                  <Truncate>{r.title}</Truncate>
                   {r.meta ? (
-                    <span className="block truncate font-body-xsmall text-subtle">{r.meta}</span>
+                    <Truncate className="font-body-xsmall text-subtle">{r.meta}</Truncate>
                   ) : null}
                 </span>
                 {r.badge ? (

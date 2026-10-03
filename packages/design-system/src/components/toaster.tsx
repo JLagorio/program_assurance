@@ -8,6 +8,7 @@ import type {
 import { CircleAlert, CircleCheck, Info, TriangleAlert, X } from "lucide-react";
 import { useMemo, useSyncExternalStore } from "react";
 
+import { tokenValue } from "../generated/tokens";
 import { classes } from "../lib/base-ui";
 import { useLedgerLocale } from "../lib/locale";
 import { Button } from "./button";
@@ -162,7 +163,7 @@ export function Toast({ className, ...props }: ToastPrimitive.Root.Props) {
     <ToastPrimitive.Root
       className={classes(
         // The root takes the swipe, so it does not select; its title and description do.
-        "toast-root pointer-events-auto absolute bottom-0 right-0 w-full origin-bottom rounded-large border border-default bg-surface-overlay font-body text-default shadow-overlay outline-none select-none focus-visible:outline-focused",
+        "toast-root pointer-events-auto absolute bottom-0 end-0 w-full origin-bottom rounded-large border border-default bg-surface-overlay font-body text-default shadow-overlay outline-none select-none focus-visible:outline-focused",
         className,
       )}
       {...props}
@@ -274,15 +275,16 @@ function ToastList() {
   });
 }
 
-/** A window this short keeps two toasts, so the open stack stays inside it. */
-const SHORT_WINDOW = "(max-height: 30rem)";
+/** A short window (dimension.query.shortWindow, the Shell's and the overlays' threshold) keeps two
+    toasts, so the open stack stays inside it. */
+const shortWindowQuery = () => `(height < ${tokenValue("dimension.query.shortWindow")})`;
 const SHORT_LIMIT = 2;
 function subscribeShortWindow(change: () => void) {
-  const query = window.matchMedia(SHORT_WINDOW);
+  const query = window.matchMedia(shortWindowQuery());
   query.addEventListener("change", change);
   return () => query.removeEventListener("change", change);
 }
-const isShortWindow = () => window.matchMedia(SHORT_WINDOW).matches;
+const isShortWindow = () => window.matchMedia(shortWindowQuery()).matches;
 const notShortOnServer = () => false;
 function useShortWindow() {
   return useSyncExternalStore(subscribeShortWindow, isShortWindow, notShortOnServer);

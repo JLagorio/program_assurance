@@ -6,9 +6,13 @@ import * as Stories from "./Calendar.stories";
 
 # Calendar
 
+**Status: Stable.**
+
 A month to pick a day, several days or a range from, following [shadcn’s Calendar](https://ui.shadcn.com/docs/components/base/calendar) on React DayPicker, with Ledger tokens and the LedgerProvider's locale.
 
 Use it inside a picker. A day in a form is a [DatePicker](?path=/docs/components-datepicker--docs), a range a [DateRangePicker](?path=/docs/components-daterangepicker--docs); an inline month takes the room of six fields for one answer. Use Calendar on its own where the month is the content, such as a schedule panel.
+
+<Canvas of={Stories.DoDont} />
 
 ```tsx
 const [date, setDate] = useState<Date>();
@@ -49,6 +53,13 @@ A disabled matcher makes a day unchoosable and skips it in the keyboard order. `
 `navLayout="around"` places Previous beside the first month's caption and Next beside the last, in either direction. The default and `"after"` share one navigation bar; `"after"` puts it later in the keyboard order.
 
 <Canvas of={Stories.NavigationLayouts} />
+
+## Content
+
+- **Name a month that stands alone by its task**: a visible heading over it, or an `aria-label` such as "Review days", never "Calendar". In a DatePicker the month's dialog takes the field's label.
+- **A disabled day says why** in a sentence through `describeDay` ("Weekends are closed."), and the field's hint states the same rule, since the reader meets the hint before the month.
+- **Two months on one page name their navigation apart** through `labels.labelNav` ("Review window navigation").
+- **Leave the caption and the weekday names to the locale.** A `formatters` override wins over the LedgerProvider, so one that writes English words stays English under every locale.
 
 ## Accessibility
 

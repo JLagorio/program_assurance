@@ -26,13 +26,16 @@
       },
       "code": {
         "$value": [
-          "Geist Mono Variable",
           "Geist Mono",
           "JetBrains Mono",
           "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "Consolas",
+          "Liberation Mono",
           "monospace"
         ],
-        "$description": "Code blocks and data previews only. Never UI text. Geist Mono Variable is the name the packaged mono face takes once fonts.css loads it."
+        "$description": "Code blocks and data previews only. Never UI text. The package ships no mono face, so the stack names faces the machine has: Geist Mono or JetBrains Mono where installed, else the system monospace."
       }
     },
     "weight": {
@@ -121,6 +124,46 @@
     },
     "heading": {
       "$type": "typography",
+      "display": {
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.semibold}",
+          "fontSize": "1.75rem",
+          "lineHeight": "2.125rem",
+          "letterSpacing": "{font.letterSpacing.400}"
+        },
+        "$description": "Heading `display`: a figure bigger than a Stat's, or the one title of a screen with nothing else on it (sign-in), set as its h1. Never a page or record title."
+      },
+      "page": {
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.semibold}",
+          "fontSize": "1.25rem",
+          "lineHeight": "1.625rem",
+          "letterSpacing": "{font.letterSpacing.300}"
+        },
+        "$description": "Heading `page`: the page and record title, which PageHeader.Title draws on a page and as a preview's record name, and a Stat's figure."
+      },
+      "overlay": {
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.medium}",
+          "fontSize": "0.9375rem",
+          "lineHeight": "1.375rem",
+          "letterSpacing": "{font.letterSpacing.300}"
+        },
+        "$description": "Heading `overlay`: an overlay's title, which DialogTitle, SheetTitle, AlertDialogTitle and DrawerTitle draw; a card's title and a group heading inside an overlay take it too."
+      },
+      "section": {
+        "$value": {
+          "fontFamily": "{font.family.heading}",
+          "fontWeight": "{font.weight.semibold}",
+          "fontSize": "0.8125rem",
+          "lineHeight": "1.125rem",
+          "letterSpacing": "{font.letterSpacing.200}"
+        },
+        "$description": "Heading `section`: a section's title, which Section.Title draws: body size at semibold."
+      },
       "large": {
         "$type": "typography",
         "$value": {
@@ -130,7 +173,8 @@
           "lineHeight": "2.125rem",
           "letterSpacing": "{font.letterSpacing.400}"
         },
-        "$description": "Display: a figure bigger than a Stat's, or the one title of a screen with nothing else on it (sign-in). Not a page or record title."
+        "$description": "Deprecated: font.heading.display, the same style. Kept for one version.",
+        "$extensions": { "ledger": { "deprecated": "font.heading.display" } }
       },
       "medium": {
         "$value": {
@@ -140,7 +184,8 @@
           "lineHeight": "1.75rem",
           "letterSpacing": "{font.letterSpacing.400}"
         },
-        "$description": "A Heading medium: a page title set without PageHeader. PageHeader.Title is font.heading.small at semibold."
+        "$description": "Deprecated: font.heading.page (20/26) for a page or record title. Kept for one version.",
+        "$extensions": { "ledger": { "deprecated": "font.heading.page" } }
       },
       "small": {
         "$value": {
@@ -150,7 +195,8 @@
           "lineHeight": "1.625rem",
           "letterSpacing": "{font.letterSpacing.300}"
         },
-        "$description": "A section heading set with Heading; at semibold, the page and record title (PageHeader.Title) and a Stat's figure."
+        "$description": "Deprecated: font.heading.page (20/26 semibold) for a page or record title, font.heading.section for a section's title. Kept for one version.",
+        "$extensions": { "ledger": { "deprecated": "font.heading.page" } }
       },
       "xsmall": {
         "$value": {
@@ -160,7 +206,8 @@
           "lineHeight": "1.375rem",
           "letterSpacing": "{font.letterSpacing.300}"
         },
-        "$description": "Dialog and card titles."
+        "$description": "Deprecated: font.heading.overlay, the same style. Kept for one version.",
+        "$extensions": { "ledger": { "deprecated": "font.heading.overlay" } }
       },
       "xxsmall": {
         "$value": {

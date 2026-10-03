@@ -6,6 +6,10 @@ import { Badge, Button, Scroller, ScrollerArrow, ScrollerViewport } from "../../
 import { menuItem, menuSurface } from "../../components/menu";
 import { LedgerProvider } from "../../lib/locale";
 import { Inline, Stack, Text } from "../../primitives";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Scroller",
@@ -455,5 +459,28 @@ export const KeepsCurrentInView: Story = {
     await expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
       document.documentElement.clientWidth,
     );
+  },
+};
+
+/** A strip that becomes a tab stop is named after what it holds, so a keyboard reader hears more than that it scrolls. */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <Pair
+      do={<Chips label="Control families" count={7} />}
+      doText="aria-label on the viewport: the stop is heard as Control families."
+      dont={<Chips label="Unnamed" count={7} />}
+      dontText="No name. The stop is heard as Content, scrolls, which says it scrolls and nothing of what is in it."
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const named = viewportOf(canvas.getByTestId("Control families"));
+    const unnamed = viewportOf(canvas.getByTestId("Unnamed"));
+    await waitFor(() => expect(named).toHaveAttribute("tabindex", "0"));
+    await waitFor(() => expect(unnamed).toHaveAttribute("tabindex", "0"));
+    await expect(named).toHaveAccessibleName("Control families");
+    await expect(unnamed).toHaveAccessibleName("Content, scrolls");
   },
 };

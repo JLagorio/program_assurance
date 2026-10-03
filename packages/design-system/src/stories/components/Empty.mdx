@@ -14,9 +14,19 @@ import * as Stories from "./Empty.stories";
 
 # Empty
 
+**Status: Stable.**
+
 A region with nothing in it says why, and offers the next step. The picture, the message and the actions sit at the centre of the region; the caller composes them from the parts. A [DataTable](?path=/docs/patterns-data-table--docs) draws its own, so a register never needs to.
 
 <Canvas of={Stories.Playground} />
+
+## When to use it
+
+- **A region with nothing in it yet**: a list, a card or a panel before its first record, with the step that creates one.
+- **A search or a filter that leaves nothing**: what matched nothing, and the way to widen it (**Clear filters**).
+- **A record that is not there, or a region that failed with nothing else to show**: what is missing or what failed, and the way back or **Try again**.
+
+Not for a load in progress: that is a [Skeleton](?path=/docs/components-skeleton--docs) or a [Spinner](?path=/docs/components-spinner--docs). Not for a failure beside content that stays on the page: that is an [Alert](?path=/docs/components-alert--docs). Not for one value that is missing: that is [Absent](?path=/docs/components-typography--docs), heard as "Not recorded". Not for a register's table: a [DataTable](?path=/docs/patterns-data-table--docs) draws its own empties.
 
 ## Anatomy
 
@@ -90,6 +100,10 @@ A [DataTable](?path=/docs/patterns-data-table--docs) with no records at all is o
 
 `default` is the hero: the picture, a small heading, body copy, medium buttons, `space.300` between the three, `space.600` above and below. `compact` is the rail's row: an icon beside the message, a medium-weight body title, small body copy, a small link.
 
+The hero's buttons are medium even when the caller hands over a small one. A collection passes its toolbar's create action as it is, so an `EmptyContent` in the default size that holds a small primary kit button (Button, IconButton, LinkButton or LinkIconButton) draws every small kit button in that row at medium: the button itself, the halves of a split `ButtonGroup`, and a menu trigger's `render` element. A row without a small primary keeps its sizes, so the suggestions' small secondary buttons and an icon Empty's one small action stay small. Compact never changes a size.
+
+<Canvas of={Stories.HeroActions} />
+
 The order is the same in both sizes: `EmptyMedia`, then `EmptyHeader`, then `EmptyContent`, each a direct child of `Empty`. In the default size that puts `space.300` between the picture and the title; in compact the grid puts the media in the first column and the message and the actions in the second. An `EmptyMedia` inside `EmptyHeader` sits `space.100` above the title, and an `EmptyIllustration` in a compact Empty is a 128 by 84 scene in a row drawn for an icon; each says so once in the browser console, as a warning that never stops the Empty from rendering.
 
 ## States
@@ -125,7 +139,7 @@ A title or a description with an unbroken code, hash or address breaks where it 
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Frame        | `color.border` dashed · `radius.large` · `space.300` × `space.600`                                                                                |
 | Gaps         | `space.300` between picture, message and actions · `space.100` between title and description                                                      |
-| Title        | `font.heading.small` · `color.text`                                                                                                               |
+| Title        | `font.heading.page` at medium · `color.text`                                                                                                      |
 | Description  | `font.body` · `color.text.subtle` · `dimension.part.emptyMeasure`, a 400px measure                                                                |
 | Icon circle  | `dimension.control.large` · `color.background.neutral` · `color.icon.subtle`                                                                      |
 | Illustration | 128 × 84px · `elevation.surface.raised` and `.sunken` · `color.border` and `.bold` · `color.skeleton` · `color.background.neutral`                |
@@ -152,7 +166,7 @@ The illustration and the icon circle are decorative: `EmptyIllustration` hides i
 
 Every part accepts native div attributes, events, styles and refs; EmptyTitle takes its heading's and `render`. Icon children retain their own props, classes and refs.
 
-### Migration
+### In other parts
 
 The default is the centred hero: a heading, the description at a measure, the actions under it. A left-aligned row with a body-weight title is `size="compact"`. `Related`, `Item.Group` and `DataTable` compose the parts themselves; a DataTable's `empty` takes `illustration`, `secondary` and `filtered`, and draws **Nothing matches** with **Clear filters** on its own while a search, a filter or the caller's `narrowed` is active.
 
@@ -165,5 +179,7 @@ The default is the centred hero: a heading, the description at a measure, the ac
 Sources: [shadcn Empty](https://ui.shadcn.com/docs/components/base/empty), [ReUI empty state](https://reui.io/blocks/empty-state), [Atlassian Empty state](https://atlassian.design/components/empty-state), [Carbon empty states pattern](https://carbondesignsystem.com/patterns/empty-states-pattern).
 
 ## Don't
+
+A filtered table's empty says what emptied it and offers Clear filters, never a grey line where the rows were. An empty state's action is the page's own verb, never advice that points at another control, and under a header that already carries the create action it says what is missing and stops.
 
 <Canvas of={Stories.Dont} />

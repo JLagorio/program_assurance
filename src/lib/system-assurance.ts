@@ -47,20 +47,46 @@ export type SystemAssuranceRow = SystemElement & {
   /** The effective resolution is a draft tailored profile authored for a system. */
   baselineDraft: boolean;
 };
+/** The columns the projection reads from each input, so a caller reads no more than these. */
+export const systemAssuranceColumns = {
+  selections: ["id", "tenant_id", "profile_resolution_id", "control_id"],
+  scopeBaselines: ["id", "tenant_id", "scope_id", "profile_resolution_id", "adopted_at"],
+  allocations: ["id", "tenant_id", "system_id", "requirement_revision_id"],
+  resolutions: ["id", "tenant_id", "profile_revision_id", "state"],
+  profiles: ["id", "tenant_id", "profile_id", "title"],
+  profileRecords: ["id", "tenant_id", "title"],
+} as const;
+type Columns<K extends keyof typeof systemAssuranceColumns> =
+  (typeof systemAssuranceColumns)[K][number];
+
 export type SystemAssuranceInput = {
   systems: SystemElement[];
   scopes: Row<"scopes">[];
   baselines: Row<"system_effective_baselines">[];
-  selections: Row<"selected_controls">[];
-  scopeBaselines: Row<"scope_baselines">[];
+  /** The selections of the resolutions the baselines and scope adoptions name. */
+  selections: Pick<Row<"selected_controls">, Columns<"selections">>[];
+  scopeBaselines: Pick<Row<"scope_baselines">, Columns<"scopeBaselines">>[];
   /** Requirement allocations; an element's count reads `system_id` exactly, never a cascade. */
-  allocations?: Row<"requirement_allocations">[] | undefined;
+  allocations?: Pick<Row<"requirement_allocations">, Columns<"allocations">>[] | undefined;
   /** Resolutions and profile revisions name the effective baseline. */
-  resolutions?: Row<"profile_resolutions">[] | undefined;
-  profiles?: Row<"profile_revisions">[] | undefined;
+  resolutions?: Pick<Row<"profile_resolutions">, Columns<"resolutions">>[] | undefined;
+  profiles?: Pick<Row<"profile_revisions">, Columns<"profiles">>[] | undefined;
   /** The stable profile records, whose `title` is the short name shown for every revision. */
-  profileRecords?: Row<"profiles">[] | undefined;
+  profileRecords?: Pick<Row<"profiles">, Columns<"profileRecords">>[] | undefined;
 };
+
+/**
+ * The resolutions whose selected controls a program's rows count: each effective baseline's and
+ * each scope adoption's. The selections are read for these alone, not the whole table.
+ */
+export function assuranceResolutionIds(
+  baselines: readonly Pick<Row<"system_effective_baselines">, "profile_resolution_id">[],
+  scopeBaselines: readonly Pick<Row<"scope_baselines">, "profile_resolution_id">[],
+): string[] {
+  return [
+    ...new Set([...baselines, ...scopeBaselines].flatMap((row) => row.profile_resolution_id ?? [])),
+  ].sort();
+}
 
 /** What the Baseline column and the preview say about where the effective set comes from. */
 export function baselineSource(row: SystemAssuranceRow): string {
@@ -142,7 +168,7 @@ export function buildSystemAssuranceRows(input: SystemAssuranceInput): SystemAss
     controls.add(selection.control_id);
     controlsByResolution.set(selection.profile_resolution_id, controls);
   }
-  const adoptionsByScope = new Map<string, Row<"scope_baselines">[]>();
+  const adoptionsByScope = new Map<string, SystemAssuranceInput["scopeBaselines"]>();
   for (const adoption of input.scopeBaselines) {
     const current = adoptionsByScope.get(adoption.scope_id) ?? [];
     current.push(adoption);

@@ -27,10 +27,10 @@ export function ButtonGroup({ className, orientation = "horizontal", ...props }:
   return (
     <div
       role="group"
+      {...props}
       data-slot="button-group"
       data-orientation={orientation}
       className={cn(buttonGroupVariants({ orientation }), className)}
-      {...props}
     />
   );
 }
@@ -81,15 +81,18 @@ export function ButtonGroupSeparator({
 }: ButtonGroupSeparatorProps) {
   return (
     <Separator
-      data-slot="button-group-separator"
       orientation={orientation}
       // Keyed on Base UI's data-orientation: the group removes the start edge of every child after
-      // the first, so the separator puts its own rule back.
+      // the first, so the separator puts its own rule back. Beside a primary half (a split
+      // primary: Create system and its menu) the rule is the bold border, so the two halves read
+      // as one control rather than two buttons with a light seam between them. Forced colours
+      // draw it in the system's border colour.
       className={classes(
-        "relative self-stretch data-[orientation=horizontal]:w-auto data-[orientation=horizontal]:border-t! data-[orientation=vertical]:h-auto data-[orientation=vertical]:border-s!",
+        "relative self-stretch data-[orientation=horizontal]:w-auto data-[orientation=horizontal]:border-t! data-[orientation=vertical]:h-auto data-[orientation=vertical]:border-s! [[data-button-variant=primary]+&]:border-bold [&:has(+[data-button-variant=primary])]:border-bold",
         className,
       )}
       {...props}
+      data-slot="button-group-separator"
     />
   );
 }

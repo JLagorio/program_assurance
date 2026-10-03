@@ -6,8 +6,12 @@ import { Chart } from "../..";
 import { Stat, Table } from "../../components";
 import { Box, Inline, Stack, Text } from "../../primitives";
 import { byMonth, families, findingsByFamilyMonth, heatMonths } from "../_lib/chart-data";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Patterns/Chart/Sparkline",
@@ -20,6 +24,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Every sparkline in both modes: a line, with an end dot and a reference, an area, bars; named (with a tooltip), and loading. */
 export const SparklineMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="Line · with an end dot and a reference · area · bars">
@@ -96,8 +101,6 @@ const coverage = [
   { month: "Aug", covered: 0.982 },
   { month: "Sep", covered: 0.99 },
 ];
-const percent = (v: number) => `${Math.round(v * 1000) / 10}%`;
-
 /** `baseline`: a line or an area crops to its data (`auto`), so a trend on a high base still shows; bars start at zero, since a bar's length is its value. Forced to `zero`, the same line lies flat along the top. The tooltip names the value by `seriesLabel` and heads it with the month from `x`. */
 export const Baseline: Story = {
   render: () => (
@@ -110,7 +113,7 @@ export const Baseline: Story = {
         width={120}
         height={32}
         endDot
-        format={percent}
+        format={(v) => `${Math.round(v * 1000) / 10}%`}
         label="Coverage, cropped to its data"
         seriesLabel="Covered"
       />
@@ -123,7 +126,7 @@ export const Baseline: Story = {
         height={32}
         endDot
         baseline="zero"
-        format={percent}
+        format={(v) => `${Math.round(v * 1000) / 10}%`}
         label="Coverage, from zero"
         seriesLabel="Covered"
       />
@@ -149,7 +152,7 @@ export const InRows: Story = {
         <thead>
           <tr>
             <Table.Header>Family</Table.Header>
-            <Table.Header className="text-end">Open</Table.Header>
+            <Table.Header align="end">Open</Table.Header>
             <Table.Header>Six months</Table.Header>
           </tr>
         </thead>
@@ -162,9 +165,7 @@ export const InRows: Story = {
             return (
               <Table.Row key={f} isStatic>
                 <Table.Cell>{f}</Table.Cell>
-                <Table.Cell className="text-end tabular-nums">
-                  {series[series.length - 1]?.n}
-                </Table.Cell>
+                <Table.Cell align="end">{series[series.length - 1]?.n}</Table.Cell>
                 <Table.Cell>
                   <Chart.Sparkline
                     data={series}
@@ -239,6 +240,7 @@ export const Narrow: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair

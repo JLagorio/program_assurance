@@ -15,8 +15,10 @@ import { builtClass, classSites } from "./class-sites.js";
 import { compositionRules } from "./composition-rules.js";
 import { configRules } from "./config-rules.js";
 import { STALE_MESSAGE, reportingStaleData } from "./data.js";
+import { deprecatedAttributes, deprecatedMemberEnds, deprecatedNames } from "./deprecations.js";
 import { classFix } from "./fixes.js";
 import { gateRules } from "./gate-rules.js";
+import { headingRules } from "./heading-rules.js";
 import {
   PLAIN_LAYOUT,
   PRIMITIVES,
@@ -39,6 +41,7 @@ import {
 import {
   KIT_PARTS,
   classOwnerOf,
+  forwardedTo,
   isKitHomeBinding,
   isKitSourceFile,
   isKitStoryFile,
@@ -49,6 +52,7 @@ import {
   renderedElementOf,
 } from "./identity.js";
 import { readableRules } from "./readable-rules.js";
+import { reachesInside, restyleRules, restylesAt } from "./restyle-rules.js";
 import { defineRules, render, withAllowance } from "./report.js";
 import { settings } from "./settings.js";
 import { variantRules } from "./variant-rules.js";
@@ -123,7 +127,9 @@ function layoutPropOf(context, site, parsed) {
     one of `replacements` over the class `cls` where it is written, and pass the closure check
     (classFix); nothing when none can. A suggestion never runs under --fix. */
 function suggestionsOf(context, node, cls, replacements = []) {
+  // Nor one ledger/no-restyle reports on its element (a background on a Box is backgroundColor).
   const suggest = replacements.flatMap((replacement) => {
+    if (restylesAt(context, node, replacement)) return [];
     const { fix } = classFix(node, context.sourceCode, cls, replacement);
     return fix ? [{ messageId: "replace", data: { cls, replacement }, fix }] : [];
   });
@@ -136,12 +142,18 @@ function suggestionsOf(context, node, cls, replacements = []) {
     when there is none, or it cannot be written in place or would fail the closure check. A
     suggestion never runs under --fix. */
 function sameValueOf(context, node, cls, replacement, same) {
-  if (!replacement) return {};
+  if (!replacement || restylesAt(context, node, replacement)) return {};
   const { fix } = classFix(node, context.sourceCode, cls, replacement);
   return fix
     ? { suggest: [{ messageId: "sameValue", data: { cls, replacement, same }, fix }] }
     : {};
 }
+
+/** A variant on an attribute state of the element (or its group, peer or ancestor) or on a class it
+    is given: what a navigation link uses to mark the current destination (`aria-[current=page]:`,
+    `aria-selected:`, `data-[status=active]:`, `data-active:`, `[&.active]:`), which
+    ledger/prefer-text-link leaves alone. */
+const DESTINATION_STATE = /^(?:(?:group|peer|in)-)?(?:aria|data)-|^\[&(?:\[(?:aria|data)-|\.)/;
 
 /** no-static-design-value's words when the lint data names no nearer token: the scale to pick from. */
 const STATIC_ADVICE = {
@@ -238,98 +250,6 @@ const heldBy = (node) => {
     : undefined;
 };
 
-/** Parts that were renamed. `fix` marks a one-to-one rename the rule can apply; `props` renames attributes with it. */
-const deprecatedNames = {
-  // Looked up by names from the source, so `Kit.constructor` or `toString` is no renamed part.
-  __proto__: null,
-  "Shell.Sidebar": {
-    to: "Shell.SideNav",
-    note: "with Header, Body and Footer; the brand moves to Shell.TopNav.Start",
-  },
-  "Shell.TopBar": { to: "Shell.TopNav", note: "with Start, Middle and End" },
-  "Shell.Brand": {
-    to: "Shell.AppLogo",
-    note: "detail is secondaryName",
-    fix: true,
-    props: { detail: "secondaryName" },
-  },
-  "Shell.NavGroup": {
-    to: "Shell.SideNav.Section",
-    note: "label is heading",
-    fix: true,
-    props: { label: "heading" },
-  },
-  "Shell.NavItem": { to: "Shell.SideNav.Item", fix: true },
-  "Shell.User": { to: "Shell.Profile", fix: true },
-  Tiles: { to: "Stat.Grid", note: "the same row of Stat.Tile cells, under the Stat name" },
-  DensityProvider: {
-    to: "nothing",
-    note: "density is a table's: Table density, or Compact rows in a DataTable's Columns menu; remove the retired provider",
-  },
-  DensitySwitch: {
-    to: "Compact rows in DataTable.Columns",
-    note: "or Table density for a table that is compact by design",
-  },
-  useDensity: {
-    to: "table.options.meta.density",
-    note: "a DataTable's own; the global hook is removed",
-  },
-  densityScript: {
-    to: "nothing",
-    note: "remove the retired script; table density needs no before-paint script",
-  },
-  "Collapsible.Group": {
-    to: "Accordion",
-    note: "use multiple, root defaultValue and AccordionItem with explicit stable values; see the disclosure migration guide",
-  },
-  LegacyCollapsible: {
-    to: "Collapsible",
-    note: "compose CollapsibleTrigger/CollapsibleContent; grouped sections use Accordion with AccordionItem",
-  },
-  LegacyAccordion: {
-    to: "Accordion",
-    note: "use explicit AccordionItem, AccordionTrigger and AccordionContent parts",
-  },
-  // Kit class helpers, not parts.
-  controlBase: {
-    to: "Input, Textarea or InputGroup",
-    note: "compose the field part, which carries the control's classes",
-  },
-  controlHeight: { to: "the size prop", note: "give Input, Select or a date field `size`" },
-  formatNumber: {
-    to: "useLedgerLocale().formatNumber",
-    note: "the chart parts format in the reader's locale",
-  },
-  // Removed page shapes: reported where they are imported, since a local component may share the name.
-  IndexPage: {
-    to: "PageHeader over a DataTable with fill",
-    note: "a register is one PageHeader and a frameless DataTable",
-    removed: true,
-  },
-  ShowPage: {
-    to: "PageHeader, Section and Shell.Aside",
-    note: "a record page: PageHeader, Section bodies and the Details rail in Shell.Aside",
-    removed: true,
-  },
-  RecordHeader: {
-    to: "PageHeader",
-    note: "the trail in PageHeader.Lead, the name in PageHeader.Title, actions in PageHeader.Actions",
-    removed: true,
-  },
-  PreviewRail: { to: "Shell.Aside", removed: true },
-  PreviewSplit: { to: "Shell.Panel", note: "the preview is the Shell's panel area", removed: true },
-  Panel: { to: "Shell.Panel", note: "the panel is an area of the Shell", removed: true },
-  Block: { to: "Section", removed: true },
-};
-/** The last segment of every name a member expression can be reported under (`Sidebar` of
-    `Shell.Sidebar`, `Tiles`), built once: no-deprecated-name skips any other member before reading
-    its source, the costliest step of the costliest ledger rule. */
-const deprecatedMemberEnds = new Set(
-  Object.entries(deprecatedNames)
-    .filter(([, dep]) => !dep.removed)
-    .map(([name]) => name.split(".").at(-1)),
-);
-
 /* The layout primitives whose props use-primitives reads classes against, and the plain elements
    it reads, are advice.js's PRIMITIVES and PLAIN_LAYOUT; the advice for their classes is the part
    and props they make (advice.js's layoutAdvice). The layout classes it reports on a plain element: */
@@ -340,57 +260,6 @@ const HAIRLINE_GAP_ADVICE =
   "A 1px gap is on no space step: give a Stack, an Inline or a Grid a space token, or draw the hairline with a border or a Separator.";
 /** A flex column, which makes a flex element a Stack. */
 const COLUMN = /^flex-col(-reverse)?$/;
-
-/**
- * Props and values a part renamed. `to` renames the attribute, `values` renames a literal value;
- * both are fixed. `note` alone reports a prop with no one-to-one replacement. Every level is read
- * with names from the source, so none has a prototype: `<Switch toString="x">`, a `size` of
- * "constructor" and a part named `constructor` find no rename.
- */
-const deprecatedAttributes = {
-  __proto__: null,
-  Switch: {
-    __proto__: null,
-    size: { values: { __proto__: null, sm: "small", default: "medium" } },
-  },
-  SelectTrigger: {
-    __proto__: null,
-    size: { values: { __proto__: null, sm: "small", default: "medium" } },
-  },
-  Card: { __proto__: null, size: { values: { __proto__: null, sm: "small", default: "medium" } } },
-  DropdownMenuItem: {
-    __proto__: null,
-    variant: { values: { __proto__: null, destructive: "danger" } },
-  },
-  "Item.Group": { __proto__: null, labelledBy: { to: "aria-labelledby" } },
-  "Chart.Donut": { __proto__: null, label: { to: "centerLabel" } },
-  "Chart.Scatter": { __proto__: null, name: { to: "nameKey" } },
-  "Chart.Frame": { __proto__: null, status: { to: "state" } },
-  "Chart.Area": {
-    __proto__: null,
-    baseline: { note: "an Area always starts at zero; remove the prop" },
-  },
-  "Tree.Item": { __proto__: null, expanded: { to: "isExpanded" } },
-};
-// The same parts under their named exports.
-for (const [compound, named] of [
-  ["Item.Group", "ItemGroup"],
-  ["Chart.Donut", "ChartDonut"],
-  ["Chart.Scatter", "ChartScatter"],
-  ["Chart.Frame", "ChartFrame"],
-  ["Chart.Area", "ChartArea"],
-  ["Tree.Item", "TreeItem"],
-])
-  deprecatedAttributes[named] = deprecatedAttributes[compound];
-// A part renamed with its props: an old prop left on the new name (by hand, or because the element
-// already set the new one) is reported there.
-for (const dep of Object.values(deprecatedNames))
-  if (dep.props)
-    deprecatedAttributes[dep.to] = {
-      __proto__: null,
-      ...deprecatedAttributes[dep.to],
-      ...Object.fromEntries(Object.entries(dep.props).map(([from, to]) => [from, { to }])),
-    };
 
 /* ---------- how a product assembles the kit ---------- */
 
@@ -452,18 +321,33 @@ const rules = {
           // Only an element among the children can be an icon; most elements hold none.
           if (!node.children.some((child) => child.type === "JSXElement")) return;
           // The kit's own Button or IconButton, however it is imported, or one a render prop puts
-          // in the element's place, which then holds its children; a look-alike is not.
+          // in the element's place, which then holds its children; a look-alike is not. A
+          // component of this file that hands its children on to one renders it too.
           const buttons = ["Button", "IconButton"];
-          const self = kitPartOf(context, node.openingElement.name);
-          const owner = buttons.includes(self)
-            ? { part: self, via: "self" }
-            : classOwnerOf(context, node.openingElement);
-          if (!buttons.includes(owner.part)) return;
+          const holder = (opening) => {
+            const self = kitPartOf(context, opening.name);
+            if (buttons.includes(self)) return { part: self, via: "self" };
+            const rendered = classOwnerOf(context, opening);
+            return rendered.via === "render" && buttons.includes(rendered.part)
+              ? rendered
+              : undefined;
+          };
+          let owner = holder(node.openingElement);
+          if (!owner) {
+            const forwarded = forwardedTo(context, node.openingElement, "children");
+            const inner = forwarded && holder(forwarded.element);
+            if (inner) owner = { part: inner.part, via: "render", wrapper: forwarded.wrapper };
+          }
+          if (!owner) return;
           for (const child of node.children) {
             if (child.type !== "JSXElement") continue;
-            // The child's className, through a const, a map or a helper too (class-sites.js).
+            // The child's className, through a const, a map or a helper too (class-sites.js),
+            // at a breakpoint, in a state or important too.
             const { texts } = elementClasses(context, child.openingElement);
-            const size = /(?:^|\s)(size-icon-\w+)(?=\s|$)/.exec(texts.join(" "))?.[1];
+            const text = texts.join(" ");
+            const size = text.includes("size-icon-")
+              ? classesOf(text).find(({ base }) => /^size-icon-\w+$/.test(base))?.cls
+              : undefined;
             if (size) {
               const icon = { icon: jsxTag(child.openingElement.name), cls: size };
               context.report({
@@ -490,6 +374,9 @@ const rules = {
           'target="_blank" on <{{tag}}> in a TextLink\'s render opens a new tab the TextLink does not announce. Give the TextLink newTab, which sets rel and says "(opens in a new tab)", and drop target.{{note}}',
         newTab:
           '<{{tag}} target="_blank"> opens a new tab without saying so. Use TextLink newTab (render={<{{tag}} … />} for a router link).{{note}}',
+        // `tag` is a component of the file that hands target on to a TextLink.
+        forwardedTarget:
+          'target="_blank" on <{{tag}}>, which forwards target to <TextLink>, opens a new tab without saying so. Use newTab, which sets rel and says "(opens in a new tab)", and drop target and rel.{{note}}',
         linkClasses:
           "<{{tag}}> carries the text-link classes. Compose it with TextLink render and drop text-brand and hover:underline.{{note}}",
         buttonLink:
@@ -525,11 +412,37 @@ const rules = {
                 messageId: "newTab",
                 data: { tag: name },
               });
+            else if (!part && !held && !jsxAttr(node, "newTab")) {
+              // A component of this file that hands target on to a TextLink without newTab.
+              const forwarded = forwardedTo(context, node, "target");
+              if (
+                forwarded &&
+                kitPartOf(context, forwarded.element.name) === "TextLink" &&
+                !jsxAttr(forwarded.element, "newTab")
+              )
+                context.report({
+                  node: jsxAttr(node, "target"),
+                  messageId: "forwardedTarget",
+                  data: { tag: name },
+                });
+            }
           }
           if (/^(a|Link|NavLink)$/.test(name)) {
             const { at, texts } = elementClasses(context, node);
-            if (/(^|\s)(hover:underline|text-brand)(\s|$)/.test(texts.join(" ")))
-              context.report({ node: at, messageId: "linkClasses", data: { tag: name } });
+            // The text-link classes at a breakpoint, on hover or focus, or important fake it too;
+            // a brand colour under a state that marks the current destination
+            // (`aria-[current=page]:`, `data-[status=active]:`, `[&.active]:`) is a navigation
+            // link's active state, not the text-link look.
+            const text = texts.join(" ");
+            const fakes =
+              /text-brand|underline/.test(text) &&
+              classesOf(text).some(
+                ({ base, variants }) =>
+                  (base === "text-brand" &&
+                    !variants.some((variant) => DESTINATION_STATE.test(variant))) ||
+                  (base === "underline" && variants.includes("hover")),
+              );
+            if (fakes) context.report({ node: at, messageId: "linkClasses", data: { tag: name } });
           } else if (part === "Button") {
             const variant = jsxAttr(node, "variant");
             if (
@@ -783,6 +696,9 @@ const rules = {
       messages: {
         unknown:
           '"{{cls}}" is neither a token utility nor a documented structural utility.{{note}}',
+        // A physical side whose logical twin passes (classes.js's logicalTwin), as a suggestion.
+        physical:
+          '"{{cls}}" names a physical side, which holds when the page reads right to left. Use "{{logical}}", which mirrors with it.{{note}}',
         // `advice` names the roles of its hue as it shows over each mode's page (nearest.js), else
         // PALETTE_ALPHA_ADVICE.
         paletteAlpha:
@@ -810,6 +726,9 @@ const rules = {
         series:
           '"{{cls}}" steps past {{series}}, which runs {{range}}, so it generates no CSS.{{note}}',
         typo: '"{{cls}}" is "{{meant}}" misspelt, so it generates no CSS.{{note}}',
+        // A layout rule the kit keeps inside a part, once a class (nearest.js's PART_OWN).
+        partOwn:
+          '"{{cls}}" is {{owner}} own layout, kept inside the part, so the class generates no CSS. {{advice}}{{note}}',
         // The editor suggestion that writes a Ledger class in the class's place.
         replace: '"{{cls}}" becomes "{{replacement}}".{{note}}',
         // The editor suggestion that writes the token class of the same value.
@@ -923,8 +842,17 @@ const rules = {
         renamed: "{{name}} is deprecated; use {{to}}.{{note}}",
         renamedWithDetail: "{{name}} is deprecated; use {{to}} ({{detail}}).{{note}}",
         propValue: '{{part}} {{prop}}="{{value}}" is deprecated; use {{prop}}="{{to}}".{{note}}',
+        propAndValue:
+          '{{part}} {{prop}}="{{value}}" is deprecated; use {{to}}="{{toValue}}".{{note}}',
+        valueRemoved: '{{part}} {{prop}}="{{value}}" is deprecated: {{detail}}.{{note}}',
         prop: "{{part}} {{prop}} is deprecated; use {{to}}.{{note}}",
         propRemoved: "{{part}} {{prop}} is deprecated: {{detail}}.{{note}}",
+        // A prop whose meaning moved to another, read where the old meaning is certain.
+        propMoved:
+          "{{part}} {{prop}} here is {{what}}, which is {{to}} now; {{prop}} {{now}}.{{note}}",
+        // A number of pixels where the prop takes a named step; `written` is the value as written.
+        pixels:
+          '{{part}} {{prop}}={{written}} is a pixel width, which is deprecated; use {{prop}}="{{to}}", {{detail}}.{{note}}',
       },
       create(context) {
         // A retired name is judged by what the tag's root is bound to where it is written: an
@@ -933,6 +861,11 @@ const rules = {
         // keeps its name as written; a parameter or a local that shadows an outer name is no part.
         const SOURCES = /design-system|\/shell$/;
         const nameOf = (node) => partNameOf(context, node, { sources: SOURCES });
+        /** Whether a name may be the retired part: any name that matches, except for a part marked
+            `kitOnly` (one still exported, whose name a product's own component may share), which
+            is the part only where it is bound to the kit's import. */
+        const fromKit = (nameNode, name, dep) =>
+          !dep.kitOnly || kitBindingOf(context, nameNode, { sources: SOURCES }) === name;
         /** A retired name's report: its replacement, and what else to know when there is more. */
         const renamed = (name, dep) =>
           dep.note
@@ -944,6 +877,43 @@ const rules = {
             composes another passes the new names; its documentation is not, since a story shows
             the old spelling beside the new while the part still takes it. */
         const kitStory = isKitStoryFile(context);
+        /** A number of pixels where the prop now takes a named step: each number written as a
+            literal, alone (`labelWidth={88}`) or as a branch (`long ? 160 : undefined`), is reported
+            and fixed to its step. A value the rule cannot read (a name, a call) may hold a step
+            already, so it is left alone. */
+        const pixels = (element, attribute, part, rename) => {
+          const container = attribute.value;
+          if (container?.type !== "JSXExpressionContainer") return;
+          /** The number a value is, through `as` and `satisfies`, or undefined. */
+          const numberOf = (value) => {
+            while (/^TS(As|Satisfies|NonNull)Expression$/.test(value?.type ?? ""))
+              value = value.expression;
+            return value?.type === "Literal" && typeof value.value === "number" ? value : undefined;
+          };
+          // Each number and the node its step replaces: the whole value for a number alone, the
+          // branch for a number under a condition or a fallback.
+          const found = [];
+          const collect = (value, whole) => {
+            const number = numberOf(value);
+            if (number) found.push({ number, target: whole ? container : value });
+            else if (value?.type === "ConditionalExpression") {
+              collect(value.consequent, false);
+              collect(value.alternate, false);
+            } else if (value?.type === "LogicalExpression") collect(value.right, false);
+          };
+          collect(container.expression, true);
+          const text = context.sourceCode.getText(container).replace(/\s+/g, " ");
+          const written = text.length <= 40 ? text : "{…}";
+          for (const { number, target } of found) {
+            const to = rename.pixels(number.value);
+            context.report({
+              node: number,
+              messageId: "pixels",
+              data: { part, prop: attribute.name.name, written, to, detail: rename.detail },
+              fix: (fixer) => fixer.replaceText(target, `"${to}"`),
+            });
+          }
+        };
         const attributes = (node) => {
           if (kitStory) return;
           const part = kitBindingOf(context, node.name);
@@ -954,28 +924,68 @@ const rules = {
           for (const a of node.attributes) {
             if (a.type !== "JSXAttribute" || typeof a.name.name !== "string") continue;
             const rename = own(renames, a.name.name);
-            if (!rename) continue;
+            if (!rename || (rename.when && !rename.when(node, a))) continue;
             const prop = a.name.name;
+            if (rename.pixels) {
+              pixels(node, a, part, rename);
+              continue;
+            }
             if (rename.values) {
               const value = literalValue(a);
               const to = typeof value === "string" ? own(rename.values, value) : undefined;
-              if (!to) continue;
+              // A value the map does not know: under a renamed attribute the new name still
+              // stands, without a fix, since the value may need its new spelling too.
+              if (!to) {
+                if (rename.to)
+                  context.report({
+                    node: a.name,
+                    messageId: "prop",
+                    data: { part, prop, to: rename.to },
+                  });
+                continue;
+              }
+              if (typeof to !== "string") {
+                context.report({
+                  node: a,
+                  messageId: "valueRemoved",
+                  data: { part, prop, value, detail: to.note },
+                });
+                continue;
+              }
               const target =
                 a.value.type === "JSXExpressionContainer" ? a.value.expression : a.value;
               // The new value in the old one's quotes.
               const quote = context.sourceCode.getText(target)[0] === "'" ? "'" : '"';
-              context.report({
-                node: a,
-                messageId: "propValue",
-                data: { part, prop, value, to },
-                fix: (fixer) => fixer.replaceText(target, `${quote}${to}${quote}`),
-              });
+              const written = `${quote}${to}${quote}`;
+              if (rename.to) {
+                // The attribute and its value in one fix, unless the element sets the new
+                // attribute already: then both stay until one of the two is removed.
+                const taken = jsxAttr(node, rename.to);
+                context.report({
+                  node: a,
+                  messageId: "propAndValue",
+                  data: { part, prop, value, to: rename.to, toValue: to },
+                  fix: taken
+                    ? null
+                    : (fixer) => [
+                        fixer.replaceText(a.name, rename.to),
+                        fixer.replaceText(target, written),
+                      ],
+                });
+              } else
+                context.report({
+                  node: a,
+                  messageId: "propValue",
+                  data: { part, prop, value, to },
+                  fix: (fixer) => fixer.replaceText(target, written),
+                });
             } else if (rename.to) {
               const taken = jsxAttr(node, rename.to);
               context.report({
                 node: a.name,
-                messageId: "prop",
-                data: { part, prop, to: rename.to },
+                ...(rename.moved
+                  ? { messageId: "propMoved", data: { part, prop, to: rename.to, ...rename.moved } }
+                  : { messageId: "prop", data: { part, prop, to: rename.to } }),
                 fix: taken ? null : (fixer) => fixer.replaceText(a.name, rename.to),
               });
             } else
@@ -1003,7 +1013,7 @@ const rules = {
             const name = nameOf(node.name);
             attributes(node);
             const dep = deprecatedNames[name];
-            if (!dep || dep.removed) return;
+            if (!dep || dep.removed || !fromKit(node.name, name, dep)) return;
             // The fix keeps the local segments that stand for the root (`DsShell` for an alias,
             // `Kit.Shell` for a namespace) and renames what follows. A rename to another root
             // cannot be written that way, and a tag whose root is not the kit's import is only a
@@ -1041,7 +1051,8 @@ const rules = {
             if (node.parent.type === "MemberExpression" && node.parent.object === node) return;
             const name = nameOf(node);
             const dep = deprecatedNames[name];
-            if (dep && !dep.removed) context.report({ node, ...renamed(name, dep) });
+            if (dep && !dep.removed && fromKit(node, name, dep))
+              context.report({ node, ...renamed(name, dep) });
           },
         };
       },
@@ -1054,24 +1065,32 @@ const rules = {
           "Table.Cell is one style. Drop {{classes}}; only Badge, Dot, Indicator or a status colour may differ.{{note}}",
         rendered:
           "<{{wrapper}}> renders <Table.Cell>, which is one style. Drop {{classes}}; only Badge, Dot, Indicator or a status colour may differ.{{note}}",
+        forwarded:
+          "<{{wrapper}}> forwards className to <Table.Cell>, which is one style. Drop {{classes}}; only Badge, Dot, Indicator or a status colour may differ.{{note}}",
       },
       create: (context) => ({
         JSXOpeningElement(node) {
-          // The kit's Table.Cell, however it is imported, or one a render prop puts in its place.
+          // The kit's Table.Cell, however it is imported, or one a render prop puts in its place,
+          // or a component of this file hands its className on to.
           const owner = classOwnerOf(context, node);
           if (owner.part !== "Table.Cell") return;
-          // Its className, through a const, a map, a helper or a spread too (class-sites.js).
+          // Its className, through a const, a map, a helper or a spread too (class-sites.js), at a
+          // breakpoint, in a state or important too. A class that styles the elements inside the
+          // cell is not the cell's own style (no-restyle reports it).
           const { at, texts } = elementClasses(context, node);
-          const bad = texts.flatMap((s) => s.split(/\s+/)).filter((t) => CELL_FORBIDDEN.test(t));
+          const text = texts.join(" ");
+          const bad = (/text-|font-/.test(text) ? classesOf(text) : [])
+            .filter(({ base, variants }) => CELL_FORBIDDEN.test(base) && !reachesInside(variants))
+            .map(({ cls }) => cls);
           if (bad.length)
             context.report({
               node: at,
-              ...(owner.via === "render"
-                ? {
-                    messageId: "rendered",
+              ...(owner.via === "self"
+                ? { messageId: "plain", data: { classes: bad.join(", ") } }
+                : {
+                    messageId: owner.via === "render" ? "rendered" : "forwarded",
                     data: { wrapper: owner.wrapper, classes: bad.join(", ") },
-                  }
-                : { messageId: "plain", data: { classes: bad.join(", ") } }),
+                  }),
             });
         },
       }),
@@ -1082,6 +1101,8 @@ const rules = {
         blue: "<{{tag}}> is blue (text-brand) with no link or button around it, and blue means link, so it reads as a link that goes nowhere. Drop text-brand, or make the Id the text of the TextLink that opens its record.{{note}}",
         rendered:
           "<{{wrapper}}> renders <Id> in blue (text-brand) with no link or button around it, and blue means link. Drop text-brand, or make the Id the text of the TextLink that opens its record.{{note}}",
+        forwarded:
+          "<{{wrapper}}> forwards className to <Id>, which is then blue (text-brand) with no link or button around it, and blue means link. Drop text-brand, or make the Id the text of the TextLink that opens its record.{{note}}",
       },
       create: (context) => {
         /** A link or a button: a tag (a, Link, button) or the kit's Button, TextLink, LinkButton or
@@ -1099,20 +1120,41 @@ const rules = {
         };
         return {
           JSXOpeningElement(node) {
-            // The kit's Id, however it is imported, or one a render prop puts in its place.
+            // The kit's Id, however it is imported, or one a render prop puts in its place, or a
+            // component of this file hands its className on to.
             const owner = classOwnerOf(context, node);
             if (owner.part !== "Id") return;
-            // Its className, through a const, a map, a helper or a spread too (class-sites.js).
+            // Its className, through a const, a map, a helper or a spread too (class-sites.js), at
+            // a breakpoint, in a state or important too. A colour on the elements inside is not
+            // the Id's own (no-restyle reports it).
             const { at, texts } = elementClasses(context, node);
-            if (!texts.some((s) => /(^|\s)text-brand(\s|$)/.test(s))) return;
-            // From the element itself, so a link or a button that renders the Id is its link.
-            for (let p = node.parent; p; p = p.parent)
-              if (p.type === "JSXElement" && linkOrButton(p.openingElement)) return;
+            const text = texts.join(" ");
+            const blue =
+              text.includes("text-brand") &&
+              classesOf(text).some(
+                ({ base, variants }) => base === "text-brand" && !reachesInside(variants),
+              );
+            if (!blue) return;
+            // From the element itself, so a link or a button that renders the Id is its link; and
+            // from the element of this file's component that the className reaches.
+            const around = (from) => {
+              for (let p = from.parent; p; p = p.parent)
+                if (p.type === "JSXElement" && linkOrButton(p.openingElement)) return true;
+              return false;
+            };
+            if (around(node)) return;
+            if (owner.via === "wrapper") {
+              const forwarded = forwardedTo(context, node, "className");
+              if (forwarded && around(forwarded.element)) return;
+            }
             context.report({
               node: at,
-              ...(owner.via === "render"
-                ? { messageId: "rendered", data: { wrapper: owner.wrapper } }
-                : { messageId: "blue", data: { tag: jsxTag(node.name) } }),
+              ...(owner.via === "self"
+                ? { messageId: "blue", data: { tag: jsxTag(node.name) } }
+                : {
+                    messageId: owner.via === "render" ? "rendered" : "forwarded",
+                    data: { wrapper: owner.wrapper },
+                  }),
             });
           },
         };
@@ -1177,6 +1219,10 @@ const rules = {
         primitive: "<{{part}}> carries layout classes ({{classes}}). {{advice}}{{note}}",
         rendered:
           "<{{wrapper}}> renders <{{part}}>, which then carries layout classes ({{classes}}). {{advice}}{{note}}",
+        // The props are the inner part's, which the component may not take: the advice names
+        // that part.
+        forwarded:
+          "<{{wrapper}}> forwards className to <{{part}}>, which then carries layout classes ({{classes}}). For the <{{part}}> inside <{{wrapper}}>: {{advice}}{{note}}",
       },
       create: (context) => ({
         JSXOpeningElement(node) {
@@ -1184,14 +1230,17 @@ const rules = {
           const { at, texts } = elementClasses(context, node);
           if (!at) return;
           const text = texts.join(" ");
-          /** The advice for `found` on `part`, fitted to the message `id` with `data`. */
+          /** The advice for `found` on `part`, fitted to the message `id` with `data`; after a
+              colon (`forwarded`), its first word is lower case. */
           const advise = (id, data, part, found, all) =>
             fitted(
               layoutAdvice({
                 part,
                 classes: found,
                 column: all.some(({ base, variants }) => !variants.length && COLUMN.test(base)),
-              }),
+              }).map((advice) =>
+                id === "forwarded" ? advice.charAt(0).toLowerCase() + advice.slice(1) : advice,
+              ),
               (advice) => wordsOf("use-primitives", id, { ...data, advice }),
             );
           if (node.name.type === "JSXIdentifier" && PLAIN_LAYOUT.test(node.name.name)) {
@@ -1256,9 +1305,14 @@ const rules = {
           };
           const found = all.map((c) => ({ ...c, kind: kindOf(c) })).filter(({ kind }) => kind);
           if (found.length) {
-            const messageId = owner.via === "render" ? "rendered" : "primitive";
+            const messageId =
+              owner.via === "render"
+                ? "rendered"
+                : owner.via === "wrapper"
+                  ? "forwarded"
+                  : "primitive";
             const data = {
-              ...(owner.via === "render" && { wrapper: owner.wrapper }),
+              ...(owner.via !== "self" && { wrapper: owner.wrapper }),
               part,
               classes: [...new Set(found.map(({ cls }) => cls))].join(", "),
             };
@@ -1325,6 +1379,8 @@ const plugin = {
       ...configRules,
       ...readableRules,
       ...variantRules,
+      ...restyleRules,
+      ...headingRules,
     }).map(([name, definition]) => [name, withAllowance(readingSettings(definition))]),
   ),
   configs: {},
@@ -1434,6 +1490,8 @@ plugin.configs.recommended = [
       "ledger/no-style-design-value": "error",
       "ledger/no-raw-colour": "error",
       "ledger/no-inline-config": "error",
+      "ledger/no-restyle": "error",
+      "ledger/use-heading": "error",
     },
   },
 ];
@@ -1445,3 +1503,14 @@ export { deprecatedAttributes, deprecatedNames, LEGACY as legacyNames, PRIMITIVE
 // The names no-deprecated-name's member prefilter lets through, for test/lint-prefilter.test.mjs,
 // which turns the prefilter off to show it drops no finding. Not part of the plugin's configuration.
 export { deprecatedMemberEnds };
+// What the lint knows, asked without ESLint: one class, one tag or one value (api.js).
+export {
+  classCategories,
+  classify,
+  kitPartOf,
+  partsSetting,
+  suggestClass,
+  tokenOfClass,
+  tokensOfValue,
+  tokenValue,
+} from "./api.js";

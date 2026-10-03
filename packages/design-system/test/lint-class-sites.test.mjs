@@ -771,8 +771,8 @@ const tabs = path.join(REPO, "packages/design-system/src/components/tabs.tsx");
 test("in the kit, classes() from lib/base-ui is still read, and so are aliases of lib/cn and lib/base-ui", () => {
   const source = fs.readFileSync(tabs, "utf8");
   const planted = source.replace(
-    '"group/tabs flex min-w-0 gap-100 data-[orientation=horizontal]:flex-col"',
-    '"group/tabs flex min-w-0 gap-100 data-[orientation=horizontal]:flex-col bg-red-500"',
+    '"group/tabs flex min-w-0 data-[orientation=horizontal]:flex-col data-[orientation=vertical]:gap-100"',
+    '"group/tabs flex min-w-0 data-[orientation=horizontal]:flex-col data-[orientation=vertical]:gap-100 bg-red-500"',
   );
   assert.notEqual(planted, source, "tabs.tsx still has the classes() call this case plants in");
   const kit = { filename: tabs, settings: KIT_SETTINGS };
@@ -827,7 +827,7 @@ test("a class map's data is no class: tone words, view names, display keywords, 
     'export const VIEWS = ["table", "grid", "board"] as const;',
     'export const DISPLAYS = ["block", "inline-block", "flex", "grid", "none"] as const;',
     'export const positions = ["static", "relative", "absolute", "fixed", "sticky", "inherit"];',
-    'export const TEXT = { heading: "font-heading-medium", body: "font-body", caption: "text-subtle", fallback: "none" };',
+    'export const TEXT = { heading: "font-heading-page", body: "font-body", caption: "text-subtle", fallback: "none" };',
     'export const TONES = ["bg-danger", "bg-warning", "bg-success", "info"];',
     // A dashed data word under a key whose values are not classes.
     'export const STEPS = [{ state: "in-progress", icon: "icon-brand", text: "text-brand" }, { state: "not-started", icon: "icon-subtle", text: "text-subtle" }];',

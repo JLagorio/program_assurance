@@ -6,7 +6,22 @@ import * as Stories from "./Input.stories";
 
 # Input
 
+**Status: Stable.**
+
 One line of free text, using shadcn's Base UI Input implementation with Ledger control styling. Labels and validation messages belong to Field.
+
+## When to use it
+
+- **One line the reader types**: a name, a title, a reference number, an email address, a web address.
+- **Digits that name something**, such as an identifier, a build number or a postcode, with `inputMode="numeric"`: they are text, not a quantity.
+
+Not for several lines, a description or a statement: that is a [Textarea](?path=/docs/components-textarea--docs). Not for a quantity the reader steps or that has a range: that is a [NumberField](?path=/docs/components-numberfield--docs). Not for one value from a known list: that is a [Select](?path=/docs/components-select--docs), or a [Combobox](?path=/docs/components-combobox--docs) when the list is long enough to search. Not for a day, a time or a moment: that is a [DatePicker](?path=/docs/components-datepicker--docs), a [TimeField](?path=/docs/components-timefield--docs) or a [DateTimeField](?path=/docs/components-datetimefield--docs). Not for searching a collection: that is a [SearchField](?path=/docs/components-searchfield--docs). Not for a value that is read where it is shown and never edited there: that is a [KeyValue](?path=/docs/components-keyvalue--docs).
+
+## Content
+
+- The label, the hint and the error are the Field's, in its words ([Field](?path=/docs/components-field--docs), Content).
+- A placeholder is an example of the value ("CTRL-0412", "name@example.org"), never the label, an instruction or "Optional": it is gone as soon as the reader types.
+- The width says how long the answer is: a year or a code is narrow, a title is wide. The layout sets it, not the Input.
 
 ## Anatomy
 
@@ -52,4 +67,4 @@ Native `onChange` remains supported. Search clearing and application shortcuts a
 
 ## Related
 
-[InputGroup](?path=/docs/components-inputgroup--docs) · [Textarea](?path=/docs/components-textarea--docs) · [Field](?path=/docs/components-field--docs) · [Select](?path=/docs/components-select--docs) · [shadcn Input](https://ui.shadcn.com/docs/components/base/input) · [Base UI Input](https://base-ui.com/react/components/input)
+[InputGroup](?path=/docs/components-inputgroup--docs) · [Textarea](?path=/docs/components-textarea--docs) · [Field](?path=/docs/components-field--docs) · [Select](?path=/docs/components-select--docs) · [shadcn Input](https://ui.shadcn.com/docs/components/base/input) · [Base UI Input](https://base-ui.com/react/components/input) · [Upgrading](?path=/docs/guidance-upgrading--docs#input)

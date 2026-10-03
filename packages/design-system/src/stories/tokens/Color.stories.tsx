@@ -2,8 +2,12 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { expect } from "storybook/test";
 
-import { Group, Page, Spec, TokenTable, allDocs, under, type TokenDoc } from "../_lib/sheet";
+import * as tokenSheet from "../_lib/sheet";
+import type { TokenDoc } from "../_lib/sheet";
 import { formatRatio, measure, type Paint } from "./_contrast";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Group, Page, Spec, TokenTable, allDocs, under } = tokenSheet;
 
 const meta = { title: "Tokens/Color", parameters: { layout: "padded" } } satisfies Meta;
 export default meta;
@@ -163,7 +167,7 @@ function ContrastSwatch({ d }: { d: TokenDoc }) {
       </svg>
     );
   return (
-    <span data-swatch className="font-heading-small" style={{ color: v }}>
+    <span data-swatch className="font-heading-page font-medium" style={{ color: v }}>
       Aa
     </span>
   );

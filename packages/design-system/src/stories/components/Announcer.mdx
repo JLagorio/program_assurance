@@ -6,6 +6,8 @@ import * as Stories from "./Announcer.stories";
 
 # Announcer
 
+**Status: Stable.**
+
 One channel for status messages a screen reader should hear while focus stays where it is: a result count after a search, a save, a page change. `announce(message, { politeness })` speaks through the page's two persistent live regions, and `Announcer` renders them, visually hidden.
 
 ```tsx
@@ -40,6 +42,8 @@ Not for:
 - A toast. Toaster announces its own messages.
 - A persistent status the page shows, such as a Saving indicator beside a control. Keep that as visible text in the page; announce only the change.
 - A modal decision. Use AlertDialog.
+
+A form whose check fails announces one polite summary through `announce` once the check has run ("2 fields need attention"), never a `role="alert"` on each field's error: inserted together, those interrupt one another, and a region added with its text already in it is often not heard at all.
 
 <Canvas of={Stories.Dont} />
 

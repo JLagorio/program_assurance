@@ -7,6 +7,8 @@ import * as Stories from "./Kbd.stories";
 
 # Kbd
 
+**Status: Stable.**
+
 Keyboard input displayed as a keycap, in text, tooltips and menu hints. Use `KbdShortcut`
 for a shortcut written once for every platform (`"Mod+K"` is ⌘ K on a Mac and Ctrl K
 elsewhere), and `KbdGroup` to compose the caps of a shortcut by hand. The existing
@@ -46,6 +48,10 @@ everywhere, like the side nav's Ctrl [; on Apple platforms Control is drawn ⌃,
 reads ⌃ [ there.
 
 <Canvas of={Stories.Shortcuts} />
+
+A shortcut that follows the platform is never drawn with one platform's glyph: a hand-written ⌘ names a key a Windows reader does not have, and a screen reader reads it as its character name. Write `Mod` and let KbdShortcut draw it.
+
+<Canvas of={Stories.DoDont} />
 
 The platform is read once for the page, and every shortcut in the kit reads the same
 answer:
@@ -107,13 +113,9 @@ All refs use `HTMLElement`. Parts expose `data-slot="kbd"`, `data-slot="kbd-grou
 <Canvas of={Stories.Playground} />
 <Controls of={Stories.Playground} />
 
-## Migration
-
-Existing `Kbd`, `label`, and `Kbd.Group` callers need no edits. For a shortcut that follows
-the platform, replace a hand-written `⌘` or `Ctrl` cap with `KbdShortcut keys="Mod+…"`.
-
 ## Related
 
 - [Tooltip](?path=/docs/components-tooltip--docs): show a shortcut beside an action's name.
 - [DropdownMenu](?path=/docs/components-dropdownmenu--docs): give an item its `shortcut`, drawn with KbdShortcut and said as `aria-keyshortcuts`.
 - [Command](?path=/docs/components-command--docs): keyboard hints in the palette.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#kbd): the earlier API's spellings and what they are now.

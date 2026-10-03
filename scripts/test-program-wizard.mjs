@@ -212,7 +212,7 @@ try {
     ["AC-2", "Account management is outside this validation boundary."],
     ["AC-4", "The message service requires explicit information flow enforcement."],
   ]) {
-    await page.getByLabel("Search catalog controls", { exact: true }).fill(code);
+    await page.getByLabel("Find a catalog control", { exact: true }).fill(code);
     const control = (await rows("controls", { catalog_revision_id: catalogs[0].id, code }))[0];
     if (!lowIds.has(control.id)) {
       // The list opens on the effective set, so a control outside the base needs the whole catalog.
@@ -269,7 +269,7 @@ try {
   await page.getByRole("dialog").waitFor({ state: "hidden" });
   await page.getByRole("tab", { name: /^Parameters/ }).click();
   await page.getByRole("button", { name: "Set parameter values", exact: true }).click();
-  await page.getByLabel("Search parameters", { exact: true }).fill("ac-1_prm_1");
+  await page.getByLabel("Find a parameter", { exact: true }).fill("ac-1_prm_1");
   const parameter = (
     await rows("parameters", { catalog_revision_id: catalogs[0].id, source_id: "ac-1_prm_1" })
   )[0];
@@ -460,7 +460,7 @@ try {
     await treegrid.locator(`tr[data-row-id="${element.id}"]`).getByText("Library").waitFor();
     await page.screenshot({ path: "/tmp/program-wizard-created.png", fullPage: true });
     await page.goto(`${origin}/programs/${programs[0].id}?tab=Overview`);
-    const rail = page.getByRole("complementary", { name: "Program properties", exact: true });
+    const rail = page.getByRole("complementary", { name: "Program details", exact: true });
     await rail
       .getByRole("link", { name: `${catalogTitle} · ${catalogs[0].version}`, exact: true })
       .waitFor();

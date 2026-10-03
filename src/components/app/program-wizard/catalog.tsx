@@ -5,6 +5,7 @@ import { Library } from "lucide-react";
 import {
   announce,
   Badge,
+  Box,
   Button,
   Checkbox,
   CheckboxGroup,
@@ -214,35 +215,33 @@ export function CatalogStep({
               onValueChange={(value) => {
                 if (value) void changeCatalog(value);
               }}
-              className="gap-0 divide-y"
+              className="divide-y"
             >
               {catalogs.map((catalog) => (
-                <Inline
-                  key={catalog.id}
-                  className="py-100"
-                  space="space.200"
-                  alignBlock="start"
-                  spread="space-between"
-                  shouldWrap
-                >
-                  <Field orientation="horizontal" className="min-w-0">
-                    <RadioGroupItem value={catalog.id} />
-                    <FieldContent>
-                      <FieldLabel>{catalog.title}</FieldLabel>
-                      <FieldDescription>
-                        Version {catalog.version} · Published OSCAL catalog · {catalog.controlCount}{" "}
-                        controls
-                      </FieldDescription>
-                    </FieldContent>
-                  </Field>
-                  <TextLink
-                    size="small"
-                    newTab
-                    render={<Link to="/catalog" search={{ edition: catalog.id }} />}
-                  >
-                    Open catalog
-                  </TextLink>
-                </Inline>
+                // divide-y draws each rule at a row's bottom: the row's end padding sits above it
+                // and the group's own gap below it, space.100 on either side.
+                <Box key={catalog.id} paddingBlockEnd="space.100">
+                  <Inline space="space.200" alignBlock="start" spread="space-between" shouldWrap>
+                    <Field orientation="horizontal" className="min-w-0">
+                      <RadioGroupItem value={catalog.id} />
+                      <FieldContent>
+                        <FieldLabel>{catalog.title}</FieldLabel>
+                        <FieldDescription>
+                          Version {catalog.version}
+                          {" · Published OSCAL catalog · "}
+                          {catalog.controlCount} {"controls"}
+                        </FieldDescription>
+                      </FieldContent>
+                    </Field>
+                    <TextLink
+                      size="small"
+                      newTab
+                      render={<Link to="/catalog" search={{ edition: catalog.id }} />}
+                    >
+                      Open catalog
+                    </TextLink>
+                  </Inline>
+                </Box>
               ))}
             </RadioGroup>
             {catalogError ? <FieldError>{catalogError}</FieldError> : null}
@@ -255,7 +254,8 @@ export function CatalogStep({
             <EmptyHeader>
               <EmptyTitle>No published catalog editions</EmptyTitle>
               <EmptyDescription>
-                Import a catalog into this workspace's reference data to set up a program.
+                Reference catalogs are loaded by a workspace administrator. A program can be set up
+                once one is published.
               </EmptyDescription>
             </EmptyHeader>
           </Empty>
@@ -264,6 +264,7 @@ export function CatalogStep({
       <Section
         title="Base profiles"
         count={draft.profiles.length || null}
+        countMax={9999}
         description="The published profiles this program starts from. Each becomes a program profile, the base as it is or tailored for this program, and every system adopts one of them."
       >
         {!draft.catalogRevisionId ? (

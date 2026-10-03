@@ -33,7 +33,10 @@ export type SearchFieldProps = Omit<
   onSubmit?: ((value: string) => void) | undefined;
   /** Called after the clear button or Escape has emptied the field. `onValueChange` has already run with "". */
   onClear?: (() => void) | undefined;
-  /** Classes for the field's frame, where its width is set. The input's own props go to the input. */
+  /**
+   * Classes for the field's frame, where its width is set. The input's own props go to the input.
+   * @accepts layout
+   */
   className?: string | undefined;
   /** Style for the field's frame, such as a width or a flex basis. */
   style?: CSSProperties | undefined;
@@ -173,19 +176,16 @@ export function SearchField({
       {filled && !inactive ? (
         <InputGroupAddon align="inline-end" role={undefined} className="pe-050">
           <InputGroupButton
-            size="icon-xs"
-            aria-label={t("clearSearch")}
+            icon={<X />}
+            label={t("clearSearch")}
             // Escape clears from the keyboard, so the button is not a Tab stop; a touch screen
             // reader still reaches it by swiping.
             tabIndex={-1}
             // Keep focus in the query while the pointer presses the button.
             onMouseDown={(event) => event.preventDefault()}
             onClick={clear}
-            className="relative touch-target"
             data-slot="search-field-clear"
-          >
-            <X aria-hidden="true" />
-          </InputGroupButton>
+          />
         </InputGroupAddon>
       ) : null}
     </InputGroup>

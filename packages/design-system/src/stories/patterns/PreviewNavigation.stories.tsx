@@ -3,6 +3,10 @@ import { useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import { LedgerProvider, PageHeader, PreviewNavigation, Shell, Stack, Text } from "../..";
 import { Button, KeyValue } from "../../components";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Patterns/PreviewNavigation",
@@ -32,6 +36,35 @@ function Example({ showPosition = false }: { showPosition?: boolean }) {
     </Stack>
   );
 }
+
+/** A preview inside a selection task (RecordBrowser, PickerSheet) belongs to the task: it steps through the results and opens no record of its own. */
+export const InTask: Story = {
+  name: "In a selection task",
+  render: () => {
+    function Task() {
+      const [position, setPosition] = useState(2);
+      return (
+        <PreviewNavigation
+          position={position}
+          total={records.length}
+          recordLabel={records[position - 1]}
+          onPrevious={() => setPosition((value) => value - 1)}
+          onNext={() => setPosition((value) => value + 1)}
+        />
+      );
+    }
+    return <Task />;
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const group = canvas.getByRole("group", { name: "Record navigation" });
+    await expect(within(group).queryByRole("link")).toBeNull();
+    await userEvent.click(within(group).getByRole("button", { name: "Next record" }));
+    await expect(within(group).getByRole("status")).toHaveTextContent(
+      "Audit log retention, 3 of 3 records",
+    );
+  },
+};
 
 /** Previous, next and the full record. The status says which record arrived and where it sits; at an endpoint the button stays focused and unavailable, so a repeated Enter stays put. */
 export const Collection: Story = {
@@ -143,35 +176,6 @@ export const OutsideResults: Story = {
     await expect(
       within(named!).getByRole("link", { name: "Open full record in new tab" }),
     ).toHaveAttribute("href", "#record");
-  },
-};
-
-/** A preview inside a selection task (RecordBrowser, PickerSheet) belongs to the task: it steps through the results and opens no record of its own. */
-export const InTask: Story = {
-  name: "In a selection task",
-  render: () => {
-    function Task() {
-      const [position, setPosition] = useState(2);
-      return (
-        <PreviewNavigation
-          position={position}
-          total={records.length}
-          recordLabel={records[position - 1]}
-          onPrevious={() => setPosition((value) => value - 1)}
-          onNext={() => setPosition((value) => value + 1)}
-        />
-      );
-    }
-    return <Task />;
-  },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    const group = canvas.getByRole("group", { name: "Record navigation" });
-    await expect(within(group).queryByRole("link")).toBeNull();
-    await userEvent.click(within(group).getByRole("button", { name: "Next record" }));
-    await expect(within(group).getByRole("status")).toHaveTextContent(
-      "Audit log retention, 3 of 3 records",
-    );
   },
 };
 
@@ -342,5 +346,86 @@ export const Localized: Story = {
     }
     await userEvent.click(next);
     await expect(arabic.getByRole("status")).toHaveTextContent("٢ من ٣");
+  },
+};
+
+/** The position counts the whole result the table shows, across its pages, and the status names the record that arrived. */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  parameters: { layout: "padded" },
+  render: () => (
+    <Stack space="space.400">
+      <Pair
+        do={
+          <div data-testid="whole-result">
+            <PreviewNavigation
+              position={28}
+              total={62}
+              recordLabel="Access review evidence"
+              showPosition
+              onPrevious={() => undefined}
+              onNext={() => undefined}
+              openLink={<a href="#record-28" target="_blank" rel="noopener noreferrer" />}
+            />
+          </div>
+        }
+        doText="The record's place in the whole filtered and sorted result: 28 of 62."
+        dont={
+          <div data-testid="one-page">
+            <PreviewNavigation
+              position={3}
+              total={25}
+              recordLabel="Access review evidence"
+              showPosition
+              onPrevious={() => undefined}
+              onNext={() => undefined}
+              openLink={<a href="#record-28" target="_blank" rel="noopener noreferrer" />}
+            />
+          </div>
+        }
+        dontText="Its place on the table's current page: 3 of 25, when the result holds 62, and Next stops at the page's end."
+      />
+      <Pair
+        do={
+          <div data-testid="named">
+            <PreviewNavigation
+              position={2}
+              total={3}
+              recordLabel="Recovery exercise evidence"
+              onPrevious={() => undefined}
+              onNext={() => undefined}
+            />
+          </div>
+        }
+        doText="recordLabel: the reader hears which record arrived, Recovery exercise evidence, 2 of 3 records."
+        dont={
+          <div data-testid="unnamed">
+            <PreviewNavigation
+              position={2}
+              total={3}
+              onPrevious={() => undefined}
+              onNext={() => undefined}
+            />
+          </div>
+        }
+        dontText="No recordLabel. Each step is heard as a number, 2 of 3 records, and never as a record."
+      />
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const status = (id: string) => within(canvas.getByTestId(id)).getByRole("status");
+    await waitFor(() =>
+      expect(status("whole-result")).toHaveTextContent("Access review evidence, 28 of 62 records"),
+    );
+    await waitFor(() =>
+      expect(status("one-page")).toHaveTextContent("Access review evidence, 3 of 25 records"),
+    );
+    await waitFor(() =>
+      expect(status("named")).toHaveTextContent("Recovery exercise evidence, 2 of 3 records"),
+    );
+    await waitFor(() => expect(status("unnamed")).toHaveTextContent("2 of 3 records"));
+    await expect(status("unnamed")).not.toHaveTextContent("evidence");
   },
 };

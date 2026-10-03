@@ -1,5 +1,7 @@
+import { Collapsible as CollapsiblePrimitive } from "@base-ui/react/collapsible";
 import {
   useCallback,
+  useContext,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -7,21 +9,25 @@ import {
   useState,
   type ComponentProps,
   type CSSProperties,
+  type ReactNode,
 } from "react";
 
+import { CollapsibleContent, CollapsibleHeader } from "../../components/collapsible";
 import { TooltipProvider } from "../../components/tooltip";
-import { token } from "../../generated/tokens";
+import { token, tokenValue } from "../../generated/tokens";
 import { announce, Announcer } from "../../lib/announce";
 import { cn } from "../../lib/cn";
 import { useLedgerLocale } from "../../lib/locale";
 import { HeadingLevelProvider } from "../../primitives/heading-level";
-import { AreaPortal, SlotsContext } from "../slots";
+import { AreaPortal, AsideDisclosureContext, SlotsContext, type AsideDisplay } from "../slots";
 import { applyShell, readShell, SHELL_STORAGE_KEY, writeShell } from "../storage";
 import {
+  asideQuery,
   desktopQuery,
   focusPage,
   followFocusToPage,
   MAIN,
+  mainMinWidth,
   mergeRefs,
   PANEL_MIN,
   panelNarrowQuery,
@@ -48,6 +54,19 @@ const currentPageTitle = (root: HTMLElement | null) =>
 function useMediaQuery(query: () => string, initial: boolean) {
   const [matches, setMatches] = useState(initial);
   useEffect(() => {
+    const mq = window.matchMedia(query());
+    const sync = () => setMatches(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, [query]);
+  return matches;
+}
+
+/** A media query's matches from before the first paint, followed as the window changes; false on the server. */
+function useMediaQueryBeforePaint(query: () => string) {
+  const [matches, setMatches] = useState(false);
+  useLayoutEffect(() => {
     const mq = window.matchMedia(query());
     const sync = () => setMatches(mq.matches);
     sync();
@@ -419,6 +438,34 @@ export function ShellRoot({
     return () => observer.disconnect();
   }, []);
 
+  // Whether the side nav, at the width it shows, leaves Main its minimum with the aside beside it:
+  // from `lg` below the aside breakpoint, shell.css puts the aside beside Main while it does
+  // (VW2-14). The side nav's width is the one the reader dragged, the browser remembered, a
+  // default or the token, not the capped width the layout draws, which the aside's own column
+  // narrows. A collapsed side nav, the icon rail or hidden, always leaves the room.
+  const [asideFits, setAsideFits] = useState(true);
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const measure = () => {
+      if (!shownExpanded) return setAsideFits(true);
+      const width = root.clientWidth;
+      const preferred = Number.parseFloat(
+        getComputedStyle(root).getPropertyValue("--shell-sidenav-width"),
+      );
+      const sideNav = Math.min(Number.isFinite(preferred) ? preferred : 0, width / 2);
+      const aside =
+        Number.parseFloat(tokenValue("dimension.layout.rail", root)) +
+        Number.parseFloat(tokenValue("space.300", root));
+      setAsideFits(width - sideNav - aside >= mainMinWidth(root));
+    };
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(root);
+    return () => observer.disconnect();
+  }, [shownExpanded, sideNavWidth, sideNavDefault]);
+
   // A new page: close the overlay or the flyout, move focus to the page, then say where the reader is.
   const previousLocation = useRef(locationKey);
   useEffect(() => {
@@ -451,10 +498,71 @@ export function ShellRoot({
     };
   }, [locationKey]);
 
+  // How the Aside shows (VW3-22). From the aside breakpoint it is the rail, beside Main or after
+  // it, as before. Below it, the rail where shell.css puts it beside Main (from `lg`, no panel
+  // open, and the side nav leaving Main its minimum); elsewhere a Details disclosure, folded, where
+  // the route rendered it in the page, so a record's state is one tap from the top. Read before the
+  // first paint, so a phone never shows the rail for a frame.
+  const largeNow = useMediaQueryBeforePaint(desktopQuery);
+  const asideWide = useMediaQueryBeforePaint(asideQuery);
+  const asideDisplay: AsideDisplay =
+    asideWide || (largeNow && !panelOpen && asideFits) ? "rail" : "disclosure";
+  // The Aside's content renders into one node of the kit's own, which moves between the shell's
+  // aside slot and the place the route rendered the Aside (its marker), so a change of display
+  // moves the content instead of mounting it again: a draft in an Editable survives a resize or a
+  // panel opening. Neither container has React children of its own, so React never meets the node.
+  const [asideHost, setAsideHost] = useState<HTMLDivElement | null>(null);
+  const [asideMarker, setAsideMarker] = useState<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    if (!asideSlot) return;
+    // In the document before the content renders into it, so what measures itself on mount does.
+    const host = document.createElement("div");
+    host.setAttribute("data-shell-aside-host", "");
+    asideSlot.append(host);
+    setAsideHost(host);
+    return () => host.remove();
+  }, [asideSlot]);
+  useLayoutEffect(() => {
+    if (!asideHost || !asideSlot) return;
+    const target = asideDisplay === "disclosure" && asideMarker ? asideMarker : asideSlot;
+    if (asideHost.parentNode === target) return;
+    // Moving the node takes focus from a control inside it; it goes back to that control, which
+    // shows in either display (the Aside opens its disclosure around focus).
+    const active = asideHost.ownerDocument.activeElement;
+    const focused = active instanceof HTMLElement && asideHost.contains(active) ? active : null;
+    target.append(asideHost);
+    if (focused && focused.ownerDocument.activeElement !== focused) {
+      focused.focus({ preventScroll: true });
+    }
+  }, [asideHost, asideSlot, asideMarker, asideDisplay]);
+  // A marker leaving the page (its route unmounting) first hands the node back to the slot, before
+  // React removes the route's elements and the node with them: the node never leaves the document,
+  // so an Aside that mounts in the same commit (the next record's) renders into it in the page and
+  // measures itself there. Stable, so a marker's ref never detaches and attaches again for it.
+  const asideHome = useRef<{ host: HTMLDivElement | null; slot: HTMLDivElement | null }>({
+    host: null,
+    slot: null,
+  });
+  useLayoutEffect(() => {
+    asideHome.current = { host: asideHost, slot: asideSlot };
+  }, [asideHost, asideSlot]);
+  const releaseAsideMarker = useCallback((node: HTMLElement) => {
+    const { host, slot } = asideHome.current;
+    if (host && slot && host.parentNode === node) slot.append(host);
+    setAsideMarker((current) => (current === node ? null : current));
+  }, []);
+
   const opener = useRef<HTMLElement | null>(null);
   const slots = useMemo(
-    () => ({ aside: asideSlot, panel: panelSlot, opener }),
-    [asideSlot, panelSlot],
+    () => ({
+      aside: asideHost,
+      panel: panelSlot,
+      opener,
+      asideDisplay,
+      setAsideMarker,
+      releaseAsideMarker,
+    }),
+    [asideHost, panelSlot, asideDisplay, releaseAsideMarker],
   );
 
   const api = useMemo<ShellApi>(
@@ -538,8 +646,9 @@ export function ShellRoot({
           data-collapsed-sidenav={collapsedSideNav}
           data-sidenav={isDesktop ? (shownExpanded ? "expanded" : "collapsed") : "overlay"}
           data-sidenav-yielded={yielded ? "" : undefined}
+          data-aside-fits={asideFits ? "" : undefined}
           data-sidenav-motion={sideNavMotion ? "" : undefined}
-          className={cn("shell-root bg-surface text-default", className)}
+          className={cn("bg-surface text-default", className)}
           style={{ ...vars, ...style }}
           onFocusCapture={(event) => {
             onFocusCapture?.(event);
@@ -598,7 +707,7 @@ export function SkipLinks() {
             e.preventDefault();
             document.getElementById(l.id)?.focus();
           }}
-          className="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:start-150 focus:top-150 focus:rounded-medium focus:bg-surface-overlay focus:px-150 focus:py-100 focus:font-body focus:font-medium focus:text-default focus:shadow-overlay focus:outline-focused"
+          className="sr-only focus:not-sr-only focus:fixed focus:z-overlay focus:start-150 focus:top-150 focus:rounded-medium focus:bg-surface-overlay focus:px-150 focus:py-100 focus:font-body focus:font-medium focus:text-default focus:shadow-overlay focus:outline-focused"
         >
           {t("skipTo", { area: l.label })}
         </a>
@@ -649,7 +758,7 @@ export function BannerArea({ id, label, className, children, ref, ...props }: Sh
       aria-label={name}
       inert={sideNav.modal || props.inert}
       data-slot="shell-banner"
-      className={cn("shell-banner outline-none", className)}
+      className={cn("outline-none", className)}
     >
       {children}
     </div>
@@ -678,10 +787,7 @@ export function Main({ id, label, className, children, ...props }: ShellMainProp
       inert={sideNav.modal || props.inert}
       data-shell-area="main"
       data-slot="shell-main"
-      className={cn(
-        "shell-main w-full px-200 pb-300 pt-200 outline-none lg:px-300 lg:pb-400",
-        className,
-      )}
+      className={cn("w-full px-200 pb-300 pt-200 outline-none lg:px-300 lg:pb-400", className)}
     >
       {children}
     </main>
@@ -690,30 +796,141 @@ export function Main({ id, label, className, children, ...props }: ShellMainProp
 
 /* ---------- aside ---------- */
 
+/** A control a reader can reach with Tab. */
+const FOCUSABLE =
+  'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export type ShellAsideProps = ComponentProps<"aside"> & {
   /** The landmark's name, "Page context" by default. */
   label?: string | undefined;
+  /** Below the aside breakpoint, the Details disclosure's heading: "Details" (a locale message) by default. An Inspector.Group of the same name inside is the disclosure's own content, without a second title. */
+  heading?: string | undefined;
+  /** Below the aside breakpoint, what the Details disclosure's row shows after its heading, closed or open: the record's state, as its status badge. Static content only, since it is part of the disclosure's button and its name. */
+  summary?: ReactNode | undefined;
 };
 
 /**
- * Supporting page context. It follows Main on smaller screens and sits beside it when space
- * permits. Its outline starts under the page's h1 wherever it is rendered: a heading placed
- * directly inside (an Inspector group, a Section) is an h2.
+ * Supporting page context, such as a record's Details. From the aside breakpoint it is the rail:
+ * beside Main where space permits, else following it, always open. Below the aside breakpoint,
+ * wherever it would not sit beside Main, it shows where the route rendered it in the page (right
+ * after the PageHeader, or at the top of a tabbed record's Overview) as a Details disclosure,
+ * closed until the reader opens it, whose row carries `summary`. Its outline starts under the
+ * page's h1: as the rail, a heading placed directly inside (an Inspector group, a Section) is an
+ * h2; as the disclosure, its heading is the h2 and the content one level below.
  */
-export function Aside({ children, label, className, ...props }: ShellAsideProps) {
+export function Aside({
+  children,
+  label,
+  heading,
+  summary,
+  className,
+  onFocus,
+  onBlur,
+  ref,
+  ...props
+}: ShellAsideProps) {
   const { t } = useLedgerLocale();
+  const slots = useContext(SlotsContext);
+  const setMarker = slots?.setAsideMarker;
+  const releaseMarker = slots?.releaseAsideMarker;
+  const disclosure = slots?.asideDisplay === "disclosure";
+  const [open, setOpen] = useState(false);
+  // The content folds and unfolds on the kit's motion only when the reader toggles the disclosure.
+  // At first paint and when the display changes (a resize, a panel opening) it is shown as it is at
+  // once (`data-instant`, shell.css), so the page never watches the Details collapse in it.
+  const [motion, setMotion] = useState({ disclosure, reader: false, hadFocus: false });
+  // Whether focus is on a control inside: a rail that becomes the disclosure opens around it, so
+  // the control stays shown and keeps focus (the shell gives it back as the content moves).
+  const [focusWithin, setFocusWithin] = useState(false);
+  if (motion.disclosure !== disclosure) {
+    setMotion({ disclosure, reader: false, hadFocus: focusWithin });
+    if (disclosure && focusWithin) setOpen(true);
+  }
+  const instant = motion.disclosure !== disclosure || !motion.reader;
+  // A control the change of display replaced (a group's title is an h2 in the rail and an h3 in the
+  // disclosure) takes focus with it: focus goes to the first control left, the disclosure's row or
+  // the rail's first group, never to the page's start.
+  const own = useRef<HTMLElement>(null);
+  const asideRef = useMemo(() => mergeRefs(ref, own), [ref]);
+  useLayoutEffect(() => {
+    const aside = own.current;
+    if (!motion.hadFocus || !aside) return;
+    const active = aside.ownerDocument.activeElement;
+    if (active && aside.contains(active)) return;
+    aside.querySelector<HTMLElement>(FOCUSABLE)?.focus({ preventScroll: true });
+  }, [motion]);
+  // Where the route rendered the Aside: its disclosure shows here.
+  const marker = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (!node || !setMarker || !releaseMarker) return;
+      setMarker(node);
+      return () => releaseMarker(node);
+    },
+    [setMarker, releaseMarker],
+  );
   if (children === null || children === undefined || children === false) return null;
+  const name = heading ?? t("details");
+  const hasSummary = summary !== null && summary !== undefined && summary !== false;
   return (
-    <AreaPortal name="aside">
-      <aside
-        {...props}
-        data-shell-area="aside"
-        data-slot="shell-aside"
-        aria-label={label ?? t("pageContext")}
-        className={cn("min-w-0 p-200 lg:p-300", className)}
-      >
-        <HeadingLevelProvider level={2}>{children}</HeadingLevelProvider>
-      </aside>
-    </AreaPortal>
+    <>
+      {slots ? <div ref={marker} data-slot="shell-aside-marker" className="contents" /> : null}
+      <AreaPortal name="aside">
+        {/* One element tree in both displays, so the content never mounts again: the rail is the
+            disclosure held open with no row of its own. */}
+        <CollapsiblePrimitive.Root
+          open={!disclosure || open}
+          onOpenChange={(next) => {
+            setOpen(next);
+            setMotion({ disclosure, reader: true, hadFocus: false });
+          }}
+          render={
+            <aside
+              {...props}
+              ref={asideRef}
+              // Inside Main it is a region: a complementary landmark belongs at the top level.
+              role={disclosure ? "region" : props.role}
+              data-shell-area="aside"
+              data-slot="shell-aside"
+              data-display={disclosure ? "disclosure" : "rail"}
+              data-instant={instant ? "" : undefined}
+              aria-label={label ?? t("pageContext")}
+              className={cn(disclosure ? "min-w-0" : "min-w-0 p-200 lg:p-300", className)}
+              onFocus={(event) => {
+                onFocus?.(event);
+                setFocusWithin(true);
+              }}
+              onBlur={(event) => {
+                onBlur?.(event);
+                const next = event.relatedTarget;
+                if (!(next instanceof Node && event.currentTarget.contains(next))) {
+                  setFocusWithin(false);
+                }
+              }}
+            />
+          }
+        >
+          {disclosure ? (
+            <HeadingLevelProvider level={2}>
+              <CollapsibleHeader>
+                <span className="flex min-w-0 flex-wrap items-center gap-x-100 gap-y-050">
+                  <span>{name}</span>
+                  {hasSummary ? (
+                    <span data-slot="shell-aside-summary" className="inline-flex min-w-0">
+                      {summary}
+                    </span>
+                  ) : null}
+                </span>
+              </CollapsibleHeader>
+            </HeadingLevelProvider>
+          ) : null}
+          {/* Kept mounted while closed, so drafts inside survive and find-in-page opens it. */}
+          <CollapsibleContent hiddenUntilFound>
+            <AsideDisclosureContext.Provider value={disclosure ? name : null}>
+              <HeadingLevelProvider level={disclosure ? 3 : 2}>{children}</HeadingLevelProvider>
+            </AsideDisclosureContext.Provider>
+          </CollapsibleContent>
+        </CollapsiblePrimitive.Root>
+      </AreaPortal>
+    </>
   );
 }

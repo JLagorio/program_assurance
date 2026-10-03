@@ -7,9 +7,22 @@ import * as Stories from "./ScrollArea.stories";
 
 # ScrollArea
 
+**Status: Stable.**
+
 A bounded region that scrolls with the kit's own bar, which the reader can see and drag, on [Base UI ScrollArea](https://base-ui.com/react/components/scroll-area) in shadcn's ScrollArea and ScrollBar composition.
 
+## When to use it
+
 Use it where the bar itself is the cue: a list in a resizable pane, a wide timeline in a card. A region with nothing to add scrolls with native overflow; a list or a strip that needs an arrow at each edge that can still scroll is a [Scroller](?path=/docs/components-scroller--docs). An overlay's scrolling content is its Body part (DialogBody, SheetBody), never a ScrollArea. [Choosing a part](?path=/docs/guidance-choosing-a-part--docs) has the whole table.
+
+## Content
+
+- Name a region that holds the reader's content with `viewportProps` (`role="region"` and an `aria-label` that says what it holds: "Activity", "Control text"), since a keyboard reader tabs into it to scroll.
+- Give the region a height or a maximum its content can outgrow; a ScrollArea that never overflows draws no bar and adds nothing.
+
+An unnamed region is a tab stop announced as nothing: name it through `viewportProps`.
+
+<Canvas of={Stories.DoDont} />
 
 ## Anatomy
 
@@ -37,14 +50,9 @@ Use it where the bar itself is the cue: a list in a resizable pane, a wide timel
 
 <ArgTypes of={ScrollBar} />
 
-### Migration and API
-
-- Replace `label` with `viewportProps` holding `role="region"` and `aria-label`. Put sizing classes on ScrollArea.
-- Replace a root `orientation="horizontal"` or `"both"` with a horizontal ScrollBar child; overflow determines which bars are needed.
-- The bar visibility shortcut and fixed hide delay are gone. Base UI's state attributes (`data-hovering`, `data-scrolling`) style the bar when needed.
-
 ## Related
 
 - [Scroller](?path=/docs/components-scroller--docs): edge arrows for a list or a strip; line Tabs compose it over a ScrollArea.
 - [Resizable](?path=/docs/components-resizable--docs): a pane that holds a ScrollArea.
 - [Table](?path=/docs/components-table--docs): a table frame scrolls itself.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#scrollarea): the earlier API's spellings and what they are now.

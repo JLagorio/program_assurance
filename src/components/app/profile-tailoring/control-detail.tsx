@@ -1,6 +1,7 @@
 import { ControlStatement } from "@/components/prototype/library-controls";
 import { QueryState } from "@/components/prototype/work-common";
 import { useRows, type Row } from "@/lib/models";
+import { useParameterChoices } from "@/lib/parameter-reads";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@ledger/design-system";
 
 /** The parts a tailoring decision is read against: what the control requires, then why. */
@@ -12,14 +13,10 @@ const roots: readonly string[] = ["statement", "guidance"];
  * placeholder ("[Assignment: organization-defined frequency]") rather than the raw OSCAL marker.
  * Each root part is a heading at the caller's level, with loading and failure recovery.
  */
-export function ControlDetail({ control }: { control: Row<"controls"> }) {
+export function ControlDetail({ control }: { control: Pick<Row<"controls">, "id"> }) {
   const parts = useRows("control_parts", { control_id: control.id });
   const parameters = useRows("parameters", { control_id: control.id });
-  const choices = useRows(
-    "parameter_choices",
-    {},
-    { columns: ["id", "parameter_id", "ordinal", "value"] },
-  );
+  const choices = useParameterChoices(parameters.data);
   const shown = parts.data?.some(
     (part) => part.parent_part_id === null && roots.includes(part.name),
   );

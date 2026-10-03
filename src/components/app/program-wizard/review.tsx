@@ -57,7 +57,7 @@ function StepCard({
     <Card>
       <CardHeader>
         <CardTitle>
-          <Heading size="xsmall">{title}</Heading>
+          <Heading size="overlay">{title}</Heading>
         </CardTitle>
         {description ? <CardDescription>{description}</CardDescription> : null}
         <CardAction>
@@ -136,7 +136,7 @@ export function ReviewStep({
   return (
     <Stack space="space.300" className="max-w-layout-measure">
       <StepCard title="Program" onEdit={() => onEdit(0)}>
-        <KeyValue.Group labelWidth={160}>
+        <KeyValue.Group labelWidth="auto">
           <KeyValue label="Name" wrap>
             {draft.name}
           </KeyValue>
@@ -209,7 +209,7 @@ export function ReviewStep({
           return (
             <Stack key={system.key} space="space.100">
               <Inline space="space.100" alignBlock="baseline" shouldWrap>
-                <Heading size="xsmall">{system.name}</Heading>
+                <Heading size="overlay">{system.name}</Heading>
                 <Id className="text-subtle">{system.code}</Id>
                 {system.product ? (
                   <Badge variant="secondary" tone="information" size="xsmall">
@@ -217,9 +217,13 @@ export function ReviewStep({
                   </Badge>
                 ) : null}
               </Inline>
-              <KeyValue.Group labelWidth={160}>
+              <KeyValue.Group labelWidth="auto">
                 <KeyValue label="Program profile" wrap>
-                  {profile ? `${profile.title} ${profile.version}` : <Absent label="None" />}
+                  {profile ? (
+                    `${profile.title} ${profile.version}`
+                  ) : (
+                    <Absent label="No program profile" />
+                  )}
                 </KeyValue>
                 {objectives.map(({ key, label }) => (
                   <KeyValue key={key} label={label}>

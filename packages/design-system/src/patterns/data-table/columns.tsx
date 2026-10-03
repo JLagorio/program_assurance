@@ -4,7 +4,7 @@ import { useLedgerLocale } from "../../lib/locale";
 import type { ReactNode } from "react";
 
 import { Badge, type Tone } from "../../components/badge";
-import { Editable } from "../editable";
+import { Editable, type EditableOption } from "../editable";
 import { Person } from "../../components/avatar";
 import { Table, type ListItem } from "../../components/table";
 import { Absent } from "../../components/typography";
@@ -37,12 +37,38 @@ export const minWidths = {
   custom: 96,
 } as const;
 
-/** A cell that edits in place: commits optimistically through `onChange`, `save` settles it, `validate` blocks it. */
+/**
+ * A cell that edits in place: commits optimistically through `onChange`, `save` settles it,
+ * `validate` blocks it. The rest are the Editable's own reports, with the row: a host feeds its
+ * draft guard (a route blocker, `beforeunload`) from `onDraftChange` rather than from the cells'
+ * DOM events.
+ */
 export type EditableOptions<TData> = {
   onChange: (row: TData, next: string) => void;
   save: (row: TData, next: string) => Promise<unknown>;
   validate?: ((next: string) => string | null) | undefined;
+  /** Called with the row and `true` when its editor opens, `false` when it closes. */
+  onEditingChange?: ((row: TData, editing: boolean) => void) | undefined;
+  /**
+   * Called with the row and its unsaved draft whenever the draft changes: the text being typed
+   * while it differs from the value, or a refused value kept for another try; `null` once it is
+   * saved, put back or discarded, and when the cell unmounts.
+   */
+  onDraftChange?: ((row: TData, draft: string | null) => void) | undefined;
+  /** Called with the row when the reader drops an edit without saving: Escape, Cancel or Discard. */
+  onCancel?: ((row: TData) => void) | undefined;
 };
+
+/** The Editable's reports for one row: only the ones the column was given. */
+const reportsFor = <TData,>(editable: EditableOptions<TData>, row: TData) => ({
+  ...(editable.onEditingChange
+    ? { onEditingChange: (editing: boolean) => editable.onEditingChange?.(row, editing) }
+    : {}),
+  ...(editable.onDraftChange
+    ? { onDraftChange: (draft: string | null) => editable.onDraftChange?.(row, draft) }
+    : {}),
+  ...(editable.onCancel ? { onCancel: () => editable.onCancel?.(row) } : {}),
+});
 
 type Shared<TData> = {
   header?: string | undefined;
@@ -61,6 +87,39 @@ type Shared<TData> = {
   resizable?: boolean | undefined;
   /** Draw the cell yourself; the kind still sets alignment, sort and filter. An absent value is `Absent`. */
   cell?: ((row: TData) => ReactNode) | undefined;
+};
+
+/**
+ * A name with what tells two records apart at a glance, drawn as `Table.Name` around the value, or
+ * around what `cell` draws (the record's link). Each reads the row; a row that gives none draws
+ * the value alone.
+ */
+type Named<TData> = {
+  /** Before the name: the record's kind, as an `Icon`, labelled when nothing else in the row says the kind. */
+  icon?: ((row: TData) => ReactNode) | undefined;
+  /** A muted second line under the name: a path, a version, what the record adopts. */
+  description?: ((row: TData) => ReactNode) | undefined;
+  /** After the name: one xsmall `Badge` that marks the record, "Library". */
+  badge?: ((row: TData) => ReactNode) | undefined;
+};
+
+/** The value inside `Table.Name` when the column draws an icon, a badge or a second line for this row. */
+const nameOf = <TData,>(
+  value: ReactNode,
+  row: TData,
+  { icon, description, badge }: Named<TData>,
+) => {
+  const parts = { icon: icon?.(row), description: description?.(row), badge: badge?.(row) };
+  if (!parts.icon && !parts.description && !parts.badge) return value;
+  return (
+    <Table.Name
+      {...(parts.icon ? { icon: parts.icon } : {})}
+      {...(parts.description ? { description: parts.description } : {})}
+      {...(parts.badge ? { badge: parts.badge } : {})}
+    >
+      {value}
+    </Table.Name>
+  );
 };
 
 type Key<TData extends RowData> = keyof TData & string;
@@ -190,11 +249,15 @@ export function columnKinds<TData extends RowData>() {
       cell,
       wrap = false,
       editable,
-    }: Shared<TData> & {
-      wrap?: boolean | undefined;
-      /** The cell is an Editable.Text; the row is the record. */
-      editable?: EditableOptions<TData> | undefined;
-    } = {},
+      icon,
+      description,
+      badge,
+    }: Shared<TData> &
+      Named<TData> & {
+        wrap?: boolean | undefined;
+        /** The cell is an Editable.Text; the row is the record. */
+        editable?: EditableOptions<TData> | undefined;
+      } = {},
   ) =>
     helper.accessor(read<TData>(key), {
       id: key,
@@ -215,19 +278,22 @@ export function columnKinds<TData extends RowData>() {
         sized: width !== undefined,
       },
       cell: ({ row, getValue }) => {
-        if (cell) return cell(row.original);
+        const named = (value: ReactNode) =>
+          nameOf(value, row.original, { icon, description, badge });
+        if (cell) return named(cell(row.original));
         const v = getValue();
         if (editable)
-          return (
+          return named(
             <Editable.Text
               label={header ?? key}
               value={isAbsent(v) ? "" : String(v)}
-              onChange={(next) => editable.onChange(row.original, next)}
+              onValueChange={(next) => editable.onChange(row.original, next)}
               save={(next) => editable.save(row.original, next)}
               validate={editable.validate}
-            />
+              {...reportsFor(editable, row.original)}
+            />,
           );
-        return isAbsent(v) ? <Absent /> : String(v);
+        return named(isAbsent(v) ? <Absent /> : String(v));
       },
     });
 
@@ -248,15 +314,23 @@ export function columnKinds<TData extends RowData>() {
       active,
       glance,
       tone = "brand",
-    }: Shared<TData> & {
-      /** The eye at the end of the row's first value cell opens the row's preview surface. */
-      preview?: ((row: TData) => void) | undefined;
-      /** The row whose preview is open. */
-      active?: ((row: TData) => boolean) | undefined;
-      /** Hover on the id shows this glance: facts only, no actions. */
-      glance?: ((row: TData) => ReactNode) | undefined;
-      tone?: "brand" | "subtle" | undefined;
-    } = {},
+      icon,
+      description,
+      badge,
+    }: Shared<TData> &
+      Named<TData> & {
+        /**
+         * The eye at the end of the row's first value cell opens the row's preview surface. Prefer
+         * the hook's `preview: { onPreview, activeId }`: the table holds it, so the columns stay at
+         * module level and a preview step redraws two rows rather than the column model.
+         */
+        preview?: ((row: TData) => void) | undefined;
+        /** The row whose preview is open; with the hook's `preview`, its `activeId`. */
+        active?: ((row: TData) => boolean) | undefined;
+        /** Hover on the id shows this glance: facts only, no actions. */
+        glance?: ((row: TData) => ReactNode) | undefined;
+        tone?: "brand" | "subtle" | undefined;
+      } = {},
   ) =>
     helper.accessor(read<TData>(key), {
       id: key,
@@ -279,7 +353,12 @@ export function columnKinds<TData extends RowData>() {
         // A code keeps its width; a name given a `minWidth` and no `width` grows with the others.
         sized: width !== undefined || minWidth === undefined,
       },
-      cell: ({ row, getValue }) => (cell ? cell(row.original) : String(getValue())),
+      cell: ({ row, getValue }) =>
+        nameOf(cell ? cell(row.original) : String(getValue()), row.original, {
+          icon,
+          description,
+          badge,
+        }),
     });
 
   const number = (
@@ -413,11 +492,25 @@ export function columnKinds<TData extends RowData>() {
             statuses: StatusMap;
           }
       ) & {
-        /** The cell is an Editable.Select over `options`; the row is the record. */
-        editable?: (EditableOptions<TData> & { options: readonly string[] }) | undefined;
+        /**
+         * The cell is an Editable.Select over `options`; the row is the record. An option is a
+         * value, which reads as its label in `statuses`, or `{ value, label }`; the menu searches
+         * and announces the label and commits the value. `emptyLabel` offers a first choice that
+         * clears the value, named by it: "No status".
+         */
+        editable?:
+          | (EditableOptions<TData> & {
+              options: readonly (string | EditableOption<string>)[];
+              emptyLabel?: string | undefined;
+            })
+          | undefined;
       },
   ) => {
     const status = statusOf(statuses);
+    // Each choice with the words the badge shows: the caller's label, else the map's.
+    const choices = editable?.options.map((option) =>
+      typeof option === "string" ? { value: option, label: status.label(option) } : option,
+    );
     const toneFor = (row: TData, value: unknown) =>
       tone ? tone(row) : (status.entry(value)?.tone ?? "neutral");
     return helper.accessor(read<TData>(key), {
@@ -454,19 +547,21 @@ export function columnKinds<TData extends RowData>() {
           return (
             <Editable.Select
               label={header ?? key}
-              options={editable.options}
+              options={choices ?? []}
               value={isAbsent(v) ? "" : String(v)}
-              onChange={(next) => editable.onChange(row.original, next)}
+              onValueChange={(next) => editable.onChange(row.original, next)}
               save={(next) => editable.save(row.original, next)}
               validate={editable.validate}
-              render={(o) =>
+              {...(editable.emptyLabel === undefined ? {} : { emptyLabel: editable.emptyLabel })}
+              {...reportsFor(editable, row.original)}
+              render={(o, label) =>
                 o ? (
                   <Badge
                     variant="secondary"
                     size="xsmall"
                     tone={toneFor({ ...row.original, [key]: o }, o)}
                   >
-                    {status.label(o)}
+                    {label}
                   </Badge>
                 ) : (
                   <Absent />
@@ -520,8 +615,9 @@ export function columnKinds<TData extends RowData>() {
 
   /**
    * Several values in one cell: `items` reads them from the row; the first shows by name, the rest
-   * as a count, all of them in a hover card. Sorts and filters (contains) by the labels; exports
-   * them joined. Click opens the row's preview when the id column has one.
+   * as a count, all of them in a hover card. Its filter lists each item on its own, counted per row
+   * that holds it, and a row matches when it holds any item chosen, never the combinations the rows
+   * hold. Sorts by the labels; exports them joined. Click opens the row's preview.
    */
   const list = (
     columnId: string,
@@ -536,16 +632,26 @@ export function columnKinds<TData extends RowData>() {
       resizable,
       items,
       empty,
+      emptyLabel,
+      searchable = false,
       note,
       opens = "preview",
     }: Pick<
       Shared<TData>,
       "header" | "width" | "minWidth" | "priority" | "sortable" | "pin" | "hideable" | "resizable"
     > & {
-      /** The row's items, in the order they show. */
+      /** The row's items, in the order they show. The filter offers each label once. */
       items: (row: TData) => ReadonlyArray<ListItem>;
       /** Drawn when the row has none: an Indicator that says why. `Absent` unsaid. */
       empty?: ((row: TData) => ReactNode) | undefined;
+      /**
+       * What the filter calls a row with no items, "Unassigned" or "Not recorded", as `empty` says
+       * it in the cell: the filter then lists it as a value of its own, so those rows can be found.
+       * Unsaid, a row with no items is under no value.
+       */
+      emptyLabel?: string | undefined;
+      /** The table's search finds a row by any of its items. Off unsaid. */
+      searchable?: boolean | undefined;
       /** One line under the card's list: what among the items needs attention. */
       note?: ((row: TData) => ReactNode) | undefined;
       /**
@@ -559,6 +665,11 @@ export function columnKinds<TData extends RowData>() {
       items(row)
         .map((i) => i.label)
         .join(", ");
+    // The row's members, each once: what the facet counts and the filter matches.
+    const members = (row: TData): ReadonlyArray<string> => {
+      const each = [...new Set(items(row).map((i) => i.label))];
+      return each.length || emptyLabel === undefined ? each : [emptyLabel];
+    };
     return helper.accessor(labels, {
       id: columnId,
       header: header ?? columnId,
@@ -566,8 +677,9 @@ export function columnKinds<TData extends RowData>() {
       minSize: minOf(width, minWidth ?? minWidths.list),
       enableSorting: sortable,
       sortFn: "alphanumeric",
-      filterFn: "matches",
-      enableGlobalFilter: false,
+      filterFn: "members",
+      getUniqueValues: members,
+      enableGlobalFilter: searchable,
       ...shared({ pin, hideable, resizable }),
       meta: {
         priority,

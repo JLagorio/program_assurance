@@ -12,12 +12,10 @@ import {
   type ComponentProps,
   type ReactNode,
 } from "react";
-import { ArrowLeft } from "lucide-react";
 import { Link, linkOptions } from "@tanstack/react-router";
 import { createPortal } from "react-dom";
 import {
   HeadingLevelProvider,
-  IconButton,
   PageHeader,
   Stack,
   PreviewNavigation,
@@ -25,7 +23,6 @@ import {
   TextLink,
   displayedRows,
   showRow,
-  useLedgerLocale,
   type DataTableInstance,
   type ShellPanelProps,
 } from "@ledger/design-system";
@@ -109,7 +106,6 @@ function PreviewFrameSlot({ id, hidden }: { id: string; hidden: boolean }) {
 
 /** One application host keeps sibling and linked-record previews in the same shell surface. */
 export function RecordPreviewProvider({ children }: { children: ReactNode }) {
-  const { t } = useLedgerLocale();
   const [frames, setFrames] = useState<PreviewFrame[]>([]);
   const [targets, setTargets] = useState<ReadonlyMap<string, HTMLDivElement>>(new Map());
   const panel = useRef<HTMLElement>(null);
@@ -253,16 +249,9 @@ export function RecordPreviewProvider({ children }: { children: ReactNode }) {
         >
           <Shell.Panel.Splitter />
           <Shell.Panel.Header>
+            {/* Back leads the bar, first in the tab order, while there is a frame to go back to. */}
+            {current.parentId && <Shell.Panel.Back onClick={back} />}
             <Shell.Panel.Actions>
-              {current.parentId && (
-                <IconButton
-                  label={t("backToPreviousRecord")}
-                  icon={<ArrowLeft className="rtl:rotate-180" />}
-                  size="small"
-                  variant="subtle"
-                  onClick={back}
-                />
-              )}
               <PreviewShown.Provider value={shown}>
                 {current.props.navigation}
               </PreviewShown.Provider>
@@ -397,6 +386,10 @@ export function recordDestination(table: TableName, record: PreviewRecord) {
   });
 }
 
+/**
+ * A record's name, linked to its record page. In a table cell that cuts it, the table shows it
+ * whole on hover, on the link's keyboard focus and on a long press (the kit's cut reveal).
+ */
 export function RecordLink({
   table,
   record,
@@ -417,6 +410,34 @@ export function RecordLink({
   );
 }
 
+/**
+ * Where a server-paged register's page stands in the whole result (`useServerCollection` in
+ * collection-question): the first row's place, from 0, the server's count of the whole result, and
+ * which result it is (every page of one result names the same one). `show` turns the table to the
+ * page that holds the row at a place in the result, waits for it, and hands that row to `select`.
+ */
+export type ServerPaging = {
+  offset: number;
+  count: number;
+  result: string;
+  show: (offset: number, select: (row: never) => void) => void;
+  /** Every row of the page in the server's order, a tree's folded parts too: what the preview steps through. */
+  rows: readonly unknown[];
+};
+/** The server-paged tables, each with how to read where its page stands now. */
+const pagingSources = new WeakMap<object, () => ServerPaging | undefined>();
+/** The displayed rows of a server-paged table, each list with where its page stood. */
+const pagedRows = new WeakMap<readonly unknown[], ServerPaging>();
+
+/**
+ * Marks a table as server-paged, so the rows `useDisplayedRecords` gives for it carry their page's
+ * place in the whole result and `RecordPreviewActions` counts and steps across pages from them.
+ * `useServerCollection` calls it on every render.
+ */
+export function setServerPaging(table: object, source: () => ServerPaging | undefined) {
+  pagingSources.set(table, source);
+}
+
 /** A record's own name, for what is said about it when its frame's title draws no plain words. */
 function recordName(record: PreviewRecord): string | undefined {
   for (const key of ["name", "title", "code"]) {
@@ -430,7 +451,11 @@ function recordName(record: PreviewRecord): string | undefined {
 /**
  * Previous, next, the announced record and position, and the full record in a new tab. `rows` are
  * the collection's displayed rows from `useDisplayedRecords`, across every page, so a step can
- * cross a page and the table turns to it.
+ * cross a page and the table turns to it. A server-paged register's rows are its page, and carry
+ * the page's place in the whole result: the position is the page's offset plus the row's place on
+ * it, out of the server's count ("21 of 62"), a step past the page's edge turns the table's page,
+ * waits for it and shows its first or last row, and a page the reader turns by hand leaves the
+ * preview at its place.
  */
 export function RecordPreviewActions<T extends { id: string }>({
   table,
@@ -457,13 +482,40 @@ export function RecordPreviewActions<T extends { id: string }>({
     show?.(record.id);
   }, [show, record.id]);
   const index = rows.findIndex((row) => row.id === record.id);
+  const paging = pagedRows.get(rows);
+  const offset = paging?.offset ?? 0;
+  const count = paging?.count ?? rows.length;
+  // A server-paged register holds one page. Where each record it has shown stands in the result,
+  // so the position holds while the record is on another page of the same result: after the reader
+  // turns the page, and while a step's page loads and the rows the preview reads catch up.
+  const places = useRef<{ result: string; at: Map<string, number> }>({ result: "", at: new Map() });
+  if (paging && places.current.result !== paging.result)
+    places.current = { result: paging.result, at: new Map() };
+  if (paging && index >= 0) places.current.at.set(record.id, offset + index + 1);
+  const place = paging && index < 0 ? places.current.at.get(record.id) : undefined;
+  // A record last seen among the rows of the page shown, and not there now, left the result.
+  const elsewhere =
+    place !== undefined && (place <= offset || place > offset + rows.length) ? place : undefined;
+  const position = index >= 0 ? offset + index + 1 : (elsewhere ?? 0);
+  const showAt = (target: number) => {
+    const row = rows[target - 1 - offset];
+    if (row) return onSelect(row);
+    paging?.show(target - 1, (arrived: T) => {
+      places.current.at.set(arrived.id, target);
+      onSelect(arrived);
+    });
+  };
+  // A record outside the results has no neighbours to step to.
+  const placed = position > 0;
+  const onPrevious = placed && position > 1 ? () => showAt(position - 1) : undefined;
+  const onNext = placed && position < count ? () => showAt(position + 1) : undefined;
   return (
     <PreviewNavigation
-      position={index + 1}
-      total={rows.length}
+      position={position}
+      total={count}
+      onPrevious={onPrevious}
+      onNext={onNext}
       recordLabel={recordLabel ?? shown?.title ?? recordName(record)}
-      onPrevious={index > 0 ? () => onSelect(rows[index - 1]!) : undefined}
-      onNext={index >= 0 && index < rows.length - 1 ? () => onSelect(rows[index + 1]!) : undefined}
       openLink={
         openLink === false
           ? undefined
@@ -562,7 +614,9 @@ function revealRow(id: string) {
  * row scrolls into view, so it stays on screen and marked; paging by hand leaves the preview where
  * it is. The table keeps its page only while its `data` keeps its identity: a caller that rebuilds
  * it on every render (inline columns into ModelTable) sends the table back to page 1, so keep
- * `data` memoized.
+ * `data` memoized. A server-paged table (`useServerCollection`) holds one page: its rows are that
+ * page's in the server's order (a tree's folded parts too), and they carry the page's place in the
+ * server's count for `RecordPreviewActions`.
  */
 export function useDisplayedRecords<T extends { id: string }>(
   table: DataTableInstance<T>,
@@ -570,7 +624,12 @@ export function useDisplayedRecords<T extends { id: string }>(
   originals?: ReadonlyMap<string, T>,
 ) {
   const rows = displayedRows(table);
-  const visible = rows.map((row) => originals?.get(row.id) ?? row.original);
+  const paging = pagingSources.get(table)?.();
+  // A server page's rows are the page's, in the server's order, with any a folded part hides.
+  const visible = paging
+    ? (paging.rows as T[])
+    : rows.map((row) => originals?.get(row.id) ?? row.original);
+  if (paging) pagedRows.set(visible, paging);
   // The active row, from the table's `preview` or its id column's `active`, as the eye reads it.
   const own = table.options.meta?.preview;
   const isActive = own
@@ -593,9 +652,11 @@ export function useDisplayedRecords<T extends { id: string }>(
     const frame = requestAnimationFrame(() => revealRow(activeId));
     return () => cancelAnimationFrame(frame);
   }, [activeId]);
-  const signature = JSON.stringify(
+  // A server page's rows also change when their place in the result, or the result's count, does.
+  const signature = JSON.stringify([
     visible.map((row) => [row.id, "revision" in row ? row.revision : null]),
-  );
+    paging ? [paging.offset, paging.count] : null,
+  ]);
   const callback = useRef(onChange);
   callback.current = onChange;
   const current = useRef(visible);

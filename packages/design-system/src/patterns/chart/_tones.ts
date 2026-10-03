@@ -29,10 +29,31 @@ export const seriesTone = (all: readonly ChartSeries[], s: ChartSeries): ChartTo
 export const seriesColor = (all: readonly ChartSeries[], s: ChartSeries): string =>
   chartColor(seriesTone(all, s));
 
-export const sequentialColor = (step: 1 | 2 | 3 | 4 | 5) => token(`color.chart.sequential.${step}`);
-export const divergingColor = (
-  step: "negative.bold" | "negative" | "midpoint" | "positive" | "positive.bold",
-) => token(`color.chart.diverging.${step}` as TokenName);
+export type SequentialStep = 1 | 2 | 3 | 4 | 5;
+export type DivergingStep =
+  "negative.bold" | "negative" | "midpoint" | "positive" | "positive.bold";
+
+export const sequentialColor = (step: SequentialStep) => token(`color.chart.sequential.${step}`);
+export const divergingColor = (step: DivergingStep) =>
+  token(`color.chart.diverging.${step}` as TokenName);
+
+/**
+ * The scale steps that sit close to the surface: under 3:1 on it in light, in dark or in both
+ * (`sequential.1` to `3`, the three middle diverging steps, and zero's `color.chart.track`). A
+ * Heatmap cell or a key's swatch in one wears a `color.border.bold` edge, which holds 3:1 on every
+ * surface, so it stands apart from the page and from an empty cell whatever its fill.
+ */
+export const faintStep = (step: SequentialStep | DivergingStep | "zero") =>
+  step === "zero" ||
+  step === 1 ||
+  step === 2 ||
+  step === 3 ||
+  step === "negative" ||
+  step === "midpoint" ||
+  step === "positive";
+
+/** The edge a faint step wears: see `faintStep`. */
+export const faintEdge = "border border-bold";
 
 const compactFormat = new Intl.NumberFormat("en-US", {
   notation: "compact",

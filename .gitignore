@@ -40,3 +40,6 @@ storybook-static/
 # Optional design-system API reports
 artifacts
 .playwright-mcp
+
+# Agent eval output (npm run eval:lint)
+evals/results/

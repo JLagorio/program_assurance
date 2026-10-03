@@ -53,9 +53,10 @@ export const taskStatuses = vocabulary([
   ["done", "Done", "success"],
   ["cancelled", "Cancelled", "neutral"],
 ]);
+/** Active is success, as on a product: the program is under way and in good standing. */
 export const programStatuses = vocabulary([
   ["planned", "Planned", "neutral"],
-  ["active", "Active", "information"],
+  ["active", "Active", "success"],
   ["suspended", "Suspended", "warning"],
   ["closed", "Closed", "neutral"],
 ]);
@@ -123,6 +124,7 @@ export const operationalIssueStatuses = vocabulary([
   ["resolved", "Resolved", "success"],
   ["closed", "Closed", "success"],
 ]);
+/** Accepted is neutral: it records a decision to live with the risk, not that the risk is good. */
 export const riskStatuses = vocabulary([
   ["open", "Open", "neutral"],
   ["investigating", "Investigating", "information"],
@@ -275,7 +277,7 @@ export const referenceResolutionStatuses = vocabulary([
   ["unsupported-publication", "Unsupported publication", "warning"],
 ]);
 
-/* ——— Levels: drawn as an Indicator, never a pill ——————————————————————————————————————————— */
+/* ——— Levels: drawn as an Indicator, never a pill; every Low (and Very low) is neutral ———————— */
 
 export const severityLevels = level([
   ["low", "Low", "neutral"],

@@ -1,6 +1,6 @@
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import {
   Button,
@@ -27,7 +27,13 @@ import {
   type SheetWidth,
 } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
-import { Heading } from "../../primitives";
+import { Heading, Inline, Stack, Text } from "../../primitives";
+import * as pairLayout from "../_lib/pair";
+import * as typeStyle from "../_lib/type-style";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
+const { typeOf, ramp } = typeStyle;
 
 const meta = {
   title: "Components/Sheet",
@@ -61,7 +67,7 @@ function Edges() {
               data-testid="sticky-label"
               className="sticky top-0 bg-surface-current pb-100 pt-150"
             >
-              <Heading size="xsmall">Evidence</Heading>
+              <Heading size="overlay">Evidence</Heading>
             </div>
             {Array.from({ length: 25 }, (_, i) => (
               <p className="py-100" key={i}>
@@ -78,6 +84,45 @@ function Edges() {
   );
 }
 
+const widths: SheetWidth[] = ["small", "medium", "large", "xlarge", "fullscreen"];
+
+/** Every prop on SheetContent. */
+export const Playground: StoryObj<typeof SheetContent> = {
+  args: { side: "end", width: "medium", showCloseButton: true },
+  argTypes: {
+    side: { control: "inline-radio", options: ["start", "end", "top", "bottom"] },
+    width: { control: "inline-radio", options: widths },
+    showCloseButton: { control: "boolean" },
+  },
+  render: (args) => (
+    <Sheet>
+      <SheetTrigger render={<Button />}>Open sheet</SheetTrigger>
+      <SheetContent {...args}>
+        <SheetHeader>
+          <SheetTitle>Member details</SheetTitle>
+          <SheetDescription>Dana Whitfield</SheetDescription>
+        </SheetHeader>
+        <SheetBody>
+          <p className="font-body">Joined in March. Owns four open tasks.</p>
+        </SheetBody>
+        <SheetFooter>
+          <SheetClose render={<Button />}>Done</SheetClose>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement),
+      body = within(canvasElement.ownerDocument.body);
+    const trigger = canvas.getByRole("button", { name: "Open sheet" });
+    await userEvent.click(trigger);
+    const popup = await body.findByRole("dialog", { name: "Member details" });
+    await userEvent.click(within(popup).getByRole("button", { name: "Done" }));
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(trigger).toHaveFocus());
+  },
+};
+
 /**
  * Four edges, with the body as the one scroller between a fixed header and footer. Headings in the
  * body start one level below the sheet's title, and a sticky label painted with the current surface
@@ -93,6 +138,10 @@ export const EdgesAndScrolling: Story = {
       await userEvent.click(canvas.getByRole("button", { name: "Preview record" }));
       const popup = await body.findByRole("dialog", { name: "Assessment record" });
       await expect(popup).toHaveAttribute("data-side", side);
+      // The sheet's title is Heading's `overlay` size, its h2.
+      await expect(
+        typeOf(within(popup).getByRole("heading", { name: "Assessment record" })),
+      ).toEqual({ tag: "H2", ...ramp.overlay });
       await expect(getComputedStyle(popup).animationName).toBe(
         `ds-slide-in-${side === "right" ? "end" : side === "left" ? "start" : side}`,
       );
@@ -109,7 +158,6 @@ export const EdgesAndScrolling: Story = {
   },
 };
 
-const widths: SheetWidth[] = ["small", "medium", "large", "xlarge", "fullscreen"];
 const expectedWidth: Record<SheetWidth, number> = {
   small: 320,
   medium: 420,
@@ -288,7 +336,7 @@ export const CustomPortal: Story = {
       <SheetTrigger render={<Button />}>Open custom sheet</SheetTrigger>
       <SheetPortal>
         <SheetOverlay />
-        <BaseDialog.Popup className="fixed inset-y-0 end-0 z-50 flex w-full max-w-[360px] flex-col gap-150 bg-surface-overlay p-200 text-default shadow-overlay">
+        <BaseDialog.Popup className="fixed inset-y-0 end-0 z-overlay flex w-full max-w-[360px] flex-col gap-150 bg-surface-overlay p-200 text-default shadow-overlay">
           <SheetTitle>Custom review sheet</SheetTitle>
           <p className="font-body">Portal and blanket frame a caller-owned layout.</p>
           <SheetClose render={<Button />}>Done</SheetClose>
@@ -311,39 +359,51 @@ export const CustomPortal: Story = {
   },
 };
 
-/** Every prop on SheetContent. */
-export const Playground: StoryObj<typeof SheetContent> = {
-  args: { side: "end", width: "medium", showCloseButton: true },
-  argTypes: {
-    side: { control: "inline-radio", options: ["start", "end", "top", "bottom"] },
-    width: { control: "inline-radio", options: widths },
-    showCloseButton: { control: "boolean" },
-  },
-  render: (args) => (
-    <Sheet>
-      <SheetTrigger render={<Button />}>Open sheet</SheetTrigger>
-      <SheetContent {...args}>
-        <SheetHeader>
-          <SheetTitle>Member details</SheetTitle>
-          <SheetDescription>Dana Whitfield</SheetDescription>
-        </SheetHeader>
-        <SheetBody>
-          <p className="font-body">Joined in March. Owns four open tasks.</p>
-        </SheetBody>
-        <SheetFooter>
-          <SheetClose render={<Button />}>Done</SheetClose>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+/** A sheet's words, drawn without the sheet: its title, its count and its footer. */
+function SheetWords({ title, count, footer }: { title: string; count: string; footer: ReactNode }) {
+  return (
+    <Stack space="space.150">
+      <Text weight="semibold">{title}</Text>
+      <Text size="small" color="color.text.subtle">
+        {count}
+      </Text>
+      <Inline space="space.100" alignInline="end" shouldWrap>
+        {footer}
+      </Inline>
+    </Stack>
+  );
+}
+
+/** The mistake the page is written to prevent, beside the right way. */
+export const Dont: Story = {
+  tags: ["!manifest"],
+  render: () => (
+    <Pair
+      do={
+        <SheetWords
+          title="Add controls to Flight computer"
+          count="12 chosen of 340"
+          footer={
+            <>
+              <Button variant="subtle">Cancel</Button>
+              <Button variant="primary">Add 12 controls</Button>
+            </>
+          }
+        />
+      }
+      doText="The title says what the selection is for and where it goes, and the primary says how many it adds."
+      dont={
+        <SheetWords
+          title="Select items"
+          count="12 selected"
+          footer={<Button variant="primary">Done</Button>}
+        />
+      }
+      dontText="A title and a Done that say neither what is chosen nor what happens to it."
+    />
   ),
   play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement),
-      body = within(canvasElement.ownerDocument.body);
-    const trigger = canvas.getByRole("button", { name: "Open sheet" });
-    await userEvent.click(trigger);
-    const popup = await body.findByRole("dialog", { name: "Member details" });
-    await userEvent.click(within(popup).getByRole("button", { name: "Done" }));
-    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
-    await waitFor(() => expect(trigger).toHaveFocus());
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("button", { name: "Add 12 controls" })).toBeVisible();
   },
 };

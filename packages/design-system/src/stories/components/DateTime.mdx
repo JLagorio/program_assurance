@@ -6,6 +6,8 @@ import * as Stories from "./DateTime.stories";
 
 # DateTime, RelativeTime and DateLabel
 
+**Status: Stable.**
+
 Every date the product shows, through one formatter: the LedgerProvider's locale and time zone. Each renders a `<time>` with its ISO value, and the full value ("Friday, September 18, 2026 at 5:30 PM Pacific Daylight Time") opens in a tooltip on hover and keyboard focus and is the description a screen reader hears.
 
 | Part         | Shows                                                 | For                                                      |
@@ -24,7 +26,7 @@ Use them wherever the product prints a date, in place of `toLocaleString`, `toLo
 
 ## Days and instants
 
-An ISO day (`"2026-09-18"`) is a calendar day: it never shifts, whoever reads it. An instant (an ISO timestamp with an offset, a Date or epoch milliseconds) is shown in the provider's zone, UTC unless the product sets one, so the same instant reads Sep 18 in Los Angeles and Sep 19 in Tokyo. Mount one LedgerProvider with the reader's zone near the root and keep it the same on the server and the client. Nothing (`null`, `undefined`, `""`) shows [Absent](?path=/docs/components-typography--docs), with `absentLabel` for a screen reader. A string that is neither warns once and shows as written.
+An ISO day (`"2026-09-18"`) is a calendar day: it never shifts, whoever reads it. An instant (an ISO timestamp with an offset, a Date or epoch milliseconds) is shown in the provider's zone, UTC unless the product sets one, so the same instant reads Sep 18 in Los Angeles and Sep 19 in Tokyo. Mount one LedgerProvider with the reader's zone near the root and keep it the same on the server and the client. Nothing (`null`, `undefined`, `""`) shows [Absent](?path=/docs/components-typography--docs), which a screen reader hears as "Not recorded", or as `absentLabel` ("No due date") where the context says more. A string that is neither warns once and shows as written.
 
 `format` is `date` (a day's default), `datetime` (an instant's default), `time`, or Intl options of your own; `showTimeZone` adds the zone's short name to an instant.
 
@@ -53,11 +55,15 @@ A due date that says where it stands. Overdue (danger), due today and due within
 
 <Canvas of={Stories.DueDates} />
 
+An expiry is not work that falls due: the day an authorization or a piece of evidence stops holding takes `kind="expiry"`, with the same states and tones and its own words, Expired, Expires today and Expires tomorrow.
+
+<Canvas of={Stories.Expiries} />
+
 ## Accessibility
 
 - The `<time>` element carries the machine value; the words are the visible text and the full value is the description on focus.
 - The tooltip is a visual copy of that description, hidden from assistive technology.
-- DateLabel's state is in its words ("Overdue", "Due today"), which a screen reader reads with the date.
+- DateLabel's state is in its words ("Overdue", "Due today", or "Expired" for an expiry), which a screen reader reads with the date.
 
 ## Props
 
@@ -79,8 +85,10 @@ A due date that says where it stands. Overdue (danger), due today and due within
 
 ## Related
 
-[DatePicker](?path=/docs/components-datepicker--docs) · [DateTimeField](?path=/docs/components-datetimefield--docs) · [Timeline](?path=/docs/components-timeline--docs) · [DataTable](?path=/docs/patterns-datatable--docs) · [Badge](?path=/docs/components-badge--docs)
+[DatePicker](?path=/docs/components-datepicker--docs) · [DateTimeField](?path=/docs/components-datetimefield--docs) · [Timeline](?path=/docs/components-timeline--docs) · [DataTable](?path=/docs/patterns-data-table--docs) · [Badge](?path=/docs/components-badge--docs)
 
 ## Don't
+
+An instant goes through DateTime, in the provider's one zone and format, never `toLocaleString` in the host's zone. A due date the reader acts on is a DateLabel, which says Overdue in words beside the date, never red text alone.
 
 <Canvas of={Stories.Dont} />

@@ -16,12 +16,14 @@ renderedIconButton: <MoreIcon> is sized by hand ("size-icon-small") inside <Drop
 ```text
 plain: Table.Cell is one style. Drop font-semibold; only Badge, Dot, Indicator or a status colour may differ.
 rendered: <Slot> renders <Table.Cell>, which is one style. Drop font-semibold; only Badge, Dot, Indicator or a status colour may differ.
+forwarded: <Cell> forwards className to <Table.Cell>, which is one style. Drop font-semibold; only Badge, Dot, Indicator or a status colour may differ.
 ```
 
 ## ledger/dialog-footer-order
 
 ```text
 order: <Button> dismisses the dialog but comes after the primary action in <DialogFooter>. Put it first: the safe answer leads, and the primary ends the footer, where a keyboard reader reaches it last.
+forwarded: <Button> dismisses the dialog but comes after the primary action in <Actions>, which forwards its children to <DialogFooter>. Put it first: the safe answer leads, and the primary ends the footer.
 ```
 
 ## ledger/id-not-blue
@@ -29,6 +31,7 @@ order: <Button> dismisses the dialog but comes after the primary action in <Dial
 ```text
 blue: <Id> is blue (text-brand) with no link or button around it, and blue means link, so it reads as a link that goes nowhere. Drop text-brand, or make the Id the text of the TextLink that opens its record.
 rendered: <Badge> renders <Id> in blue (text-brand) with no link or button around it, and blue means link. Drop text-brand, or make the Id the text of the TextLink that opens its record.
+forwarded: <Code> forwards className to <Id>, which is then blue (text-brand) with no link or button around it, and blue means link. Drop text-brand, or make the Id the text of the TextLink that opens its record.
 ```
 
 ## ledger/link-button-navigation
@@ -36,6 +39,8 @@ rendered: <Badge> renders <Id> in blue (text-brand) with no link or button aroun
 ```text
 rendersLink: Button renders a link (<Link>). Use LinkButton with render={<Link … />}: Base UI's Button expects a native button, and a link must stay a link.
 navigates: Button navigates from onClick. Use LinkButton with the router Link in render, so the destination can be opened in a new tab, copied and announced as a link.
+forwardedLink: <Go> forwards render to <Button>, which then renders a link (<Link>). Use LinkButton with render={<Link … />}: Base UI's Button expects a native button, and a link must stay a link.
+forwardedNavigates: <Go> forwards onClick to <Button>, which then navigates. Use LinkButton with the router Link in render, so the destination can be opened in a new tab, copied and announced as a link.
 ```
 
 ## ledger/no-alpha-token
@@ -78,8 +83,12 @@ colour: "dark:bg-red-500" sets a dark colour by hand, outside the contrast check
 renamed: Shell.NavItem is deprecated; use Shell.SideNav.Item.
 renamedWithDetail: Shell.NavGroup is deprecated; use Shell.SideNav.Section (label is heading).
 propValue: Switch size="sm" is deprecated; use size="small".
+propAndValue: AlertDialogContent size="sm" is deprecated; use width="xsmall".
+valueRemoved: InputGroupButton size="icon-sm" is deprecated: an icon-only button takes size="small", icon={<Icon />} and a label.
 prop: Item.Group labelledBy is deprecated; use aria-labelledby.
 propRemoved: Chart.Area baseline is deprecated: an Area always starts at zero; remove the prop.
+propMoved: Chart.Donut label here is the words in the middle, which is centerLabel now; label names the ring.
+pixels: KeyValue labelWidth={88} is a pixel width, which is deprecated; use labelWidth="narrow", or labelWidth="auto" in a page body.
 ```
 
 ## ledger/no-deprecated-token
@@ -133,6 +142,7 @@ confirm: window.confirm() opens the browser's own dialog, which blocks the page 
 
 ```text
 unknown: "-border-default" is neither a token utility nor a documented structural utility.
+physical: "text-left" names a physical side, which holds when the page reads right to left. Use "text-start", which mirrors with it.
 paletteAlpha: "bg-red-500/50" is a Tailwind palette colour with alpha; neither is on the tokens. Red is bg-danger-subtle (non-interactive critical information fill…) or bg-accent-red-subtler (a red tint that carries no meaning: an avatar…).
 negative: "-p-200" generates no CSS: padding cannot be negative. Drop the minus, or pull the content outward with Bleed.
 negativeLength: "md:-size-full" generates no CSS: width and height cannot be negative. Drop the minus.
@@ -144,6 +154,7 @@ size: "w-4" is Tailwind's width step 4 (16px). A width is a layout part's, a par
 spaceKey: "p-210" names no key on Ledger's space scale, so it generates no CSS. 210 falls between p-200 (16px) and p-250 (20px).
 series: "fill-chart-categorical-9" steps past fill-chart-categorical-*, which runs 1 to 7, so it generates no CSS.
 typo: "bg-surfce" is "bg-surface" misspelt, so it generates no CSS.
+partOwn: "grid-cols-main-rail" is the Shell's own layout, kept inside the part, so the class generates no CSS. Render the rail as Shell.Aside beside Main.
 replace: "text-muted-foreground" becomes "text-subtle".
 sameValue: "p-4" becomes "p-200", the same 16px.
 stale: "src/generated/lint.json" is stale: src/styles/layout.css has changed since the token build wrote it. Run npm run build:tokens in @ledger/design-system.
@@ -153,6 +164,7 @@ stale: "src/generated/lint.json" is stale: src/styles/layout.css has changed sin
 
 ```text
 autoFocus: <Input autoFocus> is inside DialogContent, where it races the overlay's own focus and can lose where focus returns on close. Give DialogContent initialFocus, a ref to this element, and finalFocus where the opener goes away.
+forwarded: <input autoFocus> is inside <Pane>, which forwards its children to <DialogContent>, where it races the overlay's own focus. Give DialogContent initialFocus, a ref to this element, and finalFocus where the opener goes away.
 ```
 
 ## ledger/no-plain-alert-role
@@ -167,6 +179,20 @@ plainAlert: role="alert" on a plain element. Use Alert with role="alert" for a f
 attribute: <rect> fill="#f00" is a literal colour. Write currentColor with a text or icon token class, or token("color.chart.…") in a chart.
 entry: <Line activeDot> fill is a literal colour (#fff). Write token("color.chart.…"), or give the Chart part its tone.
 list: COLORS holds literal colours (#0088FE, #00C49F). A chart series takes token("color.chart.…") or chartColor(); an icon takes currentColor.
+```
+
+## ledger/no-restyle
+
+```text
+prop: "tabular-nums" on <Text> is its numeric prop. Write numeric and drop the class.
+propKey: "font-heading-overlay" on <Text> changes the type its size prop sets. Drop it; "font-heading-overlay" is Heading size="overlay".
+own: "gap-0" on <RadioGroup> changes the gap it sets itself (gap-100, components/radio-group.tsx:16). Drop it; a different gap is a change to RadioGroup.
+repeats: "rounded-large" on <Card> repeats what it sets itself (components/card.tsx:39). Drop it; it changes nothing.
+derived: "text-subtle" on <Box> changes the text colour it sets from backgroundColor (primitives/box.tsx:50). Drop it; a different text colour is a change to Box.
+contract: "pt-200" on <DatePicker> is outside what its className takes (layout). Drop it; anything else is a change to DatePicker.
+cell: "font-body-small" on <Stack> restyles the table cell it is drawn in. Cells are one style: drop "font-body-small".
+useProp: "tabular-nums" becomes numeric.
+descendant: "[&_button]:bg-danger-bold" styles the elements inside the one it is on and reaches <Button>, a kit part this file does not own. Drop it; set each part through its own props.
 ```
 
 ## ledger/no-static-design-value
@@ -217,6 +243,8 @@ stale: "src/generated/lint.json" is stale: src/generated/utilities.css has chang
 ```text
 style: DialogContent sets maxWidth in style (620px). Use width="medium" (520px), the nearest step; the kit owns the steps and their narrowing to the window.
 className: SheetContent sets its width with "sm:max-w-layout-measure" (720px). Use width="large" (760px), the nearest step; the kit owns the steps and their narrowing to the window.
+forwardedStyle: <Pane> forwards style to <DialogContent>, which then sets maxWidth in style (480px). Use width="medium" (520px), the nearest step; the kit owns the steps and their narrowing to the window.
+forwardedClassName: <Pane> forwards className to <DialogContent>, which then sets its width with "max-w-[480px]" (480px). Use width="medium" (520px), the nearest step; the kit owns the steps and their narrowing to the window.
 ```
 
 ## ledger/prefer-text-link
@@ -225,6 +253,7 @@ className: SheetContent sets its width with "sm:max-w-layout-measure" (720px). U
 textLinkTarget: target="_blank" on <TextLink> opens a new tab without saying so. Use newTab, which sets rel and says "(opens in a new tab)", and drop target and rel.
 renderTarget: target="_blank" on <Link> in a TextLink's render opens a new tab the TextLink does not announce. Give the TextLink newTab, which sets rel and says "(opens in a new tab)", and drop target.
 newTab: <a target="_blank"> opens a new tab without saying so. Use TextLink newTab (render={<a … />} for a router link).
+forwardedTarget: target="_blank" on <Out>, which forwards target to <TextLink>, opens a new tab without saying so. Use newTab, which sets rel and says "(opens in a new tab)", and drop target and rel.
 linkClasses: <NavLink> carries the text-link classes. Compose it with TextLink render and drop text-brand and hover:underline.
 buttonLink: <Button variant="link" asChild> wraps a link in a Button styled as text. A link that reads as text is TextLink (render={<Link … />} for a router link); variant="link" is for an action.
 ```
@@ -239,7 +268,8 @@ override: "flex-wrap" on <TabsList> changes how the tab strip wraps, sizes or sc
 ## ledger/product-responsive-table
 
 ```text
-responsive: <DataTable> leaves responsive off, so a narrow frame scrolls it sideways instead of folding lower-priority columns into More fields. Write responsive after any prop spreads.
+off: <DataTable> sets responsive={false}, so a narrow frame scrolls it sideways instead of folding lower-priority columns into More fields. A DataTable is responsive by default: remove the prop.
+spread: <DataTable> leaves responsive to a prop spread, which can turn it off and scroll the table sideways instead of folding lower-priority columns into More fields. Write responsive after the spread.
 ```
 
 ## ledger/readable-classes
@@ -260,6 +290,18 @@ expression: <Id> className comes from an expression the lint cannot read, so no 
 ```text
 destination: TextLink needs a destination: an href, or a router link in render. An action that reads as text is a Button.
 anchor: TextLink must render an anchor or a router link. Use Button for an action.
+forwardedDestination: <More> forwards its props to <TextLink>, which needs a destination: an href, or a router link in render. An action that reads as text is a Button.
+forwardedAnchor: <More> forwards render to <TextLink>, which must render an anchor or a router link. Use Button for an action.
+```
+
+## ledger/use-heading
+
+```text
+heading: <h2> carries type classes ("font-heading-page"), which copy a title's look by hand. Write <Heading size="page" as="h2">, or the kit part that draws this title (PageHeader.Title, Section.Title, DialogTitle).
+anySize: <h1> carries type classes ("text-xl", "font-bold", "leading-tight", 1 more), which copy a title's look by hand. Write a Heading at the title it matches, size="page", "section", "overlay" or "display", with as="h1", or the kit part that draws the title.
+rendered: <h2> in DialogTitle's render carries type classes ("font-heading-page"), which change the type DialogTitle sets for its title. Render the bare element, render={<h2 />}, and let the part draw the type.
+toHeading: <h2> becomes <Heading size="page" as="h2">, without its type classes.
+dropType: <h2> drops its type classes ("font-heading-page").
 ```
 
 ## ledger/use-primitives
@@ -268,6 +310,7 @@ anchor: TextLink must render an anchor or a router link. Use Button for an actio
 element: <p> carries layout classes (flex, gap-100). Use <Inline space="space.100">.
 primitive: <Stack> carries layout classes (pt-200). Wrap it in <Box paddingBlockStart="space.200"> (a Stack has no padding).
 rendered: <Slot> renders <Stack>, which then carries layout classes (pt-200). Wrap it in <Box paddingBlockStart="space.200"> (a Stack has no padding).
+forwarded: <Pane> forwards className to <Stack>, which then carries layout classes (pt-200). For the <Stack> inside <Pane>: wrap it in <Box paddingBlockStart="space.200"> (a Stack has no padding).
 ```
 
 ## Words carried as data
@@ -414,10 +457,10 @@ style: DialogContent sets width in style (480px). Use width="medium" (520px), th
 className: DialogContent sets its width with "w-96" (384px). Use width="small" (400px), the nearest step; the kit owns the steps and their narrowing to the window.
 style: SheetContent sets width in style (480px). Use width="medium" (420px), the nearest step; the kit owns the steps and their narrowing to the window.
 className: SheetContent sets its width with "w-96" (384px). Use width="medium" (420px), the nearest step; the kit owns the steps and their narrowing to the window.
-style: AlertDialogContent sets width in style (480px). Use size="default" (440px), the nearest step; the kit owns the steps and their narrowing to the window.
-className: AlertDialogContent sets its width with "w-96" (384px). Use size="default" (440px), the nearest step; the kit owns the steps and their narrowing to the window.
-style: DrawerContent sets width in style (480px). A drawer spans the window's edge and takes no width: drop it.
-className: DrawerContent sets its width with "w-96" (384px). A drawer spans the window's edge and takes no width: drop it.
+style: AlertDialogContent sets width in style (480px). Use width="medium" (520px), the nearest step; the kit owns the steps and their narrowing to the window.
+className: AlertDialogContent sets its width with "w-96" (384px). Use width="small" (400px), the nearest step; the kit owns the steps and their narrowing to the window.
+style: DrawerContent sets width in style (480px). Use width="medium" (384px), the nearest step; the kit owns the steps and their narrowing to the window.
+className: DrawerContent sets its width with "w-96" (384px). Use width="medium" (384px), the step of that width; the kit owns the steps and their narrowing to the window.
 ```
 
 ### ledger/no-deprecated-name
@@ -434,7 +477,7 @@ renamedWithDetail: DensityProvider is deprecated; use nothing (density is a tabl
 renamedWithDetail: DensitySwitch is deprecated; use Compact rows in DataTable.Columns (or Table density for a table that is compact by design).
 renamedWithDetail: useDensity is deprecated; use table.options.meta.density (a DataTable's own; the global hook is removed).
 renamedWithDetail: densityScript is deprecated; use nothing (remove the retired script; table density needs no before-paint script).
-renamedWithDetail: Collapsible.Group is deprecated; use Accordion (use multiple, root defaultValue and AccordionItem with explicit stable values; see the disclosure migration guide).
+renamedWithDetail: Collapsible.Group is deprecated; use Accordion (use multiple, root defaultValue and AccordionItem with explicit stable values; see Guidance/Upgrading, Collapsible).
 renamedWithDetail: LegacyCollapsible is deprecated; use Collapsible (compose CollapsibleTrigger/CollapsibleContent; grouped sections use Accordion with AccordionItem).
 renamedWithDetail: LegacyAccordion is deprecated; use Accordion (use explicit AccordionItem, AccordionTrigger and AccordionContent parts).
 renamedWithDetail: controlBase is deprecated; use Input, Textarea or InputGroup (compose the field part, which carries the control's classes).
@@ -447,25 +490,73 @@ renamed: PreviewRail is deprecated; use Shell.Aside.
 renamedWithDetail: PreviewSplit is deprecated; use Shell.Panel (the preview is the Shell's panel area).
 renamedWithDetail: Panel is deprecated; use Shell.Panel (the panel is an area of the Shell).
 renamed: Block is deprecated; use Section.
+renamedWithDetail: ActionBar is deprecated; use PageHeader (the trail in PageHeader.Lead, the verbs in PageHeader.Actions and the state in the Details rail, Shell.Aside; a blocked action is a Button with disabledReason).
 propValue: Switch size="sm" is deprecated; use size="small".
 propValue: Switch size="default" is deprecated; use size="medium".
 propValue: SelectTrigger size="sm" is deprecated; use size="small".
 propValue: SelectTrigger size="default" is deprecated; use size="medium".
 propValue: Card size="sm" is deprecated; use size="small".
 propValue: Card size="default" is deprecated; use size="medium".
+propValue: Toggle size="sm" is deprecated; use size="small".
+propValue: Toggle size="default" is deprecated; use size="medium".
+propValue: Toggle size="lg" is deprecated; use size="large".
+propValue: ToggleGroup size="sm" is deprecated; use size="small".
+propValue: ToggleGroup size="default" is deprecated; use size="medium".
+propValue: ToggleGroup size="lg" is deprecated; use size="large".
+propValue: ToggleGroupItem size="sm" is deprecated; use size="small".
+propValue: ToggleGroupItem size="default" is deprecated; use size="medium".
+propValue: ToggleGroupItem size="lg" is deprecated; use size="large".
+propValue: InputGroupButton size="xs" is deprecated; use size="xsmall".
+propValue: InputGroupButton size="sm" is deprecated; use size="small".
+valueRemoved: InputGroupButton size="icon-xs" is deprecated: an icon-only button takes size="xsmall", icon={<Icon />} and a label.
+valueRemoved: InputGroupButton size="icon-sm" is deprecated: an icon-only button takes size="small", icon={<Icon />} and a label.
+propAndValue: AlertDialogContent size="sm" is deprecated; use width="xsmall".
+propAndValue: AlertDialogContent size="default" is deprecated; use width="small".
 propValue: DropdownMenuItem variant="destructive" is deprecated; use variant="danger".
 prop: Item.Group labelledBy is deprecated; use aria-labelledby.
-prop: Chart.Donut label is deprecated; use centerLabel.
+prop: Chart.Donut name is deprecated; use label.
+propMoved: Chart.Donut label here is the words in the middle, which is centerLabel now; label names the ring.
 prop: Chart.Scatter name is deprecated; use nameKey.
 prop: Chart.Frame status is deprecated; use state.
 propRemoved: Chart.Area baseline is deprecated: an Area always starts at zero; remove the prop.
+prop: Table.Group open is deprecated; use expanded.
+propRemoved: Table.Group onToggle is deprecated: use onExpandedChange, which is called with the next state.
+propRemoved: Table.Tree onToggle is deprecated: use onExpandedChange, which is called with the next state.
+propRemoved: Table.Disclosure onToggle is deprecated: use onExpandedChange, which is called with the next state.
 prop: Tree.Item expanded is deprecated; use isExpanded.
+propRemoved: Tree.Item onToggle is deprecated: use onExpandedChange, which is called with the next state.
+prop: Shell.Profile role is deprecated; use description.
+prop: Editable.Text onChange is deprecated; use onValueChange.
+prop: Editable.Select onChange is deprecated; use onValueChange.
+propValue: Heading size="large" is deprecated; use size="display".
+propValue: Heading size="medium" is deprecated; use size="page".
+propValue: Heading size="xsmall" is deprecated; use size="overlay".
+valueRemoved: Heading size="small" is deprecated: a page or record title is size="page" (20/26 semibold, with as="h2" to stay an h2), a section's title size="section" (13/18 semibold).
+pixels: KeyValue labelWidth={88} is a pixel width, which is deprecated; use labelWidth="narrow", or labelWidth="auto" in a page body.
+pixels: KeyValue labelWidth={120} is a pixel width, which is deprecated; use labelWidth="default", or labelWidth="auto" in a page body.
+pixels: KeyValue labelWidth={160} is a pixel width, which is deprecated; use labelWidth="wide", or labelWidth="auto" in a page body.
+pixels: KeyValue.Group labelWidth={88} is a pixel width, which is deprecated; use labelWidth="narrow", or labelWidth="auto" in a page body.
+pixels: KeyValue.Group labelWidth={120} is a pixel width, which is deprecated; use labelWidth="default", or labelWidth="auto" in a page body.
+pixels: KeyValue.Group labelWidth={160} is a pixel width, which is deprecated; use labelWidth="wide", or labelWidth="auto" in a page body.
+propRemoved: Inspector groups is deprecated: compose the groups as children, each an <Inspector.Group title="…"> around its KeyValue rows.
 prop: ItemGroup labelledBy is deprecated; use aria-labelledby.
-prop: ChartDonut label is deprecated; use centerLabel.
+prop: ChartDonut name is deprecated; use label.
+propMoved: ChartDonut label here is the words in the middle, which is centerLabel now; label names the ring.
 prop: ChartScatter name is deprecated; use nameKey.
 prop: ChartFrame status is deprecated; use state.
 propRemoved: ChartArea baseline is deprecated: an Area always starts at zero; remove the prop.
+prop: TableGroup open is deprecated; use expanded.
+propRemoved: TableGroup onToggle is deprecated: use onExpandedChange, which is called with the next state.
+propRemoved: TreeCell onToggle is deprecated: use onExpandedChange, which is called with the next state.
+propRemoved: DisclosureCell onToggle is deprecated: use onExpandedChange, which is called with the next state.
 prop: TreeItem expanded is deprecated; use isExpanded.
+propRemoved: TreeItem onToggle is deprecated: use onExpandedChange, which is called with the next state.
+prop: Profile role is deprecated; use description.
+prop: EditableText onChange is deprecated; use onValueChange.
+prop: EditableSelect onChange is deprecated; use onValueChange.
+pixels: KeyValueGroup labelWidth={88} is a pixel width, which is deprecated; use labelWidth="narrow", or labelWidth="auto" in a page body.
+pixels: KeyValueGroup labelWidth={120} is a pixel width, which is deprecated; use labelWidth="default", or labelWidth="auto" in a page body.
+pixels: KeyValueGroup labelWidth={160} is a pixel width, which is deprecated; use labelWidth="wide", or labelWidth="auto" in a page body.
 prop: Shell.AppLogo detail is deprecated; use secondaryName.
 prop: Shell.SideNav.Section label is deprecated; use heading.
 ```

@@ -29,12 +29,21 @@ import {
   DialogHeader,
   DialogTitle,
   Field,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "../../components";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { useCallback, useId, useEffect, useMemo, useRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import { Inline, Stack } from "../../primitives";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Combobox",
@@ -102,6 +111,8 @@ export const Defaults: Story = {
     await userEvent.type(input, "s");
     const open = await page.findByRole("listbox", { name: "Framework" });
     const group = input.closest<HTMLElement>('[data-slot="input-group"]')!;
+    // One combobox needs no unnamed group around it, although Base UI's input group sets one.
+    await expect(group).not.toHaveAttribute("role");
     const popup = open.closest<HTMLElement>('[data-slot="combobox-content"]')!;
     await waitFor(() =>
       expect(Math.round(popup.getBoundingClientRect().width)).toBe(
@@ -159,7 +170,9 @@ export const Searchable: Story = {
     await userEvent.keyboard("{Enter}");
     await expect(input).toHaveValue("Svelte");
     await expect(input).toHaveFocus();
-    await userEvent.click(canvas.getByRole("button", { name: "Clear framework" }));
+    const clear = canvas.getByRole("button", { name: "Clear framework" });
+    await expect(clear).toHaveAttribute("data-slot", "combobox-clear");
+    await userEvent.click(clear);
     await expect(input).toHaveValue("");
     await userEvent.type(input, "nothing-matches");
     await waitFor(() => expect(page.getByText("No frameworks found.")).toBeVisible());
@@ -303,12 +316,12 @@ export const Groups: Story = {
     const security = page.getByRole("option", { name: "Security" });
     await expect(security).toHaveAttribute("aria-disabled", "true");
     await expect(security).toHaveAccessibleDescription("Unavailable during maintenance");
-    // The separator is a visible hairline (presentational inside a listbox), and the heading is
-    // the Select's.
+    // The separator is a visible hairline (presentational inside a listbox), drawn by its
+    // ::before inside its own padding, and the heading is the Select's.
     const separator = canvasElement.ownerDocument.querySelector<HTMLElement>(
       '[data-slot="combobox-separator"]',
     )!;
-    const line = getComputedStyle(separator);
+    const line = getComputedStyle(separator, "::before");
     await expect(line.borderTopWidth).toBe("1px");
     await expect(line.borderTopColor).not.toBe("rgba(0, 0, 0, 0)");
     const heading = page.getByText("Operations");
@@ -1024,5 +1037,65 @@ export const BoundInField: Story = {
       }),
     );
     await expect(assessor).toHaveValue("Priya Natarajan");
+  },
+};
+
+const priorities = { low: "Low", medium: "Medium", high: "High", critical: "Critical" };
+
+/**
+ * A fixed set of a few known values is a Select: the reader sees the four priorities at a glance.
+ * A Combobox for them asks the reader to type where a glance would do.
+ */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <Pair
+      do={
+        <Field className="max-w-full" style={{ width: 240 }}>
+          <FieldLabel>Priority</FieldLabel>
+          <Select items={priorities} defaultValue="high">
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(priorities).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+      }
+      doText="Four priorities in a Select: one press shows them all."
+      dont={
+        <Field className="max-w-full" style={{ width: 240 }}>
+          <FieldLabel>Finding priority</FieldLabel>
+          <Combobox items={Object.values(priorities)}>
+            <ComboboxInput placeholder="Choose a priority" />
+            <ComboboxContent>
+              <ComboboxEmpty>No priorities found.</ComboboxEmpty>
+              <ComboboxList>
+                {(item: string) => (
+                  <ComboboxItem key={item} value={item}>
+                    {item}
+                  </ComboboxItem>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+        </Field>
+      }
+      dontText="Four priorities in a Combobox: a field to type in, for a list the reader could read at once."
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // The Select is a button that shows its value; the Combobox is a field to type in.
+    const select = canvas.getByRole("combobox", { name: "Priority" });
+    await expect(select.tagName).not.toBe("INPUT");
+    await expect(select).toHaveTextContent("High");
+    await expect(canvas.getByRole("combobox", { name: "Finding priority" }).tagName).toBe("INPUT");
   },
 };

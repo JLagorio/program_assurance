@@ -6,6 +6,8 @@ import * as Stories from "./PageHeader.stories";
 
 # PageHeader
 
+**Status: Stable.**
+
 One composable page header for collections and records. Two columns: Heading, what names the page, on the left; Actions on the right; Lead across both above them. Native props and refs pass through every part.
 
 <Canvas of={Stories.Collection} />
@@ -13,6 +15,8 @@ One composable page header for collections and records. Two columns: Heading, wh
 <Canvas of={Stories.Constrained} />
 
 Compose a Heading with a Title, an optional Lead and one primary action or an Actions menu. A breadcrumb is the Lead through `render={<Breadcrumb />}`; a category line is a Lead with text. A register's header is its name alone: its create action is the toolbar's primary. A record's header is the trail, the name and its actions: a code goes in the trail, and record fields, owner and status editors and property strips belong in the work area or the Aside, not in PageHeader or a preview header.
+
+<Canvas of={Stories.DoDont} />
 
 Use PageHeader.Title once for the page's h1. Actions sit at the end of the title's row while the row can give the title its measure (14rem) beside them; when it cannot, on a phone or in a narrow panel, they take the next row, right-aligned, and the title wraps at its full width. The same rule holds on a page, in a Shell.Panel and in a Sheet (the Stacked story). Keep action groups on one line; use a menu when several actions compete for space.
 
@@ -38,7 +42,7 @@ Description is for a page outside the register and record shapes, such as a sett
 
 ## Title levels
 
-The Title is the h1 on a page. Inside a [HeadingLevelProvider](?path=/docs/primitives-heading--docs) it takes that level instead: a preview's inner record header, in a panel or a sheet whose outline starts at 2, renders the record's name as an h2 with the same type style. The content after that header goes one level below through a HeadingLevelProvider without `level`, so its Sections are h3s. `render` sets the element outright, `render={<h2 />}`, or a sheet's or a dialog's own title part where the surface needs its title for its accessible name. Never copy the Title's classes onto a raw heading: a change to the title's style would miss it.
+The Title is a [Heading](?path=/docs/primitives-heading--docs) at `page`, 20/26 semibold, and the h1 on a page. Inside a [HeadingLevelProvider](?path=/docs/primitives-heading--docs) it takes that level instead: a preview's inner record header, in a panel or a sheet whose outline starts at 2, renders the record's name as an h2 with the same type style. The content after that header goes one level below through a HeadingLevelProvider without `level`, so its Sections are h3s. `render` sets the element outright, `render={<h2 />}`, or a sheet's or a dialog's own title part where the surface needs its title for its accessible name; either keeps the `page` size. A title the PageHeader does not draw is a Heading at the size it matches, never a raw heading with the Title's classes: a change to the ramp would miss it.
 
 <Canvas of={Stories.TitleLevels} />
 

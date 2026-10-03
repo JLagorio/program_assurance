@@ -468,5 +468,14 @@ export default {
         length("width", "288px"),
       ],
     },
+    {
+      // A component of the file hands its style on to a part other than the one its className
+      // reaches: the advice is for where the style lands, the <div>, or the Stack inside it.
+      code: 'import { Stack } from "@ledger/design-system"; function W({ className, style }) { return <div style={style}><Stack className={className}>x</Stack></div>; } function V({ className, style }) { return <div className={className}><Stack style={style}>x</Stack></div>; } export const A = () => <><W className="min-w-0" style={{ gap: 16 }} /><V className="min-w-0" style={{ gap: 16 }} /></>;',
+      errors: [
+        spaceLength("gap", "16px", 'Use space="space.200" on a Stack or an Inline, or gap-200'),
+        spaceLength("gap", "16px", 'For the <Stack> inside <V>, use space="space.200"'),
+      ],
+    },
   ],
 };

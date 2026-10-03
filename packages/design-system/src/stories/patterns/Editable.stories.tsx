@@ -6,6 +6,7 @@ import { useId, useRef, useState } from "react";
 
 import {
   Editable,
+  EditableDate,
   EditableSelect,
   EditableText,
   type EditableOption,
@@ -30,11 +31,17 @@ import {
   type Tone,
 } from "../../components";
 import { Box, Inline, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Patterns/Editable",
+  component: EditableText,
+  subcomponents: { EditableSelect, EditableDate },
   parameters: { layout: "padded" },
 } satisfies Meta;
 export default meta;
@@ -65,8 +72,8 @@ function RailDemo() {
         <Editable.Text
           label="Name"
           value={name}
-          onChange={setName}
-          save={() => wait(700)}
+          onValueChange={setName}
+          save={() => new Promise((resolve) => setTimeout(resolve, 700))}
           validate={(v) => (v.trim() ? null : "A name is required.")}
         />
       </KeyValue>
@@ -74,18 +81,18 @@ function RailDemo() {
         <Editable.Text
           label="Owner"
           value={owner}
-          onChange={setOwner}
+          onValueChange={setOwner}
           placeholder="Unassigned"
-          save={() => wait(700)}
+          save={() => new Promise((resolve) => setTimeout(resolve, 700))}
         />
       </KeyValue>
       <KeyValue label="Status">
         <Editable.Select
           label="Status"
           value={status}
-          onChange={setStatus}
+          onValueChange={setStatus}
           options={statuses}
-          save={() => wait(500)}
+          save={() => new Promise((resolve) => setTimeout(resolve, 500))}
           render={(s) => (
             <Badge variant="secondary" tone={toneOf[s]}>
               {s}
@@ -100,7 +107,7 @@ function RailDemo() {
 
 /** A record's facts in its rail: the name, the owner and the status edit in place; the frequency is plain text and lines up with them. Click a value, change it, and it saves. */
 export const Rail: Story = {
-  render: () => <RailDemo />,
+  render: RailDemo,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const page = within(canvasElement.ownerDocument.body);
@@ -136,14 +143,23 @@ export const Rail: Story = {
     await waitFor(() => expect(status).not.toHaveAttribute("aria-disabled", "true"));
 
     // The row is the field's height, so opening the field does not move the rail; the field's box
-    // reaches space.050 past the text column on both sides, and the value keeps that reach (its
-    // clip margin, where the browser takes one), so the field's sides and the row's focus ring are
-    // whole in a KeyValue that truncates.
+    // reaches space.050 past the text column on both sides. A KeyValue whose value is an Editable
+    // does not clip it, so the field's sides, the tint and the row's focus ring are whole in every
+    // browser, and the value stays on the text column with the plain ones.
     const name = canvas.getByRole("button", { name: /Name: Segregation/ });
     const value = name.closest("dd")!;
+    const pair = value.closest("dl")!;
     const rowHeight = name.getBoundingClientRect().height;
-    // The reach stays inside the Editable at the end, so the truncating value is not cut, and
-    // neither a hover nor focus on the row reveals its text in a tooltip.
+    await expect(getComputedStyle(value).overflowX).toBe("visible");
+    const plain = canvas.getByText("Quarterly");
+    // Both start on the text column: their left edges, or their right ones in right to left.
+    const startOf = (el: Element) =>
+      getComputedStyle(el).direction === "rtl"
+        ? el.getBoundingClientRect().right
+        : el.getBoundingClientRect().left;
+    await expect(Math.abs(startOf(name) - startOf(plain))).toBeLessThan(0.5);
+    // The reach stays inside the Editable at the end, so the value is not cut, and neither a
+    // hover nor focus on the row reveals its text in a tooltip.
     await expect(value.scrollWidth).toBeLessThanOrEqual(value.clientWidth);
     await expect(
       canvasElement.ownerDocument.querySelector('[data-slot="truncate-full-text"]'),
@@ -154,14 +170,18 @@ export const Rail: Story = {
     const valueBox = value.getBoundingClientRect();
     await expect(fieldBox.height).toBe(rowHeight);
     await expect(value.scrollWidth).toBeLessThanOrEqual(value.clientWidth);
-    const margin = CSS.supports("overflow-clip-margin", "4px")
-      ? parseFloat(getComputedStyle(value).overflowClipMargin) || 0
-      : 0;
-    if (margin) {
-      await expect(getComputedStyle(value).overflowY).toBe("clip");
-      await expect(fieldBox.left).toBeGreaterThanOrEqual(valueBox.left - margin - 0.5);
-      await expect(fieldBox.right).toBeLessThanOrEqual(valueBox.right + margin + 0.5);
-    } else await expect(getComputedStyle(value).overflowY).toBe("visible");
+    // Both sides of the field are inside the KeyValue: the start in the gap before the value,
+    // the end inside the value. In right to left the start is the right.
+    const pairBox = pair.getBoundingClientRect();
+    if (getComputedStyle(field).direction === "rtl") {
+      await expect(fieldBox.right).toBeLessThanOrEqual(pairBox.right + 0.5);
+      await expect(fieldBox.right).toBeGreaterThan(valueBox.right);
+      await expect(fieldBox.left).toBeGreaterThanOrEqual(valueBox.left - 0.5);
+    } else {
+      await expect(fieldBox.left).toBeGreaterThanOrEqual(pairBox.left - 0.5);
+      await expect(fieldBox.left).toBeLessThan(valueBox.left);
+      await expect(fieldBox.right).toBeLessThanOrEqual(valueBox.right + 0.5);
+    }
     await press(field, "Escape");
     const row = canvas.getByRole("button", { name: /Name: Segregation/ });
     await expect(row).toHaveFocus();
@@ -206,7 +226,7 @@ function RosterDemo() {
         <Editable.Select<Member>
           label="Owner"
           value={owner}
-          onChange={setOwner}
+          onValueChange={setOwner}
           options={roster}
           render={(name) => <Person name={name} />}
           save={(next) =>
@@ -221,7 +241,7 @@ function RosterDemo() {
         <Editable.Select<Member>
           label="Reviewer"
           value={reviewer}
-          onChange={setReviewer}
+          onValueChange={setReviewer}
           options={roster}
           searchable
           validate={(next) =>
@@ -325,7 +345,7 @@ function TableDemo() {
                 label="Next action"
                 value={r.next}
                 placeholder="Add next action"
-                onChange={(next) => set(r.id, { next })}
+                onValueChange={(next) => set(r.id, { next })}
                 save={() => wait(500)}
               />
             </Table.Cell>
@@ -334,7 +354,7 @@ function TableDemo() {
                 label="Assessment"
                 options={statuses}
                 value={r.status}
-                onChange={(status) => set(r.id, { status })}
+                onValueChange={(status) => set(r.id, { status })}
                 save={() => wait(500)}
                 render={(s) => (
                   <Badge variant="secondary" tone={toneOf[s]}>
@@ -384,7 +404,7 @@ function ValidationDemo() {
         <Editable.Text
           label="Acronym"
           value={acronym}
-          onChange={setAcronym}
+          onValueChange={setAcronym}
           validate={(v) =>
             v.trim().length === 0
               ? "An acronym is required."
@@ -462,7 +482,7 @@ function FailingDemo() {
         <Editable.Text
           label="Owner"
           value={owner}
-          onChange={setOwner}
+          onValueChange={setOwner}
           onDraftChange={setDraft}
           onEditingChange={setEditing}
           onCancel={() => setCancels((count) => count + 1)}
@@ -553,16 +573,21 @@ function States() {
   return (
     <Stack space="space.050" className="w-layout-list max-w-full">
       <KeyValue label="Text">
-        <Editable.Text label="Text" value={name} onChange={setName} save={() => wait(600)} />
+        <Editable.Text label="Text" value={name} onValueChange={setName} save={() => wait(600)} />
       </KeyValue>
       <KeyValue label="Empty">
-        <Editable.Text label="Empty" value={empty} onChange={setEmpty} save={() => wait(600)} />
+        <Editable.Text
+          label="Empty"
+          value={empty}
+          onValueChange={setEmpty}
+          save={() => wait(600)}
+        />
       </KeyValue>
       <KeyValue label="Placeholder">
         <Editable.Text
           label="Placeholder"
           value={hinted}
-          onChange={setHinted}
+          onValueChange={setHinted}
           placeholder="Add a name"
           save={() => wait(600)}
         />
@@ -571,7 +596,7 @@ function States() {
         <Editable.Text
           label="Invalid"
           value={name}
-          onChange={setName}
+          onValueChange={setName}
           validate={(v) => (v.length < 4 ? "At least four characters." : null)}
           save={() => wait(600)}
         />
@@ -580,7 +605,7 @@ function States() {
         <Editable.Text
           label="Save fails"
           value={failing}
-          onChange={setFailing}
+          onValueChange={setFailing}
           save={() => wait(400).then(() => Promise.reject(new Error("Offline")))}
         />
       </KeyValue>
@@ -589,7 +614,7 @@ function States() {
           label="Select"
           options={statuses}
           value={status}
-          onChange={setStatus}
+          onValueChange={setStatus}
           save={() => wait(600)}
           render={(v) => (
             <Badge variant="secondary" tone={toneOf[v]}>
@@ -605,6 +630,7 @@ function States() {
 
 /** Resting, empty, with a placeholder, validating, failing to save, a select, and a plain value beside them for the alignment. Edit a row to see editing, saving and saved: an open field is a click away. */
 export const EditableMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <States />
@@ -625,7 +651,9 @@ export const EditableMatrix: Story = {
 
 function FactOwner() {
   const [owner, setOwner] = useState("Priya Natarajan");
-  return <Editable.Text label="Owner" value={owner} onChange={setOwner} save={() => wait(500)} />;
+  return (
+    <Editable.Text label="Owner" value={owner} onValueChange={setOwner} save={() => wait(500)} />
+  );
 }
 
 function Dashes() {
@@ -639,7 +667,7 @@ function Dashes() {
             <Editable.Text
               label="Owner"
               value={a}
-              onChange={setA}
+              onValueChange={setA}
               placeholder="Unassigned"
               save={() => wait(300)}
             />
@@ -653,7 +681,7 @@ function Dashes() {
             <Editable.Text
               label="Owner"
               value={b}
-              onChange={setB}
+              onValueChange={setB}
               placeholder="Click to edit"
               save={() => wait(300)}
             />
@@ -677,7 +705,7 @@ function StatusAsText() {
               label="Status"
               options={statuses}
               value={a}
-              onChange={setA}
+              onValueChange={setA}
               save={() => wait(300)}
               render={(s) => (
                 <Badge variant="secondary" tone={toneOf[s]}>
@@ -692,7 +720,7 @@ function StatusAsText() {
       dont={
         <Box className="w-layout-list max-w-full">
           <KeyValue label="Status">
-            <Editable.Text label="Status" value={b} onChange={setB} save={() => wait(300)} />
+            <Editable.Text label="Status" value={b} onValueChange={setB} save={() => wait(300)} />
           </KeyValue>
         </Box>
       }
@@ -753,7 +781,7 @@ function FormOfEditables() {
             <Editable.Text
               label="Title"
               value={title}
-              onChange={setTitle}
+              onValueChange={setTitle}
               placeholder="What was found"
               save={() => wait(300)}
             />
@@ -762,7 +790,7 @@ function FormOfEditables() {
             <Editable.Text
               label="Owner"
               value={owner}
-              onChange={setOwner}
+              onValueChange={setOwner}
               placeholder="Who fixes it"
               save={() => wait(300)}
             />
@@ -776,6 +804,7 @@ function FormOfEditables() {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <FormOfEditables />
@@ -795,7 +824,7 @@ function PlaygroundText({ label, placeholder, value: initial }: PlaygroundArgs) 
         <Editable.Text
           label={label}
           value={value}
-          onChange={setValue}
+          onValueChange={setValue}
           placeholder={placeholder}
           save={() => wait(500)}
         />
@@ -819,7 +848,7 @@ function SerializedSaveDemo() {
         <Editable.Text
           label="Owner"
           value={value}
-          onChange={setValue}
+          onValueChange={setValue}
           save={(next) =>
             next === "Immediate"
               ? Promise.reject(new Error("Immediate rejection"))
@@ -894,7 +923,7 @@ function MultilineDemo() {
           multiline
           label="Success criteria"
           value={value}
-          onChange={setValue}
+          onValueChange={setValue}
           save={async () => {}}
           validate={(next) => (next.trim() ? null : "Describe the success criteria.")}
         />
@@ -959,13 +988,18 @@ function DialogDemo() {
         </DialogHeader>
         <DialogBody>
           <KeyValue label="Owner">
-            <EditableText label="Owner" value={owner} onChange={setOwner} save={() => wait(200)} />
+            <EditableText
+              label="Owner"
+              value={owner}
+              onValueChange={setOwner}
+              save={() => wait(200)}
+            />
           </KeyValue>
           <KeyValue label="Status">
             <EditableSelect
               label="Status"
               value={status}
-              onChange={setStatus}
+              onValueChange={setStatus}
               options={statuses}
               save={() => wait(200)}
             />
@@ -1036,7 +1070,7 @@ function LockedDemo() {
           <EditableText
             label="Title"
             value={title}
-            onChange={setTitle}
+            onValueChange={setTitle}
             lockedReason={reason("Title")}
             save={() => hold("Title")}
           />
@@ -1045,7 +1079,7 @@ function LockedDemo() {
           <EditableText
             label="Owner"
             value={owner}
-            onChange={setOwner}
+            onValueChange={setOwner}
             lockedReason={reason("Owner")}
             save={() => hold("Owner")}
           />
@@ -1054,7 +1088,7 @@ function LockedDemo() {
           <EditableSelect
             label="Status"
             value={status}
-            onChange={setStatus}
+            onValueChange={setStatus}
             options={statuses}
             lockedReason={reason("Status")}
             save={() => hold("Status")}
@@ -1065,7 +1099,7 @@ function LockedDemo() {
         multiline
         label="Statement"
         value={statement}
-        onChange={setStatement}
+        onValueChange={setStatement}
         lockedReason={reason("Statement")}
         save={() => hold("Statement")}
       />
@@ -1162,7 +1196,7 @@ function OptionsDemo() {
           <EditableSelect
             label="Owner"
             value={owner}
-            onChange={setOwner}
+            onValueChange={setOwner}
             options={people}
             emptyLabel="Unassigned"
             render={(_, name) => <Person name={name} />}
@@ -1173,7 +1207,7 @@ function OptionsDemo() {
           <EditableSelect
             label="Method"
             value={method}
-            onChange={setMethod}
+            onValueChange={setMethod}
             options={methods}
             placeholder="Not chosen"
             save={() => wait(200)}
@@ -1219,5 +1253,189 @@ export const Options: Story = {
     await waitFor(() => expect(method).toHaveAccessibleName("Method: Interview"));
     await expect(canvas.getByLabelText("Stored method")).toHaveTextContent("interview");
     await waitFor(() => expect(page.queryByRole("listbox")).toBeNull());
+  },
+};
+
+function DatesDemo() {
+  const [due, setDue] = useState("2026-10-14");
+  const [planned, setPlanned] = useState("");
+  const [draft, setDraft] = useState<string | null>(null);
+  return (
+    <Stack space="space.100" className="w-layout-list max-w-full">
+      <KeyValue.Group>
+        <KeyValue label="Due">
+          <Editable.Date
+            label="Due"
+            value={due}
+            onValueChange={setDue}
+            onDraftChange={setDraft}
+            placeholder="No due date"
+            save={() => wait(200)}
+          />
+        </KeyValue>
+        <KeyValue label="Planned completion">
+          <EditableDate
+            label="Planned completion"
+            value={planned}
+            onValueChange={setPlanned}
+            placeholder="Not planned"
+            min="2026-10-01"
+            save={(next) =>
+              next === "2026-12-31"
+                ? wait(200).then(() =>
+                    Promise.reject(new Error("The plan must end before the year closes.")),
+                  )
+                : wait(200)
+            }
+          />
+        </KeyValue>
+      </KeyValue.Group>
+      <Text size="xsmall" color="color.text.subtle">
+        Stored due: <output aria-label="Stored due">{due || "none"}</output> · Stored plan:{" "}
+        <output aria-label="Stored plan">{planned || "none"}</output> · Draft:{" "}
+        <output aria-label="Date draft">{draft ?? "None"}</output>
+      </Text>
+    </Stack>
+  );
+}
+
+/** A calendar day edited in place, as `Editable.Date`: the value is an ISO day shown in the reader's words. The field reads a typed day ("10/20/2026", "Oct 20") and its button, or Alt+Down, opens the month, where choosing a day commits at once. Text that is not a day, or a day before `min`, keeps the field open with what fixes it; a refused save keeps the day for Try again, as on Editable.Text. */
+export const Dates: Story = {
+  render: () => <DatesDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    const stored = canvas.getByLabelText("Stored due");
+    // At rest the day is in the reader's words, as a time element holding the ISO day.
+    const row = canvas.getByRole("button", { name: "Due: Oct 14, 2026" });
+    await expect(row.querySelector("time")).toHaveAttribute("dateTime", "2026-10-14");
+
+    // A typed day commits on Enter, and focus goes back to the row.
+    await userEvent.click(row);
+    const field = canvas.getByRole("textbox", { name: "Due" });
+    await expect(field).toHaveFocus();
+    await expect(field).toHaveValue("Oct 14, 2026");
+    await userEvent.clear(field);
+    await userEvent.type(field, "10/20/2026");
+    await expect(canvas.getByLabelText("Date draft")).toHaveTextContent("2026-10-20");
+    await press(field, "Enter");
+    const saved = await canvas.findByRole("button", { name: "Due: Oct 20, 2026" });
+    await expect(saved).toHaveFocus();
+    await expect(stored).toHaveTextContent("2026-10-20");
+    await waitFor(() => expect(canvas.getByLabelText("Date draft")).toHaveTextContent("None"));
+
+    // Text that is not a day keeps the field open and says what fixes it; Escape puts it back.
+    await userEvent.click(saved);
+    const again = canvas.getByRole("textbox", { name: "Due" });
+    await userEvent.clear(again);
+    await userEvent.type(again, "someday");
+    await press(again, "Enter");
+    await expect(again).toBeInTheDocument();
+    await expect(again).toHaveAttribute("aria-invalid", "true");
+    await expect(again).toHaveAccessibleDescription(/^Enter a date such as /);
+    await press(again, "Escape");
+    await expect(await canvas.findByRole("button", { name: "Due: Oct 20, 2026" })).toHaveFocus();
+    await expect(stored).toHaveTextContent("2026-10-20");
+
+    // The month: Alt+Down opens it, and a day chosen there commits at once.
+    await userEvent.click(canvas.getByRole("button", { name: "Due: Oct 20, 2026" }));
+    await press(canvas.getByRole("textbox", { name: "Due" }), "ArrowDown", { altKey: true });
+    const month = within(await page.findByRole("dialog", { name: "Choose a date for Due" }));
+    await userEvent.click(month.getByRole("button", { name: /October 22, 2026/ }));
+    await waitFor(() => expect(stored).toHaveTextContent("2026-10-22"));
+    await waitFor(() =>
+      expect(canvas.getByRole("button", { name: "Due: Oct 22, 2026" })).toHaveFocus(),
+    );
+
+    // A day before `min` is refused with the earliest day it takes.
+    const plan = canvas.getByRole("button", { name: "Planned completion: Not planned" });
+    await userEvent.click(plan);
+    const planField = canvas.getByRole("textbox", { name: "Planned completion" });
+    await userEvent.type(planField, "9/30/2026");
+    await press(planField, "Enter");
+    await expect(planField).toHaveAccessibleDescription("Enter Oct 1, 2026 or later.");
+
+    // A refused save puts the old value back and keeps the day for Try again or Discard.
+    await userEvent.clear(planField);
+    await userEvent.type(planField, "12/31/2026");
+    await press(planField, "Enter");
+    const refused = await canvas.findByRole("button", { name: "Planned completion: Not planned" });
+    await waitFor(() =>
+      expect(refused).toHaveAccessibleDescription("The plan must end before the year closes."),
+    );
+    await expect(canvas.getByLabelText("Stored plan")).toHaveTextContent("none");
+    await expect(
+      canvas.getByRole("button", { name: "Try again to save Planned completion" }),
+    ).toBeVisible();
+    // Reopening shows the refused day; Escape drops it and the committed value stays.
+    await userEvent.click(refused);
+    const reopened = canvas.getByRole("textbox", { name: "Planned completion" });
+    await expect(reopened).toHaveValue("Dec 31, 2026");
+    await press(reopened, "Escape");
+    const settled = await canvas.findByRole("button", { name: "Planned completion: Not planned" });
+    await expect(settled).toHaveFocus();
+    await expect(settled).not.toHaveAccessibleDescription();
+  },
+};
+
+function DueDatesDemo() {
+  const [due, setDue] = useState("2020-03-02");
+  const [done, setDone] = useState(false);
+  return (
+    <Stack space="space.100" className="w-layout-list max-w-full">
+      <KeyValue.Group>
+        <KeyValue label="Due">
+          <Editable.Date
+            label="Due"
+            value={due}
+            onValueChange={setDue}
+            due
+            complete={done}
+            placeholder="No due date"
+            save={() => wait(200)}
+          />
+        </KeyValue>
+        <KeyValue label="Planned completion">
+          <Editable.Date
+            label="Planned completion"
+            value="2020-03-02"
+            due
+            complete
+            placeholder="Not planned"
+            save={() => wait(200)}
+          />
+        </KeyValue>
+      </KeyValue.Group>
+      <Inline>
+        <Button size="small" variant="secondary" onClick={() => setDone((value) => !value)}>
+          {done ? "Reopen the task" : "Mark the task done"}
+        </Button>
+      </Inline>
+    </Stack>
+  );
+}
+
+/** A due day with `due`: at rest the row says where the day stands beside it, as DateLabel does in a register, with its icon, tone and words (Overdue, Due today, Due tomorrow, Due in 2 days), judged against the reader's today. The words are part of the row's name. `complete` shows a finished task's day plainly. */
+export const DueDates: Story = {
+  render: () => <DueDatesDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // A day before the reader's today reads Overdue, in the row and in its name.
+    const row = canvas.getByRole("button", { name: /^Due: Mar 2, 2020\s*, Overdue$/ });
+    const state = row.querySelector('[data-slot="editable-date-state"]');
+    await expect(state).toHaveAttribute("data-state", "overdue");
+    await expect(state).toHaveTextContent("Overdue");
+    await expect(row.querySelector("time")).toHaveAttribute("dateTime", "2020-03-02");
+    // Done work's day reads plainly.
+    await userEvent.click(canvas.getByRole("button", { name: "Mark the task done" }));
+    const plain = await canvas.findByRole("button", { name: "Due: Mar 2, 2020" });
+    await expect(plain.querySelector('[data-slot="editable-date-state"]')).toBeNull();
+    const finished = canvas.getByRole("button", { name: "Planned completion: Mar 2, 2020" });
+    await expect(finished.querySelector('[data-slot="editable-date-state"]')).toBeNull();
+    // Reopened, it is overdue again.
+    await userEvent.click(canvas.getByRole("button", { name: "Reopen the task" }));
+    await expect(
+      await canvas.findByRole("button", { name: /^Due: Mar 2, 2020\s*, Overdue$/ }),
+    ).toBeVisible();
   },
 };

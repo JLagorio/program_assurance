@@ -4,7 +4,8 @@
 // Outputs
 //   tokens.css       :root palette + light semantic + non-colour vars; [data-color-mode="dark"] block; prefers-color-scheme fallback;
 //                    increased contrast: prefers-contrast: more, and [data-contrast-mode="more" | "no-preference"]
-//   theme.css        @theme inline: maps space / radius / shadow / weight / easing / breakpoint / container tokens onto Tailwind namespaces
+//   theme.css        @theme inline: maps space / radius / shadow / weight / easing / breakpoint / container tokens onto Tailwind namespaces,
+//                    and the query thresholds onto --query-*, which a condition reads through theme() and no class or variant does
 //   reset.css        @theme inline: removes Tailwind's default namespaces (a consumer opts in when fully migrated)
 //   utilities.css    one @utility per token, on its own property only (bg-*, text-*, icon-*, border-*, font-*, h-*, ...)
 //   tokens.ts        the name union, token(), tokenValue(), the utility allowlist
@@ -138,6 +139,12 @@ function utilityFor(token) {
     // `theme(--container-split)` in an @container query), written as its literal value.
     if (b === "container")
       return { kind: "theme", ns: "container", key: rest(p, 2), cls: null, literal: true };
+    // A threshold that is neither a window breakpoint nor a container size (a short window's
+    // height, the panel header's width): a theme key in a namespace no utility or variant reads,
+    // so a stylesheet's condition takes it by name (`theme(--query-short-window)`) and no class
+    // can, written as its literal value.
+    if (b === "query")
+      return { kind: "theme", ns: "query", key: rest(p, 2), cls: null, literal: true };
     // A part's own size (a popover's width, a menu's narrowest) is read by that part through
     // token() in its style, so it has no class: a caller sizes a part through its props.
     if (b === "part") return null;
@@ -159,6 +166,9 @@ function utilityFor(token) {
     }
     return { kind: "utility", cls: `h-${b}${p[2] ? "-" + rest(p, 2) : ""}`, prop: "height" };
   }
+  // A stacking layer (layer.overlay): `z-overlay`, which sets the z-index from its token. A part's
+  // own stacking inside itself keeps Tailwind's z-0, z-10 and z-20.
+  if (a === "layer") return { kind: "utility", cls: `z-${rest(p, 1)}`, prop: "z-index" };
   if (a === "motion") {
     if (b === "duration")
       return { kind: "utility", cls: `duration-${rest(p, 2)}`, prop: "transition-duration" };
@@ -275,6 +285,7 @@ const groups = {
   opacity: [],
   duration: [],
   ease: [],
+  z: [],
 };
 const allClasses = [];
 const classByToken = {};

@@ -7,6 +7,8 @@ import * as Stories from "./Chart.stories";
 
 # Chart
 
+**Status: Stable.**
+
 Data drawn on the chart tokens. `Chart` is the Frame: the figure that names a plot, keys it, holds its states, keeps the way back from a drill-down, and lays the same numbers out as a table one toggle away. Each kind of plot is its own part with its own page: [Bar](?path=/docs/patterns-chart-bar--docs), [Line](?path=/docs/patterns-chart-line--docs), [Area](?path=/docs/patterns-chart-area--docs), [Donut](?path=/docs/patterns-chart-donut--docs), [Sparkline](?path=/docs/patterns-chart-sparkline--docs), [Scatter](?path=/docs/patterns-chart-scatter--docs), [Treemap](?path=/docs/patterns-chart-treemap--docs) and [Heatmap](?path=/docs/patterns-chart-heatmap--docs). Recharts draws; the kit decides the paint, the marks, the grid, the tooltip, the legend and the motion, so a chart reads like the rest of the page in both modes. The colour rules follow the data-visualization method, and the categorical order is validated, not eyeballed.
 
 <Canvas of={Stories.Framed} />
@@ -90,7 +92,7 @@ The Frame follows the part it holds. When the part changes, the legend, the tabl
 
 The height is the whole plot, axis band included, so a card never scrolls inside itself. `height` takes pixels when a layout must. The Frame's states stand in at the same height, so nothing moves when the data arrives. A Donut and a Sparkline are sized in pixels, since they sit inline, and narrow to a container narrower than that; a Heatmap's `size` is its cell's height.
 
-The width is the container's. In a Frame narrower than 32rem the header wraps: the tools stay on the title's row, the legend and the actions take the next row from the start, and the plot keeps its height. A column chart keeps a label under every bar, on two lines or cut with an ellipsis where the category is narrow; a line's categories thin by the text they print. Reference and band labels move apart rather than overlap and stay within the plot's width, clear of the axis ticks, shortening with an ellipsis when the row is too short for them, and while a mark's details card is open the tooltip stands down, so on a phone the two never stack. An expanded chart is the same Frame at `large` in a Dialog at its `xlarge` width, 960px at most, and the plot inside redraws at `large` whatever size it was given inline: 320px high, a ring 320px across at least, a heatmap's cells at 40px. Hidden series and the chart/table choice are shared with the original: expanding preserves them, and changes made in the dialog remain after it closes.
+The width is the container's. In a Frame narrower than 32rem the header wraps: the tools stay on the title's row, the legend and the actions take the next row from the start, and the plot keeps its height. A column chart keeps a label under every bar, on two lines or cut with an ellipsis where the category is narrow; a line's or an area's labels fit the room between their points the same way, and step over whole points only where a point cannot hold three characters. Reference and band labels move apart rather than overlap and stay within the plot's width, clear of the axis ticks, shortening with an ellipsis when the row is too short for them, and while a mark's details card is open the tooltip stands down, so on a phone the two never stack. An expanded chart is the same Frame at `large` in a Dialog at its `xlarge` width, 960px at most, and the plot inside redraws at `large` whatever size it was given inline: 320px high, a ring 320px across at least, a heatmap's cells at 40px. Hidden series and the chart/table choice are shared with the original: expanding preserves them, and changes made in the dialog remain after it closes.
 
 <Canvas of={Stories.Narrow} />
 
@@ -121,7 +123,7 @@ On a dashboard the charts are in the page's outline: inside a HeadingLevelProvid
 - **`data`**, **`x`**, **`xLabel`** on the Frame, for the table, and for a Bar, Line or Area inside that is given none. Unsaid, the table takes the part's own.
 - **`format`** and **`formatX`** for the numbers and the categories, set once on the Frame and inherited by the part, the tooltip, the card and the table. A part's own format wins in the plot, and the table follows it.
 - **`size`** and **`height`** on the Frame, for the part that sets neither and for the states that stand in for the plot.
-- On every part: **`label`** to name a plot outside a Frame, **`loading`** to draw its skeleton, **`onSelect`** to hear a choice, **`details`** to open a card on it. A Bar, Line, Area and Sparkline take their box's native props and a ref, and `aria-describedby` describes the plot's svg. Each part's page lists its own.
+- On every part: **`label`** to name a plot outside a Frame, **`loading`** to draw its skeleton, **`onSelect`** to hear a choice, **`details`** to open a card on it. A Bar, Line, Area and Sparkline, and Chart.Legend and Chart.Scale, take their box's native props and a ref, and `aria-describedby` describes the plot's svg. Each part's page lists its own.
 
 ## Choosing a mark
 
@@ -186,7 +188,7 @@ Two more scales exist for a Heatmap: `color.chart.sequential.1` to `5`, blue fro
 | Axis titles  | `font.body.xsmall` · `color.text.subtle`                                                                                                                |
 | Labels       | `font.body.xsmall` · `color.text.subtle` · tabular                                                                                                      |
 | Tooltip      | `elevation.surface.overlay` · `color.border` · `radius.medium` · `elevation.shadow.overlay` · `space.150` inline, `space.100` block                     |
-| Card         | The [Popover](?path=/docs/components-popover--docs)'s surface, anchored to the mark · the value in `font.heading.small`                                 |
+| Card         | The [Popover](?path=/docs/components-popover--docs)'s surface, anchored to the mark · the value in `font.heading.page` at medium                        |
 | Hover cursor | `color.background.neutral.subtle.hovered` behind a bar · `color.border.bold` across a line chart                                                        |
 | Reference    | `color.chart.<tone>` · 1px dashed 4 3 · label `font.body.xsmall` in `color.text.subtlest`, above the plot for a vertical line                           |
 | Hovered mark | `color.chart.<tone>.hovered`: one step darker in light, one lighter in dark                                                                             |
@@ -197,7 +199,7 @@ Two more scales exist for a Heatmap: `color.chart.sequential.1` to `5`, blue fro
 | Focus        | `color.border.focused` on the plot, keyboard only                                                                                                       |
 | Motion       | `motion.duration.slow` on `motion.easing.standard` for the marks (a sparkline's draw in place) · `motion.duration.fast` for the tooltip and the dimming |
 
-Every chart colour clears 3:1 on `elevation.surface` in both modes. Text never wears a chart colour: values, labels and legends stay in the text tokens, and a coloured mark beside them carries identity. The one place text sits on a chart colour is a status Heatmap cell, which is the Badge's fill and text, already in the contrast test.
+Every series tone, the categorical set and Other, and each one's hovered step, clears 3:1 as a mark on every surface a chart sits on, in every mode; the contrast test holds them. A Heatmap's scales run down to the surface on purpose, so their faint steps do not: `color.chart.sequential.1` to `3`, `color.chart.diverging.negative`, `midpoint` and `positive`, and zero's `color.chart.track` fall under 3:1 in light, in dark or in both. A cell or a key's swatch in one of them wears a 1px `color.border.bold` edge, which holds 3:1, and an empty cell is a dashed edge with no fill, so no cell sinks into the page or passes for a low value; the values are one Values press away and in the table. A wash (an area's fill, a band, a ring's track) is decoration beside a mark that holds 3:1. Text never wears a chart colour: values, labels and legends stay in the text tokens, and a coloured mark beside them carries identity. The one place text sits on a chart colour is a status Heatmap cell, which is the Badge's fill and text, already in the contrast test.
 
 ## Accessibility
 
@@ -239,9 +241,12 @@ The Frame, `Chart`, accepts native figure attributes, events, styles and refs. `
 - [Progress](?path=/docs/components-progress--docs): one value against a whole, and a stacked bar of a register's parts.
 - [Table](?path=/docs/components-table--docs): the twin every chart carries, and the answer past seven classes.
 - [Badge](?path=/docs/components-badge--docs): the tone table a status series reads.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#chart): the Frame's earlier `status` and the parts' earlier spellings.
 - [Popover](?path=/docs/components-popover--docs): the surface a card is. [Dialog](?path=/docs/components-dialog--docs): the surface an expanded chart is. [DropdownMenu](?path=/docs/components-dropdownmenu--docs): the Download menu.
 - [Tokens/Color](?path=/docs/tokens-color--docs): the chart tokens, both modes. [Tokens/Motion](?path=/docs/tokens-motion--docs): the durations.
 
 ## Don't
+
+Two measures of different scale are two charts, one axis each, never one plot. Every chart sits in its Frame with a title, a period and its table, and loading holds the plot's height with its silhouette, never a spinner.
 
 <Canvas of={Stories.Dont} />

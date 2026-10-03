@@ -57,6 +57,27 @@ export const allocateRequirementSchema = z
   .strict();
 export type AllocateRequirement = z.infer<typeof allocateRequirementSchema>;
 
+/** The most requirements one allocation to a system takes: a whole program's register. */
+export const ALLOCATE_TO_SYSTEM_LIMIT = 5000;
+
+export const allocateToSystemSchema = z
+  .object({
+    systemId: uuid,
+    /** One row per chosen requirement revision, each with an id chosen once for every attempt. */
+    targets: z
+      .array(z.object({ id: uuid, requirementRevisionId: uuid }))
+      .min(1, "Choose a requirement.")
+      .max(ALLOCATE_TO_SYSTEM_LIMIT),
+    rationale: z.string().trim().max(10000).nullable(),
+    /**
+     * A later attempt after one whose answer was lost: the ids are looked up first, so only what
+     * the earlier attempt did not write is inserted. A first attempt sends the one insert.
+     */
+    retry: z.boolean().optional(),
+  })
+  .strict();
+export type AllocateToSystem = z.infer<typeof allocateToSystemSchema>;
+
 /** A database refusal in the reader's words: what happened and what to do next. */
 function failure(error: NonNullable<PostgrestFailure>, noun: string): Error {
   // 23514 is every check the schema makes; only the history guard's is about the revision. The
@@ -194,7 +215,7 @@ export async function allocateRequirement(
         row.rationale !== rationale)
     )
       throw new Error(
-        "An allocation changed after this attempt. Your choices are kept; close and allocate again to review them.",
+        "An allocation changed after this attempt. Close and allocate again to see the current allocations.",
       );
   }
   const missing = values.targets.filter((target) => !found.has(target.id));
@@ -211,6 +232,79 @@ export async function allocateRequirement(
         })),
       )
       .setHeader("Authorization", `Bearer ${token}`);
+    if (error) throw failure(error, "allocation");
+  }
+  return { allocationIds: ids, created: missing.length };
+}
+
+/** How many ids one lookup names, so a request's address stays short. */
+const LOOKUP_CHUNK = 100;
+
+/**
+ * Allocate many requirement revisions to one system in one insert, with one rationale for all:
+ * the Allocate requirements picker. A single insert is one statement, so a refusal writes none of
+ * them. A retry (`retry: true`) first reads which of its ids an earlier attempt wrote, inserts
+ * only the rest, and refuses when a row with one of those ids now says something else.
+ */
+export async function allocateRequirementsToSystem(
+  client: Client,
+  { tenantId, token }: Context,
+  request: AllocateToSystem,
+): Promise<{ allocationIds: string[]; created: number }> {
+  const values = allocateToSystemSchema.parse(request);
+  const rationale = values.rationale?.trim() || null;
+  const ids = values.targets.map((target) => target.id);
+  const found = new Map<
+    string,
+    { requirement_revision_id: string; system_id: string | null; rationale: string | null }
+  >();
+  if (values.retry)
+    for (let offset = 0; offset < ids.length; offset += LOOKUP_CHUNK) {
+      const existing = await client
+        .from("requirement_allocations")
+        .select("id, requirement_revision_id, system_id, rationale")
+        .eq("tenant_id", tenantId)
+        .in("id", ids.slice(offset, offset + LOOKUP_CHUNK))
+        .setHeader("Authorization", `Bearer ${token}`);
+      if (existing.error) throw failure(existing.error, "allocation");
+      for (const row of (existing.data ?? []) as {
+        id: string;
+        requirement_revision_id: string;
+        system_id: string | null;
+        rationale: string | null;
+      }[])
+        found.set(row.id, row);
+    }
+  for (const target of values.targets) {
+    const row = found.get(target.id);
+    if (
+      row &&
+      (row.requirement_revision_id !== target.requirementRevisionId ||
+        row.system_id !== values.systemId ||
+        row.rationale !== rationale)
+    )
+      throw new Error(
+        "An allocation changed after this attempt. Close and allocate again to see the current allocations.",
+      );
+  }
+  const missing = values.targets.filter((target) => !found.has(target.id));
+  if (missing.length) {
+    const { error } = await client
+      .from("requirement_allocations")
+      .insert(
+        missing.map((target) => ({
+          id: target.id,
+          tenant_id: tenantId,
+          requirement_revision_id: target.requirementRevisionId,
+          system_id: values.systemId,
+          rationale,
+        })),
+      )
+      .setHeader("Authorization", `Bearer ${token}`);
+    if (error?.code === "23505")
+      throw new Error(
+        "One of these requirements was allocated to this system in another session. Close and allocate again to see what is left.",
+      );
     if (error) throw failure(error, "allocation");
   }
   return { allocationIds: ids, created: missing.length };
@@ -254,6 +348,23 @@ export function useAllocateRequirement() {
     mutationFn: async (request: AllocateRequirement) => {
       const token = await requireIdentity(workspace);
       return allocateRequirement(database(), { tenantId: workspace.tenantId, token }, request);
+    },
+    onSuccess: () => refresh(["requirement_allocations"]),
+  });
+}
+
+/** Allocate the chosen requirement revisions to one system in one write. */
+export function useAllocateRequirementsToSystem() {
+  const workspace = useWorkspace();
+  const refresh = useRefresh();
+  return useMutation({
+    mutationFn: async (request: AllocateToSystem) => {
+      const token = await requireIdentity(workspace);
+      return allocateRequirementsToSystem(
+        database(),
+        { tenantId: workspace.tenantId, token },
+        request,
+      );
     },
     onSuccess: () => refresh(["requirement_allocations"]),
   });

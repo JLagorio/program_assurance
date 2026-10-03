@@ -36,6 +36,8 @@ export const panelCompactQuery = () => `(width < ${tokenValue("dimension.breakpo
 /** From `lg` to below `dimension.breakpoint.panel`, an open panel shows the side nav collapsed (the icon rail, or hidden), so Main keeps room beside the panel; from the panel breakpoint it stays as the reader left it. */
 export const panelNarrowQuery = () =>
   `(width >= ${tokenValue("dimension.breakpoint.lg")}) and (width < ${tokenValue("dimension.breakpoint.panel")})`;
+/** From `dimension.breakpoint.aside` the Aside is the rail, beside Main or following it; below it, the rail only where it sits beside Main, and the Details disclosure where it would follow Main. */
+export const asideQuery = () => `(width >= ${tokenValue("dimension.breakpoint.aside")})`;
 /** Milliseconds the flyout stays open after the pointer leaves it. */
 export const PEEK_CLOSE_DELAY = 200;
 /** The main area, for the focus bookkeeping that returns focus to the page. */

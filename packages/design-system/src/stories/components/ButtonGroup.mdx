@@ -6,7 +6,26 @@ import * as Stories from "./ButtonGroup.stories";
 
 # ButtonGroup
 
+**Status: Stable.**
+
 Join related actions, split buttons or controls. Each child keeps its own behavior and accessible name.
+
+## When to use it
+
+- **Actions that belong together**, joined into one control: Export and Print, a zoom's out and in.
+- **A split action**: the primary action, then an icon menu of the other ways to do it ("Create system", then "More ways to create a system").
+- **A field and the action it takes**: a number of days and Save.
+
+Not for one choice among several: a ButtonGroup adds no selection, so that is a [ToggleGroup](?path=/docs/components-togglegroup--docs), whose pressed item says which is chosen. Not for a row of unrelated actions: that is a toolbar or an `Inline`. Not for a list of actions that do not all earn a button: that is a [DropdownMenu](?path=/docs/components-dropdownmenu--docs).
+
+<Canvas of={Stories.DoDont} />
+
+## Content
+
+- Each button is a verb ("Export", "Print"), or an IconButton whose `label` names its action ("Zoom out").
+- The group's `aria-label` names the set ("Export", "Zoom"), or `aria-labelledby` points at a visible name.
+- A split action's menu button is named for what it opens: "More ways to create a system".
+- ButtonGroupText is a label or a value beside the buttons ("110%" between Zoom out and Zoom in), at their `size`.
 
 ## Anatomy
 
@@ -20,8 +39,6 @@ Join related actions, split buttons or controls. Each child keeps its own behavi
 
 ButtonGroup joins the outer corners of children with `data-slot` attributes. ButtonGroupText adds a label, value or prefix. ButtonGroupSeparator adds a visible rule. Nested groups may separate related sets of actions.
 
-Use a ButtonGroup to join actions that belong together, a split action and its options, or a field and the action it takes. It adds no selection: one choice among several is a [ToggleGroup](?path=/docs/components-togglegroup--docs), and a row of unrelated actions is a toolbar or an `Inline`.
-
 <Canvas of={Stories.Composition} />
 
 ## Variants and states
@@ -29,6 +46,10 @@ Use a ButtonGroup to join actions that belong together, a split action and its o
 `orientation` accepts `horizontal` (default) or `vertical`. Horizontal joins use logical edges in RTL. Child controls choose their size, disabled state and loading behavior. Give ButtonGroupText the same `size` as the buttons beside it, `xsmall`, `small` or `medium` (the default, as on Button): it is never shorter than they are, so a vertical group's text keeps their height, and its content is centred. The separator's orientation describes its own line; use a horizontal separator between vertically stacked controls.
 
 <Canvas of={Stories.Orientations} />
+
+A split primary is one control: the primary action, a ButtonGroupSeparator, and an IconButton with `variant="primary"` that opens the other ways to do it. Beside a primary half the separator draws the bold border (`color.border.bold`), so the two halves read as one button rather than two with a light seam between them, in both modes; forced colours draw it in the system's border colour.
+
+<Canvas of={Stories.SplitPrimary} />
 
 ## Accessibility
 

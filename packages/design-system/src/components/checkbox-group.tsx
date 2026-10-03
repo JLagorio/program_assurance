@@ -37,8 +37,8 @@ export function CheckboxGroup({
   return (
     <GroupFieldContext.Provider value={group}>
       <CheckboxGroupPrimitive
-        data-slot="checkbox-group"
         {...props}
+        data-slot="checkbox-group"
         ref={ref as Ref<HTMLDivElement>}
         disabled={resolved}
         className={className}

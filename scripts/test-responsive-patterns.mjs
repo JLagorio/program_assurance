@@ -289,7 +289,7 @@ try {
       .getByRole("button", { name: "More ways to create a system", exact: true })
       .first()
       .click();
-    await expectActionMenu(page, ["Add system from product"]);
+    await expectActionMenu(page, ["Create system from product"]);
     await screenshot(`system-create-actions-${width}`);
     await page.keyboard.press("Escape");
   }
@@ -317,11 +317,18 @@ try {
     .getByRole("button", { name: /^Close (details|.+ preview)$/ })
     .click();
   await tableFits(systems());
-  const more = row(systems(), child.id).getByRole("button", {
-    name: `More fields for ${child.code}`,
-    exact: true,
-  });
-  await more.click();
+  // The tree names its rows by code and name (ProgramSystemsTree's rowLabel).
+  // "+N", named by how many fields it shows and by the row: "Show 3 more fields for …", and while
+  // open "Hide 3 more fields for …".
+  const childLabel = `${child.code} · ${child.name}`.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const moreFields = (verb) =>
+    row(systems(), child.id).getByRole("button", {
+      name: new RegExp(`^${verb} \\d+ more fields? for ${childLabel}$`),
+    });
+  await expect(moreFields("Show")).toHaveAttribute("aria-expanded", "false");
+  await moreFields("Show").click();
+  const more = moreFields("Hide");
+  await expect(more).toHaveAttribute("aria-expanded", "true");
   const overflow = page.locator(`[id="${await more.getAttribute("aria-controls")}"]`);
   await expect(overflow.getByText(child.code, { exact: true })).toBeVisible();
   await expect(overflow.getByText("Hardware", { exact: true })).toBeVisible();

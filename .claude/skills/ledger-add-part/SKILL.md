@@ -32,7 +32,7 @@ npm run typecheck -w packages/design-system && npm run lint -w packages/design-s
 npm run ds:api:check            # ds:api:update only when declarations changed on purpose
 npm run test:a11y -w packages/design-system
 npm run test:layout -w packages/design-system
-npm run build -w packages/design-system   # refreshes eslint-plugin/components.json and llms.txt
+npm run build -w packages/design-system   # refreshes eslint-plugin/components.json, parts.json and llms.txt
 npx tsc --noEmit -p tsconfig.json && npm run lint && npm run test:app
 npm run test:consumer -w packages/design-system
 ```

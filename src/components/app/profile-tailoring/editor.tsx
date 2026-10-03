@@ -8,7 +8,6 @@ import {
   recordDestination,
   useDisplayedRecords,
 } from "@/components/prototype/record-preview";
-import { useRows } from "@/lib/models";
 import type { ParameterOverride, TailoringDecision } from "@/lib/program-wizard";
 import {
   previewProgramTailoring,
@@ -138,7 +137,6 @@ export function ProfileTailoringEditor({
     [given, catalogRevisionId, baseResolutionId, decisions, parameters, data],
   );
   const navigate = useNavigate();
-  const allControls = useRows("controls");
   const { confirm, confirmation } = useConfirmation();
   const [previewControl, setPreviewControl] = useState<string | null>(null);
   const [tab, setTab] = useState("Controls");
@@ -222,8 +220,6 @@ export function ProfileTailoringEditor({
           priority: 1,
           pin: "start",
           hideable: false,
-          preview: (row) => setPreviewControl(row.id),
-          active: (row) => row.id === previewControl,
         }),
         c.text("title", {
           header: "Title",
@@ -244,9 +240,16 @@ export function ProfileTailoringEditor({
           tone: (row) => (row.source === "Tailored in" ? "success" : "neutral"),
         }),
       ]),
-    [previewControl, editable],
+    [editable],
   );
   const table = useDataTable({
+    preview: useMemo(
+      () => ({
+        onPreview: (row: EffectiveRow) => setPreviewControl(row.id),
+        activeId: previewControl,
+      }),
+      [previewControl],
+    ),
     columns,
     data: effective,
     getRowId: (row) => row.id,
@@ -256,11 +259,12 @@ export function ProfileTailoringEditor({
     pageSize: 50,
   });
   const displayed = useDisplayedRecords(table);
+  // The preview reads the reference data's controls: the effective set is drawn from them.
   const displayedControls = displayed.flatMap((row) => {
-    const control = allControls.data?.find((control) => control.id === row.id);
+    const control = controlById.get(row.id);
     return control ? [control] : [];
   });
-  const inspected = allControls.data?.find((control) => control.id === previewControl);
+  const inspected = previewControl ? controlById.get(previewControl) : undefined;
   const openControls = (controlId: string | null, viaPrimary = false) => {
     fromPrimary.current = viaPrimary ? "controls" : null;
     setInspectId(controlId);
@@ -314,7 +318,7 @@ export function ProfileTailoringEditor({
             <Fact label="Effective">{preview.counts.selected}</Fact>
             <Fact label="Parameters overridden">{parameters.length}</Fact>
           </Fact.Group>
-          <Section title="By family" count={String(preview.families.length)}>
+          <Section title="By family" count={preview.families.length} countMax={9999}>
             <FamilyTable families={preview.families} inDraft={editable} keep={keep("family")} />
           </Section>
         </Stack>
@@ -347,7 +351,12 @@ export function ProfileTailoringEditor({
           </AlertDescription>
         </Alert>
       ) : preview.warnings.length ? (
-        <Section title="Reference notes" count={String(preview.warnings.length)} isCollapsible>
+        <Section
+          title="Reference notes"
+          count={preview.warnings.length}
+          countMax={9999}
+          isCollapsible
+        >
           <List>
             {preview.warnings.map((warning) => (
               <List.Item key={warning}>{warning}</List.Item>
@@ -401,7 +410,7 @@ export function ProfileTailoringEditor({
               emptyDescription="No control is added from the catalog beyond the base profile."
               emptyIcon={<ShieldPlus />}
             />
-            <Section title="Effective control set" count={String(preview.counts.selected)}>
+            <Section title="Effective control set" count={preview.counts.selected} countMax={9999}>
               <ProductCollection
                 table={table}
                 keepQuestion={keep("effective")}
@@ -531,8 +540,6 @@ function DecisionTable({
       priority: 1,
       pin: "start",
       hideable: false,
-      preview: setSelected,
-      active: (row) => row.id === selected?.id,
     }),
     c.text("title", {
       header: "Title",
@@ -556,6 +563,13 @@ function DecisionTable({
       : []),
   ]);
   const table = useDataTable({
+    preview: useMemo(
+      () => ({
+        onPreview: (row: { id: string }) => setSelectedId(row.id),
+        activeId: selected?.id ?? null,
+      }),
+      [selected?.id],
+    ),
     data: items,
     columns,
     getRowId: (row) => row.id,
@@ -565,12 +579,15 @@ function DecisionTable({
   });
   const displayed = useDisplayedRecords(table);
   return (
-    <Section title={title} count={items.length ? String(items.length) : null}>
+    <Section title={title} count={items.length || null} countMax={9999}>
       <ProductCollection
         table={table}
         keepQuestion={keep}
         searchLabel="Find a tailored control"
         action={action}
+        // One of the tab's several collections: the page's header or the wizard's footer keeps the
+        // one primary.
+        actionVariant="secondary"
         onRowClick={(row) =>
           editable ? setSelected(row) : void navigate(recordDestination("controls", row))
         }
@@ -629,7 +646,11 @@ function FamilyTable({
   inDraft: boolean;
   keep: string | false;
 }) {
-  const rows = families.map((family) => ({ ...family, id: family.groupId ?? family.sourceId }));
+  // A family the catalog groups under nothing has no group or code: it keys and reads by its title.
+  const rows = families.map((family) => ({
+    ...family,
+    id: family.groupId ?? (family.sourceId || "ungrouped"),
+  }));
   const columns = defineColumns<(typeof rows)[number]>((c) => [
     c.text("title", {
       header: "Family",
@@ -639,7 +660,8 @@ function FamilyTable({
       cell: (row) =>
         row.groupId ? (
           <TailoringLink table="catalog_groups" record={{ id: row.groupId }} inDraft={inDraft}>
-            {row.sourceId.toUpperCase()} · {row.title}
+            {row.sourceId ? `${row.sourceId.toUpperCase()} · ` : null}
+            {row.title}
           </TailoringLink>
         ) : (
           row.title
@@ -719,8 +741,6 @@ function ParameterTable({
     c.id("code", {
       header: "ID",
       width: 150,
-      preview: setSelected,
-      active: (row) => row.id === selected?.id,
     }),
     c.text("name", {
       header: "Parameter",
@@ -746,6 +766,13 @@ function ParameterTable({
       : []),
   ]);
   const table = useDataTable({
+    preview: useMemo(
+      () => ({
+        onPreview: (row: { id: string }) => setSelectedId(row.id),
+        activeId: selected?.id ?? null,
+      }),
+      [selected?.id],
+    ),
     data: rows,
     columns,
     getRowId: (row) => row.id,

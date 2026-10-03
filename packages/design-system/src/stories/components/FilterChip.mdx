@@ -7,6 +7,8 @@ import * as Stories from "./FilterChip.stories";
 
 # FilterChip
 
+**Status: Stable.**
+
 A filter the reader adds to a [Toolbar](?path=/docs/patterns-toolbar--docs): dashed with a plus until it is on, then solid and selected, with the chosen value after its label. A chip is one question of the register, Owner or Status or Gaps; the chips together are the question the table answers.
 
 A chip asks; a [Badge](?path=/docs/components-badge--docs) tells. A coordinated set of single or multiple choices is a [ToggleGroup](?path=/docs/components-togglegroup--docs); a thing to do is a [Button](?path=/docs/components-button--docs).
@@ -119,5 +121,7 @@ and `filter-chip-value`.
 - [Badge](?path=/docs/components-badge--docs): a status told, not asked.
 
 ## Don't
+
+Exclusive choices are a ToggleGroup and a thing to do is a Button, never a chip. A chip's value is what was chosen, as the cell shows it, never a count of rows.
 
 <Canvas of={Stories.Dont} />

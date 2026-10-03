@@ -4,6 +4,7 @@ import {
   Alert,
   AlertDescription,
   AlertTitle,
+  Box,
   Button,
   Checkbox,
   CheckboxGroup,
@@ -45,7 +46,8 @@ import {
 import { TextField } from "@/components/app/fields";
 import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
-import { useRows, type Row } from "@/lib/models";
+import { useSelectedControls } from "@/lib/control-reads";
+import { idSet, useRows, type Row } from "@/lib/models";
 import { labelFor } from "@/lib/records";
 import {
   useAdoptBaseline,
@@ -84,7 +86,6 @@ const cellStateLabels: Record<Exclude<CellState, "seed">, string> = {
   no_ssp: "No draft SSP",
   not_in_baseline: "Not in baseline",
 };
-const NIL = "00000000-0000-0000-0000-000000000000";
 const elements = { one: "{count} element", other: "{count} elements" };
 
 /** Everything inside the element, within its boundary, nearest first. */
@@ -143,29 +144,92 @@ export function AddFromLibrary({
   onClose: () => void;
 }) {
   const [source, setSource] = useState<Source>(initialSource ?? "component");
-  const definitions = useRows("component_definitions");
-  const revisions = useRows("component_definition_revisions");
-  const definedComponents = useRows("defined_components");
-  const implementations = useRows("defined_component_implementations");
-  // Only what the confirm frame names a control by, not every column of the whole catalog.
-  const controls = useRows("controls", {}, { columns: ["id", "code", "title"] });
+  const [chosenId, setChosenId] = useState<string | null>(null);
+  // Each source reads its own choices, and only once the reader turns to it.
+  const component = { enabled: source === "component" };
+  const profile = { enabled: source === "profile" };
+  const requirement = { enabled: source === "requirement" };
+  const definitions = useRows("component_definitions", undefined, component);
+  // Only published versions are ever added, so no draft is read.
+  const revisions = useRows("component_definition_revisions", { state: "published" }, component);
+  // Each definition's latest published version is the one a program adds, so only its content is
+  // read: its components and their control claims, never every version's.
+  const latestPublished = useMemo(() => {
+    if (!revisions.data) return undefined;
+    const latest = new Map<string, Row<"component_definition_revisions">>();
+    for (const revision of revisions.data) {
+      if (revision.state !== "published") continue;
+      const current = latest.get(revision.component_definition_id);
+      if (!current || current.version_number < revision.version_number)
+        latest.set(revision.component_definition_id, revision);
+    }
+    return latest;
+  }, [revisions.data]);
+  const latestIds = useMemo(
+    () => (latestPublished ? idSet([...latestPublished.values()].map((row) => row.id)) : undefined),
+    [latestPublished],
+  );
+  const content = { enabled: source === "component" && latestIds !== undefined };
+  const definedComponents = useRows(
+    "defined_components",
+    { component_definition_revision_id: latestIds ?? [] },
+    content,
+  );
+  const implementations = useRows(
+    "defined_component_implementations",
+    { component_definition_revision_id: latestIds ?? [] },
+    content,
+  );
+  // Only the controls the chosen component claims, by what the confirm frame names them.
+  const controls = useRows(
+    "controls",
+    {
+      id: idSet(
+        implementations.data
+          ?.filter((row) => row.defined_component_id === chosenId)
+          .map((row) => row.control_id),
+      ),
+    },
+    {
+      columns: ["id", "code", "title"],
+      enabled: source === "component" && !!chosenId && implementations.isSuccess,
+    },
+  );
   const components = useRows("system_components", { system_id: element.boundary_system_id });
   const plans = useRows("ssp_revisions", { system_id: element.boundary_system_id });
-  const resolutions = useRows("profile_resolutions");
-  const profiles = useRows("profile_revisions");
-  const profileRecords = useRows("profiles");
-  const imports = useRows("profile_imports");
-  const catalogs = useRows("catalog_revisions");
-  // Every selection only to list the profiles; the boundary's own selection for the claims.
-  const selections = useRows("selected_controls", {}, { enabled: source === "profile" });
-  const requirementDefinitions = useRows("requirement_definitions");
-  const requirementRevisions = useRows("requirement_definition_revisions");
+  // A profile can be adopted only when every hop of its chain is published (profileChoices), so
+  // only published resolutions, profile versions and catalog editions are read, and only the
+  // imports of those versions.
+  const resolutions = useRows("profile_resolutions", { state: "published" }, profile);
+  const profiles = useRows("profile_revisions", { state: "published" }, profile);
+  const profileRecords = useRows("profiles", undefined, profile);
+  const imports = useRows(
+    "profile_imports",
+    { profile_revision_id: idSet(profiles.data?.map((row) => row.id)) },
+    { enabled: source === "profile" && profiles.isSuccess },
+  );
+  const catalogs = useRows("catalog_revisions", { state: "published" }, profile);
+  // The published resolutions' selections, to list the profiles; the boundary's own for the claims.
+  const published = useMemo(
+    () => resolutions.data?.filter((row) => row.state === "published").map((row) => row.id),
+    [resolutions.data],
+  );
+  const selections = useSelectedControls(published, {
+    ...profile,
+    columns: ["id", "profile_resolution_id", "control_id"],
+  });
+  const requirementDefinitions = useRows("requirement_definitions", undefined, requirement);
+  // Only published versions are adopted, so no draft is read.
+  const requirementRevisions = useRows(
+    "requirement_definition_revisions",
+    { state: "published" },
+    requirement,
+  );
   const apply = useApplyLibrarySource();
   const adoptBaseline = useAdoptBaseline();
   const adoptRequirement = useAdoptRequirementDefinition();
   const { formatPlural } = useLedgerLocale();
   const [frame, setFrame] = useState<"choose" | "confirm">("choose");
-  const [chosenId, setChosenId] = useState<string | null>(null);
   const [scope, setScope] = useState<"element" | "inside">("element");
   const [excluded, setExcluded] = useState<Set<string>>(new Set());
   const [replaceAdoption, setReplaceAdoption] = useState<Set<string>>(new Set());
@@ -198,10 +262,10 @@ export function AddFromLibrary({
   const plan = [...(plans.data ?? [])]
     .filter((row) => row.state === "draft")
     .sort((a, b) => b.version_number - a.version_number)[0];
-  const planSelections = useRows(
-    "selected_controls",
-    { profile_resolution_id: plan?.profile_resolution_id ?? NIL },
-    { enabled: !!plan?.profile_resolution_id },
+  // Which controls the draft SSP's resolution selects: only their ids.
+  const planSelections = useSelectedControls(
+    plan?.profile_resolution_id ? [plan.profile_resolution_id] : undefined,
+    { columns: ["id", "control_id"] },
   );
   const planControls = useMemo(
     () => new Set((planSelections.data ?? []).map((row) => row.control_id)),
@@ -233,6 +297,12 @@ export function AddFromLibrary({
       : source === "requirement"
         ? [requirementDefinitions, requirementRevisions]
         : [definitions, revisions, definedComponents, implementations];
+  // The footer never counts "0 of 0" while the choices load or after they fail.
+  const sourceState = sourceQueries.some((query) => query.isError && query.data === undefined)
+    ? "error"
+    : sourceQueries.some((query) => query.data === undefined)
+      ? "loading"
+      : "ready";
   const items = useMemo<Item[]>(() => {
     if (source === "profile")
       return choices.map((choice) => ({
@@ -284,13 +354,6 @@ export function AddFromLibrary({
         })
         .sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true }));
     }
-    const latest = new Map<string, Row<"component_definition_revisions">>();
-    for (const revision of revisions.data ?? []) {
-      if (revision.state !== "published") continue;
-      const current = latest.get(revision.component_definition_id);
-      if (!current || current.version_number < revision.version_number)
-        latest.set(revision.component_definition_id, revision);
-    }
     return (definedComponents.data ?? [])
       .flatMap((defined) => {
         const revision = (revisions.data ?? []).find(
@@ -299,7 +362,8 @@ export function AddFromLibrary({
         const definition = definitions.data?.find(
           (row) => row.id === revision?.component_definition_id,
         );
-        if (!revision || !definition || latest.get(definition.id)?.id !== revision.id) return [];
+        if (!revision || !definition || latestPublished?.get(definition.id)?.id !== revision.id)
+          return [];
         const claims = (implementations.data ?? []).filter(
           (row) => row.defined_component_id === defined.id && row.control_id,
         );
@@ -327,6 +391,7 @@ export function AddFromLibrary({
     choices,
     definitions.data,
     revisions.data,
+    latestPublished,
     definedComponents.data,
     implementations.data,
     requirementDefinitions.data,
@@ -591,16 +656,30 @@ export function AddFromLibrary({
       state: cellState(target, implementation.control_id!),
     })),
   );
+  // A review in control order, each control's targets together: the headings do not sort.
   const claimColumns = defineColumns<(typeof claimRows)[number]>((c) => [
     // Plain text: a link here would leave the draft this dialog holds.
-    c.text("name", { header: "Control", priority: 0, minWidth: 180, hideable: false }),
-    c.text("targetName", { header: "Target", priority: 2, minWidth: 160, wrap: true }),
-    c.text("coverage", { header: "Coverage", priority: 3, width: 110 }),
+    c.text("name", {
+      header: "Control",
+      priority: 0,
+      minWidth: 180,
+      hideable: false,
+      sortable: false,
+    }),
+    c.text("targetName", {
+      header: "Target",
+      priority: 2,
+      minWidth: 160,
+      wrap: true,
+      sortable: false,
+    }),
+    c.text("coverage", { header: "Coverage", priority: 3, width: 110, sortable: false }),
     // The decision the reader makes here stays in the row longest after the control's name.
     c.text("state", {
       header: "Result",
       priority: 1,
       minWidth: 120,
+      sortable: false,
       cell: (row) =>
         row.state === "seed" ? (
           // One stable name that starts with the visible label (WCAG 2.5.3); the box says whether.
@@ -634,6 +713,9 @@ export function AddFromLibrary({
     getRowId: (row) => row.id,
     rowLabel: (row) => `${row.control?.code ?? "Control"} on ${row.target.code}`,
     label: "What will be written",
+    // A review inside a dialog has no columns to manage: no Columns, no heading menu to hide one.
+    pinnable: false,
+    hideable: false,
   });
   const ownAdopters = targets
     .slice(1)
@@ -791,8 +873,12 @@ export function AddFromLibrary({
                               </AlertDescription>
                             </Alert>
                           )}
+                          {/* A review inside the dialog: search only. The claims stay in control
+                              order, each control's targets together. */}
                           <ProductCollection
                             table={claimTable}
+                            compact
+                            sort={false}
                             keepQuestion={false}
                             searchLabel="Find control applications"
                             empty={{
@@ -824,24 +910,27 @@ export function AddFromLibrary({
                                   Every element with its own baseline
                                 </CheckboxGroupSelectAll>
                               ) : null}
-                              <Stack
-                                space="space.100"
-                                className={ownAdopters.length > 1 ? "ps-300" : undefined}
+                              <Box
+                                paddingInlineStart={
+                                  ownAdopters.length > 1 ? "space.300" : undefined
+                                }
                               >
-                                {ownAdopters.map((target) => (
-                                  <Field key={target.id} orientation="horizontal">
-                                    <Checkbox value={target.id} />
-                                    <FieldContent>
-                                      <FieldLabel>
-                                        {target.code} · {target.name}
-                                      </FieldLabel>
-                                      <FieldDescription>
-                                        Adopts {target.baselineTitle ?? "its own baseline"} now.
-                                      </FieldDescription>
-                                    </FieldContent>
-                                  </Field>
-                                ))}
-                              </Stack>
+                                <Stack space="space.100">
+                                  {ownAdopters.map((target) => (
+                                    <Field key={target.id} orientation="horizontal">
+                                      <Checkbox value={target.id} />
+                                      <FieldContent>
+                                        <FieldLabel>
+                                          {target.code} · {target.name}
+                                        </FieldLabel>
+                                        <FieldDescription>
+                                          Adopts {target.baselineTitle ?? "its own baseline"} now.
+                                        </FieldDescription>
+                                      </FieldContent>
+                                    </Field>
+                                  ))}
+                                </Stack>
+                              </Box>
                             </CheckboxGroup>
                           ) : null}
                           {inheritors.length ? (
@@ -907,7 +996,8 @@ export function AddFromLibrary({
       subtitle={`${element.code} · ${element.name}`}
       width="xlarge"
       table={table}
-      search={{ placeholder: "Search the library" }}
+      state={sourceState}
+      search={{ placeholder: "Find a library item" }}
       filters={
         controlId ? undefined : (
           <Select

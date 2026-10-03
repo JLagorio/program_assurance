@@ -25,6 +25,7 @@ const DOCS_ORDER = [
   "WhichToken",
   "Agents",
   "FromShadcn",
+  "Upgrading",
   "Grammar",
   "Lint",
   "LintRules",

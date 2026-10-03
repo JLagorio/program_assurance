@@ -19,6 +19,10 @@ export default {
     {
       code: `${kit} export function Body(DialogContent) { return <DialogContent><Input autoFocus /></DialogContent>; }`,
     },
+    // A component of this file that hands its children on to no overlay.
+    {
+      code: "const Pane = (props) => <div {...props} />; export const A = () => <Pane><input autoFocus /></Pane>;",
+    },
   ],
   invalid: [
     {
@@ -98,6 +102,16 @@ export default {
       code: `${kit} export function A<DialogContent>() { return <DialogContent><input autoFocus /></DialogContent>; }`,
       only: "ts",
       errors: [{ messageId: "autoFocus" }],
+    },
+    {
+      // A component of this file that hands its children on to an overlay.
+      code: `${kit} const Pane = (props) => <DialogContent {...props} />; export const A = () => <Pane><input autoFocus /></Pane>;`,
+      errors: [
+        {
+          messageId: "forwarded",
+          data: { tag: "input", overlay: "DialogContent", wrapper: "Pane" },
+        },
+      ],
     },
   ],
 };

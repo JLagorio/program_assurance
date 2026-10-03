@@ -1,5 +1,8 @@
 #!/usr/bin/env node
-/** The declared route inventory drives identity, collection and touch-preview checks. */
+/**
+ * The declared route inventory drives identity, collection and touch-preview checks, and the
+ * check that no route outside the schema inspector reads the record schema as it opens.
+ */
 import assert from "node:assert/strict";
 import { readFile, mkdir } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
@@ -21,6 +24,17 @@ const missing = randomUUID();
 let browser;
 let page;
 const errors = [];
+/**
+ * A register, a record page, a tab and a Details rail never read the record schema: only the schema
+ * inspector does (/schema and /records/*), and a create or edit Dialog, a preview or a picker as it
+ * opens. The schema loads once a session, so the reads are counted as a route opens and as each of
+ * its declared tabs opens, before any preview, and every read names the route, the tab and the
+ * request.
+ */
+const readsSchema = (path) => path === "/schema" || path.startsWith("/records/");
+const schemaReads = [];
+/** The route, or the route's tab, being opened; null while a surface that may read the schema is. */
+let opening = null;
 async function insert(model, values) {
   const result = await workspace.client
     .from(model)
@@ -173,9 +187,7 @@ async function verifyTabs(screen, width) {
     `${screen.path}: every tab declares its collection shape or a reason`,
   );
   for (const tabName of declared) {
-    const tab = tabs.getByRole("tab").filter({
-      hasText: new RegExp(`^${tabName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:\\s|\\d|$)`),
-    });
+    const tab = tabNamed(tabs, tabName);
     await tab.click();
     await expect(tab).toHaveAttribute("aria-selected", "true");
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
@@ -184,6 +196,56 @@ async function verifyTabs(screen, width) {
     await bounds(width, `${screen.path} ${tabName}`);
     console.log(`PASS ${width}px tab ${screen.path} ${tabName}`);
   }
+}
+
+/**
+ * Waits until the page has had no read in flight for half a second. A read still open after five
+ * seconds (one whose end the browser never reported) no longer holds the wait: what is counted is
+ * each read as it starts.
+ */
+async function settled(inflight) {
+  const deadline = Date.now() + 15000;
+  let quietSince = Date.now();
+  while (Date.now() < deadline) {
+    const open = [...inflight.values()].some((started) => Date.now() - started < 5000);
+    if (open) quietSince = Date.now();
+    else if (Date.now() - quietSince >= 500) return;
+    await page.waitForTimeout(100);
+  }
+}
+
+/** A declared tab, by its name before any count. */
+function tabNamed(tabs, tabName) {
+  return tabs.getByRole("tab").filter({
+    hasText: new RegExp(`^${tabName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:\\s|\\d|$)`),
+  });
+}
+
+/**
+ * Lets the route's reads finish, then opens each declared tab in turn and lets its reads finish,
+ * before any preview, so a tab's schema read is counted against it. It ends on the tab the route
+ * opened on, so the checks after it start where the route did.
+ */
+async function sweepSchemaReads(screen, withTabs, inflight) {
+  await settled(inflight);
+  if (withTabs && screen.tabList) {
+    const tabs = page.getByRole("tablist", { name: screen.tabList, exact: true });
+    const opened = await tabs
+      .getByRole("tab")
+      .evaluateAll((elements) =>
+        elements.findIndex((element) => element.getAttribute("aria-selected") === "true"),
+      );
+    for (const tabName of [...screen.collectionTabs, ...Object.keys(screen.tabExceptions)]) {
+      opening = `${screen.path} tab ${tabName}`;
+      await tabNamed(tabs, tabName).click();
+      await settled(inflight);
+    }
+    opening = null;
+    const openedTab = tabs.getByRole("tab").nth(Math.max(opened, 0));
+    await openedTab.click();
+    await expect(openedTab).toHaveAttribute("aria-selected", "true");
+  }
+  opening = null;
 }
 
 async function verifyMissingRecord(screen) {
@@ -321,6 +383,23 @@ try {
       .select()
       .single(),
   );
+  // The next selected control has no implementation: it has no page, so its name opens its preview.
+  const unimplementedSelection = await dependency(
+    workspace.client
+      .from("selected_controls")
+      .select()
+      .eq("profile_resolution_id", resolution.id)
+      .order("ordinal")
+      .range(1, 1)
+      .single(),
+  );
+  const unimplementedControl = await dependency(
+    workspace.client
+      .from("controls")
+      .select("code, title")
+      .eq("id", unimplementedSelection.control_id)
+      .single(),
+  );
   for (const model of ["profiles", "controls"]) {
     const result = await workspace.client.from(model).select("*").limit(2);
     assert.ifError(result.error);
@@ -335,6 +414,17 @@ try {
     });
     page = await context.newPage();
     page.on("pageerror", (error) => errors.push(error.message));
+    // The REST reads in flight, each with when it started.
+    const inflight = new Map();
+    page.on("request", (request) => {
+      const { pathname } = new URL(request.url());
+      if (!pathname.startsWith("/rest/v1/")) return;
+      inflight.set(request, Date.now());
+      if (opening && pathname === "/rest/v1/rpc/app_schema")
+        schemaReads.push(`${width}px ${opening}: ${request.method()} ${request.url()}`);
+    });
+    for (const event of ["requestfinished", "requestfailed"])
+      page.on(event, (request) => inflight.delete(request));
     await page.goto(`${origin}/work`);
     await page.getByLabel("Email", { exact: true }).fill(workspace.email);
     await page.getByLabel("Password", { exact: true }).fill(workspace.password);
@@ -343,6 +433,7 @@ try {
     for (const screen of inventory) {
       if (screen.family === "exception") continue;
       const path = routePath(screen);
+      opening = readsSchema(screen.path) ? null : screen.path;
       await page.goto(`${origin}${path}`);
       await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
@@ -372,6 +463,11 @@ try {
         );
         await expect(page.getByRole("heading", { level: 1 })).toHaveText(name(fixture));
       }
+      if (opening) {
+        const found = schemaReads.length;
+        await sweepSchemaReads(screen, !!fixture, inflight);
+        for (const read of schemaReads.slice(found)) console.log(`FAIL schema read ${read}`);
+      }
       if (["register", "schema-register"].includes(screen.family)) {
         await expect(page.getByRole("heading", { level: 1 })).toHaveText(
           screen.heading ?? screen.title,
@@ -393,7 +489,8 @@ try {
       .fill(implementedControl.code);
     const controlLink = assembly.locator(`a[href="${controlPath}"]`);
     await expect(controlLink).toHaveCount(1);
-    await expect(controlLink).toHaveText(implementedControl.title);
+    // The Control column names each control by its code and title together.
+    await expect(controlLink).toHaveText(`${implementedControl.code} ${implementedControl.title}`);
     await controlLink.click();
     await expect(page).toHaveURL(`${origin}${controlPath}`);
     await expect(page).toHaveTitle(
@@ -402,9 +499,37 @@ try {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(implementedControl.title);
     await bounds(width, controlPath);
     console.log(`PASS ${width}px program Controls name link opens ${controlPath}`);
+    // A control with no implementation names no schema row: its name opens its preview.
+    await page.goto(`${origin}/programs/${program.id}?tab=Controls`);
+    await page
+      .getByRole("searchbox", { name: "Find selected controls", exact: true })
+      .fill(unimplementedControl.code);
+    await expect(assembly.locator('a[href^="/records/"]')).toHaveCount(0);
+    await assembly
+      .getByRole("button", {
+        name: `${unimplementedControl.code} ${unimplementedControl.title}`,
+        exact: true,
+      })
+      .click();
+    await expect(
+      page
+        .locator("[data-record-preview-header]")
+        .filter({ visible: true })
+        .getByRole("heading", { level: 2 }),
+    ).toHaveText(unimplementedControl.title);
+    await expect(page).toHaveURL(new RegExp(`/programs/${program.id}\\?tab=Controls`));
+    await page.getByRole("button", { name: "Close SSP control preview", exact: true }).click();
+    console.log(
+      `PASS ${width}px program Controls name without an implementation opens its preview`,
+    );
     await context.close();
   }
   assert.deepEqual(errors, [], "Every declared product route renders without a browser exception");
+  assert.deepEqual(
+    schemaReads,
+    [],
+    `A route other than /schema and /records/* reads the record schema as it opens:\n${schemaReads.join("\n")}`,
+  );
 } catch (error) {
   await page?.screenshot({ path: `${artifacts}/failure.png` }).catch(() => {});
   console.error("Browser errors:", errors);

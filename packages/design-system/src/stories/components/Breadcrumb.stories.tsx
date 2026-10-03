@@ -24,15 +24,19 @@ import {
   Button,
 } from "../../components";
 import { Heading, Inline, Stack } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Breadcrumb",
   component: Breadcrumb,
   parameters: { layout: "padded" },
-  args: {
-    children: (
+  render: (args) => (
+    <Breadcrumb {...args}>
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink href="#programs">Programs</BreadcrumbLink>
@@ -42,11 +46,51 @@ const meta = {
           <BreadcrumbPage>Atlas payments platform</BreadcrumbPage>
         </BreadcrumbItem>
       </BreadcrumbList>
-    ),
-  },
+    </Breadcrumb>
+  ),
 } satisfies Meta<typeof Breadcrumb>;
 export default meta;
 type Story = StoryObj<typeof meta>;
+
+/** A record's parent and the record itself, with the controls. */
+export const Playground: Story = {};
+
+/** Three levels: the programs, the program, and the current page, which is not a link. */
+export const Basic: Story = {
+  render: () => (
+    <Breadcrumb>
+      <BreadcrumbList>
+        <BreadcrumbItem>
+          <BreadcrumbLink href="#programs">Programs</BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <BreadcrumbLink href="#atlas">Atlas payments platform</BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <BreadcrumbPage>Controls</BreadcrumbPage>
+        </BreadcrumbItem>
+      </BreadcrumbList>
+    </Breadcrumb>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const nav = canvas.getByRole("navigation", { name: "Breadcrumb" });
+    const programs = within(nav).getByRole("link", { name: "Programs" });
+    const atlas = canvas.getByRole("link", { name: "Atlas payments platform" });
+    const page = canvas.getByRole("link", { name: "Controls", current: "page" });
+    await expect(page).not.toHaveAttribute("href");
+    await expect(within(nav).getAllByRole("listitem")).toHaveLength(3);
+    programs.focus();
+    await userEvent.tab();
+    await expect(atlas).toHaveFocus();
+    await userEvent.tab();
+    await expect(page).not.toHaveFocus();
+    await userEvent.tab({ shift: true });
+    await expect(atlas).toHaveFocus();
+  },
+};
 
 const basicRefs = {
   nav: createRef<HTMLElement>(),
@@ -57,8 +101,9 @@ const basicRefs = {
   page: createRef<HTMLSpanElement>(),
 };
 
-/** Native elements, named parts, and an explicit current page. */
-export const Basic: Story = {
+/** Native elements and named parts: each part forwards its ref and native attributes, and the current page is a span. */
+export const NativeAttributes: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Breadcrumb ref={basicRefs.nav} id="program-breadcrumb" data-example="basic">
       <BreadcrumbList ref={basicRefs.list} aria-label="Record hierarchy">
@@ -85,7 +130,6 @@ export const Basic: Story = {
     const nav = canvas.getByRole("navigation", { name: "Breadcrumb" });
     const list = canvas.getByRole("list", { name: "Record hierarchy" });
     const programs = canvas.getByRole("link", { name: "Programs" });
-    const atlas = canvas.getByRole("link", { name: "Atlas payments platform" });
     const page = canvas.getByRole("link", { name: "Controls", current: "page" });
     await expect(basicRefs.nav.current).toBe(nav);
     await expect(basicRefs.list.current).toBe(list);
@@ -106,13 +150,6 @@ export const Basic: Story = {
     await expect(basicRefs.separator.current).toHaveAttribute("aria-hidden", "true");
     await expect(basicRefs.separator.current).toHaveAttribute("data-separator", "parent");
     await expect(within(list).getAllByRole("listitem")).toHaveLength(3);
-    programs.focus();
-    await userEvent.tab();
-    await expect(atlas).toHaveFocus();
-    await userEvent.tab();
-    await expect(page).not.toHaveFocus();
-    await userEvent.tab({ shift: true });
-    await expect(atlas).toHaveFocus();
   },
 };
 
@@ -418,6 +455,7 @@ function RouterTrail({ label, mode }: { label: string; mode: "created" | "exact"
  * page.
  */
 export const RouterLinks: Story = {
+  tags: ["!manifest"],
   name: "Router links",
   render: () => (
     <Stack space="space.300">
@@ -592,11 +630,17 @@ function trailState(nav: HTMLElement) {
   return { shown, folded };
 }
 
-/** The visible list items in the order they appear on the line. */
+/** The visible list items in the order they appear on the line: from the left, or from the right
+    in a right-to-left page. */
 function lineOrder(list: HTMLElement) {
+  const rtl = getComputedStyle(list).direction === "rtl";
   return Array.from(list.children)
     .filter((el) => el.getClientRects().length > 0)
-    .sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+    .sort((a, b) =>
+      rtl
+        ? b.getBoundingClientRect().right - a.getBoundingClientRect().right
+        : a.getBoundingClientRect().left - b.getBoundingClientRect().left,
+    );
 }
 
 /**
@@ -703,10 +747,10 @@ export const CollapsesToFit: Story = {
       await expect(more).not.toBeVisible();
       await expect(page).not.toHaveAttribute("title");
       // A little short of the whole trail, a middle level folds before the page shortens.
-      const shown = lineOrder(list);
+      // The line's whole width, from its leftmost item to its rightmost, either way it reads.
+      const boxes = lineOrder(list).map((item) => item.getBoundingClientRect());
       const natural =
-        (shown.at(-1)?.getBoundingClientRect().right ?? 0) -
-        (shown[0]?.getBoundingClientRect().left ?? 0);
+        Math.max(...boxes.map((box) => box.right)) - Math.min(...boxes.map((box) => box.left));
       frame.style.maxWidth = `${Math.floor(natural - 24)}px`;
       await waitFor(() => expect(trailState(nav).folded).toEqual(["Atlas payments platform"]));
       await expect(page).not.toHaveAttribute("title");
@@ -787,7 +831,7 @@ export const CollapsesOnPhone: Story = {
   render: () => (
     <Stack space="space.100">
       <DeepTrail label="Phone requirement hierarchy" />
-      <Heading size="large">{deepPage}</Heading>
+      <Heading size="display">{deepPage}</Heading>
     </Stack>
   ),
   play: async ({ canvasElement }) => {
@@ -881,7 +925,7 @@ export const LongerNameGivesWay: Story = {
         parent="PRG-1042 · Atlas payments platform"
         page="Traceability matrix"
       />
-      <Heading size="large">Atlas payments platform</Heading>
+      <Heading size="display">Atlas payments platform</Heading>
     </Stack>
   ),
   play: async ({ canvasElement }) => {
@@ -997,12 +1041,18 @@ export const BesideAnAction: Story = {
       await expectOneLine(within(nav).getByRole("list"));
       await expect(within(nav).getByRole("button", { name: "Show hidden levels" })).toBeVisible();
       const action = within(row).getByRole("button", { name: "Edit requirement" });
-      await expect(action.getBoundingClientRect().right).toBeLessThanOrEqual(
-        row.getBoundingClientRect().right + 0.5,
-      );
-      await expect(nav.getBoundingClientRect().right).toBeLessThanOrEqual(
-        action.getBoundingClientRect().left,
-      );
+      // The action ends the row and the trail stops before it, at the row's end whichever way the
+      // page reads.
+      const actionBox = action.getBoundingClientRect();
+      const rowBox = row.getBoundingClientRect();
+      const navBox = nav.getBoundingClientRect();
+      if (getComputedStyle(row).direction === "rtl") {
+        await expect(actionBox.left).toBeGreaterThanOrEqual(rowBox.left - 0.5);
+        await expect(navBox.left).toBeGreaterThanOrEqual(actionBox.right);
+      } else {
+        await expect(actionBox.right).toBeLessThanOrEqual(rowBox.right + 0.5);
+        await expect(navBox.right).toBeLessThanOrEqual(actionBox.left);
+      }
       await expect(action.scrollWidth).toBeLessThanOrEqual(action.clientWidth);
     }
 
@@ -1232,6 +1282,7 @@ export const InPlaceButtons: Story = {
 
 /** Compare composition options without disabling the unique-landmark accessibility check. */
 export const BreadcrumbMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="Two levels">
@@ -1325,7 +1376,7 @@ export const AboveTitle: Story = {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <Heading size="large">SCTM</Heading>
+      <Heading size="display">SCTM</Heading>
     </Stack>
   ),
 };
@@ -1334,6 +1385,7 @@ export const AboveTitle: Story = {
 const dontWarnings: { said: string[] } = { said: [] };
 
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -1423,5 +1475,3 @@ export const Dont: Story = {
     ).toHaveLength(1);
   },
 };
-
-export const Playground: Story = {};

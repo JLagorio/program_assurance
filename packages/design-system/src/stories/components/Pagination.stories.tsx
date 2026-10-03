@@ -12,7 +12,11 @@ import {
   PaginationEllipsis,
   type PaginationProps,
 } from "../../components";
-import { TablePagination } from "../../patterns/data-table/pagination";
+import { TablePagination } from "../../patterns";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Pagination",
@@ -21,8 +25,7 @@ const meta = {
 } satisfies Meta<typeof Pagination>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-const linkClick = fn((event: MouseEvent<HTMLAnchorElement>) => event.preventDefault());
-const linkRef = createRef<HTMLAnchorElement>();
+
 /** Real links with the current page marked by its own state: `aria-current="page"`, a semibold figure and a bar in the selected colour, not a raised fill. The ellipsis says "More pages" to a screen reader. */
 export const Links: Story = {
   render: () => (
@@ -37,13 +40,7 @@ export const Links: Story = {
           </PaginationLink>
         </PaginationItem>
         <PaginationItem>
-          <PaginationLink
-            ref={linkRef}
-            onClick={linkClick}
-            href="?page=2"
-            aria-label="Page 2"
-            isActive
-          >
+          <PaginationLink href="?page=2" aria-label="Page 2" isActive>
             2
           </PaginationLink>
         </PaginationItem>
@@ -64,7 +61,6 @@ export const Links: Story = {
   play: async ({ canvasElement }) => {
     const nav = within(canvasElement).getByRole("navigation", { name: "Control pages" });
     const active = within(nav).getByRole("link", { name: "Page 2" });
-    await expect(linkRef.current).toBe(active);
     await expect(active).toHaveAttribute("href", "?page=2");
     await expect(active).toHaveAttribute("aria-current", "page");
     await expect(within(nav).getByRole("link", { name: "Previous page" })).toHaveAttribute(
@@ -85,12 +81,6 @@ export const Links: Story = {
     await expect(nav.querySelector('[data-slot="pagination-ellipsis"]')!.textContent).toContain(
       "More pages",
     );
-    linkClick.mockClear();
-    active.focus();
-    await userEvent.keyboard(" ");
-    await expect(linkClick).not.toHaveBeenCalled();
-    await userEvent.keyboard("{Enter}");
-    await expect(linkClick).toHaveBeenCalledTimes(1);
   },
 };
 function ResultPages({
@@ -193,9 +183,11 @@ export const AtTheEndOfARow: Story = {
       const nav = canvas.getByRole("navigation", { name });
       const row = nav.parentElement!;
       const caption = nav.previousElementSibling!.getBoundingClientRect();
+      const rowBox = row.getBoundingClientRect();
+      // From the caption's end to the row's end: rightward, or leftward in right to left.
+      const rtl = getComputedStyle(row).direction === "rtl";
       const room =
-        row.getBoundingClientRect().right -
-        caption.right -
+        (rtl ? caption.left - rowBox.left : rowBox.right - caption.right) -
         parseFloat(getComputedStyle(row).columnGap);
       const bounds = nav.getBoundingClientRect();
       // The rest of the row, with no 384px cap, and never collapsed.
@@ -210,9 +202,10 @@ export const AtTheEndOfARow: Story = {
       }
       const list = nav.querySelector<HTMLElement>('[data-slot="pagination-content"]')!;
       // justify-end: the list ends where the row does.
-      await expect(Math.abs(list.getBoundingClientRect().right - bounds.right)).toBeLessThanOrEqual(
-        1,
-      );
+      const listBox = list.getBoundingClientRect();
+      await expect(
+        Math.abs(rtl ? listBox.left - bounds.left : listBox.right - bounds.right),
+      ).toBeLessThanOrEqual(1);
       // Where the row holds the whole list, it stays on one line.
       const items = [...list.children] as HTMLElement[];
       const gap = parseFloat(getComputedStyle(list).columnGap);
@@ -339,7 +332,9 @@ export const OwnWords: Story = {
 };
 
 const navRef = createRef<HTMLElement>();
-/** Native nav props and a ref reach the region, and the region keeps its own identity: a caller's `data-slot` does not replace it, and its name defaults to "Pagination" until the caller names it. */
+const linkRef = createRef<HTMLAnchorElement>();
+const linkClick = fn((event: MouseEvent<HTMLAnchorElement>) => event.preventDefault());
+/** Native nav props and a ref reach the region, and the region keeps its own identity: a caller's `data-slot` does not replace it, and its name defaults to "Pagination" until the caller names it. A page link is a native anchor: its ref is the anchor, its handlers are its own, and Enter follows it where Space does not. */
 export const NativeAttributes: Story = {
   name: "Native attributes",
   render: () => (
@@ -351,7 +346,7 @@ export const NativeAttributes: Story = {
           </PaginationLink>
         </PaginationItem>
         <PaginationItem>
-          <PaginationLink href="?page=2" aria-label="Page 2">
+          <PaginationLink ref={linkRef} onClick={linkClick} href="?page=2" aria-label="Page 2">
             2
           </PaginationLink>
         </PaginationItem>
@@ -364,5 +359,70 @@ export const NativeAttributes: Story = {
     await expect(nav).toHaveAttribute("id", "evidence-pages");
     await expect(nav).toHaveAttribute("data-testid", "evidence-pages");
     await expect(nav).toHaveAttribute("data-slot", "pagination");
+    const link = within(nav).getByRole("link", { name: "Page 2" });
+    await expect(linkRef.current).toBe(link);
+    linkClick.mockClear();
+    link.focus();
+    await userEvent.keyboard(" ");
+    await expect(linkClick).not.toHaveBeenCalled();
+    await userEvent.keyboard("{Enter}");
+    await expect(linkClick).toHaveBeenCalledTimes(1);
+  },
+};
+
+/**
+ * `isActive` marks the current page, so it is `aria-current="page"` and drawn as the current page.
+ * A page marked only by bold text looks current and is heard as one more link.
+ */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <Pair
+      do={
+        <Pagination aria-label="Control pages">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationLink href="?page=1">1</PaginationLink>
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationLink href="?page=2" isActive>
+                2
+              </PaginationLink>
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationLink href="?page=3">3</PaginationLink>
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      }
+      doText="The current page is isActive: said as the current page and marked as one."
+      dont={
+        <Pagination aria-label="Evidence pages">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationLink href="?page=1">1</PaginationLink>
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationLink href="?page=2">
+                <strong>2</strong>
+              </PaginationLink>
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationLink href="?page=3">3</PaginationLink>
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      }
+      dontText="Bold text for the current page: it looks current, and a screen reader hears three links alike."
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const marked = within(canvas.getByRole("navigation", { name: "Control pages" }));
+    await expect(marked.getByRole("link", { name: "2" })).toHaveAttribute("aria-current", "page");
+    const bold = within(canvas.getByRole("navigation", { name: "Evidence pages" }));
+    for (const link of bold.getAllByRole("link"))
+      await expect(link).not.toHaveAttribute("aria-current");
   },
 };

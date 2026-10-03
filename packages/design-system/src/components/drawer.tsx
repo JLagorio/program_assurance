@@ -6,6 +6,7 @@ import { useRender } from "@base-ui/react/use-render";
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
+import { Heading } from "../primitives/heading";
 import { HeadingLevelProvider } from "../primitives/heading-level";
 import {
   bodySlot,
@@ -54,7 +55,7 @@ export function Drawer<Payload = unknown>({
 }
 export type DrawerTriggerProps<Payload = unknown> = Primitive.Trigger.Props<Payload>;
 export function DrawerTrigger<Payload = unknown>(props: DrawerTriggerProps<Payload>) {
-  return <Primitive.Trigger data-slot="drawer-trigger" {...props} />;
+  return <Primitive.Trigger {...props} data-slot="drawer-trigger" />;
 }
 export type DrawerPortalProps = Primitive.Portal.Props;
 export function DrawerPortal(props: DrawerPortalProps) {
@@ -62,18 +63,18 @@ export function DrawerPortal(props: DrawerPortalProps) {
 }
 export type DrawerCloseProps = Primitive.Close.Props;
 export function DrawerClose(props: DrawerCloseProps) {
-  return <Primitive.Close data-slot="drawer-close" {...props} />;
+  return <Primitive.Close {...props} data-slot="drawer-close" />;
 }
 export type DrawerOverlayProps = Primitive.Backdrop.Props;
 export function DrawerOverlay({ className, ...props }: DrawerOverlayProps) {
   return (
     <Primitive.Backdrop
-      data-slot="drawer-overlay"
       className={classes(
-        "drawer-overlay fixed inset-0 z-50 min-h-dvh bg-blanket select-none",
+        "drawer-overlay fixed inset-0 z-overlay min-h-dvh bg-blanket select-none",
         className,
       )}
       {...props}
+      data-slot="drawer-overlay"
     />
   );
 }
@@ -81,18 +82,41 @@ export type DrawerSwipeHandleProps = ComponentProps<"div">;
 export function DrawerSwipeHandle({ className, ...props }: DrawerSwipeHandleProps) {
   return (
     <div
-      data-slot="drawer-swipe-handle"
       aria-hidden="true"
       className={cn(
         "drawer-swipe-handle relative z-10 flex shrink-0 cursor-grab active:cursor-grabbing",
         className,
       )}
       {...props}
+      data-slot="drawer-swipe-handle"
     />
   );
 }
-export type DrawerContentProps = Primitive.Popup.Props;
-export function DrawerContent({ className, children, dir, style, ...props }: DrawerContentProps) {
+/** The drawer's width steps. Without `width` a drawer is `medium`. */
+export type DrawerWidth = "small" | "medium" | "large";
+
+export type DrawerContentProps = Primitive.Popup.Props & {
+  /**
+   * How wide the drawer grows: `small` 320px, `medium` 384px, `large` 760px, at the default text
+   * size (`dimension.part.drawerSmall`, `.drawer`, `.drawerLarge`). A side drawer takes it within
+   * 75% of the window. A bottom or top drawer takes it, centred, on a window from `sm` (640px) up,
+   * and runs edge to edge on a phone. @default "medium"
+   */
+  width?: DrawerWidth | undefined;
+};
+/**
+ * The drawer itself: the portal, the modal overlay, Base UI's viewport and popup and the
+ * text-selectable content region, inside Base UI's VirtualKeyboardProvider, which keeps a focused
+ * field in a bottom drawer clear of a phone's software keyboard by scrolling the drawer's body.
+ */
+export function DrawerContent({
+  className,
+  children,
+  dir,
+  style,
+  width,
+  ...props
+}: DrawerContentProps) {
   const context = useContext(DrawerContext);
   const { direction } = useLedgerLocale();
   if (!context) throw new Error("DrawerContent must be used within a Drawer.");
@@ -100,38 +124,41 @@ export function DrawerContent({ className, children, dir, style, ...props }: Dra
   const swipeAxis = swipeDirection === "down" || swipeDirection === "up" ? "y" : "x";
   return (
     <DirectionProvider direction={dir === "rtl" || dir === "ltr" ? dir : direction}>
-      <DrawerPortal>
-        {modal === true && <DrawerOverlay data-snap-points={hasSnapPoints ? "" : undefined} />}
-        <Primitive.Viewport
-          data-slot="drawer-viewport"
-          data-modal={modal}
-          className="pointer-events-none fixed inset-0 z-50 select-none data-[modal=true]:pointer-events-auto"
-        >
-          <Primitive.Popup
-            data-slot="drawer-popup"
-            data-swipe-axis={swipeAxis}
-            data-snap-points={hasSnapPoints ? "" : undefined}
-            dir={dir ?? direction}
-            className={classes(
-              "drawer-popup group/drawer-popup pointer-events-auto fixed z-50 flex min-h-0 flex-col bg-surface-overlay font-body text-default shadow-overlay outline-none select-none data-[swipe-direction=down]:rounded-t-xxlarge data-[swipe-direction=up]:rounded-b-xxlarge data-[swipe-direction=left]:rounded-r-xxlarge data-[swipe-direction=right]:rounded-l-xxlarge",
-              className,
-            )}
-            {...props}
-            style={withStyle(overlaySurface, style)}
+      <Primitive.VirtualKeyboardProvider>
+        <DrawerPortal>
+          {modal === true && <DrawerOverlay data-snap-points={hasSnapPoints ? "" : undefined} />}
+          <Primitive.Viewport
+            data-slot="drawer-viewport"
+            data-modal={modal}
+            className="pointer-events-none fixed inset-0 z-overlay select-none data-[modal=true]:pointer-events-auto"
           >
-            {showSwipeHandle && <DrawerSwipeHandle />}
-            <Primitive.Content
-              data-slot="drawer-content"
-              // Scrolls as a fallback: a DrawerBody normally takes the overflow, and in a short
-              // window (under 30rem) the header scrolls away with the body and the footer stays.
-              className="drawer-content flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain select-text"
+            <Primitive.Popup
+              data-swipe-axis={swipeAxis}
+              data-snap-points={hasSnapPoints ? "" : undefined}
+              data-width={width ?? "medium"}
+              dir={dir ?? direction}
+              className={classes(
+                "drawer-popup group/drawer-popup pointer-events-auto fixed z-overlay flex min-h-0 flex-col bg-surface-overlay font-body text-default shadow-overlay outline-none select-none data-[swipe-direction=down]:rounded-t-xxlarge data-[swipe-direction=up]:rounded-b-xxlarge data-[swipe-direction=left]:rounded-r-xxlarge data-[swipe-direction=right]:rounded-l-xxlarge",
+                className,
+              )}
+              {...props}
+              data-slot="drawer-popup"
+              style={withStyle(overlaySurface, style)}
             >
-              {/* The title is the drawer's h2; headings inside take the next level. */}
-              <HeadingLevelProvider level={3}>{children}</HeadingLevelProvider>
-            </Primitive.Content>
-          </Primitive.Popup>
-        </Primitive.Viewport>
-      </DrawerPortal>
+              {showSwipeHandle && <DrawerSwipeHandle />}
+              <Primitive.Content
+                data-slot="drawer-content"
+                // Scrolls as a fallback: a DrawerBody normally takes the overflow, and in a short
+                // window (under 30rem) the header scrolls away with the body and the footer stays.
+                className="drawer-content flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain select-text"
+              >
+                {/* The title is the drawer's h2; headings inside take the next level. */}
+                <HeadingLevelProvider level={3}>{children}</HeadingLevelProvider>
+              </Primitive.Content>
+            </Primitive.Popup>
+          </Primitive.Viewport>
+        </DrawerPortal>
+      </Primitive.VirtualKeyboardProvider>
     </DirectionProvider>
   );
 }
@@ -139,12 +166,12 @@ export type DrawerHeaderProps = ComponentProps<"div">;
 export function DrawerHeader({ className, ...props }: DrawerHeaderProps) {
   return (
     <div
-      data-slot="drawer-header"
       className={cn(
         "flex shrink-0 flex-col gap-025 border-b border-default px-250 py-150",
         className,
       )}
       {...props}
+      data-slot="drawer-header"
     />
   );
 }
@@ -166,7 +193,7 @@ export function DrawerBody({ className, render, ref, ...props }: DrawerBodyProps
     props: mergeProps<"div">(props, {
       ...bodySlot("drawer-body"),
       className: cn(
-        "min-h-1000 min-w-0 flex-1 overflow-y-auto overscroll-contain p-250 outline-none focus-visible:outline-field-focused [@media(max-height:30rem)]:flex-auto [@media(max-height:30rem)]:shrink-0 [@media(max-height:30rem)]:overflow-visible",
+        "min-h-1000 min-w-0 flex-1 overflow-y-auto overscroll-contain p-250 outline-none focus-visible:outline-field-focused",
         className,
       ),
     }),
@@ -181,23 +208,29 @@ export function DrawerFooter({ className, ref, ...props }: DrawerFooterProps) {
   const clearance = useFooterClearance(ref);
   return (
     <div
-      data-slot="drawer-footer"
       className={cn(
         "sticky bottom-0 z-10 mt-auto flex shrink-0 flex-wrap items-center justify-end gap-100 border-t border-default bg-surface-current px-250 py-150",
         className,
       )}
       {...props}
+      data-slot="drawer-footer"
       ref={clearance}
     />
   );
 }
 export type DrawerTitleProps = Primitive.Title.Props;
+/**
+ * The drawer's title, its h2: a Heading at `overlay`, 15/22 medium. A PageHeader.Title renders as
+ * it through `render`, keeping its own size, and the composing part's `data-slot` names the element,
+ * as Button's does: the slot comes before the caller's props.
+ */
 export function DrawerTitle({ className, ...props }: DrawerTitleProps) {
   return (
     <Primitive.Title
       data-slot="drawer-title"
-      className={classes("font-heading-xsmall text-default break-words", className)}
+      render={<Heading size="overlay" as="h2" />}
       {...props}
+      className={classes("font-heading-overlay text-default break-words", className)}
     />
   );
 }

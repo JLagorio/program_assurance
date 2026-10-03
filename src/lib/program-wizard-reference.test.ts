@@ -227,6 +227,21 @@ describe("bounded OSCAL profile inspection and tailoring preview", () => {
     expect(preview.families.some((row) => row.sourceId === "ac")).toBe(true);
   });
 
+  it("reads a family the catalog groups under nothing by its title, with no code, after the rest", () => {
+    const loose = control("ac-2").id;
+    const preview = previewProgramTailoring(input, {
+      ...data,
+      controls: data.controls.map((row) => (row.id === loose ? { ...row, group_id: null } : row)),
+    });
+    expect(preview.families.at(-1)).toMatchObject({
+      groupId: null,
+      sourceId: null,
+      title: "Ungrouped",
+      effective: 1,
+    });
+    expect(preview.families.slice(0, -1).every((row) => row.sourceId !== null)).toBe(true);
+  });
+
   it("applies explicit changes without mutating references and records layered pointers", () => {
     const before = JSON.stringify(data);
     const preview = previewProgramTailoring(tailored(), data);

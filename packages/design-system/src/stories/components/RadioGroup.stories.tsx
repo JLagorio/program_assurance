@@ -13,12 +13,18 @@ import {
   FieldLabel,
   FieldTitle,
   Button,
+  Checkbox,
   RadioGroup,
   RadioGroupItem,
 } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
 import { Inline, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 function FrequencyItems({ disableQuarterly = false }: { disableQuarterly?: boolean }) {
   return (
@@ -46,7 +52,18 @@ const meta = {
   args: { "aria-label": "Frequency", defaultValue: "quarterly" },
   render: (args) => (
     <RadioGroup {...args}>
-      <FrequencyItems />
+      <Field orientation="horizontal">
+        <RadioGroupItem value="monthly" />
+        <FieldLabel>Monthly</FieldLabel>
+      </Field>
+      <Field orientation="horizontal">
+        <RadioGroupItem value="quarterly" />
+        <FieldLabel>Quarterly</FieldLabel>
+      </Field>
+      <Field orientation="horizontal">
+        <RadioGroupItem value="annually" />
+        <FieldLabel>Annually</FieldLabel>
+      </Field>
     </RadioGroup>
   ),
 } satisfies Meta<typeof RadioGroup>;
@@ -57,6 +74,7 @@ const blockedChange = fn();
 
 /** No selection, selected, disabled and read-only groups, plus an application rule that cancels a change. */
 export const RadioGroupMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="Selection states">
@@ -150,6 +168,7 @@ export const RadioGroupMatrix: Story = {
 
 /** Layout uses CSS; both arrow axes select, with horizontal direction inherited or explicitly overridden. */
 export const Orientation: Story = {
+  tags: ["!manifest"],
   name: "Layout and keyboard",
   render: () => (
     <Stack space="space.300">
@@ -313,7 +332,7 @@ function FormDemo() {
               </Text>
             </Stack>
           </RadioGroup>
-          {Boolean(fieldError1) ? (
+          {fieldError1 ? (
             <FieldError id={`${fieldId}-frequency-1-message`}>{fieldError1}</FieldError>
           ) : (
             <FieldDescription id={`${fieldId}-frequency-1-message`}>
@@ -332,6 +351,8 @@ function FormDemo() {
     </form>
   );
 }
+
+export const Playground: Story = {};
 
 /** External labels, Field validation, native form values/reset, and native/ref/render targets. */
 export const InField: Story = {
@@ -467,8 +488,6 @@ export const BoundInField: Story = {
     await waitFor(() => expect(group).not.toHaveAttribute("aria-invalid", "true"));
   },
 };
-
-export const Playground: Story = {};
 
 /**
  * Each radio's boundary is `color.border.bold`, 3:1 against every surface, so an unchosen option
@@ -644,5 +663,71 @@ export const ControlledWithNoAnswer: Story = {
     await expect(canvas.getByRole("radio", { name: "Quarterly" })).toBeChecked();
     await userEvent.click(canvas.getByRole("button", { name: "Clear frequency" }));
     for (const radio of canvas.getAllByRole("radio")) await expect(radio).not.toBeChecked();
+  },
+};
+
+/**
+ * One answer from two options is a RadioGroup: announced as one question, and the arrow keys move
+ * between its answers. Two checkboxes that untick each other are heard as two separate choices.
+ */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: function EitherOr() {
+    const [decision, setDecision] = useState<"accept" | "not-applicable" | null>(null);
+    return (
+      <Pair
+        do={
+          <Field>
+            <FieldSet>
+              <FieldLegend variant="label">Decision</FieldLegend>
+              <RadioGroup defaultValue="accept">
+                <Field orientation="horizontal">
+                  <RadioGroupItem value="accept" />
+                  <FieldLabel>Accept</FieldLabel>
+                </Field>
+                <Field orientation="horizontal">
+                  <RadioGroupItem value="not-applicable" />
+                  <FieldLabel>Not applicable</FieldLabel>
+                </Field>
+              </RadioGroup>
+            </FieldSet>
+          </Field>
+        }
+        doText="The legend asks the question and each radio is one answer."
+        dont={
+          <Stack space="space.100">
+            <Field orientation="horizontal">
+              <Checkbox
+                checked={decision === "accept"}
+                onCheckedChange={(on) => setDecision(on ? "accept" : null)}
+              />
+              <FieldLabel>Accept the risk</FieldLabel>
+            </Field>
+            <Field orientation="horizontal">
+              <Checkbox
+                checked={decision === "not-applicable"}
+                onCheckedChange={(on) => setDecision(on ? "not-applicable" : null)}
+              />
+              <FieldLabel>Risk not applicable</FieldLabel>
+            </Field>
+          </Stack>
+        }
+        dontText="Two boxes that untick each other: no question, two separate choices, and no arrow keys."
+      />
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const group = canvas.getByRole("radiogroup", { name: "Decision" });
+    await expect(within(group).getAllByRole("radio")).toHaveLength(2);
+    const accept = canvas.getByRole("checkbox", { name: "Accept the risk" });
+    const notApplicable = canvas.getByRole("checkbox", { name: "Risk not applicable" });
+    await userEvent.click(accept);
+    await userEvent.click(notApplicable);
+    // The second box unticks the first only by the story's own code, and no group says they are
+    // one question.
+    await expect(accept).not.toBeChecked();
+    await expect(canvas.getAllByRole("radiogroup")).toHaveLength(1);
   },
 };

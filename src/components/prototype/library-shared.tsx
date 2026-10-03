@@ -1,4 +1,3 @@
-import type { DataRecord, RecordValue } from "@/lib/records";
 import { revisionStates } from "@/lib/status";
 import { StatusBadge } from "@/components/app/status";
 import {
@@ -12,13 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
   Skeleton,
+  Stack,
   Table,
   Text,
   VisuallyHidden,
 } from "@ledger/design-system";
-import type { ComponentProps, ReactNode, Ref } from "react";
-import { ProductRecordDialog } from "./product-record-dialog";
-import { QueryState, type QueryStatus } from "./work-common";
+import { useLayoutEffect, useState, type ReactNode, type Ref } from "react";
+import type { QueryStatus } from "./work-common";
 
 /**
  * One choice from a short fixed list. On its own it is a labelled Field; `inline` draws the Select
@@ -81,13 +80,33 @@ type HistoryVersion = {
   published_at: string | null;
 };
 
+/** The four columns' floors together (68 + 100 + 104 + 80): below it the date leaves its column. */
+const HISTORY_COLUMNS_FIT = 352;
+
+/** Whether the table's frame is narrower than `fit`, measured as it resizes. */
+function useNarrowFrame(fit: number) {
+  const [frame, setFrame] = useState<HTMLDivElement | null>(null);
+  const [narrow, setNarrow] = useState(false);
+  useLayoutEffect(() => {
+    if (!frame) return;
+    const measure = () => setNarrow(frame.clientWidth < fit);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, [frame, fit]);
+  return [setFrame, narrow] as const;
+}
+
 /**
  * A versioned library record's history, newest first, as the kit Table: the version on this page is
  * selected and current, and every other version opens with its own button. The order is the
  * history's meaning, so it has no search, sort or eye.
  *
- * Each column has a floor that holds its value whole, and together they fit a phone's frame, so
- * the button stays in view there: it reads "Open" and is named "Open version N".
+ * Each column has a floor that holds its value whole. Where the four do not fit (a narrow phone,
+ * about 350px), the published date stacks under the state, as "Published 3 Sep 2026", instead of
+ * taking a third column, so the version, the state and the button stay in view without scrolling:
+ * the button reads "Open" and is named "Open version N".
  */
 export function VersionHistory({
   label,
@@ -105,13 +124,14 @@ export function VersionHistory({
   /** The shown version's mark, which takes focus once a version opened from here is drawn. */
   shownRef?: Ref<HTMLElement> | undefined;
 }) {
+  const [frameRef, narrow] = useNarrowFrame(HISTORY_COLUMNS_FIT);
   return (
-    <Table label={label}>
+    <Table label={label} frameRef={frameRef}>
       <thead>
         <tr>
           <Table.Header minWidth={68}>Version</Table.Header>
           <Table.Header minWidth={100}>State</Table.Header>
-          <Table.Header minWidth={104}>Published</Table.Header>
+          {!narrow && <Table.Header minWidth={104}>Published</Table.Header>}
           <Table.Header minWidth={80}>
             <VisuallyHidden>Open</VisuallyHidden>
           </Table.Header>
@@ -127,12 +147,31 @@ export function VersionHistory({
               {...(shown ? { "aria-current": "true" as const } : {})}
             >
               <Table.Cell>{version.version_number}</Table.Cell>
-              <Table.Cell>
-                <StatusBadge statuses={revisionStates} value={version.state} size="xsmall" />
-              </Table.Cell>
-              <Table.Cell>
-                <DateTime value={version.published_at} format="date" absentLabel="Not published" />
-              </Table.Cell>
+              {narrow ? (
+                <Table.Cell wrap>
+                  <Stack space="space.050" alignInline="start">
+                    <StatusBadge statuses={revisionStates} value={version.state} size="xsmall" />
+                    {version.published_at && (
+                      <Text size="small" color="color.text.subtle">
+                        Published <DateTime value={version.published_at} format="date" />
+                      </Text>
+                    )}
+                  </Stack>
+                </Table.Cell>
+              ) : (
+                <>
+                  <Table.Cell>
+                    <StatusBadge statuses={revisionStates} value={version.state} size="xsmall" />
+                  </Table.Cell>
+                  <Table.Cell>
+                    <DateTime
+                      value={version.published_at}
+                      format="date"
+                      absentLabel="Not published"
+                    />
+                  </Table.Cell>
+                </>
+              )}
               <Table.Cell wrap>
                 {shown ? (
                   <Text
@@ -181,39 +220,4 @@ export function QueryValue({
       </>
     );
   return <>{children()}</>;
-}
-
-/** @deprecated Use QueryState from `./work-common`, or pass `queries` to ProductCollection. */
-export { QueryState as LibraryLoading };
-
-/** @deprecated Use ProductRecordDialog from `./product-record-dialog`; this passes its props through. */
-export function LibraryEditor({
-  table,
-  description,
-  initialValues,
-  existing,
-  onClose,
-  onSaved,
-  finalFocus,
-}: {
-  table: string;
-  description?: string | undefined;
-  initialValues?: Record<string, RecordValue>;
-  existing?: DataRecord;
-  onClose: () => void;
-  onSaved?: (record: DataRecord) => void | Promise<void>;
-  /** Where focus goes when the dialog closes; the control that opened it unsaid. */
-  finalFocus?: ComponentProps<typeof ProductRecordDialog>["finalFocus"];
-}) {
-  return (
-    <ProductRecordDialog
-      table={table}
-      description={description}
-      existing={existing}
-      initialValues={initialValues}
-      onSaved={onSaved}
-      onClose={onClose}
-      {...(finalFocus === undefined ? {} : { finalFocus })}
-    />
-  );
 }

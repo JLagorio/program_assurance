@@ -5,6 +5,7 @@ import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { Check, ChevronDown, X } from "lucide-react";
 import {
   createContext,
+  isValidElement,
   useCallback,
   useContext,
   useId,
@@ -190,12 +191,12 @@ export function ComboboxInput({
   return (
     <Primitive.InputGroup ref={inPopup ? undefined : inputGroup} render={<InputGroup />}>
       <Primitive.Input
-        data-slot="input-group-control"
-        data-combobox-input=""
         disabled={disabled}
         className={className}
         render={<InputGroupInput size={size} />}
         {...props}
+        data-slot="input-group-control"
+        data-combobox-input=""
       />
       {(showTrigger || showClear) && (
         <InputGroupAddon align="inline-end">
@@ -203,14 +204,17 @@ export function ComboboxInput({
             <Primitive.Trigger
               data-slot="combobox-trigger"
               // A Field's label names it (Base UI's aria-labelledby); outside one, the input's.
-              aria-label={label ?? t("showOptions")}
               {...(labelledBy ? { "aria-labelledby": labelledBy } : {})}
               disabled={disabled}
               className="group-has-[[data-slot=combobox-clear]]/input-group:hidden"
-              render={<InputGroupButton size="icon-xs" variant="subtle" />}
-            >
-              <ChevronDown aria-hidden="true" className="size-icon-small" />
-            </Primitive.Trigger>
+              render={
+                <InputGroupButton
+                  variant="subtle"
+                  icon={<ChevronDown className="size-icon-small" />}
+                  label={label ?? t("showOptions")}
+                />
+              }
+            />
           )}
           {showClear && <ComboboxClear disabled={disabled} />}
         </InputGroupAddon>
@@ -226,9 +230,9 @@ const iconControl =
 export function ComboboxTrigger({ className, children, ...props }: ComboboxTriggerProps) {
   return (
     <Primitive.Trigger
+      {...props}
       data-slot="combobox-trigger"
       className={classes(iconControl, className)}
-      {...props}
     >
       {children}
       <ChevronDown aria-hidden="true" className="size-icon-small" />
@@ -312,10 +316,9 @@ export function ComboboxContent({
           alignOffset={alignOffset}
           anchor={anchor}
           positionMethod="fixed"
-          className="z-50 isolate"
+          className="z-overlay isolate"
         >
           <Primitive.Popup
-            data-slot="combobox-content"
             dir={direction}
             className={classes(
               "flex min-w-0 flex-col overflow-hidden rounded-large border border-default bg-surface-overlay font-body text-default shadow-overlay outline-none data-[open]:animate-enter data-[closed]:animate-exit",
@@ -327,6 +330,7 @@ export function ComboboxContent({
                 : { ...defaults, ...style }
             }
             {...props}
+            data-slot="combobox-content"
           >
             <InPopupContext.Provider value={true}>
               {children}
@@ -356,7 +360,6 @@ export function ComboboxList({ className, style, ...props }: ComboboxListProps) 
       <ScrollerViewport
         render={
           <Primitive.List
-            data-slot="combobox-list"
             className={classes("overscroll-none p-050 outline-none empty:p-0", className)}
             style={
               typeof style === "function"
@@ -364,6 +367,7 @@ export function ComboboxList({ className, style, ...props }: ComboboxListProps) 
                 : { ...defaults, ...style }
             }
             {...props}
+            data-slot="combobox-list"
             // Base UI's own values, restated: the Scroller's viewport props must not unset them.
             role={grid ? "grid" : "listbox"}
             tabIndex={-1}
@@ -393,7 +397,6 @@ export function ComboboxItem({
   const hasLine = line !== undefined && line !== null && line !== false && line !== "";
   return (
     <Primitive.Item
-      data-slot="combobox-item"
       className={classes(
         cn(
           menuItem,
@@ -407,6 +410,7 @@ export function ComboboxItem({
       disabled={Boolean(disabled || reason)}
       aria-describedby={hasLine ? joinIds(describedBy, descriptionId) : describedBy}
       {...props}
+      data-slot="combobox-item"
     >
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Text runs sit in their own shrinkable span, so a long unbroken value wraps in the row. */}
@@ -438,9 +442,9 @@ export function ComboboxItem({
 export function ComboboxEmpty({ className, ...props }: ComboboxEmptyProps) {
   return (
     <Primitive.Empty
-      data-slot="combobox-empty"
       className={classes("px-150 py-200 text-center font-body text-subtle empty:p-0", className)}
       {...props}
+      data-slot="combobox-empty"
     />
   );
 }
@@ -459,9 +463,9 @@ export function ComboboxStatus({ className, total, children, ...props }: Combobo
       : null;
   return (
     <Primitive.Status
-      data-slot="combobox-status"
       className={classes("px-150 py-100 font-body-small text-subtle empty:p-0", className)}
       {...props}
+      data-slot="combobox-status"
     >
       {hasChildren ? children : count}
     </Primitive.Status>
@@ -470,9 +474,9 @@ export function ComboboxStatus({ className, total, children, ...props }: Combobo
 export function ComboboxGroup({ className, ...props }: ComboboxGroupProps) {
   return (
     <Primitive.Group
-      data-slot="combobox-group"
       className={classes("min-w-0", className)}
       {...props}
+      data-slot="combobox-group"
     />
   );
 }
@@ -480,9 +484,9 @@ export function ComboboxGroup({ className, ...props }: ComboboxGroupProps) {
 export function ComboboxLabel({ className, ...props }: ComboboxLabelProps) {
   return (
     <Primitive.GroupLabel
-      data-slot="combobox-label"
       className={classes(menuLabel, className)}
       {...props}
+      data-slot="combobox-label"
     />
   );
 }
@@ -490,21 +494,21 @@ export function ComboboxLabel({ className, ...props }: ComboboxLabelProps) {
 export function ComboboxSeparator({ className, ...props }: ComboboxSeparatorProps) {
   return (
     <Primitive.Separator
-      data-slot="combobox-separator"
       className={classes(menuSeparator, className)}
       {...props}
+      data-slot="combobox-separator"
     />
   );
 }
 export function ComboboxChips({ className, ...props }: ComboboxChipsProps) {
   return (
     <Primitive.Chips
-      data-slot="combobox-chips"
       className={classes(
         "flex min-h-control-medium flex-wrap items-center gap-050 rounded-medium border border-input bg-input p-050 has-[:focus-visible]:border-focused has-[:focus-visible]:outline-field-focused has-[[aria-invalid=true]]:border-danger has-[[aria-invalid=true]]:has-[:focus-visible]:border-danger has-[[aria-invalid=true]]:has-[:focus-visible]:outline-field-danger",
         className,
       )}
       {...props}
+      data-slot="combobox-chips"
     />
   );
 }
@@ -520,12 +524,12 @@ export function ComboboxChip({
   return (
     <ChipLabelContext.Provider value={words}>
       <Primitive.Chip
-        data-slot="combobox-chip"
         className={classes(
           "flex max-w-full items-center gap-050 rounded-small bg-neutral px-075 font-body-small text-default outline-none focus-visible:outline-focused data-[disabled]:text-disabled",
           className,
         )}
         {...props}
+        data-slot="combobox-chip"
       >
         {children}
         {showRemove && <ComboboxChipRemove />}
@@ -538,35 +542,60 @@ export function ComboboxChipRemove({ className, children, ...props }: ComboboxCh
   const words = useContext(ChipLabelContext);
   return (
     <Primitive.ChipRemove
-      data-slot="combobox-chip-remove"
       aria-label={words ? t("removeNamed", { label: words }) : t("remove")}
       className={classes(iconControl, className)}
       {...props}
+      data-slot="combobox-chip-remove"
     >
       {children ?? <X aria-hidden="true" className="size-icon-small" />}
     </Primitive.ChipRemove>
   );
 }
-export function ComboboxClear({ className, children, ...props }: ComboboxClearProps) {
+/**
+ * Clears the value. An icon child replaces the X, and the button is named "Clear" (or its
+ * `aria-label`); a text child is the button's visible name.
+ */
+export function ComboboxClear({
+  className,
+  children,
+  render,
+  "aria-label": ariaLabel,
+  ...props
+}: ComboboxClearProps) {
   const { t } = useLedgerLocale();
+  const name = ariaLabel ?? t("clear");
+  // An icon, the X by default, makes the input group's square icon button, named by `name`.
+  const iconOnly = !render && (children === undefined || isValidElement(children));
+  // Visible words name the button themselves; "Clear" in their place would break Label in Name.
+  const worded = typeof children === "string" || typeof children === "number";
   return (
     <Primitive.Clear
-      data-slot="combobox-clear"
-      render={<InputGroupButton variant="subtle" size="icon-xs" />}
-      aria-label={t("clear")}
-      className={classes(iconControl, className)}
       {...props}
+      data-slot="combobox-clear"
+      render={
+        iconOnly ? (
+          <InputGroupButton
+            variant="subtle"
+            icon={isValidElement(children) ? children : <X className="size-icon-small" />}
+            label={name}
+          />
+        ) : (
+          (render ?? <InputGroupButton variant="subtle" />)
+        )
+      }
+      {...(iconOnly || (worded && ariaLabel === undefined) ? {} : { "aria-label": name })}
+      className={classes(worded ? "" : iconControl, className)}
     >
-      {children ?? <X aria-hidden="true" className="size-icon-small" />}
+      {iconOnly ? undefined : children}
     </Primitive.Clear>
   );
 }
 
 export function ComboboxValue(props: ComboboxValueProps) {
-  return <Primitive.Value data-slot="combobox-value" {...props} />;
+  return <Primitive.Value {...props} data-slot="combobox-value" />;
 }
 export function ComboboxCollection(props: ComboboxCollectionProps) {
-  return <Primitive.Collection data-slot="combobox-collection" {...props} />;
+  return <Primitive.Collection {...props} data-slot="combobox-collection" />;
 }
 export type ComboboxChipsInputProps = Primitive.Input.Props;
 export function ComboboxChipsInput({ className, ...props }: ComboboxChipsInputProps) {
@@ -578,13 +607,13 @@ export function ComboboxChipsInput({ className, ...props }: ComboboxChipsInputPr
   }, [labelledBy, label, setNaming]);
   return (
     <Primitive.Input
-      data-slot="combobox-chip-input"
       data-combobox-input=""
       className={classes(
         "min-w-800 flex-1 bg-transparent px-075 py-050 outline-none placeholder:text-subtlest disabled:text-disabled",
         className,
       )}
       {...props}
+      data-slot="combobox-chip-input"
     />
   );
 }

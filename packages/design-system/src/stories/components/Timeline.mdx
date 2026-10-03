@@ -7,6 +7,8 @@ import * as Stories from "./Timeline.stories";
 
 # Timeline
 
+**Status: Stable.**
+
 Events in order along one rail: a record's activity, a scope's history, an audit trail, a pipeline, a line of releases, a feed of what people did. Each event is a marker on the rail, what happened, who and when, and under it what the event carries: a sentence, a file, a note, two buttons. Vertical reads down, newest first, with sticky group labels over a week or a month; horizontal reads across, oldest first. The anatomy follows [Item](?path=/docs/components-item--docs): a row that opens is its title stretched over the row, and everything beside it is a separate stop.
 
 A timeline is for events; things with a date are an Item list, and a fixed path with a current step is a [Stepper](?path=/docs/components-stepper--docs).
@@ -21,7 +23,7 @@ A timeline is for events; things with a date are an Item list, and a fixed path 
 | Marker      | On the rail, at the list's size: a bare Dot in the tone at `small`; a ring on `elevation.surface.raised` holding a Dot at `medium` and `large`. With `icon`, a disc in the tone with the icon on it (a check, a cross, a play). Anything the slot holds as `marker`: an Avatar for who did it.                                                                                                                                            |
 | Title       | What happened, `font.body` in `color.text`, one line unless the list says `wrap`: a longer title is cut and shows whole on hover and while its row has keyboard focus. Medium weight when emphasised or unread. It may be a sentence: the name in medium weight, the verb subtle, the record as a link. On a row that opens, this is the link or button, stretched over the row.                                                          |
 | Time        | `font.body.xsmall` in `color.text.subtle`, as the reader would say it, where the list puts it: at the end of the title's line, above the title as a dated line, first in the footer, or in a column before the rail. Across, above or below the marker. A `<time>` when `dateTime` is given; with `dateTime` alone, the relative words in the reader's locale, kept current. The full stamp is read after the words and is their tooltip. |
-| Meta        | Under the title, one line, `font.body.xsmall` in `color.text.subtle`: who, and the kind.                                                                                                                                                                                                                                                                                                                                                  |
+| Meta        | Under the title, `font.body.xsmall` in `color.text.subtle`: who, and the kind. One line that is cut and shows whole on hover; it wraps where the list says `wrap`, and on a row that opens, whose link lies over it.                                                                                                                                                                                                                      |
 | Description | Under the meta, `font.body.small` in `color.text.subtle`, wrapping: what the event amounts to, in a sentence.                                                                                                                                                                                                                                                                                                                             |
 | Body        | Under the description, `font.body`: the note, the diff, what was said; a file; two buttons; who is on it; a collapsible detail.                                                                                                                                                                                                                                                                                                           |
 | Footer      | The last line: Badges for the kind and the state, or who did it; the time first, when it sits below.                                                                                                                                                                                                                                                                                                                                      |
@@ -105,7 +107,7 @@ The feed in a Sheet, the count in its title, is the [In a sheet](?path=/story/co
 - **`link`**, **`onSelect`**, **`isActive`**, **`isUnread`**, **`emphasis`**, **`trailing`** as in Variants.
 - **`itemWidth`**, across: `equal` columns, or at least a rail's width each.
 - **Group `label`** and **`count`**; the label sticks to the top of the scrolling surface, over the rail and the markers, and is a heading at the level where the timeline sits.
-- **`label`** on the list names it: "Activity", "History", "Releases".
+- **`label`**, required, names the list: "Activity", "History", "Releases".
 
 ## Content
 
@@ -137,7 +139,7 @@ Down the page the list is one CSS grid the rows share, time · marker · body, a
 
 ## Accessibility
 
-- **The list is an ordered list**, `role="list"` so WebKit keeps the role once its markers are removed, named by `label`, and every event an `li`; a group is an `li` holding a heading and its own list, labelled by the heading. Name every Timeline.
+- **The list is an ordered list**, `role="list"` so WebKit keeps the role once its markers are removed, named by `label`, and every event an `li`; a group is an `li` holding a heading and its own list, labelled by the heading. `label` is required, so no Timeline is an unnamed list.
 - **A group's label is a heading at the contextual level**: an h3 outside every HeadingLevelProvider, and inside a Section or a provider the level there, so a grouped timeline under an h1 or in an h3 section keeps the outline.
 - **The title is the control.** A row that opens is a link or a button named by the title alone, with "Unread" before it on an unread event, and stretched over the row; the time, the meta, the description and the footer are read as the text beside it. Nothing interactive sits inside it: the trailing slot, a file's download, a menu and the buttons in the body are their own stops beside it.
 - **The time is a `<time>`** when `dateTime` is given, so the machine stamp travels with the words. The full stamp is visually hidden text after the words, so a screen reader hears it however the row is reached, and it is the tooltip on hover. Where the stamp matters to a sighted reader on a keyboard or touch screen, show it: `time` is the full stamp, or it goes `above`.
@@ -188,6 +190,8 @@ Timeline.Item takes a marker, an icon, a tone, a sentence, metadata, a time, a b
 - [Dot](?path=/docs/components-indicator--docs): the tone in the default marker.
 
 ## Don't
+
+A Timeline runs newest first down a page. Its title says what happened, the meta who and what changed, the description why; a marker takes a tone only where the event has one, and records with a date are an Item list, never a Timeline.
 
 <Canvas of={Stories.Dont} />
 

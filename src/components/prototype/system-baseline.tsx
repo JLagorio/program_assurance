@@ -1,6 +1,5 @@
 import { ProductCollection } from "./product-collection";
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   Absent,
   Alert,
@@ -48,8 +47,9 @@ import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback"
 import { StatusBadge } from "@/components/app/status";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { useWorkspace } from "@/components/app/workspace";
-import { database, requireIdentity } from "@/lib/database";
-import { useRow, useRows, type Row } from "@/lib/models";
+import { useSelectedControls } from "@/lib/control-reads";
+import { useAdoptSystemBaseline, type BaselineSelection } from "@/lib/system-baseline";
+import { idSet, useRow, useRows, type Row } from "@/lib/models";
 import {
   implementationStatuses,
   recordedImplementationStatuses,
@@ -59,6 +59,8 @@ import {
 import { resolutionChain } from "@/lib/profile-chain";
 import { ControlInspector } from "./library-controls";
 import { RecordLink, useDisplayedRecords } from "./record-preview";
+import { useCollectionTable } from "./collection-question";
+import { EmptyMessage } from "./work-common";
 
 export type ProfileChoice = {
   id: string;
@@ -86,7 +88,8 @@ export function profileChoices(input: {
   profileRecords: Row<"profiles">[];
   imports: Row<"profile_imports">[];
   catalogs: Row<"catalog_revisions">[];
-  selections: Row<"selected_controls">[];
+  /** What each resolution selects: only its id and control are read. */
+  selections: Pick<Row<"selected_controls">, "profile_resolution_id" | "control_id">[];
 }): ProfileChoice[] {
   return input.resolutions
     .flatMap((resolution) => {
@@ -142,6 +145,17 @@ const controlSources: StatusVocabulary<ControlSource> = {
   excluded: { label: "Excluded here", tone: "warning", rank: 2 },
 };
 
+/** What the Controls tab and its preview read of a control: never its stored properties. */
+const baselineControlColumns = [
+  "id",
+  "code",
+  "title",
+  "source_id",
+  "status",
+  "catalog_revision_id",
+] as const;
+type BaselineControl = Pick<Row<"controls">, (typeof baselineControlColumns)[number]>;
+
 type ControlRow = {
   id: string;
   code: string;
@@ -151,7 +165,7 @@ type ControlRow = {
   /** The stored implementation status, or `unrecorded` where the boundary SSP has none yet. */
   implementation: string;
   requirements: number;
-  control: Row<"controls">;
+  control: BaselineControl;
   selectionId: string | undefined;
 };
 
@@ -207,8 +221,18 @@ export function SystemControls({
   const profileRecords = useRows("profiles");
   const imports = useRows("profile_imports");
   const catalogs = useRows("catalog_revisions");
-  const selections = useRows("selected_controls");
-  const controls = useRows("controls");
+  // What the published profiles select (the choices, and the base a tailoring is measured
+  // against) and what the element's own resolution selects: never every profile's selections.
+  const selections = useSelectedControls(
+    resolutions.isSuccess && effective.isSuccess
+      ? resolutions.data
+          .filter(
+            (row) => row.state === "published" || row.id === effective.data?.profile_resolution_id,
+          )
+          .map((row) => row.id)
+      : undefined,
+    { columns: ["id", "profile_resolution_id", "control_id"] },
+  );
   const links = useRows("requirement_control_links", { system_id: systemId });
   const plans = useRows(
     "ssp_revisions",
@@ -264,14 +288,18 @@ export function SystemControls({
     { profile_revision_id: currentProfile?.id ?? NIL },
     { enabled: !!currentProfile },
   );
-  const currentSelections = (selections.data ?? []).filter(
-    (row) => row.profile_resolution_id === currentResolution?.id,
-  );
-  const selected = new Set(currentSelections.map((row) => row.control_id));
-  const selectionIdByControl = new Map(currentSelections.map((row) => [row.control_id, row.id]));
-  const selectedControls = (controls.data ?? [])
-    .filter((row) => selected.has(row.id))
-    .sort(controlOrder);
+  // What the element's own resolution selects, kept while its selections are: the sorted controls,
+  // the rows and the table's memoized body rows stay put across a render that changes neither.
+  const currentResolutionId = currentResolution?.id;
+  const { selected, selectionIdByControl } = useMemo(() => {
+    const current = (selections.data ?? []).filter(
+      (row) => row.profile_resolution_id === currentResolutionId,
+    );
+    return {
+      selected: new Set(current.map((row) => row.control_id)),
+      selectionIdByControl: new Map(current.map((row) => [row.control_id, row.id])),
+    };
+  }, [selections.data, currentResolutionId]);
   const publishedSource = choices.find((choice) => choice.id === currentResolution?.id);
   const metadataBase = recordedBaseResolution(currentDocument.data?.metadata);
   const original = currentDocument.data?.original_content;
@@ -287,14 +315,30 @@ export function SystemControls({
     (choice) =>
       choice.id === metadataBase && metadataBase === recordedBaseResolution(originalMetadata),
   );
-  const pins = new Set((resolutionInputs.data ?? []).map((row) => row.document_revision_id));
-  const draftImports = (imports.data ?? []).filter(
-    (row) => row.profile_revision_id === currentProfile?.id,
-  );
   // A layered resolution names its base; what differs from that base is what changed here.
   const overlayBase = currentResolution?.base_profile_resolution_id
     ? choices.find((choice) => choice.id === currentResolution.base_profile_resolution_id)
     : undefined;
+  // The controls the rows name: the element's selection, and the base's (an excluded one too).
+  const controls = useRows(
+    "controls",
+    {
+      id: idSet([
+        ...selected,
+        ...(overlayBase?.controlIds ?? []),
+        ...(lineageSource?.controlIds ?? []),
+      ]),
+    },
+    { columns: baselineControlColumns, enabled: selections.isSuccess, keepPrevious: true },
+  );
+  const selectedControls = useMemo(
+    () => (controls.data ?? []).filter((row) => selected.has(row.id)).sort(controlOrder),
+    [controls.data, selected],
+  );
+  const pins = new Set((resolutionInputs.data ?? []).map((row) => row.document_revision_id));
+  const draftImports = (imports.data ?? []).filter(
+    (row) => row.profile_revision_id === currentProfile?.id,
+  );
   const legacyDraftSource =
     currentResolution?.state === "draft" &&
     currentProfile?.state === "draft" &&
@@ -329,13 +373,13 @@ export function SystemControls({
     }
     const base = new Set(verifiedSource?.controlIds ?? []);
     const excludeRules = (rules.data ?? []).filter((rule) => rule.kind === "exclude");
-    const exclusionRationale = (control: Row<"controls">) =>
+    const exclusionRationale = (control: BaselineControl) =>
       excludeRules.find((rule) => {
         const definition = rule.definition as { "with-ids"?: unknown } | null;
         const ids = definition?.["with-ids"];
         return Array.isArray(ids) && ids.includes(control.source_id);
       })?.rationale ?? null;
-    const toRow = (control: Row<"controls">, sourceKind: ControlSource): ControlRow => ({
+    const toRow = (control: BaselineControl, sourceKind: ControlSource): ControlRow => ({
       id: control.id,
       code: control.code,
       title: control.title,
@@ -365,8 +409,6 @@ export function SystemControls({
             .sort((a, b) => controlOrder(a.control, b.control))
         : []),
     ];
-    // The selection identity map and the selected list derive from the same queries.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     controls.data,
     selections.data,
@@ -374,9 +416,16 @@ export function SystemControls({
     links.data,
     rules.data,
     verifiedSource,
-    currentResolution?.id,
+    selected,
+    selectedControls,
+    selectionIdByControl,
     system.data?.baseline_rationale,
   ]);
+  // The caller's handler is read when the row action runs, so a parent that renders a new function
+  // (a tab change on the system record) keeps the columns and every memoized row.
+  const addFromLibrary = useRef(onAddFromLibrary);
+  addFromLibrary.current = onAddFromLibrary;
+  const canAddFromLibrary = !!onAddFromLibrary;
   const columns = useMemo(
     () =>
       defineColumns<ControlRow>((c) => [
@@ -385,8 +434,6 @@ export function SystemControls({
           width: 120,
           priority: 1,
           hideable: false,
-          preview: (row) => setInspected(row),
-          active: (row) => row.id === inspected?.id,
         }),
         c.text("title", {
           header: "Title",
@@ -407,7 +454,7 @@ export function SystemControls({
           statuses: recordedImplementationStatuses,
           cell: (row) =>
             row.implementation === "unrecorded" ? (
-              <Absent label="Not recorded" />
+              <Absent />
             ) : (
               <StatusBadge statuses={implementationStatuses} value={row.implementation} />
             ),
@@ -420,20 +467,33 @@ export function SystemControls({
         }),
         // Why a control was added or excluded: a column the reader can show, and More fields.
         c.text("rationale", { header: "Rationale", minWidth: 200, wrap: true }),
-        ...(onAddFromLibrary
+        ...(canAddFromLibrary
           ? [
               c.actions((row) =>
                 row.source === "excluded"
                   ? []
-                  : [{ label: "Add from library…", onSelect: () => onAddFromLibrary(row.id) }],
+                  : [
+                      {
+                        label: "Add from library…",
+                        onSelect: () => addFromLibrary.current?.(row.id),
+                      },
+                    ],
               ),
             ]
           : []),
       ]),
-    [onAddFromLibrary, inspected?.id],
+    [canAddFromLibrary],
   );
-  const table = useDataTable({
+  // The preview is the table's, so opening or stepping through it never rebuilds the columns.
+  const inspectedId = inspected?.id ?? null;
+  const tablePreview = useMemo(
+    () => ({ onPreview: (row: ControlRow) => setInspected(row), activeId: inspectedId }),
+    [inspectedId],
+  );
+  // A product collection's page, 25 rows, kept while the rows keep their values.
+  const table = useCollectionTable({
     columns,
+    preview: tablePreview,
     data: rows,
     getRowId: (row) => row.id,
     rowLabel: (row) => row.code,
@@ -442,7 +502,6 @@ export function SystemControls({
     view: "live-system-controls-v2",
     resizable: true,
     reorderable: true,
-    pageSize: 50,
     initialState: { columnVisibility: { rationale: false } },
   });
   const displayed = useDisplayedRecords(table);
@@ -463,10 +522,9 @@ export function SystemControls({
     ...(currentResolution ? [resolutionInputs] : []),
   ];
   const ready = queries.every((query) => query.data !== undefined && !query.error);
-  const canEdit =
-    !readOnly &&
-    workspace.role !== "viewer" &&
-    workspace.collections.some((row) => row.name === "systems" && row.can_update);
+  // Every member but a viewer changes a system's baseline, and row-level security decides each
+  // write: the role says it, without the record schema, which is the schema inspector's.
+  const canEdit = !readOnly && workspace.role !== "viewer";
   const sourceText = effective.data?.inherited
     ? `Inherited from ${source.data ? `${source.data.code} · ${source.data.name}` : "a containing element"}`
     : effective.data?.source_label === "Explicit system adoption"
@@ -492,7 +550,7 @@ export function SystemControls({
       {/* Provenance above the register, so the fill table stays the tab's last block. */}
       {currentProfile && (
         <Section title="Baseline details" isCollapsible>
-          <KeyValue.Group labelWidth={144}>
+          <KeyValue.Group labelWidth="auto">
             <KeyValue label="Profile" wrap>
               {currentTitle}
             </KeyValue>
@@ -548,7 +606,6 @@ export function SystemControls({
         <BaselineDialog
           system={system.data}
           choices={choices}
-          controls={controls.data ?? []}
           initialMode={initialMode}
           initialProfileId={editorSource?.id ?? null}
           initialControlIds={editorSource ? [...selected] : []}
@@ -593,8 +650,12 @@ function recordedBaseResolution(metadata: unknown): string | undefined {
   return references.length === 1 ? references[0]?.value : undefined;
 }
 
-function controlOrder(a: Row<"controls">, b: Row<"controls">) {
-  return a.code.localeCompare(b.code, undefined, { numeric: true });
+/** One collator for every comparison: `localeCompare` with options builds one per call. */
+const codeCollator = new Intl.Collator(undefined, { numeric: true });
+
+/** Controls in code order, numbers by value: AC-2 before AC-10. */
+function controlOrder(a: Pick<Row<"controls">, "code">, b: Pick<Row<"controls">, "code">) {
+  return codeCollator.compare(a.code, b.code);
 }
 
 /** The dialog's fields in the order they appear, which is the order their issues are listed in. */
@@ -611,7 +672,6 @@ const pickerFilters: { value: PickerFilter; label: string }[] = [
 function BaselineDialog({
   system: initialSystem,
   choices,
-  controls,
   initialMode,
   initialProfileId,
   initialControlIds,
@@ -621,7 +681,6 @@ function BaselineDialog({
 }: {
   system: Row<"systems">;
   choices: ProfileChoice[];
-  controls: Row<"controls">[];
   /** Where the element is today: adopting a profile itself, or inheriting. */
   initialMode: BaselineMode;
   initialProfileId: string | null;
@@ -632,9 +691,8 @@ function BaselineDialog({
   /** Called once the dialog has finished closing. */
   onClose: () => void;
 }) {
-  const workspace = useWorkspace();
   const { formatNumber } = useLedgerLocale();
-  const cache = useQueryClient();
+  const adopt = useAdoptSystemBaseline();
   const formId = useId();
   // Keep the opening snapshot for CAS even when a background refetch updates the record.
   const [system] = useState(initialSystem);
@@ -663,12 +721,19 @@ function BaselineDialog({
   const added = [...picked].filter((id) => !base.has(id)).length;
   const removed = [...base].filter((id) => !picked.has(id)).length;
   const tailored = added + removed > 0;
+  // The chosen profile's catalog, read when it is chosen: the controls the reader tailors from.
+  // Another catalog's controls load under skeleton rows, never as an empty list.
+  const catalog = useRows(
+    "controls",
+    { catalog_revision_id: chosen?.catalogId ?? NIL },
+    { columns: ["id", "code", "title", "catalog_revision_id"], enabled: !!chosen },
+  );
   const catalogControls = useMemo(
     () =>
-      controls
+      (catalog.data ?? [])
         .filter((control) => control.catalog_revision_id === chosen?.catalogId)
         .sort(controlOrder),
-    [controls, chosen?.catalogId],
+    [catalog.data, chosen?.catalogId],
   );
   // The selection filter narrows the rows before the table; the table's own search does the rest.
   // Each row carries only what the reader sees, so the search never matches a control's uuid.
@@ -792,7 +857,7 @@ function BaselineDialog({
     if (guard.busy || !canWrite) return;
     setFailure(null);
     if (!feedback.report(issues)) return;
-    const selection =
+    const selection: BaselineSelection =
       mode === "inherit"
         ? { mode }
         : {
@@ -808,29 +873,13 @@ function BaselineDialog({
     submitRef.current?.focus();
     if (!guard.start()) return;
     try {
-      const token = await requireIdentity(workspace);
-      const result = await database()
-        .rpc("adopt_system_baseline", {
-          p_tenant_id: workspace.tenantId,
-          p_system_id: system.id,
-          p_expected_revision: system.revision,
-          p_request_id: receipt.current.id,
-          p_selection: selection,
-        })
-        .setHeader("Authorization", `Bearer ${token}`);
-      if (result.error)
-        throw new Error(
-          result.error.code === "PT409"
-            ? "This system changed in another session. Your choices are kept; close the dialog and open it again to load the current system."
-            : result.error.message,
-        );
-      // Descendant inheritance and every profile reader depend on the committed command. The
-      // dialog closes once Postgres confirms; the lists refresh behind it.
-      void Promise.all(
-        ["models", "model", "records", "record", "reference-options"].map((prefix) =>
-          cache.invalidateQueries({ queryKey: [prefix, workspace.tenantId] }),
-        ),
-      );
+      // The dialog closes once Postgres confirms; every list refreshes behind it.
+      await adopt.mutateAsync({
+        systemId: system.id,
+        expectedRevision: system.revision,
+        requestId: receipt.current.id,
+        selection,
+      });
       toast.add({
         type: "success",
         title: mode === "inherit" ? "Inherited baseline in use" : "Control baseline changed",
@@ -906,7 +955,7 @@ function BaselineDialog({
               ) : null}
               <Section title="Current baseline">
                 {current ? (
-                  <KeyValue.Group labelWidth={144}>
+                  <KeyValue.Group labelWidth="wide">
                     <KeyValue label="Profile" wrap>
                       {current.title ?? <Absent />}
                     </KeyValue>
@@ -924,9 +973,11 @@ function BaselineDialog({
                     )}
                   </KeyValue.Group>
                 ) : (
-                  <Text as="p" color="color.text.subtle">
-                    This system has no baseline yet: it adopts none and inherits none.
-                  </Text>
+                  <EmptyMessage
+                    compact
+                    title="No baseline yet"
+                    description="This system adopts no profile and inherits none."
+                  />
                 )}
               </Section>
               <ErrorSummary issues={feedback.summary} focusKey={feedback.attempts} />
@@ -1020,6 +1071,7 @@ function BaselineDialog({
                           )}
                           <ProductCollection
                             table={pickerTable}
+                            queries={[catalog]}
                             searchLabel="Find controls to tailor"
                             maxHeight={320}
                             keepQuestion={false}

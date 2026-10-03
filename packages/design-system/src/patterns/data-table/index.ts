@@ -11,11 +11,13 @@ export {
   type DataTableEmpty,
   type DataTableFilteredEmpty,
   type DataTableNoun,
+  type DataTableOwnProps,
   type DataTableProps,
   type DataTableState,
 } from "./data-table";
 export { countRows, type Preset } from "./filter";
 export { HeaderMenu } from "./columns-menu";
+export { TablePagination, type TablePaginationProps } from "./pagination";
 export { DataTableSort, type DataTableSortProps } from "./sort-menu";
 export {
   sameTableQuery,

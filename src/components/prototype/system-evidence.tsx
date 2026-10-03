@@ -47,7 +47,8 @@ import { useFormFeedback } from "@/components/app/form-feedback";
 import { StatusBadge } from "@/components/app/status";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { useWorkspace } from "@/components/app/workspace";
-import { useRows, type Row } from "@/lib/models";
+import { idSet, useRows, type Row } from "@/lib/models";
+import { programRequirementScope } from "@/lib/requirement-reads";
 import {
   evidenceReviewDecisions,
   evidenceUseDecisions,
@@ -131,20 +132,79 @@ export function SystemEvidence({
 }) {
   const workspace = useWorkspace();
   const { formatNumber } = useLedgerLocale();
+  // Every read is scoped on the server to this program or boundary, or to the ids the reads
+  // before it name: the boundary's components, their contributions, and the evidence they cite.
   const uses = useRows("evidence_uses", { program_id: programId });
-  const versions = useRows("evidence_versions");
-  const artifacts = useRows("evidence_artifacts");
-  const reviews = useRows("evidence_reviews");
-  const implementationEvidence = useRows("implementation_evidence");
-  const requirementEvidence = useRows("requirement_evidence");
   const components = useRows("system_components", { system_id: element.boundary_system_id });
-  const contributions = useRows("component_contributions");
-  const implemented = useRows("implemented_requirements");
-  const selections = useRows("selected_controls");
-  const controls = useRows("controls");
-  const allocations = useRows("requirement_allocations");
-  const revisions = useRows("requirement_revisions");
+  const contributions = useRows(
+    "component_contributions",
+    { system_component_id: idSet(components.data?.map((row) => row.id)) },
+    { enabled: components.isSuccess },
+  );
+  const implementationEvidence = useRows(
+    "implementation_evidence",
+    { component_contribution_id: idSet(contributions.data?.map((row) => row.id)) },
+    { enabled: contributions.isSuccess },
+  );
+  const allocations = useRows(
+    "requirement_allocations",
+    programRequirementScope(programId, "requirement_allocations"),
+  );
+  const revisions = useRows(
+    "requirement_revisions",
+    programRequirementScope(programId, "requirement_revisions"),
+  );
+  const requirementEvidence = useRows(
+    "requirement_evidence",
+    programRequirementScope(programId, "requirement_evidence"),
+  );
   const requirements = useRows("engineering_requirements", { program_id: programId });
+  // The control each contribution implements: its narrative, the selection, the control's code.
+  const implemented = useRows(
+    "implemented_requirements",
+    { id: idSet(contributions.data?.map((row) => row.implemented_requirement_id)) },
+    { columns: ["id", "selected_control_id"], enabled: contributions.isSuccess },
+  );
+  const selections = useRows(
+    "selected_controls",
+    { id: idSet(implemented.data?.map((row) => row.selected_control_id)) },
+    { columns: ["id", "control_id"], enabled: implemented.isSuccess },
+  );
+  const controls = useRows(
+    "controls",
+    { id: idSet(selections.data?.map((row) => row.control_id)) },
+    { columns: ["id", "code"], enabled: selections.isSuccess },
+  );
+  // The evidence versions every line cites, their artifacts and their reviews.
+  const versionIds = useMemo(
+    () =>
+      idSet([
+        ...(uses.data ?? []).map((row) => row.evidence_version_id),
+        ...(implementationEvidence.data ?? []).map((row) => row.evidence_version_id),
+        ...(requirementEvidence.data ?? []).map((row) => row.evidence_version_id),
+      ]),
+    [uses.data, implementationEvidence.data, requirementEvidence.data],
+  );
+  const citationsRead =
+    uses.isSuccess && implementationEvidence.isSuccess && requirementEvidence.isSuccess;
+  const versions = useRows(
+    "evidence_versions",
+    { id: versionIds },
+    {
+      columns: ["id", "artifact_id", "version_number", "state", "external_uri"],
+      enabled: citationsRead,
+    },
+  );
+  const artifacts = useRows(
+    "evidence_artifacts",
+    { id: idSet(versions.data?.map((row) => row.artifact_id)) },
+    { columns: ["id", "title", "source_uri"], enabled: versions.isSuccess },
+  );
+  const reviews = useRows(
+    "evidence_reviews",
+    { evidence_version_id: versionIds },
+    { columns: ["id", "evidence_version_id", "reviewed_at", "decision"], enabled: citationsRead },
+  );
   const [includeInside, setIncludeInside] = useState(false);
   const [deciding, setDeciding] = useState<Line | null>(null);
   const inside = useMemo(() => subtree(element, rows), [element, rows]);
@@ -314,8 +374,6 @@ export function SystemEvidence({
           minWidth: 200,
           priority: 0,
           hideable: false,
-          preview: (row) => setPreviewId(row.id),
-          active: (row) => row.id === previewId,
           cell: (row) => (
             <RecordLink table="evidence_versions" record={{ id: row.versionId }}>
               {row.title}
@@ -355,12 +413,18 @@ export function SystemEvidence({
             ]
           : []),
       ]),
-    [canDecide, previewId, includeInside],
+    [canDecide, includeInside],
+  );
+  // The preview is the table's, so opening or stepping through it never rebuilds the columns.
+  const tablePreview = useMemo(
+    () => ({ onPreview: (row: Line) => setPreviewId(row.id), activeId: previewId ?? null }),
+    [previewId],
   );
   const table = useDataTable({
     columns,
     data,
     getRowId: (row) => row.id,
+    preview: tablePreview,
     rowLabel: (row) => row.title,
     label: "Evidence at this element",
     // v2: the Element column shows by default with everything inside, and statuses are stored

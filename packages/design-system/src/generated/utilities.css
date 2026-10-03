@@ -506,6 +506,15 @@
 @utility bg-chart-warning-hovered {
   background-color: var(--ds-color-chart-warning-hovered);
 }
+@utility fill-chart-warning-bold {
+  fill: var(--ds-color-chart-warning-bold);
+}
+@utility stroke-chart-warning-bold {
+  stroke: var(--ds-color-chart-warning-bold);
+}
+@utility bg-chart-warning-bold {
+  background-color: var(--ds-color-chart-warning-bold);
+}
 @utility fill-chart-danger {
   fill: var(--ds-color-chart-danger);
 }
@@ -922,6 +931,26 @@
   font-weight: var(--tw-font-weight, var(--ds-font-body-weight));
   letter-spacing: var(--ds-font-body-letter-spacing);
 }
+@utility font-heading-display {
+  font: var(--ds-font-heading-display);
+  font-weight: var(--tw-font-weight, var(--ds-font-heading-display-weight));
+  letter-spacing: var(--ds-font-heading-display-letter-spacing);
+}
+@utility font-heading-page {
+  font: var(--ds-font-heading-page);
+  font-weight: var(--tw-font-weight, var(--ds-font-heading-page-weight));
+  letter-spacing: var(--ds-font-heading-page-letter-spacing);
+}
+@utility font-heading-overlay {
+  font: var(--ds-font-heading-overlay);
+  font-weight: var(--tw-font-weight, var(--ds-font-heading-overlay-weight));
+  letter-spacing: var(--ds-font-heading-overlay-letter-spacing);
+}
+@utility font-heading-section {
+  font: var(--ds-font-heading-section);
+  font-weight: var(--tw-font-weight, var(--ds-font-heading-section-weight));
+  letter-spacing: var(--ds-font-heading-section-letter-spacing);
+}
 @utility font-heading-large {
   font: var(--ds-font-heading-large);
   font-weight: var(--tw-font-weight, var(--ds-font-heading-large-weight));
@@ -951,6 +980,21 @@
   font: var(--ds-font-code);
   font-weight: var(--tw-font-weight, var(--ds-font-code-weight));
   letter-spacing: var(--ds-font-code-letter-spacing);
+}
+@utility z-chrome {
+  z-index: var(--ds-layer-chrome);
+}
+@utility z-blanket {
+  z-index: var(--ds-layer-blanket);
+}
+@utility z-overlay {
+  z-index: var(--ds-layer-overlay);
+}
+@utility z-toast {
+  z-index: var(--ds-layer-toast);
+}
+@utility z-tooltip {
+  z-index: var(--ds-layer-tooltip);
 }
 @utility duration-micro {
   transition-duration: var(--ds-motion-duration-micro);

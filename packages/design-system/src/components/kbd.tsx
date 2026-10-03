@@ -31,7 +31,7 @@ const cap =
 function KbdRoot({ label, "aria-label": ariaLabel, className, children, ...props }: KbdProps) {
   const name = ariaLabel ?? label;
   return (
-    <kbd data-slot="kbd" className={cn(cap, name && "relative", className)} {...props}>
+    <kbd {...props} data-slot="kbd" className={cn(cap, name && "relative", className)}>
       {name ? (
         <>
           <span aria-hidden="true">{children}</span>
@@ -76,9 +76,9 @@ export function KbdGroup({
   const name = ariaLabel ?? label;
   return (
     <kbd
+      {...props}
       data-slot="kbd-group"
       className={cn("inline-flex items-center gap-050", name && "relative", className)}
-      {...props}
     >
       {name ? (
         <>

@@ -29,7 +29,10 @@ import {
   type ErrorSummaryIssue,
 } from "../../components";
 import { HeadingLevelProvider, Inline, Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/ErrorSummary",
@@ -69,6 +72,8 @@ export const Playground: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const summary = canvas.getByRole("alert", { name: "There is a problem" });
+    // ErrorSummary renders as an Alert under its own name: Alert's slot gives way to it.
+    await expect(summary).toHaveAttribute("data-slot", "error-summary");
     // The title is a heading at the contextual level: an h2 outside every HeadingLevelProvider.
     await expect(within(summary).getByRole("heading", { level: 2 })).toHaveTextContent(
       "There is a problem",
@@ -364,6 +369,7 @@ export const NoIssues: Story = {
 
 /** Each item says what fixes the field, naming it, as the field's own error does. */
 export const DoDont: Story = {
+  tags: ["!manifest"],
   name: "Do and don't",
   render: () => (
     <Pair

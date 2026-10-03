@@ -10,6 +10,7 @@ export {
   type ShellMainProps,
   type ShellMarkProps,
   type ShellPanelActionsProps,
+  type ShellPanelBackProps,
   type ShellPanelBodyProps,
   type ShellPanelCloseProps,
   type ShellPanelFocusTarget,
@@ -67,3 +68,4 @@ export {
   type SectionProps,
   type SectionTitleProps,
 } from "./section";
+export { StickyRail, type StickyRailProps } from "./sticky-rail";

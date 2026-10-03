@@ -7,6 +7,8 @@ import * as Stories from "./Checkbox.stories";
 
 # Checkbox
 
+**Status: Stable.**
+
 An independent yes or no, on the shadcn Base UI root and indicator. The 16px box draws the tick or the mixed-state dash; the label and hint come from a horizontal [Field](?path=/docs/components-field--docs), which ties them to the box with no ids and aligns the box with the label's first line.
 
 ```tsx
@@ -63,6 +65,14 @@ When each option needs a title and a line of explanation, wrap a horizontal Fiel
 
 <Canvas of={Stories.ChoiceCard} />
 
+A card often needs more than its title:
+
+- **Facts that tell the options apart** (a kind, a version, a size) follow the title in the FieldDescription: a [Badge](?path=/docs/components-badge--docs) for a kind, then the plain facts, "Version 5 · 287 of 1,196 catalog controls". They describe the box; the title alone names it.
+- **A link to the option's own record** sits beside the card, in an Inline with the card in a `grow="fill"` Stack, never inside it: inside the label a link is a second control in the card's hit area, and its words would join the box's name. Give it `newTab` where following it would leave a draft.
+- **An error that belongs to one option** is a FieldError in that card's FieldContent, under the facts, with `invalid` on its Field: it describes that box alone and edges the card in danger, chosen or not. An error about the whole choice (none chosen, too many) goes after the group, on the group's Field.
+
+<Canvas of={Stories.ChoiceCardDetails} />
+
 ## Labels, Field and forms
 
 In a Field the FieldLabel names the box and toggles it when clicked, the FieldDescription and FieldError describe it, and the Field's `invalid`, `required` and `disabled` reach it; nothing needs an id. Outside a Field, a wrapping label or a sibling label with `htmlFor` and the checkbox's `id` names it, and `aria-describedby` links supporting text; the box is inline, so a plain label keeps its text on the box's line. Use `aria-label` only for a box with no visible label: inside a wrapping label an `aria-label` is added to the label's text, not put in its place. Requiring a CheckboxGroup does not require every box. Native `required` on the box is a browser and Base UI constraint; the Field's `required` only announces and marks.
@@ -78,6 +88,10 @@ In a Field the FieldLabel names the box and toggles it when clicked, the FieldDe
 - **Name the choice, not its state.** The label stays the same ticked and unticked: "Seed AC-2 on the payments platform", never a label that flips between "Will seed" and "Excluded", and "Complete: Rotate the signing keys", never "Reopen: …" once ticked. The box shows the state; a status beside it can repeat it.
 - **Say what ticking does**, in the positive: "Notify the owner", not "Do not notify the owner".
 - **Do not disable a box to show a fact** (see When to use it).
+
+A label that flips with the state ("Excluded", then "Will seed") reports the state and never names the choice.
+
+<Canvas of={Stories.DoDont} />
 
 ## Accessibility
 

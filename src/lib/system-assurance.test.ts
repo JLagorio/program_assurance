@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Row, TableName } from "./models";
 import {
+  assuranceResolutionIds,
   baselineSource,
   buildSystemAssuranceRows,
   type SystemAssuranceInput,
@@ -294,5 +295,21 @@ describe("system assurance projection", () => {
     expect(baselineSource(rows[0]!)).toBe("Applied here");
     expect(baselineSource(rows[1]!)).toBe("Inherited from root");
     expect(baselineSource({ ...rows[2]!, effectiveBaseline: undefined })).toBe("Not set");
+  });
+});
+
+describe("the selections a program reads", () => {
+  it("names each resolution a baseline or a scope adoption uses, once", () => {
+    expect(
+      assuranceResolutionIds(
+        [
+          { profile_resolution_id: "moderate" },
+          { profile_resolution_id: null },
+          { profile_resolution_id: "high" },
+        ],
+        [{ profile_resolution_id: "moderate" }, { profile_resolution_id: "tailored" }],
+      ),
+    ).toEqual(["high", "moderate", "tailored"]);
+    expect(assuranceResolutionIds([], [])).toEqual([]);
   });
 });

@@ -1,3 +1,4 @@
+import type { Database } from "./database.types";
 import type { TableName } from "./models";
 import { labelFor, type Column } from "./records";
 
@@ -14,6 +15,8 @@ const nouns = {
   assessment_activities: "assessment activity",
   assessment_campaigns: "assessment campaign",
   assessment_events: "assessment event",
+  // The assessment findings register: a finding with its assessor by name.
+  assessment_finding_rows: "assessment finding",
   assessment_findings: "assessment finding",
   assessment_objectives: "assessment objective",
   assessment_plan_revisions: "assessment plan revision",
@@ -22,10 +25,14 @@ const nouns = {
   assessment_task_dependencies: "assessment task dependency",
   authorization_decisions: "authorization decision",
   authorization_packages: "authorization package",
+  // The catalog's Controls register: a control with its family and the profiles selecting it.
+  catalog_control_rows: "control",
   catalog_groups: "catalog group",
   catalog_revisions: "catalog revision",
   catalogs: "catalog",
   cci_control_links: "CCI control link",
+  // The catalog's CCIs register: a CCI with its types and mapped controls.
+  cci_item_rows: "CCI",
   cci_item_types: "CCI type",
   cci_items: "CCI",
   cci_references: "CCI reference",
@@ -51,6 +58,8 @@ const nouns = {
   demo_import_records: "demo import record",
   demo_import_sources: "demo import source",
   engineering_requirements: "engineering requirement",
+  // The evidence register: an artifact with its latest version and review.
+  evidence_artifact_rows: "evidence artifact",
   evidence_artifacts: "evidence artifact",
   evidence_create_requests: "evidence create request",
   evidence_reviews: "evidence review",
@@ -81,6 +90,8 @@ const nouns = {
   observation_evidence: "evidence citation",
   observations: "observation",
   offered_implementations: "offering",
+  // The operational issues register: an issue with its program and owner by name.
+  operational_issue_rows: "operational issue",
   operational_issues: "operational issue",
   oscal_document_imports: "OSCAL document import",
   oscal_document_resources: "OSCAL resource",
@@ -121,6 +132,8 @@ const nouns = {
   profile_rules: "tailoring rule",
   profiles: "profile",
   program_reference_choices: "reference choice",
+  // The program Requirements register: a requirement, its latest revision and its place in a tree.
+  program_requirement_rows: "engineering requirement",
   program_role_assignments: "program responsibility",
   program_wizard_requests: "program setup request",
   programs: "program",
@@ -144,6 +157,8 @@ const nouns = {
   risk_observations: "linked observation",
   risk_responses: "risk response",
   risk_revisions: "risk assessment",
+  // The risk register: a risk with its latest assessment.
+  risk_rows: "risk",
   risks: "risk",
   scheduled_assessment_tasks: "scheduled assessment task",
   scope_baselines: "scope baseline",
@@ -169,13 +184,18 @@ const nouns = {
   task_poams: "linked task",
   task_requirements: "linked requirement",
   task_risks: "linked task",
+  // The task registers: a task with its program and the people assigned by name.
+  task_rows: "task",
   tasks: "task",
   tenant_memberships: "workspace membership",
   tenants: "workspace",
   test_run_evidence: "evidence citation",
   test_runs: "test run",
   workstreams: "workstream",
-} as const satisfies Partial<Record<TableName, string>>;
+} as const satisfies Partial<Record<TableName | RegisterView, string>>;
+
+/** A server-paged register's view: its rows are records of a model, and read as that record. */
+type RegisterView = keyof Database["public"]["Views"];
 
 type NamedModel = keyof typeof nouns;
 
@@ -222,6 +242,8 @@ export function productFieldLabel(
   }
   if (table === "implementation_statements" && column === "description")
     return "Statement narrative";
+  // A due is a calendar day, asked for as Create task asks for it.
+  if (column === "due_on") return "Due date";
   if (table === "parties") {
     if (column === "email") return "Contact email";
     // An organization's organization is the one it belongs to.
@@ -354,7 +376,7 @@ const targetGroups: Partial<Record<TableName, readonly ProductTargetGroup[]>> = 
 
 /** The polymorphic target groups of a table; none for a table without one. */
 export function productTargetGroups(table: string): readonly ProductTargetGroup[] {
-  return isModel(table) ? (targetGroups[table] ?? []) : [];
+  return isModel(table) ? (targetGroups[table as TableName] ?? []) : [];
 }
 
 /** The tables with a polymorphic target group, for the test that compares them with the schema. */

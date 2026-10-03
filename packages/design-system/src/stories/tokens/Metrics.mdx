@@ -51,39 +51,68 @@ The sizes, the stroke, the colour and the naming rules are on the [Icons](?path=
 
 A part's own size: a popup's width, a menu's narrowest, a placeholder's size. Each is read by its part through `token()` in the part's style, so it has no class. A product sizes a part through the part's props, or `style` where the part's page says so, and never picks one of these for its value: the popover's 288px is also the `@2xs` container size, but it changes with the popover, not with the container query.
 
-| Token                           | Value  | Part                   | Use                                                                                  |
-| ------------------------------- | ------ | ---------------------- | ------------------------------------------------------------------------------------ |
-| `dimension.part.tooltip`        | 320px  | Tooltip                | The widest it grows, within the room the window leaves.                              |
-| `dimension.part.hoverCard`      | 256px  | HoverCard              | Its width, within the room the window leaves.                                        |
-| `dimension.part.popover`        | 288px  | Popover                | Its width, within the room the window leaves.                                        |
-| `dimension.part.command`        | 560px  | CommandDialog          | The widest it grows.                                                                 |
-| `dimension.part.menu`           | 128px  | DropdownMenu           | Its narrowest, unless the trigger is wider.                                          |
-| `dimension.part.submenu`        | 96px   | DropdownMenu's submenu | Its narrowest.                                                                       |
-| `dimension.part.select`         | 9rem   | Select                 | Its list's narrowest, unless the trigger is wider.                                   |
-| `dimension.part.search`         | 240px  | Toolbar                | The widest its search field grows while it shares a row.                             |
-| `dimension.part.steps`          | 420px  | Stepper, Timeline      | The narrowest across, room for about four steps; narrower, the strip scrolls.        |
-| `dimension.part.skeletonCircle` | 32px   | Skeleton               | A circle's size, unless `width` gives another.                                       |
-| `dimension.part.skeletonBlock`  | 96px   | Skeleton               | A block's height, unless `height` gives another.                                     |
-| `dimension.part.emptyMeasure`   | 400px  | Empty                  | The measure of its title and description.                                            |
-| `dimension.part.keyValue`       | 8rem   | KeyValue               | In an `auto` group, the value's room before its label goes over it.                  |
-| `dimension.part.keyValueLabel`  | 6.5rem | KeyValue               | Its label column, 104px at the default text size, unless `labelWidth` gives another. |
-| `dimension.part.codeBlock`      | 560px  | CodeBlock              | The tallest it grows before it scrolls, unless `maxHeight` gives another.            |
-| `dimension.part.itemId`         | 72px   | Item                   | Its id column, unless `idWidth` gives another.                                       |
-| `dimension.part.filter`         | 220px  | DataTable.Filter       | Its popover's width, unless `width` gives another.                                   |
-| `dimension.part.tableSearch`    | 200px  | DataTable.Search       | Its field's width, unless `width` gives another.                                     |
-| `dimension.part.previewSheet`   | 720px  | PreviewSheet           | Its width, unless `width` gives another.                                             |
+| Token                                      | Value  | Part                                  | Use                                                                                  |
+| ------------------------------------------ | ------ | ------------------------------------- | ------------------------------------------------------------------------------------ |
+| `dimension.part.tooltip`                   | 320px  | Tooltip                               | The widest it grows, within the room the window leaves.                              |
+| `dimension.part.hoverCard`                 | 256px  | HoverCard                             | Its width, within the room the window leaves.                                        |
+| `dimension.part.popover`                   | 288px  | Popover                               | Its width, within the room the window leaves.                                        |
+| `dimension.part.command`                   | 560px  | CommandDialog                         | The widest it grows.                                                                 |
+| `dimension.part.menu`                      | 128px  | DropdownMenu                          | Its narrowest, unless the trigger is wider.                                          |
+| `dimension.part.submenu`                   | 96px   | DropdownMenu's submenu                | Its narrowest.                                                                       |
+| `dimension.part.select`                    | 9rem   | Select                                | Its list's narrowest, unless the trigger is wider.                                   |
+| `dimension.part.search`                    | 240px  | Toolbar                               | The widest its search field grows while it shares a row.                             |
+| `dimension.part.steps`                     | 420px  | Stepper, Timeline                     | The narrowest across, room for about four steps; narrower, the strip scrolls.        |
+| `dimension.part.skeletonCircle`            | 32px   | Skeleton                              | A circle's size, unless `width` gives another.                                       |
+| `dimension.part.skeletonBlock`             | 96px   | Skeleton                              | A block's height, unless `height` gives another.                                     |
+| `dimension.part.emptyMeasure`              | 400px  | Empty                                 | The measure of its title and description.                                            |
+| `dimension.part.keyValue`                  | 8rem   | KeyValue                              | In an `auto` group, the value's room before its label goes over it.                  |
+| `dimension.part.keyValueLabelNarrow`       | 5.5rem | KeyValue                              | Its label column at `labelWidth="narrow"`, 88px at the default text size.            |
+| `dimension.part.keyValueLabel`             | 6.5rem | KeyValue                              | Its label column at `labelWidth="default"` and without one, 104px.                   |
+| `dimension.part.keyValueLabelWide`         | 10rem  | KeyValue                              | Its label column at `labelWidth="wide"`, 160px, and the most an `auto` column takes. |
+| `dimension.part.codeBlock`                 | 560px  | CodeBlock                             | The tallest it grows before it scrolls, unless `maxHeight` gives another.            |
+| `dimension.part.itemId`                    | 72px   | Item                                  | Its id column, unless `idWidth` gives another.                                       |
+| `dimension.part.filter`                    | 220px  | DataTable.Filter                      | Its popover's width, unless `width` gives another.                                   |
+| `dimension.part.tableSearch`               | 200px  | DataTable.Search                      | Its field's width, unless `width` gives another.                                     |
+| `dimension.part.previewSheet`              | 720px  | PreviewSheet                          | Its width, unless `width` gives another.                                             |
+| `dimension.part.filterChipValue`           | 20ch   | FilterChip                            | The widest its value grows before it truncates; about twenty characters.             |
+| `dimension.part.commandList`               | 340px  | Command                               | The tallest its list grows before it scrolls.                                        |
+| `dimension.part.cellCard`                  | 300px  | Table.List, DataTable                 | The card a cell opens: a list's full list, a column's `glance`.                      |
+| `dimension.part.composerSuggestions`       | 280px  | Composer                              | Its suggestions list's width.                                                        |
+| `dimension.part.composerSuggestionsHeight` | 240px  | Composer                              | The tallest its suggestions list grows, within the room the window leaves.           |
+| `dimension.part.tableMenu`                 | 220px  | DataTable.Columns, DataTable.Settings | Their menus' narrowest.                                                              |
+| `dimension.part.tableColumnMenu`           | 200px  | DataTable.HeaderMenu                  | Its menu's narrowest.                                                                |
+| `dimension.part.tableGroupBy`              | 200px  | DataTable.GroupBy                     | Its menu's narrowest.                                                                |
+| `dimension.part.tablePresets`              | 240px  | DataTable.Presets                     | Its menu's narrowest, at `variant="menu"`.                                           |
+| `dimension.part.editableSelect`            | 220px  | EditableSelect                        | Its list of choices' width.                                                          |
+| `dimension.part.editableCombobox`          | 240px  | EditableSelect                        | Its searchable popup's width, for a long list of choices.                            |
+| `dimension.part.editableComboboxList`      | 260px  | EditableSelect                        | The tallest its searchable popup's list grows before it scrolls.                     |
+| `dimension.part.recordSearch`              | 640px  | SearchDialog, RecordPicker            | The widest they grow; a narrower window caps them.                                   |
+| `dimension.part.relatedCard`               | 240px  | Related                               | A card's narrowest at `layout="cards"`.                                              |
+| `dimension.part.recordBrowser`             | 90vw   | RecordBrowser                         | Its width and its cap: most of the window, past every Dialog step.                   |
+
+A few parts take their size in the kit's stylesheets, which read the token as its variable (`min-width: var(--ds-dimension-part-record-browser-preview)`):
+
+| Token                                 | Value   | Part          | Use                                                                                                                           |
+| ------------------------------------- | ------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `dimension.part.recordBrowserPreview` | 320px   | RecordBrowser | Its preview column's narrowest beside the results.                                                                            |
+| `dimension.part.drawerSmall`          | 20rem   | Drawer        | Its width at `width="small"`, 320px; see `dimension.part.drawer`.                                                             |
+| `dimension.part.drawer`               | 24rem   | Drawer        | Its width at `width="medium"`, the default: a side drawer within 75% of the window, a bottom or top one centred from `sm` up. |
+| `dimension.part.drawerLarge`          | 47.5rem | Drawer        | Its width at `width="large"`, 760px; see `dimension.part.drawer`.                                                             |
+| `dimension.part.toast`                | 24rem   | Toaster       | The widest the stack grows.                                                                                                   |
+| `dimension.part.pageHeaderHeading`    | 14rem   | PageHeader    | The heading's measure, about twenty characters, before the actions wrap under it.                                             |
+| `dimension.part.sectionHeading`       | 12rem   | Section       | The heading's measure, about twenty-five characters, before the actions wrap under.                                           |
 
 ## Breakpoints
 
-| Token                        | Value  | Variant  | Use                                                                              |
-| ---------------------------- | ------ | -------- | -------------------------------------------------------------------------------- |
-| `dimension.breakpoint.sm`    | 40rem  | `sm:`    | Tailwind's sm. Pagination's words, Stat's columns and a two-month Calendar from here. |
-| `dimension.breakpoint.md`    | 48rem  | `md:`    | Tailwind's md. `TopNav.End` shows its `overflow` menu below it.                   |
-| `dimension.breakpoint.lg`    | 64rem  | `lg:`    | Tailwind's lg. The side nav is inline from here and an overlay below.            |
-| `dimension.breakpoint.aside` | 75rem  | `aside:` | The aside sits beside Main from here while no panel is open.                     |
-| `dimension.breakpoint.panel` | 80rem  | `panel:` | The panel is a full-height column beside the page; below, it replaces Main.      |
-| `dimension.breakpoint.wide`  | 110rem | `wide:`  | The aside sits beside Main even while a panel is open.                           |
-| `dimension.breakpoint.xl`    | 80rem  | `xl:`    | Tailwind's xl, the panel breakpoint under its Tailwind name for Grid's `xl` count. |
+| Token                        | Value  | Variant  | Use                                                                                                                                                        |
+| ---------------------------- | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dimension.breakpoint.sm`    | 40rem  | `sm:`    | Tailwind's sm. Pagination's words, Stat's columns and a two-month Calendar from here.                                                                      |
+| `dimension.breakpoint.md`    | 48rem  | `md:`    | Tailwind's md. `TopNav.End` shows its `overflow` menu below it.                                                                                            |
+| `dimension.breakpoint.lg`    | 64rem  | `lg:`    | Tailwind's lg. The side nav is inline from here and an overlay below.                                                                                      |
+| `dimension.breakpoint.aside` | 75rem  | `aside:` | The aside sits beside Main from here, whatever the side nav's width, while no panel is open; from `lg` it does while the side nav leaves Main its minimum. |
+| `dimension.breakpoint.panel` | 80rem  | `panel:` | The panel is a full-height column beside the page; below, it replaces Main.                                                                                |
+| `dimension.breakpoint.wide`  | 110rem | `wide:`  | The aside sits beside Main even while a panel is open.                                                                                                     |
+| `dimension.breakpoint.xl`    | 80rem  | `xl:`    | Tailwind's xl, the panel breakpoint under its Tailwind name for Grid's `xl` count.                                                                         |
 
 One source for three readers: `layout.css` writes `@media (width >= theme(--breakpoint-panel))`, the shell reads `tokenValue("dimension.breakpoint.panel")` for `matchMedia`, and a class takes the variant. `sm`, `md`, `lg` and `xl` restate Tailwind's values so a class and a media query cannot drift apart. Where `reset.css` is imported, it clears Tailwind's own breakpoints first, so these seven are the only ones: `2xl:` (Tailwind's 96rem) does not exist.
 
@@ -93,25 +122,34 @@ A part inside a panel, a rail, a card or a dialog switches on its own width, not
 
 The names are Tailwind's, and they are not the breakpoints: `@md` is 28rem, the width of a container, while `md:` is the 48rem viewport. Name a container on the part (`@container/field-group`) and query it by name (`@md/field-group:`) so a nested container cannot answer instead.
 
-| Token                              | Value                | Variant            | Where it switches                                                                       |
-| ---------------------------------- | -------------------- | ------------------ | --------------------------------------------------------------------------------------- |
-| `dimension.container.3xs`          | 16rem                | `@3xs:`            | A card header puts its actions beside the title; an input group shows its shortcut.     |
-| `dimension.container.2xs`          | 18rem                | `@2xs:`            | No part yet.                                                                            |
-| `dimension.container.xs`           | 20rem                | `@xs:`             | No part yet.                                                                            |
-| `dimension.container.sm`           | 24rem                | `@sm:`             | Pagination shows its Previous and Next words.                                           |
-| `dimension.container.compact`      | 25rem                | `@compact:`        | Below it a region is compact: the panel header gives its actions a row under the title. |
-| `dimension.container.md`           | 28rem                | `@md:`             | A field group sets label and control side by side.                                      |
-| `dimension.container.lg`           | 32rem                | `@lg:`             | No part yet.                                                                            |
-| `dimension.container.xl`           | 36rem                | `@xl:`             | Below it a side-by-side Diff stacks its halves and reads as the inline view.            |
-| `dimension.container.2xl`          | 42rem                | `@2xl:`            | No part yet.                                                                            |
-| `dimension.container.3xl`          | 48rem                | `@3xl:`            | A WorkPane sets its list beside the detail; the top nav shows its search as a field.    |
-| `dimension.container.split`        | 50rem                | `@split:`          | Two panes side by side; below it RecordBrowser's open preview replaces the list.        |
-| `dimension.container.4xl` to `7xl` | 56, 64, 72 and 80rem | `@4xl:` to `@7xl:` | No part yet.                                                                            |
+| Token                              | Value                | Variant            | Where it switches                                                                     |
+| ---------------------------------- | -------------------- | ------------------ | ------------------------------------------------------------------------------------- |
+| `dimension.container.3xs`          | 16rem                | `@3xs:`            | A card header puts its actions beside the title; an input group shows its shortcut.   |
+| `dimension.container.2xs`          | 18rem                | `@2xs:`            | No part yet.                                                                          |
+| `dimension.container.xs`           | 20rem                | `@xs:`             | A KeyValue.Group with an `auto` label column puts each label over its value below it. |
+| `dimension.container.sm`           | 24rem                | `@sm:`             | Pagination shows its Previous and Next words.                                         |
+| `dimension.container.compact`      | 25rem                | `@compact:`        | No part yet. Below it a region is compact: a header puts its actions under the title. |
+| `dimension.container.md`           | 28rem                | `@md:`             | A field group sets label and control side by side.                                    |
+| `dimension.container.lg`           | 32rem                | `@lg:`             | No part yet.                                                                          |
+| `dimension.container.xl`           | 36rem                | `@xl:`             | Below it a side-by-side Diff stacks its halves and reads as the inline view.          |
+| `dimension.container.2xl`          | 42rem                | `@2xl:`            | No part yet.                                                                          |
+| `dimension.container.3xl`          | 48rem                | `@3xl:`            | A WorkPane sets its list beside the detail; the top nav shows its search as a field.  |
+| `dimension.container.split`        | 50rem                | `@split:`          | Two panes side by side; below it RecordBrowser's open preview replaces the list.      |
+| `dimension.container.4xl` to `7xl` | 56, 64, 72 and 80rem | `@4xl:` to `@7xl:` | No part yet.                                                                          |
 
 In a stylesheet, a container query reads the same key: `layout.css` writes `@container (width < theme(--container-split))`, and Tailwind writes the value in, since a query cannot read a custom property. A new switch uses one of these sizes; when none fits, the size is a new token with a description of what switches there, never a literal in a query.
 
+## Query thresholds
+
+Two conditions in the kit's stylesheets are neither a window width nor a container size. Each is a `--query-*` theme key, which a condition reads by name (`@media (height < theme(--query-short-window))`) and which no class or variant reads.
+
+| Token                         | Value | Where it switches                                                                           |
+| ----------------------------- | ----- | ------------------------------------------------------------------------------------------- |
+| `dimension.query.shortWindow` | 30rem | Under this height the banner, the top nav and the panel's header scroll away with the page. |
+| `dimension.query.panelHeader` | 400px | Under this width a Shell.Panel's header gives its actions a row under the title.            |
+
 <Canvas of={Stories.ContainerSizes} />
 
-`src/styles/layout.css` adds the few templates a class string cannot say, each reading these tokens: `grid-cols-list-detail`, `sticky-rail`, `min-h-work` and `fill-window`, and `shell.css` adds `shell-root`, the navigation grid. A record page's main column and rail are the Shell's Main and Aside, not a grid template. The shell sets `--shell-top` (banner plus top nav) so a sticky rail knows where to stop, and its main area sets `--shell-inset-bottom` so a filled register knows where to end. A rail in a scroller of its own reads `--rail-top` and `--rail-max-height` instead; a WorkPane in a dialog's body or a panel sets them to that scroller's top and height.
+`src/styles/layout.css` adds the few rules a class string cannot say, each reading these tokens: `fill-window`, `page-header` and `section-header` as utilities, and rules keyed to a part's `data-slot` for StickyRail, WorkPane's split and the ActionBar; `shell.css` holds the navigation grid, keyed to the Shell's data-slots. A record page's main column and rail are the Shell's Main and Aside, not a grid template. The shell sets `--shell-top` (banner plus top nav) so a StickyRail knows where to stop, and its main area sets `--shell-inset-bottom` so a filled register knows where to end. A rail in a scroller of its own reads `--rail-top` and `--rail-max-height` instead; a WorkPane in a dialog's body or a panel sets them to that scroller's top and height.
 
 <Canvas of={Stories.Dimension} />

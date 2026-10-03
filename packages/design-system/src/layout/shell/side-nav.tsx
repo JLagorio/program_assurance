@@ -19,7 +19,7 @@ import {
 } from "react";
 
 import { IconButton, type IconButtonProps } from "../../components/button";
-import { Kbd } from "../../components/kbd";
+import { KbdShortcut, useFormatShortcut } from "../../components/kbd";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../components/tooltip";
 import { useIsTruncated } from "../../components/truncate";
 import { Eyebrow } from "../../components/typography";
@@ -209,8 +209,9 @@ export function SideNavRoot({
           aria-hidden
           inert={closing}
           data-overlay={open ? "open" : "closing"}
+          data-slot="shell-scrim"
           onClick={() => shell.closeSideNav("scrim")}
-          className="shell-scrim bg-blanket lg:hidden"
+          className="bg-blanket lg:hidden"
         />
       ) : null}
       <nav
@@ -227,9 +228,7 @@ export function SideNavRoot({
         data-overlay={present ? (open ? "open" : "closing") : undefined}
         className={cn(
           "flex-col border-e border-default bg-surface-sunken outline-none",
-          present
-            ? "shell-sidenav-overlay flex shadow-overlay"
-            : cn("hidden", (expanded || rail) && "lg:shell-sidenav lg:flex"),
+          present ? "flex shadow-overlay" : cn("hidden", (expanded || rail) && "lg:flex"),
           className,
         )}
         onClick={(event) => {
@@ -354,11 +353,14 @@ export type SideNavItemProps = useRender.ComponentProps<"a"> & {
 /* The focus ring sits flush on the item's edge (shell.css takes the offset away), inside the 2px
    gap between items, so it is drawn on the side nav's surface and never over a neighbour's fill. */
 const itemBase =
-  "flex h-control-small w-full items-center gap-100 rounded-medium px-150 font-body text-start outline-none transition-colors duration-fast ease-standard focus-visible:outline-focused";
-/* The current page takes the selected fill and colour, distinct from hover's neutral tint. */
+  "relative flex h-control-small w-full items-center gap-100 rounded-medium px-150 font-body text-start outline-none transition-colors duration-fast ease-standard focus-visible:outline-focused";
+/* The current page takes the selected fill and colour, distinct from hover's neutral tint, and a
+   bar on its start edge in color.background.selected.bold, 3:1 on the fill and on the side nav's
+   surface in both modes: the cue that does not rest on the fill's colour alone (G6-13), as the
+   selected Tree row's bar does. Forced colours mark it with Highlight instead (shell.css). */
 const itemTone = (active: boolean | undefined) =>
   active
-    ? "bg-selected font-medium text-selected hover:bg-selected-hovered"
+    ? "bg-selected font-medium text-selected hover:bg-selected-hovered before:pointer-events-none before:absolute before:inset-y-050 before:start-0 before:w-025 before:rounded-full before:bg-selected-bold"
     : "text-subtle hover:bg-neutral-subtle-hovered hover:text-default";
 const iconTone = (active: boolean | undefined) => (active ? "icon-selected" : "icon-subtle");
 const indent = (depth: number) =>
@@ -537,6 +539,9 @@ export type SideNavToggleButtonProps = Omit<IconButtonProps, "icon" | "label"> &
   expandLabel?: string | undefined;
 };
 
+/** The side nav's shortcut, Control and [ on every platform (the root's handler reads it so). */
+const SIDENAV_SHORTCUT = "Ctrl+[";
+
 /** The button that shows and hides the side nav, a child of the top nav's start slot. While the side nav is inline it moves to the slot's end; hovering it while the side nav is collapsed flies the side nav out. */
 export function SideNavToggleButton({
   collapseLabel,
@@ -550,6 +555,7 @@ export function SideNavToggleButton({
 }: SideNavToggleButtonProps) {
   const shell = useShell();
   const { t } = useLedgerLocale();
+  const format = useFormatShortcut();
   const showing = shell.isDesktop ? shell.sideNav.expanded : shell.sideNav.open;
   const label = showing
     ? (collapseLabel ?? t("collapseSideNavigation"))
@@ -560,6 +566,7 @@ export function SideNavToggleButton({
       <TooltipTrigger
         render={
           <IconButton
+            aria-keyshortcuts={shell.shortcut ? format(SIDENAV_SHORTCUT, "aria") : undefined}
             {...props}
             ref={mergeRefs(ref, shell.toggle)}
             data-slot="shell-sidenav-toggle"
@@ -585,12 +592,9 @@ export function SideNavToggleButton({
       />
       <TooltipContent>
         {label}
-        {shell.shortcut ? (
-          <span className="flex items-center gap-025">
-            <Kbd>Ctrl</Kbd>
-            <Kbd>[</Kbd>
-          </span>
-        ) : null}
+        {/* Control on every platform: Command+[ is the browser's Back on a Mac. KbdShortcut draws
+            it in the platform's glyphs (⌃ [ on a Mac, Ctrl [ elsewhere). */}
+        {shell.shortcut ? <KbdShortcut keys={SIDENAV_SHORTCUT} /> : null}
       </TooltipContent>
     </Tooltip>
   );

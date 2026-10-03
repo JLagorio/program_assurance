@@ -237,7 +237,8 @@ try {
   await page.getByRole("alert").filter({ hasText: "Related records still reference" }).waitFor();
   await page.goto(`${origin}/records/controls`);
   await page
-    .getByRole("cell", { name: "Access Control Policy and Procedures", exact: true })
+    .getByRole("rowheader", { name: "Access Control Policy and Procedures", exact: true })
+    .or(page.getByRole("cell", { name: "Access Control Policy and Procedures", exact: true }))
     .first()
     .waitFor({ timeout: 20000 })
     .catch(async () => {
@@ -259,7 +260,6 @@ try {
     "/profiles",
     "/library/components",
     "/vendors",
-    "/components",
     "/schema",
   ]) {
     await page.goto(`${origin}${path}`);

@@ -137,8 +137,9 @@ const page = await context.newPage();
 const pageErrors = [];
 const prohibitedWrites = [];
 page.on("pageerror", (error) => pageErrors.push(error.message));
-// These two RPCs are the app's ordinary authenticated workspace bootstrap.
-// The tenant already exists above; no domain creation or editing is permitted.
+// Two read-only RPCs pass: ensure_personal_tenant opens the workspace, and app_schema reads the
+// record schema on demand for the inspector and the generic forms. The tenant already exists
+// above; no domain creation or editing is permitted.
 const bootstrapRpcs = new Set(["/rest/v1/rpc/ensure_personal_tenant", "/rest/v1/rpc/app_schema"]);
 await context.route("**/rest/v1/**", async (route) => {
   const request = route.request();
@@ -168,7 +169,13 @@ async function find(search, value) {
   assert.equal(typeof value, "string");
   assert.ok(value.trim());
   await page.getByPlaceholder(search, { exact: true }).fill(value);
-  await page.locator("main").getByRole("cell", { name: value, exact: true }).first().waitFor();
+  // A register's name is its row's header cell.
+  const main = page.locator("main");
+  await main
+    .getByRole("rowheader", { name: value, exact: true })
+    .or(main.getByRole("cell", { name: value, exact: true }))
+    .first()
+    .waitFor();
   await healthy();
 }
 async function capture(name) {
@@ -213,14 +220,15 @@ try {
 
   await visit("/findings", "Findings & assets");
   await page.getByRole("tab", { name: "Operational issues", exact: true }).click();
-  await find("Search operational issues", issue.title);
+  await find("Find operational issues", issue.title);
   await capture("issues");
   await page.getByRole("tab", { name: "Observations", exact: true }).click();
-  await find("Search observations", observation.title);
+  await find("Find observations", observation.title);
   await capture("observations");
   await page
     .locator("main")
-    .getByRole("cell", { name: observation.title, exact: true })
+    .getByRole("rowheader", { name: observation.title, exact: true })
+    .or(page.locator("main").getByRole("cell", { name: observation.title, exact: true }))
     .first()
     .click();
   await page
@@ -232,11 +240,11 @@ try {
   await page.getByRole("dialog").waitFor({ state: "hidden" });
 
   await visit("/vendors", "Supplier registry");
-  await find("Search organizations", vendor.name);
+  await find("Find organizations", vendor.name);
   await capture("suppliers");
 
   await visit("/risks", "Risk register");
-  await find("Search risks", risk.title);
+  await find("Find risks", risk.title);
   await capture("risks");
 
   await visit("/campaigns", "Assessment campaigns");

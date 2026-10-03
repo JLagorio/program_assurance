@@ -14,7 +14,7 @@ A page that is one collection.
 2. **DataTable** with `fill`, so the header sticks, the rows scroll inside and pagination sits at the bottom of the window. Frameless: the toolbar sits flush above and a hairline closes the last row.
 3. Its **Toolbar**: search first, saved views in `views`, filters in `filters`, Columns and Settings as children, one small primary in `actions`. The create action lives here, not in the page header. A secondary collection command such as Export goes in a labelled overflow menu beside Columns and Settings; the children fold into More when the row runs out of room.
 4. Columns from `defineColumns` by kind. A date column takes the raw value; the name is a **TextLink** to the record; the id column carries the preview eye.
-5. `responsive` on every product table, with the name at `priority: 0`. Lower-priority fields move into the row's More fields disclosure; nothing disappears.
+5. Every product table is responsive, the default (never `responsive={false}`), with the name at `priority: 0`. Lower-priority fields move into the row's More fields, a labelled "+3"; nothing disappears.
 6. The empty states are DataTable's own: bare (illustration, title, one line, the same create action) and filtered (Clear filters). A first load keeps the toolbar over skeleton rows; a failed refresh keeps the rows under one **Alert** with Retry.
 
 Story: Layout/Pages, Register.
@@ -23,7 +23,7 @@ Story: Layout/Pages, Register.
 
 1. **PageHeader**: the breadcrumb in `PageHeader.Lead`, the name in `PageHeader.Title`, one primary or an Actions **DropdownMenu** in `PageHeader.Actions`. No back chevron, no sentence, no status badge, no second action row.
 2. **Tabs** with `TabsList variant="line"` when the record has more than one view.
-3. **Shell.Aside** beside the overview holding an **Inspector** group named Details: **KeyValue** rows for state, owner, identifiers and dates. A tab that is a register fills the work area without the rail.
+3. **Shell.Aside** holding an **Inspector** group named Details: **KeyValue** rows for state, owner, identifiers and dates, with the record's status badge as the Aside's `summary`. Render it right after the PageHeader on a record without tabs, and first in Overview's panel on a tabbed record: beside Main it is the rail; below the aside breakpoint it is a closed Details disclosure before the body, its row carrying the state. A tab that is a register fills the work area without the rail.
 4. Body content in **Section**s. A single record is never a table; a description is **Prose**. Linked records the reader works through (searches, sorts, previews) are an embedded **DataTable**; a summary of them in a rail or a card, how many and the few that matter, is **Related**.
 5. A supported inline change is an **Editable**; a larger change is a Dialog (below).
 6. Missing record: an **Empty** with the search illustration, a title, a line and a route back. Loading and a failed load are different states from not found.
@@ -63,11 +63,12 @@ A page that answers "what needs attention" and sends the reader to the register 
 
 1. **PageHeader** with the name alone.
 2. A **Stat.Grid** (`frame="band"`) of **Stat.Tile**s. Each tile's `link` opens the register it counts, already filtered to that count (`tableQueryToSearch` writes the register's query); a linked tile holds no other control. `isLoading` holds a tile's place while its number loads.
-3. One **Section** per question, its `action` a View all link (TextLink or LinkButton) to the full register. Inside, the top few rows as a **DataTable** given only those rows, `responsive`, with no Toolbar and no `pageSize`, so it draws no Columns, Settings or pagination; its name column links to each record as a register's does.
-4. The recent activity as a **Timeline**, newest first, each item's subject a link and its time a **RelativeTime**.
-5. Each region loads, fails and empties on its own: a Skeleton while it loads, an Alert with Retry when it fails, a compact **Empty** when there is nothing to show.
+3. Where how a count splits is the question (open risks by likelihood and impact), one **Chart** Frame whose title says what it counts and how it splits it, at the widgets' heading level (`titleLevel`), with its table twin. A mark that stands for records links to the register filtered to them: `link` on **Chart.Heatmap** returns the register's link for a cell, and the twin carries the same links.
+4. One **Section** per question, its `action` a View all link (TextLink or LinkButton) to the full register. Inside, the top few rows as a **DataTable** given only those rows, with no Toolbar and no `pageSize`, so it draws no Columns, Settings or pagination; its name column links to each record as a register's does.
+5. The recent activity as a **Timeline**, newest first, each item's subject a link and its time a **RelativeTime**.
+6. Each region loads, fails and empties on its own: a Skeleton while it loads (a chart's own skeleton), an Alert with Retry when it fails, a compact **Empty** when there is nothing to show.
 
-Stories: Components/Stat, Linked and Loading and unavailable; Components/Timeline.
+Stories: Components/Stat, Linked and Loading and unavailable; Patterns/Chart/Heatmap, Links; Components/Timeline.
 
 ## Working through a list
 

@@ -16,7 +16,10 @@ import {
 } from "../../components";
 import { announce, Announcer, type AnnouncePoliteness } from "../../lib/announce";
 import { Inline, Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 type Args = { message: string; politeness: AnnouncePoliteness };
 
@@ -64,7 +67,13 @@ function Transcript({ heard }: { heard: string[] }) {
  * again: each message is a new line in the region, and each line leaves after a few seconds.
  */
 export const Playground: Story = {
-  render: function Render({ message, politeness }) {
+  render: function Render({
+    message,
+    politeness,
+  }: {
+    message: string;
+    politeness: AnnouncePoliteness;
+  }) {
     const [heard, setHeard] = useState<string[]>([]);
     return (
       <Stack space="space.200">
@@ -150,7 +159,13 @@ export const WithoutAnAnnouncer: Story = {
     for (const el of document.querySelectorAll('[data-slot="announcer"][data-fallback]'))
       el.remove();
   },
-  render: function Render({ message, politeness }) {
+  render: function Render({
+    message,
+    politeness,
+  }: {
+    message: string;
+    politeness: AnnouncePoliteness;
+  }) {
     const [heard, setHeard] = useState<string[]>([]);
     return (
       <Stack space="space.200">
@@ -229,6 +244,7 @@ export const InADialog: Story = {
 
 /** Announce the outcome once, in words. A status element inserted with its text already inside is often not read, and one alert per field fires several at once. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   name: "Don't",
   render: function Render() {
     return (

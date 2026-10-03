@@ -330,9 +330,13 @@
    loading page is not blank. A focused ProgressStacked segment rings in Highlight. An
    EmptyIllustration keeps its scene: surfaces are Canvas with a CanvasText edge, ghost lines and
    bars GrayText, and a badge a CanvasText disc with a Canvas glyph; the icon circle of an icon
-   EmptyMedia keeps its edge. */
+   EmptyMedia keeps its edge. The Alert's composites (ErrorSummary, the search and palette
+   errors) carry their own slot and take the same edge. */
 @media (forced-colors: active) {
-  [data-slot="alert"] {
+  [data-slot="alert"],
+  [data-slot="error-summary"],
+  [data-slot="search-dialog-error"],
+  [data-slot="command-palette-error"] {
     outline: var(--ds-border-width) solid CanvasText;
     outline-offset: calc(-1 * var(--ds-border-width));
   }

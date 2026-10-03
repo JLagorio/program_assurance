@@ -26,6 +26,10 @@ export default {
     {
       code: `${kitImport("DialogFooter")} export function Actions(DialogFooter) { return <DialogFooter><Button variant="primary">Create task</Button><Button>Cancel</Button></DialogFooter>; }`,
     },
+    // A component of this file that hands its children on to a footer, in order.
+    {
+      code: `${kitImport("Button", "DialogFooter")} const Actions = (props) => <DialogFooter {...props} />; export const A = () => <Actions><Button>Cancel</Button><Button variant="primary">Create task</Button></Actions>;`,
+    },
   ],
   invalid: [
     {
@@ -69,6 +73,16 @@ export default {
       // Another package's footer read from its namespace is judged by the name it imports.
       code: 'import * as UI from "@/components/ui/dialog"; <UI.DialogFooter><Button variant="primary">Create task</Button><Button>Cancel</Button></UI.DialogFooter>',
       errors: [{ messageId: "order" }],
+    },
+    {
+      // A component of this file that hands its children on to the footer.
+      code: `${kitImport("Button", "DialogFooter")} const Actions = ({ children }) => <DialogFooter>{children}</DialogFooter>; export const A = () => <Actions><Button variant="primary">Create task</Button><Button>Cancel</Button></Actions>;`,
+      errors: [
+        {
+          messageId: "forwarded",
+          data: { tag: "Button", footer: "Actions", surface: "dialog", part: "DialogFooter" },
+        },
+      ],
     },
   ],
 };

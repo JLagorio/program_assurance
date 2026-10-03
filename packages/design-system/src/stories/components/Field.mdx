@@ -17,6 +17,8 @@ import * as Stories from "./Field.stories";
 
 # Field
 
+**Status: Stable.**
+
 One control with its label, hint and error. Field is Base UI's Field underneath, so the parts tie themselves to the control: no ids, no `htmlFor`, no `aria-describedby` and no `aria-invalid` written by hand. The form still owns values and validation; the Field carries what the form decided.
 
 ```tsx
@@ -31,6 +33,22 @@ One control with its label, hint and error. Field is Base UI's Field underneath,
 The label names the control and its click focuses it; the hint and the error describe it, in that order; `invalid` reaches the control as `aria-invalid` and `data-invalid` and turns the label and the error to the danger colour; `required` announces the requirement and adds the label's asterisk, which is hidden from the accessible name. The same binding reaches Input, Textarea, InputGroupInput, the Select trigger, the Combobox input, Checkbox, RadioGroup and Switch.
 
 <Canvas of={Stories.EveryControl} />
+
+## When to use it
+
+- **Every form control** a reader fills in: an Input, a Textarea, a Select, a Combobox, a NumberField, a date or time field, a Checkbox, a RadioGroup or a Switch takes its label, hint and error through a Field, so a form writes no ids and no ARIA.
+- **A group of choices**: a Field around a FieldSet, with a legend that names the group (Groups, below).
+- **A choice card**: a FieldLabel wrapping a horizontal Field, where the whole card chooses.
+
+Not for a value that is read where it is shown and not edited there: that is a [KeyValue](?path=/docs/components-keyvalue--docs). Not for a result that is about the whole form, such as a failed save or choices that did not load: that is an [Alert](?path=/docs/components-alert--docs) at the top of the form, and several issues are an [ErrorSummary](?path=/docs/components-errorsummary--docs). Not for one value edited in place on a record: that is an [Editable](?path=/docs/patterns-editable--docs), which names its own control.
+
+## Content
+
+- **The label names the value**, in a few words and sentence case, with no colon and no verb: "Owner", "Review frequency", "Program name", not "Enter the owner:". It stays visible; a placeholder never stands in for it.
+- **The hint says what the value is for, or what form it takes**, in one line the reader sees before they type: "Use the full name.", "As it appears on the authorization package." A rule the value must keep is in the hint, so the error is never the first time the reader hears of it.
+- **The error says what fixes the value**, in the field's words: "Enter an owner", "Choose a review frequency", "Use a day after the start date". Never "Invalid", "Error" or "This field is required".
+- **The Field marks a required field**; a label or a placeholder never says "Optional" or "Required". Where most of a form is required, `FieldLabel required={false}` hides the asterisks and the few optional fields say so.
+- **A group's legend asks what the choices answer** ("Review frequency"), and each choice's label names the choice, not its state.
 
 ## Parts
 
@@ -53,7 +71,11 @@ A FieldSet is a form's lock while it saves: `disabled` holds every field and cho
 
 <Canvas of={Stories.SavingLock} />
 
-A FieldLabel wrapping a horizontal Field becomes a choice card, with hover, the chosen state and one keyboard focus ring, drawn by the card rather than the control; a disabled card keeps a quiet surface. See the choice cards on [Checkbox](?path=/docs/components-checkbox--docs) and [RadioGroup](?path=/docs/components-radiogroup--docs).
+In a horizontal Field a Checkbox, a Radio or a Switch sits on the first line of its label, however many lines the label wraps to, beside a bare FieldLabel or a FieldContent; beside a medium Switch the text steps down `space.025`, so its first line centres on the track. Any other control centres on its label.
+
+<Canvas of={Stories.ChoiceAlignment} />
+
+A FieldLabel wrapping a horizontal Field becomes a choice card, with hover, the chosen state and one keyboard focus ring, drawn by the card rather than the control; a disabled card keeps a quiet surface, and an invalid Field edges its card in danger. The card's facts are its FieldDescription, its error a FieldError in its FieldContent, and a link to the option's record sits beside the card, never in the label. See the choice cards on [Checkbox](?path=/docs/components-checkbox--docs) and [RadioGroup](?path=/docs/components-radiogroup--docs).
 
 ## Validation
 
@@ -97,6 +119,8 @@ A group of choices is a Field around a FieldSet: the legend names the group, the
 - A Field is not a group of its own: it takes `role="group"` only when it is given a name (`aria-label` or `aria-labelledby`), so one control is not wrapped in an unnamed group.
 
 <Canvas of={Stories.ExplicitAssociations} />
+
+An error is the Field's FieldError, which marks the control invalid and describes it, never red text beside a bare input, which nothing marks and a screen reader does not hear when focus reaches the input.
 
 <Canvas of={Stories.DoDont} />
 

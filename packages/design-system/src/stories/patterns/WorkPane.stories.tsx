@@ -97,7 +97,7 @@ function ControlDetail({
   }, [attempts]);
   const body = (
     <Stack space="space.200">
-      <Heading size="small" as={level}>
+      <Heading size="page" as={level}>
         {control.code} · {control.title}
       </Heading>
       <Text>
@@ -328,6 +328,13 @@ export const WorkPaneStory: Story = {
     await userEvent.click(row);
     await expect(row).toHaveAttribute("aria-current", "true");
     const heading = await canvas.findByRole("heading", { name: "AC-2 · Account management" });
+    const pane = canvasElement.querySelector<HTMLElement>('[data-slot="work-pane"]')!;
+    if (pane.getBoundingClientRect().width >= 768) {
+      // From 768px of pane the list sits beside the detail and sticks under the shell's header.
+      await expect(isStacked(canvasElement)).toBe(false);
+      const side = canvasElement.querySelector<HTMLElement>('[data-slot="work-pane-list"]')!;
+      await expect(getComputedStyle(side).position).toBe("sticky");
+    }
     if (isStacked(canvasElement)) {
       // The detail takes the list's place, with its heading focused.
       await waitFor(() => expect(heading).toHaveFocus());
@@ -583,7 +590,7 @@ function GuardedControls() {
         detail={
           control ? (
             <Stack space="space.200">
-              <Heading size="small" as="h2">
+              <Heading size="page" as="h2">
                 {control.code} · {control.title}
               </Heading>
               <Field>
@@ -665,6 +672,7 @@ export const GuardedChoice: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair

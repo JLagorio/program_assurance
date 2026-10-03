@@ -40,6 +40,12 @@ export default {
     {
       code: `${table} const totals = { className: "font-semibold", colSpan: 2 }; <Table.Cell {...totals} className="text-end">Total</Table.Cell>`,
     },
+    // A class that styles the elements inside the cell is no-restyle's finding, not the cell's.
+    { code: `${table} <Table.Cell className="[&_svg]:text-subtle">x</Table.Cell>` },
+    // A component of this file whose rest no longer carries className hands it on to nothing.
+    {
+      code: `${table} function Cell({ className, ...rest }) { return <Table.Cell {...rest} />; } export const A = () => <Cell className="font-semibold">x</Cell>;`,
+    },
   ],
   invalid: [
     {
@@ -96,6 +102,16 @@ export default {
       // A spread after the attribute that always sets className is what lands.
       code: `${table} const totals = { className: "font-semibold" }; <Table.Cell className="text-end" {...totals}>Total</Table.Cell>`,
       errors: [{ messageId: "plain", data: { classes: "font-semibold" } }],
+    },
+    {
+      // At a breakpoint or important, the cell is still restyled.
+      code: `${table} <Table.Cell className="md:font-semibold !text-subtle">x</Table.Cell>`,
+      errors: [{ messageId: "plain", data: { classes: "md:font-semibold, !text-subtle" } }],
+    },
+    {
+      // A component of this file that hands its className on to the cell.
+      code: `${table} const Cell = ({ className, ...rest }) => <Table.Cell className={className} {...rest} />; export const A = () => <Cell className="font-semibold">x</Cell>;`,
+      errors: [{ messageId: "forwarded", data: { wrapper: "Cell", classes: "font-semibold" } }],
     },
   ],
 };

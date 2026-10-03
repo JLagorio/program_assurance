@@ -19,12 +19,16 @@ import {
   Field,
   Input,
 } from "../../components";
+import { calendarInitialFocus } from "../../components/date-picker";
 
 import { LedgerProvider } from "../../lib/locale";
 import { Inline, Stack } from "../../primitives";
-import { interact } from "../_lib/interact";
-import { Matrix as Grid } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix: Grid } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/DatePicker",
@@ -44,6 +48,7 @@ const stateProps = (s: State) => ({
 
 /** Every state down the side; bare and inside a Field across. Open one to see the month. */
 export const DatePickerMatrix: Story = {
+  tags: ["!manifest"],
   render: function FieldExample() {
     const fieldId = useId();
     return (
@@ -85,7 +90,7 @@ export const DatePickerMatrix: Story = {
                     }
                     {...stateProps(state)}
                   />
-                  {Boolean(fieldError1) ? (
+                  {fieldError1 ? (
                     <FieldError
                       id={`${fieldId}-scheduled-completion-1-${encodeURIComponent(String(state))}-${encodeURIComponent(String(col))}-message`}
                     >
@@ -130,6 +135,24 @@ export const Open: Story = {
         </Field>
       </div>
     );
+  },
+  play: async ({ canvasElement }) => {
+    // The month opens on its chosen day, the one day in the Tab order, through the popover's
+    // initialFocus.
+    const popup = await within(canvasElement.ownerDocument.body).findByRole("dialog", {
+      name: "Scheduled completion",
+    });
+    const day = within(popup).getByRole("button", {
+      name: /September 18, 2026(?:, Today)?, Selected/,
+    });
+    await waitFor(() => expect(day).toHaveFocus());
+    // The same day by touch. A month with no day that may be chosen keeps the popover's own first
+    // focus: the popup itself after a touch, so no on-screen keyboard rises, else its first control.
+    await expect(calendarInitialFocus({ current: popup })("touch")).toBe(day);
+    const none = { current: canvasElement.ownerDocument.createElement("div") };
+    await expect(calendarInitialFocus(none)("touch")).toBe(none.current);
+    await expect(calendarInitialFocus(none)("mouse")).toBe(true);
+    await expect(calendarInitialFocus(none)("keyboard")).toBe(true);
   },
 };
 
@@ -282,6 +305,7 @@ export const InField: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: function FieldExample() {
     const fieldId = useId();
     return (
@@ -563,6 +587,7 @@ export const FocusIntegration: Story = {
     const trigger = canvas.getByRole("button", { name: "Due date" });
     await expect(trigger).toHaveFocus();
     await expect(trigger).toHaveAttribute("data-testid", "date-trigger");
+    await expect(trigger).toHaveAttribute("data-slot", "date-picker");
     await expect(trigger).toHaveAttribute("aria-invalid", "true");
     await userEvent.tab();
     await expect(canvas.getByLabelText("Date touched")).toHaveTextContent("true");
@@ -745,15 +770,17 @@ export const TypedEntry: Story = {
     await userEvent.keyboard("{Escape}");
     await expect(input).toHaveValue("Sep 25, 2026");
 
-    // Alt+Down opens the month from the text; the popup then takes focus after the key's own act
-    // scope, so the key is driven in one.
-    await interact(() =>
-      input.dispatchEvent(
-        new KeyboardEvent("keydown", { key: "ArrowDown", altKey: true, bubbles: true }),
-      ),
-    );
+    // Alt+Down opens the month from the text, and the month takes focus on its chosen day a frame
+    // later, through the popover's initialFocus; the wait for it runs outside the act environment,
+    // as userEvent's own does.
+    await userEvent.keyboard("{Alt>}{ArrowDown}{/Alt}");
     const month = within(
       await within(canvasElement.ownerDocument.body).findByRole("dialog", { name: "Due date" }),
+    );
+    await waitFor(() =>
+      expect(
+        month.getByRole("button", { name: /September 25, 2026(?:, Today)?, Selected/ }),
+      ).toHaveFocus(),
     );
     await userEvent.click(await month.findByRole("button", { name: /September 28, 2026/ }));
     await waitFor(() => expect(input).toHaveFocus());

@@ -1,7 +1,10 @@
 import { ProductCollection } from "./product-collection";
+import { useCollectionTable } from "./collection-question";
+import { DueDate, QueryState } from "./work-common";
 import {
   Activity,
   createContext,
+  memo,
   useCallback,
   useContext,
   useEffect,
@@ -12,17 +15,16 @@ import {
 } from "react";
 import {
   Absent,
-  Box,
   Button,
   DataTable,
   HeadingLevelProvider,
   KeyValue,
+  Person,
   Section,
   Stack,
   TabsContent,
   Text,
   defineColumns,
-  useDataTable,
   type EmptyIllustrationKind,
   type StackProps,
 } from "@ledger/design-system";
@@ -43,6 +45,7 @@ import {
   recordTitle,
   titleColumn,
   type Collection,
+  type ColumnNames,
   type DataRecord,
   type RecordValue,
 } from "@/lib/records";
@@ -54,6 +57,7 @@ import {
 } from "@/lib/status";
 import { LevelIndicator } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
+import { useCollection } from "@/lib/collections";
 import { ProductRecordDialog } from "./product-record-dialog";
 import {
   productCollectionNoun,
@@ -61,6 +65,7 @@ import {
   productRecordNoun,
 } from "@/lib/product-records";
 import { FactValue, RelationName, defaultOrder } from "@/components/prototype/record-tools";
+import { linkedName } from "@/lib/link-name";
 
 export type ProgramTableName = Parameters<typeof useRows>[0];
 export type ProgramColumn = {
@@ -69,17 +74,41 @@ export type ProgramColumn = {
   /** Search, sort, and filter value when the cell is derived from related records. */
   value?: (row: DataRecord) => string | number | boolean | null;
   render?: (row: DataRecord) => ReactNode;
+  /** A date's readable minimum, for a cell that says more than the day ("Oct 4, 2026 · Due in 2
+   * days"); a date otherwise takes its kind's width. */
+  minWidth?: number | undefined;
+  /**
+   * A person (an owner, an assignee, a party) is drawn with their avatar and sorts, filters and
+   * searches by the name `value` gives. Where `value` has no name for a person recorded (the people
+   * still loading, or one the reader cannot see), `render` draws the cell, else it is not available,
+   * never "Not recorded".
+   */
+  kind?: "person" | undefined;
 };
 
 export { QueryState as ProgramQueryState } from "./work-common";
 
 /**
+ * A retained panel's content: drawn while its tab is shown and in the render that hides it, then
+ * left as it was while it stays hidden.
+ */
+const RetainedContent = memo(
+  function RetainedContent({ children }: { hidden: boolean; children: ReactNode }) {
+    return children;
+  },
+  (previous, next) => previous.hidden && next.hidden,
+);
+
+/**
  * A tab strip's panels, one per tab. Each is drawn the first time its tab is chosen and kept while
  * another is shown, so a register keeps its rows, scroll, selection and question. A hidden panel's
- * effects pause (React's Activity): it loads nothing, and its preview leaves the shell. Every panel
- * starts `space.200` under the strip and stacks its blocks `space`. When a link inside a panel
- * chooses another tab (an Overview tile, "Open schedule"), the panel it sat in hides and the
- * browser drops its focus, so focus moves to the chosen tab, as a click on the tab leaves it.
+ * effects pause (React's Activity): it loads nothing, and its preview leaves the shell. Each panel
+ * stacks its blocks `space`; the kit's TabsContent spaces it under the strip. Each panel is a
+ * failure region, so its blocks' failures read as one alert at its top. When a link inside a
+ * panel chooses another tab (an Overview tile, "Open schedule"), the panel it sat in hides and the
+ * browser drops its focus, so focus moves to the chosen tab, as a click on the tab leaves it. A
+ * hidden panel is drawn once as it hides and then left as it was: the record re-rendering (a read
+ * settling, the address changing) re-renders only the panel the reader sees.
  */
 export function RetainedTabPanels<T extends string>({
   tabs,
@@ -126,11 +155,12 @@ export function RetainedTabPanels<T extends string>({
             ref={tab === value ? shownPanel : undefined}
           >
             <Activity mode={tab === value ? "visible" : "hidden"}>
-              <Box paddingBlockStart="space.200">
-                <Stack space={space} className="min-w-0">
-                  {children(tab)}
-                </Stack>
-              </Box>
+              <Stack space={space} className="min-w-0">
+                {/* The panel is a failure region: an outage reads as one alert at its top. */}
+                <QueryState region>
+                  <RetainedContent hidden={tab !== value}>{children(tab)}</RetainedContent>
+                </QueryState>
+              </Stack>
             </Activity>
           </TabsContent>
         ))}
@@ -266,14 +296,14 @@ function previewFields(collection: Collection, table: string, context: Record<st
  * The column that names a record in its preview's header: a name, a title or a code. A version's
  * description is a fact, not its name: a revision is named by its number.
  */
-function previewTitleKey(collection: Collection) {
+function previewTitleKey(collection: ColumnNames) {
   const key = titleColumn(collection);
   const versioned = collection.columns.some((column) => column.name === "version_number");
   return key === "id" || (key === "description" && versioned) ? undefined : key;
 }
 
 /** A preview's title: the record's name, else its version, else what it is; never its id. */
-function previewTitle(row: DataRecord, collection: Collection, table: string) {
+function previewTitle(row: DataRecord, collection: ColumnNames, table: string) {
   const key = previewTitleKey(collection);
   const title = key ? recordTitle(row, collection) : row.id;
   if (title !== row.id) return title;
@@ -298,17 +328,22 @@ function ProgramRecordDialogSurface({
   labels,
 }: ProgramDialogTarget & { onClose: () => void; onSelect: (row: DataRecord) => void }) {
   const workspace = useWorkspace();
-  const collection = workspace.collections.find((item) => item.name === table);
+  // The record schema names the preview's facts and the relations they point at. It loads when a
+  // preview or a form first opens, and the surface waits on it as on any query.
+  const schema = useCollection(table);
+  const collection = schema.data ?? undefined;
   const [editing, setEditing] = useState(startEditing);
   const [saved, setSaved] = useState<DataRecord | null>(null);
   const row = saved?.id === initialRow?.id ? saved : initialRow;
-  if (!collection) return null;
+  // Every member but a viewer writes the workspace's records of a program collection, and
+  // row-level security decides each write: the role says it, so the edit keeps its place while
+  // the schema loads.
   const writable =
     !readOnly &&
     row?.["tenant_id"] === workspace.tenantId &&
     workspace.role !== "viewer" &&
-    collection.can_update &&
     row?.["state"] !== "published";
+  // The form waits on the schema itself, with its fields loading and its primary in place.
   if (!row || editing)
     return (
       <ProductRecordDialog
@@ -324,16 +359,26 @@ function ProgramRecordDialogSurface({
         }}
       />
     );
+  // A collection's rows carry every column, so the row's own fields name the record while the
+  // schema loads, as the schema does once it lands: the title never changes under the reader.
+  const names: ColumnNames = collection ?? {
+    columns: Object.keys(row).map((name) => ({ name })),
+  };
   // A record with no name of its own, such as an assignment, borrows its collection's identity
   // column, and that fact is not repeated under the title.
-  const borrowed = previewTitleKey(collection) ? undefined : identity?.read(row);
+  const borrowed = previewTitleKey(names) ? undefined : identity?.read(row);
   const borrowedName = typeof borrowed === "string" && borrowed.trim() ? borrowed : undefined;
-  const fields = previewFields(collection, table, initialValues ?? {}).filter(
-    (name) => !(borrowedName && name === identity?.key),
-  );
+  const facts = collection
+    ? previewFields(collection, table, initialValues ?? {})
+        .filter((name) => !(borrowedName && name === identity?.key))
+        .map((name) => ({
+          name,
+          relation: RELATION_KEY.test(name) ? relationOf(collection, name) : undefined,
+        }))
+    : [];
   return (
     <RecordPreviewPanel
-      title={borrowedName ?? previewTitle(row, collection, table)}
+      title={borrowedName ?? previewTitle(row, names, table)}
       label={`${capitalize(productRecordNoun(table))} preview`}
       defaultWidth={640}
       onClose={onClose}
@@ -356,25 +401,35 @@ function ProgramRecordDialogSurface({
       {/* The record's name is the preview's h2; what follows sits under it. */}
       <HeadingLevelProvider level={3}>
         <Stack space="space.300">
-          {fields.length > 0 && (
-            <KeyValue.Group labelWidth={144}>
-              {fields.map((name) => {
-                const relation = RELATION_KEY.test(name) ? relationOf(collection, name) : undefined;
-                const value = row[name];
-                return (
-                  <KeyValue key={name} label={labels?.[name] ?? factLabel(name)} wrap>
-                    {relation && value ? (
-                      <RelationName table={relation.target_table as TableName} id={String(value)} />
-                    ) : LONG_TEXT.test(name) && typeof value === "string" && value ? (
-                      <Text preserveLineBreaks>{value}</Text>
-                    ) : (
-                      <FactValue table={table} field={name} value={value} />
-                    )}
-                  </KeyValue>
-                );
-              })}
-            </KeyValue.Group>
-          )}
+          {/* Skeleton lines while the schema loads, and its failure with Retry, in the panel. */}
+          <QueryState queries={[schema]}>
+            {facts.length > 0 && (
+              <KeyValue.Group labelWidth="wide">
+                {facts.map(({ name, relation }) => {
+                  const value = row[name];
+                  return (
+                    <KeyValue key={name} label={labels?.[name] ?? factLabel(name)} wrap>
+                      {relation && value ? (
+                        <RelationName
+                          table={relation.target_table as TableName}
+                          id={String(value)}
+                        />
+                      ) : LONG_TEXT.test(name) && typeof value === "string" && value ? (
+                        <Text preserveLineBreaks>{value}</Text>
+                      ) : (
+                        <FactValue
+                          table={table}
+                          field={name}
+                          value={value}
+                          collection={collection}
+                        />
+                      )}
+                    </KeyValue>
+                  );
+                })}
+              </KeyValue.Group>
+            )}
+          </QueryState>
           <ProgramLinkedRecords table={table} row={row} />
           {children}
         </Stack>
@@ -485,7 +540,6 @@ export function ProgramCollection({
   useEndOnHide(() => setSelected(undefined));
   const activeId =
     dialogNavigation?.target?.table === name ? dialogNavigation.target.row?.id : selected?.id;
-  const collection = workspace.collections.find((item) => item.name === name);
   const records = useMemo(
     () => defaultOrder(((query.data ?? []) as DataRecord[]).filter((row) => !where || where(row))),
     [query.data, where],
@@ -508,6 +562,8 @@ export function ProgramCollection({
   const labels = Object.fromEntries(columns.map((column) => [column.key, column.title]));
   const previewWordsRef = useRef({ identity, labels });
   previewWordsRef.current = { identity, labels };
+  // A caller's inline `columns` or `where` are new on every render of the page, so these rows are
+  // too; useCollectionTable keeps rows whose values are unchanged, and with them the table's page.
   const rows = useMemo(
     () =>
       records.map((row) => {
@@ -561,29 +617,28 @@ export function ProgramCollection({
           const plain = (row: DataRecord) => {
             const value = row[column.key];
             return value === null || value === undefined || value === "" ? (
-              <Absent label="Not recorded" />
+              <Absent />
             ) : (
               displayValue(value)
             );
           };
           const cell = render ? (row: DataRecord) => render(raw(row)) : plain;
-          if (index === 0)
-            return c.id(column.key, {
+          // The first column carries the table's preview eye. A name there is a name, the record's
+          // one link; a code or version before the name is an id that only reads.
+          if (index === 0 && primary)
+            return c.text(column.key, {
               header,
               hideable: false,
-              minWidth: 160,
-              priority: primary ? 0 : 1,
-              preview: open,
-              active: (row) => row.id === activeId,
-              // The record's name is its one link: a code or version before the name only reads.
-              cell: primary
-                ? (row) => (
-                    <RecordLink table={name} record={raw(row)}>
-                      {render?.(raw(row)) ?? displayValue(row[column.key])}
-                    </RecordLink>
-                  )
-                : cell,
+              minWidth: 180,
+              priority: 0,
+              cell: (row) => (
+                <RecordLink table={name} record={raw(row)}>
+                  {render?.(raw(row)) ?? linkedName(name, raw(row), row[column.key])}
+                </RecordLink>
+              ),
             });
+          if (index === 0)
+            return c.id(column.key, { header, hideable: false, minWidth: 160, priority: 1, cell });
           const statuses = vocabularies.get(column.key);
           if (statuses) {
             const level = vocabularyKind(statuses) === "level";
@@ -610,8 +665,24 @@ export function ProgramCollection({
                   : {}),
             });
           }
+          if (column.kind === "person")
+            return c.person(column.key, {
+              header,
+              cell: (row: DataRecord) => {
+                const person = row[column.key];
+                if (typeof person === "string" && person) return <Person name={person} />;
+                if (!raw(row)[column.key]) return <Absent />;
+                return render ? render(raw(row)) : <Absent label="Not available" />;
+              },
+            });
+          // A date takes its kind's width, as every date column does, with a readable minimum
+          // where its cell says more than the day.
           if (DATE_KEYS.test(column.key))
-            return c.date(column.key, { header, width: 130, ...(render ? { cell } : {}) });
+            return c.date(column.key, {
+              header,
+              ...(render ? { cell } : {}),
+              ...(column.minWidth === undefined ? {} : { minWidth: column.minWidth }),
+            });
           if (NUMBER_KEYS.test(column.key))
             return c.number(column.key, { header, width: 110, ...(render ? { cell } : {}) });
           return c.text(column.key, {
@@ -627,7 +698,12 @@ export function ProgramCollection({
           });
         }),
       ),
-    [columns, open, name, activeId, vocabularies],
+    [columns, name, vocabularies],
+  );
+  // The preview is the table's, so stepping through rows never rebuilds the columns.
+  const preview = useMemo(
+    () => ({ onPreview: open, activeId: activeId ?? null }),
+    [open, activeId],
   );
   const chips = columns
     .filter(
@@ -637,13 +713,13 @@ export function ProgramCollection({
     )
     .map((column) => column.key)
     .slice(0, 3);
-  const table = useDataTable({
+  const table = useCollectionTable({
     columns: tableColumns,
     data: rows,
     getRowId: (row) => row.id,
     label: title,
+    preview,
     view: `program-${name}`,
-    pageSize: 20,
     resizable: true,
     reorderable: true,
   });
@@ -660,8 +736,10 @@ export function ProgramCollection({
       });
     else setSelected(null);
   };
-  const allowCreate =
-    !readOnly && canCreate && workspace.role !== "viewer" && Boolean(collection?.can_insert);
+  // Every member but a viewer creates a program collection's records, and row-level security
+  // decides each write: the role says it, so the collection does not load the record schema until
+  // its create form or a preview opens.
+  const allowCreate = !readOnly && canCreate && workspace.role !== "viewer";
   const createActionLabel = productCreateLabel(name, { ...filters, ...initialValues });
   // The collection in running text: "SSP revisions" and "POA&M plans" keep their acronyms.
   const noun = productCollectionNoun(name, { ...filters, ...initialValues });
@@ -685,8 +763,10 @@ export function ProgramCollection({
       table={table}
       queries={[query]}
       fill={fill}
-      // A named collection sits beside others on its tab: the compact shape, as EntitySection.
+      // A named collection sits beside others on its tab: the compact shape, as EntitySection, and
+      // a secondary create action, since the page header keeps the surface's one primary.
       compact={section}
+      actionVariant={section ? "secondary" : "primary"}
       searchLabel={`Find ${noun}`}
       // A collection inside a preview answers the task at hand; its question ends with it.
       keepQuestion={!dialogNavigation}
@@ -893,7 +973,19 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
         columns={[
           { key: "version_number", title: "Version" },
           { key: "description", title: "Description" },
-          { key: "planned_completion_date", title: "Planned completion" },
+          {
+            key: "planned_completion_date",
+            title: "Planned completion",
+            // Overdue or due until the commitment or its remediation item is completed; an item
+            // that will not be remediated has no due state.
+            render: (revision) => (
+              <DueDate
+                value={revision["planned_completion_date"]}
+                done={row["status"] === "completed" || Boolean(revision["actual_completion_date"])}
+                cancelled={row["status"] === "cancelled" || row["status"] === "risk_accepted"}
+              />
+            ),
+          },
           { key: "state", title: "State" },
         ]}
       />
@@ -907,7 +999,22 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
         filters={{ poam_item_revision_id: row.id }}
         columns={[
           { key: "title", title: "Milestone" },
-          { key: "planned_date", title: "Planned date" },
+          {
+            key: "planned_date",
+            title: "Planned date",
+            // Overdue or due until the milestone or its commitment is completed.
+            render: (milestone) => (
+              <DueDate
+                value={milestone["planned_date"]}
+                done={
+                  milestone["status"] === "completed" ||
+                  Boolean(milestone["completed_date"]) ||
+                  Boolean(row["actual_completion_date"])
+                }
+                cancelled={milestone["status"] === "cancelled"}
+              />
+            ),
+          },
           { key: "completed_date", title: "Completed" },
         ]}
         canCreate={writable}

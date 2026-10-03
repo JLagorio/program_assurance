@@ -25,7 +25,12 @@ import {
 } from "../../components";
 import { LedgerProvider } from "../../mode";
 import { Inline, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Kbd",
@@ -51,6 +56,7 @@ const said = (node: Node) => spoken(node).replace(/\s+/g, " ").trim();
 
 /** Letters, named glyphs, grouped shortcuts, and key hints in a sentence, tooltip and menu. */
 export const KbdMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="Keys: letters say themselves; glyphs take a label">
@@ -61,6 +67,7 @@ export const KbdMatrix: Story = {
           lang="en"
           dir="ltr"
           data-key="search"
+          data-slot="stray"
           className="align-middle"
           style={{ verticalAlign: "middle" }}
         >
@@ -233,6 +240,7 @@ const caps = (el: HTMLElement) =>
 
 /** A shortcut written once, `Mod+K`, drawn in each platform's keys: ⌘ K on Apple platforms, Ctrl K elsewhere, modifiers in the platform's order. The caps are hidden from a screen reader, which hears the keys' names once ("Command K"). The same keys come as strings from formatShortcut, and every word from the locale. */
 export const Shortcuts: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="Apple platforms: modifier meta">
@@ -365,6 +373,8 @@ function SearchWithShortcut() {
   );
 }
 
+export const Playground: Story = {};
+
 export const PlatformModifier: Story = {
   render: () => <SearchWithShortcut />,
   play: async ({ canvasElement }) => {
@@ -393,4 +403,41 @@ export const PlatformModifier: Story = {
   },
 };
 
-export const Playground: Story = {};
+/** A shortcut that follows the platform is written once as `Mod+K` and drawn by KbdShortcut, not drawn with one platform's glyph. */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <Pair
+      do={
+        <Text data-testid="do">
+          Press <KbdShortcut keys="Mod+K" /> to search.
+        </Text>
+      }
+      doText="KbdShortcut keys=Mod+K: ⌘ K on a Mac, Ctrl K elsewhere, and its spoken name in words."
+      dont={
+        <Text data-testid="dont">
+          Press{" "}
+          <KbdGroup>
+            <Kbd>⌘</Kbd>
+            <Kbd>K</Kbd>
+          </KbdGroup>{" "}
+          to search.
+        </Text>
+      }
+      dontText="The Mac glyph drawn by hand. On Windows it names a key the reader does not have, and a screen reader reads the glyph's character name."
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const apple = getModifierKey() === "meta";
+    const right = canvas.getByTestId("do");
+    await expect(right.querySelector('[data-slot="kbd-shortcut"]')).toHaveAttribute(
+      "data-modifier",
+      getModifierKey(),
+    );
+    await expect(said(right)).toBe(`Press ${apple ? "Command" : "Control"} K to search.`);
+    // The hand-drawn glyph is the same on every platform, and it is what a screen reader reads.
+    await expect(said(canvas.getByTestId("dont"))).toBe("Press ⌘ K to search.");
+  },
+};

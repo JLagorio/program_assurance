@@ -6,17 +6,23 @@ import * as Stories from "./Item.stories";
 
 # Item
 
+**Status: Stable.**
+
 A compact record row with aligned identifiers, descriptions, dates and independent actions. Item retains Ledger's record-list layout; Base UI owns link composition and disclosure behavior.
 
 ## Anatomy
 
-Item.Group renders an ordered list inside a div. Rows share a six-column grid: disclosure, leading mark, record id, title/body, trailing value and actions. Expanded content starts under the title. A group can supply its heading, count, trailing action and empty message.
+Item.Group renders an ordered list inside a div. Rows share a six-column grid: disclosure, leading mark, record id, title/body, trailing value and actions. Expanded content starts under the title. A group can supply its heading, count (capped at `countMax`, Count's `max`: 99 unsaid, `9999` for a count of rows), trailing action and empty message.
 
 <Canvas of={Stories.Lists} />
 
 ## Variants and states
 
 Use `link` to navigate, `onSelect` for an action, or neither for a plain row. `isActive` marks the row open beside the list: a selected fill (in forced colours, which remove the fill, a Highlight outline inside the row's edge), and `aria-current="true"` on its link or button. A link takes precedence over onSelect. Secondary actions and disclosure buttons remain outside the title link/button.
+
+A row that opens a record is a link, never an `onSelect` that changes the address: a button cannot be opened in a new tab or copied.
+
+<Canvas of={Stories.DoDont} />
 
 The title is one line by default. A title, an id or a meta that is cut shows in full in a tooltip on hover, and a cut title also when its row's link or button takes keyboard focus. `maxTitleLines` gives a list of long names two or three lines before the ellipsis. Beside a meta, the title gives way first: a short meta ("CAT I") keeps its words, and a long one is cut only past half the line, so it cannot crowd the title out. A group heading wraps rather than cutting.
 
@@ -37,7 +43,7 @@ A group shows its `empty` when its children render nothing: empty arrays, `false
 
 ## Accessibility
 
-The title is a real anchor or button. Enter follows links; Space activates buttons. Disclosure buttons announce expanded state and reference the linked title's id. The chevron sits above the title's stretched link, so a click or a tap on it opens the row and never follows the link; where any pointer is coarse its hit area is 24px. Actions are independent tab stops. Plain rows stay out of the tab order unless the caller explicitly supplies tabIndex for programmatic focus.
+The title is a real anchor or button. Enter follows links; Space activates buttons. Disclosure buttons announce expanded state and reference the linked title's id. The chevron is the kit's 20px row control (`IconButton size="xxsmall"`), named by the title and with no tooltip of its own; it sits above the title's stretched link, so a click or a tap on it opens the row and never follows the link, and where any pointer is coarse its hit area is 24px. Actions are independent tab stops. Plain rows stay out of the tab order unless the caller explicitly supplies tabIndex for programmatic focus.
 
 A group title names the list. It is a heading at the contextual level: an h3 when nothing sets one, one below a titled Section, an h2 in a rail that starts its outline at 2 with `HeadingLevelProvider level={2}`. When a surrounding card or section already draws the heading, point `aria-labelledby` at it; with no visible heading, `aria-label` names the list. Both reach the `ol`, not the wrapper, and the group's own `title` wins over them. `labelledBy` is the deprecated name of `aria-labelledby`, kept for one version. A compact `empty` message is body text, not a heading.
 
@@ -67,6 +73,6 @@ Item forwards native li attributes, styles, events and refs. Its existing `id`, 
 
 ## Related
 
-[Table](?path=/docs/components-table--docs) for comparing rows, [Tree](?path=/docs/components-tree--docs) for deeper hierarchy, [Related](?path=/docs/patterns-related--docs) for a record card, and [Collapsible](?path=/docs/components-collapsible--docs) for a whole section.
+[Table](?path=/docs/components-table--docs) for comparing rows, [Tree](?path=/docs/components-tree--docs) for deeper hierarchy, [Related](?path=/docs/patterns-related--docs) for a record card, and [Collapsible](?path=/docs/components-collapsible--docs) for a whole section. Earlier spellings are on [Upgrading](?path=/docs/guidance-upgrading--docs#item).
 
 Sources: [shadcn Item](https://ui.shadcn.com/docs/components/base/item), [Base UI useRender](https://base-ui.com/react/utils/use-render). Ledger keeps its aligned record rows and separate actions as a product extension.

@@ -30,6 +30,16 @@ export function useWizardResources() {
     data: reference.data,
     libraryItems: library.items,
     productItems: products.items,
+    /** A read behind the library's items failed; its picker says so, with Try again. */
+    libraryFailed: library.error !== undefined,
+    retryLibrary: () => {
+      for (const query of library.queries) if (query.isError) void query.refetch();
+    },
+    /** A read behind the product configurations failed; its picker says so, with Try again. */
+    productFailed: products.error !== undefined,
+    retryProducts: () => {
+      for (const query of products.queries) if (query.isError) void query.refetch();
+    },
   };
 }
 export type WizardResources = ReferenceData;

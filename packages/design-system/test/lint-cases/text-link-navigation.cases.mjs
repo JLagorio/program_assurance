@@ -20,6 +20,13 @@ export default {
     {
       code: `${kitImport("TextLink")} export function Row(a) { return <TextLink render={<a href="/x" />}>Open</TextLink>; }`,
     },
+    // A component of this file given a destination, or whose TextLink has its own.
+    {
+      code: `${kitImport("TextLink")} const More = (props) => <TextLink {...props} />; export const A = () => <More href="/more">Show more</More>;`,
+    },
+    {
+      code: `${kitImport("TextLink")} const Docs = (props) => <TextLink href="/docs" {...props} />; export const A = () => <Docs>Docs</Docs>;`,
+    },
   ],
   invalid: [
     {
@@ -56,6 +63,15 @@ export default {
       // Another package's TextLink under another name is judged by the name it imports.
       code: 'import { TextLink as Go } from "other-kit"; <Go render={<button />}>Open</Go>',
       errors: [{ messageId: "anchor" }],
+    },
+    {
+      // A component of this file that hands its props on to a TextLink with no destination.
+      code: `${kitImport("TextLink")} const More = (props) => <TextLink {...props} />; export const A = () => <More onClick={open}>Show more</More>;`,
+      errors: [{ messageId: "forwardedDestination", data: { wrapper: "More" } }],
+    },
+    {
+      code: `${kitImport("TextLink")} const More = (props) => <TextLink {...props} />; export const A = () => <More render={<button />}>Show more</More>;`,
+      errors: [{ messageId: "forwardedAnchor", data: { wrapper: "More" } }],
     },
   ],
 };

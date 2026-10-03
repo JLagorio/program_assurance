@@ -9,6 +9,7 @@ import {
 import { RequirementRecordContent } from "./requirement-record";
 import { QueryState } from "./work-common";
 import { ProductCollection } from "./product-collection";
+import { useCollectionTable } from "./collection-question";
 import { useMemo, useRef, useState } from "react";
 import {
   Absent,
@@ -26,9 +27,10 @@ import { useConfirmation } from "@/components/app/confirmation";
 import { TextField } from "@/components/app/fields";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { useWorkspace } from "@/components/app/workspace";
-import { useModelSave, useRows, type Row } from "@/lib/models";
+import { useRows, type Row } from "@/lib/models";
 import { labelFor } from "@/lib/records";
-import { useRemoveRequirementLink } from "@/lib/requirement-links";
+import { useAllocateRequirementsToSystem, useRemoveRequirementLink } from "@/lib/requirement-links";
+import { programRequirementScope } from "@/lib/requirement-reads";
 import type { SystemAssuranceRow } from "@/lib/system-assurance";
 
 type RequirementRow = {
@@ -90,10 +92,23 @@ export function SystemRequirements({
   const workspace = useWorkspace();
   const { formatNumber } = useLedgerLocale();
   const [allocating, setAllocating] = useState(false);
-  const requirements = useRows("engineering_requirements", { program_id: programId });
-  const revisions = useRows("requirement_revisions");
-  const allocations = useRows("requirement_allocations");
-  const links = useRows("requirement_control_links");
+  // The program's requirement records only, scoped on the server through their requirement.
+  const requirements = useRows(
+    "engineering_requirements",
+    programRequirementScope(programId, "engineering_requirements"),
+  );
+  const revisions = useRows(
+    "requirement_revisions",
+    programRequirementScope(programId, "requirement_revisions"),
+  );
+  const allocations = useRows(
+    "requirement_allocations",
+    programRequirementScope(programId, "requirement_allocations"),
+  );
+  const links = useRows(
+    "requirement_control_links",
+    programRequirementScope(programId, "requirement_control_links"),
+  );
   const [includeInside, setIncludeInside] = useState(false);
   const element = rows.find((row) => row.id === systemId);
   // Everything inside, always: the element's own rows are a narrowing of it, so the table can tell
@@ -164,9 +179,10 @@ export function SystemRequirements({
     [includeInside, inside, systemId],
   );
   const [previewId, setPreviewId] = useState<string>();
-  const collection = workspace.collections.find((item) => item.name === "requirement_allocations");
-  const canWrite = workspace.role !== "viewer" && !!collection?.can_insert;
-  const canRemove = workspace.role !== "viewer" && !!collection?.can_delete;
+  // Every member but a viewer allocates and removes allocations, and row-level security decides
+  // each write: the role says it, so the tab does not load the record schema.
+  const canWrite = workspace.role !== "viewer";
+  const canRemove = canWrite;
   const remove = useRemoveRequirementLink();
   const { confirm, confirmation } = useConfirmation();
   const focus = useRemovalFocus(data);
@@ -179,8 +195,6 @@ export function SystemRequirements({
           header: "Requirement",
           width: 180,
           priority: 0,
-          preview: (row) => setPreviewId(row.id),
-          active: (row) => row.id === previewId,
           hideable: false,
           cell: (row) => (
             <RecordLink
@@ -226,12 +240,21 @@ export function SystemRequirements({
             ]
           : []),
       ]),
-    [programId, previewId, includeInside, canRemove],
+    [programId, includeInside, canRemove],
   );
-  const table = useDataTable({
+  // The preview is the table's, so opening or stepping through it never rebuilds the columns.
+  const tablePreview = useMemo(
+    () => ({
+      onPreview: (row: RequirementRow) => setPreviewId(row.id),
+      activeId: previewId ?? null,
+    }),
+    [previewId],
+  );
+  const table = useCollectionTable({
     columns,
     data,
     getRowId: (row) => row.id,
+    preview: tablePreview,
     rowLabel: (row) => row.code,
     label: "Allocated requirements",
     // v2: the Allocated to column now shows by default with everything inside, instead of being
@@ -239,7 +262,6 @@ export function SystemRequirements({
     view: "live-system-requirements-v2",
     resizable: true,
     reorderable: true,
-    pageSize: 25,
     initialState: { columnVisibility: { rationale: false } },
   });
   const displayed = useDisplayedRecords(table);
@@ -408,9 +430,16 @@ function AllocateToElement({
   allocated: Set<string>;
   onClose: () => void;
 }) {
-  const requirements = useRows("engineering_requirements", { program_id: programId });
-  const revisions = useRows("requirement_revisions");
-  const save = useModelSave("requirement_allocations");
+  const requirements = useRows(
+    "engineering_requirements",
+    programRequirementScope(programId, "engineering_requirements"),
+  );
+  const revisions = useRows(
+    "requirement_revisions",
+    programRequirementScope(programId, "requirement_revisions"),
+  );
+  const allocate = useAllocateRequirementsToSystem();
+  const { t, formatNumber } = useLedgerLocale();
   const [rationale, setRationale] = useState("");
   const [error, setError] = useState<string>();
   const rationaleRef = useRef<HTMLElement | null>(null);
@@ -463,37 +492,45 @@ function AllocateToElement({
     onClose,
     description: "The requirements you chose and the rationale will be lost.",
   });
-  const [savedIds] = useState(() => new Set<string>());
-  async function allocate() {
+  // Each allocation's id is chosen once, so a retry after a lost answer adds only the rest.
+  const allocationIds = useRef(new Map<string, string>());
+  const attempted = useRef(false);
+  // The header's checkbox chooses the page; once it has, the footer offers every row on offer.
+  const onOffer = table.getRowCount();
+  const offerRest =
+    table.getIsAllPageRowsSelected() &&
+    !table.getIsAllRowsSelected() &&
+    onOffer > table.getRowModel().rows.length;
+  async function allocateChosen() {
     if (!guard.start()) return;
     setError(undefined);
+    const targets = chosen.flatMap((id) => {
+      const candidate = candidates.find((item) => item.id === id);
+      if (!candidate) return [];
+      const allocationId = allocationIds.current.get(id) ?? crypto.randomUUID();
+      allocationIds.current.set(id, allocationId);
+      return [{ id: allocationId, requirementRevisionId: candidate.revisionId }];
+    });
+    const retry = attempted.current;
+    attempted.current = true;
     try {
-      for (const id of chosen) {
-        const candidate = candidates.find((item) => item.id === id);
-        if (!candidate || savedIds.has(id)) continue;
-        await save.mutateAsync({
-          values: {
-            requirement_revision_id: candidate.revisionId,
-            system_id: element.id,
-            rationale: rationale.trim() || null,
-          },
-        });
-        savedIds.add(id);
-      }
+      // One request for every chosen requirement: all of them are allocated, or none.
+      await allocate.mutateAsync({
+        systemId: element.id,
+        targets,
+        rationale: rationale.trim() || null,
+        retry,
+      });
       toast.add({
-        title: `${chosen.length} allocated to ${element.code}`,
+        title: `${formatNumber(targets.length)} allocated to ${element.code}`,
         type: "success",
       });
       guard.finish();
       guard.complete();
     } catch (cause) {
-      const confirmed = [...savedIds].filter((id) => chosen.includes(id)).length;
+      // One write: a refusal saved none of them, and a retry after a lost answer adds only the rest.
       setError(
-        `${(cause instanceof Error ? cause.message : "The allocation could not be saved.").replace(/[.!?]?$/, ".")} ${
-          confirmed
-            ? `${confirmed} of ${chosen.length} were allocated; allocating again adds only the rest.`
-            : "Nothing was allocated; your choice and rationale are kept."
-        }`,
+        `${(cause instanceof Error ? cause.message : "The allocation could not be saved.").replace(/[.!?]?$/, ".")} Your choice and rationale are kept; allocating again will not duplicate them.`,
       );
       guard.finish();
     }
@@ -505,7 +542,7 @@ function AllocateToElement({
       title="Allocate requirements"
       subtitle={`${element.code} · ${element.name}`}
       table={table}
-      search={{ placeholder: "Search requirements" }}
+      search={{ placeholder: "Find requirements to allocate" }}
       initialFocus={() => rationaleRef.current ?? true}
       toolbar={
         <TextField
@@ -520,9 +557,16 @@ function AllocateToElement({
       }
       pending={guard.busy}
       error={error}
+      secondary={
+        offerRest ? (
+          <Button variant="secondary" onClick={() => table.toggleAllRowsSelected(true)}>
+            {t("selectAllCount", { count: formatNumber(onOffer) })}
+          </Button>
+        ) : undefined
+      }
       action={{
-        label: `Allocate ${chosen.length} to ${element.code}`,
-        onClick: () => void allocate(),
+        label: `Allocate ${formatNumber(chosen.length)} to ${element.code}`,
+        onClick: () => void allocateChosen(),
         disabled: chosen.length === 0,
       }}
     >

@@ -1,105 +1,61 @@
 {
   "about": "Cells of test/lint-redteam.test.mjs that go against what they should do today. Under a rule, a carrier is a shape the planted mistake arrived in that the rule did not report, or a control it reported that it should have left alone (the local look-alike, another package's part or a shadowing parameter, by the rule's family). Under escape checks, a route that no ledger rule and no count sees. The list only shrinks: when the test says a cell is caught, delete its entry (scripts/check-allow-lists.mjs compares with the base branch).",
   "ledger/button-icon-slot": {
-    "imported constant": 1,
-    "variant prefix": 1,
-    "important modifier": 1,
-    "descendant variant": 1,
-    "forwarding wrapper": 1
+    "imported constant": 1
   },
   "ledger/cell-plain": {
-    "imported constant": 1,
-    "variant prefix": 1,
-    "important modifier": 1,
-    "descendant variant": 1,
-    "forwarding wrapper": 1
-  },
-  "ledger/dialog-footer-order": {
-    "forwarding wrapper": 1
+    "imported constant": 1
   },
   "ledger/id-not-blue": {
-    "imported constant": 1,
-    "variant prefix": 1,
-    "important modifier": 1,
-    "descendant variant": 1,
-    "forwarding wrapper": 1
-  },
-  "ledger/link-button-navigation": {
-    "forwarding wrapper": 1
+    "imported constant": 1
   },
   "ledger/no-alpha-token": {
-    "imported constant": 1,
-    "exported constant alone": 1,
-    "non-standard attribute": 1
+    "imported constant": 1
   },
   "ledger/no-arbitrary-value": {
-    "imported constant": 1,
-    "exported constant alone": 1,
-    "non-standard attribute": 1
+    "imported constant": 1
   },
   "ledger/no-dark-variant": {
-    "imported constant": 1,
-    "non-standard attribute": 1
+    "imported constant": 1
   },
   "ledger/no-deprecated-token": {
-    "imported constant": 1,
-    "non-standard attribute": 1
-  },
-  "ledger/no-disabled-while-loading": {
-    "shadowing parameter": 1
+    "imported constant": 1
   },
   "ledger/no-margin": {
-    "imported constant": 1,
-    "non-standard attribute": 1
+    "imported constant": 1
   },
   "ledger/no-non-token-class": {
-    "imported constant": 1,
-    "exported constant alone": 1,
-    "non-standard attribute": 1
-  },
-  "ledger/no-overlay-autofocus": {
-    "forwarding wrapper": 1
+    "imported constant": 1
   },
   "ledger/no-raw-colour": {
     "imported constant": 1
   },
+  "ledger/no-restyle": {
+    "imported constant": 1
+  },
   "ledger/no-static-design-value": {
     "imported constant": 1,
-    "exported constant alone": 1,
-    "non-standard attribute": 1
+    "exported constant alone": 1
   },
   "ledger/no-style-design-value": {
     "imported object": 1
   },
   "ledger/no-unknown-variant": {
-    "imported constant": 1,
-    "non-standard attribute": 1
+    "imported constant": 1
   },
   "ledger/overlay-width-preset": {
-    "imported constant": 1,
-    "forwarding wrapper": 1
+    "imported constant": 1
   },
   "ledger/prefer-text-link": {
-    "imported constant": 1,
-    "variant prefix": 1,
-    "important modifier": 1,
-    "descendant variant": 1,
-    "forwarding wrapper": 1
+    "imported constant": 1
   },
   "ledger/product-line-tabs": {
     "imported constant": 1
   },
-  "ledger/readable-classes": {
-    "forwarding wrapper": 1
-  },
-  "ledger/text-link-navigation": {
-    "forwarding wrapper": 1
+  "ledger/use-heading": {
+    "imported constant": 1
   },
   "ledger/use-primitives": {
-    "imported constant": 1,
-    "forwarding wrapper": 1
-  },
-  "escape checks": {
-    "descendant restyle": 1
+    "imported constant": 1
   }
 }

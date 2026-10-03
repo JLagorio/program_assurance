@@ -127,10 +127,10 @@ export type DataTableMeta = {
   pageSizes?: number[] | undefined;
   /** The accessible name of the table. */
   label?: string | undefined;
-  /** A row's readable name, for its controls and what is said about it. */
+  /** A row's readable name, for its controls and what is said about it; the tree's label or the identity's text unsaid. */
   rowLabel?: ((row: never) => string) | undefined;
-  /** The column whose cell names its row (`th scope="row"`). */
-  rowHeader?: string | undefined;
+  /** The column whose cell names its row (`th scope="row"`); `false` for none, the identity unsaid. */
+  rowHeader?: string | false | undefined;
   /** One row at a time is chosen: a radio per row and no select-all. */
   singleSelection?: boolean | undefined;
   /** The table's preview: the eye on each row's first value opens it; the row whose id is `activeId` reads active. */
@@ -158,6 +158,12 @@ export type DataTableMeta = {
   /** The author's density, what Reset view returns to. */
   defaultDensity?: Density | undefined;
   setDensity?: ((density: Density) => void) | undefined;
+  /** The columns the reader wraps, from the Columns menu: their values run to several lines instead of ending in an ellipsis. Kept with the view. */
+  wrapped?: readonly string[] | undefined;
+  /** Sets the columns the reader wraps: the view store's restore and Reset view. */
+  setWrapped?: ((columns: readonly string[]) => void) | undefined;
+  /** Wraps one column, or ends its wrap: the Columns menu's Wrap text. */
+  toggleWrap?: ((columnId: string, wrap: boolean) => void) | undefined;
   /** A column edits in place, so the table is a grid and Enter moves down the column. */
   editable?: boolean | undefined;
   /** Nested rows: the leading disclosure column carries the chevron and the indent. */
@@ -191,6 +197,13 @@ export type DataTableMeta = {
 
 const lower = (v: unknown) => (v == null ? "" : String(v).toLowerCase());
 
+/** A filter value that asks nothing: none, an empty choice, an empty `{ contains }`. */
+const noChoice = (v: unknown) =>
+  v == null ||
+  v === "" ||
+  (Array.isArray(v) && v.length === 0) ||
+  (typeof v === "object" && "contains" in (v as object) && !(v as { contains: unknown }).contains);
+
 /**
  * The one filter the kinds share. An array is membership (the facet checkboxes), a string is
  * equality (a route's tab), `{ contains }` is a substring (a long text column's filter field).
@@ -202,13 +215,26 @@ const filterFn_matches = constructFilterFn({
       return lower(dataValue).includes(lower((filterValue as { contains: unknown }).contains));
     return lower(dataValue) === lower(filterValue);
   },
-  autoRemove: (v: unknown) =>
-    v == null ||
-    v === "" ||
-    (Array.isArray(v) && v.length === 0) ||
-    (typeof v === "object" &&
-      "contains" in (v as object) &&
-      !(v as { contains: unknown }).contains),
+  autoRemove: (v: unknown) => noChoice(v),
+});
+
+/**
+ * A column of several values per row (a `list` column): the row's values are its members, from
+ * the column's `getUniqueValues`. An array matches when any value chosen is one of them, so a row
+ * of two people is found under either; a string matches one member; `{ contains }` matches a member
+ * that holds the text.
+ */
+const filterFn_members = constructFilterFn({
+  filter: (_dataValue: unknown, filterValue: unknown, row, columnId) => {
+    const members = row.getUniqueValues<unknown>(columnId).map(lower);
+    if (Array.isArray(filterValue)) return filterValue.some((v) => members.includes(lower(v)));
+    if (filterValue && typeof filterValue === "object" && "contains" in filterValue) {
+      const text = lower((filterValue as { contains: unknown }).contains);
+      return members.some((member) => member.includes(text));
+    }
+    return members.includes(lower(filterValue));
+  },
+  autoRemove: (v: unknown) => noChoice(v),
 });
 
 const CALENDAR_DAY = /^\d{4}-\d{2}-\d{2}$/;
@@ -307,6 +333,7 @@ export const dataTableFeatures = tableFeatures({
   filterFns: {
     ...filterFns,
     matches: filterFn_matches,
+    members: filterFn_members,
     dateRange: filterFn_dateRange,
     search: filterFn_search,
   },

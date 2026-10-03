@@ -11,6 +11,29 @@ export type ResponsiveColumn = {
   flexible?: boolean | undefined;
 };
 
+/** What ranks a column: its `priority`, and whether it is the row's actions. */
+type Ranked = { priority?: number | undefined; action?: boolean | undefined };
+
+/**
+ * The data columns in the order a row keeps them: by `priority`, lower first, and a column with
+ * none after every prioritised one in its given order. The actions are left out.
+ */
+export function rankColumns<T extends Ranked>(columns: readonly T[]): T[] {
+  return columns
+    .map((column, index) => ({ column, rank: column.priority ?? index + 10 }))
+    .filter(({ column }) => !column.action)
+    .sort((a, b) => a.rank - b.rank)
+    .map(({ column }) => column);
+}
+
+/**
+ * The column that names a row: the lowest `priority`, else the first, never the actions. A
+ * responsive row keeps it longest, the table draws it as the row's header, and its value names the
+ * row's controls when the author gives no `rowLabel`.
+ */
+export const identityOf = <T extends Ranked>(columns: readonly T[]): T | undefined =>
+  rankColumns(columns)[0];
+
 /**
  * Layout only: never changes the reader's visibility, sorting, filters, pins or export. The
  * columns stay in the row in priority order, and the first that does not fit folds with every
@@ -21,10 +44,7 @@ export type ResponsiveColumn = {
 export function fitColumns(columns: readonly ResponsiveColumn[], available: number, leading = 0) {
   const widths = new Map(columns.map((column) => [column.id, column.width]));
   const ids = new Set(columns.map((column) => column.id));
-  const ordered = columns
-    .map((column, index) => ({ ...column, rank: column.priority ?? index + 10 }))
-    .filter((column) => !column.action)
-    .sort((a, b) => a.rank - b.rank);
+  const ordered = rankColumns(columns);
   const identity = ordered[0];
   const flexibleOf = (drawn: ReadonlySet<string>) =>
     columns.filter((column) => column.flexible && !column.action && drawn.has(column.id));

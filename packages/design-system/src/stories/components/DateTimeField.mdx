@@ -6,6 +6,8 @@ import * as Stories from "./DateTimeField.stories";
 
 # DateTimeField
 
+**Status: Stable.**
+
 A moment: a day and a time together, typed or picked, in the LedgerProvider's time zone, which it names after the time ("PDT"). It holds and reports an ISO instant in UTC (`"2026-09-19T00:30:00.000Z"`), so the moment a reader enters is the moment stored, and every reader sees it in their provider's zone.
 
 Use it for a point in time: evidence collected at, a response due at 5 PM, a scheduled start. A day with no time (a due date, a planned completion) is a [DatePicker](?path=/docs/components-datepicker--docs); a wall time that repeats is a [TimeField](?path=/docs/components-timefield--docs). It replaces `input type="datetime-local"`, which ignores the provider and leaves the zone unsaid.
@@ -61,5 +63,7 @@ The field reports an instant once both halves read, and `""` while either is mis
 [DatePicker](?path=/docs/components-datepicker--docs) · [TimeField](?path=/docs/components-timefield--docs) · [DateTime](?path=/docs/components-datetime--docs) · [Field](?path=/docs/components-field--docs)
 
 ## Don't
+
+Keep `showTimeZone` on, so the zone is in view and what the reader enters is what is stored. With the zone hidden, readers in two offices read one time as two moments.
 
 <Canvas of={Stories.Dont} />

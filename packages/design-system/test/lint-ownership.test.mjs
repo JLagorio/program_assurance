@@ -367,10 +367,16 @@ const MIXED = [
   `${kitImport("Button", "Badge", "cn")} import { toneOf } from "./tones"; export const A = ({ cls, tone }) => <><Button className={cn("mt-4", cls)} /><Badge className={\`bg-\${tone}-500\`} /><Button className={toneOf(tone)} /></>;`,
   // A colour list read by a style and an SVG fill, a recharts record's fill, and a part's own size.
   `${kitImport("token")} import { Pie } from "recharts"; const tones = { danger: "#e11d48", ok: "#16a34a" }; export const A = ({ t }) => <><i style={{ color: tones[t], width: token("dimension.part.popover"), "--w": "12px" }} /><svg><rect fill={tones[t]} /></svg><Pie dataKey="v" data={[{ v: 1, fill: "#0088fe" }]} /></>;`,
-  // Overlays, pending buttons, navigation dressed as a button, and a table without responsive.
-  `${kitImport("Dialog", "DialogContent", "DialogFooter", "DialogClose", "Button", "Input", "TextLink", "DataTable")} export const A = ({ pending, table }) => <Dialog><DialogContent className="w-[480px]"><Input autoFocus className="mt-4" /><DialogFooter><Button variant="primary" isLoading={pending} disabled={pending}>Save</Button><DialogClose render={<Button>Cancel</Button>} /></DialogFooter><Button render={<a href="/records" />}>Records</Button><TextLink render={<button />}>x</TextLink><DataTable table={table} /></DialogContent></Dialog>;`,
+  // Overlays, pending buttons, navigation dressed as a button, and a table that turns responsive off.
+  `${kitImport("Dialog", "DialogContent", "DialogFooter", "DialogClose", "Button", "Input", "TextLink", "DataTable")} export const A = ({ pending, table }) => <Dialog><DialogContent className="w-[480px]"><Input autoFocus className="mt-4" /><DialogFooter><Button variant="primary" isLoading={pending} disabled={pending}>Save</Button><DialogClose render={<Button>Cancel</Button>} /></DialogFooter><Button render={<a href="/records" />}>Records</Button><TextLink render={<button />}>x</TextLink><DataTable table={table} responsive={false} /></DialogContent></Dialog>;`,
   // Variants Tailwind does not generate, beside a dark: class and a margin under one.
   `export const A = () => <div className="hovr:bg-surface tablet:w-[13px] aria-expaned:bg-white hovr:mt-4 dark:hovr:bg-surface md:hovr:!bg-surface" />;`,
+  // Classes that change what a kit part sets, beside a class rule's, and a class that styles the
+  // parts inside an element.
+  `${kitImport("Text", "Tabs", "Button")} export const A = () => <><Text className="tabular-nums mt-4 text-red-500">1</Text><Tabs className="gap-150" /><div className="[&_button]:bg-danger-bold *:mt-4"><Button>Save</Button></div></>;`,
+  // A title's type copied onto a raw heading, beside its layout, a margin and a palette colour, and
+  // onto a heading a kit title part renders.
+  `${kitImport("DialogTitle", "Stack")} export const A = () => <Stack><h2 className="font-heading-page flex gap-100 mt-4 text-red-500">x</h2><DialogTitle render={<h3 className="font-heading-overlay min-w-0" />}>y</DialogTitle></Stack>;`,
   // A block disable, a local look-alike and a primitive given layout classes.
   `/* eslint-disable ledger/no-dark-variant */ ${kitImport("Box")} const Badge = (props) => <span {...props} />; export const A = () => <><Badge className="bg-red-500/50" /><Box className="flex gap-100 mt-4 dark:p-200" /></>;`,
 ];

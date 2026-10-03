@@ -15,8 +15,12 @@ import {
   tones,
 } from "../../components";
 import { Box, Inline, Stack, Text } from "../../primitives";
-import { Matrix as Grid, Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix: Grid, Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Badge",
@@ -38,6 +42,7 @@ const badgeWith = (canvasElement: HTMLElement, text: string) => {
 
 /** The six reference variants, including actual links and the icon-position selectors. */
 export const Matrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Grid
       rows={variants}
@@ -76,9 +81,22 @@ export const Matrix: Story = {
       if (!leadingIcon || !trailingBadge) throw new Error("The icon specimens must render");
       await expect(leadingIcon.getBoundingClientRect().width).toBe(12);
       await expect(leadingIcon.getBoundingClientRect().height).toBe(12);
-      await expect(getComputedStyle(leadingIcon.parentElement!).paddingLeft).toBe("6px");
-      await expect(getComputedStyle(trailingBadge).paddingRight).toBe("6px");
+      // The icon's side narrows to 6px: the start for a leading icon, the end for a trailing one,
+      // whichever way the page reads.
+      await expect(getComputedStyle(leadingIcon.parentElement!).paddingInlineStart).toBe("6px");
+      await expect(getComputedStyle(trailingBadge).paddingInlineEnd).toBe("6px");
     }
+  },
+};
+
+/** A status: the subtle `secondary` treatment in a tone, with the controls. */
+export const Playground: Story = {
+  args: {
+    variant: "secondary",
+    tone: "success",
+    appearance: "subtle",
+    size: "small",
+    children: "Verified",
   },
 };
 
@@ -88,6 +106,7 @@ const nativeBadges = [
 ] as const;
 
 export const NativeAttributes: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Inline space="space.100">
       {nativeBadges.map(({ id, label, ref, tone }) => (
@@ -153,6 +172,7 @@ const renderCalls = {
 };
 
 export const RenderLink: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Inline space="space.200" alignBlock="center">
       <Badge variant="secondary">Available</Badge>
@@ -258,6 +278,7 @@ export const ConditionalIcons: Story = {
 
 /** badgeVariants is a public class recipe; consumers supply the element and semantics. */
 export const Recipe: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Specimens title="The exported recipe on native spans">
       {variants.map((variant) => (
@@ -286,6 +307,7 @@ export const Recipe: Story = {
 };
 
 export const States: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="Tab to each anchor to review focus and hover treatments">
@@ -367,7 +389,6 @@ export const ToneWithoutVariant: Story = {
     </Inline>
   ),
   play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
     const badge = (text: string) => badgeWith(canvasElement, text);
     const alone = badge("Withdrawn");
     await expect(alone).toHaveAttribute("data-variant", "secondary");
@@ -388,6 +409,7 @@ export const ToneWithoutVariant: Story = {
 };
 
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Pair
       do={
@@ -406,16 +428,6 @@ export const Dont: Story = {
   ),
 };
 
-export const Playground: Story = {
-  args: {
-    variant: "secondary",
-    tone: "success",
-    appearance: "subtle",
-    size: "small",
-    children: "Verified",
-  },
-};
-
 const labels = {
   neutral: "Draft",
   information: "In review",
@@ -426,6 +438,7 @@ const labels = {
 
 /** Every tone as subtle, bold, xsmall and with an icon. */
 export const SemanticMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Grid
       rows={tones}
@@ -474,6 +487,7 @@ export const SemanticMatrix: Story = {
 
 /** The same Badge recipe combines treatment, palette, and density. */
 export const SemanticVariants: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Grid
       rows={tones}
@@ -554,7 +568,7 @@ const rows = [
   },
 ] as const;
 
-/** In a table: the status is the row's one pill at `xsmall`; severity is an Indicator; a count is a Count. A status longer than its 112px column, the RMF "Other than satisfied", stays in its cell, ends in an ellipsis and shows whole on hover while it is cut. */
+/** In a table: the status is the row's one pill at `xsmall`; severity is an Indicator; a count is a Count. A status longer than its 112px column, the RMF "Other than satisfied", stays in its cell, ends in an ellipsis and shows whole on hover while it is cut, in the table's one reveal rather than a tooltip of its own. */
 export const InRows: Story = {
   render: () => (
     <div style={{ maxWidth: 640 }}>
@@ -598,11 +612,13 @@ export const InRows: Story = {
     await expect(long.getBoundingClientRect().right).toBeLessThanOrEqual(cell.right + 0.5);
     await expect(words.scrollWidth).toBeGreaterThan(words.clientWidth);
     await expect(getComputedStyle(words).textOverflow).toBe("ellipsis");
-    // The whole status is still what a screen reader reads, and the pointer can see it.
+    // The whole status is still what a screen reader reads, and the pointer can see it: in the
+    // table's one reveal, since a Badge in a table's cell mounts no tooltip of its own.
     await expect(long).toHaveTextContent("Other than satisfied");
+    await expect(words.closest('[data-slot="truncate"]')).toHaveAttribute("data-reveal", "cell");
     await userEvent.hover(words);
     await waitFor(() =>
-      expect(document.querySelector('[data-slot="truncate-full-text"]')).toHaveTextContent(
+      expect(document.querySelector('[data-slot="table-cell-reveal"]')).toHaveTextContent(
         "Other than satisfied",
       ),
     );
@@ -651,6 +667,7 @@ function hoverRules(el: Element): string[] {
 
 /** Only a badge that is a link or a button answers the pointer. A ghost or link label on a span keeps its fill and its underline under the pointer; the same treatments on an anchor take the hover. A brand badge link draws its words in `color.text.selected` on the hovered fill, which holds 4.5:1 where `color.text.brand` would not. */
 export const HoverOnlyWhenInteractive: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.200">
       <Specimens title="Labels: no hover">
@@ -756,6 +773,7 @@ export const OneBold: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const StatusGuidance: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair

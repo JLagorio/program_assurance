@@ -4,8 +4,12 @@ import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import { Badge, Dot, Id, Indicator, Table, tones } from "../../components";
 import { Box, Inline, Stack } from "../../primitives";
-import { Matrix as Grid } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix: Grid } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Indicator",
@@ -26,6 +30,7 @@ const labels = {
 
 /** Every tone as an Indicator, a bare Dot, and a Dot that says its name. A Dot with a `label` is an image with that name; a bare Dot is hidden, and the words beside it carry the status. */
 export const IndicatorMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Grid
       rows={tones}
@@ -172,6 +177,7 @@ export const Truncation: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair

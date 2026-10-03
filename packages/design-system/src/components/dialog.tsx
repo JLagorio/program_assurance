@@ -7,12 +7,15 @@ import { useMemo, useRef, type ComponentProps, type CSSProperties } from "react"
 import { classes } from "../lib/base-ui";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
+import { Heading } from "../primitives/heading";
 import { HeadingLevelProvider } from "../primitives/heading-level";
 import { Button, IconButton } from "./button";
 import {
   OverlayPendingContext,
   OverlayRootContext,
   bodySlot,
+  dialogFrame,
+  dialogRoom,
   focusPastClose,
   overlaySurface,
   pendingCloseRender,
@@ -64,7 +67,7 @@ export function Dialog<Payload = unknown>({
 }
 export type DialogTriggerProps<Payload = unknown> = Primitive.Trigger.Props<Payload>;
 export function DialogTrigger<Payload = unknown>(props: DialogTriggerProps<Payload>) {
-  return <Primitive.Trigger data-slot="dialog-trigger" {...props} />;
+  return <Primitive.Trigger {...props} data-slot="dialog-trigger" />;
 }
 export type DialogPortalProps = Primitive.Portal.Props;
 export function DialogPortal(props: DialogPortalProps) {
@@ -79,14 +82,14 @@ export function DialogOverlay({ className, onMouseDown, ...props }: DialogOverla
   const press = useBlanketPress();
   return (
     <Primitive.Backdrop
-      data-slot="dialog-overlay"
       {...props}
+      data-slot="dialog-overlay"
       onMouseDown={(event) => {
         press?.(event);
         onMouseDown?.(event);
       }}
       className={classes(
-        "fixed inset-0 z-50 bg-blanket data-open:animate-dim-in data-closed:animate-dim-out",
+        "fixed inset-0 z-overlay bg-blanket data-open:animate-dim-in data-closed:animate-dim-out",
         className,
       )}
     />
@@ -101,8 +104,8 @@ export function DialogClose({ disabled, render, ...props }: DialogCloseProps) {
   const pending = useOverlayPending();
   return (
     <Primitive.Close
-      data-slot="dialog-close"
       {...props}
+      data-slot="dialog-close"
       render={pendingCloseRender(render, pending)}
       disabled={pending || disabled}
     />
@@ -111,14 +114,24 @@ export function DialogClose({ disabled, render, ...props }: DialogCloseProps) {
 
 /** The dialog's width steps. Without `width` a dialog is `medium`. */
 export type DialogWidth = "small" | "medium" | "large" | "xlarge" | "fullscreen";
-// The kit's one place for these numbers; the popup keeps a 1rem gutter on every side.
-const dialogWidths: Record<DialogWidth, CSSProperties> = {
+/**
+ * The alert dialog's width steps: Dialog's `small` and `medium`, and `xsmall` below them for a
+ * one-line question. Without `width` an alert dialog is `small`.
+ */
+export type AlertDialogWidth = "xsmall" | "small" | "medium";
+// The kit's one place for the dialog widths, Dialog's steps and AlertDialog's, so one word is one
+// width in both. Every step keeps the frame's `space.200` gutter on each side of the window
+// (overlay.tsx).
+const dialogWidths: Record<DialogWidth | AlertDialogWidth, CSSProperties> = {
+  xsmall: { maxWidth: 320 },
   small: { maxWidth: 400 },
   medium: { maxWidth: 520 },
   large: { maxWidth: 760 },
   xlarge: { maxWidth: 960 },
-  fullscreen: { maxWidth: "none", height: "calc(100dvh - 2rem)" },
+  fullscreen: { maxWidth: "none", height: dialogRoom("100dvh") },
 };
+/** Package-internal: AlertDialogContent reads the same steps. */
+export { dialogWidths };
 
 export type DialogContentProps = Primitive.Popup.Props & {
   /**
@@ -129,8 +142,9 @@ export type DialogContentProps = Primitive.Popup.Props & {
   /**
    * The popup's width: `small` 400px for a short question, `medium` 520px for a form of a few
    * fields, `large` 760px for a form in two columns or a table, `xlarge` 960px for a table beside
-   * a preview, `fullscreen` for a task that needs the whole window, with a 1rem gutter. Every step
-   * narrows to the window less the gutter. A `style.maxWidth` still wins. @default "medium"
+   * a preview, `fullscreen` for a task that needs the whole window. Every step keeps a `space.200`
+   * gutter on each side, so it narrows to the window less the gutter. A `style.maxWidth` still
+   * wins. @default "medium"
    */
   width?: DialogWidth | undefined;
 };
@@ -149,17 +163,17 @@ export function DialogContent({
   const pending = useOverlayPending();
   const closeRef = useRef<HTMLButtonElement>(null);
   const returnFocus = useOpenerFocus();
-  const own = width ? { ...overlaySurface, ...dialogWidths[width] } : overlaySurface;
+  const own = { ...overlaySurface, ...dialogFrame, ...dialogWidths[width ?? "medium"] };
   return (
     <DirectionProvider direction={dir === "rtl" || dir === "ltr" ? dir : direction}>
       <DialogPortal>
         <DialogOverlay />
         <Primitive.Popup
-          data-slot="dialog-content"
           dir={dir ?? direction}
           {...(width ? { "data-width": width } : {})}
           {...(pending ? { "aria-busy": true, "data-pending": "" } : {})}
           {...props}
+          data-slot="dialog-content"
           // With the close button first in the DOM, the first field still takes focus by default.
           initialFocus={
             initialFocus === undefined && showCloseButton ? focusPastClose(closeRef) : initialFocus
@@ -169,7 +183,7 @@ export function DialogContent({
           className={classes(
             // The popup scrolls as a fallback: a DialogBody normally takes the overflow, and in a
             // short window (under 30rem) the header scrolls away with the body and the footer stays.
-            "fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[520px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto overscroll-none rounded-xxlarge bg-surface-overlay text-default shadow-overlay outline-none data-open:animate-dialog-in data-closed:animate-dialog-out",
+            "fixed left-1/2 top-1/2 z-overlay flex -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto overscroll-none rounded-xxlarge bg-surface-overlay text-default shadow-overlay outline-none data-open:animate-dialog-in data-closed:animate-dialog-out",
             className,
           )}
         >
@@ -201,12 +215,12 @@ export type DialogHeaderProps = ComponentProps<"div">;
 export function DialogHeader({ className, ...props }: DialogHeaderProps) {
   return (
     <div
+      {...props}
       data-slot="dialog-header"
       className={cn(
         "flex shrink-0 flex-col gap-025 border-b border-default py-150 pe-600 ps-250",
         className,
       )}
-      {...props}
     />
   );
 }
@@ -228,7 +242,7 @@ export function DialogBody({ className, render, ref, ...props }: DialogBodyProps
     props: mergeProps<"div">(props, {
       ...bodySlot("dialog-body"),
       className: cn(
-        "min-h-1000 min-w-0 flex-1 overflow-y-auto overscroll-none p-250 outline-none focus-visible:outline-field-focused [@media(max-height:30rem)]:flex-auto [@media(max-height:30rem)]:shrink-0 [@media(max-height:30rem)]:overflow-visible",
+        "min-h-1000 min-w-0 flex-1 overflow-y-auto overscroll-none p-250 outline-none focus-visible:outline-field-focused",
         className,
       ),
     }),
@@ -256,12 +270,12 @@ export function DialogFooter({
   const clearance = useFooterClearance(ref);
   return (
     <div
+      {...props}
       data-slot="dialog-footer"
       className={cn(
         "sticky bottom-0 z-10 flex shrink-0 flex-wrap items-center justify-end gap-100 border-t border-default bg-surface-current px-250 py-150",
         className,
       )}
-      {...props}
       ref={clearance}
     >
       {showCloseButton && (
@@ -272,12 +286,18 @@ export function DialogFooter({
   );
 }
 export type DialogTitleProps = Primitive.Title.Props;
+/**
+ * The dialog's title, its h2: a Heading at `overlay`, 15/22 medium. A PageHeader.Title renders as
+ * it through `render`, keeping its own size, and the composing part's `data-slot` names the element,
+ * as Button's does: the slot comes before the caller's props.
+ */
 export function DialogTitle({ className, ...props }: DialogTitleProps) {
   return (
     <Primitive.Title
       data-slot="dialog-title"
+      render={<Heading size="overlay" as="h2" />}
       {...props}
-      className={classes("font-heading-xsmall text-default break-words", className)}
+      className={classes("font-heading-overlay text-default break-words", className)}
     />
   );
 }

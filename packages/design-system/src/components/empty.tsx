@@ -12,16 +12,23 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import {
+  Children,
+  cloneElement,
   createContext,
+  isValidElement,
   useContext,
   useEffect,
   type ComponentProps,
   type CSSProperties,
+  type ReactElement,
+  type ReactNode,
 } from "react";
 
 import { token } from "../generated/tokens";
 import { cn } from "../lib/cn";
 import { headingTag, useHeadingLevel } from "../primitives/heading-level";
+import { Button, IconButton } from "./button";
+import { LinkButton, LinkIconButton } from "./link-button";
 
 /*
  * An empty region says why there is nothing and what to do next. The default is the centred
@@ -154,7 +161,7 @@ export function EmptyTitle({ render, ref, className, style, ...props }: EmptyTit
       style: { ...WRAP, ...style },
       className: cn(
         "max-w-full text-default",
-        size === "compact" ? "font-body font-medium" : "font-heading-small text-balance",
+        size === "compact" ? "font-body font-medium" : "font-heading-page font-medium text-balance",
         className,
       ),
     }),
@@ -178,10 +185,62 @@ export function EmptyDescription({ className, style, ...props }: EmptyDescriptio
   );
 }
 
+/* The hero's actions are medium. A collection hands its Empty the toolbar's create action as it
+   is, a small primary Button or a split ButtonGroup of a small primary and its menu's IconButton,
+   so a row that holds a small primary draws every small kit button in it at medium: the buttons
+   themselves, a ButtonGroup's members and a trigger's `render` element. A row without one keeps
+   its sizes: the suggestions' small secondary buttons, an icon Empty's one small action. */
+type ControlProps = { size?: unknown; variant?: unknown; render?: unknown; children?: ReactNode };
+const labelled = new Set<unknown>([Button, LinkButton]);
+const square = new Set<unknown>([IconButton, LinkIconButton]);
+
+/** A kit button at the small size: Button's and LinkButton's default is medium, IconButton's small. */
+function isSmall(element: ReactElement<ControlProps>) {
+  const { size } = element.props;
+  if (labelled.has(element.type)) return size === "small";
+  return square.has(element.type) && (size === undefined || size === "small");
+}
+
+/** Whether `test` holds for an element in `node`, through children and `render` elements. */
+function holds(node: ReactNode, test: (element: ReactElement<ControlProps>) => boolean): boolean {
+  if (Array.isArray(node)) return node.some((child) => holds(child, test));
+  if (!isValidElement<ControlProps>(node)) return false;
+  const { render, children } = node.props;
+  return test(node) || (isValidElement(render) && holds(render, test)) || holds(children, test);
+}
+
+/** `node` with every small kit button in it at medium; the same node where nothing changes. */
+function heroSized(node: ReactNode): ReactNode {
+  if (Array.isArray(node)) {
+    const next = node.map(heroSized);
+    return next.some((child, index) => child !== node[index]) ? next : node;
+  }
+  if (!isValidElement<ControlProps>(node)) return node;
+  const { render, children } = node.props;
+  const changes: ControlProps = isSmall(node) ? { size: "medium" } : {};
+  const renderSized = isValidElement(render) ? heroSized(render) : render;
+  if (renderSized !== render) changes.render = renderSized;
+  const childrenSized = heroSized(children);
+  if (childrenSized === children)
+    return Object.keys(changes).length ? cloneElement(node, changes) : node;
+  // As arguments, so siblings written side by side need no keys; a list keeps its own.
+  return Array.isArray(childrenSized)
+    ? cloneElement(node, changes, ...childrenSized)
+    : cloneElement(node, changes, childrenSized);
+}
+
 export type EmptyContentProps = ComponentProps<"div">;
-/** The actions, or anything after the message: a row that wraps, centred under the message by default. Use it twice for a second row, such as suggested searches. */
-export function EmptyContent({ className, ...props }: EmptyContentProps) {
+/**
+ * The actions, or anything after the message: a row that wraps, centred under the message by
+ * default. Use it twice for a second row, such as suggested searches. In the default size a row
+ * that holds a small primary kit button (a toolbar's create action, a split ButtonGroup) draws
+ * every small kit button in it at medium, the hero's size; a row without one keeps its sizes.
+ */
+export function EmptyContent({ className, children, ...props }: EmptyContentProps) {
   const { size } = useEmpty();
+  const hero =
+    size !== "compact" &&
+    holds(children, (element) => isSmall(element) && element.props.variant === "primary");
   return (
     <div
       {...props}
@@ -193,7 +252,9 @@ export function EmptyContent({ className, ...props }: EmptyContentProps) {
           : "justify-center gap-100",
         className,
       )}
-    />
+    >
+      {hero ? Children.map(children, heroSized) : children}
+    </div>
   );
 }
 
@@ -201,8 +262,12 @@ export function EmptyContent({ className, ...props }: EmptyContentProps) {
  * The kit's pictures, drawn from the surface tokens so they follow the mode. Each is a scene of
  * ghost records, the shape of what the region will hold, sometimes with a badge that says why it
  * is empty. A scene is 128px wide and 84px tall so every empty state sits at one height. Its front
- * surface carries `data-part="front"` and paints over everything behind it.
+ * surface carries `data-part="front"` and paints over everything behind it. The scenes are drawn on
+ * a grid of the spacing scale's first step (`space.025`, 2px): `grid(64)` is 128px.
  */
+
+/** A length of `steps` cells on the scenes' 2px grid. */
+const grid = (steps: number) => `calc(${steps} * ${token("space.025")})`;
 
 export type EmptyIllustrationKind =
   | "records"
@@ -218,18 +283,18 @@ export type EmptyIllustrationKind =
   | "chart"
   | "calendar";
 
-const SCENE: CSSProperties = { width: 128, height: 84 };
-const STACK: CSSProperties = { width: 128, gridTemplateRows: "10px 10px auto" };
+const SCENE: CSSProperties = { width: grid(64), height: grid(42) };
+const STACK: CSSProperties = { width: grid(64), gridTemplateRows: `${grid(5)} ${grid(5)} auto` };
 const STACK_BACK: CSSProperties = { width: "76%" };
 const STACK_MIDDLE: CSSProperties = { width: "88%" };
-const THUMB: CSSProperties = { width: 28, height: 28 };
+const THUMB: CSSProperties = { width: grid(14), height: grid(14) };
 const LINE: CSSProperties = { width: "72%" };
 const LINE_SHORT: CSSProperties = { width: "48%" };
-const PAGE: CSSProperties = { width: 68, height: 84 };
-const PAGE_BACK: CSSProperties = { width: 68, height: 84 };
-const CARD: CSSProperties = { width: 116, height: 84 };
-const NODE: CSSProperties = { width: 36, height: 22 };
-const BRANCH: CSSProperties = { width: 64 };
+const PAGE: CSSProperties = { width: grid(34), height: grid(42) };
+const PAGE_BACK: CSSProperties = { width: grid(34), height: grid(42) };
+const CARD: CSSProperties = { width: grid(58), height: grid(42) };
+const NODE: CSSProperties = { width: grid(18), height: grid(11) };
+const BRANCH: CSSProperties = { width: grid(32) };
 const BARS = [36, 58, 44, 76];
 const SURFACE = "rounded-medium border border-default bg-surface-raised";
 const GHOST = "rounded-full bg-skeleton";
@@ -365,11 +430,8 @@ function Tree() {
   return (
     <div className="flex flex-col items-center justify-center" style={SCENE}>
       <div data-part="front" className={cn("shadow-raised", SURFACE)} style={NODE} />
-      <div className="h-100 border-l border-bold" />
-      <div
-        className="h-100 border-t border-l border-r border-bold rounded-t-small"
-        style={BRANCH}
-      />
+      <div className="h-100 border-s border-bold" />
+      <div className="h-100 border-t border-x border-bold rounded-t-small" style={BRANCH} />
       <div className="flex justify-between" style={BRANCH}>
         <div className={cn("-translate-x-1/2", SURFACE)} style={NODE} />
         <div className={cn("translate-x-1/2", SURFACE)} style={NODE} />

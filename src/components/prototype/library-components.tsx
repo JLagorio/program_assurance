@@ -1,7 +1,8 @@
 import { StatusBadge } from "@/components/app/status";
 import { Page } from "@/components/app/shell";
 import { useWorkspace } from "@/components/app/workspace";
-import { useRow, useRows, type Row } from "@/lib/models";
+import { useComponentTraceability, useLibraryComponentUses } from "@/lib/library-reads";
+import { idSet, useRow, useRows, type Row } from "@/lib/models";
 import { productCreateLabel, productRecordNoun } from "@/lib/product-records";
 import { labelFor, type DataRecord, type RecordValue } from "@/lib/records";
 import { implementationStatuses, revisionStates, statusLabel } from "@/lib/status";
@@ -12,10 +13,7 @@ import {
   DataTable,
   DateTime,
   defineColumns,
-  DropdownMenu,
-  DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   Id,
   Inspector,
   KeyValue,
@@ -33,7 +31,7 @@ import {
   useLedgerLocale,
 } from "@ledger/design-system";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ChevronDown, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useMemo, useRef, useState, type RefObject } from "react";
 import { ControlInspector, type ControlSummary } from "./library-controls";
 import { LibrarySelect, QueryValue, VersionHistory } from "./library-shared";
@@ -51,14 +49,15 @@ import { RetainedTabPanels } from "./program-shared";
 import { recordDestination, RecordLink, useDisplayedRecords, useEndOnHide } from "./record-preview";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { RecordTrail, TrailLink } from "./record-trail";
-import { EmptyMessage, MissingRecord, QueryState } from "./work-common";
+import { EmptyMessage, MissingRecord, QueryState, RecordActions } from "./work-common";
 
 /** A definition with what its latest version says. */
 type ComponentRow = Row<"component_definitions"> & {
   categoryLabel: string;
   version: number | null;
   status: string | null;
-  types: string | null;
+  /** The latest version's component types, each once, in words: a definition can hold several. */
+  types: string[];
   controls: number;
 };
 
@@ -85,13 +84,13 @@ export function ComponentLibraryIndex() {
               .filter((item) => item.component_definition_revision_id === revision?.id)
               .map((item) => labelFor(item.component_type)),
           ),
-        ];
+        ].sort((a, b) => a.localeCompare(b));
         return {
           ...definition,
           categoryLabel: labelFor(definition.category),
           version: revision?.version_number ?? null,
           status: revision?.state ?? null,
-          types: types.join(", ") || null,
+          types,
           controls: new Set(
             claims.data
               ?.filter((claim) => claim.component_definition_revision_id === revision?.id)
@@ -108,8 +107,6 @@ export function ComponentLibraryIndex() {
           header: "ID",
           width: 150,
           priority: 1,
-          preview: setSelected,
-          active: (row) => row.id === selected?.id,
         }),
         c.text("name", {
           header: "Component definition",
@@ -122,15 +119,26 @@ export function ComponentLibraryIndex() {
             </RecordLink>
           ),
         }),
-        c.text("types", { header: "Type", width: 170 }),
+        // One facet per type: a definition of software and hardware is found under either.
+        c.list("types", {
+          header: "Type",
+          width: 170,
+          items: (row) => row.types.map((type) => ({ key: type, label: type })),
+          empty: () => <Absent label="None defined" />,
+          emptyLabel: "None defined",
+        }),
         c.text("categoryLabel", { header: "Category", width: 180 }),
         c.number("version", { header: "Latest version", width: 140 }),
         c.number("controls", { header: "Controls", width: 100 }),
         c.status("status", { header: "State", width: 130, statuses: revisionStates }),
       ]),
-    [selected?.id],
+    [],
   );
   const table = useDataTable({
+    preview: useMemo(
+      () => ({ onPreview: setSelected, activeId: selected?.id ?? null }),
+      [selected?.id],
+    ),
     data: rows,
     columns,
     getRowId: (row) => row.id,
@@ -217,7 +225,7 @@ export function ComponentLibraryIndex() {
             {
               key: "description",
               label: "Description",
-              render: (row) => row.description || <Absent label="Not recorded" />,
+              render: (row) => row.description || <Absent />,
             },
             {
               key: "version",
@@ -238,7 +246,8 @@ export function ComponentLibraryIndex() {
             {
               key: "types",
               label: "Types",
-              render: (row) => row.types ?? <Absent label="None defined" />,
+              render: (row) =>
+                row.types.length ? row.types.join(", ") : <Absent label="None defined" />,
             },
             { key: "controls", label: "Controls" },
           ]}
@@ -277,11 +286,13 @@ export function ComponentLibraryRecord({
 }) {
   const navigate = useNavigate();
   // Above the version, so choosing another version keeps the reader on the tab they are reading.
+  // Where the route keeps the tab, the address owns it, so Back to an address with no tab shows
+  // Overview; otherwise the record keeps its own.
   const [ownTab, setOwnTab] = useState<ComponentTab>("Overview");
-  const tab = routeTab ?? ownTab;
+  const tab = onTabChange ? (routeTab ?? "Overview") : ownTab;
   function changeTab(next: ComponentTab) {
-    setOwnTab(next);
-    onTabChange?.(next);
+    if (onTabChange) onTabChange(next);
+    else setOwnTab(next);
   }
   const definition = useRow("component_definitions", id);
   const revisions = useRows("component_definition_revisions", { component_definition_id: id });
@@ -359,21 +370,24 @@ export function ComponentLibraryRecord({
         <PageHeader.Heading>
           <PageHeader.Title>{record.name}</PageHeader.Title>
         </PageHeader.Heading>
-        {editable && (
-          <PageHeader.Actions>
-            <DropdownMenu>
-              <DropdownMenuTrigger render={<Button iconAfter={<ChevronDown />}>Actions</Button>} />
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() =>
+        <PageHeader.Actions>
+          {/* Every library record's one menu: a viewer keeps Inspect record alone. */}
+          <RecordActions
+            table="component_definitions"
+            id={record.id}
+            editLabel="Edit component"
+            {...(editable
+              ? {
+                  onEdit: () =>
                     setEdit({
                       table: "component_definitions",
                       existing: record as unknown as DataRecord,
-                    })
-                  }
-                >
-                  Edit component
-                </DropdownMenuItem>
+                    }),
+                }
+              : {})}
+          >
+            {editable && (
+              <>
                 <DropdownMenuItem
                   {...(revisions.data
                     ? {}
@@ -406,11 +420,11 @@ export function ComponentLibraryRecord({
                     </DropdownMenuItem>
                   </>
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            {publishing.confirmation}
-          </PageHeader.Actions>
-        )}
+              </>
+            )}
+          </RecordActions>
+          {publishing.confirmation}
+        </PageHeader.Actions>
       </PageHeader>
       {edit && (
         <ProductRecordDialog
@@ -504,14 +518,22 @@ function ComponentRevision({
   const implementations = useRows("defined_component_implementations", {
     component_definition_revision_id: revision.id,
   });
+  // Only the controls this version implements, and only once the Controls tab asks for them.
   const controls = useRows(
     "controls",
-    {},
-    { columns: ["id", "code", "title", "source_id", "status"], enabled: tab === "Controls" },
+    { id: idSet(implementations.data?.map((claim) => claim.control_id)) },
+    {
+      columns: ["id", "code", "title", "source_id", "status"],
+      enabled: tab === "Controls" && implementations.isSuccess,
+      keepPrevious: true,
+    },
   );
-  const uses = useRows("system_components");
-  const systems = useRows("systems", {}, { columns: ["id", "name", "program_id"] });
-  const programs = useRows("programs", {}, { columns: ["id", "name"] });
+  // Where this version's components are used: those uses, their systems and their programs only.
+  const componentIds = useMemo(
+    () => components.data?.map((component) => component.id),
+    [components.data],
+  );
+  const { uses, systems, programs } = useLibraryComponentUses(componentIds);
   const [structurePreview, setStructurePreview] = useState<Row<"defined_components"> | null>(null);
   const [usePreview, setUsePreview] = useState<Row<"system_components"> | null>(null);
   const [claimPreview, setClaimPreview] = useState<ClaimRow | null>(null);
@@ -529,17 +551,7 @@ function ComponentRevision({
     setReadingControl(null);
   }
   const canEdit = editable && revision.state === "draft";
-  const componentIds = useMemo(
-    () => new Set(components.data?.map((component) => component.id)),
-    [components.data],
-  );
-  const currentUses = useMemo(
-    () =>
-      (uses.data ?? []).filter(
-        (use) => use.defined_component_id && componentIds.has(use.defined_component_id),
-      ),
-    [uses.data, componentIds],
-  );
+  const currentUses = useMemo(() => uses.data ?? [], [uses.data]);
   const controlById = useMemo(
     () => new Map((controls.data ?? []).map((control) => [control.id, control])),
     [controls.data],
@@ -568,9 +580,6 @@ function ComponentRevision({
           header: "Control",
           width: 130,
           priority: 1,
-          // The eye previews the row: this component's implementation of the control.
-          preview: setClaimPreview,
-          active: (claim) => claim.id === claimPreview?.id,
         }),
         c.text("title", {
           header: "Title",
@@ -611,9 +620,14 @@ function ComponentRevision({
             : []),
         ]),
       ]),
-    [canEdit, controlById, claimPreview?.id],
+    [canEdit, controlById],
   );
   const table = useDataTable({
+    // The eye previews the row: this component's implementation of the control.
+    preview: useMemo(
+      () => ({ onPreview: setClaimPreview, activeId: claimPreview?.id ?? null }),
+      [claimPreview?.id],
+    ),
     data: claimRows,
     columns,
     getRowId: (row) => row.id,
@@ -652,8 +666,6 @@ function ComponentRevision({
           hideable: false,
           priority: 0,
           minWidth: 200,
-          preview: setStructurePreview,
-          active: (row) => row.id === structurePreview?.id,
           cell: (row) => (
             <RecordLink table="defined_components" record={row}>
               {row.name}
@@ -677,9 +689,13 @@ function ComponentRevision({
             ]
           : []),
       ]),
-    [canEdit, structurePreview?.id],
+    [canEdit],
   );
   const structureTable = useDataTable({
+    preview: useMemo(
+      () => ({ onPreview: setStructurePreview, activeId: structurePreview?.id ?? null }),
+      [structurePreview?.id],
+    ),
     data: structureRows,
     columns: structureColumns,
     getRowId: (row) => row.id,
@@ -710,8 +726,6 @@ function ComponentRevision({
           header: "ID",
           width: 150,
           priority: 1,
-          preview: setUsePreview,
-          active: (row) => row.id === usePreview?.id,
         }),
         c.text("name", {
           header: "Component instance",
@@ -757,9 +771,13 @@ function ComponentRevision({
         }),
         c.text("version", { header: "Version", width: 120 }),
       ]),
-    [usePreview?.id],
+    [],
   );
   const usesTable = useDataTable({
+    preview: useMemo(
+      () => ({ onPreview: setUsePreview, activeId: usePreview?.id ?? null }),
+      [usePreview?.id],
+    ),
     data: useRowsForTable,
     columns: useColumns,
     getRowId: (row) => row.id,
@@ -836,18 +854,90 @@ function ComponentRevision({
             switch (name) {
               case "Overview":
                 return (
-                  <Stack space="space.200" className="max-w-layout-measure">
-                    <Prose label="Description">
-                      {definition.description || <Absent label="Not recorded" />}
-                    </Prose>
-                    {authored.map(([label, text]) =>
-                      text ? (
-                        <Prose key={label} label={label}>
-                          {text}
-                        </Prose>
-                      ) : null,
+                  <>
+                    {/* The version's Details, first on Overview: the rail beside it, or on a
+                        phone a closed disclosure above it whose row says the state. Kept to
+                        Overview, since the panel stays mounted while another tab shows. */}
+                    {tab === "Overview" && (
+                      <Shell.Aside
+                        label="Component details"
+                        summary={<StatusBadge statuses={revisionStates} value={revision.state} />}
+                      >
+                        <Stack space="space.200">
+                          <Inspector.Group title="Details">
+                            <KeyValue.Group layout="columns">
+                              <KeyValue label="Code">
+                                <Id>{definition.code}</Id>
+                              </KeyValue>
+                              <KeyValue label="Category" wrap>
+                                {labelFor(definition.category)}
+                              </KeyValue>
+                              <KeyValue label="Version">
+                                {versions.length > 1 ? (
+                                  <LibrarySelect
+                                    inline
+                                    label="Version"
+                                    value={revision.id}
+                                    options={versions.map((version) => ({
+                                      value: version.id,
+                                      label: `${version.version_number} · ${statusLabel(revisionStates, version.state)}`,
+                                    }))}
+                                    triggerRef={versionFocus.select}
+                                    onChange={(id) => {
+                                      versionChoice.current = "select";
+                                      onVersion(id);
+                                    }}
+                                  />
+                                ) : (
+                                  revision.version_number
+                                )}
+                              </KeyValue>
+                              <KeyValue label="State">
+                                <StatusBadge statuses={revisionStates} value={revision.state} />
+                              </KeyValue>
+                              <KeyValue label="Published">
+                                <DateTime
+                                  value={revision.published_at}
+                                  format="date"
+                                  absentLabel="Not published"
+                                />
+                              </KeyValue>
+                              {revision.effective_from && (
+                                <KeyValue label="Effective from">
+                                  <DateTime value={revision.effective_from} format="date" />
+                                </KeyValue>
+                              )}
+                              {revision.review_due && (
+                                <KeyValue label="Review due">
+                                  <DateTime value={revision.review_due} format="date" />
+                                </KeyValue>
+                              )}
+                              <KeyValue label="Components">
+                                <QueryValue queries={[components]}>
+                                  {() => locale.formatNumber(components.data?.length ?? 0)}
+                                </QueryValue>
+                              </KeyValue>
+                              <KeyValue label="System uses">
+                                <QueryValue queries={[components, uses]}>
+                                  {() => locale.formatNumber(currentUses.length)}
+                                </QueryValue>
+                              </KeyValue>
+                            </KeyValue.Group>
+                          </Inspector.Group>
+                        </Stack>
+                      </Shell.Aside>
                     )}
-                  </Stack>
+                    <Stack space="space.200" className="max-w-layout-measure">
+                      <Prose label="Description">{definition.description || <Absent />}</Prose>
+                      {authored.map(([label, text]) =>
+                        text ? (
+                          <Prose key={label} label={label}>
+                            {text}
+                          </Prose>
+                        ) : null,
+                      )}
+                    </Stack>
+                  </>
                 );
               case "Controls":
                 return (
@@ -941,72 +1031,6 @@ function ComponentRevision({
           }}
         </RetainedTabPanels>
       </Tabs>
-      {tab === "Overview" && (
-        <Shell.Aside label="Component details">
-          <Stack space="space.200">
-            <Inspector.Group title="Details">
-              <KeyValue.Group layout="columns">
-                <KeyValue label="Code">
-                  <Id>{definition.code}</Id>
-                </KeyValue>
-                <KeyValue label="Category" wrap>
-                  {labelFor(definition.category)}
-                </KeyValue>
-                <KeyValue label="Version">
-                  {versions.length > 1 ? (
-                    <LibrarySelect
-                      inline
-                      label="Version"
-                      value={revision.id}
-                      options={versions.map((version) => ({
-                        value: version.id,
-                        label: `${version.version_number} · ${statusLabel(revisionStates, version.state)}`,
-                      }))}
-                      triggerRef={versionFocus.select}
-                      onChange={(id) => {
-                        versionChoice.current = "select";
-                        onVersion(id);
-                      }}
-                    />
-                  ) : (
-                    revision.version_number
-                  )}
-                </KeyValue>
-                <KeyValue label="State">
-                  <StatusBadge statuses={revisionStates} value={revision.state} />
-                </KeyValue>
-                <KeyValue label="Published">
-                  <DateTime
-                    value={revision.published_at}
-                    format="date"
-                    absentLabel="Not published"
-                  />
-                </KeyValue>
-                {revision.effective_from && (
-                  <KeyValue label="Effective from">
-                    <DateTime value={revision.effective_from} format="date" />
-                  </KeyValue>
-                )}
-                {revision.review_due && (
-                  <KeyValue label="Review due">
-                    <DateTime value={revision.review_due} format="date" />
-                  </KeyValue>
-                )}
-                <KeyValue label="Components">
-                  <QueryValue queries={[components]}>
-                    {() => locale.formatNumber(components.data?.length ?? 0)}
-                  </QueryValue>
-                </KeyValue>
-                <KeyValue label="System uses">
-                  <QueryValue queries={[components, uses]}>
-                    {() => locale.formatNumber(currentUses.length)}
-                  </QueryValue>
-                </KeyValue>
-              </KeyValue.Group>
-            </Inspector.Group>
-          </Stack>
-        </Shell.Aside>
-      )}
       {structurePreview && (
         <RecordSummaryPreview
           model="defined_components"
@@ -1026,7 +1050,7 @@ function ComponentRevision({
             {
               key: "description",
               label: "Description",
-              render: (row) => row.description || <Absent label="Not recorded" />,
+              render: (row) => row.description || <Absent />,
             },
           ]}
           record={structurePreview}
@@ -1042,12 +1066,12 @@ function ComponentRevision({
             {
               key: "version",
               label: "Version",
-              render: (row) => row.version || <Absent label="Not recorded" />,
+              render: (row) => row.version || <Absent />,
             },
             {
               key: "description",
               label: "Description",
-              render: (row) => row.description || <Absent label="Not recorded" />,
+              render: (row) => row.description || <Absent />,
             },
             {
               key: "programName",
@@ -1100,7 +1124,7 @@ function ComponentRevision({
             {
               key: "component",
               label: "Component",
-              render: (row) => row.component ?? <Absent label="Not recorded" />,
+              render: (row) => row.component ?? <Absent />,
             },
             {
               key: "implementation_status",
@@ -1112,12 +1136,12 @@ function ComponentRevision({
             {
               key: "coverageLabel",
               label: "Coverage",
-              render: (row) => row.coverageLabel ?? <Absent label="Not recorded" />,
+              render: (row) => row.coverageLabel ?? <Absent />,
             },
             {
               key: "description",
               label: "Implementation",
-              render: (row) => row.description || <Absent label="Not recorded" />,
+              render: (row) => row.description || <Absent />,
             },
             ...(claimPreview.consumer_responsibility
               ? [{ key: "consumer_responsibility", label: "Consumer responsibility" }]
@@ -1165,44 +1189,18 @@ function ComponentTraceability({
   uses: Row<"system_components">[];
 }) {
   const navigate = useNavigate();
-  const contributions = useRows(
-    "component_contributions",
-    {},
-    { columns: ["id", "system_component_id", "implementation_statement_id"] },
-  );
-  const requirementLinks = useRows(
-    "requirement_implementations",
-    {},
-    {
-      columns: ["id", "requirement_revision_id", "component_contribution_id"],
-      enabled: kind === "Requirements",
-    },
-  );
-  const requirements = useRows("requirement_revisions", {}, { enabled: kind === "Requirements" });
-  const engineering = useRows(
-    "engineering_requirements",
-    {},
-    { columns: ["id", "code", "program_id"], enabled: kind === "Requirements" },
-  );
-  const evidenceLinks = useRows(
-    "implementation_evidence",
-    {},
-    {
-      columns: [
-        "id",
-        "evidence_version_id",
-        "implementation_statement_id",
-        "component_contribution_id",
-      ],
-      enabled: kind === "Evidence",
-    },
-  );
-  const evidence = useRows("evidence_versions", {}, { enabled: kind === "Evidence" });
-  const artifacts = useRows(
-    "evidence_artifacts",
-    {},
-    { columns: ["id", "title", "program_id"], enabled: kind === "Evidence" },
-  );
+  // Each read asks for the rows the one before it names: these uses' contributions, then only the
+  // requirements or the evidence linked to them.
+  const useIds = useMemo(() => uses.map((use) => use.id), [uses]);
+  const {
+    contributions,
+    requirementLinks,
+    requirements,
+    engineering,
+    evidenceLinks,
+    evidence,
+    artifacts,
+  } = useComponentTraceability(useIds, kind);
   const [requirementPreview, setRequirementPreview] = useState<RequirementLine | null>(null);
   const [evidencePreview, setEvidencePreview] = useState<EvidenceLine | null>(null);
   // A preview belongs to its tab: it ends when the tab hides this collection.
@@ -1210,10 +1208,7 @@ function ComponentTraceability({
     setRequirementPreview(null);
     setEvidencePreview(null);
   });
-  const relevant = useMemo(() => {
-    const useIds = new Set(uses.map((use) => use.id));
-    return (contributions.data ?? []).filter((row) => useIds.has(row.system_component_id));
-  }, [uses, contributions.data]);
+  const relevant = useMemo(() => contributions.data ?? [], [contributions.data]);
   const requirementRows = useMemo((): RequirementLine[] => {
     const contributionIds = new Set(relevant.map((row) => row.id));
     const linked = new Set(
@@ -1264,8 +1259,6 @@ function ComponentTraceability({
           header: "Requirement",
           width: 150,
           priority: 1,
-          preview: setRequirementPreview,
-          active: (row) => row.id === requirementPreview?.id,
         }),
         c.text("title", {
           header: "Title",
@@ -1284,9 +1277,13 @@ function ComponentTraceability({
         c.number("version_number", { header: "Revision", width: 110 }),
         c.status("state", { header: "State", width: 130, statuses: revisionStates }),
       ]),
-    [requirementPreview?.id],
+    [],
   );
   const requirementTable = useDataTable({
+    preview: useMemo(
+      () => ({ onPreview: setRequirementPreview, activeId: requirementPreview?.id ?? null }),
+      [requirementPreview?.id],
+    ),
     data: requirementRows,
     columns: requirementColumns,
     getRowId: (row) => row.id,
@@ -1313,15 +1310,17 @@ function ComponentTraceability({
           header: "Version",
           width: 110,
           priority: 1,
-          preview: setEvidencePreview,
-          active: (row) => row.id === evidencePreview?.id,
         }),
         c.status("state", { header: "State", width: 130, statuses: revisionStates }),
-        c.date("collected_at", { header: "Collected", width: 120 }),
+        c.date("collected_at", { header: "Collected" }),
       ]),
-    [evidencePreview?.id],
+    [],
   );
   const evidenceTable = useDataTable({
+    preview: useMemo(
+      () => ({ onPreview: setEvidencePreview, activeId: evidencePreview?.id ?? null }),
+      [evidencePreview?.id],
+    ),
     data: evidenceRows,
     columns: evidenceColumns,
     getRowId: (row) => row.id,
@@ -1363,7 +1362,7 @@ function ComponentTraceability({
             {
               key: "code",
               label: "Requirement",
-              render: (row) => (row.code ? <Id>{row.code}</Id> : <Absent label="Not recorded" />),
+              render: (row) => (row.code ? <Id>{row.code}</Id> : <Absent />),
             },
             { key: "version_number", label: "Revision" },
             {
@@ -1374,7 +1373,7 @@ function ComponentTraceability({
             {
               key: "statement",
               label: "Statement",
-              render: (row) => row.statement || <Absent label="Not recorded" />,
+              render: (row) => row.statement || <Absent />,
             },
           ]}
           record={requirementPreview}
@@ -1415,7 +1414,7 @@ function ComponentTraceability({
             {
               key: "collected_at",
               label: "Collected",
-              render: (row) => <DateTime value={row.collected_at} absentLabel="Not recorded" />,
+              render: (row) => <DateTime value={row.collected_at} />,
             },
             {
               key: "location",

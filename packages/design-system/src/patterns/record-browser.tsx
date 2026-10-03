@@ -25,8 +25,11 @@ import {
 } from "../components/dialog";
 import type { EmptyIllustrationKind } from "../components/empty";
 import { useReadOnlyScroller } from "../components/overlay";
+import { Truncate } from "../components/truncate";
+import { PageHeader } from "../layout/page-header";
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
+import { HeadingLevelProvider } from "../primitives/heading-level";
 import {
   DataTable,
   displayedRows,
@@ -35,8 +38,10 @@ import {
   type DataTableColumn,
   type DataTableState,
 } from "./data-table";
+import { onOfferIn, selectedCount } from "./picker-sheet";
 import { PreviewNavigation } from "./preview-navigation";
 import { Toolbar } from "./toolbar";
+import { token } from "../generated/tokens";
 
 /** What the browser says when there is nothing it could link: no eligible records at all. */
 export type RecordBrowserEmpty = {
@@ -60,8 +65,8 @@ export type RecordBrowserProps<T extends { id: string }> = {
   records: readonly T[];
   columns: readonly DataTableColumn<T>[];
   /** Filterable column IDs. The table owns sorting, search, filters and selection. */
-  filters?: readonly string[];
-  /** The record's name as the preview's heading. */
+  filters?: readonly string[] | undefined;
+  /** The record's name as the preview's heading: PageHeader.Title, an h3 under the dialog's title. */
   recordTitle: (record: T) => ReactNode;
   /**
    * The record's name as text, never a database key: it names the row's checkbox and eye ("Select
@@ -78,7 +83,11 @@ export type RecordBrowserProps<T extends { id: string }> = {
    * order and the eye sits on the first column that holds a value.
    */
   previewColumn?: string | undefined;
-  /** Record content stays inside this dialog; do not render another modal here. */
+  /**
+   * What the preview shows under the record's name. Record content stays inside this dialog; do
+   * not render another modal here. The name is an h3 under the dialog's title, and headings inside
+   * take the level under it (a Section's title is an h4).
+   */
   renderPreview: (record: T) => ReactNode;
   onConfirm: (records: T[]) => void | Promise<void>;
   confirmLabel: string;
@@ -90,11 +99,14 @@ export type RecordBrowserProps<T extends { id: string }> = {
   searchPlaceholder?: string | undefined;
   /**
    * Where the records are: `loading` draws skeleton rows under the toolbar, `refreshing` keeps the
-   * rows while new ones arrive, `error` says `error` in place of the rows. `ready` unsaid.
+   * rows while new ones arrive, `error` says `error`: in place of the rows when none loaded, above
+   * the rows it keeps after a failed refresh. `ready` unsaid.
    */
   state?: Exclude<DataTableState, "empty"> | undefined;
   /** What a failed load says, with `state="error"`: what went wrong and what to do. */
   error?: ReactNode;
+  /** With `state="error"`, Try again in the error runs this: refetch what failed. None unsaid. */
+  onRetry?: (() => void) | undefined;
   /**
    * With no eligible records at all (a load that is done and found none), what the browser says in
    * place of the table, with `actions` as its step. A search or a filter that matches nothing is
@@ -207,6 +219,7 @@ function RecordBrowserContent<T extends { id: string }>({
   searchPlaceholder,
   state,
   error,
+  onRetry,
   empty,
   selectedIds,
   onSelectionChange,
@@ -298,6 +311,12 @@ function RecordBrowserContent<T extends { id: string }>({
     setPreviewId(target.id);
   };
   const selected = table.getSelectedRowModel().flatRows.map((row) => row.original);
+  // What there is to choose from once the records are in, search and filters aside. While they
+  // load, or after a load that failed with none, the count says only what is chosen.
+  const onOffer =
+    state === "loading" || (state === "error" && records.length === 0)
+      ? undefined
+      : onOfferIn(table);
   const closePreview = () => {
     // Keep focus in the dialog before removing the focused preview subtree. Otherwise
     // Base UI restores focus from the document body and overrides the row restoration.
@@ -349,7 +368,13 @@ function RecordBrowserContent<T extends { id: string }>({
     <DialogContent
       ref={dialogRef}
       data-record-browser=""
-      style={{ width: "90vw", maxWidth: "none", height: "90dvh", maxHeight: "90dvh" }}
+      // Most of the window both ways: its role token is its width and its cap, past every step.
+      style={{
+        width: token("dimension.part.recordBrowser"),
+        maxWidth: token("dimension.part.recordBrowser"),
+        height: "90dvh",
+        maxHeight: "90dvh",
+      }}
       onKeyDown={(event) => {
         // Keep Escape from reaching the underlying shell panel. Base UI handles dismissal above.
         if (event.key === "Escape") event.stopPropagation();
@@ -384,6 +409,7 @@ function RecordBrowserContent<T extends { id: string }>({
             onRowClick={openPreview}
             state={state}
             error={error}
+            onRetry={onRetry}
             empty={{
               title: empty?.title ?? t("recordBrowserEmptyTitle"),
               description: empty?.description ?? t("recordBrowserEmptyDescription"),
@@ -430,7 +456,7 @@ function RecordBrowserContent<T extends { id: string }>({
                 className="@split:hidden"
                 onClick={closePreview}
               />
-              <span className="min-w-0 flex-1 truncate font-body-small text-subtle">{code}</span>
+              <Truncate className="min-w-0 flex-1 font-body-small text-subtle">{code}</Truncate>
               {/* The kit's navigation, without a full-record link: the preview belongs to the task. */}
               <PreviewNavigation
                 position={index + 1}
@@ -453,15 +479,19 @@ function RecordBrowserContent<T extends { id: string }>({
               data-record-browser-preview-body=""
               className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-200 outline-none focus-visible:outline-focused"
             >
-              <h3
-                id={headingId}
-                ref={previewHeading}
-                tabIndex={-1}
-                className="pb-200 break-words font-heading-small font-semibold outline-none"
-              >
-                {recordTitle(preview)}
-              </h3>
-              {renderPreview(preview)}
+              {/* The record's name is the kit's record title, a level under the dialog's title
+                  (an h3), and what the preview shows sits a level under it. */}
+              <PageHeader className="pb-200">
+                <PageHeader.Title
+                  id={headingId}
+                  ref={previewHeading}
+                  tabIndex={-1}
+                  className="outline-none"
+                >
+                  {recordTitle(preview)}
+                </PageHeader.Title>
+              </PageHeader>
+              <HeadingLevelProvider>{renderPreview(preview)}</HeadingLevelProvider>
             </div>
             <label
               className={cn(
@@ -497,9 +527,9 @@ function RecordBrowserContent<T extends { id: string }>({
       {/* Under 30rem tall the footer keeps a focused control clear of itself (DialogFooter). */}
       <DialogFooter>
         <div className="me-auto flex min-w-0 items-center gap-100 font-body-small text-subtle">
-          <span role="status" className="truncate">
-            {t("selectedCount", { count: formatNumber(selected.length) })}
-          </span>
+          <Truncate role="status" className="min-w-0 tabular-nums">
+            {selectedCount(t, formatNumber, selected.length, onOffer)}
+          </Truncate>
           {selected.length ? (
             <Button
               variant="link"

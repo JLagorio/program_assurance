@@ -1,34 +1,39 @@
-import { DirectionProvider, useDirection } from "@base-ui/react/direction-provider";
+import { useDirection } from "@base-ui/react/direction-provider";
 import { PreviewCard as PreviewCardPrimitive } from "@base-ui/react/preview-card";
 
 import { token } from "../generated/tokens";
 import { classes } from "../lib/base-ui";
 import { useLedgerLocale } from "../lib/locale";
 import { overlaySurface } from "./overlay";
+import { MatchDirection } from "./tooltip";
 
 export type HoverCardProps<Payload = unknown> = PreviewCardPrimitive.Root.Props<Payload>;
 
 export function HoverCard<Payload = unknown>(props: HoverCardProps<Payload>) {
   const { direction } = useLedgerLocale();
   return (
-    <DirectionProvider direction={direction}>
+    <MatchDirection direction={direction}>
       <PreviewCardPrimitive.Root {...props} />
-    </DirectionProvider>
+    </MatchDirection>
   );
 }
 
 export type HoverCardTriggerProps<Payload = unknown> = PreviewCardPrimitive.Trigger.Props<Payload>;
 
-/** The link that opens the card. It draws the kit's focus ring; compose TextLink for link styling. */
+/**
+ * The link that opens the card. It draws the kit's focus ring; compose TextLink for link styling
+ * (`<TextLink render={<HoverCardTrigger />}>`), whose `data-slot` then names the element: the slot
+ * comes before the caller's props.
+ */
 export function HoverCardTrigger<Payload = unknown>({
   className,
   ...props
 }: HoverCardTriggerProps<Payload>) {
   return (
     <PreviewCardPrimitive.Trigger
-      data-slot="hover-card-trigger"
       className={classes("rounded-xsmall focus-visible:outline-focused", className)}
       {...props}
+      data-slot="hover-card-trigger"
     />
   );
 }
@@ -82,7 +87,7 @@ export function HoverCardContent({
     transformOrigin: "var(--transform-origin)",
   };
   return (
-    <DirectionProvider direction={direction}>
+    <MatchDirection direction={direction}>
       <PreviewCardPrimitive.Portal data-slot="hover-card-portal">
         <PreviewCardPrimitive.Positioner
           align={align}
@@ -95,10 +100,9 @@ export function HoverCardContent({
           collisionPadding={collisionPadding}
           positionMethod={positionMethod}
           sticky={sticky}
-          className="isolate z-50"
+          className="isolate z-overlay"
         >
           <PreviewCardPrimitive.Popup
-            data-slot="hover-card-content"
             dir={dir ?? direction}
             className={classes(
               "overflow-y-auto rounded-large border border-default bg-surface-overlay p-150 font-body text-default shadow-overlay outline-none data-open:animate-enter data-closed:animate-exit data-instant:animate-none motion-reduce:animate-none",
@@ -110,9 +114,10 @@ export function HoverCardContent({
                 : { ...defaults, ...style }
             }
             {...props}
+            data-slot="hover-card-content"
           />
         </PreviewCardPrimitive.Positioner>
       </PreviewCardPrimitive.Portal>
-    </DirectionProvider>
+    </MatchDirection>
   );
 }

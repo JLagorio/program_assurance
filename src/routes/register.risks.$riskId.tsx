@@ -22,7 +22,8 @@ function Page() {
     <RiskRecord
       id={riskId}
       tab={tab}
-      onTabChange={(next) => void navigate({ search: { tab: next } })}
+      // The tab joins the address's other parameters, so each collection keeps its question.
+      onTabChange={(next) => void navigate({ search: (current) => ({ ...current, tab: next }) })}
     />
   );
 }

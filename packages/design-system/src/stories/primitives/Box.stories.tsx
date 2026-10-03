@@ -3,7 +3,10 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Button } from "../../components";
 import { spaceTokens } from "../../generated/space";
 import { Box, Heading, Inline, Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Primitives/Box",
@@ -39,6 +42,8 @@ const surfaceFrame = {
   "elevation.surface.raised": "rounded-large shadow-raised",
   "elevation.surface.overlay": "rounded-large shadow-overlay",
 } as const;
+
+export const Playground: Story = {};
 
 /** Padding on one side, two or all; the four surfaces, each publishing itself as the current surface; fills, the bold ones painting their text inverse; the element `as` names. */
 export const BoxMatrix: Story = {
@@ -107,7 +112,7 @@ export const BoxMatrix: Story = {
         <Inline space="space.200" alignBlock="start">
           <Box as="section" aria-labelledby="box-section" padding="space.200" backgroundColor="elevation.surface.sunken" className="rounded-medium">
             <Stack space="space.050">
-              <Heading size="xsmall" id="box-section">
+              <Heading size="section" id="box-section">
                 Schedule
               </Heading>
               <Text size="small" color="color.text.subtle">
@@ -198,6 +203,7 @@ export const Backgrounds: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -255,5 +261,3 @@ export const Dont: Story = {
     </Stack>
   ),
 };
-
-export const Playground: Story = {};

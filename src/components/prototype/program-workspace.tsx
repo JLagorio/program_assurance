@@ -1,5 +1,5 @@
-import { EmptyMessage, MissingRecord, type QueryStatus } from "./work-common";
-import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { DueDate, EmptyMessage, MissingRecord, type QueryStatus } from "./work-common";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Absent,
@@ -38,7 +38,6 @@ import {
   TextLink,
   DataTable,
   defineColumns,
-  useDataTable,
 } from "@ledger/design-system";
 import { ChevronDown } from "lucide-react";
 import { useRows, useRow, type Row } from "@/lib/models";
@@ -56,6 +55,7 @@ import { LevelIndicator, StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
 import { Page } from "@/components/app/shell";
 import { AssessmentBrowser } from "@/components/prototype/assessment-browser";
+import type { AssessmentKind } from "@/components/prototype/assessment-tabs";
 import { EvidenceBrowser } from "@/components/prototype/evidence-browser";
 import { WorkTable } from "@/components/prototype/work-table";
 import { ObservationsRegister } from "./observations-register";
@@ -63,10 +63,12 @@ import { RequirementsTable } from "./requirements-table";
 import { ProgramSystemsTree } from "./program-systems-tree";
 import { ProgramLibrary } from "./program-library";
 import { ProgramTimeline } from "./program-timeline";
+import { ProgramActivity } from "./program-activity";
 import { ProgramSspAssembly } from "./ssp-assembly";
 import { RecordTrail, TrailLink } from "./record-trail";
 import { RelationName } from "./record-tools";
 import { ProductCollection } from "./product-collection";
+import { useCollectionTable } from "./collection-question";
 import { RecordLink, recordDestination } from "./record-preview";
 import type { SystemElement } from "@/lib/system-tree";
 import type { RequirementTab } from "./requirement-record";
@@ -87,11 +89,15 @@ export const programTabs = [
   "Schedule",
   "Findings",
   "Evidence",
-  "POA&M",
-  "Risk",
-  "Activity",
+  "POA&M & risk",
 ] as const;
 export type ProgramTab = (typeof programTabs)[number];
+/** Tab names the program no longer has, which still reach their content's tab. */
+export type RetiredProgramTab = "POA&M" | "Risk" | "Activity";
+/**
+ * The tab an address names. A retired tab lands where its content went: POA&M and Risk in POA&M &
+ * risk, Activity on the Overview, whose activity Timeline it now is; anything else is Overview.
+ */
 export function programTab(value: unknown): ProgramTab {
   const text = String(value ?? "").toLowerCase();
   const alias: Record<string, ProgramTab> = {
@@ -99,11 +105,15 @@ export function programTab(value: unknown): ProgramTab {
     tasks: "Schedule",
     work: "Schedule",
     team: "Schedule",
-    poams: "POA&M",
+    "poa&m": "POA&M & risk",
+    poam: "POA&M & risk",
+    poams: "POA&M & risk",
+    risk: "POA&M & risk",
+    risks: "POA&M & risk",
+    activity: "Overview",
     requirements: "Requirements",
     assessment: "Assessment campaigns",
     assessments: "Assessment campaigns",
-    risk: "Risk",
   };
   return programTabs.find((tab) => tab.toLowerCase() === text) ?? alias[text] ?? "Overview";
 }
@@ -126,29 +136,47 @@ const programViews = [
 
 export function ProgramWorkspace({
   programId,
-  tab = "Overview",
+  tab: tabName = "Overview",
   view,
   requirementId,
   requirementTab,
+  assessmentTab,
 }: {
   programId: string;
-  tab?: ProgramTab | undefined;
+  /** The tab; a retired name shows the tab its content moved to. */
+  tab?: ProgramTab | RetiredProgramTab | undefined;
   view?: string;
   requirementId?: string | undefined;
   requirementTab?: RequirementTab | undefined;
+  /** The Assessment campaigns tab's own tab, which the address keeps. */
+  assessmentTab?: AssessmentKind | undefined;
 }) {
+  const tab = programTab(tabName);
   const workspace = useWorkspace();
   const navigate = useNavigate();
   const query = useRow("programs", programId);
   const systems = useRows("systems", { program_id: programId });
-  const requirements = useRows("engineering_requirements", { program_id: programId });
-  const tasks = useRows("tasks", { program_id: programId });
-  const issues = useRows("operational_issues", { program_id: programId });
-  const risks = useRows("risks", { program_id: programId });
-  const evidence = useRows("evidence_artifacts", { program_id: programId });
-  const assessments = useRows("assessment_campaigns", { program_id: programId });
+  // What the tab strip counts and the Overview's open work reads: ids and statuses, not records.
+  const requirements = useRows(
+    "engineering_requirements",
+    { program_id: programId },
+    { columns: ["id"] },
+  );
+  const tasks = useRows("tasks", { program_id: programId }, { columns: ["id", "status"] });
+  const issues = useRows(
+    "operational_issues",
+    { program_id: programId },
+    { columns: ["id", "status"] },
+  );
+  const risks = useRows("risks", { program_id: programId }, { columns: ["id", "status"] });
+  const evidence = useRows("evidence_artifacts", { program_id: programId }, { columns: ["id"] });
+  const assessments = useRows(
+    "assessment_campaigns",
+    { program_id: programId },
+    { columns: ["id"] },
+  );
   const gates = useRows("lifecycle_gates", { program_id: programId });
-  const parties = useRows("parties");
+  const parties = useRows("parties", undefined, { columns: ["id", "name"] });
   // Loaded with the program on every tab, for the rail and the dialogs that read the same rows.
   useProgramReferences(programId);
   const [editing, setEditing] = useState(false);
@@ -163,8 +191,26 @@ export function ProgramWorkspace({
     () => new Set((systems.data ?? []).map((system) => system.id)),
     [systems.data],
   );
+  // The Assessment campaigns tab's own tab, as it was last shown: its panel is retained, so
+  // choosing that tab again shows it as the reader left it.
+  const shownAssessmentTab = useRef(assessmentTab);
+  useEffect(() => {
+    if (tab === "Assessment campaigns" && !view) shownAssessmentTab.current = assessmentTab;
+  }, [tab, view, assessmentTab]);
   function select(next: ProgramTab) {
-    void navigate({ to: "/programs/$programId", params: { programId }, search: { tab: next } });
+    void navigate({
+      to: "/programs/$programId",
+      params: { programId },
+      // The tab joins the address's other parameters, so each collection keeps the question it
+      // asks there. A preview belongs to its tab, so the requirement preview ends with it.
+      search: (current) => ({
+        ...current,
+        tab: next,
+        requirementId: undefined,
+        requirementTab: undefined,
+        assessmentTab: next === "Assessment campaigns" ? shownAssessmentTab.current : undefined,
+      }),
+    });
   }
   if (!query.data && (query.isPending || query.error))
     return <ProgramQueryState queries={[query]} />;
@@ -176,7 +222,6 @@ export function ProgramWorkspace({
     ...(requirements.isSuccess && { Requirements: requirements.data.length }),
     ...(assessments.isSuccess && { "Assessment campaigns": assessments.data.length }),
     ...(evidence.isSuccess && { Evidence: evidence.data.length }),
-    ...(risks.isSuccess && { Risk: risks.data.length }),
   };
   const openTasks = tasks.data?.filter((task) => !["done", "cancelled"].includes(task.status));
   const openIssues = issues.data?.filter(
@@ -191,7 +236,7 @@ export function ProgramWorkspace({
   }[] = [
     { label: "Open tasks", query: tasks, value: openTasks?.length, tab: "Schedule" },
     { label: "Open issues", query: issues, value: openIssues?.length, tab: "Findings" },
-    { label: "Open risks", query: risks, value: openRisks?.length, tab: "Risk" },
+    { label: "Open risks", query: risks, value: openRisks?.length, tab: "POA&M & risk" },
   ];
   const canEditProgram = workspace.role !== "viewer";
   const tabLink = (next: ProgramTab) => (
@@ -203,6 +248,10 @@ export function ProgramWorkspace({
       case "Overview":
         return (
           <>
+            {/* The program's Details, first on Overview: the rail beside it, or on a phone a
+                closed disclosure above it whose row says the status. Kept to Overview, since the
+                panel stays mounted while another tab shows. */}
+            {tab === "Overview" && <ProgramDetailsAside program={program} />}
             {queues.some((queue) => queue.query.isError) && (
               <ProgramQueryState queries={queues.map((queue) => queue.query)} />
             )}
@@ -251,6 +300,7 @@ export function ProgramWorkspace({
                 <Related
                   title="System boundaries"
                   count={boundaries.length}
+                  countMax={9999}
                   size="default"
                   action={
                     <TextLink size="small" render={tabLink("System")}>
@@ -287,6 +337,7 @@ export function ProgramWorkspace({
                 </Related>
               </HeadingLevelProvider>
             </ProgramQueryState>
+            <ProgramActivity programId={programId} />
           </>
         );
       case "System":
@@ -331,7 +382,25 @@ export function ProgramWorkspace({
       case "Controls":
         return <ProgramSspAssembly programId={programId} />;
       case "Assessment campaigns":
-        return <AssessmentBrowser programId={programId} />;
+        return (
+          <AssessmentBrowser
+            programId={programId}
+            tab={assessmentTab}
+            // Each tab is a step in the history, as the program's own tabs are.
+            onTabChange={(next) =>
+              void navigate({
+                to: "/programs/$programId",
+                params: { programId },
+                search: (previous) => ({
+                  ...previous,
+                  tab: "Assessment campaigns",
+                  assessmentTab: next,
+                }),
+                resetScroll: false,
+              })
+            }
+          />
+        );
       case "Schedule":
         return (
           <>
@@ -366,6 +435,7 @@ export function ProgramWorkspace({
                 {
                   key: "party_id",
                   title: "Party",
+                  kind: "person",
                   value: (row) =>
                     parties.data?.find((party) => party.id === row["party_id"])?.name ?? null,
                   render: (row) => (
@@ -402,125 +472,112 @@ export function ProgramWorkspace({
         );
       case "Evidence":
         return <EvidenceBrowser programId={programId} />;
-      case "POA&M":
-        return <ProgramPoams programId={programId} />;
-      case "Risk":
-        return (
-          <ProgramCollection
-            name="risks"
-            fill
-            title="Risk register"
-            filters={{ program_id: programId }}
-            columns={[
-              { key: "title", title: "Risk" },
-              { key: "status", title: "Status" },
-              { key: "updated_at", title: "Updated" },
-            ]}
-          />
-        );
-      case "Activity":
-        return (
-          <ProgramCollection
-            name="activity_events"
-            fill
-            empty={{
-              title: "No activity yet",
-              description: "Changes to this program's records appear here as the team works.",
-            }}
-            title="Program activity"
-            filters={{ program_id: programId }}
-            columns={[
-              { key: "event_type", title: "Event" },
-              { key: "description", title: "Description" },
-              { key: "occurred_at", title: "Occurred" },
-            ]}
-            canCreate={false}
-          />
-        );
+      case "POA&M & risk":
+        return <ProgramPoamsAndRisks programId={programId} />;
     }
   };
   return (
     <>
       <Page>
-        {query.error && <ProgramQueryState queries={[query]} />}
-        <PageHeader>
-          <RecordTrail current={view ?? programName}>
-            <TrailLink to="/programs">Programs</TrailLink>
-            {view && (
-              <TrailLink to="/programs/$programId" params={{ programId }}>
-                {programName}
-              </TrailLink>
-            )}
-          </RecordTrail>
-          <PageHeader.Heading>
-            <PageHeader.Title>{program.name}</PageHeader.Title>
-          </PageHeader.Heading>
-          <PageHeader.Actions>
-            <DropdownMenu>
-              <DropdownMenuTrigger render={<Button iconAfter={<ChevronDown />}>Actions</Button>} />
-              <DropdownMenuContent align="end">
-                {canEditProgram && (
-                  <>
-                    <DropdownMenuItem onClick={() => setEditing(true)}>
-                      Edit program
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
-                <DropdownMenuGroup>
-                  <DropdownMenuLabel>Views</DropdownMenuLabel>
-                  {programViews.map(([label, to]) => (
-                    <DropdownMenuLinkItem
-                      key={to}
-                      closeOnClick
-                      render={<Link to={to} params={{ programId }} />}
-                    >
-                      {label}
-                    </DropdownMenuLinkItem>
-                  ))}
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </PageHeader.Actions>
-        </PageHeader>
-        {view ? (
-          // A focused view is a page under the program, not one of its tabs: the trail leads back.
-          <Stack space="space.300" className="min-w-0">
-            {view === "Traceability matrix" ? (
-              <ProgramTraceabilityMatrix programId={programId} />
-            ) : view === "Residual risk" ? (
-              <ProgramResidualRisk programId={programId} />
-            ) : view === "Continuous monitoring" ? (
-              <ProgramMonitoring programId={programId} />
-            ) : (
-              <ProgramQueryState queries={[systems]}>
-                <ProgramFocusedView
-                  programId={programId}
-                  view={view}
-                  systemIds={systemIds}
-                  systemsReady={systems.data !== undefined}
+        {/* The page is one failure region, and each of its tabs another: an outage reads as one
+            alert where it happened, whose Retry reloads every failed read in it. A focused view
+            has no tabs, so its blocks' failures read as the page's one alert. */}
+        <ProgramQueryState queries={[query]} region>
+          <PageHeader>
+            <RecordTrail current={view ?? programName}>
+              <TrailLink to="/programs">Programs</TrailLink>
+              {view && (
+                <TrailLink to="/programs/$programId" params={{ programId }}>
+                  {programName}
+                </TrailLink>
+              )}
+            </RecordTrail>
+            <PageHeader.Heading>
+              <PageHeader.Title>{program.name}</PageHeader.Title>
+            </PageHeader.Heading>
+            <PageHeader.Actions>
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={<Button iconAfter={<ChevronDown />}>Actions</Button>}
                 />
-              </ProgramQueryState>
-            )}
-          </Stack>
-        ) : (
-          // Keyed by the program: its tabs' retained state ends when another program opens.
-          <Tabs key={programId} value={tab} onValueChange={(value) => select(programTab(value))}>
-            <TabsList variant="line" aria-label="Program work">
-              {programTabs.map((name) => (
-                <TabsTrigger key={name} value={name}>
-                  {name}
-                  {counts[name] !== undefined && <Count value={counts[name]!} max={9999} />}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            <RetainedTabPanels tabs={programTabs} value={tab}>
-              {(name) => tabContent(name)}
-            </RetainedTabPanels>
-          </Tabs>
-        )}
+                <DropdownMenuContent align="end">
+                  {canEditProgram && (
+                    <>
+                      <DropdownMenuItem onClick={() => setEditing(true)}>
+                        Edit program
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel>Views</DropdownMenuLabel>
+                    {programViews.map(([label, to]) => (
+                      <DropdownMenuLinkItem
+                        key={to}
+                        closeOnClick
+                        render={<Link to={to} params={{ programId }} />}
+                      >
+                        {label}
+                      </DropdownMenuLinkItem>
+                    ))}
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  {/* The schema record, last, as on every record's Actions menu. */}
+                  <DropdownMenuLinkItem
+                    closeOnClick
+                    render={
+                      <Link
+                        to="/records/$collection/$recordId"
+                        params={{ collection: "programs", recordId: program.id }}
+                      />
+                    }
+                  >
+                    Inspect record
+                  </DropdownMenuLinkItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </PageHeader.Actions>
+          </PageHeader>
+          {/* A focused view has no tabs: the program's Details follow the header. */}
+          {view && <ProgramDetailsAside program={program} />}
+          {view ? (
+            // A focused view is a page under the program, not one of its tabs: the trail leads back.
+            <Stack space="space.300" className="min-w-0">
+              {view === "Traceability matrix" ? (
+                <ProgramTraceabilityMatrix programId={programId} />
+              ) : view === "Residual risk" ? (
+                <ProgramResidualRisk programId={programId} />
+              ) : view === "Continuous monitoring" ? (
+                <ProgramMonitoring programId={programId} />
+              ) : (
+                <ProgramQueryState queries={[systems]}>
+                  <ProgramFocusedView
+                    programId={programId}
+                    view={view}
+                    systemIds={systemIds}
+                    systemsReady={systems.data !== undefined}
+                  />
+                </ProgramQueryState>
+              )}
+            </Stack>
+          ) : (
+            // Keyed by the program: its tabs' retained state ends when another program opens.
+            <Tabs key={programId} value={tab} onValueChange={(value) => select(programTab(value))}>
+              <TabsList variant="line" aria-label="Program work">
+                {programTabs.map((name) => (
+                  <TabsTrigger key={name} value={name}>
+                    {name}
+                    {counts[name] !== undefined && <Count value={counts[name]!} max={9999} />}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              <RetainedTabPanels tabs={programTabs} value={tab}>
+                {(name) => tabContent(name)}
+              </RetainedTabPanels>
+            </Tabs>
+          )}
+        </ProgramQueryState>
       </Page>
-      {(tab === "Overview" || !!view) && <ProgramDetailsAside program={program} />}
       {editing && (
         <ProgramEditor
           table="programs"
@@ -534,8 +591,8 @@ export function ProgramWorkspace({
 
 /**
  * What the program adopted: its catalog and profile choices, the profiles and the product variants
- * its boundaries come from. The rail names them, and the program's create dialogs (Add system from
- * product) read the same rows, so the workspace loads them with the program on every tab.
+ * its boundaries come from. The rail names them, so the workspace loads them with the program on
+ * every tab: of the catalogs and profiles, only the fields that name them.
  */
 function useProgramReferences(programId: string) {
   const systems = useRows("systems", { program_id: programId });
@@ -548,11 +605,17 @@ function useProgramReferences(programId: string) {
         .map((system) => ({ system, lineage: products.variant(system) })),
     [systems.data, products],
   );
-  const catalogs = useRows("catalogs");
-  const catalogRevisions = useRows("catalog_revisions");
-  const profiles = useRows("profiles");
-  const profileResolutions = useRows("profile_resolutions");
-  const profileRevisions = useRows("profile_revisions");
+  const catalogs = useRows("catalogs", undefined, { columns: ["id", "title"] });
+  const catalogRevisions = useRows("catalog_revisions", undefined, {
+    columns: ["id", "catalog_id", "title", "version"],
+  });
+  const profiles = useRows("profiles", undefined, { columns: ["id", "title"] });
+  const profileResolutions = useRows("profile_resolutions", undefined, {
+    columns: ["id", "profile_revision_id", "base_profile_resolution_id"],
+  });
+  const profileRevisions = useRows("profile_revisions", undefined, {
+    columns: ["id", "profile_id", "title", "version"],
+  });
   return {
     references,
     products,
@@ -581,7 +644,10 @@ export function ProgramDetailsAside({ program }: { program: Row<"programs"> }) {
     profileRevisions,
   } = useProgramReferences(program.id);
   return (
-    <Shell.Aside label="Program properties">
+    <Shell.Aside
+      label="Program details"
+      summary={<StatusBadge statuses={programStatuses} value={program.status} />}
+    >
       <Inspector.Group title="Details">
         <KeyValue.Group>
           <KeyValue label="Status">
@@ -594,10 +660,10 @@ export function ProgramDetailsAside({ program }: { program: Row<"programs"> }) {
             <RelationName table="parties" id={program.sponsor_party_id} />
           </KeyValue>
           <KeyValue label="Starts" wrap>
-            <DateTime value={program.starts_on} absentLabel="Not recorded" />
+            <DateTime value={program.starts_on} />
           </KeyValue>
           <KeyValue label="Ends" wrap>
-            <DateTime value={program.ends_on} absentLabel="Not recorded" />
+            <DateTime value={program.ends_on} />
           </KeyValue>
           <KeyValue label="Updated" wrap>
             <DateTime value={program.updated_at} format="date" />
@@ -625,7 +691,7 @@ export function ProgramDetailsAside({ program }: { program: Row<"programs"> }) {
                       (row) => row.id === references.data?.[0]?.catalog_revision_id,
                     );
                     const stable = catalogs.data?.find((row) => row.id === catalog?.catalog_id);
-                    if (!catalog) return <Absent label="Not recorded" />;
+                    if (!catalog) return <Absent />;
                     return (
                       <TextLink render={<Link to="/catalog" search={{ edition: catalog.id }} />}>
                         {stable?.title ?? catalog.title} · {catalog.version}
@@ -821,13 +887,12 @@ function ProgramTraceabilityMatrix({ programId }: { programId: string }) {
       ]),
     [],
   );
-  const table = useDataTable({
+  const table = useCollectionTable({
     columns,
     data: rows,
     getRowId: (row) => row.id,
     label: "Traceability matrix",
     view: "program-traceability-matrix",
-    pageSize: 25,
     resizable: true,
     reorderable: true,
   });
@@ -947,17 +1012,16 @@ function ProgramResidualRisk({ programId }: { programId: string }) {
           cell: (row) => <LevelIndicator levels={riskLevels} value={row.impact} />,
         }),
         c.status("status", { header: "Status", width: 110, priority: 4, statuses: riskStatuses }),
-        c.date("assessed_at", { header: "Assessed", width: 120, priority: 5 }),
+        c.date("assessed_at", { header: "Assessed", priority: 5 }),
       ]),
     [],
   );
-  const table = useDataTable({
+  const table = useCollectionTable({
     columns,
     data: rows,
     getRowId: (row) => row.id,
     label: "Residual risk",
     view: "program-residual-risk",
-    pageSize: 25,
     resizable: true,
     reorderable: true,
   });
@@ -1001,36 +1065,55 @@ function ProgramMonitoring({ programId }: { programId: string }) {
     (row: DataRecord) => planIds.has(String(row["plan_revision_id"])),
     [planIds],
   );
-  if (!campaigns.data || !plans.data) return <ProgramQueryState queries={[campaigns, plans]} />;
+  // The plans the schedule is scoped by: a failed refresh keeps the schedule under the page's alert.
   return (
-    <ProgramCollection
-      name="scheduled_assessment_tasks"
-      fill
-      title="Monitoring schedule"
-      where={where}
-      initialValues={planIds.size === 1 ? { plan_revision_id: [...planIds][0]! } : undefined}
-      columns={[
-        { key: "title", title: "Scheduled assessment" },
-        { key: "status", title: "Status" },
-        { key: "starts_at", title: "Starts" },
-        { key: "due_at", title: "Due" },
-      ]}
-      canCreate={planIds.size > 0}
-      prerequisite="A scheduled assessment belongs to an assessment plan. Plan an assessment campaign first."
-      empty={{
-        title: "No monitoring scheduled yet",
-        illustration: "calendar",
-        ...(planIds.size > 0
-          ? {
-              description:
-                "Schedule the recurring assessments that keep this program's authorization current.",
-            }
-          : {}),
-      }}
-    />
+    <ProgramQueryState queries={[campaigns, plans]}>
+      <ProgramCollection
+        name="scheduled_assessment_tasks"
+        fill
+        title="Monitoring schedule"
+        where={where}
+        initialValues={planIds.size === 1 ? { plan_revision_id: [...planIds][0]! } : undefined}
+        columns={[
+          { key: "title", title: "Scheduled assessment" },
+          { key: "status", title: "Status" },
+          { key: "starts_at", title: "Starts" },
+          // A calendar day, overdue once it is before the reader's today while the assessment is
+          // still to do; a completed one's day reads plainly, a cancelled one's with no state.
+          {
+            key: "due_on",
+            title: "Due",
+            minWidth: 200,
+            render: (row) => (
+              <DueDate
+                value={row["due_on"]}
+                done={row["status"] === "completed"}
+                cancelled={row["status"] === "cancelled"}
+              />
+            ),
+          },
+        ]}
+        canCreate={planIds.size > 0}
+        prerequisite="A scheduled assessment belongs to an assessment plan. Plan an assessment campaign first."
+        empty={{
+          title: "No monitoring scheduled yet",
+          illustration: "calendar",
+          ...(planIds.size > 0
+            ? {
+                description:
+                  "Schedule the recurring assessments that keep this program's authorization current.",
+              }
+            : {}),
+        }}
+      />
+    </ProgramQueryState>
   );
 }
-function ProgramPoams({ programId }: { programId: string }) {
+/**
+ * The POA&M & risk tab: the program's POA&M plans and their remediation items, then its risks,
+ * three collections under their Section headings.
+ */
+function ProgramPoamsAndRisks({ programId }: { programId: string }) {
   const documents = useRows("poam_documents", { program_id: programId });
   const ids = new Set((documents.data ?? []).map((document) => document.id));
   return (
@@ -1064,6 +1147,18 @@ function ProgramPoams({ programId }: { programId: string }) {
           prerequisite="Remediation items belong to a POA&M plan. Create a POA&M plan first."
         />
       )}
+      <ProgramCollection
+        name="risks"
+        section
+        empty={{ title: "No risks yet" }}
+        title="Risks"
+        filters={{ program_id: programId }}
+        columns={[
+          { key: "title", title: "Risk" },
+          { key: "status", title: "Status" },
+          { key: "updated_at", title: "Updated" },
+        ]}
+      />
     </Stack>
   );
 }

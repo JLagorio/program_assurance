@@ -12,6 +12,26 @@ const phone = { value: "ledgerPhone", isRotated: false };
 
 /** Story files of these families only, for a gate that concerns them. */
 const onlyFamilies = (families: string[]) => [`**/stories/**/!(${families.join("|")}).stories.tsx`];
+/** The families whose layout or keys follow the writing direction, rendered right to left by
+    storybook-rtl: tables, trees and lists, the side nav's icon rail, paths and timelines, fields
+    in place, toasts, tabs and toolbars. Their plays measure starts and ends and press sideways
+    arrows through src/stories/_lib/direction.ts, so each passes either way the page reads. */
+const RTL_FAMILIES = [
+  "Badge",
+  "Breadcrumb",
+  "DataTable",
+  "Editable",
+  "Item",
+  "Pagination",
+  "ShellIconRail",
+  "Stepper",
+  "Table",
+  "Tabs",
+  "Timeline",
+  "Toaster",
+  "Toolbar",
+  "Tree",
+];
 // Gates print their counts instead of failing when this is set (see test/storybook.setup.ts).
 const record = process.env["LEDGER_GATES_RECORD"] === "1";
 // The storybook/test-provided run config: skip Storybook's own axe pass in a project.
@@ -70,12 +90,14 @@ const storybookProject = ({
 // storybook-light also measures every focus stop's ring (the focus gate), storybook-dark, which
 // asks for reduced motion, checks that nothing moves (the motion gate), and
 // storybook-forced-colors, which runs every story in forced colours, checks that a selected,
-// pressed, current or checked item stays distinct from its siblings. Three more gate projects
+// pressed, current or checked item stays distinct from its siblings. Four more gate projects
 // run without axe: storybook-touch (every story on a 390px touch phone: 24px targets by axe's
 // target-size rule, and no hover-only controls), storybook-short (overlay families in a 320 by
-// 256 window, 400% zoom) and storybook-long (the families that show titles, values and stamps,
-// with their text lengthened, in the 320px frame). test/story-gates.ts says what each measures,
-// and test/gates-allow.json holds the stories that predate a gate.
+// 256 window, 400% zoom), storybook-long (the families that show titles, values and stamps,
+// with their text lengthened, in the 320px frame) and storybook-rtl (the direction-sensitive
+// families laid out right to left by the Direction global: no physical alignment, nothing past
+// the page's start, and every play passing mirrored). test/story-gates.ts says what each
+// measures, and test/gates-allow.json holds the stories that predate a gate.
 // The two layout projects render every story again, narrow, without axe (light already runs it):
 // storybook-narrow at a 390px phone, and storybook-contained in a 320px frame on the desktop
 // canvas (the Frame toolbar's "320px container"). test/storybook.setup.ts fails a story that
@@ -213,6 +235,13 @@ export default mergeConfig(
             "Glance",
           ]),
           provide: { ...noAxe, "ledger/gate": "long" },
+        }),
+        storybookProject({
+          name: "rtl",
+          globals: { mode: "light", viewport: desktop, direction: "rtl" },
+          reducedMotion: "reduce",
+          exclude: onlyFamilies(RTL_FAMILIES),
+          provide: { ...noAxe, "ledger/gate": "rtl" },
         }),
         ...(
           [

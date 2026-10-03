@@ -13,6 +13,8 @@ import * as Stories from "./Dialog.stories";
 
 # Dialog
 
+**Status: Stable.**
+
 A focused task over the page: a create or edit form, a review, a choice that needs more than a sentence. Built on [Base UI Dialog](https://base-ui.com/react/components/dialog) with [shadcn’s composition](https://ui.shadcn.com/docs/components/base/dialog) and Ledger's tokens.
 
 <Canvas of={Stories.Form} />
@@ -49,7 +51,7 @@ Not for a decision that needs one sentence: that is an [AlertDialog](?path=/docs
 ```
 
 - **DialogContent** brings its portal, the blanket and a close button at the top end, an IconButton named Close with no tooltip. The close button is first in the Tab order, where it is drawn; the first field still takes focus when the dialog opens. It records the overlay surface as the current one, so a sticky header, a pinned cell or a scroll arrow inside paints the dialog's colour, not the page's.
-- **DialogHeader** holds the title and the description; the title is the dialog's h2, and headings inside the dialog start at h3. Both wrap an unbroken value, such as a record's code or a server's error, inside the popup.
+- **DialogHeader** holds the title and the description; the title is the dialog's h2, a [Heading](?path=/docs/primitives-heading--docs) at `overlay` (15/22 medium), and headings inside the dialog start at h3. Both wrap an unbroken value, such as a record's code or a server's error, inside the popup.
 - **DialogBody** is the one scrolling region, with the dialog's inset. Put the form in it and the buttons in the footer; never make a `fieldset` or a hand-written `div` the scroller.
 - **DialogFooter** stays outside the scroll, on the dialog's own surface below a hairline, with Cancel, a subtle button, before the primary. `showCloseButton` adds a subtle Close in Cancel's place, before the children.
 - DialogPortal and DialogOverlay are exported for a custom popup.
@@ -58,15 +60,15 @@ Not for a decision that needs one sentence: that is an [AlertDialog](?path=/docs
 
 `width` on DialogContent picks a step; do not set pixels in `style`.
 
-| `width`      | Size                           | For                                  |
-| ------------ | ------------------------------ | ------------------------------------ |
-| `small`      | 400px                          | A short question with a field or two |
-| `medium`     | 520px, the default             | A form of a few fields               |
-| `large`      | 760px                          | A form in two columns, or a table    |
-| `xlarge`     | 960px                          | A table beside a preview             |
-| `fullscreen` | The window, less a 1rem gutter | A task that needs the whole window   |
+| `width`      | Size                        | For                                  |
+| ------------ | --------------------------- | ------------------------------------ |
+| `small`      | 400px                       | A short question with a field or two |
+| `medium`     | 520px, the default          | A form of a few fields               |
+| `large`      | 760px                       | A form in two columns, or a table    |
+| `xlarge`     | 960px                       | A table beside a preview             |
+| `fullscreen` | The window, less the gutter | A task that needs the whole window   |
 
-Every step narrows to the window less the gutter, so a dialog on a phone is the phone's width. Choose the width by the task, so dialogs of the same kind open at the same size.
+Every step keeps a `space.200` gutter on each side of the window, so a dialog on a phone is the phone's width less the gutter. Choose the width by the task, so dialogs of the same kind open at the same size. An [AlertDialog](?path=/docs/components-alertdialog--docs) takes the same words for the same widths, `small` by default, and `xsmall` 320px below them for a one-line question.
 
 <Canvas of={Stories.Widths} />
 
@@ -105,6 +107,7 @@ A failed save keeps the dialog and the draft, ends the pending state and says wh
 ## Content
 
 - The title is the operation and the singular noun; the primary says the same words, never OK, Submit or Save alone.
+- Cancel, a subtle DialogClose, comes before the primary. A dialog whose choices apply as they are made has no draft to cancel, so its secondary is Close.
 - Validate on submit with the primary enabled. Errors say what fixes the field; an [ErrorSummary](?path=/docs/components-errorsummary--docs) lists them all when the form is longer than a few fields.
 - Button labels stay on one line.
 - A title that names a record may hold its code; it wraps rather than running past the edge. Say a failure's cause in the body, through an Alert or a FieldError, not in the title.
@@ -113,9 +116,11 @@ A failed save keeps the dialog and the draft, ends the pending state and says wh
 
 ## Props
 
-Dialog takes Base UI Dialog's root props, `open`, `defaultOpen`, `onOpenChange` (its details say why: `reason` is `escape-key`, `outside-press`, `close-press` or another, and `cancel()` keeps the dialog open), `onOpenChangeComplete`, `modal`, `disablePointerDismissal`, `actionsRef` and `handle`, and Ledger's `pending`. DialogContent takes the popup's `initialFocus`, `finalFocus`, `render`, `className` and `style`, and Ledger's `width` and `showCloseButton`. DialogTrigger, DialogClose, DialogTitle and DialogDescription take Base UI's part props, `render` among them. The types are in [Base UI's API reference](https://base-ui.com/react/components/dialog#api-reference).
+Dialog takes Base UI Dialog's root props, `open`, `defaultOpen`, `onOpenChange` (its details say why: `reason` is `escape-key`, `outside-press`, `close-press` or another, and `cancel()` keeps the dialog open), `onOpenChangeComplete`, `modal`, `disablePointerDismissal`, `actionsRef` and `handle`, and Ledger's `pending`. DialogContent takes the popup's `initialFocus`, `finalFocus`, `render`, `className` and `style`, and Ledger's `width` and `showCloseButton`. DialogTrigger, DialogClose, DialogTitle and DialogDescription take Base UI's part props, `render` among them. Every part takes its element's native attributes, and its `data-slot` comes after them, so a caller's attribute never renames the part (Native attributes, below). The title and the description are the exception: another part renders as them through `render` (a PageHeader.Title as the title) and its `data-slot` names the element, as it does on a Button. The types are in [Base UI's API reference](https://base-ui.com/react/components/dialog#api-reference).
 
 <ArgTypes of={Dialog} />
+
+<Canvas of={Stories.NativeAttributes} />
 
 ### DialogContent
 
@@ -148,3 +153,9 @@ Dialog takes Base UI Dialog's root props, `open`, `defaultOpen`, `onOpenChange` 
 - [Recipes](?path=/docs/guidance-recipes--docs): the form dialog recipe.
 - [Forms](?path=/docs/patterns-forms--docs): fields, validation and errors.
 - [AlertDialog](?path=/docs/components-alertdialog--docs), [Sheet](?path=/docs/components-sheet--docs), [Drawer](?path=/docs/components-drawer--docs), [Overlays](?path=/docs/components-overlays--docs).
+
+## Don't
+
+The trigger, the title and the primary say the same operation, with Cancel before the primary, never a title that names no operation or an OK. A failure is said in the body with what retrying does, never in the title.
+
+<Canvas of={Stories.Dont} />

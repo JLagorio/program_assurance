@@ -339,7 +339,7 @@ test("in the kit, an input changed since the build is one finding at line 1 of e
     kit: true,
     change: {
       "src/styles/layout.css": (text) =>
-        `${text.replace("@utility sticky-rail {", "@utility sticky-rail-v2 {")}\n@utility new-rail {\n  position: sticky;\n}\n`,
+        `${text.replace("@utility fill-window {", "@utility fill-window-v2 {")}\n@utility new-rail {\n  position: sticky;\n}\n`,
     },
   });
   try {

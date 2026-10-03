@@ -62,7 +62,7 @@
       },
       "aside": {
         "$value": "75rem",
-        "$description": "1200px. The aside sits beside Main from here while no panel is open; below, it follows Main."
+        "$description": "1200px. The aside sits beside Main from here, whatever the side nav's width, while no panel is open; from `lg` it does while the side nav leaves Main its minimum, and otherwise it follows Main."
       },
       "panel": {
         "$value": "80rem",
@@ -98,7 +98,7 @@
       },
       "xs": {
         "$value": "20rem",
-        "$description": "Tailwind's container xs, 320px, restated so the `@xs` variant reads a token. No part switches here yet.",
+        "$description": "Tailwind's container xs, 320px, restated so the `@xs` variant reads a token. A KeyValue.Group whose label column is auto puts each label over its value below it.",
         "$extensions": {
           "ledger": {
             "introduced": "0.7.0"
@@ -197,7 +197,7 @@
       },
       "compact": {
         "$value": "25rem",
-        "$description": "400px. Below it a region is compact: a header gives its actions a row of their own under the title, as the panel header does.",
+        "$description": "400px at the default text size. Below it a region is compact (`@compact:`): a header gives its actions a row of their own under the title. In rem, so it scales with the reader's text size; the Shell.Panel header switches on dimension.query.panelHeader, in px.",
         "$extensions": {
           "ledger": {
             "introduced": "0.7.0"
@@ -207,6 +207,26 @@
       "split": {
         "$value": "50rem",
         "$description": "800px. From here a body shows two panes side by side; below it an open preview replaces the list, as in RecordBrowser.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      }
+    },
+    "query": {
+      "shortWindow": {
+        "$value": "30rem",
+        "$description": "A short window: under this height (a phone on its side, a page zoomed to 400%) the banner, the top nav and the panel's header scroll away with the page. A height, so it is no breakpoint: a stylesheet reads it as theme(--query-short-window) in an @media condition, and no class or variant reads it.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "panelHeader": {
+        "$value": "400px",
+        "$description": "Under this width a Shell.Panel's header gives its actions a row of their own under the title. In px, so it does not scale with the reader's text size as dimension.container.compact does; a stylesheet reads it as theme(--query-panel-header) in the panel's @container condition, and no class or variant reads it.",
         "$extensions": {
           "ledger": {
             "introduced": "0.7.0"
@@ -237,7 +257,7 @@
       },
       "rail": {
         "$value": "272px",
-        "$description": "The rail beside a record page: PreviewRail, the Inspector, the ShowPage rail."
+        "$description": "The rail beside a record page: the Shell's Aside and the Inspector in it. A vertical Attachment, and a Timeline event across at `itemWidth=\"rail\"`, take the same width."
       },
       "measure": {
         "$value": "720px",
@@ -362,9 +382,27 @@
           }
         }
       },
+      "keyValueLabelNarrow": {
+        "$value": "5.5rem",
+        "$description": "A KeyValue's narrow label column, 88px at the default text size: labelWidth \"narrow\", for short labels in a card, a glance or a chart's details (Owner, Open). Drawn in rem, so it grows with the reader's text size as the label does.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
       "keyValueLabel": {
         "$value": "6.5rem",
-        "$description": "A KeyValue's label column, 104px at the default text size, unless labelWidth gives another. It is drawn in rem, so it grows with the reader's text size as the label does.",
+        "$description": "A KeyValue's label column, 104px at the default text size: labelWidth \"default\", a rail's, and the width without a labelWidth. Drawn in rem, so it grows with the reader's text size as the label does.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "keyValueLabelWide": {
+        "$value": "10rem",
+        "$description": "A KeyValue's wide label column, 160px at the default text size: labelWidth \"wide\", for labels of about twenty characters (Authorizing official), and the most an \"auto\" column takes before its labels wrap. Drawn in rem, so it grows with the reader's text size as the label does.",
         "$extensions": {
           "ledger": {
             "introduced": "0.7.0"
@@ -410,6 +448,204 @@
       "previewSheet": {
         "$value": "720px",
         "$description": "A PreviewSheet's width, about half the screen, unless its width gives another.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "filterChipValue": {
+        "$value": "20ch",
+        "$description": "The widest a FilterChip's value grows before it truncates; its full text is its title. In ch, so it holds about twenty characters at the chip's text size.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "commandList": {
+        "$value": "340px",
+        "$description": "The tallest a Command's list grows before it scrolls inside itself.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "cellCard": {
+        "$value": "300px",
+        "$description": "The width of the card a table cell opens: Table.List's full list and a DataTable column's glance.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "composerSuggestions": {
+        "$value": "280px",
+        "$description": "The width of a Composer's suggestions list.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "composerSuggestionsHeight": {
+        "$value": "240px",
+        "$description": "The tallest a Composer's suggestions list grows before it scrolls, within the room the window leaves.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "tableMenu": {
+        "$value": "220px",
+        "$description": "A DataTable's Columns and Settings menus at their narrowest.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "tableColumnMenu": {
+        "$value": "200px",
+        "$description": "A DataTable column header's menu at its narrowest.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "tableGroupBy": {
+        "$value": "200px",
+        "$description": "A DataTable's Group by menu at its narrowest.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "tablePresets": {
+        "$value": "240px",
+        "$description": "A DataTable's Presets menu at its narrowest, where its saved questions are a menu rather than a strip.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "editableSelect": {
+        "$value": "220px",
+        "$description": "The width of an EditableSelect's list of choices.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "editableCombobox": {
+        "$value": "240px",
+        "$description": "The width of an EditableSelect's searchable popup, for a long list of choices.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "editableComboboxList": {
+        "$value": "260px",
+        "$description": "The tallest the list in an EditableSelect's searchable popup grows before it scrolls inside itself.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "recordSearch": {
+        "$value": "640px",
+        "$description": "The widest a dialog that searches records grows, a SearchDialog's and a RecordPicker's; a narrower window caps it at the room it leaves.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "relatedCard": {
+        "$value": "240px",
+        "$description": "A Related card's narrowest in the cards layout, which fits as many to a row as the row holds.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "recordBrowser": {
+        "$value": "90vw",
+        "$description": "A RecordBrowser's width and its cap: most of the window, for its list beside a preview.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "recordBrowserPreview": {
+        "$value": "320px",
+        "$description": "A RecordBrowser's preview column at its narrowest beside the results, which it shares at 40% of the browser's width.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "drawerSmall": {
+        "$value": "20rem",
+        "$description": "A Drawer at width \"small\", 320px at the default text size: how wide a side drawer grows, and a bottom or top drawer on a window from sm up, centred. A narrower window caps a side drawer at 75% of its width and runs a bottom or top drawer edge to edge.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "drawer": {
+        "$value": "24rem",
+        "$description": "A Drawer at width \"medium\", its default, 384px at the default text size: how wide a side drawer grows, and a bottom or top drawer on a window from sm up, centred. A narrower window caps a side drawer at 75% of its width and runs a bottom or top drawer edge to edge.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "drawerLarge": {
+        "$value": "47.5rem",
+        "$description": "A Drawer at width \"large\", 760px at the default text size, Sheet's and Dialog's large: how wide a side drawer grows, and a bottom or top drawer on a window from sm up, centred. A narrower window caps a side drawer at 75% of its width and runs a bottom or top drawer edge to edge.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "toast": {
+        "$value": "24rem",
+        "$description": "The widest the Toaster's stack grows, 384px at the default text size; a narrower window leaves space.200 on each side.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "pageHeaderHeading": {
+        "$value": "14rem",
+        "$description": "A PageHeader's heading measure, about twenty characters of font.heading.page a line: when the row cannot hold it beside the actions, the actions wrap under it.",
+        "$extensions": {
+          "ledger": {
+            "introduced": "0.7.0"
+          }
+        }
+      },
+      "sectionHeading": {
+        "$value": "12rem",
+        "$description": "A Section header's heading measure, about twenty-five characters of body text a line: when the row cannot hold it beside the actions, the actions take the next row.",
         "$extensions": {
           "ledger": {
             "introduced": "0.7.0"

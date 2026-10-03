@@ -5,6 +5,7 @@ import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import { Glance } from "../..";
 import {
   Badge,
+  Button,
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
@@ -13,6 +14,11 @@ import {
 } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
 import { Grid, Stack, Text } from "../../primitives";
+
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/HoverCard",
@@ -29,8 +35,42 @@ const renderedContentRef = createRef<HTMLDivElement>();
 const triggerClick = fn();
 const renderedClick = fn();
 
+/** A TextLink trigger, the usual composition, with the card centred under it. */
+export const Playground: Story = {
+  name: "Basic",
+  render: (args) => (
+    <div style={{ height: 240 }} className="flex items-center justify-center">
+      <HoverCard {...args}>
+        <TextLink render={<HoverCardTrigger href="#review-guide" />}>Review guide</TextLink>
+        <HoverCardContent>How to prepare evidence and schedule a control review.</HoverCardContent>
+      </HoverCard>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const user = userEvent.setup({ document: canvasElement.ownerDocument });
+    const trigger = canvas.getByRole("link", { name: "Review guide" });
+    await user.tab();
+    await expect(trigger).toHaveFocus();
+    const card = await body.findByText("How to prepare evidence and schedule a control review.");
+    const popup = card.closest<HTMLElement>('[data-slot="hover-card-content"]')!;
+    await waitFor(() => expect(popup).toBeVisible());
+    // Centred on its trigger with no offset along it, and capped at the room the window leaves.
+    await waitFor(() => {
+      const box = popup.getBoundingClientRect();
+      const anchor = trigger.getBoundingClientRect();
+      expect(Math.abs(box.left + box.width / 2 - (anchor.left + anchor.width / 2))).toBeLessThan(1);
+    });
+    await expect(popup.style.maxHeight).toBe("var(--available-height)");
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(popup).not.toBeInTheDocument());
+  },
+};
+
 /** Default positioning and a logical side under RTL; native render props and refs remain usable. */
 export const HoverCardMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Grid
       // Two columns where they fit; one in a narrow frame, so a link wraps between its words.
@@ -163,8 +203,6 @@ const rows = [
   },
   { id: "CTRL-0450", name: "Privileged access review", owner: "Priya Natarajan", preview: false },
 ];
-const blockedOpen = fn();
-
 /** The id remains a link; pointer and keyboard previews share the same destination facts. */
 export const OnAnId: Story = {
   name: "On an id",
@@ -174,10 +212,8 @@ export const OnAnId: Story = {
         <Text weight="medium">Control register</Text>
         <HoverCard<(typeof rows)[number]>
           onOpenChange={(open, details) => {
-            if (open && details.trigger?.getAttribute("data-preview") === "unavailable") {
-              blockedOpen(open, details.reason);
+            if (open && details.trigger?.getAttribute("data-preview") === "unavailable")
               details.cancel();
-            }
           }}
         >
           {({ payload }) => (
@@ -254,7 +290,6 @@ export const OnAnId: Story = {
     const canvas = within(canvasElement);
     const user = userEvent.setup({ document: canvasElement.ownerDocument });
     const body = within(canvasElement.ownerDocument.body);
-    blockedOpen.mockClear();
     const trigger = canvas.getByRole("link", { name: "CTRL-0412" });
     const away = canvas.getByText("Control register");
     const moveTo = async (target: HTMLElement) => {
@@ -293,42 +328,66 @@ export const OnAnId: Story = {
     );
     await user.keyboard("{Escape}");
     await waitFor(() => expect(body.queryByTestId("preview-CTRL-0418")).not.toBeInTheDocument());
+    // A row with nothing to preview cancels the open: focus reaches its link and no card follows,
+    // several times the 80ms the others take.
     await user.tab();
-    await waitFor(() => expect(blockedOpen).toHaveBeenCalledWith(true, "trigger-focus"));
+    await expect(canvas.getByRole("link", { name: "CTRL-0450" })).toHaveFocus();
+    await new Promise((resolve) => setTimeout(resolve, 400));
     await expect(body.queryByTestId("preview-CTRL-0450")).not.toBeInTheDocument();
+    await expect(
+      canvasElement.ownerDocument.querySelector('[data-slot="hover-card-content"]'),
+    ).toBeNull();
     await moveTo(away);
   },
 };
 
-/** A TextLink trigger, the usual composition, with the card centred under it. */
-export const Playground: Story = {
-  name: "Basic",
-  render: (args) => (
-    <div style={{ height: 240 }} className="flex items-center justify-center">
-      <HoverCard {...args}>
-        <TextLink render={<HoverCardTrigger href="#review-guide" />}>Review guide</TextLink>
-        <HoverCardContent>How to prepare evidence and schedule a control review.</HoverCardContent>
-      </HoverCard>
-    </div>
+/**
+ * The trigger is a link to the record, so a keyboard reaches it and a touch follows it, and the card
+ * only adds a peek. Plain text that holds the card is reached by a pointer alone, and an action in
+ * the card is out of reach for everyone else.
+ */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <Pair
+      do={
+        <HoverCard>
+          <TextLink render={<HoverCardTrigger href="#ctrl-0412" />}>CTRL-0412</TextLink>
+          <HoverCardContent>
+            <Stack space="space.050">
+              <Text weight="semibold">Account management</Text>
+              <Text size="small">Implemented · Owner Dana Whitfield</Text>
+            </Stack>
+          </HoverCardContent>
+        </HoverCard>
+      }
+      doText="A link to the record holds the card: the peek adds to a destination every reader can reach."
+      dont={
+        <HoverCard>
+          <HoverCardTrigger>CTRL-0450</HoverCardTrigger>
+          <HoverCardContent>
+            <Stack space="space.100">
+              <Text weight="semibold">Audit review</Text>
+              <Button size="small">Assign to me</Button>
+            </Stack>
+          </HoverCardContent>
+        </HoverCard>
+      }
+      dontText="Plain text holds the card and the card holds an action: a keyboard or a touch never opens it."
+    />
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const body = within(canvasElement.ownerDocument.body);
-    const user = userEvent.setup({ document: canvasElement.ownerDocument });
-    const trigger = canvas.getByRole("link", { name: "Review guide" });
-    await user.tab();
-    await expect(trigger).toHaveFocus();
-    const card = await body.findByText("How to prepare evidence and schedule a control review.");
-    const popup = card.closest<HTMLElement>('[data-slot="hover-card-content"]')!;
-    await waitFor(() => expect(popup).toBeVisible());
-    // Centred on its trigger with no offset along it, and capped at the room the window leaves.
-    await waitFor(() => {
-      const box = popup.getBoundingClientRect();
-      const anchor = trigger.getBoundingClientRect();
-      expect(Math.abs(box.left + box.width / 2 - (anchor.left + anchor.width / 2))).toBeLessThan(1);
-    });
-    await expect(popup.style.maxHeight).toBe("var(--available-height)");
-    await user.keyboard("{Escape}");
-    await waitFor(() => expect(popup).not.toBeInTheDocument());
+    const link = canvas.getByRole("link", { name: "CTRL-0412" });
+    await expect(link).toHaveAttribute("href", "#ctrl-0412");
+    link.focus();
+    await expect(link).toHaveFocus();
+    link.blur();
+    // The text that holds the other card is no link and takes no focus.
+    const text = canvas.getByText("CTRL-0450");
+    await expect(canvas.queryByRole("link", { name: "CTRL-0450" })).toBeNull();
+    text.focus();
+    await expect(text).not.toHaveFocus();
   },
 };

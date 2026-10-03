@@ -1,7 +1,7 @@
 import { StatusBadge } from "@/components/app/status";
 import { Page } from "@/components/app/shell";
 import { useWorkspace } from "@/components/app/workspace";
-import { useRow, useRows, type Row } from "@/lib/models";
+import { idSet, useRow, useRows, type Row } from "@/lib/models";
 import { labelFor, type DataRecord, type RecordValue } from "@/lib/records";
 import { revisionStates, statusLabel } from "@/lib/status";
 import {
@@ -9,10 +9,7 @@ import {
   Button,
   DataTable,
   DateTime,
-  DropdownMenu,
-  DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   Id,
   Inspector,
   KeyValue,
@@ -28,7 +25,7 @@ import {
   useLedgerLocale,
 } from "@ledger/design-system";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ChevronDown, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { LibrarySelect, QueryValue } from "./library-shared";
 import { canAuthorLibrary, nextVersionNumber, usePublishVersion } from "./library-utils";
@@ -37,7 +34,7 @@ import { ProductRecordDialog } from "./product-record-dialog";
 import { RecordLink, recordDestination, useDisplayedRecords } from "./record-preview";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { RecordTrail, TrailLink } from "./record-trail";
-import { EmptyMessage, MissingRecord, QueryState } from "./work-common";
+import { EmptyMessage, MissingRecord, QueryState, RecordActions } from "./work-common";
 
 /** A definition with what its versions say: the latest version and state, the published text. */
 type LibraryRow = Row<"requirement_definitions"> & {
@@ -95,8 +92,6 @@ export function RequirementLibraryIndex() {
           header: "ID",
           width: 150,
           priority: 1,
-          preview: setSelected,
-          active: (row) => row.id === selected?.id,
         }),
         c.text("title", {
           header: "Requirement definition",
@@ -115,9 +110,13 @@ export function RequirementLibraryIndex() {
         c.number("adopted", { header: "Programs", width: 100 }),
         c.status("status", { header: "State", width: 130, statuses: revisionStates }),
       ]),
-    [selected?.id],
+    [],
   );
   const table = useDataTable({
+    preview: useMemo(
+      () => ({ onPreview: setSelected, activeId: selected?.id ?? null }),
+      [selected?.id],
+    ),
     data: rows,
     columns,
     getRowId: (row) => row.id,
@@ -187,7 +186,7 @@ export function RequirementLibraryIndex() {
             {
               key: "description",
               label: "Description",
-              render: (row) => row.description || <Absent label="Not recorded" />,
+              render: (row) => row.description || <Absent />,
             },
             {
               key: "version",
@@ -208,12 +207,12 @@ export function RequirementLibraryIndex() {
             {
               key: "statement",
               label: "Statement",
-              render: (row) => row.statement ?? <Absent label="Not recorded" />,
+              render: (row) => row.statement ?? <Absent />,
             },
             {
               key: "type",
               label: "Type",
-              render: (row) => row.type ?? <Absent label="Not recorded" />,
+              render: (row) => row.type ?? <Absent />,
             },
             { key: "adopted", label: "Programs" },
           ]}
@@ -246,17 +245,29 @@ export function RequirementLibraryRecord({
   const workspace = useWorkspace();
   const definition = useRow("requirement_definitions", id);
   const revisions = useRows("requirement_definition_revisions", { requirement_definition_id: id });
+  // Who adopted this definition, read through its versions: those requirements, their content and
+  // their programs' names, never every requirement and program in the workspace.
   const adoptions = useRows(
     "engineering_requirements",
-    {},
-    { columns: ["id", "code", "program_id", "definition_revision_id"] },
+    { definition_revision_id: idSet(revisions.data?.map((row) => row.id)) },
+    {
+      columns: ["id", "code", "program_id", "definition_revision_id"],
+      enabled: revisions.isSuccess,
+    },
   );
   const requirementContents = useRows(
     "requirement_revisions",
-    {},
-    { columns: ["id", "engineering_requirement_id", "version_number", "title"] },
+    { engineering_requirement_id: idSet(adoptions.data?.map((row) => row.id)) },
+    {
+      columns: ["id", "engineering_requirement_id", "version_number", "title"],
+      enabled: adoptions.isSuccess,
+    },
   );
-  const programs = useRows("programs", {}, { columns: ["id", "name"] });
+  const programs = useRows(
+    "programs",
+    { id: idSet(adoptions.data?.map((row) => row.program_id)) },
+    { columns: ["id", "name"], enabled: adoptions.isSuccess },
+  );
   const publishing = usePublishVersion(
     "requirement_definition_revisions",
     "Programs can adopt it once it is published.",
@@ -300,8 +311,6 @@ export function RequirementLibraryRecord({
           header: "ID",
           width: 150,
           priority: 1,
-          preview: setAdoptionPreview,
-          active: (row) => row.id === adoptionPreview?.id,
         }),
         c.text("title", {
           header: "Requirement",
@@ -329,9 +338,13 @@ export function RequirementLibraryRecord({
         }),
         c.number("definitionVersion", { header: "Definition version", width: 150 }),
       ]),
-    [adoptionPreview?.id],
+    [],
   );
   const adoptionTable = useDataTable({
+    preview: useMemo(
+      () => ({ onPreview: setAdoptionPreview, activeId: adoptionPreview?.id ?? null }),
+      [adoptionPreview?.id],
+    ),
     data: adoptionRows,
     columns: adoptionColumns,
     getRowId: (row) => row.id,
@@ -394,23 +407,24 @@ export function RequirementLibraryRecord({
           <PageHeader.Heading>
             <PageHeader.Title>{record.title}</PageHeader.Title>
           </PageHeader.Heading>
-          {editable && (
-            <PageHeader.Actions>
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={<Button iconAfter={<ChevronDown />}>Actions</Button>}
-                />
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() =>
+          <PageHeader.Actions>
+            {/* Every library record's one menu: a viewer keeps Inspect record alone. */}
+            <RecordActions
+              table="requirement_definitions"
+              id={record.id}
+              editLabel="Edit requirement"
+              {...(editable
+                ? {
+                    onEdit: () =>
                       setEdit({
                         table: "requirement_definitions",
                         existing: record as unknown as DataRecord,
-                      })
-                    }
-                  >
-                    Edit requirement
-                  </DropdownMenuItem>
+                      }),
+                  }
+                : {})}
+            >
+              {editable && (
+                <>
                   <DropdownMenuItem
                     {...(revisions.data
                       ? {}
@@ -440,11 +454,11 @@ export function RequirementLibraryRecord({
                       </DropdownMenuItem>
                     </>
                   )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              {publishing.confirmation}
-            </PageHeader.Actions>
-          )}
+                </>
+              )}
+            </RecordActions>
+            {publishing.confirmation}
+          </PageHeader.Actions>
         </PageHeader>
         {edit && (
           <ProductRecordDialog
@@ -455,10 +469,81 @@ export function RequirementLibraryRecord({
             onClose={() => setEdit(null)}
           />
         )}
+        {/* The Details, right after the header: the rail beside the body, or on a phone a closed
+            disclosure under the title whose row says the shown version's state. */}
+        <Shell.Aside
+          label="Requirement definition details"
+          summary={
+            current ? <StatusBadge statuses={revisionStates} value={current.state} /> : undefined
+          }
+        >
+          <Stack space="space.200">
+            <Inspector.Group title="Details">
+              <KeyValue.Group layout="columns">
+                <KeyValue label="Code">
+                  <Id>{record.code}</Id>
+                </KeyValue>
+                <KeyValue label="Version">
+                  <QueryValue queries={[revisions]}>
+                    {() =>
+                      versions.length > 1 && current ? (
+                        <LibrarySelect
+                          inline
+                          label="Version"
+                          value={current.id}
+                          options={versions.map((revision) => ({
+                            value: revision.id,
+                            label: `${revision.version_number} · ${statusLabel(revisionStates, revision.state)}`,
+                          }))}
+                          onChange={selectVersion}
+                        />
+                      ) : (
+                        (current?.version_number ?? <Absent label="No versions" />)
+                      )
+                    }
+                  </QueryValue>
+                </KeyValue>
+                <KeyValue label="State">
+                  <QueryValue queries={[revisions]}>
+                    {() => (
+                      <StatusBadge
+                        statuses={revisionStates}
+                        value={current?.state}
+                        absentLabel="No versions"
+                      />
+                    )}
+                  </QueryValue>
+                </KeyValue>
+                <KeyValue label="Type">
+                  {current ? labelFor(current.requirement_type) : <Absent />}
+                </KeyValue>
+                <KeyValue label="Published">
+                  <DateTime
+                    value={current?.published_at ?? null}
+                    format="date"
+                    absentLabel="Not published"
+                  />
+                </KeyValue>
+                <KeyValue label="Adopted by">
+                  <QueryValue queries={[revisions, adoptions]}>
+                    {() =>
+                      locale.formatPlural(adoptionRows.length, {
+                        one: "{count} requirement",
+                        other: "{count} requirements",
+                      })
+                    }
+                  </QueryValue>
+                </KeyValue>
+              </KeyValue.Group>
+            </Inspector.Group>
+          </Stack>
+        </Shell.Aside>
         <Prose label="Description" className="max-w-layout-measure">
-          {record.description || <Absent label="Not recorded" />}
+          {record.description || <Absent />}
         </Prose>
-        <QueryState queries={[revisions]}>
+        {/* The body is one failure region: an outage of the versions and of who adopted them
+            reads as one alert, whose Retry reloads every failed read. */}
+        <QueryState queries={[revisions]} region>
           {current ? (
             <Stack space="space.300">
               <Stack space="space.200" className="max-w-layout-measure">
@@ -520,7 +605,7 @@ export function RequirementLibraryRecord({
             {
               key: "definitionVersion",
               label: "Definition version",
-              render: (row) => row.definitionVersion ?? <Absent label="Not recorded" />,
+              render: (row) => row.definitionVersion ?? <Absent />,
             },
           ]}
           record={adoptionPreview}
@@ -529,68 +614,6 @@ export function RequirementLibraryRecord({
           onClose={() => setAdoptionPreview(null)}
         />
       )}
-      <Shell.Aside label="Requirement definition details">
-        <Stack space="space.200">
-          <Inspector.Group title="Details">
-            <KeyValue.Group layout="columns">
-              <KeyValue label="Code">
-                <Id>{record.code}</Id>
-              </KeyValue>
-              <KeyValue label="Version">
-                <QueryValue queries={[revisions]}>
-                  {() =>
-                    versions.length > 1 && current ? (
-                      <LibrarySelect
-                        inline
-                        label="Version"
-                        value={current.id}
-                        options={versions.map((revision) => ({
-                          value: revision.id,
-                          label: `${revision.version_number} · ${statusLabel(revisionStates, revision.state)}`,
-                        }))}
-                        onChange={selectVersion}
-                      />
-                    ) : (
-                      (current?.version_number ?? <Absent label="No versions" />)
-                    )
-                  }
-                </QueryValue>
-              </KeyValue>
-              <KeyValue label="State">
-                <QueryValue queries={[revisions]}>
-                  {() => (
-                    <StatusBadge
-                      statuses={revisionStates}
-                      value={current?.state}
-                      absentLabel="No versions"
-                    />
-                  )}
-                </QueryValue>
-              </KeyValue>
-              <KeyValue label="Type">
-                {current ? labelFor(current.requirement_type) : <Absent label="Not recorded" />}
-              </KeyValue>
-              <KeyValue label="Published">
-                <DateTime
-                  value={current?.published_at ?? null}
-                  format="date"
-                  absentLabel="Not published"
-                />
-              </KeyValue>
-              <KeyValue label="Adopted by">
-                <QueryValue queries={[revisions, adoptions]}>
-                  {() =>
-                    locale.formatPlural(adoptionRows.length, {
-                      one: "{count} requirement",
-                      other: "{count} requirements",
-                    })
-                  }
-                </QueryValue>
-              </KeyValue>
-            </KeyValue.Group>
-          </Inspector.Group>
-        </Stack>
-      </Shell.Aside>
     </>
   );
 }

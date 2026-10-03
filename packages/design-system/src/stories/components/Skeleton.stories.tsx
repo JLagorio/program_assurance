@@ -4,8 +4,12 @@ import { expect, fn, userEvent, within } from "storybook/test";
 
 import { Skeleton, Spinner } from "../../components";
 import { Box, Inline, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Skeleton",
@@ -18,6 +22,7 @@ type Story = StoryObj<typeof meta>;
 
 /** The four shapes, lines by count, and three things waiting: a record head, a row of a list, a card with a chart. */
 export const SkeletonMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="Shapes: line, heading, circle, block">
@@ -140,6 +145,7 @@ export const SkeletonMatrix: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -209,6 +215,9 @@ export const Dont: Story = {
   ),
 };
 
+/** A line of text on its way, with the controls. */
+export const Playground: Story = {};
+
 const nativeRefs = {
   block: createRef<HTMLDivElement>(),
   lines: createRef<HTMLDivElement>(),
@@ -218,6 +227,7 @@ const nativeEvents = { block: fn(), lines: fn() };
 
 /** Native attributes target the outer placeholder; supplied children replace generated lines. */
 export const NativeAttributes: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Stack space="space.100">
@@ -321,5 +331,3 @@ export const NativeAttributes: Story = {
     await expect(nativeEvents.lines).toHaveBeenCalledTimes(1);
   },
 };
-
-export const Playground: Story = {};

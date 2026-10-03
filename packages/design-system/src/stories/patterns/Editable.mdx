@@ -1,13 +1,15 @@
 import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
 
-import { EditableSelect, EditableText } from "../..";
+import { EditableDate, EditableSelect, EditableText } from "../..";
 import * as Stories from "./Editable.stories";
 
 <Meta of={Stories} />
 
 # Editable
 
-A value edited where it sits. The reader clicks it, changes it, and it saves: no form, no dialog. It commits at once and shows the save beside the value; a refused save puts the old value back with the reason under it and keeps what the reader wrote, with Try again and Discard. **Editable.Text** (`EditableText`) edits text, with `multiline` for paragraphs; **Editable.Select** (`EditableSelect`) is one of a fixed set, drawn as the record draws it.
+**Status: Stable.**
+
+A value edited where it sits. The reader clicks it, changes it, and it saves: no form, no dialog. It commits at once and shows the save beside the value; a refused save puts the old value back with the reason under it and keeps what the reader wrote, with Try again and Discard. **Editable.Text** (`EditableText`) edits text, with `multiline` for paragraphs; **Editable.Select** (`EditableSelect`) is one of a fixed set, drawn as the record draws it; **Editable.Date** (`EditableDate`) is a calendar day, a due date or a planned completion.
 
 It is for one value on a record that already exists: the owner in the rail, the next action in a table's cell, the status as a Badge. A record that does not exist yet is a [form](?path=/docs/patterns-forms--docs); several values that change together are a form in a Dialog; a paragraph uses `EditableText multiline`.
 
@@ -15,22 +17,22 @@ It is for one value on a record that already exists: the owner in the rail, the 
 
 ## Anatomy
 
-| Part     | What it is                                                                                                                                                                                                 |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Row      | A button 24px tall, `dimension.control.xsmall`, the field's height, across its cell. The value sits flush on the text column; under the pointer the row tints, reaching `space.050` past it on both sides. |
-| Value    | The committed value in `font.body`, one line that truncates. Empty, the `placeholder` in `color.text.subtlest`, or the muted dash.                                                                         |
-| Mark     | At the end of the row: a Spinner while saving, a check in `color.icon.success` for a moment after, a warning in `color.icon.danger` after a refusal. A chevron on a Select.                                |
-| Field    | Text, editing: an input of `dimension.control.xsmall` in the value's place, its box reaching `space.050` past the column so the text stays on it. Multiline, a textarea that grows with its text.          |
-| Actions  | Under the field while editing: Cancel and Save, as 24px icon buttons named by the action and the field. Always on a paragraph, where any pointer is coarse, and after a refused leave.                     |
-| Menu     | Select, editing: the options under the row, the current one marked, and nothing else; a short set uses Select; a long set uses Combobox with its search input inside the popup.                            |
-| Message  | Under the row in `font.body.xsmall` and `color.text.danger`: what `validate` refused, or why the save failed. It wraps, also under a value that truncates.                                                 |
-| Recovery | After a refused save, under the message: Try again, which sends the refused value again, and Discard, which drops it. Both xsmall Buttons.                                                                 |
-| Reason   | While `lockedReason` is set, the row's description; shown under it in `color.text.subtle` once the reader tries to edit.                                                                                   |
-| Edit     | Multiline, at rest: the paragraph is text, and a subtle xsmall Edit button with a pencil at its end opens the field.                                                                                       |
+| Part     | What it is                                                                                                                                                                                                                                                                                      |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Row      | A button 24px tall, `dimension.control.xsmall`, the field's height, across its cell. The value sits flush on the text column; under the pointer the row tints, reaching `space.050` past it on both sides.                                                                                      |
+| Value    | The committed value in `font.body`, one line that truncates. Empty, the `placeholder` in `color.text.subtlest`, or the muted dash.                                                                                                                                                              |
+| Mark     | At the end of the row: a Spinner while saving, a check in `color.icon.success` for a moment after, a warning in `color.icon.danger` after a refusal. A chevron on a Select.                                                                                                                     |
+| Field    | Text, editing: an input of `dimension.control.xsmall` in the value's place, its box reaching `space.050` past the column so the text stays on it. Multiline, a textarea that grows with its text. Date: the same input reading a typed day, with a 20px button at its end that opens the month. |
+| Actions  | Under the field while editing: Cancel and Save, as 24px icon buttons named by the action and the field. Always on a paragraph, where any pointer is coarse, and after a refused leave.                                                                                                          |
+| Menu     | Select, editing: the options under the row, the current one marked, and nothing else; a short set uses Select; a long set uses Combobox with its search input inside the popup.                                                                                                                 |
+| Message  | Under the row in `font.body.xsmall` and `color.text.danger`: what `validate` refused, or why the save failed. It wraps, also under a value that truncates.                                                                                                                                      |
+| Recovery | After a refused save, under the message: Try again, which sends the refused value again, and Discard, which drops it. Both xsmall Buttons.                                                                                                                                                      |
+| Reason   | While `lockedReason` is set, the row's description; shown under it in `color.text.subtle` once the reader tries to edit.                                                                                                                                                                        |
+| Edit     | Multiline, at rest: the paragraph is text, and a subtle xsmall Edit button with a pencil at its end opens the field.                                                                                                                                                                            |
 
 ## Variants
 
-Two, by what the value is. **Text** for a value the reader writes: a name, an acronym, a next action. **Select** for one of a fixed set: a status, a method, an owner from a roster, drawn by `render` as the record draws it, a Badge or a Person, so the rail and the table agree.
+Three, by what the value is. **Text** for a value the reader writes: a name, an acronym, a next action. **Select** for one of a fixed set: a status, a method, an owner from a roster, drawn by `render` as the record draws it, a Badge or a Person, so the rail and the table agree. **Date** for a calendar day: a due date, a planned completion.
 
 Where it lives: in a [KeyValue](?path=/docs/components-keyvalue--docs) row of the rail, in a [Fact](?path=/docs/components-fact--docs), in a [Table](?path=/docs/components-table--docs) cell under the column's heading. A [DataTable](?path=/docs/patterns-data-table--docs) column with `editable` draws these itself.
 
@@ -44,9 +46,17 @@ Where it lives: in a [KeyValue](?path=/docs/components-keyvalue--docs) row of th
 
 <Canvas of={Stories.Options} />
 
+**Dates.** `Editable.Date` holds an ISO day ("2026-10-14"), the contract of [DatePicker](?path=/docs/components-datepicker--docs), and shows it in the reader's words ("Oct 14, 2026") as a `time` element. A day is a calendar day, never an instant: it does not move with the reader's time zone. Editing, the field reads a typed day in the locale ("10/20/2026", "Oct 20", "2026-10-20"); its button, or Alt+Down, opens the month, with Today and Clear under it. Enter or leaving commits the typed day, a day chosen in the month commits at once, and an empty field clears the day. `min`, `max` and `isDateUnavailable` disable days in the month with their reason and refuse a typed one with it ("Enter Oct 1, 2026 or later."); text that is not a day says what one looks like. Either keeps the field open with the message, as `validate` does. `placeholder` is what an empty value says at rest ("No due date"). The save, the refused value with Try again and Discard, the lock and the draft callbacks are Editable.Text's; `onDraftChange` receives the day the text reads as, or the text itself while it reads as no day.
+
+<Canvas of={Stories.Dates} />
+
+**A due day.** With `due`, the resting row says where the day stands beside it, as [DateLabel](?path=/docs/components-datetime--docs) says it in a register: Overdue, Due today, Due tomorrow or Due in 2 days, with the state's icon and tone, judged against the reader's today in the LedgerProvider's zone. The words are part of the row's name ("Due: Oct 1, 2026, Overdue"), and a narrow row puts them under the day. `complete` says the work is done: the day then shows plainly, as DateLabel's `complete` does.
+
+<Canvas of={Stories.DueDates} />
+
 ## Sizes
 
-One: 24px, `dimension.control.xsmall`, the field's height, so opening the field does not move the rail. The value is a line of body text centred in it. The width is the cell's, less `space.050` at the end: the tint, the field and the focus ring reach that far past the value, and the Editable keeps the reach inside its own box, so a KeyValue or a cell that truncates never takes it for cut text and reveals it in a tooltip. At the start the reach passes the text column.
+One: 24px, `dimension.control.xsmall`, the field's height, so opening the field does not move the rail. The value is a line of body text centred in it. The width is the cell's, less `space.050` at the end: the tint, the field and the focus ring reach that far past the value, and the Editable keeps the reach inside its own box, so a KeyValue or a cell that truncates never takes it for cut text and reveals it in a tooltip. At the start the reach passes the text column, so the value lines up with the plain values around it: a [KeyValue](?path=/docs/components-keyvalue--docs) whose value is an Editable does not clip it, and a table cell's padding holds it, so the tint, the focus ring and the field keep their sides in every browser (the Rail story).
 
 Each instance accepts one save at a time. While saving, the row cannot reopen for another edit. A rejected save restores its previous value only while this request still owns the current value; an external update is preserved. Completion after unmount is ignored. The caller remains responsible for reconciling server updates to the record.
 
@@ -72,7 +82,7 @@ There is no disabled state. A value the reader can never change is plain text in
 ## Modifiers
 
 - **`validate`**: a function of the draft that returns a message or null. It runs as the reader types and again at the commit, so a rule is seen before Enter is refused.
-- **`save`**: a promise. Resolved, the check; rejected, the rollback, the error's message, and the refused value kept for Try again. `onChange` is called at once with the new value, and again with the old one when the save fails, so the caller's state is always what the reader sees.
+- **`save`**: a promise. Resolved, the check; rejected, the rollback, the error's message, and the refused value kept for Try again. `onValueChange` is called at once with the new value, and again with the old one when the save fails, so the caller's state is always what the reader sees. `onChange` is its deprecated spelling, called only where `onValueChange` is not given; `ledger/no-deprecated-name` renames it.
 - **`onEditingChange`**, **`onDraftChange`** and **`onCancel`**: what a host needs for draft protection, without reading the field's DOM. `onDraftChange` receives the unsaved draft as it changes (what is typed while it differs from the value, or a refused value kept for another try) and `null` once it is saved, put back, discarded or unmounted; feed a route blocker and `beforeunload` from it. `onEditingChange` says the field opened or closed; `onCancel`, that the reader dropped an edit.
 - **`lockedReason`**: a temporary lock with its reason, for one change at a time: while one value saves, the host locks the others. A field already open keeps its draft, and its save stays the host's to refuse.
 - **`placeholder`**: what goes here, as a noun.
@@ -114,7 +124,7 @@ There is no disabled state. A value the reader can never change is plain text in
 - **Touch:** the row is 24px tall, and where any pointer is coarse its `::after` is a hit area at least 24px tall across the value (the shared `touch-target-block-after` band); `::before` holds the hover tint. A touch keyboard has no Escape, so where any pointer is coarse the field shows Cancel and Save. A press on either keeps focus in the field, so leaving does not commit first.
 - **The row is named by the label and the value:** "Owner: Dana Whitfield". The label is read before the value, so a screen reader hears what the field is where a sighted reader reads the KeyValue's label beside it.
 - **The field is named by the label** (`aria-label`) and, invalid, is `aria-invalid` and described by the message. A paragraph's Edit button is named "Edit" and the label.
-- **Keyboard:** Tab reaches the row; Enter or Space opens the field with the existing value; Enter commits and Escape puts the old value back, and either returns focus to the row. Escape stops at the field, so a Dialog, Sheet or Popover around it stays open; the next Escape, from the row, reaches it (In dialog). Leaving the field by Tab or a click commits and focus goes where the reader sent it; Tab into its own Cancel and Save does not. Switching to another window or tab is not leaving: the field keeps its draft. A refused leave keeps the field open with its message and shows Cancel. Select and searchable Combobox triggers expose the native combobox role. Enter, Space or Down opens the options; arrows move between them and Enter chooses. Escape closes without changing the value. While saving, the row stays focusable and read-only, with `aria-disabled` announcing that another edit must wait.
+- **Keyboard:** Tab reaches the row; Enter or Space opens the field with the existing value; Enter commits and Escape puts the old value back, and either returns focus to the row. Escape stops at the field, so a Dialog, Sheet or Popover around it stays open; the next Escape, from the row, reaches it (In dialog). Leaving the field by Tab or a click commits and focus goes where the reader sent it; Tab into its own Cancel and Save does not. Switching to another window or tab is not leaving: the field keeps its draft. A refused leave keeps the field open with its message and shows Cancel. Date: the field is named by the label, and its button by the label too ("Choose a date for Due"); Alt+Down opens the month, arrows move between days, Enter chooses and commits, and Escape closes the month and returns to the field. Select and searchable Combobox triggers expose the native combobox role. Enter, Space or Down opens the options; arrows move between them and Enter chooses. Escape closes without changing the value. While saving, the row stays focusable and read-only, with `aria-disabled` announcing that another edit must wait.
 - **After a refused save** focus stays on the row, which is `aria-invalid` and described by the reason. Try again and Discard are named with the field ("Try again to save Owner", "Discard the change to Owner") and return focus to the row.
 - **A locked row** stays in the tab order and in place: `aria-disabled`, described by the reason, which also shows when the reader clicks or presses Enter on it. Nothing is disabled, so focus never drops to the page.
 - **In a DataTable:** Enter moves to the next row only after accepting a valid text commit. Invalid input keeps focus, and an IME composition confirmation neither saves nor changes rows.
@@ -125,7 +135,7 @@ There is no disabled state. A value the reader can never change is plain text in
 
 ## Props
 
-Editable keeps its value, validation and save contract while composing the shared Input, Textarea, Select and Combobox. The searchable popup follows [shadcn](https://ui.shadcn.com/docs/components/base/combobox#popup) and [Base UI](https://base-ui.com/react/components/combobox#input-inside-popup). Each part is exported by name and as a member of `Editable`.
+Editable keeps its value, validation and save contract while composing the shared Input, Textarea, Select, Combobox and DatePicker's month. The searchable popup follows [shadcn](https://ui.shadcn.com/docs/components/base/combobox#popup) and [Base UI](https://base-ui.com/react/components/combobox#input-inside-popup). Each part is exported by name and as a member of `Editable`.
 
 ### EditableText
 
@@ -134,6 +144,10 @@ Editable keeps its value, validation and save contract while composing the share
 ### EditableSelect
 
 <ArgTypes of={EditableSelect} />
+
+### EditableDate
+
+<ArgTypes of={EditableDate} />
 
 ### Playground
 
@@ -148,8 +162,12 @@ Editable keeps its value, validation and save contract while composing the share
 - [Forms](?path=/docs/patterns-forms--docs): a record that does not exist yet, and values that change together.
 - [Input](?path=/docs/components-input--docs) and [Textarea](?path=/docs/components-textarea--docs): the field in a form.
 - [Select](?path=/docs/components-select--docs) and [Combobox](?path=/docs/components-combobox--docs): the native selection parts.
+- [DatePicker](?path=/docs/components-datepicker--docs): a day in a form, and the month Editable.Date opens.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#editable): `onChange` is `onValueChange`.
 - [Badge](?path=/docs/components-badge--docs): what a status Select renders.
 
 ## Don't
+
+A record that does not exist yet is a form, with Fields and a primary that creates it, never a column of Editables. An empty value's placeholder says what goes there, never an instruction ("Click to edit"). A value from a fixed set is an `Editable.Select`, never typed text.
 
 <Canvas of={Stories.Dont} />

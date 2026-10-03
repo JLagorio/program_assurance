@@ -7,6 +7,8 @@ import * as Stories from "./Glance.stories";
 
 # Glance
 
+**Status: Stable.**
+
 A compact record summary: an id and status, a title, a meta line and selected facts. It supplies content for a [HoverCard](?path=/docs/components-hovercard--docs); the product chooses the facts and the link's destination.
 
 <Canvas of={Stories.GlanceStory} />
@@ -21,6 +23,10 @@ A compact record summary: an id and status, a title, a meta line and selected fa
 | Facts         | Up to four KeyValue rows with 88px labels. Additional facts are omitted.              |
 
 Use a Badge or Indicator with a text label for status. Select facts that help readers decide whether to open the record; keep any essential information available at the destination.
+
+A status is never a Dot alone, whose colour is its only signal, and a Glance is given no more than four facts: it shows the first four and leaves the rest out without a word.
+
+<Canvas of={Stories.DoDont} />
 
 <Canvas of={Stories.GlanceMatrix} />
 

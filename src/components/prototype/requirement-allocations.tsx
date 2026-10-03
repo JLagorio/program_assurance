@@ -92,15 +92,16 @@ export function RequirementAllocations({
   const valid =
     identity.data?.program_id === programId &&
     content.data?.engineering_requirement_id === requirementId;
-  const collection = workspace.collections.find((item) => item.name === "requirement_allocations");
+  // Every member but a viewer allocates the workspace's own requirements, and row-level security
+  // decides each write: the role says it, so the tab does not load the record schema.
   const writer =
     !readOnly &&
     workspace.role !== "viewer" &&
     identity.data?.tenant_id === workspace.tenantId &&
     valid;
-  const canWrite = writer && !!collection?.can_insert;
-  const canEdit = writer && !!collection?.can_update;
-  const canRemove = writer && !!collection?.can_delete;
+  const canWrite = writer;
+  const canEdit = writer;
+  const canRemove = writer;
   const requirementCode = identity.data?.code ?? "Requirement";
   const elements = useMemo(() => (systems.data ?? []) as SystemElement[], [systems.data]);
   const rows = useMemo<AllocationRow[]>(
@@ -180,8 +181,6 @@ export function RequirementAllocations({
           header: "Allocated to",
           minWidth: 200,
           priority: 0,
-          preview: (row) => setPreviewId(row.id),
-          active: (row) => row.id === previewId,
           cell: (row) =>
             row.system ? (
               <RecordLink table="systems" record={{ id: row.system.id, program_id: programId }}>
@@ -212,12 +211,21 @@ export function RequirementAllocations({
       ]),
     // removeAllocation reads the current rows through its arguments.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [previewId, canEdit, canRemove, programId, requirementCode],
+    [canEdit, canRemove, programId, requirementCode],
+  );
+  // The preview is the table's, so opening or stepping through it never rebuilds the columns.
+  const tablePreview = useMemo(
+    () => ({
+      onPreview: (row: AllocationRow) => setPreviewId(row.id),
+      activeId: previewId ?? null,
+    }),
+    [previewId],
   );
   const table = useDataTable({
     columns,
     data: rows,
     getRowId: (row) => row.id,
+    preview: tablePreview,
     rowLabel: (row) => row.name,
     label: "Requirement allocations",
     view: "requirement-allocations",
@@ -300,8 +308,7 @@ export function RequirementAllocations({
             {
               key: "rationale",
               label: "Rationale",
-              render: (row) =>
-                row.rationale ? <Prose>{row.rationale}</Prose> : <Absent label="Not recorded" />,
+              render: (row) => (row.rationale ? <Prose>{row.rationale}</Prose> : <Absent />),
             },
           ]}
           recordActions={

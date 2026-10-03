@@ -12,7 +12,9 @@ import * as Stories from "./Attachment.stories";
 
 # Attachment
 
-One file or image with its name, metadata and optional actions. Experimental; owner: Ledger maintainers. A base component for file presentation. Choosing files is [FileTrigger](?path=/docs/components-filetrigger--docs) or [DropZone](?path=/docs/components-dropzone--docs); the application owns uploading, retries, removal and preview dialogs, and shows each file as an Attachment.
+**Status: Stable.**
+
+One file or image with its name, metadata and optional actions: a base component for file presentation. Choosing files is [FileTrigger](?path=/docs/components-filetrigger--docs) or [DropZone](?path=/docs/components-dropzone--docs); the application owns uploading, retries, removal and preview dialogs, and shows each file as an Attachment.
 
 ## Anatomy
 
@@ -83,8 +85,6 @@ The card takes the raised hover surface while its Trigger or Link is hovered (wh
 
 <Canvas of={Stories.LinksAndDownloads} />
 
-A card-wide anchor styled with `buttonVariants` and the overlay classes, as earlier pages showed, still works; `Attachment.Link` replaces it. Existing `Attachment.Trigger asChild` navigation migrates to `Attachment.Link`.
-
 ## File sizes
 
 `formatFileSize(bytes, { locale })` says a byte count as a reader does: "512 bytes", "840 kB", "2.4 MB". Units are decimal (1 kB is 1,000 bytes), as their names mean and as macOS and iOS report sizes, with at most one decimal in the locale's numerals; pass `useLedgerLocale().locale` in a component. Express a limit in the same units (`50_000_000` for 50 MB) so the Description, a DropZone's refusal and the hint agree.
@@ -138,7 +138,7 @@ Every part is exported by name as well as a member (`AttachmentMedia` is `Attach
 
 ## Related
 
-[FileTrigger](?path=/docs/components-filetrigger--docs), [DropZone](?path=/docs/components-dropzone--docs), [Button](?path=/docs/components-button--docs), [Progress](?path=/docs/components-progress--docs), [Dialog](?path=/docs/components-dialog--docs), [Composer](?path=/docs/patterns-composer--docs). Reference: [shadcn Attachment](https://ui.shadcn.com/docs/components/base/attachment).
+[FileTrigger](?path=/docs/components-filetrigger--docs), [DropZone](?path=/docs/components-dropzone--docs), [Button](?path=/docs/components-button--docs), [Progress](?path=/docs/components-progress--docs), [Dialog](?path=/docs/components-dialog--docs), [Composer](?path=/docs/patterns-composer--docs), [Upgrading](?path=/docs/guidance-upgrading--docs#attachment). Reference: [shadcn Attachment](https://ui.shadcn.com/docs/components/base/attachment).
 
 ## Don't
 

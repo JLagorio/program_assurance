@@ -9,7 +9,7 @@ const kitFile = (file) => path.join(REPO, "packages/design-system/src", file);
 
 const kit = kitImport("DialogContent", "SheetContent");
 /** What a sized overlay takes instead: the step of its own map nearest the width written, or
-    every step when the lint cannot read one; a drawer takes none. */
+    every step when the lint cannot read one; a drawer's steps are its tokens'. */
 const TAIL = "the kit owns the steps and their narrowing to the window.";
 const DIALOG =
   'Use width="small" (400px), width="medium" (520px), width="large" (760px), width="xlarge" (960px) or width="fullscreen"; ' +
@@ -17,8 +17,12 @@ const DIALOG =
 const SHEET =
   'Use width="small" (320px), width="medium" (420px), width="large" (760px), width="xlarge" (960px) or width="fullscreen"; ' +
   TAIL;
-const SIZE = `Use size="default" (440px) or size="sm" (320px); ${TAIL}`;
-const DRAWER = "A drawer spans the window's edge and takes no width: drop it.";
+/** AlertDialog's steps: Dialog's `small` and `medium`, and `xsmall` below them. */
+const ALERT =
+  'Use width="xsmall" (320px), width="small" (400px) or width="medium" (520px); ' + TAIL;
+/** Drawer's steps, from dimension.part.drawerSmall, .drawer and .drawerLarge. */
+const DRAWER =
+  'Use width="small" (320px), width="medium" (384px) or width="large" (760px); ' + TAIL;
 const nearest = (step) => `Use ${step}, the nearest step; ${TAIL}`;
 const same = (step) => `Use ${step}, the step of that width; ${TAIL}`;
 
@@ -29,6 +33,7 @@ export default {
       code: '<SheetContent width="small" style={{ maxHeight: "var(--ds-dimension-layout-sheet)" }} />',
     },
     { code: "<DialogContent style={{ maxWidth: undefined }} />" },
+    { code: '<AlertDialogContent width="xsmall" />' },
     // A popover is not a sized overlay.
     { code: '<PopoverContent className="w-layout-rail" />' },
     // A parameter that shadows the import is no overlay at all.
@@ -47,6 +52,10 @@ export default {
       code: 'import { SheetContent } from "../components/sheet"; import { token } from "../generated/tokens"; export const A = ({ width }) => <SheetContent style={{ maxWidth: width ?? token("dimension.part.previewSheet") }} />;',
       filename: kitFile("patterns/preview-sheet.tsx"),
       settings: KIT_SETTINGS,
+    },
+    // A component of this file whose rest no longer carries className hands it on to nothing.
+    {
+      code: `${kit} const Pane = ({ className, ...rest }) => <DialogContent {...rest} />; export const A = () => <Pane className="max-w-[480px]" />;`,
     },
   ],
   invalid: [
@@ -110,12 +119,42 @@ export default {
       errors: [
         {
           messageId: "className",
-          data: { part: "AlertDialogContent", cls: "w-full", width: "", advice: SIZE },
+          data: { part: "AlertDialogContent", cls: "w-full", width: "", advice: ALERT },
         },
       ],
     },
     {
-      code: 'import { DrawerContent as Tray } from "@ledger/design-system"; <Tray style={{ inlineSize: "40rem" }} />',
+      // AlertDialog's steps are its own: 440px is nearest its small, and its xsmall is a step.
+      code: "<AlertDialogContent style={{ maxWidth: 440 }} />",
+      errors: [
+        {
+          messageId: "style",
+          data: {
+            part: "AlertDialogContent",
+            property: "maxWidth",
+            width: " (440px)",
+            advice: nearest('width="small" (400px)'),
+          },
+        },
+      ],
+    },
+    {
+      code: '<AlertDialogContent className="max-w-[320px]" />',
+      errors: [
+        {
+          messageId: "className",
+          data: {
+            part: "AlertDialogContent",
+            cls: "max-w-[320px]",
+            width: " (320px)",
+            advice: same('width="xsmall" (320px)'),
+          },
+        },
+      ],
+    },
+    {
+      // A Drawer's steps are its tokens': the nearest, the one of that width, or every step.
+      code: 'import { DrawerContent as Tray } from "@ledger/design-system"; <><Tray style={{ inlineSize: "40rem" }} /><Tray className="w-96" /><Tray className="w-full" /></>',
       errors: [
         {
           messageId: "style",
@@ -123,8 +162,21 @@ export default {
             part: "DrawerContent",
             property: "inlineSize",
             width: " (640px)",
-            advice: DRAWER,
+            advice: nearest('width="large" (760px)'),
           },
+        },
+        {
+          messageId: "className",
+          data: {
+            part: "DrawerContent",
+            cls: "w-96",
+            width: " (384px)",
+            advice: same('width="medium" (384px)'),
+          },
+        },
+        {
+          messageId: "className",
+          data: { part: "DrawerContent", cls: "w-full", width: "", advice: DRAWER },
         },
       ],
     },
@@ -294,6 +346,39 @@ export default {
             cls: "w-96",
             width: " (384px)",
             advice: nearest('width="medium" (420px)'),
+          },
+        },
+      ],
+    },
+    {
+      // A component of this file that hands its style or its className on to the content.
+      code: `${kit} const Pane = (props) => <DialogContent {...props} />; export const A = () => <Pane style={{ maxWidth: 480 }} />;`,
+      errors: [
+        {
+          messageId: "forwardedStyle",
+          data: {
+            part: "DialogContent",
+            property: "maxWidth",
+            wrapper: "Pane",
+            width: " (480px)",
+            advice:
+              'Use width="medium" (520px), the nearest step; the kit owns the steps and their narrowing to the window.',
+          },
+        },
+      ],
+    },
+    {
+      code: `${kit} const Pane = ({ className, ...rest }) => <DialogContent className={className} {...rest} />; export const A = () => <Pane className="max-w-[480px]" />;`,
+      errors: [
+        {
+          messageId: "forwardedClassName",
+          data: {
+            part: "DialogContent",
+            cls: "max-w-[480px]",
+            wrapper: "Pane",
+            width: " (480px)",
+            advice:
+              'Use width="medium" (520px), the nearest step; the kit owns the steps and their narrowing to the window.',
           },
         },
       ],

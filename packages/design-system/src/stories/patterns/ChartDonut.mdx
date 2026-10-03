@@ -7,6 +7,8 @@ import * as Stories from "./ChartDonut.stories";
 
 # Donut
 
+**Status: Stable.**
+
 A ring of slices on a `color.chart.track`, with a number in the middle: one number against its whole, the parts around it. Half a ring is a gauge, a score against a scale with the number at its base. It sits inline, sized in pixels, beside a Stat or in a tile, and scales down in a narrower container; in a [Chart](?path=/docs/patterns-chart-overview--docs) Frame it inherits the name and the legend's interaction. There is no pie: the number in the middle is what a pie could not say, and a ring of two slices for one number is a Stat.
 
 <Canvas of={Stories.DonutMatrix} />
@@ -17,7 +19,7 @@ A ring of slices on a `color.chart.track`, with a number in the middle: one numb
 | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Track   | The full ring in `color.chart.track`, under the slices, so a single slice reads against its whole; with `max`, the part of the whole no slice takes. It neither hovers nor keys.                                   |
 | Slice   | An arc in its tone, clockwise from the top, with a 2px `elevation.surface` gap from the next, and 3° at least. A hovered slice grows 2px and takes its tone's `hovered` step; with `texture` it wears its pattern. |
-| Center  | The number in the middle (`centerLabel`), `font.heading.xsmall` in `color.text`: the total, the share, the one that matters.                                                                                       |
+| Center  | The number in the middle (`centerLabel`), `font.heading.overlay` in `color.text`: the total, the share, the one that matters.                                                                                      |
 | Caption | One word under the number in `font.body.xsmall` and `color.text.subtle`: what it counts.                                                                                                                           |
 | Tooltip | The slice's name and value, keyed by a square.                                                                                                                                                                     |
 | Card    | On a chosen slice: the slice, its value and its share of the whole, then the caller's facts.                                                                                                                       |
@@ -43,7 +45,7 @@ A ring of slices on a `color.chart.track`, with a number in the middle: one numb
 | 160    | 16          | A tile of its own, with a number and a caption inside.  |
 | 200    | 20          | A gauge that is a section's point.                      |
 
-A gauge is half as tall as it is wide, plus 4px for the base. The label fits inside a ring of 120 or more; at 64 the number sits beside it.
+A gauge is half as tall as it is wide, plus 4px for the base. The number fits inside a ring of 120 or more; at 64 it sits beside the ring.
 
 `size` is the most a ring takes. In a container narrower than that, a block, a grid tile or a flex row, the ring scales down with its thickness and keeps its ratio, as an image does; the number and the caption keep their type size. In a Frame's expanded Dialog the ring draws at 320px across at least, the `large` plot's height, its thickness in proportion.
 
@@ -71,11 +73,15 @@ In a [Chart](?path=/docs/patterns-chart-overview--docs) Frame the ring needs not
 
 - **`arc="half"`** for the gauge; **`size`** (the largest diameter) and **`thickness`** in pixels; **`texture`** for the patterns.
 - **`slices`**, or **`value`** with **`tone`** for one value; **`max`** for the whole they are parts of, the rest of it the track. Without `max` the whole is the slices' sum, the hidden ones included, so a share is always of the same whole.
-- **`centerLabel`** and **`caption`** for the middle. `label` still draws the middle and is deprecated for `centerLabel`: in the next version `label` names the ring, as it names every other plot.
+- **`centerLabel`** and **`caption`** for the middle.
+- **`label`** names the ring, as it names every plot; the Frame's title when unsaid. For one version the earlier spelling still works, with a warning in development: `name` names the ring and is deprecated for `label`, and with no `centerLabel` a `label` beside `name`, or one that is not a string, draws the middle and is deprecated for `centerLabel`. `ledger/no-deprecated-name` rewrites both.
 - **`format`** for the tooltip, the card and the Frame's table. The Frame's, else the kit's.
 - **`onSelect`** and **`details`** as in States; the selection is `{ slice, share, index }`.
 - **`loading`** draws the skeleton; the Frame sets it from `state="loading"`.
-- **`name`** names the ring outside a Frame.
+- Native props and a ref reach the ring's box, and `aria-describedby` describes the ring: its svg when it chooses nothing, its group when its slices are the tab stops.
+
+<Canvas of={Stories.Naming} />
+<Canvas of={Stories.NativeAttributes} />
 
 ## Content
 
@@ -92,7 +98,7 @@ In a [Chart](?path=/docs/patterns-chart-overview--docs) Frame the ring needs not
 | -------- | ------------------------------------------------------------------------------------------------ |
 | Track    | `color.chart.track`                                                                              |
 | Slice    | `color.chart.<tone>` · 2px `elevation.surface` gap · hover +2px in `color.chart.<tone>.hovered`  |
-| Center   | `font.heading.xsmall` · `color.text`                                                             |
+| Center   | `font.heading.overlay` · `color.text`                                                            |
 | Caption  | `font.body.xsmall` · `color.text.subtle`                                                         |
 | Dimmed   | `opacity.disabled`, over `motion.duration.fast`                                                  |
 | Focused  | A 3px arc in `color.border.focused` inside the slice's inner edge; `Highlight` in forced colours |
@@ -100,7 +106,7 @@ In a [Chart](?path=/docs/patterns-chart-overview--docs) Frame the ring needs not
 
 ## Accessibility
 
-- **Named by `name` or the Frame**, a ring that chooses nothing is an image (`role="img"`) with no tab stop; unnamed it is decoration beside its Stat, hidden from a screen reader so the number reads once.
+- **Named by `label` or the Frame**, a ring that chooses nothing is an image (`role="img"`) with no tab stop; unnamed it is decoration beside its Stat, hidden from a screen reader so the number reads once.
 - **One value against `max` is a meter**: `role="meter"` named by the ring, with its value, its range and its value in words ("72 of 100"). The number in the middle is then hidden, so it is heard once.
 - **The number is text**, in the middle, not drawn: a screen reader reads it, and it never wears a chart colour.
 - **The legend carries the names**; a slice's tone reinforces its word. Beside a Stat, the legend is a `Chart.Legend`.
@@ -125,7 +131,10 @@ In a [Chart](?path=/docs/patterns-chart-overview--docs) Frame the ring needs not
 - [Stat](?path=/docs/components-stat--docs): the number a two-slice ring wants to be.
 - [Progress](?path=/docs/components-progress--docs): one value against a whole as a bar, and a stacked bar of a register's parts.
 - [Bar](?path=/docs/patterns-chart-bar--docs): five or more parts compared.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#chart): `name` is `label`, and `label` for the middle is `centerLabel`.
 
 ## Don't
+
+One number is a Stat, five sources compared are bars, and a score against its scale is `value` and `max`, never a ring of two slices, five slices or a made-up remainder slice.
 
 <Canvas of={Stories.Dont} />

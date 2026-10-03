@@ -97,12 +97,12 @@ export function Command({
   const context = useMemo(() => ({ loading: loaders > 0, register }), [loaders, register]);
   return (
     <CommandPrimitive
-      data-slot="command"
       className={cn(
         "flex h-full w-full flex-col overflow-hidden rounded-xxlarge bg-surface-overlay text-default",
         className,
       )}
       {...props}
+      data-slot="command"
     >
       <CommandContext.Provider value={context}>
         <CommandStatus />
@@ -139,14 +139,18 @@ export function CommandInput({ className, hint, ref, ...props }: CommandInputPro
   useCommandState((s) => s.filtered.count);
   // cmdk resolves the selected row before the rows have rendered, so its own attribute is empty
   // on open and stale after a filter; the row that is selected in the document is the answer.
+  // cmdk sets the attribute on the listbox too, where a filter can leave it naming a row that is
+  // gone: the listbox names the same row as the field, or none.
   useLayoutEffect(() => {
     const input = own.current;
     if (!input) return;
-    const selected = input
-      .closest("[cmdk-root]")
-      ?.querySelector<HTMLElement>('[cmdk-item][aria-selected="true"]');
-    if (selected?.id) input.setAttribute("aria-activedescendant", selected.id);
-    else input.removeAttribute("aria-activedescendant");
+    const root = input.closest("[cmdk-root]");
+    const selected = root?.querySelector<HTMLElement>('[cmdk-item][aria-selected="true"]');
+    for (const element of [input, root?.querySelector<HTMLElement>("[cmdk-list]")]) {
+      if (!element) continue;
+      if (selected?.id) element.setAttribute("aria-activedescendant", selected.id);
+      else element.removeAttribute("aria-activedescendant");
+    }
   });
   const hintId = useId();
   const described = hint !== undefined && hint !== null && hint !== false;
@@ -181,19 +185,54 @@ export function CommandInput({ className, hint, ref, ...props }: CommandInputPro
   );
 }
 
-/** The rows, scrolling inside themselves past 340px; pass `style` for another cap. `label` names the listbox, "Results" by default. */
+/**
+ * The rows, scrolling inside themselves past 340px; pass `style` for another cap. `label` names the
+ * listbox, "Results" by default. A listbox must hold an option, so while no row shows and nothing
+ * loads (a query that matches nothing, a list with no rows) the list is a plain container around
+ * CommandEmpty's sentence, with no role and no name; its id stays, so the field still controls it.
+ */
 export function CommandList({
   className,
   label,
   ...props
 }: ComponentProps<typeof CommandPrimitive.List>) {
+  // The caller's ref, which setRef joins to the list's own; the spread's ref is replaced by it.
+  const ref = props.ref;
   const { t } = useLedgerLocale();
+  const { loading } = useContext(CommandContext);
+  const name = label ?? t("commandListLabel");
+  const rows = useCommandState((s) => s.filtered.count) > 0;
+  // A busy listbox may be empty: its options are on their way.
+  const busy = loading || props["aria-busy"] === true || props["aria-busy"] === "true";
+  const own = useRef<HTMLDivElement | null>(null);
+  const setRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      own.current = node;
+      if (typeof ref === "function") ref(node);
+      else if (ref) ref.current = node;
+    },
+    [ref],
+  );
+  // cmdk writes role="listbox" and the name whatever the list holds, and React writes them again
+  // only when they change, so the list's own role and name are set after it on every render.
+  useLayoutEffect(() => {
+    const list = own.current;
+    if (!list) return;
+    if (rows || busy) {
+      list.setAttribute("role", "listbox");
+      list.setAttribute("aria-label", name);
+    } else {
+      list.removeAttribute("role");
+      list.removeAttribute("aria-label");
+    }
+  });
   return (
     <CommandPrimitive.List
-      style={{ maxHeight: 340 }}
-      label={label ?? t("commandListLabel")}
+      style={{ maxHeight: token("dimension.part.commandList") }}
+      label={name}
       className={cn("overflow-y-auto overflow-x-hidden overscroll-none p-075", className)}
       {...props}
+      ref={setRef}
     />
   );
 }
@@ -313,27 +352,35 @@ export function CommandSeparator({
   );
 }
 
+export type CommandFooterProps = ComponentProps<"div">;
+
 /** The hint row under the list: keys and what they do, and the count at the end. */
-export function CommandFooter({ children }: { children: ReactNode }) {
+export function CommandFooter({ className, ...props }: CommandFooterProps) {
   return (
-    <div className="flex shrink-0 items-center gap-150 border-t border-default bg-surface-sunken px-150 py-100 font-body-xsmall text-subtle">
-      {children}
-    </div>
+    <div
+      className={cn(
+        "flex shrink-0 items-center gap-150 border-t border-default bg-surface-sunken px-150 py-100 font-body-xsmall text-subtle",
+        className,
+      )}
+      {...props}
+      data-slot="command-footer"
+    />
   );
 }
+
+export type CommandCountProps = Omit<ComponentProps<"span">, "children"> & {
+  /** The word after the number when one row matches: "record". The locale's "match" by default. */
+  one?: string | undefined;
+  /** The word after the number for any other count: "records". The locale's "matches" by default. */
+  many?: string | undefined;
+};
 
 /**
  * "12 matches": the live count of rows that match, in the locale's words and plural rules.
  * Renders inside a Command, in the field's hint (which describes the field) or the footer. `one`
  * and `many` put other words after the number: "record", "records".
  */
-export function CommandCount({
-  one,
-  many,
-}: {
-  one?: string | undefined;
-  many?: string | undefined;
-}) {
+export function CommandCount({ one, many, className, ...props }: CommandCountProps) {
   const { formatPlural, messages } = useLedgerLocale();
   const count = useCommandState((s) => s.filtered.count);
   // A caller's word follows the number; a word it leaves out is the locale's, in its plural rules.
@@ -342,7 +389,11 @@ export function CommandCount({
     other: many === undefined ? messages.commandMatchOther : `{count} ${many}`,
   });
   return (
-    <span data-slot="command-count" className="shrink-0 font-body-xsmall text-subtle tabular-nums">
+    <span
+      className={cn("shrink-0 font-body-xsmall text-subtle tabular-nums", className)}
+      {...props}
+      data-slot="command-count"
+    >
       {text}
     </span>
   );
@@ -413,9 +464,9 @@ export function CommandShortcut({ className, ...props }: CommandShortcutProps) {
   return (
     <span
       aria-hidden="true"
-      data-slot="command-shortcut"
       className={cn("ms-auto shrink-0 font-body-xsmall text-subtle", className)}
       {...props}
+      data-slot="command-shortcut"
     />
   );
 }

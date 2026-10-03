@@ -5,10 +5,14 @@ import {
   DateTime,
   Inline,
   LinkButton,
+  Progress,
+  ProgressLabel,
+  ProgressValue,
   Section,
   Stack,
   Text,
   Timeline,
+  useLedgerLocale,
 } from "@ledger/design-system";
 import { Check, CircleDashed, Clock3, Minus, TriangleAlert, X } from "lucide-react";
 import { lifecycleGateDate, programTimeline, type LifecycleGate } from "@/lib/program-timeline";
@@ -77,7 +81,10 @@ function GateRail({
   );
 }
 
-/** Program milestones use the recorded gate schedule, never inferred stage completion. */
+/**
+ * Program milestones use the recorded gate schedule, never inferred stage completion. The header
+ * counts the gates, and a Progress bar under it says how many are completed ("3 of 5").
+ */
 export function ProgramTimeline({
   programId,
   gates,
@@ -85,6 +92,7 @@ export function ProgramTimeline({
   programId: string;
   gates: LifecycleGate[];
 }) {
+  const { formatNumber } = useLedgerLocale();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   useEndOnHide(() => setSelectedId(null));
   const selected = gates.find((gate) => gate.id === selectedId);
@@ -112,7 +120,8 @@ export function ProgramTimeline({
     <>
       <Section
         title="Lifecycle timeline"
-        description={`${completed} of ${gates.length} gates completed`}
+        count={gates.length}
+        countMax={9999}
         action={
           <LinkButton size="small" variant="subtle" render={schedule}>
             Open schedule
@@ -120,6 +129,18 @@ export function ProgramTimeline({
         }
       >
         <Stack space="space.150" className="min-w-0">
+          <Progress
+            size="small"
+            value={completed}
+            max={gates.length}
+            tone={completed === gates.length ? "success" : "information"}
+            getAriaValueText={() => `${formatNumber(completed)} of ${formatNumber(gates.length)}`}
+          >
+            <ProgressLabel>Gates completed</ProgressLabel>
+            <ProgressValue>
+              {() => `${formatNumber(completed)} of ${formatNumber(gates.length)}`}
+            </ProgressValue>
+          </Progress>
           {sequenced.length > 0 && (
             <GateRail label="Workflow steps" gates={sequenced} onSelect={setSelectedId} />
           )}

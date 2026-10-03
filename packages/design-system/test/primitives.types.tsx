@@ -57,10 +57,12 @@ import {
 <Text as="label" htmlFor="name">
   Name
 </Text>;
-<Heading size="xsmall" as="h3" color="color.text.inverse" />;
+<Heading size="overlay" as="h3" color="color.text.inverse" />;
 <HeadingLevelProvider level={2}>
-  <Heading size="small" />
+  <Heading size="section" />
 </HeadingLevelProvider>;
+// A size of the earlier ramp still compiles for one version (deprecated).
+<Heading size="medium" />;
 <VisuallyHidden as="h2">Filters</VisuallyHidden>;
 
 /* ---- no link and no button: TextLink and Button carry the ring, the face and the name ---- */
@@ -82,7 +84,7 @@ import {
 // @ts-expect-error a Text is never a heading: a title is a Heading
 <Text as="h2" />;
 // @ts-expect-error a Heading is never a paragraph
-<Heading size="small" as="p" />;
+<Heading size="page" as="p" />;
 // @ts-expect-error VisuallyHidden is never a button
 <VisuallyHidden as="button" />;
 
@@ -93,7 +95,7 @@ import {
 // @ts-expect-error size is one of the four heading sizes
 <Heading size="xxlarge" />;
 // @ts-expect-error a tone is not a heading colour
-<Heading size="small" color="color.text.danger" />;
+<Heading size="page" color="color.text.danger" />;
 // @ts-expect-error the level context runs from 1 to 6
 <HeadingLevelProvider level={7} />;
 
@@ -123,7 +125,7 @@ import {
 // @ts-expect-error a Text takes no style
 <Text style={{ fontSize: 13 }} />;
 // @ts-expect-error a Heading takes no style
-<Heading size="small" style={{ fontSize: 20 }} />;
+<Heading size="page" style={{ fontSize: 20 }} />;
 
 /* ---- one axis each ---- */
 

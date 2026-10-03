@@ -82,6 +82,10 @@ import {
 } from "@/lib/product-records";
 import { RecordEditor, RecordName, type RecordEditorState } from "./record-editor";
 import { relatedCollection, useRecord } from "./record-lookup";
+import { useCollection, useSchemaCatalog } from "@/lib/collections";
+import { useRecordName } from "@/lib/record-names";
+
+const NO_COLLECTIONS: Collection[] = [];
 
 // The generic form lives in record-editor.tsx; its callers import it from here too.
 export { RecordEditor, type RecordEditorState };
@@ -116,9 +120,12 @@ function CollectionNotFound() {
   );
 }
 
-/** A reference to another record, named once it loads, opening its schema record. */
+/**
+ * A reference to another record, named once it loads, opening its schema record. The names a
+ * page of references shows are read together, one request per collection.
+ */
 function ReferenceLink({ collection, id }: { collection: Collection; id: string }) {
-  const query = useRecord(collection, id);
+  const query = useRecordName(collection, id);
   if (query.isError) return <Absent label="Not available" />;
   return (
     <TextLink
@@ -144,11 +151,11 @@ function Value({
   column: Column;
   value: DataRecord[string] | undefined;
 }) {
-  const workspace = useWorkspace();
-  const target = relatedCollection(collection, column.name, workspace.collections);
+  const catalog = useSchemaCatalog();
+  const target = relatedCollection(collection, column.name, catalog.data ?? []);
   if (target && typeof value === "string" && value)
     return <ReferenceLink collection={target} id={value} />;
-  if (value === null || value === undefined || value === "") return <Absent label="Not recorded" />;
+  if (value === null || value === undefined || value === "") return <Absent />;
   if (vocabularyFor(collection.name, column.name))
     return <FieldStatus table={collection.name} field={column.name} value={value} />;
   if (column.choices.length && typeof value === "string") return <>{labelFor(value)}</>;
@@ -174,8 +181,19 @@ export function RecordList({
   name: string;
   filter?: [string, string] | undefined;
 }) {
-  const workspace = useWorkspace();
-  const collection = workspace.collections.find((item) => item.name === name);
+  const catalog = useSchemaCatalog();
+  if (!catalog.data)
+    return (
+      <Page>
+        <PageHeader>
+          <PageHeader.Heading>
+            <PageHeader.Title>{labelFor(name)}</PageHeader.Title>
+          </PageHeader.Heading>
+        </PageHeader>
+        <QueryState queries={[catalog]} retryLabel="Retry loading the record schema" />
+      </Page>
+    );
+  const collection = catalog.data.find((item) => item.name === name);
   return collection ? (
     <SchemaCollection key={name} collection={collection} filter={filter} />
   ) : (
@@ -248,14 +266,13 @@ function SchemaCollection({
           const header = fieldLabel(column.name);
           const vocabulary = vocabularyFor(name, column.name);
           if (index === 0)
-            // A minimum, not a width: the name takes the room the other columns leave.
-            return c.id(column.name, {
+            // A minimum, not a width: the name takes the room the other columns leave. The table's
+            // preview puts the eye at its end.
+            return c.text(column.name, {
               header,
               priority: 0,
               minWidth: 200,
               hideable: false,
-              preview: setSelected,
-              active: (record) => record.id === selected?.id,
               cell: (record) => (
                 <RecordLink table={model} record={record}>
                   {recordTitle(record, collection)}
@@ -271,8 +288,8 @@ function SchemaCollection({
                 <FieldStatus table={name} field={column.name} value={record[column.name]} />
               ),
             });
-          if (/^(date|timestamp)/.test(column.type))
-            return c.date(column.name, { header, width: 150 });
+          // A date takes its kind's width, as every date column does.
+          if (/^(date|timestamp)/.test(column.type)) return c.date(column.name, { header });
           return c.text(column.name, {
             header,
             width: 180,
@@ -282,12 +299,18 @@ function SchemaCollection({
           });
         });
       }),
-    [collection, keyColumn, model, name, selected?.id],
+    [collection, keyColumn, model, name],
+  );
+  // The preview is the table's, so stepping through records never rebuilds the columns.
+  const tablePreview = useMemo(
+    () => ({ onPreview: setSelected, activeId: selected?.id ?? null }),
+    [selected?.id],
   );
   const table = useDataTable({
     data: query.data?.records ?? [],
     columns,
     getRowId: (record) => record.id,
+    preview: tablePreview,
     label: labelFor(name),
     pageSize: 25,
     pageSizes: [25, 50, 100],
@@ -345,7 +368,7 @@ function SchemaCollection({
         keepQuestion={false}
         // The server orders each page by the title; a sort menu would sort one page only.
         sort={false}
-        searchLabel={`Search ${labelFor(keyColumn).toLowerCase()}`}
+        searchLabel={`Find ${productCollectionNoun(name)} by ${labelFor(keyColumn).toLowerCase()}`}
         action={create("small")}
         filters={activeFilter ? clearFilter : undefined}
         narrowed={!!activeFilter}
@@ -443,7 +466,9 @@ export function RecordDetail({
   initial?: [string, string] | undefined;
 }) {
   const workspace = useWorkspace();
-  const collection = workspace.collections.find((item) => item.name === name);
+  const catalog = useSchemaCatalog();
+  const collections = catalog.data ?? NO_COLLECTIONS;
+  const collection = collections.find((item) => item.name === name);
   // Preserve the exact revision the user started editing, even if queries refetch.
   const [editing, setEditing] = useState<DataRecord | null>(null);
   const [editorNoun, setEditorNoun] = useState(() => productRecordNoun(name));
@@ -489,10 +514,21 @@ export function RecordDetail({
     });
     if (!removed) return;
     cache.removeQueries({ queryKey: ["record", workspace.tenantId, name, id] });
+    cache.removeQueries({ queryKey: ["record-name", workspace.tenantId, name, id] });
     void cache.invalidateQueries({ queryKey: ["records"] });
     void cache.invalidateQueries({ queryKey: ["reference-options"] });
     await navigate({ to: "/records/$collection", params: { collection: name }, search: {} });
   }
+  if (!catalog.data)
+    return (
+      <Page>
+        <QueryState
+          queries={[catalog]}
+          shape="record"
+          retryLabel="Retry loading the record schema"
+        />
+      </Page>
+    );
   if (!collection) return <CollectionNotFound />;
   const creating = id === "new";
   const noun = productRecordNoun(name, query.data);
@@ -556,7 +592,7 @@ export function RecordDetail({
       <VisuallyHidden>Loading the {noun}</VisuallyHidden>
     </span>
   );
-  const incoming = workspace.collections.flatMap((other) =>
+  const incoming = collections.flatMap((other) =>
     other.relations
       .filter((relation) => relation.target_schema === "public" && relation.target_table === name)
       .flatMap((relation) =>
@@ -633,7 +669,19 @@ export function RecordDetail({
           <QueryState queries={[query]}>
             {query.data && (
               <>
-                <Shell.Aside label="Record properties">
+                {/* The rail beside the record, or on a phone a closed Details disclosure under
+                    the title whose row says the record's status or state, where it has one. */}
+                <Shell.Aside
+                  label="Schema record details"
+                  summary={(() => {
+                    const field = ["status", "state"].find((name) =>
+                      collection.columns.some((column) => column.name === name),
+                    );
+                    return field && query.data[field] != null ? (
+                      <FieldStatus table={name} field={field} value={query.data[field]} />
+                    ) : undefined;
+                  })()}
+                >
                   <Inspector.Group title="Details">
                     <KeyValue.Group>
                       {collection.columns
@@ -712,28 +760,31 @@ export function RecordDetail({
  */
 function RecordCount({ name }: { name: string }) {
   const workspace = useWorkspace();
-  const collection = workspace.collections.find((item) => item.name === name);
+  const schema = useCollection(name);
+  const collection = schema.data;
   const query = useQuery({
     queryKey: ["records", workspace.tenantId, name, "count"],
     queryFn: () => listRecords(workspace, collection!, { limit: 1 }),
     enabled: !!collection,
     retry: false,
   });
-  if (!collection) return null;
+  // A collection the reader cannot open has no tile; one whose schema is loading holds its place.
+  if (schema.data === null) return null;
+  const failed = schema.isError || query.isError;
   return (
     <Stat.Tile
       label={labelFor(name)}
-      value={query.isError ? <Absent label="Not available" /> : (query.data?.count ?? 0)}
-      isLoading={query.isPending && !query.isError}
+      value={failed ? <Absent label="Not available" /> : (query.data?.count ?? 0)}
+      isLoading={!failed && (schema.isPending || query.isPending)}
       link={<Link to="/records/$collection" params={{ collection: name }} />}
-      {...(query.isError ? { note: "Could not be counted" } : {})}
+      {...(failed ? { note: "Could not be counted" } : {})}
     />
   );
 }
 
 export function WorkspaceHome() {
   const workspace = useWorkspace();
-  const programs = workspace.collections.find((item) => item.name === "programs");
+  const programs = useCollection("programs").data;
   const count = useQuery({
     queryKey: ["records", workspace.tenantId, "programs", "count"],
     queryFn: () => listRecords(workspace, programs!, { limit: 1 }),

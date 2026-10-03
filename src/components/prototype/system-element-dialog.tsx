@@ -1,5 +1,4 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   Alert,
   AlertAction,
@@ -26,8 +25,9 @@ import { ChoiceField, PartyField, TextField } from "@/components/app/fields";
 import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { useWorkspace } from "@/components/app/workspace";
-import { database, requireIdentity } from "@/lib/database";
-import { useModelSave, useRows } from "@/lib/models";
+import { useCollection, useColumnChoices } from "@/lib/collections";
+import { useRows } from "@/lib/models";
+import { SaveOnceConflict, useSaveOnce } from "@/lib/save-once";
 import { labelFor } from "@/lib/records";
 import { impactLevels } from "@/lib/status";
 import type { SystemElement } from "@/lib/system-tree";
@@ -46,6 +46,9 @@ const impactOptions = Object.entries(impactLevels).map(([value, entry]) => ({
 /** The form's fields in the order they appear, which is the order their issues are listed in. */
 const elementFields = ["code", "name", "type", "description", "owner"] as const;
 type ElementField = (typeof elementFields)[number];
+/** The longest code the form takes: a count shows near it, and a longer one is a field error, never cut. */
+const CODE_LIMIT = 100;
+const codeTooLong = `Use at most ${CODE_LIMIT} characters for the code.`;
 
 /** Focused authoring for a canonical system identity; containment and boundary edits stay separate. */
 export function SystemElementDialog({
@@ -65,8 +68,8 @@ export function SystemElementDialog({
 }) {
   const workspace = useWorkspace();
   const parties = useRows("parties");
-  const save = useModelSave("systems");
-  const cache = useQueryClient();
+  // The system's id is chosen once, so saving again after an uncertain answer never duplicates it.
+  const save = useSaveOnce("systems");
   const formId = useId();
   const [baseline] = useState(existing);
   const [id] = useState(() => existing?.id ?? crypto.randomUUID());
@@ -98,8 +101,9 @@ export function SystemElementDialog({
       ? "The changes to this system will be lost."
       : "The system details you entered will be lost.",
   });
-  const collection = workspace.collections.find((item) => item.name === "systems");
-  const types = collection?.columns.find((column) => column.name === "system_type")?.choices ?? [];
+  const schema = useCollection("systems");
+  const collection = schema.data;
+  const types = useColumnChoices("systems", "system_type").data ?? [];
   const owners = (parties.data ?? []).filter((party) => party.tenant_id === workspace.tenantId);
   const canWrite =
     workspace.role !== "viewer" &&
@@ -108,7 +112,11 @@ export function SystemElementDialog({
       (baseline.tenant_id === workspace.tenantId && baseline.program_id === programId)) &&
     (!parent || (parent.tenant_id === workspace.tenantId && parent.program_id === programId));
   const issues: FormIssue<ElementField>[] = [
-    ...(!code.trim() ? [{ field: "code" as const, message: "Enter a code for the system." }] : []),
+    ...(!code.trim()
+      ? [{ field: "code" as const, message: "Enter a code for the system." }]
+      : code.trim().length > CODE_LIMIT
+        ? [{ field: "code" as const, message: codeTooLong }]
+        : []),
     ...(!name.trim() ? [{ field: "name" as const, message: "Enter a name for the system." }] : []),
     ...(!type || !types.includes(type)
       ? [{ field: "type" as const, message: "Choose a system type." }]
@@ -121,11 +129,14 @@ export function SystemElementDialog({
   const errors = new Map(
     feedback.submitted ? issues.map((issue) => [issue.field, issue.message] as const) : [],
   );
-  const unavailable = canWrite
-    ? undefined
-    : baseline
-      ? "An editor, admin, or owner of this program can edit its systems."
-      : "An editor, admin, or owner of this program can create systems.";
+  // While the schema says what the role may do, the primary waits, loading, and nothing is refused.
+  const deciding = workspace.role !== "viewer" && schema.isPending;
+  const unavailable =
+    canWrite || deciding
+      ? undefined
+      : baseline
+        ? "An editor, admin, or owner of this program can edit its systems."
+        : "An editor, admin, or owner of this program can create systems.";
 
   useEffect(() => {
     if (failure) failureRef.current?.scrollIntoView({ block: "nearest" });
@@ -158,33 +169,22 @@ export function SystemElementDialog({
       is_authorization_boundary: !parent,
     };
     try {
-      const token = await requireIdentity(workspace);
-      const { data: stored, error: lookupError } = await database()
-        .from("systems")
-        .select()
-        .eq("id", id)
-        .eq("tenant_id", workspace.tenantId)
-        .setHeader("Authorization", `Bearer ${token}`)
-        .maybeSingle();
-      if (lookupError) throw new Error(lookupError.message);
-      if (stored) {
-        const expected = baseline ? authored : created;
-        const matches = Object.entries(expected).every(
-          ([key, value]) => (stored as Record<string, unknown>)[key] === value,
+      try {
+        // A retry that finds the write already applied writes nothing and still refreshes the lists.
+        await save.mutateAsync(
+          baseline
+            ? { id, values: authored, revision: baseline.revision }
+            : { id, values: created },
         );
-        if (!matches) {
-          if (!baseline || stored.revision !== baseline.revision)
-            throw new Error(
-              "This system changed in another session. Your details are kept; close the dialog and open it again to load the current details.",
-            );
-          await save.mutateAsync({ id, revision: baseline.revision, values: authored });
-        }
-        // A retry that finds the write already applied still refreshes the lists, behind the close.
-        void cache.invalidateQueries({ queryKey: ["models", workspace.tenantId, "systems"] });
-        void cache.invalidateQueries({ queryKey: ["model", workspace.tenantId, "systems"] });
-      } else if (baseline)
-        throw new Error("This system is no longer available. Your details are kept.");
-      else await save.mutateAsync({ values: { ...created, id, tenant_id: workspace.tenantId } });
+      } catch (cause) {
+        if (cause instanceof SaveOnceConflict)
+          throw new Error(
+            cause.reason === "missing"
+              ? "This system is no longer available. Your details are kept."
+              : "This system changed in another session. Your details are kept; close the dialog and open it again to load the current details.",
+          );
+        throw cause;
+      }
       saved.current = true;
       toast.add({
         type: "success",
@@ -251,7 +251,7 @@ export function SystemElementDialog({
                   </AlertAction>
                 </Alert>
               ) : null}
-              {!canWrite ? (
+              {unavailable ? (
                 <Alert role="note">
                   <AlertDescription>{unavailable}</AlertDescription>
                 </Alert>
@@ -275,7 +275,7 @@ export function SystemElementDialog({
                     <TextField
                       label="Code"
                       required
-                      maxLength={100}
+                      characterLimit={CODE_LIMIT}
                       value={code}
                       onChange={(value) => {
                         setCode(value);
@@ -381,7 +381,7 @@ export function SystemElementDialog({
             type="submit"
             form={formId}
             variant="primary"
-            isLoading={guard.busy}
+            isLoading={guard.busy || deciding}
             disabledReason={unavailable}
           >
             {operation}

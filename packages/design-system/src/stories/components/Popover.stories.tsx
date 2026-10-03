@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SlidersHorizontal } from "lucide-react";
-import { useId, createRef, useState } from "react";
+import { useId, createRef, useState, type ReactNode } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import {
@@ -16,6 +16,7 @@ import {
   DialogTitle,
   Field,
   IconButton,
+  Input,
   Popover,
   PopoverClose,
   PopoverContent,
@@ -27,6 +28,11 @@ import {
 } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
 import { Grid, Inline, Stack, Text } from "../../primitives";
+
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Popover",
@@ -45,8 +51,39 @@ const triggerClick = fn();
 const renderedClick = fn();
 const submit = fn();
 
+/**
+ * The usage to copy: a trigger rendered as the kit's Button, and content with a title, a
+ * description and a close.
+ */
+export const Usage: Story = {
+  render: () => (
+    <Popover>
+      <PopoverTrigger render={<Button />}>Review schedule</PopoverTrigger>
+      <PopoverContent>
+        <PopoverHeader>
+          <PopoverTitle>Review schedule</PopoverTitle>
+          <PopoverDescription>Reviews occur every quarter.</PopoverDescription>
+        </PopoverHeader>
+        <PopoverClose render={<Button size="small" />}>Done</PopoverClose>
+      </PopoverContent>
+    </Popover>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const trigger = canvas.getByRole("button", { name: "Review schedule" });
+    await userEvent.click(trigger);
+    const popup = await body.findByRole("dialog", { name: "Review schedule" });
+    await expect(popup).toHaveAccessibleDescription("Reviews occur every quarter.");
+    await userEvent.click(within(popup).getByRole("button", { name: "Done" }));
+    await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(trigger).toHaveFocus());
+  },
+};
+
 /** Native composition with a title and description, plus a logical placement under RTL. */
 export const PopoverMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <form
       onSubmit={(event) => {
@@ -514,5 +551,95 @@ export const Anchored: Story = {
     await user.keyboard("{Escape}");
     await waitFor(() => expect(body.queryByRole("dialog")).not.toBeInTheDocument());
     await waitFor(() => expect(mark).toHaveFocus());
+  },
+};
+
+/** A popover's words, drawn in place so a Do and a Don't sit side by side. */
+function PopoverWords({
+  title,
+  children,
+  footer,
+}: {
+  title: string;
+  children: ReactNode;
+  footer: ReactNode;
+}) {
+  return (
+    <Stack space="space.150">
+      <Text weight="semibold">{title}</Text>
+      {children}
+      <Inline space="space.100" alignInline="end" shouldWrap>
+        {footer}
+      </Inline>
+    </Stack>
+  );
+}
+
+/**
+ * A popover holds one small task at its button. A create or edit form with several fields is a
+ * Dialog, whose `pending` holds it open while the save runs; a popover closes when the reader
+ * presses outside it.
+ */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <Pair
+      do={
+        <PopoverWords title="Owner" footer={<Button variant="primary">Done</Button>}>
+          <Stack space="space.100">
+            <Field orientation="horizontal">
+              <Checkbox defaultChecked />
+              <FieldLabel>Dana Whitfield</FieldLabel>
+            </Field>
+            <Field orientation="horizontal">
+              <Checkbox />
+              <FieldLabel>Marcus Oyelaran</FieldLabel>
+            </Field>
+          </Stack>
+        </PopoverWords>
+      }
+      doText="One choice at the filter's button, applied as it changes, and Done."
+      dont={
+        <PopoverWords
+          title="Create risk"
+          footer={
+            <>
+              <Button variant="subtle">Cancel</Button>
+              <Button variant="primary">Create risk</Button>
+            </>
+          }
+        >
+          <Stack space="space.100">
+            <Field>
+              <FieldLabel>Title</FieldLabel>
+              <Input />
+            </Field>
+            <Field>
+              <FieldLabel>Risk owner</FieldLabel>
+              <Input />
+            </Field>
+            <Field>
+              <FieldLabel>Treatment</FieldLabel>
+              <Input />
+            </Field>
+            <Field>
+              <FieldLabel>Description</FieldLabel>
+              <Textarea />
+            </Field>
+          </Stack>
+        </PopoverWords>
+      }
+      dontText="A create form of four fields in a popover, which a press outside closes. A form is a Dialog."
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // The task: one set of choices and Done.
+    await expect(canvas.getAllByRole("checkbox")).toHaveLength(2);
+    await expect(canvas.getByRole("button", { name: "Done" })).toBeVisible();
+    // The form: four fields to fill, which belong in a Dialog.
+    await expect(canvas.getAllByRole("textbox")).toHaveLength(4);
+    await expect(canvas.getByRole("button", { name: "Create risk" })).toBeVisible();
   },
 };

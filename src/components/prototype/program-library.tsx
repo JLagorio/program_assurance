@@ -13,15 +13,13 @@ import {
   Absent,
   Badge,
   DataTable,
-  Inline,
   KeyValue,
   LinkButton,
-  Text,
   defineColumns,
   useDataTable,
   type Preset,
 } from "@ledger/design-system";
-import { useRows } from "@/lib/models";
+import { idSet, useRows } from "@/lib/models";
 import { labelFor } from "@/lib/records";
 import { libraryRollup, type LibraryRollupRow } from "@/lib/library-use";
 import { useSystemAssurance } from "./use-system-assurance";
@@ -61,12 +59,23 @@ export function ProgramLibrary({
   // A preview belongs to its tab: it ends when the program's Library tab hides.
   useEndOnHide(() => setSelectedId(undefined));
   const { rows, queries: assuranceQueries } = useSystemAssurance(programId);
-  const components = useRows("system_components");
+  // The program's boundaries' components, what they contribute and the library implementations
+  // those contributions started from; the library's definitions are read whole, being the library.
+  const boundaryIds = useMemo(() => idSet(rows.map((row) => row.boundary_system_id)), [rows]);
+  const components = useRows("system_components", { system_id: boundaryIds });
   const definedComponents = useRows("defined_components");
   const revisions = useRows("component_definition_revisions");
   const definitions = useRows("component_definitions");
-  const contributions = useRows("component_contributions");
-  const implementations = useRows("defined_component_implementations");
+  const contributions = useRows(
+    "component_contributions",
+    { system_component_id: idSet(components.data?.map((row) => row.id)) },
+    { enabled: components.isSuccess },
+  );
+  const implementations = useRows(
+    "defined_component_implementations",
+    { id: idSet(contributions.data?.map((row) => row.library_implementation_id)) },
+    { enabled: contributions.isSuccess },
+  );
   const data = useMemo<Line[]>(() => {
     const boundaries = new Set(rows.map((row) => row.boundary_system_id));
     const rollup = libraryRollup({
@@ -135,8 +144,6 @@ export function ProgramLibrary({
           minWidth: 200,
           priority: 0,
           hideable: false,
-          preview: (row) => setSelectedId(row.id),
-          active: (row) => row.id === selectedId,
           cell: (row) => (
             <RecordLink
               table={row.definitionId ? "component_definitions" : "profile_resolutions"}
@@ -151,16 +158,14 @@ export function ProgramLibrary({
         c.text("version", {
           header: "Version",
           width: 160,
-          cell: (row) => (
-            <Inline space="space.075" alignBlock="center">
-              <Text>{row.version}</Text>
-              {row.updateAvailable && (
-                <Badge variant="secondary" size="xsmall" tone="warning">
-                  v{row.updateAvailable.version} available
-                </Badge>
-              )}
-            </Inline>
-          ),
+          // A newer version beside the one applied: the column's own badge, which keeps its width
+          // while the version is cut.
+          badge: (row) =>
+            row.updateAvailable ? (
+              <Badge variant="secondary" size="xsmall" tone="warning">
+                v{row.updateAvailable.version} available
+              </Badge>
+            ) : null,
         }),
         c.list("elements", {
           header: "Applied to",
@@ -176,12 +181,18 @@ export function ProgramLibrary({
         }),
         c.text("updateFlag", { header: "Update", width: 140 }),
       ]),
+    [],
+  );
+  // The preview is the table's, so opening or stepping through it never rebuilds the columns.
+  const preview = useMemo(
+    () => ({ onPreview: (row: Line) => setSelectedId(row.id), activeId: selectedId ?? null }),
     [selectedId],
   );
   const table = useDataTable({
     columns,
     data,
     getRowId: (row) => row.id,
+    preview,
     rowLabel: (row) => row.name,
     label: "Library items in this program",
     view: "live-program-library-v1",

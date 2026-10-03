@@ -9,6 +9,7 @@ export {
   useMode,
   writeMode,
   type ColorMode,
+  type ModeSwitchProps,
 } from "./mode";
 export type { Density } from "./density";
 export {

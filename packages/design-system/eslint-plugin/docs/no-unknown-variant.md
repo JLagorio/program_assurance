@@ -17,7 +17,7 @@ A variant a product declares in its own CSS (`@custom-variant theme-sepia (…)`
 
 A class has one owner, so it is reported once. A `dark:` class is [`ledger/no-dark-variant`](no-dark-variant.md)'s and a margin [`ledger/no-margin`](no-margin.md)'s, whatever variant they carry, since their fix takes the class away; any other class under an unknown variant is this rule's, before any rule that judges its base, since the class generates nothing whatever its base holds.
 
-It reads classes wherever the class rules do: `className`, `class` and any `*ClassName` attribute or object key, a slot map, a readable object spread onto an element, the class helpers (`cn`, `clsx`, `twMerge`, `classes`, `cx`, `twJoin`, `classNames`, `cva`, `tv` and the names in `settings.ledger.classFunctions` and `settings.ledger.variantFunctions`), a className callback, and what a class site reads in the same file, as [`ledger/no-non-token-class`](no-non-token-class.md)'s page describes.
+It reads classes wherever the class rules do: `className`, `class`, any `*ClassName` attribute or object key, any `*Class` attribute of an element (`containerClass`) for the strings in it that read as classes or are each a class Tailwind places (a word no class is spelt like is the prop's data: `impactClass="high"`), a slot map, a readable object spread onto an element, the class helpers (`cn`, `clsx`, `twMerge`, `classes`, `cx`, `twJoin`, `classNames`, `cva`, `tv` and the names in `settings.ledger.classFunctions` and `settings.ledger.variantFunctions`), a className callback, and what a class site reads in the same file, as [`ledger/no-non-token-class`](no-non-token-class.md)'s page describes.
 
 ## Why
 
@@ -43,8 +43,8 @@ export function QueueItem({ name }: { name: string }) {
 ```
 
 ```tsx reported
-export function RecordTitle({ name }: { name: string }) {
-  return <h2 className="font-heading-small tablet:font-heading-medium">{name}</h2>;
+export function Caption({ text }: { text: string }) {
+  return <p className="font-body-small tablet:font-body">{text}</p>;
 }
 ```
 
@@ -69,8 +69,8 @@ export function QueueItem({ name }: { name: string }) {
 ```
 
 ```tsx allowed
-export function RecordTitle({ name }: { name: string }) {
-  return <h2 className="font-heading-small @split:font-heading-medium">{name}</h2>;
+export function Caption({ text }: { text: string }) {
+  return <p className="font-body-small @split:font-body">{text}</p>;
 }
 ```
 

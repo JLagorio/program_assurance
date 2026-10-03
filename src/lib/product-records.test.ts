@@ -128,6 +128,12 @@ describe("product field labels", () => {
     expect(productFieldLabel("programs", "starts_on")).toBe("Starts on");
   });
 
+  it("asks for a due as a day, in Create task's words", () => {
+    expect(productFieldLabel("tasks", "due_on")).toBe("Due date");
+    expect(productFieldLabel("scheduled_assessment_tasks", "due_on")).toBe("Due date");
+    expect(productFieldLabel("lifecycle_gates", "due_on")).toBe("Due date");
+  });
+
   it("uses the register's words for a party's contact and parent", () => {
     expect(productFieldLabel("parties", "email")).toBe("Contact email");
     expect(productFieldLabel("parties", "organization_id", { party_type: "organization" })).toBe(

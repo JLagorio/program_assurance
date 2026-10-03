@@ -11,6 +11,10 @@ import {
   type ResizablePanelGroupHandle,
   type ResizablePanelHandle,
 } from "../..";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Resizable",
@@ -19,9 +23,6 @@ const meta = {
 } satisfies Meta<typeof ResizablePanelGroup>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-const groupRef = createRef<ResizablePanelGroupHandle>();
-const panelRef = createRef<ResizablePanelHandle>();
-const elementRef = createRef<HTMLDivElement>();
 function List() {
   return (
     <ScrollArea className="h-full" viewportProps={{ role: "region", "aria-label": "Controls" }}>
@@ -35,7 +36,78 @@ function List() {
     </ScrollArea>
   );
 }
+/**
+ * The usage to copy: a group in a sized parent, two panels with their sizes as percentages, and a
+ * named handle between them that the arrow keys move.
+ */
+export const Usage: Story = {
+  render: () => (
+    <div
+      style={{ height: 240 }}
+      className="max-w-layout-measure overflow-hidden rounded-large border border-default"
+    >
+      <ResizablePanelGroup>
+        <ResizablePanel id="list" defaultSize="30%" minSize="20%">
+          <div className="p-200">List</div>
+        </ResizablePanel>
+        <ResizableHandle withHandle aria-label="Resize the list" />
+        <ResizablePanel id="detail">
+          <div className="p-200">Detail</div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const handle = within(canvasElement).getByRole("separator", { name: "Resize the list" });
+    await expect(handle).toHaveAttribute("aria-orientation", "vertical");
+    const before = Number(handle.getAttribute("aria-valuenow"));
+    handle.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    await waitFor(() =>
+      expect(Number(handle.getAttribute("aria-valuenow"))).toBeGreaterThan(before),
+    );
+  },
+};
+/** A list beside its detail: the list starts at 30% and stays between 20% and 60%; Home and End reach those bounds. */
 export const Panes: Story = {
+  render: () => (
+    <div
+      style={{ height: 320 }}
+      className="max-w-layout-measure overflow-hidden rounded-large border border-default"
+    >
+      <ResizablePanelGroup>
+        <ResizablePanel id="list" defaultSize="30%" minSize="20%" maxSize="60%">
+          <List />
+        </ResizablePanel>
+        <ResizableHandle withHandle aria-label="Resize the list" />
+        <ResizablePanel id="detail">
+          <div className="p-200">Drag the handle or focus it and use the arrow keys.</div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const handle = within(canvasElement).getByRole("separator", { name: "Resize the list" });
+    const size = () => Number(handle.getAttribute("aria-valuenow"));
+    await expect(handle).toHaveAttribute("aria-orientation", "vertical");
+    await waitFor(() => expect(size()).toBeCloseTo(30, 0));
+    handle.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    await waitFor(() => expect(size()).toBeGreaterThan(30));
+    await userEvent.keyboard("{Home}");
+    await waitFor(() => expect(size()).toBeCloseTo(20, 0));
+    await userEvent.keyboard("{End}");
+    await waitFor(() => expect(size()).toBeCloseTo(60, 0));
+  },
+};
+
+const groupRef = createRef<ResizablePanelGroupHandle>();
+const panelRef = createRef<ResizablePanelHandle>();
+const elementRef = createRef<HTMLDivElement>();
+
+/** The group's `groupRef` and `elementRef` and a panel's `panelRef` reach the layout, the group's element and the panel's size. */
+export const Handles: Story = {
+  tags: ["!manifest"],
   render: () => (
     <div
       style={{ height: 320 }}
@@ -54,7 +126,6 @@ export const Panes: Story = {
   ),
   play: async ({ canvasElement }) => {
     const handle = within(canvasElement).getByRole("separator", { name: "Resize the list" });
-    await expect(handle).toHaveAttribute("aria-orientation", "vertical");
     await waitFor(() => expect(groupRef.current?.getLayout()["list"]).toBeCloseTo(30, 0));
     await expect(elementRef.current).toHaveAttribute("data-slot", "resizable-panel-group");
     handle.focus();
@@ -62,8 +133,6 @@ export const Panes: Story = {
     await waitFor(() => expect(panelRef.current?.getSize().asPercentage).toBeGreaterThan(30));
     await userEvent.keyboard("{Home}");
     await waitFor(() => expect(panelRef.current?.getSize().asPercentage).toBeCloseTo(20, 0));
-    await userEvent.keyboard("{End}");
-    await waitFor(() => expect(panelRef.current?.getSize().asPercentage).toBeCloseTo(60, 0));
   },
 };
 export const Vertical: Story = {
@@ -271,5 +340,60 @@ export const WithoutDragging: Story = {
     await userEvent.click(await canvas.findByRole("button", { name: "Show the tree" }));
     await waitFor(() => expect(Number(handle.getAttribute("aria-valuenow"))).toBeGreaterThan(0));
     await expect(await canvas.findByRole("button", { name: "Hide the tree" })).toBeVisible();
+  },
+};
+
+/**
+ * A size is a string for a percentage (`"30%"`) and a number for pixels. A number written as a
+ * percentage, as an earlier release read it, draws a pane 30 pixels wide.
+ */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <Pair
+      do={
+        <div
+          style={{ height: 120 }}
+          className="overflow-hidden rounded-medium border border-default"
+        >
+          <ResizablePanelGroup>
+            <ResizablePanel defaultSize="30%" minSize="20%">
+              <div className="truncate p-150">List</div>
+            </ResizablePanel>
+            <ResizableHandle withHandle aria-label="Resize the list" />
+            <ResizablePanel>
+              <div className="p-150">Detail</div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </div>
+      }
+      doText={'defaultSize="30%": the list takes three tenths of the split, whatever its width.'}
+      dont={
+        <div
+          style={{ height: 120 }}
+          className="overflow-hidden rounded-medium border border-default"
+        >
+          <ResizablePanelGroup>
+            <ResizablePanel defaultSize={30}>
+              <div className="truncate p-150">List</div>
+            </ResizablePanel>
+            <ResizableHandle withHandle aria-label="Resize the evidence list" />
+            <ResizablePanel>
+              <div className="p-150">Detail</div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </div>
+      }
+      dontText="defaultSize={30} is 30 pixels: the list opens as a sliver."
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const share = (name: string) =>
+      Number(canvas.getByRole("separator", { name }).getAttribute("aria-valuenow"));
+    await waitFor(() => expect(share("Resize the list")).toBeCloseTo(30, 0));
+    await waitFor(() => expect(share("Resize the evidence list")).toBeGreaterThan(0));
+    await expect(share("Resize the evidence list")).toBeLessThan(20);
   },
 };

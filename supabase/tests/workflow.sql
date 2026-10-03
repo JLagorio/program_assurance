@@ -21,11 +21,28 @@ insert into public.programs(id,tenant_id,code,name) values
 insert into public.tasks(id,tenant_id,program_id,title) values
  ('cc000000-0000-0000-0000-000000000001',current_setting('test.tenant')::uuid,'bb000000-0000-0000-0000-000000000001','Rollback task');
 do $$ begin
- if (select due_at is not null or completed_at is not null from public.tasks where id='cc000000-0000-0000-0000-000000000001') then raise exception 'Unknown business dates were fabricated'; end if;
+ if (select due_on is not null or completed_at is not null from public.tasks where id='cc000000-0000-0000-0000-000000000001') then raise exception 'Unknown business dates were fabricated'; end if;
 end $$;
 select pg_temp.expect_error('update public.tasks set title=''Stale'' where id=''cc000000-0000-0000-0000-000000000001''','PT409');
 update public.tasks set title='Saved revision',revision=2 where id='cc000000-0000-0000-0000-000000000001';
 select pg_temp.expect_error(format('insert into public.comments(tenant_id,author_party_id,body) select %L,id,''Missing typed target'' from public.parties where tenant_id=%L limit 1',current_setting('test.tenant'),current_setting('test.tenant')),'23514');
+
+-- A task is due on a calendar day: stored, created and refused as a day, never a moment.
+update public.tasks set due_on='2026-10-14',revision=3 where id='cc000000-0000-0000-0000-000000000001';
+do $$ begin
+ if (select pg_typeof(due_on)::text <> 'date' or due_on <> date '2026-10-14' from public.tasks where id='cc000000-0000-0000-0000-000000000001') then raise exception 'A task''s due is not a calendar day'; end if;
+end $$;
+select set_config('test.day_task',public.create_task_with_assignment(current_setting('test.tenant')::uuid,'cd000000-0000-0000-0000-000000000001',
+ '{"programId":"bb000000-0000-0000-0000-000000000001","title":"Due on a day","dueOn":"2026-10-14"}'::jsonb)->>'taskId',true);
+do $$ begin
+ if (select due_on from public.tasks where id=current_setting('test.day_task')::uuid) is distinct from date '2026-10-14' then raise exception 'Create task did not store its due day'; end if;
+end $$;
+select pg_temp.expect_error(format('select public.create_task_with_assignment(%L,''cd000000-0000-0000-0000-000000000002'',%L::jsonb)',current_setting('test.tenant'),
+ '{"programId":"bb000000-0000-0000-0000-000000000001","title":"A moment","dueOn":"2026-10-14T17:00:00Z"}'),'23514');
+select pg_temp.expect_error(format('select public.create_task_with_assignment(%L,''cd000000-0000-0000-0000-000000000003'',%L::jsonb)',current_setting('test.tenant'),
+ '{"programId":"bb000000-0000-0000-0000-000000000001","title":"No such day","dueOn":"2026-02-30"}'),'23514');
+select pg_temp.expect_error(format('select public.create_task_with_assignment(%L,''cd000000-0000-0000-0000-000000000004'',%L::jsonb)',current_setting('test.tenant'),
+ '{"programId":"bb000000-0000-0000-0000-000000000001","title":"A due moment field","dueAt":"2026-10-14T17:00:00Z"}'),'23514');
 
 -- Evidence storage access comes from tenant membership and a reserved draft path.
 insert into public.evidence_artifacts(id,tenant_id,title,artifact_kind) values
@@ -88,6 +105,33 @@ insert into public.step_results(id,tenant_id,test_run_id,procedure_revision_id,p
  ('a7000000-0000-0000-0000-000000000001',current_setting('test.tenant')::uuid,'a6000000-0000-0000-0000-000000000001','a2000000-0000-0000-0000-000000000001','a3000000-0000-0000-0000-000000000001','not_met');
 update public.test_runs set status='completed',completed_at=now(),revision=2 where id='a6000000-0000-0000-0000-000000000001';
 select pg_temp.expect_error('update public.step_results set determination=''met'',revision=2 where id=''a7000000-0000-0000-0000-000000000001''','23514');
+
+-- With authoritative references installed, a scheduled assessment task is due on a day, no
+-- earlier than the day it starts: a task starting in the evening may be due that same day.
+do $$
+declare resolution_id uuid; selected_id uuid;
+begin
+  -- A plan pins a published SSP, which implements a control of a published resolved profile.
+  select sc.id, sc.profile_resolution_id into selected_id, resolution_id
+    from public.selected_controls sc join public.profile_resolutions pr on pr.id = sc.profile_resolution_id
+    where sc.tenant_id is null and pr.state = 'published' order by sc.id limit 1;
+  if selected_id is null then return; end if;
+  insert into public.ssp_revisions(id,tenant_id,system_id,profile_resolution_id,version_number) values
+   ('a9000000-0000-0000-0000-000000000001',current_setting('test.tenant')::uuid,'a4000000-0000-0000-0000-000000000001',resolution_id,1);
+  insert into public.implemented_requirements(tenant_id,ssp_revision_id,selected_control_id,description) values
+   (current_setting('test.tenant')::uuid,'a9000000-0000-0000-0000-000000000001',selected_id,'Rollback implementation narrative');
+  update public.ssp_revisions set state='published',revision=2 where id='a9000000-0000-0000-0000-000000000001';
+  insert into public.assessment_campaigns(id,tenant_id,program_id,title) values
+   ('a9100000-0000-0000-0000-000000000001',current_setting('test.tenant')::uuid,'bb000000-0000-0000-0000-000000000001','Rollback campaign');
+  insert into public.assessment_plan_revisions(id,tenant_id,campaign_id,ssp_revision_id,version_number,title) values
+   ('a9200000-0000-0000-0000-000000000001',current_setting('test.tenant')::uuid,'a9100000-0000-0000-0000-000000000001','a9000000-0000-0000-0000-000000000001',1,'Rollback plan');
+  insert into public.scheduled_assessment_tasks(id,tenant_id,plan_revision_id,title,starts_at,due_on) values
+   ('a9300000-0000-0000-0000-000000000001',current_setting('test.tenant')::uuid,'a9200000-0000-0000-0000-000000000001','Same-day assessment','2026-10-14T21:00:00Z','2026-10-14');
+  if (select pg_typeof(due_on)::text from public.scheduled_assessment_tasks where id='a9300000-0000-0000-0000-000000000001') <> 'date' then
+    raise exception 'A scheduled assessment task''s due is not a calendar day';
+  end if;
+  perform pg_temp.expect_error(format('insert into public.scheduled_assessment_tasks(tenant_id,plan_revision_id,title,starts_at,due_on) values (%L,''a9200000-0000-0000-0000-000000000001'',''Due before it starts'',''2026-10-14T09:00:00Z'',''2026-10-13'')',current_setting('test.tenant')),'23514');
+end $$;
 select pg_temp.expect_error('update public.test_runs set status=''in_progress'',revision=3 where id=''a6000000-0000-0000-0000-000000000001''','23514');
 
 -- A POA&M publication can reuse the same frozen item version in later documents.
@@ -120,4 +164,4 @@ select set_config('test.other_tenant',public.ensure_personal_tenant()::text,true
 select pg_temp.expect_error(format('insert into public.tasks(tenant_id,program_id,title) values (%L,''bb000000-0000-0000-0000-000000000001'',''Cross-tenant task'')',current_setting('test.other_tenant')),'23503');
 reset role;
 rollback;
-select 'Workflow tenant isolation, CAS, evidence policies, immutable executions/publications and POAM version pins passed.' as result;
+select 'Workflow tenant isolation, CAS, due days, evidence policies, immutable executions/publications and POAM version pins passed.' as result;

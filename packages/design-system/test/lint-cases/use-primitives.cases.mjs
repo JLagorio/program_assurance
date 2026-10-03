@@ -5,6 +5,8 @@ import { KIT, KIT_SETTINGS, kitImport } from "../lint-helpers.mjs";
 const layout = kitImport("Box", "Grid", "Inline", "Stack");
 /** A Stack's padding above it: a Box around it, with the step as its prop's value. */
 const stackPadding = 'Wrap it in <Box paddingBlockStart="space.200"> (a Stack has no padding).';
+/** The same, for the Stack inside a component of the file that hands its className on. */
+const forwardedPadding = 'wrap it in <Box paddingBlockStart="space.200"> (a Stack has no padding).';
 
 export default {
   valid: [
@@ -23,6 +25,14 @@ export default {
     {
       code: `${layout} export function Row(Stack) { return <Stack className="pt-200">x</Stack>; }`,
     },
+    // Past four components the hand-on is not followed, and neither is a `let` component, one
+    // read from an object or one imported from another file.
+    {
+      code: `${layout} function W1(p) { return <W2 {...p} />; } function W2(p) { return <W3 {...p} />; } function W3(p) { return <W4 {...p} />; } function W4(p) { return <W5 {...p} />; } function W5(p) { return <Stack {...p} />; } export const A = () => <W1 className="pt-200" />;`,
+    },
+    {
+      code: `${layout} let Pane = (p) => <Stack {...p} />; const parts = { Pane: (p) => <Stack {...p} /> }; export const A = () => <><Pane className="pt-200" /><parts.Pane className="pt-200" /></>;`,
+    },
     // Without the package preset's settings a file is a product's, whose relative import is its
     // own file.
     {
@@ -31,6 +41,10 @@ export default {
     },
     // A primitive's classes through a const are judged as written: no layout, no report.
     { code: `${layout} const clip = "min-w-0 truncate"; <Stack className={clip}>x</Stack>` },
+    // A component of this file whose rest no longer carries className hands it on to nothing.
+    {
+      code: `${layout} function Row({ className, ...rest }) { return <Inline {...rest} />; } export const A = () => <Row className="pt-200" />;`,
+    },
   ],
   invalid: [
     {
@@ -269,6 +283,47 @@ export default {
             advice:
               "A 1px gap is on no space step: give a Stack, an Inline or a Grid a space token, or draw the hairline with a border or a Separator.",
           },
+        },
+      ],
+    },
+    {
+      // A component of this file that hands its className on to a primitive: the advice is for
+      // the primitive inside it, whose props the component need not take.
+      code: `${layout} const Pane = (props) => <Stack {...props} />; export const A = () => <Pane className="pt-200" />;`,
+      errors: [
+        {
+          messageId: "forwarded",
+          data: {
+            wrapper: "Pane",
+            part: "Stack",
+            classes: "pt-200",
+            advice: forwardedPadding,
+          },
+        },
+      ],
+    },
+    {
+      // Four components of the file, one handing className to the next, reach the primitive.
+      code: `${layout} function W1(p) { return <W2 {...p} />; } function W2(p) { return <W3 {...p} />; } function W3(p) { return <W4 {...p} />; } function W4(p) { return <Stack {...p} />; } export const A = () => <W1 className="pt-200" />;`,
+      errors: [
+        {
+          messageId: "forwarded",
+          data: { wrapper: "W1", part: "Stack", classes: "pt-200", advice: forwardedPadding },
+        },
+      ],
+    },
+    {
+      // A component whose body destructures its props, and one that renders itself before the
+      // primitive (a tree), hand className on too.
+      code: `${layout} function Pane(props) { const { className, ...rest } = props; return <Stack className={className} {...rest} />; } function Tree(props) { return props.depth ? <Tree {...props} depth={props.depth - 1} /> : <Stack {...props} />; } export const A = () => <><Pane className="pt-200" /><Tree depth={2} className="pt-200" /></>;`,
+      errors: [
+        {
+          messageId: "forwarded",
+          data: { wrapper: "Pane", part: "Stack", classes: "pt-200", advice: forwardedPadding },
+        },
+        {
+          messageId: "forwarded",
+          data: { wrapper: "Tree", part: "Stack", classes: "pt-200", advice: forwardedPadding },
         },
       ],
     },

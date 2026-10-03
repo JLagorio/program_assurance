@@ -11,6 +11,8 @@ import * as Stories from "./Collapsible.stories";
 
 # Collapsible
 
+**Status: Stable.**
+
 One independent disclosure: content the reader opens when they need it. Based on [shadcn’s Base UI source](https://ui.shadcn.com/docs/components/base/collapsible) and [Base UI](https://base-ui.com/react/components/collapsible). Ledger retains its tokens and application layouts.
 
 ## Anatomy
@@ -43,6 +45,17 @@ The header's heading takes the contextual level from the nearest [HeadingLevelPr
 - **Not** a subtle Button with a chevron as the trigger: it sits outside the outline and its chevron does not turn. **Not** a native `<details>`: its marker and motion are the browser's.
 - **Not** for a coordinated set where opening one closes another: that is an [Accordion](?path=/docs/components-accordion--docs). **Not** for a row that discloses more of itself: Item's `isCollapsible` and Table's disclosure column own their chevrons.
 
+## Content
+
+- The header names what is inside, as a noun: "Provenance", "Derivation", "Reference notes"; not "Show more" or "Details" when a more exact word exists.
+- A count of what is inside goes in the header as a [Count](?path=/docs/components-count--docs), so the reader knows what opening it shows before they do.
+- What the reader needs to act is never only inside a closed block: a warning, a missing prerequisite or an error stays in view.
+- The header's words stay the same open and closed; the chevron shows the state.
+
+A warning inside a closed block is read only by someone who opens it: keep it in view above the block.
+
+<Canvas of={Stories.DoDont} />
+
 ## Variants
 
 <Canvas of={Stories.RetainedState} />
@@ -70,13 +83,7 @@ The parts expose native Base UI props, refs, `render`, state classes and styles,
 
 The Root carries `data-open` and `data-closed`; the trigger carries `data-panel-open` while its content is open. Style a trigger's own chevron from the trigger (`group-data-panel-open/…`), not from `data-open`, which the trigger never has, and never from Radix's `data-state`.
 
-### Migration and API
-
-- Replace Collapsible.Trigger/Content with the flat exports. Replace asChild with render and forceMount with keepMounted.
-- Use data-open/data-closed on the Root and data-panel-open on the trigger instead of Radix data-state selectors. Item's disclosure, a collapsible Section, Inspector.Group and DataTable's Metrics are built on the same Base UI Collapsible; a Stepper step's details are a Collapsible placed in it.
-- A Details block built from a subtle Button and a ChevronDown moves to CollapsibleHeader, or to a collapsible Section on a page.
-- `Collapsible.Group` is an [Accordion](?path=/docs/components-accordion--docs) with `multiple` and an AccordionItem per section; `ledger/no-deprecated-name` names it. A Collapsible's `title` and `count` are a CollapsibleHeader's children, and `headingLevel` is the heading-level context: wrap the disclosure in a HeadingLevelProvider.
-- Use the flat Accordion and Collapsible parts; there are no Legacy adapters.
+Item's disclosure, a collapsible Section, Inspector.Group and DataTable's Metrics are built on the same Base UI Collapsible; a Stepper step's details are a Collapsible placed in it.
 
 ## Related
 
@@ -84,3 +91,4 @@ The Root carries `data-open` and `data-closed`; the trigger carries `data-panel-
 - [Section](?path=/docs/layout-section--docs)
 - [Inspector](?path=/docs/patterns-inspector--docs)
 - [Stepper](?path=/docs/components-stepper--docs)
+- [Upgrading](?path=/docs/guidance-upgrading--docs#collapsible): the earlier API's spellings and what they are now.

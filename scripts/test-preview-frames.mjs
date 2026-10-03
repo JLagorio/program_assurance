@@ -106,7 +106,7 @@ try {
       .eq("auth_user_id", workspace.userId)
       .single(),
   );
-  // The gates run in sequence: the review gate leads, and 21 more fill a second table page (20).
+  // The gates run in sequence: the review gate leads, and 26 more fill a second table page (25).
   const gate = await insert("lifecycle_gates", {
     program_id: program.id,
     title: `Review gate ${suffix}`,
@@ -117,7 +117,7 @@ try {
     workspace.client
       .from("lifecycle_gates")
       .insert(
-        Array.from({ length: 21 }, (_, index) => ({
+        Array.from({ length: 26 }, (_, index) => ({
           tenant_id: workspace.tenantId,
           program_id: program.id,
           title: `Walk gate ${String(index + 2).padStart(2, "0")} ${suffix}`,
@@ -126,7 +126,7 @@ try {
       )
       .select(),
   );
-  assert.equal(walk.length, 21);
+  assert.equal(walk.length, 26);
   const criterion = await insert("gate_criteria", {
     gate_id: gate.id,
     title: `Review criterion ${suffix}`,
@@ -251,14 +251,14 @@ try {
   // the page that holds the shown record.
   const gates = table("Lifecycle gates");
   const firstPage = gates.locator("tbody tr[data-row-id]");
-  await expect(firstPage).toHaveCount(20);
+  await expect(firstPage).toHaveCount(25);
   const pageOne = await firstPage.evaluateAll((rows) => rows.map((row) => row.dataset.rowId));
   assert.equal(pageOne[0], gate.id, "The first gate in sequence leads the first page");
   const last = pageOne.at(-1);
   const pressed = gates.locator('tbody tr[data-row-id]:has(button[aria-pressed="true"])');
   const expectStep = async (position) => {
     const title = await panel().locator("[data-record-preview-header] h2").innerText();
-    await expect(status()).toHaveText(new RegExp(`^${escape(title)}, ${position} of 22 records$`));
+    await expect(status()).toHaveText(new RegExp(`^${escape(title)}, ${position} of 27 records$`));
     await expect(pressed).toHaveCount(1);
     await expect(pressed).toContainText(title);
     await expect
@@ -270,22 +270,22 @@ try {
   await eye(gates, last).focus();
   await page.keyboard.press("Enter");
   await expect(panel()).toBeFocused();
-  assert.equal(await expectStep(20), last);
+  assert.equal(await expectStep(25), last);
   await step("Next record").click();
-  const twentyFirst = await expectStep(21);
-  assert.ok(!pageOne.includes(twentyFirst), "Next crossed onto the second page");
+  const secondPageFirst = await expectStep(26);
+  assert.ok(!pageOne.includes(secondPageFirst), "Next crossed onto the second page");
   await expect(gates.locator(`tbody tr[data-row-id="${last}"]`)).toHaveCount(0);
   await step("Previous record").click();
-  assert.equal(await expectStep(20), last, "Previous turned back to the first page");
+  assert.equal(await expectStep(25), last, "Previous turned back to the first page");
   await step("Next record").click();
-  await expectStep(21);
+  await expectStep(26);
   await step("Next record").click();
-  const lastRecord = await expectStep(22);
+  const lastRecord = await expectStep(27);
   // At the end the control the reader used stays focused and says it is unavailable.
   await expect(step("Next record")).toBeFocused();
   await expect(step("Next record")).toHaveAttribute("aria-disabled", "true");
   await page.keyboard.press("Enter");
-  await expectStep(22);
+  await expectStep(27);
   await expect(step("Previous record")).not.toHaveAttribute("aria-disabled", "true");
   await page.screenshot({ path: join(screenshots, "walk-1600.png") });
   await escapePreview();
@@ -299,7 +299,7 @@ try {
     await eye(table("observations"), observation.id).click();
     await expectRecord("observations", observation.id, observation.title);
     const citations = panel().getByRole("table", { name: "evidence citations", exact: true });
-    const citationSearch = panel().getByPlaceholder("Search evidence citations", { exact: true });
+    const citationSearch = panel().getByPlaceholder("Find evidence citations", { exact: true });
     await citationSearch.fill(suffix);
     await eye(citations, citation.id).focus();
     await page.keyboard.press("Enter");

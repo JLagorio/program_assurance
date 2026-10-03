@@ -1,10 +1,12 @@
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 import { Id } from "../components/id";
+import { cn } from "../lib/cn";
 import { KeyValue } from "../components/key-value";
 import { Text } from "../primitives/text";
 
-export type GlanceProps = {
+/** A Glance takes its box's native props, `className` and `ref` too; `id` and `title` are the record's. */
+export type GlanceProps = Omit<ComponentProps<"div">, "id" | "title" | "children"> & {
   /** The record's id, first on the first line. */
   id: ReactNode;
   /** The record's name, at most two lines. */
@@ -23,9 +25,9 @@ export type GlanceProps = {
  * (PreviewSheet) and the footer link there is the record. A record reads the same on every rung
  * because the same parts draw it; this is the smallest of them.
  */
-export function Glance({ id, title, meta, status, facts = [] }: GlanceProps) {
+export function Glance({ id, title, meta, status, facts = [], className, ...props }: GlanceProps) {
   return (
-    <div data-slot="glance" className="flex min-w-0 flex-col gap-100">
+    <div {...props} className={cn("flex min-w-0 flex-col gap-100", className)} data-slot="glance">
       <div className="flex flex-col gap-025">
         <div className="flex items-center gap-100">
           <Id className="font-body-small text-subtle">{id}</Id>
@@ -43,7 +45,7 @@ export function Glance({ id, title, meta, status, facts = [] }: GlanceProps) {
       {facts.length ? (
         <div className="flex flex-col">
           {facts.slice(0, 4).map((f) => (
-            <KeyValue key={f.label} label={f.label} labelWidth={88}>
+            <KeyValue key={f.label} label={f.label} labelWidth="narrow">
               {f.value}
             </KeyValue>
           ))}

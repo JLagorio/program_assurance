@@ -5,8 +5,12 @@ import { Gates } from "../..";
 import { Button, Progress, ProgressValue, TextLink } from "../../components";
 
 import { Box, Inline, Stack, Text } from "../../primitives";
-import { Matrix } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Patterns/Gates",
@@ -19,6 +23,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Met and unmet in both unmet tones; bare, with a reason, with a reason and an action. */
 export const GatesMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Matrix
       rows={["met", "unmet · warning", "unmet · danger"] as const}
@@ -163,6 +168,7 @@ export const InRail: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair

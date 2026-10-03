@@ -25,6 +25,7 @@ import { cn } from "../lib/cn";
 import { Stack } from "../primitives/stack";
 import { Spinner } from "./spinner";
 import { Tooltip, TooltipContent, TooltipTrigger, type TooltipProps } from "./tooltip";
+import { Truncate } from "./truncate";
 
 export type ButtonVariant = "primary" | "secondary" | "subtle" | "danger" | "link";
 export type ButtonSize = "xsmall" | "small" | "medium";
@@ -111,6 +112,13 @@ export type ButtonProps = ButtonPrimitive.Props &
      * as a submit that reports what is missing.
      */
     disabledReason?: string | undefined;
+    /**
+     * For a slot narrower than the label, such as a rail, a card's footer or a table cell: the button
+     * narrows to its container and cuts the label with an ellipsis, its icons whole. The whole label
+     * stays the accessible name and shows in a tooltip on hover and keyboard focus while it is cut.
+     * Write labels short enough not to need it; this is for the slot that cannot grow.
+     */
+    truncate?: boolean | undefined;
   };
 
 type TooltipOpenChange = NonNullable<TooltipProps["onOpenChange"]>;
@@ -335,6 +343,7 @@ function ButtonBase({
   disabled = false,
   focusableWhenDisabled,
   disabledReason,
+  truncate = false,
   className,
   children,
   render,
@@ -357,6 +366,19 @@ function ButtonBase({
   const spinner = (side: "inline-start" | "inline-end") => (
     <Spinner data-icon={side} isDecorative appearance="inherit" />
   );
+  // A truncating label: the text gives way with an ellipsis and the whole of it shows while it is
+  // cut. With a disabled reason the reason's tooltip names the action instead, so only one shows.
+  const hasLabel = content !== undefined && content !== null && content !== false && content !== "";
+  const label =
+    truncate && hasLabel ? (
+      reason ? (
+        <span className="min-w-0 truncate">{content}</span>
+      ) : (
+        <Truncate>{content}</Truncate>
+      )
+    ) : (
+      content
+    );
   const contents = (
     <>
       {spinnerAt === "start"
@@ -370,12 +392,13 @@ function ButtonBase({
           className={cn(
             "inline-flex items-center opacity-0",
             size === "xsmall" ? "gap-050" : "gap-075",
+            truncate && "min-w-0",
           )}
         >
-          {content}
+          {label}
         </span>
       ) : (
-        content
+        label
       )}
       {spinnerAt === "end"
         ? spinner("inline-end")
@@ -447,6 +470,7 @@ function ButtonBase({
             hasIconAfter: Boolean(iconAfter),
           }),
           spinnerAt === "over" && "relative",
+          truncate && "min-w-0 max-w-full",
           isLoading && "cursor-progress",
           reason && !isLoading && "cursor-not-allowed",
         ),
@@ -473,8 +497,12 @@ export function Button({
   const button = (
     <ButtonBase variant={variant} size={size} disabled={disabled} carry={carry} {...props} />
   );
+  // A truncated label may be cut, so the reason's tooltip names the action as well.
+  const shown = props.truncate ? visibleText(props.children) : "";
   return props.disabledReason ? (
-    <ReasonTooltip trigger={button}>{props.disabledReason}</ReasonTooltip>
+    <ReasonTooltip trigger={button}>
+      {shown ? labelAndReason(shown, props.disabledReason) : props.disabledReason}
+    </ReasonTooltip>
   ) : (
     button
   );
@@ -503,7 +531,14 @@ export function squareSize(size: IconButtonSize) {
 
 export type IconButtonProps = Omit<
   ButtonProps,
-  "children" | "iconBefore" | "iconAfter" | "isFullWidth" | "aria-label" | "variant" | "size"
+  | "children"
+  | "iconBefore"
+  | "iconAfter"
+  | "isFullWidth"
+  | "aria-label"
+  | "variant"
+  | "size"
+  | "truncate"
 > & {
   /** Accessible action name, also used by the tooltip. */
   label: string;

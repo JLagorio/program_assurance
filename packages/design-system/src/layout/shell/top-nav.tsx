@@ -37,7 +37,7 @@ import {
 } from "../../components/kbd";
 import { LinkIconButton } from "../../components/link-button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../components/tooltip";
-import { useIsTruncated } from "../../components/truncate";
+import { Truncate, useIsTruncated } from "../../components/truncate";
 import { cn } from "../../lib/cn";
 import { useLedgerLocale } from "../../lib/locale";
 import { mergeRefs, slot, useShell, useSideNavRail, useSkipLink } from "./context";
@@ -84,7 +84,7 @@ export function TopNavRoot({ id, label, className, children, ...props }: ShellTo
       inert={sideNav.modal || props.inert}
       data-slot="shell-topnav"
       className={cn(
-        "shell-topnav @container/topnav flex items-stretch border-b border-default bg-surface outline-none",
+        "@container/topnav flex items-stretch border-b border-default bg-surface outline-none",
         className,
       )}
     >
@@ -104,9 +104,12 @@ export function TopNavStart({ toggle, className, children, ...props }: ShellTopN
       data-shell-slot="start"
       data-slot="shell-topnav-start"
       data-collapsed={rail ? "icons" : undefined}
+      // From `lg`, while the side nav is expanded beside the page, the slot heads its column
+      // (shell.css): its width, its surface and the toggle at its end.
+      data-inline={inline ? "" : undefined}
       className={cn(
         "flex shrink-0 items-center gap-100 px-150",
-        inline && "lg:shell-topnav-start lg:border-e lg:border-default lg:bg-surface-sunken",
+        inline && "lg:border-e lg:border-default lg:bg-surface-sunken",
         className,
       )}
     >
@@ -492,7 +495,7 @@ export function TopNavSearch({
         className="hidden h-control-medium w-full min-w-0 cursor-text items-center gap-100 rounded-medium border border-input bg-input px-100 text-start font-body text-subtle outline-none transition-colors duration-fast ease-standard hover:bg-input-hovered focus-visible:outline-focused @3xl/topnav:flex"
       >
         <Search aria-hidden className="size-icon-small shrink-0 icon-subtle" />
-        <span className="min-w-0 flex-1 truncate">{name}</span>
+        <Truncate className="min-w-0 flex-1">{name}</Truncate>
         {shortcut ? (
           <span aria-hidden className="shrink-0">
             <KbdShortcut keys={shortcut} />
@@ -549,7 +552,7 @@ export type AppLogoProps = useRender.ComponentProps<"span"> & {
   secondaryName?: string | undefined;
 };
 
-/** The product identity. Use render={<Link />} for home or render={<button />} for a switcher. */
+/** The product identity. Use render={<Link />} for home or render={<button />} for a switcher. A name or secondary name the start slot's width cuts shows whole in a tooltip, on hover and on keyboard focus. */
 export function AppLogo({
   mark = <Mark />,
   name,
@@ -560,7 +563,12 @@ export function AppLogo({
   children,
   ...props
 }: AppLogoProps) {
-  return useRender({
+  const nameRef = useRef<HTMLSpanElement>(null);
+  const secondaryRef = useRef<HTMLSpanElement>(null);
+  // Hidden below the large breakpoint, the names measure as uncut there, so nothing is revealed.
+  const nameCut = useIsTruncated(nameRef);
+  const secondaryCut = useIsTruncated(secondaryRef, { enabled: Boolean(secondaryName) });
+  const element = useRender({
     defaultTagName: "span",
     render,
     ref,
@@ -576,9 +584,21 @@ export function AppLogo({
         <>
           {mark}
           <span className="hidden min-w-0 flex-col lg:flex">
-            <span className="truncate font-body font-medium text-default">{name}</span>
+            <span
+              ref={nameRef}
+              data-slot="shell-app-name"
+              className="truncate font-body font-medium text-default"
+            >
+              {name}
+            </span>
             {secondaryName ? (
-              <span className="truncate font-body-small text-subtle">{secondaryName}</span>
+              <span
+                ref={secondaryRef}
+                data-slot="shell-app-secondary-name"
+                className="truncate font-body-small text-subtle"
+              >
+                {secondaryName}
+              </span>
             ) : null}
           </span>
           {children}
@@ -586,6 +606,16 @@ export function AppLogo({
       ),
     }),
   });
+  // A visual copy of words already in the document, so it names nothing twice.
+  return (
+    <Tooltip disabled={!nameCut && !secondaryCut}>
+      <TooltipTrigger render={element} />
+      <TooltipContent side="bottom" className="flex-col items-start gap-0">
+        <span>{name}</span>
+        {secondaryName ? <span>{secondaryName}</span> : null}
+      </TooltipContent>
+    </Tooltip>
+  );
 }
 
 export type AppSwitcherProps = Omit<IconButtonProps, "icon" | "label"> & {
@@ -642,8 +672,11 @@ export function Profile({
   const detail = description ?? role;
   const rail = useSideNavRail();
   const nameRef = useRef<HTMLSpanElement>(null);
-  // The name shows whole in a tooltip in the icon rail, and wherever the side nav's width cuts it.
+  const detailRef = useRef<HTMLSpanElement>(null);
+  // The name shows whole in a tooltip in the icon rail, and wherever the side nav's width cuts it;
+  // a cut description shows whole under it.
   const cut = useIsTruncated(nameRef, { enabled: interactive && !rail });
+  const detailCut = useIsTruncated(detailRef, { enabled: interactive && !rail && Boolean(detail) });
   const chevron = interactive && (indicator ?? opensMenu(props["aria-haspopup"]));
   const element = useRender({
     defaultTagName: interactive ? "button" : "div",
@@ -670,7 +703,9 @@ export function Profile({
               {name}
             </span>
             {detail ? (
-              <span className="block truncate font-body-small text-subtle">{detail}</span>
+              <span ref={detailRef} className="block truncate font-body-small text-subtle">
+                {detail}
+              </span>
             ) : null}
           </span>
           {chevron ? (
@@ -685,9 +720,12 @@ export function Profile({
     }),
   });
   return (
-    <Tooltip disabled={!interactive || (!rail && !cut)}>
+    <Tooltip disabled={!interactive || (!rail && !cut && !detailCut)}>
       <TooltipTrigger render={element} />
-      <TooltipContent side="inline-end">{name}</TooltipContent>
+      <TooltipContent side="inline-end" className="flex-col items-start gap-0">
+        <span>{name}</span>
+        {detailCut ? <span>{detail}</span> : null}
+      </TooltipContent>
     </Tooltip>
   );
 }

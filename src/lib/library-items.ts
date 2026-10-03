@@ -79,11 +79,15 @@ export function libraryComponentItems(input: {
     .sort((a, b) => a.definitionCode.localeCompare(b.definitionCode, undefined, { numeric: true }));
 }
 
-export function useLibraryComponentItems(controlId?: string) {
-  const definitions = useRows("component_definitions");
-  const revisions = useRows("component_definition_revisions");
-  const definedComponents = useRows("defined_components");
-  const implementations = useRows("defined_component_implementations");
+export function useLibraryComponentItems(
+  controlId?: string,
+  /** `enabled: false` waits: a screen that offers the library only in a picker reads it on open. */
+  { enabled = true }: { enabled?: boolean | undefined } = {},
+) {
+  const definitions = useRows("component_definitions", undefined, { enabled });
+  const revisions = useRows("component_definition_revisions", undefined, { enabled });
+  const definedComponents = useRows("defined_components", undefined, { enabled });
+  const implementations = useRows("defined_component_implementations", undefined, { enabled });
   const queries = [definitions, revisions, definedComponents, implementations];
   const items = useMemo(
     () =>

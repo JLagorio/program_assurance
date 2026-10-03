@@ -7,13 +7,15 @@ import * as Stories from "./RecordBrowser.stories";
 
 # RecordBrowser
 
+**Status: Stable.**
+
 Find, compare and select related records without leaving the current record. Use this for evidence, assessment objectives and other collections where a compact picker cannot show enough information to make a decision.
 
 <Canvas of={Stories.BrowseAndLink} />
 
 ## Anatomy
 
-A Base UI Dialog occupies 90% of the viewport. Its header names the relationship task; the body is a DialogBody holding the results and the preview side by side. The optional `context` opens the results and scrolls with them; the Toolbar (search, column filters, Columns and the permanent `actions`) sits above a selectable, responsive DataTable. The results take the height the dialog leaves them: the toolbar and the pagination stay in view and the rows scroll under the table's sticky header. The eye on each row's naming cell opens the preview pane, which holds a readable code, previous and next, the way back to the results, the record's name as its heading, the complete record, and a Select checkbox. The footer keeps the selection count, Cancel and the linking action visible.
+A Base UI Dialog occupies 90% of the viewport. Its header names the relationship task; the body is a DialogBody holding the results and the preview side by side. The optional `context` opens the results and scrolls with them; the Toolbar (search, column filters, Columns and the permanent `actions`) sits above a selectable, responsive DataTable. The results take the height the dialog leaves them: the toolbar and the pagination stay in view and the rows scroll under the table's sticky header. The eye on each row's naming cell opens the preview pane, which holds a readable code, previous and next, the way back to the results, the record's name as its heading, the complete record, and a Select checkbox. The name is a PageHeader.Title, an h3 under the dialog's h2 title, and `renderPreview` renders a level under it, so a Section in the preview is titled with an h4. The footer keeps the selection count, a polite status in the phrase PickerSheet uses ("2 of 14 selected", "2 selected" while the records load), a subtle Cancel and the linking action visible.
 
 The caller supplies eligible records, columns, the record's name (`recordTitle` and, when that is markup or the ids are database keys, `recordLabel`), preview content and the linking callback. The pattern owns the temporary search, filters, sort, pagination, selection and preview state. Business rules and record content stay in the application.
 
@@ -22,6 +24,10 @@ The caller supplies eligible records, columns, the record's name (`recordTitle` 
 A record's `id` keys its row and nothing else: the reader never sees it or hears it. `recordLabel` names the row's checkbox and eye ("Select Firewall ruleset export"), the preview's Select checkbox and what previous and next say; it defaults to `recordTitle` when that returns a string. `recordCode` is the readable identifier shown over the preview's name, such as EV-0412. `previewColumn` names the column that names the record: it leads the row and its cell carries the eye. Give that column `priority: 0` and a readable width (about 180 to 220px), so a narrow browser keeps it in the row and moves the other fields into each row's More fields.
 
 <Canvas of={Stories.ReadableNames} />
+
+A `recordTitle` that returns markup gives no words to name a row by, so without `recordLabel` the checkbox, the eye and previous and next are named by the record's `id`: a screen reader hears a database key.
+
+<Canvas of={Stories.DoDont} />
 
 ## Behavior
 
@@ -33,7 +39,7 @@ While confirmation is pending, Cancel, Escape, the close control and outside cli
 
 ## Nothing to link, loading and failure
 
-`state` says where the records are. `loading` draws skeleton rows under the toolbar; `refreshing` keeps the rows while new ones arrive; `error` shows the caller's `error` in place of the rows. With no eligible records at all, the browser says so with `empty` in place of the table: a title, one line on why and what makes a record, the caller's `actions` as its step (or `empty.action`), and an optional quieter `secondary`. The context stays above it. A search or a filter that matches nothing is not this: it is the table's own filtered state, with Clear filters.
+`state` says where the records are. `loading` draws skeleton rows under the toolbar; `refreshing` keeps the rows while new ones arrive; `error` shows the caller's `error`: in place of the rows when none loaded, above the rows it keeps after a failed refresh, with Try again when `onRetry` is given. With no eligible records at all, the browser says so with `empty` in place of the table: a title, one line on why and what makes a record, the caller's `actions` as its step (or `empty.action`), and an optional quieter `secondary`. The context stays above it. A search or a filter that matches nothing is not this: it is the table's own filtered state, with Clear filters.
 
 <Canvas of={Stories.NothingToLink} />
 
@@ -63,7 +69,7 @@ The table fits its pane: the fields that do not fit beside an open preview move 
 
 The dialog uses the existing [shadcn Base UI composition](https://ui.shadcn.com/docs/components/base/dialog) and [Base UI focus management](https://base-ui.com/react/components/dialog). Opening a preview focuses its heading; closing it restores the eye of the record being read. Escape closes the internal preview first, then the dialog. Nested filter menus and a focused control's tooltip consume their own Escape. Closing the dialog returns focus to its opener. The preview is a region named by the record; its body is a tab stop only while it overflows with nothing focusable in it.
 
-The words are the locale's: Search records, Back to results, Previous record, Next record, the position, the count, Clear selection, Cancel and the failure come from the LedgerProvider's messages (`recordBrowser…`, `recordPositionNamed`, `selectedCount`).
+The words are the locale's: Search records, Back to results, Previous record, Next record, the position, the count, Clear selection, Cancel and the failure come from the LedgerProvider's messages (`recordBrowser…`, `recordPositionNamed`, `selectedCount`, `selectedCountOf`).
 
 ## Props
 
@@ -77,6 +83,6 @@ The words are the locale's: Search records, Back to results, Previous record, Ne
 
 ## Related
 
-Use RecordPicker for quick single-record selection. PickerSheet is for allocation workflows with extra relationship fields. RecordBrowser is the comparison and bulk-linking experience; it composes Dialog, Toolbar and DataTable.
+Use RecordPicker for quick single-record selection. PickerSheet is for allocation workflows with extra relationship fields. RecordBrowser is the comparison and bulk-linking experience; it composes Dialog, Toolbar and DataTable. [Upgrading](?path=/docs/guidance-upgrading--docs#pickersheet-and-recordbrowser) gives the one count phrase both share.
 
 <Canvas of={Stories.FailedLink} />

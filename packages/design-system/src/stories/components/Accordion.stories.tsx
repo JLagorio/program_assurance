@@ -12,7 +12,12 @@ import {
   Input,
 } from "../../components";
 import { HeadingLevelProvider, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Accordion",
@@ -42,6 +47,7 @@ function Entry({
 }
 
 export const Examples: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300" className="w-layout-list max-w-full">
       <Specimens title="One open at a time">
@@ -110,7 +116,7 @@ function ControlledExample() {
 }
 
 export const ControlledAndRetained: Story = {
-  render: () => <ControlledExample />,
+  render: ControlledExample,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const input = canvas.getByRole("textbox", { name: "Draft record-a" });
@@ -158,8 +164,6 @@ export const HeadingLevel: Story = {
   },
 };
 
-const itemState = (state: { open: boolean }) => (state.open ? "py-025" : "py-050");
-
 /**
  * Every part takes Base UI's state function for `className` as well as a string, and the
  * content's class reaches the panel, the element with `data-open` and the measured height.
@@ -169,7 +173,11 @@ const itemState = (state: { open: boolean }) => (state.open ? "py-025" : "py-050
 export const Parts: Story = {
   render: () => (
     <Accordion defaultValue={["scope"]} className="w-layout-list max-w-full" data-testid="root">
-      <AccordionItem value="scope" className={itemState} data-testid="scope-item">
+      <AccordionItem
+        value="scope"
+        className={(state) => (state.open ? "py-025" : "py-050")}
+        data-testid="scope-item"
+      >
         <AccordionTrigger
           className={(state) => (state.open ? "text-subtle" : undefined)}
           headerProps={{ render: <h4 />, className: "pt-050", id: "scope-heading" }}
@@ -180,7 +188,11 @@ export const Parts: Story = {
           <Text>Two systems and the ground segment.</Text>
         </AccordionContent>
       </AccordionItem>
-      <AccordionItem value="notes" className={itemState} data-testid="notes-item">
+      <AccordionItem
+        value="notes"
+        className={(state) => (state.open ? "py-025" : "py-050")}
+        data-testid="notes-item"
+      >
         <AccordionTrigger icon={<Plus className="size-icon-small" />}>Notes</AccordionTrigger>
         <AccordionContent>
           <Text>No notes.</Text>
@@ -235,5 +247,64 @@ export const Parts: Story = {
     await expect(Math.round(title.getBoundingClientRect().left)).toBe(
       Math.round(scope.getBoundingClientRect().left),
     );
+  },
+};
+
+/**
+ * Each trigger names its section, the same open and closed, so a reader scanning the headings knows
+ * which to open. A row of "Show more" says nothing until it is opened.
+ */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <Pair
+      do={
+        <Accordion defaultValue={["delivery"]}>
+          <AccordionItem value="delivery">
+            <AccordionTrigger>Delivery options</AccordionTrigger>
+            <AccordionContent>
+              <Text>Evidence is delivered as a package or one file at a time.</Text>
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="retention">
+            <AccordionTrigger>Retention</AccordionTrigger>
+            <AccordionContent>
+              <Text>Packages are kept for three years after authorization.</Text>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      }
+      doText="A noun per section, and the section the reader most needs is open."
+      dont={
+        <Accordion>
+          <AccordionItem value="first">
+            <AccordionTrigger>Show more</AccordionTrigger>
+            <AccordionContent>
+              <Text>Evidence is delivered as a package or one file at a time.</Text>
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="second">
+            <AccordionTrigger>Show more</AccordionTrigger>
+            <AccordionContent>
+              <Text>Packages are kept for three years after authorization.</Text>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      }
+      dontText="Show more, twice: the headings say nothing about what is inside, and everything starts closed."
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("button", { name: "Delivery options" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+    await expect(canvas.getByRole("button", { name: "Retention" })).toBeVisible();
+    // Two sections, one name: the outline lists Show more twice.
+    const vague = canvas.getAllByRole("button", { name: "Show more" });
+    await expect(vague).toHaveLength(2);
+    for (const trigger of vague) await expect(trigger).toHaveAttribute("aria-expanded", "false");
   },
 };

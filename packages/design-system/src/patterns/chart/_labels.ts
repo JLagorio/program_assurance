@@ -212,6 +212,20 @@ export function spreadLabels(
 }
 
 /**
+ * How many slots apart a point axis prints its labels, when its categories are points `slot`
+ * pixels apart (a line's or an area's): 1, every category, while each label keeps its whole or
+ * `MIN_CHARACTERS` and an ellipsis in a slot less `gap`; past that, the fewest slots that give every
+ * label that room, so the labels step evenly from the first rather than each shrink to a letter.
+ */
+export function pointStep(labels: string[], slot: number, measure: Measure, gap = 8): number {
+  if (!labels.length || !(slot > 0)) return 1;
+  const need = Math.max(
+    ...labels.map((l) => Math.min(measure(l), measure(`${l.slice(0, MIN_CHARACTERS).trimEnd()}…`))),
+  );
+  return Math.min(labels.length, Math.max(1, Math.ceil((need + gap) / slot)));
+}
+
+/**
  * A category label fitted to its band: whole on one line when it fits, else on two lines broken
  * at a space, each cut with an ellipsis to the band, else one line cut to the band. Every category
  * keeps a label; the whole name is the tick's title. `lines` allows the second line.

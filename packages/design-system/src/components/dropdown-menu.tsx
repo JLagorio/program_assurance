@@ -104,7 +104,7 @@ function MenuContent({
           alignOffset={alignOffset}
           side={side}
           sideOffset={sideOffset}
-          className="isolate z-50 outline-none"
+          className="isolate z-overlay outline-none"
         >
           <MenuPrimitive.Popup
             {...props}

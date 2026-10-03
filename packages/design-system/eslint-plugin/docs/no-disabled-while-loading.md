@@ -134,3 +134,4 @@ The rule takes the plugin's `allow` option, a count of reports per file that may
 - It compares names, not values: `const busy = save.isPending` with `isLoading={save.isPending} disabled={busy}` is not seen, and neither is a flag that reaches the two props through different variables.
 - Props that arrive through a spread (`{...buttonProps}`) or from another file are not read; an object literal is checked where it is written.
 - A name read by both props for different reasons is still reported, since the rule cannot tell why `disabled` reads it.
+- Any component with both props is judged, one a caller hands in as a parameter (`({ Action }) => <Action … />`) or reads from the props object (`<props.Action … />`) too; a parameter or a local that shadows an outer name, such as the kit's `Button`, is not that part, and is left alone.

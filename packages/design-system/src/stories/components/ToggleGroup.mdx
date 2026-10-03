@@ -7,6 +7,8 @@ import * as Stories from "./ToggleGroup.stories";
 
 # ToggleGroup
 
+**Status: Stable.**
+
 A group of toggle buttons with shared selection and keyboard navigation. Compose each choice with `ToggleGroupItem`, using a unique `value` and explicit children for its label, icon or count.
 
 ```tsx
@@ -18,7 +20,7 @@ A group of toggle buttons with shared selection and keyboard navigation. Compose
 
 <Canvas of={Stories.ToggleGroupMatrix} />
 
-## Choosing between them
+## When to use it
 
 | Need                                                                                                              | Part                                                                                                   |
 | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
@@ -28,11 +30,23 @@ A group of toggle buttons with shared selection and keyboard navigation. Compose
 | Switching between panels of content                                                                               | [Tabs](?path=/docs/components-tabs--docs)                                                              |
 | Related actions joined into one control                                                                           | [ButtonGroup](?path=/docs/components-buttongroup--docs)                                                |
 
+## Content
+
+- Each item is one or two words that name the choice ("Table", "Board", "Last 30 days"); the group's `aria-label` names what they choose between ("View", "Period").
+- Items share a grammar and a length, so the group reads as one set, and the order is the order of the thing they choose (shortest period first, the default view first).
+- A count after a label is a [Count](?path=/docs/components-count--docs), with the same `max` as the product's other counts.
+
+A group without its `aria-label` is heard as buttons with no word for the choice they make.
+
+<Canvas of={Stories.DoDont} />
+
 ## Selection and layout
 
 Selection is an array in both modes. By default, at most one item can be pressed; pressing it again clears the selection. Add `multiple` to allow several pressed items. A pressed item takes Toggle's pressed look, the selected fill with a 1px `color.border.selected` edge that follows a joined group's corners, so the current view never looks like a hovered one; in forced colours it is Highlight. `defaultValue` initializes local state; `value` and `onValueChange(values, details)` control it. Call `details.cancel()` to reject a change, such as clearing a required view: one choice that must stay active ignores or cancels an empty selection. The API is Base UI's array with `multiple`, not Radix's `type="single"`.
 
-Group `variant` and `size` pass to its items. Variants are `default` and `outline`; sizes are `sm` (28px), `default` (32px) and `lg` (36px), Toggle's. Default `spacing={2}` leaves an 8px gap; `spacing={0}` joins the items. `orientation="vertical"` stacks them and changes arrow navigation.
+Group `variant` and `size` pass to its items. Variants are `default` and `outline`; sizes are Toggle's: `small` (28px), `medium` (32px, the default) and `large` (36px), with `sm`, `default` and `lg` as deprecated spellings for one version. `spacing` counts 4px steps on the space scale: the default `spacing={2}` is `space.100` (8px), `1` to `6`, `8`, `10`, `12` and `16` are the other steps, a number between two steps takes the smaller, and `spacing={0}` joins the items. `orientation="vertical"` stacks them and changes arrow navigation.
+
+<Canvas of={Stories.Spacing} />
 
 The group and items support native attributes, refs, `render`, and state callbacks for `className` and `style`. Use `disabled` on an item or the whole group to block selection.
 
@@ -64,4 +78,4 @@ A spaced group wraps its items onto the next line when its row is too narrow for
 
 ## Related
 
-[Toggle](?path=/docs/components-toggle--docs) · [Count](?path=/docs/components-count--docs) · [shadcn Toggle Group](https://ui.shadcn.com/docs/components/base/toggle-group) · [Base UI Toggle Group](https://base-ui.com/react/components/toggle-group)
+[Toggle](?path=/docs/components-toggle--docs) · [Count](?path=/docs/components-count--docs) · [shadcn Toggle Group](https://ui.shadcn.com/docs/components/base/toggle-group) · [Base UI Toggle Group](https://base-ui.com/react/components/toggle-group) · [Upgrading](?path=/docs/guidance-upgrading--docs#toggle-and-togglegroup)

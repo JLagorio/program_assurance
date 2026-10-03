@@ -19,6 +19,10 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "../../components";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 const meta = {
   title: "Components/Command",
   component: Command,
@@ -103,6 +107,56 @@ function Commands({
     </>
   );
 }
+/**
+ * The usage to copy: a Command named by its `label`, the field, the list with its empty sentence
+ * and its groups of rows, and the count in the footer.
+ */
+export const Usage: Story = {
+  render: () => (
+    <Command label="Program commands" className="max-w-layout-measure border border-default">
+      <CommandInput placeholder="Search commands" />
+      <CommandList>
+        <CommandEmpty>No commands found.</CommandEmpty>
+        <CommandGroup heading="Program">
+          <CommandItem value="assessment">Schedule assessment</CommandItem>
+          <CommandItem value="export" shortcut="Mod+E">
+            Export report
+          </CommandItem>
+        </CommandGroup>
+        <CommandSeparator />
+        <CommandGroup heading="Navigation">
+          <CommandItem value="home">Go home</CommandItem>
+        </CommandGroup>
+      </CommandList>
+      <CommandFooter>
+        <CommandCount />
+      </CommandFooter>
+    </Command>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole("combobox", { name: "Program commands" });
+    await expect(canvas.getByRole("listbox", { name: "Results" })).toBeVisible();
+    await expect(canvas.getByRole("option", { name: "Export report" })).toHaveAttribute(
+      "aria-keyshortcuts",
+    );
+    // On open the first row is selected, and the field names it.
+    await activeIsSelected(input);
+    // A filter that removes the selected row leaves the listbox naming the row the field names.
+    await userEvent.type(input, "export");
+    await waitFor(() =>
+      expect(input).toHaveAttribute(
+        "aria-activedescendant",
+        canvas.getByRole("option", { name: "Export report" }).id,
+      ),
+    );
+    await expect(canvas.getByRole("listbox", { name: "Results" })).toHaveAttribute(
+      "aria-activedescendant",
+      input.getAttribute("aria-activedescendant") ?? "",
+    );
+  },
+};
+
 /**
  * The field filters the rows as the reader types. Its `aria-activedescendant` names the selected
  * row on open, after every keystroke and after every arrow, and the count (or the empty sentence)
@@ -237,6 +291,67 @@ export const Palette: Story = {
     await waitFor(() => expect(trigger).toHaveFocus());
   },
 };
+function NoMatchDemo() {
+  const [search, setSearch] = useState("SC-99");
+  return (
+    <Command label="Controls" className="max-w-[480px] border border-default">
+      <CommandInput placeholder="Find a control" value={search} onValueChange={setSearch} />
+      <CommandList>
+        <CommandEmpty noMatch="No controls match. Check the code or clear the search.">
+          No controls yet.
+        </CommandEmpty>
+        <CommandGroup heading="Controls">
+          <CommandItem value="AC-2 Account management">AC-2 Account management</CommandItem>
+          <CommandItem value="AU-6 Audit review">AU-6 Audit review</CommandItem>
+        </CommandGroup>
+      </CommandList>
+      <CommandFooter>
+        <CommandCount />
+      </CommandFooter>
+    </Command>
+  );
+}
+
+/**
+ * A search that matches nothing shows the empty sentence where the rows were. A listbox must hold
+ * an option, so while no row shows (and nothing loads) the list is a plain region with no role or
+ * name, still the one the field controls; the listbox returns with its rows.
+ */
+export const NoMatch: Story = {
+  name: "No match",
+  render: () => <NoMatchDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByRole("combobox", { name: "Controls" });
+    const list = () => canvasElement.querySelector<HTMLElement>("[cmdk-list]")!;
+    const sentence = "No controls match. Check the code or clear the search.";
+    const noRows = async () => {
+      await waitFor(() => expect(canvas.getByText(sentence)).toBeVisible());
+      await expect(canvas.queryAllByRole("option")).toHaveLength(0);
+      await expect(canvas.queryByRole("listbox")).toBeNull();
+      await expect(list()).not.toHaveAttribute("aria-label");
+      // The field still controls the list, which says the sentence.
+      await expect(input.ownerDocument.getElementById(input.getAttribute("aria-controls")!)).toBe(
+        list(),
+      );
+      await expect(list()).toHaveTextContent(sentence);
+      await expect(input).not.toHaveAttribute("aria-activedescendant");
+      await expect(canvas.getByText("0 matches")).toBeVisible();
+    };
+    await noRows();
+    await userEvent.clear(input);
+    await waitFor(() =>
+      expect(
+        within(canvas.getByRole("listbox", { name: "Results" })).getAllByRole("option"),
+      ).toHaveLength(2),
+    );
+    await activeIsSelected(input);
+    // The story ends on the empty list, so the page's axe check reads that state.
+    await userEvent.type(input, "SC-99");
+    await noRows();
+  },
+};
+
 /** While CommandLoading shows, the list is busy and CommandEmpty waits: a load in progress never says that nothing matched. */
 export const Loading: Story = {
   render: () => (
@@ -299,5 +414,63 @@ export const ShortViewport: Story = {
       within(await body.findByRole("dialog")).getByRole("button", { name: "Close" }),
     );
     await waitFor(() => expect(trigger).toHaveFocus());
+  },
+};
+
+/**
+ * The placeholder says what the list holds, and the empty sentence says what was not found and
+ * what to try. "No results" under "Search" leaves the reader to guess whether the query or the list
+ * is at fault.
+ */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <Pair
+      do={
+        <Command label="Controls" className="border border-default">
+          <CommandInput placeholder="Find a control" />
+          <CommandList>
+            <CommandEmpty>No controls match. Check the code or clear the search.</CommandEmpty>
+            <CommandGroup heading="Controls">
+              <CommandItem value="AC-2 Account management">AC-2 Account management</CommandItem>
+              <CommandItem value="AU-6 Audit review">AU-6 Audit review</CommandItem>
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      }
+      doText="The field says what to type, and an empty list says what was not found and what to try."
+      dont={
+        <Command label="Search" className="border border-default">
+          <CommandInput placeholder="Search" />
+          <CommandList>
+            <CommandEmpty>No results</CommandEmpty>
+            <CommandGroup heading="Items">
+              <CommandItem value="AC-2 Account management">AC-2 Account management</CommandItem>
+              <CommandItem value="AU-6 Audit review">AU-6 Audit review</CommandItem>
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      }
+      dontText="Search, Items and No results: nothing says what the list holds or what to do when it is empty."
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const controls = canvas.getByRole("combobox", { name: "Controls" });
+    await expect(controls).toHaveAttribute("placeholder", "Find a control");
+    await userEvent.type(controls, "SC-99");
+    await waitFor(() =>
+      expect(
+        canvas.getByText("No controls match. Check the code or clear the search."),
+      ).toBeVisible(),
+    );
+    const search = canvas.getByRole("combobox", { name: "Search" });
+    await userEvent.type(search, "SC-99");
+    await waitFor(() => expect(canvas.getByText("No results")).toBeVisible());
+    // Both lists show their rows again once the searches are cleared.
+    await userEvent.clear(controls);
+    await userEvent.clear(search);
+    await waitFor(() => expect(canvas.getAllByRole("option")).toHaveLength(4));
   },
 };

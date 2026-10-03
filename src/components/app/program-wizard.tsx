@@ -14,7 +14,7 @@ import {
   Section,
   Stack,
   Stepper,
-  Text,
+  StickyRail,
   toast,
   VisuallyHidden,
 } from "@ledger/design-system";
@@ -360,8 +360,12 @@ export function ProgramWizard() {
         previews={previews}
         libraryItems={resources.libraryItems}
         libraryPending={resources.pending}
+        libraryFailed={resources.libraryFailed}
+        onRetryLibrary={resources.retryLibrary}
         productItems={resources.productItems}
         productPending={resources.pending}
+        productFailed={resources.productFailed}
+        onRetryProducts={resources.retryProducts}
         newSystem={newSystem}
         editing={sheet}
         onEditingChange={setSheet}
@@ -402,9 +406,10 @@ export function ProgramWizard() {
       ) : null}
       {/* The steps show at once; each step's region waits for its own records. */}
       <Grid gap="space.300" templateColumns={{ lg: "200px minmax(0,1fr)" }}>
-        {/* Beside the form where it fits; below that the step's heading says where the reader is. */}
-        <Box className="hidden lg:block lg:sticky-rail">
-          <Stepper orientation="vertical" label="Program setup">
+        {/* Down the page in the rail beside the form; above the form, across wherever its column
+            fits four steps and down the page where it does not. */}
+        <StickyRail from="lg">
+          <Stepper orientation="responsive" label="Program setup">
             {steps.map((label, stepIndex) => (
               <Stepper.Item
                 key={label}
@@ -425,25 +430,12 @@ export function ProgramWizard() {
               />
             ))}
           </Stepper>
-        </Box>
+        </StickyRail>
         <Stack className="min-w-0" space="space.250">
           <Section>
             <Section.Header>
               <Section.Heading>
-                <Text
-                  as="p"
-                  size="small"
-                  color="color.text.subtle"
-                  aria-hidden
-                  className="lg:hidden"
-                >
-                  Step {index + 1} of {steps.length}
-                </Text>
-                <Section.Title
-                  ref={heading}
-                  tabIndex={-1}
-                  className="font-heading-xsmall outline-none"
-                >
+                <Section.Title ref={heading} tabIndex={-1} className="outline-none">
                   <VisuallyHidden>
                     Step {index + 1} of {steps.length}:{" "}
                   </VisuallyHidden>
@@ -466,50 +458,51 @@ export function ProgramWizard() {
               </form>
             </Stack>
           </Section>
-          <Inline
-            className="border-t border-default pt-200"
-            space="space.200"
-            alignBlock="center"
-            alignInline={editingKey || index > 0 ? undefined : "end"}
-            spread={editingKey || index > 0 ? "space-between" : undefined}
-          >
-            {editingKey || index > 0 ? (
-              <Button
-                variant="subtle"
-                onClick={() => {
-                  if (editingKey) setEditingKey(null);
-                  else arrive(index - 1);
-                }}
-              >
-                {editingKey ? "Back to profiles" : "Back"}
-              </Button>
-            ) : null}
-            <Inline space="space.150" alignBlock="center">
-              <Button variant="subtle" onClick={() => void guard.close()}>
-                Cancel
-              </Button>
-              {index < last ? (
+          <Box className="border-t border-default" paddingBlockStart="space.200">
+            <Inline
+              space="space.200"
+              alignBlock="center"
+              alignInline={editingKey || index > 0 ? undefined : "end"}
+              spread={editingKey || index > 0 ? "space-between" : undefined}
+            >
+              {editingKey || index > 0 ? (
                 <Button
-                  variant="primary"
-                  type={formActive ? "submit" : "button"}
-                  form={formActive ? formId : undefined}
-                  onClick={formActive ? undefined : advance}
-                  disabledReason={unavailable ?? loading(stepReady)}
+                  variant="subtle"
+                  onClick={() => {
+                    if (editingKey) setEditingKey(null);
+                    else arrive(index - 1);
+                  }}
                 >
-                  Continue
+                  {editingKey ? "Back to profiles" : "Back"}
                 </Button>
-              ) : (
-                <Button
-                  variant="primary"
-                  type="submit"
-                  form={formId}
-                  disabledReason={unavailable ?? loading(resources.ready)}
-                >
-                  Create program
+              ) : null}
+              <Inline space="space.150" alignBlock="center">
+                <Button variant="subtle" onClick={() => void guard.close()}>
+                  Cancel
                 </Button>
-              )}
+                {index < last ? (
+                  <Button
+                    variant="primary"
+                    type={formActive ? "submit" : "button"}
+                    form={formActive ? formId : undefined}
+                    onClick={formActive ? undefined : advance}
+                    disabledReason={unavailable ?? loading(stepReady)}
+                  >
+                    Continue
+                  </Button>
+                ) : (
+                  <Button
+                    variant="primary"
+                    type="submit"
+                    form={formId}
+                    disabledReason={unavailable ?? loading(resources.ready)}
+                  >
+                    Create program
+                  </Button>
+                )}
+              </Inline>
             </Inline>
-          </Inline>
+          </Box>
         </Stack>
       </Grid>
       {guard.confirmation}

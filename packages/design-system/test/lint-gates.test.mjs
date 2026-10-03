@@ -409,6 +409,8 @@ test("renamed props and values are reported on kit parts and fixed one to one", 
       `${kitParts} <Card size="sm" />`,
       `${kitParts} <DropdownMenuItem variant="destructive">Remove</DropdownMenuItem>`,
       `${kitParts} <Item.Group labelledBy="h" />`,
+      `${kitParts} <Chart.Donut name="Coverage" />`,
+      // A figure is no ring's name: the words in the middle, centerLabel.
       `${kitParts} <Chart.Donut label="75%" />`,
       `${kitParts} <Chart.Scatter name="x" />`,
       `${kitParts} <Chart.Frame status="loading" />`,
@@ -418,7 +420,7 @@ test("renamed props and values are reported on kit parts and fixed one to one", 
       'import { ShowPage } from "@ledger/design-system";',
       'import { controlBase } from "@ledger/design-system";',
     ]),
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   );
   assert.deepEqual(
     reports("no-deprecated-name", [
@@ -426,11 +428,13 @@ test("renamed props and values are reported on kit parts and fixed one to one", 
       `${kitParts} <Card size="medium" />`,
       `${kitParts} <DropdownMenuItem variant="danger">Remove</DropdownMenuItem>`,
       `${kitParts} <Chart.Donut centerLabel="75%" />`,
+      // A Donut's label is its name, as on every plot.
+      `${kitParts} <Chart.Donut label="Coverage" />`,
       // Local components that share a kit name keep their own props.
       '<Switch size="sm" />',
       "function Panel() { return null; } <Panel />",
     ]),
-    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
   );
   assert.match(fixed(`${kitParts} <Switch size="sm" />`), /<Switch size="small" \/>/);
   assert.match(fixed(`${kitParts} <SelectTrigger size={"default"} />`), /size=\{"medium"\}/);
@@ -464,17 +468,11 @@ test("the product's lint allowances name real rules, files and positive counts",
   }
 });
 
-test("the kit's suppressed reports name files that exist", () => {
-  const suppressions = JSON.parse(
-    fs.readFileSync(path.join(here, "../eslint-suppressions.json"), "utf8"),
+test("the kit keeps no eslint-suppressions.json, which ESLint would apply by itself", () => {
+  assert.ok(
+    !fs.existsSync(path.join(here, "../eslint-suppressions.json")),
+    "Fix the site; a ledger report ratchets through test/lint-allow.json.",
   );
-  for (const [file, rules] of Object.entries(suppressions)) {
-    assert.ok(fs.existsSync(path.join(here, "..", file)), `${file} exists`);
-    for (const [rule, { count }] of Object.entries(rules)) {
-      assert.ok(!rule.startsWith("ledger/"), `${rule}: ledger rules keep test/lint-allow.json`);
-      assert.ok(Number.isInteger(count) && count > 0, `${file} ${rule}: ${count}`);
-    }
-  }
 });
 
 test("the plugin's version is the package's, so an ESLint cache refreshes when rules change", () => {
@@ -622,15 +620,20 @@ test("each part token names its part and the files that draw it, and the kit rea
           ? ["generated", "stories"].includes(entry.name)
             ? []
             : files(path.join(dir, entry.name))
-          : /\.tsx?$/.test(entry.name)
+          : /\.(tsx?|css)$/.test(entry.name)
             ? [path.join(dir, entry.name)]
             : [],
       );
   const readers = new Map(partTokens.map((name) => [name, new Set()]));
+  const byVariable = new Map(partTokens.map((name) => [tokens[name], name]));
   for (const file of files(src)) {
     const text = fs.readFileSync(file, "utf8");
+    const home = path.relative(src, file).split(path.sep).join("/");
     for (const [, name] of text.matchAll(/token(?:Value)?\("(dimension\.part\.\w+)"\)/g))
-      readers.get(name)?.add(path.relative(src, file).split(path.sep).join("/"));
+      readers.get(name)?.add(home);
+    // A stylesheet reads a part token as its variable.
+    for (const [, variable] of text.matchAll(/var\((--ds-dimension-part-[\w-]+)\)/g))
+      readers.get(byVariable.get(variable))?.add(home);
   }
   for (const [name, { part, files: homes }] of Object.entries(PART_TOKENS)) {
     assert.ok(part, `${name} names its part`);

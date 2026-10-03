@@ -1,11 +1,10 @@
 import { ProductRecordDialog } from "./product-record-dialog";
-import { DetailFacts, MissingRecord } from "./work-common";
+import { MissingRecord, RecordActions, ReportFailures } from "./work-common";
 import { useCallback, useRef, useState, type ReactNode } from "react";
 import { Link, useBlocker } from "@tanstack/react-router";
 import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import {
   Absent,
-  Box,
   Diff,
   Empty,
   EmptyContent,
@@ -34,9 +33,11 @@ import {
   useLedgerLocale,
 } from "@ledger/design-system";
 import { Plus } from "lucide-react";
+import { Page } from "@/components/app/shell";
 import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
-import { useRow, useRows, type Row } from "@/lib/models";
+import { idSet, useRow, useRows, type Row } from "@/lib/models";
+import { programRequirementScope } from "@/lib/requirement-reads";
 import { labelFor, type DataRecord } from "@/lib/records";
 import { requirementIdentityLinks } from "@/lib/requirement-tree";
 import { revisionStates } from "@/lib/status";
@@ -69,7 +70,14 @@ export function requirementTab(value: unknown): RequirementTab | undefined {
   return REQUIREMENT_TABS.find((tab) => tab === value);
 }
 
-export type RequirementRecordFrame = { content: ReactNode; title: string; actions: ReactNode };
+export type RequirementRecordFrame = {
+  content: ReactNode;
+  title: string;
+  /** The preview's record actions: the identity's edit as one small primary, or none. */
+  actions: ReactNode;
+  /** Opens the identity's edit, where the reader may make it; the page's Actions menu offers it. */
+  onEdit: (() => void) | undefined;
+};
 
 type RequirementRecordProps = {
   programId: string;
@@ -129,30 +137,35 @@ export function RequirementRecordContent({
   const ordered = [...(revisions.data ?? [])].sort((a, b) => b.version_number - a.version_number);
   const active = lockedRecord ?? ordered[0];
   activeRef.current = active;
-  const currentTab = requirementTab(tab) ?? localTab;
+  // Where the caller keeps the tab (the address, or the table's preview), it owns it: Back to an
+  // address without one shows Overview again.
+  const currentTab = onTabChange ? (requirementTab(tab) ?? "Overview") : localTab;
   // Overview is drawn the first time it is chosen, as the retained panels are.
   const [overviewShown, setOverviewShown] = useState(currentTab === "Overview");
   if (!overviewShown && currentTab === "Overview") setOverviewShown(true);
   const changeTab = (next: RequirementTab) => {
     // The panels are retained, so a change kept on Overview survives the switch: no prompt.
     switchingTab.current = true;
-    setLocalTab(next);
-    onTabChange?.(next);
+    if (onTabChange) onTabChange(next);
+    else setLocalTab(next);
     requestAnimationFrame(() => {
       switchingTab.current = false;
     });
   };
-  const collection = workspace.collections.find((item) => item.name === "requirement_revisions");
+  // Every member but a viewer writes the workspace's own requirements and their revisions, and
+  // row-level security decides each write: the role says it, so the record and its preview do not
+  // load the record schema, which is the schema inspector's.
   const canWrite =
     workspace.role !== "viewer" && requirement.data?.tenant_id === workspace.tenantId;
-  const canCreate = canWrite && collection?.can_insert;
-  const canEdit = canWrite && collection?.can_update;
-  // One rule for the page and the preview: the identity is edited where it can be updated.
-  const canEditIdentity =
-    canWrite &&
-    !!workspace.collections.find((item) => item.name === "engineering_requirements")?.can_update;
-  const actions = canEditIdentity ? (
-    <Button size="small" variant="primary" onClick={() => setEditingIdentity(true)}>
+  const canCreate = canWrite;
+  const canEdit = canWrite;
+  // One rule for the page and the preview: the identity is edited where the revisions are.
+  const canEditIdentity = canWrite;
+  const onEdit = canEditIdentity ? () => setEditingIdentity(true) : undefined;
+  // The preview's inner header takes the edit as its one small primary; the page puts it in its
+  // Actions menu, before Inspect record.
+  const actions = onEdit ? (
+    <Button size="small" variant="primary" onClick={onEdit}>
       Edit engineering requirement
     </Button>
   ) : null;
@@ -162,6 +175,7 @@ export function RequirementRecordContent({
           content,
           title: active?.title ?? requirement.data?.code ?? "Requirement",
           actions,
+          onEdit,
         })
       : content;
 
@@ -179,126 +193,148 @@ export function RequirementRecordContent({
         description="This requirement is unavailable in this program."
       />,
     );
-  const details = active ? (
-    <DetailFacts
-      facts={[
-        ["Code", <Id>{requirement.data.code}</Id>],
-        ["Version", active.version_number],
-        ["State", <StatusBadge statuses={revisionStates} value={active.state} />],
-      ]}
-    />
-  ) : null;
+  const code = requirement.data.code;
   const content = (
     <Stack space="space.250">
       <ProgramQueryState queries={[requirement, revisions]} />
       {active ? (
-        <>
-          {/* A preview has no rail: its identity sits under its header. */}
-          {preview ? details : null}
-          <Tabs
-            value={currentTab}
-            onValueChange={(value) => changeTab(requirementTab(value) ?? "Overview")}
-          >
-            <TabsList variant="line" aria-label="Requirement sections">
-              {REQUIREMENT_TABS.map((value) => (
-                <TabsTrigger key={value} value={value}>
-                  {value}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            {/* Overview is kept mounted and its effects keep running while another tab shows:
-                a save sent as the reader leaves the row for another tab settles on that row,
-                and a draft kept there is still reported to the guard above. The retained
-                panels below pause their effects while hidden, which a row's save cannot
-                survive. */}
-            {overviewShown ? (
-              <TabsContent value="Overview" keepMounted>
-                <Box paddingBlockStart="space.200">
-                  <Stack space="space.250" className="min-w-0">
-                    {/* Keyed by the revision row, not its revision number: a save must not
-                        remount the form, which would drop the focus on the row that saved. The
-                        form takes a newer revision itself once nothing is unsaved. */}
-                    <RequirementForm
-                      key={active.id}
-                      requirementId={requirementId}
-                      source={active}
-                      readOnly={!canEdit}
-                      onStateChange={onEditStateChange}
-                    />
-                    <RequirementHierarchy revisionId={active.id} programId={programId} />
-                  </Stack>
-                </Box>
-              </TabsContent>
-            ) : null}
-            {/* A panel per tab, kept once visited: a tab's search, filters and page survive a
-                round trip through the others. */}
-            <RetainedTabPanels tabs={RETAINED_TABS} value={currentTab} space="space.250">
-              {(value) => {
-                switch (value) {
-                  case "Overview":
-                    return null;
-                  case "Control mappings":
-                    return (
-                      <RequirementControlMappings
-                        programId={programId}
-                        requirementId={requirementId}
-                        contentId={active.id}
-                        readOnly={!canEdit}
-                      />
-                    );
-                  case "Allocation":
-                    return (
-                      <RequirementAllocations
-                        programId={programId}
-                        requirementId={requirementId}
-                        contentId={active.id}
-                        readOnly={!canEdit}
-                      />
-                    );
-                  case "Verification":
-                    return (
-                      <ProgramCollection
-                        fill
-                        name="requirement_verifications"
-                        title="Verification procedures"
-                        filters={{ requirement_revision_id: active.id }}
-                        columns={[
-                          {
-                            key: "procedure_revision_id",
-                            title: "Procedure",
-                            render: (row) => (
-                              <RelationName
-                                table="procedure_revisions"
-                                id={String(row["procedure_revision_id"])}
-                              />
-                            ),
-                          },
-                          { key: "rationale", title: "Rationale" },
-                        ]}
-                        canCreate={!!canEdit}
-                        readOnly={!canEdit}
-                      />
-                    );
-                  case "Evidence":
-                    return (
-                      <RequirementEvidence
-                        programId={programId}
-                        requirementRevisionId={active.id}
-                        readOnly={!canEdit}
-                      />
-                    );
-                  case "Edit history":
-                    return <RequirementActivity programId={programId} revisions={ordered} />;
-                }
-              }}
-            </RetainedTabPanels>
-          </Tabs>
-          {!preview && currentTab === "Overview" && (
-            <Shell.Aside label="Requirement details">
-              <Inspector.Group title="Details">{details}</Inspector.Group>
-            </Shell.Aside>
-          )}
-        </>
+        // Keyed by the revision row, not its revision number: a save must not remount the form,
+        // which would drop the focus on the row that saved. The form takes a newer revision itself
+        // once nothing is unsaved.
+        <RequirementForm
+          key={active.id}
+          requirementId={requirementId}
+          source={active}
+          readOnly={!canEdit}
+          onStateChange={onEditStateChange}
+        >
+          {({ body, properties }) => {
+            // The requirement's properties, its type and owner editable where the reader may.
+            const details = (
+              <KeyValue.Group>
+                <KeyValue label="Code" wrap>
+                  <Id>{code}</Id>
+                </KeyValue>
+                <KeyValue label="Version" wrap>
+                  {active.version_number}
+                </KeyValue>
+                <KeyValue label="State" wrap>
+                  <StatusBadge statuses={revisionStates} value={active.state} />
+                </KeyValue>
+                {properties}
+              </KeyValue.Group>
+            );
+            return (
+              <>
+                {/* A preview has no rail: its properties sit under its header. */}
+                {preview ? details : null}
+                <Tabs
+                  value={currentTab}
+                  onValueChange={(value) => changeTab(requirementTab(value) ?? "Overview")}
+                >
+                  <TabsList variant="line" aria-label="Requirement sections">
+                    {REQUIREMENT_TABS.map((value) => (
+                      <TabsTrigger key={value} value={value}>
+                        {value}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                  {/* Overview is kept mounted and its effects keep running while another tab
+                      shows: a save sent as the reader leaves the row for another tab settles on
+                      that row, and a draft kept there is still reported to the guard above. The
+                      retained panels below pause their effects while hidden, which a row's save
+                      cannot survive. */}
+                  {overviewShown ? (
+                    <TabsContent value="Overview" keepMounted>
+                      <Stack space="space.250" className="min-w-0">
+                        {/* A failure region, as the retained panels are: its blocks' failures
+                            read as one alert at its top. */}
+                        <ProgramQueryState region>
+                          {/* The page's Details, first on Overview: the rail beside the body, or
+                            on a phone a closed disclosure above it that says the state. */}
+                          {!preview && currentTab === "Overview" && (
+                            <Shell.Aside
+                              label="Requirement details"
+                              summary={
+                                <StatusBadge statuses={revisionStates} value={active.state} />
+                              }
+                            >
+                              <Inspector.Group title="Details">{details}</Inspector.Group>
+                            </Shell.Aside>
+                          )}
+                          {body}
+                          <RequirementHierarchy revisionId={active.id} programId={programId} />
+                        </ProgramQueryState>
+                      </Stack>
+                    </TabsContent>
+                  ) : null}
+                  {/* A panel per tab, kept once visited: a tab's search, filters and page survive
+                      a round trip through the others. */}
+                  <RetainedTabPanels tabs={RETAINED_TABS} value={currentTab} space="space.250">
+                    {(value) => {
+                      switch (value) {
+                        case "Overview":
+                          return null;
+                        case "Control mappings":
+                          return (
+                            <RequirementControlMappings
+                              programId={programId}
+                              requirementId={requirementId}
+                              contentId={active.id}
+                              readOnly={!canEdit}
+                            />
+                          );
+                        case "Allocation":
+                          return (
+                            <RequirementAllocations
+                              programId={programId}
+                              requirementId={requirementId}
+                              contentId={active.id}
+                              readOnly={!canEdit}
+                            />
+                          );
+                        case "Verification":
+                          return (
+                            <ProgramCollection
+                              fill
+                              name="requirement_verifications"
+                              title="Verification procedures"
+                              filters={{ requirement_revision_id: active.id }}
+                              columns={[
+                                {
+                                  key: "procedure_revision_id",
+                                  title: "Procedure",
+                                  render: (row) => (
+                                    <RelationName
+                                      table="procedure_revisions"
+                                      id={String(row["procedure_revision_id"])}
+                                    />
+                                  ),
+                                },
+                                { key: "rationale", title: "Rationale" },
+                              ]}
+                              canCreate={!!canEdit}
+                              readOnly={!canEdit}
+                            />
+                          );
+                        case "Evidence":
+                          return (
+                            <RequirementEvidence
+                              programId={programId}
+                              requirementRevisionId={active.id}
+                              readOnly={!canEdit}
+                            />
+                          );
+                        case "Edit history":
+                          return <RequirementActivity programId={programId} revisions={ordered} />;
+                      }
+                    }}
+                  </RetainedTabPanels>
+                </Tabs>
+              </>
+            );
+          }}
+        </RequirementForm>
       ) : (
         <Empty>
           <EmptyMedia aria-hidden>
@@ -379,7 +415,7 @@ function RequirementActivity({
           <VisuallyHidden>Loading</VisuallyHidden>
         </>
       );
-    return <Text color="color.text.subtle">Not available</Text>;
+    return <Absent label="Not available" />;
   };
   /**
    * The day and the minute in the reader's zone, and the ISO value as the `<time>`. The full
@@ -443,7 +479,9 @@ function RequirementActivity({
                     ? event["description"]
                     : undefined
                 }
-                meta={typeof actor === "string" ? person(actor) : "Actor not recorded"}
+                meta={
+                  typeof actor === "string" ? person(actor) : <Absent label="Actor not recorded" />
+                }
                 {...eventTime(String(event["occurred_at"]))}
               >
                 <Stack space="space.100">
@@ -495,8 +533,21 @@ function RequirementHierarchy({
   revisionId: string;
   programId: string;
 }) {
-  const relationships = useRows("requirement_decompositions");
-  const contents = useRows("requirement_revisions");
+  // The program's revisions, and the decompositions among them, read by their parent: of each, only
+  // what names a requirement and its version, never a revision's authored text.
+  const contents = useRows(
+    "requirement_revisions",
+    programRequirementScope(programId, "requirement_revisions"),
+    { columns: ["id", "engineering_requirement_id", "version_number"] },
+  );
+  const relationships = useRows(
+    "requirement_decompositions",
+    { parent_requirement_revision_id: idSet(contents.data?.map((row) => row.id)) },
+    {
+      columns: ["id", "parent_requirement_revision_id", "child_requirement_revision_id"],
+      enabled: contents.isSuccess,
+    },
+  );
   // Only a load with nothing to show replaces the section: a failed refresh keeps the links the
   // reader has, under QueryState's alert.
   if (relationships.data === undefined || contents.data === undefined)
@@ -511,8 +562,8 @@ function RequirementHierarchy({
   return (
     <Section title="Requirement hierarchy">
       <ProgramQueryState queries={[relationships, contents]} />
-      {/* One label column for every link, wide enough for "Parent requirement". */}
-      <KeyValue.Group labelWidth={144}>
+      {/* One label column for every link, as wide as its longest label. */}
+      <KeyValue.Group labelWidth="auto">
         {currentParents.map((parent) => (
           <KeyValue key={parent.parentRequirementId} label="Parent requirement" wrap>
             <RequirementRevisionLink
@@ -544,7 +595,8 @@ function RequirementRevisionLink({
   const revision = useRow("requirement_revisions", revisionId);
   const requirement = useRow("engineering_requirements", revision.data?.engineering_requirement_id);
   // Three outcomes, as RelationName: a line while it loads, "Could not load" when the lookup
-  // fails, "Not available" when the requirement is missing or outside this program.
+  // fails, and a missing value read as "Not available" when the requirement is missing or outside
+  // this program.
   if (
     (revision.data === undefined && revision.isError) ||
     (revision.data && requirement.data === undefined && requirement.isError)
@@ -558,7 +610,7 @@ function RequirementRevisionLink({
       </>
     );
   if (!revision.data || !requirement.data || requirement.data.program_id !== programId)
-    return <Text color="color.text.subtle">Not available</Text>;
+    return <Absent label="Not available" />;
   return (
     <TextLink
       render={
@@ -594,7 +646,8 @@ export function ProgramRequirementRecord({
         description="This requirement is unavailable in this program."
       />
     );
-  const programName = program.data.name;
+  // The program as every program sub-record's trail names it: its code and its name.
+  const programName = `${program.data.code} · ${program.data.name}`;
   return (
     <RequirementRecordContent
       key={requirementId}
@@ -602,29 +655,41 @@ export function ProgramRequirementRecord({
       requirementId={requirementId}
       tab={tab}
       onTabChange={onTabChange}
-      renderFrame={({ content, title, actions }) => (
-        <Stack space="space.250">
-          <PageHeader>
-            <RecordTrail current={title}>
-              <TrailLink to="/programs">Programs</TrailLink>
-              <TrailLink to="/programs/$programId" params={{ programId }}>
-                {programName}
-              </TrailLink>
-              <TrailLink
-                to="/programs/$programId"
-                params={{ programId }}
-                search={{ tab: "Requirements" }}
-              >
-                Requirements
-              </TrailLink>
-            </RecordTrail>
-            <PageHeader.Heading>
-              <PageHeader.Title>{title}</PageHeader.Title>
-            </PageHeader.Heading>
-            <PageHeader.Actions>{actions}</PageHeader.Actions>
-          </PageHeader>
-          {content}
-        </Stack>
+      renderFrame={({ content, title, onEdit }) => (
+        <Page>
+          {/* The page is one failure region, and each of its tabs another: an outage reads as one
+              alert where it happened, whose Retry reloads every failed read in it. */}
+          <ProgramQueryState region>
+            <ReportFailures queries={[program]} />
+            <PageHeader>
+              <RecordTrail current={title}>
+                <TrailLink to="/programs">Programs</TrailLink>
+                <TrailLink to="/programs/$programId" params={{ programId }}>
+                  {programName}
+                </TrailLink>
+                <TrailLink
+                  to="/programs/$programId"
+                  params={{ programId }}
+                  search={{ tab: "Requirements" }}
+                >
+                  Requirements
+                </TrailLink>
+              </RecordTrail>
+              <PageHeader.Heading>
+                <PageHeader.Title>{title}</PageHeader.Title>
+              </PageHeader.Heading>
+              <PageHeader.Actions>
+                <RecordActions
+                  table="engineering_requirements"
+                  id={requirementId}
+                  onEdit={onEdit}
+                  editLabel="Edit engineering requirement"
+                />
+              </PageHeader.Actions>
+            </PageHeader>
+            {content}
+          </ProgramQueryState>
+        </Page>
       )}
     />
   );

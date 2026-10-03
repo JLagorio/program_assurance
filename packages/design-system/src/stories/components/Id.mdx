@@ -7,6 +7,8 @@ import * as Stories from "./Id.stories";
 
 # Id
 
+**Status: Stable.**
+
 An identifier: CTRL-0412, AC-2(3), FND-2231, a hash. One typeface app-wide, so an Id inherits the font, the size and the colour of wherever it sits and adds only tabular numerals, which is what makes a column of ids line up. It is kept as a component for the semantics, and so every id in the product can be found. A code snippet is for code, which an id is not.
 
 <Canvas of={Stories.IdMatrix} />
@@ -93,5 +95,7 @@ Id takes a span's native props and a ref, and names itself last with `data-slot=
 - [PageHeader](?path=/docs/layout-pageheader--docs): the id above a title.
 
 ## Don't
+
+An Id takes the colour of its sentence, never the link colour with nothing to click. Several ids are an Id.List, never a comma-joined string, and an id is written as the record writes it, never as prose ("Control 412").
 
 <Canvas of={Stories.Dont} />

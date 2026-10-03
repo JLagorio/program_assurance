@@ -16,7 +16,7 @@ The folders separate presentation, application layout and reusable interaction. 
 | Tokens      | `tokens/`, `src/generated/`                  | Shared values and generated utilities.                                                                |
 | Primitives  | `src/primitives/`                            | Spacing, alignment and type: Box, Stack, Inline, Flex, Grid, Bleed, Text, Heading and VisuallyHidden. |
 | Components  | `src/components/`                            | Controls and display families built from shadcn Base UI foundations.                                  |
-| Layout      | `src/layout/`                                | Shell regions, PageHeader, Section and PageSkeleton.                                                  |
+| Layout      | `src/layout/`                                | Shell regions, PageHeader, Section, PageSkeleton and StickyRail.                                      |
 | Patterns    | `src/patterns/`                              | Repeated interactions: DataTable, RecordPicker, Composer, Editable, Inspector and coordinated charts. |
 | Mode        | `src/mode/`                                  | Colour mode, storage and the before-paint script; it re-exports LedgerProvider from `src/lib/`.       |
 | Application | `src/routes/`, `src/components/`, `src/lib/` | Persistent product navigation, route content, permissions, data and workflows.                        |
@@ -35,7 +35,8 @@ the lint (`ledger/no-kit-shadow`) names the kit part to import instead.
 
 Event kinds, task states and the mention format belong to the product, not the kit. Ledger owns
 the reusable Composer and TaskRow patterns, and Timeline.Item supplies the feed item: the
-application supplies suggestion identities, insertion text and task status content. Package
+application supplies suggestion identities, insertion text and task status content; its task
+record writes comments in a Composer above their Timeline. Package
 stories cover these neutral contracts; the application's compositions are verified in the running
 app, never in a story (the package Storybook is the only one).
 
@@ -88,7 +89,15 @@ order in every part: the part's defaults first (a default `aria-label`), then th
 props, then the part's identity last (`data-slot`, a landmark role, the `id` and `tabIndex` a
 skip link needs, the accessible name the part computes from its own props), so a stray prop
 cannot un-landmark an area; merge `className` with `cn` and, in a `render` part, pass the
-consumer's props to `mergeProps` first for the same effect. Spell every optional prop
+consumer's props to `mergeProps` first for the same effect. A base part that other kit parts
+render under their own name sets its `data-slot` before the caller's props, so the composing
+part's name wins: Button and IconButton, Input, Textarea, InputGroup with InputGroupText and
+InputGroupButton, Field, Alert (which ErrorSummary and the search and palette errors render as),
+Breadcrumb (which a PageHeader.Lead renders as a record's trail), Separator, TooltipTrigger and TooltipContent (which Truncate renders as),
+AlertDialogCancel (which an AlertDialogAction with no command renders as), Collapsible and
+CollapsibleContent (which Diff, Inspector, Section and DataTable.Metrics render under their own
+names), ScrollArea (which TabsList renders as its strip's scroller), and an overlay's title
+and description (which a PageHeader.Title renders as). Every other part sets it last. Spell every optional prop
 `?: T | undefined`: the package has `exactOptionalPropertyTypes` on, and `label={maybe}` must
 typecheck. Document defaults,
 interactions between options and intentional visual differences in the same component's page.
@@ -104,7 +113,8 @@ next level. Dialog, Sheet and AlertDialog content start an outline of their own:
 h2 and the headings inside take 3. A portal or a rail of your own that starts an outline wraps its
 content in a provider with `level`. CardTitle is a div, which chooses no level, until `render`
 makes it a heading, and its page says so. A new part with a heading reads the context, and takes
-`render` for another element.
+`render` for another element. A part that draws a title renders a Heading at the size that title
+is (`page`, `overlay`, `section` or `display`), so every title the kit draws follows the ramp.
 
 A part that clips its content (`overflow: hidden`, a truncating cell, a collapsing panel) keeps
 the focus ring of what it holds whole: it leaves `space.050` of ring room in its padding, or its
@@ -131,7 +141,7 @@ with no way to read it.
   the families that show titles, values and stamps, and fails on sideways scroll, paint past the
   frame, or text cut with no ellipsis.
 
-Family pages in Storybook own each component's current API, defaults, integration examples and migration guidance. Keep shared rules here; keep release changes in the [changelog](../../packages/design-system/CHANGELOG.md). The [handoff](design-system-migration-handoff.md) records completed migration work and remaining integration risks.
+Family pages in Storybook own each component's current API, defaults and integration examples; what an earlier spelling is written as now is on the Storybook's Guidance/Upgrading page, under the family's name. Keep shared rules here; keep release changes in the [changelog](../../packages/design-system/CHANGELOG.md). The [handoff](design-system-migration-handoff.md) records completed migration work and remaining integration risks.
 
 ## Naming
 
@@ -149,14 +159,17 @@ Family pages in Storybook own each component's current API, defaults, integratio
   `information`, `success`, `warning`, `danger`, and `brand` where supported.
 - **One size scale.** `size` names a step on one scale, `xxsmall` to `xlarge`, and a part offers
   only the steps it draws. A control's height follows `dimension.control`: xsmall 24px, small
-  28px, medium 32px, large 36px. Button defaults to `medium`; IconButton defaults to `small` and adds
-  `xxsmall` for a row control, so an IconButton beside a default Button takes `size="medium"`.
-  Input, Select, Combobox and the date and time fields take `small` or `medium`. A `link`
-  variant Button ignores `size`: it is as tall as its text. `compact` names a
-  density, not a size (Item, Empty). Card, Switch and SelectTrigger still accept shadcn's `sm`
-  and `default` as deprecated spellings for one version; AlertDialogContent's `default` and `sm`,
-  Toggle's `sm`, `default` and `lg`, and InputGroup's `xs` and `sm` are those parts' own spellings
-  until they move onto the scale.
+  28px, medium 32px, large 36px. Button defaults to `medium`; IconButton defaults to `small` and
+  adds `xxsmall` for a row control, so an IconButton beside a default Button takes
+  `size="medium"`. Input, Select, Combobox and the date and time fields take `small` or `medium`;
+  Toggle and ToggleGroup take `small`, `medium` or `large`; InputGroupButton takes `xsmall` or
+  `small`, and `icon` with a required `label` for an icon-only square. A `link` variant Button
+  ignores `size`: it is as tall as its text. `compact` names a density, not a size (Item, Empty).
+  AlertDialogContent has no size: its `width` takes Dialog's steps (xsmall, small, medium). Card,
+  Switch, SelectTrigger, Toggle, ToggleGroup and InputGroupButton still accept shadcn's spellings
+  (`sm`, `default`, `lg`, `xs`, `icon-xs`, `icon-sm`), and AlertDialogContent its `size`, as
+  deprecated aliases for one version, which `ledger/no-deprecated-name` reports and, where one
+  word replaces another, rewrites.
 
 ## What the lint enforces
 
@@ -204,7 +217,9 @@ The [Pages guide](../../packages/design-system/src/stories/layout/Pages.mdx) hol
 - Shell.Panel supplies placement, heading, close and content spacing. A dismissible surface needs a visible close and a surviving focus target. Use Base UI Sheet when the rest of the page should be blocked.
 - Toolbar folds rather than stacks, by its container's width: `filters` fold into More first, then the display controls in `children` (grouping, columns, settings) follow them into More under Display, still operable there. Search, saved views in `views` and the buttons in `actions` stay visible; when they cannot share one row the toolbar takes two, and a third only when More and the primary cannot share a line. The folded controls return when space does.
 - A part responds to the space it is given, not the window: prefer intrinsic layout (`flex-wrap`, fitted grids, `min-w-0`) and use a container query where a switch is needed. Viewport breakpoints belong to page-level parts (the Shell's regions, overlays, the Grid primitive's responsive columns).
-- Anything interactive is reachable without hover (`[@media(hover:none)]:opacity-100` on a revealed control), and a control drawn under 24px carries `relative touch-target`, an invisible hit area where the pointer is coarse.
+- Anything interactive is reachable without hover (`any-pointer-coarse:opacity-100` on a revealed control: the kit's one touch predicate, `any-pointer: coarse`, which `useTouch` reads in script), and a control drawn under 24px carries `relative touch-target`, an invisible hit area where the pointer is coarse.
+- Sides are logical (`text-start`, `ps-`, `pe-`, `start-`, `end-`, `border-s`, `rounded-e`), so a part mirrors when the page reads right to left; a physical side stays only under a variant that names one (`data-[side=left]:`). `ledger/no-non-token-class` reports the physical spelling with its twin, and `storybook-rtl` renders the direction-sensitive families mirrored.
+- A part stacks its own pieces with `z-0`, `z-10` and `z-20`; between the page's regions a layer class stacks it (`z-chrome`, `z-blanket`, `z-overlay`, `z-toast`, `z-tooltip`, on the `layer.*` tokens), never a number of its own.
 - Long requirements, success criteria and assessment objectives wrap. Edit criteria directly in the cell with `Editable.Text multiline` and use a searchable chooser with confirmation for assessment relationships.
 - A screen is shaped by the reader's question. When a column, fact or block exists because the
   store has the field, it goes.
@@ -218,13 +233,21 @@ The [Pages guide](../../packages/design-system/src/stories/layout/Pages.mdx) hol
    tokens, relative imports and package `cn`. Multi-component compositions belong in patterns.
 2. Exercise every named part in the family's `<Family>.stories.tsx` with representative
    states and interactions. Add `play` assertions to those examples; use a matrix when it
-   helps compare variants. One playground usually covers the controls. Preserve distinct
+   helps compare variants, tagged `!manifest` with any other story that renders a `_lib` helper
+   and every Don't (Guidance/Writing stories), so MCP offers only plain usage as code to copy.
+   One playground usually covers the controls, and comes before a story that renders a wrapper
+   component of its own: the first story the manifest holds renders the parts. Preserve distinct
    regression cases when consolidating examples. Storybook tests all stories in both modes.
 3. Keep one accurate `<Family>.mdx` page with a useful example, generated props
    (`<ArgTypes of={Part} />`) and relevant usage/accessibility guidance. JSDoc explains
    package-specific props and defaults. Add anatomy, sizes, content rules or anti-examples
    only when they help; there is no required heading set or “Not applicable” filler.
-   Keep migration examples on that page, or link to one focused guide for a larger migration.
+   The first line under the page's title is the part's status: `**Status: Experimental.**` for a
+   new part, saying why and who owns it, until a product screen uses it; `**Status: Stable.**`
+   after that; `**Status: Deprecated.**`, naming what replaces it, for its last version.
+   Guidance/Upgrading says what each status promises.
+   A rename or a reshaped API adds its earlier spelling and what it is written as now to
+   Guidance/Upgrading, and the family page links it from Related.
 4. Add a changelog entry and run the relevant type, lint, story and package checks. Update the
    API baseline only when declarations or exposed dependency contracts change. Extend the
    packed-consumer fixture when exports, packaging or consumer integration change.
@@ -258,13 +281,15 @@ native props do not require exhaustive review prose. Current usage guidance live
 Semantic versions, recorded in `packages/design-system/CHANGELOG.md` with the story that shows each
 change. Until 1.0 a rename or a removed prop is a minor step; it ships with a deprecation the lint
 fixes wherever one is possible (`ledger/no-deprecated-name`, `ledger/no-deprecated-token`), and the
-old name stays one version. CI (`.github/workflows/ci.yml`) runs the contract on every push: the
-generated tokens match the source, maintained catalog exports have documented stories, the
-package and the prototype typecheck and lint, the tests pass, everything builds, the Storybook
-builds, and the package packs; the tarball is the build's artifact. A second product in another
-repository installs that tarball, or the package from the organisation's registry once there is
-one: `npm publish` from the package folder is the whole release, after `npm version` and a
-changelog entry.
+old name stays one version. Guidance/Upgrading lists each version's breaking changes and
+deprecations, each linking the family's section that says what to write; a family page's status line
+says whether its part is stable, experimental or deprecated. CI (`.github/workflows/ci.yml`) runs
+the contract on every push: the generated tokens match the source, maintained catalog exports have
+documented stories, the package and the prototype typecheck and lint, the tests pass, everything
+builds, the Storybook builds, and the package packs; the tarball is the build's artifact. A second
+product in another repository installs that tarball, or the package from the organisation's registry
+once there is one: `npm publish` from the package folder is the whole release, after `npm version`
+and a changelog entry.
 
 ## What is underneath
 
@@ -276,9 +301,13 @@ and `mergeProps` supply the `render` composition of Badge, BreadcrumbLink, LinkB
 other parts that take `render`. The rest of Breadcrumb is native HTML. Command uses cmdk with a Base UI
 Dialog shell, matching shadcn's Base UI implementation. Drawer also uses Base UI, including native swipe and snap-point behavior. Toast uses Base UI, with native manager operations and composable parts. TextLink and Shell navigation use useRender/mergeProps. The package has no direct Radix, Sonner or Vaul dependencies; cmdk can retain transitive Radix dependencies.
 Calendar and DatePicker use react-day-picker;
-react-resizable-panels under ResizablePanelGroup/Panel/Handle; recharts under Chart. Preserve the
-dependency's focus, Escape, outside-click, keyboard and ARIA behavior through the public parts.
-Screens import the package's documented APIs.
+react-resizable-panels under ResizablePanelGroup/Panel/Handle; recharts under Chart. Base UI and
+recharts are pinned to one exact version, because the kit's classes, stylesheets and plays read
+their markup (Base UI's data attributes, recharts' class names):
+`packages/design-system/test/pinned-libraries.test.mjs` holds each pin to the installed version and
+fails when the installed recharts no longer writes a class the kit names, so an upgrade changes
+the pin and runs the stories. Preserve the dependency's focus, Escape, outside-click, keyboard and
+ARIA behavior through the public parts. Screens import the package's documented APIs.
 
 ## Where the thinking is
 

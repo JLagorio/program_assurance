@@ -1,7 +1,7 @@
 // Where a class string enters a file, and what it reads as there: the one class reader every
 // Ledger rule that judges classes shares. A site is a place the file hands classes to something:
 //
-//   attribute         className, class or any *ClassName attribute of a JSX element
+//   attribute         className, class or any *ClassName or *Class attribute of a JSX element
 //   slot-map          a classNames map (react-day-picker's), read by its values at every depth; a
 //                     classNames string (react-transition-group's prefix) is no site
 //   spread            a class-keyed entry of a readable object spread onto an element
@@ -22,6 +22,7 @@
 // with Ledger's className callbacks, config keys and module-level constants.
 import path from "node:path";
 
+import { categoriesOf } from "./categories.js";
 import { classesOf, isKnown } from "./classes.js";
 import { classOwnerOf, kitPartOf, kitSrcOf } from "./identity.js";
 import { settings } from "./settings.js";
@@ -71,6 +72,9 @@ const PASS_THROUGH = new Set([
 ]);
 /** Attributes and object keys that hold classes: className, class, and any *ClassName. */
 export const CLASS_KEY = /^(className|class|[a-z]\w*ClassName)$/;
+/** A JSX attribute a component names for its classes in its own words (`containerClass`,
+    `iconClass`): read as className is. Only on an element; an object key of that shape is a name. */
+const CLASS_ATTRIBUTE = /^[a-z]\w*Class$/;
 /** A slot map (react-day-picker's `classNames`): the keys are slots and the values are classes. */
 export const SLOT_MAP_KEY = /^([a-z]\w*)?classNames$/i;
 /** How the reader reads a value: an object's keys as classes, its values, or a slot map's. */
@@ -107,6 +111,42 @@ export const tokenShaped = (text) => {
     )
   );
 };
+
+/** The shapes of a class no data string is spelt like: an arbitrary value (`w-[240px]`), a class
+    with alpha (`bg-brand-bold/50`, `w-1/2`) and Tailwind's own palette (`bg-red-500`). A bare word
+    ("rounded", "flex") is a CSS value or an attribute as often as a class, so it is none. A word of
+    one of these shapes counts only as a class Tailwind or the kit places (placedClass): an
+    identifier such as "sp-800-53/5", "rev-5/1", "status-red-500" or "items-[0]" is data. */
+const UNMISTAKABLE = [
+  /^-?[a-z][a-z0-9]*(?:-[a-z0-9]+)*-\[[^\]\s]+\]$/,
+  /^[a-z][a-z0-9]*(?:-[a-z0-9]+)+\/(?:\d{1,3}|\[[^\]\s]+\])$/,
+  /^[a-z]+(?:-[a-z]+)*-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(?:50|[1-9]00|950)$/,
+];
+/** A class the lint can place, whatever rule then judges it: one it knows, or one Tailwind's
+    grammar, the kit's CSS or a marker places (categories.js's categoriesOf: `rounded`, `bg-red-500`,
+    `w-[240px]`); a word no class is spelt like ("high", "sp-800-53/5", "items-[0]") is none. */
+const placedClass = ({ cls, base }) => isKnown(base) || categoriesOf(cls).via !== "none";
+/** A string that is a class list though the lint knows few of its classes: every word is a class
+    it knows or one no data is spelt like that Tailwind places, and one at least is the latter. A
+    module-level string of them alone is read where it is declared
+    (`export const width = "w-[240px]"`). */
+export function unmistakablyClasses(text) {
+  if (!tokenShaped(text)) return false;
+  let marked = false;
+  for (const parsed of classesOf(text)) {
+    if (UNMISTAKABLE.some((pattern) => pattern.test(parsed.base))) {
+      if (!placedClass(parsed)) return false;
+      marked = true;
+    } else if (!isKnown(parsed.base)) return false;
+  }
+  return marked;
+}
+/** A string a `*Class` attribute holds as classes: one that reads as classes, or whose every word
+    is a class the lint can place (`rounded`, `w-[240px]`, `dark:bg-neutral`). The attribute's name
+    is the component's own, so a word no class is spelt like is the prop's data, not a class:
+    `impactClass="high"`, `securityClass="secret"`, react-scroll's `activeClass="active"`. */
+const classAttributeText = (text) =>
+  looksLikeClasses(text) || (tokenShaped(text) && classesOf(text).every(placedClass));
 
 /** looksLikeClasses's answers by text: a module-level map asks it of every string it holds. */
 const looks = new Map();
@@ -1017,10 +1057,19 @@ function createReader(context, { classFunctions, variantFunctions }, self) {
   const attributeSites = (attribute) => {
     if (attribute.name.type !== "JSXIdentifier") return NONE;
     const name = attribute.name.name;
-    if (!CLASS_KEY.test(name) && !SLOT_MAP_KEY.test(name)) return NONE;
+    const own = CLASS_KEY.test(name);
+    const classes = own || CLASS_ATTRIBUTE.test(name);
+    if (!classes && !SLOT_MAP_KEY.test(name)) return NONE;
     return remember(attribute, () => {
       const where = { attribute: name, element: attribute.parent, at: attribute };
-      if (CLASS_KEY.test(name)) return [site(attribute.value, "attribute", where)];
+      if (own) return [site(attribute.value, "attribute", where)];
+      if (classes) {
+        // A `*Class` attribute gives the strings that are classes (classAttributeText); one that
+        // gives none is data, and so is what it builds at runtime then (`impactClass={level}`).
+        const found = site(attribute.value, "attribute", where);
+        found.strings = found.strings.filter(({ text }) => classAttributeText(text));
+        return found.strings.length ? [found] : [];
+      }
       if (SLOT_MAP_KEY.test(name) && slotMap(attribute.value))
         return [site(attribute.value, "slot-map", where, "slots")];
       return [];
@@ -1176,7 +1225,7 @@ function createReader(context, { classFunctions, variantFunctions }, self) {
       if (!strings.length) return [];
       const at = (node) => site(node, "declaration-map", { at: declarator }, "class", false);
       if (strings.length === 1 && strings[0] === init)
-        return looksLikeClasses(textOf(init))
+        return looksLikeClasses(textOf(init)) || unmistakablyClasses(textOf(init))
           ? [site(init, "declaration", { at: declarator }, "class", false)]
           : [];
       const classy = (list) => list.filter((node) => looksLikeClasses(textOf(node))).length;

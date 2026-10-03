@@ -1,5 +1,14 @@
 import { productRecordNoun } from "@/lib/product-records";
-import { useEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import {
   Absent,
   Alert,
@@ -8,6 +17,8 @@ import {
   AlertIcon,
   AlertTitle,
   Button,
+  DateLabel,
+  DateTime,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -30,10 +41,18 @@ import {
   VisuallyHidden,
   announce,
   type EmptyIllustrationKind,
+  type KeyValueLabelWidth,
 } from "@ledger/design-system";
 import { ChevronDown } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { ProductRecordDialog } from "./product-record-dialog";
+import {
+  FailureRegionContext,
+  useFailureReports,
+  useRegionFailures,
+  type FailureRegion,
+} from "./failure-region";
+import { Page } from "@/components/app/shell";
 import { useWorkspace } from "@/components/app/workspace";
 import { VocabularyValue } from "@/components/app/status";
 import { type DataRecord, type RecordValue } from "@/lib/records";
@@ -76,6 +95,8 @@ export type QueryStatus = {
   fetchStatus?: "fetching" | "paused" | "idle" | undefined;
   /** A refetch is in flight: Retry shows it. */
   isFetching?: boolean | undefined;
+  /** The rows shown are the last question's, kept while this one loads (TanStack's `placeholderData: keepPreviousData`). */
+  isPlaceholderData?: boolean | undefined;
 };
 
 /**
@@ -84,6 +105,16 @@ export type QueryStatus = {
  */
 function isQueryLoading(query: QueryStatus) {
   return query.isPending && query.data === undefined && query.fetchStatus !== "idle";
+}
+
+/** Each query once, by its refetch: the same query handed over by two blocks is retried once. */
+function onceEach(queries: QueryStatus[]) {
+  const seen = new Set<QueryStatus["refetch"]>();
+  return queries.filter((query) => {
+    if (seen.has(query.refetch)) return false;
+    seen.add(query.refetch);
+    return true;
+  });
 }
 
 const HEADINGS = "h1, h2, h3, h4, h5, h6";
@@ -129,6 +160,10 @@ function landIn(region: Element, order: "search" | "heading") {
  * Retry that brings the region back, focus moves to its first heading and the page says "Records
  * loaded.". A collection passes its queries to ProductCollection (or ModelTable, AssessmentTable)
  * instead, which keeps its toolbar and draws skeleton rows.
+ *
+ * With `region`, it is a failure region: every QueryState and ProductCollection drawn inside it
+ * hands its failures to this one alert, whose Retry refetches all of them, so one outage reads as
+ * one alert per record page or tab, never one per block. A region inside another says its own.
  */
 export function QueryState({
   queries: many = [],
@@ -136,6 +171,7 @@ export function QueryState({
   children,
   retryLabel = "Retry loading",
   shape = "region",
+  region = false,
 }: {
   queries?: QueryStatus[];
   query?: QueryStatus;
@@ -144,10 +180,31 @@ export function QueryState({
   retryLabel?: string | undefined;
   /** What loads: a region (two lines), or a record page (its trail, title and a paragraph). */
   shape?: "region" | "record" | undefined;
+  /** Says the failures of every block inside it, once: a record page's or a tab panel's region. */
+  region?: boolean | undefined;
 }) {
   const queries = query ? [...many, query] : many;
-  const failed = queries.filter((item) => item.isError);
-  const missing = failed.some((item) => item.data === undefined);
+  const own = queries.filter((item) => item.isError);
+  const [reported, report] = useFailureReports();
+  const probe = useRef<HTMLSpanElement | null>(null);
+  const inRegion = useContext(FailureRegionContext) !== null;
+  // A region's own queries are said in its own alert; a block inside a region hands them over.
+  const [held, attach] = useRegionFailures(region ? [] : own);
+  const probeRef = useCallback(
+    (node: HTMLSpanElement | null) => {
+      probe.current = node;
+      attach(node);
+    },
+    [attach],
+  );
+  const regionValue = useMemo<FailureRegion>(
+    () => ({ container: () => probe.current?.parentElement ?? null, report }),
+    [report],
+  );
+  // What this alert says: a region's own failures and its blocks', each query once (two blocks
+  // may read the same one); a held block's, none.
+  const failed = region ? onceEach([...own, ...reported]) : held ? [] : own;
+  const missing = own.some((item) => item.data === undefined);
   const loading = !missing && queries.some(isQueryLoading);
   const available = !missing && !loading;
   // TanStack keeps isPending false while a failed query refetches; this and isFetching show Retry's.
@@ -207,9 +264,18 @@ export function QueryState({
   };
   const first = failed[0];
   const detail = first?.error instanceof Error ? first.error.message : "Try again in a moment.";
-  const stale = failed.length > 0 && !missing;
+  const stale = failed.length > 0 && failed.every((item) => item.data !== undefined);
+  const body = (
+    <>
+      {available && restored && <span hidden ref={start} />}
+      {available && children}
+    </>
+  );
   return (
     <>
+      {/* Where this state is drawn: a region's container, and what tells a held block from a
+          portaled one. Outside any region there is nothing to tell, so nothing is drawn. */}
+      {(region || inRegion) && <span hidden ref={probeRef} />}
       {first && (
         <Alert ref={alertRef} variant="destructive" role="alert">
           <AlertIcon />
@@ -231,6 +297,8 @@ export function QueryState({
           </AlertAction>
         </Alert>
       )}
+      {/* A block whose region says its failure keeps its place with a quiet line, not a gap. */}
+      {held && !region && missing && <Text color="color.text.subtle">Could not load</Text>}
       {loading &&
         (shape === "record" ? (
           <Stack space="space.150" aria-busy="true">
@@ -245,8 +313,27 @@ export function QueryState({
             <VisuallyHidden role="status">Loading records…</VisuallyHidden>
           </Stack>
         ))}
-      {available && restored && <span hidden ref={start} />}
-      {available && children}
+      {region ? (
+        <FailureRegionContext.Provider value={regionValue}>{body}</FailureRegionContext.Provider>
+      ) : (
+        body
+      )}
+    </>
+  );
+}
+
+/**
+ * Hands the failures of reads whose values say "Could not load" in place (QueryValue) to the
+ * failure region it is drawn in, and draws nothing there: the region's one alert says them, and
+ * its Retry reloads them. Outside a region, or portaled out of one, it is the alert with Retry.
+ */
+export function ReportFailures({ queries }: { queries: QueryStatus[] }) {
+  const failed = queries.filter((query) => query.isError);
+  const [held, probe] = useRegionFailures(failed);
+  return (
+    <>
+      <span hidden ref={probe} />
+      {!held && failed.length > 0 && <QueryState queries={failed} />}
     </>
   );
 }
@@ -337,14 +424,14 @@ export function MissingRecord({
   );
   if (inline) return empty;
   return (
-    <Stack space="space.200">
+    <Page>
       <PageHeader>
         <PageHeader.Heading>
           <PageHeader.Title>{kind}</PageHeader.Title>
         </PageHeader.Heading>
       </PageHeader>
       {empty}
-    </Stack>
+    </Page>
   );
 }
 export type FormTarget = {
@@ -398,54 +485,66 @@ export function SchemaLink({
 const isNothing = (value: ReactNode) =>
   value === null || value === undefined || value === false || value === "";
 
-/** A label the kit's 104px column cuts ("Acceptance criterion", "Configuration baseline"). */
+/** Past this many characters a label outgrows KeyValue's `default` label column. */
 const LONG_LABEL = 14;
 
 /**
  * A record's facts as one definition list: one label width, nothing as a labelled Absent. The
- * width is the kit's unless a label is long, when the whole group takes 160 so no label is cut.
+ * width is the kit's `default` unless a label is long, when the whole group takes `wide`.
  */
 export function DetailFacts({
   facts,
   labelWidth,
 }: {
   facts: [string, ReactNode][];
-  labelWidth?: number | undefined;
+  labelWidth?: KeyValueLabelWidth | undefined;
 }) {
-  const width = labelWidth ?? (facts.some(([name]) => name.length > LONG_LABEL) ? 160 : undefined);
+  const width =
+    labelWidth ?? (facts.some(([name]) => name.length > LONG_LABEL) ? "wide" : undefined);
   return (
     <KeyValue.Group {...(width === undefined ? {} : { labelWidth: width })}>
       {facts.map(([name, value]) => (
         <KeyValue key={name} label={name} wrap>
-          {isNothing(value) ? <Absent label="Not recorded" /> : value}
+          {isNothing(value) ? <Absent /> : value}
         </KeyValue>
       ))}
     </KeyValue.Group>
   );
 }
+/**
+ * A record page's one header menu: "Actions" with a chevron, the record's edit first, its other
+ * commands after it, and Inspect record (the schema record) last. A viewer and a read-only record
+ * keep the menu with Inspect record alone; `children` are drawn as given, so the caller decides
+ * who sees a command (Create version, Publish version, Export OSCAL).
+ */
 export function RecordActions({
   onEdit,
   table,
   id,
   editLabel,
   readOnly = false,
+  children,
 }: {
-  onEdit: () => void;
+  /** Opens the record's edit; without it the menu has no edit. */
+  onEdit?: (() => void) | undefined;
   table: string;
   id: string;
-  editLabel?: string;
-  readOnly?: boolean;
+  editLabel?: string | undefined;
+  readOnly?: boolean | undefined;
+  /** The record's other commands, as DropdownMenuItems, between the edit and Inspect record. */
+  children?: ReactNode | undefined;
 }) {
   const workspace = useWorkspace();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button iconAfter={<ChevronDown />}>Actions</Button>} />
       <DropdownMenuContent align="end">
-        {!readOnly && workspace.role !== "viewer" && (
+        {onEdit && !readOnly && workspace.role !== "viewer" && (
           <DropdownMenuItem onClick={onEdit}>
             {editLabel ?? `Edit ${productRecordNoun(table)}`}
           </DropdownMenuItem>
         )}
+        {children}
         <DropdownMenuLinkItem
           closeOnClick
           render={
@@ -463,13 +562,36 @@ export function RecordActions({
 }
 
 /**
+ * When work is due, and where it stands: overdue, due today and due soon say so beside the date
+ * (the kit's DateLabel) while the work is open. Done work's date reads plainly, and cancelled work's
+ * date has no state at all. A task's due, a POA&M milestone's or commitment's planned date.
+ */
+export function DueDate({
+  value,
+  done = false,
+  cancelled = false,
+}: {
+  /** The stored day or moment, as it came: anything but a date string reads as no due date. */
+  value: unknown;
+  /** The work is finished: the date shows plainly. */
+  done?: boolean | undefined;
+  /** The work will not happen: the date shows with no state. */
+  cancelled?: boolean | undefined;
+}) {
+  const due = typeof value === "string" && value !== "" ? value : null;
+  if (cancelled) return <DateTime value={due} format="date" absentLabel="No due date" />;
+  return <DateLabel value={due} complete={done} format="date" absentLabel="No due date" />;
+}
+
+/**
  * A related revision by its version ("Version 3"), for the revision tables that carry no name
  * (evidence, risk, POA&M and SSP revisions): a Skeleton while it loads, "Could not load" when the
- * lookup fails, "Not available" when it is missing, and Absent when there is no relationship.
+ * lookup fails, and Absent when there is no relationship ("Not recorded") or the revision is
+ * missing or hidden ("Not available").
  */
 export function VersionName({ table, id }: { table: TableName; id: string | null | undefined }) {
   const query = useRow(table, id);
-  if (!id) return <Absent label="Not recorded" />;
+  if (!id) return <Absent />;
   const row = query.data as unknown as DataRecord | null | undefined;
   if (row === undefined && query.isError)
     return <Text color="color.text.subtle">Could not load</Text>;
@@ -480,7 +602,7 @@ export function VersionName({ table, id }: { table: TableName; id: string | null
         <VisuallyHidden>Loading</VisuallyHidden>
       </>
     );
-  if (row === null) return <Text color="color.text.subtle">Not available</Text>;
+  if (row === null) return <Absent label="Not available" />;
   const version = row["version_number"];
   const name = row["title"] ?? row["name"];
   return (

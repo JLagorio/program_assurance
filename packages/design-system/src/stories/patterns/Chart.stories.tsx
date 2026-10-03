@@ -42,8 +42,12 @@ import {
   statusSeries,
   systemTotals,
 } from "../_lib/chart-data";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Patterns/Chart/Overview",
@@ -69,6 +73,7 @@ const brand = [{ key: "findings", label: "Findings", tone: "brand" as const }];
 
 /** The Frame in every state, the legend in every swatch, the tones, and one of each kind inside it. */
 export const ChartMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Specimens title="Frame · ready · loading (the plot's own skeleton) · refreshing (the last plot, dimmed)">
@@ -280,6 +285,14 @@ function FramedChart() {
   );
 }
 
+export const Playground: Story = {
+  args: {
+    state: "ready",
+    legend: "top",
+    size: "medium",
+  },
+};
+
 /** The Frame: title, one line under it, the legend (hover dims the other series, click hides its own), a control that redraws the plot, and the Table toggle that lays the same numbers out. */
 export const Framed: Story = {
   render: () => <FramedChart />,
@@ -480,11 +493,17 @@ function Following() {
         {view === "family" ? (
           <Chart.Bar data={byFamily} x="family" xLabel="Family" series={statusSeries} stacked />
         ) : view === "overall" ? (
-          <Chart.Donut slices={overall} label="75%" caption="satisfied" size={160} thickness={16} />
+          <Chart.Donut
+            slices={overall}
+            centerLabel="75%"
+            caption="satisfied"
+            size={160}
+            thickness={16}
+          />
         ) : (
           <div>
             {overall.map((s) => (
-              <KeyValue key={s.key} label={s.label} labelWidth={160}>
+              <KeyValue key={s.key} label={s.label} labelWidth="wide">
                 {String(s.value)}
               </KeyValue>
             ))}
@@ -552,13 +571,13 @@ function ComponentCard({ name }: { name: string }) {
   return (
     <Stack space="space.150">
       <div>
-        <KeyValue label="Owner" labelWidth={88}>
+        <KeyValue label="Owner" labelWidth="narrow">
           {f.owner}
         </KeyValue>
-        <KeyValue label="Open" labelWidth={88}>
+        <KeyValue label="Open" labelWidth="narrow">
           {`${f.open} findings`}
         </KeyValue>
-        <KeyValue label="Assessed" labelWidth={88}>
+        <KeyValue label="Assessed" labelWidth="narrow">
           {f.assessed}
         </KeyValue>
       </div>
@@ -609,13 +628,13 @@ function FamilyCard({ selection }: { selection: ChartSelection }) {
   return (
     <Stack space="space.150">
       <div>
-        <KeyValue label="Family" labelWidth={88}>
+        <KeyValue label="Family" labelWidth="narrow">
           {familyNames[code] ?? code}
         </KeyValue>
-        <KeyValue label="Controls" labelWidth={88}>
+        <KeyValue label="Controls" labelWidth="narrow">
           {String(total)}
         </KeyValue>
-        <KeyValue label="Target" labelWidth={88}>
+        <KeyValue label="Target" labelWidth="narrow">
           {`${String(selection.datum["target"])} satisfied`}
         </KeyValue>
       </div>
@@ -954,9 +973,9 @@ export const Legends: Story = {
     <Inline space="space.600" alignBlock="start" shouldWrap>
       <Inline space="space.300" alignBlock="center">
         <Chart.Donut
-          label="80%"
+          centerLabel="80%"
           caption="satisfied"
-          name="Control coverage"
+          label="Control coverage"
           slices={[
             { key: "s", label: "Satisfied", value: 298, tone: "success" },
             { key: "p", label: "Partial", value: 40, tone: "warning" },
@@ -1215,6 +1234,7 @@ export const Headings: Story = {
 
 /** The mistakes the family is written to prevent, each beside the right way. Each kind's page has its own. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -1303,18 +1323,9 @@ export const Dont: Story = {
   ),
 };
 
-export const Playground: Story = {
-  args: {
-    state: "ready",
-    legend: "top",
-    size: "medium",
-  },
-};
-
 /** A line, a bar and a stacked bar on a small phone: the frame shrinks to its container, the axes thin out, the legend wraps, and nothing leaves the window. */
 export const SmallPhone: Story = {
   globals: { viewport: { value: "ledgerSmall", isRotated: false } },
-  tags: ["narrow"],
   render: () => (
     <Stack space="space.300">
       <Chart title="Findings over time" series={findingSeries} swatch="line" size="small">

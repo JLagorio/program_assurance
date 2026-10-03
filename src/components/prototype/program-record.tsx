@@ -1,5 +1,5 @@
 import { productRecordNoun } from "@/lib/product-records";
-import { EmptyMessage, MissingRecord, type QueryStatus } from "./work-common";
+import { EmptyMessage, MissingRecord, ReportFailures, type QueryStatus } from "./work-common";
 import { useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
@@ -19,12 +19,13 @@ import {
   Prose,
   Section,
   Shell,
-  Stack,
+  Skeleton,
   Tabs,
   TabsList,
   TabsTrigger,
   Text,
   TextLink,
+  VisuallyHidden,
 } from "@ledger/design-system";
 import { ChevronDown } from "lucide-react";
 import { useRow } from "@/lib/models";
@@ -57,7 +58,7 @@ import {
   impactProvenance,
 } from "./system-assurance-details";
 import { useSystemAssurance } from "./use-system-assurance";
-import { FactValue, RelationName } from "./record-tools";
+import { RelationName } from "./record-tools";
 import { RecordTrail, TrailLink } from "./record-trail";
 import { SspAssembly } from "./ssp-assembly";
 import {
@@ -68,28 +69,53 @@ import {
   type ProgramTableName,
 } from "./program-shared";
 
+/**
+ * A program sub-record's Details: the rail beside the body, or below the aside breakpoint a closed
+ * disclosure where it is rendered, whose row says the record's state (`summary`). A record without
+ * tabs renders it right after its header; a tabbed record, first on its Overview.
+ */
+function RecordDetails({
+  recordType,
+  summary,
+  children,
+}: {
+  /** The record type, which names the landmark: "System" is "System details". */
+  recordType: "System" | "Component" | "Control";
+  /** The record's state as its status badge, which the phone's closed Details row shows. */
+  summary?: ReactNode | undefined;
+  /** The Details rows (KeyValues), composed by the record. */
+  children: ReactNode;
+}) {
+  return (
+    <Shell.Aside label={`${recordType} details`} summary={summary}>
+      <Inspector.Group title="Details">{children}</Inspector.Group>
+    </Shell.Aside>
+  );
+}
+
 function ProgramRecordFrame({
   programId,
   table,
+  recordType,
   row,
   title,
   children,
-  facts = [],
   readOnly = false,
   renderEditor,
   collection,
   trail,
   actions,
   properties,
-  showProperties = true,
+  summary,
+  queries,
 }: {
   programId: string;
   table: ProgramTableName;
+  /** The record type, which names the Details rail's landmark: "System" is "System details". */
+  recordType: "System" | "Component" | "Control";
   row: DataRecord;
   title: string;
   children: ReactNode;
-  /** Rail facts drawn from the row by field; `properties` replaces them. */
-  facts?: string[];
   readOnly?: boolean;
   renderEditor?: ((onClose: () => void) => ReactNode) | undefined;
   /** The program tab that holds this record's collection: the trail's level after the program. */
@@ -98,16 +124,25 @@ function ProgramRecordFrame({
   trail?: ReactNode[] | undefined;
   /** Header actions beside Edit. */
   actions?: ReactNode;
-  /** The rail's Details rows (KeyValues), composed by the record. */
+  /** The Details rows (KeyValues) of a record without tabs, drawn right after the header. A tabbed record leaves it out and draws RecordDetails first on its Overview. */
   properties?: ReactNode;
-  showProperties?: boolean;
+  /** The record's state as its status badge, for the Details disclosure's row on a phone. */
+  summary?: ReactNode | undefined;
+  /**
+   * The reads the record is drawn from, the record itself first: a failed refresh of any of them
+   * is said in the page's one alert, over the record as it last loaded.
+   */
+  queries: QueryStatus[];
 }) {
   const program = useRow("programs", programId);
   const workspace = useWorkspace();
   const [editing, setEditing] = useState(false);
   return (
-    <>
-      <Page>
+    <Page>
+      {/* The page is one failure region, and each of its tabs another: an outage reads as one
+          alert where it happened, whose Retry reloads every failed read in it. */}
+      <ProgramQueryState region>
+        <ReportFailures queries={[program, ...queries]} />
         <PageHeader>
           <RecordTrail current={title}>
             <TrailLink to="/programs">Programs</TrailLink>
@@ -154,30 +189,20 @@ function ProgramRecordFrame({
             </DropdownMenu>
           </PageHeader.Actions>
         </PageHeader>
+        {properties !== undefined && (
+          <RecordDetails recordType={recordType} summary={summary}>
+            {properties}
+          </RecordDetails>
+        )}
         {children}
-        {editing &&
-          (renderEditor ? (
-            renderEditor(() => setEditing(false))
-          ) : (
-            <ProgramEditor table={table} existing={row} onClose={() => setEditing(false)} />
-          ))}
-      </Page>
-      {showProperties && (
-        <Shell.Aside label="Record details">
-          <Inspector.Group title="Details">
-            {properties ?? (
-              <KeyValue.Group>
-                {facts.map((field) => (
-                  <KeyValue key={field} label={labelFor(field)} wrap>
-                    <FactValue table={table} field={field} value={row[field]} />
-                  </KeyValue>
-                ))}
-              </KeyValue.Group>
-            )}
-          </Inspector.Group>
-        </Shell.Aside>
-      )}
-    </>
+      </ProgramQueryState>
+      {editing &&
+        (renderEditor ? (
+          renderEditor(() => setEditing(false))
+        ) : (
+          <ProgramEditor table={table} existing={row} onClose={() => setEditing(false)} />
+        ))}
+    </Page>
   );
 }
 export const SYSTEM_TABS = [
@@ -209,7 +234,9 @@ export function ProgramSystemRecord({
 }: {
   programId: string;
   systemId: string;
+  /** The tab the address names; with no `onTabChange` the tab is local. */
   tab?: SystemTab | undefined;
+  /** Puts the chosen tab in the address, as a new history entry. */
   onTabChange?: ((tab: SystemTab) => void) | undefined;
 }) {
   const workspace = useWorkspace();
@@ -235,24 +262,26 @@ export function ProgramSystemRecord({
   const system = query.data as SystemElement;
   const row = assurance.rows.find((element) => element.id === system.id);
   const boundary = system.is_authorization_boundary;
-  const requested = tab ?? localTab;
+  // Where the route keeps the tab, the address owns it: each choice is a step in the history, and
+  // Back to an address without one shows Overview again.
+  const requested = onTabChange ? (tab ?? "Overview") : localTab;
   const current: SystemTab = requested === "SSP" && !boundary ? "Overview" : requested;
   const select = (next: SystemTab) => {
-    setLocalTab(next);
-    onTabChange?.(next);
+    if (onTabChange) onTabChange(next);
+    else setLocalTab(next);
   };
   const tabs = SYSTEM_TABS.filter((name) => name !== "SSP" || boundary);
-  const canCreate =
-    workspace.role !== "viewer" &&
-    !!workspace.collections.find((item) => item.name === "systems")?.can_insert;
+  // Every member but a viewer creates systems, and row-level security decides each write: the role
+  // says it, so the record does not load the record schema, which is the schema inspector's.
+  const canCreate = workspace.role !== "viewer";
   const ancestors = row ? ancestorElements(row, assurance.rows) : [];
   return (
     <ProgramRecordFrame
       programId={programId}
       table="systems"
+      recordType="System"
       row={system as DataRecord}
       title={system.name}
-      showProperties={current === "Overview"}
       collection={{ label: "System", tab: "System" }}
       trail={ancestors.map((ancestor) => (
         <TrailLink
@@ -275,19 +304,12 @@ export function ProgramSystemRecord({
           )}
         </>
       }
-      properties={
-        <SystemProperties
-          programId={programId}
-          system={system}
-          row={row}
-          queries={assurance.queries}
-        />
-      }
       renderEditor={(onClose) => (
         <SystemElementDialog programId={programId} existing={system} onClose={onClose} />
       )}
+      // The program's elements draw the trail's levels and the element's own row on every tab.
+      queries={[query, ...assurance.queries]}
     >
-      <ProgramQueryState queries={[query]} />
       {/* Keyed by the record: its tabs' retained state ends when another record opens. */}
       <Tabs
         key={system.id}
@@ -305,7 +327,30 @@ export function ProgramSystemRecord({
           {(name) => (
             <>
               {name === "Overview" && (
-                <ProgramSystemsTree programId={programId} rootElementId={system.id} />
+                <>
+                  {/* Kept to Overview: the panel stays mounted while another tab shows. */}
+                  {current === "Overview" && (
+                    <RecordDetails
+                      recordType="System"
+                      summary={
+                        boundary ? (
+                          <StatusBadge
+                            statuses={authorizationStatuses}
+                            value={system.authorization_status}
+                          />
+                        ) : undefined
+                      }
+                    >
+                      <SystemProperties
+                        programId={programId}
+                        system={system}
+                        row={row}
+                        queries={assurance.queries}
+                      />
+                    </RecordDetails>
+                  )}
+                  <ProgramSystemsTree programId={programId} rootElementId={system.id} />
+                </>
               )}
               {name === "Controls" && (
                 <SystemControls
@@ -427,11 +472,7 @@ function SystemProperties({
           <Id>{system.code}</Id>
         </KeyValue>
         <KeyValue label="Description" wrap>
-          {system.description ? (
-            <Text preserveLineBreaks>{system.description}</Text>
-          ) : (
-            <Absent label="Not recorded" />
-          )}
+          {system.description ? <Text preserveLineBreaks>{system.description}</Text> : <Absent />}
         </KeyValue>
         {system.product_revision_id && system.is_authorization_boundary && (
           <KeyValue label="Product" wrap>
@@ -487,7 +528,7 @@ function SystemProperties({
                 </Text>
               </Inline>
             ) : (
-              <Absent label="Not recorded" />
+              <Absent />
             )}
           </KeyValue>
         ))}
@@ -575,10 +616,12 @@ export function ProgramComponentRecord({
     <ProgramRecordFrame
       programId={programId}
       table="system_components"
+      recordType="Component"
       row={record as DataRecord}
       title={record.name}
       readOnly
       collection={{ label: "System", tab: "System" }}
+      summary={<StatusBadge statuses={componentStatuses} value={record.status} />}
       trail={[
         <TrailLink
           key={system.data.id}
@@ -600,7 +643,7 @@ export function ProgramComponentRecord({
             {labelFor(record.component_type)}
           </KeyValue>
           <KeyValue label="Version" wrap>
-            {record.version || <Absent label="Not recorded" />}
+            {record.version || <Absent />}
           </KeyValue>
           <KeyValue label="System" wrap>
             <TextLink
@@ -626,21 +669,25 @@ export function ProgramComponentRecord({
               >
                 <RelationName table="systems" id={elementId} />
               </TextLink>
+            ) : element.data === undefined && element.isError ? (
+              // The page's alert says why; the value keeps its place, as RelationName's does.
+              <Text color="color.text.subtle">Could not load</Text>
+            ) : element.data === undefined ? (
+              <>
+                <Skeleton shape="line" width={96} />
+                <VisuallyHidden>Loading</VisuallyHidden>
+              </>
             ) : (
-              <Absent label="Not recorded" />
+              <Absent />
             )}
           </KeyValue>
           <KeyValue label="Description" wrap>
-            {record.description ? (
-              <Text preserveLineBreaks>{record.description}</Text>
-            ) : (
-              <Absent label="Not recorded" />
-            )}
+            {record.description ? <Text preserveLineBreaks>{record.description}</Text> : <Absent />}
           </KeyValue>
         </KeyValue.Group>
       }
+      queries={[component, system, element]}
     >
-      <ProgramQueryState queries={[component, system, element]} />
       <ProgramCollection
         name="component_contributions"
         section
@@ -693,10 +740,12 @@ export function ProgramControlRecord({
     <ProgramRecordFrame
       programId={programId}
       table="implemented_requirements"
+      recordType="Control"
       readOnly={plan.data?.state === "published"}
       row={row as DataRecord}
       title={control.data?.title ?? "Control implementation"}
       collection={{ label: "Controls", tab: "Controls" }}
+      summary={<StatusBadge statuses={implementationStatuses} value={row.implementation_status} />}
       actions={
         control.data && (
           <DropdownMenuItem onClick={() => setShowSource(true)}>
@@ -707,7 +756,7 @@ export function ProgramControlRecord({
       properties={
         <KeyValue.Group>
           <KeyValue label="Code">
-            {control.data?.code ? <Id>{control.data.code}</Id> : <Absent label="Not recorded" />}
+            {control.data?.code ? <Id>{control.data.code}</Id> : <Absent />}
           </KeyValue>
           <KeyValue label="Status">
             <StatusBadge statuses={implementationStatuses} value={row.implementation_status} />
@@ -718,7 +767,7 @@ export function ProgramControlRecord({
               {row.not_applicable_rationale ? (
                 <Text preserveLineBreaks>{row.not_applicable_rationale}</Text>
               ) : (
-                <Absent label="Not recorded" />
+                <Absent />
               )}
             </KeyValue>
           )}
@@ -727,6 +776,7 @@ export function ProgramControlRecord({
           </KeyValue>
         </KeyValue.Group>
       }
+      queries={[implementation, plan, system, selected, control]}
     >
       <Section title="Implementation">
         {row.description ? (

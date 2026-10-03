@@ -115,9 +115,12 @@ function scalesNow() {
     // A pill's radius, outside the scale: rounded-full is 9999px, and any radius past PILL rounds
     // an element as fully as it.
     full: family("radius", (token) => token.class === "rounded-full")[0],
+    // A type step the tokens say is replaced (its description opens "Replaced by", kept for one
+    // version under a renamed Heading size) is never advised: its successor is.
     type: live
       .filter((token) => token.kind === "type" && token.family === "font")
       .filter((token) => token.class && token.name !== "font.code")
+      .filter((token) => !/^Replaced by\b/.test(token.short ?? ""))
       .sort((a, z) => a.size - z.size || a.weight - z.weight),
     weight: family("font.weight", (token) => token.class).sort((a, z) => a.weight - z.weight),
     regular: values.tokens["font.weight.regular"]?.weight ?? 400,
@@ -693,6 +696,19 @@ export function colourWords(found, name = (option) => option.cls) {
 
 /* ---------- a class's value ---------- */
 
+/** The logical utility for a spacing utility that names a physical side. */
+const LOGICAL_UTILITY = {
+  __proto__: null,
+  pl: "ps",
+  pr: "pe",
+  left: "start",
+  right: "end",
+  "scroll-pl": "scroll-ps",
+  "scroll-pr": "scroll-pe",
+  "scroll-ml": "scroll-ms",
+  "scroll-mr": "scroll-me",
+};
+
 /** A stock text size, radius, weight or shadow, by its Tailwind name. */
 const STOCK_TEXT = /^text-(xs|sm|base|lg|[2-9]?xl)$/;
 const STOCK_RADIUS = /^rounded(-(?:t|b|l|r|s|e|tl|tr|bl|br|ss|se|es|ee))?-(xs|sm|md|lg|[2-4]?xl)$/;
@@ -867,7 +883,9 @@ export function valueAdvice(parsed, { siblings = [], arbitrary = false, prop } =
       const negative = value !== 0 && (minus === "-" || value < 0);
       // A minus only where Tailwind negates the utility (lint.json's negatable).
       if (negative && !lintFacts().negatable.includes(utility)) return undefined;
-      const hint = spaceAdvice(utility, value, negative);
+      // A physical side is named by its logical twin, which mirrors with the page (pl-4 is
+      // ps-200), as the class rule asks of the side itself.
+      const hint = spaceAdvice(LOGICAL_UTILITY[utility] ?? utility, value, negative);
       const owned = !negative && prop?.(utility);
       if (hint && owned)
         return { kind: "space", what, value: hint.value, words: propWords(hint, owned) };
@@ -993,6 +1011,28 @@ export function valueAdvice(parsed, { siblings = [], arbitrary = false, prop } =
         ],
       }
     );
+  }
+  // A stock stacking order. Between the page's regions a layer token stacks it, and the layer of
+  // that number stands for it; a part's own stacking inside itself keeps z-0, z-10 or z-20.
+  if ((match = /^z-(\d+)$/.exec(base))) {
+    const value = Number(match[1]);
+    const layers = Object.values(found.values.tokens)
+      .filter((token) => token.family === "layer" && !token.deprecated)
+      .sort((a, z) => a.value - z.value);
+    if (!layers.length) return undefined;
+    const exact = layers.find((token) => token.value === value);
+    const use = exact ? `Use ${exact.class}, the layer at ${value}. ` : "";
+    const inside = "a part's own stacking inside itself takes z-0, z-10 or z-20";
+    return {
+      kind: "layer",
+      what: `z-index ${value}`,
+      value: String(value),
+      words: [
+        `${use}Layers stack the page's regions (${layers.map((token) => `${token.class} ${token.value}`).join(", ")}); ${inside}.`,
+        `${use}Layers stack the page's regions (${layers.map((token) => token.class).join(", ")}); ${inside}.`,
+      ],
+      ...(exact ? { replacement: replace(exact.class), same: "z-index" } : {}),
+    };
   }
   if ((match = /^ease-(in-out|out|in)$/.exec(base))) {
     const easing = Object.values(found.values.tokens).find(
@@ -1222,8 +1262,54 @@ export function seriesOf(base) {
 /* ---------- a class no-non-token-class calls unknown ---------- */
 
 /**
+ * The layout rules the kit keeps inside its parts, which were once classes a product could write:
+ * each base class (or prefix, for the Shell's regions) with the part that owns it and what to write
+ * instead. A variant is a breakpoint the part takes as a prop, where it takes one (StickyRail's
+ * `from`).
+ */
+const PART_OWN = [
+  {
+    test: (base) => base === "sticky-rail",
+    owner: "StickyRail's",
+    advice: (variants) =>
+      variants.length === 1 && variants[0] === "lg"
+        ? 'Wrap the column in <StickyRail from="lg">.'
+        : 'Wrap the column in <StickyRail>; from="lg" sticks it from the large breakpoint.',
+  },
+  {
+    test: (base) => /^shell-[a-z]/.test(base),
+    owner: "the Shell's",
+    advice: () => "Compose the Shell's parts, which place and style themselves.",
+  },
+  {
+    test: (base) => base === "grid-cols-main-rail",
+    owner: "the Shell's",
+    advice: () => "Render the rail as Shell.Aside beside Main.",
+  },
+  {
+    test: (base) => base === "min-h-work" || base === "grid-cols-list-detail",
+    owner: "WorkPane's",
+    advice: () =>
+      "Use a WorkPane for a list beside its detail, or min-h-dvh for a region as tall as the window.",
+  },
+  {
+    test: (base) => base === "sticky-bar",
+    owner: "ActionBar's",
+    advice: () => "Put a record's actions in PageHeader.Actions.",
+  },
+];
+
+/** The part that keeps an unknown class's rule inside itself, and what to write instead. */
+function partOwnOf(parsed) {
+  const own = PART_OWN.find(({ test }) => test(parsed.base));
+  return own && { owner: own.owner, advice: own.advice(parsed.variants) };
+}
+
+/**
  * What the lint can say of a class no-non-token-class calls unknown, as `{ messageId, data,
  * replacement?, same? }`, or undefined when nothing more:
+ * - `partOwn`: a layout rule the kit keeps inside a part, once a class (`sticky-rail`,
+ *   `shell-panel`), with the part to use instead;
  * - `spaceKey`: a Ledger-shaped space key that is no key (`p-210`), with the keys either side of
  *   it, never one;
  * - `stock`: a Tailwind stock value (`p-4`, `text-sm`, `bg-red-500`), with the Ledger token nearest
@@ -1237,6 +1323,8 @@ export function seriesOf(base) {
  */
 export function explainUnknown(parsed, siblings = [], render = () => "", prop) {
   const { base } = parsed;
+  const own = partOwnOf(parsed);
+  if (own) return { messageId: "partOwn", data: own };
   if (!scalesNow()) return undefined;
   // A viewport length on a sizing utility (min-h-dvw) is the window's size, a real Tailwind
   // utility: nothing more to say, and never a misspelling.

@@ -19,9 +19,9 @@ export function RadioGroup<Value = unknown>({ className, dir, ...props }: RadioG
   return (
     <DirectionProvider direction={dir === "ltr" || dir === "rtl" ? dir : direction}>
       <RadioGroupPrimitive
-        data-slot="radio-group"
         dir={dir ?? direction}
         {...props}
+        data-slot="radio-group"
         disabled={props.disabled || field.disabled}
         aria-required={props["aria-required"] ?? ((props.required ?? field.required) || undefined)}
         className={classes("group/radio-group grid w-full gap-100", className)}
@@ -39,8 +39,8 @@ export function RadioGroupItem<Value = unknown>({
   const field = useFieldControlState();
   return (
     <RadioPrimitive.Root
-      data-slot="radio-group-item"
       {...props}
+      data-slot="radio-group-item"
       disabled={props.disabled || field.disabled}
       className={classes(
         // The shared choice states (see Checkbox). Invalid comes from the item or its group; a

@@ -6,6 +6,8 @@ import * as Stories from "./Alert.stories";
 
 # Alert
 
+**Status: Stable.**
+
 An inline message about a record or a region: what happened, what it means, and the way out. It stays where it is while it is true, beside the content it is about.
 
 <Canvas of={Stories.Playground} />
@@ -87,16 +89,14 @@ An Alert rendered with the page is not a change, so it is not announced whatever
 
 All parts accept native div attributes and refs (AlertIcon's are the svg's). `title` is the native tooltip attribute.
 
-### Migration
-
-Compose content as children: `AlertTitle`, `AlertDescription` and `AlertAction`, and `AlertIcon` for the tone's icon. A new Alert's role follows its tone; a caller that relied on every Alert being `role="alert"` passes it explicitly.
-
 ## Related
 
-[Banner](?path=/docs/components-banner--docs), [Toaster](?path=/docs/components-toaster--docs), [AlertDialog](?path=/docs/components-alertdialog--docs), [ErrorSummary](?path=/docs/components-errorsummary--docs), [Field](?path=/docs/components-field--docs).
+[Banner](?path=/docs/components-banner--docs), [Toaster](?path=/docs/components-toaster--docs), [AlertDialog](?path=/docs/components-alertdialog--docs), [ErrorSummary](?path=/docs/components-errorsummary--docs), [Field](?path=/docs/components-field--docs), [Upgrading](?path=/docs/guidance-upgrading--docs#alert).
 
 Sources: [shadcn Alert](https://ui.shadcn.com/docs/components/base/alert), [implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/alert.tsx), [WAI-ARIA alert role](https://www.w3.org/WAI/ARIA/apg/patterns/alert/).
 
 ## Don't
+
+An Alert says what happened in its title and offers the way out as one small action beside it, never a red bar with the server's words and a page-wide button under it. A standing note is `role="note"`, read in place, never a danger Alert that interrupts the page when nothing failed.
 
 <Canvas of={Stories.Dont} />

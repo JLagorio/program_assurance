@@ -194,7 +194,9 @@ const popoverPartsHtml = renderToString(
     ),
   ),
 );
-assert.match(popoverPartsHtml, /<div[^>]*data-slot="popover-header"[^>]*title="Filter settings"/);
+// The caller's attribute reaches the header, whose own data-slot comes after it.
+const popoverHeader = popoverPartsHtml.match(/<div[^>]*data-slot="popover-header"[^>]*>/)?.[0];
+assert.match(popoverHeader ?? "", /title="Filter settings"/);
 const popoverTitle = popoverPartsHtml.match(/<h3[^>]*data-slot="popover-title"[^>]*>/)?.[0];
 const popoverDescription = popoverPartsHtml.match(
   /<p[^>]*data-slot="popover-description"[^>]*>/,
@@ -657,7 +659,8 @@ assert.equal(multipleGroupHtml.match(/aria-pressed="true"/g)?.length, 2);
 assert.equal(multipleGroupHtml.match(/ disabled=""/g)?.length, 2);
 for (const item of multipleGroupHtml.match(/<button[^>]*>/g) ?? []) {
   assert.match(item, /data-variant="outline"/);
-  assert.match(item, /data-size="lg"/);
+  // The deprecated `lg` is drawn as the scale's `large`.
+  assert.match(item, /data-size="large"/);
 }
 assert.doesNotMatch(multipleGroupHtml, / (?:multiple|spacing|orientation|variant|size)=/);
 const renderedGroupHtml = renderToString(
@@ -671,7 +674,7 @@ const renderedGroupHtml = renderToString(
 );
 const renderedGroupItem = renderedGroupHtml.match(/<button[^>]*>/)?.[0];
 assert.ok(renderedGroupItem);
-for (const attribute of ['data-variant="outline"', 'data-size="lg"', 'data-spacing="0"'])
+for (const attribute of ['data-variant="outline"', 'data-size="large"', 'data-spacing="0"'])
   assert.ok(renderedGroupItem.includes(attribute), attribute);
 assert.match(renderedGroupItem, /first:rounded-t-medium/);
 assert.match(renderedGroupItem, /last:rounded-b-medium/);

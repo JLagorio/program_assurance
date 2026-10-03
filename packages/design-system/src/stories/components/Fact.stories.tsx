@@ -4,8 +4,12 @@ import { expect, within } from "storybook/test";
 
 import { Badge, Absent, Fact, Id, KeyValue, Person } from "../../components";
 import { Box, Heading, Inline, Stack } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Fact",
@@ -18,6 +22,7 @@ type Story = StoryObj<typeof meta>;
 
 /** A strip of six; every kind of value; a strip that wraps. */
 export const FactMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="Six facts">
@@ -74,7 +79,7 @@ export const UnderHeader: Story = {
             Verified
           </Badge>
         </Inline>
-        <Heading size="large">Segregation of duties, payables</Heading>
+        <Heading size="display">Segregation of duties, payables</Heading>
         <Fact.Group className="border-t border-default pt-100">
           <Fact label="Owner">
             <Person name="Dana Whitfield" />
@@ -98,6 +103,7 @@ export const UnderHeader: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -194,6 +200,7 @@ const groupRef = createRef<HTMLDListElement>();
 
 /** Native props, a class and a ref reach the Fact's pair and the Group's `dl`, and each names itself last with `data-slot`. */
 export const NativeAttributes: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Fact.Group ref={groupRef} id="control-facts" data-testid="facts">
       <Fact ref={factRef} label="Owner" data-testid="owner" className="order-first">

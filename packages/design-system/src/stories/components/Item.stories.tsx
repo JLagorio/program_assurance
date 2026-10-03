@@ -15,6 +15,10 @@ import {
 import { type Meta, type StoryObj } from "@storybook/react-vite";
 import { ExternalLink, MoreHorizontal, Plus } from "lucide-react";
 import { HeadingLevelProvider, Stack, Text } from "../../primitives";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Item",
@@ -26,8 +30,6 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const more = <IconButton label="More" variant="subtle" size="small" icon={<MoreHorizontal />} />;
-
 /** Each slot in a group of its own, since a group shares its columns; then the states, a titled compact group, and one with nothing in it. */
 export const ItemMatrix: Story = {
   render: () => (
@@ -37,7 +39,12 @@ export const ItemMatrix: Story = {
         <Item title="With meta" meta="PDF · 2.1 MB" />
         <Item title="With a description" description="A description under the title." />
         <Item title="With trailing" trailing="Sep 18, 2026" />
-        <Item title="With actions" actions={more} />
+        <Item
+          title="With actions"
+          actions={
+            <IconButton label="More" variant="subtle" size="small" icon={<MoreHorizontal />} />
+          }
+        />
       </Item.Group>
       <Item.Group>
         <Item id="MS-C" title="With an id" />
@@ -343,6 +350,11 @@ export const NativeIntegration: Story = {
     );
     await expect(hit && toggle.contains(hit)).toBe(true);
     await expect(toggle).toHaveClass("touch-target");
+    // It is the kit's 20px row control, named by the title, and mounts no tooltip of its own.
+    await expect(chevron.width).toBe(20);
+    await expect(chevron.height).toBe(20);
+    await expect(toggle).toHaveAttribute("data-slot", "icon-button");
+    await expect(toggle).not.toHaveAttribute("data-slot", "tooltip-trigger");
     await userEvent.click(toggle);
     await expect(toggle).toHaveAttribute("aria-expanded", "false");
     await userEvent.click(canvas.getByRole("button", { name: "Allow details" }));
@@ -610,5 +622,45 @@ export const RightToLeft: Story = {
         text.getBoundingClientRect().right - 1,
       );
     }
+  },
+};
+
+/** A row that opens its record is a link, `link`; `onSelect` is for a row that acts in place. */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <Pair
+      do={
+        <Item.Group aria-label="Evidence">
+          <Item
+            id="EV-2201"
+            title="Bank reconciliation, July"
+            meta="PDF"
+            link={<a href="#ev-2201" />}
+          />
+        </Item.Group>
+      }
+      doText="The row opens its record through link: a real anchor, which a reader can open in a new tab or copy."
+      dont={
+        <Item.Group aria-label="Evidence to open">
+          <Item
+            id="EV-2202"
+            title="Approval matrix"
+            meta="XLSX"
+            onSelect={() => window.location.assign("#ev-2202")}
+          />
+        </Item.Group>
+      }
+      dontText="onSelect that navigates. The title is a button, so a new tab, a copied address and the browser's own link menu are gone."
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const link = canvas.getByRole("link", { name: "Bank reconciliation, July" });
+    await expect(link).toHaveAttribute("href", "#ev-2201");
+    // The Don't's title is a button: nothing to open in a new tab.
+    const button = canvas.getByRole("button", { name: "Approval matrix" });
+    await expect(button).not.toHaveAttribute("href");
   },
 };

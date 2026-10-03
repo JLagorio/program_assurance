@@ -9,11 +9,17 @@ import {
   Attachment,
   Button,
   DropZone,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
   Field,
   FieldDescription,
   FieldError,
   FieldLabel,
   Inline,
+  Progress,
   Section,
   Spinner,
   Stack,
@@ -26,6 +32,7 @@ import {
 } from "@ledger/design-system";
 import { getRecord, requireIdentity, saveRecord, type Workspace } from "@/lib/database";
 import type { Collection, DataRecord } from "@/lib/records";
+import { uploadObject, type UploadProgress } from "@/lib/storage-upload";
 import { useWorkspace } from "./workspace";
 
 /** The largest file a reader may choose, in decimal units so the hint and a refusal agree. */
@@ -122,6 +129,8 @@ function EvidenceFileEditor({
   const uploadButton = useRef<HTMLButtonElement | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState<Operation | null>(null);
+  // How far the chosen file's bytes have gone; null while the upload is being prepared.
+  const [progress, setProgress] = useState<UploadProgress | null>(null);
   const [failure, setFailure] = useState<{ operation: Operation; message: string } | null>(null);
   // What the Upload button found missing when it was pressed: the Field's own error.
   const [problem, setProblem] = useState<string | undefined>();
@@ -143,6 +152,7 @@ function EvidenceFileEditor({
     operation.current = controller;
     onBusyChange?.(true);
     setBusy(kind);
+    setProgress(null);
     setFailure(null);
     return controller;
   }
@@ -241,12 +251,30 @@ function EvidenceFileEditor({
           throw new Error(
             "No file reached Storage at this path. Select the original file and upload it again.",
           );
-        const uploaded = await storage.upload(objectName, selectedFile, { upsert: false });
-        if (uploaded.error)
+        // Sent as the reader, never overwriting, with its progress shown as the bytes go.
+        const uploaded = await uploadObject(
+          {
+            url: import.meta.env["VITE_SUPABASE_URL"],
+            apiKey: import.meta.env["VITE_SUPABASE_ANON_KEY"],
+            token,
+            bucket: "evidence",
+            path: objectName,
+            file: selectedFile,
+          },
+          {
+            signal: controller.signal,
+            timeout: transferTimeout(selectedFile.size),
+            onProgress: (next) => {
+              if (!controller.signal.aborted) setProgress(next);
+            },
+          },
+        ).catch((cause: unknown) => {
+          if (controller.signal.aborted) throw cause;
           throw new Error(
-            `${uploaded.error.message} If the upload reached Storage, use Recover uploaded file.`,
+            `${cause instanceof Error ? cause.message : "The file did not upload."} If the upload reached Storage, use Recover uploaded file.`,
           );
-        objectId = uploaded.data.id;
+        });
+        objectId = uploaded.id;
         metadata = {
           sha256: selectedHash,
           media_type: selectedFile.type || null,
@@ -381,6 +409,13 @@ function EvidenceFileEditor({
       ? formatFileSize(record["byte_size"], { locale })
       : null;
   const storedType = typeof record["media_type"] === "string" ? record["media_type"] : null;
+  // Every byte sent: Storage confirms the object and the version records its details.
+  const sent = !!progress && progress.loaded >= progress.total;
+  const uploadStatus = !progress
+    ? "Preparing the upload…"
+    : sent
+      ? "Finishing the upload…"
+      : `Uploading · ${formatFileSize(progress.loaded, { locale })} of ${formatFileSize(progress.total, { locale })}`;
 
   return (
     <Section title="Evidence file">
@@ -405,7 +440,15 @@ function EvidenceFileEditor({
             />
           </Attachment>
         ) : !writable ? (
-          <Text color="color.text.subtle">No uploaded file is attached to this version.</Text>
+          <Empty size="compact">
+            <EmptyMedia variant="icon" aria-hidden>
+              <FileText />
+            </EmptyMedia>
+            <EmptyHeader>
+              <EmptyTitle>No file attached</EmptyTitle>
+              <EmptyDescription>This version has no uploaded file.</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         ) : null}
         {writable && (
           <Stack space="space.200">
@@ -438,11 +481,23 @@ function EvidenceFileEditor({
                   <Attachment.Title>{file.name}</Attachment.Title>
                   <Attachment.Description>
                     {busy === "upload"
-                      ? "Uploading…"
+                      ? uploadStatus
                       : uploadFailed
                         ? "Not uploaded. Retry, or remove it and choose another file."
                         : `Ready to upload · ${formatFileSize(file.size, { locale })}`}
                   </Attachment.Description>
+                  {busy === "upload" ? (
+                    // Unknown while the file is checked and its path reserved, then the bytes sent.
+                    <Progress
+                      size="small"
+                      value={
+                        progress && progress.total > 0
+                          ? Math.round((progress.loaded / progress.total) * 100)
+                          : null
+                      }
+                      aria-label={`Uploading ${file.name}`}
+                    />
+                  ) : null}
                 </Attachment.Content>
                 {busy === "upload" ? (
                   <Attachment.Actions>

@@ -16,6 +16,9 @@ const AlertToneContext = createContext<Tone>("neutral");
  * Inline feedback about a record or a region. The role follows the tone: a danger Alert is
  * `role="alert"`, announced at once; every other tone is `role="status"`, polite. Pass `role`
  * to choose another (`note` for static guidance) or `role={undefined}` for none.
+ *
+ * A base part: ErrorSummary and the search and palette errors render as it under their own
+ * names, so its `data-slot` comes before the caller's props and theirs wins.
  */
 export function Alert({ className, variant = "default", tone, ...props }: AlertProps) {
   const danger = variant === "destructive" || variant === "danger";
@@ -24,8 +27,8 @@ export function Alert({ className, variant = "default", tone, ...props }: AlertP
     <AlertToneContext.Provider value={resolvedTone}>
       <div
         role={resolvedTone === "danger" ? "alert" : "status"}
-        {...props}
         data-slot="alert"
+        {...props}
         data-variant={danger ? "danger" : variant}
         data-tone={resolvedTone}
         className={cn(

@@ -7,6 +7,8 @@ import * as Stories from "./Toolbar.stories";
 
 # Toolbar
 
+**Status: Stable.**
+
 The row above a table: search first, saved views next, filters after them, and display controls and actions at the end. Everything in it is the small size, so the row is one height and the table starts right under it. A [DataTable](?path=/docs/patterns-data-table--docs) takes it as `toolbar`, above its frameless rows; a plain [Table](?path=/docs/components-table--docs) puts it above, `space.200` apart as the DataTable does, so the table's sticky header never covers the ring of a focused control in the row.
 
 It is a row of controls, not a heading. A standalone register has a PageHeader; an embedded register can use a Section. Toolbar contains controls only.
@@ -36,7 +38,7 @@ Toolbar has one appearance. What varies is which parts the register needs:
 | A yes or no about the rows         | A [FilterChip](?path=/docs/components-filterchip--docs) toggle (`isActive`) in `filters`.                                          |
 | Which rows there are to ask about  | A small Select in `views`: a revision, an edition or a scope. It never folds, because it changes what every other control acts on. |
 | Only a count or an Export          | `actions` alone.                                                                                                                   |
-| Rows chosen for a batch action     | Not a Toolbar: the DataTable's SelectionBar appears above the table.                                                               |
+| Rows chosen for a batch action     | Not a Toolbar: the DataTable's SelectionBar takes the Toolbar's place in the table's `toolbar` slot while rows are chosen.         |
 
 There is no title in a Toolbar, no tall Toolbar (the kit's rows are one height and so is the row above them), and no collapsed search that opens from an icon: a register that is searched shows its field.
 
@@ -130,11 +132,13 @@ More's own words come from the locale, like the other labels the kit writes; the
 ## Related
 
 - [Table](?path=/docs/components-table--docs) below it; [Pagination](?path=/docs/components-pagination--docs) under the table.
-- [DataTable](?path=/docs/patterns-data-table--docs): `DataTable.Filter`, `.Presets`, `.Sort`, `.Columns` and `.Settings` are the parts a toolbar holds when the table has state, and the toolbar's own search takes `table.state.globalFilter` and `table.setGlobalFilter`; `DataTable.Search` is for a composition without a Toolbar. `.SelectionBar` appears above the table while rows are chosen.
+- [DataTable](?path=/docs/patterns-data-table--docs): `DataTable.Filter`, `.Presets`, `.Sort`, `.Columns` and `.Settings` are the parts a toolbar holds when the table has state, and the toolbar's own search takes `table.state.globalFilter` and `table.setGlobalFilter`; `DataTable.Search` is for a composition without a Toolbar. `.SelectionBar` takes the Toolbar's place in the `toolbar` slot while rows are chosen.
 - [SearchField](?path=/docs/components-searchfield--docs): the search, on its own.
 - [FilterChip](?path=/docs/components-filterchip--docs), [ToggleGroup](?path=/docs/components-togglegroup--docs): the filters.
 - [PageHeader](?path=/docs/layout-pageheader--docs) names a standalone register; Section can name an embedded collection.
 
 ## Don't
+
+Every control in the row is the small size, up to five actions sit at the end with the primary last, and the primary goes in `actions`, never as a child beside the search, a default-size Button among small ones, or seven actions in a row.
 
 <Canvas of={Stories.Dont} />

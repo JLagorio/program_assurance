@@ -1,33 +1,65 @@
-/* Page-level layout on the layout dimension tokens: the few templates a class string cannot say
-   without an arbitrary value; each reads a token, so the widths stay in one place. The navigation
-   system's own rules are in shell.css. */
-@utility grid-cols-list-detail {
-  grid-template-columns: var(--ds-dimension-layout-list) minmax(0, 1fr);
-}
-/* A rail that stays put under the shell's header and scrolls inside itself. The shell sets
-   --shell-top (banner plus top nav); outside a shell it is the top nav's height. A rail in a
-   scroller of its own (a dialog's body, a panel) sticks to that scroller instead: an ancestor sets
-   --rail-top, where the rail stops in it, and --rail-max-height, the scroller's height. WorkPane
-   sets both for itself. */
-@utility sticky-rail {
-  position: sticky;
-  top: var(
+/* Page-level layout on the layout dimension tokens: the few rules a class string cannot say without
+   an arbitrary value; each reads a token, so the widths stay in one place. The navigation system's
+   own rules are in shell.css. The rules for one part select it by its `data-slot`; only the
+   `@utility` names here (`fill-window`, `page-header`, `section-header`) are classes a product
+   writes, and the lint's list of the kit's utilities reads them from these files (TOO-16). */
+
+/* A rail that stays put under the shell's header, at most the window's height under it: StickyRail,
+   and WorkPane's list beside its detail, which scrolls inside itself. The shell sets --shell-top
+   (banner plus top nav); outside a shell it is the top nav's height. A rail in a scroller of its
+   own (a dialog's body, a panel) sticks to that scroller instead: an ancestor sets --rail-top,
+   where the rail stops in it, and --rail-max-height, the scroller's height. WorkPane sets both for
+   itself. */
+[data-slot="sticky-rail"] {
+  --sticky-rail-top: var(
     --rail-top,
     calc(var(--shell-top, var(--ds-dimension-layout-topnav)) + var(--ds-space-300))
   );
-  align-self: flex-start;
-  max-height: var(
+  --sticky-rail-max-height: var(
     --rail-max-height,
     calc(100dvh - var(--shell-top, var(--ds-dimension-layout-topnav)) - var(--ds-space-600))
   );
 }
-/* A work surface that fills the viewport under the shell's header and a page header. The dynamic
-   viewport, as fill-window, so a phone's browser bar never hides its end. */
-@utility min-h-work {
-  min-height: calc(
-    100dvh - var(--shell-top, var(--ds-dimension-layout-topnav)) - var(--ds-space-1000) -
-      var(--ds-space-600)
-  );
+[data-slot="sticky-rail"]:not([data-from]) {
+  position: sticky;
+  top: var(--sticky-rail-top);
+  align-self: flex-start;
+  max-height: var(--sticky-rail-max-height);
+}
+/* `from="lg"`: in the flow above the content below the large breakpoint, where the page's grid
+   stacks the rail over it; a rail beside it from there. */
+@media (width >= theme(--breakpoint-lg)) {
+  [data-slot="sticky-rail"][data-from="lg"] {
+    position: sticky;
+    top: var(--sticky-rail-top);
+    align-self: flex-start;
+    max-height: var(--sticky-rail-max-height);
+  }
+}
+/* WorkPane from `@3xl` of its own width: the list column (dimension.layout.list) beside the
+   detail, the pair at least the height of a work surface under the shell's header and a page
+   header (on the dynamic viewport, as fill-window, so a phone's browser bar never hides its end),
+   and the list sticking under the shell's header as a sticky rail does. */
+@container work-pane (width >= theme(--container-3xl)) {
+  [data-slot="work-pane-grid"] {
+    grid-template-columns: var(--ds-dimension-layout-list) minmax(0, 1fr);
+    min-height: calc(
+      100dvh - var(--shell-top, var(--ds-dimension-layout-topnav)) - var(--ds-space-1000) -
+        var(--ds-space-600)
+    );
+  }
+  [data-slot="work-pane-list"] {
+    position: sticky;
+    top: var(
+      --rail-top,
+      calc(var(--shell-top, var(--ds-dimension-layout-topnav)) + var(--ds-space-300))
+    );
+    align-self: flex-start;
+    max-height: var(
+      --rail-max-height,
+      calc(100dvh - var(--shell-top, var(--ds-dimension-layout-topnav)) - var(--ds-space-600))
+    );
+  }
 }
 /* A register that is the page's one block takes the rest of the window, and its rows scroll
    inside it. The block measures its own offset from the top of the document into --fill-top
@@ -52,18 +84,19 @@
 }
 
 /* The page header: the Lead across the row, then what names the page beside its actions. The
-   heading keeps a readable measure (14rem, about twenty characters of heading-small a line), or its
-   own width when that is shorter, and grows; when a row cannot hold that measure beside the
-   actions, the actions wrap under it and sit at the end, so a title never breaks one word per line
-   beside a full-label primary, and a short title keeps its action on its row. The same rule holds
-   on a page, in a Shell.Panel and in a Sheet, so shell.css has no header rule of its own. */
+   heading keeps a readable measure (dimension.part.pageHeaderHeading, about twenty characters of
+   heading-small a line), or its own width when that is shorter, and grows; when a row cannot hold
+   that measure beside the actions, the actions wrap under it and sit at the end, so a title never
+   breaks one word per line beside a full-label primary, and a short title keeps its action on its
+   row. The same rule holds on a page, in a Shell.Panel and in a Sheet, so shell.css has no header
+   rule of its own. */
 @utility page-header {
   & > [data-slot="page-header-lead"] {
     flex-basis: 100%;
   }
   & > [data-slot="page-header-heading"],
   & > [data-slot="page-header-title"] {
-    flex: 1 1 min(100%, 14rem);
+    flex: 1 1 min(100%, var(--ds-dimension-part-page-header-heading));
     max-inline-size: max-content;
   }
   & > [data-slot="page-header-actions"] {
@@ -73,15 +106,15 @@
 }
 
 /* The section header, on the page header's rule at body size: the heading keeps a readable
-   measure (12rem, about twenty-five characters of body text a line), or its own width when that is
-   shorter, and grows; when the row cannot hold that measure beside the actions, the actions take
-   the next row at the end, so a title never breaks mid-word beside them, and a short title keeps
-   its actions on its row. It reads the header's own width, not the window's, so the same rule
-   holds on a page, in a Shell.Panel and in a Sheet. */
+   measure (dimension.part.sectionHeading, about twenty-five characters of body text a line), or
+   its own width when that is shorter, and grows; when the row cannot hold that measure beside the
+   actions, the actions take the next row at the end, so a title never breaks mid-word beside them,
+   and a short title keeps its actions on its row. It reads the header's own width, not the
+   window's, so the same rule holds on a page, in a Shell.Panel and in a Sheet. */
 @utility section-header {
   & > [data-slot="section-heading"],
   & > [data-slot="section-title"] {
-    flex: 1 1 min(100%, 12rem);
+    flex: 1 1 min(100%, var(--ds-dimension-part-section-heading));
     max-inline-size: max-content;
   }
   & > [data-slot="section-actions"] {
@@ -112,8 +145,8 @@
   }
 }
 
-/* A bar that stays put under the shell's header while the page scrolls: the ActionBar. */
-@utility sticky-bar {
+/* The ActionBar stays put under the shell's header while the page scrolls. */
+[data-slot="action-bar"] {
   position: sticky;
   top: var(--shell-top, var(--ds-dimension-layout-topnav));
 }
@@ -123,19 +156,20 @@
    moves the page only: a dialog, a sheet, a panel or a short list inside the page scrolls a focused
    row fully into its own view, with no margin taller than itself. A banner the shell measured
    taller than its token is covered by the top nav's allowance of space.200. */
-html:has(.shell-root) {
+html:has([data-slot="shell"]) {
   scroll-padding-block: calc(var(--ds-dimension-layout-topnav) + var(--ds-space-200))
     var(--ds-space-1000);
 }
-html:has(.shell-root > [data-slot="shell-banner"]) {
+html:has([data-slot="shell"] > [data-slot="shell-banner"]) {
   scroll-padding-block-start: calc(
     var(--ds-dimension-layout-banner) + var(--ds-dimension-layout-topnav) + var(--ds-space-200)
   );
 }
-/* Under 30rem tall the banner and the top nav scroll away with the page (shell.css). */
-@media (height < 30rem) {
-  html:has(.shell-root),
-  html:has(.shell-root > [data-slot="shell-banner"]) {
+/* In a short window (dimension.query.shortWindow) the banner and the top nav scroll away with the
+   page (shell.css). */
+@media (height < theme(--query-short-window)) {
+  html:has([data-slot="shell"]),
+  html:has([data-slot="shell"] > [data-slot="shell-banner"]) {
     scroll-padding-block: var(--ds-space-200);
   }
 }
@@ -147,7 +181,7 @@ html:has(.shell-root > [data-slot="shell-banner"]) {
 }
 [data-record-browser-preview] {
   width: 40%;
-  min-width: 320px;
+  min-width: var(--ds-dimension-part-record-browser-preview);
 }
 @container (width < theme(--container-split)) {
   [data-record-browser-body][data-preview="open"] > [data-record-browser-results] {

@@ -13,7 +13,10 @@ import {
 
 import { RecordPicker, type PickerRecord } from "../..";
 import { Inline, Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Patterns/RecordPicker",
@@ -67,7 +70,7 @@ function PickerDemo() {
  */
 export const RecordPickerStory: Story = {
   name: "Record picker",
-  render: () => <PickerDemo />,
+  render: PickerDemo,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const page = within(canvasElement.ownerDocument.body);
@@ -193,6 +196,72 @@ export const States: Story = {
   },
 };
 
+const longRecords: PickerRecord[] = [
+  {
+    id: "long-1",
+    code: "EV-2026-NORTHWIND-GROUND-SEGMENT-0412-A",
+    title: "Firewall ruleset export for the ground segment's perimeter and its three enclaves",
+    meta: "Evidence · Northwind supplier assurance board · reviewed 12 Aug 2026 by Priya Natarajan",
+    badge: { label: "Fresh", tone: "success" },
+  },
+];
+
+function LongNamesDemo() {
+  const [open, setOpen] = useState(false);
+  return (
+    <Stack space="space.150">
+      <Button onClick={() => setOpen(true)}>Link evidence</Button>
+      <RecordPicker
+        open={open}
+        onClose={() => setOpen(false)}
+        onPick={() => undefined}
+        records={longRecords}
+        title="Link evidence"
+        placeholder="Search evidence…"
+      />
+    </Stack>
+  );
+}
+
+/**
+ * A long identifier gives way first: it stops at 40% of the row with its whole text as its title,
+ * so the name keeps the rest. A name or a meta line still too long is cut, and shows whole on
+ * hover.
+ */
+export const LongNames: Story = {
+  name: "Long names",
+  render: () => <LongNamesDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Link evidence" }));
+    const dialog = within(await page.findByRole("dialog", { name: "Link evidence" }));
+    const [record] = longRecords;
+    const option = await dialog.findByRole("option");
+    const code = dialog.getByText(record!.code!);
+    const title = dialog.getByText(record!.title);
+    const cut = (el: Element) => el.scrollWidth > el.clientWidth + 1;
+    await waitFor(() => {
+      const row = option.getBoundingClientRect().width;
+      expect(code.getBoundingClientRect().width).toBeLessThanOrEqual(row * 0.4 + 1);
+      expect(title.getBoundingClientRect().width).toBeGreaterThanOrEqual(row * 0.3);
+    });
+    await expect(code).toHaveAttribute("title", record!.code);
+    await expect(cut(code)).toBe(true);
+    await expect(title).toHaveAttribute("data-slot", "truncate");
+    await expect(cut(title)).toBe(true);
+    await userEvent.hover(title);
+    await waitFor(() =>
+      expect(
+        canvasElement.ownerDocument.querySelector('[data-slot="truncate-full-text"]'),
+      ).toHaveTextContent(record!.title),
+    );
+    await userEvent.unhover(title);
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
+  },
+};
+
 /** Open, with a badge, without one, with a meta line, without one; the count in the field and the keys in the footer. */
 export const RecordPickerMatrix: Story = {
   render: () => (
@@ -221,6 +290,7 @@ function Rows({ placeholder, children }: { placeholder: string; children: ReactN
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair

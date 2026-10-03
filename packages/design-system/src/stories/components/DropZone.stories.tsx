@@ -18,7 +18,10 @@ import {
 import { announce } from "../../lib/announce";
 import { downloadBlob } from "../../lib/download";
 import { Inline, Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/DropZone",
@@ -576,6 +579,7 @@ export const Narrow: Story = {
 
 /** The primary stays enabled and reports what is missing on submit; a primary disabled until a file is chosen says nothing about why. */
 export const DoDont: Story = {
+  tags: ["!manifest"],
   name: "Do and don't",
   render: () => (
     <Pair

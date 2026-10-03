@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { Box, Inline, Stack, Text } from "../../primitives";
+import { Inline, Stack, Text } from "../../primitives";
 
 // Story layout helpers, not package exports: product code lays out with Stack, Inline and Grid.
 // Storybook's MCP snippets list every relative import under the package's name, so a stories file
@@ -25,7 +25,7 @@ export function Matrix<R extends string, C extends string>({
 }) {
   return (
     <div className="relative max-w-full overflow-x-auto">
-      <table className="border-collapse text-left">
+      <table className="border-collapse text-start">
         <thead>
           <tr>
             <th className="h-row-header pe-300 align-bottom font-body-small font-medium text-subtlest">

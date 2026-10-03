@@ -17,8 +17,12 @@ import {
   ToggleGroupItem,
 } from "../../components";
 import { Inline, Stack } from "../../primitives";
-import { Matrix as Grid } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix: Grid } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/FilterChip",
@@ -34,6 +38,7 @@ const cols = ["toggle", "with a value", "opens a popover"] as const;
 
 /** Every state down the side; a toggle, a chip with a value and a chip that opens a popover across. */
 export const FilterChipMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Grid
       rows={states}
@@ -150,11 +155,7 @@ function ToolbarDemo() {
             <Popover>
               <PopoverTrigger
                 render={
-                  <FilterChip
-                    label="Owner"
-                    value={owner ?? undefined}
-                    isActive={owner !== null}
-                  />
+                  <FilterChip label="Owner" value={owner ?? undefined} isActive={owner !== null} />
                 }
               />
               <PopoverContent style={{ width: 220 }} aria-label="Owner">
@@ -226,6 +227,8 @@ function ToolbarDemo() {
     </div>
   );
 }
+
+export const Playground: Story = {};
 
 /** In a Toolbar: a yes-or-no toggle, and two chips that open a popover, one to choose an owner and one to choose statuses. The value shows on the chip; a chip that opens a popover says expanded, never pressed. Clear filters appears when any is on. On a phone or in a panel the chips fold into More. */
 export const InToolbar: Story = {
@@ -325,7 +328,6 @@ const longOwner = "Priya Natarajan-Oyelaran, Dana Whitfield";
 export const Narrow: Story = {
   name: "In a 320px frame",
   globals: { viewport: { value: "ledgerSmall", isRotated: false } },
-  tags: ["narrow"],
   render: () => (
     <div data-testid="frame" style={{ maxWidth: 320 }}>
       <Inline space="space.075" shouldWrap>
@@ -363,6 +365,7 @@ export const Narrow: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -407,5 +410,3 @@ export const Dont: Story = {
     </Stack>
   ),
 };
-
-export const Playground: Story = {};

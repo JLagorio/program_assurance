@@ -80,6 +80,7 @@ const ENFORCED = [
   "no-overlay-autofocus",
   "no-plain-alert-role",
   "no-raw-colour",
+  "no-restyle",
   "no-static-design-value",
   "no-style-design-value",
   "no-unknown-variant",
@@ -89,6 +90,7 @@ const ENFORCED = [
   "product-responsive-table",
   "readable-classes",
   "text-link-navigation",
+  "use-heading",
   "use-primitives",
 ];
 /** Rules whose messages do not keep the contract yet, each moved to ENFORCED as it is rewritten.
@@ -283,11 +285,15 @@ const DATA = {
     ...Object.entries(deprecatedNames).map(([name, dep]) =>
       dep.removed || /^[a-z]/.test(name) ? kitImport(name) : kitTag(name),
     ),
+    // A rename that holds only where it can tell the old meaning, or that reads numbers, names the
+    // attributes that reach it (`examples`).
     ...Object.entries(deprecatedAttributes).flatMap(([part, props]) =>
       Object.entries(props).flatMap(([prop, rename]) =>
-        rename.values
-          ? Object.keys(rename.values).map((value) => kitTag(part, `${prop}="${value}"`))
-          : [kitTag(part, `${prop}="x"`)],
+        rename.examples
+          ? rename.examples.map((written) => kitTag(part, written))
+          : rename.values
+            ? Object.keys(rename.values).map((value) => kitTag(part, `${prop}="${value}"`))
+            : [kitTag(part, `${prop}="x"`)],
       ),
     ),
   ],

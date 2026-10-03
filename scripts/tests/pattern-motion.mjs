@@ -106,7 +106,12 @@ async function sampleTab(page, target) {
   }, target);
 }
 
-// Pause a real in-flight frame only for its screenshot, then let the animation finish normally.
+// Pause the change's own running animations only for the screenshot, then let them finish normally.
+// They are held at the first frame that shows them, and one still short of a fifth of its way is
+// moved to its middle: a new view whose render holds the main thread (a revisited tab's 50-row table
+// in a development build) may paint no frame between a fifth and four fifths of a 150-240ms motion.
+// A change that starts no animation on these elements still fails here; expectTabMotion and the
+// navigation checks judge the motion itself.
 async function captureMotionFrame(page, kind, captureFrame, name) {
   const animations = await page.evaluateHandle(async (kind) => {
     const nav = document.querySelector('[data-shell-area="sidenav"]');
@@ -125,15 +130,21 @@ async function captureMotionFrame(page, kind, captureFrame, name) {
       const targets =
         kind === "tabs"
           ? [...root.querySelectorAll('[data-slot="tabs-indicator"], [data-slot="tabs-content"]')]
-          : [nav, document.querySelector(".shell-scrim")].filter(Boolean);
+          : [nav, document.querySelector('[data-slot="shell-scrim"]')].filter(Boolean);
       const running = targets
         .flatMap((element) => element.getAnimations())
         .filter((animation) => {
           const progress = animation.effect?.getComputedTiming().progress;
-          return animation.playState === "running" && progress >= 0.2 && progress <= 0.8;
+          return (
+            animation.playState === "running" && typeof progress === "number" && progress <= 0.8
+          );
         });
       if (running.length) {
-        running.forEach((animation) => animation.pause());
+        for (const animation of running) {
+          animation.pause();
+          const { progress, delay, activeDuration } = animation.effect.getComputedTiming();
+          if (progress < 0.2) animation.currentTime = delay + activeDuration / 2;
+        }
         return running;
       }
     }

@@ -13,6 +13,8 @@ import * as Stories from "./Progress.stories";
 
 # Progress
 
+**Status: Stable.**
+
 How far a task has gone, as a bar: an upload, an import, a package build. `Progress` is a progressbar on Base UI's Progress, with Ledger's tones and sizes. `ProgressStacked` is the other bar: a share of a whole, such as control coverage, drawn as segments.
 
 <Canvas of={Stories.ValuesAndRanges} />
@@ -52,14 +54,14 @@ A progressbar says a task is under way and will end. A quantity that is not a ta
 
 ## Variants and sizes
 
-`tone` is the Ledger meaning: `information` by default, `success` for a task that is going well, `warning` or `danger` for one at risk, `neutral` for one that carries no judgement. Each fill holds 3:1 against its track on the page, raised and overlay surfaces; on `elevation.surface.sunken` a light-mode warning bar is just under it (2.97:1), so give it its value in words there. A warning bar is `color.chart.warning`, the colour a warning series has in a chart, because `color.background.warning.bold` is a light orange made to carry dark text. `size` is `small` (4px, in a cell or beside a name), `medium` (6px, the default, in a row) or `large` (8px, a band).
+`tone` is the Ledger meaning: `information` by default, `success` for a task that is going well, `warning` or `danger` for one at risk, `neutral` for one that carries no judgement. Each fill holds 3:1 against its track on every surface, `elevation.surface.sunken` included, in both modes. A warning bar, filled or waiting, is `color.chart.warning.bold`, a step darker than a chart's warning series in light, because `color.background.warning.bold` is a light orange made to carry dark text and the series orange is under 3:1 on the track over the sunken surface. `size` is `small` (4px, in a cell or beside a name), `medium` (6px, the default, in a row) or `large` (8px, a band).
 
 <Canvas of={Stories.Tones} />
 
 ## States
 
 - **Determinate**: `value` between `min` and `max` (0 and 100 unless set). Base UI clamps a value past either end, and the bar's width and its accessible value follow.
-- **Unknown length**: `value={null}` is a wait. The bar is hatched the width of the track, in the tone's icon colour, and its stripes move one tile every `motion.duration.slower`; under reduced motion they stand still and the bar stays hatched. It never looks like a finished bar.
+- **Unknown length**: `value={null}` is a wait. The bar is hatched the width of the track, in the tone's icon colour (a warning bar's in its fill's orange), and its stripes move one tile every `motion.duration.slower`; under reduced motion they stand still and the bar stays hatched. It never looks like a finished bar.
 - **Done**: remove the bar, or replace it with what the task made. A full bar left on the page reads as a task still running.
 
 ## Content
@@ -99,17 +101,14 @@ Progress takes Base UI's native root props and ref (`value`, `min`, `max`, `form
 
 <Canvas of={Stories.CustomTrack} />
 
-### Migration
-
-- `label` is `aria-label` or a `ProgressLabel`; `valueText` is `aria-valuetext`; `showValue` is a `ProgressValue` child.
-- `Progress.Stacked` is `ProgressStacked`; its tone, size and segment API are unchanged.
-
 ## Related
 
-[Spinner](?path=/docs/components-spinner--docs), [Skeleton](?path=/docs/components-skeleton--docs), [Gates](?path=/docs/patterns-gates--docs), [Chart](?path=/docs/patterns-chart-overview--docs).
+[Spinner](?path=/docs/components-spinner--docs), [Skeleton](?path=/docs/components-skeleton--docs), [Gates](?path=/docs/patterns-gates--docs), [Chart](?path=/docs/patterns-chart-overview--docs), [Upgrading](?path=/docs/guidance-upgrading--docs#progress).
 
 Sources: [shadcn Progress](https://ui.shadcn.com/docs/components/base/progress), [Base UI Progress](https://base-ui.com/react/components/progress), [WAI-ARIA progressbar](https://www.w3.org/TR/wai-aria-1.2/#progressbar).
 
 ## Don't
+
+A share of a whole, such as coverage, is a ProgressStacked or a number in words, never a progressbar, which a screen reader hears as a task part done. A wait of unknown length is `value={null}`, never a full bar.
 
 <Canvas of={Stories.Dont} />

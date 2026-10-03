@@ -6,7 +6,9 @@ import {
   ChevronRight,
   Download,
   ExternalLink,
+  FilePlus,
   MoreHorizontal,
+  Pencil,
   Search,
   X,
 } from "lucide-react";
@@ -30,7 +32,12 @@ import {
   TextLink,
 } from "../../components";
 import { Inline, Stack, Text } from "../../primitives";
-import { Matrix as Grid, Specimens } from "../_lib/matrix";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Matrix: Grid, Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/IconButton",
@@ -58,6 +65,7 @@ const sizeOf = (col: (typeof matrixCols)[number]) =>
 
 /** All variants and sizes, plus selected, loading and disabled states. */
 export const IconButtonMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Grid
       rows={["secondary", "subtle", "primary"] as const}
@@ -126,6 +134,7 @@ const closeAction = fn();
 
 /** A named tool, a primary split action, and a close control with its tooltip suppressed. */
 export const InPlace: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="A toolbar action: its label appears on hover and focus">
@@ -252,15 +261,14 @@ export const InADenseRow: Story = {
   },
 };
 
-const renameSystem = fn();
-
 /**
  * An icon button that opens a menu. Its tooltip shows when focus arrives by Tab. When focus comes
  * back from the menu, closed with Escape or by choosing a command, the tooltip stays shut, so the
  * next Escape reaches whatever holds the button instead of closing a tooltip first.
  */
-export const OpensAMenu: Story = {
-  render: () => (
+export const OpensAMenu: StoryObj<{ onRename: () => void }> = {
+  args: { onRename: fn() },
+  render: (args) => (
     <Inline space="space.100" alignBlock="center">
       <Button size="small">Create system</Button>
       <DropdownMenu>
@@ -270,14 +278,13 @@ export const OpensAMenu: Story = {
           }
         />
         <DropdownMenuContent>
-          <DropdownMenuItem onClick={renameSystem}>Rename</DropdownMenuItem>
+          <DropdownMenuItem onClick={args.onRename}>Rename</DropdownMenuItem>
           <DropdownMenuItem>Archive</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </Inline>
   ),
-  play: async ({ canvasElement }) => {
-    renameSystem.mockClear();
+  play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement);
     const body = within(canvasElement.ownerDocument.body);
     const openTooltip = () =>
@@ -305,7 +312,7 @@ export const OpensAMenu: Story = {
     await userEvent.keyboard("{Enter}");
     await waitFor(() => expect(body.getByRole("menuitem", { name: "Rename" })).toHaveFocus());
     await userEvent.keyboard("{Enter}");
-    await expect(renameSystem).toHaveBeenCalledTimes(1);
+    await expect(args.onRename).toHaveBeenCalledTimes(1);
     await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
     await waitFor(() => expect(more).toHaveFocus());
     await settle();
@@ -622,3 +629,38 @@ export const DisabledButReachable: Story = {
 };
 
 export const Playground: Story = { args: { variant: "secondary", size: "small" } };
+
+/** An icon alone only for an action whose icon everyone reads the same way, and a label that names the action, not the drawing. */
+export const DoDont: Story = {
+  tags: ["!manifest"],
+  name: "Do and don't",
+  render: () => (
+    <Stack space="space.400">
+      <Pair
+        do={
+          <Button variant="secondary" iconBefore={<FilePlus />}>
+            Request evidence
+          </Button>
+        }
+        doText="An action no icon says on its own keeps its words: a Button with the icon beside them."
+        dont={<IconButton label="Request evidence" icon={<FilePlus />} variant="secondary" />}
+        dontText="The icon alone for it. The reader hovers to learn what it does, and a touch screen has no hover."
+      />
+      <Pair
+        do={<IconButton label="Edit owner" icon={<Pencil />} variant="subtle" />}
+        doText="The label names the action and what it acts on: Edit owner."
+        dont={<IconButton label="Pencil" icon={<Pencil />} variant="subtle" />}
+        dontText="The label names the drawing. A screen reader hears Pencil, button, and the tooltip says the same."
+      />
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const [words, icon] = canvas.getAllByRole("button", { name: "Request evidence" });
+    // The Do shows its name; the Don't has nothing on screen but the icon.
+    await expect(words).toHaveTextContent("Request evidence");
+    await expect(icon?.textContent?.trim()).toBe("");
+    await expect(canvas.getByRole("button", { name: "Edit owner" })).toBeVisible();
+    await expect(canvas.getByRole("button", { name: "Pencil" })).toBeVisible();
+  },
+};

@@ -7,6 +7,8 @@ import * as Stories from "./DropZone.stories";
 
 # DropZone
 
+**Status: Stable.**
+
 A region files can be dropped on, with a [FileTrigger](?path=/docs/components-filetrigger--docs) inside for the keyboard, a screen reader and a touch screen, which cannot drag. Every drop and every choice is checked against `accept`, `maxSize` and `multiple`; accepted files go to `onSelect`, each refused file gets a message, and the result is announced.
 
 Use it where attaching files is the task: an upload form, an import, a record's files. For an attach button in a compact spot (a composer, a toolbar), use a FileTrigger on its own. DropZone chooses files and checks them; it does not upload them. Show the accepted files as [Attachment](?path=/docs/components-attachment--docs) rows and run the upload yourself.
@@ -88,5 +90,7 @@ The caller owns what happens to the files. The pattern the stories show:
 [FileTrigger](?path=/docs/components-filetrigger--docs) · [Attachment](?path=/docs/components-attachment--docs) · [Field](?path=/docs/components-field--docs) · [Progress](?path=/docs/components-progress--docs). Reference: [Carbon file uploader](https://carbondesignsystem.com/components/file-uploader/usage/), [React Aria DropZone](https://react-spectrum.adobe.com/react-aria/DropZone.html), [Polaris DropZone](https://polaris-react.shopify.com/components/selection-and-input/drop-zone).
 
 ## Don't
+
+The primary stays enabled and names what is missing on submit, never disabled until a file is chosen, which tells the reader nothing about what it waits for.
 
 <Canvas of={Stories.DoDont} />

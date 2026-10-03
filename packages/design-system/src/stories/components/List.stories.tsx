@@ -4,8 +4,12 @@ import { expect, within } from "storybook/test";
 import { Alert, AlertDescription, AlertTitle, List, TextLink } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
 import { Box, Stack, Text } from "../../primitives";
-import { Specimens } from "../_lib/matrix";
-import { Pair } from "../_lib/pair";
+import * as storyLayout from "../_lib/matrix";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Specimens } = storyLayout;
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/List",
@@ -25,6 +29,7 @@ type Story = StoryObj<typeof meta>;
 
 /** Bulleted and numbered, tight and loose, a nested list and a numbered list that starts later. */
 export const ListMatrix: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.300">
       <Specimens title="bulleted, tight (the default)">
@@ -138,6 +143,7 @@ export const RightToLeft: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair

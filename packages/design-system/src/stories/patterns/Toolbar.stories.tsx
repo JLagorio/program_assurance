@@ -33,7 +33,12 @@ import {
   type Tone,
 } from "../../components";
 import { Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as direction from "../_lib/direction";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
+const { along, arrows } = direction;
 
 const meta = {
   title: "Patterns/Toolbar",
@@ -224,6 +229,7 @@ export const Live: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -407,9 +413,7 @@ const viewsWhole = async (toolbar: HTMLElement) => {
 const primaryWhole = async (toolbar: HTMLElement, primary: HTMLElement) => {
   await expect(primary).toBeVisible();
   await expect(primary.scrollWidth).toBeLessThanOrEqual(primary.clientWidth);
-  await expect(primary.getBoundingClientRect().right).toBeLessThanOrEqual(
-    toolbar.getBoundingClientRect().right + 1,
-  );
+  await expect(along(primary).end).toBeLessThanOrEqual(along(toolbar).end + 1);
 };
 /** Two controls do not overlap: one sits wholly beside or wholly below the other. */
 const apart = async (a: Element, b: Element) => {
@@ -689,7 +693,6 @@ function Register({ kind }: { kind: keyof typeof registers }) {
 export const Phone: Story = {
   name: "Phone",
   globals: { viewport: { value: "ledgerSmall", isRotated: false } },
-  tags: ["narrow"],
   render: () => <Register kind="suppliers" />,
   play: async ({ canvasElement }) => {
     await waitFor(() => expect(window.innerWidth).toBe(340));
@@ -760,7 +763,8 @@ export const Phone: Story = {
     overflow.focus();
     await userEvent.keyboard("{ArrowDown}");
     await waitFor(() => expect(body.getByRole("menuitem", { name: "Export" })).toHaveFocus());
-    await userEvent.keyboard("{ArrowRight}");
+    // The submenu opens towards the line's end: ArrowRight, or ArrowLeft in right to left.
+    await userEvent.keyboard(arrows(overflow).next);
     await waitFor(() => expect(body.getByRole("menuitem", { name: "CSV" })).toHaveFocus());
     await expect(openMore(canvasElement)).not.toBeNull();
     await userEvent.keyboard("{ArrowDown}");
@@ -776,7 +780,6 @@ export const Phone: Story = {
 export const PhoneLongPrimary: Story = {
   name: "Phone, long primary",
   globals: { viewport: { value: "ledgerNarrow", isRotated: false } },
-  tags: ["narrow"],
   render: () => <Register kind="issues" />,
   play: async ({ canvasElement }) => {
     await waitFor(() => expect(window.innerWidth).toBe(320));
@@ -955,12 +958,10 @@ export const PanelMinimum: Story = {
     await expect(primary.getBoundingClientRect().top).toBeGreaterThanOrEqual(
       more.getBoundingClientRect().bottom,
     );
-    await expect(primary.getBoundingClientRect().right).toBeGreaterThanOrEqual(
-      toolbar.getBoundingClientRect().right - 1,
-    );
+    await expect(along(primary).end).toBeGreaterThanOrEqual(along(toolbar).end - 1);
     await expect(follows(savedViews, more) && follows(more, primary)).toBe(true);
-    await expect(toolbar.getBoundingClientRect().right).toBeLessThanOrEqual(
-      canvas.getByTestId("frame").getBoundingClientRect().right + 1,
+    await expect(along(toolbar).end).toBeLessThanOrEqual(
+      along(canvas.getByTestId("frame")).end + 1,
     );
   },
 };

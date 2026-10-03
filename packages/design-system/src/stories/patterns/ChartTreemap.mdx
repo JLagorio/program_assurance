@@ -7,6 +7,8 @@ import * as Stories from "./ChartTreemap.stories";
 
 # Treemap
 
+**Status: Stable.**
+
 Part-to-whole with a hierarchy: a tile per leaf, sized by value, in the tone of its top-level branch. Findings by system and component; controls by family and enhancement. Where the total goes, and where inside that. A name shows on a tile when it fits; the rest is the tooltip's. A click on a tile drills into its branch, or opens its card. It lives in a [Chart](?path=/docs/patterns-chart-overview--docs) Frame, whose legend names the branches.
 
 <Canvas of={Stories.TreemapMatrix} />
@@ -62,7 +64,9 @@ In a Frame the treemap's leaves are its table twin and its CSV: a row per leaf i
 - **`onSelect`** and **`details`** as in States; the selection is `{ name, value, group, path, id }`: `group` the top-level branch, `path` the names on the way down to the tile, and `id` the node's own when it has one. A chosen tile is matched by `id`, else by `path`, so two components of the same name in two systems stay apart.
 - **`id`** on a node, for a record's identity when names repeat.
 - **`loading`** draws the skeleton; the Frame sets it from `state="loading"`.
-- **`label`** names the plot outside a Frame.
+- **`label`** names the plot outside a Frame; native props and a ref reach the plot's box, and `aria-describedby` describes the plot: its svg when it chooses nothing, its group when its tiles are the tab stops.
+
+<Canvas of={Stories.NativeAttributes} />
 
 ## Content
 
@@ -110,5 +114,7 @@ In a Frame the treemap's leaves are its table twin and its CSV: a row per leaf i
 - [Tree](?path=/docs/components-tree--docs): the same hierarchy as an outline, when the reader wants to walk it.
 
 ## Don't
+
+A treemap is for a hierarchy. A flat list of five is a Bar, never a treemap whose small tiles lose their names.
 
 <Canvas of={Stories.Dont} />

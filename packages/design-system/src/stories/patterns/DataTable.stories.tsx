@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { FileText } from "lucide-react";
+import { FileText, Network, Package } from "lucide-react";
 import { expect, fireEvent, userEvent, waitFor, within } from "storybook/test";
 
 import {
@@ -10,6 +10,7 @@ import {
   HeaderMenu,
   PageHeader,
   RowSortable,
+  Shell,
   Toolbar,
   columnKinds,
   defineColumns,
@@ -34,21 +35,51 @@ import {
   type TableQuery,
   type TableQueryParams,
 } from "../..";
-import { Button, Id, Indicator, Input, Spinner, Stat, TextLink, type Tone } from "../../components";
+import {
+  Absent,
+  Badge,
+  Button,
+  Icon,
+  Id,
+  Indicator,
+  Input,
+  Spinner,
+  Stat,
+  TextLink,
+  type Tone,
+} from "../../components";
 
 import { Table } from "../../components";
 import { LedgerProvider } from "../../lib/locale";
 import { Inline, Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as direction from "../_lib/direction";
+import * as pairLayout from "../_lib/pair";
 import { interact } from "../_lib/interact";
 import { displayedRows, showRow } from "../..";
 
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
+const { along, arrows, isRtl, towardsEnd } = direction;
+
 const meta = {
   title: "Patterns/Data table",
+  component: DataTable,
   parameters: { layout: "padded" },
 } satisfies Meta;
 export default meta;
 type Story = StoryObj;
+
+/*
+ * A DataTable fits its frame unless it says `responsive={false}`. The stories about a column's own
+ * features (its menu, its width, its place, an editable cell, a sort by its header) say so: their
+ * plays read every column, which a phone's frame would fold into More fields.
+ */
+
+/** A row's More fields control, by its row: "Show 3 more fields for …", or "Hide …" while open. */
+const moreFieldsFor = (label: string) =>
+  new RegExp(`^(Show|Hide) \\d+ more fields? for ${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`);
+/** Any row's More fields control. */
+const ANY_MORE_FIELDS = /^(Show|Hide) \d+ more fields?\b/;
 
 /** What the page's polite live regions hold now, one entry per line, from the Announcer or `announce`'s own regions. */
 const politeLines = (canvasElement: HTMLElement) =>
@@ -138,7 +169,49 @@ const presets = [
   { id: "mine", label: "Dana's", filters: [{ id: "owner", value: "Dana Whitfield" }] },
 ];
 
-/** The register: search, filters as chips, presets with counts, sortable headers, the checkbox column and its bar, a glance on the id, row actions, eight rows a page. */
+/**
+ * The usage to copy: `useDataTable` over the rows and the columns, then a DataTable with a Toolbar
+ * above it, the search first, a filter and the one primary. It fits its frame: on a narrow one the
+ * lower-priority fields move into each row's More fields.
+ */
+export const Usage: Story = {
+  render: function FindingsRegister() {
+    const table = useDataTable({
+      columns,
+      data: findings,
+      getRowId: (r) => r.id,
+      pageSize: 8,
+      label: "Findings",
+    });
+    return (
+      <DataTable
+        table={table}
+        toolbar={
+          <Toolbar
+            search={table.state.globalFilter}
+            onSearch={table.setGlobalFilter}
+            placeholder="Search findings"
+            filters={<DataTable.Filter table={table} column="status" />}
+            actions={
+              <Button size="small" variant="primary">
+                New finding
+              </Button>
+            }
+          />
+        }
+        empty={{ title: "No findings yet", description: "The first assessment creates them." }}
+      />
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("table", { name: "Findings" })).toBeVisible();
+    await expect(canvas.getByRole("searchbox", { name: "Search findings" })).toBeVisible();
+    await expect(canvas.getByRole("button", { name: "New finding" })).toBeVisible();
+  },
+};
+
+/** The register: search, filters as chips, presets with counts, sortable headers, the checkbox column, and while rows are chosen the SelectionBar in the toolbar's place, a glance on the id, row actions, eight rows a page. */
 function Register({ responsive = false }: { responsive?: boolean }) {
   const table = useDataTable({
     columns,
@@ -149,41 +222,46 @@ function Register({ responsive = false }: { responsive?: boolean }) {
     label: "Findings",
     initialState: { sorting: [{ id: "due", desc: false }] },
   });
+  // While rows are chosen the bar takes the toolbar's slot, so the rows stay under the pointer.
+  const chosen = Object.values(table.state.rowSelection).some(Boolean);
   return (
     <Stack space="space.150">
       <DataTable.Presets table={table} presets={presets} />
-      <DataTable.SelectionBar
-        table={table}
-        actions={
-          <>
-            <Button size="small">Reassign</Button>
-            <Button size="small">Close</Button>
-          </>
-        }
-      />
       <DataTable
         table={table}
         responsive={responsive}
         toolbar={
-          <Toolbar
-            search={table.state.globalFilter}
-            onSearch={table.setGlobalFilter}
-            placeholder="Search findings"
-            actions={
-              <Button size="small" variant="primary">
-                New finding
-              </Button>
-            }
-            filters={
-              <>
-                <DataTable.Filter table={table} column="status" />
-                <DataTable.Filter table={table} column="owner" />
-                <DataTable.Filter table={table} column="family" />
-                <DataTable.Filter table={table} column="open" />
-                <DataTable.Filter table={table} column="due" />
-              </>
-            }
-          />
+          chosen ? (
+            <DataTable.SelectionBar
+              table={table}
+              actions={
+                <>
+                  <Button size="small">Reassign</Button>
+                  <Button size="small">Close</Button>
+                </>
+              }
+            />
+          ) : (
+            <Toolbar
+              search={table.state.globalFilter}
+              onSearch={table.setGlobalFilter}
+              placeholder="Search findings"
+              actions={
+                <Button size="small" variant="primary">
+                  New finding
+                </Button>
+              }
+              filters={
+                <>
+                  <DataTable.Filter table={table} column="status" />
+                  <DataTable.Filter table={table} column="owner" />
+                  <DataTable.Filter table={table} column="family" />
+                  <DataTable.Filter table={table} column="open" />
+                  <DataTable.Filter table={table} column="due" />
+                </>
+              }
+            />
+          )
         }
         empty={{ title: "No findings yet", description: "The first assessment creates them." }}
       />
@@ -201,19 +279,40 @@ export const RegisterStory: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const table = within(canvas.getByRole("table", { name: "Findings" }));
-    const [page, firstRow] = table.getAllByRole("checkbox");
+    const [page, firstRow, secondRow] = table.getAllByRole("checkbox");
     await expect(page).not.toBeChecked();
+    const before = secondRow!.getBoundingClientRect().top;
     await userEvent.click(firstRow!);
     await expect(firstRow).toBeChecked();
     await expect(page).toBePartiallyChecked();
+    // The bar takes the toolbar's place: the search goes, and the next row stays under the pointer.
+    const bar = await canvas.findByRole("region", { name: "Selection" });
+    await expect(within(bar).getByText("1 selected")).toBeVisible();
+    await expect(canvas.queryByRole("searchbox", { name: "Search findings" })).toBeNull();
+    await expect(Math.abs(secondRow!.getBoundingClientRect().top - before)).toBeLessThan(20);
+    // Escape in the bar clears the choice, and focus goes to the select-all.
+    within(bar).getByRole("button", { name: "Clear" }).focus();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page).toHaveFocus());
+    await expect(firstRow).not.toBeChecked();
+    await expect(canvas.getByRole("searchbox", { name: "Search findings" })).toBeVisible();
     await userEvent.click(page!);
     for (const checkbox of table.getAllByRole("checkbox")) await expect(checkbox).toBeChecked();
     await userEvent.click(page!);
     for (const checkbox of table.getAllByRole("checkbox")) await expect(checkbox).not.toBeChecked();
 
+    // With no rowLabel each row is named by its identity, the id column: that cell is the row's
+    // header, and the row's controls say its text, never a raw key.
+    const headers = table.getAllByRole("rowheader");
+    await expect(headers).toHaveLength(8);
+    const name = headers[0]!.textContent!;
+    await expect(name).toMatch(/^FND-\d{4}$/);
+    await expect(firstRow).toHaveAccessibleName(`Select ${name}`);
+    const actions = table.getByRole("button", { name: `Row actions for ${name}` });
+    await expect(table.queryAllByRole("button", { name: "Row actions" })).toHaveLength(0);
+
     // Row actions remain reachable without hovering the row. The id's glance is a hover card with
     // no tab stop of its own, so the row's next stop after its checkbox is its actions.
-    const actions = table.getAllByRole("button", { name: "Row actions" })[0]!;
     firstRow!.focus();
     await userEvent.tab();
     await expect(actions).toHaveFocus();
@@ -399,7 +498,8 @@ function Wide({ view }: { view?: string | undefined }) {
         <DataTable.Columns table={table} />
         <DataTable.Settings table={table} />
       </Toolbar>
-      <DataTable table={table} maxHeight={420} />
+      {/* A wide comparison: every column stays in the row and the frame scrolls sideways. */}
+      <DataTable table={table} maxHeight={420} responsive={false} />
       <Text size="small" color="color.text.subtle">
         pinned: {table.state.columnPinning.start.join(", ") || "none"} ·{" "}
         {table.state.columnPinning.end.join(", ") || "none"} · order:{" "}
@@ -487,16 +587,14 @@ export const PinnedNarrow: Story = {
     // Narrow: the name gives way and scrolls; the id stays pinned after the checkbox.
     await waitFor(() => expect(offset("Finding")).toBe(""));
     await expect(offset("ID")).toBe("32px");
-    const band = heading("ID").getBoundingClientRect().right - frame.getBoundingClientRect().left;
+    const band = along(heading("ID")).end - along(frame).start;
     await expect(band).toBeLessThanOrEqual(frame.clientWidth * 0.6);
-    const idLeft = heading("ID").getBoundingClientRect().left;
-    const nameLeft = heading("Finding").getBoundingClientRect().left;
-    frame.scrollLeft = 120;
+    const idStart = along(heading("ID")).start;
+    const nameStart = along(heading("Finding")).start;
+    frame.scrollLeft = towardsEnd(frame, 120);
     fireEvent.scroll(frame);
-    await waitFor(() =>
-      expect(heading("Finding").getBoundingClientRect().left).toBeLessThan(nameLeft - 100),
-    );
-    await expect(Math.round(heading("ID").getBoundingClientRect().left)).toBe(Math.round(idLeft));
+    await waitFor(() => expect(along(heading("Finding")).start).toBeLessThan(nameStart - 100));
+    await expect(Math.round(along(heading("ID")).start)).toBe(Math.round(idStart));
     frame.scrollLeft = 0;
     fireEvent.scroll(frame);
 
@@ -638,7 +736,7 @@ function Movable({ label }: { label: string }) {
     getRowId: (r) => r.id,
     reorderable: true,
   });
-  return <DataTable table={table} />;
+  return <DataTable responsive={false} table={table} />;
 }
 
 /** The headings of a table's columns, in the order they are drawn. */
@@ -668,7 +766,10 @@ export const MovingColumns: Story = {
   name: "Moving a column from its menu",
   render: () => (
     <Stack space="space.300">
-      <Movable label="Findings to arrange" />
+      {/* Left to right by its own provider, so the pair holds under the Direction toolbar too. */}
+      <LedgerProvider direction="ltr">
+        <Movable label="Findings to arrange" />
+      </LedgerProvider>
       <LedgerProvider direction="rtl">
         <Movable label="Findings, right to left" />
       </LedgerProvider>
@@ -831,22 +932,26 @@ export const MovingColumnsNarrow: Story = {
     // right past Status, the next column drawn, and focus comes back to its menu.
     const menuOf = (name: string, of: HTMLElement) =>
       within(of).getByRole("button", { name: `${name} column menu` });
+    // The words follow the screen: towards the end is Move right, or Move left in right to left.
+    const [toStart, toEnd] = isRtl(panel)
+      ? ["Move right", "Move left"]
+      : ["Move left", "Move right"];
     await waitFor(() => expect(headingOrder(panel)).not.toContain("Owner"));
     const drawn = headingOrder(panel);
     await expect(drawn[0]).toBe("Finding");
     await userEvent.click(menuOf("Finding", panel));
     await body.findByRole("menuitemradio", { name: "Sort ascending" });
     if (drawn.length > 1) {
-      await expect(await item("Move left")).toHaveAttribute("aria-disabled", "true");
-      await userEvent.click(await item("Move right"));
+      await expect(await item(toStart)).toHaveAttribute("aria-disabled", "true");
+      await userEvent.click(await item(toEnd));
       await closed();
       await waitFor(() => expect(headingOrder(panel)).toEqual(["Status", "Finding"]));
       await waitFor(() => expect(menuOf("Finding", panel)).toHaveFocus());
       await waitFor(() => expect(moveStatus(panel)).toHaveTextContent("Finding, 2 of 2"));
       // Finding is now the last column drawn: Move right would pass Owner, which is folded.
       await userEvent.click(menuOf("Finding", panel));
-      await expect(await item("Move right")).toHaveAttribute("aria-disabled", "true");
-      await expect(await item("Move left")).not.toHaveAttribute("aria-disabled", "true");
+      await expect(await item(toEnd)).toHaveAttribute("aria-disabled", "true");
+      await expect(await item(toStart)).not.toHaveAttribute("aria-disabled", "true");
     } else {
       // A frame that draws only the name has nothing to move past.
       await expect(body.queryByRole("menuitem", { name: /^Move/ })).toBeNull();
@@ -861,7 +966,7 @@ export const MovingColumnsNarrow: Story = {
     const before = headingOrder(unranked);
     const passed = before[before.indexOf("Status") + 1];
     await userEvent.click(menuOf("Status", unranked));
-    const moveRight = await item("Move right");
+    const moveRight = await item(toEnd);
     if (passed === undefined) {
       // A frame that draws Status last: Move right would pass only folded columns.
       await expect(moveRight).toHaveAttribute("aria-disabled", "true");
@@ -994,6 +1099,8 @@ export const TreeStory: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const grid = canvas.getByRole("treegrid", { name: "System" });
+    // Out of a row and into it, mirrored in right to left.
+    const { next, previous } = arrows(grid);
     const rootRow = within(grid).getByRole("row", { name: /Flight computer/ });
     const mainBoard = within(grid).getByRole("row", { name: /Main board/ });
     const headerButtons = within(grid.querySelector("thead")!).getAllByRole("button");
@@ -1006,10 +1113,14 @@ export const TreeStory: Story = {
     await expect(grid.querySelectorAll('tr[tabindex="0"]')).toHaveLength(1);
     const guide = mainBoard.querySelector<HTMLElement>("[data-tree-guides]")!;
     await expect(guide).toHaveAttribute("aria-hidden", "true");
-    await expect(guide.closest("td")).toBe(mainBoard.children[0]);
+    // The element's name is the row's header, and the guides and the disclosure sit in it.
+    const nameCell = within(mainBoard).getByRole("rowheader");
+    await expect(nameCell).toHaveAttribute("scope", "row");
+    await expect(nameCell).toHaveTextContent(/^Main board/);
+    await expect(guide.closest("th")).toBe(mainBoard.children[0]);
     const rootToggle = within(grid).getByRole("button", { name: "Collapse Flight computer" });
     const childToggle = within(mainBoard).getByRole("button", { name: "Expand Main board" });
-    await expect(childToggle.closest("td")).toBe(guide.closest("td"));
+    await expect(childToggle.closest("th")).toBe(nameCell);
     const rootRect = rootToggle.getBoundingClientRect();
     const childRect = childToggle.getBoundingClientRect();
     await expect(
@@ -1020,23 +1131,190 @@ export const TreeStory: Story = {
     await expect(canvas.queryByText("opened Main board")).toBeNull();
     await userEvent.click(within(mainBoard).getByRole("button", { name: "Collapse Main board" }));
 
-    // Decorative guides must preserve the treegrid's row focus and disclosure behavior.
+    // The chevron's cell took the stop when it was pressed: Shift+Tab is its cell, and Left from
+    // the row's first cell is the row. Decorative guides keep the row's keys.
     await userEvent.tab({ shift: true });
+    await expect(nameCell).toHaveFocus();
+    await expect(grid.querySelectorAll('tr[tabindex="0"]')).toHaveLength(0);
+    await userEvent.keyboard(previous);
     await expect(mainBoard).toHaveFocus();
-    await userEvent.keyboard("{ArrowRight}");
+    await userEvent.keyboard(next);
     await expect(mainBoard).toHaveAttribute("aria-expanded", "true");
     const chip = within(grid).getByRole("row", { name: /SoC/ });
-    await userEvent.keyboard("{ArrowRight}");
-    await expect(chip).toHaveFocus();
-    await userEvent.keyboard("{ArrowLeft}");
+    // Right on an open row enters its first cell; Down from the row reaches its first part.
+    await userEvent.keyboard(next);
+    await expect(nameCell).toHaveFocus();
+    await userEvent.keyboard(previous);
     await expect(mainBoard).toHaveFocus();
-    await userEvent.keyboard("{ArrowLeft}");
+    await userEvent.keyboard("{ArrowDown}");
+    await expect(chip).toHaveFocus();
+    await userEvent.keyboard(previous);
+    await expect(mainBoard).toHaveFocus();
+    await userEvent.keyboard(previous);
     await expect(mainBoard).toHaveAttribute("aria-expanded", "false");
     await expect(within(grid).queryByRole("row", { name: /SoC/ })).toBeNull();
+    // Closing the parent hides the row that held the stop: the stop is where focus went, the
+    // parent's chevron's cell, and it is the only one in the rows.
     await userEvent.click(rootToggle);
-    await expect(rootRow).toHaveAttribute("tabindex", "0");
-    await expect(grid.querySelectorAll('tr[tabindex="0"]')).toHaveLength(1);
+    const rootName = within(rootRow).getByRole("rowheader");
+    await expect(rootName).toHaveAttribute("tabindex", "0");
+    await expect(grid.querySelectorAll('tbody :is(tr, td, th)[tabindex="0"]')).toHaveLength(1);
+    // The stop's cell gives its chevron back to Tab; every other row's controls stay out of it.
+    const reachable = [...grid.querySelectorAll<HTMLElement>("tbody button")].filter(
+      (button) => button.tabIndex >= 0,
+    );
+    await expect(reachable.every((button) => rootName.contains(button))).toBe(true);
     await userEvent.click(within(grid).getByRole("button", { name: "Expand Flight computer" }));
+  },
+};
+
+/*
+ * The treegrid's keys, as the ARIA treegrid pattern has them. The rows hold one tab stop, a row or
+ * one of its cells, and every link and button in them is out of the Tab order except those in the
+ * cell that holds it: from the header, Tab reaches the stop and the next Tab leaves the table,
+ * however many rows it has. Right on an open row enters its first cell; Right and Left move along
+ * the row, Down and Up keep the column, Home and End reach the row's ends, Ctrl+Home and Ctrl+End
+ * the column's; Left from the first cell is the row. Tab from a cell reaches its own controls.
+ * Enter on a cell presses its link, Space its checkbox.
+ */
+const keyedPartColumns = defineColumns<Part>((c) => [
+  c.text("name", {
+    header: "Element",
+    sortable: false,
+    priority: 0,
+    minWidth: 200,
+    cell: (r) => <TextLink href={`#/parts/${r.id}`}>{r.name}</TextLink>,
+  }),
+  c.text("kind", { header: "Kind", width: 130, sortable: false }),
+  c.person("owner", { header: "Owner", width: 180, sortable: false }),
+  c.actions(() => [
+    { label: "Rename", onSelect: () => {} },
+    { label: "Remove", tone: "danger", onSelect: () => {} },
+  ]),
+]);
+
+function TreeKeys() {
+  const [open, setOpen] = useState<Part | null>(null);
+  const table = useDataTable({
+    columns: keyedPartColumns,
+    data: system,
+    getRowId: (r) => r.id,
+    label: "System, by keyboard",
+    selectable: true,
+    tree: { children: (r) => r.parts, label: (r) => r.name, initialExpanded: true },
+    preview: { onPreview: setOpen, activeId: open?.id ?? null },
+  });
+  return (
+    <Stack space="space.150">
+      <DataTable table={table} />
+      <Inline space="space.100" alignBlock="center">
+        <Button size="small">After the table</Button>
+        <Text size="small" color="color.text.subtle">
+          {open ? `Previewing ${open.name}` : "Nothing previewed"}
+        </Text>
+      </Inline>
+    </Stack>
+  );
+}
+
+export const TreeKeysStory: Story = {
+  name: "Tree keys",
+  render: () => <TreeKeys />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const grid = canvas.getByRole("treegrid", { name: "System, by keyboard" });
+    // Out of a row and into it, mirrored in right to left.
+    const { next, previous } = arrows(grid);
+    const after = canvas.getByRole("button", { name: "After the table" });
+    const rowNamed = (name: RegExp) => within(grid).getByRole("row", { name });
+    /** The cells the keys move across: the disclosure is the row's own. */
+    const cells = (row: HTMLElement) =>
+      [...(row as HTMLTableRowElement).cells].filter(
+        (cell) => cell.dataset["slot"] !== "table-disclosure",
+      );
+    /** What in the rows the Tab key can reach now. */
+    const tabbable = () =>
+      [
+        ...grid.querySelectorAll<HTMLElement>(
+          "tbody tr, tbody td, tbody th, tbody a[href], tbody button, tbody input, tbody [tabindex]",
+        ),
+      ].filter((element) => element.tabIndex >= 0 && !element.hidden);
+    const flight = rowNamed(/Flight computer/);
+    const main = rowNamed(/Main board/);
+
+    // From the header, Tab reaches the one stop, the first row, and the next Tab leaves the table.
+    const heads = within(grid.querySelector("thead")!).getAllByRole("button");
+    heads[heads.length - 1]!.focus();
+    await userEvent.tab();
+    await expect(flight).toHaveFocus();
+    await expect(tabbable()).toEqual([flight]);
+    await userEvent.tab();
+    await expect(after).toHaveFocus();
+    await userEvent.tab({ shift: true });
+    await expect(flight).toHaveFocus();
+
+    // Right on an open row enters its first cell, the checkbox's; Right moves along the row.
+    await userEvent.keyboard(next);
+    await expect(cells(flight)[0]).toHaveFocus();
+    await userEvent.keyboard(next);
+    const name = cells(flight)[1]!;
+    await expect(name).toHaveFocus();
+    await expect(flight).toHaveAttribute("tabindex", "-1");
+    // The cell holds the stop, and its controls follow it: the link, then the eye, then out.
+    const link = within(name).getByRole("link", { name: "Flight computer" });
+    const eye = within(name).getByRole("button", { name: "Preview Flight computer" });
+    await expect(tabbable()).toEqual([name, link, eye]);
+    await userEvent.tab();
+    await expect(link).toHaveFocus();
+    await userEvent.tab();
+    await expect(eye).toHaveFocus();
+    await userEvent.tab();
+    await expect(after).toHaveFocus();
+    await userEvent.tab({ shift: true });
+    await userEvent.tab({ shift: true });
+    await expect(link).toHaveFocus();
+
+    // A link takes the arrows as its cell does: Down keeps the column.
+    await userEvent.keyboard("{ArrowDown}");
+    await expect(cells(main)[1]).toHaveFocus();
+    await expect(within(cells(main)[1]!).getByRole("link").tabIndex).toBe(0);
+    await expect(link.tabIndex).toBe(-1);
+    // End and Home reach the row's ends; Ctrl+End and Ctrl+Home the column's.
+    await userEvent.keyboard("{End}");
+    await expect(cells(main).at(-1)).toHaveFocus();
+    await userEvent.keyboard("{Home}");
+    await expect(cells(main)[0]).toHaveFocus();
+    await userEvent.keyboard("{Control>}{End}{/Control}");
+    await expect(cells(rowNamed(/Telemetry service/))[0]).toHaveFocus();
+    await userEvent.keyboard("{Control>}{Home}{/Control}");
+    await expect(cells(flight)[0]).toHaveFocus();
+
+    // Space on the checkbox's cell chooses the row; Left from the first cell is the row again.
+    await userEvent.keyboard(" ");
+    await expect(within(cells(flight)[0]!).getByRole("checkbox")).toBeChecked();
+    await userEvent.keyboard(previous);
+    await expect(flight).toHaveFocus();
+    await expect(tabbable()).toEqual([flight]);
+
+    // Enter on the name's cell presses its link, as Enter on the row does.
+    let followed = 0;
+    const follow = (event: Event) => {
+      event.preventDefault();
+      followed += 1;
+    };
+    link.addEventListener("click", follow);
+    try {
+      await userEvent.keyboard(`${next}${next}`);
+      await expect(name).toHaveFocus();
+      await userEvent.keyboard("{Enter}");
+      await expect(followed).toBe(1);
+      await userEvent.keyboard(`${previous}${previous}`);
+      await expect(flight).toHaveFocus();
+      await userEvent.keyboard("{Enter}");
+      await expect(followed).toBe(2);
+    } finally {
+      link.removeEventListener("click", follow);
+    }
   },
 };
 
@@ -1142,7 +1420,7 @@ function Lists() {
   });
   return (
     <Stack space="space.150">
-      <DataTable table={table} />
+      <DataTable responsive={false} table={table} />
       <Text size="small" color="color.text.subtle">
         {opened
           ? `preview ${opened}`
@@ -1282,7 +1560,7 @@ export const GroupByStory: Story = {
     const body = within(canvasElement.ownerDocument.body);
     const search = canvas.getByRole("searchbox", { name: "Search grouped findings" });
     await userEvent.type(search, "Segregation");
-    await userEvent.click(canvas.getByRole("checkbox", { name: "Select row FND-2200" }));
+    await userEvent.click(canvas.getByRole("checkbox", { name: "Select FND-2200" }));
 
     const trigger = canvas.getByRole("button", { name: "Group by: Family" });
     trigger.focus();
@@ -1291,7 +1569,7 @@ export const GroupByStory: Story = {
     await userEvent.click(body.getByRole("menuitemradio", { name: "Owner" }));
     await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
     await expect(canvas.getByRole("button", { name: "Group by: Owner" })).toHaveFocus();
-    await expect(canvas.getByRole("checkbox", { name: "Select row FND-2200" })).toBeChecked();
+    await expect(canvas.getByRole("checkbox", { name: "Select FND-2200" })).toBeChecked();
     await expect(search).toHaveValue("Segregation");
     await expect(canvas.getByRole("table", { name: "Grouped findings" })).toHaveTextContent(
       "Dana Whitfield",
@@ -1301,7 +1579,7 @@ export const GroupByStory: Story = {
     await userEvent.click(await body.findByRole("menuitemradio", { name: "None" }));
     await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
     await expect(canvas.getByRole("button", { name: "Group by" })).toHaveFocus();
-    await expect(canvas.getByRole("checkbox", { name: "Select row FND-2200" })).toBeChecked();
+    await expect(canvas.getByRole("checkbox", { name: "Select FND-2200" })).toBeChecked();
     await expect(search).toHaveValue("Segregation");
     // Three rows fit the smallest page: there is no pager to turn until the search clears.
     await expect(
@@ -1316,10 +1594,10 @@ export const GroupByStory: Story = {
     const status = within(await body.findByRole("group", { name: "Status" }));
     await userEvent.click(status.getByRole("checkbox", { name: /^Verified\b/ }));
     await expect(canvas.getByRole("button", { name: "Filters (1)" })).toBeVisible();
-    await expect(canvas.queryByRole("checkbox", { name: "Select row FND-2200" })).toBeNull();
+    await expect(canvas.queryByRole("checkbox", { name: "Select FND-2200" })).toBeNull();
     await userEvent.click(body.getByRole("button", { name: "Clear all filters" }));
     await expect(canvas.getByRole("button", { name: "Filters" })).toBeVisible();
-    await expect(canvas.getByRole("checkbox", { name: "Select row FND-2200" })).toBeChecked();
+    await expect(canvas.getByRole("checkbox", { name: "Select FND-2200" })).toBeChecked();
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(canvas.getByRole("button", { name: "Filters" })).toHaveFocus());
   },
@@ -1437,10 +1715,15 @@ export const ReorderingRows: Story = {
   },
 };
 
-/** Cells that edit in place: the name is an Editable.Text, the status an Editable.Select. Enter commits and moves down the column; the table is a grid. */
+/** Cells that edit in place: the name is an Editable.Text, the status an Editable.Select. Enter commits and moves down the column. The column's `onDraftChange`, `onEditingChange` and `onCancel` report each row's draft, so a host's draft guard counts the unsaved rows without reading the cells' DOM events. */
 function Editing() {
   const [data, setData] = useState(() => findings.slice(0, 6));
   const [saves, setSaves] = useState(0);
+  // What a draft guard holds: the rows with an unsaved draft, the row whose editor is open, and
+  // how many edits were dropped.
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [open, setOpen] = useState<string | null>(null);
+  const [cancels, setCancels] = useState(0);
   const pending = useRef<(() => void)[]>([]);
   const save = () =>
     new Promise<void>((resolve) => pending.current.push(resolve)).then(() =>
@@ -1458,6 +1741,16 @@ function Editing() {
             onChange: (row, next) => patch(row.id, { name: next }),
             save,
             validate: (next) => (next.trim() ? null : "A name is required."),
+            onDraftChange: (row, draft) =>
+              setDrafts((current) => {
+                const next = { ...current };
+                if (draft === null) delete next[row.id];
+                else next[row.id] = draft;
+                return next;
+              }),
+            onEditingChange: (row, editing) =>
+              setOpen((current) => (editing ? row.id : current === row.id ? null : current)),
+            onCancel: () => setCancels((count) => count + 1),
           },
         }),
         c.status("status", {
@@ -1481,12 +1774,16 @@ function Editing() {
     getRowId: (r) => r.id,
     label: "Findings",
   });
+  const unsaved = Object.keys(drafts).length;
   return (
     <Stack space="space.150">
       <DataTable table={table} />
       <Text size="small" color="color.text.subtle">
-        {saves} saved · role {table.options.meta?.editable ? "grid" : "table"}
+        {saves} saved
       </Text>
+      <output data-testid="draft-guard" className="block font-body-small text-subtle">
+        {unsaved} unsaved · {open ?? "no"} editor open · {cancels} dropped
+      </output>
       <Button onClick={() => pending.current.splice(0).forEach((resolve) => resolve())}>
         Finish saves
       </Button>
@@ -1499,19 +1796,23 @@ export const EditingStory: Story = {
   render: () => <Editing />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    const guard = () => canvas.getByTestId("draft-guard").textContent;
     // Editing keeps the table a table: Tab moves across, and it claims no grid arrow keys.
     await expect(canvas.getByRole("table", { name: "Findings" })).toBeVisible();
     await expect(canvas.queryByRole("grid")).toBeNull();
     const cells = canvas.getAllByRole("button", { name: /^Finding:/ });
     await userEvent.click(cells[0]!);
     const input = canvas.getByRole("textbox", { name: "Finding" });
+    await waitFor(() => expect(guard()).toBe("0 unsaved · FND-2200 editor open · 0 dropped"));
     await userEvent.clear(input);
+    // The cleared field is a draft the host hears about, with its row.
+    await waitFor(() => expect(guard()).toBe("1 unsaved · FND-2200 editor open · 0 dropped"));
     await interact(() =>
       input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })),
     );
     await expect(input).toHaveFocus();
     await expect(input).toHaveAttribute("aria-invalid", "true");
-    await expect(canvas.getByText("0 saved · role grid")).toBeVisible();
+    await expect(canvas.getByText("0 saved")).toBeVisible();
     await userEvent.type(input, "Confirmed owner review");
     await interact(() => {
       input.dispatchEvent(
@@ -1522,16 +1823,97 @@ export const EditingStory: Story = {
       );
     });
     await expect(input).toHaveFocus();
-    await expect(canvas.getByText("0 saved · role grid")).toBeVisible();
+    await expect(canvas.getByText("0 saved")).toBeVisible();
     await interact(() =>
       input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })),
     );
     await waitFor(() => expect(cells[1]!).toHaveFocus());
+    // Committed: no draft is left and no editor is open.
+    await waitFor(() => expect(guard()).toBe("0 unsaved · no editor open · 0 dropped"));
+
+    // Escape drops an edit: the draft goes, and the host hears the cancel.
+    await userEvent.click(cells[2]!);
+    const second = canvas.getByRole("textbox", { name: "Finding" });
+    await userEvent.type(second, " draft");
+    await waitFor(() => expect(guard()).toBe("1 unsaved · FND-2202 editor open · 0 dropped"));
+    await interact(() =>
+      second.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })),
+    );
+    await waitFor(() => expect(guard()).toBe("0 unsaved · no editor open · 1 dropped"));
+
     await interact(() => canvas.getByRole("button", { name: "Finish saves" }).click());
-    await waitFor(() => expect(canvas.getByText("1 saved · role grid")).toBeVisible());
+    await waitFor(() => expect(canvas.getByText("1 saved")).toBeVisible());
     await expect(
       canvas.getByRole("button", { name: "Finding: Confirmed owner review" }),
     ).toBeVisible();
+  },
+};
+
+/** An editable status column over a shared map: each choice reads as its label, and a first choice clears it. */
+function EditingStatuses() {
+  const [data, setData] = useState<WorkItem[]>(() => workItems.slice(0, 4));
+  const statusColumns = useMemo(
+    () =>
+      defineColumns<WorkItem>((c) => [
+        c.id("id"),
+        c.text("name", { header: "Task", minWidth: 200 }),
+        c.status("state", {
+          header: "Status",
+          width: 160,
+          statuses: workStatuses,
+          editable: {
+            options: Object.keys(workStatuses),
+            emptyLabel: "No status",
+            onChange: (row, next) =>
+              setData((rows) => rows.map((r) => (r.id === row.id ? { ...r, state: next } : r))),
+            save: () => Promise.resolve(),
+          },
+        }),
+      ]),
+    [],
+  );
+  const table = useDataTable({
+    columns: statusColumns,
+    data,
+    getRowId: (r) => r.id,
+    label: "Work, editable status",
+  });
+  return (
+    <Stack space="space.150">
+      <DataTable responsive={false} table={table} />
+      <output data-testid="stored-states" className="block font-body-small text-subtle">
+        {data.map((r) => `${r.id}=${r.state || "none"}`).join(" ")}
+      </output>
+    </Stack>
+  );
+}
+
+/** `editable.options` on a status column with `statuses`: the menu searches, shows and announces each value's label ("In review"), never the stored value ("in_review"), and commits the value. `emptyLabel` offers a first choice that clears it. An option can also be `{ value, label }`. */
+export const EditingStatusesStory: Story = {
+  name: "Editing a status by its labels",
+  render: () => <EditingStatuses />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    const stored = () => canvas.getByTestId("stored-states").textContent;
+    const row = (id: string) => within(canvas.getByRole("row", { name: new RegExp(`^${id}`) }));
+    const status = row("WRK-104").getByRole("combobox", { name: /^Status: In review/ });
+    await userEvent.click(status);
+    const listbox = await page.findByRole("listbox");
+    const names = within(listbox)
+      .getAllByRole("option")
+      .map((option) => option.getAttribute("aria-label") ?? option.textContent);
+    await expect(names).toEqual(["No status", "Overdue", "In review", "Draft", "Verified"]);
+    await userEvent.click(within(listbox).getByRole("option", { name: "Verified" }));
+    await waitFor(() => expect(page.queryByRole("listbox")).toBeNull());
+    await waitFor(() => expect(stored()).toContain("WRK-104=verified"));
+    await expect(row("WRK-104").getByRole("combobox", { name: /^Status: Verified/ })).toBeVisible();
+
+    // The first choice clears the status.
+    await userEvent.click(row("WRK-103").getByRole("combobox", { name: /^Status: Draft/ }));
+    await userEvent.click(await page.findByRole("option", { name: "No status" }));
+    await waitFor(() => expect(stored()).toContain("WRK-103=none"));
+    await waitFor(() => expect(page.queryByRole("listbox")).toBeNull());
   },
 };
 
@@ -1576,37 +1958,39 @@ function TableParts() {
   );
 }
 
-/** Loading keeps the header; empty and error sit under it. */
-/** Loading, empty, error and ready; and the narrowed empty, which the table draws itself when a search or a filter leaves no rows. */
+/** Loading, empty, error and ready; the narrowed empty, which the table draws itself when a search or a filter leaves no rows; and a refresh that failed, which keeps the rows the reader had under the error, with Try again. */
 function States() {
-  const [state, setState] = useState<DataTableState | "filtered">("loading");
+  const [state, setState] = useState<DataTableState | "filtered" | "refresh failed">("loading");
   const table = useDataTable({
     label: "Findings, the states",
     columns,
-    data: state === "ready" || state === "filtered" ? findings : [],
+    data: state === "ready" || state === "filtered" || state === "refresh failed" ? findings : [],
     pageSize: 5,
   });
   const narrowed = String(table.state.globalFilter ?? "") !== "";
   return (
     <Stack space="space.150">
       <Inline space="space.100" shouldWrap>
-        {(["loading", "empty", "filtered", "error", "ready"] as const).map((s) => (
-          <Button
-            key={s}
-            size="small"
-            isSelected={s === "filtered" ? state === "filtered" && narrowed : state === s}
-            onClick={() => {
-              setState(s);
-              table.setGlobalFilter(s === "filtered" ? "zz-nothing" : "");
-            }}
-          >
-            {s}
-          </Button>
-        ))}
+        {(["loading", "empty", "filtered", "error", "refresh failed", "ready"] as const).map(
+          (s) => (
+            <Button
+              key={s}
+              size="small"
+              isSelected={s === "filtered" ? state === "filtered" && narrowed : state === s}
+              onClick={() => {
+                setState(s);
+                table.setGlobalFilter(s === "filtered" ? "zz-nothing" : "");
+              }}
+            >
+              {s}
+            </Button>
+          ),
+        )}
       </Inline>
       <DataTable
         table={table}
-        state={state === "filtered" ? "ready" : state}
+        state={state === "filtered" ? "ready" : state === "refresh failed" ? "error" : state}
+        onRetry={() => setState("ready")}
         toolbar={
           <Toolbar
             search={table.state.globalFilter}
@@ -1625,7 +2009,11 @@ function States() {
           ),
           secondary: <Button variant="link">How assessments work</Button>,
         }}
-        error="Findings could not be loaded. Try again."
+        error={
+          state === "refresh failed"
+            ? "Findings could not be refreshed. These are the last ones loaded."
+            : "Findings could not be loaded."
+        }
       />
     </Stack>
   );
@@ -1650,6 +2038,25 @@ export const StatesStory: Story = {
     // The pressed button went with the empty state; focus is back in the search that asked.
     await waitFor(() => expect(canvas.getByLabelText("Search findings")).toHaveFocus());
     await expect(canvas.getAllByRole("row").length).toBeGreaterThan(2);
+    const table = canvas.getByRole("table", { name: "Findings, the states" });
+    // A failed load: the error stands where the rows would be, with Try again.
+    await userEvent.click(canvas.getByRole("button", { name: "error" }));
+    const failed = within(table).getByRole("alert");
+    await expect(failed).toHaveTextContent("Findings could not be loaded.");
+    await expect(within(failed).getByRole("button", { name: "Try again" })).toBeVisible();
+    // A failed refresh keeps the rows the reader had, usable, under the error above the table.
+    await userEvent.click(canvas.getByRole("button", { name: "refresh failed" }));
+    const stale = canvas.getByRole("alert");
+    await expect(table.contains(stale)).toBe(false);
+    await expect(stale).toHaveTextContent("These are the last ones loaded.");
+    await expect(within(table).getAllByRole("rowheader")).toHaveLength(5);
+    await expect(within(table).queryByRole("alert")).toBeNull();
+    await expect(table).not.toHaveAttribute("aria-busy");
+    // Try again goes with the alert; focus moves on to the table's search, not to the page.
+    await userEvent.click(within(stale).getByRole("button", { name: "Try again" }));
+    await waitFor(() => expect(canvas.queryByRole("alert")).toBeNull());
+    await waitFor(() => expect(canvas.getByLabelText("Search findings")).toHaveFocus());
+    await expect(within(table).getAllByRole("rowheader")).toHaveLength(5);
   },
 };
 
@@ -1757,7 +2164,7 @@ function Virtualized() {
 
 export const ThousandRows: Story = { name: "Virtualized", render: () => <Virtualized /> };
 
-/** The server sorts, filters and pages: the table hands its state over, shows the rows it is given, and counts what the server says. */
+/** The server sorts, filters and pages: the table hands its state over, shows the rows it is given, and counts what the server says. While the next page, sort or search loads, the rows it has stay under `state="refreshing"`: the table is busy, and says so. */
 const serverRows = makeFindings(240);
 function fakeServer(q: {
   sorting: SortingState;
@@ -1824,24 +2231,22 @@ function Server() {
     onPaginationChange: setPagination,
   });
   return (
-    <div aria-busy={loading}>
-      <DataTable
-        table={table}
-        state={loading && !result ? "loading" : "ready"}
-        toolbar={
-          <Toolbar
-            search={table.state.globalFilter}
-            onSearch={table.setGlobalFilter}
-            placeholder="Search on the server"
-            filters={
-              <>
-                <DataTable.Filter table={table} column="status" />
-              </>
-            }
-          />
-        }
-      />
-    </div>
+    <DataTable
+      table={table}
+      state={loading ? (result ? "refreshing" : "loading") : "ready"}
+      toolbar={
+        <Toolbar
+          search={table.state.globalFilter}
+          onSearch={table.setGlobalFilter}
+          placeholder="Search on the server"
+          filters={
+            <>
+              <DataTable.Filter table={table} column="status" />
+            </>
+          }
+        />
+      }
+    />
   );
 }
 
@@ -1849,9 +2254,20 @@ export const ServerStory: Story = {
   name: "Server",
   render: () => <Server />,
   play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
     // Wait for the response before checking the settled, interactive table.
-    const table = within(canvasElement).getByRole("table", { name: "Findings from the server" });
-    await waitFor(() => expect(table.closest("[aria-busy]")).toHaveAttribute("aria-busy", "false"));
+    const table = canvas.getByRole("table", { name: "Findings from the server" });
+    await waitFor(() => expect(table).not.toHaveAttribute("aria-busy"), { timeout: 3000 });
+    const first = within(table).getAllByRole("rowheader")[0]!.textContent;
+    // The next page loads under the rows the reader has: busy, with the quiet bar, never empty.
+    await userEvent.click(canvas.getByRole("button", { name: "Next page" }));
+    await expect(table).toHaveAttribute("aria-busy", "true");
+    await expect(
+      canvasElement.querySelector('[data-slot="data-table-refreshing"]'),
+    ).toBeInTheDocument();
+    await expect(within(table).getAllByRole("rowheader")[0]).toHaveTextContent(first!);
+    await waitFor(() => expect(table).not.toHaveAttribute("aria-busy"), { timeout: 3000 });
+    await expect(within(table).getAllByRole("rowheader")[0]).not.toHaveTextContent(first!);
   },
 };
 
@@ -1976,6 +2392,7 @@ function FilterRow() {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
@@ -2011,7 +2428,7 @@ function ResizableTable() {
     label: "Programs",
     layout: "fixed",
   });
-  return <DataTable table={table} />;
+  return <DataTable responsive={false} table={table} />;
 }
 export const KeyboardResizeMatrix: Story = {
   render: () => (
@@ -2063,7 +2480,8 @@ function StoredTable() {
       <Button onClick={() => setView(secondView)}>Second view</Button>
       <Button onClick={() => table.setColumnSizing({ name: 420 })}>Widen current view</Button>
       <Button onClick={() => resetView(table)}>Restore author layout</Button>
-      <DataTable table={table} />
+      {/* The reader's stored widths, drawn as they are: the table scrolls rather than fits. */}
+      <DataTable table={table} responsive={false} />
     </Stack>
   );
 }
@@ -2190,12 +2608,30 @@ export const ResponsiveContainers: Story = {
     await waitFor(fits);
     await userEvent.click(canvas.getByRole("button", { name: "Narrow container" }));
     const more = await canvas.findByRole("button", {
-      name: `More fields for ${findings[0]!.name}`,
+      name: moreFieldsFor(findings[0]!.name),
     });
     await waitFor(fits);
+    // More fields is a count, "+3", never a chevron: a chevron opens a branch or a group. It is
+    // the 20px row control, and its name says how many fields it shows and whose.
+    await expect(more.getBoundingClientRect().height).toBe(20);
+    await expect(more.querySelector("svg")).toBeNull();
+    const hidden = Number(more.textContent!.replace("+", ""));
+    await expect(more).toHaveAccessibleName(
+      `Show ${hidden} more field${hidden === 1 ? "" : "s"} for ${findings[0]!.name}`,
+    );
     await userEvent.click(more);
     await expect(more).toHaveAttribute("aria-expanded", "true");
+    await expect(more).toHaveAccessibleName(
+      `Hide ${hidden} more field${hidden === 1 ? "" : "s"} for ${findings[0]!.name}`,
+    );
+    // Open, it is marked as a trigger in force, which forced colours draw in Highlight.
+    await expect(more).toHaveAttribute("data-active-trigger");
     const fields = canvasElement.ownerDocument.getElementById(more.getAttribute("aria-controls")!);
+    // As many fields as the count says.
+    await expect(fields!.querySelectorAll("dt")).toHaveLength(hidden);
+    // The hidden fields are one list, whose labels share one column (KeyValue.Group).
+    await expect(fields!.querySelectorAll("dl")).toHaveLength(1);
+    await expect(fields!.querySelector("dl")).toHaveAttribute("data-slot", "key-value-group");
     await expect(within(fields!).getByText("Code", { exact: true })).toBeVisible();
     await expect(within(fields!).getByText("Dana Whitfield", { exact: true })).toBeVisible();
     await expect(within(fields!).queryByText("Family", { exact: true })).not.toBeInTheDocument();
@@ -2205,13 +2641,11 @@ export const ResponsiveContainers: Story = {
     // The wide container unfolds the fields only where the canvas has room for it (not on a phone).
     if (container.parentElement!.clientWidth >= 1000) {
       await waitFor(() =>
-        expect(canvas.queryAllByRole("button", { name: /^More fields for/ })).toHaveLength(0),
+        expect(canvas.queryAllByRole("button", { name: ANY_MORE_FIELDS })).toHaveLength(0),
       );
       await waitFor(fits);
       const headers = within(table).getAllByRole("columnheader");
-      expect(headers[1]!.getBoundingClientRect().left).toBeGreaterThanOrEqual(
-        headers[0]!.getBoundingClientRect().right - 1,
-      );
+      expect(along(headers[1]!).start).toBeGreaterThanOrEqual(along(headers[0]!).end - 1);
     }
     expect(canvas.getByTestId("responsive-export").textContent).toBe(before);
     await userEvent.click(canvas.getByRole("button", { name: "Hide owner" }));
@@ -2220,7 +2654,7 @@ export const ResponsiveContainers: Story = {
       expect(canvas.getByTestId("responsive-visibility")).toHaveTextContent('"owner":false'),
     );
     const reopened = await canvas.findByRole("button", {
-      name: `More fields for ${findings[0]!.name}`,
+      name: moreFieldsFor(findings[0]!.name),
     });
     if (reopened.getAttribute("aria-expanded") !== "true") await userEvent.click(reopened);
     const retained = canvasElement.ownerDocument.getElementById(
@@ -2270,7 +2704,7 @@ export const ResponsiveGroupedHeaders: Story = {
     expect(
       canvas.getAllByRole("checkbox").every((el) => el.getAttribute("aria-checked") === "true"),
     ).toBe(true);
-    await userEvent.click(canvas.getAllByRole("button", { name: /^More fields for/ })[0]!);
+    await userEvent.click(canvas.getAllByRole("button", { name: ANY_MORE_FIELDS })[0]!);
     await expect(canvas.getByText("Dana Whitfield", { exact: true })).toBeVisible();
   },
 };
@@ -2329,7 +2763,7 @@ export const ResponsiveVirtualRows: Story = {
     await waitFor(fits);
     await waitFor(() => expect(frame.scrollHeight).toBeGreaterThan(50000));
     const originalHeight = frame.scrollHeight;
-    const more = await canvas.findByRole("button", { name: "More fields for Record 0001" });
+    const more = await canvas.findByRole("button", { name: moreFieldsFor("Record 0001") });
     await userEvent.click(more);
     const detail = canvasElement.ownerDocument.getElementById(more.getAttribute("aria-controls")!)!;
     await expect(within(detail).getByText("Owner 1", { exact: true })).toBeVisible();
@@ -2349,7 +2783,7 @@ export const ResponsiveVirtualRows: Story = {
     await waitFor(fits);
     frame.scrollTop = 0;
     fireEvent.scroll(frame);
-    const returned = await canvas.findByRole("button", { name: "More fields for Record 0001" });
+    const returned = await canvas.findByRole("button", { name: moreFieldsFor("Record 0001") });
     await expect(returned).toHaveAttribute("aria-expanded", "true");
     const returnedDetail = canvasElement.ownerDocument.getElementById(
       returned.getAttribute("aria-controls")!,
@@ -2366,7 +2800,7 @@ export const ResponsiveVirtualRows: Story = {
     await waitFor(() => expect(table.querySelector('tr[data-row-id="0"]')).toBeNull());
     await userEvent.click(canvas.getByRole("button", { name: "Page width" }));
     await waitFor(() =>
-      expect(canvas.queryAllByRole("button", { name: /^More fields for/ })).toHaveLength(0),
+      expect(canvas.queryAllByRole("button", { name: ANY_MORE_FIELDS })).toHaveLength(0),
     );
     await waitFor(() =>
       expect(Math.abs(frame.scrollHeight - originalHeight)).toBeLessThanOrEqual(2),
@@ -2375,7 +2809,7 @@ export const ResponsiveVirtualRows: Story = {
     fireEvent.scroll(frame);
     await waitFor(() => expect(mountedRows()[0]).toHaveAttribute("data-row-id", "0"));
     await userEvent.click(canvas.getByRole("button", { name: "Preview width" }));
-    const restored = await canvas.findByRole("button", { name: "More fields for Record 0001" });
+    const restored = await canvas.findByRole("button", { name: moreFieldsFor("Record 0001") });
     await expect(restored).toHaveAttribute("aria-expanded", "true");
     await userEvent.click(restored);
     await waitFor(() => expect(restored).toHaveAttribute("aria-expanded", "false"));
@@ -2385,11 +2819,10 @@ export const ResponsiveVirtualRows: Story = {
   },
 };
 
-/** The register on a small phone: the saved-view strip scrolls inside its row rather than past the window, the toolbar takes two rows (the search, then More with the filters and the primary at the end, its label whole), and the table folds its lower-priority fields into the row disclosure. */
+/** The register on a small phone: the saved-view strip scrolls inside its row rather than past the window, the toolbar takes two rows (the search, then More with the filters and the primary at the end, its label whole), and the table folds its lower-priority fields into the row disclosure. Choosing a row puts the one-row SelectionBar in the two-row toolbar's place, and the slot keeps the toolbar's height, so the rows stay under the finger. */
 export const RegisterNarrow: Story = {
   name: "Register at 340px",
   globals: { viewport: { value: "ledgerSmall", isRotated: false } },
-  tags: ["narrow"],
   render: () => <Register responsive />,
   play: async ({ canvasElement }) => {
     await waitFor(() => expect(window.innerWidth).toBe(340));
@@ -2415,7 +2848,16 @@ export const RegisterNarrow: Story = {
     await waitFor(() =>
       expect(table.getBoundingClientRect().right).toBeLessThanOrEqual(window.innerWidth),
     );
-    await expect(await canvas.findAllByRole("button", { name: /More fields/ })).not.toHaveLength(0);
+    await expect(await canvas.findAllByRole("button", { name: ANY_MORE_FIELDS })).not.toHaveLength(
+      0,
+    );
+    // The SelectionBar takes one row where the Toolbar took two; the slot keeps the Toolbar's
+    // height, so the next row's checkbox stays under the finger.
+    const boxes = within(table).getAllByRole("checkbox");
+    const before = boxes[2]!.getBoundingClientRect().top;
+    await userEvent.click(boxes[1]!);
+    await canvas.findByRole("region", { name: "Selection" });
+    await expect(boxes[2]!.getBoundingClientRect().top).toBeCloseTo(before, 0);
   },
 };
 
@@ -2464,7 +2906,6 @@ function PhoneRegister() {
 export const RowControlsPhone: Story = {
   name: "Row controls at 390px",
   globals: { viewport: { value: "ledgerPhone", isRotated: false } },
-  tags: ["narrow"],
   render: () => <PhoneRegister />,
   play: async ({ canvasElement }) => {
     await waitFor(() => expect(window.innerWidth).toBe(390));
@@ -2487,14 +2928,18 @@ export const RowControlsPhone: Story = {
     await expect(slot).toHaveStyle({ opacity: "1" });
     await expect(value).toHaveStyle({ paddingInlineEnd: "24px" });
     await expect(value.scrollWidth).toBeGreaterThan(value.clientWidth);
-    await expect(value.getBoundingClientRect().right - 24).toBeLessThanOrEqual(
-      slot.getBoundingClientRect().left + 1,
-    );
+    await expect(along(value).end - 24).toBeLessThanOrEqual(along(slot).start + 1);
 
     // Nothing waits for a hover: the kebab carries the no-hover rule, and every control smaller
     // than 24px carries the touch hit area.
-    const kebab = within(table).getAllByRole("button", { name: "Row actions" })[0]!;
-    await expect(kebab).toHaveClass("[@media(hover:none)]:opacity-100");
+    // The name has priority 0, so it names the row: its cell is the row header and the kebab says it.
+    await expect(within(table).getAllByRole("rowheader")[0]).toHaveTextContent(
+      longFindings[0]!.name,
+    );
+    const kebab = within(table).getByRole("button", {
+      name: `Row actions for ${longFindings[0]!.name}`,
+    });
+    await expect(kebab).toHaveClass("any-pointer-coarse:opacity-100");
     for (const control of within(table).getAllByRole("button")) {
       const { width, height } = control.getBoundingClientRect();
       if (width > 0 && (width < 24 || height < 24))
@@ -2511,6 +2956,145 @@ export const RowControlsPhone: Story = {
       ),
     );
     await expect(canvas.getByText(`preview ${longFindings[1]!.id}`)).toBeVisible();
+  },
+};
+
+/*
+ * Header controls on a phone. Where nothing can hover, every column menu shows beside its heading.
+ * A responsive table keeps the author's widths for them: the menu takes its room from the heading,
+ * which ends in an ellipsis and shows whole on focus, so no column folds into More fields for it.
+ */
+function PhoneHeaderControls() {
+  const columns = useMemo(
+    () =>
+      defineColumns<Finding>((c) => [
+        c.text("name", { header: "Control title", minWidth: 200, priority: 0 }),
+        c.id("id", { header: "Code", width: 130, priority: 1 }),
+      ]),
+    [],
+  );
+  const data = useMemo(() => longFindings.slice(0, 3), []);
+  const table = useDataTable({
+    columns,
+    data,
+    getRowId: (r) => r.id,
+    label: "Controls on a phone",
+    hideable: true,
+  });
+  return <DataTable responsive table={table} />;
+}
+
+export const HeaderControlsPhone: Story = {
+  name: "Header controls at 390px",
+  globals: { viewport: { value: "ledgerPhone", isRotated: false } },
+  render: () => <PhoneHeaderControls />,
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(window.innerWidth).toBe(390));
+    const canvas = within(canvasElement);
+    const table = canvas.getByRole("table", { name: "Controls on a phone" });
+    const heading = (name: string) =>
+      within(table)
+        .getAllByRole("columnheader")
+        .find((header) => header.textContent?.trim() === name)!;
+    // Both columns hold on the phone: the code keeps its 130px and folds into nothing. (In a
+    // 320px frame the two columns' own widths do not fit, and the code folds as it should.)
+    const frame = table.closest<HTMLElement>('[data-slot="table-container"]')!;
+    if (frame.clientWidth < 330) return;
+    await waitFor(() => expect(heading("Code")).toBeVisible());
+    await expect(within(table).queryAllByRole("button", { name: ANY_MORE_FIELDS })).toHaveLength(0);
+    await expect(heading("Code").getBoundingClientRect().width).toBeCloseTo(130, 0);
+    // Each heading carries its menu, shown where any pointer is coarse.
+    for (const name of ["Control title", "Code"]) {
+      const menu = within(heading(name)).getByRole("button", { name: `${name} column menu` });
+      if (window.matchMedia("(any-pointer: coarse)").matches) await expect(menu).toBeVisible();
+    }
+  },
+};
+
+/*
+ * A cut value, whole. The name column is narrower than its names: a cut name shows whole in the
+ * table's one tooltip while the pointer rests on it, while its link has keyboard focus and after a
+ * long press on a touch screen. The reader can also wrap the column from the Columns menu, so the
+ * names read whole in the rows on any device; Reset columns ends the wrap.
+ */
+function CutNames() {
+  const columns = useMemo(
+    () =>
+      defineColumns<Finding>((c) => [
+        c.text("name", {
+          header: "Finding",
+          width: 220,
+          priority: 0,
+          cell: (r) => <TextLink href={`#/findings/${r.id}`}>{r.name}</TextLink>,
+        }),
+        c.status("status", { header: "Status", width: 120, tone: (r) => statusTone[r.status] }),
+        c.text("owner", { header: "Owner", width: 160 }),
+      ]),
+    [],
+  );
+  const data = useMemo(() => longFindings.slice(0, 3), []);
+  const table = useDataTable({ columns, data, getRowId: (r) => r.id, label: "Cut findings" });
+  return (
+    <div style={{ maxWidth: 520 }}>
+      <DataTable
+        responsive
+        table={table}
+        toolbar={
+          <Toolbar>
+            <DataTable.Columns table={table} />
+            <DataTable.Settings table={table} />
+          </Toolbar>
+        }
+      />
+    </div>
+  );
+}
+
+export const CutValues: Story = {
+  name: "Cut values, whole",
+  render: () => <CutNames />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const table = canvas.getByRole("table", { name: "Cut findings" });
+    const reveal = () =>
+      canvasElement.ownerDocument.querySelector<HTMLElement>('[data-slot="table-cell-reveal"]');
+    const name = within(table).getByRole("link", { name: longFindings[0]!.name });
+    await expect(name.scrollWidth).toBeGreaterThan(name.clientWidth);
+    await expect(name.closest("th, td")).not.toHaveAttribute("title");
+
+    // From the keyboard: the name's link has focus, and the cut name shows whole.
+    canvas.getByRole("button", { name: /^Columns/ }).focus();
+    for (let i = 0; i < 16 && canvasElement.ownerDocument.activeElement !== name; i++)
+      await userEvent.tab();
+    await expect(name).toHaveFocus();
+    await waitFor(() => expect(reveal()).toHaveTextContent(longFindings[0]!.name));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(reveal()).toBeNull());
+
+    // The reader wraps the column: the names read whole in their rows.
+    await userEvent.click(canvas.getByRole("button", { name: /^Columns/ }));
+    const wrap = within(await body.findByRole("group", { name: "Wrap text" }));
+    await userEvent.click(wrap.getByRole("menuitemcheckbox", { name: "Wrap Finding" }));
+    await expect(wrap.getByRole("menuitemcheckbox", { name: "Wrap Finding" })).toBeChecked();
+    // A status keeps its one line: it is not offered.
+    await expect(wrap.queryByRole("menuitemcheckbox", { name: "Wrap Status" })).toBeNull();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    const cell = within(table)
+      .getByRole("link", { name: longFindings[0]!.name })
+      .closest("th, td")!;
+    await waitFor(() => expect(getComputedStyle(cell).whiteSpace).toBe("normal"));
+    // The name runs on to a second line instead of ending in an ellipsis.
+    const wrapped = within(table).getByRole("link", { name: longFindings[0]!.name });
+    await expect(getComputedStyle(wrapped).textOverflow).not.toBe("ellipsis");
+    await expect(wrapped.getClientRects().length).toBeGreaterThan(1);
+
+    // Reset columns ends the wrap.
+    await userEvent.click(canvas.getByRole("button", { name: "Table settings" }));
+    await userEvent.click(await body.findByRole("menuitem", { name: "Reset columns" }));
+    await waitFor(() => expect(getComputedStyle(cell).whiteSpace).toBe("nowrap"));
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
   },
 };
 
@@ -2558,6 +3142,7 @@ function SortRegister({
   });
   return (
     <DataTable
+      responsive={false}
       table={table}
       toolbar={
         <Toolbar
@@ -2667,7 +3252,6 @@ function FoldedSort() {
 export const SortMenuFolded: Story = {
   name: "Sort menu at 390px",
   globals: { viewport: { value: "ledgerPhone", isRotated: false } },
-  tags: ["narrow"],
   render: () => <FoldedSort />,
   play: async ({ canvasElement }) => {
     await waitFor(() => expect(window.innerWidth).toBe(390));
@@ -2755,7 +3339,7 @@ function WidthFromMenu() {
     resizable: true,
     label: "Findings to size",
   });
-  return <DataTable table={table} />;
+  return <DataTable responsive={false} table={table} />;
 }
 
 /** A resizable column's menu sets its width without a drag, for a single pointer, a touch screen or anyone who cannot drag (WCAG 2.5.7): Wider and Narrower step 32px and keep the menu open for another press, stopping at the column's minimum and maximum, and Reset width returns to the author's width. A polite status says the width the column now has. The handle is for the pointer and no tab stop: this menu is the keyboard's way. */
@@ -2823,6 +3407,7 @@ function SessionRegister() {
   useTableQuery(table, { storage: "session" });
   return (
     <DataTable
+      responsive={false}
       table={table}
       toolbar={
         <Inline space="space.100" alignBlock="center" shouldWrap>
@@ -2950,6 +3535,7 @@ function UrlRegister({
   useTableQuery(table, { search, onSearchChange });
   return (
     <DataTable
+      responsive={false}
       table={table}
       toolbar={
         <Inline space="space.100" alignBlock="center" shouldWrap>
@@ -3134,6 +3720,7 @@ function StatusMapped() {
   return (
     <Stack space="space.150">
       <DataTable
+        responsive={false}
         table={table}
         toolbar={
           <Inline space="space.100" alignBlock="center" shouldWrap>
@@ -3281,7 +3868,11 @@ export const RenderBudget: Story = {
 
     // One checkbox redraws its own row.
     drawnRows.clear();
-    await userEvent.click(within(table).getByRole("checkbox", { name: "Select row FND-2202" }));
+    // The name has priority 0, so the checkbox says it.
+    const third = table.querySelector<HTMLElement>('tr[data-row-id="FND-2202"]')!;
+    await userEvent.click(
+      within(third).getByRole("checkbox", { name: "Select Firewall rule recertification" }),
+    );
     await settle();
     await expect(redrawn()).toEqual(["FND-2202"]);
 
@@ -3292,6 +3883,24 @@ export const RenderBudget: Story = {
     await userEvent.click(within(table).getAllByRole("button", { name: /^Preview / })[4]!);
     await settle();
     await expect(redrawn()).toEqual(["FND-2201", "FND-2204"]);
+
+    // A row carries triggers, never a tooltip of its own: the eyes share the table's one tooltip,
+    // and the row's other controls mount none.
+    const triggers = [...table.querySelectorAll('tbody [data-slot="tooltip-trigger"]')];
+    await expect(triggers).toHaveLength(12);
+    await expect(
+      triggers.every((trigger) => /^Preview /.test(trigger.getAttribute("aria-label") ?? "")),
+    ).toBe(true);
+    const eyes = within(table).getAllByRole("button", { name: /^Preview / });
+    await userEvent.hover(eyes[6]!);
+    const tips = () =>
+      [...canvasElement.ownerDocument.querySelectorAll('[data-slot="tooltip-content"]')].filter(
+        (tip) => tip.textContent === "Preview",
+      );
+    await waitFor(() => expect(tips()).toHaveLength(1));
+    await userEvent.hover(eyes[7]!);
+    await waitFor(() => expect(tips()).toHaveLength(1));
+    await userEvent.unhover(eyes[7]!);
 
     // The layout projects draw the story narrower than its frame; the budget is a desktop's.
     const frameBox = canvas.getByTestId("budget-frame");
@@ -3313,7 +3922,7 @@ export const RenderBudget: Story = {
     // A frame that folds a column redraws every row once, with More fields.
     await userEvent.click(canvas.getByRole("button", { name: "Narrow to a phone" }));
     await waitFor(() =>
-      expect(within(table).getAllByRole("button", { name: /^More fields for / })).toHaveLength(12),
+      expect(within(table).getAllByRole("button", { name: ANY_MORE_FIELDS })).toHaveLength(12),
     );
     await settle();
     await expect(redrawn()).toHaveLength(12);
@@ -3409,6 +4018,7 @@ function Announced() {
   return (
     <Stack space="space.150">
       <DataTable
+        responsive={false}
         table={table}
         state={state}
         noun={{ one: "finding", other: "findings" }}
@@ -3455,6 +4065,18 @@ export const ResultStatus: Story = {
 
     await userEvent.click(canvas.getByRole("button", { name: "Page 2" }));
     await waitFor(() => expect(politeLines(canvasElement)).toContain("9–16 of 24 findings"));
+
+    // A sort from a header is said in the words of the Sort menu, and so is turning it.
+    const due = within(table).getByRole("columnheader", { name: /^Due/ });
+    const direction = () =>
+      due.getAttribute("aria-sort") === "descending" ? "Newest first" : "Oldest first";
+    await userEvent.click(within(due).getByRole("button", { name: "Due" }));
+    await waitFor(() => expect(due).toHaveAttribute("aria-sort"));
+    const first = `Sorted by Due, ${direction()}`;
+    await waitFor(() => expect(politeLines(canvasElement)).toContain(first));
+    await userEvent.click(within(due).getByRole("button", { name: "Due" }));
+    const second = `Sorted by Due, ${first.endsWith("Oldest first") ? "Newest first" : "Oldest first"}`;
+    await waitFor(() => expect(politeLines(canvasElement)).toContain(second));
 
     // Loading keeps the header and says the table is busy.
     await userEvent.click(canvas.getByRole("button", { name: "Reload" }));
@@ -3620,7 +4242,7 @@ function Menuless() {
     resizable: true,
     columnMenu: false,
   });
-  return <DataTable table={table} />;
+  return <DataTable responsive={false} table={table} />;
 }
 
 export const ColumnsWithoutAMenu: Story = {
@@ -3640,7 +4262,8 @@ export const ColumnsWithoutAMenu: Story = {
     await expect(handle.tabIndex).toBe(0);
     const before = Number(handle.getAttribute("aria-valuenow"));
     handle.focus();
-    await userEvent.keyboard("{ArrowRight}");
+    // Towards the line's end widens the column: ArrowRight, or ArrowLeft in right to left.
+    await userEvent.keyboard(arrows(handle).next);
     await waitFor(() => expect(handle).toHaveAttribute("aria-valuenow", String(before + 8)));
     await userEvent.keyboard("{Home}");
     await waitFor(() =>
@@ -3650,11 +4273,11 @@ export const ColumnsWithoutAMenu: Story = {
 };
 
 /*
- * Facets that hold. A column of several values per row gives them through `getUniqueValues`, so
- * its facet lists each value once, counted per row that holds it, and a row matches when it holds
- * any value chosen. A value the reader chose stays in its list, at 0, when the search or another
- * filter removes its rows. The order is the status's or the alphabet's, never the counts', and a
- * facet of more than eight values takes a search.
+ * Facets that hold. A `list` column's facet lists each item once, counted per row that holds it,
+ * and a row matches when it holds any item chosen, never the combinations the rows hold; its
+ * `emptyLabel` lists the rows with none under a value of their own. A value the reader chose stays
+ * in its list, at 0, when the search or another filter removes its rows. The order is the status's
+ * or the alphabet's, never the counts', and a facet of more than eight values takes a search.
  */
 type Assignment = {
   id: string;
@@ -3679,13 +4302,16 @@ const assigneeNames = [
 ];
 const assignmentStates: Assignment["status"][] = ["Open", "Blocked", "Done"];
 
-/** Twelve tasks, two people each, so every person holds exactly two tasks. */
-const assignments: Assignment[] = Array.from({ length: 12 }, (_, i) => ({
-  id: `TSK-${String(i + 1).padStart(2, "0")}`,
-  title: names[i % names.length] ?? "",
-  status: assignmentStates[i % 3] ?? "Open",
-  assignees: [assigneeNames[i] ?? "", assigneeNames[(i + 5) % 12] ?? ""],
-}));
+/** Twelve tasks, two people each, so every person holds exactly two tasks; a thirteenth has no one. */
+const assignments: Assignment[] = [
+  ...Array.from({ length: 12 }, (_, i) => ({
+    id: `TSK-${String(i + 1).padStart(2, "0")}`,
+    title: names[i % names.length] ?? "",
+    status: assignmentStates[i % 3] ?? "Open",
+    assignees: [assigneeNames[i] ?? "", assigneeNames[(i + 5) % 12] ?? ""],
+  })),
+  { id: "TSK-13", title: "Rotate the recovery keys", status: "Blocked", assignees: [] },
+];
 
 const assignmentColumns = defineColumns<Assignment>((c) => [
   c.id("id"),
@@ -3695,17 +4321,14 @@ const assignmentColumns = defineColumns<Assignment>((c) => [
     width: 120,
     tone: (r) => (r.status === "Blocked" ? "danger" : r.status === "Done" ? "success" : "neutral"),
   }),
-  {
-    ...c.list("assignees", {
-      header: "Assigned to",
-      width: 200,
-      items: (r) => r.assignees.map((label) => ({ key: label, label })),
-    }),
-    // Each person on their own, not the pairs the rows hold.
-    getUniqueValues: (r: Assignment) => r.assignees,
-    filterFn: (row, _column, chosen: unknown) =>
-      Array.isArray(chosen) && chosen.some((name) => row.original.assignees.includes(String(name))),
-  },
+  c.list("assignees", {
+    header: "Assigned to",
+    width: 200,
+    items: (r) => r.assignees.map((label) => ({ key: label, label })),
+    empty: () => <Absent label="Unassigned" />,
+    emptyLabel: "Unassigned",
+    searchable: true,
+  }),
 ]);
 
 function AssignmentFacets() {
@@ -3717,6 +4340,7 @@ function AssignmentFacets() {
   });
   return (
     <DataTable
+      responsive={false}
       table={table}
       toolbar={
         <Inline space="space.100" alignBlock="center" shouldWrap>
@@ -3751,28 +4375,32 @@ export const FacetsStory: Story = {
       await waitFor(() => expect(body.queryByRole("dialog")).toBeNull());
     };
 
-    // Each person once, counted per task that holds them, in the alphabet's order.
+    // Each person once, counted per task that holds them, in the alphabet's order, never a pair;
+    // the task with no one is under Unassigned.
     let people = await open("Assigned to");
     const boxes = people.getAllByRole("checkbox");
-    await expect(boxes).toHaveLength(12);
+    await expect(boxes).toHaveLength(13);
     await expect(boxes[0]).toHaveAccessibleName("Ada Byron 2");
     await expect(boxes[11]).toHaveAccessibleName("Tim Berners-Lee 2");
+    await expect(boxes[12]).toHaveAccessibleName("Unassigned 1");
+    await expect(people.queryByRole("checkbox", { name: /,/ })).toBeNull();
     // Twelve values take a search; a search that finds none says so, and Escape clears it first.
     const find = people.getByRole("searchbox", { name: "Search Assigned to" });
     await userEvent.type(find, "zz");
     await expect(people.getByText("No values match")).toBeVisible();
     await userEvent.keyboard("{Escape}");
     await expect(find).toHaveValue("");
-    await expect(people.getAllByRole("checkbox")).toHaveLength(12);
+    await expect(people.getAllByRole("checkbox")).toHaveLength(13);
     await userEvent.type(find, "grace");
     await expect(people.getAllByRole("checkbox")).toHaveLength(1);
     await userEvent.keyboard("{Escape}");
     await expect(find).toHaveValue("");
+    await expect(people.getAllByRole("checkbox")).toHaveLength(13);
     await close();
 
     // Status Done, then a search that finds no done task: nothing remains.
     const status = await open("Status");
-    await expect(listed(status)).toEqual(["Blocked4", "Done4", "Open4"]);
+    await expect(listed(status)).toEqual(["Blocked5", "Done4", "Open4"]);
     await userEvent.click(status.getByRole("checkbox", { name: "Done 4" }));
     await close();
     await waitFor(() => expect(rows()).toBe(4));
@@ -3796,6 +4424,21 @@ export const FacetsStory: Story = {
     await userEvent.clear(search);
     await waitFor(() => expect(rows()).toBe(2));
     await expect(filterChip(canvasElement, "Assigned to")).toHaveTextContent("Grace Hopper");
+
+    // Unassigned finds the task with no one, as its cell says.
+    people = await open("Assigned to");
+    await userEvent.click(people.getByRole("checkbox", { name: "Grace Hopper 2" }));
+    await userEvent.click(people.getByRole("checkbox", { name: "Unassigned 1" }));
+    await close();
+    await waitFor(() => expect(rows()).toBe(1));
+    await expect(within(table).getByText("Rotate the recovery keys")).toBeVisible();
+    people = await open("Assigned to");
+    await userEvent.click(people.getByRole("checkbox", { name: "Unassigned 1" }));
+    await close();
+
+    // The column is `searchable`: the search finds a task by any of its people.
+    await userEvent.type(search, "Knuth");
+    await waitFor(() => expect(rows()).toBe(2));
   },
 };
 
@@ -3933,9 +4576,13 @@ export const SavedQuestionMenu: Story = {
     const overdue = canvas.getByRole("button", { name: `Overdue ${count("Overdue")}` });
     await expect(overdue).toHaveAccessibleDescription("Saved questions");
 
-    // The menu lists every question, checks the one in force, and replaces the filters.
+    // The menu lists every question, checks the one in force, and replaces the filters. Each
+    // question's count is part of its name, not a shortcut hidden from assistive technology.
     await userEvent.click(overdue);
-    await expect(await body.findByRole("menuitemradio", { name: /^Overdue/ })).toBeChecked();
+    await expect(
+      await body.findByRole("menuitemradio", { name: `Overdue ${count("Overdue")}` }),
+    ).toBeChecked();
+    await expect(body.getByRole("menuitemradio", { name: "All findings 150" })).not.toBeChecked();
     await userEvent.click(body.getByRole("menuitemradio", { name: /^All findings/ }));
     await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
     await expect(canvas.getByRole("button", { name: "All findings 150" })).toHaveFocus();
@@ -4097,8 +4744,8 @@ function DragSpoken() {
   });
   return (
     <Stack space="space.300">
-      <DataTable table={table} />
-      <DataTable table={still} />
+      <DataTable responsive={false} table={table} />
+      <DataTable responsive={false} table={still} />
     </Stack>
   );
 }
@@ -4117,7 +4764,8 @@ export const DragSaysThePlace: Story = {
     grip.focus();
     await userEvent.keyboard(" ");
     await waitFor(() => expect(spoken()).toContain("Picked up Finding."));
-    await userEvent.keyboard("{ArrowRight}");
+    // Towards the line's end: ArrowRight, or ArrowLeft in right to left.
+    await userEvent.keyboard(arrows(grip).next);
     await waitFor(() => expect(spoken()).toContain("Finding moved to position 3 of 3."));
     // The header the column passes slides on the tokens, or not at all under reduced motion.
     const owner = headerNamed(table, "Owner")!;
@@ -4160,7 +4808,7 @@ function ChoosingOne() {
   });
   return (
     <Stack space="space.150">
-      <DataTable table={table} />
+      <DataTable responsive={false} table={table} />
       <Text size="small" color="color.text.subtle">
         {chosen ? `Chosen: ${chosen}` : "Nothing chosen"}
       </Text>
@@ -4179,13 +4827,13 @@ export const ChoosingOneStory: Story = {
     await expect(table.getAllByRole("radio")).toHaveLength(6);
     // A click on the row chooses it; choosing is not opening.
     await userEvent.click(table.getByText(names[2]!));
-    await expect(table.getByRole("radio", { name: "Select row FND-2202" })).toBeChecked();
+    await expect(table.getByRole("radio", { name: "Select FND-2202" })).toBeChecked();
     await expect(canvas.getByText("Chosen: FND-2202")).toBeVisible();
     // The browser's own radio keys: the arrow moves the choice to the next row.
-    table.getByRole("radio", { name: "Select row FND-2202" }).focus();
+    table.getByRole("radio", { name: "Select FND-2202" }).focus();
     await userEvent.keyboard("{ArrowDown}");
-    await expect(table.getByRole("radio", { name: "Select row FND-2203" })).toBeChecked();
-    await expect(table.getByRole("radio", { name: "Select row FND-2202" })).not.toBeChecked();
+    await expect(table.getByRole("radio", { name: "Select FND-2203" })).toBeChecked();
+    await expect(table.getByRole("radio", { name: "Select FND-2202" })).not.toBeChecked();
     await expect(canvas.getByText("Chosen: FND-2203")).toBeVisible();
   },
 };
@@ -4452,7 +5100,7 @@ export const RowActionsThatNavigate: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const body = within(canvasElement.ownerDocument.body);
-    await userEvent.click(canvas.getAllByRole("button", { name: "Row actions" })[0]!);
+    await userEvent.click(canvas.getByRole("button", { name: "Row actions for FND-2200" }));
     const open = await body.findByRole("menuitem", { name: "Open finding" });
     await expect(open.tagName).toBe("A");
     await expect(open).toHaveAttribute("href", "#/findings/FND-2200");
@@ -4503,7 +5151,7 @@ function ExportAndTotals() {
   });
   return (
     <Stack space="space.150">
-      <DataTable table={table} />
+      <DataTable responsive={false} table={table} />
       <output data-testid="unit-export" className="block whitespace-pre-wrap break-all">
         {toCsv(table)}
       </output>
@@ -4596,6 +5244,116 @@ export const PreviewHeldByTheTable: Story = {
   },
 };
 
+type ProgramElement = {
+  id: string;
+  name: string;
+  kind: "System" | "Component";
+  path: string;
+  library: boolean;
+  owner: string;
+};
+
+const elementRows: ProgramElement[] = [
+  {
+    id: "EL-01",
+    name: "Ground segment",
+    kind: "System",
+    path: "Program Atlas",
+    library: false,
+    owner: "Dana Whitfield",
+  },
+  {
+    id: "EL-02",
+    name: "Telemetry, tracking and command processor",
+    kind: "Component",
+    path: "Ground segment · Operations network",
+    library: true,
+    owner: "Grace Hoppel",
+  },
+  {
+    id: "EL-03",
+    name: "Operator console",
+    kind: "Component",
+    path: "",
+    library: false,
+    owner: "Marcus Ryde",
+  },
+];
+
+/** The name is a `c.text` with an icon, a badge and a second line, and the table holds the preview, so the columns stay at module level. */
+const elementColumns = defineColumns<ProgramElement>((c) => [
+  c.text("name", {
+    header: "Element",
+    priority: 0,
+    minWidth: 220,
+    hideable: false,
+    icon: (r) => (
+      <Icon label={r.kind} size="medium" color="color.icon.subtle">
+        {r.kind === "System" ? <Network /> : <Package />}
+      </Icon>
+    ),
+    badge: (r) =>
+      r.library ? (
+        <Badge size="xsmall" variant="secondary" tone="information">
+          Library
+        </Badge>
+      ) : null,
+    description: (r) => r.path || null,
+    cell: (r) => <TextLink href={`#/elements/${r.id}`}>{r.name}</TextLink>,
+  }),
+  c.id("id", { header: "Code", width: 100, priority: 1 }),
+  c.person("owner", { header: "Owner", width: 180, priority: 2 }),
+]);
+
+function RichNames() {
+  const [open, setOpen] = useState<ProgramElement | null>(null);
+  const table = useDataTable({
+    columns: elementColumns,
+    data: elementRows,
+    getRowId: (r) => r.id,
+    label: "Elements",
+    preview: { onPreview: setOpen, activeId: open?.id ?? null },
+  });
+  return (
+    <Stack space="space.150">
+      <DataTable table={table} responsive />
+      <Text size="small" color="color.text.subtle">
+        {open ? `Previewing ${open.name}` : "Nothing previewed"}
+      </Text>
+    </Stack>
+  );
+}
+
+/** `icon`, `badge` and `description` on the name's `c.text` draw it as Table.Name around its link: the kind, a Library mark and the path, never an Inline built in `cell`. With the table's `preview`, the name carries the eye, so the name is not declared as an id to get one, and a preview step leaves the columns as they are. */
+export const RichNamesStory: Story = {
+  name: "Names with an icon, a badge and a second line",
+  render: () => <RichNames />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const table = within(canvas.getByRole("table", { name: "Elements" }));
+    const header = table.getByRole("rowheader", { name: /Telemetry/ });
+    // The kind, the name's link, the badge and the second line are the row header's.
+    await expect(within(header).getByRole("img", { name: "Component" })).toBeVisible();
+    await expect(
+      within(header).getByRole("link", { name: "Telemetry, tracking and command processor" }),
+    ).toBeVisible();
+    await expect(within(header).getByText("Library")).toBeVisible();
+    await expect(within(header).getByText("Ground segment · Operations network")).toBeVisible();
+    // The row is named by the name's value, not the icon or the badge.
+    const eye = table.getByRole("button", {
+      name: "Preview Telemetry, tracking and command processor",
+    });
+    await userEvent.click(eye);
+    await expect(
+      canvas.getByText("Previewing Telemetry, tracking and command processor"),
+    ).toBeVisible();
+    await expect(eye).toHaveAttribute("aria-pressed", "true");
+    // A row with no path draws no second line.
+    const plain = table.getByRole("rowheader", { name: /Operator console/ });
+    await expect(plain.querySelector('[data-slot="table-name-description"]')).toBeNull();
+  },
+};
+
 const openingColumns = defineColumns<Finding>((c) => [
   c.id("id"),
   c.text("name", {
@@ -4624,8 +5382,8 @@ function OpeningRows() {
   });
   return (
     <Stack space="space.200">
-      <DataTable table={table} onRowClick={(r) => setOpened(r.id)} />
-      <DataTable table={tree} onRowClick={(r) => setOpened(r.name)} />
+      <DataTable responsive={false} table={table} onRowClick={(r) => setOpened(r.id)} />
+      <DataTable responsive={false} table={tree} onRowClick={(r) => setOpened(r.name)} />
       <Text size="small" color="color.text.subtle">
         Opened: {opened}
       </Text>
@@ -4693,7 +5451,7 @@ function VersionedTable({ version }: { version: number }) {
     view: { id: versionedView, version },
     initialState: { columnVisibility: { owner: false } },
   });
-  return <DataTable table={table} />;
+  return <DataTable responsive={false} table={table} />;
 }
 
 function VersionedViews() {
@@ -4795,12 +5553,17 @@ export const SelectionInTheToolbarStory: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const table = within(canvas.getByRole("table", { name: "Findings to act on" }));
-    const second = table.getByRole("checkbox", { name: "Select row FND-2201" });
+    const second = table.getByRole("checkbox", { name: "Select FND-2201" });
     const before = second.getBoundingClientRect().top;
-    await userEvent.click(table.getByRole("checkbox", { name: "Select row FND-2200" }));
+    await userEvent.click(table.getByRole("checkbox", { name: "Select FND-2200" }));
     const bar = await canvas.findByRole("region", { name: "Selection" });
     // The bar replaced the toolbar: the rows barely move under the pointer.
     await expect(Math.abs(second.getBoundingClientRect().top - before)).toBeLessThan(20);
+    // Its appearance is said: the first count, and the verbs it brings.
+    await expect(within(bar).getByText("1 selected")).toBeVisible();
+    await waitFor(() =>
+      expect(politeLines(canvasElement)).toContain("1 selected. Actions: Reassign and Clear."),
+    );
     await userEvent.click(second);
     await expect(within(bar).getByText("2 selected")).toBeVisible();
     await waitFor(() => expect(politeLines(canvasElement)).toContain("2 selected"));
@@ -4813,6 +5576,86 @@ export const SelectionInTheToolbarStory: Story = {
     await waitFor(() =>
       expect(table.getByRole("checkbox", { name: "Select all rows on this page" })).toHaveFocus(),
     );
+  },
+};
+
+/** A register with chosen rows inside a Shell.Panel. */
+function SelectionInAPanel() {
+  const [open, setOpen] = useState(false);
+  const table = useDataTable({
+    columns: panelColumns,
+    data: findings.slice(0, 4),
+    getRowId: (r) => r.id,
+    selectable: true,
+    label: "Findings in the preview",
+  });
+  const chosen = Object.values(table.state.rowSelection).some(Boolean);
+  return (
+    <Shell>
+      <Shell.Main>
+        <Stack space="space.200">
+          <PageHeader>
+            <PageHeader.Heading>
+              <PageHeader.Title>Assessments</PageHeader.Title>
+            </PageHeader.Heading>
+          </PageHeader>
+          <Inline space="space.100">
+            <Button onClick={() => setOpen(true)}>Preview the findings</Button>
+          </Inline>
+        </Stack>
+      </Shell.Main>
+      {open && (
+        <Shell.Panel title="Findings preview" defaultWidth={560} onClose={() => setOpen(false)}>
+          <DataTable
+            responsive
+            table={table}
+            toolbar={
+              chosen ? (
+                <DataTable.SelectionBar
+                  table={table}
+                  actions={<Button size="small">Reassign</Button>}
+                />
+              ) : (
+                <Toolbar
+                  search={table.state.globalFilter}
+                  onSearch={table.setGlobalFilter}
+                  placeholder="Search the preview's findings"
+                />
+              )
+            }
+          />
+        </Shell.Panel>
+      )}
+    </Shell>
+  );
+}
+
+/** Escape in the SelectionBar clears the chosen rows and goes no further, so the panel around the table stays open and the reader keeps their place; Escape from outside the bar is the panel's again. */
+export const SelectionInAPanelStory: Story = {
+  name: "Selection in a panel",
+  parameters: { layout: "fullscreen" },
+  globals: { viewport: { value: "ledgerWide", isRotated: false } },
+  render: () => <SelectionInAPanel />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const opener = canvas.getByRole("button", { name: "Preview the findings" });
+    await userEvent.click(opener);
+    const panel = await canvas.findByRole("complementary", { name: "Findings preview" });
+    const table = within(panel).getByRole("table", { name: "Findings in the preview" });
+    const [all, first] = within(table).getAllByRole("checkbox");
+    await userEvent.click(first!);
+    const bar = await within(panel).findByRole("region", { name: "Selection" });
+    within(bar).getByRole("button", { name: "Clear" }).focus();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(all).toHaveFocus());
+    await expect(first).not.toBeChecked();
+    await expect(
+      canvas.getByRole("complementary", { name: "Findings preview" }),
+    ).toBeInTheDocument();
+    // The bar is gone and focus is on the select-all: the next Escape closes the panel.
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(canvas.queryByRole("complementary")).toBeNull());
+    await waitFor(() => expect(opener).toHaveFocus());
   },
 };
 
@@ -4882,5 +5725,50 @@ export const AVirtualWindow: Story = {
       expect(table.querySelector("tbody tr[data-row-id]")).toHaveAttribute("aria-rowindex", "2"),
     );
     await expect(table.querySelectorAll("tbody tr[data-row-id]").length).toBeLessThan(300);
+  },
+};
+
+/** The register's root takes the native attributes and the ref of a `div`, a test id, an id, a class, and keeps its own `data-slot`, `data-table`, whatever the caller passes. */
+function RootAttributes() {
+  const root = useRef<HTMLDivElement>(null);
+  const [reached, setReached] = useState("");
+  const table = useDataTable({
+    columns,
+    data: findings.slice(0, 3),
+    getRowId: (r) => r.id,
+    label: "Findings with a test id",
+  });
+  useEffect(() => setReached(root.current?.dataset["slot"] ?? "none"), []);
+  return (
+    <Stack space="space.100">
+      <DataTable
+        ref={root}
+        table={table}
+        id="findings-register"
+        data-testid="findings-register"
+        data-slot="caller-slot"
+        className="pt-100"
+      />
+      <Text size="small" color="color.text.subtle">
+        Ref reached: <output aria-label="Ref reached">{reached}</output>
+      </Text>
+    </Stack>
+  );
+}
+
+export const RootAttributesStory: Story = {
+  name: "Root attributes",
+  tags: ["!manifest"],
+  render: () => <RootAttributes />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const root = canvas.getByTestId("findings-register");
+    await expect(root).toHaveAttribute("data-slot", "data-table");
+    await expect(root).toHaveAttribute("id", "findings-register");
+    await expect(root).toHaveClass("pt-100");
+    await expect(root).toContainElement(
+      canvas.getByRole("table", { name: "Findings with a test id" }),
+    );
+    await expect(canvas.getByLabelText("Ref reached")).toHaveTextContent("data-table");
   },
 };

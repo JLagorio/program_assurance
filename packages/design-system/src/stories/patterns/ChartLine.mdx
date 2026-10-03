@@ -7,6 +7,8 @@ import * as Stories from "./ChartLine.stories";
 
 # Line
 
+**Status: Stable.**
+
 A line per series over an ordered axis: a trend, a burndown, one measure against its plan. Two pixels wide with round joins, a ringed marker on hover, the last value printed after the line when asked. Straight segments by default, because the points are what was counted; a smooth curve never overshoots them. It lives in a [Chart](?path=/docs/patterns-chart-overview--docs) Frame, which names it, keys it and lays it out as a table.
 
 <Canvas of={Stories.LineMatrix} />
@@ -50,10 +52,11 @@ A line per series over an ordered axis: a trend, a burndown, one measure against
 
 ## Sizes
 
-`size` is the plot's height: `small` 120px, `medium` 200px (the default), `large` 320px, or `height` in pixels; unsaid, the Frame's, and `large` in the Frame's expanded Dialog. Category ticks thin themselves by the text they print, keeping the first. A time axis draws at most eight ticks, each at a unit's start, and keeps its first and its last as the width narrows: months step by one, two, three, six or twelve from January, so a quarter's tick is a quarter's start, and the first tick and every tick that starts a new year carry the year in full ("Feb 2025", "May", … "Jan 2026"), which a two-digit year would not ("Apr 26" reads as a day). Calendar days ("2026-09-04") read the same in every zone; instants are read in the reader's `timeZone`. The right margin holds the widest end label.
+`size` is the plot's height: `small` 120px, `medium` 200px (the default), `large` 320px, or `height` in pixels; unsaid, the Frame's, and `large` in the Frame's expanded Dialog. Every category keeps a label fitted to the room up to the next one printed: whole, on two lines broken at a space, or cut with an ellipsis and its whole text as its title; at the plot's ends a label may run into the margin, and moves in from the edge rather than past it. Only where a point's slot cannot hold three characters do the labels step over whole slots, evenly from the first, so months in a card read Jan, Mar, May rather than J, F, M. A time axis draws at most eight ticks, each at a unit's start, and keeps its first and its last as the width narrows: months step by one, two, three, six or twelve from January, so a quarter's tick is a quarter's start, and the first tick and every tick that starts a new year carry the year in full ("Feb 2025", "May", … "Jan 2026"), which a two-digit year would not ("Apr 26" reads as a day). Calendar days ("2026-09-04") read the same in every zone; instants are read in the reader's `timeZone`. The right margin holds the widest end label.
 
 The labels above the plot share one row: where a milestone's and a window's would overlap in a narrow plot, they move apart, the milestone's staying closest to its line, and milestones on one date share one label, joined with a middle dot. Each stays over its mark (a window's middle over its window) and within the plot's width, clear of the axis ticks; where the row is too short for them so, a window's label shortens before a milestone's wherever that makes room, each only as far as the row needs, with an ellipsis and its whole text as its title, and one with no room for three characters is left out. Labels inside the plot are drawn over the lines, ringed in the surface, so a line that crosses one runs behind the words.
 
+<Canvas of={Stories.LongCategories} />
 <Canvas of={Stories.NarrowLabels} />
 <Canvas of={Stories.Zones} />
 
@@ -131,5 +134,7 @@ The labels above the plot share one row: where a milestone's and a window's woul
 - [Bar](?path=/docs/patterns-chart-bar--docs): the same categories, when the size matters more than the change.
 
 ## Don't
+
+The one series that is the point takes brand and the rest neutral, never five hues. Label the end, never every point, and leave a missing month as a gap, never a line drawn across it.
 
 <Canvas of={Stories.Dont} />

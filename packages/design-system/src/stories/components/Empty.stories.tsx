@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, fn, userEvent, within } from "storybook/test";
 import {
+  ChevronDown,
   CloudOff,
   FolderOpen,
   Link2,
@@ -15,8 +16,14 @@ import {
 
 import {
   Button,
+  ButtonGroup,
+  ButtonGroupSeparator,
   Card,
   CardContent,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   Empty,
   EmptyContent,
   EmptyDescription,
@@ -24,13 +31,17 @@ import {
   EmptyIllustration,
   EmptyMedia,
   EmptyTitle,
+  IconButton,
   LinkButton,
   TextLink,
   type EmptyIllustrationKind,
 } from "../../components";
 import { Section } from "../../layout";
 import { Grid, Stack, Text } from "../../primitives";
-import { Pair } from "../_lib/pair";
+import * as pairLayout from "../_lib/pair";
+
+// Story-only helpers, bound locally so the MCP snippet does not list them as package exports.
+const { Pair } = pairLayout;
 
 const meta = {
   title: "Components/Empty",
@@ -124,6 +135,72 @@ export const NoMatches: Story = {
       </EmptyContent>
     </Empty>
   ),
+};
+
+/**
+ * A collection hands its Empty the toolbar's create action as it is: here a split button, a small
+ * primary with a menu of the other ways to create. The row holds a small primary, so the Empty draws
+ * every small button in it at medium, the hero's size; the suggestions' row holds none and keeps its
+ * small buttons.
+ */
+export const HeroActions: Story = {
+  name: "Hero actions",
+  render: () => (
+    <Empty>
+      <EmptyMedia aria-hidden>
+        <EmptyIllustration kind="tree" />
+      </EmptyMedia>
+      <EmptyHeader>
+        <EmptyTitle>No systems yet</EmptyTitle>
+        <EmptyDescription>Create the first system, or add one from a product.</EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <ButtonGroup aria-label="Create system">
+          <Button size="small" variant="primary" iconBefore={<Plus />}>
+            Create system
+          </Button>
+          <ButtonGroupSeparator isDecorative />
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <IconButton
+                  label="More ways to create a system"
+                  icon={<ChevronDown />}
+                  size="small"
+                  variant="primary"
+                />
+              }
+            />
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>Create system from product</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </ButtonGroup>
+      </EmptyContent>
+      <EmptyContent>
+        <Text size="small" color="color.text.subtlest">
+          Try
+        </Text>
+        <Button size="small" variant="secondary">
+          Import a system list
+        </Button>
+      </EmptyContent>
+    </Empty>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const height = (element: HTMLElement) => element.getBoundingClientRect().height;
+    const create = canvas.getByRole("button", { name: "Create system" });
+    const more = canvas.getByRole("button", { name: "More ways to create a system" });
+    const suggestion = canvas.getByRole("button", { name: "Import a system list" });
+    // The split button's two halves are medium, 32px at the default text size, and match.
+    await expect(create).toHaveClass("h-control-medium");
+    await expect(more).toHaveClass("size-control-medium");
+    await expect(height(more)).toBe(height(create));
+    // The suggestion stays the small button it was given.
+    await expect(suggestion).toHaveClass("h-control-small");
+    await expect(height(suggestion)).toBeLessThan(height(create));
+  },
 };
 
 /** Every picture the kit draws, each with the region it is for. */
@@ -249,7 +326,7 @@ export const OnAPage: Story = {
   name: "On a page",
   parameters: { layout: "fullscreen" },
   render: () => (
-    <div className="flex min-h-work flex-col">
+    <div className="flex min-h-dvh flex-col">
       <Empty frame="none" className="grow">
         <EmptyMedia aria-hidden>
           <EmptyIllustration kind="tree" />
@@ -481,6 +558,7 @@ export const EmptyMatrix: Story = {
 
 /** The mistakes the page is written to prevent, each beside the right way. */
 export const Dont: Story = {
+  tags: ["!manifest"],
   render: () => (
     <Stack space="space.400">
       <Pair
