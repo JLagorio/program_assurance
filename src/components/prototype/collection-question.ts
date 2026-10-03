@@ -362,16 +362,31 @@ export function useServerCollection<T extends { id: string }, R = T>(
   }, []);
   // After the commit's other effects: the address takes the turned page (ProductCollection's
   // keeper, inside this collection) before the step selects its row, so a selection the address
-  // keeps too (a preview's record) is written over the turned page, never over the one before.
+  // keeps too (a preview's record) is written over the turned page, never over the one before. A
+  // page read before and kept is read again first when a write has marked it stale, since its rows
+  // may stand elsewhere now (an edited record moved): the step counts on the page as it is.
   useEffect(() => {
     if (!arrival) return;
     if (asked.pagination.pageIndex !== arrival.pageIndex) return setArrival(null);
     const arrived = result.data;
-    if (!arrived || result.isPlaceholderData || arrived.pageIndex !== arrival.pageIndex) return;
+    if (
+      !arrived ||
+      result.isPlaceholderData ||
+      result.isFetching ||
+      arrived.pageIndex !== arrival.pageIndex
+    )
+      return;
     setArrival(null);
     const row = order[arrival.offset - arrived.pageIndex * arrived.pageSize];
     if (row) arrival.select(row);
-  }, [arrival, result.data, result.isPlaceholderData, asked.pagination.pageIndex, order]);
+  }, [
+    arrival,
+    result.data,
+    result.isPlaceholderData,
+    result.isFetching,
+    asked.pagination.pageIndex,
+    order,
+  ]);
   setServerPaging(table, () =>
     page
       ? {
@@ -380,6 +395,10 @@ export function useServerCollection<T extends { id: string }, R = T>(
           result: page.result,
           show,
           rows: order,
+          read,
+          question: page.question,
+          // The page on screen is not yet the one asked for (a page, a search, a sort on its way).
+          settling: result.isPlaceholderData || result.isFetching,
         }
       : undefined,
   );

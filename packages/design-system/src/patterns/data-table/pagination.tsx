@@ -69,7 +69,9 @@ export function TablePagination({
         <span className="tabular-nums">
           {total === 0
             ? t("zeroRows")
-            : t("rowRange", { from: num(from), to: num(to), total: num(total) })}
+            : from > total
+              ? t("rowRangePastEnd", { total: num(total) })
+              : t("rowRange", { from: num(from), to: num(to), total: num(total) })}
         </span>
       )}
       {pageSizes && pageSizes.length > 1 && onPageSizeChange && pageSize !== undefined ? (

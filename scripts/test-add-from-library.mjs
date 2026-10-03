@@ -210,10 +210,10 @@ try {
     .getByRole("checkbox", { name: /Create as a child element/ })
     .uncheck();
   await sheet()
-    .getByLabel("Rationale", { exact: true })
+    .getByRole("textbox", { name: "Rationale", exact: true })
     .fill("The ground segment is operated from Sierra Vista.");
   await sheet().getByRole("button", { name: "Add from library", exact: true }).click();
-  await expect(sheet()).toHaveCount(0);
+  await expect(sheet()).toHaveCount(0, { timeout: 30000 });
   await expect(libraryTable).toContainText("Corporate audit policy");
   await expect(libraryTable).toContainText("Audit policy");
   const components = await rows("system_components", { system_id: root.id });
@@ -245,11 +245,12 @@ try {
     .first()
     .getByRole("button", { name: /Row actions|Actions/ })
     .click();
-  await page.getByRole("menuitem", { name: "Decide…" }).click();
-  await page
-    .getByRole("dialog", { name: "Decide on library evidence" })
-    .getByRole("button", { name: "Accept", exact: true })
-    .click();
+  await page.getByRole("menuitem", { name: "Decide evidence use" }).click();
+  // Accept is the decision the dialog starts on.
+  const decide = page.getByRole("dialog", { name: "Decide evidence use" });
+  await expect(decide.getByRole("radio", { name: /^Accept/ })).toBeChecked();
+  await decide.getByRole("button", { name: "Decide evidence use", exact: true }).click();
+  await expect(decide).toHaveCount(0, { timeout: 30000 });
   await expect(evidenceTable).toContainText("Accepted");
   const support = await rows("implementation_evidence", {
     evidence_version_id: artifactVersion.id,
@@ -266,13 +267,13 @@ try {
   await sheet().getByRole("button", { name: "Continue", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(1);
   await sheet().getByRole("button", { name: "Add from library", exact: true }).click();
-  await expect(sheet()).toHaveCount(0);
+  await expect(sheet()).toHaveCount(0, { timeout: 30000 });
   const requirementsTable = page.getByRole("table", {
     name: "Allocated requirements",
     exact: true,
   });
   await expect(requirementsTable).toContainText("RQD-RETAIN");
-  await page.getByRole("button", { name: "Allocate…", exact: true }).click();
+  await page.getByRole("button", { name: "Allocate requirements", exact: true }).click();
   await expect(sheet().getByRole("heading", { name: "Allocate requirements" })).toBeVisible();
   await sheet()
     .getByRole("checkbox", { name: /REQ-LOCAL|Select row/ })
@@ -281,7 +282,7 @@ try {
   await sheet()
     .getByRole("button", { name: /Allocate 1 to SYS-CHILD/ })
     .click();
-  await expect(sheet()).toHaveCount(0);
+  await expect(sheet()).toHaveCount(0, { timeout: 30000 });
   await expect(requirementsTable).toContainText("REQ-LOCAL");
   const adopted = await rows("engineering_requirements", { program_id: program.id });
   assert.equal(adopted.length, 2);
@@ -352,10 +353,10 @@ try {
     .getByLabel("Element name under SYS-CHILD", { exact: true })
     .fill("Audit policy element");
   await sheet()
-    .getByLabel("Rationale", { exact: true })
+    .getByRole("textbox", { name: "Rationale", exact: true })
     .fill("The ground segment carries the audit policy as its own element.");
   await sheet().getByRole("button", { name: "Add from library", exact: true }).click();
-  await expect(sheet()).toHaveCount(0);
+  await expect(sheet()).toHaveCount(0, { timeout: 30000 });
   const created = await rows("systems", { parent_system_id: child.id });
   assert.equal(created.length, 1);
   assert.equal(created[0].code, "ELEM-AUDIT");

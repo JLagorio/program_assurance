@@ -592,7 +592,7 @@ Utilities take the same key on any spacing or sizing property: `p-200`, `gap-100
 | `font.heading.xxsmall` | 11/14 | Eyebrows, group headings, menu section labels (the component adds the uppercase).                                                                                       |
 | `font.code`            | 12/18 | Code blocks only.                                                                                                                                                       |
 
-A Section's title is `font.heading.section`, the body size at semibold, the size of the text it heads. `font.heading.large`, `.medium`, `.small` and `.xsmall` stay for one version for Heading's deprecated sizes; a new title never takes one. Prose never grows past `dimension.layout.measure`, 720px (`max-w-layout-measure`).
+A Section's title is `font.heading.section`, the body size at semibold, the size of the text it heads. `font.heading.large`, `.medium`, `.small` and `.xsmall` are deprecated and stay for one version, and a new title never takes one: they are `display`, `page`, `page` (or `section` for a section's title) and `overlay`. Prose never grows past `dimension.layout.measure`, 720px (`max-w-layout-measure`).
 
 ## Sizes
 
@@ -1045,7 +1045,7 @@ The sizes are the titles the kit draws ([Heading](?path=/docs/primitives-heading
 | `size="xsmall"`                      | `size="overlay"`, the same style and element                                                                                                                           |
 | A raw `h1`–`h6` with heading classes | A `Heading` at the size it matches, or the part that draws that title: PageHeader.Title, Section.Title, DialogTitle                                                    |
 
-The `font.heading.large`, `.medium`, `.small` and `.xsmall` steps stay for one version, for those sizes; a new title takes `page`, `overlay`, `section` or `display` ([Typography](?path=/docs/tokens-typography--docs)).
+The deprecated sizes draw the steps that replace them for one version: `medium` draws `page`'s 20/26, and `small` draws `page` at medium weight. The `font.heading.large`, `.medium`, `.small` and `.xsmall` steps are deprecated and stay for one version, and `ledger/no-deprecated-token` writes `font-heading-display`, `font-heading-page`, `font-heading-page` and `font-heading-overlay` in their place; a new title takes `page`, `overlay`, `section` or `display` ([Typography](?path=/docs/tokens-typography--docs)).
 
 ## HoverCard
 
@@ -4775,7 +4775,7 @@ Reports a class on a kit part that changes what the part sets itself, and a clas
 
 - A class in a part's `className` that changes something the part sets: a class in the same group as one the part puts on its element, or in a group that replaces it where `cn()` merges (`py-200` over a part's `pt-150`). What a part sets is read from the kit's source into `eslint-plugin/parts.json`: the classes its root always carries, in every state they name; the classes each value of a prop adds, in the states the prop names, a flag's and a given prop's only where the element writes it; and the classes it makes from several props, where one of those props is written or, with none written, those the build can tell it sets then (a default Alert's neutral fill, a default Badge's brand bold fill). A width, a media condition and a variant that always holds on the part are no state: `sm:`, `max-lg:`, `@3xl:`, `motion-safe:`, `not-print:`, `supports-[…]:`, `[&]:`, the part's own `data-[slot=…]:`, `enabled:` and a negated state (`not-hover:`) change what the prop sets as the bare class would. The finding names how the part sets it:
   - a prop whose value is this class and nothing else: `"tabular-nums" on <Text> is its numeric prop. Write numeric and drop the class.`, with an editor suggestion that writes the prop in the class's place;
-  - a prop that sets the same thing: `"font-heading-xsmall" on <Text> changes the type its size prop sets. Drop it; "font-heading-xsmall" is Heading size="overlay".`;
+  - a prop that sets the same thing: `"font-heading-overlay" on <Text> changes the type its size prop sets. Drop it; "font-heading-overlay" is Heading size="overlay".`;
   - the part itself: `"pt-200" on <TabsContent> changes the padding it sets itself (pt-150, components/tabs.tsx:125). Drop it; a different padding is a change to Tabs.`, quoting at most 48 characters of what it sets, the setting in the class's own states first;
   - a class under a width or a condition, or beside the prop it changes: `"sm:bg-danger-bold" on <Button> changes the background its variant prop sets. Drop it; a different background is a change to Button.`;
   - a class the part already sets, in the same states: `"rounded-large" on <Card> repeats what it sets itself (components/card.tsx:39). Drop it; it changes nothing.`
@@ -5479,7 +5479,7 @@ export const Variants: Story = {
 - Parts are imported by relative path from `../../components`, `../../primitives`, `../../patterns`, `../../layout`. The package never imports its own root.
 - `title` is `<Category>/<Family>`: Primitives, Components, Layout, Patterns, Tokens, Guidance. One family, one file, one `title`.
 - The JSDoc comment above a story is its description on the docs page. Write it as the sentence the reader needs, not the story's name again.
-- The first story in the manifest is the usage to copy: plain parts and primitives, no `_lib` helper, no element, component or function of the stories file, and no ref or storybook/test spy made at module level, alone or held in an object (`const refs = { nav: createRef() }`). A callback its play checks is an arg (`args: { onCopied: fn() }`, passed as `onCopied={args.onCopied}`), which the manifest prints in place as `fn()`. MCP `docs-show` returns the code of the first three stories Storybook's manifest holds, and an agent copies them. A family's comparison story may still lead its page, tagged out of the manifest (below), so the first story MCP returns is the first plain one. A story whose render is a component of the stories file shows in the manifest as that one call (`<LoadingDemo />`), with nothing to copy, so lead with a story that renders the parts themselves, such as the Playground, wherever the family has one. Where every story of a family is such a component, the first one's `render` is the component itself (`render: PickerStates`), and the manifest shows the component's body, so that body renders the parts directly too: a value accessor or a formatter is written inline (`value={(row, column) => …}`), not a function of the file. `test/story-manifest.test.mjs` reads what the manifest prints (the story's render, a named render's body, the meta's render when the story has none, and the args they take) and every helper that code reaches.
+- The first story in the manifest is the usage to copy: plain parts and primitives, no `_lib` helper, no element, component or function of the stories file, and no ref or storybook/test spy made at module level, alone or held in an object (`const refs = { nav: createRef() }`). A callback its play checks is an arg (`args: { onCopied: fn() }`, passed as `onCopied={args.onCopied}`), which the manifest prints in place as `fn()`. MCP `docs-show` returns the code of the first three stories Storybook's manifest holds, and an agent copies them. A family's comparison story may still lead its page, tagged out of the manifest (below), so the first story MCP returns is the first plain one. A story whose render is a component of the stories file shows in the manifest as that one call (`<LoadingDemo />`), with nothing to copy, so lead with a story that renders the parts themselves, such as the Playground, wherever the family has one. Where every story of a family is such a component, the first one's `render` is the component itself (`render: PickerStates`), and the manifest shows the component's body, so that body renders the parts directly too: a value accessor or a formatter is written inline (`value={(row, column) => …}`), not a function of the file. The second and third stories in the manifest are copied too: each may name a component of the stories file, as its one call or as a stand-in the reader replaces (a demo router link), but its own code names no ref, spy, function or element of the file. A callback its play checks is an `fn()` arg, a formatter or an accessor is written inline, and a check of refs and native attributes goes in a `NativeAttributes` story tagged `!manifest`. In all three, the manifest writes an arg in only where the code passes it straight to an element it returns, as `prop={args.key}` or `{...args}`, and then drops the `args` parameter: an arg read in a callback (`onSelect={() => args.onSelect("MS-A")}`), in an expression (`{args.invalid && …}`) or in JSX passed as a prop (`render={<Link onClick={args.onNavigate} />}`) stays `args.key` in a copy that has no `args`. Such a check goes in a story tagged `!manifest`, and a Playground whose code reads its controls that way is tagged `!manifest` too. `test/story-manifest.test.mjs` reads what the manifest prints (the story's render, a named render's body, the meta's render when the story has none, and the args they take) and every helper that code reaches.
 - A `children` arg written as JSX in parentheses, as Prettier writes any JSX longer than a line, shows in the manifest with its parentheses as text (`<Alert>(<>…</>)</Alert>`). Write the children in the meta's `render` (`render: (args) => <Alert {...args}>…</Alert>`) and keep `args` for the props.
 - `_lib` helpers (Matrix, Specimens, Pair) are story layout, not package exports. The MCP snippet lists every relative import under the package name, so a story file binds them locally (`import * as storyLayout from "../_lib/matrix"`, then `const { Matrix, Specimens } = storyLayout`); a locally declared name is left out of the snippet's import line.
 - A story whose render shows a `_lib` helper (a Matrix or Specimens comparison), and every Don't, is tagged `!manifest`. It stays in the sidebar, on its page and in every test run, and leaves the manifest MCP reads, so `docs-show` never offers a comparison grid or a Don't as code to copy. A Don't an agent must know is also a sentence on the page (its Content, or a line under the Don't canvas), which `docs-show` returns under Docs. The token sheets are the exception: their stories are the Tokens pages' only examples, and they stay in the manifest with the sheet helpers bound locally.
@@ -6220,9 +6220,9 @@ _Example: story `Stories.PackagedFaces`._
 
 Text takes the body ramp as `size` (`large`, `medium`, `small`, `xsmall`). Heading takes the heading ramp the same way (`page`, `overlay`, `section`, `display`). Eyebrow is `font.heading.xxsmall`, uppercased.
 
-### Replaced, for one version
+### Deprecated, for one version
 
-These steps stay for one version, for Heading's deprecated sizes and the parts that still set them. A new title never takes one.
+These steps are deprecated and stay for one version. Nothing in the kit sets them: Heading's deprecated sizes draw the steps that replace them, and `ledger/no-deprecated-token` writes the replacement in place of the class. A new title never takes one.
 
 | Token | Size | Weight | Replaced by |
 | --- | --- | --- | --- |
@@ -6272,20 +6272,20 @@ _Example: story `Stories.BleedMatrix`._
 
 ## Anatomy
 
-| Part    | What it is                                                                                          |
-| ------- | --------------------------------------------------------------------------------------------------- |
-| Wrapper | A `div`, or the layout element `as` names, with a negative margin on the axis named. The child inside keeps its own padding and fill. |
-| `inline` | Escapes the inline padding: left and right.                                                       |
-| `block` | Escapes the block padding: top and bottom.                                                          |
-| `all`   | Both.                                                                                               |
+| Part     | What it is                                                                                                                            |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Wrapper  | A `div`, or the layout element `as` names, with a negative margin on the axis named. The child inside keeps its own padding and fill. |
+| `inline` | Escapes the inline padding: left and right.                                                                                           |
+| `block`  | Escapes the block padding: top and bottom.                                                                                            |
+| `all`    | Both.                                                                                                                                 |
 
 ## Variants
 
-| Bleed  | Use                                                                                                       |
-| ------ | --------------------------------------------------------------------------------------------------------- |
-| Inline | A strip, a table, a row's hover fill: to the card's or the rail's sides.                                  |
-| Block  | Rows to a panel's top and bottom, a tab strip to a card header's top.                                     |
-| All    | A cover on a card, a media block under the radius.                                                        |
+| Bleed  | Use                                                                      |
+| ------ | ------------------------------------------------------------------------ |
+| Inline | A strip, a table, a row's hover fill: to the card's or the rail's sides. |
+| Block  | Rows to a panel's top and bottom, a tab strip to a card header's top.    |
+| All    | A cover on a card, a media block under the radius.                       |
 
 Not built, and why: a bleed beyond `space.400` (nothing is padded more than a page gutter, so nothing has more to escape); one edge at a time (a child that escapes one side only is a layout of two columns, not a bleed); a bleed on a Box (the Bleed is its own element, so the child keeps its padding and fill and the negative margin is in one place); a bleed that clips (the child hangs past the parent's radius unless it has its own; the card's `overflow` is the card's decision).
 
@@ -6293,17 +6293,17 @@ Not built, and why: a bleed beyond `space.400` (nothing is padded more than a pa
 
 The tokens with a negative in the source:
 
-| Token       | px  | Escapes                                            |
-| ----------- | --- | -------------------------------------------------- |
-| `space.025` | 2   | A hairline inset.                                  |
-| `space.050` | 4   | A tight inset.                                     |
-| `space.075` | 6   | A small control's inset.                            |
-| `space.100` | 8   | A rail's inset, a compact row's.                    |
-| `space.150` | 12  | A cell's, a card header's.                          |
-| `space.200` | 16  | A card's, a dialog body's.                          |
-| `space.250` | 20  |                                                     |
-| `space.300` | 24  | A dialog's, a page section's.                       |
-| `space.400` | 32  | A page gutter.                                      |
+| Token       | px  | Escapes                          |
+| ----------- | --- | -------------------------------- |
+| `space.025` | 2   | A hairline inset.                |
+| `space.050` | 4   | A tight inset.                   |
+| `space.075` | 6   | A small control's inset.         |
+| `space.100` | 8   | A rail's inset, a compact row's. |
+| `space.150` | 12  | A cell's, a card header's.       |
+| `space.200` | 16  | A card's, a dialog body's.       |
+| `space.250` | 20  |                                  |
+| `space.300` | 24  | A dialog's, a page section's.    |
+| `space.400` | 32  | A page gutter.                   |
 
 The bleed equals the padding it escapes. A bleed larger than the padding hangs outside the parent; smaller, it stops short of the edge and reads as a mistake in the inset.
 
@@ -6321,8 +6321,8 @@ The bleed equals the padding it escapes. A bleed larger than the padding hangs o
 
 ## Style
 
-| Element | Token                                                          |
-| ------- | -------------------------------------------------------------- |
+| Element | Token                                                                                                                          |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | Margin  | `space.negative.*`, read by `m-negative-*`, `mx-negative-*`, `my-negative-*`: the negative token, not the positive one negated |
 
 ## Accessibility
@@ -6359,6 +6359,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+A Bleed escapes by the token its parent is padded with, never a negative margin in a style or a bleed larger than the padding.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Primitives/Box (src/stories/primitives/Box.mdx) -->
@@ -6373,22 +6375,22 @@ _Example: story `Stories.BoxMatrix`._
 
 ## Anatomy
 
-| Part            | What it is                                                                                                                                                  |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Element         | A `div`, or the container, landmark or list part `as` names. Never `a` or `button`.                                                                        |
+| Part            | What it is                                                                                                                                                                     |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Element         | A `div`, or the container, landmark or list part `as` names. Never `a` or `button`.                                                                                            |
 | Padding         | `padding` on every side; `paddingInline` and `paddingBlock` per axis; `paddingInlineStart`, `paddingInlineEnd`, `paddingBlockStart`, `paddingBlockEnd` per edge. Space tokens. |
-| Fill            | `backgroundColor`: a semantic background (`color.background.*`) or an elevation surface (`elevation.surface.*`).                                            |
-| Text colour     | Set by the fill: a bold, bolder or boldest fill paints `color.text.inverse`; the warning bold, which is light, paints `color.text.warning.inverse`.         |
-| Current surface | A surface fill is published as `utility.elevation.surface.current`, so a sticky or masking child paints the surface it is on and matches.                  |
+| Fill            | `backgroundColor`: a semantic background (`color.background.*`) or an elevation surface (`elevation.surface.*`).                                                               |
+| Text colour     | Set by the fill: a bold, bolder or boldest fill paints `color.text.inverse`; the warning bold, which is light, paints `color.text.warning.inverse`.                            |
+| Current surface | A surface fill is published as `utility.elevation.surface.current`, so a sticky or masking child paints the surface it is on and matches.                                      |
 
 ## Variants
 
-| Box              | Use                                                                                                                                    |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Plain            | Padding only: the inset of a region, a cell, a rail.                                                                                   |
-| Surface          | `elevation.surface`, `.sunken`, `.raised`, `.overlay`: the page, the well, the card, the popover. The shadow or hairline is a class.    |
-| Fill             | A semantic background: a chip, a callout, a selected row. A bold fill paints its text inverse by itself.                               |
-| Landmark or list | `as="section"` with `aria-labelledby`, `as="article"`, `as="ul"` and `"li"`: the element is the semantics, the Box is the inset.       |
+| Box              | Use                                                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Plain            | Padding only: the inset of a region, a cell, a rail.                                                                                 |
+| Surface          | `elevation.surface`, `.sunken`, `.raised`, `.overlay`: the page, the well, the card, the popover. The shadow or hairline is a class. |
+| Fill             | A semantic background: a chip, a callout, a selected row. A bold fill paints its text inverse by itself.                             |
+| Landmark or list | `as="section"` with `aria-labelledby`, `as="article"`, `as="ul"` and `"li"`: the element is the semantics, the Box is the inset.     |
 
 Not built, and why: margin props (the parent owns the distance); width and height props (a Box is as wide as its parent gives it, and the widths a layout needs are a Grid's template and the layout tokens); `as="a"` or `"button"` (TextLink and Button carry the ring, the pressed face and the name); a style prop for the rest (a class is the escape hatch, and the lint holds it to tokens); automatic layer stepping (a surface is named, not counted: a card inside a card is a decision, not a default).
 
@@ -6396,18 +6398,18 @@ Not built, and why: margin props (the parent owns the distance); width and heigh
 
 The space scale, on any edge:
 
-| Token       | px  | Where                                                |
-| ----------- | --- | ---------------------------------------------------- |
-| `space.025` | 2   | Hairline: a chip's block inset.                      |
-| `space.050` | 4   | Tight: icon to text.                                 |
-| `space.075` | 6   | Compact: a small control's block inset.              |
-| `space.100` | 8   | A rail's inset, a row's block inset, a chip's inline. |
-| `space.150` | 12  | A cell, a card header.                               |
-| `space.200` | 16  | A card, a form grid, a dialog body.                  |
-| `space.250` | 20  | Comfortable.                                         |
-| `space.300` | 24  | Relaxed: a dialog's inset, a page section.           |
-| `space.400` | 32  | A page gutter.                                       |
-| `space.500` to `space.1000` | 40 to 80 | Sections, a hero. Rare inside a Box.     |
+| Token                       | px       | Where                                                 |
+| --------------------------- | -------- | ----------------------------------------------------- |
+| `space.025`                 | 2        | Hairline: a chip's block inset.                       |
+| `space.050`                 | 4        | Tight: icon to text.                                  |
+| `space.075`                 | 6        | Compact: a small control's block inset.               |
+| `space.100`                 | 8        | A rail's inset, a row's block inset, a chip's inline. |
+| `space.150`                 | 12       | A cell, a card header.                                |
+| `space.200`                 | 16       | A card, a form grid, a dialog body.                   |
+| `space.250`                 | 20       | Comfortable.                                          |
+| `space.300`                 | 24       | Relaxed: a dialog's inset, a page section.            |
+| `space.400`                 | 32       | A page gutter.                                        |
+| `space.500` to `space.1000` | 40 to 80 | Sections, a hero. Rare inside a Box.                  |
 
 The scale, with every token, is on the [Space](?path=/docs/tokens-space--docs) sheet.
 
@@ -6429,12 +6431,12 @@ The scale, with every token, is on the [Space](?path=/docs/tokens-space--docs) s
 
 ## Style
 
-| Element         | Token                                                                                           |
-| --------------- | ----------------------------------------------------------------------------------------------- |
-| Padding         | `space.*`, as `p-*`, `px-*`, `py-*`, `pt-*`, `pb-*`, `ps-*`, `pe-*`                            |
-| Fill            | `color.background.*` · `elevation.surface`, `.sunken`, `.raised`, `.overlay`                    |
-| Inverse text    | `color.text.inverse` on `*.bold`, `*.bolder`, `*.boldest` · `color.text.warning.inverse` on `warning.bold` |
-| Current surface | `utility.elevation.surface.current`, set from the surface the Box paints                        |
+| Element                | Token                                                                                                                                       |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Padding                | `space.*`, as `p-*`, `px-*`, `py-*`, `pt-*`, `pb-*`, `ps-*`, `pe-*`                                                                         |
+| Fill                   | `color.background.*` · `elevation.surface`, `.sunken`, `.raised`, `.overlay`                                                                |
+| Inverse text           | `color.text.inverse` on `*.bold`, `*.bolder`, `*.boldest` · `color.text.warning.inverse` on `warning.bold`                                  |
+| Current surface        | `utility.elevation.surface.current`, set from the surface the Box paints                                                                    |
 | Radius, border, shadow | By class: `rounded-*` from `radius.*`, `border-default` from `color.border`, `shadow-raised` and `shadow-overlay` from `elevation.shadow.*` |
 
 ## Accessibility
@@ -6481,6 +6483,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+The parent owns the distance between children, never a margin on a child. A thing that is pressed is a Button, never a Box with a role, and a fill is the Box's token, never a class.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Primitives/Flex (src/stories/primitives/Flex.mdx) -->
@@ -6495,22 +6499,22 @@ _Example: story `Stories.FlexMatrix`._
 
 ## Anatomy
 
-| Part      | What it is                                                                                     |
-| --------- | ---------------------------------------------------------------------------------------------- |
-| Container | A flex box: a `div`, or the layout element `as` names.                                         |
-| Direction | `row` or `column`. No reverse.                                                                 |
-| Gap       | `gap` on both axes; `rowGap` and `columnGap` over it.                                          |
-| Main axis | `justifyContent`: `start`, `center`, `end`, `space-between`, `space-around`, `space-evenly`.   |
-| Cross axis | `alignItems`: `start`, `center`, `end`, `baseline`, `stretch`.                                |
-| Wrap      | `wrap` or `nowrap`.                                                                            |
+| Part       | What it is                                                                                   |
+| ---------- | -------------------------------------------------------------------------------------------- |
+| Container  | A flex box: a `div`, or the layout element `as` names.                                       |
+| Direction  | `row` or `column`. No reverse.                                                               |
+| Gap        | `gap` on both axes; `rowGap` and `columnGap` over it.                                        |
+| Main axis  | `justifyContent`: `start`, `center`, `end`, `space-between`, `space-around`, `space-evenly`. |
+| Cross axis | `alignItems`: `start`, `center`, `end`, `baseline`, `stretch`.                               |
+| Wrap       | `wrap` or `nowrap`.                                                                          |
 
 ## Variants
 
-| Flex     | Use                                                                                                          |
-| -------- | ------------------------------------------------------------------------------------------------------------ |
-| Row      | A row that Inline cannot say: `space-around`, `space-evenly`, or children stretched to the tallest.          |
-| Column   | A column that Stack cannot say: a `baseline` alignment, children distributed `space-around`.                  |
-| Wrapping | Cells of their own width with a column gap and a row gap that differ, and a distribution across each row.    |
+| Flex     | Use                                                                                                       |
+| -------- | --------------------------------------------------------------------------------------------------------- |
+| Row      | A row that Inline cannot say: `space-around`, `space-evenly`, or children stretched to the tallest.       |
+| Column   | A column that Stack cannot say: a `baseline` alignment, children distributed `space-around`.              |
+| Wrapping | Cells of their own width with a column gap and a row gap that differ, and a distribution across each row. |
 
 Not built, and why: `row-reverse` and `column-reverse` (the eye reads one order and the keyboard another; write the children in the order they should read); `wrap-reverse` (the same); `inline-flex` (Inline's `display`, for a row inside text); a per-child `alignSelf` or `order` (a child that sits differently carries its own class, and order is DOM order); a responsive direction (a layout that changes at a breakpoint is a Grid with one template per breakpoint).
 
@@ -6537,12 +6541,12 @@ Not built, and why: `row-reverse` and `column-reverse` (the eye reads one order 
 
 ## Style
 
-| Element   | Token                                                          |
-| --------- | -------------------------------------------------------------- |
-| Gap       | `space.*`, as `gap-*`, `gap-x-*`, `gap-y-*`                    |
-| Direction | `flex-row`, `flex-col`                                         |
-| Axes      | `justify-*`, `items-*`                                         |
-| Wrap      | `flex-wrap`, `flex-nowrap`                                     |
+| Element   | Token                                       |
+| --------- | ------------------------------------------- |
+| Gap       | `space.*`, as `gap-*`, `gap-x-*`, `gap-y-*` |
+| Direction | `flex-row`, `flex-col`                      |
+| Axes      | `justify-*`, `items-*`                      |
+| Wrap      | `flex-wrap`, `flex-nowrap`                  |
 
 ## Accessibility
 
@@ -6581,6 +6585,8 @@ _Rendered in the Storybook: Controls._
 - [Space](?path=/docs/tokens-space--docs): the scale.
 
 ## Don't
+
+A row with one gap is an Inline, a column a Stack and two columns with a fixed rail a Grid; Flex is for what those cannot say, never a stand-in for them.
 
 _Example: story `Stories.Dont`._
 
@@ -6705,6 +6711,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+Columns are `minmax(0, 1fr)`, never a bare `1fr` that a long word widens. A layout that changes with the width takes a template per breakpoint, never three columns at every width, and chips are an Inline, never a Grid.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Primitives/Heading (src/stories/primitives/Heading.mdx) -->
@@ -6769,7 +6777,7 @@ Context follows the React tree, portals included: content portalled into another
 
 ## Deprecated sizes
 
-`large`, `medium`, `small` and `xsmall` are deprecated for one version. `large` is `display` and `xsmall` is `overlay`, the same styles and elements, and `ledger/no-deprecated-name` writes the new names. `medium` draws 22 / 28 semibold as an h1 and `small` 20 / 26 medium as an h2, for one version: a page or record title is `page`, and a section's title is `section`.
+`large`, `medium`, `small` and `xsmall` are deprecated for one version, each drawn with the step that replaced it. `large` is `display`, `medium` is `page` and `xsmall` is `overlay`, each keeping its element, and `ledger/no-deprecated-name` writes the new names. `small` draws `page` at medium weight, 20 / 26 medium, as an h2: a page or record title is `page`, and a section's title is `section`.
 
 _Example: story `Stories.DeprecatedSizes`._
 
@@ -6841,6 +6849,8 @@ _Rendered in the Storybook: Controls._
 - [Upgrading](?path=/docs/guidance-upgrading--docs#heading): `large`, `medium`, `small` and `xsmall`, and the size each is now.
 
 ## Don't
+
+A page has one h1 and its outline in order, each title at the size of its job: a page title is `page`, never `display`. A heading is `color.text`, and its tone goes on the fact beside it.
 
 _Example: story `Stories.Dont`._
 
@@ -6974,6 +6984,8 @@ _Rendered in the Storybook: Controls._
 - [Space](?path=/docs/tokens-space--docs): the scale.
 
 ## Don't
+
+A dot between items is `separator`, never a child. A row that can grow wraps with `shouldWrap`, and a list of chips is `as="ul"` with `li` children and no separator.
 
 _Example: story `Stories.Dont`._
 
@@ -7130,6 +7142,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+The Stack's `space` sets the distance between its children, never a margin under each. Steps are `as="ol"` with `li` children, and one child needs no Stack.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Primitives/Text (src/stories/primitives/Text.mdx) -->
@@ -7152,36 +7166,36 @@ _Example: story `Stories.UnbrokenWord`._
 
 ## Anatomy
 
-| Part    | What it is                                                                                                                      |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Element | A `span` by default, or the `TextElement` `as` names: `p`, `div`, `strong`, `em`, `small`, `label`, `legend`, `figcaption`, `dt`, `dd`, `li`. Never a heading, a link or a button. |
-| Size    | `large`, `medium`, `small`, `xsmall`: the four `font.body` tokens.                                                              |
-| Weight  | `regular`, `medium`, `semibold`. Over the token's own weight.                                                                    |
-| Colour  | A `color.text` token, or inherited: `color.text` from the page, `color.text.inverse` from a bold Box.                            |
-| Clamp   | `maxLines` 1, 2 or 3, with an ellipsis, and the whole text in a tooltip while it is cut (through [Truncate](?path=/docs/components-truncate--docs)). A one-line clamp makes an inline element (`span`, `strong`, `em`, `small`, `label`) a block, so it has a box to cut. |
-| Breaks  | `preserveLineBreaks` keeps the line breaks and spaces of authored text (`white-space: pre-wrap`).                                  |
-| Numerals | `numeric` sets tabular numerals, every digit one width, for a count or a date that lines up with the one above it.               |
+| Part     | What it is                                                                                                                                                                                                                                                                |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Element  | A `span` by default, or the `TextElement` `as` names: `p`, `div`, `strong`, `em`, `small`, `label`, `legend`, `figcaption`, `dt`, `dd`, `li`. Never a heading, a link or a button.                                                                                        |
+| Size     | `large`, `medium`, `small`, `xsmall`: the four `font.body` tokens.                                                                                                                                                                                                        |
+| Weight   | `regular`, `medium`, `semibold`. Over the token's own weight.                                                                                                                                                                                                             |
+| Colour   | A `color.text` token, or inherited: `color.text` from the page, `color.text.inverse` from a bold Box.                                                                                                                                                                     |
+| Clamp    | `maxLines` 1, 2 or 3, with an ellipsis, and the whole text in a tooltip while it is cut (through [Truncate](?path=/docs/components-truncate--docs)). A one-line clamp makes an inline element (`span`, `strong`, `em`, `small`, `label`) a block, so it has a box to cut. |
+| Breaks   | `preserveLineBreaks` keeps the line breaks and spaces of authored text (`white-space: pre-wrap`).                                                                                                                                                                         |
+| Numerals | `numeric` sets tabular numerals, every digit one width, for a count or a date that lines up with the one above it.                                                                                                                                                        |
 
 ## Variants
 
-| Text      | Use                                                                                                         |
-| --------- | ----------------------------------------------------------------------------------------------------------- |
-| Paragraph | `as="p"`: a statement, a description, a note, at `medium` or `large`, at the reading measure.                |
-| Run       | The default `span`: a value in a cell, a word in a row, a count beside a label.                              |
-| Label     | `as="label"` with `htmlFor`, or `as="dt"` in a pair: `small` medium, subtle.                                |
-| Meta      | `small` or `xsmall`, `subtle` or `subtlest`: a date, an id, a count.                                         |
-| Emphasis  | `weight="medium"` on a word in a sentence; `as="strong"` when the emphasis is for a screen reader too.       |
+| Text      | Use                                                                                                    |
+| --------- | ------------------------------------------------------------------------------------------------------ |
+| Paragraph | `as="p"`: a statement, a description, a note, at `medium` or `large`, at the reading measure.          |
+| Run       | The default `span`: a value in a cell, a word in a row, a count beside a label.                        |
+| Label     | `as="label"` with `htmlFor`, or `as="dt"` in a pair: `small` medium, subtle.                           |
+| Meta      | `small` or `xsmall`, `subtle` or `subtlest`: a date, an id, a count.                                   |
+| Emphasis  | `weight="medium"` on a word in a sentence; `as="strong"` when the emphasis is for a screen reader too. |
 
 Not built, and why: a `bold` weight (the ramp's top is `semibold`, the page title's weight, and a paragraph above it shouts); italic (for the titles of works and technical terms, and the product has neither in running text); an underline (a link is a TextLink; an underline that is not a link reads as one); a separate truncate prop (`maxLines` clamps and reveals; a [Truncate](?path=/docs/components-truncate--docs) cuts a composed value); an escape below the ramp (`xsmall` is the floor, and nothing is set below 11px); a text transform (an Eyebrow sets its own uppercase; nothing else is transformed).
 
 ## Sizes
 
-| Size     | Token              | Size / leading | Where                                                                  |
-| -------- | ------------------ | -------------- | ---------------------------------------------------------------------- |
-| `large`  | `font.body.large`  | 15 / 22        | Reading text: a statement, a dialog's body, a note at the measure.     |
+| Size     | Token              | Size / leading | Where                                                                                               |
+| -------- | ------------------ | -------------- | --------------------------------------------------------------------------------------------------- |
+| `large`  | `font.body.large`  | 15 / 22        | Reading text: a statement, a dialog's body, a note at the measure.                                  |
 | `medium` | `font.body`        | 13 / 18        | The UI size: controls, cells, tabs, menu items, descriptions. The default, inherited from the page. |
-| `small`  | `font.body.small`  | 12 / 16        | Table headers, field labels, badges, KeyValue, meta lines.             |
-| `xsmall` | `font.body.xsmall` | 11 / 14        | Counts, dates, ids beside something. Never a sentence.                 |
+| `small`  | `font.body.small`  | 12 / 16        | Table headers, field labels, badges, KeyValue, meta lines.                                          |
+| `xsmall` | `font.body.xsmall` | 11 / 14        | Counts, dates, ids beside something. Never a sentence.                                              |
 
 The UI size is 13, a point under the usual 14, because a register's rows are the page.
 
@@ -7206,14 +7220,14 @@ The UI size is 13, a point under the usual 14, because a register's rows are the
 
 ## Style
 
-| Element | Token                                                                                              |
-| ------- | -------------------------------------------------------------------------------------------------- |
-| Size    | `font.body.large` · `font.body` · `font.body.small` · `font.body.xsmall`, the family, size, leading and tracking in one |
-| Weight  | `font.weight.regular` · `.medium` · `.semibold`                                                    |
-| Colour  | `color.text` · `.subtle` · `.subtlest` · `.disabled` · `.brand` · `.selected` · `.danger` · `.warning` · `.success` · `.information` · `.inverse` · `.warning.inverse` |
-| Clamp   | one line clipped across (`overflow-x: clip`, ellipsis); `line-clamp-2`, `line-clamp-3`              |
-| Numerals | `tabular-nums` for `numeric`                                                                       |
-| Measure | `dimension.layout.measure`, set by the parent                                                       |
+| Element  | Token                                                                                                                                                                  |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Size     | `font.body.large` · `font.body` · `font.body.small` · `font.body.xsmall`, the family, size, leading and tracking in one                                                |
+| Weight   | `font.weight.regular` · `.medium` · `.semibold`                                                                                                                        |
+| Colour   | `color.text` · `.subtle` · `.subtlest` · `.disabled` · `.brand` · `.selected` · `.danger` · `.warning` · `.success` · `.information` · `.inverse` · `.warning.inverse` |
+| Clamp    | one line clipped across (`overflow-x: clip`, ellipsis); `line-clamp-2`, `line-clamp-3`                                                                                 |
+| Numerals | `tabular-nums` for `numeric`                                                                                                                                           |
+| Measure  | `dimension.layout.measure`, set by the parent                                                                                                                          |
 
 ## Accessibility
 
@@ -7256,6 +7270,8 @@ _Rendered in the Storybook: Controls._
 - [Typography tokens](?path=/docs/tokens-typography--docs): the ramp, with every token's value.
 
 ## Don't
+
+Running text is neutral, and a colour says something, never decoration. Body copy is `medium`, or `large` for a statement read at length, never `xsmall`, and a title is a Heading, never a Text made to look like one.
 
 _Example: story `Stories.Dont`._
 
@@ -7309,6 +7325,8 @@ _Example: story `Stories.Playground`._
 _Rendered in the Storybook: Controls._
 
 ## Don't
+
+What a mark means is VisuallyHidden text read in its place, never a `title` on a span, which reaches a mouse after a wait and no one else.
 
 _Example: story `Stories.Dont`._
 
@@ -7545,6 +7563,8 @@ Sources: [shadcn Alert](https://ui.shadcn.com/docs/components/base/alert), [impl
 
 ## Don't
 
+An Alert says what happened in its title and offers the way out as one small action beside it, never a red bar with the server's words and a page-wide button under it. A standing note is `role="note"`, read in place, never a danger Alert that interrupts the page when nothing failed.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Components/AlertDialog (src/stories/components/AlertDialog.mdx) -->
@@ -7753,6 +7773,8 @@ Not for:
 - A toast. Toaster announces its own messages.
 - A persistent status the page shows, such as a Saving indicator beside a control. Keep that as visible text in the page; announce only the change.
 - A modal decision. Use AlertDialog.
+
+A form whose check fails announces one polite summary through `announce` once the check has run ("2 fields need attention"), never a `role="alert"` on each field's error: inserted together, those interrupt one another, and a region added with its text already in it is often not heard at all.
 
 _Example: story `Stories.Dont`._
 
@@ -7986,13 +8008,13 @@ _Example: story `Stories.People`._
 
 ## Sizes
 
-| `size`   | Box  | Initials | Use                                         |
-| -------- | ---- | -------- | ------------------------------------------- |
-| `xsmall` | 16px | one      | Beside a name in a row: `Person`.           |
-| `small`  | 24px | two      | The default. A group of reviewers in a row. |
-| `medium` | 32px | two      | A card, a rail, the account menu.           |
-| `large`  | 40px | two      | A record's owner in its header.             |
-| `xlarge` | 64px | two      | A person's own record.                      |
+| `size`   | Box  | Initials | Initials' type                      | Use                                         |
+| -------- | ---- | -------- | ----------------------------------- | ------------------------------------------- |
+| `xsmall` | 16px | one      | `font.body.xsmall` at medium, 11/14 | Beside a name in a row: `Person`.           |
+| `small`  | 24px | two      | `font.body.xsmall` at medium, 11/14 | The default. A group of reviewers in a row. |
+| `medium` | 32px | two      | `font.body` at medium, 13/18        | A card, a rail, the account menu.           |
+| `large`  | 40px | two      | `font.body.large` at medium, 15/22  | A record's owner in its header.             |
+| `xlarge` | 64px | two      | `font.heading.page`, 20/26 semibold | A person's own record.                      |
 
 In a group, the +n circle takes its members' size and a type size under theirs, and the overlap scales with them: 4px at xsmall, 6px at small, 8px at medium and large, 16px at xlarge.
 
@@ -8293,6 +8315,8 @@ _Example: story `Stories.Categories`._
 
 _Example: story `Stories.OneBold`._
 
+A badge that goes somewhere is a link through `render` (`render={<a href="#evidence" />}`), never a Badge with an `onClick`: that is a span, with no link and no keyboard behaviour.
+
 _Example: story `Stories.Dont`._
 
 _Example: story `Stories.StatusGuidance`._
@@ -8446,6 +8470,8 @@ _Rendered in the Storybook: Controls._
 - [Badge](?path=/docs/components-badge--docs): the tone table.
 
 ## Don't
+
+A Banner is about the whole site, in one sentence with one action. A message about one record is an Alert and feedback after an act is a toast, never a banner; two sentences and two actions are cut on a wide bar and fill the top of a phone's screen.
 
 _Example: story `Stories.Dont`._
 
@@ -8785,6 +8811,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+The trail is the record's real levels by name, the last a BreadcrumbPage and the rest BreadcrumbLinks, never a history of clicks or a button that navigates. A router link through `render` matches exactly: one that matches by prefix marks every parent as the current page too.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Components/Button (src/stories/components/Button.mdx) -->
@@ -8803,15 +8831,15 @@ Leading and trailing icons use a smaller inset on their own side; icon-only cont
 
 ## Choosing between them
 
-| Need | Part |
-| --- | --- |
-| Something happens on this page: save, open a dialog or a menu, change state | Button |
-| The same, shown only as an icon | [IconButton](?path=/docs/components-iconbutton--docs) |
-| Go somewhere, with a button's look | [LinkButton](?path=/docs/components-linkbutton--docs) or LinkIconButton |
-| Go somewhere from inside a sentence, or a record's name in a row | [TextLink](?path=/docs/components-textlink--docs) |
-| One setting that is on or off | [Toggle](?path=/docs/components-toggle--docs) or [Switch](?path=/docs/components-switch--docs) |
-| One choice among a few, shown at once | [ToggleGroup](?path=/docs/components-togglegroup--docs) |
-| Copy a value | [CopyButton](?path=/docs/components-copybutton--docs) |
+| Need                                                                        | Part                                                                                           |
+| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Something happens on this page: save, open a dialog or a menu, change state | Button                                                                                         |
+| The same, shown only as an icon                                             | [IconButton](?path=/docs/components-iconbutton--docs)                                          |
+| Go somewhere, with a button's look                                          | [LinkButton](?path=/docs/components-linkbutton--docs) or LinkIconButton                        |
+| Go somewhere from inside a sentence, or a record's name in a row            | [TextLink](?path=/docs/components-textlink--docs)                                              |
+| One setting that is on or off                                               | [Toggle](?path=/docs/components-toggle--docs) or [Switch](?path=/docs/components-switch--docs) |
+| One choice among a few, shown at once                                       | [ToggleGroup](?path=/docs/components-togglegroup--docs)                                        |
+| Copy a value                                                                | [CopyButton](?path=/docs/components-copybutton--docs)                                          |
 
 ## Hierarchy
 
@@ -8829,19 +8857,19 @@ _Example: story `Stories.Emphasis`._
 
 ## Variants and sizes
 
-| Variant | Use |
-| --- | --- |
-| `secondary` | Default raised action: Export, Edit, Open. |
-| `primary` | The main action in a header, form or dialog. |
-| `subtle` | Low emphasis actions in toolbars, rows and footers. |
-| `danger` | Destructive actions, with confirmation when appropriate. |
-| `link` | A text styled action, such as Show more. |
+| Variant     | Use                                                      |
+| ----------- | -------------------------------------------------------- |
+| `secondary` | Default raised action: Export, Edit, Open.               |
+| `primary`   | The main action in a header, form or dialog.             |
+| `subtle`    | Low emphasis actions in toolbars, rows and footers.      |
+| `danger`    | Destructive actions, with confirmation when appropriate. |
+| `link`      | A text styled action, such as Show more.                 |
 
-| Size | Height | Typical placement |
-| --- | --- | --- |
-| `medium` | 32px | Default for forms, headers and footers. |
-| `small` | 28px | Toolbars and rows. |
-| `xsmall` | 24px | Dense inline actions. |
+| Size     | Height | Typical placement                       |
+| -------- | ------ | --------------------------------------- |
+| `medium` | 32px   | Default for forms, headers and footers. |
+| `small`  | 28px   | Toolbars and rows.                      |
+| `xsmall` | 24px   | Dense inline actions.                   |
 
 The `link` variant has no fixed height and ignores `size`: it is as tall as its text. `iconBefore` and `iconAfter` take an icon element; Button sizes it to 14px and keeps a 6px gap. `isSelected` applies the selected palette and `aria-pressed`.
 
@@ -8936,6 +8964,8 @@ _Rendered in the Storybook: Controls._
 [IconButton](?path=/docs/components-iconbutton--docs) · [LinkButton](?path=/docs/components-linkbutton--docs) · [CopyButton](?path=/docs/components-copybutton--docs) · [ButtonGroup](?path=/docs/components-buttongroup--docs) · [TextLink](?path=/docs/components-textlink--docs) · [DropdownMenu](?path=/docs/components-dropdownmenu--docs) · [AlertDialog](?path=/docs/components-alertdialog--docs) · [Forms](?path=/docs/patterns-forms--docs)
 
 ## Don't
+
+A region has one primary, named for what happens, never two primaries or an OK. The visible words are the Button's name: an `aria-label` that replaces them leaves a speech-input reader saying words that do nothing, so context goes in a description.
 
 _Example: story `Stories.Dont`._
 
@@ -9037,6 +9067,8 @@ A month to pick a day, several days or a range from, following [shadcn’s Calen
 
 Use it inside a picker. A day in a form is a [DatePicker](?path=/docs/components-datepicker--docs), a range a [DateRangePicker](?path=/docs/components-daterangepicker--docs); an inline month takes the room of six fields for one answer. Use Calendar on its own where the month is the content, such as a schedule panel.
 
+_Example: story `Stories.DoDont`._
+
 ```tsx
 const [date, setDate] = useState<Date>();
 <Calendar mode="single" selected={date} onSelect={setDate} />;
@@ -9076,6 +9108,13 @@ _Example: story `Stories.DropdownsAndWeekNumbers`._
 `navLayout="around"` places Previous beside the first month's caption and Next beside the last, in either direction. The default and `"after"` share one navigation bar; `"after"` puts it later in the keyboard order.
 
 _Example: story `Stories.NavigationLayouts`._
+
+## Content
+
+- **Name a month that stands alone by its task**: a visible heading over it, or an `aria-label` such as "Review days", never "Calendar". In a DatePicker the month's dialog takes the field's label.
+- **A disabled day says why** in a sentence through `describeDay` ("Weekends are closed."), and the field's hint states the same rule, since the reader meets the hint before the month.
+- **Two months on one page name their navigation apart** through `labels.labelNav` ("Review window navigation").
+- **Leave the caption and the weekday names to the locale.** A `formatters` override wins over the LedgerProvider, so one that writes English words stays English under every locale.
 
 ## Accessibility
 
@@ -9568,6 +9607,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+Source is shown in a CodeBlock, with its gutter and a Copy where the reader will paste it, never in a read-only Textarea. Prose stays Text, never a sentence set in a code block.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Components/Collapsible (src/stories/components/Collapsible.mdx) -->
@@ -9930,7 +9971,7 @@ _Example: story `Stories.Usage`._
 | Part            | What it is                                                                                                                                                                                                        |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | CommandInput    | A search icon, the field and a hint at the end: the Escape key by default, which is decoration; `null` for none; a CommandCount for a picker, which the field is then described by.                               |
-| CommandList     | The listbox, named "Results" by default (`label`), scrolling inside itself past 340px.                                                                                                                            |
+| CommandList     | The listbox, named "Results" by default (`label`), scrolling inside itself past 340px. While no row shows and nothing loads it holds CommandEmpty's sentence as a plain container, with no role or name.          |
 | CommandGroup    | Rows under a heading; the heading goes when every row under it is filtered out.                                                                                                                                   |
 | CommandItem     | One row: an icon if the rows are of kinds, the label, and at the end its `shortcut` or other trailing content. The selected row tints as a menu row does and, while the field has focus, draws the focus outline. |
 | CommandEmpty    | What the list says when no row shows. `noMatch` says what a query that matches nothing finds, where the children say the list has no rows. It never shows while a CommandLoading does.                            |
@@ -9952,6 +9993,10 @@ _Example: story `Stories.ShortViewport`._
 
 _Example: story `Stories.Loading`._
 
+A search that matches nothing shows CommandEmpty's `noMatch` sentence where the rows were, and the count reads 0.
+
+_Example: story `Stories.NoMatch`._
+
 A picker counts its own kind of row: `one="record"` reads "1 record", and the other count keeps the locale's words.
 
 _Example: story `Stories.CountWords`._
@@ -9962,6 +10007,7 @@ _Example: story `Stories.CountWords`._
 - **The active descendant follows the selection.** The field's `aria-activedescendant` names the selected row on open, after every keystroke and after every arrow, and is absent while no row shows, so a screen reader always hears the row Enter would choose.
 - **The count is spoken.** Once the query holds still for 600ms, the page's [Announcer](?path=/docs/components-announcer--docs) says "1 match" or the empty sentence. Nothing is said before a query or while a CommandLoading shows.
 - **A load is not an empty list.** While CommandLoading shows, CommandEmpty and the spoken count wait.
+- **An empty list is not a listbox.** A listbox must hold an option, so while no row shows and nothing loads, CommandList drops its `listbox` role and its name and holds the empty sentence as a plain container. Its id stays, so the field's `aria-controls` still names it, and the listbox returns with the first row. A busy list (`aria-busy`, or a CommandLoading showing) stays a listbox while its rows are on their way.
 - **A shortcut is not part of the name.** CommandItem's `shortcut` draws the keys and sets `aria-keyshortcuts`, so the row is "Export report", not "Export report Ctrl E". Give such a row a `value`, since cmdk otherwise matches its text content.
 - **The field shows its focus, and so does the row Enter would choose.** The field's row draws the field's focus ring while the field has focus, in a dialog and inline. Focus stays in the field, so the selected row, its active descendant, draws the same outline over its tint while the field has focus and gives it up when focus leaves; the row under the pointer keeps the tint alone.
 - **The rest is cmdk's and Base UI's.** cmdk handles filtering, disabled choices, option navigation and selection; Base UI Dialog handles focus, modality and dismissal. CommandSeparator is presentational within the listbox. Item `onSelect` owns the action and any palette closing. When `showCloseButton` is false, compose a DialogClose so touch and screen-reader users have a dismissal control; the palette and record picker make their Escape footer hint a close button.
@@ -10042,10 +10088,10 @@ _Example: story `Stories.Labelled`._
 
 ## Two forms
 
-| Form       | How                                     | Where                                                                   |
-| ---------- | --------------------------------------- | ----------------------------------------------------------------------- |
-| Labelled   | Children, “Copy” (the `copy` message) by default | Beside a command or a block, where there is room for a word.            |
-| Icon-only  | `label`, such as “Copy ID”              | Beside an identifier in a line, a row or a details rail.                |
+| Form      | How                                              | Where                                                        |
+| --------- | ------------------------------------------------ | ------------------------------------------------------------ |
+| Labelled  | Children, “Copy” (the `copy` message) by default | Beside a command or a block, where there is room for a word. |
+| Icon-only | `label`, such as “Copy ID”                       | Beside an identifier in a line, a row or a details rail.     |
 
 The two are one prop apart and exclusive: with `label` there are no children. `variant` is `secondary` by default, or `subtle` beside an identifier or inside a block; `primary` is available and rarely right. `size` is `medium` for the labelled form and `small` (28px) for the icon-only one by default.
 
@@ -10101,6 +10147,8 @@ _Rendered in the Storybook: Controls._
 [CodeBlock](?path=/docs/components-codeblock--docs) · [Id](?path=/docs/components-id--docs) · [IconButton](?path=/docs/components-iconbutton--docs) · [Button](?path=/docs/components-button--docs)
 
 ## Don't
+
+Where a screen has several, each CopyButton names what it copies (Copy ID), never a bare Copy beside every identifier. Copying is secondary or subtle, never a primary that competes with the page's action.
 
 _Example: story `Stories.Dont`._
 
@@ -10205,6 +10253,8 @@ _Rendered in the Storybook: Controls._
 - [Section](?path=/docs/layout-section--docs), [Related](?path=/docs/patterns-related--docs), [Item](?path=/docs/components-item--docs) groups and [Table](?path=/docs/components-table--docs) groups take a `count`; a [Tabs](?path=/docs/components-tabs--docs) trigger or a [Collapsible](?path=/docs/components-collapsible--docs) trigger composes one after its label.
 
 ## Don't
+
+A Count is a number beside the label that says what it counts, capped at `max`. A severity is an Indicator, a state a Badge and an exact large number a Stat, never a number alone, a word in the pill or six digits.
 
 _Example: story `Stories.Dont`._
 
@@ -10315,6 +10365,8 @@ _Example: story `Stories.DatePickerMatrix`._
 
 ## Don't
 
+The placeholder says what to do and the hint what the date means, never a format such as MM/DD/YYYY. A date the reader already knows, a month and a year, is typed into an Input, and one day in a form is a DatePicker, never a month laid out inline.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Components/DateRangePicker (src/stories/components/DateRangePicker.mdx) -->
@@ -10396,6 +10448,8 @@ _Rendered in the Storybook: Controls._
 [Calendar](?path=/docs/components-calendar--docs) · [DatePicker](?path=/docs/components-datepicker--docs) · [Field](?path=/docs/components-field--docs) · [DataTable](?path=/docs/patterns-data-table--docs)
 
 ## Don't
+
+A DateRangePicker holds one range whose ends constrain each other. A single day is a DatePicker, and a start and an end that stand apart are two DatePickers with `min` and `max`.
 
 _Example: story `Stories.Dont`._
 
@@ -10516,6 +10570,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+An instant goes through DateTime, in the provider's one zone and format, never `toLocaleString` in the host's zone. A due date the reader acts on is a DateLabel, which says Overdue in words beside the date, never red text alone.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Components/DateTimeField (src/stories/components/DateTimeField.mdx) -->
@@ -10605,6 +10661,8 @@ _Rendered in the Storybook: Controls._
 [DatePicker](?path=/docs/components-datepicker--docs) · [TimeField](?path=/docs/components-timefield--docs) · [DateTime](?path=/docs/components-datetime--docs) · [Field](?path=/docs/components-field--docs)
 
 ## Don't
+
+Keep `showTimeZone` on, so the zone is in view and what the reader enters is what is stored. With the zone hidden, readers in two offices read one time as two moments.
 
 _Example: story `Stories.Dont`._
 
@@ -10837,6 +10895,8 @@ _Example: story `Stories.CustomPortal`._
 
 ## Don't
 
+The trigger, the title and the primary say the same operation, with Cancel before the primary, never a title that names no operation or an OK. A failure is said in the body with what retrying does, never in the title.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Components/Diff (src/stories/components/Diff.mdx) -->
@@ -10973,6 +11033,8 @@ _Rendered in the Storybook: Controls._
 - [Collapsible](?path=/docs/components-collapsible--docs): the disclosure under each fold.
 
 ## Don't
+
+What changed is a Diff, which marks the changed words in more than colour, never two full copies the reader compares by eye.
 
 _Example: story `Stories.Dont`._
 
@@ -11189,7 +11251,7 @@ _Example: story `Stories.ActionLabelWidths`._
 
 `shortcut` on an Item names the keys that run the same action from the page, written once for every platform as [KbdShortcut](?path=/docs/components-kbd--docs) takes them ("Mod+E", "Shift+D"). They are drawn at the end in the platform's glyphs and given to the item as `aria-keyshortcuts`, so the item's name stays its label ("Edit", not "Edit E"). Binding the keys stays with the caller. Shortcut, the part the prop draws, is hidden from assistive technology; other content at the end of a row that a reader needs, such as a count, passes `aria-hidden={false}` to it.
 
-_Example: story `Stories.DropdownMenuMatrix`._
+_Example: story `Stories.Actions`._
 
 _Example: story `Stories.LabelOutsideAGroup`._
 
@@ -11388,6 +11450,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+The primary stays enabled and names what is missing on submit, never disabled until a file is chosen, which tells the reader nothing about what it waits for.
+
 _Example: story `Stories.DoDont`._
 
 <!-- page: Components/Empty (src/stories/components/Empty.mdx) -->
@@ -11582,6 +11646,8 @@ Sources: [shadcn Empty](https://ui.shadcn.com/docs/components/base/empty), [ReUI
 
 ## Don't
 
+A filtered table's empty says what emptied it and offers Clear filters, never a grey line where the rows were. An empty state's action is the page's own verb, never advice that points at another control, and under a header that already carries the create action it says what is missing and stops.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Components/ErrorSummary (src/stories/components/ErrorSummary.mdx) -->
@@ -11767,6 +11833,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+A Fact strip holds the four to six facts the reader acts on, each one value that fits a line, and keeps a missing one as an Absent. Reference joins go in the rail and a sentence is Prose, never eleven facts in a strip or an empty fact dropped.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Components/Field (src/stories/components/Field.mdx) -->
@@ -11875,6 +11943,8 @@ A group of choices is a Field around a FieldSet: the legend names the group, the
 - A Field is not a group of its own: it takes `role="group"` only when it is given a name (`aria-label` or `aria-labelledby`), so one control is not wrapped in an unnamed group.
 
 _Example: story `Stories.ExplicitAssociations`._
+
+An error is the Field's FieldError, which marks the control invalid and describes it, never red text beside a bare input, which nothing marks and a screen reader does not hear when focus reaches the input.
 
 _Example: story `Stories.DoDont`._
 
@@ -12025,6 +12095,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+A file is chosen through a FileTrigger, a real button named by its field, never an Input with `type="file"`, whose browser button loses its frame and reads as text.
+
 _Example: story `Stories.DoDont`._
 
 <!-- page: Components/FilterChip (src/stories/components/FilterChip.mdx) -->
@@ -12153,6 +12225,8 @@ _Rendered in the Storybook: Controls._
 - [Badge](?path=/docs/components-badge--docs): a status told, not asked.
 
 ## Don't
+
+Exclusive choices are a ToggleGroup and a thing to do is a Button, never a chip. A chip's value is what was chosen, as the cell shows it, never a count of rows.
 
 _Example: story `Stories.Dont`._
 
@@ -12310,6 +12384,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+A mark that stands alone is an Icon with a `label`, never an `aria-label` on a span, which names nothing. Beside its word an icon takes no label, or the word is said twice.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Components/IconButton (src/stories/components/IconButton.mdx) -->
@@ -12322,6 +12398,10 @@ A square [Button](?path=/docs/components-button--docs) with an icon, a required 
 
 _Example: story `Stories.IconButtonMatrix`._
 
+An icon stands alone only where every reader takes it the same way: search, close, more, edit, previous and next. Request evidence or Export to OSCAL keeps its words in a Button. The label says the action and what it acts on (Edit owner), never the drawing (Pencil).
+
+_Example: story `Stories.DoDont`._
+
 ## Variants and sizes
 
 | Variant     | Use                                                                      |
@@ -12330,11 +12410,11 @@ _Example: story `Stories.IconButtonMatrix`._
 | `subtle`    | Toolbars, rows and header controls.                                      |
 | `primary`   | Emphasized actions, including the options beside a primary split action. |
 
-| Size      | Button                    | Icon | Typical placement                                                                                                                                                                                                                                                           |
-| --------- | ------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `medium`  | 32px square               | 16px | Beside a default (medium) Button, in a header or a footer.                                                                                                                                                                                                                  |
-| `small`   | 28px square, the default  | 14px | Toolbars, the top navigation, a card's corner.                                                                                                                                                                                                                              |
-| `xsmall`  | 24px square               | 14px | Beside an xsmall Button, such as the options of a dense split action.                                                                                                                                                                                                       |
+| Size      | Button                    | Icon | Typical placement                                                                                                                                                                                                                                                                                                        |
+| --------- | ------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `medium`  | 32px square               | 16px | Beside a default (medium) Button, in a header or a footer.                                                                                                                                                                                                                                                               |
+| `small`   | 28px square, the default  | 14px | Toolbars, the top navigation, a card's corner.                                                                                                                                                                                                                                                                           |
+| `xsmall`  | 24px square               | 14px | Beside an xsmall Button, such as the options of a dense split action.                                                                                                                                                                                                                                                    |
 | `xxsmall` | 20px square, small radius | 14px | The row control: a table or tree row's disclosure, the preview eye, a list row's chevron (a row's More fields is its count, "+3", at the same height). Table, DataTable, Tree and Item draw theirs with it. In a row pass `isTooltipDisabled`, so a long list mounts no tooltip per row; the name still says the action. |
 
 The sizes are Button's (`xsmall` 24px, `small` 28px, `medium` 32px) plus the 20px row control; Button defaults to `medium` and IconButton to `small`, so beside a default Button pass `size="medium"`. Where any pointer is coarse every size takes a hit area of at least 24px, centred, so a row keeps its height.
@@ -12500,6 +12580,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+An Id takes the colour of its sentence, never the link colour with nothing to click. Several ids are an Id.List, never a comma-joined string, and an id is written as the record writes it, never as prose ("Control 412").
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Components/Indicator (src/stories/components/Indicator.mdx) -->
@@ -12612,6 +12694,8 @@ _Rendered in the Storybook: Controls._
 - [Alert](?path=/docs/components-alert--docs): the Dot before a title.
 
 ## Don't
+
+A severity is an Indicator and a record's state a Badge, so a row has one pill; the word shows beside the Dot, never a Dot alone, and the lowest rung is neutral, never success green.
 
 _Example: story `Stories.Dont`._
 
@@ -12824,6 +12908,8 @@ _Props of `InputGroupTextarea`, generated from its types:_
 
 ## Don't
 
+In a row too crowded for a field, the search is an icon button that opens it in a dialog, never a field squeezed beside the row's actions until it is too narrow to type in.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Components/Item (src/stories/components/Item.mdx) -->
@@ -12843,6 +12929,10 @@ _Example: story `Stories.Lists`._
 ## Variants and states
 
 Use `link` to navigate, `onSelect` for an action, or neither for a plain row. `isActive` marks the row open beside the list: a selected fill (in forced colours, which remove the fill, a Highlight outline inside the row's edge), and `aria-current="true"` on its link or button. A link takes precedence over onSelect. Secondary actions and disclosure buttons remain outside the title link/button.
+
+A row that opens a record is a link, never an `onSelect` that changes the address: a button cannot be opened in a new tab or copied.
+
+_Example: story `Stories.DoDont`._
 
 The title is one line by default. A title, an id or a meta that is cut shows in full in a tooltip on hover, and a cut title also when its row's link or button takes keyboard focus. `maxTitleLines` gives a list of long names two or three lines before the ellipsis. Beside a meta, the title gives way first: a short meta ("CAT I") keeps its words, and a long one is cut only past half the line, so it cannot crowd the title out. A group heading wraps rather than cutting.
 
@@ -12973,6 +13063,10 @@ everywhere, like the side nav's Ctrl [; on Apple platforms Control is drawn ⌃,
 reads ⌃ [ there.
 
 _Example: story `Stories.Shortcuts`._
+
+A shortcut that follows the platform is never drawn with one platform's glyph: a hand-written ⌘ names a key a Windows reader does not have, and a screen reader reads it as its character name. Write `Mod` and let KbdShortcut draw it.
+
+_Example: story `Stories.DoDont`._
 
 The platform is read once for the page, and every shortcut in the kit reads the same
 answer:
@@ -13211,6 +13305,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+A rail keeps one label width down its rows, so the values make a column. A statement wraps rather than being cut, a label takes no colon, and a missing value is an Absent, never N/A.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Components/LinkButton (src/stories/components/LinkButton.mdx) -->
@@ -13227,12 +13323,12 @@ _Example: story `Stories.Matrix`._
 
 ## Variants and sizes
 
-| Variant     | Use                                                                   |
-| ----------- | --------------------------------------------------------------------- |
-| `secondary` | The default: a destination beside other actions.                     |
-| `primary`   | The main destination of a region, such as Continue to review.        |
-| `subtle`    | A low-emphasis destination in a toolbar, a row or a card footer.      |
-| `danger`    | A destination that leads to a destructive task, rarely.               |
+| Variant     | Use                                                              |
+| ----------- | ---------------------------------------------------------------- |
+| `secondary` | The default: a destination beside other actions.                 |
+| `primary`   | The main destination of a region, such as Continue to review.    |
+| `subtle`    | A low-emphasis destination in a toolbar, a row or a card footer. |
+| `danger`    | A destination that leads to a destructive task, rarely.          |
 
 Sizes are Button's: `medium` 32px (the default), `small` 28px and `xsmall` 24px. `iconBefore` and `iconAfter` take an icon element, drawn at 14px and hidden from assistive technology, and the icon's side takes the smaller inset. `isFullWidth` fills the container. There is no `link` variant: a link that looks like text is a TextLink.
 
@@ -13318,6 +13414,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+Navigation is a LinkButton, a real anchor the reader can open in a new tab, never a Button that navigates from `onClick`. A link inside a sentence is a TextLink, never a button-shaped link.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Components/List (src/stories/components/List.mdx) -->
@@ -13394,6 +13492,8 @@ _Example: story `Stories.Playground`._
 _Rendered in the Storybook: Controls._
 
 ## Don't
+
+Several items are a List, which a screen reader counts, never bullets typed into text. Steps the reader follows in order take `ordered`, never bullets.
 
 _Example: story `Stories.Dont`._
 
@@ -13518,12 +13618,12 @@ _Example: story `Stories.Live`._
 
 ## Anatomy
 
-| Part           | What it is                                                                                                                                                                                                                  |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Attribute      | `data-color-mode="light"` or `"dark"` on the root pins a mode; no attribute lets `prefers-color-scheme` decide. `tokens.css` and `base.css` read it.                                                                        |
-| Script         | `modeScript`: a string for the document head, above the stylesheet. It applies the stored choice before the first paint so nothing flashes. `modeScriptFor(key)` for another storage key.                                    |
-| Provider       | `ModeProvider`: owns the choice. It reads storage as an external store, so the switch shows the stored mode from the first client render (the server renders System), a second provider with the same key on the page hears a change, and a choice made in another tab reaches this one through the `storage` event. On mount it applies the stored mode (a no-op after the script); every change is stored and applied at once, and a choice storage refuses lives for the page. `useMode()` returns `{ mode, setMode, resolved }`, `resolved` being what is on screen. |
-| Switch         | `ModeSwitch`: a ToggleGroup of three, sun, moon and monitor, `sm`. Icons only in chrome, each with its name in a tooltip; `showLabels` in a settings form.                                                          |
+| Part      | What it is                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Attribute | `data-color-mode="light"` or `"dark"` on the root pins a mode; no attribute lets `prefers-color-scheme` decide. `tokens.css` and `base.css` read it.                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Script    | `modeScript`: a string for the document head, above the stylesheet. It applies the stored choice before the first paint so nothing flashes. `modeScriptFor(key)` for another storage key.                                                                                                                                                                                                                                                                                                                                                                                |
+| Provider  | `ModeProvider`: owns the choice. It reads storage as an external store, so the switch shows the stored mode from the first client render (the server renders System), a second provider with the same key on the page hears a change, and a choice made in another tab reaches this one through the `storage` event. On mount it applies the stored mode (a no-op after the script); every change is stored and applied at once, and a choice storage refuses lives for the page. `useMode()` returns `{ mode, setMode, resolved }`, `resolved` being what is on screen. |
+| Switch    | `ModeSwitch`: a ToggleGroup of three, sun, moon and monitor, `sm`. Icons only in chrome, each with its name in a tooltip; `showLabels` in a settings form.                                                                                                                                                                                                                                                                                                                                                                                                               |
 
 ## Variants
 
@@ -13541,11 +13641,11 @@ One: the ToggleGroup's `sm`, 28px, the height of the chrome it sits in.
 
 ## States
 
-| State    | Look                                                                                                                       |
-| -------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Light    | The root pinned light; the sun is the selected item.                                                                       |
-| Dark     | The root pinned dark; the moon.                                                                                            |
-| System   | No attribute; the monitor. What is on screen follows the machine, and `resolved` says which.                               |
+| State                  | Look                                                                                                              |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Light                  | The root pinned light; the sun is the selected item.                                                              |
+| Dark                   | The root pinned dark; the moon.                                                                                   |
+| System                 | No attribute; the monitor. What is on screen follows the machine, and `resolved` says which.                      |
 | Hover, focus, selected | The ToggleGroup's: the item tints, takes the kit's focus outline, and the selected one carries the selected fill. |
 
 _Example: story `Stories.ModeMatrix`._
@@ -13568,8 +13668,8 @@ _Example: story `Stories.ModeMatrix`._
 
 | Element   | Token                                                                                              |
 | --------- | -------------------------------------------------------------------------------------------------- |
-| Switch    | The ToggleGroup, `sm`: `dimension.control.small` 28px · `dimension.icon.small` 14px              |
-| Attribute | `data-color-mode` on `html` · every `color.*` and `elevation.*` token has a light and a dark value  |
+| Switch    | The ToggleGroup, `sm`: `dimension.control.small` 28px · `dimension.icon.small` 14px                |
+| Attribute | `data-color-mode` on `html` · every `color.*` and `elevation.*` token has a light and a dark value |
 | Motion    | None. A mode changes at once; a fade across every surface reads as a fault.                        |
 
 ## Accessibility
@@ -13602,12 +13702,12 @@ _Props of `ModeSwitch`, generated from its types:_
 
 The provider and the script, by hand:
 
-| Export          | What it is                                                                                                  |
-| --------------- | ----------------------------------------------------------------------------------------------------------- |
-| `ModeProvider`  | Wraps the app; `storageKey` for a key of the product's own. Renders nothing itself.                         |
-| `useMode()`     | `{ mode, setMode, resolved }`. Throws outside a provider.                                                   |
-| `modeScript`    | The before-paint script for the default key; `modeScriptFor(key)` for another.                              |
-| `readMode`, `writeMode`, `applyMode` | The three steps the provider takes, for a product that wires them itself.                  |
+| Export                               | What it is                                                                          |
+| ------------------------------------ | ----------------------------------------------------------------------------------- |
+| `ModeProvider`                       | Wraps the app; `storageKey` for a key of the product's own. Renders nothing itself. |
+| `useMode()`                          | `{ mode, setMode, resolved }`. Throws outside a provider.                           |
+| `modeScript`                         | The before-paint script for the default key; `modeScriptFor(key)` for another.      |
+| `readMode`, `writeMode`, `applyMode` | The three steps the provider takes, for a product that wires them itself.           |
 
 ### Wiring it
 
@@ -13660,6 +13760,8 @@ _Rendered in the Storybook: Controls._
 - [Density](?path=/docs/components-density--docs): the setting that is a table's, not the document's.
 
 ## Don't
+
+The choice has three states, Light, Dark and System, with System the default, never a two-state toggle. Every colour is a token, never one written by hand, which no mode can flip.
 
 _Example: story `Stories.Dont`._
 
@@ -13783,6 +13885,8 @@ _Rendered in the Storybook: Controls._
 [Input](?path=/docs/components-input--docs) · [Field](?path=/docs/components-field--docs) · [InputGroup](?path=/docs/components-inputgroup--docs) · [Base UI Number Field](https://base-ui.com/react/components/number-field)
 
 ## Don't
+
+A NumberField holds a quantity the reader steps. An identifier made of digits is an Input with `inputMode="numeric"`, never a NumberField, which drops its leading zero and groups its digits.
 
 _Example: story `Stories.Dont`._
 
@@ -14238,6 +14342,8 @@ Sources: [shadcn Progress](https://ui.shadcn.com/docs/components/base/progress),
 
 ## Don't
 
+A share of a whole, such as coverage, is a ProgressStacked or a number in words, never a progressbar, which a screen reader hears as a task part done. A wait of unknown length is `value={null}`, never a full bar.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Components/RadioGroup (src/stories/components/RadioGroup.mdx) -->
@@ -14411,9 +14517,12 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@ledger/de
 </ResizablePanelGroup>;
 ```
 
-Give the group a sized parent. Panels clip their contents; put ScrollArea inside a scrolling pane. `withHandle` adds a visible grip. Sizes are strings for percentages (`"30%"`) and numbers for pixels, so `defaultSize={30}` opens a pane 30 pixels wide.
+Give the group a sized parent. Panels clip their contents; put ScrollArea inside a scrolling pane. `withHandle` adds a visible grip.
 
 _Example: story `Stories.Panes`._
+
+Sizes are strings for percentages (`"30%"`) and numbers for pixels. A share of the split is written `defaultSize="30%"`, never `defaultSize={30}`, which opens a pane 30 pixels wide.
+
 _Example: story `Stories.DoDont`._
 
 ## Variants and states
@@ -14562,6 +14671,10 @@ The viewport clips on both axes, so every focus ring inside it is drawn inside i
 
 _Example: story `Stories.KeyboardStop`._
 
+Name a strip that can become a stop after what it holds. Unnamed, a keyboard reader hears "Content, scrolls", which says it scrolls and nothing of what is in it.
+
+_Example: story `Stories.DoDont`._
+
 ## Vertical
 
 Vertical scrollers scroll on hover unsaid: the arrow is a hover zone, hidden from assistive technology, and keyboard readers already move through the content. Menus use the `overlay` surface.
@@ -14695,6 +14808,8 @@ _Rendered in the Storybook: Controls._
 [Toolbar](?path=/docs/patterns-toolbar--docs) · [Input](?path=/docs/components-input--docs) · [InputGroup](?path=/docs/components-inputgroup--docs) · [Field](?path=/docs/components-field--docs) · [Combobox](?path=/docs/components-combobox--docs)
 
 ## Don't
+
+A SearchField narrows or finds records. A value the record keeps, such as its name, is an Input in a Field, never a SearchField, whose Escape and clear button erase it.
 
 _Example: story `Stories.Dont`._
 
@@ -14851,6 +14966,8 @@ _Props of `SelectItem`, generated from its types:_
 
 ## Don't
 
+A Field's label names the Select, never its placeholder alone, which is gone once a value is chosen.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Components/Separator (src/stories/components/Separator.mdx) -->
@@ -14875,6 +14992,10 @@ Not between rows, menu items or table rows: [Item](?path=/docs/components-item--
 - A separator says nothing of its own. What the groups are is said by their headings or labels, not by the rule.
 - A rule a screen reader announces, such as the one between a toolbar's groups, may take an `aria-label` that says what it divides ("Editing actions", in Native composition below). A rule that only draws a line is `isDecorative`.
 - One rule between two groups, never one at the start or the end of a list or a row.
+
+A list of rows is an Item.Group or a Table, which draw their own hairlines, never text with a Separator between each row. A rule never opens or closes a stack: with nothing on one side it is a border, which the container draws. A vertical rule goes in a flex row such as an Inline, never in a column, where it has no height to stretch to and draws nothing.
+
+_Example: story `Stories.Dont`._
 
 ## Anatomy
 
@@ -14936,8 +15057,6 @@ _Rendered in the Storybook: Controls._
 - [Item](?path=/docs/components-item--docs): rows with their own separators.
 - [Resizable](?path=/docs/components-resizable--docs): an interactive resize handle.
 - [Upgrading](?path=/docs/guidance-upgrading--docs#separator): the earlier API's spellings and what they are now.
-
-_Example: story `Stories.Dont`._
 
 <!-- page: Components/Sheet (src/stories/components/Sheet.mdx) -->
 
@@ -15100,6 +15219,8 @@ _Example: story `Stories.CustomPortal`._
 
 ## Don't
 
+The title says what the selection is for and where it goes, and the primary says what it adds and how many, never a bare title and Done.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Components/Skeleton (src/stories/components/Skeleton.mdx) -->
@@ -15185,6 +15306,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+Content on its way holds its shape with a Skeleton: a circle where the avatar will be, lines about as long as the text. Never a spinner in its place, one grey block for a row, or more lines than will arrive.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Components/Spinner (src/stories/components/Spinner.mdx) -->
@@ -15260,6 +15383,8 @@ Native svg props include `ref`, `id`, `strokeWidth`, `style`, `className`, ARIA 
 Sources: [shadcn Spinner](https://ui.shadcn.com/docs/components/base/spinner), [implementation](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/spinner.tsx), [Polaris Spinner](https://polaris-react.shopify.com/components/feedback-indicators/spinner).
 
 ## Don't
+
+The button that started the work shows it with `isLoading`, keeping its label, its width and focus, never a disabled button whose label changes. Content on its way is a Skeleton, never a large spinner where it will be.
 
 _Example: story `Stories.Dont`._
 
@@ -15425,6 +15550,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+Only the number that is a status carries a tone. Zero reads muted with a note that says what it means, never in success green, and the label is a noun over a one-line note, never a sentence.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Components/Stepper (src/stories/components/Stepper.mdx) -->
@@ -15574,6 +15701,8 @@ _Rendered in the Storybook: Controls._
 - [Tabs](?path=/docs/components-tabs--docs): sections the reader may take in any order.
 
 ## Don't
+
+A Stepper is three or more steps in a fixed order, each one or two words with its date or owner under it, vertical in a rail, and a blocked step says why on itself. Two states are a Badge, never a path.
 
 _Example: story `Stories.Dont`._
 
@@ -16059,6 +16188,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+Numbers end, in tabular numerals, and so does their header (`align="end"` on both), never centred. Selection is the checkbox column, never a row painted selected by its click, and an absent value is Absent, never a typed dash or N/A.
+
 _Example: story `Stories.Dont`._
 
 Native contracts follow [shadcn Table](https://github.com/shadcn-ui/ui/blob/main/apps/v4/registry/bases/base/ui/table.tsx); Ledger retains its register behavior.
@@ -16142,6 +16273,10 @@ Reduced motion disables both indicator movement and panel entrance. The Motion s
 
 _Example: story `Stories.Motion`._
 
+The indicator's position and size round to the layout unit (1/64px). A resize of the strip's container that leaves the tabs where they were, such as a record's Details rail leaving with its Overview, then writes the same values, so the slide runs once and arrives in its 240ms rather than starting over on every frame of the resize.
+
+_Example: story `Stories.ResizeDuringChange`._
+
 In forced-colors mode, system-color outlines and underlines preserve the selected tab in both variants.
 
 ## Props
@@ -16212,6 +16347,8 @@ _Props of `TabsContent`, generated from its types:_
 - [Upgrading](?path=/docs/guidance-upgrading--docs#tabs): the earlier API's spellings and what they are now.
 
 ## Don't
+
+A filter over one list is a ToggleGroup or a toolbar filter, never tabs. A tab is a noun that names its view, with a Count for its records, never a verb or a count typed into the words.
 
 _Example: story `Stories.Dont`._
 
@@ -16456,6 +16593,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+A TimeField holds a time of day that repeats, with no date. A moment in time is a DateTimeField, never a time alone, which loses the day and the zone.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Components/Timeline (src/stories/components/Timeline.mdx) -->
@@ -16683,6 +16822,8 @@ _Example: story `Stories.FeedComposition`._
 - [Dot](?path=/docs/components-indicator--docs): the tone in the default marker.
 
 ## Don't
+
+A Timeline runs newest first down a page. Its title says what happened, the meta who and what changed, the description why; a marker takes a tone only where the event has one, and records with a date are an Item list, never a Timeline.
 
 _Example: story `Stories.Dont`._
 
@@ -17277,6 +17418,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+Icons go on every row or on none, and one level of nesting is a collapsible Item list, never a tree. A collapsed branch that holds the selected row takes `isSelected` itself, so the reader still sees where they are, and a tree item never holds a tree: entries with columns of their own are a Table.Tree.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Components/Truncate (src/stories/components/Truncate.mdx) -->
@@ -17369,6 +17512,8 @@ _Rendered in the Storybook: Controls._
 - [Tooltip](?path=/docs/components-tooltip--docs): the surface the reveal uses.
 
 ## Don't
+
+A name in a row is wrapped in Truncate, which shows the whole of it on hover and keyboard focus, never cut by a bare `truncate` class. A statement wraps, and is never cut to a line.
 
 _Example: story `Stories.Dont`._
 
@@ -17524,6 +17669,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+An Eyebrow is one to three words, never an uppercase sentence. A labelled paragraph is Prose under its Eyebrow, never a bold run-in label with a colon, and a missing value is Absent, the muted dash, never N/A.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Layout/PageHeader (src/stories/layout/PageHeader.mdx) -->
@@ -17539,6 +17686,8 @@ _Example: story `Stories.Record`._
 _Example: story `Stories.Constrained`._
 
 Compose a Heading with a Title, an optional Lead and one primary action or an Actions menu. A breadcrumb is the Lead through `render={<Breadcrumb />}`; a category line is a Lead with text. A register's header is its name alone: its create action is the toolbar's primary. A record's header is the trail, the name and its actions: a code goes in the trail, and record fields, owner and status editors and property strips belong in the work area or the Aside, not in PageHeader or a preview header.
+
+_Example: story `Stories.DoDont`._
 
 Use PageHeader.Title once for the page's h1. Actions sit at the end of the title's row while the row can give the title its measure (14rem) beside them; when it cannot, on a phone or in a narrow panel, they take the next row, right-aligned, and the title wraps at its full width. The same rule holds on a page, in a Shell.Panel and in a Sheet (the Stacked story). Keep action groups on one line; use a menu when several actions compete for space.
 
@@ -17690,7 +17839,9 @@ Not built, and why: a dashboard shape, because a dashboard's widgets load on the
 
 ## Sizes
 
-`rows` sets how many table rows a register draws, 8 by default, about a screen. The skeleton is as wide as the page, and its lines follow the page's width below their own (the Narrow story).
+`rows` sets how many table rows a register draws, 8 by default, about a screen. The skeleton is as wide as the page, and its lines follow the page's width below their own.
+
+_Example: story `Stories.Narrow`._
 
 ## States
 
@@ -17751,9 +17902,9 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
-_Example: story `Stories.Dont`._
+A page on its way is a PageSkeleton in the page's shape, never a spinner. A section that loads on its own draws its own Skeleton, never the page skeleton under a section that has loaded.
 
-_Example: story `Stories.Narrow`._
+_Example: story `Stories.Dont`._
 
 <!-- page: Layout/Section (src/stories/layout/Section.mdx) -->
 
@@ -17797,6 +17948,8 @@ _Example: story `Stories.Landmarks`._
 _Example: story `Stories.Collapsible`._
 
 Use it where a page body has a block the reader may not need. Do not build one from a subtle Button with a ChevronDown or a native `<details>`: neither is in the heading outline, and neither chevron turns. In a rail of facts, the collapsed group is [Inspector.Group](?path=/docs/patterns-inspector--docs) with `defaultOpen={false}`.
+
+_Example: story `Stories.DoDont`._
 
 Use Stack or Grid directly when no titled region is needed. Section imposes no distinction between work, reference, forms or narrative.
 
@@ -18259,6 +18412,10 @@ A column of a page's grid that stays in view under the shell's banner and top na
 
 `from="lg"` is for a rail the page's Grid puts beside the content from the large breakpoint and stacks above it below: below `lg` it stays in the flow and scrolls away with the page, so a phone never keeps the steps over the form. Without `from` it always sticks.
 
+A rail that the grid stacks above the content on a phone and has no `from` sticks there too, and covers the form the reader is filling in.
+
+_Example: story `Stories.DoDont`._
+
 ```tsx
 <Grid gap="space.300" templateColumns={{ lg: "200px minmax(0,1fr)" }}>
   <StickyRail from="lg">
@@ -18636,6 +18793,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+Two measures of different scale are two charts, one axis each, never one plot. Every chart sits in its Frame with a title, a period and its table, and loading holds the plot's height with its silhouette, never a spinner.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Patterns/Chart/Area (src/stories/patterns/ChartArea.mdx) -->
@@ -18766,6 +18925,8 @@ _Rendered in the Storybook: Controls._
 - [Upgrading](?path=/docs/guidance-upgrading--docs#chart): `baseline` goes; an Area starts at zero.
 
 ## Don't
+
+Stack only the parts of one whole. Series that are not parts, or that cross, are lines, never stacked or overlapping areas.
 
 _Example: story `Stories.Dont`._
 
@@ -18928,6 +19089,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+A status is drawn in the status tones, never the categorical hues. Long category names go down the side with `horizontal`, never under narrow columns.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Patterns/Chart/Donut (src/stories/patterns/ChartDonut.mdx) -->
@@ -19081,6 +19244,8 @@ _Rendered in the Storybook: Controls._
 - [Upgrading](?path=/docs/guidance-upgrading--docs#chart): `name` is `label`, and `label` for the middle is `centerLabel`.
 
 ## Don't
+
+One number is a Stat, five sources compared are bars, and a score against its scale is `value` and `max`, never a ring of two slices, five slices or a made-up remainder slice.
 
 _Example: story `Stories.Dont`._
 
@@ -19259,6 +19424,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+A count is one hue from light to dark, never painted in the status tones. A status grid prints its counts on its cells, never leaving the reader to hover each one.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Patterns/Chart/Line (src/stories/patterns/ChartLine.mdx) -->
@@ -19422,6 +19589,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+The one series that is the point takes brand and the rest neutral, never five hues. Label the end, never every point, and leave a missing month as a gap, never a line drawn across it.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Unpatched hypervisor (src/stories/patterns/ChartScatter.mdx) -->
@@ -19572,6 +19741,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+Three groups at most, in the status tones when the groups are statuses, never five owners in five hues that deutan vision cannot tell apart.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Patterns/Chart/Sparkline (src/stories/patterns/ChartSparkline.mdx) -->
@@ -19705,6 +19876,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+A sparkline sits beside the number it trends, in one tone, the number's status, never alone and made bigger, or in a categorical hue beside a status number.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Patterns/Chart/Treemap (src/stories/patterns/ChartTreemap.mdx) -->
@@ -19832,6 +20005,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+A treemap is for a hierarchy. A flat list of five is a Bar, never a treemap whose small tiles lose their names.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Patterns/CommandPalette (src/stories/patterns/CommandPalette.mdx) -->
@@ -19951,6 +20126,8 @@ _Example: story `Stories.CommandPaletteStory`._
 
 ## Don't
 
+A command is a verb and its object, under a heading that names its kind, never nouns in one list.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Patterns/Composer (src/stories/patterns/Composer.mdx) -->
@@ -20057,6 +20234,8 @@ _Rendered in the Storybook: Controls._
 - [Popover](?path=/docs/components-popover--docs), whose positioner places the suggestion list.
 
 ## Don't
+
+The `hint` says when the message is saved (Saved when Send succeeds), never a promise of autosave when the message is sent only on request.
 
 _Example: story `Stories.Dont`._
 
@@ -20271,7 +20450,7 @@ _Example: story `Stories.ColumnGroups`._
 | Refreshing      | `state="refreshing"`: the rows stay where they are under `aria-busy`, a quiet bar runs along the header's top edge, and a refresh that outlasts half a second is said as a load is.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | Empty           | No records at all: nothing to search, sort or page, so the toolbar, the header and the hairline go, and the register is one [Empty](?path=/docs/components-empty--docs) on its dashed frame: the `records` picture (or `empty.illustration`), `empty.title`, its description, its `action`, which creates the first record, and `secondary`. `empty.size: "compact"` says it in one short row beside `empty.icon`, for a collection of a few rows in a record, a card or a rail.                                                                                                                                                                                                                                                                                   |
 | Filtered empty  | A search or a column filter is active, or the caller says `narrowed`, and no rows remain: the toolbar and the header stay, and under the header the table draws the `search` picture, **Nothing matches**, a line of copy and **Clear filters**, which clears the search and every column filter. No Pagination under it. `empty.filtered` overrides each part. After Clear filters focus is back in the search.                                                                                                                                                                                                                                                                                                                                                   |
-| Page left empty | A server-paged table (`manual.pagination`) whose page comes back with no rows, as when rows on the last page were deleted: the toolbar, the header and the pager stay, and under the header **Nothing on this page** with **Go to first page**.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Page left empty | A server-paged table (`manual.pagination`) whose page comes back with no rows, as when rows on the last page were deleted: the toolbar, the header and the pager stay, the pager's range reads "0 of 10", and under the header **Nothing on this page** with **Go to first page**.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | Error           | `state="error"` with no rows: `error` (or "The rows could not be loaded.") in a danger Alert under the header, in place of the rows, with **Try again** when `onRetry` is set. A refresh that failed, `state="error"` while `data` still holds the rows the reader had: the rows stay where they are and stay usable, and the Alert sits above the table ("The rows could not be refreshed. These are the last ones loaded." unsaid). Try again runs `onRetry`; once the table loads again the Alert goes, and focus moves to the search, else to the rows.                                                                                                                                                                                                        |
 | Sorted          | The header's arrow and `aria-sort`, and `DataTable.Sort`'s trigger ("Sort: Due"), which still names a sort whose column is folded into More fields; one column at a time unless the table says `enableMultiSort`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | Filtered        | The applied value on each chip; the presets' counts; the range in Pagination.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
@@ -20482,6 +20661,8 @@ _Example: story `Stories.DataTableMatrix`._
 - [Upgrading](?path=/docs/guidance-upgrading--docs#datatable): `responsive` on unsaid, the "+N" More fields control and its name, and `tree.column`.
 
 ## Don't
+
+Filters are chips in the toolbar, never a filter row under the header. Loading keeps the header over skeleton rows, never a spinner in the table's place.
 
 _Example: story `Stories.Dont`._
 
@@ -21034,6 +21215,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+A reason goes under an unmet gate only, the gates are a list that says which and why, never a score, and a gate the reader can meet from here has one link named for it, never a primary button on every gate.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Patterns/Glance (src/stories/patterns/Glance.mdx) -->
@@ -21056,6 +21239,10 @@ _Example: story `Stories.GlanceStory`._
 | Facts         | Up to four KeyValue rows with 88px labels. Additional facts are omitted.              |
 
 Use a Badge or Indicator with a text label for status. Select facts that help readers decide whether to open the record; keep any essential information available at the destination.
+
+A status is never a Dot alone, whose colour is its only signal, and a Glance is given no more than four facts: it shows the first four and leaves the rest out without a word.
+
+_Example: story `Stories.DoDont`._
 
 _Example: story `Stories.GlanceMatrix`._
 
@@ -21187,6 +21374,8 @@ _Example: story `Stories.Playground`._
 _Rendered in the Storybook: Controls._
 
 ## Don't
+
+The rail's facts are Inspector.Groups of KeyValue rows under a heading that folds, never bold text over a hand-built row of facts.
 
 _Example: story `Stories.Dont`._
 
@@ -21375,6 +21564,8 @@ _Props of `PickerSheet`, generated from its types:_
 
 ## Don't
 
+The footer counts what is chosen and names the one thing to do with it, in full, never OK without a count. With nothing chosen the action waits, disabled, and the footer says how many there are to choose from.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Patterns/PreviewNavigation (src/stories/patterns/PreviewNavigation.mdx) -->
@@ -21427,6 +21618,10 @@ _Example: story `Stories.InPanel`._
 ## What the caller owns
 
 The application owns selection, the row order and real record destinations; the part imports no router and holds no rows. The order is the whole filtered and sorted set, with expanded tree rows in place, not the table's current page: supply a one-based `position` and the `total` of that set, and a callback for each adjacent record. When Next crosses the edge of a table page, the caller turns the table to the page that holds the new record, so the active row stays in view. Leave a callback out at an endpoint, or pass a position at the end, and that button is unavailable. Pass the record's name as `recordLabel`, so the announcement says which record arrived.
+
+A position and a total counted on the table's current page are wrong as soon as the result has a second page: the reader hears 3 of 25 where the result holds 62, and Next stops at the page's end. Without `recordLabel` every step is heard as a number alone.
+
+_Example: story `Stories.DoDont`._
 
 `openLink` is an anchor or router link with the record's real destination, `target="_blank"` and `rel="noopener noreferrer"`; it must lead to that record, not its collection. The part gives it its icon, accessible name and tooltip. A preview inside a selection task (RecordBrowser, PickerSheet) belongs to the task and opens no record of its own: leave `openLink` out, and the bar is previous and next alone.
 
@@ -21494,6 +21689,8 @@ Choose this surface when the current task benefits from containing focus; use Sh
 
 The outer header never repeats the visible record name or holds record commands. It contains Back when provided, collection navigation or the fallback full-record link, and Close. Supplying `navigation` suppresses `openTo`; include the full-record destination in that navigation. The footer, when present, contains related links only.
 
+_Example: story `Stories.DoDont`._
+
 The caller controls `open` and owns dismissal, in-progress work and the related-record stack. Close and Escape dismiss the whole preview from any frame: `onClose` ends every frame, so the next open starts at the root, and focus returns to the control that opened the sheet. Back is the only way to pop one frame. It returns focus to `backFocus`, the control in the parent frame that opened the nested one; give that control a ref, which a parent frame rendered again still fills. Without `backFocus`, focus stays on Back while a deeper frame keeps one, else it goes to the parent frame's title. Keep browser history aligned when that stack is represented in the URL.
 
 _Example: story `Stories.CompleteReview`._
@@ -21555,6 +21752,10 @@ The caller supplies eligible records, columns, the record's name (`recordTitle` 
 A record's `id` keys its row and nothing else: the reader never sees it or hears it. `recordLabel` names the row's checkbox and eye ("Select Firewall ruleset export"), the preview's Select checkbox and what previous and next say; it defaults to `recordTitle` when that returns a string. `recordCode` is the readable identifier shown over the preview's name, such as EV-0412. `previewColumn` names the column that names the record: it leads the row and its cell carries the eye. Give that column `priority: 0` and a readable width (about 180 to 220px), so a narrow browser keeps it in the row and moves the other fields into each row's More fields.
 
 _Example: story `Stories.ReadableNames`._
+
+A `recordTitle` that returns markup gives no words to name a row by, so without `recordLabel` the checkbox, the eye and previous and next are named by the record's `id`: a screen reader hears a database key.
+
+_Example: story `Stories.DoDont`._
 
 ## Behavior
 
@@ -21751,6 +21952,8 @@ _Props of `RecordPicker`, generated from its types:_
 
 ## Don't
 
+A row is the id, the name, a line of meta and one badge, and the placeholder says what to type, never a paragraph and three badges a row, or Search….
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Patterns/Related (src/stories/patterns/Related.mdx) -->
@@ -21920,6 +22123,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+The record's name is the link and the actions are icon buttons, never an Open and an Unlink in every card. A rail card shows five rows and See all, nothing linked is an empty state, never a grey line, and the title is a noun.
+
 _Example: story `Stories.Dont`._
 
 ## Record navigation
@@ -22036,6 +22241,8 @@ _Example: story `Stories.Playground`._
 
 ## Don't
 
+Records are found in a SearchDialog, each its identifier, its name, a line of meta and one status, never as commands in the CommandPalette.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Patterns/TaskRow (src/stories/patterns/TaskRow.mdx) -->
@@ -22114,6 +22321,8 @@ _Rendered in the Storybook: Controls._
 - A product maps its own task states, owner names and overdue presentation onto `completed`, `assignee`, `due` and `status`; create-task workflows stay in the product.
 
 ## Don't
+
+The status is your product's words, given as content, and completion a separate boolean, never a storage code on screen or every field packed into the title.
 
 _Example: story `Stories.Dont`._
 
@@ -22265,6 +22474,8 @@ _Rendered in the Storybook: Controls._
 
 ## Don't
 
+Every control in the row is the small size, up to five actions sit at the end with the primary last, and the primary goes in `actions`, never as a child beside the search, a default-size Button among small ones, or seven actions in a row.
+
 _Example: story `Stories.Dont`._
 
 <!-- page: Patterns/WorkPane (src/stories/patterns/WorkPane.mdx) -->
@@ -22394,6 +22605,8 @@ _Rendered in the Storybook: Controls._
 - [Empty](?path=/docs/components-empty--docs): what nothing chosen and no rows show.
 
 ## Don't
+
+The label names the list and the search sits in `listToolbar`, never a search as the label. Nothing chosen is an Empty in the detail, never a grey sentence.
 
 _Example: story `Stories.Dont`._
 
@@ -22831,10 +23044,10 @@ Every design value is a token. The utility is the Tailwind class the lint allows
 | `font.heading.page` | `font-heading-page` | `--ds-font-heading-page` |  | Heading `page`: the page and record title, which PageHeader.Title draws on a page and as a preview's record name, and a Stat's figure. |
 | `font.heading.overlay` | `font-heading-overlay` | `--ds-font-heading-overlay` |  | Heading `overlay`: an overlay's title, which DialogTitle, SheetTitle, AlertDialogTitle and DrawerTitle draw; a card's title and a group heading inside an overlay take it too. |
 | `font.heading.section` | `font-heading-section` | `--ds-font-heading-section` |  | Heading `section`: a section's title, which Section.Title draws: body size at semibold. |
-| `font.heading.large` | `font-heading-large` | `--ds-font-heading-large` |  | Replaced by font.heading.display, the same style. Kept for one version, for Heading's deprecated `large`. |
-| `font.heading.medium` | `font-heading-medium` | `--ds-font-heading-medium` |  | Replaced by font.heading.page (20/26) for a page title. Kept for one version, for Heading's deprecated `medium` and the parts that still set it. |
-| `font.heading.small` | `font-heading-small` | `--ds-font-heading-small` |  | Replaced by font.heading.page (20/26 semibold) for a page or record title and font.heading.section for a section's title. Kept for one version, for Heading's deprecated `small` and the parts that still set it. |
-| `font.heading.xsmall` | `font-heading-xsmall` | `--ds-font-heading-xsmall` |  | Replaced by font.heading.overlay, the same style. Kept for one version, for Heading's deprecated `xsmall` and the parts that still set it. |
+| `font.heading.large` | `font-heading-large` | `--ds-font-heading-large` | deprecated font.heading.display | Deprecated: font.heading.display, the same style. Kept for one version. |
+| `font.heading.medium` | `font-heading-medium` | `--ds-font-heading-medium` | deprecated font.heading.page | Deprecated: font.heading.page (20/26) for a page or record title. Kept for one version. |
+| `font.heading.small` | `font-heading-small` | `--ds-font-heading-small` | deprecated font.heading.page | Deprecated: font.heading.page (20/26 semibold) for a page or record title, font.heading.section for a section's title. Kept for one version. |
+| `font.heading.xsmall` | `font-heading-xsmall` | `--ds-font-heading-xsmall` | deprecated font.heading.overlay | Deprecated: font.heading.overlay, the same style. Kept for one version. |
 | `font.heading.xxsmall` | `font-heading-xxsmall` | `--ds-font-heading-xxsmall` |  | Eyebrows, group headings and menu section labels. The component adds the uppercase. |
 | `font.code` | `font-code` | `--ds-font-code` |  | Code blocks only. |
 | `layer.chrome` | `z-chrome` | `--ds-layer-chrome` |  | The Shell's banner and top nav, sticky over the page. A region's own sticky parts (a table's header, a pinned column, a sticky footer) stack inside Main, below it. |

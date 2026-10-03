@@ -4986,6 +4986,8 @@ export const RefreshingAndAStrandedPage: Story = {
     await expect(
       canvas.getByRole("navigation", { name: "Findings on the server pagination" }),
     ).toBeVisible();
+    // A page past the last row counts none of the rows, never "11–10 of 10".
+    await expect(canvas.getByText("0 of 10")).toBeVisible();
     await userEvent.click(canvas.getByRole("button", { name: "Go to first page" }));
     await waitFor(() => expect(within(table).getByText("FND-2200")).toBeVisible());
     await waitFor(() =>

@@ -27,6 +27,7 @@ import {
   type ShellPanelProps,
 } from "@ledger/design-system";
 import type { TableName } from "@/lib/models";
+import { useServerPosition, type ServerRead, type ServerResultQuestion } from "@/lib/server-table";
 
 export type PreviewRecord = { id: string; [key: string]: unknown };
 
@@ -423,6 +424,11 @@ export type ServerPaging = {
   show: (offset: number, select: (row: never) => void) => void;
   /** Every row of the page in the server's order, a tree's folded parts too: what the preview steps through. */
   rows: readonly unknown[];
+  /** The read and the question the page answers, to ask where a record not on it stands. */
+  read: ServerRead;
+  question: ServerResultQuestion;
+  /** Whether a read is on its way: the page on screen may not yet hold what it will. */
+  settling: boolean;
 };
 /** The server-paged tables, each with how to read where its page stands now. */
 const pagingSources = new WeakMap<object, () => ServerPaging | undefined>();
@@ -455,7 +461,9 @@ function recordName(record: PreviewRecord): string | undefined {
  * the page's place in the whole result: the position is the page's offset plus the row's place on
  * it, out of the server's count ("21 of 62"), a step past the page's edge turns the table's page,
  * waits for it and shows its first or last row, and a page the reader turns by hand leaves the
- * preview at its place.
+ * preview at its place. A record missing from the page that should hold it (an edit that moved it)
+ * is counted where the server places it now, and is outside the results once the question no
+ * longer finds it.
  */
 export function RecordPreviewActions<T extends { id: string }>({
   table,
@@ -493,10 +501,25 @@ export function RecordPreviewActions<T extends { id: string }>({
     places.current = { result: paging.result, at: new Map() };
   if (paging && index >= 0) places.current.at.set(record.id, offset + index + 1);
   const place = paging && index < 0 ? places.current.at.get(record.id) : undefined;
-  // A record last seen among the rows of the page shown, and not there now, left the result.
+  // A record last seen on another page of the result keeps that place.
   const elsewhere =
     place !== undefined && (place <= offset || place > offset + rows.length) ? place : undefined;
-  const position = index >= 0 ? offset + index + 1 : (elsewhere ?? 0);
+  // One that is not on the page that should hold it (an edit moved it, or it left the result, or
+  // the preview opened it from elsewhere) is asked where it stands now: the server counts the rows
+  // its order puts before it, or says the question no longer finds it.
+  const located = useServerPosition(paging?.read, paging?.question, record.id, {
+    enabled: !!paging && index < 0 && elsewhere === undefined && !paging.settling,
+  });
+  const found =
+    paging && index < 0 && elsewhere === undefined && located.isSuccess && !located.isFetching
+      ? located.data
+      : undefined;
+  if (paging && typeof found === "number") places.current.at.set(record.id, found);
+  // While it is asked, the record keeps the place it had.
+  const position =
+    index >= 0
+      ? offset + index + 1
+      : (elsewhere ?? (found === undefined ? (place ?? 0) : (found ?? 0)));
   const showAt = (target: number) => {
     const row = rows[target - 1 - offset];
     if (row) return onSelect(row);

@@ -21,7 +21,6 @@ import {
   Shell,
   Skeleton,
   Tabs,
-  TabsContent,
   TabsList,
   TabsTrigger,
   Text,
@@ -37,6 +36,7 @@ import { useWorkspace } from "@/components/app/workspace";
 import { Page } from "@/components/app/shell";
 import type { DataRecord } from "@/lib/records";
 import { ObservationsRegister } from "./observations-register";
+import { RetainedTabPanels } from "./program-shared";
 import { ProductCollection } from "./product-collection";
 import { useServerCollection, vocabularyOptions } from "./collection-question";
 import { RecordLink, recordDestination, useDisplayedRecords, useEndOnHide } from "./record-preview";
@@ -457,35 +457,38 @@ export function Findings({
           <TabsTrigger value="findings">Assessment findings</TabsTrigger>
           <TabsTrigger value="assets">Assets</TabsTrigger>
         </TabsList>
-        {/* Each register keeps its search, filters, sort and page while another tab is open. */}
-        <TabsContent value="issues" keepMounted>
-          <OperationalIssueRegister />
-        </TabsContent>
-        <TabsContent value="observations" keepMounted>
-          <ObservationsRegister fill />
-        </TabsContent>
-        <TabsContent value="findings" keepMounted>
-          <AssessmentFindingRegister />
-        </TabsContent>
-        <TabsContent value="assets" keepMounted>
-          <EntitySection
-            fill
-            table="inventory_items"
-            view={registerViews.systemAssets}
-            title="System assets"
-            description="An asset is a hardware or software item in a system's inventory."
-            columns={[
-              { key: "asset_id", label: "Asset ID" },
-              { key: "name", label: "Asset" },
-              {
-                key: "system_id",
-                label: "System",
-                render: (row) => <RelationName table="systems" id={row["system_id"] as string} />,
-              },
-              { key: "description", label: "Description" },
-            ]}
-          />
-        </TabsContent>
+        {/* Each register keeps its search, filters, sort and page while another tab is open, and
+            reads nothing until its tab is first shown. A hidden register's preview ends. */}
+        <RetainedTabPanels tabs={FINDINGS_TABS} value={tab}>
+          {(name) => (
+            <>
+              {name === "issues" && <OperationalIssueRegister />}
+              {name === "observations" && <ObservationsRegister fill />}
+              {name === "findings" && <AssessmentFindingRegister />}
+              {name === "assets" && (
+                <EntitySection
+                  fill
+                  table="inventory_items"
+                  view={registerViews.systemAssets}
+                  title="System assets"
+                  description="An asset is a hardware or software item in a system's inventory."
+                  columns={[
+                    { key: "asset_id", label: "Asset ID" },
+                    { key: "name", label: "Asset" },
+                    {
+                      key: "system_id",
+                      label: "System",
+                      render: (row) => (
+                        <RelationName table="systems" id={row["system_id"] as string} />
+                      ),
+                    },
+                    { key: "description", label: "Description" },
+                  ]}
+                />
+              )}
+            </>
+          )}
+        </RetainedTabPanels>
       </Tabs>
     </Page>
   );

@@ -119,7 +119,12 @@ export type ServerPage<T> = {
   result: string;
   /** Whether the reader chose the order: else the rows are in the read's own (`order`). */
   sorted: boolean;
+  /** The question the page answers, as the read applies it: where a record stands in the same result is asked with it. */
+  question: ServerResultQuestion;
 };
+
+/** A question without its page: what a whole result, a count or a record's place asks. */
+export type ServerResultQuestion = Omit<ServerQuestion, "pageIndex" | "pageSize">;
 
 type Client = Pick<SupabaseClient, "from">;
 /** postgrest-js's filter builder, as far as a read here uses it. */
@@ -255,10 +260,11 @@ function resultRequest(
   asked: ReturnType<typeof serverQuestion>,
   scope: Filters,
   head: boolean,
+  columns: readonly string[] = read.columns,
 ): Request {
   let request = client
     .from(read.source)
-    .select(selectClause(head ? ["id"] : read.columns, scope), { count: "exact", head })
+    .select(selectClause(head ? ["id"] : columns, scope), { count: "exact", head })
     .setHeader("Authorization", `Bearer ${context.token}`)
     // One retry owner: TanStack Query.
     .retry(false)
@@ -271,12 +277,35 @@ function resultRequest(
   return request;
 }
 
+/** One key a result is ordered by. */
+type OrderKey = { column: string; ascending: boolean; nullsFirst: boolean };
+
+/**
+ * The keys a result is ordered by, in turn: the reader's sort, each through the column its field
+ * names, with empty values where a table places them (last ascending, first descending, so a
+ * descending sort reads the ascending one backwards), else the read's own order with empty values
+ * last; then the id, so every row has one place and paging is stable.
+ */
+function orderKeys(read: ServerRead, asked: ReturnType<typeof serverQuestion>): OrderKey[] {
+  const keys = asked.sorting.length
+    ? asked.sorting.map((sort) => {
+        const field = fieldOf(read, sort.id)!;
+        return { column: field.sort || field.column, ascending: !sort.desc, nullsFirst: sort.desc };
+      })
+    : (read.order ?? []).map((order) => ({
+        column: order.column,
+        ascending: order.ascending ?? true,
+        nullsFirst: false,
+      }));
+  return [...keys, { column: "id", ascending: true, nullsFirst: false }];
+}
+
 /** How many rows a question finds, without reading them: a saved view's count. */
 export async function readServerCount(
   client: Client,
   context: ReadContext,
   read: ServerRead,
-  question: Omit<ServerQuestion, "pageIndex" | "pageSize">,
+  question: ServerResultQuestion,
   signal?: AbortSignal | undefined,
 ): Promise<number> {
   const asked = serverQuestion(read, { ...question, pageIndex: 0, pageSize: 1 });
@@ -310,25 +339,14 @@ export async function readServerPage(
     pageSize: asked.pageSize,
     result: JSON.stringify([read.source, scope, asked.search, asked.sorting, asked.filters]),
     sorted: asked.sorting.length > 0,
+    question: { search: asked.search, sorting: asked.sorting, filters: asked.filters },
   };
   if (scopeIsEmpty(scope)) return { rows: [], count: 0, ...page };
   const build = (head: boolean) => resultRequest(client, context, read, asked, scope, head);
   let request = build(false);
-  // A reader's sort places empty values as a table sorts them itself: last ascending and first
-  // descending, so a descending sort reads the ascending one backwards.
-  for (const sort of asked.sorting) {
-    const field = fieldOf(read, sort.id)!;
-    request = request.order(field.sort || field.column, {
-      ascending: !sort.desc,
-      nullsFirst: sort.desc,
-    });
-  }
-  if (!asked.sorting.length)
-    for (const order of read.order ?? [])
-      request = request.order(order.column, {
-        ascending: order.ascending ?? true,
-        nullsFirst: false,
-      });
+  // Every key but the id, which ends the order below.
+  for (const key of orderKeys(read, asked).slice(0, -1))
+    request = request.order(key.column, { ascending: key.ascending, nullsFirst: key.nullsFirst });
   const from = asked.pageIndex * asked.pageSize;
   let ranged = request.order("id").range(from, from + asked.pageSize - 1);
   if (signal) ranged = ranged.abortSignal(signal);
@@ -351,6 +369,76 @@ export async function readServerPage(
   return { rows: data as unknown[], count, ...page };
 }
 
+/** A value as a filter in a logic tree spells it: a list as an array literal, text quoted. */
+const treeValue = (value: unknown): string =>
+  Array.isArray(value)
+    ? quote(arrayLiteral(value.map(String)))
+    : typeof value === "number" || typeof value === "boolean"
+      ? String(value)
+      : quote(typeof value === "string" ? value : JSON.stringify(value));
+
+/** Rows that sort before a value on one key; `undefined` when none can. */
+function aheadOf(key: OrderKey, value: unknown): string | undefined {
+  const { column } = key;
+  // An empty value sorts first or last on its key: before it come none, or every value.
+  if (value === null || value === undefined)
+    return key.nullsFirst ? undefined : `${column}.not.is.null`;
+  const strictly = `${column}.${key.ascending ? "lt" : "gt"}.${treeValue(value)}`;
+  return key.nullsFirst ? `or(${column}.is.null,${strictly})` : strictly;
+}
+/** Rows that hold the same value on one key. */
+const tiedOn = (key: OrderKey, value: unknown) =>
+  value === null || value === undefined
+    ? `${key.column}.is.null`
+    : `${key.column}.eq.${treeValue(value)}`;
+
+/**
+ * Where a record stands in a register's result, counted from 1: the rows the question's order puts
+ * before it, plus one; `null` when the question no longer finds it. A preview asks it when its
+ * record has left the page that held it (an edit that moved it, a change made elsewhere), so the
+ * position still counts the whole result and a step goes on from there.
+ */
+export async function readServerPosition(
+  client: Client,
+  context: ReadContext,
+  read: ServerRead,
+  question: ServerResultQuestion,
+  id: string,
+  signal?: AbortSignal | undefined,
+): Promise<number | null> {
+  const asked = serverQuestion(read, { ...question, pageIndex: 0, pageSize: 1 });
+  const scope = normalizeFilters(read.scope);
+  if (scopeIsEmpty(scope)) return null;
+  const keys = orderKeys(read, asked);
+  // The record's own values on each key, if the question still finds it.
+  let own = resultRequest(client, context, read, asked, scope, false, [
+    ...new Set(keys.map((key) => key.column)),
+  ])
+    .eq("id", id)
+    .limit(1);
+  if (signal) own = own.abortSignal(signal);
+  const found = await own;
+  if (found.error) throw new Error(found.error.message);
+  const row = (Array.isArray(found.data) ? found.data[0] : undefined) as
+    Record<string, unknown> | undefined;
+  if (!row) return null;
+  // A row comes before it when it ties on every earlier key and sorts before it on the next.
+  const ahead = keys.flatMap((key, index) => {
+    const step = aheadOf(key, row[key.column]);
+    if (step === undefined) return [];
+    const tied = keys.slice(0, index).map((earlier) => tiedOn(earlier, row[earlier.column]));
+    return [tied.length ? `and(${[...tied, step].join(",")})` : step];
+  });
+  if (!ahead.length) return 1;
+  let before = resultRequest(client, context, read, asked, scope, true).or(ahead.join(","));
+  if (signal) before = before.abortSignal(signal);
+  const counted = await before;
+  if (counted.error) throw new Error(counted.error.message);
+  if (counted.count === null || counted.count === undefined)
+    throw new Error("The database did not return the requested count.");
+  return counted.count + 1;
+}
+
 /** How many rows an export of a register's whole result reads at most. */
 const RESULT_LIMIT = 10_000;
 
@@ -363,7 +451,7 @@ export async function readServerResult(
   client: Client,
   context: ReadContext,
   read: ServerRead,
-  question: Omit<ServerQuestion, "pageIndex" | "pageSize">,
+  question: ServerResultQuestion,
   { limit = RESULT_LIMIT, signal }: { limit?: number | undefined; signal?: AbortSignal } = {},
 ): Promise<unknown[]> {
   const rows: unknown[] = [];
@@ -387,7 +475,7 @@ export async function readServerResult(
 /** A register's whole result, read when it is asked for (an export): `read(question)`. */
 export function useServerResult(read: ServerRead) {
   const workspace = useWorkspace();
-  return async (question: Omit<ServerQuestion, "pageIndex" | "pageSize">) => {
+  return async (question: ServerResultQuestion) => {
     const token = await requireIdentity(workspace);
     return readServerResult(database(), { tenantId: workspace.tenantId, token }, read, question);
   };
@@ -453,7 +541,7 @@ export function useServerRows<T>(
  */
 export function useServerCounts(
   read: ServerRead,
-  questions: readonly Omit<ServerQuestion, "pageIndex" | "pageSize">[],
+  questions: readonly ServerResultQuestion[],
   options: ServerRowsOptions = {},
 ): (number | undefined)[] {
   const workspace = useWorkspace();
@@ -487,6 +575,46 @@ export function useServerCounts(
     }),
   });
   return counts.map((count) => count.data);
+}
+
+/**
+ * Where a record stands in a register's result (`readServerPosition`), read while `enabled`: a
+ * preview whose record is not on the page that should hold it. Kept with the register's pages, so
+ * a write that marks them stale asks it again.
+ */
+export function useServerPosition(
+  read: ServerRead | undefined,
+  question: ServerResultQuestion | undefined,
+  id: string,
+  options: ServerRowsOptions = {},
+): UseQueryResult<number | null, Error> {
+  const workspace = useWorkspace();
+  const asked =
+    read && question ? serverQuestion(read, { ...question, pageIndex: 0, pageSize: 1 }) : undefined;
+  return useQuery<number | null, Error>({
+    queryKey: [
+      "models",
+      workspace.tenantId,
+      read ? (read.model ?? read.source) : null,
+      "page",
+      read ? readKey(read) : null,
+      asked ? { search: asked.search, sorting: asked.sorting, filters: asked.filters } : null,
+      { position: id },
+    ],
+    enabled: !!read && !!asked && (options.enabled ?? true),
+    retry: false,
+    queryFn: async ({ signal }) => {
+      const token = await requireIdentity(workspace);
+      return readServerPosition(
+        database(),
+        { tenantId: workspace.tenantId, token },
+        read!,
+        asked!,
+        id,
+        signal,
+      );
+    },
+  });
 }
 
 /** A stamp each watch reads anew whenever a write marks its model stale. */

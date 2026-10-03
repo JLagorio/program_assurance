@@ -4,8 +4,10 @@ import {
   RecordPreviewPanel,
   recordDestination,
   useDisplayedRecords,
+  useEndOnHide,
 } from "./record-preview";
 import { ProductCollection } from "./product-collection";
+import { useCollectionTable } from "./collection-question";
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { ExternalLink } from "lucide-react";
 import {
@@ -38,7 +40,6 @@ import {
   VisuallyHidden,
   defineColumns,
   toast,
-  useDataTable,
   useLedgerLocale,
   type Preset,
 } from "@ledger/design-system";
@@ -365,6 +366,8 @@ export function SystemEvidence({
   // a filter or a saved view that matches none keeps the table's Nothing matches and Clear filters.
   const scopeEmpties = !includeInside && hiddenInside > 0 && own.length === 0;
   const [previewId, setPreviewId] = useState<string>();
+  // The preview belongs to the tab: choosing another ends it, and coming back does not reopen it.
+  useEndOnHide(() => setPreviewId(undefined));
   const canDecide = workspace.role !== "viewer";
   const columns = useMemo(
     () =>
@@ -420,7 +423,7 @@ export function SystemEvidence({
     () => ({ onPreview: (row: Line) => setPreviewId(row.id), activeId: previewId ?? null }),
     [previewId],
   );
-  const table = useDataTable({
+  const table = useCollectionTable({
     columns,
     data,
     getRowId: (row) => row.id,
@@ -432,8 +435,6 @@ export function SystemEvidence({
     view: "live-system-evidence-v2",
     resizable: true,
     reorderable: true,
-    // An element's lines run to hundreds: pages keep the register quick to draw.
-    pageSize: 50,
     initialState: { columnVisibility: { rationale: false } },
   });
   const displayed = useDisplayedRecords(table);

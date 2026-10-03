@@ -271,6 +271,7 @@ export const defaultMessages = {
   composerSuggestionsOther: "{count} suggestions. Up and Down to choose, Enter or Tab to insert.",
   composerSuggestionActive: "{label}, {position} of {count}",
   rowRange: "{from}–{to} of {total}",
+  rowRangePastEnd: "0 of {total}",
   zeroRows: "0 rows",
   rowsPerPage: "Rows per page",
   perPage: "{count} per page",

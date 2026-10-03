@@ -769,6 +769,38 @@ function registerTab(value: unknown): RegisterTab | undefined {
   return REGISTER_TABS.find((tab) => tab === value);
 }
 
+/**
+ * The assessment findings short of satisfied that no risk assessment records yet. Read when the
+ * Unrolled findings tab is first shown, never with the register's other tabs.
+ */
+function UnrolledFindings() {
+  const findings = useRows("assessment_findings"),
+    links = useRows("finding_risks", undefined, { columns: ["id", "finding_id"] });
+  const unrolled = findings.data?.filter(
+    (row) =>
+      !links.data?.some((link) => link.finding_id === row.id) && row.determination !== "satisfied",
+  );
+  return (
+    <ModelTable
+      model="assessment_findings"
+      fill
+      rows={asRecords(unrolled)}
+      queries={[findings, links]}
+      columns={[
+        { key: "title" },
+        { key: "determination" },
+        { key: "determined_at", label: "Determined" },
+      ]}
+      empty={{
+        illustration: "done",
+        title: "Nothing unrolled",
+        description: "No unresolved finding is awaiting a recorded risk relationship.",
+      }}
+      searchLabel="Find assessment findings"
+    />
+  );
+}
+
 export function Register({
   tab: routeTab,
   onTabChange,
@@ -785,12 +817,6 @@ export function Register({
     if (onTabChange) onTabChange(next);
     else setLocalTab(next);
   };
-  const findings = useRows("assessment_findings"),
-    links = useRows("finding_risks");
-  const unrolled = findings.data?.filter(
-    (row) =>
-      !links.data?.some((link) => link.finding_id === row.id) && row.determination !== "satisfied",
-  );
   return (
     <Page>
       <PageHeader>
@@ -833,25 +859,7 @@ export function Register({
                 />
               )}
               {name === "risks" && <RiskList headingScope="section" />}
-              {name === "unrolled" && (
-                <ModelTable
-                  model="assessment_findings"
-                  fill
-                  rows={asRecords(unrolled)}
-                  queries={[findings, links]}
-                  columns={[
-                    { key: "title" },
-                    { key: "determination" },
-                    { key: "determined_at", label: "Determined" },
-                  ]}
-                  empty={{
-                    illustration: "done",
-                    title: "Nothing unrolled",
-                    description: "No unresolved finding is awaiting a recorded risk relationship.",
-                  }}
-                  searchLabel="Find assessment findings"
-                />
-              )}
+              {name === "unrolled" && <UnrolledFindings />}
               {name === "documents" && (
                 <EntitySection
                   fill

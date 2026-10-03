@@ -6,7 +6,7 @@ import { uuid } from "./testing/fake-client";
 
 vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
 
-const { readServerCount, readServerPage, readServerResult, serverQuestion } =
+const { readServerCount, readServerPage, readServerPosition, readServerResult, serverQuestion } =
   await import("./server-table");
 const {
   determinations,
@@ -306,6 +306,59 @@ describe("reading a whole result or its count", () => {
     await expect(readServerResult(client, context, read, {}, { limit: 10_000 })).rejects.toThrow(
       "more than an export takes",
     );
+  });
+});
+
+describe("where a record stands in a result", () => {
+  /** The record's own read answers with it; the count of the rows before it answers `before`. */
+  const answering = (record: Record<string, unknown> | undefined, before: number) =>
+    recordingClient((call) =>
+      steps(call, "eq").some(([column]) => column === "id")
+        ? { data: record ? [record] : [], error: null, count: record ? 1 : 0 }
+        : { data: null, error: null, count: before },
+    );
+
+  it("counts the rows the question's order puts before it, key by key", async () => {
+    const { client, calls } = answering({ id: uuid(7), code_order: "ac-000000000002" }, 40);
+    const position = await readServerPosition(
+      client,
+      context,
+      { ...read, fields: { ...read.fields, code: { sort: "code_order" } } },
+      { sorting: [{ id: "code", desc: true }], filters: [{ id: "status", value: ["active"] }] },
+      uuid(7),
+    );
+    expect(position).toBe(41);
+    const [own, before] = calls;
+    // The record's values on each key, if the same question still finds it.
+    expect(steps(own, "select")[0]).toEqual(["code_order,id", { count: "exact", head: false }]);
+    expect(steps(own, "eq")).toEqual([["id", uuid(7)]]);
+    expect(steps(own, "in")).toEqual([["status", ["active"]]]);
+    // The rows of the same result before it: descending puts empty values and later codes first,
+    // and a tie goes to the smaller id.
+    expect(steps(before, "select")[0]).toEqual(["id", { count: "exact", head: true }]);
+    expect(steps(before, "in")).toEqual([["status", ["active"]]]);
+    expect(steps(before, "or").at(-1)).toEqual([
+      `or(code_order.is.null,code_order.gt."ac-000000000002"),and(code_order.eq."ac-000000000002",id.lt."${uuid(7)}")`,
+    ]);
+  });
+
+  it("places an empty value where the order places it", async () => {
+    const { client, calls } = answering({ id: uuid(8), code: null }, 61);
+    // The read's own order, ascending with empty values last: every value comes before it.
+    await expect(readServerPosition(client, context, read, {}, uuid(8))).resolves.toBe(62);
+    expect(steps(calls[1], "or").at(-1)).toEqual([
+      `code.not.is.null,and(code.is.null,id.lt."${uuid(8)}")`,
+    ]);
+  });
+
+  it("says a record the question no longer finds, and reads nothing for an empty scope", async () => {
+    const { client, calls } = answering(undefined, 0);
+    await expect(readServerPosition(client, context, read, {}, uuid(9))).resolves.toBeNull();
+    expect(calls).toHaveLength(1);
+    await expect(
+      readServerPosition(client, context, { ...read, scope: { cci_revision_id: [] } }, {}, uuid(9)),
+    ).resolves.toBeNull();
+    expect(calls).toHaveLength(1);
   });
 });
 

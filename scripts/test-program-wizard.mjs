@@ -502,10 +502,10 @@ try {
     await page.goto(`${origin}/catalog?edition=${catalogs[0].id}`);
     await page.getByRole("combobox", { name: "Catalog edition", exact: true }).waitFor();
     await page.getByPlaceholder("Find a control").fill("AC-4");
+    // The server pages the edition, so Selected by (a list of profiles) is a column it does not sort.
     await page
       .getByRole("table")
-      .locator("thead")
-      .getByRole("button", { name: "Selected by", exact: true })
+      .getByRole("columnheader", { name: /^Selected by\b/ })
       .waitFor();
     await page.getByRole("row").filter({ hasText: "AC-4" }).first().waitFor();
     await page.screenshot({ path: "/tmp/program-wizard-catalog.png", fullPage: true });

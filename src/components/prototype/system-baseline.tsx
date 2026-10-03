@@ -58,7 +58,7 @@ import {
 } from "@/lib/status";
 import { resolutionChain } from "@/lib/profile-chain";
 import { ControlInspector } from "./library-controls";
-import { RecordLink, useDisplayedRecords } from "./record-preview";
+import { RecordLink, useDisplayedRecords, useEndOnHide } from "./record-preview";
 import { useCollectionTable } from "./collection-question";
 import { EmptyMessage } from "./work-common";
 
@@ -247,6 +247,8 @@ export function SystemControls({
   );
   const [editing, setEditing] = useState(false);
   const [inspected, setInspected] = useState<ControlRow | null>(null);
+  // The preview belongs to the tab: choosing another ends it, and coming back does not reopen it.
+  useEndOnHide(() => setInspected(null));
   const choices = useMemo(
     () =>
       profileChoices({

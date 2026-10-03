@@ -903,7 +903,14 @@ try {
   await page.reload();
   await expect(range(issueLabel)).toContainText(`1–${PAGE} of ${number(openIssues)}`);
   expectPagedReads("operational_issue_rows");
-  expectPagedReads("assessment_finding_rows");
+  // The other tabs' registers read nothing until their tab is first shown.
+  assert.equal(
+    reads.filter((url) =>
+      /\/rest\/v1\/(assessment_finding_rows|observations|inventory_items)$/.test(url.pathname),
+    ).length,
+    0,
+    "The hidden tabs' registers read nothing",
+  );
   expectNoBaseReads(
     ["operational_issues", "assessment_findings"],
     "The registers read their views, not the issues and findings",
@@ -925,8 +932,52 @@ try {
   await expect(status()).toContainText(`, ${PAGE + 1} of ${openIssues} records`);
   await expect.poll(() => question().get("operational-issues.page")).toBe("2");
   await expect(step("Next record")).toBeFocused();
-  await escapePreview();
   console.log("PASS Operational issue preview steps across the page edge of the tile's result");
+
+  // An edit in the preview moves its record to the top of the newest-first order, onto the first
+  // page: the preview counts it there, and its next step turns to that page.
+  const movedId = (await rowIds(issueTable))[0];
+  await expect(status()).toHaveText(
+    `${issueTitle.get(movedId)}, ${PAGE + 1} of ${openIssues} records`,
+  );
+  await panel().getByRole("button", { name: "Edit operational issue", exact: true }).click();
+  const issueDialog = page.getByRole("dialog", { name: "Edit operational issue" });
+  const issueTitleField = issueDialog.getByRole("textbox", { name: /^Title/ });
+  await issueTitleField.fill(`${issueTitle.get(movedId)} edited`);
+  await issueDialog.getByRole("button", { name: "Edit operational issue", exact: true }).click();
+  await expect(issueDialog).toHaveCount(0);
+  await expect(status()).toHaveText(
+    `${issueTitle.get(movedId)} edited, 1 of ${openIssues} records`,
+  );
+  assert.equal(question().get("operational-issues.page"), "2", "The table stays on its page");
+  await step("Next record").click();
+  await expect(status()).toContainText(`, 2 of ${openIssues} records`);
+  await expect.poll(() => question().get("operational-issues.page")).toBeNull();
+  // An edit that takes the record out of the question leaves it outside the results.
+  await step("Previous record").click();
+  await expect(status()).toHaveText(
+    `${issueTitle.get(movedId)} edited, 1 of ${openIssues} records`,
+  );
+  await panel().getByRole("button", { name: "Edit operational issue", exact: true }).click();
+  await issueDialog.getByRole("combobox", { name: /^Status/ }).click();
+  await page.getByRole("option", { name: "Closed", exact: true }).click();
+  await issueDialog.getByRole("button", { name: "Edit operational issue", exact: true }).click();
+  await expect(issueDialog).toHaveCount(0);
+  await expect(status()).toHaveText(
+    `${issueTitle.get(movedId)} edited, outside the current results`,
+  );
+  await expect(step("Next record")).toHaveAttribute("aria-disabled", "true");
+  console.log(
+    "PASS an edit that moves a previewed issue keeps its place in the result, and one that closes it leaves it",
+  );
+
+  // A preview belongs to its tab: choosing another tab ends it, and the register comes back as it was.
+  await page.getByRole("tab", { name: "Assessment findings", exact: true }).click();
+  await expect(panel()).toHaveCount(0);
+  await page.getByRole("tab", { name: issueLabel, exact: true }).click();
+  await expect(panel()).toHaveCount(0);
+  await expect(rows(issueTable)).toHaveCount(PAGE);
+  console.log("PASS another Findings tab ends the issue preview");
 
   // ——— Assessment findings: the Unsatisfied tile, and a sort by determination across pages ————
   const findingLabel = "Assessment findings";

@@ -4,6 +4,7 @@ import {
   RecordPreviewPanel,
   recordDestination,
   useDisplayedRecords,
+  useEndOnHide,
   useRemovalFocus,
 } from "./record-preview";
 import { RequirementRecordContent } from "./requirement-record";
@@ -179,6 +180,8 @@ export function SystemRequirements({
     [includeInside, inside, systemId],
   );
   const [previewId, setPreviewId] = useState<string>();
+  // The preview belongs to the tab: choosing another ends it, and coming back does not reopen it.
+  useEndOnHide(() => setPreviewId(undefined));
   // Every member but a viewer allocates and removes allocations, and row-level security decides
   // each write: the role says it, so the tab does not load the record schema.
   const canWrite = workspace.role !== "viewer";
