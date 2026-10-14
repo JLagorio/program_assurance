@@ -54,11 +54,7 @@ export {
   type PageHeaderProps,
   type PageHeaderTitleProps,
 } from "./page-header";
-export {
-  PageSkeleton,
-  type PageSkeletonProps,
-  type PageSkeletonVariant,
-} from "./page-skeleton";
+export { PageSkeleton, type PageSkeletonProps, type PageSkeletonVariant } from "./page-skeleton";
 export {
   Section,
   type SectionActionsProps,
@@ -69,3 +65,4 @@ export {
   type SectionTitleProps,
 } from "./section";
 export { StickyRail, type StickyRailProps } from "./sticky-rail";
+export { AsideLayout, type AsideLayoutProps } from "./aside-layout";

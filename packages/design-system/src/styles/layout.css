@@ -61,6 +61,64 @@
     );
   }
 }
+/* AsideLayout: a body and its Details (aside-layout.tsx decides the display from the layout's own
+   width and sets data-display). The Details come first in the document. As the rail they sit at the
+   body's end, dimension.layout.rail wide plus the gutter their groups keep inside, space.300 from
+   the body, the column's rule running the pair's height from space.150 above it; the Aside sticks under the shell's header
+   as the page scrolls and is at most the window's height under it, scrolling inside itself when it
+   is taller, with no overscroll rule, so the wheel goes on to the page at its end. A rail in a
+   scroller of its own sticks to that scroller as StickyRail does (--rail-top, --rail-max-height).
+   As the disclosure they are the row above the body. An Aside that renders nothing takes no room. */
+[data-slot="aside-layout"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "aside" "body";
+  row-gap: var(--ds-space-300);
+}
+[data-slot="aside-layout-aside"] {
+  grid-area: aside;
+  min-width: 0;
+}
+[data-slot="aside-layout-aside"]:empty {
+  display: none;
+}
+[data-slot="aside-layout"]:has(> [data-slot="aside-layout-aside"]:empty) {
+  grid-template-areas: "body";
+  row-gap: 0;
+}
+[data-slot="aside-layout-body"] {
+  grid-area: body;
+  min-width: 0;
+}
+[data-slot="aside-layout"][data-display="rail"]:has(
+    > [data-slot="aside-layout-aside"]:not(:empty)
+  ) {
+  grid-template-columns: minmax(0, 1fr) calc(var(--ds-dimension-layout-rail) + var(--ds-space-300));
+  grid-template-areas: "body aside";
+  column-gap: var(--ds-space-300);
+  /* The column starts space.150 above the body, the top of a group's row above its title, so the
+     first group's title sits level with the body's first heading, and under a tab strip, whose
+     panel starts space.150 under it, the column's rule meets the strip's own. */
+  & > [data-slot="aside-layout-aside"] {
+    border-inline-start: var(--ds-border-width) solid var(--ds-color-border);
+    margin-block-start: calc(-1 * var(--ds-space-150));
+  }
+  /* Only in a window at least 30rem tall: under that the shell's header scrolls away (shell.css),
+     and a rail held to the window's height would leave a sliver, so the rail scrolls with the page. */
+  @media (height >= theme(--query-short-window)) {
+    & > [data-slot="aside-layout-aside"] > [data-slot="shell-aside"] {
+      position: sticky;
+      top: var(--rail-top, var(--shell-top, var(--ds-dimension-layout-topnav)));
+      max-height: var(
+        --rail-max-height,
+        calc(100dvh - var(--shell-top, var(--ds-dimension-layout-topnav)))
+      );
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+  }
+}
+
 /* A register that is the page's one block takes the rest of the window, and its rows scroll
    inside it. The block measures its own offset from the top of the document into --fill-top
    (useFillWindow); the shell's main area publishes the inset under the page. Never shorter than

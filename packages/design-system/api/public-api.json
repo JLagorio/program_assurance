@@ -242,6 +242,14 @@
       "target": "\"src/layout/shell/top-nav\".AppSwitcherProps",
       "kind": "type"
     },
+    ".#AsideLayout": {
+      "target": "\"src/layout/aside-layout\".AsideLayout",
+      "kind": "value"
+    },
+    ".#AsideLayoutProps": {
+      "target": "\"src/layout/aside-layout\".AsideLayoutProps",
+      "kind": "type"
+    },
     ".#Attachment": {
       "target": "\"src/components/attachment\".Attachment",
       "kind": "value"
@@ -609,6 +617,14 @@
     ".#categoricalTone": {
       "target": "\"src/patterns/chart/_tones\".categoricalTone",
       "kind": "value"
+    },
+    ".#ChangeReview": {
+      "target": "\"src/patterns/change-review\".ChangeReview",
+      "kind": "value"
+    },
+    ".#ChangeReviewProps": {
+      "target": "\"src/patterns/change-review\".ChangeReviewProps",
+      "kind": "type"
     },
     ".#Chart": {
       "target": "\"src/patterns/chart/chart\".Chart",
@@ -1052,6 +1068,14 @@
     },
     ".#CommandPaletteProps": {
       "target": "\"src/patterns/command-palette\".CommandPaletteProps",
+      "kind": "type"
+    },
+    ".#CommandScope": {
+      "target": "\"src/patterns/command-scope\".CommandScope",
+      "kind": "value"
+    },
+    ".#CommandScopeProps": {
+      "target": "\"src/patterns/command-scope\".CommandScopeProps",
       "kind": "type"
     },
     ".#CommandSeparator": {
@@ -2830,6 +2854,10 @@
       "target": "\"src/primitives/grid\".ResponsiveTemplate",
       "kind": "type"
     },
+    ".#ReviewChange": {
+      "target": "\"src/patterns/change-review\".ReviewChange",
+      "kind": "type"
+    },
     ".#RowAction": {
       "target": "\"src/patterns/data-table/features\".RowAction",
       "kind": "type"
@@ -2848,6 +2876,10 @@
     },
     ".#ScatterSelection": {
       "target": "\"src/patterns/chart/scatter\".ScatterSelection",
+      "kind": "type"
+    },
+    ".#ScopedCommand": {
+      "target": "\"src/patterns/command-scope\".ScopedCommand",
       "kind": "type"
     },
     ".#ScrollArea": {
@@ -3332,6 +3364,74 @@
     },
     ".#SpinnerSize": {
       "target": "\"src/components/spinner\".SpinnerSize",
+      "kind": "type"
+    },
+    ".#Spreadsheet": {
+      "target": "\"src/patterns/spreadsheet/spreadsheet\".Spreadsheet",
+      "kind": "value"
+    },
+    ".#SpreadsheetBorder": {
+      "target": "\"src/patterns/spreadsheet/types\".SpreadsheetBorder",
+      "kind": "type"
+    },
+    ".#SpreadsheetCell": {
+      "target": "\"src/patterns/spreadsheet/types\".SpreadsheetCell",
+      "kind": "type"
+    },
+    ".#SpreadsheetCellStyle": {
+      "target": "\"src/patterns/spreadsheet/types\".SpreadsheetCellStyle",
+      "kind": "type"
+    },
+    ".#SpreadsheetColumn": {
+      "target": "\"src/patterns/spreadsheet/types\".SpreadsheetColumn",
+      "kind": "type"
+    },
+    ".#SpreadsheetEdit": {
+      "target": "\"src/patterns/spreadsheet/types\".SpreadsheetEdit",
+      "kind": "type"
+    },
+    ".#SpreadsheetMenuContext": {
+      "target": "\"src/patterns/spreadsheet/types\".SpreadsheetMenuContext",
+      "kind": "type"
+    },
+    ".#SpreadsheetPresence": {
+      "target": "\"src/patterns/spreadsheet/types\".SpreadsheetPresence",
+      "kind": "type"
+    },
+    ".#SpreadsheetProps": {
+      "target": "\"src/patterns/spreadsheet/types\".SpreadsheetProps",
+      "kind": "type"
+    },
+    ".#SpreadsheetRow": {
+      "target": "\"src/patterns/spreadsheet/types\".SpreadsheetRow",
+      "kind": "type"
+    },
+    ".#SpreadsheetSelection": {
+      "target": "\"src/patterns/spreadsheet/types\".SpreadsheetSelection",
+      "kind": "type"
+    },
+    ".#SpreadsheetSheet": {
+      "target": "\"src/patterns/spreadsheet/types\".SpreadsheetSheet",
+      "kind": "type"
+    },
+    ".#SpreadsheetSheetAction": {
+      "target": "\"src/patterns/spreadsheet/types\".SpreadsheetSheetAction",
+      "kind": "type"
+    },
+    ".#SpreadsheetSheetBar": {
+      "target": "\"src/patterns/spreadsheet/sheet-bar\".SpreadsheetSheetBar",
+      "kind": "value"
+    },
+    ".#SpreadsheetSheetBarProps": {
+      "target": "\"src/patterns/spreadsheet/sheet-bar\".SpreadsheetSheetBarProps",
+      "kind": "type"
+    },
+    ".#SpreadsheetToolbar": {
+      "target": "\"src/patterns/spreadsheet/spreadsheet\".SpreadsheetToolbar",
+      "kind": "value"
+    },
+    ".#SpreadsheetToolbarProps": {
+      "target": "\"src/patterns/spreadsheet/types\".SpreadsheetToolbarProps",
       "kind": "type"
     },
     ".#Stack": {
@@ -3908,6 +4008,10 @@
     },
     ".#useRowDrag": {
       "target": "\"src/patterns/data-table/reorder\".useRowDrag",
+      "kind": "value"
+    },
+    ".#useScopedCommands": {
+      "target": "\"src/patterns/command-scope\".useScopedCommands",
       "kind": "value"
     },
     ".#useSideNav": {
@@ -6507,13 +6611,13 @@
     "\"src/components/number-field\".NumberField": [
       {
         "source": "src/components/number-field.d.ts",
-        "declaration": "export declare function NumberField({ size, locale, allowWheelScrub, readOnly, disabled, className, style, ref, placeholder, \"aria-label\": ariaLabel, \"aria-labelledby\": ariaLabelledBy, \"aria-describedby\": ariaDescribedBy, \"aria-invalid\": ariaInvalid, \"aria-required\": ariaRequired, autoFocus, ...props }: NumberFieldProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function NumberField({ size, stepperPlacement, locale, allowWheelScrub, readOnly, disabled, className, style, ref, placeholder, \"aria-label\": ariaLabel, \"aria-labelledby\": ariaLabelledBy, \"aria-describedby\": ariaDescribedBy, \"aria-invalid\": ariaInvalid, \"aria-required\": ariaRequired, autoFocus, ...props }: NumberFieldProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/number-field\".NumberFieldProps": [
       {
         "source": "src/components/number-field.d.ts",
-        "declaration": "export type NumberFieldProps = Omit<NumberFieldPrimitive.Root.Props, \"className\" | \"style\" | \"children\" | \"ref\" | \"locale\" | keyof InputBoundProps> & InputBoundProps & {\n    size?: ControlSize | undefined;\n    locale?: Intl.LocalesArgument | undefined;\n    allowWheelScrub?: boolean | undefined;\n    ref?: Ref<HTMLInputElement> | undefined;\n    className?: string | undefined;\n    style?: CSSProperties | undefined;\n};"
+        "declaration": "export type NumberFieldProps = Omit<NumberFieldPrimitive.Root.Props, \"className\" | \"style\" | \"children\" | \"ref\" | \"locale\" | keyof InputBoundProps> & InputBoundProps & {\n    size?: ControlSize | undefined;\n    stepperPlacement?: \"end\" | \"around\" | undefined;\n    locale?: Intl.LocalesArgument | undefined;\n    allowWheelScrub?: boolean | undefined;\n    ref?: Ref<HTMLInputElement> | undefined;\n    className?: string | undefined;\n    style?: CSSProperties | undefined;\n};"
       }
     ],
     "\"src/components/pagination\".Pagination": [
@@ -8106,6 +8210,18 @@
         "declaration": "utilities: readonly [\n    \"bg-accent-blue-bolder\",\n    \"bg-accent-blue-subtler\",\n    \"bg-accent-green-bolder\",\n    \"bg-accent-green-subtler\",\n    \"bg-accent-orange-bolder\",\n    \"bg-accent-orange-subtler\",\n    \"bg-accent-purple-bolder\",\n    \"bg-accent-purple-subtler\",\n    \"bg-accent-red-bolder\",\n    \"bg-accent-red-subtler\",\n    \"bg-accent-teal-bolder\",\n    \"bg-accent-teal-subtler\",\n    \"bg-blanket\",\n    \"bg-brand-bold\",\n    \"bg-brand-bold-hovered\",\n    \"bg-brand-bold-pressed\",\n    \"bg-brand-boldest\",\n    \"bg-brand-boldest-hovered\",\n    \"bg-brand-boldest-pressed\",\n    \"bg-brand-subtlest\",\n    \"bg-brand-subtlest-hovered\",\n    \"bg-brand-subtlest-pressed\",\n    \"bg-chart-brand\",\n    \"bg-chart-brand-hovered\",\n    \"bg-chart-categorical-1\",\n    \"bg-chart-categorical-1-hovered\",\n    \"bg-chart-categorical-2\",\n    \"bg-chart-categorical-2-hovered\",\n    \"bg-chart-categorical-3\",\n    \"bg-chart-categorical-3-hovered\",\n    \"bg-chart-categorical-4\",\n    \"bg-chart-categorical-4-hovered\",\n    \"bg-chart-categorical-5\",\n    \"bg-chart-categorical-5-hovered\",\n    \"bg-chart-categorical-6\",\n    \"bg-chart-categorical-6-hovered\",\n    \"bg-chart-categorical-7\",\n    \"bg-chart-categorical-7-hovered\",\n    \"bg-chart-categorical-8\",\n    \"bg-chart-danger\",\n    \"bg-chart-danger-hovered\",\n    \"bg-chart-diverging-midpoint\",\n    \"bg-chart-diverging-negative\",\n    \"bg-chart-diverging-negative-bold\",\n    \"bg-chart-diverging-positive\",\n    \"bg-chart-diverging-positive-bold\",\n    \"bg-chart-information\",\n    \"bg-chart-information-hovered\",\n    \"bg-chart-neutral\",\n    \"bg-chart-neutral-hovered\",\n    \"bg-chart-sequential-1\",\n    \"bg-chart-sequential-2\",\n    \"bg-chart-sequential-3\",\n    \"bg-chart-sequential-4\",\n    \"bg-chart-sequential-5\",\n    \"bg-chart-success\",\n    \"bg-chart-success-hovered\",\n    \"bg-chart-track\",\n    \"bg-chart-warning\",\n    \"bg-chart-warning-bold\",\n    \"bg-chart-warning-hovered\",\n    \"bg-danger\",\n    \"bg-danger-bold\",\n    \"bg-danger-bold-hovered\",\n    \"bg-danger-bold-pressed\",\n    \"bg-danger-hovered\",\n    \"bg-danger-pressed\",\n    \"bg-danger-subtle\",\n    \"bg-danger-subtler\",\n    \"bg-danger-subtler-hovered\",\n    \"bg-danger-subtler-pressed\",\n    \"bg-disabled\",\n    \"bg-information\",\n    \"bg-information-bold\",\n    \"bg-information-bold-hovered\",\n    \"bg-information-bold-pressed\",\n    \"bg-information-hovered\",\n    \"bg-information-pressed\",\n    \"bg-information-subtle\",\n    \"bg-information-subtler\",\n    \"bg-information-subtler-hovered\",\n    \"bg-information-subtler-pressed\",\n    \"bg-input\",\n    \"bg-input-hovered\",\n    \"bg-input-pressed\",\n    \"bg-input-thumb\",\n    \"bg-input-thumb-checked\",\n    \"bg-input-track\",\n    \"bg-inverse-subtle\",\n    \"bg-inverse-subtle-hovered\",\n    \"bg-inverse-subtle-pressed\",\n    \"bg-neutral\",\n    \"bg-neutral-bold\",\n    \"bg-neutral-bold-hovered\",\n    \"bg-neutral-bold-pressed\",\n    \"bg-neutral-hovered\",\n    \"bg-neutral-pressed\",\n    \"bg-neutral-subtle\",\n    \"bg-neutral-subtle-hovered\",\n    \"bg-neutral-subtle-pressed\",\n    \"bg-selected\",\n    \"bg-selected-bold\",\n    \"bg-selected-bold-hovered\",\n    \"bg-selected-bold-pressed\",\n    \"bg-selected-hovered\",\n    \"bg-selected-pressed\",\n    \"bg-skeleton\",\n    \"bg-skeleton-subtle\",\n    \"bg-success\",\n    \"bg-success-bold\",\n    \"bg-success-bold-hovered\",\n    \"bg-success-bold-pressed\",\n    \"bg-success-hovered\",\n    \"bg-success-pressed\",\n    \"bg-success-subtle\",\n    \"bg-success-subtler\",\n    \"bg-success-subtler-hovered\",\n    \"bg-success-subtler-pressed\",\n    \"bg-surface\",\n    \"bg-surface-current\",\n    \"bg-surface-hovered\",\n    \"bg-surface-overlay\",\n    \"bg-surface-overlay-hovered\",\n    \"bg-surface-overlay-pressed\",\n    \"bg-surface-pressed\",\n    \"bg-surface-raised\",\n    \"bg-surface-raised-hovered\",\n    \"bg-surface-raised-pressed\",\n    \"bg-surface-sunken\",\n    \"bg-warning\",\n    \"bg-warning-bold\",\n    \"bg-warning-bold-hovered\",\n    \"bg-warning-bold-pressed\",\n    \"bg-warning-hovered\",\n    \"bg-warning-pressed\",\n    \"bg-warning-subtle\",\n    \"bg-warning-subtler\",\n    \"bg-warning-subtler-hovered\",\n    \"bg-warning-subtler-pressed\",\n    \"border-bold\",\n    \"border-brand\",\n    \"border-danger\",\n    \"border-danger-subtle\",\n    \"border-default\",\n    \"border-disabled\",\n    \"border-focused\",\n    \"border-information\",\n    \"border-information-subtle\",\n    \"border-input\",\n    \"border-inverse\",\n    \"border-selected\",\n    \"border-success\",\n    \"border-success-subtle\",\n    \"border-w-default\",\n    \"border-w-focused\",\n    \"border-w-selected\",\n    \"border-warning\",\n    \"border-warning-subtle\",\n    \"duration-fast\",\n    \"duration-medium\",\n    \"duration-micro\",\n    \"duration-moderate\",\n    \"duration-slow\",\n    \"duration-slower\",\n    \"ease-enter\",\n    \"ease-exit\",\n    \"ease-standard\",\n    \"fill-chart-brand\",\n    \"fill-chart-brand-hovered\",\n    \"fill-chart-categorical-1\",\n    \"fill-chart-categorical-1-hovered\",\n    \"fill-chart-categorical-2\",\n    \"fill-chart-categorical-2-hovered\",\n    \"fill-chart-categorical-3\",\n    \"fill-chart-categorical-3-hovered\",\n    \"fill-chart-categorical-4\",\n    \"fill-chart-categorical-4-hovered\",\n    \"fill-chart-categorical-5\",\n    \"fill-chart-categorical-5-hovered\",\n    \"fill-chart-categorical-6\",\n    \"fill-chart-categorical-6-hovered\",\n    \"fill-chart-categorical-7\",\n    \"fill-chart-categorical-7-hovered\",\n    \"fill-chart-categorical-8\",\n    \"fill-chart-danger\",\n    \"fill-chart-danger-hovered\",\n    \"fill-chart-diverging-midpoint\",\n    \"fill-chart-diverging-negative\",\n    \"fill-chart-diverging-negative-bold\",\n    \"fill-chart-diverging-positive\",\n    \"fill-chart-diverging-positive-bold\",\n    \"fill-chart-information\",\n    \"fill-chart-information-hovered\",\n    \"fill-chart-neutral\",\n    \"fill-chart-neutral-hovered\",\n    \"fill-chart-sequential-1\",\n    \"fill-chart-sequential-2\",\n    \"fill-chart-sequential-3\",\n    \"fill-chart-sequential-4\",\n    \"fill-chart-sequential-5\",\n    \"fill-chart-success\",\n    \"fill-chart-success-hovered\",\n    \"fill-chart-track\",\n    \"fill-chart-warning\",\n    \"fill-chart-warning-bold\",\n    \"fill-chart-warning-hovered\",\n    \"font-body\",\n    \"font-body-large\",\n    \"font-body-small\",\n    \"font-body-xsmall\",\n    \"font-code\",\n    \"font-heading-display\",\n    \"font-heading-large\",\n    \"font-heading-medium\",\n    \"font-heading-overlay\",\n    \"font-heading-page\",\n    \"font-heading-section\",\n    \"font-heading-small\",\n    \"font-heading-xsmall\",\n    \"font-heading-xxsmall\",\n    \"font-medium\",\n    \"font-regular\",\n    \"font-semibold\",\n    \"h-control-large\",\n    \"h-control-medium\",\n    \"h-control-small\",\n    \"h-control-xsmall\",\n    \"h-layout-banner\",\n    \"h-layout-topnav\",\n    \"h-row\",\n    \"h-row-compact\",\n    \"h-row-header\",\n    \"h-row-menu\",\n    \"icon-brand\",\n    \"icon-danger\",\n    \"icon-default\",\n    \"icon-disabled\",\n    \"icon-information\",\n    \"icon-inverse\",\n    \"icon-selected\",\n    \"icon-subtle\",\n    \"icon-subtlest\",\n    \"icon-success\",\n    \"icon-warning\",\n    \"icon-warning-inverse\",\n    \"m-negative-025\",\n    \"m-negative-050\",\n    \"m-negative-075\",\n    \"m-negative-100\",\n    \"m-negative-150\",\n    \"m-negative-200\",\n    \"m-negative-250\",\n    \"m-negative-300\",\n    \"m-negative-400\",\n    \"max-w-layout-measure\",\n    \"min-h-control-large\",\n    \"min-h-control-medium\",\n    \"min-h-control-small\",\n    \"min-h-control-xsmall\",\n    \"min-h-layout-banner\",\n    \"min-h-layout-topnav\",\n    \"min-h-row\",\n    \"min-h-row-compact\",\n    \"min-h-row-header\",\n    \"min-h-row-menu\",\n    \"min-w-control-large\",\n    \"min-w-control-medium\",\n    \"min-w-control-small\",\n    \"min-w-control-xsmall\",\n    \"mx-negative-025\",\n    \"mx-negative-050\",\n    \"mx-negative-075\",\n    \"mx-negative-100\",\n    \"mx-negative-150\",\n    \"mx-negative-200\",\n    \"mx-negative-250\",\n    \"mx-negative-300\",\n    \"mx-negative-400\",\n    \"my-negative-025\",\n    \"my-negative-050\",\n    \"my-negative-075\",\n    \"my-negative-100\",\n    \"my-negative-150\",\n    \"my-negative-200\",\n    \"my-negative-250\",\n    \"my-negative-300\",\n    \"my-negative-400\",\n    \"opacity-disabled\",\n    \"opacity-loading\",\n    \"outline-danger\",\n    \"outline-field-danger\",\n    \"outline-field-focused\",\n    \"outline-focused\",\n    \"rounded-full\",\n    \"rounded-large\",\n    \"rounded-medium\",\n    \"rounded-small\",\n    \"rounded-xlarge\",\n    \"rounded-xsmall\",\n    \"rounded-xxlarge\",\n    \"shadow-overflow\",\n    \"shadow-overlay\",\n    \"shadow-raised\",\n    \"size-control-large\",\n    \"size-control-medium\",\n    \"size-control-small\",\n    \"size-control-xsmall\",\n    \"size-icon-medium\",\n    \"size-icon-small\",\n    \"stroke-chart-brand\",\n    \"stroke-chart-brand-hovered\",\n    \"stroke-chart-categorical-1\",\n    \"stroke-chart-categorical-1-hovered\",\n    \"stroke-chart-categorical-2\",\n    \"stroke-chart-categorical-2-hovered\",\n    \"stroke-chart-categorical-3\",\n    \"stroke-chart-categorical-3-hovered\",\n    \"stroke-chart-categorical-4\",\n    \"stroke-chart-categorical-4-hovered\",\n    \"stroke-chart-categorical-5\",\n    \"stroke-chart-categorical-5-hovered\",\n    \"stroke-chart-categorical-6\",\n    \"stroke-chart-categorical-6-hovered\",\n    \"stroke-chart-categorical-7\",\n    \"stroke-chart-categorical-7-hovered\",\n    \"stroke-chart-categorical-8\",\n    \"stroke-chart-danger\",\n    \"stroke-chart-danger-hovered\",\n    \"stroke-chart-diverging-midpoint\",\n    \"stroke-chart-diverging-negative\",\n    \"stroke-chart-diverging-negative-bold\",\n    \"stroke-chart-diverging-positive\",\n    \"stroke-chart-diverging-positive-bold\",\n    \"stroke-chart-information\",\n    \"stroke-chart-information-hovered\",\n    \"stroke-chart-neutral\",\n    \"stroke-chart-neutral-hovered\",\n    \"stroke-chart-sequential-1\",\n    \"stroke-chart-sequential-2\",\n    \"stroke-chart-sequential-3\",\n    \"stroke-chart-sequential-4\",\n    \"stroke-chart-sequential-5\",\n    \"stroke-chart-success\",\n    \"stroke-chart-success-hovered\",\n    \"stroke-chart-track\",\n    \"stroke-chart-warning\",\n    \"stroke-chart-warning-bold\",\n    \"stroke-chart-warning-hovered\",\n    \"text-accent-blue\",\n    \"text-accent-green\",\n    \"text-accent-orange\",\n    \"text-accent-purple\",\n    \"text-accent-red\",\n    \"text-accent-teal\",\n    \"text-brand\",\n    \"text-danger\",\n    \"text-danger-bolder\",\n    \"text-default\",\n    \"text-disabled\",\n    \"text-information\",\n    \"text-information-bolder\",\n    \"text-inverse\",\n    \"text-selected\",\n    \"text-subtle\",\n    \"text-subtlest\",\n    \"text-success\",\n    \"text-success-bolder\",\n    \"text-warning\",\n    \"text-warning-bolder\",\n    \"text-warning-inverse\",\n    \"w-layout-list\",\n    \"w-layout-panel\",\n    \"w-layout-rail\",\n    \"w-layout-sidenav\",\n    \"z-blanket\",\n    \"z-chrome\",\n    \"z-overlay\",\n    \"z-toast\",\n    \"z-tooltip\"\n]"
       }
     ],
+    "\"src/layout/aside-layout\".AsideLayout": [
+      {
+        "source": "src/layout/aside-layout.d.ts",
+        "declaration": "export declare function AsideLayout({ aside, children, className, ref, ...props }: AsideLayoutProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/layout/aside-layout\".AsideLayoutProps": [
+      {
+        "source": "src/layout/aside-layout.d.ts",
+        "declaration": "export type AsideLayoutProps = Omit<ComponentProps<\"div\">, \"children\"> & {\n    aside?: ReactNode | undefined;\n    children?: ReactNode | undefined;\n};"
+      }
+    ],
     "\"src/layout/page-header\".PageHeader": [
       {
         "source": "src/layout/page-header.d.ts",
@@ -8970,6 +9086,24 @@
         "declaration": "export type ActionBarState = {\n    label: string;\n    value: string;\n    tone: Tone;\n    control?: ReactNode;\n};"
       }
     ],
+    "\"src/patterns/change-review\".ChangeReview": [
+      {
+        "source": "src/patterns/change-review.d.ts",
+        "declaration": "export declare function ChangeReview({ changes, label, pending, error, onRetry, onInspect, className, ...props }: ChangeReviewProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/change-review\".ChangeReviewProps": [
+      {
+        "source": "src/patterns/change-review.d.ts",
+        "declaration": "export type ChangeReviewProps = Omit<ComponentPropsWithRef<\"div\">, \"children\"> & {\n    changes: readonly ReviewChange[];\n    label?: string | undefined;\n    pending?: boolean | undefined;\n    error?: string | undefined;\n    onRetry?: (() => void) | undefined;\n    onInspect?: ((id: string) => void) | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/change-review\".ReviewChange": [
+      {
+        "source": "src/patterns/change-review.d.ts",
+        "declaration": "export type ReviewChange = {\n    id: string;\n    record: string;\n    field: string;\n    before: string;\n    after: string;\n    issue?: string | undefined;\n};"
+      }
+    ],
     "\"src/patterns/chart/_tones\".categoricalTone": [
       {
         "source": "src/patterns/chart/_tones.d.ts",
@@ -9304,6 +9438,30 @@
       {
         "source": "src/patterns/command-palette.d.ts",
         "declaration": "export type UseCommandPaletteOptions = {\n    shortcut?: string | null | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/command-scope\".CommandScope": [
+      {
+        "source": "src/patterns/command-scope.d.ts",
+        "declaration": "export declare function CommandScope({ commands, onCommandError, onKeyDown, children, className, ref, ...props }: CommandScopeProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/command-scope\".CommandScopeProps": [
+      {
+        "source": "src/patterns/command-scope.d.ts",
+        "declaration": "export type CommandScopeProps = ComponentPropsWithRef<\"div\"> & {\n    commands: readonly ScopedCommand[];\n    onCommandError?: ((error: Error, command: ScopedCommand) => void) | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/command-scope\".ScopedCommand": [
+      {
+        "source": "src/patterns/command-scope.d.ts",
+        "declaration": "export type ScopedCommand = {\n    id: string;\n    label: string;\n    group?: string | undefined;\n    shortcut?: string | undefined;\n    enabled?: boolean | undefined;\n    disabledReason?: string | undefined;\n    hidden?: boolean | undefined;\n    allowInInput?: boolean | undefined;\n    run: () => void | Promise<void>;\n};"
+      }
+    ],
+    "\"src/patterns/command-scope\".useScopedCommands": [
+      {
+        "source": "src/patterns/command-scope.d.ts",
+        "declaration": "export declare function useScopedCommands(): CommandContextValue;"
       }
     ],
     "\"src/patterns/composer\".Composer": [
@@ -10080,6 +10238,108 @@
         "declaration": "export type SearchResult = {\n    id: string;\n    title: string;\n    identifier?: string | undefined;\n    meta?: string | undefined;\n    badge?: ReactNode;\n    group?: string | undefined;\n    keywords?: string | undefined;\n    disabled?: boolean | undefined;\n    disabledReason?: string | undefined;\n};"
       }
     ],
+    "\"src/patterns/spreadsheet/sheet-bar\".SpreadsheetSheetBar": [
+      {
+        "source": "src/patterns/spreadsheet/sheet-bar.d.ts",
+        "declaration": "export declare function SpreadsheetSheetBar({ sheets, activeSheetId, onSheetChange, onAddSheet, getSheetActions, onSheetAction, rowCount, columnCount, onAddRows, onAddColumns, disabled, status, children, className, ...props }: SpreadsheetSheetBarProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/spreadsheet/sheet-bar\".SpreadsheetSheetBarProps": [
+      {
+        "source": "src/patterns/spreadsheet/sheet-bar.d.ts",
+        "declaration": "export type SpreadsheetSheetBarProps = ComponentProps<\"div\"> & {\n    sheets: readonly SpreadsheetSheet[];\n    activeSheetId?: string | undefined;\n    onSheetChange?: ((sheetId: string) => void) | undefined;\n    onAddSheet?: (() => void) | undefined;\n    getSheetActions?: ((sheetId: string) => readonly SpreadsheetSheetAction[]) | undefined;\n    onSheetAction?: ((sheetId: string, actionId: string) => void) | undefined;\n    rowCount: number;\n    columnCount: number;\n    onAddRows?: (() => void) | undefined;\n    onAddColumns?: (() => void) | undefined;\n    disabled?: boolean | undefined;\n    status?: ReactNode;\n};"
+      }
+    ],
+    "\"src/patterns/spreadsheet/spreadsheet\".Spreadsheet": [
+      {
+        "source": "src/patterns/spreadsheet/spreadsheet.d.ts",
+        "declaration": "export declare function Spreadsheet({ label, columns: allColumns, rows: allRows, onChange, onDraftChange, selection, onSelectionChange, readOnly, pending, error, onRetry, isCellReadOnly, isCellLiteral, getCellError, getCellStyle, getCellOptions, getCellComment, displayValue, clipboardValue, preparePasteValue, translateInput, onOpenRow, activeRowId, presence, toolbarStart, actions, renderColumnMenu, renderCellMenu, renderRowMenu, onClearFormatting, onUndo, onRedo, canUndo, canRedo, sheets, activeSheetId, onSheetChange, onAddSheet, getSheetActions, onSheetAction, onAddRows, onAddColumns, sheetRowCount, sheetColumnCount, hiddenRowIds, hiddenColumnIds, onHiddenRowIdsChange, onHiddenColumnIdsChange, headerDisplay, density, fillAvailable, height, freezeFirstColumn, onFreezeFirstColumnChange, freezeFirstRow: requestedFreezeFirstRow, columnWidths, onColumnWidthsChange, rowHeights, onRowHeightsChange, className, style, ...props }: SpreadsheetProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/spreadsheet/spreadsheet\".SpreadsheetToolbar": [
+      {
+        "source": "src/patterns/spreadsheet/spreadsheet.d.ts",
+        "declaration": "export declare function SpreadsheetToolbar({ label, children, className, ...props }: SpreadsheetToolbarProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/spreadsheet/types\".SpreadsheetBorder": [
+      {
+        "source": "src/patterns/spreadsheet/types.d.ts",
+        "declaration": "export type SpreadsheetBorder = {\n    style: \"solid\" | \"dashed\" | \"dotted\";\n    color: string;\n    width: 1 | 2 | 3;\n};"
+      }
+    ],
+    "\"src/patterns/spreadsheet/types\".SpreadsheetCell": [
+      {
+        "source": "src/patterns/spreadsheet/types.d.ts",
+        "declaration": "export type SpreadsheetCell = {\n    rowId: string;\n    columnId: string;\n};"
+      }
+    ],
+    "\"src/patterns/spreadsheet/types\".SpreadsheetCellStyle": [
+      {
+        "source": "src/patterns/spreadsheet/types.d.ts",
+        "declaration": "export type SpreadsheetCellStyle = {\n    fontFamily?: string | undefined;\n    fontSize?: number | undefined;\n    strikethrough?: boolean | undefined;\n    color?: string | undefined;\n    background?: string | undefined;\n    wrap?: boolean | undefined;\n    borderTop?: SpreadsheetBorder | undefined;\n    borderRight?: SpreadsheetBorder | undefined;\n    borderBottom?: SpreadsheetBorder | undefined;\n    borderLeft?: SpreadsheetBorder | undefined;\n    bold?: boolean | undefined;\n    italic?: boolean | undefined;\n    underline?: boolean | undefined;\n    align?: \"start\" | \"center\" | \"end\" | undefined;\n    verticalAlign?: \"top\" | \"middle\" | \"bottom\" | undefined;\n    tone?: \"neutral\" | \"information\" | \"success\" | \"warning\" | \"danger\" | \"brand\" | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/spreadsheet/types\".SpreadsheetColumn": [
+      {
+        "source": "src/patterns/spreadsheet/types.d.ts",
+        "declaration": "export type SpreadsheetColumn = {\n    id: string;\n    label: string;\n    type?: \"text\" | \"number\" | \"choice\" | \"boolean\" | \"date\" | undefined;\n    options?: readonly {\n        value: string;\n        label: string;\n    }[] | undefined;\n    readOnly?: boolean | undefined;\n    width?: number | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/spreadsheet/types\".SpreadsheetEdit": [
+      {
+        "source": "src/patterns/spreadsheet/types.d.ts",
+        "declaration": "export type SpreadsheetEdit = SpreadsheetCell & {\n    value: string;\n};"
+      }
+    ],
+    "\"src/patterns/spreadsheet/types\".SpreadsheetMenuContext": [
+      {
+        "source": "src/patterns/spreadsheet/types.d.ts",
+        "declaration": "export type SpreadsheetMenuContext = {\n    kind: \"cell\" | \"row\" | \"column\";\n    cell: SpreadsheetCell;\n    selection: SpreadsheetSelection;\n    rowIds: readonly string[];\n    columnIds: readonly string[];\n};"
+      }
+    ],
+    "\"src/patterns/spreadsheet/types\".SpreadsheetPresence": [
+      {
+        "source": "src/patterns/spreadsheet/types.d.ts",
+        "declaration": "export type SpreadsheetPresence = {\n    id: string;\n    name: string;\n    cell: SpreadsheetCell;\n    tone?: \"information\" | \"success\" | \"warning\" | \"brand\" | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/spreadsheet/types\".SpreadsheetProps": [
+      {
+        "source": "src/patterns/spreadsheet/types.d.ts",
+        "declaration": "export type SpreadsheetProps = Omit<ComponentProps<\"div\">, \"onChange\" | \"children\"> & {\n    label: string;\n    columns: readonly SpreadsheetColumn[];\n    rows: readonly SpreadsheetRow[];\n    onChange?: ((edits: readonly SpreadsheetEdit[]) => void | Promise<void>) | undefined;\n    onDraftChange?: ((dirty: boolean) => void) | undefined;\n    selection?: SpreadsheetSelection | null | undefined;\n    onSelectionChange?: ((selection: SpreadsheetSelection | null) => void) | undefined;\n    readOnly?: boolean | undefined;\n    pending?: boolean | undefined;\n    error?: ReactNode;\n    onRetry?: (() => void) | undefined;\n    isCellReadOnly?: ((cell: SpreadsheetCell) => boolean) | undefined;\n    isCellLiteral?: ((cell: SpreadsheetCell) => boolean) | undefined;\n    getCellError?: ((cell: SpreadsheetCell) => string | undefined) | undefined;\n    getCellStyle?: ((cell: SpreadsheetCell) => SpreadsheetCellStyle | undefined) | undefined;\n    getCellOptions?: ((cell: SpreadsheetCell) => SpreadsheetColumn[\"options\"]) | undefined;\n    getCellComment?: ((cell: SpreadsheetCell) => string | undefined) | undefined;\n    displayValue?: ((cell: SpreadsheetCell, value: string) => string) | undefined;\n    clipboardValue?: ((cell: SpreadsheetCell, value: string) => string) | undefined;\n    preparePasteValue?: ((cell: SpreadsheetCell, value: string) => string) | undefined;\n    translateInput?: ((value: string, from: {\n        row: number;\n        column: number;\n    }, to: {\n        row: number;\n        column: number;\n    }) => string) | undefined;\n    onOpenRow?: ((rowId: string) => void) | undefined;\n    activeRowId?: string | undefined;\n    presence?: readonly SpreadsheetPresence[] | undefined;\n    toolbarStart?: ReactNode;\n    actions?: ReactNode;\n    renderColumnMenu?: ((column: SpreadsheetColumn, context: SpreadsheetMenuContext) => ReactNode) | undefined;\n    renderCellMenu?: ((context: SpreadsheetMenuContext) => ReactNode) | undefined;\n    renderRowMenu?: ((row: SpreadsheetRow, context: SpreadsheetMenuContext) => ReactNode) | undefined;\n    onClearFormatting?: ((context: SpreadsheetMenuContext) => void) | undefined;\n    onUndo?: (() => void) | undefined;\n    onRedo?: (() => void) | undefined;\n    canUndo?: boolean | undefined;\n    canRedo?: boolean | undefined;\n    sheets?: readonly SpreadsheetSheet[] | undefined;\n    activeSheetId?: string | undefined;\n    onSheetChange?: ((sheetId: string) => void) | undefined;\n    onAddSheet?: (() => void) | undefined;\n    getSheetActions?: ((sheetId: string) => readonly SpreadsheetSheetAction[]) | undefined;\n    onSheetAction?: ((sheetId: string, actionId: string) => void) | undefined;\n    onAddRows?: (() => void) | undefined;\n    onAddColumns?: (() => void) | undefined;\n    sheetRowCount?: number | undefined;\n    sheetColumnCount?: number | undefined;\n    hiddenRowIds?: readonly string[] | undefined;\n    onHiddenRowIdsChange?: ((ids: readonly string[]) => void) | undefined;\n    hiddenColumnIds?: readonly string[] | undefined;\n    onHiddenColumnIdsChange?: ((ids: readonly string[]) => void) | undefined;\n    headerDisplay?: \"labels\" | \"letters\" | undefined;\n    density?: \"comfortable\" | \"compact\" | undefined;\n    fillAvailable?: boolean | undefined;\n    height?: number | undefined;\n    freezeFirstColumn?: boolean | undefined;\n    onFreezeFirstColumnChange?: ((frozen: boolean) => void) | undefined;\n    freezeFirstRow?: boolean | undefined;\n    columnWidths?: Readonly<Record<string, number>> | undefined;\n    onColumnWidthsChange?: ((widths: Readonly<Record<string, number>>) => void) | undefined;\n    rowHeights?: Readonly<Record<string, number>> | undefined;\n    onRowHeightsChange?: ((heights: Readonly<Record<string, number>>) => void) | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/spreadsheet/types\".SpreadsheetRow": [
+      {
+        "source": "src/patterns/spreadsheet/types.d.ts",
+        "declaration": "export type SpreadsheetRow = {\n    id: string;\n    label?: string | undefined;\n    rowNumber?: number | undefined;\n    values: Readonly<Record<string, string>>;\n};"
+      }
+    ],
+    "\"src/patterns/spreadsheet/types\".SpreadsheetSelection": [
+      {
+        "source": "src/patterns/spreadsheet/types.d.ts",
+        "declaration": "export type SpreadsheetSelection = {\n    anchor: SpreadsheetCell;\n    focus: SpreadsheetCell;\n};"
+      }
+    ],
+    "\"src/patterns/spreadsheet/types\".SpreadsheetSheet": [
+      {
+        "source": "src/patterns/spreadsheet/types.d.ts",
+        "declaration": "export type SpreadsheetSheet = {\n    id: string;\n    label: string;\n};"
+      }
+    ],
+    "\"src/patterns/spreadsheet/types\".SpreadsheetSheetAction": [
+      {
+        "source": "src/patterns/spreadsheet/types.d.ts",
+        "declaration": "export type SpreadsheetSheetAction = {\n    id: string;\n    label: string;\n    disabled?: boolean | undefined;\n    destructive?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/spreadsheet/types\".SpreadsheetToolbarProps": [
+      {
+        "source": "src/patterns/spreadsheet/types.d.ts",
+        "declaration": "export type SpreadsheetToolbarProps = ComponentProps<\"div\"> & {\n    label: string;\n};"
+      }
+    ],
     "\"src/patterns/task-row\".TaskRow": [
       {
         "source": "src/patterns/task-row.d.ts",
@@ -10756,6 +11016,12 @@
       {
         "source": "src/patterns/chart/treemap.d.ts",
         "declaration": "type ChartTreemapOwnProps = {\n    data: TreemapNodeInput[];\n    levels?: string[] | undefined;\n    size?: ChartSize | undefined;\n    height?: number | undefined;\n    format?: Formatter | undefined;\n    label?: string | undefined;\n    loading?: boolean | undefined;\n    onSelect?: ((selection: TreemapSelection) => void) | undefined;\n    details?: ((selection: TreemapSelection) => ReactNode) | undefined;\n    className?: string | undefined;\n};"
+      }
+    ],
+    "src/patterns/command-scope.d.ts#CommandContextValue": [
+      {
+        "source": "src/patterns/command-scope.d.ts",
+        "declaration": "type CommandContextValue = {\n    commands: readonly ScopedCommand[];\n    run: (id: string) => Promise<boolean>;\n};"
       }
     ],
     "src/patterns/composer.d.ts#DraftProps": [

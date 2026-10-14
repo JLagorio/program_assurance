@@ -4,6 +4,7 @@ import { MissingRecord, QueryState, RecordActions } from "@/components/prototype
 import { campaignTabs, type CampaignTab } from "@/components/prototype/assessment-tabs";
 import {
   Absent,
+  AsideLayout,
   Box,
   DateTime,
   Inspector,
@@ -12,7 +13,6 @@ import {
   PageHeader,
   Prose,
   Section,
-  Stack,
 } from "@ledger/design-system";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AssessmentCampaign } from "@/components/prototype/assessment-campaign";
@@ -80,31 +80,33 @@ function CampaignDetail() {
               key={campaign.id}
               campaign={campaign}
               overview={
-                <Stack space="space.250" className="min-w-0">
-                  {/* The Details, first in Overview: the rail beside it, or on a phone a closed
-                      disclosure under the tabs whose row says the status. Overview's panel is
-                      drawn only while it is chosen, so the rail never stands beside another tab. */}
-                  <Shell.Aside
-                    label="Assessment campaign details"
-                    summary={<StatusBadge statuses={campaignStatuses} value={campaign.status} />}
-                  >
-                    <Inspector.Group title="Details">
-                      <KeyValue.Group>
-                        <KeyValue label="Status">
-                          <StatusBadge statuses={campaignStatuses} value={campaign.status} />
-                        </KeyValue>
-                        <KeyValue label="Owner">
-                          <RelationName table="parties" id={campaign.owner_party_id} />
-                        </KeyValue>
-                        <KeyValue label="Starts">
-                          <DateTime value={campaign.starts_at} format="date" />
-                        </KeyValue>
-                        <KeyValue label="Ends">
-                          <DateTime value={campaign.ends_at} format="date" />
-                        </KeyValue>
-                      </KeyValue.Group>
-                    </Inspector.Group>
-                  </Shell.Aside>
+                // Overview beside the campaign's Details: the rail at its end where it fits, else
+                // a closed disclosure above it whose row says the status. They leave with the tab.
+                <AsideLayout
+                  aside={
+                    <Shell.Aside
+                      label="Assessment campaign details"
+                      summary={<StatusBadge statuses={campaignStatuses} value={campaign.status} />}
+                    >
+                      <Inspector.Group title="Details">
+                        <KeyValue.Group>
+                          <KeyValue label="Status">
+                            <StatusBadge statuses={campaignStatuses} value={campaign.status} />
+                          </KeyValue>
+                          <KeyValue label="Owner">
+                            <RelationName table="parties" id={campaign.owner_party_id} />
+                          </KeyValue>
+                          <KeyValue label="Starts">
+                            <DateTime value={campaign.starts_at} format="date" />
+                          </KeyValue>
+                          <KeyValue label="Ends">
+                            <DateTime value={campaign.ends_at} format="date" />
+                          </KeyValue>
+                        </KeyValue.Group>
+                      </Inspector.Group>
+                    </Shell.Aside>
+                  }
+                >
                   <Section title="Description">
                     {campaign.description ? (
                       <Box className="max-w-layout-measure">
@@ -114,7 +116,7 @@ function CampaignDetail() {
                       <Absent label="No description recorded" />
                     )}
                   </Section>
-                </Stack>
+                </AsideLayout>
               }
               tab={tab}
               // The tab joins the address's other parameters, so each collection keeps the

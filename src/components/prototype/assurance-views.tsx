@@ -15,6 +15,7 @@ import { useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   Absent,
+  AsideLayout,
   Button,
   DataTable,
   DateTime,
@@ -545,11 +546,11 @@ export function RiskRecord({
                 {(name) => (
                   <>
                     {name === "overview" && (
-                      <>
-                        {/* The Details, first in Overview: a rail beside it, or on a phone a
-                            Details disclosure under the tabs. Only while Overview is shown, since
-                            the panel stays mounted behind the other tabs. */}
-                        {tab === "overview" && (
+                      // Overview beside the risk's Details: the rail at its end where it fits,
+                      // else a closed disclosure above it whose row carries the risk's status.
+                      // They leave with the tab.
+                      <AsideLayout
+                        aside={
                           <Shell.Aside
                             label="Risk details"
                             summary={<StatusBadge statuses={riskStatuses} value={record.status} />}
@@ -576,7 +577,8 @@ export function RiskRecord({
                               />
                             </Inspector.Group>
                           </Shell.Aside>
-                        )}
+                        }
+                      >
                         <Section title="Latest assessment">
                           <QueryState query={versions}>
                             {assessment ? (
@@ -604,7 +606,7 @@ export function RiskRecord({
                             )}
                           </QueryState>
                         </Section>
-                      </>
+                      </AsideLayout>
                     )}
                     {name === "assessments" && (
                       <EntitySection
@@ -919,98 +921,105 @@ export function PoamRecord({ id }: { id: string }) {
                 onCancel={() => setEditing(null)}
               />
             )}
-            <Shell.Aside
-              label="Remediation item details"
-              summary={<StatusBadge statuses={remediationStatuses} value={record.status} />}
+            <AsideLayout
+              aside={
+                <Shell.Aside
+                  label="Remediation item details"
+                  summary={<StatusBadge statuses={remediationStatuses} value={record.status} />}
+                >
+                  <Inspector.Group title="Details">
+                    <ModelFacts
+                      table="poam_items"
+                      record={record as DataRecord}
+                      fields={[
+                        party(),
+                        "status",
+                        {
+                          key: "poam_document_id",
+                          label: "POA&M plan",
+                          render: (row) => (
+                            <RelationName
+                              table="poam_documents"
+                              id={row["poam_document_id"] as string}
+                            />
+                          ),
+                        },
+                        // The commitment shown below is a fact of the rail like the others: its label
+                        // beside the value, which is the chooser once there is more than one.
+                        ...(version
+                          ? [
+                              {
+                                key: "remediation_commitment",
+                                label: "Remediation commitment",
+                                render: () =>
+                                  (versions.data?.length ?? 0) > 1 ? (
+                                    <LibrarySelect
+                                      inline
+                                      label="Remediation commitment"
+                                      value={version.id}
+                                      options={(versions.data ?? []).map((item) => ({
+                                        value: item.id,
+                                        label: `Version ${item.version_number}`,
+                                      }))}
+                                      onChange={setSelected}
+                                    />
+                                  ) : (
+                                    `Version ${version.version_number}`
+                                  ),
+                              },
+                              // The shown commitment's planned completion, set in place while it is
+                              // a draft.
+                              {
+                                key: "planned_completion_date",
+                                label: "Planned completion",
+                                render: () => (
+                                  <PlannedCompletion
+                                    key={version.id}
+                                    version={version}
+                                    itemStatus={record.status}
+                                    latest={version.id === latest?.id}
+                                  />
+                                ),
+                              },
+                            ]
+                          : []),
+                      ]}
+                    />
+                  </Inspector.Group>
+                </Shell.Aside>
+              }
             >
-              <Inspector.Group title="Details">
-                <ModelFacts
-                  table="poam_items"
-                  record={record as DataRecord}
-                  fields={[
-                    party(),
-                    "status",
-                    {
-                      key: "poam_document_id",
-                      label: "POA&M plan",
-                      render: (row) => (
-                        <RelationName
-                          table="poam_documents"
-                          id={row["poam_document_id"] as string}
-                        />
-                      ),
-                    },
-                    // The commitment shown below is a fact of the rail like the others: its label
-                    // beside the value, which is the chooser once there is more than one.
-                    ...(version
-                      ? [
-                          {
-                            key: "remediation_commitment",
-                            label: "Remediation commitment",
-                            render: () =>
-                              (versions.data?.length ?? 0) > 1 ? (
-                                <LibrarySelect
-                                  inline
-                                  label="Remediation commitment"
-                                  value={version.id}
-                                  options={(versions.data ?? []).map((item) => ({
-                                    value: item.id,
-                                    label: `Version ${item.version_number}`,
-                                  }))}
-                                  onChange={setSelected}
-                                />
-                              ) : (
-                                `Version ${version.version_number}`
-                              ),
-                          },
-                          // The shown commitment's planned completion, set in place while it is
-                          // a draft.
-                          {
-                            key: "planned_completion_date",
-                            label: "Planned completion",
-                            render: () => (
-                              <PlannedCompletion
-                                key={version.id}
-                                version={version}
-                                itemStatus={record.status}
-                                latest={version.id === latest?.id}
-                              />
-                            ),
-                          },
-                        ]
-                      : []),
+              <Stack space="space.200" className="min-w-0">
+                <EntitySection
+                  showHeading
+                  table="poam_item_revisions"
+                  filters={{ poam_item_id: id }}
+                  initialValues={{ poam_document_id: record.poam_document_id }}
+                  title="Remediation commitments"
+                  columns={[
+                    ...versionColumns,
+                    plannedCompletion(record.status, latest?.id),
+                    { key: "actual_completion_date", label: "Completed" },
                   ]}
                 />
-              </Inspector.Group>
-            </Shell.Aside>
-            <EntitySection
-              showHeading
-              table="poam_item_revisions"
-              filters={{ poam_item_id: id }}
-              initialValues={{ poam_document_id: record.poam_document_id }}
-              title="Remediation commitments"
-              columns={[
-                ...versionColumns,
-                plannedCompletion(record.status, latest?.id),
-                { key: "actual_completion_date", label: "Completed" },
-              ]}
-            />
-            <QueryState query={versions}>
-              {version ? (
-                <PoamVersion
-                  key={version.id}
-                  version={version}
-                  itemStatus={record.status}
-                  latest={version.id === latest?.id}
-                />
-              ) : (
-                <EmptyMessage
-                  compact
-                  title="No remediation commitment yet"
-                  description="A commitment records the plan, its resources and its milestones."
-                />
-              )}
-            </QueryState>
+                <QueryState query={versions}>
+                  {version ? (
+                    <PoamVersion
+                      key={version.id}
+                      version={version}
+                      itemStatus={record.status}
+                      latest={version.id === latest?.id}
+                    />
+                  ) : (
+                    <EmptyMessage
+                      compact
+                      title="No remediation commitment yet"
+                      description="A commitment records the plan, its resources and its milestones."
+                    />
+                  )}
+                </QueryState>
+              </Stack>
+            </AsideLayout>
           </>
         ) : (
           <MissingRecord backTo="/register" kind="Remediation item" />
@@ -1147,105 +1156,116 @@ export function PoamDocument({ id }: { id: string }) {
                 onCancel={() => setEditingDocument(false)}
               />
             )}
-            <Shell.Aside label="POA&M plan details">
-              <Inspector.Group title="Details">
-                <ModelFacts
-                  table="poam_documents"
-                  record={query.data as DataRecord}
-                  fields={[
-                    program,
-                    "description",
-                    { key: "created_at", label: "Created" },
-                    { key: "updated_at", label: "Updated" },
-                  ]}
+            <AsideLayout
+              aside={
+                <Shell.Aside label="POA&M plan details">
+                  <Inspector.Group title="Details">
+                    <ModelFacts
+                      table="poam_documents"
+                      record={query.data as DataRecord}
+                      fields={[
+                        program,
+                        "description",
+                        { key: "created_at", label: "Created" },
+                        { key: "updated_at", label: "Updated" },
+                      ]}
+                    />
+                  </Inspector.Group>
+                </Shell.Aside>
+              }
+            >
+              <Stack space="space.200" className="min-w-0">
+                <EntitySection
+                  showHeading
+                  table="poam_revisions"
+                  filters={{ poam_document_id: id }}
+                  title="Plan revisions"
+                  columns={versionColumns}
+                  onOpen={(row) => {
+                    setRevision(row);
+                    setEditingRevision(false);
+                  }}
+                  selectedId={revision?.id}
+                  onDisplayedRowsChange={setDisplayedRevisions}
                 />
-              </Inspector.Group>
-            </Shell.Aside>
-            <EntitySection
-              showHeading
-              table="poam_revisions"
-              filters={{ poam_document_id: id }}
-              title="Plan revisions"
-              columns={versionColumns}
-              onOpen={(row) => {
-                setRevision(row);
-                setEditingRevision(false);
-              }}
-              selectedId={revision?.id}
-              onDisplayedRowsChange={setDisplayedRevisions}
-            />
-            {revision && (
-              <RecordPreviewPanel
-                title={`Version ${String(revision["version_number"])}`}
-                label="POA&M revision preview"
-                defaultWidth={640}
-                onClose={() => {
-                  setRevision(null);
-                  setEditingRevision(false);
-                }}
-                recordActions={
-                  revision["state"] === "draft" &&
-                  workspace.role !== "viewer" && (
-                    <Button size="small" variant="primary" onClick={() => setEditingRevision(true)}>
-                      Edit POA&M revision
-                    </Button>
-                  )
-                }
-                navigation={
-                  <RecordPreviewActions
-                    table="poam_revisions"
-                    record={revision}
-                    rows={displayedRevisions}
-                    onSelect={(row) => {
-                      setRevision(row);
+                {revision && (
+                  <RecordPreviewPanel
+                    title={`Version ${String(revision["version_number"])}`}
+                    label="POA&M revision preview"
+                    defaultWidth={640}
+                    onClose={() => {
+                      setRevision(null);
                       setEditingRevision(false);
                     }}
-                  />
-                }
-              >
-                {/* The version is the preview's h2; what it includes sits under it. */}
-                <HeadingLevelProvider level={3}>
-                  <Stack space="space.200">
-                    <ModelFacts
-                      table="poam_revisions"
-                      record={revision}
-                      fields={[
-                        { key: "version_number", label: "Version" },
-                        "state",
-                        { key: "published_at", label: "Published" },
-                      ]}
-                    />
-                    <EntitySection
-                      table="poam_revision_items"
-                      filters={{ poam_revision_id: revision.id }}
-                      initialValues={{ poam_document_id: id }}
-                      title="Included remediation commitments"
-                      operation="Link remediation commitment"
-                      showHeading
-                      columns={[
-                        {
-                          key: "poam_item_revision_id",
-                          render: (row) => (
-                            <VersionName
-                              table="poam_item_revisions"
-                              id={row["poam_item_revision_id"] as string}
-                            />
-                          ),
-                        },
-                      ]}
-                      readOnly={revision["state"] === "published"}
-                    />
-                    {editingRevision && (
-                      <EntityEditor
+                    recordActions={
+                      revision["state"] === "draft" &&
+                      workspace.role !== "viewer" && (
+                        <Button
+                          size="small"
+                          variant="primary"
+                          onClick={() => setEditingRevision(true)}
+                        >
+                          Edit POA&M revision
+                        </Button>
+                      )
+                    }
+                    navigation={
+                      <RecordPreviewActions
                         table="poam_revisions"
-                        existing={revision}
-                        onCancel={() => setEditingRevision(false)}
+                        record={revision}
+                        rows={displayedRevisions}
+                        onSelect={(row) => {
+                          setRevision(row);
+                          setEditingRevision(false);
+                        }}
                       />
-                    )}
-                  </Stack>
-                </HeadingLevelProvider>
-              </RecordPreviewPanel>
-            )}
+                    }
+                  >
+                    {/* The version is the preview's h2; what it includes sits under it. */}
+                    <HeadingLevelProvider level={3}>
+                      <Stack space="space.200">
+                        <ModelFacts
+                          table="poam_revisions"
+                          record={revision}
+                          fields={[
+                            { key: "version_number", label: "Version" },
+                            "state",
+                            { key: "published_at", label: "Published" },
+                          ]}
+                        />
+                        <EntitySection
+                          table="poam_revision_items"
+                          filters={{ poam_revision_id: revision.id }}
+                          initialValues={{ poam_document_id: id }}
+                          title="Included remediation commitments"
+                          operation="Link remediation commitment"
+                          showHeading
+                          columns={[
+                            {
+                              key: "poam_item_revision_id",
+                              render: (row) => (
+                                <VersionName
+                                  table="poam_item_revisions"
+                                  id={row["poam_item_revision_id"] as string}
+                                />
+                              ),
+                            },
+                          ]}
+                          readOnly={revision["state"] === "published"}
+                        />
+                        {editingRevision && (
+                          <EntityEditor
+                            table="poam_revisions"
+                            existing={revision}
+                            onCancel={() => setEditingRevision(false)}
+                          />
+                        )}
+                      </Stack>
+                    </HeadingLevelProvider>
+                  </RecordPreviewPanel>
+                )}
+              </Stack>
+            </AsideLayout>
           </>
         ) : (
           <MissingRecord backTo="/register" kind="POA&M plan" />

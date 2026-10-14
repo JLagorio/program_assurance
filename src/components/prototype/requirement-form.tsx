@@ -170,9 +170,10 @@ export function RequirementForm({
     setPending(null);
     report();
   };
-  // The type and the owner sit in the record's Details, which leave the page with the Overview tab
-  // while the text stays mounted. Their Editables, and a refused value's Try again, go with them, so
-  // a change of theirs refused before or after they leave is dropped here.
+  // The type and the owner sit in the record's Details, which stay mounted with the Overview panel
+  // (or under a preview's header). Their Editables, and a refused value's Try again, leave only when
+  // the properties unmount (another record or revision, a confirmed discard), so a change of theirs
+  // refused after that is dropped here.
   const propertiesShown = useRef(false);
   const propertiesHidden = () => {
     propertiesShown.current = false;
@@ -233,8 +234,8 @@ export function RequirementForm({
       inFlight.current = false;
       setSaving(null);
       if (!propertiesShown.current && propertyFields.has(field)) {
-        // The row left with the Overview tab and took its Try again with it: the refused change is
-        // put back here, so the value shown is the stored one and no other row stays locked.
+        // The row unmounted and took its Try again with it: the refused change is put back here,
+        // so the value shown is the stored one and no other row stays locked.
         activeRequest.current = null;
         delete draft.current[field];
         setValues((previous) => ({ ...previous, [field]: valuesFor(baselineRef.current)[field] }));

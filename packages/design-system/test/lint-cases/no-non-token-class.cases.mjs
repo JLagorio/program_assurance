@@ -209,8 +209,9 @@ const element = <span className={cn(recipe(), "!text-default")} />;`,
           messageId: "partOwn",
           data: {
             cls: "grid-cols-main-rail",
-            owner: "the Shell's",
-            advice: "Render the rail as Shell.Aside beside Main.",
+            owner: "AsideLayout's",
+            advice:
+              "Give the Details to an AsideLayout as its aside, around the body they belong to.",
           },
         },
       ],

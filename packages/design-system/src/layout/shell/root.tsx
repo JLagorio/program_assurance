@@ -19,7 +19,14 @@ import { announce, Announcer } from "../../lib/announce";
 import { cn } from "../../lib/cn";
 import { useLedgerLocale } from "../../lib/locale";
 import { HeadingLevelProvider } from "../../primitives/heading-level";
-import { AreaPortal, AsideDisclosureContext, SlotsContext, type AsideDisplay } from "../slots";
+import {
+  AreaPortal,
+  AsideDisclosureContext,
+  AsideLayoutContext,
+  AsideRailContext,
+  SlotsContext,
+  type AsideDisplay,
+} from "../slots";
 import { applyShell, readShell, SHELL_STORAGE_KEY, writeShell } from "../storage";
 import {
   asideQuery,
@@ -801,22 +808,36 @@ const FOCUSABLE =
   'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export type ShellAsideProps = ComponentProps<"aside"> & {
-  /** The landmark's name, "Page context" by default. */
+  /** The region's name, "<Record type> details" on a record ("Page context" by default). */
   label?: string | undefined;
-  /** Below the aside breakpoint, the Details disclosure's heading: "Details" (a locale message) by default. An Inspector.Group of the same name inside is the disclosure's own content, without a second title. */
+  /** Where the Details are a disclosure, its heading: "Details" (a locale message) by default. An Inspector.Group of the same name inside is the disclosure's own content, without a second title. */
   heading?: string | undefined;
-  /** Below the aside breakpoint, what the Details disclosure's row shows after its heading, closed or open: the record's state, as its status badge. Static content only, since it is part of the disclosure's button and its name. */
+  /** Where the Details are a disclosure, what its row shows after its heading, closed or open: the record's state, as its status badge. Static content only, since it is part of the disclosure's button and its name. */
   summary?: ReactNode | undefined;
 };
 
+const warned = new Set<string>();
+/** A composition mistake said once in the console, never thrown: the Aside still renders. */
+function useWarnOnce(when: boolean, message: string) {
+  useEffect(() => {
+    if (!when || warned.has(message)) return;
+    warned.add(message);
+    console.warn(message);
+  }, [when, message]);
+}
+
 /**
- * Supporting page context, such as a record's Details. From the aside breakpoint it is the rail:
- * beside Main where space permits, else following it, always open. Below the aside breakpoint,
- * wherever it would not sit beside Main, it shows where the route rendered it in the page (right
- * after the PageHeader, or at the top of a tabbed record's Overview) as a Details disclosure,
- * closed until the reader opens it, whose row carries `summary`. Its outline starts under the
- * page's h1: as the rail, a heading placed directly inside (an Inspector group, a Section) is an
- * h2; as the disclosure, its heading is the h2 and the content one level below.
+ * A record's Details, given to an AsideLayout as its `aside`: the rail at the end of the body where
+ * the layout leaves the body room, always open, else a Details disclosure above the body, closed
+ * until the reader opens it, whose row carries `summary`. Inside the layout it is a region named by
+ * `label`, rendered once where the layout puts it. Its outline starts under the page's h1: as the
+ * rail, a heading placed directly inside (an Inspector group, a Section) is an h2; as the
+ * disclosure, its heading is the h2 and the content one level below.
+ *
+ * Rendered outside an AsideLayout, it takes the shell's aside area beside Main instead, from the
+ * top of the page (deprecated: the next minor version renders it in place). From the aside
+ * breakpoint it is the rail there, beside Main where space permits, else following it; below it,
+ * wherever it would not sit beside Main, the disclosure where the route rendered it.
  */
 export function Aside({
   children,
@@ -831,9 +852,17 @@ export function Aside({
 }: ShellAsideProps) {
   const { t } = useLedgerLocale();
   const slots = useContext(SlotsContext);
+  // Inside an AsideLayout the layout decides the display from its own width and the Aside renders
+  // in place; outside one, the shell's area and its marker (deprecated).
+  const layout = useContext(AsideLayoutContext);
+  const inLayout = layout !== null;
+  useWarnOnce(
+    !inLayout && slots !== null,
+    "Ledger: a Shell.Aside outside an AsideLayout takes the shell's aside area beside Main, which is deprecated. Give it to an AsideLayout as its `aside`, around the body it belongs to: the Overview tab's panel on a tabbed record, everything under the PageHeader on a record without tabs.",
+  );
   const setMarker = slots?.setAsideMarker;
   const releaseMarker = slots?.releaseAsideMarker;
-  const disclosure = slots?.asideDisplay === "disclosure";
+  const disclosure = inLayout ? layout === "disclosure" : slots?.asideDisplay === "disclosure";
   const [open, setOpen] = useState(false);
   // The content folds and unfolds on the kit's motion only when the reader toggles the disclosure.
   // At first paint and when the display changes (a resize, a panel opening) it is shown as it is at
@@ -852,7 +881,12 @@ export function Aside({
   // the rail's first group, never to the page's start.
   const own = useRef<HTMLElement>(null);
   const asideRef = useMemo(() => mergeRefs(ref, own), [ref]);
+  // Once per change: a hidden Activity shown again (a retained tab panel) runs layout effects again
+  // whatever their deps, and coming back to a tab moves no focus.
+  const handedOff = useRef<typeof motion | null>(null);
   useLayoutEffect(() => {
+    if (handedOff.current === motion) return;
+    handedOff.current = motion;
     const aside = own.current;
     if (!motion.hadFocus || !aside) return;
     const active = aside.ownerDocument.activeElement;
@@ -871,66 +905,76 @@ export function Aside({
   if (children === null || children === undefined || children === false) return null;
   const name = heading ?? t("details");
   const hasSummary = summary !== null && summary !== undefined && summary !== false;
+  // One element tree in both displays, so the content never mounts again: the rail is the
+  // disclosure held open with no row of its own.
+  const tree = (
+    <CollapsiblePrimitive.Root
+      open={!disclosure || open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        setMotion({ disclosure, reader: true, hadFocus: false });
+      }}
+      render={
+        <aside
+          {...props}
+          ref={asideRef}
+          // Inside Main it is a region: a complementary landmark belongs at the top level.
+          role={inLayout || disclosure ? "region" : props.role}
+          data-shell-area={inLayout ? undefined : "aside"}
+          data-slot="shell-aside"
+          data-display={disclosure ? "disclosure" : "rail"}
+          data-instant={instant ? "" : undefined}
+          aria-label={label ?? t("pageContext")}
+          // The rail pads its bottom only (and its top in the shell's area): its Inspector groups
+          // run its full width, each with the gutter inside its own row (AsideRailContext). In an
+          // AsideLayout the column's own offset starts its first group level with the body's.
+          className={cn(
+            disclosure ? "min-w-0" : inLayout ? "min-w-0 pb-200" : "min-w-0 pt-100 pb-200",
+            className,
+          )}
+          onFocus={(event) => {
+            onFocus?.(event);
+            setFocusWithin(true);
+          }}
+          onBlur={(event) => {
+            onBlur?.(event);
+            const next = event.relatedTarget;
+            if (!(next instanceof Node && event.currentTarget.contains(next))) {
+              setFocusWithin(false);
+            }
+          }}
+        />
+      }
+    >
+      {disclosure ? (
+        <HeadingLevelProvider level={2}>
+          <CollapsibleHeader>
+            <span className="flex min-w-0 flex-wrap items-center gap-x-100 gap-y-050">
+              <span>{name}</span>
+              {hasSummary ? (
+                <span data-slot="shell-aside-summary" className="inline-flex min-w-0">
+                  {summary}
+                </span>
+              ) : null}
+            </span>
+          </CollapsibleHeader>
+        </HeadingLevelProvider>
+      ) : null}
+      {/* Kept mounted while closed, so drafts inside survive and find-in-page opens it. */}
+      <CollapsibleContent hiddenUntilFound>
+        <AsideDisclosureContext.Provider value={disclosure ? name : null}>
+          <AsideRailContext.Provider value={!disclosure}>
+            <HeadingLevelProvider level={disclosure ? 3 : 2}>{children}</HeadingLevelProvider>
+          </AsideRailContext.Provider>
+        </AsideDisclosureContext.Provider>
+      </CollapsibleContent>
+    </CollapsiblePrimitive.Root>
+  );
+  if (inLayout) return tree;
   return (
     <>
       {slots ? <div ref={marker} data-slot="shell-aside-marker" className="contents" /> : null}
-      <AreaPortal name="aside">
-        {/* One element tree in both displays, so the content never mounts again: the rail is the
-            disclosure held open with no row of its own. */}
-        <CollapsiblePrimitive.Root
-          open={!disclosure || open}
-          onOpenChange={(next) => {
-            setOpen(next);
-            setMotion({ disclosure, reader: true, hadFocus: false });
-          }}
-          render={
-            <aside
-              {...props}
-              ref={asideRef}
-              // Inside Main it is a region: a complementary landmark belongs at the top level.
-              role={disclosure ? "region" : props.role}
-              data-shell-area="aside"
-              data-slot="shell-aside"
-              data-display={disclosure ? "disclosure" : "rail"}
-              data-instant={instant ? "" : undefined}
-              aria-label={label ?? t("pageContext")}
-              className={cn(disclosure ? "min-w-0" : "min-w-0 p-200 lg:p-300", className)}
-              onFocus={(event) => {
-                onFocus?.(event);
-                setFocusWithin(true);
-              }}
-              onBlur={(event) => {
-                onBlur?.(event);
-                const next = event.relatedTarget;
-                if (!(next instanceof Node && event.currentTarget.contains(next))) {
-                  setFocusWithin(false);
-                }
-              }}
-            />
-          }
-        >
-          {disclosure ? (
-            <HeadingLevelProvider level={2}>
-              <CollapsibleHeader>
-                <span className="flex min-w-0 flex-wrap items-center gap-x-100 gap-y-050">
-                  <span>{name}</span>
-                  {hasSummary ? (
-                    <span data-slot="shell-aside-summary" className="inline-flex min-w-0">
-                      {summary}
-                    </span>
-                  ) : null}
-                </span>
-              </CollapsibleHeader>
-            </HeadingLevelProvider>
-          ) : null}
-          {/* Kept mounted while closed, so drafts inside survive and find-in-page opens it. */}
-          <CollapsibleContent hiddenUntilFound>
-            <AsideDisclosureContext.Provider value={disclosure ? name : null}>
-              <HeadingLevelProvider level={disclosure ? 3 : 2}>{children}</HeadingLevelProvider>
-            </AsideDisclosureContext.Provider>
-          </CollapsibleContent>
-        </CollapsiblePrimitive.Root>
-      </AreaPortal>
+      <AreaPortal name="aside">{tree}</AreaPortal>
     </>
   );
 }

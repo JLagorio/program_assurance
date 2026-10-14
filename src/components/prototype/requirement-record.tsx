@@ -5,6 +5,7 @@ import { Link, useBlocker } from "@tanstack/react-router";
 import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import {
   Absent,
+  AsideLayout,
   Diff,
   Empty,
   EmptyContent,
@@ -250,20 +251,36 @@ export function RequirementRecordContent({
                         {/* A failure region, as the retained panels are: its blocks' failures
                             read as one alert at its top. */}
                         <ProgramQueryState region>
-                          {/* The page's Details, first on Overview: the rail beside the body, or
-                            on a phone a closed disclosure above it that says the state. */}
-                          {!preview && currentTab === "Overview" && (
-                            <Shell.Aside
-                              label="Requirement details"
-                              summary={
-                                <StatusBadge statuses={revisionStates} value={active.state} />
+                          {preview ? (
+                            <>
+                              {body}
+                              <RequirementHierarchy revisionId={active.id} programId={programId} />
+                            </>
+                          ) : (
+                            // Overview beside the page's Details: the rail at its end where it
+                            // fits, else a closed disclosure above it that says the state. They
+                            // stay mounted with the panel, so a draft in them survives a tab.
+                            <AsideLayout
+                              aside={
+                                <Shell.Aside
+                                  label="Requirement details"
+                                  summary={
+                                    <StatusBadge statuses={revisionStates} value={active.state} />
+                                  }
+                                >
+                                  <Inspector.Group title="Details">{details}</Inspector.Group>
+                                </Shell.Aside>
                               }
                             >
-                              <Inspector.Group title="Details">{details}</Inspector.Group>
-                            </Shell.Aside>
+                              <Stack space="space.250" className="min-w-0">
+                                {body}
+                                <RequirementHierarchy
+                                  revisionId={active.id}
+                                  programId={programId}
+                                />
+                              </Stack>
+                            </AsideLayout>
                           )}
-                          {body}
-                          <RequirementHierarchy revisionId={active.id} programId={programId} />
                         </ProgramQueryState>
                       </Stack>
                     </TabsContent>

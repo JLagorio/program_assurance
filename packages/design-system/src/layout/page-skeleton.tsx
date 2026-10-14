@@ -62,7 +62,7 @@ function RegisterShape({ rows }: { rows: number }) {
   );
 }
 
-/** A record's trail, title and actions, tab strip and first sections. The Details rail is the shell's Aside, which arrives with the page. */
+/** A record's trail, title and actions, tab strip and first sections. The Details arrive with the page, in the AsideLayout of its Overview. */
 function RecordShape() {
   return (
     <>

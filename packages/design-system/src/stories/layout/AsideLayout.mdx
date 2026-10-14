@@ -1,0 +1,96 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+
+import { AsideLayout } from "../..";
+import * as Stories from "./AsideLayout.stories";
+
+<Meta of={Stories} />
+
+# AsideLayout
+
+**Status: Stable.**
+
+A body and the Details it belongs with. On a tabbed record it is the Overview tab's panel: the header and the tab strip span the page on every tab, and the Details start under the strip, beside Overview's body, and leave with the tab. On a record without tabs it is everything under the PageHeader. The Details are a [Shell](?path=/docs/layout-shell--docs) Aside holding an [Inspector](?path=/docs/patterns-inspector--docs), given as `aside`; the body is the children.
+
+```tsx
+<TabsContent value="Overview">
+  <AsideLayout
+    aside={
+      <Shell.Aside
+        label="Requirement details"
+        summary={
+          <Badge variant="secondary" tone="information">
+            In progress
+          </Badge>
+        }
+      >
+        <Inspector.Group title="Details">
+          <KeyValue label="Owner">Alex Morgan</KeyValue>
+        </Inspector.Group>
+      </Shell.Aside>
+    }
+  >
+    <Stack space="space.300">
+      <Section title="Statement">…</Section>
+    </Stack>
+  </AsideLayout>
+</TabsContent>
+```
+
+<Canvas of={Stories.Record} />
+
+## Displays
+
+The layout decides from its own width, not the window's. From the large breakpoint (`dimension.breakpoint.lg`), while it leaves the body a list column (`dimension.layout.list`) beside them, the Details are the **rail** at the body's end: `dimension.layout.rail` wide plus the gutter their groups keep inside, `space.300` from the body, the column's rule running the pair's height. Every group is open to fold, its title an h2 under the page's h1, its rows running the rail's width with the gutter inside them. Narrower, on a phone, in a narrow window, beside a wide side nav or an open panel, they are the **Details disclosure** above the body: one row that reads "Details" (the Aside's `heading`) and carries its `summary`, the record's state, closed until the reader opens it, so the state is one tap from the top and the body keeps its place. Its row is an h2's button and its content one level below; an Inspector group named as the disclosure is its content, with no second title.
+
+<Canvas of={Stories.TabbedRecord} />
+
+<Canvas of={Stories.Phone} />
+
+Once shown, the rail keeps its place until the layout is `space.300` narrower than it needs, so a page scrollbar that comes and goes with the rail never flips the display back and forth. The Details are rendered once, where the layout puts them, and a change of display mounts nothing again and moves nothing. The content shows as it is at once: only the reader's own toggle folds it on the kit's motion. Focus on a control inside stays on it, the disclosure opening around it; a draft in an [Editable](?path=/docs/patterns-editable--docs) keeps its field and its text; a control the change replaces (a group's title, an h2 in the rail and an h3 in the disclosure) hands focus to the first control left, once: coming back to a retained tab leaves focus on the tab.
+
+<Canvas of={Stories.DisplayChange} />
+
+A layout mounted again on the client, for the next record or another version of this one, starts from the display the last one measured, so at a desktop width it is the rail from its first commit, and an effect that focuses a control in the Details as they mount (the Version select a version was chosen with) finds the control shown. While a page hydrates it starts as the disclosure, as the server rendered it.
+
+<Canvas of={Stories.MountedAgain} />
+
+## Scrolling
+
+The page keeps its scroll. As it scrolls, the rail stays in view under the shell's header, at most the window's height under it, and scrolls inside itself when the Details are taller: the page and the rail are the two scroll regions, and a register's `fill`, scroll restoration and a StickyRail elsewhere work as they do on any page. The rail sets no overscroll rule, so at its end the wheel goes on to the page. In a window under 30rem tall, where the shell's header scrolls away, the rail scrolls with the page. In a scroller of its own, a rail sticks to that scroller as a StickyRail does: an ancestor sets `--rail-top` and `--rail-max-height`.
+
+<Canvas of={Stories.TallerThanTheWindow} />
+
+An Aside with nothing to show takes no room: the body has the whole width, with no rule.
+
+<Canvas of={Stories.NoDetails} />
+
+## When to use it
+
+- **Use it** for a record's Details beside its body: the Overview tab's panel on a tabbed record, everything under the PageHeader on a record without tabs and on a view focused on part of a record.
+- **Not** on a tab that is a register: a tab whose content is a collection fills the work area, so the Details stay on Overview.
+- **Not** for a wizard's steps or the contents of a long document: a [StickyRail](?path=/docs/layout-stickyrail--docs) in the page's Grid. **Not** for a list beside its detail: a [WorkPane](?path=/docs/patterns-workpane--docs). **Not** in a preview: its properties sit under its record header.
+- **Not** Shell.Aside on its own beside the page. Rendered outside an AsideLayout, an Aside takes the shell's area beside Main, from the top of the page, which is deprecated ([Upgrading](?path=/docs/guidance-upgrading--docs#asidelayout)).
+
+## Accessibility
+
+- The Details are a region named by the Aside's `label` ("Requirement details") in both displays, inside Main: a complementary landmark belongs at the top level.
+- They come first in the document at every width, so the order a screen reader and the Tab key follow is the same on a phone and on a desktop: the Details, then the body.
+- The headings stay in one outline under the page's h1: the rail's groups are h2s; the disclosure's row is an h2 and its groups are h3s.
+- The disclosure's row is a button with `aria-expanded`; Enter and Space toggle it and focus stays on it. Its content stays mounted while closed, so find-in-page opens it.
+- A rail that scrolls inside itself holds its groups' title buttons, so Tab reaches it and the browser scrolls a focused control into view. Its rows' focus rings are drawn inside them, where the rail's edges cannot cut them.
+
+## Props
+
+<ArgTypes of={AsideLayout} />
+
+AsideLayout renders one `div` holding the Details' cell and the body's, forwards its native props, a `className` and its ref to it, and names itself last with `data-slot="aside-layout"` and its display with `data-display` (`rail` or `disclosure`).
+
+<Canvas of={Stories.NativeAttributes} />
+
+## Related
+
+- [Shell](?path=/docs/layout-shell--docs): the Aside, its `label`, `heading` and `summary`.
+- [Inspector](?path=/docs/patterns-inspector--docs): the groups of facts the Details hold, in the rail and in the disclosure.
+- [Tabs](?path=/docs/components-tabs--docs): the strip the Details start under on a tabbed record.
+- [StickyRail](?path=/docs/layout-stickyrail--docs): a column that stays in view beside a long page, for anything but a record's Details.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#asidelayout): from an Aside beside the page to an AsideLayout.

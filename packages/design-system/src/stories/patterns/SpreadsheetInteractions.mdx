@@ -1,0 +1,64 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Spreadsheet, SpreadsheetSheetBar } from "../../patterns/spreadsheet";
+import * as Stories from "./SpreadsheetInteractions.stories";
+
+<Meta of={Stories} />
+
+# Spreadsheet interactions
+
+**Status: Experimental.** These controlled examples exercise the Spreadsheet context and navigation contracts. The host owns records, permissions, persistence and formula evaluation. The [Spreadsheet page](?path=/docs/patterns-spreadsheet--docs) documents the complete grid contract.
+
+## Sheet navigation
+
+`SpreadsheetSheetBar` is the same footer used by Spreadsheet, exported for other workbook views. Supply stable sheet IDs, the active sheet and `onSheetChange`. The **All sheets** picker and sheet buttons call that callback. Optional add-sheet, add-row and add-column callbacks expose host operations; dimensions describe the current sheet. Add sheet and All sheets stay pinned while the tabs scroll independently. The active tab uses a tint and underline, with its action chevron beside the label. Inactive action chevrons appear on hover or keyboard focus and remain visible on touch screens. Dimensions, add-row/column controls and status use a separate lane below the tabs in narrow containers.
+
+`getSheetActions` provides permitted action descriptors and `onSheetAction` receives the target sheet ID and action ID. A chevron or context menu on an inactive sheet targets that sheet without changing the active sheet. Sheet buttons retain native Tab navigation; arrow keys, Home and End move focus without selecting. Shift+F10 or Alt+Down opens available actions. Double-clicking a sheet requests `rename` only when the host supplies an enabled action with that ID. A sheet without rename permission remains selectable. Focus and active-sheet changes reveal the relevant tab without scrolling the pinned controls.
+
+<Canvas of={Stories.SheetNavigation} />
+<Canvas of={Stories.SheetActions} />
+<Canvas of={Stories.SheetOverflow} />
+
+## Context and range identity
+
+Cell context menus preserve a selected rectangle when opened inside it. Opening outside it chooses the target cell. The menu context carries the pointer target separately from the retained selection. Read-only and pending states disable writes; host handlers authorize their actions.
+
+Hiding rows or columns changes presentation while keeping stable identities and canonical addresses. The column-header menu applies to the selected header range. The host persists controlled hidden IDs and restores them without deleting data.
+
+<Canvas of={Stories.ContextSelection} />
+<Canvas of={Stories.HiddenAddresses} />
+
+## Fill and header gestures
+
+Drag the corner handle of a selected range to repeat its cells into a larger range. The host's `translateInput` translates formula references using canonical workbook coordinates. The grid previews the target while dragging and sends one atomic `onChange` on release. Escape cancels without writing. Control/Command+D fills down and Control/Command+R fills right, suppressing the browser’s bookmark or reload action while the grid owns focus. A protected destination rejects the whole fill, including otherwise writable cells.
+
+Drag row or column headings to select whole axes. Resizing a column inside a selected column range previews all selected widths and emits one `onColumnWidthsChange` when released; Escape restores the previous dimensions. The controlled host can record that callback as one undo operation.
+
+<Canvas of={Stories.DragFill} />
+<Canvas of={Stories.ProtectedFill} />
+<Canvas of={Stories.FillShortcuts} />
+
+`isCellLiteral` preserves formula-shaped source text through normal copy and fill, while genuine formulas still translate. `preparePasteValue` controls target encoding; the system clipboard keeps the original TSV.
+
+<Canvas of={Stories.LiteralClipboard} />
+<Canvas of={Stories.HeaderGestures} />
+
+## Row sizing and wrapped text
+
+Drag the divider below a row heading to set its height. A selected whole-row range resizes together, and a drag sends one committed callback. Focus a divider and use Up/Down for 8-pixel steps, Shift with Up/Down for 32-pixel steps, or Home/End for the allowed extremes. Alt+Shift+Up/Down sizes the selected row from the grid. Double-clicking the divider or pressing Enter fits the row to its displayed data.
+
+**Row height…** sets an explicit size. **Fit to data** measures the current typography and stores a height within the manual limits. **Automatic row height** removes the selected IDs from the controlled `rowHeights` map so wrapping and font changes can grow or shrink the row again. Explicit heights take precedence over automatic measurement. The host persists the map and handles key removal; it does not need to rewrite cell values.
+
+Wrapped rows measure the rendered font family, size and column width. Vertical alignment places short content at the top, middle or bottom of the available row height. Long automatic rows remain within the grid's internal scrolling region.
+
+<Canvas of={Stories.RowSizing} />
+<Canvas of={Stories.AutomaticWrapping} />
+<Canvas of={Stories.ClippedTypography} />
+
+## Cell annotations
+
+Per-cell dropdown choices override a column's editor for that cell. Plain comments appear through a marker and accessible description. The host validates and stores these annotations; the view makes no claim about authorship or shared editing.
+
+<Canvas of={Stories.CellAnnotations} />
+
+<ArgTypes of={SpreadsheetSheetBar} />
+<ArgTypes of={Spreadsheet} />

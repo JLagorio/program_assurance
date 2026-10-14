@@ -43,7 +43,7 @@ const actionBar = {
   name: "ActionBar",
   to: "PageHeader",
   detail:
-    "the trail in PageHeader.Lead, the verbs in PageHeader.Actions and the state in the Details rail, Shell.Aside; a blocked action is a Button with disabledReason",
+    "the trail in PageHeader.Lead, the verbs in PageHeader.Actions and the state in the Details, an AsideLayout's Shell.Aside; a blocked action is a Button with disabledReason",
 };
 
 export default {
@@ -437,8 +437,9 @@ export default {
           messageId: "renamedWithDetail",
           data: {
             name: "ShowPage",
-            to: "PageHeader, Section and Shell.Aside",
-            detail: "a record page: PageHeader, Section bodies and the Details rail in Shell.Aside",
+            to: "PageHeader, Section and AsideLayout",
+            detail:
+              "a record page: PageHeader, Section bodies and the Details, a Shell.Aside, as the AsideLayout's aside",
           },
         },
         {
@@ -450,7 +451,7 @@ export default {
               "the trail in PageHeader.Lead, the name in PageHeader.Title, actions in PageHeader.Actions",
           },
         },
-        { messageId: "renamed", data: { name: "PreviewRail", to: "Shell.Aside" } },
+        { messageId: "renamed", data: { name: "PreviewRail", to: "AsideLayout" } },
         {
           messageId: "renamedWithDetail",
           data: {

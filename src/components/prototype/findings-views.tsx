@@ -10,6 +10,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { FileText, Plus } from "lucide-react";
 import {
   Absent,
+  AsideLayout,
   Button,
   DataTable,
   DateTime,
@@ -20,6 +21,7 @@ import {
   Prose,
   Shell,
   Skeleton,
+  Stack,
   Tabs,
   TabsList,
   TabsTrigger,
@@ -576,112 +578,132 @@ export function FindingRecord({ id }: { id: string }) {
                 onCancel={() => setEditing(null)}
               />
             )}
-            <Shell.Aside
-              label="Assessment finding details"
-              summary={
-                row.determination ? (
-                  <StatusBadge statuses={determinations} value={row.determination} />
-                ) : undefined
+            <AsideLayout
+              aside={
+                <Shell.Aside
+                  label="Assessment finding details"
+                  summary={
+                    row.determination ? (
+                      <StatusBadge statuses={determinations} value={row.determination} />
+                    ) : undefined
+                  }
+                >
+                  <Inspector.Group title="Details">
+                    <ModelFacts
+                      record={row as DataRecord}
+                      table="assessment_findings"
+                      fields={[
+                        { key: "determination", label: "Determination" },
+                        { key: "determined_at", label: "Determined" },
+                        {
+                          key: "assessor_party_id",
+                          label: "Assessor",
+                          render: (record) => (
+                            <RelationName
+                              table="parties"
+                              id={record["assessor_party_id"] as string | null}
+                            />
+                          ),
+                        },
+                        {
+                          key: "target_control_part_id",
+                          label: "Control statement or objective",
+                          render: (record) => (
+                            <RelationName
+                              table="control_parts"
+                              id={record["target_control_part_id"] as string}
+                            />
+                          ),
+                        },
+                        {
+                          key: "result_set_id",
+                          label: "Result set",
+                          render: (record) => (
+                            <RelationName
+                              table="result_sets"
+                              id={record["result_set_id"] as string}
+                            />
+                          ),
+                        },
+                      ]}
+                    />
+                    <ResultsRevision query={results} />
+                  </Inspector.Group>
+                </Shell.Aside>
               }
             >
-              <Inspector.Group title="Details">
-                <ModelFacts
-                  record={row as DataRecord}
-                  table="assessment_findings"
-                  fields={[
-                    { key: "determination", label: "Determination" },
-                    { key: "determined_at", label: "Determined" },
+              <Stack space="space.200" className="min-w-0">
+                <Described label="Assessment determination" text={row.description} />
+                <EntitySection
+                  showHeading
+                  table="finding_observations"
+                  links="observations"
+                  filters={{ finding_id: id }}
+                  initialValues={{
+                    assessment_results_revision_id: row.assessment_results_revision_id,
+                  }}
+                  title="Supporting observations"
+                  readOnly={readOnly}
+                  columns={[
                     {
-                      key: "assessor_party_id",
-                      label: "Assessor",
+                      key: "observation_id",
+                      label: "Observation",
                       render: (record) => (
                         <RelationName
-                          table="parties"
-                          id={record["assessor_party_id"] as string | null}
+                          table="observations"
+                          id={record["observation_id"] as string}
                         />
-                      ),
-                    },
-                    {
-                      key: "target_control_part_id",
-                      label: "Control statement or objective",
-                      render: (record) => (
-                        <RelationName
-                          table="control_parts"
-                          id={record["target_control_part_id"] as string}
-                        />
-                      ),
-                    },
-                    {
-                      key: "result_set_id",
-                      label: "Result set",
-                      render: (record) => (
-                        <RelationName table="result_sets" id={record["result_set_id"] as string} />
                       ),
                     },
                   ]}
                 />
-                <ResultsRevision query={results} />
-              </Inspector.Group>
-            </Shell.Aside>
-            <Described label="Assessment determination" text={row.description} />
-            <EntitySection
-              showHeading
-              table="finding_observations"
-              links="observations"
-              filters={{ finding_id: id }}
-              initialValues={{ assessment_results_revision_id: row.assessment_results_revision_id }}
-              title="Supporting observations"
-              readOnly={readOnly}
-              columns={[
-                {
-                  key: "observation_id",
-                  label: "Observation",
-                  render: (record) => (
-                    <RelationName table="observations" id={record["observation_id"] as string} />
-                  ),
-                },
-              ]}
-            />
-            <EntitySection
-              showHeading
-              table="finding_evidence"
-              links="evidence_versions"
-              filters={{ finding_id: id }}
-              title="Evidence citations"
-              readOnly={readOnly}
-              columns={[
-                {
-                  key: "evidence_version_id",
-                  label: "Evidence version",
-                  render: (record) => (
-                    <VersionName
-                      table="evidence_versions"
-                      id={record["evidence_version_id"] as string}
-                    />
-                  ),
-                },
-                { key: "claim", label: "Claim" },
-                { key: "applicability_rationale", label: "Applicability rationale" },
-              ]}
-            />
-            <EntitySection
-              showHeading
-              table="finding_risks"
-              links="risk_revisions"
-              filters={{ finding_id: id }}
-              initialValues={{ assessment_results_revision_id: row.assessment_results_revision_id }}
-              title="Linked risk assessments"
-              readOnly={readOnly}
-              columns={[
-                {
-                  key: "risk_revision_id",
-                  label: "Risk assessment",
-                  render: (record) => (
-                    <VersionName table="risk_revisions" id={record["risk_revision_id"] as string} />
-                  ),
-                },
-              ]}
-            />
+                <EntitySection
+                  showHeading
+                  table="finding_evidence"
+                  links="evidence_versions"
+                  filters={{ finding_id: id }}
+                  title="Evidence citations"
+                  readOnly={readOnly}
+                  columns={[
+                    {
+                      key: "evidence_version_id",
+                      label: "Evidence version",
+                      render: (record) => (
+                        <VersionName
+                          table="evidence_versions"
+                          id={record["evidence_version_id"] as string}
+                        />
+                      ),
+                    },
+                    { key: "claim", label: "Claim" },
+                    { key: "applicability_rationale", label: "Applicability rationale" },
+                  ]}
+                />
+                <EntitySection
+                  showHeading
+                  table="finding_risks"
+                  links="risk_revisions"
+                  filters={{ finding_id: id }}
+                  initialValues={{
+                    assessment_results_revision_id: row.assessment_results_revision_id,
+                  }}
+                  title="Linked risk assessments"
+                  readOnly={readOnly}
+                  columns={[
+                    {
+                      key: "risk_revision_id",
+                      label: "Risk assessment",
+                      render: (record) => (
+                        <VersionName
+                          table="risk_revisions"
+                          id={record["risk_revision_id"] as string}
+                        />
+                      ),
+                    },
+                  ]}
+                />
+              </Stack>
+            </AsideLayout>
           </>
         ) : (
           <MissingRecord backTo="/findings" kind="Assessment finding" />
@@ -722,83 +744,93 @@ export function IssueRecord({ id }: { id: string }) {
                 onCancel={() => setEditing(null)}
               />
             )}
-            <Shell.Aside
-              label="Operational issue details"
-              summary={<StatusBadge statuses={operationalIssueStatuses} value={row.status} />}
+            <AsideLayout
+              aside={
+                <Shell.Aside
+                  label="Operational issue details"
+                  summary={<StatusBadge statuses={operationalIssueStatuses} value={row.status} />}
+                >
+                  <Inspector.Group title="Details">
+                    <ModelFacts
+                      record={row as DataRecord}
+                      table="operational_issues"
+                      fields={[
+                        { key: "status", label: "Status" },
+                        { key: "severity", label: "Severity" },
+                        {
+                          key: "owner_party_id",
+                          label: "Owner",
+                          render: (record) => (
+                            <RelationName
+                              table="parties"
+                              id={record["owner_party_id"] as string | null}
+                            />
+                          ),
+                        },
+                        { key: "opened_at", label: "Opened" },
+                        { key: "closed_at", label: "Closed" },
+                        { key: "closure_rationale", label: "Closure rationale" },
+                      ]}
+                    />
+                  </Inspector.Group>
+                </Shell.Aside>
+              }
             >
-              <Inspector.Group title="Details">
-                <ModelFacts
-                  record={row as DataRecord}
-                  table="operational_issues"
-                  fields={[
-                    { key: "status", label: "Status" },
-                    { key: "severity", label: "Severity" },
+              <Stack space="space.200" className="min-w-0">
+                <Described label="Description" text={row.description} />
+                <EntitySection
+                  showHeading
+                  table="issue_observations"
+                  links="observations"
+                  filters={{ issue_id: id }}
+                  title="Observations"
+                  columns={[
                     {
-                      key: "owner_party_id",
-                      label: "Owner",
+                      key: "observation_id",
+                      label: "Observation",
                       render: (record) => (
                         <RelationName
-                          table="parties"
-                          id={record["owner_party_id"] as string | null}
+                          table="observations"
+                          id={record["observation_id"] as string}
                         />
                       ),
                     },
-                    { key: "opened_at", label: "Opened" },
-                    { key: "closed_at", label: "Closed" },
-                    { key: "closure_rationale", label: "Closure rationale" },
                   ]}
                 />
-              </Inspector.Group>
-            </Shell.Aside>
-            <Described label="Description" text={row.description} />
-            <EntitySection
-              showHeading
-              table="issue_observations"
-              links="observations"
-              filters={{ issue_id: id }}
-              title="Observations"
-              columns={[
-                {
-                  key: "observation_id",
-                  label: "Observation",
-                  render: (record) => (
-                    <RelationName table="observations" id={record["observation_id"] as string} />
-                  ),
-                },
-              ]}
-            />
-            <EntitySection
-              showHeading
-              table="issue_poams"
-              links="poam_items"
-              filters={{ issue_id: id }}
-              title="Remediation items"
-              columns={[
-                {
-                  key: "poam_item_id",
-                  label: "Remediation item",
-                  render: (record) => (
-                    <RelationName table="poam_items" id={record["poam_item_id"] as string} />
-                  ),
-                },
-              ]}
-            />
-            <EntitySection
-              showHeading
-              table="task_issues"
-              links="tasks"
-              filters={{ issue_id: id }}
-              title="Tasks"
-              columns={[
-                {
-                  key: "task_id",
-                  label: "Task",
-                  render: (record) => (
-                    <RelationName table="tasks" id={record["task_id"] as string} />
-                  ),
-                },
-              ]}
-            />
+                <EntitySection
+                  showHeading
+                  table="issue_poams"
+                  links="poam_items"
+                  filters={{ issue_id: id }}
+                  title="Remediation items"
+                  columns={[
+                    {
+                      key: "poam_item_id",
+                      label: "Remediation item",
+                      render: (record) => (
+                        <RelationName table="poam_items" id={record["poam_item_id"] as string} />
+                      ),
+                    },
+                  ]}
+                />
+                <EntitySection
+                  showHeading
+                  table="task_issues"
+                  links="tasks"
+                  filters={{ issue_id: id }}
+                  title="Tasks"
+                  columns={[
+                    {
+                      key: "task_id",
+                      label: "Task",
+                      render: (record) => (
+                        <RelationName table="tasks" id={record["task_id"] as string} />
+                      ),
+                    },
+                  ]}
+                />
+              </Stack>
+            </AsideLayout>
           </>
         ) : (
           <MissingRecord backTo="/findings" kind="Operational issue" />
@@ -839,47 +871,54 @@ export function AssetRecord({ id }: { id: string }) {
                 onCancel={() => setEditing(null)}
               />
             )}
-            <Shell.Aside label="Asset details">
-              <Inspector.Group title="Details">
-                <ModelFacts
-                  record={row as DataRecord}
-                  table="inventory_items"
-                  fields={[
-                    { key: "asset_id", label: "Asset ID" },
+            <AsideLayout
+              aside={
+                <Shell.Aside label="Asset details">
+                  <Inspector.Group title="Details">
+                    <ModelFacts
+                      record={row as DataRecord}
+                      table="inventory_items"
+                      fields={[
+                        { key: "asset_id", label: "Asset ID" },
+                        {
+                          key: "system_id",
+                          label: "System",
+                          render: (record) => (
+                            <RelationName table="systems" id={record["system_id"] as string} />
+                          ),
+                        },
+                        { key: "manufacturer", label: "Manufacturer" },
+                        { key: "model", label: "Model" },
+                        { key: "serial_number", label: "Serial number" },
+                      ]}
+                    />
+                  </Inspector.Group>
+                </Shell.Aside>
+              }
+            >
+              <Stack space="space.200" className="min-w-0">
+                <Described label="Description" text={row.description} />
+                <EntitySection
+                  showHeading
+                  table="inventory_components"
+                  filters={{ inventory_item_id: id }}
+                  initialValues={{ system_id: row.system_id }}
+                  title="Implemented components"
+                  columns={[
                     {
-                      key: "system_id",
-                      label: "System",
+                      key: "system_component_id",
+                      label: "Component",
                       render: (record) => (
-                        <RelationName table="systems" id={record["system_id"] as string} />
+                        <RelationName
+                          table="system_components"
+                          id={record["system_component_id"] as string}
+                        />
                       ),
                     },
-                    { key: "manufacturer", label: "Manufacturer" },
-                    { key: "model", label: "Model" },
-                    { key: "serial_number", label: "Serial number" },
                   ]}
                 />
-              </Inspector.Group>
-            </Shell.Aside>
-            <Described label="Description" text={row.description} />
-            <EntitySection
-              showHeading
-              table="inventory_components"
-              filters={{ inventory_item_id: id }}
-              initialValues={{ system_id: row.system_id }}
-              title="Implemented components"
-              columns={[
-                {
-                  key: "system_component_id",
-                  label: "Component",
-                  render: (record) => (
-                    <RelationName
-                      table="system_components"
-                      id={record["system_component_id"] as string}
-                    />
-                  ),
-                },
-              ]}
-            />
+              </Stack>
+            </AsideLayout>
           </>
         ) : (
           <MissingRecord backTo="/findings" kind="Asset" />

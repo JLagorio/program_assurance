@@ -424,11 +424,9 @@ try {
   const controls = page.getByRole("table", { name: "Controls", exact: true });
   // A product collection's page: 25 rows.
   await expect(controls.locator("tr[data-row-id]")).toHaveCount(Math.min(25, low.count));
-  await expect(
-    page.getByRole("complementary", { name: "System details", exact: true }),
-  ).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "System details", exact: true })).toHaveCount(0);
   await tabs().getByRole("tab", { name: "Overview", exact: true }).click();
-  const rail = page.getByRole("complementary", { name: "System details", exact: true });
+  const rail = page.getByRole("region", { name: "System details", exact: true });
   await expect(rail).toContainText("Moderate");
   await expect(rail.getByRole("link", { name: root.name, exact: true })).toHaveCount(1);
   await expect(rail.getByRole("link", { name: parent.name, exact: true })).toHaveCount(1);

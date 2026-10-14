@@ -9,9 +9,9 @@ import {
 import { createPortal } from "react-dom";
 
 /**
- * How the Aside shows: `rail` beside Main or following it, its content always open; `disclosure`
- * where it was rendered in the page, folded under one Details row (below the aside breakpoint,
- * wherever it would not sit beside Main).
+ * How the Aside shows: `rail`, its content always open, at the body's end; `disclosure`, folded
+ * under one Details row above the body. An AsideLayout chooses from its own width; an Aside outside
+ * one (deprecated) from the shell's aside breakpoint, the rail beside Main or following it.
  */
 export type AsideDisplay = "rail" | "disclosure";
 
@@ -42,3 +42,17 @@ export function AreaPortal({ name, children }: { name: "aside" | "panel"; childr
  */
 export const AsideDisclosureContext = createContext<string | null>(null);
 export const useAsideDisclosure = () => useContext(AsideDisclosureContext);
+
+/**
+ * Whether the content sits in an Aside shown as the rail. The rail pads only its bottom (its top
+ * too in the shell's area): an Inspector's groups there run its full width, each with the gutter
+ * inside its own row.
+ */
+export const AsideRailContext = createContext(false);
+export const useAsideRail = () => useContext(AsideRailContext);
+
+/**
+ * How the AsideLayout around an Aside shows it, from the layout's own width; null outside one,
+ * where the Aside takes the shell's area instead (deprecated).
+ */
+export const AsideLayoutContext = createContext<AsideDisplay | null>(null);

@@ -53,6 +53,7 @@ import { Route as ProgramsProgramIdInheritanceRouteImport } from './routes/progr
 import { Route as ProgramsProgramIdRiskRouteImport } from './routes/programs.$programId_.risk'
 import { Route as ProgramsProgramIdSctmRouteImport } from './routes/programs.$programId_.sctm'
 import { Route as ProgramsProgramIdTePhasesRouteImport } from './routes/programs.$programId_.te-phases'
+import { Route as ProgramsProgramIdWorkbookRouteImport } from './routes/programs.$programId_.workbook'
 import { Route as RecordsCollectionRecordIdRouteImport } from './routes/records.$collection.$recordId'
 import { Route as RegisterPoamPoamIdRouteImport } from './routes/register.poam.$poamId'
 import { Route as RegisterRisksRiskIdRouteImport } from './routes/register.risks.$riskId'
@@ -292,6 +293,12 @@ const ProgramsProgramIdTePhasesRoute =
     path: '/$programId/te-phases',
     getParentRoute: () => ProgramsRoute,
   } as any)
+const ProgramsProgramIdWorkbookRoute =
+  ProgramsProgramIdWorkbookRouteImport.update({
+    id: '/$programId_/workbook',
+    path: '/$programId/workbook',
+    getParentRoute: () => ProgramsRoute,
+  } as any)
 const RecordsCollectionRecordIdRoute =
   RecordsCollectionRecordIdRouteImport.update({
     id: '/$recordId',
@@ -375,6 +382,7 @@ export interface FileRoutesByFullPath {
   '/programs/$programId/risk': typeof ProgramsProgramIdRiskRoute
   '/programs/$programId/sctm': typeof ProgramsProgramIdSctmRoute
   '/programs/$programId/te-phases': typeof ProgramsProgramIdTePhasesRoute
+  '/programs/$programId/workbook': typeof ProgramsProgramIdWorkbookRoute
   '/records/$collection/$recordId': typeof RecordsCollectionRecordIdRoute
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
@@ -428,6 +436,7 @@ export interface FileRoutesByTo {
   '/programs/$programId/risk': typeof ProgramsProgramIdRiskRoute
   '/programs/$programId/sctm': typeof ProgramsProgramIdSctmRoute
   '/programs/$programId/te-phases': typeof ProgramsProgramIdTePhasesRoute
+  '/programs/$programId/workbook': typeof ProgramsProgramIdWorkbookRoute
   '/records/$collection/$recordId': typeof RecordsCollectionRecordIdRoute
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
@@ -482,6 +491,7 @@ export interface FileRoutesById {
   '/programs/$programId_/risk': typeof ProgramsProgramIdRiskRoute
   '/programs/$programId_/sctm': typeof ProgramsProgramIdSctmRoute
   '/programs/$programId_/te-phases': typeof ProgramsProgramIdTePhasesRoute
+  '/programs/$programId_/workbook': typeof ProgramsProgramIdWorkbookRoute
   '/records/$collection/$recordId': typeof RecordsCollectionRecordIdRoute
   '/register/poam/$poamId': typeof RegisterPoamPoamIdRoute
   '/register/risks/$riskId': typeof RegisterRisksRiskIdRoute
@@ -537,6 +547,7 @@ export interface FileRouteTypes {
     | '/programs/$programId/risk'
     | '/programs/$programId/sctm'
     | '/programs/$programId/te-phases'
+    | '/programs/$programId/workbook'
     | '/records/$collection/$recordId'
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
@@ -590,6 +601,7 @@ export interface FileRouteTypes {
     | '/programs/$programId/risk'
     | '/programs/$programId/sctm'
     | '/programs/$programId/te-phases'
+    | '/programs/$programId/workbook'
     | '/records/$collection/$recordId'
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
@@ -643,6 +655,7 @@ export interface FileRouteTypes {
     | '/programs/$programId_/risk'
     | '/programs/$programId_/sctm'
     | '/programs/$programId_/te-phases'
+    | '/programs/$programId_/workbook'
     | '/records/$collection/$recordId'
     | '/register/poam/$poamId'
     | '/register/risks/$riskId'
@@ -999,6 +1012,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProgramsProgramIdTePhasesRouteImport
       parentRoute: typeof ProgramsRoute
     }
+    '/programs/$programId_/workbook': {
+      id: '/programs/$programId_/workbook'
+      path: '/$programId/workbook'
+      fullPath: '/programs/$programId/workbook'
+      preLoaderRoute: typeof ProgramsProgramIdWorkbookRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
     '/records/$collection/$recordId': {
       id: '/records/$collection/$recordId'
       path: '/$recordId'
@@ -1077,6 +1097,7 @@ interface ProgramsRouteChildren {
   ProgramsProgramIdRiskRoute: typeof ProgramsProgramIdRiskRoute
   ProgramsProgramIdSctmRoute: typeof ProgramsProgramIdSctmRoute
   ProgramsProgramIdTePhasesRoute: typeof ProgramsProgramIdTePhasesRoute
+  ProgramsProgramIdWorkbookRoute: typeof ProgramsProgramIdWorkbookRoute
   ProgramsProgramIdComponentsComponentIdRoute: typeof ProgramsProgramIdComponentsComponentIdRoute
   ProgramsProgramIdControlsControlIdRoute: typeof ProgramsProgramIdControlsControlIdRoute
   ProgramsProgramIdRequirementsRequirementIdRoute: typeof ProgramsProgramIdRequirementsRequirementIdRoute
@@ -1097,6 +1118,7 @@ const ProgramsRouteChildren: ProgramsRouteChildren = {
   ProgramsProgramIdRiskRoute: ProgramsProgramIdRiskRoute,
   ProgramsProgramIdSctmRoute: ProgramsProgramIdSctmRoute,
   ProgramsProgramIdTePhasesRoute: ProgramsProgramIdTePhasesRoute,
+  ProgramsProgramIdWorkbookRoute: ProgramsProgramIdWorkbookRoute,
   ProgramsProgramIdComponentsComponentIdRoute:
     ProgramsProgramIdComponentsComponentIdRoute,
   ProgramsProgramIdControlsControlIdRoute:

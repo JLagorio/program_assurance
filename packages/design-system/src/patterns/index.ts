@@ -6,6 +6,12 @@ export {
   type UseCommandPaletteOptions,
 } from "./command-palette";
 export {
+  CommandScope,
+  useScopedCommands,
+  type CommandScopeProps,
+  type ScopedCommand,
+} from "./command-scope";
+export {
   Composer,
   type ComposerProps,
   type ComposerSuggestion,
@@ -106,8 +112,6 @@ export {
   type WorkPaneView,
 } from "./work-pane";
 
-export {
-  RecordBrowser,
-  type RecordBrowserEmpty,
-  type RecordBrowserProps,
-} from "./record-browser";
+export { RecordBrowser, type RecordBrowserEmpty, type RecordBrowserProps } from "./record-browser";
+export * from "./spreadsheet";
+export { ChangeReview, type ChangeReviewProps, type ReviewChange } from "./change-review";

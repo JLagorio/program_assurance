@@ -8,6 +8,7 @@ import { labelFor, type DataRecord, type RecordValue } from "@/lib/records";
 import { implementationStatuses, revisionStates, statusLabel } from "@/lib/status";
 import {
   Absent,
+  AsideLayout,
   Button,
   Count,
   DataTable,
@@ -49,7 +50,13 @@ import { RetainedTabPanels } from "./program-shared";
 import { recordDestination, RecordLink, useDisplayedRecords, useEndOnHide } from "./record-preview";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { RecordTrail, TrailLink } from "./record-trail";
-import { EmptyMessage, MissingRecord, QueryState, RecordActions } from "./work-common";
+import {
+  EmptyMessage,
+  MissingRecord,
+  QueryState,
+  RecordActions,
+  ReportFailures,
+} from "./work-common";
 
 /** A definition with what its latest version says. */
 type ComponentRow = Row<"component_definitions"> & {
@@ -854,11 +861,11 @@ function ComponentRevision({
             switch (name) {
               case "Overview":
                 return (
-                  <>
-                    {/* The version's Details, first on Overview: the rail beside it, or on a
-                        phone a closed disclosure above it whose row says the state. Kept to
-                        Overview, since the panel stays mounted while another tab shows. */}
-                    {tab === "Overview" && (
+                  // Overview beside the version's Details: the rail at its end where it fits,
+                  // else a closed disclosure above it whose row says the state. They leave
+                  // with the tab.
+                  <AsideLayout
+                    aside={
                       <Shell.Aside
                         label="Component details"
                         summary={<StatusBadge statuses={revisionStates} value={revision.state} />}
@@ -926,8 +933,12 @@ function ComponentRevision({
                           </Inspector.Group>
                         </Stack>
                       </Shell.Aside>
-                    )}
+                    }
+                  >
                     <Stack space="space.200" className="max-w-layout-measure">
+                      {/* The Details' counts say "Could not load" in place; the region's alert says
+                          why, and its Retry reloads them. */}
+                      <ReportFailures queries={[components, uses]} />
                       <Prose label="Description">{definition.description || <Absent />}</Prose>
                       {authored.map(([label, text]) =>
                         text ? (
@@ -937,7 +948,7 @@ function ComponentRevision({
                         ) : null,
                       )}
                     </Stack>
-                  </>
+                  </AsideLayout>
                 );
               case "Controls":
                 return (

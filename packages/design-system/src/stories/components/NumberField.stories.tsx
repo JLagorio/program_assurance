@@ -362,3 +362,95 @@ export const Dont: Story = {
     />
   ),
 };
+
+/** Compact steppers flank a framed, centered value without changing parsing, focus, or bounds. */
+export const AroundSteppers: Story = {
+  args: {
+    "aria-label": "Font size",
+    defaultValue: 10,
+    min: 8,
+    max: 72,
+    step: 1,
+    size: "small",
+    stepperPlacement: "around",
+    onValueCommitted: fn(),
+  },
+  render: (args) => <NumberField {...args} style={{ width: 96, maxWidth: "100%" }} />,
+  play: async ({ args, canvas }) => {
+    const input = canvas.getByRole("textbox", { name: "Font size" });
+    const decrease = canvas.getByRole("button", { name: "Decrease Font size" });
+    const increase = canvas.getByRole("button", { name: "Increase Font size" });
+    const root = input.closest<HTMLElement>('[data-slot="number-field"]')!;
+    await expect(root).toHaveAttribute("data-stepper-placement", "around");
+    await expect(root.getBoundingClientRect().width).toBe(96);
+    await expect(root.getBoundingClientRect().height).toBe(28);
+    await expect(getComputedStyle(input).textAlign).toBe("center");
+    const valueBox = input.getBoundingClientRect();
+    if (getComputedStyle(root).direction === "rtl") {
+      await expect(decrease.getBoundingClientRect().left).toBeGreaterThanOrEqual(valueBox.right);
+      await expect(increase.getBoundingClientRect().right).toBeLessThanOrEqual(valueBox.left);
+    } else {
+      await expect(decrease.getBoundingClientRect().right).toBeLessThanOrEqual(valueBox.left);
+      await expect(increase.getBoundingClientRect().left).toBeGreaterThanOrEqual(valueBox.right);
+    }
+    await userEvent.click(decrease);
+    await expect(input).toHaveValue("9");
+    await expect(input).toHaveFocus();
+    await expect(args.onValueCommitted).toHaveBeenCalledTimes(1);
+    await userEvent.keyboard("{End}");
+    await expect(input).toHaveValue("72");
+    await expect(increase).toHaveAttribute("aria-disabled", "true");
+    await userEvent.keyboard("{Home}");
+    await expect(input).toHaveValue("8");
+    await expect(decrease).toHaveAttribute("aria-disabled", "true");
+    await userEvent.tripleClick(input);
+    await userEvent.keyboard("12");
+    await userEvent.tab();
+    await expect(input).toHaveValue("12");
+    await expect(increase).not.toHaveFocus();
+    await expect(decrease).not.toHaveFocus();
+  },
+};
+
+/** Disabled and read-only compact fields retain the same Field semantics as the default layout. */
+export const AroundStates: Story = {
+  render: () => (
+    <Stack space="space.200">
+      <Field disabled>
+        <FieldLabel>Disabled size</FieldLabel>
+        <NumberField
+          defaultValue={10}
+          size="small"
+          stepperPlacement="around"
+          style={{ width: 96 }}
+        />
+      </Field>
+      <Field>
+        <FieldLabel>Read-only size</FieldLabel>
+        <NumberField
+          defaultValue={10}
+          readOnly
+          size="small"
+          stepperPlacement="around"
+          style={{ width: 96 }}
+        />
+      </Field>
+    </Stack>
+  ),
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole("textbox", { name: "Disabled size" })).toBeDisabled();
+    await expect(canvas.getByRole("button", { name: "Decrease Disabled size" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    await expect(canvas.getByRole("button", { name: "Increase Disabled size" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    const readOnly = canvas.getByRole("textbox", { name: "Read-only size" });
+    await expect(readOnly).toHaveAttribute("readonly");
+    await expect(
+      within(readOnly.closest<HTMLElement>('[data-slot="number-field"]')!).queryByRole("button"),
+    ).toBeNull();
+  },
+};

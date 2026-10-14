@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Absent,
+  AsideLayout,
   Badge,
   Button,
   Count,
@@ -59,6 +60,7 @@ import type { AssessmentKind } from "@/components/prototype/assessment-tabs";
 import { EvidenceBrowser } from "@/components/prototype/evidence-browser";
 import { WorkTable } from "@/components/prototype/work-table";
 import { ObservationsRegister } from "./observations-register";
+import { AssuranceWorkbench } from "./assurance-workbench";
 import { RequirementsTable } from "./requirements-table";
 import { ProgramSystemsTree } from "./program-systems-tree";
 import { ProgramLibrary } from "./program-library";
@@ -124,6 +126,7 @@ export function programTab(value: unknown): ProgramTab {
  * on the Overview (the old dashboard address) is not offered here.
  */
 const programViews = [
+  ["Workbook", "/programs/$programId/workbook"],
   ["Configuration baseline", "/programs/$programId/baseline"],
   ["Traceability matrix", "/programs/$programId/sctm"],
   ["Inheritance resolution", "/programs/$programId/inheritance"],
@@ -247,98 +250,100 @@ export function ProgramWorkspace({
     switch (name) {
       case "Overview":
         return (
-          <>
-            {/* The program's Details, first on Overview: the rail beside it, or on a phone a
-                closed disclosure above it whose row says the status. Kept to Overview, since the
-                panel stays mounted while another tab shows. */}
-            {tab === "Overview" && <ProgramDetailsAside program={program} />}
-            {queues.some((queue) => queue.query.isError) && (
-              <ProgramQueryState queries={queues.map((queue) => queue.query)} />
-            )}
-            <Stat.Grid
-              cols={3}
-              role="group"
-              aria-label="Open work"
-              aria-busy={queues.some((queue) => queue.value === undefined && !queue.query.isError)}
-            >
-              {queues.map((queue) => {
-                const failed = queue.value === undefined && queue.query.isError;
-                return (
-                  <Stat.Tile
-                    key={queue.label}
-                    label={queue.label}
-                    // A queue opens the tab that holds it.
-                    link={tabLink(queue.tab)}
-                    value={failed ? <Absent label="Not available" /> : (queue.value ?? null)}
-                    isLoading={queue.value === undefined && !failed}
-                    note={
-                      failed ? "Could not load" : queue.value === 0 ? "Nothing open" : undefined
-                    }
-                  />
-                );
-              })}
-            </Stat.Grid>
-            <ProgramQueryState queries={[gates]}>
-              <ProgramTimeline programId={programId} gates={gates.data ?? []} />
-            </ProgramQueryState>
-            <Section title="Program summary">
-              {program.description ? (
-                <Prose>{program.description}</Prose>
-              ) : (
-                <EmptyMessage
-                  compact
-                  title="No summary yet"
-                  {...(canEditProgram
-                    ? { description: "Edit the program to describe its mission and scope." }
-                    : {})}
-                />
+          // Overview beside the program's Details: the rail at its end where it fits, else a
+          // closed disclosure above it whose row says the status. They leave with the tab.
+          <AsideLayout aside={<ProgramDetailsAside program={program} />}>
+            <Stack space="space.300" className="min-w-0">
+              {queues.some((queue) => queue.query.isError) && (
+                <ProgramQueryState queries={queues.map((queue) => queue.query)} />
               )}
-            </Section>
-            <ProgramQueryState queries={[systems]}>
-              {/* A sibling of the Overview's sections, so it heads its own part of the outline. */}
-              <HeadingLevelProvider level={2}>
-                <Related
-                  title="System boundaries"
-                  count={boundaries.length}
-                  countMax={9999}
-                  size="default"
-                  action={
-                    <TextLink size="small" render={tabLink("System")}>
-                      Open systems
-                    </TextLink>
-                  }
-                  empty={{
-                    title: "No systems yet",
-                    description:
-                      "Create a system on the System tab before selecting baselines or recording implementation.",
-                  }}
-                >
-                  {boundaries.map((system) => (
-                    <Item
-                      key={system.id}
-                      id={<Id>{system.code}</Id>}
-                      idWidth={104}
-                      title={system.name}
-                      link={
-                        <Link
-                          to="/programs/$programId/systems/$scopeId"
-                          params={{ programId, scopeId: system.id }}
-                        />
-                      }
-                      trailing={
-                        <StatusBadge
-                          statuses={authorizationStatuses}
-                          value={system.authorization_status}
-                          size="xsmall"
-                        />
+              <Stat.Grid
+                cols={3}
+                role="group"
+                aria-label="Open work"
+                aria-busy={queues.some(
+                  (queue) => queue.value === undefined && !queue.query.isError,
+                )}
+              >
+                {queues.map((queue) => {
+                  const failed = queue.value === undefined && queue.query.isError;
+                  return (
+                    <Stat.Tile
+                      key={queue.label}
+                      label={queue.label}
+                      // A queue opens the tab that holds it.
+                      link={tabLink(queue.tab)}
+                      value={failed ? <Absent label="Not available" /> : (queue.value ?? null)}
+                      isLoading={queue.value === undefined && !failed}
+                      note={
+                        failed ? "Could not load" : queue.value === 0 ? "Nothing open" : undefined
                       }
                     />
-                  ))}
-                </Related>
-              </HeadingLevelProvider>
-            </ProgramQueryState>
-            <ProgramActivity programId={programId} />
-          </>
+                  );
+                })}
+              </Stat.Grid>
+              <ProgramQueryState queries={[gates]}>
+                <ProgramTimeline programId={programId} gates={gates.data ?? []} />
+              </ProgramQueryState>
+              <Section title="Program summary">
+                {program.description ? (
+                  <Prose>{program.description}</Prose>
+                ) : (
+                  <EmptyMessage
+                    compact
+                    title="No summary yet"
+                    {...(canEditProgram
+                      ? { description: "Edit the program to describe its mission and scope." }
+                      : {})}
+                  />
+                )}
+              </Section>
+              <ProgramQueryState queries={[systems]}>
+                {/* A sibling of the Overview's sections, so it heads its own part of the outline. */}
+                <HeadingLevelProvider level={2}>
+                  <Related
+                    title="System boundaries"
+                    count={boundaries.length}
+                    countMax={9999}
+                    size="default"
+                    action={
+                      <TextLink size="small" render={tabLink("System")}>
+                        Open systems
+                      </TextLink>
+                    }
+                    empty={{
+                      title: "No systems yet",
+                      description:
+                        "Create a system on the System tab before selecting baselines or recording implementation.",
+                    }}
+                  >
+                    {boundaries.map((system) => (
+                      <Item
+                        key={system.id}
+                        id={<Id>{system.code}</Id>}
+                        idWidth={104}
+                        title={system.name}
+                        link={
+                          <Link
+                            to="/programs/$programId/systems/$scopeId"
+                            params={{ programId, scopeId: system.id }}
+                          />
+                        }
+                        trailing={
+                          <StatusBadge
+                            statuses={authorizationStatuses}
+                            value={system.authorization_status}
+                            size="xsmall"
+                          />
+                        }
+                      />
+                    ))}
+                  </Related>
+                </HeadingLevelProvider>
+              </ProgramQueryState>
+              <ProgramActivity programId={programId} />
+            </Stack>
+          </AsideLayout>
         );
       case "System":
         return <ProgramSystemsTree programId={programId} fill />;
@@ -538,13 +543,13 @@ export function ProgramWorkspace({
               </DropdownMenu>
             </PageHeader.Actions>
           </PageHeader>
-          {/* A focused view has no tabs: the program's Details follow the header. */}
-          {view && <ProgramDetailsAside program={program} />}
           {view ? (
-            // A focused view is a page under the program, not one of its tabs: the trail leads back.
+            // Focused views use the full work area; program Details belong to Overview.
             <Stack space="space.300" className="min-w-0">
               {view === "Traceability matrix" ? (
-                <ProgramTraceabilityMatrix programId={programId} />
+                <AssuranceWorkbench programId={programId} initialSheet="mappings" />
+              ) : view === "Workbook" ? (
+                <AssuranceWorkbench programId={programId} />
               ) : view === "Residual risk" ? (
                 <ProgramResidualRisk programId={programId} />
               ) : view === "Continuous monitoring" ? (
@@ -591,8 +596,8 @@ export function ProgramWorkspace({
 
 /**
  * What the program adopted: its catalog and profile choices, the profiles and the product variants
- * its boundaries come from. The rail names them, so the workspace loads them with the program on
- * every tab: of the catalogs and profiles, only the fields that name them.
+ * its boundaries come from. The Overview rail loads these references when it mounts: of the
+ * catalogs and profiles, only the fields that name them.
  */
 function useProgramReferences(programId: string) {
   const systems = useRows("systems", { program_id: programId });
@@ -628,11 +633,8 @@ function useProgramReferences(programId: string) {
   };
 }
 
-/**
- * The program's Details and References rail, on the Overview and on every focused view of the
- * program (Program transfer included), so each shows the same facts in the same words.
- */
-export function ProgramDetailsAside({ program }: { program: Row<"programs"> }) {
+/** The program's Details and References, shown only alongside the Overview tab. */
+function ProgramDetailsAside({ program }: { program: Row<"programs"> }) {
   const {
     references,
     products,
@@ -773,150 +775,6 @@ export function ProgramDetailsAside({ program }: { program: Row<"programs"> }) {
         </ProgramQueryState>
       </Inspector.Group>
     </Shell.Aside>
-  );
-}
-
-type TraceRow = {
-  id: string;
-  requirementId: string;
-  program_id: string;
-  requirement: string;
-  control: string;
-  relationship: string;
-  appliesTo: string;
-};
-
-/**
- * The requirement-to-control matrix: one row per mapping from a requirement's current revision to
- * a control, with the relationship and the system it is scoped to. The name opens the requirement.
- */
-function ProgramTraceabilityMatrix({ programId }: { programId: string }) {
-  const navigate = useNavigate();
-  const requirements = useRows(
-    "engineering_requirements",
-    { program_id: programId },
-    { columns: ["id", "code"] as const },
-  );
-  const revisions = useRows("requirement_revisions", undefined, {
-    columns: ["id", "engineering_requirement_id", "version_number", "title"] as const,
-  });
-  const links = useRows("requirement_control_links", undefined, {
-    columns: [
-      "id",
-      "requirement_revision_id",
-      "control_id",
-      "relationship_type",
-      "system_id",
-    ] as const,
-  });
-  const controls = useRows("controls", undefined, { columns: ["id", "code", "title"] as const });
-  const systems = useRows(
-    "systems",
-    { program_id: programId },
-    { columns: ["id", "code", "name"] as const },
-  );
-  const rows = useMemo<TraceRow[]>(() => {
-    const requirementById = new Map((requirements.data ?? []).map((row) => [row.id, row]));
-    const current = new Map<string, { id: string; version: number; title: string }>();
-    for (const revision of revisions.data ?? []) {
-      if (!requirementById.has(revision.engineering_requirement_id)) continue;
-      const held = current.get(revision.engineering_requirement_id);
-      if (!held || held.version < revision.version_number)
-        current.set(revision.engineering_requirement_id, {
-          id: revision.id,
-          version: revision.version_number,
-          title: revision.title,
-        });
-    }
-    const requirementOf = new Map(
-      [...current].map(([requirementId, revision]) => [revision.id, requirementId]),
-    );
-    const controlById = new Map((controls.data ?? []).map((row) => [row.id, row]));
-    const systemById = new Map((systems.data ?? []).map((row) => [row.id, row]));
-    return (links.data ?? [])
-      .flatMap((link) => {
-        const requirementId = requirementOf.get(link.requirement_revision_id);
-        const requirement = requirementId ? requirementById.get(requirementId) : undefined;
-        if (!requirementId || !requirement) return [];
-        const control = controlById.get(link.control_id);
-        const system = link.system_id ? systemById.get(link.system_id) : undefined;
-        return [
-          {
-            id: link.id,
-            requirementId,
-            program_id: programId,
-            requirement: `${requirement.code} · ${current.get(requirementId)?.title ?? ""}`,
-            control: control ? `${control.code} · ${control.title}` : "Control unavailable",
-            relationship: labelFor(link.relationship_type),
-            appliesTo: link.system_id
-              ? system
-                ? `${system.code} · ${system.name}`
-                : "System unavailable"
-              : "Every system",
-          },
-        ];
-      })
-      .sort(
-        (a, b) =>
-          a.requirement.localeCompare(b.requirement, undefined, { numeric: true }) ||
-          a.control.localeCompare(b.control, undefined, { numeric: true }),
-      );
-  }, [requirements.data, revisions.data, links.data, controls.data, systems.data, programId]);
-  const columns = useMemo(
-    () =>
-      defineColumns<TraceRow>((c) => [
-        // A mapping reads as its two ends: the requirement and the control stay in the row on a
-        // phone, and the relationship and scope take a width that fits them, not a share.
-        c.text("requirement", {
-          header: "Requirement",
-          minWidth: 160,
-          priority: 0,
-          hideable: false,
-          cell: (row) => (
-            <RecordLink
-              table="engineering_requirements"
-              record={{ id: row.requirementId, program_id: row.program_id }}
-            >
-              {row.requirement}
-            </RecordLink>
-          ),
-        }),
-        c.text("control", { header: "Control", minWidth: 140, priority: 1 }),
-        c.text("relationship", { header: "Relationship", width: 140, priority: 2 }),
-        c.text("appliesTo", { header: "Applies to", width: 160, priority: 3 }),
-      ]),
-    [],
-  );
-  const table = useCollectionTable({
-    columns,
-    data: rows,
-    getRowId: (row) => row.id,
-    label: "Traceability matrix",
-    view: "program-traceability-matrix",
-    resizable: true,
-    reorderable: true,
-  });
-  return (
-    <ProductCollection
-      table={table}
-      fill
-      queries={[requirements, revisions, links, controls, systems]}
-      searchLabel="Find a requirement or control"
-      filters={[<DataTable.Filter key="relationship" table={table} column="relationship" />]}
-      onRowClick={(row) =>
-        void navigate(
-          recordDestination("engineering_requirements", {
-            id: row.requirementId,
-            program_id: row.program_id,
-          }),
-        )
-      }
-      empty={{
-        illustration: "shield",
-        title: "No requirement is mapped to a control yet",
-        description: "Map a requirement to the controls it satisfies on its Control mappings tab.",
-      }}
-    />
   );
 }
 

@@ -15,6 +15,7 @@ import {
   Absent,
   Alert,
   AlertDescription,
+  AsideLayout,
   Button,
   CodeBlock,
   DateTime,
@@ -34,7 +35,6 @@ import {
   EmptyIllustration,
   EmptyMedia,
   EmptyTitle,
-  Inline,
   Inspector,
   KeyValue,
   LinkButton,
@@ -44,6 +44,7 @@ import {
   Shell,
   Skeleton,
   Stat,
+  Stack,
   TextLink,
   VisuallyHidden,
   useDataTable,
@@ -456,6 +457,137 @@ function PreviewProperties({
 
 const DETAIL_FIELD = /^(id|state|status|code|.*_id|.*_at|.*_date)$/;
 
+/** Each incoming relationship reads one page, with every stored field available in its rows. */
+function RelatedRecords({
+  collection,
+  column,
+  id,
+  label,
+}: {
+  collection: Collection;
+  column: string;
+  id: string;
+  label: string;
+}) {
+  const workspace = useWorkspace();
+  const navigate = useNavigate();
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 25 });
+  const query = useQuery({
+    queryKey: ["records", workspace.tenantId, collection.name, "related", column, id, pagination],
+    queryFn: () =>
+      listRecords(workspace, collection, {
+        filter: [column, id],
+        page: pagination.pageIndex,
+        limit: pagination.pageSize,
+        columns: collection.columns.map((field) => field.name),
+      }),
+    placeholderData: keepPreviousData,
+    retry: false,
+  });
+  const columns = useMemo(
+    () =>
+      defineColumns<DataRecord>((c) => {
+        const keyColumn = titleColumn(collection);
+        const fields = [
+          ...collection.columns.filter((field) => field.name === keyColumn),
+          ...collection.columns.filter(
+            (field) => field.name !== keyColumn && !systemColumns.has(field.name),
+          ),
+          ...collection.columns.filter(
+            (field) => field.name !== keyColumn && systemColumns.has(field.name),
+          ),
+        ];
+        return fields.map((field, index) => {
+          const options = {
+            header: labelFor(field.name),
+            priority: index,
+            sortable: false,
+            cell: (record: DataRecord) => (
+              <Value collection={collection} column={field} value={record[field.name]} />
+            ),
+          };
+          if (index === 0)
+            return c.text(field.name, {
+              ...options,
+              minWidth: 200,
+              cell: (record) => (
+                <TextLink
+                  render={
+                    <Link
+                      to="/records/$collection/$recordId"
+                      params={{ collection: collection.name, recordId: record.id }}
+                    />
+                  }
+                >
+                  {recordTitle(record, collection)}
+                </TextLink>
+              ),
+            });
+          const vocabulary = vocabularyFor(collection.name, field.name);
+          if (vocabulary)
+            return c.status(field.name, {
+              ...options,
+              statuses: vocabulary.values,
+              cell: (record) => (
+                <FieldStatus
+                  table={collection.name}
+                  field={field.name}
+                  value={record[field.name]}
+                />
+              ),
+            });
+          if (/^(date|timestamp)/.test(field.type)) return c.date(field.name, options);
+          if (/^(smallint|integer|bigint|numeric|decimal|real|double precision)/.test(field.type))
+            return c.number(field.name, options);
+          return c.text(field.name, { ...options, width: 180 });
+        });
+      }),
+    [collection],
+  );
+  const table = useDataTable({
+    data: query.data?.records ?? [],
+    columns,
+    getRowId: (record) => record.id,
+    label,
+    pageSize: 25,
+    pageSizes: [25, 50, 100],
+    manual: { pagination: true },
+    rowCount: query.data?.count ?? 0,
+    enableSorting: false,
+    pinnable: false,
+    hideable: false,
+    state: { pagination },
+    onPaginationChange: setPagination,
+  });
+  return (
+    <Section title={label} count={query.data?.count} countMax={9999}>
+      <ProductCollection
+        table={table}
+        queries={[query]}
+        compact
+        narrowed
+        search={false}
+        sort={false}
+        keepQuestion={false}
+        onRowClick={(record) =>
+          void navigate({
+            to: "/records/$collection/$recordId",
+            params: { collection: collection.name, recordId: record.id },
+          })
+        }
+        empty={{
+          title: `No related ${labelFor(collection.name).toLowerCase()}`,
+          description: "No records in this relationship refer to this record.",
+          filtered: {
+            title: `No related ${labelFor(collection.name).toLowerCase()}`,
+            description: "No records in this relationship refer to this record.",
+          },
+        }}
+      />
+    </Section>
+  );
+}
+
 export function RecordDetail({
   name,
   id,
@@ -593,15 +725,19 @@ export function RecordDetail({
     </span>
   );
   const incoming = collections.flatMap((other) =>
-    other.relations
-      .filter((relation) => relation.target_schema === "public" && relation.target_table === name)
-      .flatMap((relation) =>
-        relation.columns
+    [
+      ...new Set(
+        other.relations
           .filter(
-            (column, index) => column !== "tenant_id" && relation.target_columns[index] === "id",
+            (relation) => relation.target_schema === "public" && relation.target_table === name,
           )
-          .map((column) => ({ collection: other, column })),
+          .flatMap((relation) =>
+            relation.columns.filter(
+              (column, index) => column !== "tenant_id" && relation.target_columns[index] === "id",
+            ),
+          ),
       ),
+    ].map((column) => ({ collection: other, column })),
   );
   return (
     <Page>
@@ -668,84 +804,86 @@ export function RecordDetail({
           )}
           <QueryState queries={[query]}>
             {query.data && (
-              <>
-                {/* The rail beside the record, or on a phone a closed Details disclosure under
-                    the title whose row says the record's status or state, where it has one. */}
-                <Shell.Aside
-                  label="Schema record details"
-                  summary={(() => {
-                    const field = ["status", "state"].find((name) =>
-                      collection.columns.some((column) => column.name === name),
-                    );
-                    return field && query.data[field] != null ? (
-                      <FieldStatus table={name} field={field} value={query.data[field]} />
-                    ) : undefined;
-                  })()}
-                >
-                  <Inspector.Group title="Details">
-                    <KeyValue.Group>
-                      {collection.columns
-                        .filter(
-                          (column) => DETAIL_FIELD.test(column.name) && column.name !== "tenant_id",
-                        )
-                        .map((column) => (
-                          <KeyValue key={column.name} label={fieldLabel(column.name)} wrap>
-                            <Value
-                              collection={collection}
-                              column={column}
-                              value={query.data[column.name]}
-                            />
-                          </KeyValue>
-                        ))}
-                    </KeyValue.Group>
-                  </Inspector.Group>
-                </Shell.Aside>
-                {name === "evidence_versions" && (
-                  <EvidenceFile collection={collection} record={query.data} />
-                )}
-                <KeyValue.Group layout="stacked" className="max-w-layout-measure">
-                  {collection.columns
-                    .filter(
-                      (column) =>
-                        !systemColumns.has(column.name) && !DETAIL_FIELD.test(column.name),
-                    )
-                    .map((column) => (
-                      <KeyValue key={column.name} label={fieldLabel(column.name)} wrap>
-                        <Value
-                          collection={collection}
-                          column={column}
-                          value={query.data[column.name]}
-                        />
-                      </KeyValue>
-                    ))}
-                </KeyValue.Group>
-                {incoming.length > 0 && (
-                  <Section title="Related records">
-                    <Inline space="space.150" shouldWrap>
-                      {incoming.map((relation) => (
-                        <LinkButton
-                          key={`${relation.collection.name}-${relation.column}`}
-                          size="small"
-                          render={
-                            <Link
-                              to="/records/$collection"
-                              params={{ collection: relation.collection.name }}
-                              search={{ field: relation.column, value: id }}
-                            />
-                          }
-                        >
-                          {labelFor(relation.collection.name)}
-                          {incoming.filter(
-                            (other) => other.collection.name === relation.collection.name,
-                          ).length > 1
-                            ? ` (${fieldLabel(relation.column)})`
-                            : ""}
-                        </LinkButton>
+              // The record beside its Details: the rail at its end where it fits, else a closed
+              // disclosure above it whose row says the record's status or state, where it has one.
+              <AsideLayout
+                aside={
+                  <Shell.Aside
+                    label="Schema record details"
+                    summary={(() => {
+                      const field = ["status", "state"].find((name) =>
+                        collection.columns.some((column) => column.name === name),
+                      );
+                      return field && query.data[field] != null ? (
+                        <FieldStatus table={name} field={field} value={query.data[field]} />
+                      ) : undefined;
+                    })()}
+                  >
+                    <Inspector.Group title="Details">
+                      <KeyValue.Group>
+                        {collection.columns
+                          .filter(
+                            (column) =>
+                              DETAIL_FIELD.test(column.name) && column.name !== "tenant_id",
+                          )
+                          .map((column) => (
+                            <KeyValue key={column.name} label={fieldLabel(column.name)} wrap>
+                              <Value
+                                collection={collection}
+                                column={column}
+                                value={query.data[column.name]}
+                              />
+                            </KeyValue>
+                          ))}
+                      </KeyValue.Group>
+                    </Inspector.Group>
+                  </Shell.Aside>
+                }
+              >
+                <Stack space="space.200" className="min-w-0">
+                  {name === "evidence_versions" && (
+                    <EvidenceFile collection={collection} record={query.data} />
+                  )}
+                  <KeyValue.Group layout="stacked" className="max-w-layout-measure">
+                    {collection.columns
+                      .filter(
+                        (column) =>
+                          !systemColumns.has(column.name) && !DETAIL_FIELD.test(column.name),
+                      )
+                      .map((column) => (
+                        <KeyValue key={column.name} label={fieldLabel(column.name)} wrap>
+                          <Value
+                            collection={collection}
+                            column={column}
+                            value={query.data[column.name]}
+                          />
+                        </KeyValue>
                       ))}
-                    </Inline>
-                  </Section>
-                )}
-              </>
+                  </KeyValue.Group>
+                  {incoming.length > 0 && (
+                    <Section title="Related records">
+                      <Stack space="space.300">
+                        {incoming.map((relation) => (
+                          <RelatedRecords
+                            key={`${id}-${relation.collection.name}-${relation.column}`}
+                            collection={relation.collection}
+                            column={relation.column}
+                            id={id}
+                            label={
+                              labelFor(relation.collection.name) +
+                              (incoming.filter(
+                                (other) => other.collection.name === relation.collection.name,
+                              ).length > 1
+                                ? ` (${fieldLabel(relation.column)})`
+                                : "")
+                            }
+                          />
+                        ))}
+                      </Stack>
+                    </Section>
+                  )}
+                </Stack>
+              </AsideLayout>
             )}
           </QueryState>
         </>

@@ -98,27 +98,32 @@ export async function listRecords(
     search?: string;
     filter?: [string, string] | undefined;
     limit?: number;
+    /** Explicit schema fields for inspector tables that show the complete record metadata. */
+    columns?: string[];
   } = {},
 ) {
   const token = await requireIdentity(workspace);
   const limit = options.limit ?? 25;
   const page = options.page ?? 0;
   const title = titleColumn(collection);
-  // Large OSCAL document bodies belong on the detail screen, not every list request.
+  // Ordinary lists leave large OSCAL bodies on the detail screen. The schema inspector can
+  // explicitly request the complete metadata it displays.
   const listColumns = [
-    ...new Set([
-      "id",
-      "revision",
-      title,
-      "code",
-      "status",
-      "state",
-      "program_id",
-      "system_id",
-      "owner_party_id",
-      "due_date",
-      "updated_at",
-    ]),
+    ...new Set(
+      options.columns ?? [
+        "id",
+        "revision",
+        title,
+        "code",
+        "status",
+        "state",
+        "program_id",
+        "system_id",
+        "owner_party_id",
+        "due_date",
+        "updated_at",
+      ],
+    ),
   ].filter((name) => collection.columns.some((column) => column.name === name));
   let query = database()
     .from(collection.name)

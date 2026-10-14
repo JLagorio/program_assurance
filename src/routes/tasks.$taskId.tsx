@@ -6,6 +6,7 @@ import {
   Alert,
   AlertDescription,
   AlertTitle,
+  AsideLayout,
   Box,
   Button,
   Composer,
@@ -306,169 +307,180 @@ function TaskDetail({ taskId }: { taskId: string }) {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            {/* The Details: a rail beside the body, or on a phone a Details disclosure here, under
-                the title, whose row carries the task's status. */}
-            <Shell.Aside
-              label="Task details"
-              summary={<StatusBadge statuses={taskStatuses} value={task.status} />}
-            >
-              <Inspector.Group title="Details">
-                <DetailFacts
-                  facts={[
-                    ["Status", <StatusBadge statuses={taskStatuses} value={task.status} />],
-                    [
-                      "Priority",
-                      task.priority ? (
-                        <LevelIndicator levels={taskPriorities} value={task.priority} />
-                      ) : null,
-                    ],
-                    [
-                      "Due",
-                      // A calendar day, set in place. A viewer reads where it stands while the
-                      // task is open: overdue, due today or due soon, as My work's Due column does.
-                      <TaskDueEditor
-                        task={task}
-                        canEdit={canEdit}
-                        lockedReason={
-                          save.isPending ? "Wait for the task to finish saving." : undefined
-                        }
-                        onSave={async (day) =>
-                          saved(
-                            await setDue.mutateAsync({ id: task.id, revision: revision(), day }),
-                          )
-                        }
-                      />,
-                    ],
-                    [
-                      "Completed",
-                      task.completed_at ? <DateTime value={task.completed_at} /> : null,
-                    ],
-                    [
-                      "Workstream",
-                      task.workstream_id ? (
-                        <TextLink
-                          render={
-                            <Link
-                              to="/workstreams/$workstreamId"
-                              params={{ workstreamId: task.workstream_id }}
-                            />
-                          }
-                        >
-                          <RelationName table="workstreams" id={task.workstream_id} />
-                        </TextLink>
-                      ) : null,
-                    ],
-                  ]}
-                />
-              </Inspector.Group>
-            </Shell.Aside>
-            <Stack space="space.300" className="min-w-0">
-              <Section title="Note">
-                {task.description ? (
-                  <Box className="max-w-layout-measure">
-                    <Prose>{task.description}</Prose>
-                  </Box>
-                ) : (
-                  <Absent label="No note recorded" />
-                )}
-              </Section>
-              {/* One of the record's collections: the compact shape, under its own heading. */}
-              <ProgramCollection
-                name="task_assignments"
-                title="Assignments"
-                section
-                filters={{ task_id: task.id }}
-                initialValues={{ task_id: task.id }}
-                columns={[
-                  {
-                    key: "party_id",
-                    title: "Person",
-                    value: (row) =>
-                      parties.data?.find((party) => party.id === row["party_id"])?.name ?? null,
-                    render: (row) => (
-                      <RelationName table="parties" id={row["party_id"] as string | null} />
-                    ),
-                  },
-                  {
-                    key: "assignment_role",
-                    title: "Role",
-                    value: (row) => labelFor(String(row["assignment_role"])),
-                  },
-                ]}
-                empty={{
-                  title: "No assignments yet",
-                  description: "Assign a person to record their responsibility for this task.",
-                  illustration: "people",
-                }}
-              />
-              <Section title="Comments">
-                <Stack space="space.200">
-                  {/* Written here, above the feed: a posted comment lands at the top, under it. */}
-                  {canEdit && <TaskCommentComposer taskId={task.id} />}
-                  <QueryState queries={[comments]}>
-                    {comments.data?.length ? (
-                      <Timeline label="Comments" wrap>
-                        {newestFirst(comments.data, (comment) => comment.created_at).map(
-                          (comment) => (
-                            <Timeline.Item
-                              key={comment.id}
-                              title={<RelationName table="parties" id={comment.author_party_id} />}
-                              {...eventTime(comment.created_at)}
+            {/* The body beside the task's Details: the rail at its end where it fits, else a
+                Details disclosure above it whose row carries the task's status. */}
+            <AsideLayout
+              aside={
+                <Shell.Aside
+                  label="Task details"
+                  summary={<StatusBadge statuses={taskStatuses} value={task.status} />}
+                >
+                  <Inspector.Group title="Details">
+                    <DetailFacts
+                      facts={[
+                        ["Status", <StatusBadge statuses={taskStatuses} value={task.status} />],
+                        [
+                          "Priority",
+                          task.priority ? (
+                            <LevelIndicator levels={taskPriorities} value={task.priority} />
+                          ) : null,
+                        ],
+                        [
+                          "Due",
+                          // A calendar day, set in place. A viewer reads where it stands while the
+                          // task is open: overdue, due today or due soon, as My work's Due column does.
+                          <TaskDueEditor
+                            task={task}
+                            canEdit={canEdit}
+                            lockedReason={
+                              save.isPending ? "Wait for the task to finish saving." : undefined
+                            }
+                            onSave={async (day) =>
+                              saved(
+                                await setDue.mutateAsync({
+                                  id: task.id,
+                                  revision: revision(),
+                                  day,
+                                }),
+                              )
+                            }
+                          />,
+                        ],
+                        [
+                          "Completed",
+                          task.completed_at ? <DateTime value={task.completed_at} /> : null,
+                        ],
+                        [
+                          "Workstream",
+                          task.workstream_id ? (
+                            <TextLink
+                              render={
+                                <Link
+                                  to="/workstreams/$workstreamId"
+                                  params={{ workstreamId: task.workstream_id }}
+                                />
+                              }
                             >
-                              <Prose>{comment.body}</Prose>
-                            </Timeline.Item>
-                          ),
-                        )}
+                              <RelationName table="workstreams" id={task.workstream_id} />
+                            </TextLink>
+                          ) : null,
+                        ],
+                      ]}
+                    />
+                  </Inspector.Group>
+                </Shell.Aside>
+              }
+            >
+              <Stack space="space.300" className="min-w-0">
+                <Section title="Note">
+                  {task.description ? (
+                    <Box className="max-w-layout-measure">
+                      <Prose>{task.description}</Prose>
+                    </Box>
+                  ) : (
+                    <Absent label="No note recorded" />
+                  )}
+                </Section>
+                {/* One of the record's collections: the compact shape, under its own heading. */}
+                <ProgramCollection
+                  name="task_assignments"
+                  title="Assignments"
+                  section
+                  filters={{ task_id: task.id }}
+                  initialValues={{ task_id: task.id }}
+                  columns={[
+                    {
+                      key: "party_id",
+                      title: "Person",
+                      value: (row) =>
+                        parties.data?.find((party) => party.id === row["party_id"])?.name ?? null,
+                      render: (row) => (
+                        <RelationName table="parties" id={row["party_id"] as string | null} />
+                      ),
+                    },
+                    {
+                      key: "assignment_role",
+                      title: "Role",
+                      value: (row) => labelFor(String(row["assignment_role"])),
+                    },
+                  ]}
+                  empty={{
+                    title: "No assignments yet",
+                    description: "Assign a person to record their responsibility for this task.",
+                    illustration: "people",
+                  }}
+                />
+                <Section title="Comments">
+                  <Stack space="space.200">
+                    {/* Written here, above the feed: a posted comment lands at the top, under it. */}
+                    {canEdit && <TaskCommentComposer taskId={task.id} />}
+                    <QueryState queries={[comments]}>
+                      {comments.data?.length ? (
+                        <Timeline label="Comments" wrap>
+                          {newestFirst(comments.data, (comment) => comment.created_at).map(
+                            (comment) => (
+                              <Timeline.Item
+                                key={comment.id}
+                                title={
+                                  <RelationName table="parties" id={comment.author_party_id} />
+                                }
+                                {...eventTime(comment.created_at)}
+                              >
+                                <Prose>{comment.body}</Prose>
+                              </Timeline.Item>
+                            ),
+                          )}
+                        </Timeline>
+                      ) : (
+                        <Empty size="compact">
+                          <EmptyMedia variant="icon" aria-hidden>
+                            <MessageSquare />
+                          </EmptyMedia>
+                          <EmptyHeader>
+                            <EmptyTitle>No comments yet</EmptyTitle>
+                            <EmptyDescription>
+                              {canEdit
+                                ? "Write the first comment to share an update about this task."
+                                : "Comments about this task will appear here."}
+                            </EmptyDescription>
+                          </EmptyHeader>
+                        </Empty>
+                      )}
+                    </QueryState>
+                  </Stack>
+                </Section>
+                <Section title="Activity">
+                  <QueryState queries={[activity]}>
+                    {activity.data?.length ? (
+                      <Timeline label="Activity" size="small" wrap>
+                        {newestFirst(activity.data, (event) => event.occurred_at).map((event) => (
+                          <Timeline.Item
+                            key={event.id}
+                            title={eventTitle(event.description, event.event_type)}
+                            {...(event.actor_party_id
+                              ? { meta: <RelationName table="parties" id={event.actor_party_id} /> }
+                              : {})}
+                            {...eventTime(event.occurred_at)}
+                          />
+                        ))}
                       </Timeline>
                     ) : (
                       <Empty size="compact">
                         <EmptyMedia variant="icon" aria-hidden>
-                          <MessageSquare />
+                          <History />
                         </EmptyMedia>
                         <EmptyHeader>
-                          <EmptyTitle>No comments yet</EmptyTitle>
+                          <EmptyTitle>No activity yet</EmptyTitle>
                           <EmptyDescription>
-                            {canEdit
-                              ? "Write the first comment to share an update about this task."
-                              : "Comments about this task will appear here."}
+                            Recorded changes to this task will appear here.
                           </EmptyDescription>
                         </EmptyHeader>
                       </Empty>
                     )}
                   </QueryState>
-                </Stack>
-              </Section>
-              <Section title="Activity">
-                <QueryState queries={[activity]}>
-                  {activity.data?.length ? (
-                    <Timeline label="Activity" size="small" wrap>
-                      {newestFirst(activity.data, (event) => event.occurred_at).map((event) => (
-                        <Timeline.Item
-                          key={event.id}
-                          title={eventTitle(event.description, event.event_type)}
-                          {...(event.actor_party_id
-                            ? { meta: <RelationName table="parties" id={event.actor_party_id} /> }
-                            : {})}
-                          {...eventTime(event.occurred_at)}
-                        />
-                      ))}
-                    </Timeline>
-                  ) : (
-                    <Empty size="compact">
-                      <EmptyMedia variant="icon" aria-hidden>
-                        <History />
-                      </EmptyMedia>
-                      <EmptyHeader>
-                        <EmptyTitle>No activity yet</EmptyTitle>
-                        <EmptyDescription>
-                          Recorded changes to this task will appear here.
-                        </EmptyDescription>
-                      </EmptyHeader>
-                    </Empty>
-                  )}
-                </QueryState>
-              </Section>
-            </Stack>
+                </Section>
+              </Stack>
+            </AsideLayout>
           </>
         ) : (
           <MissingRecord backTo="/work" kind="Task" />

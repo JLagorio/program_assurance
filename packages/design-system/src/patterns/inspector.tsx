@@ -3,11 +3,12 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleHeader,
+  FlushCollapsibleHeader,
   type CollapsibleProps,
 } from "../components/collapsible";
 
 import { KeyValue } from "../components/key-value";
-import { useAsideDisclosure } from "../layout/slots";
+import { useAsideDisclosure, useAsideRail } from "../layout/slots";
 import { cn } from "../lib/cn";
 
 /** @deprecated With `groups`: compose Inspector.Group children instead. One group as data. */
@@ -27,8 +28,9 @@ export type InspectorProps = Omit<ComponentProps<"div">, "children"> & {
   footer?: ReactNode | undefined;
 };
 
-/** A record's facts in groups: the Inspector.Group children, in the order the reader needs them, then the `footer`. The surrounding layout owns positioning and scrolling. Each group's heading takes the contextual level: an h3 outside every HeadingLevelProvider, an h3 in a titled panel's body, an h2 in a Shell.Aside rail. Native `div` props and the ref reach the root. */
+/** A record's facts in groups: the Inspector.Group children, in the order the reader needs them, then the `footer`. The surrounding layout owns positioning and scrolling. Each group's heading takes the contextual level: an h3 outside every HeadingLevelProvider, an h3 in a titled panel's body, an h2 in a Shell.Aside rail. In the rail the groups run its full width, each with the gutter inside its own row, and the footer takes the same gutter. Native `div` props and the ref reach the root. */
 function InspectorRoot({ groups, footer, children, ...props }: InspectorProps) {
+  const rail = useAsideRail();
   return (
     <div {...props} data-slot="inspector">
       {groups?.map((g) => (
@@ -43,7 +45,7 @@ function InspectorRoot({ groups, footer, children, ...props }: InspectorProps) {
         </InspectorGroup>
       ))}
       {children}
-      {footer ? <div className="pt-150">{footer}</div> : null}
+      {footer ? <div className={cn("pt-150", rail && "px-300")}>{footer}</div> : null}
     </div>
   );
 }
@@ -67,7 +69,7 @@ export type InspectorGroupProps = Omit<
   className?: string | undefined;
 };
 
-/** One group of facts: a folding row, open by default, a KeyValue.Group of rows as its children (KeyValues given directly become one). Native `div` props and the ref reach the group's root. Its title is a CollapsibleHeader, a button inside a heading at the contextual level (an h3 outside every provider), with a chevron that turns while the group is open. The action sits beside the title while the whole title fits beside it on one line; otherwise it takes the next row, at the end, rather than squeezing the title. In a Shell.Aside shown as the Details disclosure, a group named as the disclosure is its content: its own title steps aside, since the disclosure's row says it, and its rows stay open while the disclosure is. */
+/** One group of facts: a folding row, open by default, a KeyValue.Group of rows as its children (KeyValues given directly become one). Native `div` props and the ref reach the group's root. Its title is a CollapsibleHeader, a button inside a heading at the contextual level (an h3 outside every provider), with a chevron that turns while the group is open. The action sits beside the title while the whole title fits beside it on one line; otherwise it takes the next row, at the end, rather than squeezing the title. In a Shell.Aside rail the group runs the rail's full width: its title row, the tint under the pointer and the rule between groups reach the rail's edges, and its title and rows sit the gutter (`space.300`) inside them. In a Shell.Aside shown as the Details disclosure, a group named as the disclosure is its content: its own title steps aside, since the disclosure's row says it, and its rows stay open while the disclosure is. */
 export function InspectorGroup({
   title,
   children,
@@ -79,6 +81,7 @@ export function InspectorGroup({
   ...props
 }: InspectorGroupProps) {
   const disclosure = useAsideDisclosure();
+  const rail = useAsideRail();
   const merged =
     disclosure !== null &&
     disclosure.trim().toLocaleLowerCase() === title.trim().toLocaleLowerCase();
@@ -98,15 +101,25 @@ export function InspectorGroup({
       className={cn("border-t border-default first:border-t-0", className)}
     >
       {!merged || action ? (
-        <div className="flex min-w-0 flex-wrap items-center gap-100">
-          {merged ? null : <CollapsibleHeader>{title}</CollapsibleHeader>}
+        <div
+          className={cn("flex min-w-0 flex-wrap items-center gap-100", rail && action && "pe-300")}
+        >
+          {merged ? null : rail ? (
+            // In the rail the row runs its full width with the gutter inside; an action after the
+            // title takes the gutter at the end instead.
+            <FlushCollapsibleHeader className={action ? "pe-100" : undefined}>
+              {title}
+            </FlushCollapsibleHeader>
+          ) : (
+            <CollapsibleHeader>{title}</CollapsibleHeader>
+          )}
           {action ? (
             <div className="ms-auto flex max-w-full shrink-0 flex-wrap justify-end">{action}</div>
           ) : null}
         </div>
       ) : null}
       <CollapsibleContent>
-        <div className="pb-200">
+        <div className={cn("pb-200", rail && "px-300")}>
           <div className="flex flex-col">
             {onlyKeyValues(children) ? <KeyValue.Group>{children}</KeyValue.Group> : children}
           </div>

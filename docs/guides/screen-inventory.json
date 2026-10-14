@@ -341,6 +341,14 @@
     "model": "programs"
   },
   {
+    "file": "programs.$programId_.workbook.tsx",
+    "path": "/programs/$programId/workbook",
+    "title": "Program",
+    "family": "program-view",
+    "model": "programs",
+    "reason": "Program workbook: editable source grids, analysis sheets, and reviewed atomic changes, following the workbook contract."
+  },
+  {
     "file": "programs.new.tsx",
     "path": "/programs/new",
     "title": "Create program",

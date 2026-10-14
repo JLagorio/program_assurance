@@ -23,6 +23,8 @@ const nouns = {
   assessment_results_revisions: "assessment results revision",
   assessment_subjects: "assessment subject",
   assessment_task_dependencies: "assessment task dependency",
+  assurance_workbooks: "assurance workbook",
+  assurance_workbook_requests: "workbook request",
   authorization_decisions: "authorization decision",
   authorization_packages: "authorization package",
   // The catalog's Controls register: a control with its family and the profiles selecting it.
@@ -106,6 +108,8 @@ const nouns = {
   parameter_values: "parameter value",
   parameters: "parameter",
   parties: "party",
+  program_sctm_rows: "control mapping",
+  requirement_workbook_rows: "engineering requirement",
   poam_documents: "POA&M plan",
   poam_item_observations: "linked observation",
   poam_item_revisions: "remediation commitment",

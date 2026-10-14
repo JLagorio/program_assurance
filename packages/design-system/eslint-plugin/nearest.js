@@ -1283,8 +1283,8 @@ const PART_OWN = [
   },
   {
     test: (base) => base === "grid-cols-main-rail",
-    owner: "the Shell's",
-    advice: () => "Render the rail as Shell.Aside beside Main.",
+    owner: "AsideLayout's",
+    advice: () => "Give the Details to an AsideLayout as its aside, around the body they belong to.",
   },
   {
     test: (base) => base === "min-h-work" || base === "grid-cols-list-detail",

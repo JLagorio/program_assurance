@@ -74,8 +74,8 @@ const deprecatedNames = {
     removed: true,
   },
   ShowPage: {
-    to: "PageHeader, Section and Shell.Aside",
-    note: "a record page: PageHeader, Section bodies and the Details rail in Shell.Aside",
+    to: "PageHeader, Section and AsideLayout",
+    note: "a record page: PageHeader, Section bodies and the Details, a Shell.Aside, as the AsideLayout's aside",
     removed: true,
   },
   RecordHeader: {
@@ -83,7 +83,7 @@ const deprecatedNames = {
     note: "the trail in PageHeader.Lead, the name in PageHeader.Title, actions in PageHeader.Actions",
     removed: true,
   },
-  PreviewRail: { to: "Shell.Aside", removed: true },
+  PreviewRail: { to: "AsideLayout", removed: true },
   PreviewSplit: { to: "Shell.Panel", note: "the preview is the Shell's panel area", removed: true },
   Panel: { to: "Shell.Panel", note: "the panel is an area of the Shell", removed: true },
   Block: { to: "Section", removed: true },
@@ -92,7 +92,7 @@ const deprecatedNames = {
   ActionBar: {
     to: "PageHeader",
     kitOnly: true,
-    note: "the trail in PageHeader.Lead, the verbs in PageHeader.Actions and the state in the Details rail, Shell.Aside; a blocked action is a Button with disabledReason",
+    note: "the trail in PageHeader.Lead, the verbs in PageHeader.Actions and the state in the Details, an AsideLayout's Shell.Aside; a blocked action is a Button with disabledReason",
   },
 };
 /** The last segment of every name a member expression can be reported under (`Sidebar` of

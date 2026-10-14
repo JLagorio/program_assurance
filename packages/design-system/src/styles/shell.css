@@ -272,18 +272,18 @@
 [data-shell-area="aside"] {
   border-block-start: 1px solid var(--ds-color-border);
 }
-/* VW3-22: below the aside breakpoint, wherever the rail would follow Main, the Aside is a Details
-   disclosure where the route rendered it in the page: one row flush with the page's content, its
+/* VW3-22: the Details disclosure, in an AsideLayout too narrow for the rail or, below the aside
+   breakpoint, where the shell's rail would follow Main: one row flush with the page's content, its
    content under the row while it is open, and a hairline under them that sets the body apart. No
    rule above: it follows a page header or a tab strip's own line. */
-[data-shell-area="aside"][data-display="disclosure"] {
+[data-slot="shell-aside"][data-display="disclosure"] {
   border-block-start: 0;
   border-block-end: 1px solid var(--ds-color-border);
 }
 /* The Aside's content folds on the kit's motion only when the reader toggles the disclosure: at
    first paint and when the display changes (a resize, a panel opening) it shows as it is at once
    (`data-instant`, root.tsx), so the page never watches the Details collapse into it. */
-[data-shell-area="aside"][data-instant] > [data-slot="collapsible-content"] {
+[data-slot="shell-aside"][data-instant] > [data-slot="collapsible-content"] {
   animation: none;
 }
 /* The blanket under the side nav's overlay on a narrow screen; a click on it closes the overlay. */

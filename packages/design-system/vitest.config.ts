@@ -22,9 +22,13 @@ const RTL_FAMILIES = [
   "DataTable",
   "Editable",
   "Item",
+  "NumberField",
   "Pagination",
   "ShellIconRail",
   "Stepper",
+  "Spreadsheet",
+  "SpreadsheetInteractions",
+  "SpreadsheetSelection",
   "Table",
   "Tabs",
   "Timeline",
@@ -108,6 +112,7 @@ export default mergeConfig(
   defineConfig({
     optimizeDeps: {
       include: [
+        "@base-ui/react/context-menu",
         "@base-ui/react/accordion",
         "@base-ui/react/input",
         "@base-ui/react/field",
@@ -256,7 +261,9 @@ export default mergeConfig(
             provide: { ...noAxe, "ledger/layout-check": check },
           }),
         ),
-      ],
+        // Interactive addon runs one project because it names projects from configDir.
+        // CLI checks still run every mode and responsive gate above.
+      ].filter((_, index) => !process.env["VITEST_STORYBOOK"] || index === 0),
     },
   }),
 );

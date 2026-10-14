@@ -4,7 +4,7 @@ import { createRef, useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import { Badge, Button, IconButton, KeyValue } from "../../components";
-import { PageHeader } from "../../layout";
+import { PageHeader, Shell } from "../../layout";
 import { Inspector, InspectorGroup } from "../../patterns";
 import { HeadingLevelProvider, Inline, Stack, Text } from "../../primitives";
 import * as pairLayout from "../_lib/pair";
@@ -217,7 +217,7 @@ export const Group: Story = {
   },
 };
 
-/** On a record page the rail's groups sit under the page's h1, so the rail starts its outline at 2 and every group is an h2; under a preview's h2 record title the same groups are h3. A long title takes the row and moves the action to the next one, at the end. */
+/** On a record page the rail's groups sit under the page's h1, so the rail starts its outline at 2 and every group is an h2; under a preview's h2 record title the same groups are h3. In a Shell.Aside rail each group runs the rail's full width, its title and rows the gutter inside its edges, so the tint under the pointer and the rule between groups reach them. A long title takes the row and moves the action to the next one, at the end. */
 export const InARail: Story = {
   name: "In a rail",
   render: () => (
@@ -225,8 +225,8 @@ export const InARail: Story = {
       <PageHeader>
         <PageHeader.Title>WS-X90 Sentinel Mission System</PageHeader.Title>
       </PageHeader>
-      <aside aria-label="Record details" className="max-w-full" style={{ maxWidth: 320 }}>
-        <HeadingLevelProvider level={2}>
+      <div className="max-w-full border-s border-default" style={{ maxWidth: 320 }}>
+        <Shell.Aside label="Record details">
           <Inspector>
             <Inspector.Group title="Ownership">
               <KeyValue label="Owner">Dana Whitfield</KeyValue>
@@ -249,13 +249,22 @@ export const InARail: Story = {
               </KeyValue.Group>
             </Inspector.Group>
           </Inspector>
-        </HeadingLevelProvider>
-      </aside>
+        </Shell.Aside>
+      </div>
     </Stack>
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const rail = canvas.getByRole("complementary", { name: "Record details" });
+    // Each group's row runs the rail's full width, its title the gutter inside the start.
+    const railBox = rail.getBoundingClientRect();
+    const ownership = within(rail)
+      .getByRole("button", { name: "Ownership" })
+      .getBoundingClientRect();
+    await expect(Math.abs(ownership.left - railBox.left)).toBeLessThan(0.5);
+    await expect(Math.abs(ownership.right - railBox.right)).toBeLessThan(0.5);
+    const owner = within(rail).getByText("Owner").getBoundingClientRect();
+    await expect(owner.left - railBox.left).toBeGreaterThan(16);
     const long = within(rail).getByRole("heading", {
       name: "Authorization boundary and interconnections",
     });

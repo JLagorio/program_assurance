@@ -141,6 +141,6 @@ The application keeps event taxonomies, waiting and blocked states, overdue deci
 
 ## Application layout
 
-Mount the product's AppLayout once around the root router outlet. Child routes compose PageHeader, primitives and components in Main, and contribute supporting properties with Shell.Aside or dismissible work with Shell.Panel. These client-mounted slots preserve route context and clean up when the route unmounts. Shell owns responsive placement, panel scrolling, resizing and focus return. See [page composition](src/stories/layout/Pages.mdx).
+Mount the product's AppLayout once around the root router outlet. Child routes compose PageHeader, primitives and components in Main, give a record's supporting properties to an AsideLayout as its Shell.Aside, and contribute dismissible work with Shell.Panel. The panel's client-mounted slot preserves route context and cleans up when the route unmounts. AsideLayout owns the properties' rail or disclosure; Shell owns the panel's placement, scrolling, resizing and focus return. See [page composition](src/stories/layout/Pages.mdx).
 
 PageHeader is composable; Section is optional, accepts native props/refs and has an opt-in border. Use Sheet for modal work. Layout and patterns have separate Storybook categories.

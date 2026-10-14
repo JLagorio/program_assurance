@@ -16,6 +16,7 @@ import type { DataRecord } from "@/lib/records";
 import { workstreamStatuses } from "@/lib/status";
 import {
   Absent,
+  AsideLayout,
   Box,
   DateTime,
   Inspector,
@@ -77,42 +78,50 @@ function WorkstreamDetail({ workstreamId }: { workstreamId: string }) {
                 />
               </PageHeader.Actions>
             </PageHeader>
-            {/* The Details, right after the header: the rail beside the body, or on a phone a
-                closed disclosure under the title whose row says the status. */}
-            <Shell.Aside
-              label="Workstream details"
-              summary={<StatusBadge statuses={workstreamStatuses} value={row.status} />}
+            {/* The body beside the workstream's Details: the rail at its end where it fits, else
+                a closed disclosure above it whose row says the status. */}
+            <AsideLayout
+              aside={
+                <Shell.Aside
+                  label="Workstream details"
+                  summary={<StatusBadge statuses={workstreamStatuses} value={row.status} />}
+                >
+                  <Inspector.Group title="Details">
+                    <DetailFacts
+                      facts={[
+                        [
+                          "Status",
+                          <StatusBadge statuses={workstreamStatuses} value={row.status} />,
+                        ],
+                        [
+                          "Owner",
+                          row.owner_party_id ? (
+                            <RelationName table="parties" id={row.owner_party_id} />
+                          ) : null,
+                        ],
+                        ["Starts", row.starts_on ? <DateTime value={row.starts_on} /> : null],
+                        ["Ends", row.ends_on ? <DateTime value={row.ends_on} /> : null],
+                      ]}
+                    />
+                  </Inspector.Group>
+                </Shell.Aside>
+              }
             >
-              <Inspector.Group title="Details">
-                <DetailFacts
-                  facts={[
-                    ["Status", <StatusBadge statuses={workstreamStatuses} value={row.status} />],
-                    [
-                      "Owner",
-                      row.owner_party_id ? (
-                        <RelationName table="parties" id={row.owner_party_id} />
-                      ) : null,
-                    ],
-                    ["Starts", row.starts_on ? <DateTime value={row.starts_on} /> : null],
-                    ["Ends", row.ends_on ? <DateTime value={row.ends_on} /> : null],
-                  ]}
-                />
-              </Inspector.Group>
-            </Shell.Aside>
-            <Stack space="space.300" className="min-w-0">
-              <Section title="Objective">
-                {row.description ? (
-                  <Box className="max-w-layout-measure">
-                    <Prose>{row.description}</Prose>
-                  </Box>
-                ) : (
-                  <Absent label="No objective recorded" />
-                )}
-              </Section>
-              <Section title="Tasks">
-                <WorkTable programId={row.program_id} workstreamId={row.id} />
-              </Section>
-            </Stack>
+              <Stack space="space.300" className="min-w-0">
+                <Section title="Objective">
+                  {row.description ? (
+                    <Box className="max-w-layout-measure">
+                      <Prose>{row.description}</Prose>
+                    </Box>
+                  ) : (
+                    <Absent label="No objective recorded" />
+                  )}
+                </Section>
+                <Section title="Tasks">
+                  <WorkTable programId={row.program_id} workstreamId={row.id} />
+                </Section>
+              </Stack>
+            </AsideLayout>
           </>
         ) : (
           <MissingRecord backTo="/programs" kind="Workstream" />

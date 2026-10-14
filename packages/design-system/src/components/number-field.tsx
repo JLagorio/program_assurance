@@ -31,6 +31,8 @@ export type NumberFieldProps = Omit<
   InputBoundProps & {
     /** Medium (32px) in a form; small (28px) in a toolbar, a row or a rail. Medium by default. */
     size?: ControlSize | undefined;
+    /** End groups the steppers inside the field; around places them beside a centered input. */
+    stepperPlacement?: "end" | "around" | undefined;
     /**
      * The locale that formats and parses the number. Defaults to the closest LedgerProvider's
      * locale (en-US without one), not the browser's, so the server and the client agree.
@@ -80,6 +82,7 @@ const stepper = cn(
  */
 export function NumberField({
   size = "medium",
+  stepperPlacement = "end",
   locale,
   allowWheelScrub = false,
   readOnly,
@@ -119,6 +122,46 @@ export function NumberField({
     return { "aria-label": own };
   };
 
+  const input = (
+    <NumberFieldPrimitive.Input
+      ref={ref}
+      {...defined({
+        placeholder,
+        autoFocus,
+        "aria-label": ariaLabel,
+        "aria-labelledby": ariaLabelledBy,
+        "aria-describedby": ariaDescribedBy,
+        "aria-invalid": ariaInvalid,
+        "aria-required": required,
+      })}
+      aria-roledescription={t("numberField")}
+      data-slot="number-field-input"
+      className={cn(
+        "h-full min-w-0 flex-1 bg-transparent px-100 font-body text-default tabular-nums outline-none placeholder:text-subtlest disabled:cursor-not-allowed disabled:text-disabled",
+        stepperPlacement === "around" && "text-center",
+      )}
+    />
+  );
+  const decrement = (
+    <NumberFieldPrimitive.Decrement
+      id={decrementId}
+      {...stepperName(decrementId, "decrease")}
+      data-slot="number-field-decrement"
+      className={stepper}
+    >
+      <Minus aria-hidden="true" />
+    </NumberFieldPrimitive.Decrement>
+  );
+  const increment = (
+    <NumberFieldPrimitive.Increment
+      id={incrementId}
+      {...stepperName(incrementId, "increase")}
+      data-slot="number-field-increment"
+      className={stepper}
+    >
+      <Plus aria-hidden="true" />
+    </NumberFieldPrimitive.Increment>
+  );
   return (
     <NumberFieldPrimitive.Root
       {...props}
@@ -129,48 +172,36 @@ export function NumberField({
       style={style}
       data-slot="number-field"
       data-size={size}
+      data-stepper-placement={stepperPlacement}
     >
       <NumberFieldPrimitive.Group
         data-slot="number-field-group"
-        className={cn(frame, fieldControlHeight[size])}
+        className={cn(
+          stepperPlacement === "around" ? "flex min-w-0 items-center gap-050" : frame,
+          fieldControlHeight[size],
+        )}
       >
-        <NumberFieldPrimitive.Input
-          ref={ref}
-          {...defined({
-            placeholder,
-            autoFocus,
-            "aria-label": ariaLabel,
-            "aria-labelledby": ariaLabelledBy,
-            "aria-describedby": ariaDescribedBy,
-            "aria-invalid": ariaInvalid,
-            "aria-required": required,
-          })}
-          aria-roledescription={t("numberField")}
-          data-slot="number-field-input"
-          className="h-full min-w-0 flex-1 bg-transparent px-100 font-body text-default tabular-nums outline-none placeholder:text-subtlest disabled:cursor-not-allowed disabled:text-disabled"
-        />
-        {readOnly ? null : (
-          <span
-            data-slot="number-field-steppers"
-            className="flex shrink-0 items-center gap-025 pe-050"
-          >
-            <NumberFieldPrimitive.Decrement
-              id={decrementId}
-              {...stepperName(decrementId, "decrease")}
-              data-slot="number-field-decrement"
-              className={stepper}
-            >
-              <Minus aria-hidden="true" />
-            </NumberFieldPrimitive.Decrement>
-            <NumberFieldPrimitive.Increment
-              id={incrementId}
-              {...stepperName(incrementId, "increase")}
-              data-slot="number-field-increment"
-              className={stepper}
-            >
-              <Plus aria-hidden="true" />
-            </NumberFieldPrimitive.Increment>
-          </span>
+        {stepperPlacement === "around" ? (
+          <>
+            {readOnly ? null : decrement}
+            <div data-slot="number-field-input-frame" className={cn(frame, "h-full flex-1")}>
+              {input}
+            </div>
+            {readOnly ? null : increment}
+          </>
+        ) : (
+          <>
+            {input}
+            {readOnly ? null : (
+              <span
+                data-slot="number-field-steppers"
+                className="flex shrink-0 items-center gap-025 pe-050"
+              >
+                {decrement}
+                {increment}
+              </span>
+            )}
+          </>
         )}
       </NumberFieldPrimitive.Group>
     </NumberFieldPrimitive.Root>

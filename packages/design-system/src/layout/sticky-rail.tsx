@@ -13,7 +13,7 @@ export type StickyRailProps = ComponentProps<"div"> & {
  * under the banner and the top nav (the shell's `--shell-top`); in a scroller of its own, a dialog's
  * body or a panel, under the top the scroller gives it (`--rail-top`, `--rail-max-height`). It
  * renders one `div`, forwards its native props and its ref, and shrinks in its track (`min-w-0`).
- * A record's Details are the Shell's Aside, not a sticky rail.
+ * A record's Details are an AsideLayout's Aside, not a sticky rail.
  */
 export function StickyRail({ from, className, ...props }: StickyRailProps) {
   return (

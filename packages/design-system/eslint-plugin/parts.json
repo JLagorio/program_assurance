@@ -625,6 +625,19 @@
         "layout": ["sr"]
       }
     },
+    "AsideLayout": {
+      "kind": "component",
+      "file": "layout/aside-layout.tsx",
+      "line": 102,
+      "root": {
+        "min-w": ["min-w-0"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["min-w"]
+      }
+    },
     "Attachment": {
       "kind": "component",
       "file": "components/attachment.tsx",
@@ -3394,6 +3407,19 @@
         "typography": ["font-family"]
       }
     },
+    "ChangeReview": {
+      "kind": "component",
+      "file": "patterns/change-review.tsx",
+      "line": 75,
+      "root": {
+        "min-w": ["min-w-0"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["min-w"]
+      }
+    },
     "Chart": {
       "kind": "component",
       "file": "patterns/chart/frame.tsx",
@@ -3973,7 +3999,7 @@
     "CollapsibleContent": {
       "kind": "component",
       "file": "components/collapsible.tsx",
-      "line": 77,
+      "line": 113,
       "root": {
         "display": ["[&[hidden]:not([hidden=until-found])]:hidden"],
         "h": ["h-(--collapsible-panel-height)"],
@@ -3995,7 +4021,7 @@
     "CollapsibleHeader": {
       "kind": "component",
       "file": "components/collapsible.tsx",
-      "line": 59,
+      "line": 75,
       "root": {
         "align-items": ["items-center"],
         "bg-color": ["hover:before:bg-neutral-subtle-hovered"],
@@ -4848,6 +4874,19 @@
       "derived": {},
       "sets": {},
       "className": false
+    },
+    "CommandScope": {
+      "kind": "component",
+      "file": "patterns/command-scope.tsx",
+      "line": 59,
+      "root": {
+        "min-w": ["min-w-0"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["min-w"]
+      }
     },
     "CommandSeparator": {
       "kind": "component",
@@ -10738,7 +10777,7 @@
     "Inspector": {
       "kind": "component",
       "file": "patterns/inspector.tsx",
-      "line": 31,
+      "line": 32,
       "root": {},
       "props": {},
       "derived": {},
@@ -10747,7 +10786,7 @@
     "Inspector.Group": {
       "kind": "component",
       "file": "patterns/inspector.tsx",
-      "line": 71,
+      "line": 73,
       "root": {
         "border-color": ["border-default"],
         "border-w-t": ["border-t", "first:border-t-0"]
@@ -10762,7 +10801,7 @@
     "InspectorGroup": {
       "kind": "component",
       "file": "patterns/inspector.tsx",
-      "line": 71,
+      "line": 73,
       "root": {
         "border-color": ["border-default"],
         "border-w-t": ["border-t", "first:border-t-0"]
@@ -11499,7 +11538,7 @@
     "NumberField": {
       "kind": "component",
       "file": "components/number-field.tsx",
-      "line": 81,
+      "line": 83,
       "root": {
         "min-w": ["min-w-0"]
       },
@@ -13776,7 +13815,7 @@
     "Shell": {
       "kind": "component",
       "file": "layout/shell/root.tsx",
-      "line": 105,
+      "line": 112,
       "root": {
         "bg-color": ["bg-surface"],
         "text-color": ["text-default"]
@@ -14008,22 +14047,23 @@
     "Shell.Aside": {
       "kind": "component",
       "file": "layout/shell/root.tsx",
-      "line": 821,
+      "line": 842,
       "root": {
         "min-w": ["min-w-0"],
-        "p": ["lg:p-300", "p-200"]
+        "pb": ["pb-200"],
+        "pt": ["pt-100"]
       },
       "props": {},
       "derived": {},
       "sets": {
         "layout": ["min-w"],
-        "spacing": ["p"]
+        "spacing": ["pb", "pt"]
       }
     },
     "Shell.Banner": {
       "kind": "component",
       "file": "layout/shell/root.tsx",
-      "line": 727,
+      "line": 734,
       "root": {
         "outline-style": ["outline-none"]
       },
@@ -14036,7 +14076,7 @@
     "Shell.Main": {
       "kind": "component",
       "file": "layout/shell/root.tsx",
-      "line": 776,
+      "line": 783,
       "root": {
         "outline-style": ["outline-none"],
         "pb": ["lg:pb-400", "pb-300"],
@@ -15263,6 +15303,41 @@
         "layout": ["shrink", "size"],
         "color": ["icon"],
         "motion": ["animate"]
+      }
+    },
+    "Spreadsheet": {
+      "kind": "component",
+      "file": "patterns/spreadsheet/spreadsheet.tsx",
+      "line": 175,
+      "root": {
+        "min-w": ["min-w-0"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["min-w"]
+      }
+    },
+    "SpreadsheetSheetBar": {
+      "kind": "component",
+      "file": "patterns/spreadsheet/sheet-bar.tsx",
+      "line": 168,
+      "root": {},
+      "props": {},
+      "derived": {},
+      "sets": {}
+    },
+    "SpreadsheetToolbar": {
+      "kind": "component",
+      "file": "patterns/spreadsheet/spreadsheet.tsx",
+      "line": 149,
+      "root": {
+        "min-w": ["min-w-0"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["min-w"]
       }
     },
     "Stack": {

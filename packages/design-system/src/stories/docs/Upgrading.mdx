@@ -18,6 +18,16 @@ Every family page opens with its status, the first line under its title.
 
 A new part is Experimental until a product screen uses it and its page, plays and checks hold, and then Stable ([Testing and review](?path=/docs/guidance-testing-and-review--docs), Ownership and lifecycle). Stable names the contract, not this application's use: the kit serves more than one product, and a stable part that no screen here renders keeps its contract. A page that compares parts or describes a composition (Overlays, Forms, Page composition, Density, the Shell's icon rail and the Primitives overview) documents no part of its own and has no status.
 
+## Unreleased
+
+What code written for 0.7.0 changes in the next version.
+
+### Deprecated
+
+Each still works in the next version and goes in the one after.
+
+- **A Shell.Aside on its own**, which takes the shell's aside area beside Main from the top of the page: the record's Details are an AsideLayout's `aside`, around the body they belong to ([AsideLayout](?path=/docs/guidance-upgrading--docs#asidelayout)).
+
 ## 0.7.0
 
 What code written for 0.6.0 changes in 0.7.0. Each line links the section below that says what to write.
@@ -69,7 +79,7 @@ The kit's own layout rules belong to its parts, not to classes product code writ
 | `sticky-rail`                                                                                                                                            | `<StickyRail>`                                                                                                                                               |
 | `min-h-work` and `grid-cols-list-detail`                                                                                                                 | A [WorkPane](?path=/docs/patterns-workpane--docs), which lays out its list and detail itself; a region as tall as the window is `min-h-dvh` or `fill-window` |
 | `sticky-bar`                                                                                                                                             | A PageHeader; ActionBar, which pinned itself, is deprecated ([ActionBar](?path=/docs/guidance-upgrading--docs#actionbar))                                    |
-| `grid-cols-main-rail`                                                                                                                                    | Shell.Main and Shell.Aside, the Shell's own columns                                                                                                          |
+| `grid-cols-main-rail`                                                                                                                                    | An AsideLayout, the body beside its Details                                                                                                                  |
 | `shell-root`, `shell-main`, `shell-banner`, `shell-topnav`, `shell-topnav-start`, `shell-sidenav`, `shell-sidenav-overlay`, `shell-panel`, `shell-scrim` | The Shell's parts, which style themselves; a selector reads their `data-slot` (`[data-slot="shell-scrim"]`)                                                  |
 | `2xl:`                                                                                                                                                   | `wide:` (110rem), the kit's widest breakpoint, `xl:` (80rem), or a container query ([Metrics](?path=/docs/tokens-metrics--docs), Breakpoints)                |
 
@@ -106,6 +116,23 @@ ActionBar is deprecated and goes in the next minor version, and `ledger/no-depre
 Compose AlertDialogContent with AlertDialogHeader (AlertDialogMedia, AlertDialogTitle, AlertDialogDescription) and AlertDialogFooter (AlertDialogCancel, then AlertDialogAction). AlertDialogAction stays open while its command runs; `pending` on the root holds the decision, and the caller closes it on success.
 
 `size` on AlertDialogContent is `width`, on Dialog's steps: `size="sm"` is `width="xsmall"` (320px), and `size="default"` is `width="small"` (400px), the default, so it is left out. `width="medium"` (520px) is for a decision whose body lists what it affects ([AlertDialog](?path=/docs/components-alertdialog--docs), Widths).
+
+## AsideLayout
+
+A record's Details, a Shell.Aside holding an Inspector, are an [AsideLayout](?path=/docs/layout-asidelayout--docs)'s `aside`, around the body they belong to, where they were a Shell.Aside rendered on its own beside the body:
+
+```tsx
+// Earlier: the Aside on its own, which took the shell's area beside Main.
+<Shell.Aside label="Task details" summary={status}>…</Shell.Aside>
+<Stack space="space.300">…the record's sections…</Stack>
+
+// Now
+<AsideLayout aside={<Shell.Aside label="Task details" summary={status}>…</Shell.Aside>}>
+  <Stack space="space.300">…the record's sections…</Stack>
+</AsideLayout>
+```
+
+On a tabbed record the AsideLayout is the Overview panel's content, and the condition that rendered the Aside only while Overview was selected goes: the Details live in the panel and leave with it. The Aside's `label`, `heading` and `summary` keep their meaning. Inside the layout the Details are a region named by `label` in both displays, where the rail beside Main was a complementary landmark, so a check that looked for the landmark looks for the region. A Shell.Aside rendered outside an AsideLayout takes the shell's area for one more version and logs a warning in development.
 
 ## Attachment
 
@@ -414,7 +441,7 @@ NativeSelect is gone. A native `<select>` in a form or a filter is a Select: the
 
 A side nav or top nav item that navigates takes the router link through `render`, with its label as the item's children, outside the Link, so its icon and badge stay; an action item renders a button.
 
-Below the aside breakpoint, wherever it would not sit beside Main, Shell.Aside is a closed Details disclosure where the route renders it, no longer a block after Main's content. Render it where a record's Details belong on a phone: right after the PageHeader, or first in a tabbed record's Overview panel, rendered only while that tab is selected. Pass the record's state as `summary`, which the disclosure's row carries, and `heading` for a title other than Details ([Shell](?path=/docs/layout-shell--docs)).
+A record's Details, Shell.Aside, are an AsideLayout's `aside`: the rail beside the body where the layout leaves it room, else a closed Details disclosure above it ([AsideLayout](?path=/docs/guidance-upgrading--docs#asidelayout)). Pass the record's state as `summary`, which the disclosure's row carries, and `heading` for a title other than Details ([Shell](?path=/docs/layout-shell--docs)).
 
 ## Skeleton
 

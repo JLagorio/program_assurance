@@ -1,0 +1,56 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { ChangeReview } from "../../patterns/change-review";
+import * as Stories from "./ChangeReview.stories";
+
+<Meta of={Stories} />
+
+# Change review
+
+**Status: Experimental.** The Ledger maintainers own this reusable field-change review. Its first consumer is the assurance workbook's apply dialog.
+
+`ChangeReview` shows the complete proposed set before a host commits it. Every row names its record and field, its recorded and proposed values, and an optional issue. The host owns validation, permissions, the transaction, and the Apply and Cancel buttons.
+
+<Canvas of={Stories.Playground} />
+
+## Reviewing changes
+
+Pass a stable `id` for each proposed field change and preserve the order the reader should review. The table searches every supplied change and pages 25 at a time. Search narrows this review only; it never changes the set a host will apply. There is no sorting, column menu, persisted layout or row selection.
+
+Each row's leading disclosure opens a [Diff](?path=/docs/components-diff--docs) of its full recorded and proposed text. Changed words are marked with text decorations and the added/removed markers, as well as colour. Long paragraphs and unbroken values wrap, and the comparison falls back from side by side to inline within a narrow container. Opening a comparison calls `onInspect(id)`; it performs no write and opens no nested overlay.
+
+At narrow widths the lower-priority columns move into the row's More fields disclosure. The full comparison remains available, so a shortened table value never conceals part of the decision.
+
+<Canvas of={Stories.Phone} />
+
+## Failure and pending state
+
+An `issue` belongs to one change and appears in its row and its comparison. It explains what needs review; the host decides whether it blocks applying. `error` describes a failed attempt above the retained proposals, with an optional `onRetry` action. While `pending`, the region is busy and Retry cannot start a duplicate operation; inspecting and searching remain available.
+
+<Canvas of={Stories.WithIssues} />
+
+<Canvas of={Stories.Pending} />
+
+<Canvas of={Stories.ManyChanges} />
+
+<Canvas of={Stories.Empty} />
+
+## Host responsibilities
+
+Supply real recorded/proposed values and keep pending drafts intact after failure. A filtered or paged review is still a review of the complete supplied set. Before applying, enforce the host's permissions and concurrency checks; the component makes no assertion that a change is valid or saved. Put the transaction's buttons in its dialog footer or other owning surface, not in the review's toolbar.
+
+`before=""` or `after=""` means an empty value. The table names it “Empty value”; the Diff shows an addition or removal. Names and foreign keys should use the labels a reader knows, while the proposal's durable record identities stay with the host.
+
+The root forwards native div props and ref. `className` is merged; its `data-slot` stays `change-review`. Its `label` names the table; each disclosure names both the record and field. Search, paging, disclosure focus and responsive hidden-field access come from DataTable.
+
+## Props
+
+<ArgTypes of={ChangeReview} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [DataTable](?path=/docs/patterns-data-table--docs): the underlying readonly collection, search, pagination and responsive fields.
+- [Diff](?path=/docs/components-diff--docs): the complete comparison of one field.
+- [Dialog](?path=/docs/components-dialog--docs): the host's decision and transaction controls.

@@ -203,7 +203,7 @@ try {
   await page.goto(`${origin}/programs/${program.id}/systems/${child.id}`);
   await page.getByRole("heading", { name: edited.name, exact: true }).waitFor();
   await page
-    .locator('[data-shell-area="aside"]')
+    .locator('[data-slot="shell-aside"]')
     .getByRole("link", { name: root.name, exact: true })
     .first()
     .waitFor();

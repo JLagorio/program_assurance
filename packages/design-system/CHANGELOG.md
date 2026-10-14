@@ -6,6 +6,41 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 
 ## Unreleased
 
+### Added
+
+- **Spreadsheet** (experimental): a virtualized, keyboard-editable grid with formula/name bars, typed fields, ranges, rectangular clipboard, fill, resizable columns, frozen headings, local undo controls, sheet navigation, recoverable failures and optional presence. Its host supplies values, calculation and persistence. See Patterns/Spreadsheet: Playground, RectangularClipboard, KeyboardAndValidation, LargeSheet, PresenceAndSheets, RefreshFailure and Phone.
+- **CommandScope** (experimental): nested focus-owned actions shared by menus and shortcuts, with disabled-command ownership, composition/input guards and recoverable async failures. See Patterns/CommandScope: Workspace, NestedScopes and SharedActions.
+- **ChangeReview** (experimental): searchable proposed field changes with responsive rows, full text comparisons, issues, pending state and retry. Apply and persistence remain with the host. See Patterns/ChangeReview: Playground, WithIssues, Pending, ManyChanges and Phone.
+
+- **AsideLayout**: a body and the Details it belongs with, given as `aside`, a Shell.Aside holding an Inspector. On a tabbed record it is the Overview tab's panel, so the header and the tab strip span the page on every tab and the Details leave with the tab; on a record without tabs it is everything under the PageHeader. From the large breakpoint, where it leaves the body a list column beside them, the Details are the rail at the body's end, its rule meeting the tab strip's own and its first group level with the body's first heading, staying in view under the shell's header as the page scrolls and scrolling inside themselves when taller than the window (two scroll regions, the page's untouched; in a window under 30rem tall the rail scrolls with the page). Narrower, they are the closed Details disclosure above the body, its row carrying `summary`. The layout decides from its own width, so an open panel or a wide side nav narrows it as a phone does. The Details render once, in place and first in the document, so a change of display mounts nothing again: drafts and focus survive it, and coming back to a retained tab moves no focus. A layout mounted again on the client (the next record, another version) starts from the display last measured, so at a desktop width its first commit is already the rail and focus can go to a control in it as it mounts. Inside the layout the Aside is a region named by its `label` in both displays. See Layout/AsideLayout: Record, On a tabbed record, At 390px, A change of display, Taller than the window, No Details to show, Mounted again.
+
+### Deprecated
+
+- **A Shell.Aside outside an AsideLayout.** It still takes the shell's aside area beside Main from the top of the page, a complementary landmark there, for this version, and logs a warning in development; the next minor version renders it in place. Give it to an AsideLayout as its `aside`. See Layout/Shell, Aside beside Main (deprecated) at 1100px, and Guidance/Upgrading, AsideLayout.
+
+### Changed
+
+- **Spreadsheet sheet navigation keeps its controls in view.** Add sheet and All sheets remain pinned beside independently scrolling tabs; dimensions and sheet tools move to a compact second lane in narrow containers. The active tab has an adjacent chevron and underline, and double-click rename respects host action permissions. See Patterns/Spreadsheet interactions: SheetNavigation, SheetActions and SheetOverflow.
+
+- **NumberField offers steppers around a centered input.** `stepperPlacement="around"` supports compact toolbar quantities while retaining the default field layout, locale, bounds, focus and commit behavior. See Components/NumberField: AroundSteppers and AroundStates.
+
+- **Spreadsheet copy and fill preserve formula-shaped literal text.** Optional `isCellLiteral` distinguishes record/text-format inputs from executable formulas, while `preparePasteValue` encodes each destination. Local clipboard metadata survives sheet changes without changing system TSV; genuine formulas continue to translate. See Patterns/Spreadsheet interactions: LiteralClipboard.
+
+- **Spreadsheet adds direct fill and header gestures.** The selection handle previews a repeated value/formula block, commits one atomic write, and cancels with Escape. Ctrl/⌘D and Ctrl/⌘R share the fill commands. Header drags select whole axes; selected-column resizing previews locally and commits one width map. See Patterns/Spreadsheet interactions: DragFill, ProtectedFill, HeaderGestures and FillShortcuts.
+
+- **Spreadsheet row dimensions respond to content and direct manipulation.** Drag row separators, resize whole selected rows, fit to data or restore automatic height. Wrapped display and text editors stay inside their cells and share font, fill and alignment; vertical alignment positions text in taller rows. Controlled height maps clear omitted overrides. See Patterns/Spreadsheet interactions: RowSizing.
+
+- **Spreadsheet adds cell, header and sheet context menus.** Right-click and Shift+F10 expose clipboard and host actions, preserve a selected range, and distinguish cells from whole rows or columns. Hidden rows and columns retain workbook addresses. `SpreadsheetSheetBar` keeps worksheet menus, dimensions, add controls and selection status in a single strip; hosts own rename, duplicate, reorder and deletion. Compact letter headers, row sizing, cell annotations and document formatting support the fuller workbook composition. See Patterns/Spreadsheet interactions: ContextSelection, HiddenAddresses, SheetActions and CellAnnotations.
+
+- **Spreadsheet shares one compact toolbar and exposes column menus.** `SpreadsheetToolbar`, `toolbarStart` and `actions` group host view, filter, sort and formatting controls with history and clipboard controls in one horizontally scrollable strip with overflow arrows. Header chevrons and Alt+ArrowDown expose sizing and host column actions; the Columns menu fits or resets all widths and controls the frozen identity column. See Patterns/Spreadsheet: Toolbar, ColumnControls and PhoneColumnControls.
+
+- **Spreadsheet keeps the active-cell border above its editors.** All four sides remain visible while editing text or choosing a value, without moving the content or intercepting pointer input. See Patterns/Spreadsheet: InlineEditing and TypedEditorDismissal.
+
+- **The lint names AsideLayout for a record's Details.** `ledger/no-non-token-class` reports `grid-cols-main-rail` as AsideLayout's own layout ("Give the Details to an AsideLayout as its aside, around the body they belong to."), and `ledger/no-deprecated-name` names AsideLayout for ShowPage and PreviewRail and in ActionBar's note. See Guidance/Lint rules reference, no-non-token-class and no-deprecated-name.
+- **The record stories compose an AsideLayout.** Layout/Shell's Record rail, Record details at 390px, Record rail at 1100px, Record rail beside a wide side nav at 1100px and Record change at 390px, and Layout/Pages' Record, lay the Details beside Overview's body under the tab strip.
+
+- **A Shell.Aside rail's Inspector groups run its full width.** In an AsideLayout the rail pads only its bottom (an Aside in the shell's area, deprecated, pads its top and bottom); each Inspector.Group in it takes the gutter (`space.300`) inside its title row and its rows, so the title lines up with the labels under it, the tint under the pointer covers the whole row, the rule between groups reaches both edges, and the focus ring is drawn inside the row (an inset ring, as a scroller's). An action takes the gutter at the end of its row, and the Inspector's `footer` takes it too. Outside the rail (a preview, a panel, the Details disclosure) a group is unchanged. Put everything a rail holds in its groups. See Patterns/Inspector, In a rail, and Layout/Shell, Record rail at 1100px.
+
 ## 0.7.0 · 2026-10-02
 
 Guidance/Upgrading, 0.7.0, says what code written for 0.6.0 writes now, with a section per family; the lists below say what changed and the story that shows it.

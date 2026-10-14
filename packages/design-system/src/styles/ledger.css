@@ -18,6 +18,7 @@
 @import "./tabs.css";
 @import "./scroller.css";
 @import "./chart.css";
+@import "../patterns/spreadsheet/spreadsheet.css";
 @import "./density.css";
 @import "./layout.css";
 @import "./touch.css";

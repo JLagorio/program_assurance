@@ -44,7 +44,7 @@ The sizes, the stroke, the colour and the naming rules are on the [Icons](?path=
 | `dimension.layout.sidenav` | 228px | `w-layout-sidenav`     | The side nav, expanded. The reader may resize it.             |
 | `dimension.layout.panel`   | 320px | `w-layout-panel`       | The panel beside the main area, before the reader resizes it. |
 | `dimension.layout.list`    | 340px | `w-layout-list`        | The list column of a WorkPane.                                |
-| `dimension.layout.rail`    | 272px | `w-layout-rail`        | The rail beside a record: Shell.Aside and property groups.    |
+| `dimension.layout.rail`    | 272px | `w-layout-rail`        | The Details rail beside a record's body: an AsideLayout's.    |
 | `dimension.layout.measure` | 720px | `max-w-layout-measure` | The widest a run of prose grows.                              |
 
 ## Parts
@@ -104,15 +104,15 @@ A few parts take their size in the kit's stylesheets, which read the token as it
 
 ## Breakpoints
 
-| Token                        | Value  | Variant  | Use                                                                                                                                                        |
-| ---------------------------- | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `dimension.breakpoint.sm`    | 40rem  | `sm:`    | Tailwind's sm. Pagination's words, Stat's columns and a two-month Calendar from here.                                                                      |
-| `dimension.breakpoint.md`    | 48rem  | `md:`    | Tailwind's md. `TopNav.End` shows its `overflow` menu below it.                                                                                            |
-| `dimension.breakpoint.lg`    | 64rem  | `lg:`    | Tailwind's lg. The side nav is inline from here and an overlay below.                                                                                      |
-| `dimension.breakpoint.aside` | 75rem  | `aside:` | The aside sits beside Main from here, whatever the side nav's width, while no panel is open; from `lg` it does while the side nav leaves Main its minimum. |
-| `dimension.breakpoint.panel` | 80rem  | `panel:` | The panel is a full-height column beside the page; below, it replaces Main.                                                                                |
-| `dimension.breakpoint.wide`  | 110rem | `wide:`  | The aside sits beside Main even while a panel is open.                                                                                                     |
-| `dimension.breakpoint.xl`    | 80rem  | `xl:`    | Tailwind's xl, the panel breakpoint under its Tailwind name for Grid's `xl` count.                                                                         |
+| Token                        | Value  | Variant  | Use                                                                                                                                                                              |
+| ---------------------------- | ------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dimension.breakpoint.sm`    | 40rem  | `sm:`    | Tailwind's sm. Pagination's words, Stat's columns and a two-month Calendar from here.                                                                                            |
+| `dimension.breakpoint.md`    | 48rem  | `md:`    | Tailwind's md. `TopNav.End` shows its `overflow` menu below it.                                                                                                                  |
+| `dimension.breakpoint.lg`    | 64rem  | `lg:`    | Tailwind's lg. The side nav is inline from here and an overlay below.                                                                                                            |
+| `dimension.breakpoint.aside` | 75rem  | `aside:` | The shell's aside area (deprecated: an AsideLayout reads its own width) sits beside Main from here while no panel is open; from `lg` while the side nav leaves Main its minimum. |
+| `dimension.breakpoint.panel` | 80rem  | `panel:` | The panel is a full-height column beside the page; below, it replaces Main.                                                                                                      |
+| `dimension.breakpoint.wide`  | 110rem | `wide:`  | The shell's aside area (deprecated) sits beside Main even while a panel is open.                                                                                                 |
+| `dimension.breakpoint.xl`    | 80rem  | `xl:`    | Tailwind's xl, the panel breakpoint under its Tailwind name for Grid's `xl` count.                                                                                               |
 
 One source for three readers: `layout.css` writes `@media (width >= theme(--breakpoint-panel))`, the shell reads `tokenValue("dimension.breakpoint.panel")` for `matchMedia`, and a class takes the variant. `sm`, `md`, `lg` and `xl` restate Tailwind's values so a class and a media query cannot drift apart. Where `reset.css` is imported, it clears Tailwind's own breakpoints first, so these seven are the only ones: `2xl:` (Tailwind's 96rem) does not exist.
 

@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Absent,
+  AsideLayout,
   Box,
   Button,
   Grid,
@@ -234,52 +235,59 @@ export function PackageRecord({ id }: { id: string }) {
                 onCancel={() => setEditing(null)}
               />
             )}
-            <Shell.Aside label="Authorization package details">
-              <Inspector.Group title="Details">
-                <ModelFacts
-                  record={row as DataRecord}
-                  table="authorization_packages"
-                  fields={packageFacts}
+            <AsideLayout
+              aside={
+                <Shell.Aside label="Authorization package details">
+                  <Inspector.Group title="Details">
+                    <ModelFacts
+                      record={row as DataRecord}
+                      table="authorization_packages"
+                      fields={packageFacts}
+                    />
+                  </Inspector.Group>
+                </Shell.Aside>
+              }
+            >
+              <Stack space="space.200" className="min-w-0">
+                <EntitySection
+                  showHeading
+                  table="package_revisions"
+                  filters={{ package_id: id }}
+                  title="Package versions"
+                  columns={versionColumns}
+                  onOpen={setSelected}
+                  selectedId={selected?.id}
+                  onDisplayedRowsChange={setDisplayedVersions}
                 />
-              </Inspector.Group>
-            </Shell.Aside>
-            <EntitySection
-              showHeading
-              table="package_revisions"
-              filters={{ package_id: id }}
-              title="Package versions"
-              columns={versionColumns}
-              onOpen={setSelected}
-              selectedId={selected?.id}
-              onDisplayedRowsChange={setDisplayedVersions}
-            />
-            {selected && (
-              // One frame for every version: previous and next change its content, not the panel,
-              // so focus stays on the control the reader pressed.
-              <PackageVersion
-                id={selected.id}
-                renderFrame={({ content, actions }) => (
-                  <RecordPreviewPanel
-                    title={`Version ${String(selected["version_number"])}`}
-                    label="Package version preview"
-                    defaultWidth={640}
-                    onClose={() => setSelected(null)}
-                    recordActions={actions}
-                    navigation={
-                      <RecordPreviewActions
-                        table="package_revisions"
-                        record={selected}
-                        rows={displayedVersions}
-                        onSelect={setSelected}
-                      />
-                    }
-                  >
-                    {/* The preview's record title is its h2; its collections sit under it. */}
-                    <HeadingLevelProvider level={3}>{content}</HeadingLevelProvider>
-                  </RecordPreviewPanel>
+                {selected && (
+                  // One frame for every version: previous and next change its content, not the panel,
+                  // so focus stays on the control the reader pressed.
+                  <PackageVersion
+                    id={selected.id}
+                    renderFrame={({ content, actions }) => (
+                      <RecordPreviewPanel
+                        title={`Version ${String(selected["version_number"])}`}
+                        label="Package version preview"
+                        defaultWidth={640}
+                        onClose={() => setSelected(null)}
+                        recordActions={actions}
+                        navigation={
+                          <RecordPreviewActions
+                            table="package_revisions"
+                            record={selected}
+                            rows={displayedVersions}
+                            onSelect={setSelected}
+                          />
+                        }
+                      >
+                        {/* The preview's record title is its h2; its collections sit under it. */}
+                        <HeadingLevelProvider level={3}>{content}</HeadingLevelProvider>
+                      </RecordPreviewPanel>
+                    )}
+                  />
                 )}
-              />
-            )}
+              </Stack>
+            </AsideLayout>
           </>
         ) : (
           <MissingRecord backTo="/packages" kind="Authorization package" />

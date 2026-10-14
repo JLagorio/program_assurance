@@ -6,6 +6,7 @@ import { labelFor, type DataRecord, type RecordValue } from "@/lib/records";
 import { revisionStates, statusLabel } from "@/lib/status";
 import {
   Absent,
+  AsideLayout,
   Button,
   DataTable,
   DateTime,
@@ -469,128 +470,137 @@ export function RequirementLibraryRecord({
             onClose={() => setEdit(null)}
           />
         )}
-        {/* The Details, right after the header: the rail beside the body, or on a phone a closed
-            disclosure under the title whose row says the shown version's state. */}
-        <Shell.Aside
-          label="Requirement definition details"
-          summary={
-            current ? <StatusBadge statuses={revisionStates} value={current.state} /> : undefined
-          }
-        >
-          <Stack space="space.200">
-            <Inspector.Group title="Details">
-              <KeyValue.Group layout="columns">
-                <KeyValue label="Code">
-                  <Id>{record.code}</Id>
-                </KeyValue>
-                <KeyValue label="Version">
-                  <QueryValue queries={[revisions]}>
-                    {() =>
-                      versions.length > 1 && current ? (
-                        <LibrarySelect
-                          inline
-                          label="Version"
-                          value={current.id}
-                          options={versions.map((revision) => ({
-                            value: revision.id,
-                            label: `${revision.version_number} · ${statusLabel(revisionStates, revision.state)}`,
-                          }))}
-                          onChange={selectVersion}
-                        />
-                      ) : (
-                        (current?.version_number ?? <Absent label="No versions" />)
-                      )
-                    }
-                  </QueryValue>
-                </KeyValue>
-                <KeyValue label="State">
-                  <QueryValue queries={[revisions]}>
-                    {() => (
-                      <StatusBadge
-                        statuses={revisionStates}
-                        value={current?.state}
-                        absentLabel="No versions"
-                      />
-                    )}
-                  </QueryValue>
-                </KeyValue>
-                <KeyValue label="Type">
-                  {current ? labelFor(current.requirement_type) : <Absent />}
-                </KeyValue>
-                <KeyValue label="Published">
-                  <DateTime
-                    value={current?.published_at ?? null}
-                    format="date"
-                    absentLabel="Not published"
-                  />
-                </KeyValue>
-                <KeyValue label="Adopted by">
-                  <QueryValue queries={[revisions, adoptions]}>
-                    {() =>
-                      locale.formatPlural(adoptionRows.length, {
-                        one: "{count} requirement",
-                        other: "{count} requirements",
-                      })
-                    }
-                  </QueryValue>
-                </KeyValue>
-              </KeyValue.Group>
-            </Inspector.Group>
-          </Stack>
-        </Shell.Aside>
-        <Prose label="Description" className="max-w-layout-measure">
-          {record.description || <Absent />}
-        </Prose>
-        {/* The body is one failure region: an outage of the versions and of who adopted them
-            reads as one alert, whose Retry reloads every failed read. */}
-        <QueryState queries={[revisions]} region>
-          {current ? (
-            <Stack space="space.300">
-              <Stack space="space.200" className="max-w-layout-measure">
-                <Prose label="Statement" size="large">
-                  {current.statement}
-                </Prose>
-                <Prose label="Acceptance criteria">{current.acceptance_criteria}</Prose>
-                {current.rationale && <Prose label="Rationale">{current.rationale}</Prose>}
-              </Stack>
-              <Section title="Adopted by">
-                <ProductCollection
-                  table={adoptionTable}
-                  queries={[adoptions, programs, requirementContents]}
-                  onRowClick={(row) =>
-                    void navigate(recordDestination("engineering_requirements", row))
-                  }
-                  empty={{
-                    illustration: "records",
-                    title: "No adoptions yet",
-                    description:
-                      "A program adopts a published version when it adds a requirement from this definition.",
-                  }}
-                  fill
-                  searchLabel="Find adopted requirements"
-                  filters={<DataTable.Filter table={adoptionTable} column="programName" />}
-                />
-              </Section>
-            </Stack>
-          ) : (
-            <EmptyMessage
-              illustration="shield"
-              title="No versions yet"
-              description={
-                editable
-                  ? "Author the first version: its statement, acceptance criteria and type. Programs adopt a version once it is published."
-                  : "An editor authors this definition's versions; programs adopt a version once it is published."
-              }
-              action={
-                editable ? (
-                  <Button variant="primary" iconBefore={<Plus />} onClick={createVersion}>
-                    Create requirement version
-                  </Button>
+        {/* The body beside the definition's Details: the rail at its end where it fits, else a
+            closed disclosure above it whose row says the shown version's state. */}
+        <AsideLayout
+          aside={
+            <Shell.Aside
+              label="Requirement definition details"
+              summary={
+                current ? (
+                  <StatusBadge statuses={revisionStates} value={current.state} />
                 ) : undefined
               }
-            />
-          )}
-        </QueryState>
+            >
+              <Stack space="space.200">
+                <Inspector.Group title="Details">
+                  <KeyValue.Group layout="columns">
+                    <KeyValue label="Code">
+                      <Id>{record.code}</Id>
+                    </KeyValue>
+                    <KeyValue label="Version">
+                      <QueryValue queries={[revisions]}>
+                        {() =>
+                          versions.length > 1 && current ? (
+                            <LibrarySelect
+                              inline
+                              label="Version"
+                              value={current.id}
+                              options={versions.map((revision) => ({
+                                value: revision.id,
+                                label: `${revision.version_number} · ${statusLabel(revisionStates, revision.state)}`,
+                              }))}
+                              onChange={selectVersion}
+                            />
+                          ) : (
+                            (current?.version_number ?? <Absent label="No versions" />)
+                          )
+                        }
+                      </QueryValue>
+                    </KeyValue>
+                    <KeyValue label="State">
+                      <QueryValue queries={[revisions]}>
+                        {() => (
+                          <StatusBadge
+                            statuses={revisionStates}
+                            value={current?.state}
+                            absentLabel="No versions"
+                          />
+                        )}
+                      </QueryValue>
+                    </KeyValue>
+                    <KeyValue label="Type">
+                      {current ? labelFor(current.requirement_type) : <Absent />}
+                    </KeyValue>
+                    <KeyValue label="Published">
+                      <DateTime
+                        value={current?.published_at ?? null}
+                        format="date"
+                        absentLabel="Not published"
+                      />
+                    </KeyValue>
+                    <KeyValue label="Adopted by">
+                      <QueryValue queries={[revisions, adoptions]}>
+                        {() =>
+                          locale.formatPlural(adoptionRows.length, {
+                            one: "{count} requirement",
+                            other: "{count} requirements",
+                          })
+                        }
+                      </QueryValue>
+                    </KeyValue>
+                  </KeyValue.Group>
+                </Inspector.Group>
+              </Stack>
+            </Shell.Aside>
+          }
+        >
+          <Stack space="space.200" className="min-w-0">
+            <Prose label="Description" className="max-w-layout-measure">
+              {record.description || <Absent />}
+            </Prose>
+            {/* The body is one failure region: an outage of the versions and of who adopted them
+                reads as one alert, whose Retry reloads every failed read. */}
+            <QueryState queries={[revisions]} region>
+              {current ? (
+                <Stack space="space.300">
+                  <Stack space="space.200" className="max-w-layout-measure">
+                    <Prose label="Statement" size="large">
+                      {current.statement}
+                    </Prose>
+                    <Prose label="Acceptance criteria">{current.acceptance_criteria}</Prose>
+                    {current.rationale && <Prose label="Rationale">{current.rationale}</Prose>}
+                  </Stack>
+                  <Section title="Adopted by">
+                    <ProductCollection
+                      table={adoptionTable}
+                      queries={[adoptions, programs, requirementContents]}
+                      onRowClick={(row) =>
+                        void navigate(recordDestination("engineering_requirements", row))
+                      }
+                      empty={{
+                        illustration: "records",
+                        title: "No adoptions yet",
+                        description:
+                          "A program adopts a published version when it adds a requirement from this definition.",
+                      }}
+                      fill
+                      searchLabel="Find adopted requirements"
+                      filters={<DataTable.Filter table={adoptionTable} column="programName" />}
+                    />
+                  </Section>
+                </Stack>
+              ) : (
+                <EmptyMessage
+                  illustration="shield"
+                  title="No versions yet"
+                  description={
+                    editable
+                      ? "Author the first version: its statement, acceptance criteria and type. Programs adopt a version once it is published."
+                      : "An editor authors this definition's versions; programs adopt a version once it is published."
+                  }
+                  action={
+                    editable ? (
+                      <Button variant="primary" iconBefore={<Plus />} onClick={createVersion}>
+                        Create requirement version
+                      </Button>
+                    ) : undefined
+                  }
+                />
+              )}
+            </QueryState>
+          </Stack>
+        </AsideLayout>
       </Page>
       {adoptionPreview && (
         <RecordSummaryPreview

@@ -35,14 +35,17 @@ export function CollapsibleTrigger({ className, ...props }: CollapsibleTriggerPr
 const disclosureTrigger =
   "group/disclosure relative flex w-full min-w-0 items-center gap-100 rounded-small py-100 pe-100 text-start outline-none before:absolute before:-start-100 before:end-0 before:inset-y-0 before:rounded-small before:transition-colors before:duration-fast before:ease-standard hover:before:bg-neutral-subtle-hovered focus-visible:outline-focused data-disabled:pointer-events-none data-disabled:text-disabled motion-reduce:before:transition-none";
 
-/** The trigger with its title and chevron, without the heading around it. For the kit's own disclosures (a collapsible Section puts it inside Section.Title); products use CollapsibleHeader. */
-export function DisclosureTrigger({ className, children, ...props }: CollapsibleTriggerProps) {
+/* A row that runs its container's full width, as an Inspector group in a Shell.Aside rail: the
+   gutter (`space.300`) inside the row at both ends, so the title lines up with the rows under it
+   and the chevron sits the gutter inside the end; the tint covers the whole row, square; and the
+   focus ring is drawn inside the row, where the container's edges cannot cut it. */
+const flushDisclosureTrigger =
+  "group/disclosure relative flex w-full min-w-0 items-center gap-100 px-300 py-150 text-start outline-none before:absolute before:inset-0 before:transition-colors before:duration-fast before:ease-standard hover:before:bg-neutral-subtle-hovered focus-visible:outline-field-focused data-disabled:pointer-events-none data-disabled:text-disabled motion-reduce:before:transition-none";
+
+/** The title and the chevron that turns while the panel is open, inside either trigger. */
+function DisclosureLabel({ children }: { children: CollapsibleTriggerProps["children"] }) {
   return (
-    <Primitive.Trigger
-      {...props}
-      data-slot="collapsible-header-trigger"
-      className={classes(disclosureTrigger, className)}
-    >
+    <>
       <span data-slot="collapsible-header-title" className="relative min-w-0 break-words">
         {children}
       </span>
@@ -51,6 +54,19 @@ export function DisclosureTrigger({ className, children, ...props }: Collapsible
         data-slot="collapsible-header-icon"
         className="relative ms-auto size-icon-small shrink-0 transition-transform duration-fast ease-standard group-data-panel-open/disclosure:rotate-180 motion-reduce:transition-none"
       />
+    </>
+  );
+}
+
+/** The trigger with its title and chevron, without the heading around it. For the kit's own disclosures (a collapsible Section puts it inside Section.Title); products use CollapsibleHeader. */
+export function DisclosureTrigger({ className, children, ...props }: CollapsibleTriggerProps) {
+  return (
+    <Primitive.Trigger
+      {...props}
+      data-slot="collapsible-header-trigger"
+      className={classes(disclosureTrigger, className)}
+    >
+      <DisclosureLabel>{children}</DisclosureLabel>
     </Primitive.Trigger>
   );
 }
@@ -64,6 +80,26 @@ export function CollapsibleHeader(props: CollapsibleHeaderProps) {
       className="flex min-w-0 grow font-heading-section text-default"
     >
       <DisclosureTrigger {...props} />
+    </Tag>
+  );
+}
+
+/** CollapsibleHeader whose row runs its container's full width with the gutter inside it, for the kit's own disclosures: an Inspector group in a Shell.Aside rail. */
+export function FlushCollapsibleHeader({ className, children, ...props }: CollapsibleHeaderProps) {
+  const Tag = headingTag(useHeadingLevel() ?? 3);
+  return (
+    <Tag
+      data-slot="collapsible-header"
+      className="flex min-w-0 grow font-heading-section text-default"
+    >
+      <Primitive.Trigger
+        {...props}
+        data-slot="collapsible-header-trigger"
+        data-flush=""
+        className={classes(flushDisclosureTrigger, className)}
+      >
+        <DisclosureLabel>{children}</DisclosureLabel>
+      </Primitive.Trigger>
     </Tag>
   );
 }

@@ -23,7 +23,7 @@ Story: Layout/Pages, Register.
 
 1. **PageHeader**: the breadcrumb in `PageHeader.Lead`, the name in `PageHeader.Title`, one primary or an Actions **DropdownMenu** in `PageHeader.Actions`. No back chevron, no sentence, no status badge, no second action row.
 2. **Tabs** with `TabsList variant="line"` when the record has more than one view.
-3. **Shell.Aside** holding an **Inspector** group named Details: **KeyValue** rows for state, owner, identifiers and dates, with the record's status badge as the Aside's `summary`. Render it right after the PageHeader on a record without tabs, and first in Overview's panel on a tabbed record: beside Main it is the rail; below the aside breakpoint it is a closed Details disclosure before the body, its row carrying the state. A tab that is a register fills the work area without the rail.
+3. **Shell.Aside** holding an **Inspector** group named Details: **KeyValue** rows for state, owner, identifiers and dates, with the record's status badge as the Aside's `summary`, given to an **AsideLayout** as its `aside`: around everything under the PageHeader on a record without tabs, around the body of Overview's panel on a tabbed record. Where the layout leaves the body room it is the rail at the body's end, under the tab strip; narrower it is a closed Details disclosure before the body, its row carrying the state. A tab that is a register fills the work area without the Details.
 4. Body content in **Section**s. A single record is never a table; a description is **Prose**. Linked records the reader works through (searches, sorts, previews) are an embedded **DataTable**; a summary of them in a rail or a card, how many and the few that matter, is **Related**.
 5. A supported inline change is an **Editable**; a larger change is a Dialog (below).
 6. Missing record: an **Empty** with the search illustration, a title, a line and a route back. Loading and a failed load are different states from not found.
@@ -98,3 +98,7 @@ Stories: Patterns/PickerSheet, Search with no match and Pending and failure.
 ## Confirming a decision
 
 **AlertDialog** with a title that names the decision, one line of consequence, Cancel and the verb. It may open over the Dialog or Sheet that owns the decision. While the verb's command runs, `pending` holds it and the Action shows `isLoading`; close it when the command succeeds, and say what went wrong inside it when it fails. When the decision needs more than a line (the records a delete removes), put them in an **AlertDialogBody**.
+
+## Editable workbook
+
+Compose a **CommandScope**, workbook actions, and **Spreadsheet**. Keep the sheet model and calculation worker outside Ledger, bind cells with stable row/column identifiers, and feed calculated strings through `displayValue`. Treat an `onChange` batch as one atomic intent and reject the promise to keep its editor draft. Keep record inspection in a **Shell.Panel** so the grid retains selection and scroll. Put **ChangeReview** in a **Dialog** for a proposed changeset; the host owns Apply, revision conflicts and idempotent retry. These parts do not imply shared editing or persistence.

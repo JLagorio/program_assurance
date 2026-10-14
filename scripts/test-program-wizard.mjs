@@ -460,7 +460,7 @@ try {
     await treegrid.locator(`tr[data-row-id="${element.id}"]`).getByText("Library").waitFor();
     await page.screenshot({ path: "/tmp/program-wizard-created.png", fullPage: true });
     await page.goto(`${origin}/programs/${programs[0].id}?tab=Overview`);
-    const rail = page.getByRole("complementary", { name: "Program details", exact: true });
+    const rail = page.getByRole("region", { name: "Program details", exact: true });
     await rail
       .getByRole("link", { name: `${catalogTitle} · ${catalogs[0].version}`, exact: true })
       .waitFor();

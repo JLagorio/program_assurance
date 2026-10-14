@@ -247,11 +247,12 @@ try {
   await expect(
     row(systems(), child.id).getByRole("link", { name: child.name, exact: true }),
   ).toBeVisible();
-  await expect(main().getByText(boundary.description, { exact: true })).toHaveCount(0);
-  // The Details rail is one definition list; the description is its labelled row.
+  // The description shows once in Main, as the labelled row of the Details rail's one definition
+  // list, never again in the body.
+  await expect(main().getByText(boundary.description, { exact: true })).toHaveCount(1);
   await expect(
     page
-      .locator('[data-shell-area="aside"]')
+      .locator('[data-slot="shell-aside"]')
       .locator("dl > div")
       .filter({ has: page.getByText("Description", { exact: true }) })
       .locator("dd"),

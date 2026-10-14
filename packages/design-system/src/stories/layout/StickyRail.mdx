@@ -34,7 +34,7 @@ A rail that the grid stacks above the content on a phone and has no `from` stick
 ## When to use it
 
 - **Use it** for a short column that orients the reader while they work down a long page beside it: a wizard's steps, the contents of a long document.
-- **Not** for a record's Details: those are the [Shell](?path=/docs/layout-shell--docs)'s Aside, which the Shell places beside Main and turns into a Details disclosure on a phone.
+- **Not** for a record's Details: those are a Shell.Aside in an [AsideLayout](?path=/docs/layout-asidelayout--docs), whose rail stays in view the same way and which turns into a Details disclosure on a phone.
 - **Not** for a list beside its detail: that is a [WorkPane](?path=/docs/patterns-workpane--docs), whose list sticks the same way.
 - **Not** for a page frame or a register's table: Main scrolls the page, and DataTable `fill` takes the rest of the window.
 
@@ -50,7 +50,8 @@ StickyRail renders one `div`, forwards its native props, a `className` and its r
 
 ## Related
 
-- [Shell](?path=/docs/layout-shell--docs): the banner and the top nav it stops under, and the Aside for a record's Details.
+- [Shell](?path=/docs/layout-shell--docs): the banner and the top nav it stops under.
+- [AsideLayout](?path=/docs/layout-asidelayout--docs): a record's Details beside its body.
 - [Stepper](?path=/docs/components-stepper--docs): a wizard's steps.
 - [Grid](?path=/docs/primitives-grid--docs): the page's columns.
 - [Upgrading](?path=/docs/guidance-upgrading--docs#layout-classes): `lg:sticky-rail` and `sticky-rail` are a StickyRail.

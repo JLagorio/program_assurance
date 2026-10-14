@@ -1,0 +1,23 @@
+{
+  "name": "@ledger/spreadsheet-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./calculation": "./src/calculation.ts",
+    "./worker-client": "./src/worker-client.ts",
+    "./file-client": "./src/file-client.ts",
+    "./worker": "./src/calculation.worker.ts",
+    "./xlsx": "./src/xlsx.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --config vitest.config.ts"
+  },
+  "dependencies": {
+    "@ironcalc/wasm": "0.8.4",
+    "exceljs": "4.4.0"
+  }
+}

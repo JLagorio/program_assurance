@@ -18,6 +18,7 @@ import {
   Alert,
   AlertDescription,
   AlertTitle,
+  AsideLayout,
   Button,
   Checkbox,
   Count,
@@ -68,7 +69,13 @@ import { RetainedTabPanels } from "./program-shared";
 import { recordDestination, RecordLink, useDisplayedRecords, useEndOnHide } from "./record-preview";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { RecordTrail, TrailLink } from "./record-trail";
-import { EmptyMessage, MissingRecord, QueryState, RecordActions } from "./work-common";
+import {
+  EmptyMessage,
+  MissingRecord,
+  QueryState,
+  RecordActions,
+  ReportFailures,
+} from "./work-common";
 
 const messageOf = (cause: unknown, fallback = "The request failed.") =>
   cause instanceof Error ? cause.message : fallback;
@@ -727,11 +734,11 @@ function ProductRevision({
             switch (name) {
               case "Overview":
                 return (
-                  <>
-                    {/* The version's Details, first on Overview: the rail beside it, or on a
-                        phone a closed disclosure above it whose row says the state. Kept to
-                        Overview, since the panel stays mounted while another tab shows. */}
-                    {tab === "Overview" && (
+                  // Overview beside the version's Details: the rail at its end where it fits,
+                  // else a closed disclosure above it whose row says the state. They leave
+                  // with the tab.
+                  <AsideLayout
+                    aside={
                       <Shell.Aside
                         label="Product details"
                         summary={<StatusBadge statuses={revisionStates} value={revision.state} />}
@@ -819,11 +826,23 @@ function ProductRevision({
                           </Inspector.Group>
                         )}
                       </Shell.Aside>
-                    )}
+                    }
+                  >
+                    {/* The Details' counts say "Could not load" in place; the region's alert says
+                        why, and its Retry reloads them. */}
+                    <ReportFailures
+                      queries={[
+                        elements,
+                        definedComponents,
+                        componentRevisions,
+                        definitions,
+                        systems,
+                      ]}
+                    />
                     <Prose label="Description" className="max-w-layout-measure">
                       {product.description || <Absent label="No description" />}
                     </Prose>
-                  </>
+                  </AsideLayout>
                 );
               case "Structure":
                 return (

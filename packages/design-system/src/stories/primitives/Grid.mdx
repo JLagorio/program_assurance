@@ -29,7 +29,7 @@ Columns and rows on a template. The template is a string, the CSS value itself, 
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Equal columns   | `repeat(n, minmax(0, 1fr))`: cards, stats, fields of a form.                                                                                                      |
 | Label and value | `104px 1fr` as a `dl`: the facts of a rail, a settings list. KeyValue draws one row of it.                                                                        |
-| Main and rail   | `minmax(0, 1fr) 272px`: a body and a rail at `dimension.layout.rail` inside a region. A record page's rail is the Shell's Aside, which places itself beside Main. |
+| Main and rail   | `minmax(0, 1fr) 272px`: a body and a rail at `dimension.layout.rail` inside a region. A record page's rail is a Shell.Aside in an AsideLayout, at the body's end. |
 | Named areas     | `templateAreas` with `templateRows`: a head over two columns, a form with a full-width row.                                                                       |
 | Responsive      | One template per breakpoint of the window: one column, two from `md`, main and rail from `lg`.                                                                    |
 

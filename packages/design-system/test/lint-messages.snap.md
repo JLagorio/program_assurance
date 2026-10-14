@@ -154,7 +154,7 @@ size: "w-4" is Tailwind's width step 4 (16px). A width is a layout part's, a par
 spaceKey: "p-210" names no key on Ledger's space scale, so it generates no CSS. 210 falls between p-200 (16px) and p-250 (20px).
 series: "fill-chart-categorical-9" steps past fill-chart-categorical-*, which runs 1 to 7, so it generates no CSS.
 typo: "bg-surfce" is "bg-surface" misspelt, so it generates no CSS.
-partOwn: "grid-cols-main-rail" is the Shell's own layout, kept inside the part, so the class generates no CSS. Render the rail as Shell.Aside beside Main.
+partOwn: "grid-cols-main-rail" is AsideLayout's own layout, kept inside the part, so the class generates no CSS. Give the Details to an AsideLayout as its aside, around the body they belong to.
 replace: "text-muted-foreground" becomes "text-subtle".
 sameValue: "p-4" becomes "p-200", the same 16px.
 stale: "src/generated/lint.json" is stale: src/styles/layout.css has changed since the token build wrote it. Run npm run build:tokens in @ledger/design-system.
@@ -484,13 +484,13 @@ renamedWithDetail: controlBase is deprecated; use Input, Textarea or InputGroup 
 renamedWithDetail: controlHeight is deprecated; use the size prop (give Input, Select or a date field `size`).
 renamedWithDetail: formatNumber is deprecated; use useLedgerLocale().formatNumber (the chart parts format in the reader's locale).
 renamedWithDetail: IndexPage is deprecated; use PageHeader over a DataTable with fill (a register is one PageHeader and a frameless DataTable).
-renamedWithDetail: ShowPage is deprecated; use PageHeader, Section and Shell.Aside (a record page: PageHeader, Section bodies and the Details rail in Shell.Aside).
+renamedWithDetail: ShowPage is deprecated; use PageHeader, Section and AsideLayout (a record page: PageHeader, Section bodies and the Details, a Shell.Aside, as the AsideLayout's aside).
 renamedWithDetail: RecordHeader is deprecated; use PageHeader (the trail in PageHeader.Lead, the name in PageHeader.Title, actions in PageHeader.Actions).
-renamed: PreviewRail is deprecated; use Shell.Aside.
+renamed: PreviewRail is deprecated; use AsideLayout.
 renamedWithDetail: PreviewSplit is deprecated; use Shell.Panel (the preview is the Shell's panel area).
 renamedWithDetail: Panel is deprecated; use Shell.Panel (the panel is an area of the Shell).
 renamed: Block is deprecated; use Section.
-renamedWithDetail: ActionBar is deprecated; use PageHeader (the trail in PageHeader.Lead, the verbs in PageHeader.Actions and the state in the Details rail, Shell.Aside; a blocked action is a Button with disabledReason).
+renamedWithDetail: ActionBar is deprecated; use PageHeader (the trail in PageHeader.Lead, the verbs in PageHeader.Actions and the state in the Details, an AsideLayout's Shell.Aside; a blocked action is a Button with disabledReason).
 propValue: Switch size="sm" is deprecated; use size="small".
 propValue: Switch size="default" is deprecated; use size="medium".
 propValue: SelectTrigger size="sm" is deprecated; use size="small".

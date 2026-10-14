@@ -1,0 +1,23 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { CommandScope } from "../../patterns/command-scope";
+import * as Stories from "./CommandScope.stories";
+
+<Meta of={Stories} />
+
+# CommandScope
+
+**Status: Experimental.** Ledger owns the generic command boundary; applications own action authorization and recovery.
+
+A focus-owned set of actions shared by menus, buttons and a command palette. Each action has an identity, label, optional shortcut and availability. `useScopedCommands()` returns the effective actions and a guarded `run(id)` function.
+
+<Canvas of={Stories.Workspace} />
+
+Nested scopes override matching identities or shortcuts. The nearest enabled or disabled command consumes its shortcut, so a locked editor cannot accidentally run its parent's action. Text fields keep shortcuts unless the command sets `allowInInput`. Handled events, held keys and IME composition never trigger an action. Keyboard shortcuts use `Mod` for the platform's primary modifier, or explicit `Alt`, `Shift`, `Control` and `Meta`.
+
+<Canvas of={Stories.NestedScopes} />
+
+Use the same action descriptor to populate a CommandPalette, a context menu and a visible button. `run` prevents simultaneous execution of the same command and rejects on failure. A keyboard failure reaches `onCommandError`; the host must present a recovery message and retain any draft. UI availability is advisory: the host must authorize every mutation. Registration follows the React subtree and attaches no global listener.
+
+<Canvas of={Stories.SharedActions} />
+
+<ArgTypes of={CommandScope} />

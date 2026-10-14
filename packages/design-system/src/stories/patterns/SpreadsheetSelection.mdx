@@ -1,0 +1,25 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Spreadsheet } from "../../patterns/spreadsheet";
+import * as Stories from "./SpreadsheetSelection.stories";
+
+<Meta of={Stories} />
+
+# Spreadsheet selection
+
+**Status: Experimental.** These examples cover the visual selection contract. See the [Spreadsheet page](?path=/docs/patterns-spreadsheet--docs) for editing, keyboard commands, controlled state and host responsibilities.
+
+## Range and active cell
+
+A selected rectangle has a thin blue perimeter and a light tint over its existing fill. The active cell keeps a stronger outline while editing. Selection preserves cell text colors and dimensions. Headers mark the selected axes, with a stronger indicator for the active row and column; a header reports selected only when its whole visible axis is selected.
+
+Column action chevrons appear on hover, keyboard focus or selection, and stay visible on touch screens. The menu remains keyboard accessible through the header control or Alt+Down from the active cell.
+
+<Canvas of={Stories.RectangleAndActiveCell} />
+
+## Hidden, frozen and virtualized cells
+
+Selection uses stable identities. Hidden rows and columns retain their canonical addresses, while the visible perimeter follows the rendered cells. Frozen cells retain their outline when the viewport scrolls, and the lower edge appears when its row enters the virtualized window. Outline layers do not intercept pointer events or change grid geometry.
+
+<Canvas of={Stories.HiddenFrozenAndVirtualized} />
+
+<ArgTypes of={Spreadsheet} />

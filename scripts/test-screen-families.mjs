@@ -92,13 +92,15 @@ async function verifyCollection(screen, width, tabName) {
   ).toHaveCount(0);
   await expect(page.locator('[data-slot="page-header-description"]')).toHaveCount(0);
   // The work area repeats no collection heading. An empty state's title heads its own region,
-  // the Details rail is a separate landmark whose Inspector group is an h2 by design, and
-  // provenance may sit in a collapsed Details section (its heading is the closed disclosure).
+  // the Details beside a collection are a region of their own whose Inspector groups are h2s by
+  // design, and provenance may sit in a collapsed Details section (its heading is the closed
+  // disclosure).
   await expect(
     page
       .getByRole("main")
       .getByRole("heading", { level: 2 })
       .and(page.locator(':not([data-slot="empty-title"])'))
+      .and(page.locator(':not([data-slot="shell-aside"] *)'))
       .and(page.locator(':not(:has(> [aria-expanded="false"]))')),
   ).toHaveCount(0);
   if (!(await table.count())) {

@@ -491,6 +491,13 @@ export function RequirementsTable({
             />
           }
           action={newRequirement}
+          commands={[
+            {
+              label: "Open workbook",
+              onSelect: () =>
+                void navigate({ to: "/programs/$programId/workbook", params: { programId } }),
+            },
+          ]}
           filters={
             <>
               <DataTable.Filter table={table} column="allocation" options={allocationOptions} />

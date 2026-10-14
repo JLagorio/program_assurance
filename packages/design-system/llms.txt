@@ -216,6 +216,12 @@ The catalog is organised by family. This page is organised by need: find the row
 | Numbers drawn                                                                              | **Chart** and one of its kinds: Bar, Line, Area, Donut, Scatter, Heatmap, Treemap, Sparkline. **Chart.Frame** holds the data, size and format once, for a bare part inside.                                                           | A hand-drawn SVG, or the same props on the Frame and the part.                                |
 | A chart's numbers as a table                                                               | **Chart.Frame** around the part: its Table toggle and its CSV lay out what the part draws. Name the columns with `xLabel`, `columns`, Scatter `zLabel` and Treemap `levels`. A colour-scale Heatmap in a Frame also offers Values.    | A separate Table beside the chart, or a `title` on hover.                                     |
 
+## Work with cells and proposed changes
+
+Use **Spreadsheet** for a keyboard-editable cell grid with ranges, copy/paste and sheet navigation. Its host owns calculation, data authorization and persistence. Keep **DataTable** for record registers, sorting and row actions.
+
+Use **ChangeReview** to inspect proposed field values and full before/after text before a host applies a batch. Use **CommandScope** to give nested work areas their own actions and shortcuts, and feed those same actions to **CommandPalette** and menus.
+
 ## Lay it out
 
 | The layout is                                                                                                           | Use                                                                                                                                                                                               |
@@ -229,7 +235,7 @@ The catalog is organised by family. This page is organised by need: find the row
 | A titled region of a page                                                                                               | **Section**, with `count`, `description` and `action` when needed.                                                                                                                                |
 | A collapsed Details block on a page body: provenance, counts, derivation                                                | **Section** with `title` and `isCollapsible` (`defaultOpen` to start open). Not a subtle Button with a chevron, or a native `<details>`.                                                          |
 | A folding group of facts in a Details rail                                                                              | **Inspector.Group**, `defaultOpen={false}` when it starts closed.                                                                                                                                 |
-| A record's Details beside its body, a closed Details disclosure before the body on a phone                              | **Shell.Aside** holding an Inspector, with the record's status as its `summary`, rendered right after the PageHeader or first in Overview.                                                        |
+| A record's Details beside its body, a closed Details disclosure before the body on a phone                              | **AsideLayout** whose `aside` is a **Shell.Aside** holding an Inspector, the record's status as its `summary`, around Overview's body or everything under the PageHeader.                         |
 | A column that stays in view beside a long form: a wizard's steps                                                        | **StickyRail**, `from="lg"` where the grid stacks it above the form below `lg`.                                                                                                                   |
 | The page's name and its actions                                                                                         | **PageHeader**: Lead, Heading, Title, Description, Actions.                                                                                                                                       |
 | A record's name in a preview or a sheet body                                                                            | **PageHeader.Title**, which takes its level from the context or `render`. Not a raw h2 with the Title's classes.                                                                                  |
@@ -415,7 +421,7 @@ Story: Layout/Pages, Register.
 
 1. **PageHeader**: the breadcrumb in `PageHeader.Lead`, the name in `PageHeader.Title`, one primary or an Actions **DropdownMenu** in `PageHeader.Actions`. No back chevron, no sentence, no status badge, no second action row.
 2. **Tabs** with `TabsList variant="line"` when the record has more than one view.
-3. **Shell.Aside** holding an **Inspector** group named Details: **KeyValue** rows for state, owner, identifiers and dates, with the record's status badge as the Aside's `summary`. Render it right after the PageHeader on a record without tabs, and first in Overview's panel on a tabbed record: beside Main it is the rail; below the aside breakpoint it is a closed Details disclosure before the body, its row carrying the state. A tab that is a register fills the work area without the rail.
+3. **Shell.Aside** holding an **Inspector** group named Details: **KeyValue** rows for state, owner, identifiers and dates, with the record's status badge as the Aside's `summary`, given to an **AsideLayout** as its `aside`: around everything under the PageHeader on a record without tabs, around the body of Overview's panel on a tabbed record. Where the layout leaves the body room it is the rail at the body's end, under the tab strip; narrower it is a closed Details disclosure before the body, its row carrying the state. A tab that is a register fills the work area without the Details.
 4. Body content in **Section**s. A single record is never a table; a description is **Prose**. Linked records the reader works through (searches, sorts, previews) are an embedded **DataTable**; a summary of them in a rail or a card, how many and the few that matter, is **Related**.
 5. A supported inline change is an **Editable**; a larger change is a Dialog (below).
 6. Missing record: an **Empty** with the search illustration, a title, a line and a route back. Loading and a failed load are different states from not found.
@@ -490,6 +496,10 @@ Stories: Patterns/PickerSheet, Search with no match and Pending and failure.
 ## Confirming a decision
 
 **AlertDialog** with a title that names the decision, one line of consequence, Cancel and the verb. It may open over the Dialog or Sheet that owns the decision. While the verb's command runs, `pending` holds it and the Action shows `isLoading`; close it when the command succeeds, and say what went wrong inside it when it fails. When the decision needs more than a line (the records a delete removes), put them in an **AlertDialogBody**.
+
+## Editable workbook
+
+Compose a **CommandScope**, workbook actions, and **Spreadsheet**. Keep the sheet model and calculation worker outside Ledger, bind cells with stable row/column identifiers, and feed calculated strings through `displayValue`. Treat an `onChange` batch as one atomic intent and reject the promise to keep its editor draft. Keep record inspection in a **Shell.Panel** so the grid retains selection and scroll. Put **ChangeReview** in a **Dialog** for a proposed changeset; the host owns Apply, revision conflicts and idempotent retry. These parts do not imply shared editing or persistence.
 
 <!-- page: Guidance/Which token (src/stories/docs/WhichToken.mdx) -->
 
@@ -794,6 +804,16 @@ Every family page opens with its status, the first line under its title.
 
 A new part is Experimental until a product screen uses it and its page, plays and checks hold, and then Stable ([Testing and review](?path=/docs/guidance-testing-and-review--docs), Ownership and lifecycle). Stable names the contract, not this application's use: the kit serves more than one product, and a stable part that no screen here renders keeps its contract. A page that compares parts or describes a composition (Overlays, Forms, Page composition, Density, the Shell's icon rail and the Primitives overview) documents no part of its own and has no status.
 
+## Unreleased
+
+What code written for 0.7.0 changes in the next version.
+
+### Deprecated
+
+Each still works in the next version and goes in the one after.
+
+- **A Shell.Aside on its own**, which takes the shell's aside area beside Main from the top of the page: the record's Details are an AsideLayout's `aside`, around the body they belong to ([AsideLayout](?path=/docs/guidance-upgrading--docs#asidelayout)).
+
 ## 0.7.0
 
 What code written for 0.6.0 changes in 0.7.0. Each line links the section below that says what to write.
@@ -845,7 +865,7 @@ The kit's own layout rules belong to its parts, not to classes product code writ
 | `sticky-rail`                                                                                                                                            | `<StickyRail>`                                                                                                                                               |
 | `min-h-work` and `grid-cols-list-detail`                                                                                                                 | A [WorkPane](?path=/docs/patterns-workpane--docs), which lays out its list and detail itself; a region as tall as the window is `min-h-dvh` or `fill-window` |
 | `sticky-bar`                                                                                                                                             | A PageHeader; ActionBar, which pinned itself, is deprecated ([ActionBar](?path=/docs/guidance-upgrading--docs#actionbar))                                    |
-| `grid-cols-main-rail`                                                                                                                                    | Shell.Main and Shell.Aside, the Shell's own columns                                                                                                          |
+| `grid-cols-main-rail`                                                                                                                                    | An AsideLayout, the body beside its Details                                                                                                                  |
 | `shell-root`, `shell-main`, `shell-banner`, `shell-topnav`, `shell-topnav-start`, `shell-sidenav`, `shell-sidenav-overlay`, `shell-panel`, `shell-scrim` | The Shell's parts, which style themselves; a selector reads their `data-slot` (`[data-slot="shell-scrim"]`)                                                  |
 | `2xl:`                                                                                                                                                   | `wide:` (110rem), the kit's widest breakpoint, `xl:` (80rem), or a container query ([Metrics](?path=/docs/tokens-metrics--docs), Breakpoints)                |
 
@@ -882,6 +902,23 @@ ActionBar is deprecated and goes in the next minor version, and `ledger/no-depre
 Compose AlertDialogContent with AlertDialogHeader (AlertDialogMedia, AlertDialogTitle, AlertDialogDescription) and AlertDialogFooter (AlertDialogCancel, then AlertDialogAction). AlertDialogAction stays open while its command runs; `pending` on the root holds the decision, and the caller closes it on success.
 
 `size` on AlertDialogContent is `width`, on Dialog's steps: `size="sm"` is `width="xsmall"` (320px), and `size="default"` is `width="small"` (400px), the default, so it is left out. `width="medium"` (520px) is for a decision whose body lists what it affects ([AlertDialog](?path=/docs/components-alertdialog--docs), Widths).
+
+## AsideLayout
+
+A record's Details, a Shell.Aside holding an Inspector, are an [AsideLayout](?path=/docs/layout-asidelayout--docs)'s `aside`, around the body they belong to, where they were a Shell.Aside rendered on its own beside the body:
+
+```tsx
+// Earlier: the Aside on its own, which took the shell's area beside Main.
+<Shell.Aside label="Task details" summary={status}>…</Shell.Aside>
+<Stack space="space.300">…the record's sections…</Stack>
+
+// Now
+<AsideLayout aside={<Shell.Aside label="Task details" summary={status}>…</Shell.Aside>}>
+  <Stack space="space.300">…the record's sections…</Stack>
+</AsideLayout>
+```
+
+On a tabbed record the AsideLayout is the Overview panel's content, and the condition that rendered the Aside only while Overview was selected goes: the Details live in the panel and leave with it. The Aside's `label`, `heading` and `summary` keep their meaning. Inside the layout the Details are a region named by `label` in both displays, where the rail beside Main was a complementary landmark, so a check that looked for the landmark looks for the region. A Shell.Aside rendered outside an AsideLayout takes the shell's area for one more version and logs a warning in development.
 
 ## Attachment
 
@@ -1190,7 +1227,7 @@ NativeSelect is gone. A native `<select>` in a form or a filter is a Select: the
 
 A side nav or top nav item that navigates takes the router link through `render`, with its label as the item's children, outside the Link, so its icon and badge stay; an action item renders a button.
 
-Below the aside breakpoint, wherever it would not sit beside Main, Shell.Aside is a closed Details disclosure where the route renders it, no longer a block after Main's content. Render it where a record's Details belong on a phone: right after the PageHeader, or first in a tabbed record's Overview panel, rendered only while that tab is selected. Pass the record's state as `summary`, which the disclosure's row carries, and `heading` for a title other than Details ([Shell](?path=/docs/layout-shell--docs)).
+A record's Details, Shell.Aside, are an AsideLayout's `aside`: the rail beside the body where the layout leaves it room, else a closed Details disclosure above it ([AsideLayout](?path=/docs/guidance-upgrading--docs#asidelayout)). Pass the record's state as `summary`, which the disclosure's row carries, and `heading` for a title other than Details ([Shell](?path=/docs/layout-shell--docs)).
 
 ## Skeleton
 
@@ -2189,7 +2226,7 @@ Reports a class that is neither a token utility nor a documented structural util
 - A shadcn theme name, which generates no CSS in Ledger, named as the Ledger class for its job: `"text-muted-foreground" is shadcn's secondary text colour, which generates no CSS in Ledger. Use text-subtle.` Where the job has two classes it names both and when each fits (`bg-muted`: `bg-neutral` for a neutral fill, `bg-surface-sunken` for a recessed region), and `bg-accent` adds that Ledger's `accent-*` colours are hues with no meaning. Under a state variant its entry keys, the name takes that state's class: a selected, checked or pressed item (`data-[state=on]:bg-accent`, `aria-selected:`, `data-[state=selected]:bg-muted`) is `bg-selected` or `text-selected`, and a placeholder (`placeholder:text-muted-foreground`) `text-subtlest`; cmdk's `data-[selected=true]` marks the highlighted item, so it keeps the hover background. With alpha it names the colour and leaves the shade to a state token: `"bg-muted/50" is shadcn's muted background with alpha, …; a shade of it is a state token, never alpha.` The names and their classes are one table, `build/vocabulary-aliases.json`, which the token build checks (each name generates no CSS and is no Ledger class, and each class is one the allowlist lists) and the [Coming from shadcn](?path=/docs/guidance-coming-from-shadcn--docs) page shows. `border-input` and `bg-input` are Ledger's own tokens too, and pass.
 - A leading minus on a padding, gap or size, which Tailwind does not negate, so the class generates no CSS, with its own message: `"-p-200" generates no CSS: padding cannot be negative. Drop the minus, or pull the content outward with Bleed.` A size says only to drop the minus (`"-size-full" generates no CSS: width and height cannot be negative. Drop the minus.`). A minus on any other utility Tailwind does not negate (`-border-default`, `-line-clamp-2`) is reported as unknown, and a minus where Tailwind negates the utility (`-inset-x-100`, `-translate-y-full`, `-indent-200`) passes.
 - A spelling Tailwind generates no CSS for, though it looks like structure: an alignment value another property takes (`items-between`), `inert` (an attribute, not a class), `-mt-auto`, `grid-cols-0`, `float-both`, `size-screen`, a chart library class other than the one the kit's chart reads, and a kit utility its CSS does not declare (`stat-grid-7`).
-- A layout rule the kit keeps inside one of its parts, which generates no CSS as a class, with the part that owns it and what to write instead: `sticky-rail` is StickyRail's (`"lg:sticky-rail" is StickyRail's own layout, kept inside the part, so the class generates no CSS. Wrap the column in <StickyRail from="lg">.`), the `shell-*` regions and `grid-cols-main-rail` the Shell's (compose its parts; the rail is Shell.Aside beside Main), `min-h-work` and `grid-cols-list-detail` WorkPane's (a WorkPane, or `min-h-dvh` for a region as tall as the window), and `sticky-bar` ActionBar's (a record's actions go in PageHeader.Actions).
+- A layout rule the kit keeps inside one of its parts, which generates no CSS as a class, with the part that owns it and what to write instead: `sticky-rail` is StickyRail's (`"lg:sticky-rail" is StickyRail's own layout, kept inside the part, so the class generates no CSS. Wrap the column in <StickyRail from="lg">.`), the `shell-*` regions the Shell's (compose its parts), `grid-cols-main-rail` AsideLayout's (give the Details to an AsideLayout as its `aside`), `min-h-work` and `grid-cols-list-detail` WorkPane's (a WorkPane, or `min-h-dvh` for a region as tall as the window), and `sticky-bar` ActionBar's (a record's actions go in PageHeader.Actions).
 - A class built at runtime: a template or a concatenation that glues a value to a word, reported once where it is written, whatever element it reaches: `"bg-${tone}" builds a class name at runtime, which Tailwind cannot generate and the lint cannot check.` Its fragments (`bg-`) and the value it glues are not reported as classes, and only the glued words are quoted; the whole classes beside it are read as usual. A hole whose every value brings its own space, or is empty (`` `flex${on ? " gap-100" : ""}` ``), glues nothing: the word beside it and the hole's classes are read.
 - Stale lint data, once per file at line 1, whichever of this rule, [`ledger/no-arbitrary-value`](#ledgerno-arbitrary-value) and [`ledger/no-unknown-variant`](#ledgerno-unknown-variant) runs first on the file: `"src/generated/lint.json" is stale: src/styles/layout.css has changed since the token build wrote it. Run npm run build:tokens in @ledger/design-system.` In the kit's checkout the data is stale when an input it was built from (the allowlist, the token docs or a stylesheet) has changed since; anywhere, when `lint-values.json` comes from another build than `lint.json`. The finding is about the package's build, not the file, and the rules still judge the file. The Lint rules page says what the lint data holds, under "What the lint knows of Tailwind".
 
@@ -2456,8 +2493,8 @@ Reports a kit part, prop or value that was renamed or removed, with its replacem
 
 - A renamed part written as JSX (`<Shell.Sidebar>`, `<Shell.NavItem>`, `<Tiles>`, `<Collapsible.Group>`), matched by its name after an alias or a namespace import from the kit, or from a module whose path ends in `/shell`, is resolved. It names the replacement, and says what else changes where the move is more than a new name ("with Header, Body and Footer; the brand moves to Shell.TopNav.Start").
 - A renamed part used as a value outside JSX (`const Nav = Shell.Sidebar`). It names the replacement and says what else changes, as the JSX report does, and is never fixed.
-- The import of a removed layout part, with what replaces it: `IndexPage` (a PageHeader over a DataTable with `fill`), `ShowPage` (PageHeader, Section and Shell.Aside), `RecordHeader` (PageHeader), `PreviewRail` (Shell.Aside), `PreviewSplit` and the standalone `Panel` (Shell.Panel) and `Block` (Section); or of a retired hook, script or helper (`useDensity`, `densityScript`, `controlBase`). Each is reported at the import: a hook or a script is never JSX, and a removed part may share its name with a local component.
-- A deprecated part still exported for one version, where the kit's is used: `ActionBar` is a PageHeader, with the trail in PageHeader.Lead, the verbs in PageHeader.Actions and the state in the Details rail (Shell.Aside), and a blocked action a Button with `disabledReason`. A product's own component of the same name is not reported.
+- The import of a removed layout part, with what replaces it: `IndexPage` (a PageHeader over a DataTable with `fill`), `ShowPage` (PageHeader, Section and AsideLayout), `RecordHeader` (PageHeader), `PreviewRail` (AsideLayout), `PreviewSplit` and the standalone `Panel` (Shell.Panel) and `Block` (Section); or of a retired hook, script or helper (`useDensity`, `densityScript`, `controlBase`). Each is reported at the import: a hook or a script is never JSX, and a removed part may share its name with a local component.
+- A deprecated part still exported for one version, where the kit's is used: `ActionBar` is a PageHeader, with the trail in PageHeader.Lead, the verbs in PageHeader.Actions and the state in the Details (an AsideLayout's Shell.Aside), and a blocked action a Button with `disabledReason`. A product's own component of the same name is not reported.
 - A renamed prop value on a kit part: `size="sm"` on Switch, SelectTrigger, Card, Toggle, ToggleGroup, ToggleGroupItem or InputGroupButton is `size="small"` (and `default` is `medium`, `lg` is `large`, InputGroupButton's `xs` is `xsmall`), `variant="destructive"` on DropdownMenuItem is `variant="danger"`, and Heading's sizes are the titles the kit draws: `size="large"` is `display`, `medium` is `page` (20/26, the page title's size, where `medium` drew 22/28) and `xsmall` is `overlay`.
 - A prop renamed with its values: `size="sm"` on AlertDialogContent is `width="xsmall"`, and `size="default"` is `width="small"`. A value it cannot read (`size={size}`) names the new prop alone.
 - A renamed prop on a kit part: `expanded` on Tree.Item is `isExpanded`, `open` on Table.Group is `expanded`, `name` on Chart.Donut is `label` and `name` on Chart.Scatter is `nameKey`, `role` on Shell.Profile is `description` (the person's job title, never an ARIA role), `onChange` on Editable.Text and Editable.Select is `onValueChange`, and a prop that moved with its part's rename, such as `label` on Shell.SideNav.Section, which is `heading`.
@@ -2475,7 +2512,7 @@ A rename ships with an `@deprecated` alias for one version, and with a fix in th
 
 - The replacement the report names, following its note where it has one; `--fix` writes the one-to-one renames.
 - For example, `Shell.SideNav.Item` for `Shell.NavItem`, `Stat.Grid` for `Tiles`, `size="small"` for `size="sm"`, `isExpanded` for `expanded`, `labelWidth="wide"` for `labelWidth={160}`, `centerLabel` for a Donut's middle.
-- A register is a PageHeader over a DataTable with `fill`; a record page is PageHeader, Section bodies and the Details rail in Shell.Aside.
+- A register is a PageHeader over a DataTable with `fill`; a record page is PageHeader, Section bodies and the Details, a Shell.Aside, as an AsideLayout's `aside`.
 - Density is a table's own: Table `density`, or Compact rows in a DataTable's Columns menu.
 
 ### Examples
@@ -5880,7 +5917,7 @@ The sizes, the stroke, the colour and the naming rules are on the [Icons](?path=
 | `dimension.layout.sidenav` | 228px | `w-layout-sidenav`     | The side nav, expanded. The reader may resize it.             |
 | `dimension.layout.panel`   | 320px | `w-layout-panel`       | The panel beside the main area, before the reader resizes it. |
 | `dimension.layout.list`    | 340px | `w-layout-list`        | The list column of a WorkPane.                                |
-| `dimension.layout.rail`    | 272px | `w-layout-rail`        | The rail beside a record: Shell.Aside and property groups.    |
+| `dimension.layout.rail`    | 272px | `w-layout-rail`        | The Details rail beside a record's body: an AsideLayout's.    |
 | `dimension.layout.measure` | 720px | `max-w-layout-measure` | The widest a run of prose grows.                              |
 
 ## Parts
@@ -5940,15 +5977,15 @@ A few parts take their size in the kit's stylesheets, which read the token as it
 
 ## Breakpoints
 
-| Token                        | Value  | Variant  | Use                                                                                                                                                        |
-| ---------------------------- | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `dimension.breakpoint.sm`    | 40rem  | `sm:`    | Tailwind's sm. Pagination's words, Stat's columns and a two-month Calendar from here.                                                                      |
-| `dimension.breakpoint.md`    | 48rem  | `md:`    | Tailwind's md. `TopNav.End` shows its `overflow` menu below it.                                                                                            |
-| `dimension.breakpoint.lg`    | 64rem  | `lg:`    | Tailwind's lg. The side nav is inline from here and an overlay below.                                                                                      |
-| `dimension.breakpoint.aside` | 75rem  | `aside:` | The aside sits beside Main from here, whatever the side nav's width, while no panel is open; from `lg` it does while the side nav leaves Main its minimum. |
-| `dimension.breakpoint.panel` | 80rem  | `panel:` | The panel is a full-height column beside the page; below, it replaces Main.                                                                                |
-| `dimension.breakpoint.wide`  | 110rem | `wide:`  | The aside sits beside Main even while a panel is open.                                                                                                     |
-| `dimension.breakpoint.xl`    | 80rem  | `xl:`    | Tailwind's xl, the panel breakpoint under its Tailwind name for Grid's `xl` count.                                                                         |
+| Token                        | Value  | Variant  | Use                                                                                                                                                                              |
+| ---------------------------- | ------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dimension.breakpoint.sm`    | 40rem  | `sm:`    | Tailwind's sm. Pagination's words, Stat's columns and a two-month Calendar from here.                                                                                            |
+| `dimension.breakpoint.md`    | 48rem  | `md:`    | Tailwind's md. `TopNav.End` shows its `overflow` menu below it.                                                                                                                  |
+| `dimension.breakpoint.lg`    | 64rem  | `lg:`    | Tailwind's lg. The side nav is inline from here and an overlay below.                                                                                                            |
+| `dimension.breakpoint.aside` | 75rem  | `aside:` | The shell's aside area (deprecated: an AsideLayout reads its own width) sits beside Main from here while no panel is open; from `lg` while the side nav leaves Main its minimum. |
+| `dimension.breakpoint.panel` | 80rem  | `panel:` | The panel is a full-height column beside the page; below, it replaces Main.                                                                                                      |
+| `dimension.breakpoint.wide`  | 110rem | `wide:`  | The shell's aside area (deprecated) sits beside Main even while a panel is open.                                                                                                 |
+| `dimension.breakpoint.xl`    | 80rem  | `xl:`    | Tailwind's xl, the panel breakpoint under its Tailwind name for Grid's `xl` count.                                                                                               |
 
 One source for three readers: `layout.css` writes `@media (width >= theme(--breakpoint-panel))`, the shell reads `tokenValue("dimension.breakpoint.panel")` for `matchMedia`, and a class takes the variant. `sm`, `md`, `lg` and `xl` restate Tailwind's values so a class and a media query cannot drift apart. Where `reset.css` is imported, it clears Tailwind's own breakpoints first, so these seven are the only ones: `2xl:` (Tailwind's 96rem) does not exist.
 
@@ -6616,7 +6653,7 @@ _Example: story `Stories.GridMatrix`._
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Equal columns   | `repeat(n, minmax(0, 1fr))`: cards, stats, fields of a form.                                                                                                      |
 | Label and value | `104px 1fr` as a `dl`: the facts of a rail, a settings list. KeyValue draws one row of it.                                                                        |
-| Main and rail   | `minmax(0, 1fr) 272px`: a body and a rail at `dimension.layout.rail` inside a region. A record page's rail is the Shell's Aside, which places itself beside Main. |
+| Main and rail   | `minmax(0, 1fr) 272px`: a body and a rail at `dimension.layout.rail` inside a region. A record page's rail is a Shell.Aside in an AsideLayout, at the body's end. |
 | Named areas     | `templateAreas` with `templateRows`: a head over two columns, a form with a full-width row.                                                                       |
 | Responsive      | One template per breakpoint of the window: one column, two from `md`, main and rail from `lg`.                                                                    |
 
@@ -13821,6 +13858,13 @@ _Example: story `Stories.InAForm`._
 
 _Example: story `Stories.States`._
 
+## Compact steppers
+
+For a small quantity in a toolbar, `stepperPlacement="around"` places the decrement and increment buttons on either side of a centered, framed input. The default `end` arrangement keeps both buttons inside the field at its trailing edge. Both arrangements retain the same locale, bounds, keyboard behavior, disabled/read-only states and commit callbacks. Set a width that fits the expected number; the example uses 96px for two digits. Logical ordering follows the provider direction.
+
+_Example: story `Stories.AroundSteppers`._
+_Example: story `Stories.AroundStates`._
+
 ## In a Field
 
 Inside a [Field](?path=/docs/components-field--docs) the FieldLabel names the input and both buttons ("Increase Retention"), the FieldDescription and FieldError describe it, and the Field's `invalid`, `required` and `disabled` reach it, with no ids written by hand. The Field's `required` is announced; the NumberField's own `required` is the native constraint that also blocks an empty submit.
@@ -13869,6 +13913,7 @@ _Props of `NumberField`, generated from its types:_
 | `aria-required` | `boolean \| "true" \| "false"` |  |  |
 | `autoFocus` | `boolean` |  |  |
 | `size` | `"medium" \| "small"` | `medium` | Medium (32px) in a form; small (28px) in a toolbar, a row or a rail. Medium by default. |
+| `stepperPlacement` | `"around" \| "end"` | `end` | End groups the steppers inside the field; around places them beside a centered input. |
 | `locale` | `LocalesArgument` |  | The locale that formats and parses the number. Defaults to the closest LedgerProvider's locale (en-US without one), not the browser's, so the server and the client agree. |
 | `ref` | `Ref<HTMLInputElement>` |  | The visible input. `inputRef` is Base UI's hidden input that carries the value in a form. |
 | `className` | `string` |  | Classes for the root, where the field's width is set. @accepts layout |
@@ -16235,7 +16280,7 @@ Compose `Tabs`, `TabsList`, `TabsTrigger` and `TabsContent`. Match each Trigger'
 </Tabs>
 ```
 
-Routes compose Tabs, TabsList and TabsContent directly; route state controls the selected value. Supporting context can be contributed separately with Shell.Aside.
+Routes compose Tabs, TabsList and TabsContent directly; route state controls the selected value. A record's Details belong to its Overview panel: an [AsideLayout](?path=/docs/layout-asidelayout--docs) there lays them beside the panel's body, so they leave with the tab and the strip keeps its width on every tab.
 
 ## Variants
 
@@ -16273,7 +16318,7 @@ Reduced motion disables both indicator movement and panel entrance. The Motion s
 
 _Example: story `Stories.Motion`._
 
-The indicator's position and size round to the layout unit (1/64px). A resize of the strip's container that leaves the tabs where they were, such as a record's Details rail leaving with its Overview, then writes the same values, so the slide runs once and arrives in its 240ms rather than starting over on every frame of the resize.
+The indicator's position and size round to the layout unit (1/64px). A resize of the strip's container that leaves the tabs where they were, such as a panel opening beside the page, then writes the same values, so the slide runs once and arrives in its 240ms rather than starting over on every frame of the resize.
 
 _Example: story `Stories.ResizeDuringChange`._
 
@@ -17673,6 +17718,103 @@ An Eyebrow is one to three words, never an uppercase sentence. A labelled paragr
 
 _Example: story `Stories.Dont`._
 
+<!-- page: Layout/AsideLayout (src/stories/layout/AsideLayout.mdx) -->
+
+# AsideLayout
+
+**Status: Stable.**
+
+A body and the Details it belongs with. On a tabbed record it is the Overview tab's panel: the header and the tab strip span the page on every tab, and the Details start under the strip, beside Overview's body, and leave with the tab. On a record without tabs it is everything under the PageHeader. The Details are a [Shell](?path=/docs/layout-shell--docs) Aside holding an [Inspector](?path=/docs/patterns-inspector--docs), given as `aside`; the body is the children.
+
+```tsx
+<TabsContent value="Overview">
+  <AsideLayout
+    aside={
+      <Shell.Aside
+        label="Requirement details"
+        summary={
+          <Badge variant="secondary" tone="information">
+            In progress
+          </Badge>
+        }
+      >
+        <Inspector.Group title="Details">
+          <KeyValue label="Owner">Alex Morgan</KeyValue>
+        </Inspector.Group>
+      </Shell.Aside>
+    }
+  >
+    <Stack space="space.300">
+      <Section title="Statement">…</Section>
+    </Stack>
+  </AsideLayout>
+</TabsContent>
+```
+
+_Example: story `Stories.Record`._
+
+## Displays
+
+The layout decides from its own width, not the window's. From the large breakpoint (`dimension.breakpoint.lg`), while it leaves the body a list column (`dimension.layout.list`) beside them, the Details are the **rail** at the body's end: `dimension.layout.rail` wide plus the gutter their groups keep inside, `space.300` from the body, the column's rule running the pair's height. Every group is open to fold, its title an h2 under the page's h1, its rows running the rail's width with the gutter inside them. Narrower, on a phone, in a narrow window, beside a wide side nav or an open panel, they are the **Details disclosure** above the body: one row that reads "Details" (the Aside's `heading`) and carries its `summary`, the record's state, closed until the reader opens it, so the state is one tap from the top and the body keeps its place. Its row is an h2's button and its content one level below; an Inspector group named as the disclosure is its content, with no second title.
+
+_Example: story `Stories.TabbedRecord`._
+
+_Example: story `Stories.Phone`._
+
+Once shown, the rail keeps its place until the layout is `space.300` narrower than it needs, so a page scrollbar that comes and goes with the rail never flips the display back and forth. The Details are rendered once, where the layout puts them, and a change of display mounts nothing again and moves nothing. The content shows as it is at once: only the reader's own toggle folds it on the kit's motion. Focus on a control inside stays on it, the disclosure opening around it; a draft in an [Editable](?path=/docs/patterns-editable--docs) keeps its field and its text; a control the change replaces (a group's title, an h2 in the rail and an h3 in the disclosure) hands focus to the first control left, once: coming back to a retained tab leaves focus on the tab.
+
+_Example: story `Stories.DisplayChange`._
+
+A layout mounted again on the client, for the next record or another version of this one, starts from the display the last one measured, so at a desktop width it is the rail from its first commit, and an effect that focuses a control in the Details as they mount (the Version select a version was chosen with) finds the control shown. While a page hydrates it starts as the disclosure, as the server rendered it.
+
+_Example: story `Stories.MountedAgain`._
+
+## Scrolling
+
+The page keeps its scroll. As it scrolls, the rail stays in view under the shell's header, at most the window's height under it, and scrolls inside itself when the Details are taller: the page and the rail are the two scroll regions, and a register's `fill`, scroll restoration and a StickyRail elsewhere work as they do on any page. The rail sets no overscroll rule, so at its end the wheel goes on to the page. In a window under 30rem tall, where the shell's header scrolls away, the rail scrolls with the page. In a scroller of its own, a rail sticks to that scroller as a StickyRail does: an ancestor sets `--rail-top` and `--rail-max-height`.
+
+_Example: story `Stories.TallerThanTheWindow`._
+
+An Aside with nothing to show takes no room: the body has the whole width, with no rule.
+
+_Example: story `Stories.NoDetails`._
+
+## When to use it
+
+- **Use it** for a record's Details beside its body: the Overview tab's panel on a tabbed record, everything under the PageHeader on a record without tabs and on a view focused on part of a record.
+- **Not** on a tab that is a register: a tab whose content is a collection fills the work area, so the Details stay on Overview.
+- **Not** for a wizard's steps or the contents of a long document: a [StickyRail](?path=/docs/layout-stickyrail--docs) in the page's Grid. **Not** for a list beside its detail: a [WorkPane](?path=/docs/patterns-workpane--docs). **Not** in a preview: its properties sit under its record header.
+- **Not** Shell.Aside on its own beside the page. Rendered outside an AsideLayout, an Aside takes the shell's area beside Main, from the top of the page, which is deprecated ([Upgrading](?path=/docs/guidance-upgrading--docs#asidelayout)).
+
+## Accessibility
+
+- The Details are a region named by the Aside's `label` ("Requirement details") in both displays, inside Main: a complementary landmark belongs at the top level.
+- They come first in the document at every width, so the order a screen reader and the Tab key follow is the same on a phone and on a desktop: the Details, then the body.
+- The headings stay in one outline under the page's h1: the rail's groups are h2s; the disclosure's row is an h2 and its groups are h3s.
+- The disclosure's row is a button with `aria-expanded`; Enter and Space toggle it and focus stays on it. Its content stays mounted while closed, so find-in-page opens it.
+- A rail that scrolls inside itself holds its groups' title buttons, so Tab reaches it and the browser scrolls a focused control into view. Its rows' focus rings are drawn inside them, where the rail's edges cannot cut them.
+
+## Props
+
+_Props of `AsideLayout`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `aside` | `ReactNode` |  | The Details the body belongs with: a Shell.Aside holding an Inspector. Without it, or with an Aside that has nothing to show, the body takes the whole width. |
+| `children` | `ReactNode` |  | The work beside the Details: a record's body, or its Overview tab's. |
+
+AsideLayout renders one `div` holding the Details' cell and the body's, forwards its native props, a `className` and its ref to it, and names itself last with `data-slot="aside-layout"` and its display with `data-display` (`rail` or `disclosure`).
+
+_Example: story `Stories.NativeAttributes`._
+
+## Related
+
+- [Shell](?path=/docs/layout-shell--docs): the Aside, its `label`, `heading` and `summary`.
+- [Inspector](?path=/docs/patterns-inspector--docs): the groups of facts the Details hold, in the rail and in the disclosure.
+- [Tabs](?path=/docs/components-tabs--docs): the strip the Details start under on a tabbed record.
+- [StickyRail](?path=/docs/layout-stickyrail--docs): a column that stays in view beside a long page, for anything but a record's Details.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#asidelayout): from an Aside beside the page to an AsideLayout.
+
 <!-- page: Layout/PageHeader (src/stories/layout/PageHeader.mdx) -->
 
 # PageHeader
@@ -17759,7 +17901,7 @@ Mount the application shell once around the router outlet. Routes compose normal
 
 ## A record
 
-The trail is `PageHeader.Lead` with the record's code as its last level, the name is the h1, and one Actions menu sits at the end of the title's row (a destination in it is a link item). Tabs follow when the record has more than one view. On Overview the body is Sections, a description is Prose, and the Details are the shell's Aside: an Inspector group named Details with the state, owner, identifiers and dates as KeyValue rows, the ones a reader changes in place as Editables. The Aside is rendered first in Overview's panel and carries the status as its `summary`: beside the Sections it is the rail, and on a phone a Details disclosure above them, closed, its row showing the status. It belongs to Overview and leaves with it; a tab that is a register starts with its Toolbar and table, with no heading over them, and fills the work area.
+The trail is `PageHeader.Lead` with the record's code as its last level, the name is the h1, and one Actions menu sits at the end of the title's row (a destination in it is a link item). Tabs follow when the record has more than one view. On Overview the body is Sections, a description is Prose, and the Details are a Shell.Aside: an Inspector group named Details with the state, owner, identifiers and dates as KeyValue rows, the ones a reader changes in place as Editables. Overview's panel is an [AsideLayout](?path=/docs/layout-asidelayout--docs) with the Aside as its `aside`, carrying the status as its `summary`: beside the Sections, under the tab strip, it is the rail, and narrower a Details disclosure above them, closed, its row showing the status. It belongs to Overview and leaves with it, and the header and the strip span the page on every tab; a tab that is a register starts with its Toolbar and table, with no heading over them, and fills the work area.
 
 _Example: story `Stories.Record`._
 
@@ -17789,7 +17931,7 @@ _Example: story `Stories.FocusStaysInView`._
 ## Regions and behavior
 
 - **Main** contains the page header, filters, tabs and work area. Keep these visible controls in the route.
-- **Aside** provides supporting context, such as a record's Details. It sits beside Main from the `aside` breakpoint (`dimension.breakpoint.aside`, 75rem: 1200px at the default root size), and from the large breakpoint whenever the side nav leaves Main its minimum width beside it: collapsed, or expanded at its default width. Below the aside breakpoint, wherever it would not sit beside Main (below the large breakpoint, beside a side nav the reader widened past that, beside an open Panel), it is a Details disclosure where the route rendered it in the page, closed until the reader opens it, its row carrying the record's state. From the aside breakpoint with a Panel open, it follows Main until the `wide` breakpoint (110rem, 1760px). The breakpoints are tokens; [Metrics](?path=/docs/tokens-metrics--docs) lists them.
+- **Aside** holds a record's Details, which an [AsideLayout](?path=/docs/layout-asidelayout--docs) places beside the body they belong to: from the large breakpoint (`dimension.breakpoint.lg`), where the layout leaves the body a list column beside them, the rail at the body's end, staying in view as the page scrolls; narrower, a Details disclosure above the body, closed until the reader opens it, its row carrying the record's state. The layout reads its own width, so an open Panel or a side nav the reader widened narrows it as a smaller window does. The breakpoints are tokens; [Metrics](?path=/docs/tokens-metrics--docs) lists them.
 - **Panel** holds a selected record or task. From the large breakpoint (64rem, 1024px) it is a resizable column beside Main that runs the full height of the window under the banner; the top nav stops at its edge. Up to the `panel` breakpoint (80rem, 1280px) an open panel shows the side nav collapsed, so the register stays in view beside it, and closing the panel gives the side nav back as the reader left it. Below the large breakpoint it replaces the visible work area under the top nav while Main stays mounted. Close or Escape returns focus to the opener when it still exists.
 - **Sheet** is the modal surface for a workflow that needs focus containment. Compose it with the existing Base UI components.
 
@@ -17825,7 +17967,7 @@ _Example: story `Stories.PageSkeletonMatrix`._
 | Variant    | Parts                                                                                                                                                                                                                                                                 |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `register` | A heading shape where the PageHeader's title will be, nothing under it; the toolbar's row at `dimension.control.medium` (the search, two filters, the primary at the end); the table's header row and `rows` rows at the row heights DataTable's loading state keeps. |
-| `record`   | A line for the trail; the title with an action at the end of its row; a tab strip over a rule; two sections at the reading measure. The Details rail is the shell's Aside, which arrives with the page.                                                               |
+| `record`   | A line for the trail; the title with an action at the end of its row; a tab strip over a rule; two sections at the reading measure. The Details arrive with the page, in the AsideLayout of its Overview.                                                             |
 
 ## Variants
 
@@ -17995,27 +18137,32 @@ The persistent application frame, inspired by [Atlassian's navigation layout](ht
 _Example: story `Stories.Frame`._
 _Example: story `Stories.ComposedPanel`._
 
-Mount Shell once in a shared router layout. Place Banner, TopNav, SideNav and Main there. Child routes render Shell.Aside or Shell.Panel to contribute to the frame's stable region slots. Contributions preserve route React context and disappear when their route unmounts. They mount on the client after slot destinations exist. The root is a grid of named areas, so its children are those areas: anything else, such as a dialog, a toast or an alert, portals out of it or goes inside an area, since the grid places a stray child in its first free cell.
+Mount Shell once in a shared router layout. Place Banner, TopNav, SideNav and Main there. Child routes render Shell.Panel to contribute to the frame's stable panel slot: the contribution preserves the route's React context, disappears when its route unmounts and mounts on the client once the slot exists. A record's Details, a Shell.Aside, render in the page: an [AsideLayout](?path=/docs/layout-asidelayout--docs) places them beside the body they belong to. The root is a grid of named areas, so its children are those areas: anything else, such as a dialog, a toast or an alert, portals out of it or goes inside an area, since the grid places a stray child in its first free cell.
 
 Every part renders one element and forwards its native props and its ref to it; AppLogo, Profile, SideNav.Item and Panel.Title take Base UI `render` where the element may change, so Profile is a menu's trigger through `render` and a side nav item is a router link. The SideNav.ToggleButton is a child of TopNav.Start and places itself; TopNav.Search goes in TopNav.Middle and opens the product's [SearchDialog](?path=/docs/patterns-searchdialog--docs); TopNav.End is a named group that renders its children as given, and its TopNav.Item children fold into one More menu when the top nav is narrow (see the end slot below).
 
-Aside contains supporting context. Panel contains dismissible selected-record or task content. With `title` (and `actions`) it renders its built-in header, close and resizer; without them compose Panel.Header, Panel.Back, Panel.Title, Panel.Actions, Panel.Close, Panel.Body and Panel.Splitter yourself, as Composed panel shows, to change the heading's level, the labels or the padding. Panel.onClose is required either way and the Title names the landmark. From the large breakpoint (`dimension.breakpoint.lg`, 64rem: 1024px at the default root size; see [Metrics](?path=/docs/tokens-metrics--docs)) the panel is the last column for the height of the window under the banner: the top nav stops at its edge and the panel's header sits level with it, so opening it narrows everything and covers nothing. A banner spans the whole width, over the panel's column too (With banner and panel). From there to the `panel` breakpoint (`dimension.breakpoint.panel`, 80rem: 1280px) an open panel shows the side nav collapsed, as its icon rail with `collapsedSideNav="icons"` or hidden, so the register stays in view beside the panel; closing the panel gives the side nav back as the reader left it, and the preference `persist` remembers never changes; SideNav's `onCollapse` and `onExpand` are not called for it. A reader who expands the side nav while the panel is open keeps it expanded until the panel closes (Panel beside Main at 1200px). Below the large breakpoint the panel replaces the visible Main area under the top nav while retaining Main's state. Global navigation remains available; use Sheet for modal work.
+Aside holds a record's Details, placed by an AsideLayout. Panel contains dismissible selected-record or task content. With `title` (and `actions`) it renders its built-in header, close and resizer; without them compose Panel.Header, Panel.Back, Panel.Title, Panel.Actions, Panel.Close, Panel.Body and Panel.Splitter yourself, as Composed panel shows, to change the heading's level, the labels or the padding. Panel.onClose is required either way and the Title names the landmark. From the large breakpoint (`dimension.breakpoint.lg`, 64rem: 1024px at the default root size; see [Metrics](?path=/docs/tokens-metrics--docs)) the panel is the last column for the height of the window under the banner: the top nav stops at its edge and the panel's header sits level with it, so opening it narrows everything and covers nothing. A banner spans the whole width, over the panel's column too (With banner and panel). From there to the `panel` breakpoint (`dimension.breakpoint.panel`, 80rem: 1280px) an open panel shows the side nav collapsed, as its icon rail with `collapsedSideNav="icons"` or hidden, so the register stays in view beside the panel; closing the panel gives the side nav back as the reader left it, and the preference `persist` remembers never changes; SideNav's `onCollapse` and `onExpand` are not called for it. A reader who expands the side nav while the panel is open keeps it expanded until the panel closes (Panel beside Main at 1200px). Below the large breakpoint the panel replaces the visible Main area under the top nav while retaining Main's state. Global navigation remains available; use Sheet for modal work.
 
 _Example: story `Stories.PanelBesideMain`._
 
-Aside sits beside Main from the `aside` breakpoint (`dimension.breakpoint.aside`, 75rem), and from the large breakpoint whenever the side nav leaves Main its minimum width beside it (see Main's minimum width below): collapsed, as the icon rail or hidden, it always does, and expanded at its default width it does. With a panel open it sits beside Main from the `wide` breakpoint (110rem); between the aside and the wide breakpoints it follows Main and starts where Main's content ends. Beside Main its divider runs the page's height, however short its content (Record rail at 1100px).
+Aside is a record's Details: an [Inspector](?path=/docs/patterns-inspector--docs) in a Shell.Aside, given to an [AsideLayout](?path=/docs/layout-asidelayout--docs) as its `aside`, around the body it belongs to: a tabbed record's Overview panel, so the header and the tab strip span the page on every tab and the Details leave with the tab, or everything under the PageHeader on a record without tabs. The layout decides from its own width. From the large breakpoint, where the body keeps a list column beside them, the Details are the rail at the body's end, under the tab strip, staying in view under the banner and the top nav as the page scrolls and scrolling inside themselves when they are taller than the window. As the rail the Aside pads only its bottom: the Inspector groups inside run its full width, each with the gutter inside its own row, so a group's tint under the pointer and the rule between groups reach the rail's edges ([Inspector](?path=/docs/patterns-inspector--docs), In a rail). Narrower (a phone, a narrow window, beside a side nav the reader widened or an open panel) the Details are a disclosure above the body, closed until the reader opens it: one row over a hairline that reads "Details" (`heading` changes it) and carries `summary`, the record's state as its status badge, so the state is one tap from the top and the body keeps its place.
 
-Below the aside breakpoint, wherever it would not sit beside Main (on a phone, beside a side nav the reader widened, beside an open panel), the Aside is a Details disclosure where the route rendered it in the page, closed until the reader opens it: one row over a hairline that reads "Details" (`heading` changes it) and carries `summary`, the record's state as its status badge. The state is one tap from the top and the body keeps its place. So render the Aside where a record's Details belong on a phone: right after the PageHeader, or first in a tabbed record's Overview panel, rendered only while that tab is selected. Where it is rendered it leaves an empty marker that takes no room (`display: contents`), so it adds no gap to the Stack around it; its content portals into the rail or the disclosure. The row is an h2's button with `aria-expanded`; Enter and Space toggle it, and find-in-page opens it. The content sits one level below, and an Inspector.Group named as the disclosure is its content, with no second title. Inside Main the Aside is a region named by its `label`, since a complementary landmark belongs at the top level. The content moves between the rail and the disclosure without mounting again, so a draft in an Editable survives a resize or a panel opening, and it moves as it is, at once: only the reader's own toggle folds it on the kit's motion. Focus on a control inside stays on it as the display changes, the disclosure opening around it; a control the change replaces (a group's title, an h2 in the rail and an h3 in the disclosure) hands focus to the first control left (Record details at 390px, Record rail beside a wide side nav). When a route replaces one record's page with another's, the next record's Details mount in the document, so what measures itself as it mounts measures in the page (Record change at 390px).
+Inside Main the Aside is a region named by its `label` in both displays, since a complementary landmark belongs at the top level. The disclosure's row is an h2's button with `aria-expanded`; Enter and Space toggle it, and find-in-page opens it. The content sits one level below, and an Inspector.Group named as the disclosure is its content, with no second title. The Details are rendered once, where the layout puts them, first in the document at every width, so a change of display (a resize, a panel opening, the side nav widening) mounts nothing again: a draft in an Editable survives it, the content shows as it is at once (only the reader's own toggle folds it on the kit's motion), focus on a control inside stays on it, the disclosure opening around it, and a control the change replaces (a group's title, an h2 in the rail and an h3 in the disclosure) hands focus to the first control left (Record details at 390px, Record rail at 1100px, Record rail beside a wide side nav). A record that replaces another mounts its Details in the page (Record change at 390px).
 
 ```tsx
 <Stack space="space.200">
   <PageHeader>…</PageHeader>
-  <Shell.Aside label="Task details" summary={<Badge variant="secondary">In progress</Badge>}>
-    <Inspector>
-      <Inspector.Group title="Details">…</Inspector.Group>
-    </Inspector>
-  </Shell.Aside>
-  <Stack space="space.300">…the record's sections…</Stack>
+  <AsideLayout
+    aside={
+      <Shell.Aside label="Task details" summary={<Badge variant="secondary">In progress</Badge>}>
+        <Inspector>
+          <Inspector.Group title="Details">…</Inspector.Group>
+        </Inspector>
+      </Shell.Aside>
+    }
+  >
+    <Stack space="space.300">…the record's sections…</Stack>
+  </AsideLayout>
 </Stack>
 ```
 
@@ -18023,6 +18170,10 @@ _Example: story `Stories.RecordRailPhone`._
 _Example: story `Stories.RecordRailLaptop`._
 _Example: story `Stories.RecordRailWideSideNav`._
 _Example: story `Stories.RecordChangePhone`._
+
+A Shell.Aside rendered on its own, outside an AsideLayout, takes the shell's aside area instead, beside Main from the top of the page, a complementary landmark there, and logs a warning in development. That placement is deprecated: the next minor version renders such an Aside in place ([Upgrading](?path=/docs/guidance-upgrading--docs#asidelayout)).
+
+_Example: story `Stories.DeprecatedShellAside`._
 
 The panel's focus contract holds at every width. When it opens while focus is on the page, on its opener or nowhere, focus moves into it (the labelled `aside`, or the element `initialFocus` names), so Escape and the next keys act in the preview; `initialFocus={false}` leaves focus where it is while Main is still visible beside the panel. When it closes with focus inside, focus returns to the control the reader last used in Main: the opener, or another row's eye pressed while the panel was open; `finalFocus` names another element, or `false` leaves it to the caller. Escape closes the panel unless it comes from a field inside it (a text input, a search field, a textarea, a select or an editable region), where it belongs to the field, so a table's search inside the panel clears its query and the panel stays (Table in a panel); from a tooltip, a menu, a list or a dialog open in the panel, which closes first; from text an input method is still composing; or from a part inside that handled it (`preventDefault`). Where the panel replaces Main, it is the page's region: Main, its h1 and its landmark are out of the page until the panel closes, so the panel's title or `label` says where the reader is. See Panel focus.
 
@@ -18079,7 +18230,7 @@ See [page composition](?path=/docs/layout-pages--docs) for route and tab example
 
 ## Accessibility
 
-Each area is a landmark with a locale default name: the Banner a region ("Banner"), TopNav a `header` ("Top navigation"), SideNav a `nav` ("Side navigation"), Main a `main` ("Main content"), Aside a complementary region ("Page context"; a region inside Main while it is the Details disclosure) and Panel a complementary region its title or `label` names. Visually hidden skip links come first in the tab order, one per area in the areas' order, and each moves focus to its area; the side nav's link is there only while the side nav shows beside the page, inline or as the icon rail (Skip links). Shell mounts the kit's TooltipProvider: the first tooltip waits 300ms, and the next opens at once for 300ms after the last closed.
+Each area is a landmark with a locale default name: the Banner a region ("Banner"), TopNav a `header` ("Top navigation"), SideNav a `nav` ("Side navigation"), Main a `main` ("Main content"), Aside a region inside Main its `label` names ("Page context" by default; a complementary landmark beside Main only in the deprecated shell area) and Panel a complementary region its title or `label` names. Visually hidden skip links come first in the tab order, one per area in the areas' order, and each moves focus to its area; the side nav's link is there only while the side nav shows beside the page, inline or as the icon rail (Skip links). Shell mounts the kit's TooltipProvider: the first tooltip waits 300ms, and the next opens at once for 300ms after the last closed.
 
 Below the large breakpoint the side nav is a modal overlay. Opening it moves focus to the current page's item, else the first link; Tab and Shift+Tab go round inside it; the Banner, the top nav, Main, Aside, Panel and the skip links are inert until it closes. The overlay covers the toggle that opened it, so its own Close takes the toggle's place. Close, Escape and the blanket close it and return focus to the toggle, and choosing a destination closes it and hands focus to Main. The blanket closes the overlay on a press but is no control: it is hidden from assistive technology and out of the tab order. A menu or a dialog opened from inside the overlay keeps its own Tab and Escape, and closing it leaves the overlay open (Overlay focus at 390px).
 
@@ -18278,9 +18429,9 @@ _Props of `Shell.Aside`, generated from its types:_
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `label` | `string` |  | The landmark's name, "Page context" by default. |
-| `heading` | `string` |  | Below the aside breakpoint, the Details disclosure's heading: "Details" (a locale message) by default. An Inspector.Group of the same name inside is the disclosure's own content, without a second title. |
-| `summary` | `ReactNode` |  | Below the aside breakpoint, what the Details disclosure's row shows after its heading, closed or open: the record's state, as its status badge. Static content only, since it is part of the disclosure's button and its name. |
+| `label` | `string` |  | The region's name, "<Record type> details" on a record ("Page context" by default). |
+| `heading` | `string` |  | Where the Details are a disclosure, its heading: "Details" (a locale message) by default. An Inspector.Group of the same name inside is the disclosure's own content, without a second title. |
+| `summary` | `ReactNode` |  | Where the Details are a disclosure, what its row shows after its heading, closed or open: the record's state, as its status badge. Static content only, since it is part of the disclosure's button and its name. |
 
 ### Panel
 
@@ -18382,7 +18533,7 @@ Panel header slots respond to the panel container, including a manually resized 
 ## Related
 
 - [Pages](?path=/docs/layout-pages--docs): how a register, a record and a preview compose inside the Shell.
-- [Upgrading](?path=/docs/guidance-upgrading--docs#shell): the Shell's earlier part names (Sidebar, TopBar, Brand, NavGroup, NavItem, User) and what each is now, and where to render the Aside now that it is a Details disclosure on a phone.
+- [Upgrading](?path=/docs/guidance-upgrading--docs#shell): the Shell's earlier part names (Sidebar, TopBar, Brand, NavGroup, NavItem, User) and what each is now, and where the Aside goes now: an AsideLayout's `aside`.
 
 <!-- page: Layout/Shell/Icon rail (src/stories/layout/ShellIconRail.mdx) -->
 
@@ -18433,7 +18584,7 @@ _Example: story `Stories.Always`._
 ## When to use it
 
 - **Use it** for a short column that orients the reader while they work down a long page beside it: a wizard's steps, the contents of a long document.
-- **Not** for a record's Details: those are the [Shell](?path=/docs/layout-shell--docs)'s Aside, which the Shell places beside Main and turns into a Details disclosure on a phone.
+- **Not** for a record's Details: those are a Shell.Aside in an [AsideLayout](?path=/docs/layout-asidelayout--docs), whose rail stays in view the same way and which turns into a Details disclosure on a phone.
 - **Not** for a list beside its detail: that is a [WorkPane](?path=/docs/patterns-workpane--docs), whose list sticks the same way.
 - **Not** for a page frame or a register's table: Main scrolls the page, and DataTable `fill` takes the rest of the window.
 
@@ -18453,7 +18604,8 @@ StickyRail renders one `div`, forwards its native props, a `className` and its r
 
 ## Related
 
-- [Shell](?path=/docs/layout-shell--docs): the banner and the top nav it stops under, and the Aside for a record's Details.
+- [Shell](?path=/docs/layout-shell--docs): the banner and the top nav it stops under.
+- [AsideLayout](?path=/docs/layout-asidelayout--docs): a record's Details beside its body.
 - [Stepper](?path=/docs/components-stepper--docs): a wizard's steps.
 - [Grid](?path=/docs/primitives-grid--docs): the page's columns.
 - [Upgrading](?path=/docs/guidance-upgrading--docs#layout-classes): `lg:sticky-rail` and `sticky-rail` are a StickyRail.
@@ -18511,6 +18663,67 @@ _Props of `ActionBar`, generated from its types:_
 - [Inspector](?path=/docs/patterns-inspector--docs): where a record's state, owner and dates sit on a record page.
 - [Button](?path=/docs/components-button--docs): `disabledReason` for a single action that cannot run, explained in a tooltip.
 - [Upgrading](?path=/docs/guidance-upgrading--docs#actionbar): each of ActionBar's props and the record page's part that replaces it.
+
+<!-- page: Patterns/ChangeReview (src/stories/patterns/ChangeReview.mdx) -->
+
+# Change review
+
+**Status: Experimental.** The Ledger maintainers own this reusable field-change review. Its first consumer is the assurance workbook's apply dialog.
+
+`ChangeReview` shows the complete proposed set before a host commits it. Every row names its record and field, its recorded and proposed values, and an optional issue. The host owns validation, permissions, the transaction, and the Apply and Cancel buttons.
+
+_Example: story `Stories.Playground`._
+
+## Reviewing changes
+
+Pass a stable `id` for each proposed field change and preserve the order the reader should review. The table searches every supplied change and pages 25 at a time. Search narrows this review only; it never changes the set a host will apply. There is no sorting, column menu, persisted layout or row selection.
+
+Each row's leading disclosure opens a [Diff](?path=/docs/components-diff--docs) of its full recorded and proposed text. Changed words are marked with text decorations and the added/removed markers, as well as colour. Long paragraphs and unbroken values wrap, and the comparison falls back from side by side to inline within a narrow container. Opening a comparison calls `onInspect(id)`; it performs no write and opens no nested overlay.
+
+At narrow widths the lower-priority columns move into the row's More fields disclosure. The full comparison remains available, so a shortened table value never conceals part of the decision.
+
+_Example: story `Stories.Phone`._
+
+## Failure and pending state
+
+An `issue` belongs to one change and appears in its row and its comparison. It explains what needs review; the host decides whether it blocks applying. `error` describes a failed attempt above the retained proposals, with an optional `onRetry` action. While `pending`, the region is busy and Retry cannot start a duplicate operation; inspecting and searching remain available.
+
+_Example: story `Stories.WithIssues`._
+
+_Example: story `Stories.Pending`._
+
+_Example: story `Stories.ManyChanges`._
+
+_Example: story `Stories.Empty`._
+
+## Host responsibilities
+
+Supply real recorded/proposed values and keep pending drafts intact after failure. A filtered or paged review is still a review of the complete supplied set. Before applying, enforce the host's permissions and concurrency checks; the component makes no assertion that a change is valid or saved. Put the transaction's buttons in its dialog footer or other owning surface, not in the review's toolbar.
+
+`before=""` or `after=""` means an empty value. The table names it “Empty value”; the Diff shows an addition or removal. Names and foreign keys should use the labels a reader knows, while the proposal's durable record identities stay with the host.
+
+The root forwards native div props and ref. `className` is merged; its `data-slot` stays `change-review`. Its `label` names the table; each disclosure names both the record and field. Search, paging, disclosure focus and responsive hidden-field access come from DataTable.
+
+## Props
+
+_Props of `ChangeReview`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `changes` (required) | `readonly ReviewChange[]` |  | The complete proposed set, in the order the reader should review it. Never a server page. |
+| `label` | `string` | `Proposed changes` | The table's accessible name. |
+| `pending` | `boolean` | `false` | Keeps the review available and marks the region busy while its host applies or refreshes. |
+| `error` | `string` |  | A failed attempt keeps every proposed change visible below this message. |
+| `onRetry` | `(() => void)` |  |  |
+| `onInspect` | `((id: string) => void)` |  | Reports a change when its full comparison is opened, including by keyboard or touch. |
+
+_Rendered in the Storybook: Controls._
+
+## Related
+
+- [DataTable](?path=/docs/patterns-data-table--docs): the underlying readonly collection, search, pagination and responsive fields.
+- [Diff](?path=/docs/components-diff--docs): the complete comparison of one field.
+- [Dialog](?path=/docs/components-dialog--docs): the host's decision and transaction controls.
 
 <!-- page: Patterns/Chart/Overview (src/stories/patterns/Chart.mdx) -->
 
@@ -20130,6 +20343,31 @@ A command is a verb and its object, under a heading that names its kind, never n
 
 _Example: story `Stories.Dont`._
 
+<!-- page: Patterns/CommandScope (src/stories/patterns/CommandScope.mdx) -->
+
+# CommandScope
+
+**Status: Experimental.** Ledger owns the generic command boundary; applications own action authorization and recovery.
+
+A focus-owned set of actions shared by menus, buttons and a command palette. Each action has an identity, label, optional shortcut and availability. `useScopedCommands()` returns the effective actions and a guarded `run(id)` function.
+
+_Example: story `Stories.Workspace`._
+
+Nested scopes override matching identities or shortcuts. The nearest enabled or disabled command consumes its shortcut, so a locked editor cannot accidentally run its parent's action. Text fields keep shortcuts unless the command sets `allowInInput`. Handled events, held keys and IME composition never trigger an action. Keyboard shortcuts use `Mod` for the platform's primary modifier, or explicit `Alt`, `Shift`, `Control` and `Meta`.
+
+_Example: story `Stories.NestedScopes`._
+
+Use the same action descriptor to populate a CommandPalette, a context menu and a visible button. `run` prevents simultaneous execution of the same command and rejects on failure. A keyboard failure reaches `onCommandError`; the host must present a recovery message and retain any draft. UI availability is advisory: the host must authorize every mutation. Registration follows the React subtree and attaches no global listener.
+
+_Example: story `Stories.SharedActions`._
+
+_Props of `CommandScope`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `commands` (required) | `readonly ScopedCommand[]` |  | Local actions override matching identities and shortcuts inherited from a parent scope. |
+| `onCommandError` | `((error: Error, command: ScopedCommand) => void)` |  | Receives a failed keyboard command. The host keeps its draft and presents the recovery. |
+
 <!-- page: Patterns/Composer (src/stories/patterns/Composer.mdx) -->
 
 # Composer
@@ -21320,9 +21558,13 @@ A group's heading takes the contextual level, an h3 when nothing sets one. In a 
 
 _Example: story `Stories.InARail`._
 
+## In the rail
+
+In a Shell.Aside shown as the rail (an [AsideLayout](?path=/docs/layout-asidelayout--docs)'s, where it leaves the body room), each group runs the rail's full width. The rail pads only its bottom, and the layout lines its first title up with the body's first heading; a group's title row and its rows take the gutter (`space.300`) inside them, so the title lines up with the labels under it, the tint under the pointer covers the whole row, the rule between groups reaches both edges and the focus ring is drawn inside the row, where the window's edge cannot cut it. An action takes the gutter at the end of the title's row, and the `footer` takes it too. Put everything the rail holds in its groups. Outside an Aside rail (a preview's body, a panel, the Details disclosure) a group keeps its container's padding and its title sits flush with it.
+
 ## In the Details disclosure
 
-Below the aside breakpoint a record's Shell.Aside is a Details disclosure in the page, closed until the reader opens it (Shell's Record details at 390px). Its row is the h2 and its content one level below, so the groups there are h3s. A group named as the disclosure ("Details", or the Aside's `heading`) is the disclosure's own content: its title, which would repeat the row's, steps aside, and its rows show while the disclosure is open. Its action stays, at the end of a row above them. The other groups keep their titles and fold as in the rail.
+Where an AsideLayout leaves no room for the rail (a phone, a narrow window), a record's Shell.Aside is a Details disclosure above the body, closed until the reader opens it (AsideLayout, At 390px). Its row is the h2 and its content one level below, so the groups there are h3s. A group named as the disclosure ("Details", or the Aside's `heading`) is the disclosure's own content: its title, which would repeat the row's, steps aside, and its rows show while the disclosure is open. Its action stays, at the end of a row above them. The other groups keep their titles and fold as in the rail.
 
 ## When to use it
 
@@ -21384,7 +21626,7 @@ _Example: story `Stories.Dont`._
 - [KeyValue](?path=/docs/components-keyvalue--docs): the rows.
 - [Collapsible](?path=/docs/components-collapsible--docs): the disclosure header each group's title is.
 - [Section](?path=/docs/layout-section--docs): the collapsible block on a page body.
-- [Shell](?path=/docs/layout-shell--docs): the Aside and the Panel it sits in.
+- [AsideLayout](?path=/docs/layout-asidelayout--docs) and [Shell](?path=/docs/layout-shell--docs): the Aside a record's Details sit in, and the Panel a preview's do.
 - [Upgrading](?path=/docs/guidance-upgrading--docs#inspector): `groups` is Inspector.Group children.
 
 <!-- page: Patterns/PickerSheet (src/stories/patterns/PickerSheet.mdx) -->
@@ -22244,6 +22486,405 @@ _Example: story `Stories.Playground`._
 Records are found in a SearchDialog, each its identifier, its name, a line of meta and one status, never as commands in the CommandPalette.
 
 _Example: story `Stories.Dont`._
+
+<!-- page: Patterns/Spreadsheet (src/stories/patterns/Spreadsheet.mdx) -->
+
+# Spreadsheet
+
+**Status: Experimental.** Ledger maintainers own the interaction contract. The workbook prototype is the first consumer; cross-browser, screen-reader and large-workbook review remain release work.
+
+A controlled, two-dimensional editing surface with stable cell identities, typed editors, a formula bar, rectangular selection and batch operations. Use a DataTable for a register that primarily opens records. Use Spreadsheet when editing ranges and relating cells is the task.
+
+_Example: story `Stories.Playground`._
+
+## Ownership
+
+Rows and columns have stable IDs. Selection uses those IDs, so sorting and an external refresh do not silently move a selection to a different record. Supply each row's unique positive `rowNumber` to preserve its canonical workbook address when filtering or sorting. It defaults to the visible index plus one. The name box, formula bar, row headers and cell addresses use that number; Go to cell only finds rows included in the current view. A selection across reordered or noncontiguous row numbers uses an ellipsis rather than implying a contiguous formula range. Actual accessibility row indices still describe the rendered view order.
+
+`onChange` receives one batch of raw cell inputs, including leading formula `=` characters. The host validates and authorizes the entire intent, persists it atomically, and supplies updated rows. Reject the promise to keep the draft and offer Retry. Updating a filtered or sorted sheet must retain any record being edited until its draft is settled. `onDraftChange` reports unsaved cell or formula input, including dates that have not yet been parsed, so the host can guard navigation and pause structural actions. It returns to false after commit, cancellation or unmount.
+
+The component does not evaluate formulas, make network calls, keep durable history, create rows, or provide synchronization. Supply evaluated text through `displayValue`, persisted formatting through `getCellStyle`, undo and redo callbacks, and host controls through `toolbarStart` and `actions`. These slots share the same action strip with the native cell tools. The clipboard copies raw input, preserving formulas. Fill repeats raw source values by default. Supply `translateInput(value, from, to)` for reference-aware formulas: fill and a locally copied range pass zero-based canonical row coordinates (`rowNumber - 1`) and column positions to that host callback. Each copied source row retains its own coordinate, including a noncontiguous selection. External clipboard input passes through without reference translation. A local copy retains its origin while switching sheets in the same mounted workbook. Columns keep their supplied order; a host that reorders columns must translate those positions against its own canonical model.
+
+`readOnly`, column `readOnly` and `isCellReadOnly` remove write capabilities. These are presentation rules; the host must enforce permissions too. `getCellError` exposes an externally validated error at its cell and in the active cell's feedback. A rejected batch must not partially write. Unknown network outcomes require host idempotency, not blind retries.
+
+## Toolbar and column controls
+
+`toolbarStart` places workbook commands before the native undo, redo, copy, fill, clear and column controls. `actions` places additional host controls after them. They share one `SpreadsheetToolbar`: a named group with native Tab navigation and a single horizontal row. At narrow widths the strip scrolls, overflow arrows reveal its ends, and focusing a control brings it into view. It does not turn the controls into an arrow-key toolbar. Use the exported `SpreadsheetToolbar` for matching non-grid workbook views; it forwards native div props, a ref and `className`.
+
+Every column heading has a **Column options** button, visible on hover, keyboard focus or selection, and always visible on touch screens. The active cell's column menu also opens with Alt+Down. The native menu autofits, narrows, widens or resets that column; the toolbar's **Columns** menu autofits or resets every column. Double-clicking a resize divider autofits its column. Width changes call `onColumnWidthsChange` with stable column IDs. Autofit measures the currently supplied display values within the column width limits; the host owns which rows are loaded.
+
+The menu can freeze or unfreeze the first column. Without `freezeFirstColumn`, this is local state, initially frozen. A supplied `freezeFirstColumn` is controlled: pair it with `onFreezeFirstColumnChange` to allow changes. Without that callback, the menu explains that the host owns the frozen-column setting. The existing narrow-width rule still lets a frozen identity yield when it leaves too little room for another cell.
+
+`renderColumnMenu(column, context)` appends host menu items after the native layout controls. Use it for field-specific sorting, filtering or authorized structure changes. These callbacks receive the stable column descriptor; Ledger does not reorder canonical data or change formula references. A column menu and its trigger remain keyboard accessible, and a pending write pauses layout changes.
+
+_Example: story `Stories.ColumnControls`._
+_Example: story `Stories.PhoneColumnControls`._
+_Example: story `Stories.Toolbar`._
+
+## Context actions and sheet navigation
+
+Right-click a cell, row heading or column heading to open its action menu. Shift+F10 and the Context Menu key open the menu for the current selection mode. Opening a cell menu inside a selected rectangle preserves that range; opening outside it chooses the target cell. `SpreadsheetMenuContext` includes the distinct pointer target, retained selection and visible row/column IDs. Hidden identities are excluded from the action scope. `renderCellMenu`, `renderRowMenu` and `renderColumnMenu` append host actions to this context; the host authorizes structural or record commands.
+
+Cell menus expose cut, copy, paste, paste values, clear values and fill. Drag the selection’s corner handle to repeat a source block vertically or horizontally, including translated formulas when `translateInput` is supplied. A preview does not write values; releasing commits one atomic batch, while Escape or pointer cancellation discards it. Ctrl/⌘D and Ctrl/⌘R fill down and right. The handle repeats values and formulas, without inferring number series or copying formatting. Protected destinations reject the whole operation. `onClearFormatting` is separate from clearing values. `clipboardValue` supplies an unformatted calculated value for Paste values. Copy carries values and formulas, without formatting, comments or dropdown rules. Cut retains its source until an atomic paste succeeds within the same sheet; it does not rewrite references elsewhere in the workbook. `preparePasteValue` lets hosts encode literal values for their model; by default Paste values escapes a leading `=`. Clipboard access depends on browser permission; errors remain visible and failed writes retain their retry state. Read-only and pending states keep unavailable writes disabled.
+
+Drag across row or column headings to select an axis range. Resizing a selected column updates the whole selected column range with a local preview and one committed width map; Escape restores the previous widths. Row and column menus hide their selected identities, reveal all hidden identities and set explicit dimensions. Keep the full `rows` and `columns` arrays and pass `hiddenRowIds` / `hiddenColumnIds`, paired with their change callbacks, to retain workbook addresses. Hiding B leaves C as C; hiding row 2 leaves row 3 as row 3. `rowHeights` and `onRowHeightsChange` control explicit row heights. Drag a row boundary to resize (whole selected rows resize together), double-click or press Enter on its separator to fit the content, or choose **Automatic row height** to remove explicit heights. The callback supplies the complete map: missing row IDs return to automatic sizing. Alt+Shift+Up/Down resizes the active row from the grid; separator Arrow keys resize by 8px, Shift by 32px. Explicit heights are 24–240px and automatic wrapped rows grow up to 480px; overflowing content stays within its cell. Local presentation state is available when those props are omitted; persistence belongs to the host.
+
+_Example: story `Interactions.ContextSelection`._
+_Example: story `Interactions.HiddenAddresses`._
+
+The footer pins Add sheet and **All sheets** beside independently scrolling sheet tabs. Dimensions, status and optional add-row/column actions use a compact details lane, placed below the tabs in narrow containers. Active tabs have a tinted underline and an adjacent action chevron; inactive chevrons appear on hover or focus and stay visible on touch screens. `getSheetActions(sheetId)` supplies permitted rename, duplicate, move or delete descriptors. A tab's chevron, right-click menu, Shift+F10 or Alt+Down action targets that tab's stable ID even when another sheet is active. Double-click requests rename only when the host supplies an enabled `rename` action. `onSheetAction` performs the action; Ledger does not rename, duplicate or delete records. Native arrow keys move between sheet buttons without activating them. `sheetRowCount` and `sheetColumnCount` can report complete dimensions separately from visible rows.
+
+_Example: story `Interactions.SheetActions`._
+
+## Cell annotations and formatting
+
+`getCellOptions` supplies dropdown choices for one cell without changing its column's editor. The host validates typed values, paste and fill as well as picker choices. `getCellComment` displays a plain comment marker and exposes the text in the cell's accessible description. These annotations do not imply shared editing, authorship or comment threads; the host owns their storage and permissions.
+
+`getCellStyle` supports font family and size, bold, italic, underline, strikethrough, text/fill colors, horizontal and vertical alignment, wrapping and individual borders. Explicit row heights and wrapping affect the measured grid geometry. Keep style values validated before passing them to the view; formatting is presentation, and it does not change source record values.
+
+_Example: story `Interactions.CellAnnotations`._
+
+## Keyboard and selection
+
+- Arrow keys move; Shift with arrows extends a rectangle. Home/End reach row edges; Control/Command with Home/End reaches sheet edges. Page Up/Down moves a viewport.
+- Enter, F2 or double-click edits the selection's anchor cell with the caret at the end. Typing begins a replacement draft. Shift with repeated arrows extends from the moving end of the selection. IME composition never saves or cancels.
+- While editing a cell, Enter saves and moves down, Shift+Enter moves up, Tab saves to the next writable cell, and Shift+Tab goes back. Alt+Enter inserts a newline in text. Escape cancels. Outside editing, Tab leaves the grid.
+- The inline text editor fills the cell and preserves multiline input. The active-cell border stays visible on all four sides above text and picker editors. Moving focus between the cell and formula bar keeps the draft; leaving both commits without taking focus away from the next control. Formula-bar Enter saves the current cell without moving. A rejected write keeps the draft available for correction or retry.
+- Choice and date cells retain their pickers. Dismissing an unchanged choice closes the editor without writing. Focus inside a choice list or calendar remains part of the edit; Escape closes a calendar first and then cancels the cell.
+- Control/Command+A selects all cells. Control/Command+Space selects the column, and Shift+Space selects the row. Row and column headings also select their ranges with a pointer.
+- Copy and Paste use browser shortcuts. Pasting one value fills a selected rectangle; pasting a matrix starts at its top-left cell. A matrix that exceeds existing sheet bounds is rejected. A paste touching any read-only cell rejects the whole rectangle without writing; a writable rectangle is submitted in one batch.
+- Alt+Left/Right resizes the active column; dragging a heading divider does the same. Alt+Enter opens the active record when `onOpenRow` is supplied.
+- The name box accepts an address such as B25. The formula bar always edits raw input, including formulas whose displayed result is different.
+
+The grid is one Tab stop with `aria-activedescendant`. The selected cell remains mounted while rows and columns outside the viewport are windowed. Data remains two-dimensional at narrow widths: the grid and action strip scroll independently sideways; feedback wraps without widening the page. A frozen first column yields when it would leave insufficient room for another cell. `freezeFirstRow` retains a workbook's first data row beneath the column headings.
+
+_Example: story `Stories.RectangularClipboard`._
+_Example: story `Stories.ControlledSelection`._
+_Example: story `Stories.KeyboardAndValidation`._
+_Example: story `Stories.TypedEditors`._
+_Example: story `Stories.InlineEditing`._
+_Example: story `Stories.TypedEditorDismissal`._
+_Example: story `Stories.ReferenceTranslation`._
+_Example: story `Stories.CanonicalRows`._
+
+## Saving and recovery
+
+The editor and formula bar keep their draft after a rejected save. Retry sends the same intent; Escape discards only the unsaved draft. A refresh error keeps readable values. The host distinguishes a committed write followed by a failed refresh from a write that failed: a refresh failure must not trigger another insert.
+
+_Example: story `Stories.RecoverableSave`._
+_Example: story `Stories.PendingCommit`._
+_Example: story `Stories.RefreshFailure`._
+
+## Large sheets, presence and sheets
+
+Rows start at a token-based height and expand for supported wrapping or explicit dimensions; columns have constrained widths. Both axes are windowed; screen-reader row and column counts describe the full supplied data. The component only windows rendering: loading large datasets, server-side filters, aggregation and formula dependency calculation belong to the host. Selection totals include numeric display values and are not an authoritative calculation engine.
+
+_Example: story `Stories.LargeSheet`._
+_Example: story `Stories.FrozenIdentity`._
+
+Presence is optional and ephemeral. Pass named peers with their stable cell IDs; the cell exposes their names to assistive technology and a peer button reveals their location. The component makes no claim about locks or concurrent-write safety. Sheet buttons call `onSheetChange` after the current draft saves; the host supplies each sheet's data. Key a host/controller by workbook identity, and guard external navigation while it holds an unsaved draft.
+
+_Example: story `Stories.PresenceAndSheets`._
+_Example: story `Stories.Phone`._
+
+## Limits
+
+This family supplies a workbook viewport, not XLSX round-trip fidelity or an Excel-compatible engine. Charts, merged cells, pivots, conditional formatting, reference-adjusting fill, collaborative editing and file conversion require host capabilities. It exposes text, number, choice, boolean and date editors; the formula bar can edit any writable raw value. Rows and columns must have unique IDs. Empty values are empty strings.
+
+Cells with formula-shaped literal text, such as a record statement beginning with `=`, can be identified with `isCellLiteral`. Local copy and fill retain that intent, including across sheet changes; genuine formulas still use `translateInput`. System clipboard TSV stays unchanged. `preparePasteValue` encodes literal text for each destination: use the raw string for record or text-format cells, and escape a leading equals sign for formula-enabled cells. The host continues to validate and authorize the complete write.
+
+_Props of `Spreadsheet`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` (required) | `string` |  | Names this grid; required even when a page heading names the workbook. |
+| `columns` (required) | `readonly SpreadsheetColumn[]` |  |  |
+| `rows` (required) | `readonly SpreadsheetRow[]` |  |  |
+| `onChange` | `((edits: readonly SpreadsheetEdit[]) => void \| Promise<void>)` |  | One atomic intent. Reject to keep the editor's draft and expose Retry. The host owns validation, persistence and updating rows. |
+| `onDraftChange` | `((dirty: boolean) => void)` |  | Reports an unsaved editor draft so the host can guard navigation and structural operations. False after commit, cancellation or unmount. |
+| `selection` | `SpreadsheetSelection \| null` |  |  |
+| `onSelectionChange` | `((selection: SpreadsheetSelection \| null) => void)` |  |  |
+| `readOnly` | `boolean` | `false` |  |
+| `pending` | `boolean` | `false` | External load/save activity. Existing values stay visible; writes pause. |
+| `error` | `ReactNode` |  |  |
+| `onRetry` | `(() => void)` |  |  |
+| `isCellReadOnly` | `((cell: SpreadsheetCell) => boolean)` |  |  |
+| `isCellLiteral` | `((cell: SpreadsheetCell) => boolean)` |  | Identifies cells whose formula-shaped input is literal text. Copy and fill preserve that intent. |
+| `getCellError` | `((cell: SpreadsheetCell) => string)` |  |  |
+| `getCellStyle` | `((cell: SpreadsheetCell) => SpreadsheetCellStyle)` |  |  |
+| `getCellOptions` | `((cell: SpreadsheetCell) => readonly { value: string; label: string; }[])` |  | Per-cell list validation overrides the column editor with a choice editor. |
+| `getCellComment` | `((cell: SpreadsheetCell) => string)` |  |  |
+| `displayValue` | `((cell: SpreadsheetCell, value: string) => string)` |  | Evaluated/formatted display; editing and clipboard preserve the raw input. |
+| `clipboardValue` | `((cell: SpreadsheetCell, value: string) => string)` |  | Unformatted calculated value for Paste values; defaults to displayValue/raw input. |
+| `preparePasteValue` | `((cell: SpreadsheetCell, value: string) => string)` |  | Encode a calculated Paste values string for this target. Defaults to escaping leading =; record-backed literal cells can return the string unchanged. |
+| `translateInput` | `((value: string, from: { row: number; column: number; }, to: { row: number; column: number; }) => string)` |  | Translate relative references for fill and locally copied ranges. Row coordinates use rowNumber - 1; columns use their zero-based positions. Defaults to literal copying. |
+| `onOpenRow` | `((rowId: string) => void)` |  |  |
+| `activeRowId` | `string` |  |  |
+| `presence` | `readonly SpreadsheetPresence[]` | `[]` |  |
+| `toolbarStart` | `ReactNode` |  | Host view controls before the native clipboard and column controls. |
+| `actions` | `ReactNode` |  | Host operations after the native controls, separated as a group. |
+| `renderColumnMenu` | `((column: SpreadsheetColumn, context: SpreadsheetMenuContext) => ReactNode)` |  | Additional DropdownMenu items for this stable column, after native sizing and freeze actions. |
+| `renderCellMenu` | `((context: SpreadsheetMenuContext) => ReactNode)` |  |  |
+| `renderRowMenu` | `((row: SpreadsheetRow, context: SpreadsheetMenuContext) => ReactNode)` |  |  |
+| `onClearFormatting` | `((context: SpreadsheetMenuContext) => void)` |  |  |
+| `onUndo` | `(() => void)` |  |  |
+| `onRedo` | `(() => void)` |  |  |
+| `canUndo` | `boolean` | `false` |  |
+| `canRedo` | `boolean` | `false` |  |
+| `sheets` | `readonly SpreadsheetSheet[]` |  |  |
+| `activeSheetId` | `string` |  |  |
+| `onSheetChange` | `((sheetId: string) => void)` |  |  |
+| `onAddSheet` | `(() => void)` |  |  |
+| `getSheetActions` | `((sheetId: string) => readonly SpreadsheetSheetAction[])` |  |  |
+| `onSheetAction` | `((sheetId: string, actionId: string) => void)` |  |  |
+| `onAddRows` | `(() => void)` |  |  |
+| `onAddColumns` | `(() => void)` |  |  |
+| `sheetRowCount` | `number` |  |  |
+| `sheetColumnCount` | `number` |  |  |
+| `hiddenRowIds` | `readonly string[]` |  | Hide by identity without removing rows/columns or changing their workbook addresses. |
+| `onHiddenRowIdsChange` | `((ids: readonly string[]) => void)` |  |  |
+| `hiddenColumnIds` | `readonly string[]` |  |  |
+| `onHiddenColumnIdsChange` | `((ids: readonly string[]) => void)` |  |  |
+| `headerDisplay` | `"labels" \| "letters"` | `labels` | Letters-only headings suit a workbook whose first data row carries field names. |
+| `density` | `"comfortable" \| "compact"` | `comfortable` |  |
+| `fillAvailable` | `boolean` | `false` | Fill a bounded parent; surplus grid surface stays visual, never creates records. |
+| `height` | `number` |  | Scrolling grid height in CSS pixels; defaults to a bounded viewport-relative height. Chrome remains outside the scroller. |
+| `freezeFirstColumn` | `boolean` |  | Controlled freeze state; omit for local state, initially true. The frozen identity yields in narrow viewports. |
+| `onFreezeFirstColumnChange` | `((frozen: boolean) => void)` |  | Required to change a supplied freezeFirstColumn through its column menus. |
+| `freezeFirstRow` | `boolean` | `false` | Keep the first data row visible below the column headings, for a workbook's field names. |
+| `columnWidths` | `Readonly<Record<string, number>>` |  | Controlled widths by stable column id. Omit for local resizing; supplied widths require onColumnWidthsChange. Reset restores each column’s first-seen width within its sheet. |
+| `onColumnWidthsChange` | `((widths: Readonly<Record<string, number>>) => void)` |  |  |
+| `rowHeights` | `Readonly<Record<string, number>>` |  | Explicit CSS-pixel row heights (24..240) override automatic growth (up to480). Omit an ID for automatic height. Supplied maps require onRowHeightsChange to resize. |
+| `onRowHeightsChange` | `((heights: Readonly<Record<string, number>>) => void)` |  | Receives the complete explicit-height map. Removing an ID resets it to automatic height. |
+
+_Props of `SpreadsheetToolbar`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` (required) | `string` |  | Accessible name for this group of workbook controls. |
+
+<!-- page: Patterns/Spreadsheet interactions (src/stories/patterns/SpreadsheetInteractions.mdx) -->
+
+# Spreadsheet interactions
+
+**Status: Experimental.** These controlled examples exercise the Spreadsheet context and navigation contracts. The host owns records, permissions, persistence and formula evaluation. The [Spreadsheet page](?path=/docs/patterns-spreadsheet--docs) documents the complete grid contract.
+
+## Sheet navigation
+
+`SpreadsheetSheetBar` is the same footer used by Spreadsheet, exported for other workbook views. Supply stable sheet IDs, the active sheet and `onSheetChange`. The **All sheets** picker and sheet buttons call that callback. Optional add-sheet, add-row and add-column callbacks expose host operations; dimensions describe the current sheet. Add sheet and All sheets stay pinned while the tabs scroll independently. The active tab uses a tint and underline, with its action chevron beside the label. Inactive action chevrons appear on hover or keyboard focus and remain visible on touch screens. Dimensions, add-row/column controls and status use a separate lane below the tabs in narrow containers.
+
+`getSheetActions` provides permitted action descriptors and `onSheetAction` receives the target sheet ID and action ID. A chevron or context menu on an inactive sheet targets that sheet without changing the active sheet. Sheet buttons retain native Tab navigation; arrow keys, Home and End move focus without selecting. Shift+F10 or Alt+Down opens available actions. Double-clicking a sheet requests `rename` only when the host supplies an enabled action with that ID. A sheet without rename permission remains selectable. Focus and active-sheet changes reveal the relevant tab without scrolling the pinned controls.
+
+_Example: story `Stories.SheetNavigation`._
+_Example: story `Stories.SheetActions`._
+_Example: story `Stories.SheetOverflow`._
+
+## Context and range identity
+
+Cell context menus preserve a selected rectangle when opened inside it. Opening outside it chooses the target cell. The menu context carries the pointer target separately from the retained selection. Read-only and pending states disable writes; host handlers authorize their actions.
+
+Hiding rows or columns changes presentation while keeping stable identities and canonical addresses. The column-header menu applies to the selected header range. The host persists controlled hidden IDs and restores them without deleting data.
+
+_Example: story `Stories.ContextSelection`._
+_Example: story `Stories.HiddenAddresses`._
+
+## Fill and header gestures
+
+Drag the corner handle of a selected range to repeat its cells into a larger range. The host's `translateInput` translates formula references using canonical workbook coordinates. The grid previews the target while dragging and sends one atomic `onChange` on release. Escape cancels without writing. Control/Command+D fills down and Control/Command+R fills right, suppressing the browser’s bookmark or reload action while the grid owns focus. A protected destination rejects the whole fill, including otherwise writable cells.
+
+Drag row or column headings to select whole axes. Resizing a column inside a selected column range previews all selected widths and emits one `onColumnWidthsChange` when released; Escape restores the previous dimensions. The controlled host can record that callback as one undo operation.
+
+_Example: story `Stories.DragFill`._
+_Example: story `Stories.ProtectedFill`._
+_Example: story `Stories.FillShortcuts`._
+
+`isCellLiteral` preserves formula-shaped source text through normal copy and fill, while genuine formulas still translate. `preparePasteValue` controls target encoding; the system clipboard keeps the original TSV.
+
+_Example: story `Stories.LiteralClipboard`._
+_Example: story `Stories.HeaderGestures`._
+
+## Row sizing and wrapped text
+
+Drag the divider below a row heading to set its height. A selected whole-row range resizes together, and a drag sends one committed callback. Focus a divider and use Up/Down for 8-pixel steps, Shift with Up/Down for 32-pixel steps, or Home/End for the allowed extremes. Alt+Shift+Up/Down sizes the selected row from the grid. Double-clicking the divider or pressing Enter fits the row to its displayed data.
+
+**Row height…** sets an explicit size. **Fit to data** measures the current typography and stores a height within the manual limits. **Automatic row height** removes the selected IDs from the controlled `rowHeights` map so wrapping and font changes can grow or shrink the row again. Explicit heights take precedence over automatic measurement. The host persists the map and handles key removal; it does not need to rewrite cell values.
+
+Wrapped rows measure the rendered font family, size and column width. Vertical alignment places short content at the top, middle or bottom of the available row height. Long automatic rows remain within the grid's internal scrolling region.
+
+_Example: story `Stories.RowSizing`._
+_Example: story `Stories.AutomaticWrapping`._
+_Example: story `Stories.ClippedTypography`._
+
+## Cell annotations
+
+Per-cell dropdown choices override a column's editor for that cell. Plain comments appear through a marker and accessible description. The host validates and stores these annotations; the view makes no claim about authorship or shared editing.
+
+_Example: story `Stories.CellAnnotations`._
+
+_Props of `SpreadsheetSheetBar`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `sheets` (required) | `readonly SpreadsheetSheet[]` |  |  |
+| `activeSheetId` | `string` |  |  |
+| `onSheetChange` | `((sheetId: string) => void)` |  |  |
+| `onAddSheet` | `(() => void)` |  |  |
+| `getSheetActions` | `((sheetId: string) => readonly SpreadsheetSheetAction[])` |  | The host determines which actions each sheet permits; absent actions are not shown. |
+| `onSheetAction` | `((sheetId: string, actionId: string) => void)` |  |  |
+| `rowCount` (required) | `number` |  |  |
+| `columnCount` (required) | `number` |  |  |
+| `onAddRows` | `(() => void)` |  |  |
+| `onAddColumns` | `(() => void)` |  |  |
+| `disabled` | `boolean` | `false` |  |
+| `status` | `ReactNode` |  | Selection summary or pending status, kept beside the dimensions and sheet tools. |
+
+_Props of `Spreadsheet`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` (required) | `string` |  | Names this grid; required even when a page heading names the workbook. |
+| `columns` (required) | `readonly SpreadsheetColumn[]` |  |  |
+| `rows` (required) | `readonly SpreadsheetRow[]` |  |  |
+| `onChange` | `((edits: readonly SpreadsheetEdit[]) => void \| Promise<void>)` |  | One atomic intent. Reject to keep the editor's draft and expose Retry. The host owns validation, persistence and updating rows. |
+| `onDraftChange` | `((dirty: boolean) => void)` |  | Reports an unsaved editor draft so the host can guard navigation and structural operations. False after commit, cancellation or unmount. |
+| `selection` | `SpreadsheetSelection \| null` |  |  |
+| `onSelectionChange` | `((selection: SpreadsheetSelection \| null) => void)` |  |  |
+| `readOnly` | `boolean` | `false` |  |
+| `pending` | `boolean` | `false` | External load/save activity. Existing values stay visible; writes pause. |
+| `error` | `ReactNode` |  |  |
+| `onRetry` | `(() => void)` |  |  |
+| `isCellReadOnly` | `((cell: SpreadsheetCell) => boolean)` |  |  |
+| `isCellLiteral` | `((cell: SpreadsheetCell) => boolean)` |  | Identifies cells whose formula-shaped input is literal text. Copy and fill preserve that intent. |
+| `getCellError` | `((cell: SpreadsheetCell) => string)` |  |  |
+| `getCellStyle` | `((cell: SpreadsheetCell) => SpreadsheetCellStyle)` |  |  |
+| `getCellOptions` | `((cell: SpreadsheetCell) => readonly { value: string; label: string; }[])` |  | Per-cell list validation overrides the column editor with a choice editor. |
+| `getCellComment` | `((cell: SpreadsheetCell) => string)` |  |  |
+| `displayValue` | `((cell: SpreadsheetCell, value: string) => string)` |  | Evaluated/formatted display; editing and clipboard preserve the raw input. |
+| `clipboardValue` | `((cell: SpreadsheetCell, value: string) => string)` |  | Unformatted calculated value for Paste values; defaults to displayValue/raw input. |
+| `preparePasteValue` | `((cell: SpreadsheetCell, value: string) => string)` |  | Encode a calculated Paste values string for this target. Defaults to escaping leading =; record-backed literal cells can return the string unchanged. |
+| `translateInput` | `((value: string, from: { row: number; column: number; }, to: { row: number; column: number; }) => string)` |  | Translate relative references for fill and locally copied ranges. Row coordinates use rowNumber - 1; columns use their zero-based positions. Defaults to literal copying. |
+| `onOpenRow` | `((rowId: string) => void)` |  |  |
+| `activeRowId` | `string` |  |  |
+| `presence` | `readonly SpreadsheetPresence[]` | `[]` |  |
+| `toolbarStart` | `ReactNode` |  | Host view controls before the native clipboard and column controls. |
+| `actions` | `ReactNode` |  | Host operations after the native controls, separated as a group. |
+| `renderColumnMenu` | `((column: SpreadsheetColumn, context: SpreadsheetMenuContext) => ReactNode)` |  | Additional DropdownMenu items for this stable column, after native sizing and freeze actions. |
+| `renderCellMenu` | `((context: SpreadsheetMenuContext) => ReactNode)` |  |  |
+| `renderRowMenu` | `((row: SpreadsheetRow, context: SpreadsheetMenuContext) => ReactNode)` |  |  |
+| `onClearFormatting` | `((context: SpreadsheetMenuContext) => void)` |  |  |
+| `onUndo` | `(() => void)` |  |  |
+| `onRedo` | `(() => void)` |  |  |
+| `canUndo` | `boolean` | `false` |  |
+| `canRedo` | `boolean` | `false` |  |
+| `sheets` | `readonly SpreadsheetSheet[]` |  |  |
+| `activeSheetId` | `string` |  |  |
+| `onSheetChange` | `((sheetId: string) => void)` |  |  |
+| `onAddSheet` | `(() => void)` |  |  |
+| `getSheetActions` | `((sheetId: string) => readonly SpreadsheetSheetAction[])` |  |  |
+| `onSheetAction` | `((sheetId: string, actionId: string) => void)` |  |  |
+| `onAddRows` | `(() => void)` |  |  |
+| `onAddColumns` | `(() => void)` |  |  |
+| `sheetRowCount` | `number` |  |  |
+| `sheetColumnCount` | `number` |  |  |
+| `hiddenRowIds` | `readonly string[]` |  | Hide by identity without removing rows/columns or changing their workbook addresses. |
+| `onHiddenRowIdsChange` | `((ids: readonly string[]) => void)` |  |  |
+| `hiddenColumnIds` | `readonly string[]` |  |  |
+| `onHiddenColumnIdsChange` | `((ids: readonly string[]) => void)` |  |  |
+| `headerDisplay` | `"labels" \| "letters"` | `labels` | Letters-only headings suit a workbook whose first data row carries field names. |
+| `density` | `"comfortable" \| "compact"` | `comfortable` |  |
+| `fillAvailable` | `boolean` | `false` | Fill a bounded parent; surplus grid surface stays visual, never creates records. |
+| `height` | `number` |  | Scrolling grid height in CSS pixels; defaults to a bounded viewport-relative height. Chrome remains outside the scroller. |
+| `freezeFirstColumn` | `boolean` |  | Controlled freeze state; omit for local state, initially true. The frozen identity yields in narrow viewports. |
+| `onFreezeFirstColumnChange` | `((frozen: boolean) => void)` |  | Required to change a supplied freezeFirstColumn through its column menus. |
+| `freezeFirstRow` | `boolean` | `false` | Keep the first data row visible below the column headings, for a workbook's field names. |
+| `columnWidths` | `Readonly<Record<string, number>>` |  | Controlled widths by stable column id. Omit for local resizing; supplied widths require onColumnWidthsChange. Reset restores each column’s first-seen width within its sheet. |
+| `onColumnWidthsChange` | `((widths: Readonly<Record<string, number>>) => void)` |  |  |
+| `rowHeights` | `Readonly<Record<string, number>>` |  | Explicit CSS-pixel row heights (24..240) override automatic growth (up to480). Omit an ID for automatic height. Supplied maps require onRowHeightsChange to resize. |
+| `onRowHeightsChange` | `((heights: Readonly<Record<string, number>>) => void)` |  | Receives the complete explicit-height map. Removing an ID resets it to automatic height. |
+
+<!-- page: Patterns/Spreadsheet selection (src/stories/patterns/SpreadsheetSelection.mdx) -->
+
+# Spreadsheet selection
+
+**Status: Experimental.** These examples cover the visual selection contract. See the [Spreadsheet page](?path=/docs/patterns-spreadsheet--docs) for editing, keyboard commands, controlled state and host responsibilities.
+
+## Range and active cell
+
+A selected rectangle has a thin blue perimeter and a light tint over its existing fill. The active cell keeps a stronger outline while editing. Selection preserves cell text colors and dimensions. Headers mark the selected axes, with a stronger indicator for the active row and column; a header reports selected only when its whole visible axis is selected.
+
+Column action chevrons appear on hover, keyboard focus or selection, and stay visible on touch screens. The menu remains keyboard accessible through the header control or Alt+Down from the active cell.
+
+_Example: story `Stories.RectangleAndActiveCell`._
+
+## Hidden, frozen and virtualized cells
+
+Selection uses stable identities. Hidden rows and columns retain their canonical addresses, while the visible perimeter follows the rendered cells. Frozen cells retain their outline when the viewport scrolls, and the lower edge appears when its row enters the virtualized window. Outline layers do not intercept pointer events or change grid geometry.
+
+_Example: story `Stories.HiddenFrozenAndVirtualized`._
+
+_Props of `Spreadsheet`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` (required) | `string` |  | Names this grid; required even when a page heading names the workbook. |
+| `columns` (required) | `readonly SpreadsheetColumn[]` |  |  |
+| `rows` (required) | `readonly SpreadsheetRow[]` |  |  |
+| `onChange` | `((edits: readonly SpreadsheetEdit[]) => void \| Promise<void>)` |  | One atomic intent. Reject to keep the editor's draft and expose Retry. The host owns validation, persistence and updating rows. |
+| `onDraftChange` | `((dirty: boolean) => void)` |  | Reports an unsaved editor draft so the host can guard navigation and structural operations. False after commit, cancellation or unmount. |
+| `selection` | `SpreadsheetSelection \| null` |  |  |
+| `onSelectionChange` | `((selection: SpreadsheetSelection \| null) => void)` |  |  |
+| `readOnly` | `boolean` | `false` |  |
+| `pending` | `boolean` | `false` | External load/save activity. Existing values stay visible; writes pause. |
+| `error` | `ReactNode` |  |  |
+| `onRetry` | `(() => void)` |  |  |
+| `isCellReadOnly` | `((cell: SpreadsheetCell) => boolean)` |  |  |
+| `isCellLiteral` | `((cell: SpreadsheetCell) => boolean)` |  | Identifies cells whose formula-shaped input is literal text. Copy and fill preserve that intent. |
+| `getCellError` | `((cell: SpreadsheetCell) => string)` |  |  |
+| `getCellStyle` | `((cell: SpreadsheetCell) => SpreadsheetCellStyle)` |  |  |
+| `getCellOptions` | `((cell: SpreadsheetCell) => readonly { value: string; label: string; }[])` |  | Per-cell list validation overrides the column editor with a choice editor. |
+| `getCellComment` | `((cell: SpreadsheetCell) => string)` |  |  |
+| `displayValue` | `((cell: SpreadsheetCell, value: string) => string)` |  | Evaluated/formatted display; editing and clipboard preserve the raw input. |
+| `clipboardValue` | `((cell: SpreadsheetCell, value: string) => string)` |  | Unformatted calculated value for Paste values; defaults to displayValue/raw input. |
+| `preparePasteValue` | `((cell: SpreadsheetCell, value: string) => string)` |  | Encode a calculated Paste values string for this target. Defaults to escaping leading =; record-backed literal cells can return the string unchanged. |
+| `translateInput` | `((value: string, from: { row: number; column: number; }, to: { row: number; column: number; }) => string)` |  | Translate relative references for fill and locally copied ranges. Row coordinates use rowNumber - 1; columns use their zero-based positions. Defaults to literal copying. |
+| `onOpenRow` | `((rowId: string) => void)` |  |  |
+| `activeRowId` | `string` |  |  |
+| `presence` | `readonly SpreadsheetPresence[]` | `[]` |  |
+| `toolbarStart` | `ReactNode` |  | Host view controls before the native clipboard and column controls. |
+| `actions` | `ReactNode` |  | Host operations after the native controls, separated as a group. |
+| `renderColumnMenu` | `((column: SpreadsheetColumn, context: SpreadsheetMenuContext) => ReactNode)` |  | Additional DropdownMenu items for this stable column, after native sizing and freeze actions. |
+| `renderCellMenu` | `((context: SpreadsheetMenuContext) => ReactNode)` |  |  |
+| `renderRowMenu` | `((row: SpreadsheetRow, context: SpreadsheetMenuContext) => ReactNode)` |  |  |
+| `onClearFormatting` | `((context: SpreadsheetMenuContext) => void)` |  |  |
+| `onUndo` | `(() => void)` |  |  |
+| `onRedo` | `(() => void)` |  |  |
+| `canUndo` | `boolean` | `false` |  |
+| `canRedo` | `boolean` | `false` |  |
+| `sheets` | `readonly SpreadsheetSheet[]` |  |  |
+| `activeSheetId` | `string` |  |  |
+| `onSheetChange` | `((sheetId: string) => void)` |  |  |
+| `onAddSheet` | `(() => void)` |  |  |
+| `getSheetActions` | `((sheetId: string) => readonly SpreadsheetSheetAction[])` |  |  |
+| `onSheetAction` | `((sheetId: string, actionId: string) => void)` |  |  |
+| `onAddRows` | `(() => void)` |  |  |
+| `onAddColumns` | `(() => void)` |  |  |
+| `sheetRowCount` | `number` |  |  |
+| `sheetColumnCount` | `number` |  |  |
+| `hiddenRowIds` | `readonly string[]` |  | Hide by identity without removing rows/columns or changing their workbook addresses. |
+| `onHiddenRowIdsChange` | `((ids: readonly string[]) => void)` |  |  |
+| `hiddenColumnIds` | `readonly string[]` |  |  |
+| `onHiddenColumnIdsChange` | `((ids: readonly string[]) => void)` |  |  |
+| `headerDisplay` | `"labels" \| "letters"` | `labels` | Letters-only headings suit a workbook whose first data row carries field names. |
+| `density` | `"comfortable" \| "compact"` | `comfortable` |  |
+| `fillAvailable` | `boolean` | `false` | Fill a bounded parent; surplus grid surface stays visual, never creates records. |
+| `height` | `number` |  | Scrolling grid height in CSS pixels; defaults to a bounded viewport-relative height. Chrome remains outside the scroller. |
+| `freezeFirstColumn` | `boolean` |  | Controlled freeze state; omit for local state, initially true. The frozen identity yields in narrow viewports. |
+| `onFreezeFirstColumnChange` | `((frozen: boolean) => void)` |  | Required to change a supplied freezeFirstColumn through its column menus. |
+| `freezeFirstRow` | `boolean` | `false` | Keep the first data row visible below the column headings, for a workbook's field names. |
+| `columnWidths` | `Readonly<Record<string, number>>` |  | Controlled widths by stable column id. Omit for local resizing; supplied widths require onColumnWidthsChange. Reset restores each column’s first-seen width within its sheet. |
+| `onColumnWidthsChange` | `((widths: Readonly<Record<string, number>>) => void)` |  |  |
+| `rowHeights` | `Readonly<Record<string, number>>` |  | Explicit CSS-pixel row heights (24..240) override automatic growth (up to480). Omit an ID for automatic height. Supplied maps require onRowHeightsChange to resize. |
+| `onRowHeightsChange` | `((heights: Readonly<Record<string, number>>) => void)` |  | Receives the complete explicit-height map. Removing an ID resets it to automatic height. |
 
 <!-- page: Patterns/TaskRow (src/stories/patterns/TaskRow.mdx) -->
 
@@ -23119,15 +23760,15 @@ Types: `AbsentProps`, `AccordionContentProps`, `AccordionItemProps`, `AccordionP
 
 ## Layout
 
-Values: `PageHeader`, `PageHeaderActions`, `PageHeaderDescription`, `PageHeaderHeading`, `PageHeaderLead`, `PageHeaderTitle`, `PageSkeleton`, `Section`, `Shell`, `SHELL_STORAGE_KEY`, `shellScript`, `shellScriptFor`, `StickyRail`, `useSideNav`.
+Values: `AsideLayout`, `PageHeader`, `PageHeaderActions`, `PageHeaderDescription`, `PageHeaderHeading`, `PageHeaderLead`, `PageHeaderTitle`, `PageSkeleton`, `Section`, `Shell`, `SHELL_STORAGE_KEY`, `shellScript`, `shellScriptFor`, `StickyRail`, `useSideNav`.
 
-Types: `AppLogoProps`, `AppSwitcherProps`, `IconComponent`, `PageHeaderActionsProps`, `PageHeaderDescriptionProps`, `PageHeaderHeadingProps`, `PageHeaderLeadProps`, `PageHeaderProps`, `PageHeaderTitleProps`, `PageSkeletonProps`, `PageSkeletonVariant`, `ProfileProps`, `SectionActionsProps`, `SectionDescriptionProps`, `SectionHeaderProps`, `SectionHeadingProps`, `SectionProps`, `SectionTitleProps`, `ShellAsideProps`, `ShellBannerProps`, `ShellMainProps`, `ShellMarkProps`, `ShellPanelActionsProps`, `ShellPanelBackProps`, `ShellPanelBodyProps`, `ShellPanelCloseProps`, `ShellPanelFocusTarget`, `ShellPanelHeaderProps`, `ShellPanelProps`, `ShellPanelTitleProps`, `ShellProps`, `ShellSplitterProps`, `ShellStored`, `ShellTopNavEndProps`, `ShellTopNavItemProps`, `ShellTopNavMiddleProps`, `ShellTopNavProps`, `ShellTopNavSearchProps`, `ShellTopNavStartProps`, `SideNavBodyProps`, `SideNavChange`, `SideNavExpandableProps`, `SideNavFooterProps`, `SideNavHeaderProps`, `SideNavIcon`, `SideNavItemProps`, `SideNavProps`, `SideNavSectionProps`, `SideNavSlotProps`, `SideNavToggleButtonProps`, `SideNavTrigger`, `StickyRailProps`.
+Types: `AppLogoProps`, `AppSwitcherProps`, `AsideLayoutProps`, `IconComponent`, `PageHeaderActionsProps`, `PageHeaderDescriptionProps`, `PageHeaderHeadingProps`, `PageHeaderLeadProps`, `PageHeaderProps`, `PageHeaderTitleProps`, `PageSkeletonProps`, `PageSkeletonVariant`, `ProfileProps`, `SectionActionsProps`, `SectionDescriptionProps`, `SectionHeaderProps`, `SectionHeadingProps`, `SectionProps`, `SectionTitleProps`, `ShellAsideProps`, `ShellBannerProps`, `ShellMainProps`, `ShellMarkProps`, `ShellPanelActionsProps`, `ShellPanelBackProps`, `ShellPanelBodyProps`, `ShellPanelCloseProps`, `ShellPanelFocusTarget`, `ShellPanelHeaderProps`, `ShellPanelProps`, `ShellPanelTitleProps`, `ShellProps`, `ShellSplitterProps`, `ShellStored`, `ShellTopNavEndProps`, `ShellTopNavItemProps`, `ShellTopNavMiddleProps`, `ShellTopNavProps`, `ShellTopNavSearchProps`, `ShellTopNavStartProps`, `SideNavBodyProps`, `SideNavChange`, `SideNavExpandableProps`, `SideNavFooterProps`, `SideNavHeaderProps`, `SideNavIcon`, `SideNavItemProps`, `SideNavProps`, `SideNavSectionProps`, `SideNavSlotProps`, `SideNavToggleButtonProps`, `SideNavTrigger`, `StickyRailProps`.
 
 ## Patterns
 
-Values: `ActionBar`, `categoricalTone`, `Chart`, `chartColor`, `clearView`, `columnKinds`, `ColumnSortable`, `CommandPalette`, `Composer`, `countRows`, `createDataTableColumnHelper`, `DataTable`, `dataTableFeatures`, `DataTableSort`, `defineColumns`, `displayedRows`, `downloadCsv`, `DragContext`, `Editable`, `EditableDate`, `EditableSelect`, `EditableText`, `formatNumber`, `GateItem`, `Gates`, `Glance`, `HeaderMenu`, `Inspector`, `InspectorGroup`, `minWidths`, `PickerSheet`, `PreviewNavigation`, `PreviewSheet`, `readTableQuery`, `readView`, `RecordBrowser`, `RecordPicker`, `Related`, `RelatedCard`, `resetView`, `RowSortable`, `sameTableQuery`, `SearchDialog`, `showRow`, `TablePagination`, `tableQueryFromSearch`, `tableQueryKey`, `tableQueryParamNames`, `tableQueryToSearch`, `tableQueryToString`, `TaskRow`, `toCsv`, `Toolbar`, `toRows`, `useCellContext`, `useColumnDrag`, `useCommandPalette`, `useDataTable`, `useHeaderContext`, `useRowDrag`, `useTableContext`, `useTableQuery`, `viewKey`, `WorkPane`, `WorkPaneRow`, `writeView`.
+Values: `ActionBar`, `categoricalTone`, `ChangeReview`, `Chart`, `chartColor`, `clearView`, `columnKinds`, `ColumnSortable`, `CommandPalette`, `CommandScope`, `Composer`, `countRows`, `createDataTableColumnHelper`, `DataTable`, `dataTableFeatures`, `DataTableSort`, `defineColumns`, `displayedRows`, `downloadCsv`, `DragContext`, `Editable`, `EditableDate`, `EditableSelect`, `EditableText`, `formatNumber`, `GateItem`, `Gates`, `Glance`, `HeaderMenu`, `Inspector`, `InspectorGroup`, `minWidths`, `PickerSheet`, `PreviewNavigation`, `PreviewSheet`, `readTableQuery`, `readView`, `RecordBrowser`, `RecordPicker`, `Related`, `RelatedCard`, `resetView`, `RowSortable`, `sameTableQuery`, `SearchDialog`, `showRow`, `Spreadsheet`, `SpreadsheetSheetBar`, `SpreadsheetToolbar`, `TablePagination`, `tableQueryFromSearch`, `tableQueryKey`, `tableQueryParamNames`, `tableQueryToSearch`, `tableQueryToString`, `TaskRow`, `toCsv`, `Toolbar`, `toRows`, `useCellContext`, `useColumnDrag`, `useCommandPalette`, `useDataTable`, `useHeaderContext`, `useRowDrag`, `useScopedCommands`, `useTableContext`, `useTableQuery`, `viewKey`, `WorkPane`, `WorkPaneRow`, `writeView`.
 
-Types: `ActionBarAction`, `ActionBarProps`, `ActionBarState`, `ChartAreaProps`, `ChartBand`, `ChartBarProps`, `ChartColumn`, `ChartCrumb`, `ChartDatum`, `ChartDomain`, `ChartDonutProps`, `ChartFrameProps`, `ChartFrameState`, `ChartHeatmapProps`, `ChartLegendProps`, `ChartLineProps`, `ChartLink`, `ChartReference`, `ChartScaleProps`, `ChartScatterGroup`, `ChartScatterProps`, `ChartSelection`, `ChartSeries`, `ChartSize`, `ChartSparklineProps`, `ChartTone`, `ChartTreemapProps`, `ChartValue`, `ColumnDragOptions`, `ColumnKind`, `ColumnKinds`, `CommandPaletteProps`, `ComposerProps`, `ComposerSuggestion`, `ComposerSuggestions`, `CsvOptions`, `DataTableColumn`, `DataTableColumnMeta`, `DataTableEmpty`, `DataTableFeatures`, `DataTableFilteredEmpty`, `DataTableInstance`, `DataTableMeta`, `DataTableNoun`, `DataTableOptions`, `DataTableOwnProps`, `DataTableProps`, `DataTableSortProps`, `DataTableState`, `DataTableView`, `DonutSelection`, `DonutSlice`, `EditableDateProps`, `EditableOption`, `EditableOptions`, `EditableProps`, `EditableSelectProps`, `EditableTextProps`, `ExportedRows`, `ExportOptions`, `FilterOption`, `Footer`, `GateItemProps`, `GatesProps`, `GlanceProps`, `HeatmapScale`, `HeatmapSelection`, `InspectorGroupData`, `InspectorGroupProps`, `InspectorProps`, `PaletteCommand`, `PickerRecord`, `PickerSheetCloseDetails`, `PickerSheetProps`, `PickerSheetSearch`, `Preset`, `PreviewNavigationProps`, `PreviewSheetProps`, `RecordBrowserEmpty`, `RecordBrowserProps`, `RecordPickerProps`, `RelatedCardProps`, `RelatedEmpty`, `RelatedLayout`, `RelatedProps`, `RowAction`, `ScatterSelection`, `SearchDialogProps`, `SearchResult`, `StatusEntry`, `StatusMap`, `TablePaginationProps`, `TableQuery`, `TableQueryOptions`, `TableQueryParamOptions`, `TableQueryParams`, `TableQuerySearch`, `TaskRowProps`, `ToolbarProps`, `TreemapNodeInput`, `TreemapSelection`, `UseCommandPaletteOptions`, `WorkPaneProps`, `WorkPaneRowProps`, `WorkPaneView`.
+Types: `ActionBarAction`, `ActionBarProps`, `ActionBarState`, `ChangeReviewProps`, `ChartAreaProps`, `ChartBand`, `ChartBarProps`, `ChartColumn`, `ChartCrumb`, `ChartDatum`, `ChartDomain`, `ChartDonutProps`, `ChartFrameProps`, `ChartFrameState`, `ChartHeatmapProps`, `ChartLegendProps`, `ChartLineProps`, `ChartLink`, `ChartReference`, `ChartScaleProps`, `ChartScatterGroup`, `ChartScatterProps`, `ChartSelection`, `ChartSeries`, `ChartSize`, `ChartSparklineProps`, `ChartTone`, `ChartTreemapProps`, `ChartValue`, `ColumnDragOptions`, `ColumnKind`, `ColumnKinds`, `CommandPaletteProps`, `CommandScopeProps`, `ComposerProps`, `ComposerSuggestion`, `ComposerSuggestions`, `CsvOptions`, `DataTableColumn`, `DataTableColumnMeta`, `DataTableEmpty`, `DataTableFeatures`, `DataTableFilteredEmpty`, `DataTableInstance`, `DataTableMeta`, `DataTableNoun`, `DataTableOptions`, `DataTableOwnProps`, `DataTableProps`, `DataTableSortProps`, `DataTableState`, `DataTableView`, `DonutSelection`, `DonutSlice`, `EditableDateProps`, `EditableOption`, `EditableOptions`, `EditableProps`, `EditableSelectProps`, `EditableTextProps`, `ExportedRows`, `ExportOptions`, `FilterOption`, `Footer`, `GateItemProps`, `GatesProps`, `GlanceProps`, `HeatmapScale`, `HeatmapSelection`, `InspectorGroupData`, `InspectorGroupProps`, `InspectorProps`, `PaletteCommand`, `PickerRecord`, `PickerSheetCloseDetails`, `PickerSheetProps`, `PickerSheetSearch`, `Preset`, `PreviewNavigationProps`, `PreviewSheetProps`, `RecordBrowserEmpty`, `RecordBrowserProps`, `RecordPickerProps`, `RelatedCardProps`, `RelatedEmpty`, `RelatedLayout`, `RelatedProps`, `ReviewChange`, `RowAction`, `ScatterSelection`, `ScopedCommand`, `SearchDialogProps`, `SearchResult`, `SpreadsheetBorder`, `SpreadsheetCell`, `SpreadsheetCellStyle`, `SpreadsheetColumn`, `SpreadsheetEdit`, `SpreadsheetMenuContext`, `SpreadsheetPresence`, `SpreadsheetProps`, `SpreadsheetRow`, `SpreadsheetSelection`, `SpreadsheetSheet`, `SpreadsheetSheetAction`, `SpreadsheetSheetBarProps`, `SpreadsheetToolbarProps`, `StatusEntry`, `StatusMap`, `TablePaginationProps`, `TableQuery`, `TableQueryOptions`, `TableQueryParamOptions`, `TableQueryParams`, `TableQuerySearch`, `TaskRowProps`, `ToolbarProps`, `TreemapNodeInput`, `TreemapSelection`, `UseCommandPaletteOptions`, `WorkPaneProps`, `WorkPaneRowProps`, `WorkPaneView`.
 
 ## Mode
 

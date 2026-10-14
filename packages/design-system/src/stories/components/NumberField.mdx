@@ -59,6 +59,13 @@ Right to left, the buttons move to the field's end (the left), decrement nearest
 
 <Canvas of={Stories.States} />
 
+## Compact steppers
+
+For a small quantity in a toolbar, `stepperPlacement="around"` places the decrement and increment buttons on either side of a centered, framed input. The default `end` arrangement keeps both buttons inside the field at its trailing edge. Both arrangements retain the same locale, bounds, keyboard behavior, disabled/read-only states and commit callbacks. Set a width that fits the expected number; the example uses 96px for two digits. Logical ordering follows the provider direction.
+
+<Canvas of={Stories.AroundSteppers} />
+<Canvas of={Stories.AroundStates} />
+
 ## In a Field
 
 Inside a [Field](?path=/docs/components-field--docs) the FieldLabel names the input and both buttons ("Increase Retention"), the FieldDescription and FieldError describe it, and the Field's `invalid`, `required` and `disabled` reach it, with no ids written by hand. The Field's `required` is announced; the NumberField's own `required` is the native constraint that also blocks an empty submit.

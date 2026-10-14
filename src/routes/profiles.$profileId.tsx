@@ -24,6 +24,7 @@ import { labelFor } from "@/lib/records";
 import { revisionStates, statusLabel } from "@/lib/status";
 import {
   Absent,
+  AsideLayout,
   Button,
   CodeBlock,
   Count,
@@ -402,152 +403,161 @@ function ProfileRevision({
               />
             )}
             {tab === "Overview" && (
-              <>
-                {/* The revision's Details, first on Overview: the rail beside it, or on a phone a
-                    closed disclosure above it whose row says the state. */}
-                <Shell.Aside
-                  label="Profile details"
-                  summary={<StatusBadge statuses={revisionStates} value={revision.state} />}
-                >
-                  <Inspector.Group title="Details">
-                    <KeyValue.Group>
-                      <KeyValue label="State">
-                        <StatusBadge statuses={revisionStates} value={revision.state} />
-                      </KeyValue>
-                      <KeyValue label="Code" wrap>
-                        <Id>{profile.code}</Id>
-                      </KeyValue>
-                      <KeyValue label="Source" wrap>
-                        {profile.tenant_id ? "Workspace profile" : "Shared reference"}
-                      </KeyValue>
-                      <KeyValue label="Updated" wrap>
-                        <DateTime value={revision.updated_at} format="date" />
-                      </KeyValue>
-                    </KeyValue.Group>
-                  </Inspector.Group>
-                </Shell.Aside>
-                {/* The control count, the derivation and the provenance say "Could not load" in
-                    place; the region's alert says why, and its Retry reloads them. */}
-                <ReportFailures
-                  queries={[
-                    catalogRevisions,
-                    catalogs,
-                    ...reference.queries,
-                    sourceDocument,
-                    ...(resolution ? [selections] : []),
-                  ]}
-                />
+              // Overview beside the revision's Details: the rail at its end where it fits, else a
+              // closed disclosure above it whose row says the state. They leave with the tab.
+              <AsideLayout
+                aside={
+                  <Shell.Aside
+                    label="Profile details"
+                    summary={<StatusBadge statuses={revisionStates} value={revision.state} />}
+                  >
+                    <Inspector.Group title="Details">
+                      <KeyValue.Group>
+                        <KeyValue label="State">
+                          <StatusBadge statuses={revisionStates} value={revision.state} />
+                        </KeyValue>
+                        <KeyValue label="Code" wrap>
+                          <Id>{profile.code}</Id>
+                        </KeyValue>
+                        <KeyValue label="Source" wrap>
+                          {profile.tenant_id ? "Workspace profile" : "Shared reference"}
+                        </KeyValue>
+                        <KeyValue label="Updated" wrap>
+                          <DateTime value={revision.updated_at} format="date" />
+                        </KeyValue>
+                      </KeyValue.Group>
+                    </Inspector.Group>
+                  </Shell.Aside>
+                }
+              >
+                <Stack space="space.300" className="min-w-0">
+                  {/* The control count, the derivation and the provenance say "Could not load" in
+                      place; the region's alert says why, and its Retry reloads them. */}
+                  <ReportFailures
+                    queries={[
+                      catalogRevisions,
+                      catalogs,
+                      ...reference.queries,
+                      sourceDocument,
+                      ...(resolution ? [selections] : []),
+                    ]}
+                  />
 
-                <QueryState queries={overviewQueries}>
-                  <Stat.Grid cols={3} role="group" aria-label="Revision summary">
-                    <Stat.Tile
-                      label="Controls"
-                      value={
-                        resolution ? (
-                          <QueryValue queries={[selections]}>
-                            {() => locale.formatNumber(selections.data?.length ?? 0)}
+                  <QueryState queries={overviewQueries}>
+                    <Stat.Grid cols={3} role="group" aria-label="Revision summary">
+                      <Stat.Tile
+                        label="Controls"
+                        value={
+                          resolution ? (
+                            <QueryValue queries={[selections]}>
+                              {() => locale.formatNumber(selections.data?.length ?? 0)}
+                            </QueryValue>
+                          ) : (
+                            <Absent label="Not resolved" />
+                          )
+                        }
+                        note={
+                          resolution
+                            ? `Resolved ${resolvedOn(resolution.resolved_at)}`
+                            : "No resolution recorded"
+                        }
+                      />
+                      <Stat.Tile
+                        label="Source imports"
+                        value={locale.formatNumber(orderedImports.length)}
+                      />
+                      <Stat.Tile
+                        label="OSCAL rules"
+                        value={locale.formatNumber(rules.data?.length ?? 0)}
+                      />
+                    </Stat.Grid>
+                    <Section title="Derived from">
+                      <KeyValue.Group labelWidth="auto">
+                        <KeyValue label="Kind" wrap>
+                          <QueryValue
+                            queries={[
+                              resolutions,
+                              imports,
+                              ...(resolution ? reference.queries : []),
+                            ]}
+                          >
+                            {() => kindLabel}
                           </QueryValue>
+                        </KeyValue>
+                        {/* The whole chain, this profile included: ProfileChain names each hop by its
+                            place in it, so a layer between this profile and its base keeps its name. */}
+                        {derivationReady && inspection && inspection.chain.length > 1 ? (
+                          <ProfileChain chain={inspection.chain} catalog={catalog} />
                         ) : (
-                          <Absent label="Not resolved" />
-                        )
-                      }
-                      note={
-                        resolution
-                          ? `Resolved ${resolvedOn(resolution.resolved_at)}`
-                          : "No resolution recorded"
-                      }
-                    />
-                    <Stat.Tile
-                      label="Source imports"
-                      value={locale.formatNumber(orderedImports.length)}
-                    />
-                    <Stat.Tile
-                      label="OSCAL rules"
-                      value={locale.formatNumber(rules.data?.length ?? 0)}
-                    />
-                  </Stat.Grid>
-                  <Section title="Derived from">
-                    <KeyValue.Group labelWidth="auto">
-                      <KeyValue label="Kind" wrap>
-                        <QueryValue
-                          queries={[resolutions, imports, ...(resolution ? reference.queries : [])]}
-                        >
-                          {() => kindLabel}
-                        </QueryValue>
-                      </KeyValue>
-                      {/* The whole chain, this profile included: ProfileChain names each hop by its
-                          place in it, so a layer between this profile and its base keeps its name. */}
-                      {derivationReady && inspection && inspection.chain.length > 1 ? (
-                        <ProfileChain chain={inspection.chain} catalog={catalog} />
-                      ) : (
-                        <KeyValue label="Catalog" wrap>
-                          {/* A skeleton until the editions, the catalogs and any resolved chain
-                              are in: loading never reads as a catalog that is not recorded. */}
-                          <QueryValue queries={derivationQueries}>
-                            {() =>
-                              catalog ? (
+                          <KeyValue label="Catalog" wrap>
+                            {/* A skeleton until the editions, the catalogs and any resolved chain
+                                are in: loading never reads as a catalog that is not recorded. */}
+                            <QueryValue queries={derivationQueries}>
+                              {() =>
+                                catalog ? (
+                                  <TextLink
+                                    render={<Link to="/catalog" search={{ edition: catalog.id }} />}
+                                  >
+                                    {catalog.title} · {catalog.version}
+                                  </TextLink>
+                                ) : (
+                                  <Absent />
+                                )
+                              }
+                            </QueryValue>
+                          </KeyValue>
+                        )}
+                      </KeyValue.Group>
+                    </Section>
+                    {/* Where the revision's content came from, for the reader who checks it. */}
+                    <Section title="Provenance" isCollapsible defaultOpen={false}>
+                      <KeyValue.Group labelWidth="auto">
+                        <KeyValue label="OSCAL document" wrap>
+                          {/* A link only to a document that is there: loading, failure and a missing
+                              document read as words, never as a link's name. */}
+                          <QueryValue queries={[sourceDocument]}>
+                            {() => {
+                              const document = sourceDocument.data?.[0];
+                              return document ? (
                                 <TextLink
-                                  render={<Link to="/catalog" search={{ edition: catalog.id }} />}
+                                  render={
+                                    <Link
+                                      to="/records/$collection/$recordId"
+                                      params={{
+                                        collection: "oscal_document_revisions",
+                                        recordId: document.id,
+                                      }}
+                                    />
+                                  }
                                 >
-                                  {catalog.title} · {catalog.version}
+                                  {document.title} · {document.document_version}
                                 </TextLink>
                               ) : (
-                                <Absent />
-                              )
-                            }
+                                <Absent label="Not available" />
+                              );
+                            }}
                           </QueryValue>
                         </KeyValue>
-                      )}
-                    </KeyValue.Group>
-                  </Section>
-                  {/* Where the revision's content came from, for the reader who checks it. */}
-                  <Section title="Provenance" isCollapsible defaultOpen={false}>
-                    <KeyValue.Group labelWidth="auto">
-                      <KeyValue label="OSCAL document" wrap>
-                        {/* A link only to a document that is there: loading, failure and a missing
-                            document read as words, never as a link's name. */}
-                        <QueryValue queries={[sourceDocument]}>
-                          {() => {
-                            const document = sourceDocument.data?.[0];
-                            return document ? (
-                              <TextLink
-                                render={
-                                  <Link
-                                    to="/records/$collection/$recordId"
-                                    params={{
-                                      collection: "oscal_document_revisions",
-                                      recordId: document.id,
-                                    }}
-                                  />
-                                }
-                              >
-                                {document.title} · {document.document_version}
-                              </TextLink>
-                            ) : (
-                              <Absent label="Not available" />
-                            );
-                          }}
-                        </QueryValue>
-                      </KeyValue>
-                      <KeyValue label="Resolved by" wrap>
-                        {resolution ? (
-                          `${resolution.resolver_name} · ${resolution.resolver_version}`
-                        ) : (
-                          <Absent label="No resolution recorded" />
-                        )}
-                      </KeyValue>
-                      {resolution && (
-                        <KeyValue label="Resolved" wrap>
-                          <DateTime value={resolution.resolved_at} />
+                        <KeyValue label="Resolved by" wrap>
+                          {resolution ? (
+                            `${resolution.resolver_name} · ${resolution.resolver_version}`
+                          ) : (
+                            <Absent label="No resolution recorded" />
+                          )}
                         </KeyValue>
-                      )}
-                      <KeyValue label="Created" wrap>
-                        <DateTime value={revision.created_at} format="date" />
-                      </KeyValue>
-                    </KeyValue.Group>
-                  </Section>
-                </QueryState>
-              </>
+                        {resolution && (
+                          <KeyValue label="Resolved" wrap>
+                            <DateTime value={resolution.resolved_at} />
+                          </KeyValue>
+                        )}
+                        <KeyValue label="Created" wrap>
+                          <DateTime value={revision.created_at} format="date" />
+                        </KeyValue>
+                      </KeyValue.Group>
+                    </Section>
+                  </QueryState>
+                </Stack>
+              </AsideLayout>
             )}
             {tab === "Derivation" && (
               <QueryState

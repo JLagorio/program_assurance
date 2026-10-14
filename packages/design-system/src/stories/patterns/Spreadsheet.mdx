@@ -1,0 +1,114 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Spreadsheet, SpreadsheetToolbar } from "../../patterns/spreadsheet";
+import * as Stories from "./Spreadsheet.stories";
+import * as Interactions from "./SpreadsheetInteractions.stories";
+
+<Meta of={Stories} />
+
+# Spreadsheet
+
+**Status: Experimental.** Ledger maintainers own the interaction contract. The workbook prototype is the first consumer; cross-browser, screen-reader and large-workbook review remain release work.
+
+A controlled, two-dimensional editing surface with stable cell identities, typed editors, a formula bar, rectangular selection and batch operations. Use a DataTable for a register that primarily opens records. Use Spreadsheet when editing ranges and relating cells is the task.
+
+<Canvas of={Stories.Playground} />
+
+## Ownership
+
+Rows and columns have stable IDs. Selection uses those IDs, so sorting and an external refresh do not silently move a selection to a different record. Supply each row's unique positive `rowNumber` to preserve its canonical workbook address when filtering or sorting. It defaults to the visible index plus one. The name box, formula bar, row headers and cell addresses use that number; Go to cell only finds rows included in the current view. A selection across reordered or noncontiguous row numbers uses an ellipsis rather than implying a contiguous formula range. Actual accessibility row indices still describe the rendered view order.
+
+`onChange` receives one batch of raw cell inputs, including leading formula `=` characters. The host validates and authorizes the entire intent, persists it atomically, and supplies updated rows. Reject the promise to keep the draft and offer Retry. Updating a filtered or sorted sheet must retain any record being edited until its draft is settled. `onDraftChange` reports unsaved cell or formula input, including dates that have not yet been parsed, so the host can guard navigation and pause structural actions. It returns to false after commit, cancellation or unmount.
+
+The component does not evaluate formulas, make network calls, keep durable history, create rows, or provide synchronization. Supply evaluated text through `displayValue`, persisted formatting through `getCellStyle`, undo and redo callbacks, and host controls through `toolbarStart` and `actions`. These slots share the same action strip with the native cell tools. The clipboard copies raw input, preserving formulas. Fill repeats raw source values by default. Supply `translateInput(value, from, to)` for reference-aware formulas: fill and a locally copied range pass zero-based canonical row coordinates (`rowNumber - 1`) and column positions to that host callback. Each copied source row retains its own coordinate, including a noncontiguous selection. External clipboard input passes through without reference translation. A local copy retains its origin while switching sheets in the same mounted workbook. Columns keep their supplied order; a host that reorders columns must translate those positions against its own canonical model.
+
+`readOnly`, column `readOnly` and `isCellReadOnly` remove write capabilities. These are presentation rules; the host must enforce permissions too. `getCellError` exposes an externally validated error at its cell and in the active cell's feedback. A rejected batch must not partially write. Unknown network outcomes require host idempotency, not blind retries.
+
+## Toolbar and column controls
+
+`toolbarStart` places workbook commands before the native undo, redo, copy, fill, clear and column controls. `actions` places additional host controls after them. They share one `SpreadsheetToolbar`: a named group with native Tab navigation and a single horizontal row. At narrow widths the strip scrolls, overflow arrows reveal its ends, and focusing a control brings it into view. It does not turn the controls into an arrow-key toolbar. Use the exported `SpreadsheetToolbar` for matching non-grid workbook views; it forwards native div props, a ref and `className`.
+
+Every column heading has a **Column options** button, visible on hover, keyboard focus or selection, and always visible on touch screens. The active cell's column menu also opens with Alt+Down. The native menu autofits, narrows, widens or resets that column; the toolbar's **Columns** menu autofits or resets every column. Double-clicking a resize divider autofits its column. Width changes call `onColumnWidthsChange` with stable column IDs. Autofit measures the currently supplied display values within the column width limits; the host owns which rows are loaded.
+
+The menu can freeze or unfreeze the first column. Without `freezeFirstColumn`, this is local state, initially frozen. A supplied `freezeFirstColumn` is controlled: pair it with `onFreezeFirstColumnChange` to allow changes. Without that callback, the menu explains that the host owns the frozen-column setting. The existing narrow-width rule still lets a frozen identity yield when it leaves too little room for another cell.
+
+`renderColumnMenu(column, context)` appends host menu items after the native layout controls. Use it for field-specific sorting, filtering or authorized structure changes. These callbacks receive the stable column descriptor; Ledger does not reorder canonical data or change formula references. A column menu and its trigger remain keyboard accessible, and a pending write pauses layout changes.
+
+<Canvas of={Stories.ColumnControls} />
+<Canvas of={Stories.PhoneColumnControls} />
+<Canvas of={Stories.Toolbar} />
+
+## Context actions and sheet navigation
+
+Right-click a cell, row heading or column heading to open its action menu. Shift+F10 and the Context Menu key open the menu for the current selection mode. Opening a cell menu inside a selected rectangle preserves that range; opening outside it chooses the target cell. `SpreadsheetMenuContext` includes the distinct pointer target, retained selection and visible row/column IDs. Hidden identities are excluded from the action scope. `renderCellMenu`, `renderRowMenu` and `renderColumnMenu` append host actions to this context; the host authorizes structural or record commands.
+
+Cell menus expose cut, copy, paste, paste values, clear values and fill. Drag the selection’s corner handle to repeat a source block vertically or horizontally, including translated formulas when `translateInput` is supplied. A preview does not write values; releasing commits one atomic batch, while Escape or pointer cancellation discards it. Ctrl/⌘D and Ctrl/⌘R fill down and right. The handle repeats values and formulas, without inferring number series or copying formatting. Protected destinations reject the whole operation. `onClearFormatting` is separate from clearing values. `clipboardValue` supplies an unformatted calculated value for Paste values. Copy carries values and formulas, without formatting, comments or dropdown rules. Cut retains its source until an atomic paste succeeds within the same sheet; it does not rewrite references elsewhere in the workbook. `preparePasteValue` lets hosts encode literal values for their model; by default Paste values escapes a leading `=`. Clipboard access depends on browser permission; errors remain visible and failed writes retain their retry state. Read-only and pending states keep unavailable writes disabled.
+
+Drag across row or column headings to select an axis range. Resizing a selected column updates the whole selected column range with a local preview and one committed width map; Escape restores the previous widths. Row and column menus hide their selected identities, reveal all hidden identities and set explicit dimensions. Keep the full `rows` and `columns` arrays and pass `hiddenRowIds` / `hiddenColumnIds`, paired with their change callbacks, to retain workbook addresses. Hiding B leaves C as C; hiding row 2 leaves row 3 as row 3. `rowHeights` and `onRowHeightsChange` control explicit row heights. Drag a row boundary to resize (whole selected rows resize together), double-click or press Enter on its separator to fit the content, or choose **Automatic row height** to remove explicit heights. The callback supplies the complete map: missing row IDs return to automatic sizing. Alt+Shift+Up/Down resizes the active row from the grid; separator Arrow keys resize by 8px, Shift by 32px. Explicit heights are 24–240px and automatic wrapped rows grow up to 480px; overflowing content stays within its cell. Local presentation state is available when those props are omitted; persistence belongs to the host.
+
+<Canvas of={Interactions.ContextSelection} />
+<Canvas of={Interactions.HiddenAddresses} />
+
+The footer pins Add sheet and **All sheets** beside independently scrolling sheet tabs. Dimensions, status and optional add-row/column actions use a compact details lane, placed below the tabs in narrow containers. Active tabs have a tinted underline and an adjacent action chevron; inactive chevrons appear on hover or focus and stay visible on touch screens. `getSheetActions(sheetId)` supplies permitted rename, duplicate, move or delete descriptors. A tab's chevron, right-click menu, Shift+F10 or Alt+Down action targets that tab's stable ID even when another sheet is active. Double-click requests rename only when the host supplies an enabled `rename` action. `onSheetAction` performs the action; Ledger does not rename, duplicate or delete records. Native arrow keys move between sheet buttons without activating them. `sheetRowCount` and `sheetColumnCount` can report complete dimensions separately from visible rows.
+
+<Canvas of={Interactions.SheetActions} />
+
+## Cell annotations and formatting
+
+`getCellOptions` supplies dropdown choices for one cell without changing its column's editor. The host validates typed values, paste and fill as well as picker choices. `getCellComment` displays a plain comment marker and exposes the text in the cell's accessible description. These annotations do not imply shared editing, authorship or comment threads; the host owns their storage and permissions.
+
+`getCellStyle` supports font family and size, bold, italic, underline, strikethrough, text/fill colors, horizontal and vertical alignment, wrapping and individual borders. Explicit row heights and wrapping affect the measured grid geometry. Keep style values validated before passing them to the view; formatting is presentation, and it does not change source record values.
+
+<Canvas of={Interactions.CellAnnotations} />
+
+## Keyboard and selection
+
+- Arrow keys move; Shift with arrows extends a rectangle. Home/End reach row edges; Control/Command with Home/End reaches sheet edges. Page Up/Down moves a viewport.
+- Enter, F2 or double-click edits the selection's anchor cell with the caret at the end. Typing begins a replacement draft. Shift with repeated arrows extends from the moving end of the selection. IME composition never saves or cancels.
+- While editing a cell, Enter saves and moves down, Shift+Enter moves up, Tab saves to the next writable cell, and Shift+Tab goes back. Alt+Enter inserts a newline in text. Escape cancels. Outside editing, Tab leaves the grid.
+- The inline text editor fills the cell and preserves multiline input. The active-cell border stays visible on all four sides above text and picker editors. Moving focus between the cell and formula bar keeps the draft; leaving both commits without taking focus away from the next control. Formula-bar Enter saves the current cell without moving. A rejected write keeps the draft available for correction or retry.
+- Choice and date cells retain their pickers. Dismissing an unchanged choice closes the editor without writing. Focus inside a choice list or calendar remains part of the edit; Escape closes a calendar first and then cancels the cell.
+- Control/Command+A selects all cells. Control/Command+Space selects the column, and Shift+Space selects the row. Row and column headings also select their ranges with a pointer.
+- Copy and Paste use browser shortcuts. Pasting one value fills a selected rectangle; pasting a matrix starts at its top-left cell. A matrix that exceeds existing sheet bounds is rejected. A paste touching any read-only cell rejects the whole rectangle without writing; a writable rectangle is submitted in one batch.
+- Alt+Left/Right resizes the active column; dragging a heading divider does the same. Alt+Enter opens the active record when `onOpenRow` is supplied.
+- The name box accepts an address such as B25. The formula bar always edits raw input, including formulas whose displayed result is different.
+
+The grid is one Tab stop with `aria-activedescendant`. The selected cell remains mounted while rows and columns outside the viewport are windowed. Data remains two-dimensional at narrow widths: the grid and action strip scroll independently sideways; feedback wraps without widening the page. A frozen first column yields when it would leave insufficient room for another cell. `freezeFirstRow` retains a workbook's first data row beneath the column headings.
+
+<Canvas of={Stories.RectangularClipboard} />
+<Canvas of={Stories.ControlledSelection} />
+<Canvas of={Stories.KeyboardAndValidation} />
+<Canvas of={Stories.TypedEditors} />
+<Canvas of={Stories.InlineEditing} />
+<Canvas of={Stories.TypedEditorDismissal} />
+<Canvas of={Stories.ReferenceTranslation} />
+<Canvas of={Stories.CanonicalRows} />
+
+## Saving and recovery
+
+The editor and formula bar keep their draft after a rejected save. Retry sends the same intent; Escape discards only the unsaved draft. A refresh error keeps readable values. The host distinguishes a committed write followed by a failed refresh from a write that failed: a refresh failure must not trigger another insert.
+
+<Canvas of={Stories.RecoverableSave} />
+<Canvas of={Stories.PendingCommit} />
+<Canvas of={Stories.RefreshFailure} />
+
+## Large sheets, presence and sheets
+
+Rows start at a token-based height and expand for supported wrapping or explicit dimensions; columns have constrained widths. Both axes are windowed; screen-reader row and column counts describe the full supplied data. The component only windows rendering: loading large datasets, server-side filters, aggregation and formula dependency calculation belong to the host. Selection totals include numeric display values and are not an authoritative calculation engine.
+
+<Canvas of={Stories.LargeSheet} />
+<Canvas of={Stories.FrozenIdentity} />
+
+Presence is optional and ephemeral. Pass named peers with their stable cell IDs; the cell exposes their names to assistive technology and a peer button reveals their location. The component makes no claim about locks or concurrent-write safety. Sheet buttons call `onSheetChange` after the current draft saves; the host supplies each sheet's data. Key a host/controller by workbook identity, and guard external navigation while it holds an unsaved draft.
+
+<Canvas of={Stories.PresenceAndSheets} />
+<Canvas of={Stories.Phone} />
+
+## Limits
+
+This family supplies a workbook viewport, not XLSX round-trip fidelity or an Excel-compatible engine. Charts, merged cells, pivots, conditional formatting, reference-adjusting fill, collaborative editing and file conversion require host capabilities. It exposes text, number, choice, boolean and date editors; the formula bar can edit any writable raw value. Rows and columns must have unique IDs. Empty values are empty strings.
+
+Cells with formula-shaped literal text, such as a record statement beginning with `=`, can be identified with `isCellLiteral`. Local copy and fill retain that intent, including across sheet changes; genuine formulas still use `translateInput`. System clipboard TSV stays unchanged. `preparePasteValue` encodes literal text for each destination: use the raw string for record or text-format cells, and escape a leading equals sign for formula-enabled cells. The host continues to validate and authorize the complete write.
+
+<ArgTypes of={Spreadsheet} />
+
+<ArgTypes of={SpreadsheetToolbar} />

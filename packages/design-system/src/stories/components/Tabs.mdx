@@ -45,7 +45,7 @@ Compose `Tabs`, `TabsList`, `TabsTrigger` and `TabsContent`. Match each Trigger'
 </Tabs>
 ```
 
-Routes compose Tabs, TabsList and TabsContent directly; route state controls the selected value. Supporting context can be contributed separately with Shell.Aside.
+Routes compose Tabs, TabsList and TabsContent directly; route state controls the selected value. A record's Details belong to its Overview panel: an [AsideLayout](?path=/docs/layout-asidelayout--docs) there lays them beside the panel's body, so they leave with the tab and the strip keeps its width on every tab.
 
 ## Variants
 
@@ -83,7 +83,7 @@ Reduced motion disables both indicator movement and panel entrance. The Motion s
 
 <Canvas of={Stories.Motion} />
 
-The indicator's position and size round to the layout unit (1/64px). A resize of the strip's container that leaves the tabs where they were, such as a record's Details rail leaving with its Overview, then writes the same values, so the slide runs once and arrives in its 240ms rather than starting over on every frame of the resize.
+The indicator's position and size round to the layout unit (1/64px). A resize of the strip's container that leaves the tabs where they were, such as a panel opening beside the page, then writes the same values, so the slide runs once and arrives in its 240ms rather than starting over on every frame of the resize.
 
 <Canvas of={Stories.ResizeDuringChange} />
 

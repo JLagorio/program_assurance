@@ -262,6 +262,8 @@ export function ProductCollection<T extends { id: string }>({
   const showSort = sort && (!compact || table.getCoreRowModel().rows.length > 1);
   // With none of them the toolbar gets no children at all, so it draws no empty More.
   const displayControls = showSort || showColumns || !compact || !!commands?.length;
+  const hasToolbar =
+    search || views || Children.toArray(filters).length > 0 || action || displayControls;
   const collection = (
     <DataTable
       {...props}
@@ -282,54 +284,56 @@ export function ProductCollection<T extends { id: string }>({
         ...(compact ? { size: "compact" as const, icon: empty?.icon ?? <Inbox /> } : {}),
       }}
       toolbar={
-        <Toolbar
-          {...(search
-            ? {
-                search: String(table.state.globalFilter ?? ""),
-                onSearch,
-                placeholder,
-              }
-            : {})}
-          views={views}
-          // An empty list of chips is no filters, so a narrow row draws no empty More.
-          filters={Children.toArray(filters).length ? filters : undefined}
-          // Folded into More on a phone or beside a panel, the filters still say how many apply.
-          activeFilters={table.state.columnFilters.length}
-          actions={action}
-        >
-          {displayControls ? (
-            <>
-              {showSort && <DataTable.Sort table={table} />}
-              {showColumns && <DataTable.Columns table={table} />}
-              {!compact && <DataTable.Settings table={table} />}
-              {!!commands?.length && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={
-                      <IconButton
-                        label="Collection actions"
-                        icon={<MoreHorizontal />}
-                        size="small"
-                        variant="secondary"
-                      />
-                    }
-                  />
-                  <DropdownMenuContent align="end">
-                    {commands.map((command) => (
-                      <DropdownMenuItem
-                        key={command.label}
-                        disabled={command.disabled}
-                        onClick={command.onSelect}
-                      >
-                        {command.label}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </>
-          ) : null}
-        </Toolbar>
+        hasToolbar ? (
+          <Toolbar
+            {...(search
+              ? {
+                  search: String(table.state.globalFilter ?? ""),
+                  onSearch,
+                  placeholder,
+                }
+              : {})}
+            views={views}
+            // An empty list of chips is no filters, so a narrow row draws no empty More.
+            filters={Children.toArray(filters).length ? filters : undefined}
+            // Folded into More on a phone or beside a panel, the filters still say how many apply.
+            activeFilters={table.state.columnFilters.length}
+            actions={action}
+          >
+            {displayControls ? (
+              <>
+                {showSort && <DataTable.Sort table={table} />}
+                {showColumns && <DataTable.Columns table={table} />}
+                {!compact && <DataTable.Settings table={table} />}
+                {!!commands?.length && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <IconButton
+                          label="Collection actions"
+                          icon={<MoreHorizontal />}
+                          size="small"
+                          variant="secondary"
+                        />
+                      }
+                    />
+                    <DropdownMenuContent align="end">
+                      {commands.map((command) => (
+                        <DropdownMenuItem
+                          key={command.label}
+                          disabled={command.disabled}
+                          onClick={command.onSelect}
+                        >
+                          {command.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </>
+            ) : null}
+          </Toolbar>
+        ) : undefined
       }
     />
   );

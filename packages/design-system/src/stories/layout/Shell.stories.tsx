@@ -22,6 +22,7 @@ import {
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import {
+  AsideLayout,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
@@ -1082,11 +1083,16 @@ function RecordDetails() {
   );
 }
 
-/** A route composes its header, tabs and supporting context inside the persistent shell. The Details are rendered at the top of Overview: the rail beside Main where it fits, the Details disclosure there where it does not. */
+/** A route composes its header, tabs and supporting context inside the persistent shell. The Details are Overview's: an AsideLayout in its panel, the rail beside the body where it fits and the Details disclosure above it where it does not. `placement="shell"` renders the Aside on its own instead, which takes the shell's area beside Main (deprecated). */
 function RecordDemo({
   sideNavWidth,
   shortcut,
-}: { sideNavWidth?: number | undefined; shortcut?: boolean | undefined } = {}) {
+  placement = "layout",
+}: {
+  sideNavWidth?: number | undefined;
+  shortcut?: boolean | undefined;
+  placement?: "layout" | "shell" | undefined;
+} = {}) {
   const [tab, setTab] = useState<(typeof tabs)[number]>("Overview");
   return (
     <Shell sideNavShortcut={shortcut}>
@@ -1145,36 +1151,7 @@ function RecordDemo({
               ))}
             </TabsList>
             <TabsContent value={tab}>
-              <Stack space="space.300" className="min-w-0">
-                {tab === "Overview" ? <RecordDetails /> : null}
-                <Section title={tab} count={tab === "Overview" ? undefined : 12}>
-                  <Stack space="space.100">
-                    <Text color="color.text.subtle">
-                      {tab === "Overview"
-                        ? "The overview's work, beside the rail."
-                        : `The ${tab} tab's work, the full width.`}
-                    </Text>
-                    {programs.slice(0, 8).map((p) => (
-                      <Inline
-                        key={p.id}
-                        space="space.200"
-                        alignBlock="center"
-                        className="border-b border-default py-100"
-                      >
-                        <Text size="small" color="color.text.subtle" numeric>
-                          {p.id}
-                        </Text>
-                        <Text>{p.title}</Text>
-                      </Inline>
-                    ))}
-                  </Stack>
-                </Section>
-                <Section title="Gates" count={3}>
-                  <Text color="color.text.subtle">
-                    What this record still needs before it moves.
-                  </Text>
-                </Section>
-              </Stack>
+              <RecordTab tab={tab} placement={placement} />
             </TabsContent>
           </Tabs>
         </Stack>
@@ -1183,7 +1160,52 @@ function RecordDemo({
   );
 }
 
-/** Context occupies Aside; selected work occupies Panel; modal flows use Sheet. */
+/** A tab's work; on Overview, beside the record's Details. */
+function RecordTab({
+  tab,
+  placement,
+}: {
+  tab: (typeof tabs)[number];
+  placement: "layout" | "shell";
+}) {
+  const work = (
+    <Stack space="space.300" className="min-w-0">
+      {tab === "Overview" && placement === "shell" ? <RecordDetails /> : null}
+      <Section title={tab} count={tab === "Overview" ? undefined : 12}>
+        <Stack space="space.100">
+          <Text color="color.text.subtle">
+            {tab === "Overview"
+              ? "The overview's work, beside the rail."
+              : `The ${tab} tab's work, the full width.`}
+          </Text>
+          {programs.slice(0, 8).map((p) => (
+            <Inline
+              key={p.id}
+              space="space.200"
+              alignBlock="center"
+              className="border-b border-default py-100"
+            >
+              <Text size="small" color="color.text.subtle" numeric>
+                {p.id}
+              </Text>
+              <Text>{p.title}</Text>
+            </Inline>
+          ))}
+        </Stack>
+      </Section>
+      <Section title="Gates" count={3}>
+        <Text color="color.text.subtle">What this record still needs before it moves.</Text>
+      </Section>
+    </Stack>
+  );
+  return tab === "Overview" && placement === "layout" ? (
+    <AsideLayout aside={<RecordDetails />}>{work}</AsideLayout>
+  ) : (
+    work
+  );
+}
+
+/** A record's Details are its Overview's, an AsideLayout's Aside; selected work occupies Panel; modal flows use Sheet. */
 export const RecordRail: Story = { name: "Record rail", render: () => <RecordDemo /> };
 
 /** The panel from its parts instead of `title` and `actions`: the header, the title at another level, the actions, the close, the body, the splitter with a name of its own. Without a title, the landmark's name is its `label`. */
@@ -2214,7 +2236,7 @@ const shellLaptop = {
   },
 };
 
-/** The rail beside Main from the top of the page to its end, with Main at least its minimum. */
+/** The deprecated Aside beside Main from the top of the page to its end, with Main at least its minimum. */
 async function checkRailBeside(main: HTMLElement, aside: HTMLElement) {
   const box = (el: HTMLElement) => el.getBoundingClientRect();
   await waitFor(() => expect(box(aside).left).toBeGreaterThanOrEqual(box(main).right - 1));
@@ -2223,10 +2245,25 @@ async function checkRailBeside(main: HTMLElement, aside: HTMLElement) {
   await expect(box(main).width).toBeGreaterThanOrEqual(mainMinimum());
 }
 
+/** The Details as Overview's rail: under the tab strip, beside the body at its end, inside Main. */
+async function checkRailInTab(canvasElement: HTMLElement, details: HTMLElement) {
+  const canvas = within(canvasElement);
+  const box = (el: HTMLElement) => el.getBoundingClientRect();
+  const layout = details.closest<HTMLElement>('[data-slot="aside-layout"]');
+  await waitFor(() => expect(layout).toHaveAttribute("data-display", "rail"));
+  await expect(canvas.getByRole("main")).toContainElement(details);
+  const tablist = canvas.getByRole("tablist", { name: "Record" });
+  await expect(box(details).top).toBeGreaterThanOrEqual(box(tablist).bottom - 1);
+  await expect(Math.abs(box(details).right - box(tablist).right)).toBeLessThanOrEqual(1);
+  await expect(box(details).left).toBeGreaterThanOrEqual(
+    box(canvas.getByRole("heading", { name: "Overview" })).right,
+  );
+}
+
 /**
- * Between the large breakpoint and the aside breakpoint (here 1100px) the rail sits beside Main
- * whenever the side nav leaves Main its minimum beside it: expanded at its default width, and
- * collapsed. Its divider runs the page's height.
+ * On a small laptop (here 1100px) Overview leaves its body a list column beside the rail with the
+ * side nav expanded at its default width and collapsed, so the Details are the rail: under the tab
+ * strip, at the body's end, a region inside Main.
  */
 export const RecordRailLaptop: Story = {
   name: "Record rail at 1100px",
@@ -2236,26 +2273,45 @@ export const RecordRailLaptop: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await waitFor(() => expect(window.innerWidth).toBe(1100));
-    const main = canvas.getByRole("main");
-    const aside = canvas.getByRole("complementary", { name: "Record properties" });
-    // Expanded at its default width: beside Main.
-    await checkRailBeside(main, aside);
-    // Collapsed: beside Main still.
+    const details = canvas.getByRole("region", { name: "Record properties" });
+    await expect(canvas.queryByRole("complementary", { name: "Record properties" })).toBeNull();
+    // Expanded at its default width: the rail.
+    await checkRailInTab(canvasElement, details);
+    // Collapsed: the rail still.
     await userEvent.click(canvas.getByRole("button", { name: "Collapse side navigation" }));
-    await checkRailBeside(main, aside);
-    // Expanded again: beside Main.
+    await checkRailInTab(canvasElement, details);
+    // Expanded again: the rail.
     await userEvent.click(canvas.getByRole("button", { name: "Expand side navigation" }));
+    await checkRailInTab(canvasElement, details);
+  },
+};
+
+/**
+ * An Aside rendered on its own, outside an AsideLayout, takes the shell's area beside Main from
+ * the top of the page, a complementary landmark beside it (deprecated: give it to an AsideLayout).
+ */
+export const DeprecatedShellAside: Story = {
+  name: "Aside beside Main (deprecated) at 1100px",
+  tags: ["!manifest"],
+  parameters: shellLaptop,
+  globals: { viewport: { value: "shellLaptop", isRotated: false } },
+  render: () => <RecordDemo placement="shell" />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() => expect(window.innerWidth).toBe(1100));
+    const main = canvas.getByRole("main");
+    const aside = await canvas.findByRole("complementary", { name: "Record properties" });
+    await expect(main).not.toContainElement(aside);
     await checkRailBeside(main, aside);
   },
 };
 
 /**
- * A side nav wider than leaves Main its minimum beside the rail (480px at 1100px) keeps its width,
+ * A side nav that leaves Overview no list column beside the rail (480px at 1100px) keeps its width,
  * and the Details are the disclosure at the top of Overview, closed; collapsing the side nav gives
- * the rail its place beside Main, and expanding it makes them the disclosure again. The content
- * moves between the two without mounting again, at once: the rows are the same nodes. Focus on a
- * control inside stays on it, the disclosure opening around it; a control the change replaces
- * hands focus to the first control left.
+ * the rail its place beside the body, and expanding it makes them the disclosure again. The Details
+ * are the same nodes in both, shown at once. Focus on a control inside stays on it, the disclosure
+ * opening around it; a control the change replaces hands focus to the first control left.
  */
 export const RecordRailWideSideNav: Story = {
   name: "Record rail beside a wide side nav at 1100px",
@@ -2270,6 +2326,10 @@ export const RecordRailWideSideNav: Story = {
     const box = (el: HTMLElement) => el.getBoundingClientRect();
     await expect(Math.round(box(nav).width)).toBe(480);
     const details = await canvas.findByRole("region", { name: "Record properties" });
+    const layout = details.closest<HTMLElement>('[data-slot="aside-layout"]');
+    const shows = (display: "rail" | "disclosure") =>
+      waitFor(() => expect(layout).toHaveAttribute("data-display", display));
+    await shows("disclosure");
     await expect(main).toContainElement(details);
     await expect(within(details).getByRole("button", { name: detailsToggle })).toHaveAttribute(
       "aria-expanded",
@@ -2277,52 +2337,52 @@ export const RecordRailWideSideNav: Story = {
     );
     const framework = within(details).getByText("NIST 800-53 r5, moderate");
     // The content, which folds on the kit's motion only when the reader toggles it.
-    const content = (area: HTMLElement) =>
-      area.querySelector<HTMLElement>(':scope > [data-slot="collapsible-content"]');
+    const content = details.querySelector<HTMLElement>(
+      ':scope > [data-slot="collapsible-content"]',
+    );
     await userEvent.click(canvas.getByRole("button", { name: "Collapse side navigation" }));
-    const aside = await canvas.findByRole("complementary", { name: "Record properties" });
-    await checkRailBeside(main, aside);
-    await expect(within(aside).queryByRole("button", { name: detailsToggle })).toBeNull();
-    await expect(within(aside).getByText("NIST 800-53 r5, moderate")).toBe(framework);
+    await checkRailInTab(canvasElement, details);
+    await expect(within(details).queryByRole("button", { name: detailsToggle })).toBeNull();
+    await expect(within(details).getByText("NIST 800-53 r5, moderate")).toBe(framework);
     await expect(framework).toBeVisible();
     // A change of display shows the content as it is at once: the rail does not unfold.
-    await expect(content(aside)?.getAnimations() ?? []).toHaveLength(0);
+    await expect(content?.getAnimations() ?? []).toHaveLength(0);
     await userEvent.click(canvas.getByRole("button", { name: "Expand side navigation" }));
-    const again = await canvas.findByRole("region", { name: "Record properties" });
-    await expect(main).toContainElement(again);
-    await expect(within(again).getByText("NIST 800-53 r5, moderate")).toBe(framework);
+    await shows("disclosure");
+    await expect(within(details).getByText("NIST 800-53 r5, moderate")).toBe(framework);
     // Nor does the disclosure fold the Details away in the page: it is closed at once.
-    await expect(content(again)?.getAnimations() ?? []).toHaveLength(0);
+    await expect(content?.getAnimations() ?? []).toHaveLength(0);
     await expect(framework.checkVisibility()).toBe(false);
     // Focus on a control in the rail stays on it when the display changes under it (Control and
     // [ toggle the side nav): the disclosure opens around it, and the rail shows it again.
     const shortcut = () => userEvent.keyboard("{Control>}[[{/Control}");
     await userEvent.click(canvas.getByRole("button", { name: "Collapse side navigation" }));
-    const rail = await canvas.findByRole("complementary", { name: "Record properties" });
-    const owner = within(rail).getByRole("link", { name: "Sarah Chen" });
+    await checkRailInTab(canvasElement, details);
+    const owner = within(details).getByRole("link", { name: "Sarah Chen" });
     owner.focus();
     await shortcut();
-    const opened = await canvas.findByRole("region", { name: "Record properties" });
-    await expect(opened).toContainElement(owner);
+    await shows("disclosure");
     await expect(owner).toHaveFocus();
     await expect(owner).toBeVisible();
-    const row = within(opened).getByRole("button", { name: detailsToggle });
+    const row = within(details).getByRole("button", { name: detailsToggle });
     await expect(row).toHaveAttribute("aria-expanded", "true");
     await shortcut();
-    await expect(
-      await canvas.findByRole("complementary", { name: "Record properties" }),
-    ).toContainElement(owner);
+    await checkRailInTab(canvasElement, details);
     await expect(owner).toHaveFocus();
     // A control the change replaces (a group's title is an h2 in the rail and an h3 in the
     // disclosure) hands focus to the first control left: the disclosure's row, then the rail's
     // first group.
-    within(rail).getByRole("button", { name: "Identity" }).focus();
+    within(details).getByRole("button", { name: "Identity" }).focus();
     await shortcut();
-    const disclosure = await canvas.findByRole("region", { name: "Record properties" });
-    await expect(within(disclosure).getByRole("button", { name: detailsToggle })).toHaveFocus();
+    await shows("disclosure");
+    await waitFor(() =>
+      expect(within(details).getByRole("button", { name: detailsToggle })).toHaveFocus(),
+    );
     await shortcut();
-    const railLast = await canvas.findByRole("complementary", { name: "Record properties" });
-    await expect(within(railLast).getByRole("button", { name: "Details" })).toHaveFocus();
+    await checkRailInTab(canvasElement, details);
+    await waitFor(() =>
+      expect(within(details).getByRole("button", { name: "Details" })).toHaveFocus(),
+    );
   },
 };
 
@@ -2340,7 +2400,7 @@ function MountedInPage({ record }: { record: string }) {
 
 const swapRecords = ["Payload integration", "Ground segment"] as const;
 
-/** One record's page: its header, its Details right after it, then its work. */
+/** One record's page: its header, then its work beside its Details. */
 function SwapRecordPage({ name }: { name: string }) {
   return (
     <Stack space="space.200" className="min-w-0">
@@ -2349,19 +2409,24 @@ function SwapRecordPage({ name }: { name: string }) {
           <PageHeader.Title>{name}</PageHeader.Title>
         </PageHeader.Heading>
       </PageHeader>
-      <Shell.Aside label={`${name} details`} summary={phase}>
-        <Inspector>
-          <Inspector.Group title="Details">
-            <KeyValue label="Record">
-              <MountedInPage record={name} />
-            </KeyValue>
-            <KeyValue label="Owner">Sarah Chen</KeyValue>
-          </Inspector.Group>
-        </Inspector>
-      </Shell.Aside>
-      <Section title="Work">
-        <Text color="color.text.subtle">The record&apos;s work, under its Details.</Text>
-      </Section>
+      <AsideLayout
+        aside={
+          <Shell.Aside label={`${name} details`} summary={phase}>
+            <Inspector>
+              <Inspector.Group title="Details">
+                <KeyValue label="Record">
+                  <MountedInPage record={name} />
+                </KeyValue>
+                <KeyValue label="Owner">Sarah Chen</KeyValue>
+              </Inspector.Group>
+            </Inspector>
+          </Shell.Aside>
+        }
+      >
+        <Section title="Work">
+          <Text color="color.text.subtle">The record&apos;s work, under its Details.</Text>
+        </Section>
+      </AsideLayout>
     </Stack>
   );
 }
@@ -2386,10 +2451,9 @@ function RecordChangeDemo() {
 }
 
 /**
- * On a phone, a record that replaces another (a route change) mounts its Details in the document:
- * the content goes back to the shell's slot before the old page's elements leave, so what the next
- * record's Details measure as they mount is in the page. The disclosure then sits under the new
- * record's header, closed, before its work.
+ * On a phone, a record that replaces another (a route change) mounts its Details in the page, where
+ * its AsideLayout renders them, so what they measure as they mount is in the document. The
+ * disclosure sits under the new record's header, closed, before its work.
  */
 export const RecordChangePhone: Story = {
   name: "Record change at 390px",

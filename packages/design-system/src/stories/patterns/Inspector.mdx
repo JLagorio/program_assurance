@@ -49,9 +49,13 @@ A group's heading takes the contextual level, an h3 when nothing sets one. In a 
 
 <Canvas of={Stories.InARail} />
 
+## In the rail
+
+In a Shell.Aside shown as the rail (an [AsideLayout](?path=/docs/layout-asidelayout--docs)'s, where it leaves the body room), each group runs the rail's full width. The rail pads only its bottom, and the layout lines its first title up with the body's first heading; a group's title row and its rows take the gutter (`space.300`) inside them, so the title lines up with the labels under it, the tint under the pointer covers the whole row, the rule between groups reaches both edges and the focus ring is drawn inside the row, where the window's edge cannot cut it. An action takes the gutter at the end of the title's row, and the `footer` takes it too. Put everything the rail holds in its groups. Outside an Aside rail (a preview's body, a panel, the Details disclosure) a group keeps its container's padding and its title sits flush with it.
+
 ## In the Details disclosure
 
-Below the aside breakpoint a record's Shell.Aside is a Details disclosure in the page, closed until the reader opens it (Shell's Record details at 390px). Its row is the h2 and its content one level below, so the groups there are h3s. A group named as the disclosure ("Details", or the Aside's `heading`) is the disclosure's own content: its title, which would repeat the row's, steps aside, and its rows show while the disclosure is open. Its action stays, at the end of a row above them. The other groups keep their titles and fold as in the rail.
+Where an AsideLayout leaves no room for the rail (a phone, a narrow window), a record's Shell.Aside is a Details disclosure above the body, closed until the reader opens it (AsideLayout, At 390px). Its row is the h2 and its content one level below, so the groups there are h3s. A group named as the disclosure ("Details", or the Aside's `heading`) is the disclosure's own content: its title, which would repeat the row's, steps aside, and its rows show while the disclosure is open. Its action stays, at the end of a row above them. The other groups keep their titles and fold as in the rail.
 
 ## When to use it
 
@@ -97,5 +101,5 @@ The rail's facts are Inspector.Groups of KeyValue rows under a heading that fold
 - [KeyValue](?path=/docs/components-keyvalue--docs): the rows.
 - [Collapsible](?path=/docs/components-collapsible--docs): the disclosure header each group's title is.
 - [Section](?path=/docs/layout-section--docs): the collapsible block on a page body.
-- [Shell](?path=/docs/layout-shell--docs): the Aside and the Panel it sits in.
+- [AsideLayout](?path=/docs/layout-asidelayout--docs) and [Shell](?path=/docs/layout-shell--docs): the Aside a record's Details sit in, and the Panel a preview's do.
 - [Upgrading](?path=/docs/guidance-upgrading--docs#inspector): `groups` is Inspector.Group children.

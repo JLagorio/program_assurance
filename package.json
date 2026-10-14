@@ -24,7 +24,7 @@
     "ds:api:update": "node scripts/ds-api-check.mjs --update",
     "ds:api:matrix": "node scripts/ds-api-matrix.mjs",
     "test:api": "node --test scripts/tests/ds-api-check.test.mjs",
-    "test:app": "vitest run --config vitest.app.config.ts && node --test scripts/tests/runtime-data-boundary.test.mjs scripts/tests/design-system-boundary.test.mjs scripts/tests/lint-bench.test.mjs scripts/tests/lint-eval-harness.test.mjs",
+    "test:app": "npm test -w packages/spreadsheet-core && vitest run --config vitest.app.config.ts && node --test scripts/tests/runtime-data-boundary.test.mjs scripts/tests/design-system-boundary.test.mjs scripts/tests/lint-bench.test.mjs scripts/tests/lint-eval-harness.test.mjs",
     "test:patterns": "node scripts/test-pattern-consistency.mjs && node scripts/test-form-confirmations.mjs && node scripts/test-preview-frames.mjs && node scripts/test-responsive-patterns.mjs && node scripts/test-preview-record-actions.mjs && node scripts/test-screen-families.mjs && node scripts/test-pattern-form-edges.mjs && node scripts/test-session-states.mjs && node scripts/test-server-paging.mjs",
     "local:start": "node scripts/local-supabase.mjs start",
     "local:stop": "node scripts/local-supabase.mjs stop",
@@ -50,7 +50,8 @@
     "bench:lint": "node --test scripts/tests/lint-bench.test.mjs && node scripts/lint-bench.mjs",
     "eval:lint": "node evals/run.mjs",
     "test:app-a11y": "node scripts/test-app-a11y.mjs",
-    "test:docs": "node scripts/check-docs-render.mjs"
+    "test:docs": "node scripts/check-docs-render.mjs",
+    "test:workbook": "npm test -w packages/spreadsheet-core && node scripts/test-assurance-workbook-backend.mjs && node scripts/test-spreadsheet-core-browser.mjs && node scripts/test-assurance-workbench.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
@@ -61,6 +62,7 @@
     "@fontsource-variable/inter": "^5.3.0",
     "@headless-tree/core": "^1.7.0",
     "@headless-tree/react": "^1.7.0",
+    "@ledger/spreadsheet-core": "file:packages/spreadsheet-core",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.8",

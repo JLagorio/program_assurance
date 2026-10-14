@@ -1062,6 +1062,111 @@ export type Database = {
           },
         ];
       };
+      assurance_workbook_requests: {
+        Row: {
+          created_at: string;
+          created_by: string;
+          id: string;
+          operation: string;
+          payload_sha256: string;
+          program_id: string;
+          result: Json;
+          tenant_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by: string;
+          id: string;
+          operation: string;
+          payload_sha256: string;
+          program_id: string;
+          result: Json;
+          tenant_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string;
+          id?: string;
+          operation?: string;
+          payload_sha256?: string;
+          program_id?: string;
+          result?: Json;
+          tenant_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "assurance_workbook_requests_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "assurance_workbook_requests_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "programs";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      assurance_workbooks: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          document: Json;
+          id: string;
+          name: string;
+          program_id: string;
+          revision: number;
+          schema_version: number;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          document?: Json;
+          id?: string;
+          name: string;
+          program_id: string;
+          revision?: number;
+          schema_version?: number;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          document?: Json;
+          id?: string;
+          name?: string;
+          program_id?: string;
+          revision?: number;
+          schema_version?: number;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "assurance_workbooks_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "assurance_workbooks_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: true;
+            referencedRelation: "programs";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
       authorization_decisions: {
         Row: {
           conditions: string | null;
@@ -9860,6 +9965,13 @@ export type Database = {
             referencedColumns: ["tenant_id", "id"];
           },
           {
+            foreignKeyName: "requirement_revisions_tenant_id_engineering_requirement_id_fkey";
+            columns: ["tenant_id", "engineering_requirement_id"];
+            isOneToOne: false;
+            referencedRelation: "requirement_workbook_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "requirement_revisions_tenant_id_fkey";
             columns: ["tenant_id"];
             isOneToOne: false;
@@ -13044,6 +13156,160 @@ export type Database = {
           },
         ];
       };
+      program_sctm_rows: {
+        Row: {
+          baseline_inherited: boolean | null;
+          baseline_source: string | null;
+          baseline_source_system_id: string | null;
+          catalog_revision_id: string | null;
+          content_id: string | null;
+          control_code: string | null;
+          control_id: string | null;
+          control_part_id: string | null;
+          control_part_prose: string | null;
+          control_title: string | null;
+          id: string | null;
+          needs_review: boolean | null;
+          part_name: string | null;
+          profile_resolution_id: string | null;
+          program_id: string | null;
+          rationale: string | null;
+          relationship_type: string | null;
+          requirement_code: string | null;
+          requirement_id: string | null;
+          requirement_title: string | null;
+          revision: number | null;
+          scope_label: string | null;
+          selected_control_id: string | null;
+          system_code: string | null;
+          system_id: string | null;
+          system_name: string | null;
+          tenant_id: string | null;
+          updated_at: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "controls_catalog_revision_id_fkey";
+            columns: ["catalog_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_revisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "requirement_control_links_control_id_fkey";
+            columns: ["control_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_control_rows";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "requirement_control_links_control_id_fkey";
+            columns: ["control_id"];
+            isOneToOne: false;
+            referencedRelation: "controls";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "requirement_control_links_control_part_id_fkey";
+            columns: ["control_part_id"];
+            isOneToOne: false;
+            referencedRelation: "control_parts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "requirement_control_links_selected_control_id_fkey";
+            columns: ["selected_control_id"];
+            isOneToOne: false;
+            referencedRelation: "selected_controls";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "requirement_control_links_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "requirement_control_links_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "composition_nodes";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "requirement_control_links_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "system_effective_baselines";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "requirement_control_links_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "system_effective_baselines";
+            referencedColumns: ["tenant_id", "system_id"];
+          },
+          {
+            foreignKeyName: "requirement_control_links_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "systems";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      requirement_workbook_rows: {
+        Row: {
+          acceptance_criteria: string | null;
+          allocated_to: string | null;
+          allocation: string | null;
+          allocations: Json | null;
+          ancestors: string[] | null;
+          code: string | null;
+          code_order: string | null;
+          content_id: string | null;
+          control_mapping: string | null;
+          control_sources: Json | null;
+          depth: number | null;
+          evidence_count: number | null;
+          id: string | null;
+          linked_controls: string | null;
+          owner_name: string | null;
+          owner_party_id: string | null;
+          parent_id: string | null;
+          program_id: string | null;
+          rationale: string | null;
+          requirement_type: string | null;
+          revision: number | null;
+          revision_id: string | null;
+          statement: string | null;
+          tenant_id: string | null;
+          title: string | null;
+          tree_order: string[] | null;
+          unstructured: boolean | null;
+          updated_at: string | null;
+          verification_count: number | null;
+          version_number: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "engineering_requirements_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engineering_requirements_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "programs";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
       risk_rows: {
         Row: {
           created_at: string | null;
@@ -13248,6 +13514,16 @@ export type Database = {
         Returns: Json;
       };
       app_schema: { Args: never; Returns: Json };
+      apply_assurance_changes: {
+        Args: {
+          p_mappings?: Json;
+          p_program_id: string;
+          p_request_id: string;
+          p_requirements?: Json;
+          p_tenant_id: string;
+        };
+        Returns: Json;
+      };
       apply_library_component: {
         Args: {
           p_assignment_id: string;
@@ -13315,6 +13591,10 @@ export type Database = {
         Returns: boolean;
       };
       can_admin_tenant: { Args: { target_tenant: string }; Returns: boolean };
+      can_join_assurance_workbook: {
+        Args: { p_topic: string };
+        Returns: boolean;
+      };
       can_own_tenant: { Args: { target_tenant: string }; Returns: boolean };
       can_read_tenant: { Args: { target_tenant: string }; Returns: boolean };
       can_write_tenant: { Args: { target_tenant: string }; Returns: boolean };
@@ -13370,6 +13650,10 @@ export type Database = {
         Returns: string;
       };
       ensure_personal_tenant: { Args: never; Returns: string };
+      install_assurance_workbook_presence_policies: {
+        Args: never;
+        Returns: boolean;
+      };
       is_control_statement: { Args: { part: string }; Returns: boolean };
       is_requirement_control_statement: {
         Args: { p_control_id: string; p_part_id: string };
@@ -13403,6 +13687,14 @@ export type Database = {
         Returns: Json;
       };
       product_export_uuid: { Args: { seed: string }; Returns: string };
+      read_assurance_workbook: {
+        Args: {
+          p_program_id: string;
+          p_row_limit?: number;
+          p_tenant_id: string;
+        };
+        Returns: Json;
+      };
       reference_owner: { Args: { table_name: string }; Returns: string[] };
       resolve_base_controls: {
         Args: {
@@ -13421,6 +13713,18 @@ export type Database = {
           p_request_id: string;
           p_source_revision_id: string;
           p_tenant_id: string;
+        };
+        Returns: Json;
+      };
+      save_assurance_workbook: {
+        Args: {
+          p_document: Json;
+          p_expected_revision: number;
+          p_name: string;
+          p_program_id: string;
+          p_request_id: string;
+          p_tenant_id: string;
+          p_workbook_id: string;
         };
         Returns: Json;
       };

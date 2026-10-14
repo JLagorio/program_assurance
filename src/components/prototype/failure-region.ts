@@ -14,8 +14,8 @@ import type { QueryStatus } from "./work-common";
  * A failure region: a record page or a tab panel, whose blocks report their failed queries to it
  * so the outage is said once, in one alert at the region's top, with one Retry that refetches every
  * failed query in it. `container` is the element the region's blocks are drawn in; a block drawn
- * elsewhere through a portal (a dialog, a sheet, a preview panel, the Details rail) is not held by
- * it and says its own failure where it is. QueryState's `region` draws one.
+ * elsewhere through a portal (a dialog, a sheet, a preview panel) is not held by it and says its
+ * own failure where it is; a record's Details render in place, so the region holds them. QueryState's `region` draws one.
  */
 export type FailureRegion = {
   container: () => HTMLElement | null;

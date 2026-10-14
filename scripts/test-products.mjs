@@ -361,7 +361,7 @@ try {
   assert.equal(await programTree.getByText("Product", { exact: true }).count(), 2);
   await page.screenshot({ path: "/tmp/products-program-tree.png", fullPage: true });
   await page.goto(`${origin}/programs/${programId}`);
-  const rail = page.getByRole("complementary", { name: "Program details", exact: true });
+  const rail = page.getByRole("region", { name: "Program details", exact: true });
   await rail.getByRole("link", { name: "Missile A v1 · Ground launch", exact: true }).click();
   await page.waitForURL(new RegExp(`/library/products/${productId}\\?version=${revision.id}`));
   await page.getByRole("tab", { name: /^Variants/ }).click();
@@ -429,17 +429,34 @@ try {
   await versionRow(1).getByText("Shown on this page", { exact: true }).waitFor();
   await page.getByRole("tab", { name: "Overview", exact: true }).click();
   assert.match(await shownVersion().innerText(), /1 · Published/);
-  await page.getByRole("complementary", { name: "Product details", exact: true }).waitFor();
+  await page.getByRole("region", { name: "Product details", exact: true }).waitFor();
   assert.equal(await page.getByRole("heading", { level: 1 }).count(), 1);
-  // The aside animates into the grid; visibility alone can capture its narrow first frame.
+  // The Details are Overview's rail once the layout has measured itself: the layout says so, and the
+  // Details sit at the body's end with the rail's width. Visibility alone can capture the first
+  // frame, before the rail has its width.
   await page.waitForFunction(() => {
     const aside = document.querySelector('aside[data-slot="shell-aside"]');
+    const layout = aside?.closest('[data-slot="aside-layout"]');
+    const body = layout?.querySelector(':scope > [data-slot="aside-layout-body"]');
+    if (!aside || !body || layout.getAttribute("data-display") !== "rail") return false;
     return (
-      aside &&
       aside.getBoundingClientRect().width >= 272 &&
+      aside.getBoundingClientRect().left >= body.getBoundingClientRect().right &&
       document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1
     );
   });
+  // Choosing a version in the Details mounts the version's page afresh, and focus goes to the
+  // Version select there.
+  for (const version of ["2", "1"]) {
+    await shownVersion().click();
+    await page.getByRole("option", { name: new RegExp(`^${version} · `) }).click();
+    await page.waitForFunction(
+      (number) =>
+        document.activeElement?.getAttribute("role") === "combobox" &&
+        document.activeElement.textContent?.startsWith(`${number} · `),
+      version,
+    );
+  }
   await page.screenshot({
     path: "/tmp/products-overview-desktop.png",
     fullPage: true,
@@ -453,10 +470,7 @@ try {
   });
   await page.getByRole("tab", { name: /^Variants/ }).click();
   await variantsTable.waitFor();
-  assert.equal(
-    await page.getByRole("complementary", { name: "Product details", exact: true }).count(),
-    0,
-  );
+  assert.equal(await page.getByRole("region", { name: "Product details", exact: true }).count(), 0);
   assert.ok(await page.getByRole("searchbox", { name: "Find variants", exact: true }).isVisible());
   assert.ok(
     await page.evaluate(
@@ -472,13 +486,13 @@ try {
   await page.setViewportSize({ width: 1700, height: 1100 });
   await page.goto(`${origin}/programs/${programId}/systems/${boundary.id}`);
   await page
-    .getByRole("complementary", { name: "System details", exact: true })
+    .getByRole("region", { name: "System details", exact: true })
     .getByRole("link", { name: "Missile A v1 · Ground launch", exact: true })
     .waitFor();
   const guidanceSystem = systems.find((row) => row.code === "GUID");
   await page.goto(`${origin}/programs/${programId}/systems/${guidanceSystem.id}`);
   await page
-    .getByRole("complementary", { name: "System details", exact: true })
+    .getByRole("region", { name: "System details", exact: true })
     .getByRole("link", { name: "GUID · Guidance section", exact: true })
     .waitFor();
 

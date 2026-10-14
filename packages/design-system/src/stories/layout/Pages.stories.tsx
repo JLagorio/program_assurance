@@ -5,6 +5,7 @@ import { ChevronDown, MoreHorizontal, Plus } from "lucide-react";
 import {
   Alert,
   AlertAction,
+  AsideLayout,
   AlertDescription,
   AlertTitle,
   Badge,
@@ -50,7 +51,6 @@ import {
   defineColumns,
   displayedRows,
   showRow,
-  tokenValue,
   useDataTable,
   type Tone,
 } from "../..";
@@ -209,8 +209,7 @@ function RecordPage() {
             <TabsTrigger value="evidence">Evidence</TabsTrigger>
           </TabsList>
           <TabsContent value="overview">
-            <Stack space="space.300">
-              <RecordDetails />
+            <AsideLayout aside={<RecordDetails />}>
               <Stack space="space.300" className="max-w-layout-measure">
                 <Section title="Statement">
                   <Prose>
@@ -227,7 +226,7 @@ function RecordPage() {
                   </Prose>
                 </Section>
               </Stack>
-            </Stack>
+            </AsideLayout>
           </TabsContent>
           <TabsContent value="evidence">
             <EvidenceTab />
@@ -592,18 +591,19 @@ export const Record: Story = {
     await expect(
       canvasElement.querySelector('[data-slot="page-header-description"]'),
     ).not.toBeInTheDocument();
-    if (window.matchMedia(`(width >= ${tokenValue("dimension.breakpoint.aside")})`).matches) {
-      // The Details rail is the Aside, outside Main, with its group at h2 under the page's h1.
-      const aside = await canvas.findByRole("complementary", { name: "Details" });
-      await expect(canvas.getByRole("main")).not.toContainElement(aside);
-      await expect(within(aside).getByRole("heading", { name: "Details" }).tagName).toBe("H2");
-      await expect(within(aside).getByText("Alex Morgan")).toBeVisible();
-      await expect(within(aside).getByText("REQ-104")).toBeVisible();
+    // The Details are Overview's, a region inside Main under the tab strip.
+    const details = await canvas.findByRole("region", { name: "Details" });
+    await expect(canvas.getByRole("main")).toContainElement(details);
+    await expect(canvas.getByRole("tabpanel", { name: "Overview" })).toContainElement(details);
+    const layout = details.closest<HTMLElement>('[data-slot="aside-layout"]');
+    if (layout?.dataset["display"] === "rail") {
+      // The rail beside Overview's body, with its group at h2 under the page's h1.
+      await expect(within(details).getByRole("heading", { name: "Details" }).tagName).toBe("H2");
+      await expect(within(details).getByText("Alex Morgan")).toBeVisible();
+      await expect(within(details).getByText("REQ-104")).toBeVisible();
     } else {
-      // On a phone the Details are a disclosure at the top of Overview, inside Main: its row, an
-      // h2's button, carries the status, closed until the reader opens it.
-      const details = await canvas.findByRole("region", { name: "Details" });
-      await expect(canvas.getByRole("main")).toContainElement(details);
+      // Narrower, a disclosure at the top of Overview: its row, an h2's button, carries the
+      // status, closed until the reader opens it.
       const toggle = within(details).getByRole("button", { name: /^Details\s*In progress$/ });
       await expect(toggle.closest("h2")).not.toBeNull();
       await expect(toggle).toHaveAttribute("aria-expanded", "false");

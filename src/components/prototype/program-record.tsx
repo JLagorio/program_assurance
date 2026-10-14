@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Absent,
+  AsideLayout,
   Button,
   DateTime,
   DropdownMenu,
@@ -20,6 +21,7 @@ import {
   Section,
   Shell,
   Skeleton,
+  Stack,
   Tabs,
   TabsList,
   TabsTrigger,
@@ -70,9 +72,9 @@ import {
 } from "./program-shared";
 
 /**
- * A program sub-record's Details: the rail beside the body, or below the aside breakpoint a closed
- * disclosure where it is rendered, whose row says the record's state (`summary`). A record without
- * tabs renders it right after its header; a tabbed record, first on its Overview.
+ * A program sub-record's Details, the Aside of an AsideLayout: the rail beside the body where it
+ * fits, else a closed disclosure above it whose row says the record's state (`summary`). A record
+ * without tabs lays it beside everything under its header; a tabbed record, beside its Overview.
  */
 function RecordDetails({
   recordType,
@@ -124,7 +126,7 @@ function ProgramRecordFrame({
   trail?: ReactNode[] | undefined;
   /** Header actions beside Edit. */
   actions?: ReactNode;
-  /** The Details rows (KeyValues) of a record without tabs, drawn right after the header. A tabbed record leaves it out and draws RecordDetails first on its Overview. */
+  /** The Details rows (KeyValues) of a record without tabs, beside everything under the header. A tabbed record leaves it out and lays RecordDetails beside its Overview. */
   properties?: ReactNode;
   /** The record's state as its status badge, for the Details disclosure's row on a phone. */
   summary?: ReactNode | undefined;
@@ -189,12 +191,21 @@ function ProgramRecordFrame({
             </DropdownMenu>
           </PageHeader.Actions>
         </PageHeader>
-        {properties !== undefined && (
-          <RecordDetails recordType={recordType} summary={summary}>
-            {properties}
-          </RecordDetails>
+        {properties !== undefined ? (
+          <AsideLayout
+            aside={
+              <RecordDetails recordType={recordType} summary={summary}>
+                {properties}
+              </RecordDetails>
+            }
+          >
+            <Stack space="space.200" className="min-w-0">
+              {children}
+            </Stack>
+          </AsideLayout>
+        ) : (
+          children
         )}
-        {children}
       </ProgramQueryState>
       {editing &&
         (renderEditor ? (
@@ -327,9 +338,9 @@ export function ProgramSystemRecord({
           {(name) => (
             <>
               {name === "Overview" && (
-                <>
-                  {/* Kept to Overview: the panel stays mounted while another tab shows. */}
-                  {current === "Overview" && (
+                // The elements inside the system beside its Details, which leave with the tab.
+                <AsideLayout
+                  aside={
                     <RecordDetails
                       recordType="System"
                       summary={
@@ -348,9 +359,10 @@ export function ProgramSystemRecord({
                         queries={assurance.queries}
                       />
                     </RecordDetails>
-                  )}
+                  }
+                >
                   <ProgramSystemsTree programId={programId} rootElementId={system.id} />
-                </>
+                </AsideLayout>
               )}
               {name === "Controls" && (
                 <SystemControls

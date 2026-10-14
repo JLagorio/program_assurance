@@ -2,7 +2,6 @@ import { useRecordTitle } from "@/components/app/browser-title";
 import { Page, RecordPending } from "@/components/app/shell";
 import { QueryValue } from "@/components/prototype/library-shared";
 import { ProgramQueryState } from "@/components/prototype/program-shared";
-import { ProgramDetailsAside } from "@/components/prototype/program-workspace";
 import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
 import { MissingRecord } from "@/components/prototype/work-common";
 import { useRow, useRows } from "@/lib/models";
@@ -10,6 +9,7 @@ import {
   Button,
   PageHeader,
   Section,
+  Stack,
   Stat,
   downloadText,
   toast,
@@ -118,31 +118,32 @@ function ProgramExport() {
           </Button>
         </PageHeader.Actions>
       </PageHeader>
-      <ProgramDetailsAside program={record} />
-      {failed && (
-        <ProgramQueryState
-          queries={queries.filter((query) => query.isError)}
-          retryLabel="Retry loading the register"
-        />
-      )}
-      <Section
-        title="Record register"
-        description="A JSON file of the program and the records below. Evidence files and full OSCAL documents stay in their libraries."
-      >
-        <Stat.Grid cols={4} role="group" aria-label="Records in the export">
-          {collections.map((item) => (
-            <Stat.Tile
-              key={item.label}
-              label={item.label}
-              value={
-                <QueryValue queries={item.queries}>
-                  {() => locale.formatNumber(item.rows?.length ?? 0)}
-                </QueryValue>
-              }
-            />
-          ))}
-        </Stat.Grid>
-      </Section>
+      <Stack space="space.300" className="min-w-0">
+        {failed && (
+          <ProgramQueryState
+            queries={queries.filter((query) => query.isError)}
+            retryLabel="Retry loading the register"
+          />
+        )}
+        <Section
+          title="Record register"
+          description="A JSON file of the program and the records below. Evidence files and full OSCAL documents stay in their libraries."
+        >
+          <Stat.Grid cols={4} role="group" aria-label="Records in the export">
+            {collections.map((item) => (
+              <Stat.Tile
+                key={item.label}
+                label={item.label}
+                value={
+                  <QueryValue queries={item.queries}>
+                    {() => locale.formatNumber(item.rows?.length ?? 0)}
+                  </QueryValue>
+                }
+              />
+            ))}
+          </Stat.Grid>
+        </Section>
+      </Stack>
     </Page>
   );
 }
