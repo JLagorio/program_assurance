@@ -758,6 +758,14 @@
       "target": "\"src/components/checkbox\".CheckboxProps",
       "kind": "type"
     },
+    ".#Citation": {
+      "target": "\"src/patterns/citation\".Citation",
+      "kind": "value"
+    },
+    ".#CitationProps": {
+      "target": "\"src/patterns/citation\".CitationProps",
+      "kind": "type"
+    },
     ".#ClassToken": {
       "target": "\"src/generated/classes\".ClassToken",
       "kind": "type"
@@ -808,6 +816,18 @@
     },
     ".#CollapsibleTriggerProps": {
       "target": "\"src/components/collapsible\".CollapsibleTriggerProps",
+      "kind": "type"
+    },
+    ".#CollectionSelection": {
+      "target": "\"src/patterns/use-collection-selection\".CollectionSelection",
+      "kind": "type"
+    },
+    ".#CollectionSelectionItemProps": {
+      "target": "\"src/patterns/use-collection-selection\".CollectionSelectionItemProps",
+      "kind": "type"
+    },
+    ".#CollectionSelectionOptions": {
+      "target": "\"src/patterns/use-collection-selection\".CollectionSelectionOptions",
       "kind": "type"
     },
     ".#ColorMode": {
@@ -1090,6 +1110,14 @@
       "target": "\"src/components/command\".CommandShortcutProps",
       "kind": "type"
     },
+    ".#Comparison": {
+      "target": "\"src/patterns/comparison\".Comparison",
+      "kind": "value"
+    },
+    ".#ComparisonProps": {
+      "target": "\"src/patterns/comparison\".ComparisonProps",
+      "kind": "type"
+    },
     ".#Composer": {
       "target": "\"src/patterns/composer\".Composer",
       "kind": "value"
@@ -1104,6 +1132,30 @@
     },
     ".#ComposerSuggestions": {
       "target": "\"src/patterns/composer\".ComposerSuggestions",
+      "kind": "type"
+    },
+    ".#ContextMenu": {
+      "target": "\"src/components/context-menu\".ContextMenu",
+      "kind": "value"
+    },
+    ".#ContextMenuContent": {
+      "target": "\"src/components/context-menu\".ContextMenuContent",
+      "kind": "value"
+    },
+    ".#ContextMenuContentProps": {
+      "target": "\"src/components/context-menu\".ContextMenuContentProps",
+      "kind": "type"
+    },
+    ".#ContextMenuProps": {
+      "target": "\"src/components/context-menu\".ContextMenuProps",
+      "kind": "type"
+    },
+    ".#ContextMenuTrigger": {
+      "target": "\"src/components/context-menu\".ContextMenuTrigger",
+      "kind": "value"
+    },
+    ".#ContextMenuTriggerProps": {
+      "target": "\"src/components/context-menu\".ContextMenuTriggerProps",
       "kind": "type"
     },
     ".#controlBase": {
@@ -1394,6 +1446,10 @@
       "target": "\"src/components/diff\".Diff",
       "kind": "value"
     },
+    ".#DiffAnnotation": {
+      "target": "\"src/components/diff\".DiffAnnotation",
+      "kind": "type"
+    },
     ".#DiffLayout": {
       "target": "\"src/components/diff\".DiffLayout",
       "kind": "type"
@@ -1418,6 +1474,10 @@
       "target": "\"src/components/diff\".DiffSegment",
       "kind": "type"
     },
+    ".#DiffSelection": {
+      "target": "\"src/components/diff\".DiffSelection",
+      "kind": "type"
+    },
     ".#diffText": {
       "target": "\"src/components/diff\".diffText",
       "kind": "value"
@@ -1425,6 +1485,42 @@
     ".#displayedRows": {
       "target": "\"src/patterns/data-table/use-data-table\".displayedRows",
       "kind": "value"
+    },
+    ".#DocumentAnchor": {
+      "target": "\"src/patterns/document-reader\".DocumentAnchor",
+      "kind": "type"
+    },
+    ".#DocumentPage": {
+      "target": "\"src/patterns/document-reader\".DocumentPage",
+      "kind": "value"
+    },
+    ".#DocumentPageProps": {
+      "target": "\"src/patterns/document-reader\".DocumentPageProps",
+      "kind": "type"
+    },
+    ".#DocumentReader": {
+      "target": "\"src/patterns/document-reader\".DocumentReader",
+      "kind": "value"
+    },
+    ".#DocumentReaderProps": {
+      "target": "\"src/patterns/document-reader\".DocumentReaderProps",
+      "kind": "type"
+    },
+    ".#DocumentRectangle": {
+      "target": "\"src/patterns/document-reader\".DocumentRectangle",
+      "kind": "type"
+    },
+    ".#DocumentSelection": {
+      "target": "\"src/patterns/document-reader\".DocumentSelection",
+      "kind": "type"
+    },
+    ".#DocumentSelectionToolbar": {
+      "target": "\"src/patterns/document-reader\".DocumentSelectionToolbar",
+      "kind": "value"
+    },
+    ".#DocumentSelectionToolbarProps": {
+      "target": "\"src/patterns/document-reader\".DocumentSelectionToolbarProps",
+      "kind": "type"
     },
     ".#DonutSelection": {
       "target": "\"src/patterns/chart/donut\".DonutSelection",
@@ -1970,6 +2066,14 @@
       "target": "\"src/patterns/data-table/filter\".FilterOption",
       "kind": "type"
     },
+    ".#FindBar": {
+      "target": "\"src/patterns/find-bar\".FindBar",
+      "kind": "value"
+    },
+    ".#FindBarProps": {
+      "target": "\"src/patterns/find-bar\".FindBarProps",
+      "kind": "type"
+    },
     ".#Flex": {
       "target": "\"src/primitives/flex\".Flex",
       "kind": "value"
@@ -2386,6 +2490,14 @@
       "target": "\"src/components/list\".ListSpacing",
       "kind": "type"
     },
+    ".#MatchText": {
+      "target": "\"src/components/match-text\".MatchText",
+      "kind": "value"
+    },
+    ".#MatchTextProps": {
+      "target": "\"src/components/match-text\".MatchTextProps",
+      "kind": "type"
+    },
     ".#mergeConfig": {
       "target": "\"src/generated/merge-config\".mergeConfig",
       "kind": "value"
@@ -2552,6 +2664,14 @@
     },
     ".#PaletteCommand": {
       "target": "\"src/patterns/command-palette\".PaletteCommand",
+      "kind": "type"
+    },
+    ".#Peek": {
+      "target": "\"src/patterns/peek\".Peek",
+      "kind": "value"
+    },
+    ".#PeekProps": {
+      "target": "\"src/patterns/peek\".PeekProps",
       "kind": "type"
     },
     ".#Person": {
@@ -2806,6 +2926,42 @@
       "target": "\"src/components/date-time\".RelativeTimeProps",
       "kind": "type"
     },
+    ".#Reorder": {
+      "target": "\"src/patterns/reorder\".Reorder",
+      "kind": "value"
+    },
+    ".#ReorderChange": {
+      "target": "\"src/patterns/reorder\".ReorderChange",
+      "kind": "type"
+    },
+    ".#ReorderHandle": {
+      "target": "\"src/patterns/reorder\".ReorderHandle",
+      "kind": "value"
+    },
+    ".#ReorderHandleProps": {
+      "target": "\"src/patterns/reorder\".ReorderHandleProps",
+      "kind": "type"
+    },
+    ".#ReorderItem": {
+      "target": "\"src/patterns/reorder\".ReorderItem",
+      "kind": "value"
+    },
+    ".#ReorderItemProps": {
+      "target": "\"src/patterns/reorder\".ReorderItemProps",
+      "kind": "type"
+    },
+    ".#ReorderMove": {
+      "target": "\"src/patterns/reorder\".ReorderMove",
+      "kind": "value"
+    },
+    ".#ReorderMoveProps": {
+      "target": "\"src/patterns/reorder\".ReorderMoveProps",
+      "kind": "type"
+    },
+    ".#ReorderProps": {
+      "target": "\"src/patterns/reorder\".ReorderProps",
+      "kind": "type"
+    },
     ".#resetView": {
       "target": "\"src/patterns/data-table/view-store\".resetView",
       "kind": "value"
@@ -2858,6 +3014,22 @@
       "target": "\"src/patterns/change-review\".ReviewChange",
       "kind": "type"
     },
+    ".#ReviewThread": {
+      "target": "\"src/patterns/review-thread\".ReviewThread",
+      "kind": "value"
+    },
+    ".#ReviewThreadAction": {
+      "target": "\"src/patterns/review-thread\".ReviewThreadAction",
+      "kind": "type"
+    },
+    ".#ReviewThreadEntry": {
+      "target": "\"src/patterns/review-thread\".ReviewThreadEntry",
+      "kind": "type"
+    },
+    ".#ReviewThreadProps": {
+      "target": "\"src/patterns/review-thread\".ReviewThreadProps",
+      "kind": "type"
+    },
     ".#RowAction": {
       "target": "\"src/patterns/data-table/features\".RowAction",
       "kind": "type"
@@ -2873,6 +3045,46 @@
     ".#sameTableQuery": {
       "target": "\"src/patterns/data-table/query\".sameTableQuery",
       "kind": "value"
+    },
+    ".#SavedViewDraft": {
+      "target": "\"src/patterns/saved-views\".SavedViewDraft",
+      "kind": "type"
+    },
+    ".#SavedViewEditor": {
+      "target": "\"src/patterns/saved-views\".SavedViewEditor",
+      "kind": "value"
+    },
+    ".#SavedViewEditorProps": {
+      "target": "\"src/patterns/saved-views\".SavedViewEditorProps",
+      "kind": "type"
+    },
+    ".#SavedViewItem": {
+      "target": "\"src/patterns/saved-views\".SavedViewItem",
+      "kind": "type"
+    },
+    ".#SavedViewLabels": {
+      "target": "\"src/patterns/saved-views\".SavedViewLabels",
+      "kind": "type"
+    },
+    ".#SavedViewManager": {
+      "target": "\"src/patterns/saved-views\".SavedViewManager",
+      "kind": "value"
+    },
+    ".#SavedViewManagerProps": {
+      "target": "\"src/patterns/saved-views\".SavedViewManagerProps",
+      "kind": "type"
+    },
+    ".#SavedViewPicker": {
+      "target": "\"src/patterns/saved-views\".SavedViewPicker",
+      "kind": "value"
+    },
+    ".#SavedViewPickerProps": {
+      "target": "\"src/patterns/saved-views\".SavedViewPickerProps",
+      "kind": "type"
+    },
+    ".#SavedViewVisibility": {
+      "target": "\"src/patterns/saved-views\".SavedViewVisibility",
+      "kind": "type"
     },
     ".#ScatterSelection": {
       "target": "\"src/patterns/chart/scatter\".ScatterSelection",
@@ -3004,6 +3216,14 @@
     },
     ".#SelectGroupProps": {
       "target": "\"src/components/select\".SelectGroupProps",
+      "kind": "type"
+    },
+    ".#SelectionActions": {
+      "target": "\"src/patterns/selection-actions\".SelectionActions",
+      "kind": "value"
+    },
+    ".#SelectionActionsProps": {
+      "target": "\"src/patterns/selection-actions\".SelectionActionsProps",
       "kind": "type"
     },
     ".#SelectItem": {
@@ -3374,6 +3594,10 @@
       "target": "\"src/patterns/spreadsheet/types\".SpreadsheetBorder",
       "kind": "type"
     },
+    ".#SpreadsheetBorderPreset": {
+      "target": "\"src/patterns/spreadsheet/types\".SpreadsheetBorderPreset",
+      "kind": "type"
+    },
     ".#SpreadsheetCell": {
       "target": "\"src/patterns/spreadsheet/types\".SpreadsheetCell",
       "kind": "type"
@@ -3390,8 +3614,32 @@
       "target": "\"src/patterns/spreadsheet/types\".SpreadsheetEdit",
       "kind": "type"
     },
+    ".#SpreadsheetFormat": {
+      "target": "\"src/patterns/spreadsheet/types\".SpreadsheetFormat",
+      "kind": "type"
+    },
+    ".#SpreadsheetFormatting": {
+      "target": "\"src/patterns/spreadsheet/formatting\".SpreadsheetFormatting",
+      "kind": "value"
+    },
+    ".#SpreadsheetFormattingProps": {
+      "target": "\"src/patterns/spreadsheet/types\".SpreadsheetFormattingProps",
+      "kind": "type"
+    },
+    ".#SpreadsheetFormulaReference": {
+      "target": "\"src/patterns/spreadsheet/types\".SpreadsheetFormulaReference",
+      "kind": "type"
+    },
+    ".#SpreadsheetFunction": {
+      "target": "\"src/patterns/spreadsheet/types\".SpreadsheetFunction",
+      "kind": "type"
+    },
     ".#SpreadsheetMenuContext": {
       "target": "\"src/patterns/spreadsheet/types\".SpreadsheetMenuContext",
+      "kind": "type"
+    },
+    ".#SpreadsheetPaste": {
+      "target": "\"src/patterns/spreadsheet/types\".SpreadsheetPaste",
       "kind": "type"
     },
     ".#SpreadsheetPresence": {
@@ -3426,8 +3674,12 @@
       "target": "\"src/patterns/spreadsheet/sheet-bar\".SpreadsheetSheetBarProps",
       "kind": "type"
     },
+    ".#SpreadsheetStatistics": {
+      "target": "\"src/patterns/spreadsheet/types\".SpreadsheetStatistics",
+      "kind": "type"
+    },
     ".#SpreadsheetToolbar": {
-      "target": "\"src/patterns/spreadsheet/spreadsheet\".SpreadsheetToolbar",
+      "target": "\"src/patterns/spreadsheet/toolbar\".SpreadsheetToolbar",
       "kind": "value"
     },
     ".#SpreadsheetToolbarProps": {
@@ -3940,6 +4192,10 @@
     },
     ".#useCellContext": {
       "target": "\"src/patterns/data-table/use-data-table\".useCellContext",
+      "kind": "value"
+    },
+    ".#useCollectionSelection": {
+      "target": "\"src/patterns/use-collection-selection\".useCollectionSelection",
       "kind": "value"
     },
     ".#useColumnDrag": {
@@ -5258,6 +5514,42 @@
         "declaration": "export type CommandShortcutProps = ComponentProps<\"span\">;"
       }
     ],
+    "\"src/components/context-menu\".ContextMenu": [
+      {
+        "source": "src/components/context-menu.d.ts",
+        "declaration": "export declare function ContextMenu(props: ContextMenuProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/context-menu\".ContextMenuContent": [
+      {
+        "source": "src/components/context-menu.d.ts",
+        "declaration": "export declare function ContextMenuContent(props: ContextMenuContentProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/context-menu\".ContextMenuContentProps": [
+      {
+        "source": "src/components/context-menu.d.ts",
+        "declaration": "export type ContextMenuContentProps = DropdownMenuContentProps;"
+      }
+    ],
+    "\"src/components/context-menu\".ContextMenuProps": [
+      {
+        "source": "src/components/context-menu.d.ts",
+        "declaration": "export type ContextMenuProps = ContextMenuPrimitive.Root.Props;"
+      }
+    ],
+    "\"src/components/context-menu\".ContextMenuTrigger": [
+      {
+        "source": "src/components/context-menu.d.ts",
+        "declaration": "export declare function ContextMenuTrigger({ onKeyDown, ...props }: ContextMenuTriggerProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/context-menu\".ContextMenuTriggerProps": [
+      {
+        "source": "src/components/context-menu.d.ts",
+        "declaration": "export type ContextMenuTriggerProps = ComponentProps<typeof ContextMenuPrimitive.Trigger>;"
+      }
+    ],
     "\"src/components/controls\".controlBase": [
       {
         "source": "src/components/controls.d.ts",
@@ -5549,7 +5841,13 @@
     "\"src/components/diff\".Diff": [
       {
         "source": "src/components/diff.d.ts",
-        "declaration": "export declare function Diff({ before, after, layout, beforeLabel, afterLabel, context, lineNumbers, code, label, className, render, ref, ...props }: DiffProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
+        "declaration": "export declare function Diff({ before, after, layout: controlledLayout, onLayoutChange, controls, onSelectLines, selection, annotations, beforeLabel, afterLabel, context, lineNumbers, code, label, className, render, ref, ...props }: DiffProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
+      }
+    ],
+    "\"src/components/diff\".DiffAnnotation": [
+      {
+        "source": "src/components/diff.d.ts",
+        "declaration": "export type DiffAnnotation = {\n    id: string;\n    side: \"before\" | \"after\";\n    startLine: number;\n    endLine: number;\n    content: ReactNode;\n};"
       }
     ],
     "\"src/components/diff\".DiffLayout": [
@@ -5567,7 +5865,7 @@
     "\"src/components/diff\".DiffProps": [
       {
         "source": "src/components/diff.d.ts",
-        "declaration": "export type DiffProps = Omit<useRender.ComponentProps<\"div\">, \"children\"> & {\n    before: string;\n    after: string;\n    layout?: DiffLayout | undefined;\n    beforeLabel?: string | undefined;\n    afterLabel?: string | undefined;\n    context?: number | undefined;\n    lineNumbers?: boolean | undefined;\n    code?: boolean | undefined;\n    label?: string | undefined;\n};"
+        "declaration": "export type DiffProps = Omit<useRender.ComponentProps<\"div\">, \"children\"> & {\n    before: string;\n    after: string;\n    layout?: DiffLayout | undefined;\n    onLayoutChange?: ((layout: DiffLayout) => void) | undefined;\n    controls?: boolean | undefined;\n    onSelectLines?: ((selection: DiffSelection) => void) | undefined;\n    selection?: DiffSelection | null | undefined;\n    annotations?: readonly DiffAnnotation[] | undefined;\n    beforeLabel?: string | undefined;\n    afterLabel?: string | undefined;\n    context?: number | undefined;\n    lineNumbers?: boolean | undefined;\n    code?: boolean | undefined;\n    label?: string | undefined;\n};"
       }
     ],
     "\"src/components/diff\".DiffResult": [
@@ -5586,6 +5884,12 @@
       {
         "source": "src/components/diff.d.ts",
         "declaration": "export type DiffSegment = {\n    text: string;\n    changed: boolean;\n};"
+      }
+    ],
+    "\"src/components/diff\".DiffSelection": [
+      {
+        "source": "src/components/diff.d.ts",
+        "declaration": "export type DiffSelection = {\n    side: \"before\" | \"after\";\n    startLine: number;\n    endLine: number;\n    text: string;\n};"
       }
     ],
     "\"src/components/diff\".diffText": [
@@ -6606,6 +6910,18 @@
       {
         "source": "src/components/list.d.ts",
         "declaration": "export type ListSpacing = keyof typeof spacings;"
+      }
+    ],
+    "\"src/components/match-text\".MatchText": [
+      {
+        "source": "src/components/match-text.d.ts",
+        "declaration": "export declare function MatchText({ text, query, matchCase, className, ...props }: MatchTextProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/match-text\".MatchTextProps": [
+      {
+        "source": "src/components/match-text.d.ts",
+        "declaration": "export type MatchTextProps = Omit<ComponentProps<\"span\">, \"children\"> & {\n    text: string;\n    query: string | readonly string[];\n    matchCase?: boolean | undefined;\n};"
       }
     ],
     "\"src/components/number-field\".NumberField": [
@@ -8909,7 +9225,7 @@
     "\"src/lib/locale-format\".defaultMessages": [
       {
         "source": "src/lib/locale-format.d.ts",
-        "declaration": "defaultMessages: {\n    close: string;\n    open: string;\n    back: string;\n    next: string;\n    previous: string;\n    previousRecord: string;\n    nextRecord: string;\n    openFullRecord: string;\n    opensInNewTab: string;\n    recordPosition: string;\n    recordOutsideResults: string;\n    recordPositionNamed: string;\n    recordOutsideResultsNamed: string;\n    recordPositionShort: string;\n    recordNotInResults: string;\n    recordNavigation: string;\n    backToPreviousRecord: string;\n    openTheFullRecord: string;\n    cancel: string;\n    confirm: string;\n    clear: string;\n    search: string;\n    loading: string;\n    progressIndeterminate: string;\n    skipTo: string;\n    closeSideNavigation: string;\n    resizeSideNavigation: string;\n    resizeDetails: string;\n    closeDetails: string;\n    resizePanelNamed: string;\n    closePanelNamed: string;\n    skipLinks: string;\n    banner: string;\n    topNavigation: string;\n    sideNavigation: string;\n    collapseSideNavigation: string;\n    expandSideNavigation: string;\n    mainContent: string;\n    pageContext: string;\n    actions: string;\n    switchProduct: string;\n    pixelsWide: string;\n    refreshing: string;\n    notifications: string;\n    pagination: string;\n    pageLabel: string;\n    previousPage: string;\n    nextPage: string;\n    firstPage: string;\n    lastPage: string;\n    pageOf: string;\n    chooseDate: string;\n    previousMonth: string;\n    nextMonth: string;\n    selection: string;\n    selectedCount: string;\n    selectedCountOf: string;\n    selectionShown: string;\n    selectAllCount: string;\n    selectAll: string;\n    selectPage: string;\n    selectRow: string;\n    reorderRow: string;\n    reorderColumn: string;\n    dragInstructions: string;\n    dragStarted: string;\n    dragOver: string;\n    dragOutside: string;\n    dragDropped: string;\n    dragCanceled: string;\n    shareOfTotal: string;\n    rowActions: string;\n    columns: string;\n    show: string;\n    rows: string;\n    compactRows: string;\n    resetView: string;\n    resetColumns: string;\n    columnMenu: string;\n    sortAscending: string;\n    sortDescending: string;\n    pinStart: string;\n    pinEnd: string;\n    unpin: string;\n    hideColumn: string;\n    moveLeft: string;\n    moveRight: string;\n    sort: string;\n    sortBy: string;\n    sortedBy: string;\n    sortedByDirection: string;\n    sortAnnounced: string;\n    sortRemoved: string;\n    sortDirection: string;\n    ascending: string;\n    descending: string;\n    oldestFirst: string;\n    newestFirst: string;\n    lowestFirst: string;\n    highestFirst: string;\n    aToZ: string;\n    zToA: string;\n    widenColumn: string;\n    narrowColumn: string;\n    resetColumnWidth: string;\n    columnWidthChanged: string;\n    from: string;\n    to: string;\n    chosenCount: string;\n    contains: string;\n    noFilterValues: string;\n    noMatchingValues: string;\n    searchFacet: string;\n    rangeReversed: string;\n    dragOverPosition: string;\n    dragDroppedPosition: string;\n    savedQuestions: string;\n    view: string;\n    tableSettings: string;\n    metrics: string;\n    groupBy: string;\n    groupedBy: string;\n    noGrouping: string;\n    filters: string;\n    clearAllFilters: string;\n    details: string;\n    moreFields: string;\n    wrapText: string;\n    wrapColumn: string;\n    moreFieldsFor: string;\n    showMoreFieldsOne: string;\n    showMoreFieldsOther: string;\n    hideMoreFieldsOne: string;\n    hideMoreFieldsOther: string;\n    showMoreFieldsForOne: string;\n    showMoreFieldsForOther: string;\n    hideMoreFieldsForOne: string;\n    hideMoreFieldsForOther: string;\n    columnMoved: string;\n    columnFolded: string;\n    parts: string;\n    detailsLabel: string;\n    reorder: string;\n    rowsError: string;\n    rowsStale: string;\n    nothingHere: string;\n    absent: string;\n    nothingToShow: string;\n    noResults: string;\n    noMatches: string;\n    noMatchesHint: string;\n    clearFilters: string;\n    retry: string;\n    chartError: string;\n    chartPath: string;\n    showChart: string;\n    showTable: string;\n    download: string;\n    expand: string;\n    tableLabel: string;\n    paginationLabel: string;\n    loadingLabel: string;\n    target: string;\n    point: string;\n    points: string;\n    value: string;\n    downloadCsv: string;\n    downloadPng: string;\n    chartValues: string;\n    chartCategory: string;\n    chartGroup: string;\n    chartName: string;\n    chartShare: string;\n    chartTable: string;\n    chartRole: string;\n    chartUnnamed: string;\n    chartKeysColumns: string;\n    chartKeysRows: string;\n    chartPoint: string;\n    chartSeriesValue: string;\n    chartTotal: string;\n    chartTotalValue: string;\n    chartImageFailed: string;\n    chartNoImage: string;\n    chartImageInTable: string;\n    chartMarkIn: string;\n    chartNoValue: string;\n    chartDimensions: string;\n    chartValueShare: string;\n    chartAlsoHere: string;\n    resizeColumn: string;\n    resize: string;\n    month: string;\n    year: string;\n    selected: string;\n    calendarWeek: string;\n    datePart: string;\n    timePart: string;\n    dateCalendarNavigation: string;\n    dateInvalid: string;\n    dateTooEarly: string;\n    dateTooLate: string;\n    dateUnavailable: string;\n    dateUnavailableReason: string;\n    dateUnavailableDay: string;\n    dateUnavailableDayReason: string;\n    dateEarliest: string;\n    dateLatest: string;\n    timeInvalid: string;\n    timeTooEarly: string;\n    timeTooLate: string;\n    dateTimeIncomplete: string;\n    chooseDates: string;\n    dateRangeSpoken: string;\n    dateRangeStart: string;\n    dateRangeEnd: string;\n    dateRangeSelected: string;\n    dateRangeChooseEnd: string;\n    dateRangePresets: string;\n    dateOverdue: string;\n    dateDueToday: string;\n    dateDueSoon: string;\n    dateExpired: string;\n    dateExpiresToday: string;\n    dateExpiresSoon: string;\n    preview: string;\n    previewRow: string;\n    previewLabel: string;\n    resizeColumnLabel: string;\n    listMore: string;\n    collapse: string;\n    collapseLabel: string;\n    expandLabel: string;\n    tableScrolls: string;\n    tableScrollsLabel: string;\n    code: string;\n    copyFailed: string;\n    today: string;\n    choose: string;\n    showOptions: string;\n    options: string;\n    remove: string;\n    removeNamed: string;\n    showingOf: string;\n    saveFailed: string;\n    saving: string;\n    saved: string;\n    notSaved: string;\n    editableNotSavedReason: string;\n    editableEdit: string;\n    editableRetryNamed: string;\n    editableDiscard: string;\n    editableDiscardNamed: string;\n    editableSaveNamed: string;\n    editableCancelNamed: string;\n    editableChooseDateNamed: string;\n    editableMultilineHint: string;\n    composerSuggestions: string;\n    composerSend: string;\n    composerSendFailed: string;\n    composerSendHint: string;\n    composerSuggestionsOne: string;\n    composerSuggestionsOther: string;\n    composerSuggestionActive: string;\n    rowRange: string;\n    rowRangePastEnd: string;\n    zeroRows: string;\n    rowsPerPage: string;\n    perPage: string;\n    copy: string;\n    copied: string;\n    required: string;\n    errorSummaryTitle: string;\n    requiredGroup: string;\n    editLabel: string;\n    save: string;\n    more: string;\n    moreFilters: string;\n    moreDisplay: string;\n    moreFiltersAndDisplay: string;\n    moreFiltersApplied: string;\n    moreFiltersAndDisplayApplied: string;\n    morePages: string;\n    display: string;\n    filtersAndDisplay: string;\n    showHiddenLevels: string;\n    breadcrumb: string;\n    loadingPage: string;\n    lightMode: string;\n    darkMode: string;\n    systemMode: string;\n    colorMode: string;\n    scrollUp: string;\n    scrollDown: string;\n    scrollBack: string;\n    scrollForward: string;\n    keyCommand: string;\n    keyControl: string;\n    keyOption: string;\n    keyAlt: string;\n    keyShift: string;\n    keyMeta: string;\n    keyEnter: string;\n    keyEscape: string;\n    keyTab: string;\n    keySpace: string;\n    keyBackspace: string;\n    keyDelete: string;\n    keyArrowUp: string;\n    keyArrowDown: string;\n    keyArrowLeft: string;\n    keyArrowRight: string;\n    keyCapControl: string;\n    keyCapAlt: string;\n    keyCapShift: string;\n    keyCapEscape: string;\n    keyCapTab: string;\n    keyCapSpace: string;\n    keyCapBackspace: string;\n    keyCapDelete: string;\n    keyHintMove: string;\n    keyHintChoose: string;\n    keyHintClose: string;\n    diffLabel: string;\n    diffBefore: string;\n    diffAfter: string;\n    diffLegend: string;\n    diffChangedCount: string;\n    diffAddedCount: string;\n    diffRemovedCount: string;\n    diffNoChanges: string;\n    diffAdded: string;\n    diffRemoved: string;\n    diffShowLinesOne: string;\n    diffShowLinesOther: string;\n    diffHideLinesOne: string;\n    diffHideLinesOther: string;\n    searchDescription: string;\n    searchPlaceholder: string;\n    searching: string;\n    searchNoResults: string;\n    searchNoResultsHint: string;\n    searchFailed: string;\n    searchResultOne: string;\n    searchResultOther: string;\n    keyHintOpen: string;\n    keyHintRun: string;\n    commandPaletteTitle: string;\n    commandPaletteDescription: string;\n    commandPalettePlaceholder: string;\n    commandNoMatches: string;\n    commandFailed: string;\n    commandMatchOne: string;\n    commandMatchOther: string;\n    commandListLabel: string;\n    clearSearch: string;\n    characterLimit: string;\n    charactersLeftOne: string;\n    charactersLeftOther: string;\n    charactersOverOne: string;\n    charactersOverOther: string;\n    numberField: string;\n    increaseValue: string;\n    decreaseValue: string;\n    increaseValueFor: string;\n    decreaseValueFor: string;\n    contentScrolls: string;\n    namedContentScrolls: string;\n    stepDone: string;\n    stepCurrent: string;\n    stepUpcoming: string;\n    stepBlocked: string;\n    timelineUnread: string;\n    chooseFile: string;\n    chooseFiles: string;\n    dropFileHere: string;\n    dropFilesHere: string;\n    dropFileRelease: string;\n    dropFilesRelease: string;\n    fileTypeRejected: string;\n    fileTooLarge: string;\n    fileCountRejected: string;\n    fileAdded: string;\n    filesAddedOne: string;\n    filesAddedOther: string;\n    pickerNothingChosen: string;\n    pickerToChooseFromOne: string;\n    pickerToChooseFromOther: string;\n    pickerChosenOne: string;\n    pickerChosenOther: string;\n    pickerChosenOfOne: string;\n    pickerChosenOfOther: string;\n    tableRowOne: string;\n    tableRowOther: string;\n    tableResults: string;\n    tableResultsOf: string;\n    tableResultsRange: string;\n    tableNoMatching: string;\n    selectNamed: string;\n    reorderNamed: string;\n    reorderColumnNamed: string;\n    rowActionsFor: string;\n    showDetailsFor: string;\n    hideDetailsFor: string;\n    moveUp: string;\n    moveDown: string;\n    rowMoved: string;\n    tablePageEmpty: string;\n    goToFirstPage: string;\n    selectedCountHidden: string;\n    relatedEmpty: string;\n    recordBrowserSearch: string;\n    recordBrowserBack: string;\n    recordBrowserClearSelection: string;\n    recordBrowserFailed: string;\n    recordBrowserEmptyTitle: string;\n    recordBrowserEmptyDescription: string;\n    recordPickerEmpty: string;\n    recordPickerFailed: string;\n    workPaneList: string;\n    workPaneBack: string;\n    workPaneRowName: string;\n    gateMet: string;\n    gateNotMet: string;\n    taskRowCompleted: string;\n}"
+        "declaration": "defaultMessages: {\n    close: string;\n    open: string;\n    back: string;\n    next: string;\n    previous: string;\n    previousRecord: string;\n    nextRecord: string;\n    openFullRecord: string;\n    opensInNewTab: string;\n    recordPosition: string;\n    recordOutsideResults: string;\n    recordPositionNamed: string;\n    recordOutsideResultsNamed: string;\n    recordPositionShort: string;\n    recordNotInResults: string;\n    recordNavigation: string;\n    backToPreviousRecord: string;\n    openTheFullRecord: string;\n    cancel: string;\n    confirm: string;\n    clear: string;\n    search: string;\n    find: string;\n    findPrevious: string;\n    findNext: string;\n    findClose: string;\n    findPosition: string;\n    loading: string;\n    progressIndeterminate: string;\n    skipTo: string;\n    closeSideNavigation: string;\n    resizeSideNavigation: string;\n    resizeDetails: string;\n    closeDetails: string;\n    resizePanelNamed: string;\n    closePanelNamed: string;\n    skipLinks: string;\n    banner: string;\n    topNavigation: string;\n    sideNavigation: string;\n    collapseSideNavigation: string;\n    expandSideNavigation: string;\n    mainContent: string;\n    pageContext: string;\n    actions: string;\n    switchProduct: string;\n    pixelsWide: string;\n    refreshing: string;\n    notifications: string;\n    pagination: string;\n    pageLabel: string;\n    previousPage: string;\n    nextPage: string;\n    firstPage: string;\n    lastPage: string;\n    pageOf: string;\n    chooseDate: string;\n    previousMonth: string;\n    nextMonth: string;\n    selection: string;\n    selectedCount: string;\n    selectedCountOf: string;\n    selectionShown: string;\n    selectAllCount: string;\n    selectAll: string;\n    selectPage: string;\n    selectRow: string;\n    reorderRow: string;\n    reorderColumn: string;\n    dragInstructions: string;\n    dragStarted: string;\n    dragOver: string;\n    dragOutside: string;\n    dragDropped: string;\n    dragCanceled: string;\n    shareOfTotal: string;\n    rowActions: string;\n    columns: string;\n    show: string;\n    rows: string;\n    compactRows: string;\n    resetView: string;\n    resetColumns: string;\n    columnMenu: string;\n    sortAscending: string;\n    sortDescending: string;\n    pinStart: string;\n    pinEnd: string;\n    unpin: string;\n    hideColumn: string;\n    moveLeft: string;\n    moveRight: string;\n    sort: string;\n    sortBy: string;\n    sortedBy: string;\n    sortedByDirection: string;\n    sortAnnounced: string;\n    sortRemoved: string;\n    sortDirection: string;\n    ascending: string;\n    descending: string;\n    oldestFirst: string;\n    newestFirst: string;\n    lowestFirst: string;\n    highestFirst: string;\n    aToZ: string;\n    zToA: string;\n    widenColumn: string;\n    narrowColumn: string;\n    resetColumnWidth: string;\n    columnWidthChanged: string;\n    from: string;\n    to: string;\n    chosenCount: string;\n    contains: string;\n    noFilterValues: string;\n    noMatchingValues: string;\n    searchFacet: string;\n    rangeReversed: string;\n    dragOverPosition: string;\n    dragDroppedPosition: string;\n    savedQuestions: string;\n    view: string;\n    tableSettings: string;\n    metrics: string;\n    groupBy: string;\n    groupedBy: string;\n    noGrouping: string;\n    filters: string;\n    clearAllFilters: string;\n    details: string;\n    moreFields: string;\n    wrapText: string;\n    wrapColumn: string;\n    moreFieldsFor: string;\n    showMoreFieldsOne: string;\n    showMoreFieldsOther: string;\n    hideMoreFieldsOne: string;\n    hideMoreFieldsOther: string;\n    showMoreFieldsForOne: string;\n    showMoreFieldsForOther: string;\n    hideMoreFieldsForOne: string;\n    hideMoreFieldsForOther: string;\n    columnMoved: string;\n    columnFolded: string;\n    parts: string;\n    detailsLabel: string;\n    reorder: string;\n    rowsError: string;\n    rowsStale: string;\n    nothingHere: string;\n    absent: string;\n    nothingToShow: string;\n    noResults: string;\n    noMatches: string;\n    noMatchesHint: string;\n    clearFilters: string;\n    retry: string;\n    chartError: string;\n    chartPath: string;\n    showChart: string;\n    showTable: string;\n    download: string;\n    expand: string;\n    tableLabel: string;\n    paginationLabel: string;\n    loadingLabel: string;\n    target: string;\n    point: string;\n    points: string;\n    value: string;\n    downloadCsv: string;\n    downloadPng: string;\n    chartValues: string;\n    chartCategory: string;\n    chartGroup: string;\n    chartName: string;\n    chartShare: string;\n    chartTable: string;\n    chartRole: string;\n    chartUnnamed: string;\n    chartKeysColumns: string;\n    chartKeysRows: string;\n    chartPoint: string;\n    chartSeriesValue: string;\n    chartTotal: string;\n    chartTotalValue: string;\n    chartImageFailed: string;\n    chartNoImage: string;\n    chartImageInTable: string;\n    chartMarkIn: string;\n    chartNoValue: string;\n    chartDimensions: string;\n    chartValueShare: string;\n    chartAlsoHere: string;\n    resizeColumn: string;\n    resize: string;\n    month: string;\n    year: string;\n    selected: string;\n    calendarWeek: string;\n    datePart: string;\n    timePart: string;\n    dateCalendarNavigation: string;\n    dateInvalid: string;\n    dateTooEarly: string;\n    dateTooLate: string;\n    dateUnavailable: string;\n    dateUnavailableReason: string;\n    dateUnavailableDay: string;\n    dateUnavailableDayReason: string;\n    dateEarliest: string;\n    dateLatest: string;\n    timeInvalid: string;\n    timeTooEarly: string;\n    timeTooLate: string;\n    dateTimeIncomplete: string;\n    chooseDates: string;\n    dateRangeSpoken: string;\n    dateRangeStart: string;\n    dateRangeEnd: string;\n    dateRangeSelected: string;\n    dateRangeChooseEnd: string;\n    dateRangePresets: string;\n    dateOverdue: string;\n    dateDueToday: string;\n    dateDueSoon: string;\n    dateExpired: string;\n    dateExpiresToday: string;\n    dateExpiresSoon: string;\n    preview: string;\n    previewRow: string;\n    previewLabel: string;\n    resizeColumnLabel: string;\n    listMore: string;\n    collapse: string;\n    collapseLabel: string;\n    expandLabel: string;\n    tableScrolls: string;\n    tableScrollsLabel: string;\n    code: string;\n    copyFailed: string;\n    today: string;\n    choose: string;\n    showOptions: string;\n    options: string;\n    remove: string;\n    removeNamed: string;\n    showingOf: string;\n    saveFailed: string;\n    saving: string;\n    saved: string;\n    notSaved: string;\n    editableNotSavedReason: string;\n    editableEdit: string;\n    editableRetryNamed: string;\n    editableDiscard: string;\n    editableDiscardNamed: string;\n    editableSaveNamed: string;\n    editableCancelNamed: string;\n    editableChooseDateNamed: string;\n    editableMultilineHint: string;\n    composerSuggestions: string;\n    composerSend: string;\n    composerSendFailed: string;\n    composerSendHint: string;\n    composerSuggestionsOne: string;\n    composerSuggestionsOther: string;\n    composerSuggestionActive: string;\n    rowRange: string;\n    rowRangePastEnd: string;\n    zeroRows: string;\n    rowsPerPage: string;\n    perPage: string;\n    copy: string;\n    copied: string;\n    required: string;\n    errorSummaryTitle: string;\n    requiredGroup: string;\n    editLabel: string;\n    save: string;\n    more: string;\n    moreFilters: string;\n    moreDisplay: string;\n    moreFiltersAndDisplay: string;\n    moreFiltersApplied: string;\n    moreFiltersAndDisplayApplied: string;\n    morePages: string;\n    display: string;\n    filtersAndDisplay: string;\n    showHiddenLevels: string;\n    breadcrumb: string;\n    loadingPage: string;\n    lightMode: string;\n    darkMode: string;\n    systemMode: string;\n    colorMode: string;\n    scrollUp: string;\n    scrollDown: string;\n    scrollBack: string;\n    scrollForward: string;\n    keyCommand: string;\n    keyControl: string;\n    keyOption: string;\n    keyAlt: string;\n    keyShift: string;\n    keyMeta: string;\n    keyEnter: string;\n    keyEscape: string;\n    keyTab: string;\n    keySpace: string;\n    keyBackspace: string;\n    keyDelete: string;\n    keyArrowUp: string;\n    keyArrowDown: string;\n    keyArrowLeft: string;\n    keyArrowRight: string;\n    keyCapControl: string;\n    keyCapAlt: string;\n    keyCapShift: string;\n    keyCapEscape: string;\n    keyCapTab: string;\n    keyCapSpace: string;\n    keyCapBackspace: string;\n    keyCapDelete: string;\n    keyHintMove: string;\n    keyHintChoose: string;\n    keyHintClose: string;\n    diffLabel: string;\n    diffBefore: string;\n    diffControls: string;\n    diffInline: string;\n    diffSplit: string;\n    diffPrevious: string;\n    diffNext: string;\n    diffExpand: string;\n    diffCollapse: string;\n    diffPosition: string;\n    diffAnnotate: string;\n    diffAnnotateLine: string;\n    diffAfter: string;\n    diffLegend: string;\n    diffChangedCount: string;\n    diffAddedCount: string;\n    diffRemovedCount: string;\n    diffNoChanges: string;\n    diffAdded: string;\n    diffRemoved: string;\n    diffShowLinesOne: string;\n    diffShowLinesOther: string;\n    diffHideLinesOne: string;\n    diffHideLinesOther: string;\n    searchDescription: string;\n    searchPlaceholder: string;\n    searching: string;\n    searchNoResults: string;\n    searchNoResultsHint: string;\n    searchFailed: string;\n    searchResultOne: string;\n    searchResultOther: string;\n    keyHintOpen: string;\n    keyHintRun: string;\n    commandPaletteTitle: string;\n    commandPaletteDescription: string;\n    commandPalettePlaceholder: string;\n    commandNoMatches: string;\n    commandFailed: string;\n    commandMatchOne: string;\n    commandMatchOther: string;\n    commandListLabel: string;\n    clearSearch: string;\n    characterLimit: string;\n    charactersLeftOne: string;\n    charactersLeftOther: string;\n    charactersOverOne: string;\n    charactersOverOther: string;\n    numberField: string;\n    increaseValue: string;\n    decreaseValue: string;\n    increaseValueFor: string;\n    decreaseValueFor: string;\n    contentScrolls: string;\n    namedContentScrolls: string;\n    stepDone: string;\n    stepCurrent: string;\n    stepUpcoming: string;\n    stepBlocked: string;\n    timelineUnread: string;\n    chooseFile: string;\n    chooseFiles: string;\n    dropFileHere: string;\n    dropFilesHere: string;\n    dropFileRelease: string;\n    dropFilesRelease: string;\n    fileTypeRejected: string;\n    fileTooLarge: string;\n    fileCountRejected: string;\n    fileAdded: string;\n    filesAddedOne: string;\n    filesAddedOther: string;\n    pickerNothingChosen: string;\n    pickerToChooseFromOne: string;\n    pickerToChooseFromOther: string;\n    pickerChosenOne: string;\n    pickerChosenOther: string;\n    pickerChosenOfOne: string;\n    pickerChosenOfOther: string;\n    tableRowOne: string;\n    tableRowOther: string;\n    tableResults: string;\n    tableResultsOf: string;\n    tableResultsRange: string;\n    tableNoMatching: string;\n    selectNamed: string;\n    reorderNamed: string;\n    reorderColumnNamed: string;\n    rowActionsFor: string;\n    showDetailsFor: string;\n    hideDetailsFor: string;\n    moveUp: string;\n    moveDown: string;\n    rowMoved: string;\n    tablePageEmpty: string;\n    goToFirstPage: string;\n    selectedCountHidden: string;\n    relatedEmpty: string;\n    recordBrowserSearch: string;\n    recordBrowserBack: string;\n    recordBrowserClearSelection: string;\n    recordBrowserFailed: string;\n    recordBrowserEmptyTitle: string;\n    recordBrowserEmptyDescription: string;\n    recordPickerEmpty: string;\n    recordPickerFailed: string;\n    workPaneList: string;\n    workPaneBack: string;\n    workPaneRowName: string;\n    gateMet: string;\n    gateNotMet: string;\n    taskRowCompleted: string;\n}"
       }
     ],
     "\"src/lib/locale-format\".LedgerDirection": [
@@ -9410,22 +9726,34 @@
         "declaration": "export type TreemapSelection = {\n    name: string;\n    value: number;\n    group: string;\n    path: string[];\n    id?: string | undefined;\n};"
       }
     ],
+    "\"src/patterns/citation\".Citation": [
+      {
+        "source": "src/patterns/citation.d.ts",
+        "declaration": "export declare function Citation({ passage, passageLabel, cite, source, backlinks, children, className, ...props }: CitationProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/citation\".CitationProps": [
+      {
+        "source": "src/patterns/citation.d.ts",
+        "declaration": "export type CitationProps = Omit<RelatedCardProps, \"children\"> & {\n    passage: string;\n    passageLabel: string;\n    cite?: string | undefined;\n    source?: ReactNode;\n    backlinks?: ReactNode;\n    children?: ReactNode;\n};"
+      }
+    ],
     "\"src/patterns/command-palette\".CommandPalette": [
       {
         "source": "src/patterns/command-palette.d.ts",
-        "declaration": "export declare function CommandPalette({ open, onClose, commands, placeholder, title, description, noResults, chooseHint, loading, error, onRetry, }: CommandPaletteProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function CommandPalette({ open, onClose, commands, query, onQueryChange, filter, controls, highlightMatches, finalFocus, placeholder, title, description, noResults, chooseHint, loading, error, onRetry, }: CommandPaletteProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/patterns/command-palette\".CommandPaletteProps": [
       {
         "source": "src/patterns/command-palette.d.ts",
-        "declaration": "export type CommandPaletteProps = {\n    open: boolean;\n    onClose: () => void;\n    commands: PaletteCommand[];\n    placeholder?: string | undefined;\n    title?: string | undefined;\n    description?: string | undefined;\n    noResults?: ReactNode;\n    chooseHint?: string | undefined;\n    loading?: boolean | undefined;\n    error?: ReactNode;\n    onRetry?: (() => void) | undefined;\n};"
+        "declaration": "export type CommandPaletteProps = {\n    open: boolean;\n    onClose: () => void;\n    commands: PaletteCommand[];\n    query?: string | undefined;\n    onQueryChange?: ((query: string) => void) | undefined;\n    filter?: boolean | undefined;\n    highlightMatches?: boolean | undefined;\n    controls?: ReactNode;\n    finalFocus?: ComponentProps<typeof CommandDialog>[\"finalFocus\"];\n    placeholder?: string | undefined;\n    title?: string | undefined;\n    description?: string | undefined;\n    noResults?: ReactNode;\n    chooseHint?: string | undefined;\n    loading?: boolean | undefined;\n    error?: ReactNode;\n    onRetry?: (() => void) | undefined;\n};"
       }
     ],
     "\"src/patterns/command-palette\".PaletteCommand": [
       {
         "source": "src/patterns/command-palette.d.ts",
-        "declaration": "export type PaletteCommand = {\n    id: string;\n    group: string;\n    label: string;\n    shortcut?: string | undefined;\n    hint?: string | undefined;\n    run: () => void;\n};"
+        "declaration": "export type PaletteCommand = {\n    id: string;\n    group: string;\n    label: string;\n    shortcut?: string | undefined;\n    hint?: string | undefined;\n    description?: string | undefined;\n    disabledReason?: string | undefined;\n    run: () => void;\n};"
       }
     ],
     "\"src/patterns/command-palette\".useCommandPalette": [
@@ -9462,6 +9790,18 @@
       {
         "source": "src/patterns/command-scope.d.ts",
         "declaration": "export declare function useScopedCommands(): CommandContextValue;"
+      }
+    ],
+    "\"src/patterns/comparison\".Comparison": [
+      {
+        "source": "src/patterns/comparison.d.ts",
+        "declaration": "export declare function Comparison({ primary, secondary, primaryLabel, secondaryLabel, activePane, onActivePaneChange, defaultRatio, onRatioChange, resizeLabel, splitAt, fill, className, style, ref, ...props }: ComparisonProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/comparison\".ComparisonProps": [
+      {
+        "source": "src/patterns/comparison.d.ts",
+        "declaration": "export type ComparisonProps = Omit<ComponentProps<\"div\">, \"children\"> & {\n    primary: ReactNode;\n    secondary?: ReactNode;\n    primaryLabel: string;\n    secondaryLabel: string;\n    activePane?: \"primary\" | \"secondary\" | undefined;\n    onActivePaneChange?: ((pane: \"primary\" | \"secondary\") => void) | undefined;\n    defaultRatio?: number | undefined;\n    onRatioChange?: ((ratio: number) => void) | undefined;\n    resizeLabel: string;\n    splitAt?: number | undefined;\n    fill?: boolean | undefined;\n};"
       }
     ],
     "\"src/patterns/composer\".Composer": [
@@ -9980,6 +10320,60 @@
         "declaration": "export declare function resetView<TData extends RowData>(table: DataTableInstance<TData>): void;"
       }
     ],
+    "\"src/patterns/document-reader\".DocumentAnchor": [
+      {
+        "source": "src/patterns/document-reader.d.ts",
+        "declaration": "export type DocumentAnchor = {\n    id: string;\n    label: string;\n    rectangle: DocumentRectangle;\n    active?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/document-reader\".DocumentPage": [
+      {
+        "source": "src/patterns/document-reader.d.ts",
+        "declaration": "export declare function DocumentPage({ page, width, height, zoom, mode, onSelectionChange, anchors, onAnchorActivate, children, className, style, onPointerDown, onPointerUp, onPointerMove, onPointerCancel, onKeyUp, ...props }: DocumentPageProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/document-reader\".DocumentPageProps": [
+      {
+        "source": "src/patterns/document-reader.d.ts",
+        "declaration": "export type DocumentPageProps = ComponentProps<\"div\"> & {\n    page: number;\n    width: number;\n    height: number;\n    zoom?: number | undefined;\n    mode?: \"text\" | \"region\" | undefined;\n    onSelectionChange?: ((selection: DocumentSelection) => void) | undefined;\n    anchors?: readonly DocumentAnchor[] | undefined;\n    onAnchorActivate?: ((id: string) => void) | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/document-reader\".DocumentReader": [
+      {
+        "source": "src/patterns/document-reader.d.ts",
+        "declaration": "export declare function DocumentReader({ label, page, pageCount, onPageChange, zoom, onZoomChange, actions, aside, children, className, ...props }: DocumentReaderProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/document-reader\".DocumentReaderProps": [
+      {
+        "source": "src/patterns/document-reader.d.ts",
+        "declaration": "export type DocumentReaderProps = Omit<ComponentProps<\"section\">, \"title\"> & {\n    label: string;\n    page: number;\n    pageCount: number;\n    onPageChange: (page: number) => void;\n    zoom: number;\n    onZoomChange: (zoom: number) => void;\n    actions?: ReactNode | undefined;\n    aside?: ReactNode | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/document-reader\".DocumentRectangle": [
+      {
+        "source": "src/patterns/document-reader.d.ts",
+        "declaration": "export type DocumentRectangle = {\n    x: number;\n    y: number;\n    width: number;\n    height: number;\n};"
+      }
+    ],
+    "\"src/patterns/document-reader\".DocumentSelection": [
+      {
+        "source": "src/patterns/document-reader.d.ts",
+        "declaration": "export type DocumentSelection = {\n    page: number;\n    text: string;\n    rectangle: DocumentRectangle;\n};"
+      }
+    ],
+    "\"src/patterns/document-reader\".DocumentSelectionToolbar": [
+      {
+        "source": "src/patterns/document-reader.d.ts",
+        "declaration": "export declare function DocumentSelectionToolbar({ selection, anchor, onCite, onDiscuss, onCopyLink, onClear, ...props }: DocumentSelectionToolbarProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/document-reader\".DocumentSelectionToolbarProps": [
+      {
+        "source": "src/patterns/document-reader.d.ts",
+        "declaration": "export type DocumentSelectionToolbarProps = Omit<ComponentProps<\"div\">, \"children\"> & {\n    selection: DocumentSelection;\n    anchor?: SelectionActionsProps[\"anchor\"];\n    onCite?: (() => void) | undefined;\n    onDiscuss?: (() => void) | undefined;\n    onCopyLink?: (() => void) | undefined;\n    onClear: () => void;\n};"
+      }
+    ],
     "\"src/patterns/editable\".Editable": [
       {
         "source": "src/patterns/editable.d.ts",
@@ -10032,6 +10426,18 @@
       {
         "source": "src/patterns/editable.d.ts",
         "declaration": "export type EditableTextProps = EditableProps<string> & EditableRootProps & {\n    placeholder?: string | undefined;\n    multiline?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/find-bar\".FindBar": [
+      {
+        "source": "src/patterns/find-bar.d.ts",
+        "declaration": "export declare function FindBar({ query, onQueryChange, count, index, onNavigate, onClose, label, loading, truncated, children, inputRef, className, onKeyDown, ...props }: FindBarProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/find-bar\".FindBarProps": [
+      {
+        "source": "src/patterns/find-bar.d.ts",
+        "declaration": "export type FindBarProps = Omit<ComponentProps<\"div\">, \"children\"> & {\n    query: string;\n    onQueryChange: (query: string) => void;\n    count: number;\n    index: number | null;\n    onNavigate: (index: number) => void;\n    onClose?: (() => void) | undefined;\n    label?: string | undefined;\n    loading?: boolean | undefined;\n    truncated?: boolean | undefined;\n    children?: ReactNode;\n    inputRef?: Ref<HTMLInputElement> | undefined;\n};"
       }
     ],
     "\"src/patterns/gates\".GateItem": [
@@ -10098,6 +10504,18 @@
       {
         "source": "src/patterns/inspector.d.ts",
         "declaration": "export type InspectorProps = Omit<ComponentProps<\"div\">, \"children\"> & {\n    children?: ReactNode | undefined;\n    groups?: InspectorGroupData[] | undefined;\n    footer?: ReactNode | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/peek\".Peek": [
+      {
+        "source": "src/patterns/peek.d.ts",
+        "declaration": "export declare function Peek({ trigger, label, children, actions, onOpenChange, className, ...props }: PeekProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/peek\".PeekProps": [
+      {
+        "source": "src/patterns/peek.d.ts",
+        "declaration": "export type PeekProps = Omit<ComponentProps<\"span\">, \"children\"> & {\n    trigger: ReactElement;\n    label: string;\n    children: ReactNode;\n    actions?: ReactNode;\n    onOpenChange?: ((open: boolean) => void) | undefined;\n};"
       }
     ],
     "\"src/patterns/picker-sheet\".PickerSheet": [
@@ -10220,6 +10638,144 @@
         "declaration": "export type RelatedProps = Omit<ComponentProps<\"div\">, \"title\" | \"children\"> & {\n    title: ReactNode;\n    count?: number | undefined;\n    countMax?: number | undefined;\n    action?: ReactNode;\n    footer?: ReactNode;\n    layout?: RelatedLayout | undefined;\n    size?: ItemSize | undefined;\n    empty?: RelatedEmpty | undefined;\n    className?: string | undefined;\n    children?: ReactNode;\n};"
       }
     ],
+    "\"src/patterns/reorder\".Reorder": [
+      {
+        "source": "src/patterns/reorder.d.ts",
+        "declaration": "export declare function Reorder({ items, getItemLabel, onReorder, orientation, disabled, children, className, ...props }: ReorderProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/reorder\".ReorderChange": [
+      {
+        "source": "src/patterns/reorder.d.ts",
+        "declaration": "export type ReorderChange = {\n    id: string;\n    from: number;\n    to: number;\n};"
+      }
+    ],
+    "\"src/patterns/reorder\".ReorderHandle": [
+      {
+        "source": "src/patterns/reorder.d.ts",
+        "declaration": "export declare function ReorderHandle({ label, icon, disabled, className, ref, ...props }: ReorderHandleProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/reorder\".ReorderHandleProps": [
+      {
+        "source": "src/patterns/reorder.d.ts",
+        "declaration": "export type ReorderHandleProps = Omit<IconButtonProps, \"label\" | \"icon\"> & {\n    label?: string | undefined;\n    icon?: ReactElement | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/reorder\".ReorderItem": [
+      {
+        "source": "src/patterns/reorder.d.ts",
+        "declaration": "export declare function ReorderItem({ itemId, disabled, children, className, style, ref, ...props }: ReorderItemProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/reorder\".ReorderItemProps": [
+      {
+        "source": "src/patterns/reorder.d.ts",
+        "declaration": "export type ReorderItemProps = Omit<ComponentProps<\"div\">, \"id\"> & {\n    itemId: string;\n    disabled?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/reorder\".ReorderMove": [
+      {
+        "source": "src/patterns/reorder.d.ts",
+        "declaration": "export declare function ReorderMove({ direction, disabled, onClick, ...props }: ReorderMoveProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/reorder\".ReorderMoveProps": [
+      {
+        "source": "src/patterns/reorder.d.ts",
+        "declaration": "export type ReorderMoveProps = Omit<IconButtonProps, \"label\" | \"icon\"> & {\n    direction: \"previous\" | \"next\";\n    label: string;\n};"
+      }
+    ],
+    "\"src/patterns/reorder\".ReorderProps": [
+      {
+        "source": "src/patterns/reorder.d.ts",
+        "declaration": "export type ReorderProps = Omit<ComponentProps<\"div\">, \"onChange\"> & {\n    items: readonly string[];\n    getItemLabel: (id: string) => string;\n    onReorder: (items: string[], change: ReorderChange) => void;\n    orientation?: \"horizontal\" | \"vertical\" | undefined;\n    disabled?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/review-thread\".ReviewThread": [
+      {
+        "source": "src/patterns/review-thread.d.ts",
+        "declaration": "export declare function ReviewThread({ historyLabel, status, statusAction, context, composer, replyTarget, messages, empty, footer, className, ...props }: ReviewThreadProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/review-thread\".ReviewThreadAction": [
+      {
+        "source": "src/patterns/review-thread.d.ts",
+        "declaration": "export type ReviewThreadAction = {\n    label: string;\n    accessibleLabel?: string | undefined;\n    onSelect: () => void;\n    disabled?: boolean | undefined;\n    pending?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/review-thread\".ReviewThreadEntry": [
+      {
+        "source": "src/patterns/review-thread.d.ts",
+        "declaration": "export type ReviewThreadEntry = {\n    id: string;\n    author: ReactNode;\n    dateTime?: string | undefined;\n    meta?: ReactNode;\n    body: ReactNode;\n    reply?: ReviewThreadAction | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/review-thread\".ReviewThreadProps": [
+      {
+        "source": "src/patterns/review-thread.d.ts",
+        "declaration": "export type ReviewThreadProps = Omit<ComponentProps<\"div\">, \"children\"> & {\n    historyLabel: string;\n    status: ReactNode;\n    statusAction?: ReviewThreadAction | undefined;\n    context?: ReactNode;\n    composer?: ReactNode;\n    replyTarget?: {\n        label: ReactNode;\n        cancel: ReviewThreadAction;\n    } | undefined;\n    messages: readonly ReviewThreadEntry[];\n    empty?: ReactNode;\n    footer?: ReactNode;\n};"
+      }
+    ],
+    "\"src/patterns/saved-views\".SavedViewDraft": [
+      {
+        "source": "src/patterns/saved-views.d.ts",
+        "declaration": "export type SavedViewDraft = {\n    name: string;\n    visibility: string;\n    replaceSettings: boolean;\n};"
+      }
+    ],
+    "\"src/patterns/saved-views\".SavedViewEditor": [
+      {
+        "source": "src/patterns/saved-views.d.ts",
+        "declaration": "export declare function SavedViewEditor({ open, onOpenChange, title, description, value, onValueChange, onSubmit, submitLabel, visibilityOptions, showReplaceSettings, pending, error, labels: overrides, finalFocus, children, id, className, ...props }: SavedViewEditorProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/saved-views\".SavedViewEditorProps": [
+      {
+        "source": "src/patterns/saved-views.d.ts",
+        "declaration": "export type SavedViewEditorProps = Omit<ComponentProps<\"form\">, \"children\" | \"onSubmit\" | \"onChange\" | \"title\"> & {\n    open: boolean;\n    onOpenChange: (open: boolean) => void;\n    title: string;\n    description?: string | undefined;\n    value: SavedViewDraft;\n    onValueChange: (value: SavedViewDraft) => void;\n    onSubmit: () => void;\n    submitLabel: string;\n    visibilityOptions: readonly SavedViewVisibility[];\n    showReplaceSettings?: boolean | undefined;\n    pending?: boolean | undefined;\n    error?: string | undefined;\n    labels?: Partial<SavedViewLabels> | undefined;\n    finalFocus?: DialogContentProps[\"finalFocus\"];\n    children?: ReactNode;\n};"
+      }
+    ],
+    "\"src/patterns/saved-views\".SavedViewItem": [
+      {
+        "source": "src/patterns/saved-views.d.ts",
+        "declaration": "export type SavedViewItem = {\n    id: string;\n    name: string;\n    description?: string | undefined;\n    visibilityLabel?: string | undefined;\n    favorite?: boolean | undefined;\n    canEdit?: boolean | undefined;\n    canDuplicate?: boolean | undefined;\n    canDelete?: boolean | undefined;\n    disabledReason?: string | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/saved-views\".SavedViewLabels": [
+      {
+        "source": "src/patterns/saved-views.d.ts",
+        "declaration": "export type SavedViewLabels = {\n    title: string;\n    saveCurrent: string;\n    manage: string;\n    loading: string;\n    empty: string;\n    find: string;\n    noMatches: string;\n    retry: string;\n    edit: string;\n    duplicate: string;\n    delete: string;\n    favorite: string;\n    unfavorite: string;\n    close: string;\n    cancel: string;\n    name: string;\n    visibility: string;\n    replaceSettings: string;\n};"
+      }
+    ],
+    "\"src/patterns/saved-views\".SavedViewManager": [
+      {
+        "source": "src/patterns/saved-views.d.ts",
+        "declaration": "export declare function SavedViewManager({ views, selectedId, open, onOpenChange, description, pending, favoritePending, loading, error, onRetry, notice, onApply, onCreate, onEdit, onDuplicate, onDelete, onFavoriteChange, feedback, children, finalFocus, labels: overrides, className, ...props }: SavedViewManagerProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/saved-views\".SavedViewManagerProps": [
+      {
+        "source": "src/patterns/saved-views.d.ts",
+        "declaration": "export type SavedViewManagerProps = Omit<ComponentProps<\"div\">, \"children\" | \"title\" | \"onSelect\"> & ViewCollection & {\n    open: boolean;\n    onOpenChange: (open: boolean) => void;\n    description?: string | undefined;\n    pending?: boolean | undefined;\n    favoritePending?: boolean | undefined;\n    onEdit?: ((id: string) => void) | undefined;\n    onDuplicate?: ((id: string) => void) | undefined;\n    onDelete?: ((id: string) => void) | undefined;\n    onFavoriteChange?: ((id: string, favorite: boolean) => void) | undefined;\n    feedback?: ReactNode;\n    children?: ReactNode;\n    finalFocus?: DialogContentProps[\"finalFocus\"];\n};"
+      }
+    ],
+    "\"src/patterns/saved-views\".SavedViewPicker": [
+      {
+        "source": "src/patterns/saved-views.d.ts",
+        "declaration": "export declare function SavedViewPicker({ views, selectedId, open, onOpenChange, loading, error, onRetry, notice, onApply, onCreate, onManage, disabled, disabledReason, triggerRef, labels: overrides, className, ...props }: SavedViewPickerProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/saved-views\".SavedViewPickerProps": [
+      {
+        "source": "src/patterns/saved-views.d.ts",
+        "declaration": "export type SavedViewPickerProps = Omit<ComponentProps<\"span\">, \"children\" | \"onSelect\"> & ViewCollection & {\n    open: boolean;\n    onOpenChange: (open: boolean) => void;\n    onManage?: (() => void) | undefined;\n    disabled?: boolean | undefined;\n    disabledReason?: string | undefined;\n    triggerRef?: Ref<HTMLButtonElement> | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/saved-views\".SavedViewVisibility": [
+      {
+        "source": "src/patterns/saved-views.d.ts",
+        "declaration": "export type SavedViewVisibility = {\n    value: string;\n    label: string;\n    disabledReason?: string | undefined;\n};"
+      }
+    ],
     "\"src/patterns/search-dialog\".SearchDialog": [
       {
         "source": "src/patterns/search-dialog.d.ts",
@@ -10238,27 +10794,45 @@
         "declaration": "export type SearchResult = {\n    id: string;\n    title: string;\n    identifier?: string | undefined;\n    meta?: string | undefined;\n    badge?: ReactNode;\n    group?: string | undefined;\n    keywords?: string | undefined;\n    disabled?: boolean | undefined;\n    disabledReason?: string | undefined;\n};"
       }
     ],
+    "\"src/patterns/selection-actions\".SelectionActions": [
+      {
+        "source": "src/patterns/selection-actions.d.ts",
+        "declaration": "export declare function SelectionActions({ label, anchor, selectionKey, children, className, ...props }: SelectionActionsProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/selection-actions\".SelectionActionsProps": [
+      {
+        "source": "src/patterns/selection-actions.d.ts",
+        "declaration": "export type SelectionActionsProps = Omit<ComponentProps<\"div\">, \"children\"> & {\n    label: string;\n    children: ReactNode;\n    anchor?: PopoverContentProps[\"anchor\"] | undefined;\n    selectionKey?: string | number | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/spreadsheet/formatting\".SpreadsheetFormatting": [
+      {
+        "source": "src/patterns/spreadsheet/formatting.d.ts",
+        "declaration": "export declare function SpreadsheetFormatting({ style, disabled, mixed, numberFormatDisabled, selectionKey, onFormat, onBorders, className, ...props }: SpreadsheetFormattingProps): import(\"react\").JSX.Element;"
+      }
+    ],
     "\"src/patterns/spreadsheet/sheet-bar\".SpreadsheetSheetBar": [
       {
         "source": "src/patterns/spreadsheet/sheet-bar.d.ts",
-        "declaration": "export declare function SpreadsheetSheetBar({ sheets, activeSheetId, onSheetChange, onAddSheet, getSheetActions, onSheetAction, rowCount, columnCount, onAddRows, onAddColumns, disabled, status, children, className, ...props }: SpreadsheetSheetBarProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function SpreadsheetSheetBar({ sheets, activeSheetId, onSheetChange, onAddSheet, getSheetActions, onSheetAction, onSheetReorder, isSheetReorderDisabled, rowCount, columnCount, onAddRows, onAddColumns, disabled, status, children, className, ...props }: SpreadsheetSheetBarProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/patterns/spreadsheet/sheet-bar\".SpreadsheetSheetBarProps": [
       {
         "source": "src/patterns/spreadsheet/sheet-bar.d.ts",
-        "declaration": "export type SpreadsheetSheetBarProps = ComponentProps<\"div\"> & {\n    sheets: readonly SpreadsheetSheet[];\n    activeSheetId?: string | undefined;\n    onSheetChange?: ((sheetId: string) => void) | undefined;\n    onAddSheet?: (() => void) | undefined;\n    getSheetActions?: ((sheetId: string) => readonly SpreadsheetSheetAction[]) | undefined;\n    onSheetAction?: ((sheetId: string, actionId: string) => void) | undefined;\n    rowCount: number;\n    columnCount: number;\n    onAddRows?: (() => void) | undefined;\n    onAddColumns?: (() => void) | undefined;\n    disabled?: boolean | undefined;\n    status?: ReactNode;\n};"
+        "declaration": "export type SpreadsheetSheetBarProps = ComponentProps<\"div\"> & {\n    sheets: readonly SpreadsheetSheet[];\n    activeSheetId?: string | undefined;\n    onSheetChange?: ((sheetId: string) => void) | undefined;\n    onAddSheet?: (() => void) | undefined;\n    getSheetActions?: ((sheetId: string) => readonly SpreadsheetSheetAction[]) | undefined;\n    onSheetAction?: ((sheetId: string, actionId: string) => void) | undefined;\n    onSheetReorder?: ((ids: string[], change: ReorderChange) => void) | undefined;\n    isSheetReorderDisabled?: ((sheetId: string) => boolean) | undefined;\n    rowCount: number;\n    columnCount: number;\n    onAddRows?: (() => void) | undefined;\n    onAddColumns?: (() => void) | undefined;\n    disabled?: boolean | undefined;\n    status?: ReactNode;\n};"
       }
     ],
     "\"src/patterns/spreadsheet/spreadsheet\".Spreadsheet": [
       {
         "source": "src/patterns/spreadsheet/spreadsheet.d.ts",
-        "declaration": "export declare function Spreadsheet({ label, columns: allColumns, rows: allRows, onChange, onDraftChange, selection, onSelectionChange, readOnly, pending, error, onRetry, isCellReadOnly, isCellLiteral, getCellError, getCellStyle, getCellOptions, getCellComment, displayValue, clipboardValue, preparePasteValue, translateInput, onOpenRow, activeRowId, presence, toolbarStart, actions, renderColumnMenu, renderCellMenu, renderRowMenu, onClearFormatting, onUndo, onRedo, canUndo, canRedo, sheets, activeSheetId, onSheetChange, onAddSheet, getSheetActions, onSheetAction, onAddRows, onAddColumns, sheetRowCount, sheetColumnCount, hiddenRowIds, hiddenColumnIds, onHiddenRowIdsChange, onHiddenColumnIdsChange, headerDisplay, density, fillAvailable, height, freezeFirstColumn, onFreezeFirstColumnChange, freezeFirstRow: requestedFreezeFirstRow, columnWidths, onColumnWidthsChange, rowHeights, onRowHeightsChange, className, style, ...props }: SpreadsheetProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function Spreadsheet({ label, columns: allColumns, rows: allRows, onChange, onDraftChange, getClipboardStyle, onPaste, selectionStatistics, formulaFunctions, getFormulaReferences, getFormulaReference, selection, onSelectionChange, readOnly, pending, error, onRetry, isCellReadOnly, isCellLiteral, getCellError, getCellStyle, getCellOptions, getCellComment, displayValue, clipboardValue, preparePasteValue, translateInput, onOpenRow, activeRowId, presence, toolbarStart, actions, renderColumnMenu, renderCellMenu, renderRowMenu, onClearFormatting, onUndo, onRedo, canUndo, canRedo, sheets, activeSheetId, onSheetChange, onAddSheet, getSheetActions, onSheetAction, onSheetReorder, isSheetReorderDisabled, onAddRows, onAddColumns, sheetRowCount, sheetColumnCount, hiddenRowIds, hiddenColumnIds, onHiddenRowIdsChange, onHiddenColumnIdsChange, headerDisplay, density, fillAvailable, height, freezeFirstColumn, onFreezeFirstColumnChange, freezeFirstRow: requestedFreezeFirstRow, columnWidths, onColumnWidthsChange, rowHeights, onRowHeightsChange, className, style, ...props }: SpreadsheetProps): import(\"react\").JSX.Element;"
       }
     ],
-    "\"src/patterns/spreadsheet/spreadsheet\".SpreadsheetToolbar": [
+    "\"src/patterns/spreadsheet/toolbar\".SpreadsheetToolbar": [
       {
-        "source": "src/patterns/spreadsheet/spreadsheet.d.ts",
+        "source": "src/patterns/spreadsheet/toolbar.d.ts",
         "declaration": "export declare function SpreadsheetToolbar({ label, children, className, ...props }: SpreadsheetToolbarProps): import(\"react\").JSX.Element;"
       }
     ],
@@ -10266,6 +10840,12 @@
       {
         "source": "src/patterns/spreadsheet/types.d.ts",
         "declaration": "export type SpreadsheetBorder = {\n    style: \"solid\" | \"dashed\" | \"dotted\";\n    color: string;\n    width: 1 | 2 | 3;\n};"
+      }
+    ],
+    "\"src/patterns/spreadsheet/types\".SpreadsheetBorderPreset": [
+      {
+        "source": "src/patterns/spreadsheet/types.d.ts",
+        "declaration": "export type SpreadsheetBorderPreset = \"all\" | \"outside\" | \"inside\" | \"top\" | \"right\" | \"bottom\" | \"left\" | \"none\";"
       }
     ],
     "\"src/patterns/spreadsheet/types\".SpreadsheetCell": [
@@ -10292,10 +10872,40 @@
         "declaration": "export type SpreadsheetEdit = SpreadsheetCell & {\n    value: string;\n};"
       }
     ],
+    "\"src/patterns/spreadsheet/types\".SpreadsheetFormat": [
+      {
+        "source": "src/patterns/spreadsheet/types.d.ts",
+        "declaration": "export type SpreadsheetFormat = Omit<SpreadsheetCellStyle, \"align\" | \"tone\"> & {\n    align?: \"left\" | \"center\" | \"right\" | undefined;\n    format?: \"general\" | \"number\" | \"currency\" | \"percent\" | \"date\" | \"text\" | undefined;\n    decimals?: number | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/spreadsheet/types\".SpreadsheetFormattingProps": [
+      {
+        "source": "src/patterns/spreadsheet/types.d.ts",
+        "declaration": "export type SpreadsheetFormattingProps = Omit<ComponentProps<\"div\">, \"style\" | \"children\"> & {\n    style?: SpreadsheetFormat | undefined;\n    disabled?: boolean | undefined;\n    numberFormatDisabled?: boolean | undefined;\n    mixed?: readonly (keyof SpreadsheetFormat)[] | undefined;\n    selectionKey?: string | undefined;\n    onFormat: (style: SpreadsheetFormat) => void;\n    onBorders: (preset: SpreadsheetBorderPreset, border: SpreadsheetBorder) => void;\n};"
+      }
+    ],
+    "\"src/patterns/spreadsheet/types\".SpreadsheetFormulaReference": [
+      {
+        "source": "src/patterns/spreadsheet/types.d.ts",
+        "declaration": "export type SpreadsheetFormulaReference = {\n    selection: SpreadsheetSelection;\n    label?: string | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/spreadsheet/types\".SpreadsheetFunction": [
+      {
+        "source": "src/patterns/spreadsheet/types.d.ts",
+        "declaration": "export type SpreadsheetFunction = {\n    name: string;\n    signature: string;\n    description: string;\n    arguments?: readonly string[] | undefined;\n};"
+      }
+    ],
     "\"src/patterns/spreadsheet/types\".SpreadsheetMenuContext": [
       {
         "source": "src/patterns/spreadsheet/types.d.ts",
         "declaration": "export type SpreadsheetMenuContext = {\n    kind: \"cell\" | \"row\" | \"column\";\n    cell: SpreadsheetCell;\n    selection: SpreadsheetSelection;\n    rowIds: readonly string[];\n    columnIds: readonly string[];\n};"
+      }
+    ],
+    "\"src/patterns/spreadsheet/types\".SpreadsheetPaste": [
+      {
+        "source": "src/patterns/spreadsheet/types.d.ts",
+        "declaration": "export type SpreadsheetPaste = {\n    mode: \"all\" | \"values\" | \"formatting\";\n    edits: readonly SpreadsheetEdit[];\n    styles: readonly (SpreadsheetCell & {\n        style: Readonly<Record<string, unknown>> | null;\n    })[];\n};"
       }
     ],
     "\"src/patterns/spreadsheet/types\".SpreadsheetPresence": [
@@ -10307,7 +10917,7 @@
     "\"src/patterns/spreadsheet/types\".SpreadsheetProps": [
       {
         "source": "src/patterns/spreadsheet/types.d.ts",
-        "declaration": "export type SpreadsheetProps = Omit<ComponentProps<\"div\">, \"onChange\" | \"children\"> & {\n    label: string;\n    columns: readonly SpreadsheetColumn[];\n    rows: readonly SpreadsheetRow[];\n    onChange?: ((edits: readonly SpreadsheetEdit[]) => void | Promise<void>) | undefined;\n    onDraftChange?: ((dirty: boolean) => void) | undefined;\n    selection?: SpreadsheetSelection | null | undefined;\n    onSelectionChange?: ((selection: SpreadsheetSelection | null) => void) | undefined;\n    readOnly?: boolean | undefined;\n    pending?: boolean | undefined;\n    error?: ReactNode;\n    onRetry?: (() => void) | undefined;\n    isCellReadOnly?: ((cell: SpreadsheetCell) => boolean) | undefined;\n    isCellLiteral?: ((cell: SpreadsheetCell) => boolean) | undefined;\n    getCellError?: ((cell: SpreadsheetCell) => string | undefined) | undefined;\n    getCellStyle?: ((cell: SpreadsheetCell) => SpreadsheetCellStyle | undefined) | undefined;\n    getCellOptions?: ((cell: SpreadsheetCell) => SpreadsheetColumn[\"options\"]) | undefined;\n    getCellComment?: ((cell: SpreadsheetCell) => string | undefined) | undefined;\n    displayValue?: ((cell: SpreadsheetCell, value: string) => string) | undefined;\n    clipboardValue?: ((cell: SpreadsheetCell, value: string) => string) | undefined;\n    preparePasteValue?: ((cell: SpreadsheetCell, value: string) => string) | undefined;\n    translateInput?: ((value: string, from: {\n        row: number;\n        column: number;\n    }, to: {\n        row: number;\n        column: number;\n    }) => string) | undefined;\n    onOpenRow?: ((rowId: string) => void) | undefined;\n    activeRowId?: string | undefined;\n    presence?: readonly SpreadsheetPresence[] | undefined;\n    toolbarStart?: ReactNode;\n    actions?: ReactNode;\n    renderColumnMenu?: ((column: SpreadsheetColumn, context: SpreadsheetMenuContext) => ReactNode) | undefined;\n    renderCellMenu?: ((context: SpreadsheetMenuContext) => ReactNode) | undefined;\n    renderRowMenu?: ((row: SpreadsheetRow, context: SpreadsheetMenuContext) => ReactNode) | undefined;\n    onClearFormatting?: ((context: SpreadsheetMenuContext) => void) | undefined;\n    onUndo?: (() => void) | undefined;\n    onRedo?: (() => void) | undefined;\n    canUndo?: boolean | undefined;\n    canRedo?: boolean | undefined;\n    sheets?: readonly SpreadsheetSheet[] | undefined;\n    activeSheetId?: string | undefined;\n    onSheetChange?: ((sheetId: string) => void) | undefined;\n    onAddSheet?: (() => void) | undefined;\n    getSheetActions?: ((sheetId: string) => readonly SpreadsheetSheetAction[]) | undefined;\n    onSheetAction?: ((sheetId: string, actionId: string) => void) | undefined;\n    onAddRows?: (() => void) | undefined;\n    onAddColumns?: (() => void) | undefined;\n    sheetRowCount?: number | undefined;\n    sheetColumnCount?: number | undefined;\n    hiddenRowIds?: readonly string[] | undefined;\n    onHiddenRowIdsChange?: ((ids: readonly string[]) => void) | undefined;\n    hiddenColumnIds?: readonly string[] | undefined;\n    onHiddenColumnIdsChange?: ((ids: readonly string[]) => void) | undefined;\n    headerDisplay?: \"labels\" | \"letters\" | undefined;\n    density?: \"comfortable\" | \"compact\" | undefined;\n    fillAvailable?: boolean | undefined;\n    height?: number | undefined;\n    freezeFirstColumn?: boolean | undefined;\n    onFreezeFirstColumnChange?: ((frozen: boolean) => void) | undefined;\n    freezeFirstRow?: boolean | undefined;\n    columnWidths?: Readonly<Record<string, number>> | undefined;\n    onColumnWidthsChange?: ((widths: Readonly<Record<string, number>>) => void) | undefined;\n    rowHeights?: Readonly<Record<string, number>> | undefined;\n    onRowHeightsChange?: ((heights: Readonly<Record<string, number>>) => void) | undefined;\n};"
+        "declaration": "export type SpreadsheetProps = Omit<ComponentProps<\"div\">, \"onChange\" | \"onPaste\" | \"children\"> & {\n    label: string;\n    columns: readonly SpreadsheetColumn[];\n    rows: readonly SpreadsheetRow[];\n    onChange?: ((edits: readonly SpreadsheetEdit[]) => void | Promise<void>) | undefined;\n    formulaFunctions?: readonly SpreadsheetFunction[] | undefined;\n    getFormulaReferences?: ((input: string, cell: SpreadsheetCell) => readonly SpreadsheetFormulaReference[]) | undefined;\n    getFormulaReference?: ((selection: SpreadsheetSelection) => string) | undefined;\n    getClipboardStyle?: ((cell: SpreadsheetCell) => Readonly<Record<string, unknown>> | undefined) | undefined;\n    onPaste?: ((paste: SpreadsheetPaste) => void | Promise<void>) | undefined;\n    selectionStatistics?: SpreadsheetStatistics | null | undefined;\n    onDraftChange?: ((dirty: boolean) => void) | undefined;\n    selection?: SpreadsheetSelection | null | undefined;\n    onSelectionChange?: ((selection: SpreadsheetSelection | null) => void) | undefined;\n    readOnly?: boolean | undefined;\n    pending?: boolean | undefined;\n    error?: ReactNode;\n    onRetry?: (() => void) | undefined;\n    isCellReadOnly?: ((cell: SpreadsheetCell) => boolean) | undefined;\n    isCellLiteral?: ((cell: SpreadsheetCell) => boolean) | undefined;\n    getCellError?: ((cell: SpreadsheetCell) => string | undefined) | undefined;\n    getCellStyle?: ((cell: SpreadsheetCell) => SpreadsheetCellStyle | undefined) | undefined;\n    getCellOptions?: ((cell: SpreadsheetCell) => SpreadsheetColumn[\"options\"]) | undefined;\n    getCellComment?: ((cell: SpreadsheetCell) => string | undefined) | undefined;\n    displayValue?: ((cell: SpreadsheetCell, value: string) => string) | undefined;\n    clipboardValue?: ((cell: SpreadsheetCell, value: string) => string) | undefined;\n    preparePasteValue?: ((cell: SpreadsheetCell, value: string, style?: Readonly<Record<string, unknown>> | null) => string) | undefined;\n    translateInput?: ((value: string, from: {\n        row: number;\n        column: number;\n    }, to: {\n        row: number;\n        column: number;\n    }) => string) | undefined;\n    onOpenRow?: ((rowId: string) => void) | undefined;\n    activeRowId?: string | undefined;\n    presence?: readonly SpreadsheetPresence[] | undefined;\n    toolbarStart?: ReactNode;\n    actions?: ReactNode;\n    renderColumnMenu?: ((column: SpreadsheetColumn, context: SpreadsheetMenuContext) => ReactNode) | undefined;\n    renderCellMenu?: ((context: SpreadsheetMenuContext) => ReactNode) | undefined;\n    renderRowMenu?: ((row: SpreadsheetRow, context: SpreadsheetMenuContext) => ReactNode) | undefined;\n    onClearFormatting?: ((context: SpreadsheetMenuContext) => void) | undefined;\n    onUndo?: (() => void) | undefined;\n    onRedo?: (() => void) | undefined;\n    canUndo?: boolean | undefined;\n    canRedo?: boolean | undefined;\n    sheets?: readonly SpreadsheetSheet[] | undefined;\n    activeSheetId?: string | undefined;\n    onSheetChange?: ((sheetId: string) => void) | undefined;\n    onAddSheet?: (() => void) | undefined;\n    getSheetActions?: ((sheetId: string) => readonly SpreadsheetSheetAction[]) | undefined;\n    onSheetAction?: ((sheetId: string, actionId: string) => void) | undefined;\n    onSheetReorder?: ((ids: string[], change: ReorderChange) => void) | undefined;\n    isSheetReorderDisabled?: ((sheetId: string) => boolean) | undefined;\n    onAddRows?: (() => void) | undefined;\n    onAddColumns?: (() => void) | undefined;\n    sheetRowCount?: number | undefined;\n    sheetColumnCount?: number | undefined;\n    hiddenRowIds?: readonly string[] | undefined;\n    onHiddenRowIdsChange?: ((ids: readonly string[]) => void) | undefined;\n    hiddenColumnIds?: readonly string[] | undefined;\n    onHiddenColumnIdsChange?: ((ids: readonly string[]) => void) | undefined;\n    headerDisplay?: \"labels\" | \"letters\" | undefined;\n    density?: \"comfortable\" | \"compact\" | undefined;\n    fillAvailable?: boolean | undefined;\n    height?: number | undefined;\n    freezeFirstColumn?: boolean | undefined;\n    onFreezeFirstColumnChange?: ((frozen: boolean) => void) | undefined;\n    freezeFirstRow?: boolean | undefined;\n    columnWidths?: Readonly<Record<string, number>> | undefined;\n    onColumnWidthsChange?: ((widths: Readonly<Record<string, number>>) => void) | undefined;\n    rowHeights?: Readonly<Record<string, number>> | undefined;\n    onRowHeightsChange?: ((heights: Readonly<Record<string, number>>) => void) | undefined;\n};"
       }
     ],
     "\"src/patterns/spreadsheet/types\".SpreadsheetRow": [
@@ -10332,6 +10942,12 @@
       {
         "source": "src/patterns/spreadsheet/types.d.ts",
         "declaration": "export type SpreadsheetSheetAction = {\n    id: string;\n    label: string;\n    disabled?: boolean | undefined;\n    destructive?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/spreadsheet/types\".SpreadsheetStatistics": [
+      {
+        "source": "src/patterns/spreadsheet/types.d.ts",
+        "declaration": "export type SpreadsheetStatistics = {\n    count: number;\n    numericCount: number;\n    sum?: number | undefined;\n    average?: number | undefined;\n};"
       }
     ],
     "\"src/patterns/spreadsheet/types\".SpreadsheetToolbarProps": [
@@ -10362,6 +10978,30 @@
       {
         "source": "src/patterns/toolbar.d.ts",
         "declaration": "export type ToolbarProps = Omit<ComponentProps<\"div\">, \"children\" | \"placeholder\" | \"onSearch\"> & {\n    search?: string | undefined;\n    defaultSearch?: string | undefined;\n    onSearch?: ((value: string) => void) | undefined;\n    placeholder?: string | undefined;\n    views?: ReactNode;\n    children?: ReactNode;\n    filters?: ReactNode;\n    activeFilters?: number | undefined;\n    actions?: ReactNode;\n    className?: string | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/use-collection-selection\".CollectionSelection": [
+      {
+        "source": "src/patterns/use-collection-selection.d.ts",
+        "declaration": "export type CollectionSelection = {\n    selectedIds: readonly string[];\n    allSelected: boolean;\n    partiallySelected: boolean;\n    isSelected: (id: string) => boolean;\n    isDisabled: (id: string) => boolean;\n    toggle: (id: string, options?: {\n        range?: boolean | undefined;\n        additive?: boolean | undefined;\n    }) => void;\n    selectAll: () => void;\n    clear: () => void;\n    getItemProps: (id: string) => CollectionSelectionItemProps;\n};"
+      }
+    ],
+    "\"src/patterns/use-collection-selection\".CollectionSelectionItemProps": [
+      {
+        "source": "src/patterns/use-collection-selection.d.ts",
+        "declaration": "export type CollectionSelectionItemProps = {\n    ref: RefCallback<HTMLElement>;\n    onFocusCapture: FocusEventHandler<HTMLElement>;\n    onKeyDown: KeyboardEventHandler<HTMLElement>;\n};"
+      }
+    ],
+    "\"src/patterns/use-collection-selection\".CollectionSelectionOptions": [
+      {
+        "source": "src/patterns/use-collection-selection.d.ts",
+        "declaration": "export type CollectionSelectionOptions = {\n    items: readonly string[];\n    disabledIds?: readonly string[] | undefined;\n    selectedIds?: readonly string[] | undefined;\n    defaultSelectedIds?: readonly string[] | undefined;\n    onSelectionChange?: ((ids: string[]) => void) | undefined;\n    disabled?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/use-collection-selection\".useCollectionSelection": [
+      {
+        "source": "src/patterns/use-collection-selection.d.ts",
+        "declaration": "export declare function useCollectionSelection({ items, disabledIds, selectedIds, defaultSelectedIds, onSelectionChange, disabled, }: CollectionSelectionOptions): CollectionSelection;"
       }
     ],
     "\"src/patterns/work-pane\".WorkPane": [
@@ -11132,6 +11772,12 @@
         "declaration": "declare function RelatedRoot({ title, count, countMax, action, footer, layout, size, empty, className, children, ...props }: RelatedProps): import(\"react\").JSX.Element;"
       }
     ],
+    "src/patterns/saved-views.d.ts#ViewCollection": [
+      {
+        "source": "src/patterns/saved-views.d.ts",
+        "declaration": "type ViewCollection = {\n    views: readonly SavedViewItem[];\n    selectedId?: string | undefined;\n    loading?: boolean | undefined;\n    error?: string | undefined;\n    onRetry?: (() => void) | undefined;\n    notice?: string | undefined;\n    onApply: (id: string) => void;\n    onCreate?: (() => void) | undefined;\n    labels?: Partial<SavedViewLabels> | undefined;\n};"
+      }
+    ],
     "src/patterns/work-pane.d.ts#WorkPaneRoot": [
       {
         "source": "src/patterns/work-pane.d.ts",
@@ -11236,7 +11882,7 @@
     ]
   },
   "dependencyContracts": {
-    "@base-ui/react": "827c5a80b22b8278b3548d4b937388dcc3450e23d1525be199c975fbae4d2e87",
+    "@base-ui/react": "51c2f220aa2316dd97615862937bb72b8543e4e6b61d8648d7df67863ea0f797",
     "@base-ui/utils": "a71988b4234a15dd1dcecb2aaaac6ab8c6472d75cd26993efe45671a8247777a",
     "@floating-ui/core": "581cec84f04c06ef6908cd1af8471390d1d96893d63abdaf0391ef43ae0a1815",
     "@floating-ui/dom": "82afab4c16f6bedc49dfed4eec228766546f4e0a8aed010cab33ad05aeed4568",

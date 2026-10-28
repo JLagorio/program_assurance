@@ -6,6 +6,12 @@ import {
   type CellValidation,
   type Workbook,
 } from "./types";
+import {
+  conditionalDimensions,
+  exportConditionalFormats,
+  importConditionalFormats,
+} from "./xlsx-conditional";
+import type { ConditionalFormattingOptions } from "exceljs";
 import { createSheet, createWorkbook, validateWorkbook, validateCellValidation } from "./workbook";
 
 export type WorkbookImport = { workbook: Workbook; warnings: string[] };
@@ -68,10 +74,10 @@ export function validateXlsxArchive(bytes: Uint8Array): void {
 
 function styleFromExcel(cell: ExcelCell): CellStyle | undefined {
   const style: CellStyle = {};
-  if (cell.font?.bold) style.bold = true;
-  if (cell.font?.italic) style.italic = true;
-  if (cell.font?.underline) style.underline = true;
-  if (cell.font?.strike) style.strikethrough = true;
+  if (cell.font?.bold !== undefined) style.bold = cell.font.bold;
+  if (cell.font?.italic !== undefined) style.italic = cell.font.italic;
+  if (cell.font?.underline !== undefined) style.underline = !!cell.font.underline;
+  if (cell.font?.strike !== undefined) style.strikethrough = cell.font.strike;
   if (cell.font?.name && /^[\p{L}\p{N} ,_-]{1,80}$/u.test(cell.font.name))
     style.fontFamily = cell.font.name;
   if (cell.font?.size) style.fontSize = Math.max(8, Math.min(72, cell.font.size));
@@ -89,7 +95,7 @@ function styleFromExcel(cell: ExcelCell): CellStyle | undefined {
   const fill = cell.fill as FillPattern | undefined;
   if (fill?.type === "pattern" && fill.pattern === "solid" && fill.fgColor?.argb)
     style.background = `#${fill.fgColor.argb.slice(-6)}`;
-  if (cell.alignment?.wrapText) style.wrap = true;
+  if (cell.alignment?.wrapText !== undefined) style.wrap = cell.alignment.wrapText;
   if (["left", "center", "right"].includes(cell.alignment?.horizontal ?? ""))
     style.align = cell.alignment.horizontal as CellStyle["align"] & string;
   if (["top", "middle", "bottom"].includes(cell.alignment?.vertical ?? ""))
@@ -133,8 +139,15 @@ export async function importXlsx(
   ]);
   let total = 0;
   const sheets = source.worksheets.map((worksheet) => {
-    const rows = Math.max(20, worksheet.rowCount);
-    const columns = Math.max(8, worksheet.columnCount);
+    const conditionals =
+      (
+        worksheet.model as typeof worksheet.model & {
+          conditionalFormattings?: ConditionalFormattingOptions[];
+        }
+      ).conditionalFormattings ?? [];
+    const dimensions = conditionalDimensions(conditionals);
+    const rows = Math.max(20, worksheet.rowCount, dimensions.rows);
+    const columns = Math.max(8, worksheet.columnCount, dimensions.columns);
     const sheet = createSheet(worksheet.name, { rows, columns });
     if (worksheet.state !== "visible") warnings.add("Hidden sheets are shown in this workbook.");
     if (worksheet.model.merges?.length)
@@ -144,11 +157,13 @@ export async function importXlsx(
     if (worksheet.getImages().length) warnings.add("Embedded images and charts are not imported.");
     if (worksheet.autoFilter)
       warnings.add("Excel filter criteria are not imported. Use the workbench filters.");
-    const model = worksheet.model as typeof worksheet.model & {
-      conditionalFormattings?: unknown[];
-    };
-    if (model.conditionalFormattings?.length)
-      warnings.add("Conditional formatting rules are not imported.");
+    if (conditionals.length)
+      importConditionalFormats(
+        conditionals,
+        sheet,
+        (style) => styleFromExcel(style as ExcelCell),
+        warnings,
+      );
     for (const view of worksheet.views ?? [])
       if (view.state === "frozen") {
         sheet.frozenRows = Math.min(rows, view.ySplit ?? 0);
@@ -268,7 +283,7 @@ export async function importXlsx(
       "Defined names are not imported. Formulas using them may show #NAME?; replace them with cell references.",
     );
   warnings.add(
-    "XLSX interchange supports cells, formulas, common formatting, notes, literal dropdowns, row heights, row/column visibility and frozen panes. Charts, pivots, macros and advanced Excel features are not preserved.",
+    "XLSX interchange supports cells, formulas, common formatting, notes, literal dropdowns, row heights, row/column visibility, frozen panes and supported conditional formatting. Charts, pivots, macros and advanced Excel features are not preserved.",
   );
   return {
     workbook: createWorkbook(name.replace(/\.xlsx$/i, "").slice(0, 200), sheets),
@@ -289,6 +304,8 @@ export async function exportXlsx(
   output.calcProperties.fullCalcOnLoad = true;
   for (const sheet of workbook.sheets) {
     const worksheet = output.addWorksheet(sheet.name);
+    for (const conditional of exportConditionalFormats(sheet))
+      worksheet.addConditionalFormatting(conditional);
     worksheet.views = [{ state: "frozen", xSplit: sheet.frozenColumns, ySplit: sheet.frozenRows }];
     worksheet.columns = sheet.columns.map((column) => ({
       width: ((column.width ?? 140) - 5) / 7,

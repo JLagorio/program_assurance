@@ -1,5 +1,14 @@
+import { MatchText } from "../components/match-text";
 import { defaultFilter } from "cmdk";
-import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ComponentProps,
+  type ReactNode,
+} from "react";
 
 import { Alert, AlertAction, AlertDescription } from "../components/alert";
 import { Button } from "../components/button";
@@ -45,6 +54,10 @@ export type PaletteCommand = {
   shortcut?: string | undefined;
   /** Other words at the end, read with the label: a count, a state. A shortcut goes in `shortcut`. Matched. */
   hint?: string | undefined;
+  /** Supporting text beneath the label, such as a matching excerpt. */
+  description?: string | undefined;
+  /** Keeps an unavailable action visible with the explanation beside it. */
+  disabledReason?: string | undefined;
   run: () => void;
 };
 
@@ -53,6 +66,17 @@ export type CommandPaletteProps = {
   onClose: () => void;
   /** In the order they show, grouped by `group`. The page's verbs first, the places after. */
   commands: PaletteCommand[];
+  /** A controlled query for remote search. */
+  query?: string | undefined;
+  onQueryChange?: ((query: string) => void) | undefined;
+  /** False when the caller has already matched and ordered remote results. */
+  filter?: boolean | undefined;
+  /** Mark literal query terms in labels and excerpts. */
+  highlightMatches?: boolean | undefined;
+  /** Search categories or scope controls between the input and results. */
+  controls?: ReactNode;
+  /** Restores focus unless navigation or the selected action owns it. */
+  finalFocus?: ComponentProps<typeof CommandDialog>["finalFocus"];
   /** The field's placeholder. "Type a command…" by default. */
   placeholder?: string | undefined;
   /** The dialog's name and the field's. "Command palette" by default. */
@@ -148,6 +172,12 @@ export function CommandPalette({
   open,
   onClose,
   commands,
+  query,
+  onQueryChange,
+  filter = true,
+  controls,
+  highlightMatches = false,
+  finalFocus,
   placeholder,
   title,
   description,
@@ -157,6 +187,11 @@ export function CommandPalette({
   error,
   onRetry,
 }: CommandPaletteProps) {
+  const [localQuery, setLocalQuery] = useState("");
+  useEffect(() => {
+    if (!open) setLocalQuery("");
+  }, [open]);
+  const matchTerms = (query ?? localQuery).trim().split(/\s+/).filter(Boolean);
   const { t } = useLedgerLocale();
   const format = useFormatShortcut();
   const name = title ?? t("commandPaletteTitle");
@@ -185,13 +220,20 @@ export function CommandPalette({
       }}
       title={name}
       description={description ?? t("commandPaletteDescription")}
+      finalFocus={finalFocus}
     >
-      <Command label={name} filter={byLabel}>
+      <Command label={name} filter={byLabel} shouldFilter={filter}>
         <CommandInput
           ref={field}
+          value={query ?? localQuery}
+          onValueChange={(value) => {
+            setLocalQuery(value);
+            onQueryChange?.(value);
+          }}
           placeholder={placeholder ?? t("commandPalettePlaceholder")}
           hint={null}
         />
+        {controls ? <div className="border-b border-default px-150 py-100">{controls}</div> : null}
         {failed ? (
           <div className="px-075 pt-075">
             {/* Said through the Announcer, which reaches the reader inside the modal once. */}
@@ -223,14 +265,38 @@ export function CommandPalette({
                 <CommandItem
                   key={c.id}
                   value={c.id}
-                  keywords={[c.label, c.group, c.hint ?? ""]}
+                  keywords={[c.label, c.group, c.hint ?? "", c.description ?? ""]}
+                  disabled={!!c.disabledReason}
+                  aria-describedby={
+                    c.disabledReason ? `${errorId}-${encodeURIComponent(c.id)}` : undefined
+                  }
                   aria-keyshortcuts={c.shortcut ? format(c.shortcut, "aria") : undefined}
                   onSelect={() => {
+                    if (c.disabledReason) return;
                     onClose();
                     c.run();
                   }}
                 >
-                  {c.label}
+                  <span className="min-w-0 flex-1 break-words">
+                    {highlightMatches ? <MatchText text={c.label} query={matchTerms} /> : c.label}
+                    {c.description ? (
+                      <span className="block font-body-xsmall text-subtle">
+                        {highlightMatches ? (
+                          <MatchText text={c.description} query={matchTerms} />
+                        ) : (
+                          c.description
+                        )}
+                      </span>
+                    ) : null}
+                    {c.disabledReason ? (
+                      <span
+                        id={`${errorId}-${encodeURIComponent(c.id)}`}
+                        className="block font-body-xsmall text-subtle"
+                      >
+                        {c.disabledReason}
+                      </span>
+                    ) : null}
+                  </span>
                   {c.hint || c.shortcut ? (
                     <span className="ms-auto flex shrink-0 items-center gap-100">
                       {c.hint ? (

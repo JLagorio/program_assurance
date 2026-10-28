@@ -1,9 +1,11 @@
+import { createCalculationDelta, type CalculationDelta } from "./calculation-update";
 import type { CalculationResult, Workbook } from "./types";
 
-export type CalculationRequest = { id: number; workbook: Workbook };
+export type CalculationRequest =
+  { id: number; workbook: Workbook } | { id: number; delta: CalculationDelta };
 export type CalculationResponse =
   | { id: number; type: "result"; result: CalculationResult }
-  | { id: number; type: "error"; error: string };
+  | { id: number; type: "error"; error: string; code?: "resync" };
 export type CalculationWorker = Pick<
   Worker,
   "postMessage" | "terminate" | "onmessage" | "onerror" | "onmessageerror"
@@ -25,10 +27,13 @@ export function createCalculationClient(
   let worker: CalculationWorker | undefined;
   let sequence = 0;
   let disposed = false;
+  let acknowledged: Workbook | undefined;
   let pending:
     | {
         id: number;
         revision: number;
+        workbook: Workbook;
+        resynced: boolean;
         resolve: (result: CalculationResult) => void;
         reject: (error: Error) => void;
         timer: ReturnType<typeof setTimeout>;
@@ -37,6 +42,7 @@ export function createCalculationClient(
   const stop = (error: Error) => {
     worker?.terminate();
     worker = undefined;
+    acknowledged = undefined;
     if (pending) {
       clearTimeout(pending.timer);
       pending.reject(error);
@@ -50,10 +56,14 @@ export function createCalculationClient(
       return new Promise((resolve, reject) => {
         try {
           worker ??= makeWorker();
+          const activeWorker = worker;
+          const snapshot = structuredClone(workbook);
           const id = ++sequence;
           pending = {
             id,
-            revision: workbook.revision,
+            revision: snapshot.revision,
+            workbook: snapshot,
+            resynced: false,
             resolve,
             reject,
             timer: setTimeout(
@@ -65,8 +75,17 @@ export function createCalculationClient(
             ),
           };
           worker.onmessage = (event: MessageEvent<CalculationResponse>) => {
-            if (!pending || event.data.id !== pending.id) return;
+            if (worker !== activeWorker || !pending || event.data.id !== pending.id) return;
             if (event.data.type === "error") {
+              if (event.data.code === "resync" && !pending.resynced) {
+                pending.resynced = true;
+                acknowledged = undefined;
+                activeWorker.postMessage({
+                  id: pending.id,
+                  workbook: pending.workbook,
+                } satisfies CalculationRequest);
+                return;
+              }
               stop(new Error(event.data.error));
               return;
             }
@@ -77,13 +96,23 @@ export function createCalculationClient(
             const current = pending;
             pending = undefined;
             clearTimeout(current.timer);
+            acknowledged = current.workbook;
             current.resolve(event.data.result);
           };
-          worker.onerror = () =>
-            stop(new Error("The calculation engine stopped. Retry calculation."));
-          worker.onmessageerror = () =>
-            stop(new Error("The calculation result could not be read."));
-          worker.postMessage({ id, workbook } satisfies CalculationRequest);
+          worker.onerror = () => {
+            if (worker === activeWorker)
+              stop(new Error("The calculation engine stopped. Retry calculation."));
+          };
+          worker.onmessageerror = () => {
+            if (worker === activeWorker)
+              stop(new Error("The calculation result could not be read."));
+          };
+          const delta = acknowledged && createCalculationDelta(acknowledged, snapshot);
+          worker.postMessage(
+            delta
+              ? ({ id, delta } satisfies CalculationRequest)
+              : ({ id, workbook: snapshot } satisfies CalculationRequest),
+          );
         } catch (error) {
           const cause =
             error instanceof Error ? error : new Error("Unable to start the calculation worker.");
@@ -91,6 +120,9 @@ export function createCalculationClient(
           reject(cause);
         }
       });
+    },
+    cancel() {
+      stop(new SupersededCalculationError());
     },
     dispose() {
       disposed = true;

@@ -266,6 +266,8 @@ export { TimeField, type TimeFieldHourCycle, type TimeFieldProps } from "./time-
 export {
   Diff,
   diffText,
+  type DiffAnnotation,
+  type DiffSelection,
   type DiffLayout,
   type DiffLine,
   type DiffProps,
@@ -723,3 +725,14 @@ export {
   ComboboxChipsInput,
   useComboboxAnchor,
 } from "./combobox";
+
+export {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  type ContextMenuProps,
+  type ContextMenuTriggerProps,
+  type ContextMenuContentProps,
+} from "./context-menu";
+
+export { MatchText, type MatchTextProps } from "./match-text";

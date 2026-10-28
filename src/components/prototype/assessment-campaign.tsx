@@ -1060,7 +1060,11 @@ function RunInspector({
                 [
                   "Procedure revision",
                   <SchemaLink table="procedure_revisions" id={run.procedure_revision_id}>
-                    <RelationName table="procedure_revisions" id={run.procedure_revision_id} />
+                    <RelationName
+                      table="procedure_revisions"
+                      id={run.procedure_revision_id}
+                      peek={false}
+                    />
                   </SchemaLink>,
                 ],
                 [
@@ -1069,6 +1073,7 @@ function RunInspector({
                     <RelationName
                       table="configuration_baselines"
                       id={run.configuration_baseline_id}
+                      peek={false}
                     />
                   </SchemaLink>,
                 ],

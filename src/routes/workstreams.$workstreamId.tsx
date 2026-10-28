@@ -63,7 +63,7 @@ function WorkstreamDetail({ workstreamId }: { workstreamId: string }) {
                   {program.data ? (
                     `${program.data.code} · ${program.data.name}`
                   ) : (
-                    <RelationName table="programs" id={row.program_id} />
+                    <RelationName table="programs" id={row.program_id} peek={false} />
                   )}
                 </TrailLink>
               </RecordTrail>

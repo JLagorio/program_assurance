@@ -1,12 +1,14 @@
+import { RequirementChangeReview } from "./requirement-change-review";
+import { AssuranceReviewPanel } from "./assurance-review";
+import { AssuranceCitations } from "./assurance-review-citations";
 import { ProductRecordDialog } from "./product-record-dialog";
 import { MissingRecord, RecordActions, ReportFailures } from "./work-common";
-import { useCallback, useRef, useState, type ReactNode } from "react";
+import { useCallback, useRef, useState, type ComponentProps, type ReactNode } from "react";
 import { Link, useBlocker } from "@tanstack/react-router";
 import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import {
   Absent,
   AsideLayout,
-  Diff,
   Empty,
   EmptyContent,
   EmptyDescription,
@@ -282,6 +284,12 @@ export function RequirementRecordContent({
                             </AsideLayout>
                           )}
                         </ProgramQueryState>
+                        <AssuranceCitations
+                          target={{ kind: "requirement", recordId: requirementId }}
+                        />
+                        <AssuranceReviewPanel
+                          target={{ kind: "requirement", recordId: requirementId }}
+                        />
                       </Stack>
                     </TabsContent>
                   ) : null}
@@ -504,20 +512,28 @@ function RequirementActivity({
                 <Stack space="space.100">
                   {entries.map(([field, change]) => {
                     const label = changeLabels[field] ?? labelFor(field);
-                    // Authored paragraphs compare as a Diff; a title, a type or an owner is one value.
-                    return proseChanges.has(field) ? (
-                      <Diff
-                        key={field}
-                        before={textValue(change["before"])}
-                        after={textValue(change["after"])}
-                        beforeLabel="Before"
-                        afterLabel="After"
-                        label={`${label}, before and after this edit`}
-                      />
-                    ) : (
+                    // Scalar fields keep their readable names while discussion anchors retain
+                    // the event's original values (including owner IDs), just like paragraph edits.
+                    const summary = (
                       <KeyValue key={field} label={label} wrap>
                         {diffValue(field, change["before"])} → {diffValue(field, change["after"])}
                       </KeyValue>
+                    );
+                    if (!(field in changeLabels)) return summary;
+                    return (
+                      <RequirementChangeReview
+                        key={field}
+                        recordId={
+                          revisionMap.get(String(event["requirement_revision_id"]))!
+                            .engineering_requirement_id
+                        }
+                        editId={event.id}
+                        field={field as ComponentProps<typeof RequirementChangeReview>["field"]}
+                        before={textValue(change["before"])}
+                        after={textValue(change["after"])}
+                        label={label}
+                        summary={proseChanges.has(field) ? undefined : summary}
+                      />
                     );
                   })}
                 </Stack>

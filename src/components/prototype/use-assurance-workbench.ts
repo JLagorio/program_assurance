@@ -568,6 +568,8 @@ export function useAssuranceWorkbench(programId: string) {
   return {
     query,
     baseline,
+    savedId,
+    savedRevision,
     workbook,
     proposal,
     error,

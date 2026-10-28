@@ -10,8 +10,42 @@ import {
 export const Route = createFileRoute("/programs/$programId_/requirements/$requirementId")({
   head: () => ({ meta: [{ title: "Program requirement — Program Assurance" }] }),
   pendingComponent: RecordPending,
-  validateSearch: (search: Record<string, unknown>): { tab?: RequirementTab | undefined } => ({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): {
+    tab?: RequirementTab | undefined;
+    edit?: string | undefined;
+    field?: string | undefined;
+    side?: "before" | "after" | undefined;
+    startLine?: number | undefined;
+    endLine?: number | undefined;
+  } => ({
     tab: requirementTab(search["tab"]),
+    edit:
+      typeof search["edit"] === "string" && /^[0-9a-f-]{36}$/i.test(search["edit"])
+        ? search["edit"]
+        : undefined,
+    field:
+      typeof search["field"] === "string" &&
+      [
+        "statement",
+        "acceptanceCriteria",
+        "rationale",
+        "title",
+        "requirementType",
+        "ownerPartyId",
+      ].includes(search["field"])
+        ? search["field"]
+        : undefined,
+    side: search["side"] === "before" || search["side"] === "after" ? search["side"] : undefined,
+    startLine:
+      Number.isInteger(Number(search["startLine"])) && Number(search["startLine"]) > 0
+        ? Number(search["startLine"])
+        : undefined,
+    endLine:
+      Number.isInteger(Number(search["endLine"])) && Number(search["endLine"]) > 0
+        ? Number(search["endLine"])
+        : undefined,
   }),
   component: ProgramRecord,
 });

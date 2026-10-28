@@ -1,4 +1,5 @@
-import { ContextMenu } from "@base-ui/react/context-menu";
+import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from "../../components/context-menu";
+import { Reorder, ReorderItem, ReorderHandle, type ReorderChange } from "../reorder";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { ArrowLeft, ArrowRight, ChevronDown, Copy, List, Pencil, Plus, Trash2 } from "lucide-react";
 import { useRef, useState, type ComponentProps, type KeyboardEvent, type ReactNode } from "react";
@@ -26,6 +27,9 @@ export type SpreadsheetSheetBarProps = ComponentProps<"div"> & {
   /** The host determines which actions each sheet permits; absent actions are not shown. */
   getSheetActions?: ((sheetId: string) => readonly SpreadsheetSheetAction[]) | undefined;
   onSheetAction?: ((sheetId: string, actionId: string) => void) | undefined;
+  /** Reordering is controlled; the host keeps source sheets and pending drafts protected. */
+  onSheetReorder?: ((ids: string[], change: ReorderChange) => void) | undefined;
+  isSheetReorderDisabled?: ((sheetId: string) => boolean) | undefined;
   rowCount: number;
   columnCount: number;
   onAddRows?: (() => void) | undefined;
@@ -53,8 +57,10 @@ function SheetEntry({
   onSelect,
   onAction,
   onKeyDown,
+  reorderable,
 }: {
   sheet: SpreadsheetSheet;
+  reorderable: boolean;
   active: boolean;
   disabled: boolean;
   actions: readonly SpreadsheetSheetAction[];
@@ -91,6 +97,7 @@ function SheetEntry({
       data-active={active || undefined}
       data-menu-open={open || contextOpen || undefined}
     >
+      {reorderable && <ReorderHandle size="xsmall" />}
       <Button
         ref={button}
         data-sheet-id={sheet.id}
@@ -151,16 +158,18 @@ function SheetEntry({
   );
   if (!actions.length) return tab;
   return (
-    <ContextMenu.Root
+    <ContextMenu
       open={!disabled && contextOpen}
       onOpenChange={(next) => {
         if (next) chosen.current = false;
         setContextOpen(next);
       }}
     >
-      <ContextMenu.Trigger data-slot="spreadsheet-sheet-context">{tab}</ContextMenu.Trigger>
-      <DropdownMenuContent finalFocus={finalFocus}>{menuItems()}</DropdownMenuContent>
-    </ContextMenu.Root>
+      <ContextMenuTrigger tabIndex={-1} data-slot="spreadsheet-sheet-context">
+        {tab}
+      </ContextMenuTrigger>
+      <ContextMenuContent finalFocus={finalFocus}>{menuItems()}</ContextMenuContent>
+    </ContextMenu>
   );
 }
 
@@ -172,6 +181,8 @@ export function SpreadsheetSheetBar({
   onAddSheet,
   getSheetActions,
   onSheetAction,
+  onSheetReorder,
+  isSheetReorderDisabled,
   rowCount,
   columnCount,
   onAddRows,
@@ -247,25 +258,39 @@ export function SpreadsheetSheetBar({
         </div>
         <Scroller orientation="horizontal" scrollOn="click" data-sheet-lane="tabs">
           <ScrollerViewport>
-            <div
-              ref={list}
-              role="group"
-              aria-label="Workbook sheets"
-              data-slot="spreadsheet-sheets"
+            <Reorder
+              items={sheets.map((sheet) => sheet.id)}
+              getItemLabel={(id) => sheets.find((sheet) => sheet.id === id)?.label ?? id}
+              onReorder={(ids, change) => onSheetReorder?.(ids, change)}
+              disabled={disabled || !onSheetReorder}
+              orientation="horizontal"
             >
-              {sheets.map((sheet) => (
-                <SheetEntry
-                  key={sheet.id}
-                  sheet={sheet}
-                  active={sheet.id === activeSheetId}
-                  disabled={disabled}
-                  actions={getSheetActions?.(sheet.id) ?? []}
-                  onSelect={onSheetChange ? () => onSheetChange(sheet.id) : undefined}
-                  onAction={onSheetAction ? (id) => onSheetAction(sheet.id, id) : undefined}
-                  onKeyDown={moveFocus}
-                />
-              ))}
-            </div>
+              <div
+                ref={list}
+                role="group"
+                aria-label="Workbook sheets"
+                data-slot="spreadsheet-sheets"
+              >
+                {sheets.map((sheet) => (
+                  <ReorderItem
+                    key={sheet.id}
+                    itemId={sheet.id}
+                    disabled={isSheetReorderDisabled?.(sheet.id)}
+                  >
+                    <SheetEntry
+                      reorderable={!!onSheetReorder && !isSheetReorderDisabled?.(sheet.id)}
+                      sheet={sheet}
+                      active={sheet.id === activeSheetId}
+                      disabled={disabled}
+                      actions={getSheetActions?.(sheet.id) ?? []}
+                      onSelect={onSheetChange ? () => onSheetChange(sheet.id) : undefined}
+                      onAction={onSheetAction ? (id) => onSheetAction(sheet.id, id) : undefined}
+                      onKeyDown={moveFocus}
+                    />
+                  </ReorderItem>
+                ))}
+              </div>
+            </Reorder>
           </ScrollerViewport>
           <ScrollerArrow edge="start" aria-label="Scroll sheets toward start" />
           <ScrollerArrow edge="end" aria-label="Scroll sheets toward end" />

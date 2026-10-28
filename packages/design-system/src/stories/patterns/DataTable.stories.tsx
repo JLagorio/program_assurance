@@ -2460,6 +2460,146 @@ export const KeyboardResizeMatrix: Story = {
   },
 };
 
+const liveResizeView = "data-table-example-live-resize";
+const liveResizeColumns = defineColumns<{ name: string; family: string; count: number }>((c) => [
+  c.text("name", { header: "Name", width: 120 }),
+  c.text("family", { header: "Family", minWidth: 48 }),
+  c.number("count", { header: "Count", width: 64 }),
+]);
+function LiveResizeTable({ deferred = false }: { deferred?: boolean }) {
+  const table = useDataTable({
+    columns: liveResizeColumns,
+    data: [{ name: "Program", family: "Assurance", count: 3 }],
+    label: "Resize columns",
+    resizable: true,
+    ...(deferred ? { columnResizeMode: "onEnd" as const } : {}),
+    view: liveResizeView,
+  });
+  return (
+    <div style={{ maxWidth: 640 }}>
+      <DataTable table={table} />
+    </div>
+  );
+}
+
+/** Mouse and touch resizing redraw the header and cells before release, keep the guide on the edge, and save only the completed drag. */
+export const LiveColumnResize: Story = {
+  beforeEach: () => localStorage.removeItem(viewKey(liveResizeView)),
+  render: () => <LiveResizeTable />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const doc = canvasElement.ownerDocument;
+    const handle = canvas.getByRole("separator", { name: "Resize Name" });
+    const header = handle.closest("th")!;
+    const width = () => header.getBoundingClientRect().width;
+    const before = width();
+    const start = handle.getBoundingClientRect().x;
+    const move = (delta: number) => start + direction.towardsEnd(header, delta);
+    const saved = () => readView(liveResizeView)?.sizing["name"];
+    const stored = saved();
+    fireEvent.mouseDown(handle, { clientX: start, button: 0 });
+    try {
+      for (const delta of [16, 32]) {
+        fireEvent.mouseMove(doc, { clientX: move(delta) });
+        await waitFor(() => expect(width()).toBeCloseTo(before + delta, 0));
+        await expect(handle.style.transform).toBe("");
+        await expect(saved()).toBe(stored);
+        const cell = canvas.getByRole("rowheader", { name: "Program" });
+        await expect(cell.getBoundingClientRect().width).toBeCloseTo(width(), 0);
+      }
+    } finally {
+      fireEvent.mouseUp(doc, { clientX: move(32) });
+    }
+    await waitFor(() => expect(saved()).toBeCloseTo(before + 32, 0));
+
+    const touchStart = handle.getBoundingClientRect().x;
+    const touchEnd = touchStart + direction.towardsEnd(header, 16);
+    const touchAt = (clientX: number) => new Touch({ identifier: 1, target: handle, clientX });
+    fireEvent.touchStart(handle, { touches: [touchAt(touchStart)] });
+    try {
+      fireEvent.touchMove(doc, { touches: [touchAt(touchEnd)] });
+      await waitFor(() => expect(width()).toBeCloseTo(before + 48, 0));
+      await expect(saved()).toBeCloseTo(before + 32, 0);
+    } finally {
+      fireEvent.touchEnd(doc, { touches: [], changedTouches: [touchAt(touchEnd)] });
+    }
+    await waitFor(() => expect(saved()).toBeCloseTo(before + 48, 0));
+    // Shrinking stops at the authored minimum; a reset restores that width.
+    fireEvent.mouseDown(handle, { clientX: start, button: 0 });
+    fireEvent.mouseMove(doc, { clientX: move(-200) });
+    fireEvent.mouseUp(doc, { clientX: move(-200) });
+    await waitFor(() => expect(width()).toBeCloseTo(120, 0));
+    await waitFor(() => expect(saved()).toBe(120));
+    await userEvent.dblClick(handle);
+    await waitFor(() => expect(saved()).toBeUndefined());
+  },
+};
+
+/** An explicit onEnd table keeps its guide-only preview, including its physical direction in RTL. */
+export const DeferredColumnResize: Story = {
+  beforeEach: () => localStorage.removeItem(viewKey(liveResizeView)),
+  render: () => <LiveResizeTable deferred />,
+  play: async ({ canvasElement }) => {
+    const handle = within(canvasElement).getByRole("separator", { name: "Resize Name" });
+    const header = handle.closest("th")!;
+    const before = header.getBoundingClientRect().width;
+    const start = handle.getBoundingClientRect().x;
+    const delta = direction.towardsEnd(header, 32);
+    const doc = canvasElement.ownerDocument;
+    fireEvent.mouseDown(handle, { clientX: start, button: 0 });
+    try {
+      fireEvent.mouseMove(doc, { clientX: start + delta });
+      await waitFor(() => expect(handle.style.transform).toBe(`translateX(${delta}px)`));
+      await expect(header.getBoundingClientRect().width).toBeCloseTo(before, 0);
+    } finally {
+      fireEvent.mouseUp(doc, { clientX: start + delta });
+    }
+    await waitFor(() => expect(header.getBoundingClientRect().width).toBeCloseTo(before + 32, 0));
+    await expect(handle.style.transform).toBe("");
+  },
+};
+
+/** A flexible column starts from its rendered width, so dragging or choosing Narrower never snaps to an unrelated internal default. */
+export const FlexibleColumnResize: Story = {
+  beforeEach: () => localStorage.removeItem(viewKey(liveResizeView)),
+  render: () => <LiveResizeTable />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const body = within(canvasElement.ownerDocument.body);
+    const handle = canvas.getByRole("separator", { name: "Resize Family" });
+    const header = handle.closest("th")!;
+    const width = () => header.getBoundingClientRect().width;
+    const before = width();
+    const start = handle.getBoundingClientRect().x;
+    const end = start + direction.towardsEnd(header, -24);
+    const doc = canvasElement.ownerDocument;
+    fireEvent.mouseDown(handle, { clientX: start, button: 0 });
+    try {
+      fireEvent.mouseMove(doc, { clientX: end });
+      await waitFor(() => expect(width()).toBeCloseTo(before - 24, 0));
+    } finally {
+      fireEvent.mouseUp(doc, { clientX: end });
+    }
+    await userEvent.dblClick(handle);
+    await waitFor(() => expect(width()).toBeCloseTo(before, 0));
+    await userEvent.click(canvas.getByRole("button", { name: "Family column menu" }));
+    await userEvent.click(await body.findByRole("menuitem", { name: "Narrower" }));
+    await waitFor(() => expect(width()).toBeCloseTo(before - 32, 0));
+    await userEvent.click(await body.findByRole("menuitem", { name: "Reset width" }));
+    await waitFor(() => expect(body.queryByRole("menu")).toBeNull());
+    await userEvent.click(canvas.getByRole("button", { name: "Family column menu" }));
+    // Once the requested width no longer fits, the folded menu leaves focus on a surviving header.
+    await userEvent.click(await body.findByRole("menuitem", { name: "Wider" }));
+    await userEvent.click(await body.findByRole("menuitem", { name: "Wider" }));
+    await waitFor(() =>
+      expect(canvas.queryByRole("separator", { name: "Resize Family" })).toBeNull(),
+    );
+    await waitFor(() =>
+      expect(canvas.getByRole("button", { name: "Name column menu" })).toHaveFocus(),
+    );
+  },
+};
+
 const firstView = "data-table-example-first";
 const secondView = "data-table-example-second";
 const storageRows = [{ name: "Persisted program", count: 1234 }];

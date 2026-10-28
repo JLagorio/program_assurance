@@ -1,3 +1,4 @@
+import { normalizeConditionalFormats, validateConditionalFormats } from "./conditional";
 import {
   columnName,
   hasUnrewritableReferences,
@@ -380,6 +381,67 @@ export function applyOperation(
     case "edit":
       editsInto(sheet!, operation.edits);
       break;
+    case "set-conditional-formats": {
+      validateConditionalFormats(operation.rules, sheet!);
+      if (operation.rules.length) sheet!.conditionalFormats = clone(operation.rules);
+      else delete sheet!.conditionalFormats;
+      break;
+    }
+    case "paste-cells": {
+      if (!["all", "values", "formatting"].includes(operation.mode))
+        throw new Error("Unknown paste mode.");
+      if (operation.mode === "formatting" && operation.edits.length)
+        throw new Error("Formatting paste cannot change values.");
+      if (operation.mode === "values" && operation.styles?.length)
+        throw new Error("Values paste cannot replace formatting.");
+      const styles = operation.styles ?? [];
+      if (styles.length > LIMITS.edits) throw new Error("Paste a smaller formatting range.");
+      const seen = new Set<string>();
+      for (const edit of styles) {
+        const key = JSON.stringify([edit.rowId, edit.columnId]);
+        if (seen.has(key)) throw new Error("A style occurs twice in one paste.");
+        seen.add(key);
+        if (
+          !sheet!.rows.some((row) => row.id === edit.rowId) ||
+          !sheet!.columns.some((column) => column.id === edit.columnId)
+        )
+          throw new Error("A pasted cell no longer exists.");
+        if (edit.style !== null) {
+          validateStyle(edit.style);
+          if (
+            sheet!.mode === "records" &&
+            (edit.style.format !== undefined || edit.style.decimals !== undefined)
+          )
+            throw new Error("Source field types are managed by their records.");
+        }
+      }
+      const affected = new Set([
+        ...seen,
+        ...operation.edits.map((edit) => JSON.stringify([edit.rowId, edit.columnId])),
+      ]);
+      if (affected.size > LIMITS.edits)
+        throw new Error("Paste a smaller combined value and formatting range.");
+      editsInto(sheet!, operation.edits);
+      for (const edit of styles) {
+        const cell = getCell(sheet!, edit.rowId, edit.columnId) ?? { input: "" };
+        const keepLiteral = operation.mode === "formatting" && cell.style?.format === "text";
+        if (edit.style) {
+          const replacement = clone(edit.style);
+          // Formatting paste must not turn formulas/numbers into literal text.
+          if (operation.mode === "formatting" && replacement.format === "text" && !keepLiteral) {
+            if (cell.style?.format) replacement.format = cell.style.format;
+            else delete replacement.format;
+          }
+          cell.style = {
+            ...replacement,
+            ...(keepLiteral ? { format: "text" as const } : {}),
+          };
+        } else if (keepLiteral) cell.style = { format: "text" };
+        else delete cell.style;
+        writeCell(sheet!, edit.rowId, edit.columnId, cell);
+      }
+      break;
+    }
     case "paste": {
       const width = Math.max(0, ...operation.values.map((row) => row.length));
       if (!width || !operation.values.length) return workbook;
@@ -689,6 +751,13 @@ export function applyOperation(
           ),
         ]),
       );
+      if (duplicated.conditionalFormats)
+        duplicated.conditionalFormats = duplicated.conditionalFormats.map((rule) => ({
+          ...rule,
+          id: newId("rule"),
+          rowIds: rule.rowIds.map((id) => rows.get(id)!),
+          columnIds: rule.columnIds.map((id) => columns.get(id)!),
+        }));
       next.sheets.push(duplicated);
       break;
     }
@@ -793,6 +862,7 @@ export function applyOperation(
       break;
     }
   }
+  for (const target of next.sheets) normalizeConditionalFormats(target);
   next.revision = workbook.revision + 1;
   validateWorkbook(next);
   return next;
@@ -898,6 +968,8 @@ export function validateWorkbook(value: unknown): asserts value is Workbook {
       sheet["columns"].every((column: { hidden?: boolean }) => column.hidden)
     )
       throw new Error("Keep at least one row and column visible.");
+    if (sheet["conditionalFormats"] !== undefined)
+      validateConditionalFormats(sheet["conditionalFormats"], sheet as unknown as Sheet);
     for (const [rowId, cells] of Object.entries(sheet["cells"])) {
       if (!rowIds.has(rowId) || !isObject(cells)) throw new Error("Cell refers to an unknown row.");
       for (const [columnId, cell] of Object.entries(cells)) {

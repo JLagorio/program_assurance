@@ -1,0 +1,35 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Guidance/Interaction states" />
+
+# Interaction states
+
+Use one interaction vocabulary across grids, lists, menus, editable fields and document selections. The existing semantic tokens own its colours and dimensions. A selection is retained application state; focus identifies where keyboard input goes. Neither implies an edit or a successful save.
+
+| State | Contract |
+| --- | --- |
+| Hover | Subtle surface tint and optional secondary actions. Every action also has a keyboard or visible menu path. Hover never changes selection. |
+| Selected | Selected fill or range perimeter, `aria-selected` or `aria-pressed` where the widget's semantics require it. Use `color.border.selected` for a retained range boundary. |
+| Keyboard focus | One visible focus indicator on the active control. Composite grids own one active-cell indicator; inner editors do not stack a second outer field border. |
+| Editing | Content stays aligned with its read state. Enter/Tab/Escape follow the family's documented save and cancel rules; composition and native text-selection keys remain available. |
+| Pending | Show the operation and prevent duplicate execution. Retain values, selection and reading position. A pending operation never silently clears a draft. |
+| Unavailable | Keep a useful explanation with an unavailable action. Read-only values remain readable, selectable and copyable. Permission checks belong to the host. |
+| Failure | Preserve the attempted value and give an explicit recovery path. Do not replace a loaded surface with an empty state after a refresh failure. |
+
+## Menus and commands
+
+ContextMenu and DropdownMenu use the same item parts, surface, spacing, submenus, checked states and disabled explanations. A context menu supplements visible controls. Use CommandScope's descriptors and guarded execution for the same action across shortcuts, menus and palettes; the host still authorizes the command.
+
+## Density and wrapping
+
+`compact` is a density, not a new control size. Use the established control and row dimensions, preserve touch-target minimums, and never shrink text to squeeze a toolbar into one row. Toolbar folds controls into More; SpreadsheetToolbar scrolls with visible edge controls. Menu descriptions wrap. Long values retain a reveal; manually sized spreadsheet rows preserve the chosen wrap and clipping behavior.
+
+## Selection actions and finding
+
+SelectionActions keeps a captured range usable when focus moves to an action. Fine-pointer layouts may float actions at the selection; touch and dismissed popovers use an inline row. A fixed trigger remains in the reading order. FindBar keeps query, current match and total together; the host supplies results and replacement eligibility. MatchText receives literal text and query terms, never HTML.
+
+## Lists, threads and views
+
+Reorder provides drag, keyboard and explicit move actions over stable identities. Collection selection applies only to the visible, enabled identities. ReviewThread composes Composer and Timeline; Citation composes a source locator and quoted passage. SavedViewPicker, SavedViewManager and SavedViewEditor present host-owned records and capabilities without a persistence layer.
+
+Every change to these interactions is exercised in stories at desktop and narrow widths, with keyboard, touch, right-to-left, dark and forced-colour coverage where applicable. Prototype workflows additionally verify the actual records, mutations, navigation and draft guards.

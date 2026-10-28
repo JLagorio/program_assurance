@@ -72,6 +72,7 @@ function LineChange({ line, version }: { line: Line; version: number }) {
           library changed:
         </Text>
         <Diff
+          controls
           before={line.library ?? ""}
           after={line.next ?? ""}
           beforeLabel="Library now"
@@ -82,6 +83,7 @@ function LineChange({ line, version }: { line: Line; version: number }) {
     );
   return (
     <Diff
+      controls
       before={line.now}
       after={line.next ?? ""}
       beforeLabel="Now"

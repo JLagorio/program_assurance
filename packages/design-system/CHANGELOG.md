@@ -4,10 +4,22 @@ Semantic versions. A rename or a removed prop is a major step once the package r
 then it is a minor step, and it ships with a deprecation the lint fixes (`ledger/no-deprecated-name`,
 `ledger/no-deprecated-token`) wherever one is possible. Every entry names the story that shows it.
 
+## Unreleased — shared work interactions
+
+- Added experimental ContextMenu, MatchText, FindBar and SelectionActions. ContextMenu reuses DropdownMenu items; menus preserve keyboard/native-editor behavior. Workbook menus and find, search excerpts and document selection actions use the shared parts. Stories: ContextMenu/Actions, MatchText/LiteralTerms, FindBar/Navigation, SelectionActions/CapturedRange.
+- Added controlled SavedViewPicker, SavedViewManager and SavedViewEditor, plus ReviewThread and Citation patterns. Their prototype adapters retain persistence, authorization and dirty-state protection. Stories: SavedViews, ReviewThread and Citation.
+- Added reusable Reorder parts and collection selection for ordered sheets and personal favorites. Stories: Reorder and CollectionSelection. Shared interaction guidance documents selection/focus/edit states, density, wrapping and command ownership.
+
 ## Unreleased
 
 ### Added
 
+- **DocumentReader, DocumentPage and DocumentSelectionToolbar** (experimental) provide renderer-neutral page navigation, zoom, text/region selection, normalized anchors and document-scoped review. The host supplies its renderer, content, permissions and persistence. See Patterns/DocumentReader: Reading, TextSelection, RegionSelection and AnchoredDiscussion.
+- **Comparison** (experimental) keeps two explicit surfaces mounted with independent scroll, pointer/keyboard resizing and a narrow pane switch. **Peek** (experimental) keeps destination links intact while providing informational hover/focus summaries and an explicit keyboard/touch action popup. See Patterns/Comparison: Playground and NarrowRetainsBoth; Patterns/Peek: Playground and KeyboardSummary.
+- **Diff review controls and original-line annotations** add Unified/Side by side, previous/next change focus, unchanged-context controls and host-owned discussions. Line anchors use the original side and range, with keyboard/touch selection and Shift-click extension. See Components/Diff: ReviewControls, AnnotatedReview and ReviewLineEndings.
+- **CommandPalette supports remote and contextual launchers.** Optional controlled query/filtering, host controls, result descriptions, disabled explanations and final focus preserve existing local command use. See Patterns/CommandPalette: RemoteLauncher.
+
+- Spreadsheet authoring: reusable `SpreadsheetFormatting` with mixed/protected controls; shared formula completion, argument hints and reference picking; atomic local style paste and host-calculated selection totals. See **SpreadsheetFormatting / MixedSelection** and **SpreadsheetAuthoring / FormulaAssistance**, **RichPasteRecovery** and **CalculatedStatistics**. Internal editor, formula bar, clipboard receipt, measurement and reference-gesture modules now have separate responsibilities.
 - **Spreadsheet** (experimental): a virtualized, keyboard-editable grid with formula/name bars, typed fields, ranges, rectangular clipboard, fill, resizable columns, frozen headings, local undo controls, sheet navigation, recoverable failures and optional presence. Its host supplies values, calculation and persistence. See Patterns/Spreadsheet: Playground, RectangularClipboard, KeyboardAndValidation, LargeSheet, PresenceAndSheets, RefreshFailure and Phone.
 - **CommandScope** (experimental): nested focus-owned actions shared by menus and shortcuts, with disabled-command ownership, composition/input guards and recoverable async failures. See Patterns/CommandScope: Workspace, NestedScopes and SharedActions.
 - **ChangeReview** (experimental): searchable proposed field changes with responsive rows, full text comparisons, issues, pending state and retry. Apply and persistence remain with the host. See Patterns/ChangeReview: Playground, WithIssues, Pending, ManyChanges and Phone.
@@ -19,6 +31,8 @@ then it is a minor step, and it ships with a deprecation the lint fixes (`ledger
 - **A Shell.Aside outside an AsideLayout.** It still takes the shell's aside area beside Main from the top of the page, a complementary landmark there, for this version, and logs a warning in development; the next minor version renders it in place. Give it to an AsideLayout as its `aside`. See Layout/Shell, Aside beside Main (deprecated) at 1100px, and Guidance/Upgrading, AsideLayout.
 
 ### Changed
+
+- **DataTable columns resize live.** Pointer and touch drags now update headers and cells before release, follow the reading direction, and start responsive columns from the rendered width. The guide stays aligned, responsive menu and keyboard steps use the visible width, and saved views write bounded widths on release. Explicit `columnResizeMode: "onEnd"` retains its deferred preview. See Patterns/Data table: LiveColumnResize, FlexibleColumnResize and DeferredColumnResize.
 
 - **Spreadsheet sheet navigation keeps its controls in view.** Add sheet and All sheets remain pinned beside independently scrolling tabs; dimensions and sheet tools move to a compact second lane in narrow containers. The active tab has an adjacent chevron and underline, and double-click rename respects host action permissions. See Patterns/Spreadsheet interactions: SheetNavigation, SheetActions and SheetOverflow.
 

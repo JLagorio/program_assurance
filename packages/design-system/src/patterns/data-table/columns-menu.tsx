@@ -333,6 +333,30 @@ export function HeaderMenu<TData extends RowData>({
 }) {
   const { t, direction, formatNumber } = useLedgerLocale();
   const trigger = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
+  const [displayedWidth, setDisplayedWidth] = useState<number | null>(null);
+  const readWidth = useCallback(() => {
+    const header = trigger.current?.closest("th");
+    // A nonresponsive full-width table distributes its own slack. Keep its model authoritative
+    // instead of counting that browser-added space again when setting the next width.
+    if (header?.closest<HTMLElement>('[data-slot="data-table"]')?.dataset["responsive"] !== "true")
+      return column.getSize();
+    const width = header?.getBoundingClientRect().width ?? 0;
+    return width > 0 ? width : column.getSize();
+  }, [column]);
+  // Read only while the menu is open: resizing a flexible header or the surrounding frame can
+  // change its drawn width without changing the table's stored size.
+  useLayoutEffect(() => {
+    if (!open) return;
+    const header = trigger.current?.closest("th");
+    if (!header) return;
+    const measure = () => setDisplayedWidth(readWidth());
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, [open, readWidth]);
   const shared = useContext(MoveStatusContext);
   const [ownMessage, sayOwn] = useStatus();
   const say = shared ?? sayOwn;
@@ -349,7 +373,7 @@ export function HeaderMenu<TData extends RowData>({
   // A column the handle resizes takes a width from here too, one press at a time: for a single
   // pointer, a touch screen and anyone who cannot drag (WCAG 2.5.7).
   const canResize = Boolean(meta?.resizable) && column.getCanResize();
-  const width = column.getSize();
+  const width = displayedWidth ?? column.getSize();
   const { min, max } = widthBounds(column);
   const resized = table.state.columnSizing[column.id] !== undefined;
   // A column the grip can drag moves from here too: one press each way, for the keyboard, a touch
@@ -415,17 +439,30 @@ export function HeaderMenu<TData extends RowData>({
   };
   // Wider and Narrower step as Shift and an arrow key do on the handle; Reset width returns to the
   // author's width. Once the table has redrawn, the status says the width the column now has.
-  const resize = (next: number | "reset") => {
+  const resize = (change: number | "reset") => {
     const label = labelOf(column);
-    if (next === "reset") column.resetSize();
-    else
+    const frame = trigger.current?.closest<HTMLElement>('[data-slot="table-container"]');
+    if (change === "reset") column.resetSize();
+    else {
+      const next = Math.min(max, Math.max(min, readWidth() + change));
       table.setColumnSizing((current) => ({
         ...current,
-        [column.id]: Math.min(max, Math.max(min, next)),
+        [column.id]: next,
       }));
-    requestAnimationFrame(() =>
-      say(t("columnWidthChanged", { label, width: formatNumber(column.getSize()) })),
-    );
+    }
+    requestAnimationFrame(() => {
+      if (trigger.current?.isConnected) {
+        const next = readWidth();
+        setDisplayedWidth(next);
+        say(t("columnWidthChanged", { label, width: formatNumber(next) }));
+        return;
+      }
+      // Wider can move this column into More fields. Its menu disappears with it, so keep
+      // keyboard focus in the surviving header instead of leaving it on the document body.
+      const next = frame?.querySelector<HTMLElement>("[data-column-menu-for]") ?? frame;
+      next?.focus();
+      say(t("columnFolded", { label }));
+    });
   };
   const groups = [canSort, canMove, canResize, canPin || canHide];
   // A rule between two groups that are both there.
@@ -433,7 +470,13 @@ export function HeaderMenu<TData extends RowData>({
     groups[index] && groups.slice(0, index).some(Boolean) ? <DropdownMenuSeparator /> : null;
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu
+        open={open}
+        onOpenChange={(next) => {
+          if (next) setDisplayedWidth(readWidth());
+          setOpen(next);
+        }}
+      >
         <DropdownMenuTrigger
           ref={trigger}
           render={
@@ -497,7 +540,7 @@ export function HeaderMenu<TData extends RowData>({
               <DropdownMenuItem
                 closeOnClick={false}
                 disabled={width >= max}
-                onClick={() => resize(width + WIDTH_STEP)}
+                onClick={() => resize(WIDTH_STEP)}
               >
                 <span className="flex items-center gap-100">
                   <UnfoldHorizontal className="size-icon-small icon-subtle" /> {t("widenColumn")}
@@ -506,7 +549,7 @@ export function HeaderMenu<TData extends RowData>({
               <DropdownMenuItem
                 closeOnClick={false}
                 disabled={width <= min}
-                onClick={() => resize(width - WIDTH_STEP)}
+                onClick={() => resize(-WIDTH_STEP)}
               >
                 <span className="flex items-center gap-100">
                   <FoldHorizontal className="size-icon-small icon-subtle" /> {t("narrowColumn")}

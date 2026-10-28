@@ -279,6 +279,12 @@ async function verifySavedRichFormatting(programId) {
   );
   const analysis = saved.document.analysis.sheets.find((entry) => entry.name === "Analysis");
   assert.ok(analysis);
+  assert.equal(analysis.conditionalFormats?.length, 1, "The authored conditional rule is saved");
+  assert.equal(
+    analysis.conditionalFormats[0].style.bold,
+    undefined,
+    "An unchecked bold option inherits typography instead of clearing font emphasis",
+  );
   const cell = analysis.cells[analysis.rows[11].id][analysis.columns[1].id];
   for (const [key, value] of Object.entries(richFormat)) assert.equal(cell.style[key], value);
   for (const key of ["bold", "underline", "strikethrough", "wrap"])
@@ -574,12 +580,26 @@ async function verifyCrossSheetClipboard() {
   await page.getByRole("button", { name: "Paste", exact: true }).click();
   assert.equal(
     await (await selectCell("E18")).inputValue(),
-    "'=1+1",
-    "Copying a text-formatted cell into a general cell does not turn it into a formula",
+    "=1+1",
+    "Rich copy retains literal source text while carrying its authored Text format",
+  );
+  assert.equal(
+    await page
+      .getByRole("combobox", { name: "Number format", exact: true })
+      .getAttribute("aria-description"),
+    "Current format: Text",
+    "The incoming text format prevents formula evaluation without adding an authored apostrophe",
   );
   await page.getByRole("gridcell", { name: /^E18, .*: =1\+1$/ }).waitFor();
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   assert.equal(await (await selectCell("E18")).inputValue(), "");
+  assert.equal(
+    await page
+      .getByRole("combobox", { name: "Number format", exact: true })
+      .getAttribute("aria-description"),
+    "Current format: General",
+    "One undo restores both the destination value and its previous format",
+  );
   await sheet("Analysis");
   console.log(
     "Cross-sheet copy preserves evaluated values, relative formulas and literal text across source and analysis tabs.",
@@ -951,6 +971,137 @@ async function verifyColumnControls(width) {
   );
 }
 
+async function verifyCheckboxLabel(dialog, name) {
+  const checkbox = dialog.getByRole("checkbox", { name, exact: true });
+  const label = dialog.getByText(name, { exact: true });
+  assert.ok(await checkbox.isVisible(), `${name} has an accessible checkbox`);
+  assert.ok(await label.isVisible(), `${name} has a visible label`);
+  assert.equal(await checkbox.isChecked(), false);
+  await label.click();
+  assert.equal(await checkbox.isChecked(), true, `${name} label activates its checkbox`);
+  await label.click();
+  assert.equal(await checkbox.isChecked(), false, `${name} can be cleared`);
+}
+
+async function verifyAuthoringTools() {
+  await sheet("Analysis");
+  await editCell("A25", "7");
+  await editCell("B25", "8");
+  await editCell("C25", "=SUM(A25:B25)");
+  await page.getByRole("gridcell", { name: /^C25, .*: 15$/ }).waitFor();
+  await selectCell("A25");
+  await page
+    .getByRole("grid", { name: "Analysis spreadsheet", exact: true })
+    .press("Shift+ArrowRight");
+  await page
+    .locator('[data-slot="spreadsheet-summary"]')
+    .getByText(/Sum.*15/)
+    .waitFor();
+  await selectCell("A25");
+  await page.getByRole("button", { name: "Conditional formatting", exact: true }).click();
+  const rules = page.getByRole("dialog", { name: "Conditional formatting", exact: true });
+  assert.equal(
+    await rules.getByRole("combobox", { name: "Condition type", exact: true }).textContent(),
+    "Number",
+  );
+  assert.equal(
+    await rules.getByRole("combobox", { name: "Comparison", exact: true }).textContent(),
+    "Greater than",
+  );
+  await verifyCheckboxLabel(rules, "Bold text");
+  await rules.getByRole("combobox", { name: "Condition type", exact: true }).click();
+  await page.getByRole("option", { name: "Text", exact: true }).click();
+  await verifyCheckboxLabel(rules, "Match case");
+  await rules.getByRole("combobox", { name: "Condition type", exact: true }).click();
+  await page.getByRole("option", { name: "Number", exact: true }).click();
+  await rules.getByRole("textbox", { name: "Compare with", exact: true }).fill("5");
+  await rules.getByRole("button", { name: "Add rule", exact: true }).click();
+  await rules.getByText(/Rule 1: Greater than 5/).waitFor();
+  await rules
+    .locator('[data-slot="dialog-footer"]')
+    .getByRole("button", { name: "Close", exact: true })
+    .click();
+  const cell = (address) => page.getByRole("gridcell", { name: new RegExp(`^${address},`) });
+  assert.equal(
+    await cell("A25").evaluate((node) =>
+      node.style.getPropertyValue("--spreadsheet-cell-background"),
+    ),
+    "#fff2cc",
+  );
+  await page.getByRole("button", { name: "Bold", exact: true }).click();
+  const menu = async (address, label) => {
+    await selectCell(address);
+    await cell(address).click({ button: "right" });
+    await page.getByRole("menuitem", { name: label, exact: true }).click();
+  };
+  await menu("A25", "Copy");
+  await menu("A27", "Paste");
+  assert.equal(await (await selectCell("A27")).inputValue(), "7");
+  assert.equal(await cell("A27").getAttribute("data-bold"), "true");
+  assert.notEqual(
+    await cell("A27").evaluate((node) =>
+      node.style.getPropertyValue("--spreadsheet-cell-background"),
+    ),
+    "#fff2cc",
+    "Conditional output is not copied as authored style",
+  );
+  await editCell("B27", "Keep this value");
+  await menu("A25", "Copy");
+  await menu("B27", "Paste formatting");
+  assert.equal(await (await selectCell("B27")).inputValue(), "Keep this value");
+  assert.equal(await cell("B27").getAttribute("data-bold"), "true");
+  await editCell("A26", "WorkbenchNeedle");
+  await page.getByRole("button", { name: "Find and replace", exact: true }).click();
+  const find = page.getByRole("dialog", { name: "Find and replace", exact: true });
+  assert.equal(
+    await find.getByRole("combobox", { name: "Search scope", exact: true }).textContent(),
+    "Current sheet",
+  );
+  assert.equal(
+    await find.getByRole("combobox", { name: "Search values", exact: true }).textContent(),
+    "Authored inputs",
+  );
+  await verifyCheckboxLabel(find, "Match case");
+  await verifyCheckboxLabel(find, "Whole cell");
+  await find.getByRole("textbox", { name: "Find", exact: true }).fill("WorkbenchNeedle");
+  await find.getByRole("textbox", { name: "Replace with", exact: true }).fill("Replaced once");
+  await find.getByRole("button", { name: "Replace all editable matches", exact: true }).click();
+  await find.getByText(/Replaced 1 cells/).waitFor();
+  await find
+    .locator('[data-slot="dialog-footer"]')
+    .getByRole("button", { name: "Close", exact: true })
+    .click();
+  assert.equal(await (await selectCell("A26")).inputValue(), "Replaced once");
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  assert.equal(await (await selectCell("A26")).inputValue(), "WorkbenchNeedle");
+  await page.getByRole("button", { name: "Redo", exact: true }).click();
+  await page.getByRole("button", { name: "Saved views", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Save current view…", exact: true }).click();
+  const saveView = page.getByRole("dialog", { name: "Save current view", exact: true });
+  await saveView.getByRole("textbox", { name: "Name", exact: true }).fill("Analysis working view");
+  await saveView.getByRole("button", { name: "Save current view", exact: true }).click();
+  await saveView.waitFor({ state: "hidden" });
+  await page.getByRole("button", { name: "Saved views", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Manage saved views…", exact: true }).click();
+  const managedViews = page.getByRole("dialog", { name: "Saved views", exact: true });
+  await managedViews.getByRole("button", { name: "Edit", exact: true }).click();
+  const editView = page.getByRole("dialog", { name: "Edit saved view", exact: true });
+  await verifyCheckboxLabel(editView, "Replace settings with the current view");
+  await editView.getByRole("button", { name: "Cancel", exact: true }).click();
+  await managedViews
+    .locator('[data-slot="dialog-footer"]')
+    .getByRole("button", { name: "Close", exact: true })
+    .click();
+  await sheet("Requirements");
+  await page.getByRole("button", { name: "Saved views", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Analysis working view", exact: true }).click();
+  await page.getByRole("grid", { name: "Analysis spreadsheet", exact: true }).waitFor();
+  await selectCell("A25");
+  console.log(
+    "Workbook find/replace+undo, conditional rules, rich paste, calculated totals and named views verified.",
+  );
+}
+
 try {
   const program = await insert("programs", {
     code: "WORKBOOK-UI",
@@ -1092,6 +1243,11 @@ try {
   // Click Review directly while the cell draft is active. An actual pointer prevents
   // locator waiting from concealing a focus-settlement race.
   const reviewButton = page.getByRole("button", { name: /^Review changes(?: \(\d+\))?$/ });
+  assert.equal(
+    await reviewButton.isEnabled(),
+    true,
+    "Review remains focusable during a source draft so its first pointer click can settle and review it",
+  );
   const reviewBounds = await reviewButton.boundingBox();
   assert.ok(reviewBounds);
   await page.mouse.click(
@@ -1316,6 +1472,7 @@ try {
   const savedComment = await verifyCellMetadata();
   await verifyAutomaticRowSizing();
   await captureWorkbookContexts();
+  await verifyAuthoringTools();
   await page.getByRole("button", { name: "Save analysis", exact: true }).click();
   await page
     .getByText("Analysis and sheet layout saved. Staged source edits remain unapplied.", {
@@ -1338,6 +1495,37 @@ try {
   await page.getByRole("gridcell", { name: /^B12, .*: 12$/ }).waitFor();
   await page.screenshot({ path: "/tmp/program-assurance-workbook-desktop.png", fullPage: true });
   console.log("Analysis calculation, history and persisted reload verified.");
+  await selectCell("A25");
+  assert.equal(
+    await page
+      .getByRole("gridcell", { name: /^A25,/ })
+      .evaluate((node) => node.style.getPropertyValue("--spreadsheet-cell-background")),
+    "#fff2cc",
+    "Conditional rule survives reload",
+  );
+  await page.getByRole("button", { name: "Discuss selected cell", exact: true }).click();
+  const cellReview = page.getByRole("dialog", { name: "Cell review", exact: true });
+  await cellReview
+    .getByRole("textbox", { name: "Start a review discussion", exact: true })
+    .fill("Verify this saved calculation");
+  await cellReview.getByRole("button", { name: "Start discussion", exact: true }).click();
+  await cellReview
+    .getByRole("button", { name: "Verify this saved calculation", exact: true })
+    .waitFor();
+  await cellReview
+    .locator('[data-slot="dialog-footer"]')
+    .getByRole("button", { name: "Close", exact: true })
+    .click();
+  const cellThread = await data(
+    client
+      .from("assurance_review_threads")
+      .select("target")
+      .eq("tenant_id", tenantId)
+      .eq("subject", "Verify this saved calculation")
+      .single(),
+  );
+  assert.equal(cellThread.target.kind, "cell");
+  assert.equal(cellThread.target.rowId, "analysis-row-25");
   await verifySavedRichFormatting(program.id);
   await verifySavedContextActions(sheetContext, savedComment);
   await verifySavedRowSizing(program.id);
@@ -1360,6 +1548,17 @@ try {
     formula: "SUM(A12,5)",
     result: 12,
   });
+  const exportedRules = exportedWorkbook.getWorksheet("Analysis").conditionalFormattings;
+  assert.ok(
+    exportedRules.some(
+      (rule) =>
+        /^A25(?::A25)?$/.test(rule.ref) &&
+        rule.rules.some((condition) =>
+          condition.formulae?.some((formula) => formula.includes("A25>5")),
+        ),
+    ),
+    "XLSX retains the authored conditional rule and its target range",
+  );
   const incoming = new ExcelJS.Workbook();
   const importedSheet = incoming.addWorksheet("Imported analysis");
   importedSheet.getCell("A1").value = 8;
@@ -1525,6 +1724,32 @@ try {
     "The reviewed calculated value is stored as source text",
   );
   assert.equal(transformed.revision, afterRetry.revision + 1);
+  await page.setViewportSize({ width: 1440, height: 1050 });
+  await sheet("Analysis");
+  await selectCell("A25");
+  await page.getByRole("button", { name: "Copy", exact: true }).focus();
+  await page.keyboard.press("Escape");
+  await page.mouse.move(650, 105);
+  await page.getByRole("tooltip").waitFor({ state: "hidden" });
+  await page.screenshot({
+    path: "/private/tmp/macro-workbook-final-desktop.png",
+    fullPage: true,
+    animations: "disabled",
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: "Conditional formatting", exact: true }).click();
+  const mobileRules = page.getByRole("dialog", { name: "Conditional formatting", exact: true });
+  await mobileRules.getByText(/Rule 1: Greater than 5/).waitFor();
+  await assertFits(390);
+  await page.screenshot({
+    path: "/private/tmp/macro-workbook-final-authoring-mobile.png",
+    fullPage: true,
+    animations: "disabled",
+  });
+  await mobileRules
+    .locator('[data-slot="dialog-footer"]')
+    .getByRole("button", { name: "Close", exact: true })
+    .click();
   assert.deepEqual(errors, [], "No application page errors");
   console.log(
     "PASS: real sheet/cell/header context menus, protected source sheets, persisted comments/dropdowns and sheet identity/order, right-click sizing/hiding/insertion, desktop and 390px unified toolbar/column controls, field filters, reversible analysis column insertion, workbook/matrix/pivot, multiline inline edits and direct Review, choice dismissal/selection, owner labels and filtering, staged requirement/SCTM edits, atomic review/apply, persisted analysis, worker formulas/undo/redo, XLSX export/import, mobile edits, lost-response recovery with one exact retry/revision/audit event, and reviewed formula transformation into a requirement.",

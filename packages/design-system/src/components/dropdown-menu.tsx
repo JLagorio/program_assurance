@@ -75,7 +75,7 @@ function sized<Style extends CSSProperties | undefined>(defaults: CSSProperties,
 }
 
 /** The popup a menu and a submenu share; `slot` names which it is, after the caller's props. */
-function MenuContent({
+export function MenuContent({
   slot,
   align = "start",
   alignOffset = 0,

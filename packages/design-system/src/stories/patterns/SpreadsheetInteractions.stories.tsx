@@ -108,7 +108,11 @@ function ControlledGrid(args: SpreadsheetProps) {
 
 async function closeMenus(document: Document) {
   await waitFor(() =>
-    expect(document.querySelector('[data-slot="dropdown-menu-content"]')).not.toBeInTheDocument(),
+    expect(
+      document.querySelector(
+        '[data-slot="dropdown-menu-content"], [data-slot="context-menu-content"]',
+      ),
+    ).not.toBeInTheDocument(),
   );
 }
 
@@ -235,6 +239,10 @@ function ControlledSheets(args: SpreadsheetProps) {
       sheets={sheets}
       activeSheetId={active}
       onSheetChange={setActive}
+      onSheetReorder={(ids, change) => {
+        args.onSheetReorder?.(ids, change);
+        setSheets((current) => ids.map((id) => current.find((sheet) => sheet.id === id)!));
+      }}
       getSheetActions={(id) => [
         { id: "rename", label: "Rename" },
         { id: "duplicate", label: "Duplicate" },
@@ -1069,5 +1077,33 @@ export const LiteralClipboard: Story = {
     ]);
     await expect(cell("A1")).toHaveAccessibleName("A1, Literal: =1+1");
     await expect(cell("A3")).toHaveAccessibleName("A3, Literal: =1+1");
+  },
+};
+
+/** Shared Reorder handles change order without switching the selected sheet. */
+export const SheetOrdering: Story = {
+  name: "Sheet ordering",
+  args: { onSheetReorder: fn() },
+  render: (args) => <ControlledSheets {...args} />,
+  play: async ({ canvas, canvasElement, args }) => {
+    const user = userEvent.setup({ document: canvasElement.ownerDocument });
+    canvas.getByRole("button", { name: "Reorder Archive" }).focus();
+    await user.keyboard(" ");
+    await user.keyboard(arrows(canvasElement).previous);
+    await user.keyboard(" ");
+    await waitFor(() =>
+      expect(args.onSheetReorder).toHaveBeenCalledWith(["archive", "plan", "forecast"], {
+        id: "archive",
+        from: 1,
+        to: 0,
+      }),
+    );
+    await expect(canvas.getByRole("button", { name: "Plan" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(
+      canvasElement.querySelector('[data-slot="spreadsheet-sheets"] button[data-sheet-id]'),
+    ).toHaveAttribute("data-sheet-id", "archive");
   },
 };

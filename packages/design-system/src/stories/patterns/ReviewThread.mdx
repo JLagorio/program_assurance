@@ -1,0 +1,29 @@
+import { Meta, Canvas, ArgTypes } from "@storybook/addon-docs/blocks";
+import { ReviewThread } from "../..";
+import * as Stories from "./ReviewThread.stories";
+
+<Meta of={Stories} />
+
+# ReviewThread
+
+**Status: Experimental.**
+
+A controlled discussion presentation: captured source context, current status and resolve/reopen action, a Composer, parent-reply context, a Timeline of comments and events, and host-owned history navigation. The component establishes one layout for reviews attached to a record, document passage, change or spreadsheet cell. It has no knowledge of those identities.
+
+<Canvas of={Stories.Basic} />
+
+Supply localized `historyLabel`, `status` and action labels. Each `messages` entry has a stable id, an author, an optional ISO `dateTime`, optional parent/event metadata, a body (usually Prose), and an optional reply action. Timeline formats dates through LedgerProvider. Omit actions and the composer for a read-only thread; do not infer permission from its open/resolved state. Native div props and ref reach the root.
+
+The `composer` slot accepts the existing Composer; pass its controlled value and `onValueChange` when the surrounding dialog guards a draft. Composer serializes submission, clears only a fulfilled send, retains rejected text and returns focus to its field. The application must reject its submission promise on failure. `replyTarget` only describes the selected parent; cancelling it does not clear text. The host can focus its Composer ref when selecting a reply, as this example does.
+
+<Canvas of={Stories.RepliesAndResolution} />
+
+`statusAction` and entry `reply` actions accept a visible label, optional `accessibleLabel`, an `onSelect` callback and disabled/pending states. A pending action uses Button's loading behavior. The host must handle asynchronous failures, pending permissions and writes, and disable the composer or other actions when needed. The component does not optimistically resolve, mutate messages, or announce a success before the application provides the updated state.
+
+<Canvas of={Stories.Pending} />
+<Canvas of={Stories.ReadOnlyAndEvents} />
+<Canvas of={Stories.LongContent} />
+
+Use `context` for an immutable quote and `footer` for pagination; the host owns data loading, errors, identity, sorting and page boundaries. Wrap the whole pattern in the existing Dialog, Sheet, Section or reader panel according to the task. Those parents retain focus return, dirty-close confirmation, pending dismissal protection and navigation. A source quote or an open discussion never asserts approval of the underlying record.
+
+<ArgTypes of={ReviewThread} />

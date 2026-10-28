@@ -112,7 +112,7 @@ jobs:
         run: npm run test:docs -- --static packages/design-system/storybook-static
   product-patterns:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 55
     env:
       APP_TEST_URL: http://127.0.0.1:8080
       PATTERN_ARTIFACT_DIR: artifacts/pattern-checks
@@ -126,7 +126,7 @@ jobs:
         with:
           version: 2.107.0
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium firefox webkit
       - name: Start an isolated local database with the committed migrations
         run: supabase start
       - name: Load pinned reference data and public browser settings
@@ -142,6 +142,16 @@ jobs:
           done
           curl --fail --silent http://127.0.0.1:8080 > /dev/null
           npm run test:patterns
+      - name: Workbook records, real workers and recovery persist through the complete workflow
+        run: npm run test:workbook
+      - name: Real formula and file workers run in Firefox and WebKit
+        run: BROWSER=firefox node scripts/test-spreadsheet-core-browser.mjs && BROWSER=webkit node scripts/test-spreadsheet-core-browser.mjs
+      - name: Saved views, evidence citations, review threads, search and attention persist with workspace isolation
+        run: npm run test:workspace-capabilities
+      - name: Evidence reading, anchored changes, comparison and personal navigation work end to end
+        run: npm run test:review-workspace
+      - name: Shared interaction workflows
+        run: npm run test:shared-interactions
       - name: Every product screen passes axe and logs no errors, within its allowance
         run: npm run test:app-a11y
       - uses: actions/upload-artifact@v4

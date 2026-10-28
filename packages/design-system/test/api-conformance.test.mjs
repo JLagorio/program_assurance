@@ -389,6 +389,7 @@ if (process.env.LEDGER_CONFORMANCE_PRINT === "1") {
  * Each must set it before; every other part sets it after.
  */
 const BASE_PARTS = {
+  ContextMenuTrigger: "Spreadsheet renders it as its viewport",
   Alert: "ErrorSummary and the search and palette errors render it",
   AlertDialogCancel: "an AlertDialogAction with no command renders it",
   AlertDialogDescription: "an overlay's description",
@@ -443,6 +444,7 @@ const EXCEPTIONS = {
   CommandSeparator: {
     className: "cmdk's Separator renders as its child through asChild, the div that takes it",
   },
+  ContextMenu: both(STATE_ROOT),
   Dialog: both(STATE_ROOT),
   DragContext: both(DRAG),
   Drawer: both(STATE_ROOT),

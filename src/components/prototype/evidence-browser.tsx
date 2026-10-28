@@ -1,4 +1,7 @@
-import { useCallback, useMemo, useRef, useState, type RefObject } from "react";
+import { EvidenceReaderWorkspace, type EvidenceReaderWorkspaceProps } from "./evidence-reader";
+import { AssuranceReviewPanel } from "./assurance-review";
+import { AssuranceCitations } from "./assurance-review-citations";
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   Absent,
@@ -19,6 +22,7 @@ import {
   Prose,
   Section,
   Stack,
+  TextLink,
   useDataTable,
   type FilterOption,
   type Preset,
@@ -241,18 +245,64 @@ const presets: Preset[] = [
 const later = <T extends { revision: number }>(a: T | undefined, b: T | undefined) =>
   a && b ? (b.revision > a.revision ? b : a) : (a ?? b);
 
-export function EvidenceBrowser({ programId }: { programId?: string }) {
+export function EvidenceBrowser(props: {
+  programId?: string | undefined;
+  initialArtifactId?: string | undefined;
+  initialVersionId?: string | undefined;
+  reader?: boolean | undefined;
+  citationId?: string | undefined;
+  sourceSha?: string | undefined;
+  initialLocation?: EvidenceReaderWorkspaceProps["initialLocation"];
+  citationTarget?: EvidenceReaderWorkspaceProps["target"];
+}) {
+  if (props.reader || props.citationId)
+    return (
+      <EvidenceReaderWorkspace
+        versionId={props.initialVersionId}
+        citationId={props.citationId}
+        sourceSha={props.sourceSha}
+        initialLocation={props.initialLocation}
+        target={props.citationTarget}
+      />
+    );
+  return <EvidenceRegister {...props} />;
+}
+function EvidenceRegister({
+  programId,
+  initialArtifactId,
+  initialVersionId,
+}: {
+  programId?: string | undefined;
+  initialArtifactId?: string | undefined;
+  initialVersionId?: string | undefined;
+}) {
   const workspace = useWorkspace();
   const navigate = useNavigate();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(initialArtifactId ?? null);
   // The artifact the reader opened or saved last, while the page may not hold it.
   const [held, setHeld] = useState<Artifact | null>(null);
-  const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
+  const [selectedVersionId, setSelectedVersionId] = useState<string | null>(
+    initialVersionId ?? null,
+  );
+  const linkedVersion = useRow(
+    "evidence_versions",
+    initialVersionId && !initialArtifactId ? initialVersionId : null,
+  );
+  useEffect(() => {
+    if (linkedVersion.data && selectedVersionId === initialVersionId)
+      setSelectedId(linkedVersion.data.artifact_id);
+  }, [linkedVersion.data, selectedVersionId, initialVersionId]);
   // A preview belongs to its tab: it ends when a program tab hides this register.
   useEndOnHide(() => {
     setSelectedId(null);
     setSelectedVersionId(null);
   });
+  // Restore URL intent after effect replay. Manual close changes selection, not these
+  // props, so the preview stays closed until the address identifies another source.
+  useEffect(() => {
+    if (initialArtifactId) setSelectedId(initialArtifactId);
+    if (initialVersionId) setSelectedVersionId(initialVersionId);
+  }, [initialArtifactId, initialVersionId]);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState<FormTarget | null>(null);
   const openPreview = useCallback(
@@ -715,9 +765,12 @@ function EvidenceVersion({ version }: { version: Row<"evidence_versions"> }) {
         {/* Authored text reads as a paragraph at every width, not squeezed beside a label. */}
         {version.provenance ? <Prose label="Provenance">{version.provenance}</Prose> : null}
       </Section>
+      <TextLink href={`/evidence?version=${version.id}&reader=true`}>Read document</TextLink>
       {collection && <EvidenceFile collection={collection} record={version as DataRecord} />}
       <EvidenceSupport versionId={version.id} />
       <EvidenceReviews versionId={version.id} />
+      <AssuranceCitations evidenceVersionId={version.id} />
+      <AssuranceReviewPanel target={{ kind: "evidence", recordId: version.id }} />
     </Stack>
   );
 }
@@ -831,7 +884,7 @@ function EvidenceSupport({ versionId }: { versionId: string }) {
           <SupportedRequirement revisionId={id} />
         ) : (
           <RecordLink table={link.target as TableName} record={{ id }}>
-            <RelationName table={link.target as TableName} id={id} />
+            <RelationName table={link.target as TableName} id={id} peek={false} />
           </RecordLink>
         );
       },

@@ -9,10 +9,10 @@ import type { DataTableInstance } from "./use-data-table";
  * The reader's view: column order, widths, visibility, pins, wrapped columns, density and page
  * size, per table, per browser. This keeps the layout; `useTableQuery` keeps the question (search,
  * sort, filters, page) in the URL or the session. Read before the first paint and applied over the
- * author's defaults; written on every change of those slices. A stored column the table no longer
- * has is dropped; a column added since the layout was stored takes the author's place, visibility
- * and pin; a column the reader cannot hide shows. A layout stored under another author version is
- * discarded.
+ * author's defaults; written on every change of those slices, after release for a column resize.
+ * A stored column the table no longer has is dropped; a column added since the layout was stored
+ * takes the author's place, visibility and pin; a column the reader cannot hide shows. A layout
+ * stored under another author version is discarded.
  */
 
 /** Reads the stored view before the first paint, applies it, and stores every change after that. */
@@ -24,6 +24,7 @@ export function useViewStore<TData extends RowData>(
   const loaded = useRef<string | null>(null);
   const skipWrite = useRef(false);
   const { columnOrder, columnSizing, columnVisibility, columnPinning } = table.state;
+  const isResizing = table.state.columnResizing.isResizingColumn !== false;
   const density = table.options.meta?.density;
   const wrapped = table.options.meta?.wrapped;
   const pageSize =
@@ -82,12 +83,22 @@ export function useViewStore<TData extends RowData>(
       skipWrite.current = false;
       return;
     }
+    // Live widths repaint during a drag; synchronous storage only needs its final layout.
+    if (isResizing) return;
+    const columns = new Map(table.getAllLeafColumns().map((column) => [column.id, column]));
     writeView(
       view,
       {
-        known: table.getAllLeafColumns().map((column) => column.id),
+        known: [...columns.keys()],
         order: columnOrder,
-        sizing: columnSizing,
+        // Drag state can exceed the column bounds. Persist its rendered width so a zero or
+        // oversized raw value cannot invalidate the entire stored layout on the next visit.
+        sizing: Object.fromEntries(
+          Object.entries(columnSizing).map(([id, size]) => [
+            id,
+            Math.min(10000, Math.max(1, columns.get(id)?.getSize() ?? size)),
+          ]),
+        ),
         visibility: columnVisibility,
         pinning: { start: columnPinning.start, end: columnPinning.end },
         ...(density ? { density } : {}),
@@ -102,6 +113,7 @@ export function useViewStore<TData extends RowData>(
     columnSizing,
     columnVisibility,
     columnPinning,
+    isResizing,
     density,
     pageSize,
     wrapped,

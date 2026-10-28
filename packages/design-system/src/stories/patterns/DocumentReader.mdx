@@ -1,0 +1,32 @@
+import { Meta, Canvas, ArgTypes } from "@storybook/addon-docs/blocks";
+import * as Stories from "./DocumentReader.stories";
+import { DocumentPage, DocumentSelectionToolbar } from "../..";
+
+<Meta of={Stories} />
+
+# DocumentReader
+
+**Status: Experimental.** A paged document workspace with fit-to-width zoom, a scrollable page and an optional document-scoped review area. It contains no PDF engine, data fetching or persistence.
+
+<Canvas of={Stories.Reading} />
+
+`DocumentReader` controls page/zoom through callbacks. Invalid page input reverts to the current page. Previous/next are unavailable at the boundaries. Fit page width sets zoom to 1; the allowed toolbar range is 50–300%. The page scrolls inside the reader rather than widening its host. The review area wraps below the page in a narrow container.
+
+`DocumentPage` receives the renderer's original dimensions and selectable content. Text selection must start and end on this page. A pointer release or keyboard selection captures text and a normalized rectangle, independent of zoom. `mode="region"` allows a pointer/touch drag for scanned images; it returns empty text and the host must ask for a transcription. Page rectangles are measured from the displayed page's top-left, with x/y/width/height in 0–1. Cross-page selections are intentionally unsupported.
+
+<Canvas of={Stories.TextSelection} />
+<Canvas of={Stories.RegionSelection} />
+
+`DocumentSelectionToolbar` keeps the captured selection available when focus moves to actions. Callers omit unsupported actions. Cite, Discuss and Copy link are callbacks: the package makes no network call and never writes the clipboard. `onClear` dismisses the capture.
+
+`DocumentPage` anchors are native buttons with an accessible label, selected state and keyboard focus treatment. The host supplies their normalized rectangles and reacts to activation; selected discussion, original version/hash and stale anchor handling belong to the application. Passing a ref and native attributes reaches each part's outer DOM node.
+
+<Canvas of={Stories.AnchoredDiscussion} />
+
+For PDFs, supply a canvas and aligned selectable text layer. Keep PDF parsing and worker loading in the adapter, load lazily, cancel rendering on page changes, validate private file identity and respect document extraction permissions. This kit part neither authenticates nor verifies a citation.
+
+<ArgTypes of={Stories.Reading} />
+<ArgTypes of={DocumentPage} />
+<ArgTypes of={DocumentSelectionToolbar} />
+
+Pass a live `anchor` to DocumentSelectionToolbar to use SelectionActions beside a captured passage. The fixed keyboard trigger remains available; touch and Escape use the inline actions. The selection data stays captured while the actions take focus.

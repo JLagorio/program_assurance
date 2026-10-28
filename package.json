@@ -51,7 +51,10 @@
     "eval:lint": "node evals/run.mjs",
     "test:app-a11y": "node scripts/test-app-a11y.mjs",
     "test:docs": "node scripts/check-docs-render.mjs",
-    "test:workbook": "npm test -w packages/spreadsheet-core && node scripts/test-assurance-workbook-backend.mjs && node scripts/test-spreadsheet-core-browser.mjs && node scripts/test-assurance-workbench.mjs"
+    "test:workspace-capabilities": "node scripts/test-workspace-capabilities-backend.mjs && node scripts/test-workspace-attention-identity.mjs && node scripts/test-assurance-review-backend.mjs && node scripts/test-workspace-capabilities-browser.mjs && node scripts/test-assurance-review-browser.mjs",
+    "test:workbook": "npm test -w packages/spreadsheet-core && node scripts/test-assurance-workbook-backend.mjs && node scripts/test-spreadsheet-core-browser.mjs && node scripts/test-assurance-workbench.mjs",
+    "test:review-workspace": "node scripts/test-evidence-anchors-backend.mjs && node scripts/test-evidence-reader-browser.mjs && node scripts/test-requirement-change-review.mjs && node scripts/test-record-comparison-browser.mjs && node scripts/test-workspace-navigation-backend.mjs && node scripts/test-workspace-navigation-browser.mjs",
+    "test:shared-interactions": "node scripts/test-saved-views-browser.mjs && node scripts/test-collection-interactions-browser.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
@@ -106,6 +109,7 @@
     "embla-carousel-react": "^8.6.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.575.0",
+    "pdfjs-dist": "5.4.624",
     "react": "^19.2.0",
     "react-day-picker": "^10.0.1",
     "react-dom": "^19.2.0",

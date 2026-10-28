@@ -1,0 +1,25 @@
+import { Meta, Canvas, ArgTypes } from "@storybook/addon-docs/blocks";
+import { Peek } from "../..";
+import * as Stories from "./Peek.stories";
+
+<Meta of={Stories} />
+
+# Peek
+
+**Status: Experimental.**
+
+A real destination link with two accessible preview paths. Pointer hover and keyboard focus show an informational HoverCard. The adjacent labelled Preview button opens a Popover containing the same summary plus actions; it is always available to keyboard and touch users. The link retains normal click, modified click and open-in-new-tab behavior.
+
+<Canvas of={Stories.Playground} />
+
+Pass a TextLink or router-backed link as `trigger`, a concise summary such as Glance as children, and host-owned navigation/compare actions. `onOpenChange(true)` is the lazy-fetch boundary: constructing a table of links need not fetch their full records. Display loading, missing and retry states in the content. The pattern never owns a query, record identity, router, permission decision or comparison state.
+
+<Canvas of={Stories.KeyboardSummary} />
+
+The hover summary contains information only. Interactive actions belong in the explicit popup, reachable through its button without intercepting link navigation. Escape closes the popup and returns focus to its trigger. The popup remains inside an enclosing dialog's focus scope. Give `label` the record name, such as “Preview service policy”; the application translates it. Native span props and ref reach the root; anchor props and ref belong on `trigger`.
+
+A long link truncates within its available width while the preview button keeps its full target, including inside a narrow KeyValue or Inspector. The full name remains in the link’s accessible name and the opened summary.
+
+<Canvas of={Stories.ConstrainedFact} />
+
+<ArgTypes of={Peek} />

@@ -9,7 +9,7 @@ import * as Stories from "./CommandPalette.stories";
 
 **Status: Stable.**
 
-A ⌘K palette over a page or a record: a field at the top, the commands under headings, a shortcut at the end of the ones that have one, the keys in the footer. Choosing a command closes the palette and runs it. The commands are plain objects the caller supplies, so the palette stays presentational and every page can reuse it; `useCommandPalette` holds the open state and toggles it on ⌘K on Apple platforms and Ctrl+K elsewhere, anywhere on the page. It runs a command; it does not pick a record, which is the [RecordPicker](?path=/docs/patterns-recordpicker--docs), and it does not search the product, which is the [SearchDialog](?path=/docs/patterns-searchdialog--docs) behind the top nav's search.
+A ⌘K palette over a page or a record: a field at the top, the commands under headings, a shortcut at the end of the ones that have one, the keys in the footer. Choosing a command closes the palette and runs it. The commands are plain objects the caller supplies, so the palette stays presentational and every page can reuse it; `useCommandPalette` holds the open state and toggles it on ⌘K on Apple platforms and Ctrl+K elsewhere, anywhere on the page. It runs a command; it does not pick a record, which is the [RecordPicker](?path=/docs/patterns-recordpicker--docs), and it can combine navigation commands with page actions in a single workspace launcher. [SearchDialog](?path=/docs/patterns-searchdialog--docs) remains the simpler choice for record-only search.
 
 <Canvas of={Stories.CommandPaletteStory} />
 
@@ -30,7 +30,11 @@ A ⌘K palette over a page or a record: a field at the top, the commands under h
 
 CommandPalette has one appearance. What varies is the commands, which are the page's: a record's verbs first, the places to go after, the preferences last.
 
-Not built, and why: search across records in the palette, because a record is found by the top nav's search and picked by the RecordPicker; nested pages of commands, because a command with choices is a Dialog of its own; recent commands at the top, because the order is the page's and it should read the same every time; icons before the commands, because the heading says the kind.
+The host may supply a controlled `query`, `onQueryChange`, `filter={false}` and a `controls` slot for category buttons when results come from a server. The host owns debounce, cancellation, authorization, ranking and recent history. A `description` carries a matching excerpt beneath a result. `disabledReason` keeps an unavailable action visible, explains why, and prevents execution. Navigation runs through the same `run` contract after the dialog closes.
+
+<Canvas of={Stories.RemoteLauncher} story={{ inline: false, height: "420px" }} />
+
+Nested command pages remain a separate Dialog task. The palette adds no global shortcuts by itself; one surface owns the launcher shortcut.
 
 ## Sizes
 
@@ -56,7 +60,7 @@ One: the Command dialog at its medium width, 560px (`dimension.part.command`), o
 
 ## Modifiers
 
-- **`commands`**: id, group, label, shortcut, hint, run. Commands with the same group in sequence share a heading. The `id` is identity only: it is never shown and never matched, so a UUID there cannot make a short query match every command.
+- **`commands`**: id, group, label, shortcut, hint, description, disabledReason, run. Commands with the same group in sequence share a heading. The `id` is identity only: it is never shown and never matched, so a UUID there cannot make a short query match every command.
 - **`title`**, **`description`**, **`placeholder`**, **`noResults`** and **`chooseHint`** relabel the dialog, the field, the empty sentence and Enter's verb; every default comes from the locale.
 - **`loading`**, **`error`** and **`onRetry`** for commands that arrive late or fail.
 - **`useCommandPalette({ shortcut })`** returns `open` and `setOpen`, and binds `shortcut` ("Mod+K" by default; `null` for none) while mounted.
@@ -109,3 +113,9 @@ The palette's open state, toggled by its shortcut anywhere on the page. Takes `{
 A command is a verb and its object, under a heading that names its kind, never nouns in one list.
 
 <Canvas of={Stories.Dont} />
+
+## Matching excerpts
+
+`highlightMatches` marks literal query terms in command labels and matching excerpts through MatchText. It preserves plain text and accessible result names; server search ranking and source navigation stay with the host. Uncontrolled input and marks reset together when the palette closes; a controlled query remains host-owned.
+
+<Canvas of={Stories.MatchingExcerpts} />

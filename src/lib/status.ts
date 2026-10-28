@@ -45,6 +45,14 @@ function level<const Value extends string>(
 
 /* ——— Work ——————————————————————————————————————————————————————————————————————————————————— */
 
+export const reviewStatuses = vocabulary([
+  ["open", "Open", "information"],
+  ["resolved", "Resolved", "success"],
+]);
+export const attentionStates = vocabulary([
+  ["seen", "Seen", "neutral"],
+  ["done", "Done", "success"],
+]);
 export const taskStatuses = vocabulary([
   ["open", "Open", "neutral"],
   ["in_progress", "In progress", "information"],
@@ -341,6 +349,8 @@ const revisionTables = [
 export const fieldVocabularies: Readonly<
   Record<string, Readonly<Record<string, StatusVocabulary>>>
 > = {
+  assurance_review_threads: { status: reviewStatuses },
+  assurance_attention_acknowledgments: { state: attentionStates },
   ...Object.fromEntries(revisionTables.map((table) => [table, { state: revisionStates }])),
   assessment_campaigns: { status: campaignStatuses },
   assessment_events: { status: campaignStatuses },

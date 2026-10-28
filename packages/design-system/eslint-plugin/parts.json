@@ -3974,6 +3974,40 @@
         "motion": ["duration", "ease", "transition"]
       }
     },
+    "Citation": {
+      "kind": "component",
+      "file": "patterns/citation.tsx",
+      "line": 22,
+      "root": {
+        "bg-color": ["bg-surface-raised"],
+        "border-color": ["border-default"],
+        "border-w": ["border"],
+        "class:group/related-card": ["group/related-card"],
+        "display": ["flex"],
+        "duration": ["duration-fast"],
+        "ease": ["ease-standard"],
+        "flex-direction": ["flex-col"],
+        "gap": ["gap-100"],
+        "list-style-type": ["list-none"],
+        "min-w": ["min-w-0"],
+        "p": ["p-150"],
+        "rounded": ["rounded-large"],
+        "shadow": ["hover:shadow-raised"],
+        "transition": ["transition-shadow"],
+        "utility:animate-rise": ["animate-rise"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["class:group/related-card", "display", "flex-direction", "min-w"],
+        "spacing": ["gap", "p"],
+        "color": ["bg-color", "border-color"],
+        "typography": ["list-style-type"],
+        "shape": ["border-w", "rounded"],
+        "effects": ["shadow"],
+        "motion": ["duration", "ease", "transition", "utility:animate-rise"]
+      }
+    },
     "CodeBlock": {
       "kind": "component",
       "file": "components/code-block.tsx",
@@ -4868,7 +4902,7 @@
     "CommandPalette": {
       "kind": "component",
       "file": "patterns/command-palette.tsx",
-      "line": 147,
+      "line": 171,
       "root": {},
       "props": {},
       "derived": {},
@@ -4925,6 +4959,29 @@
         "typography": ["font-family"]
       }
     },
+    "Comparison": {
+      "kind": "component",
+      "file": "patterns/comparison.tsx",
+      "line": 41,
+      "root": {
+        "display": ["flex"],
+        "flex-direction": ["flex-col"],
+        "gap": ["gap-100"],
+        "min-w": ["min-w-0"]
+      },
+      "props": {
+        "fill": {
+          "utility:fill-window": {
+            "true": ["fill-window"]
+          }
+        }
+      },
+      "derived": {},
+      "sets": {
+        "layout": ["display", "flex-direction", "min-w", "utility:fill-window"],
+        "spacing": ["gap"]
+      }
+    },
     "Composer": {
       "kind": "component",
       "file": "patterns/composer.tsx",
@@ -4964,6 +5021,57 @@
         "spacing": ["gap"],
         "color": ["text-color"]
       }
+    },
+    "ContextMenu": {
+      "kind": "component",
+      "file": "components/context-menu.tsx",
+      "line": 9,
+      "root": {},
+      "props": {},
+      "derived": {},
+      "sets": {},
+      "className": false
+    },
+    "ContextMenuContent": {
+      "kind": "component",
+      "file": "components/context-menu.tsx",
+      "line": 51,
+      "root": {
+        "animate": ["data-instant:animate-none", "motion-reduce:animate-none"],
+        "bg-color": ["bg-surface-overlay"],
+        "border-color": ["border-default"],
+        "border-w": ["border"],
+        "display": ["flex"],
+        "flex-direction": ["flex-col"],
+        "outline-style": ["outline-none"],
+        "overflow": ["overflow-hidden"],
+        "p": ["p-050"],
+        "position": ["relative"],
+        "rounded": ["rounded-large"],
+        "shadow": ["shadow-overlay"],
+        "utility:animate-enter": ["data-open:animate-enter"],
+        "utility:animate-exit": ["data-closed:animate-exit"],
+        "z": ["z-overlay"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["display", "flex-direction", "overflow", "position", "z"],
+        "spacing": ["p"],
+        "color": ["bg-color", "border-color"],
+        "shape": ["border-w", "outline-style", "rounded"],
+        "effects": ["shadow"],
+        "motion": ["animate", "utility:animate-enter", "utility:animate-exit"]
+      }
+    },
+    "ContextMenuTrigger": {
+      "kind": "component",
+      "file": "components/context-menu.tsx",
+      "line": 19,
+      "root": {},
+      "props": {},
+      "derived": {},
+      "sets": {}
     },
     "CopyButton": {
       "kind": "component",
@@ -5242,7 +5350,7 @@
     "DataTable": {
       "kind": "component",
       "file": "patterns/data-table/data-table.tsx",
-      "line": 1468,
+      "line": 1501,
       "root": {},
       "props": {
         "fill": {
@@ -7258,7 +7366,7 @@
     "Diff": {
       "kind": "component",
       "file": "components/diff.tsx",
-      "line": 706,
+      "line": 851,
       "root": {
         "bg-color": ["bg-surface-current"],
         "border-color": ["border-default"],
@@ -7284,6 +7392,50 @@
         "color": ["bg-color", "border-color", "text-color"],
         "typography": ["font-family"],
         "shape": ["border-w", "rounded"]
+      }
+    },
+    "DocumentPage": {
+      "kind": "component",
+      "file": "patterns/document-reader.tsx",
+      "line": 140,
+      "root": {
+        "position": ["relative"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["position"]
+      }
+    },
+    "DocumentReader": {
+      "kind": "component",
+      "file": "patterns/document-reader.tsx",
+      "line": 30,
+      "root": {
+        "border-color": ["border-default"],
+        "border-w": ["border"],
+        "min-w": ["min-w-0"],
+        "rounded": ["rounded-medium"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["min-w"],
+        "color": ["border-color"],
+        "shape": ["border-w", "rounded"]
+      }
+    },
+    "DocumentSelectionToolbar": {
+      "kind": "component",
+      "file": "patterns/document-reader.tsx",
+      "line": 292,
+      "root": {
+        "min-w": ["min-w-0"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["min-w"]
       }
     },
     "Dot": {
@@ -9209,6 +9361,24 @@
           "utility:outline-focused"
         ],
         "motion": ["duration", "ease", "transition"]
+      }
+    },
+    "FindBar": {
+      "kind": "component",
+      "file": "patterns/find-bar.tsx",
+      "line": 26,
+      "root": {
+        "align-items": ["items-center"],
+        "display": ["flex"],
+        "flex-wrap": ["flex-wrap"],
+        "gap": ["gap-100"],
+        "min-w": ["min-w-0"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["align-items", "display", "flex-wrap", "min-w"],
+        "spacing": ["gap"]
       }
     },
     "Flex": {
@@ -11489,6 +11659,19 @@
         "spacing": ["ps"]
       }
     },
+    "MatchText": {
+      "kind": "component",
+      "file": "components/match-text.tsx",
+      "line": 11,
+      "root": {
+        "break": ["break-words"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["break"]
+      }
+    },
     "ModeProvider": {
       "kind": "component",
       "file": "mode/mode.tsx",
@@ -12163,6 +12346,24 @@
         "motion": ["duration", "ease", "transition"]
       }
     },
+    "Peek": {
+      "kind": "component",
+      "file": "patterns/peek.tsx",
+      "line": 22,
+      "root": {
+        "align-items": ["items-baseline"],
+        "display": ["inline-flex"],
+        "gap": ["gap-025"],
+        "max-w": ["max-w-full"],
+        "min-w": ["min-w-0"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["align-items", "display", "max-w", "min-w"],
+        "spacing": ["gap"]
+      }
+    },
     "Person": {
       "kind": "component",
       "file": "components/avatar.tsx",
@@ -12723,6 +12924,269 @@
         "shape": ["rounded", "utility:outline-focused"]
       }
     },
+    "Reorder": {
+      "kind": "component",
+      "file": "patterns/reorder.tsx",
+      "line": 72,
+      "root": {
+        "min-w": ["min-w-0"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["min-w"]
+      }
+    },
+    "ReorderHandle": {
+      "kind": "component",
+      "file": "patterns/reorder.tsx",
+      "line": 331,
+      "root": {
+        "align-items": ["items-center"],
+        "bg-color": [
+          "active:bg-neutral-subtle-pressed",
+          "aria-expanded:bg-neutral-subtle-pressed",
+          "bg-neutral-subtle",
+          "data-[disabled]:not-data-[loading]:bg-neutral-subtle",
+          "hover:bg-neutral-subtle-hovered"
+        ],
+        "cursor": ["cursor-grab", "cursor-grabbing"],
+        "display": ["inline-flex"],
+        "duration": ["duration-fast"],
+        "ease": ["ease-standard"],
+        "font-family": ["font-body", "font-body-small"],
+        "font-weight": ["font-medium"],
+        "gap": ["gap-050", "gap-075"],
+        "h": ["h-control-medium", "h-control-small", "h-control-xsmall"],
+        "justify-content": ["justify-center"],
+        "p": ["p-0"],
+        "pe": ["pe-075", "pe-100"],
+        "pointer-events": ["disabled:pointer-events-none"],
+        "position": ["relative"],
+        "ps": ["ps-075", "ps-100"],
+        "px": ["px-100", "px-150"],
+        "rounded": ["rounded-medium", "rounded-small"],
+        "select": ["select-none"],
+        "shrink": ["shrink-0"],
+        "size": ["size-250", "size-control-medium", "size-control-small", "size-control-xsmall"],
+        "text-color": [
+          "aria-expanded:text-default",
+          "data-[disabled]:not-data-[loading]:text-disabled",
+          "hover:text-default",
+          "text-subtle"
+        ],
+        "touch": ["touch-none"],
+        "transition": ["transition-colors"],
+        "utility:outline-focused": ["focus-visible:outline-focused"],
+        "utility:touch-target": ["touch-target"],
+        "whitespace": ["whitespace-nowrap"]
+      },
+      "props": {
+        "isFullWidth": {
+          "w": {
+            "true": ["w-full"]
+          }
+        },
+        "isLoading": {
+          "cursor": {
+            "true": ["cursor-progress"]
+          }
+        },
+        "isSelected": {
+          "bg-color": {
+            "true": ["active:bg-selected-pressed", "bg-selected", "hover:bg-selected-hovered"]
+          },
+          "shadow": {
+            "true": ["shadow-none"]
+          },
+          "text-color": {
+            "true": ["text-selected"]
+          }
+        },
+        "truncate": {
+          "max-w": {
+            "true": ["max-w-full"]
+          },
+          "min-w": {
+            "true": ["min-w-0"]
+          }
+        }
+      },
+      "derived": {
+        "cursor": {
+          "props": ["disabledReason"],
+          "classes": ["cursor-not-allowed"]
+        },
+        "position": {
+          "props": ["icon", "iconAfter", "isLoading"],
+          "classes": ["relative"]
+        }
+      },
+      "sets": {
+        "layout": [
+          "align-items",
+          "cursor",
+          "display",
+          "h",
+          "justify-content",
+          "max-w",
+          "min-w",
+          "pointer-events",
+          "position",
+          "select",
+          "shrink",
+          "size",
+          "touch",
+          "utility:touch-target",
+          "w",
+          "whitespace"
+        ],
+        "spacing": ["gap", "p", "pe", "ps", "px"],
+        "color": ["bg-color", "text-color"],
+        "typography": ["font-family", "font-weight"],
+        "shape": ["rounded", "utility:outline-focused"],
+        "effects": ["shadow"],
+        "motion": ["duration", "ease", "transition"]
+      }
+    },
+    "ReorderItem": {
+      "kind": "component",
+      "file": "patterns/reorder.tsx",
+      "line": 254,
+      "root": {
+        "min-w": ["min-w-0"],
+        "position": ["relative"]
+      },
+      "props": {},
+      "derived": {
+        "bg-color": {
+          "props": ["disabled", "itemId"],
+          "classes": ["bg-selected"]
+        },
+        "shadow": {
+          "props": ["disabled", "itemId"],
+          "classes": ["shadow-overlay"]
+        },
+        "z": {
+          "props": ["disabled", "itemId"],
+          "classes": ["z-10"]
+        }
+      },
+      "sets": {
+        "layout": ["min-w", "position", "z"],
+        "color": ["bg-color"],
+        "effects": ["shadow"]
+      }
+    },
+    "ReorderMove": {
+      "kind": "component",
+      "file": "patterns/reorder.tsx",
+      "line": 374,
+      "root": {
+        "align-items": ["items-center"],
+        "bg-color": [
+          "active:bg-neutral-subtle-pressed",
+          "aria-expanded:bg-neutral-subtle-pressed",
+          "bg-neutral-subtle",
+          "data-[disabled]:not-data-[loading]:bg-neutral-subtle",
+          "hover:bg-neutral-subtle-hovered"
+        ],
+        "display": ["inline-flex"],
+        "duration": ["duration-fast"],
+        "ease": ["ease-standard"],
+        "font-family": ["font-body", "font-body-small"],
+        "font-weight": ["font-medium"],
+        "gap": ["gap-050", "gap-075"],
+        "h": ["h-control-medium", "h-control-small", "h-control-xsmall"],
+        "justify-content": ["justify-center"],
+        "p": ["p-0"],
+        "pe": ["pe-075", "pe-100"],
+        "pointer-events": ["disabled:pointer-events-none"],
+        "position": ["relative"],
+        "ps": ["ps-075", "ps-100"],
+        "px": ["px-100", "px-150"],
+        "rounded": ["rounded-medium", "rounded-small"],
+        "select": ["select-none"],
+        "shrink": ["shrink-0"],
+        "size": ["size-250", "size-control-medium", "size-control-small", "size-control-xsmall"],
+        "text-color": [
+          "aria-expanded:text-default",
+          "data-[disabled]:not-data-[loading]:text-disabled",
+          "hover:text-default",
+          "text-subtle"
+        ],
+        "transition": ["transition-colors"],
+        "utility:outline-focused": ["focus-visible:outline-focused"],
+        "utility:touch-target": ["touch-target"],
+        "whitespace": ["whitespace-nowrap"]
+      },
+      "props": {
+        "isFullWidth": {
+          "w": {
+            "true": ["w-full"]
+          }
+        },
+        "isLoading": {
+          "cursor": {
+            "true": ["cursor-progress"]
+          }
+        },
+        "isSelected": {
+          "bg-color": {
+            "true": ["active:bg-selected-pressed", "bg-selected", "hover:bg-selected-hovered"]
+          },
+          "shadow": {
+            "true": ["shadow-none"]
+          },
+          "text-color": {
+            "true": ["text-selected"]
+          }
+        },
+        "truncate": {
+          "max-w": {
+            "true": ["max-w-full"]
+          },
+          "min-w": {
+            "true": ["min-w-0"]
+          }
+        }
+      },
+      "derived": {
+        "cursor": {
+          "props": ["disabledReason"],
+          "classes": ["cursor-not-allowed"]
+        },
+        "position": {
+          "props": ["direction", "iconAfter", "isLoading"],
+          "classes": ["relative"]
+        }
+      },
+      "sets": {
+        "layout": [
+          "align-items",
+          "cursor",
+          "display",
+          "h",
+          "justify-content",
+          "max-w",
+          "min-w",
+          "pointer-events",
+          "position",
+          "select",
+          "shrink",
+          "size",
+          "utility:touch-target",
+          "w",
+          "whitespace"
+        ],
+        "spacing": ["gap", "p", "pe", "ps", "px"],
+        "color": ["bg-color", "text-color"],
+        "typography": ["font-family", "font-weight"],
+        "shape": ["rounded", "utility:outline-focused"],
+        "effects": ["shadow"],
+        "motion": ["duration", "ease", "transition"]
+      }
+    },
     "ResizableHandle": {
       "kind": "component",
       "file": "components/resizable.tsx",
@@ -12804,6 +13268,23 @@
         "layout": ["display", "size"]
       }
     },
+    "ReviewThread": {
+      "kind": "component",
+      "file": "patterns/review-thread.tsx",
+      "line": 52,
+      "root": {
+        "display": ["flex"],
+        "flex-direction": ["flex-col"],
+        "gap": ["gap-200"],
+        "min-w": ["min-w-0"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["display", "flex-direction", "min-w"],
+        "spacing": ["gap"]
+      }
+    },
     "RowSortable": {
       "kind": "component",
       "file": "patterns/data-table/reorder.tsx",
@@ -12813,6 +13294,51 @@
       "derived": {},
       "sets": {},
       "className": false
+    },
+    "SavedViewEditor": {
+      "kind": "component",
+      "file": "patterns/saved-views.tsx",
+      "line": 429,
+      "root": {
+        "min-w": ["min-w-0"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["min-w"]
+      }
+    },
+    "SavedViewManager": {
+      "kind": "component",
+      "file": "patterns/saved-views.tsx",
+      "line": 221,
+      "root": {
+        "display": ["flex"],
+        "flex-direction": ["flex-col"],
+        "gap": ["gap-200"],
+        "min-w": ["min-w-0"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["display", "flex-direction", "min-w"],
+        "spacing": ["gap"]
+      }
+    },
+    "SavedViewPicker": {
+      "kind": "component",
+      "file": "patterns/saved-views.tsx",
+      "line": 120,
+      "root": {
+        "display": ["inline-flex"],
+        "max-w": ["max-w-full"],
+        "min-w": ["min-w-0"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["display", "max-w", "min-w"]
+      }
     },
     "ScrollArea": {
       "kind": "component",
@@ -13498,6 +14024,19 @@
       "sets": {
         "layout": ["align-items", "display", "flex", "min-w", "text-alignment", "text-overflow"],
         "spacing": ["gap"]
+      }
+    },
+    "SelectionActions": {
+      "kind": "component",
+      "file": "patterns/selection-actions.tsx",
+      "line": 37,
+      "root": {
+        "min-w": ["min-w-0"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["min-w"]
       }
     },
     "Separator": {
@@ -15308,7 +15847,7 @@
     "Spreadsheet": {
       "kind": "component",
       "file": "patterns/spreadsheet/spreadsheet.tsx",
-      "line": 175,
+      "line": 131,
       "root": {
         "min-w": ["min-w-0"]
       },
@@ -15318,10 +15857,104 @@
         "layout": ["min-w"]
       }
     },
+    "SpreadsheetFormatting": {
+      "kind": "component",
+      "file": "patterns/spreadsheet/formatting.tsx",
+      "line": 65,
+      "root": {
+        "align-items": ["items-center"],
+        "gap-x": ["gap-x-050"],
+        "gap-y": ["gap-y-050"],
+        "shrink": ["shrink-0"]
+      },
+      "props": {
+        "alignInline": {
+          "justify-content": {
+            "center": ["justify-center"],
+            "end": ["justify-end"],
+            "start": ["justify-start"]
+          }
+        },
+        "as": {
+          "min-w": {
+            "fieldset": ["min-w-0"]
+          }
+        },
+        "display": {
+          "display": {
+            "!inline-flex": ["flex"],
+            "inline-flex": ["inline-flex"]
+          },
+          "flex-direction": {
+            "!inline-flex": ["flex-row"],
+            "inline-flex": ["flex-row"]
+          }
+        },
+        "grow": {
+          "flex": {
+            "fill": ["flex-1"]
+          },
+          "min-h": {
+            "fill": ["min-h-0"]
+          },
+          "min-w": {
+            "fill": ["min-w-0"]
+          }
+        },
+        "rowSpace": {
+          "gap-y": {
+            "space.0": ["gap-y-0"],
+            "space.025": ["gap-y-025"],
+            "space.050": ["gap-y-050"],
+            "space.075": ["gap-y-075"],
+            "space.100": ["gap-y-100"],
+            "space.1000": ["gap-y-1000"],
+            "space.150": ["gap-y-150"],
+            "space.200": ["gap-y-200"],
+            "space.250": ["gap-y-250"],
+            "space.300": ["gap-y-300"],
+            "space.400": ["gap-y-400"],
+            "space.500": ["gap-y-500"],
+            "space.600": ["gap-y-600"],
+            "space.800": ["gap-y-800"]
+          }
+        },
+        "shouldWrap": {
+          "flex-wrap": {
+            "true": ["flex-wrap"]
+          }
+        },
+        "shrink": {
+          "shrink": {
+            "none": ["shrink-0"]
+          }
+        },
+        "spread": {
+          "justify-content": {
+            "space-between": ["justify-between"]
+          }
+        }
+      },
+      "derived": {},
+      "sets": {
+        "layout": [
+          "align-items",
+          "display",
+          "flex",
+          "flex-direction",
+          "flex-wrap",
+          "justify-content",
+          "min-h",
+          "min-w",
+          "shrink"
+        ],
+        "spacing": ["gap-x", "gap-y"]
+      }
+    },
     "SpreadsheetSheetBar": {
       "kind": "component",
       "file": "patterns/spreadsheet/sheet-bar.tsx",
-      "line": 168,
+      "line": 177,
       "root": {},
       "props": {},
       "derived": {},
@@ -15329,8 +15962,8 @@
     },
     "SpreadsheetToolbar": {
       "kind": "component",
-      "file": "patterns/spreadsheet/spreadsheet.tsx",
-      "line": 149,
+      "file": "patterns/spreadsheet/toolbar.tsx",
+      "line": 5,
       "root": {
         "min-w": ["min-w-0"]
       },

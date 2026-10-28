@@ -1,9 +1,11 @@
+import { createRef, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
-import { Diff, diffText } from "../../components";
+import { Button, Diff, diffText, type DiffProps, type DiffSelection } from "../../components";
 import { LedgerProvider } from "../../mode";
 import { Box, Inline as Row, Stack, Text } from "../../primitives";
+import { along } from "../_lib/direction";
 import * as storyLayout from "../_lib/matrix";
 import * as pairLayout from "../_lib/pair";
 
@@ -184,9 +186,9 @@ export const SideBySide: Story = {
     const a = earlier!.getBoundingClientRect();
     const b = later!.getBoundingClientRect();
     if (diff.clientWidth >= 576) {
-      // Wide enough for two columns: the halves share a row.
+      // Wide enough for two columns: the halves share a row in the writing direction.
       await expect(Math.round(a.top)).toBe(Math.round(b.top));
-      await expect(b.left).toBeGreaterThan(a.left);
+      await expect(along(diff, b).start).toBeGreaterThanOrEqual(along(diff, a).end - 1);
     } else {
       // Narrower than 36rem of its own: the halves stack and it reads as the inline view.
       await expect(b.top).toBeGreaterThanOrEqual(a.bottom - 1);
@@ -594,5 +596,150 @@ export const Playground: Story = {
   },
   argTypes: {
     layout: { control: "inline-radio", options: ["inline", "side-by-side"] },
+  },
+};
+
+const reviewRef = createRef<HTMLDivElement>();
+function ReviewExample(args: DiffProps) {
+  const [selection, setSelection] = useState<DiffSelection | null>(null);
+  const [opened, setOpened] = useState(false);
+  return (
+    <Stack space="space.150">
+      <Diff
+        {...args}
+        ref={reviewRef}
+        id="annotated-review"
+        data-testid="annotated-review"
+        selection={selection}
+        onSelectLines={setSelection}
+        annotations={[
+          {
+            id: "discussion",
+            side: "after",
+            startLine: 6,
+            endLine: 6,
+            content: (
+              <Row space="space.100" shouldWrap>
+                <Text>Open discussion: confirm the shorter review period.</Text>
+                <Button size="small" onClick={() => setOpened(true)}>
+                  Open discussion
+                </Button>
+              </Row>
+            ),
+          },
+          {
+            id: "invalid",
+            side: "before",
+            startLine: 999,
+            endLine: 999,
+            content: "Invalid anchor",
+          },
+        ]}
+      />
+      <Text data-testid="selection">
+        {selection
+          ? `${selection.side}:${selection.startLine}-${selection.endLine}: ${selection.text}`
+          : "Choose a changed line"}
+      </Text>
+      {opened && <Text role="status">Discussion opened by the host</Text>}
+    </Stack>
+  );
+}
+
+/** Original line anchors survive view switching and folding; the host owns discussion content. */
+export const AnnotatedReview: Story = {
+  args: {
+    before: version3,
+    after: now,
+    beforeLabel: "Version 3",
+    afterLabel: "Now",
+    controls: true,
+    lineNumbers: true,
+  },
+  render: (args) => <ReviewExample {...args} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const user = userEvent.setup({ document: canvasElement.ownerDocument });
+    const root = canvas.getByTestId("annotated-review");
+    await expect(reviewRef.current).toBe(root);
+    await expect(root).toHaveAttribute("id", "annotated-review");
+    await expect(canvas.queryByText("Invalid anchor")).toBeNull();
+    await user.click(canvas.getByRole("button", { name: "Discuss Now line 6" }));
+    await expect(canvas.getByTestId("selection")).toHaveTextContent(
+      `after:6-6: ${now.split("\n")[5]}`,
+    );
+    await user.keyboard("{Shift>}");
+    await user.click(canvas.getByRole("button", { name: "Discuss Now line 16" }));
+    await user.keyboard("{/Shift}");
+    await expect(canvas.getByTestId("selection")).toHaveTextContent("after:6-16:");
+    await expect(root.querySelectorAll('[data-selected="true"]')).toHaveLength(11);
+    await user.click(canvas.getByRole("button", { name: "Side by side" }));
+    await expect(root).toHaveAttribute("data-layout", "side-by-side");
+    await expect(root.querySelectorAll('[data-slot="diff-annotation"]')).toHaveLength(1);
+    await expect(canvas.getByRole("button", { name: "Collapse unchanged" })).toBeDisabled();
+    const before = canvas.getByRole("button", { name: "Discuss Version 3 line 6" });
+    before.focus();
+    await user.keyboard("{Enter}");
+    await expect(canvas.getByTestId("selection")).toHaveTextContent(
+      `before:6-6: ${version3.split("\n")[5]}`,
+    );
+    await user.click(canvas.getByRole("button", { name: "Open discussion" }));
+    await expect(canvas.getByText("Discussion opened by the host")).toBeVisible();
+    await expect(root.scrollWidth).toBeLessThanOrEqual(root.clientWidth);
+  },
+};
+
+/** Previous/next change moves reading focus; views are local unless controlled by the host. */
+export const ReviewControls: Story = {
+  args: { before: version3, after: now, controls: true, lineNumbers: true },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const user = userEvent.setup({ document: canvasElement.ownerDocument });
+    const root = canvas.getByRole("group", { name: "Changes from Before to After" });
+    await user.click(canvas.getByRole("button", { name: "Next change" }));
+    await expect(root.querySelector('[data-slot="diff-change"]')).toHaveFocus();
+    await expect(canvas.getByRole("status")).toHaveTextContent("Change 1 of 5");
+    await user.click(canvas.getByRole("button", { name: "Previous change" }));
+    await expect(canvas.getByRole("status")).toHaveTextContent("Change 5 of 5");
+    await user.click(canvas.getByRole("button", { name: "Show unchanged" }));
+    await expect(root.querySelector('[data-slot="diff-fold"]')).toBeNull();
+    await user.click(canvas.getByRole("button", { name: "Collapse unchanged" }));
+    await expect(root.querySelectorAll('[data-slot="diff-fold"]')).toHaveLength(2);
+    await user.click(canvas.getByRole("button", { name: "Side by side" }));
+    await expect(root).toHaveAttribute("data-layout", "side-by-side");
+    await user.click(canvas.getByRole("button", { name: "Unified" }));
+    await expect(root).toHaveAttribute("data-layout", "inline");
+  },
+};
+
+function LineEndingExample() {
+  const [selection, setSelection] = useState<DiffSelection | null>(null);
+  return (
+    <Stack space="space.150">
+      <Diff
+        before={"First line.\r\nOld second line.\r\n"}
+        after={"First line.\rUpdated second line.\r"}
+        controls
+        onSelectLines={setSelection}
+      />
+      <Text data-testid="selected-normalized">{selection?.text ?? "No selection"}</Text>
+      <Diff before="" after="" label="Empty comparison" controls />
+    </Stack>
+  );
+}
+/** Anchors use the same CRLF/CR/LF normalization as the diff; an empty comparison cannot navigate. */
+export const ReviewLineEndings: Story = {
+  args: { before: "", after: "" },
+  render: () => <LineEndingExample />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Discuss After line 2" }));
+    await expect(canvas.getByTestId("selected-normalized")).toHaveTextContent(
+      "Updated second line.",
+    );
+    await expect(canvas.getByTestId("selected-normalized").textContent).not.toContain("\r");
+    const empty = within(canvas.getByRole("group", { name: "Empty comparison" }));
+    await expect(empty.getByRole("button", { name: "Next change" })).toBeDisabled();
+    await expect(empty.getByRole("button", { name: "Previous change" })).toBeDisabled();
   },
 };

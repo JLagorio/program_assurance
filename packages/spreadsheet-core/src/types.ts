@@ -35,6 +35,20 @@ export type CellStyle = {
   format?: "general" | "number" | "currency" | "percent" | "date" | "text";
   decimals?: number;
 };
+/** Rules alter appearance only; they never change authored values or value types. */
+export type ConditionalAppearance = Omit<CellStyle, "format" | "decimals">;
+export type ConditionalCondition =
+  | { kind: "number"; operator: "gt" | "gte" | "lt" | "lte" | "eq" | "neq"; value: number }
+  | { kind: "text"; operator: "contains" | "equals"; value: string; caseSensitive?: boolean }
+  | { kind: "blank"; isBlank: boolean };
+export type ConditionalFormatRule = {
+  id: string;
+  rowIds: string[];
+  columnIds: string[];
+  condition: ConditionalCondition;
+  style: ConditionalAppearance;
+};
+export type CellStyleEdit = { rowId: string; columnId: string; style: CellStyle | null };
 export type Cell = {
   input: string;
   style?: CellStyle;
@@ -70,6 +84,7 @@ export type Sheet = {
   cells: Record<string, Record<string, Cell>>;
   frozenRows: number;
   frozenColumns: number;
+  conditionalFormats?: ConditionalFormatRule[];
 };
 export type Workbook = {
   version: 1;
@@ -96,6 +111,14 @@ export type CalculationResult = {
 export type WorkbookOperation =
   | { type: "edit"; sheetId: string; edits: CellEdit[] }
   | { type: "paste"; sheetId: string; start: Position; values: string[][] }
+  | {
+      type: "paste-cells";
+      sheetId: string;
+      mode: "all" | "values" | "formatting";
+      edits: CellEdit[];
+      styles?: CellStyleEdit[];
+    }
+  | { type: "set-conditional-formats"; sheetId: string; rules: ConditionalFormatRule[] }
   | { type: "fill"; sheetId: string; source: CellRange; target: CellRange; series?: boolean }
   | { type: "format"; sheetId: string; range: CellRange; style: CellStyle; visibleOnly?: boolean }
   | {

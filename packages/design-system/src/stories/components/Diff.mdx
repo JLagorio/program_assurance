@@ -49,6 +49,20 @@ The Diff fills the width it is given. It measures itself for that fallback, so i
 
 <Canvas of={Stories.BesideOtherContent} />
 
+## Reviewing a change
+
+`controls` adds Unified / Side by side, Previous / Next change, and Show / Collapse unchanged. Navigation moves focus to the changed row and announces its position; it wraps at either end. Empty comparisons disable navigation. Omit `layout` for local view state, or supply `layout` and `onLayoutChange` together to control it.
+
+<Canvas of={Stories.ReviewControls} />
+
+`onSelectLines` adds an always available Discuss button to each changed line. Enter, Space or a tap selects that original source line; Shift-click another changed line on the same side selects the inclusive range. `DiffSelection` contains `side`, one-based `startLine` and `endLine`, and normalized `text`. It uses the same CRLF/CR/LF normalization and terminal-newline handling as `diffText`. Line numbers belong to the original earlier/later strings, never the visual row positions.
+
+The host supplies `selection` to focus an existing discussion and `annotations` with stable `id`, `side`, original `startLine` / `endLine` and arbitrary `content`. Each annotation appears once below its final source line in either layout. Out-of-bounds annotations are ignored. A selection or valid annotation keeps all unchanged context visible and disables collapse, so an anchored discussion cannot disappear in a fold. Persist the immutable version identifiers together with the source range; the component does not store discussion threads, users, permissions or record identities.
+
+<Canvas of={Stories.AnnotatedReview} />
+
+<Canvas of={Stories.ReviewLineEndings} />
+
 ## States
 
 | State          | What shows                                                                                   |

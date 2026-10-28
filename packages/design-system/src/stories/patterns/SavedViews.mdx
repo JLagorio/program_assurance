@@ -1,0 +1,35 @@
+import { Meta, Canvas, ArgTypes } from "@storybook/addon-docs/blocks";
+import { SavedViewPicker, SavedViewManager, SavedViewEditor } from "../..";
+import * as Stories from "./SavedViews.stories";
+
+<Meta of={Stories} />
+
+# SavedViews
+
+**Status: Experimental.** Ledger maintains this controlled interaction family; its first application consumer is validating the editing and sharing contract.
+
+Use `SavedViewPicker` in a Toolbar's `views` slot to apply a named set of filters, sorting and layout. The picker presents stable ids, readable names, sharing labels and unavailable reasons. Applying a view, saving the current settings and opening management are callbacks; the kit stores no definition and changes no URL.
+
+<Canvas of={Stories.Picker} />
+
+`SavedViewManager` lists the views the host has authorized. It filters that supplied list by name and description and shows Edit, Duplicate and Delete only when both the item capability and the matching callback are present. Favorites use a separate controlled state. Omit the favorite callback when that capability is absent. Long names truncate with the Button's accessible reveal; row actions wrap at narrow widths and remain available without hover.
+
+<Canvas of={Stories.Manager} />
+
+<Canvas of={Stories.LongNames} />
+
+`SavedViewEditor` edits a controlled name, visibility value and optional “replace settings” choice. The host supplies visibility options and disabled reasons, the title and the submit label. Keep the same draft after a failed save. Set `pending` while saving: the form and submit are blocked, Escape and every close path stay blocked, and focus remains inside the dialog. A name must contain non-whitespace text to submit; storage limits and other validation remain the host's responsibility. The visible name input is limited to 100 characters.
+
+<Canvas of={Stories.Editor} />
+
+The host owns authorization, persistence, destination links, definition serialization, optimistic concurrency and unsaved-change policy. A Duplicate callback should create a new identity from the chosen view's definition, not from unrelated current settings. A Delete callback requests a host confirmation. Put confirmation overlays in `children` of the manager/editor so they nest inside the owning focus scope. `onOpenChange(false)` is a request: keep `open` true while asking whether to discard a dirty draft. Avoid having both dialogs open at once. When switching manager → editor, set the manager's `finalFocus={false}` and give the editor a `finalFocus` that finds the returning management control; when all overlays close, restore the picker's `triggerRef`.
+
+Loading, failed reads and compatibility notices are separate. A failed refresh keeps supplied views usable and exposes Retry; an empty or unmatched list is only shown once loading and errors have cleared. A failure applying or modifying a view belongs in the manager's `feedback`, while a save failure belongs in the editor's `error`. `labels` overrides the default visible and accessible words for translation; host descriptions and visibility labels are already supplied content.
+
+<Canvas of={Stories.PendingAndRetry} />
+
+The picker inherits menu keyboard navigation and Escape focus return. Dialogs contain keyboard focus and use the same close/scroll behavior as Ledger Dialog. Refs and native attributes reach the picker's span, the manager's body root, and the editor's form; `triggerRef` reaches the picker's menu button, and `finalFocus` provides an explicit restoration target when the opener unmounts. These components perform no network requests and expose no role- or ownership-based permission inference.
+
+<ArgTypes of={SavedViewPicker} />
+<ArgTypes of={SavedViewManager} />
+<ArgTypes of={SavedViewEditor} />

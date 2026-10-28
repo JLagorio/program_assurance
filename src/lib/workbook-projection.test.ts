@@ -601,3 +601,72 @@ describe("workbook sheet order", () => {
     }
   });
 });
+
+describe("source conditional formatting persistence", () => {
+  it("keeps old receipts unchanged when rules are empty", () => {
+    const workbook = projectWorkbook(snapshot());
+    source(workbook, "requirements").conditionalFormats = [];
+    const document = workbookDocument(workbook);
+    for (const layout of Object.values(document["layouts"] as Record<string, object>))
+      expect(Object.hasOwn(layout, "conditionalFormats")).toBe(false);
+  });
+  it("persists appearance by identity without canonical values and prunes removed source identities", () => {
+    const data = snapshot();
+    const workbook = projectWorkbook(data);
+    const sheet = source(workbook, "requirements");
+    sheet.conditionalFormats = [
+      {
+        id: "review-emphasis",
+        rowIds: data.requirements.map((row) => row.id),
+        columnIds: ["statement", "code"],
+        condition: { kind: "text", operator: "contains", value: "review" },
+        style: { background: "#FFF0AA", bold: true },
+      },
+    ];
+    const document = workbookDocument(workbook);
+    expect(JSON.stringify(document["layouts"])).not.toContain("Review access annually.");
+    expect(JSON.stringify(document["layouts"])).not.toContain("recordId");
+    const fresh = snapshot();
+    fresh.requirements = fresh.requirements.slice(0, 1);
+    fresh.requirements[0]!.statement = "New canonical text";
+    const projected = projectWorkbook(fresh, document);
+    const restored = source(projected, "requirements");
+    expect(restored.conditionalFormats?.[0]).toEqual({
+      ...sheet.conditionalFormats[0],
+      rowIds: [fresh.requirements[0]!.id],
+    });
+    expect(restored.cells[fresh.requirements[0]!.id]!["statement"]!.input).toBe(
+      "New canonical text",
+    );
+    expect(restored.columns.find((column) => column.id === "code")!.readonly).toBe(true);
+    expect(proposeWorkbookChanges(fresh, projected).changes).toEqual([]);
+    fresh.requirements = [];
+    expect(
+      source(projectWorkbook(fresh, document), "requirements").conditionalFormats,
+    ).toBeUndefined();
+  });
+  it("rejects malformed conditions, unsafe styles, duplicate IDs and type-changing appearance", () => {
+    const data = snapshot();
+    const document = workbookDocument(projectWorkbook(data));
+    const valid = {
+      id: "safe",
+      rowIds: [data.requirements[0]!.id],
+      columnIds: ["statement"],
+      condition: { kind: "blank", isBlank: true },
+      style: { bold: true },
+    };
+    for (const rules of [
+      [{ ...valid, condition: { kind: "expression", value: "arbitrary()" } }],
+      [{ ...valid, style: { background: "url(unsafe)" } }],
+      [{ ...valid, style: { format: "number" } }],
+      [{ ...valid, rowIds: "wrong" }],
+      [valid, valid],
+    ]) {
+      const modified = structuredClone(document);
+      (modified["layouts"] as Record<string, Record<string, unknown>>)["requirements"]![
+        "conditionalFormats"
+      ] = rules;
+      expect(() => projectWorkbook(data, modified)).toThrow();
+    }
+  });
+});

@@ -1,3 +1,4 @@
+import { CollectionSavedViews } from "./saved-views";
 import { Inbox, MoreHorizontal } from "lucide-react";
 import {
   Children,
@@ -216,6 +217,11 @@ export function ProductCollection<T extends { id: string }>({
   ...props
 }: ProductCollectionProps<T>) {
   const { table } = props;
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const namedViewScope =
+    !compact &&
+    keepQuestion !== false &&
+    (typeof keepQuestion === "string" ? keepQuestion : table.options.meta?.view);
   const secondary = actionVariant === "secondary";
   const action = secondary ? asSecondary(drawnAction) : drawnAction;
   const empty =
@@ -293,7 +299,14 @@ export function ProductCollection<T extends { id: string }>({
                   placeholder,
                 }
               : {})}
-            views={views}
+            views={
+              <>
+                {views}
+                {namedViewScope && (
+                  <CollectionSavedViews table={table} scope={`${pathname}:${namedViewScope}`} />
+                )}
+              </>
+            }
             // An empty list of chips is no filters, so a narrow row draws no empty More.
             filters={Children.toArray(filters).length ? filters : undefined}
             // Folded into More on a phone or beside a panel, the filters still say how many apply.

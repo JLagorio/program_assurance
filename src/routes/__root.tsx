@@ -46,6 +46,13 @@ import appCss from "../styles.css?url";
 const PRODUCT = "Program Assurance";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  validateSearch: (search: Record<string, unknown>): { savedView?: string | undefined } => ({
+    savedView:
+      typeof search["savedView"] === "string" &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(search["savedView"])
+        ? search["savedView"]
+        : undefined,
+  }),
   head: ({ match }) => ({
     meta: [
       { charSet: "utf-8" },

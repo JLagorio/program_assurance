@@ -53,7 +53,7 @@ function CampaignDetail() {
               <RecordTrail current={campaign.title}>
                 <TrailLink to="/campaigns">Assessment campaigns</TrailLink>
                 <TrailLink to="/programs/$programId" params={{ programId: campaign.program_id }}>
-                  <RelationName table="programs" id={campaign.program_id} />
+                  <RelationName table="programs" id={campaign.program_id} peek={false} />
                 </TrailLink>
               </RecordTrail>
               <PageHeader.Heading>

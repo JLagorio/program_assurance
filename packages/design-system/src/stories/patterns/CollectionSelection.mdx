@@ -1,0 +1,41 @@
+import { Meta, Canvas } from "@storybook/addon-docs/blocks";
+import * as Stories from "./CollectionSelection.stories";
+
+<Meta of={Stories} />
+
+# Collection selection
+
+**Status: Experimental.**
+
+`useCollectionSelection` supplies selection and focus behavior for cards and lists with native checkbox/button controls. It imposes no listbox semantics on rows containing links and actions. The favorites manager uses it for selecting and removing several favorites.
+
+<Canvas of={Stories.VisibleRange} />
+
+```tsx
+const selection = useCollectionSelection({
+  items: visibleItems.map(item => item.id),
+  disabledIds: lockedItems,
+  selectedIds,
+  onSelectionChange: setSelectedIds,
+  disabled: saving,
+});
+<Checkbox
+  {...selection.getItemProps(item.id)}
+  aria-label={`Select ${item.title}`}
+  checked={selection.isSelected(item.id)}
+  disabled={selection.isDisabled(item.id)}
+  onClick={event => selection.toggle(item.id, {
+    range: event.shiftKey,
+    additive: event.ctrlKey || event.metaKey,
+  })}
+/>
+```
+
+`items` means currently visible identities in visual order. Disabled identities never enter a range or Select all. `selectedIds` and `onSelectionChange` provide controlled state; omit `selectedIds` for local state, optionally initialized with `defaultSelectedIds`. The returned selection excludes hidden, removed and disabled items; hosts may separately preserve controlled selection across filtering. `allSelected` and `partiallySelected` drive a Select-all Checkbox. `selectAll()` selects visible available items, `clear()` clears selection and anchor, and `toggle(id, { range, additive })` toggles or extends from the last unmodified selection.
+
+Attach `getItemProps(id)` to the selection control, never the entire interactive row. It tracks focus, supports Shift+Up/Down/Home/End to extend the range, and Ctrl/Cmd+A to select all visible items while that control has focus. Space remains native activation. Ordinary links and text-entry shortcuts are untouched. When a focused control disappears, focus moves to the next available visible control, or the previous one at the end. It never takes focus back from another control or dialog. Hosts removing the last item supply their own empty-state focus destination.
+
+<Canvas of={Stories.KeyboardAndFocus} />
+<Canvas of={Stories.Disabled} />
+
+The hook owns no record identity, bulk operation, confirmation policy, persistence, filtering or authorization. Set `disabled` while a mutation is pending and keep failures recoverable. Do not use inside Spreadsheet or DataTable; those patterns own their selection models.

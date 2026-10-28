@@ -1,5 +1,7 @@
+import { useWorkspaceActions } from "@/components/app/workspace-actions";
+import { useWorkspaceNavigationTarget } from "@/components/app/personal-navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import {
   ChevronDown,
   Command,
@@ -7,6 +9,9 @@ import {
   MessageSquare,
   CircleChevronDown,
   Sigma,
+  Search,
+  PaintBucket,
+  MessagesSquare,
 } from "lucide-react";
 import {
   Alert,
@@ -37,15 +42,21 @@ import {
   Spinner,
   Spreadsheet,
   SpreadsheetToolbar,
+  SpreadsheetFormatting,
   Stack,
   Text,
   type ScopedCommand,
   type SpreadsheetSelection,
   type SpreadsheetMenuContext,
   type SpreadsheetCell,
+  type SpreadsheetCellStyle,
 } from "@ledger/design-system";
 import {
   applyOperation,
+  conditionalCellStyle,
+  selectionStatistics,
+  FORMULA_FUNCTIONS,
+  validateStyle,
   columnName,
   createSheet,
   deserializeWorkbook,
@@ -69,11 +80,17 @@ import { RecordPreviewActions, RecordPreviewPanel } from "./record-preview";
 import { useAssuranceWorkbench } from "./use-assurance-workbench";
 import { useWorkbookPresence } from "./use-workbook-presence";
 import { WorkbookAnalysis } from "./workbook-analysis";
+import { WorkbookViewControls, type WorkbookQuestion } from "./workbook-toolbar";
+import { WorkbookFind, WorkbookConditionalFormatting } from "./workbook-tools";
+import { SavedViews } from "./saved-views";
+import { AssuranceReviewPanel } from "./assurance-review";
+import { AssuranceCitations } from "./assurance-review-citations";
+import type { ReviewTarget } from "@/lib/assurance-review";
 import {
-  WorkbookFormatting,
-  WorkbookViewControls,
-  type WorkbookQuestion,
-} from "./workbook-toolbar";
+  workbookViewSchema,
+  workbookFormulaReferences,
+  workbookRangeReference,
+} from "@/lib/workbook-view";
 import { WorkbookTraceability } from "./workbook-traceability";
 import {
   WorkbookCellDialog,
@@ -110,6 +127,14 @@ export function AssuranceWorkbench({
   const [selection, setSelection] = useState<SpreadsheetSelection | null>(null);
   const [questions, setQuestions] = useState<Record<string, WorkbookQuestion>>({});
   const [view, setView] = useState("grid");
+  const [analysis, setAnalysis] = useState<Record<string, { group: string; measure: string }>>({});
+  const [finding, setFinding] = useState(false);
+  const [conditional, setConditional] = useState(false);
+  const [discussion, setDiscussion] = useState<ReviewTarget | null>(null);
+  const deepLink = useRouterState({
+    select: (state) => state.location.search as Record<string, unknown>,
+  });
+  const openedLink = useRef("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [reviewing, setReviewing] = useState(false);
   const [sheetDialog, setSheetDialog] = useState<"add" | "rename" | null>(null);
@@ -250,6 +275,166 @@ export function AssuranceWorkbench({
     if (Math.min(start.row, start.column, end.row, end.column) < 0) return;
     return normalizeRange({ start, end });
   }, [sheet, selection, visibleRows]);
+  const changedCells = useMemo(
+    () => new Set(work.proposal.changes.map((change) => change.id)),
+    [work.proposal.changes],
+  );
+  const cellDisplay = useCallback(
+    ({ rowId, columnId }: SpreadsheetCell) => display(rowId, columnId),
+    [display],
+  );
+  const gridLayout = useMemo(
+    () => ({
+      hiddenRows: sheet?.rows.filter((row) => row.hidden).map((row) => row.id) ?? [],
+      hiddenColumns:
+        sheet?.columns.filter((column) => column.hidden).map((column) => column.id) ?? [],
+      heights: Object.fromEntries(
+        sheet?.rows.filter((row) => row.height).map((row) => [row.id, row.height!]) ?? [],
+      ),
+      widths: Object.fromEntries(
+        sheet?.columns.map((column) => [column.id, column.width ?? 140]) ?? [],
+      ),
+    }),
+    [sheet],
+  );
+  const cellStyle = useCallback(
+    ({ rowId, columnId }: SpreadsheetCell): SpreadsheetCellStyle => {
+      if (!sheet) return {};
+      const style = {
+        ...sheet.cells[rowId]?.[columnId]?.style,
+        ...conditionalCellStyle(
+          sheet,
+          rowId,
+          columnId,
+          work.results?.sheets[sheet.id]?.[rowId]?.[columnId],
+        ),
+      };
+      return {
+        bold: style?.bold ?? rowId === "headers",
+        italic: style?.italic,
+        underline: style?.underline,
+        strikethrough: style?.strikethrough,
+        fontFamily: style?.fontFamily,
+        fontSize: style?.fontSize,
+        color: style?.color,
+        background: style?.background,
+        wrap: style?.wrap,
+        verticalAlign: style?.verticalAlign,
+        borderTop: style?.borderTop,
+        borderRight: style?.borderRight,
+        borderBottom: style?.borderBottom,
+        borderLeft: style?.borderLeft,
+        align: style?.align === "left" ? "start" : style?.align === "right" ? "end" : style?.align,
+        tone: changedCells.has(`${rowId}:${columnId}`) ? "warning" : "neutral",
+      };
+    },
+    [sheet, work.results, changedCells],
+  );
+  const selectedRows = useMemo(
+    () =>
+      range
+        ? visibleRows
+            .slice(range.start.row, range.end.row + 1)
+            .filter((row) => !row.hidden)
+            .map((row) => row.id)
+        : [],
+    [range, visibleRows],
+  );
+  const selectedColumns = useMemo(
+    () =>
+      range && sheet
+        ? sheet.columns
+            .slice(range.start.column, range.end.column + 1)
+            .filter((column) => !column.hidden)
+            .map((column) => column.id)
+        : [],
+    [range, sheet],
+  );
+  const statistics = useMemo(
+    () =>
+      sheet && range && !work.calculating
+        ? selectionStatistics(sheet, selectedRows, selectedColumns, work.results)
+        : null,
+    [sheet, range, selectedRows, selectedColumns, work.results, work.calculating],
+  );
+  const spreadsheetColumns = useMemo(
+    () =>
+      sheet?.columns.map((column) => ({
+        id: column.id,
+        label: column.name,
+        type: column.type === "select" ? ("choice" as const) : column.type,
+        options:
+          column.id === "owner_party_id"
+            ? ownerOptions
+            : column.options?.map((option) => ({ value: option, label: labelFor(option) })),
+        readOnly: column.readonly,
+        width: column.width,
+      })) ?? [],
+    [sheet?.columns, ownerOptions],
+  );
+  const spreadsheetRows = useMemo(() => {
+    const rowNumbers = new Map(sheet?.rows.map((row, index) => [row.id, index + 1]));
+    return visibleRows.map((row) => ({
+      id: row.id,
+      label: String(rowNumbers.get(row.id)),
+      rowNumber: rowNumbers.get(row.id),
+      values: Object.fromEntries(
+        sheet?.columns.map((column) => [
+          column.id,
+          sheet.cells[row.id]?.[column.id]?.input ?? "",
+        ]) ?? [],
+      ),
+    }));
+  }, [sheet, visibleRows]);
+  useEffect(() => {
+    const { sheet: linkedSheet, reviewRow, reviewColumn } = deepLink;
+    if (
+      typeof linkedSheet !== "string" ||
+      typeof reviewRow !== "string" ||
+      typeof reviewColumn !== "string" ||
+      !workbook ||
+      work.cellDraftDirty
+    )
+      return;
+    const key = JSON.stringify([linkedSheet, reviewRow, reviewColumn]);
+    if (openedLink.current === key) return;
+    const target = workbook.sheets.find((item) => item.id === linkedSheet);
+    if (
+      !target?.rows.some((row) => row.id === reviewRow) ||
+      !target.columns.some((column) => column.id === reviewColumn)
+    )
+      return;
+    openedLink.current = key;
+    setActiveSheet(linkedSheet);
+    setView("grid");
+    setQuestions((previous) => ({ ...previous, [linkedSheet]: emptyQuestion }));
+    const cell = { rowId: reviewRow, columnId: reviewColumn };
+    setSelection({ anchor: cell, focus: cell });
+    if (work.savedRevision > 0)
+      setDiscussion({
+        kind: "cell",
+        programId,
+        workbookId: work.savedId,
+        sheetId: linkedSheet,
+        ...cell,
+      });
+  }, [deepLink, workbook, work.cellDraftDirty, work.savedId, work.savedRevision, programId]);
+  function reviewTarget(cell = selection?.focus): ReviewTarget | undefined {
+    if (!sheet || !cell || cell.rowId === "headers") return;
+    if (sheet.id === "requirements") return { kind: "requirement", recordId: cell.rowId };
+    if (
+      sheet.id === "mappings" &&
+      work.baseline?.mappings.some((mapping) => mapping.id === cell.rowId)
+    )
+      return { kind: "mapping", recordId: cell.rowId };
+    if (sheet.id === "evidence") {
+      const version = sheet.cells[cell.rowId]?.["evidence_version_id"]?.input;
+      if (version) return { kind: "evidence", recordId: version };
+    }
+    if (sheet.mode === "freeform" && work.savedRevision > 0 && !work.analysisDirty)
+      return { kind: "cell", programId, workbookId: work.savedId, sheetId: sheet.id, ...cell };
+    return undefined;
+  }
   const readonly = work.locked || fileBusy || (sheet?.mode === "records" && !work.canEdit);
   function switchSheet(id: string) {
     setActiveSheet(id);
@@ -444,6 +629,28 @@ export function AssuranceWorkbench({
   const gridSelection = view === "grid" && Boolean(range);
   const bothFrozen = Boolean(sheet?.frozenRows && sheet?.frozenColumns);
   const commandDefinitions: ScopedCommand[] = [
+    {
+      id: "find",
+      label: "Find and replace",
+      group: "Workbook",
+      shortcut: "Mod+f",
+      enabled: !work.cellDraftDirty,
+      run: () => setFinding(true),
+    },
+    {
+      id: "conditional",
+      label: "Conditional formatting",
+      group: "Formatting",
+      enabled: !work.cellDraftDirty,
+      run: () => setConditional(true),
+    },
+    {
+      id: "discussion",
+      label: "Discuss selected cell",
+      group: "Review",
+      enabled: !!reviewTarget() && !work.cellDraftDirty,
+      run: () => setDiscussion(reviewTarget() ?? null),
+    },
     {
       id: "review",
       label: `Review ${work.proposal.changes.length} changes`,
@@ -705,6 +912,42 @@ export function AssuranceWorkbench({
       command.enabled !== false &&
       (!work.cellDraftDirty || ["review", "save", "formulas", "presence"].includes(command.id)),
   }));
+  function commandDisabledReason(command: ScopedCommand) {
+    if (command.enabled !== false) return undefined;
+    if (work.cellDraftDirty) return "Finish the current cell edit first.";
+    if (
+      !work.canEdit &&
+      ["review", "save", "map", "remove-mapping", "transform"].includes(command.id)
+    )
+      return "Editor access is required.";
+    if (work.busy || fileBusy) return "Wait for the current operation to finish.";
+    if (work.applyAttempt || work.saveAttempt || work.recovery || work.recoveryError)
+      return "Resolve the pending save or recovery first.";
+    if (command.id === "save") return "No analysis changes to save.";
+    if (command.id === "review") return "No source changes to review.";
+    if (command.id === "discussion")
+      return "Select a source record or save this analysis sheet first.";
+    if (command.id === "remove-mapping") return "Select a mapping row in SCTM.";
+    if (sheet?.mode !== "freeform") return "Choose an analysis sheet for this action.";
+    if (command.id === "delete-sheet") return "Keep at least one analysis sheet.";
+    return "Select cells in the spreadsheet first.";
+  }
+  useWorkspaceActions(
+    commands
+      .filter((command) => command.id !== "palette")
+      .map((command) => ({
+        ...command,
+        id: `workbook:${programId}:${command.id}`,
+        group: `Workbook · ${command.group ?? "Actions"}`,
+        disabledReason: commandDisabledReason(command),
+        run: () => run(command.id),
+      })),
+  );
+  useWorkspaceNavigationTarget(
+    sheet && (sheet.mode === "records" || work.savedRevision > 0)
+      ? { kind: "workbook-sheet", recordId: programId, sheetId: sheet.id }
+      : null,
+  );
   function run(id: string) {
     // Keep Review/Save clickable so pointer focus can commit the cell first. A refused or
     // still-pending cell edit must settle before either action consumes the workbook.
@@ -846,7 +1089,7 @@ export function AssuranceWorkbench({
   const workbookControls = (
     <>
       {view === "grid" && (
-        <WorkbookFormatting
+        <SpreadsheetFormatting
           style={{
             bold: selection?.anchor.rowId === "headers",
             ...sheet.cells[selection?.anchor.rowId ?? ""]?.[selection?.anchor.columnId ?? ""]
@@ -855,7 +1098,15 @@ export function AssuranceWorkbench({
           disabled={structureDisabled || !range}
           numberFormatDisabled={sheet.mode !== "freeform"}
           selectionKey={JSON.stringify([sheet.id, selection?.anchor, selection?.focus])}
-          onFormat={(style) => work.safely(() => format(style))}
+          onFormat={(style) =>
+            work.safely(() => {
+              const authored = Object.fromEntries(
+                Object.entries(style).filter(([, value]) => value !== undefined),
+              );
+              validateStyle(authored);
+              format(authored);
+            })
+          }
           onBorders={(preset, border) => work.safely(() => borders(preset, border))}
         />
       )}
@@ -882,10 +1133,104 @@ export function AssuranceWorkbench({
             icon={<Sigma />}
             size="small"
             variant="subtle"
-            onClick={() => setFormulaHelp(true)}
+            onClick={() => run("formulas")}
           />
         </>
       )}
+      <IconButton
+        label="Find and replace"
+        icon={<Search />}
+        size="small"
+        variant="subtle"
+        disabled={work.cellDraftDirty}
+        onClick={() => run("find")}
+      />
+      <IconButton
+        label="Conditional formatting"
+        icon={<PaintBucket />}
+        size="small"
+        variant="subtle"
+        disabled={work.cellDraftDirty}
+        onClick={() => run("conditional")}
+      />
+      <IconButton
+        label="Discuss selected cell"
+        icon={<MessagesSquare />}
+        size="small"
+        variant="subtle"
+        disabled={!reviewTarget() || work.cellDraftDirty}
+        onClick={() => run("discussion")}
+      />
+      <SavedViews
+        scope={`program:${programId}:workbook`}
+        disabled={work.cellDraftDirty}
+        definition={{
+          version: 1,
+          kind: "workbook",
+          question: {
+            activeSheet: sheet.id,
+            questions,
+            view,
+            analysis,
+            layout: {
+              columns: sheet.columns.map(({ id, width, hidden }) => ({
+                id,
+                ...(width ? { width } : {}),
+                ...(hidden ? { hidden } : {}),
+              })),
+              rows: sheet.rows
+                .filter((row) => row.height || row.hidden)
+                .map(({ id, height, hidden }) => ({
+                  id,
+                  ...(height ? { height } : {}),
+                  ...(hidden ? { hidden } : {}),
+                })),
+              frozenRows: sheet.frozenRows,
+              frozenColumns: sheet.frozenColumns,
+            },
+          },
+        }}
+        onApply={(saved) => {
+          if (work.cellDraftDirty) throw new Error("Finish the current cell edit first.");
+          if (saved.kind !== "workbook")
+            throw new Error("This view belongs to a record collection.");
+          const settings = workbookViewSchema.parse(saved.question);
+          if (!workbook.sheets.some((item) => item.id === settings.activeSheet))
+            throw new Error("The sheet used by this saved view has been removed.");
+          if (settings.layout) {
+            if (work.locked || fileBusy)
+              throw new Error(
+                "Wait for the workbook operation to finish before applying this layout.",
+              );
+            const next = structuredClone(workbook);
+            const target = next.sheets.find((item) => item.id === settings.activeSheet)!;
+            const layout = settings.layout;
+            for (const column of target.columns) {
+              const savedColumn = layout.columns.find((saved) => saved.id === column.id);
+              if (!savedColumn) continue;
+              if (savedColumn.width) column.width = savedColumn.width;
+              else delete column.width;
+              if (savedColumn.hidden) column.hidden = true;
+              else delete column.hidden;
+            }
+            for (const row of target.rows) {
+              const savedRow = layout.rows.find((saved) => saved.id === row.id);
+              if (savedRow?.height) row.height = savedRow.height;
+              else delete row.height;
+              if (savedRow?.hidden) row.hidden = true;
+              else delete row.hidden;
+            }
+            target.frozenRows = layout.frozenRows;
+            target.frozenColumns = layout.frozenColumns;
+            work.update(next);
+          }
+          setActiveSheet(settings.activeSheet);
+          setQuestions(settings.questions);
+          setView(settings.view);
+          setAnalysis(settings.analysis);
+          setSelection(null);
+        }}
+      />
       <WorkbookViewControls
         name={sheet.name}
         columns={sheet.columns}
@@ -985,7 +1330,7 @@ export function AssuranceWorkbench({
             <Button
               size="small"
               variant="primary"
-              disabled={!commands[0]!.enabled}
+              disabled={!commands.find((command) => command.id === "review")?.enabled}
               onClick={() => run("review")}
             >
               Review changes
@@ -993,7 +1338,7 @@ export function AssuranceWorkbench({
             </Button>
             <Button
               size="small"
-              disabled={!commands[1]!.enabled}
+              disabled={!commands.find((command) => command.id === "save")?.enabled}
               isLoading={work.busy && Boolean(work.saveAttempt)}
               onClick={() => run("save")}
             >
@@ -1134,6 +1479,12 @@ export function AssuranceWorkbench({
             <SpreadsheetToolbar label="Workbook controls">{workbookControls}</SpreadsheetToolbar>
             <WorkbookAnalysis
               key={sheet.id}
+              settings={
+                analysis[sheet.id] ?? { group: sheet.columns[0]?.id ?? "", measure: "count" }
+              }
+              onSettings={(settings) =>
+                setAnalysis((previous) => ({ ...previous, [sheet.id]: settings }))
+              }
               sheet={sheet}
               rowIds={visibleRows.map((row) => row.id)}
               results={work.results}
@@ -1147,28 +1498,41 @@ export function AssuranceWorkbench({
               fillAvailable
               height={gridHeight}
               label={`${sheet.name} spreadsheet`}
-              columns={sheet.columns.map((column) => ({
-                id: column.id,
-                label: column.name,
-                type: column.type === "select" ? "choice" : column.type,
-                options:
-                  column.id === "owner_party_id"
-                    ? ownerOptions
-                    : column.options?.map((option) => ({ value: option, label: labelFor(option) })),
-                readOnly: column.readonly,
-                width: column.width,
-              }))}
-              rows={visibleRows.map((row) => ({
-                id: row.id,
-                label: String(sheet.rows.indexOf(row) + 1),
-                rowNumber: sheet.rows.indexOf(row) + 1,
-                values: Object.fromEntries(
-                  sheet.columns.map((column) => [
-                    column.id,
-                    sheet.cells[row.id]?.[column.id]?.input ?? "",
-                  ]),
-                ),
-              }))}
+              columns={spreadsheetColumns}
+              rows={spreadsheetRows}
+              formulaFunctions={sheet.mode === "freeform" ? FORMULA_FUNCTIONS : undefined}
+              getFormulaReferences={(input) => workbookFormulaReferences(sheet, input)}
+              getFormulaReference={(selected) => workbookRangeReference(sheet, selected)}
+              selectionStatistics={
+                statistics
+                  ? {
+                      count: statistics.nonEmpty,
+                      numericCount: statistics.numbers,
+                      sum: statistics.sum,
+                      ...(statistics.average === null ? {} : { average: statistics.average }),
+                    }
+                  : null
+              }
+              getClipboardStyle={({ rowId, columnId }) => sheet.cells[rowId]?.[columnId]?.style}
+              onPaste={({ mode, edits, styles }) => {
+                const validated = styles.map(({ rowId, columnId, style }) => {
+                  if (style !== null) validateStyle(style);
+                  // Source field types own their number representation. Retain only visual styles.
+                  const authored = style === null ? null : ({ ...style } as CellStyle);
+                  if (authored && sheet.mode === "records") {
+                    delete authored.format;
+                    delete authored.decimals;
+                  }
+                  return { rowId, columnId, style: authored };
+                });
+                work.perform({
+                  type: "paste-cells",
+                  sheetId: sheet.id,
+                  mode,
+                  edits: [...edits],
+                  styles: validated,
+                });
+              }}
               selection={selection}
               onSelectionChange={setSelection}
               onDraftChange={work.setCellDraftDirty}
@@ -1193,12 +1557,16 @@ export function AssuranceWorkbench({
                   name: peer.label,
                   cell: { rowId: peer.rowId!, columnId: peer.columnId! },
                 }))}
-              displayValue={({ rowId, columnId }) => display(rowId, columnId)}
+              displayValue={cellDisplay}
               isCellLiteral={({ rowId, columnId }) =>
                 sheet.mode === "records" || sheet.cells[rowId]?.[columnId]?.style?.format === "text"
               }
-              preparePasteValue={({ rowId, columnId }, value) =>
-                sheet.mode === "records" || sheet.cells[rowId]?.[columnId]?.style?.format === "text"
+              preparePasteValue={({ rowId, columnId }, value, replacementStyle) =>
+                sheet.mode === "records" ||
+                (replacementStyle === undefined
+                  ? sheet.cells[rowId]?.[columnId]?.style
+                  : replacementStyle
+                )?.format === "text"
                   ? value
                   : value.startsWith("=")
                     ? `'${value}`
@@ -1221,34 +1589,7 @@ export function AssuranceWorkbench({
               getCellError={({ rowId, columnId }) =>
                 work.results?.sheets[sheet.id]?.[rowId]?.[columnId]?.error
               }
-              getCellStyle={({ rowId, columnId }) => {
-                const style = sheet.cells[rowId]?.[columnId]?.style;
-                return {
-                  bold: style?.bold ?? rowId === "headers",
-                  italic: style?.italic,
-                  underline: style?.underline,
-                  strikethrough: style?.strikethrough,
-                  fontFamily: style?.fontFamily,
-                  fontSize: style?.fontSize,
-                  color: style?.color,
-                  background: style?.background,
-                  wrap: style?.wrap,
-                  verticalAlign: style?.verticalAlign,
-                  borderTop: style?.borderTop,
-                  borderRight: style?.borderRight,
-                  borderBottom: style?.borderBottom,
-                  borderLeft: style?.borderLeft,
-                  align:
-                    style?.align === "left"
-                      ? "start"
-                      : style?.align === "right"
-                        ? "end"
-                        : style?.align,
-                  tone: work.proposal.changes.some((change) => change.id === `${rowId}:${columnId}`)
-                    ? "warning"
-                    : "neutral",
-                };
-              }}
+              getCellStyle={cellStyle}
               onUndo={work.undo}
               onRedo={work.redo}
               canUndo={work.canUndo && !readonly}
@@ -1297,6 +1638,24 @@ export function AssuranceWorkbench({
                 ];
               }}
               onSheetAction={sheetAction}
+              isSheetReorderDisabled={(id) =>
+                work.locked ||
+                fileBusy ||
+                work.cellDraftDirty ||
+                workbook.sheets.find((item) => item.id === id)?.mode !== "freeform"
+              }
+              onSheetReorder={(_ids, change) => {
+                if (
+                  work.locked ||
+                  fileBusy ||
+                  work.cellDraftDirty ||
+                  workbook.sheets.find((item) => item.id === change.id)?.mode !== "freeform"
+                )
+                  return;
+                work.safely(() =>
+                  work.perform({ type: "move-sheet", sheetId: change.id, index: change.to }),
+                );
+              }}
               sheetRowCount={sheet.rows.length}
               sheetColumnCount={sheet.columns.length}
               onAddRows={
@@ -1315,15 +1674,11 @@ export function AssuranceWorkbench({
                       )
                   : undefined
               }
-              hiddenRowIds={sheet.rows.filter((row) => row.hidden).map((row) => row.id)}
-              hiddenColumnIds={sheet.columns
-                .filter((column) => column.hidden)
-                .map((column) => column.id)}
+              hiddenRowIds={gridLayout.hiddenRows}
+              hiddenColumnIds={gridLayout.hiddenColumns}
               onHiddenRowIdsChange={readonly ? undefined : (ids) => updateHidden("rows", ids)}
               onHiddenColumnIdsChange={readonly ? undefined : (ids) => updateHidden("columns", ids)}
-              rowHeights={Object.fromEntries(
-                sheet.rows.filter((row) => row.height).map((row) => [row.id, row.height!]),
-              )}
+              rowHeights={gridLayout.heights}
               onRowHeightsChange={
                 readonly
                   ? undefined
@@ -1350,28 +1705,47 @@ export function AssuranceWorkbench({
                       )
                   : undefined
               }
-              renderCellMenu={(context) =>
-                sheet.mode === "freeform" ? (
-                  <>
-                    <DropdownMenuItem
-                      disabled={structureDisabled}
-                      onClick={() => openCellDialog("dropdown", context)}
-                    >
-                      <CircleChevronDown />
-                      Dropdown…
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      disabled={structureDisabled}
-                      onClick={() => openCellDialog("comment", context)}
-                    >
-                      <MessageSquare />
-                      {sheet.cells[context.cell.rowId]?.[context.cell.columnId]?.comment
-                        ? "Edit comment"
-                        : "Comment"}
-                    </DropdownMenuItem>
-                  </>
-                ) : null
-              }
+              renderCellMenu={(context) => (
+                <>
+                  <DropdownMenuItem
+                    disabled={!reviewTarget(context.cell) || work.cellDraftDirty}
+                    onClick={() => setDiscussion(reviewTarget(context.cell) ?? null)}
+                  >
+                    <MessagesSquare />
+                    Discuss cell…
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    disabled={work.cellDraftDirty}
+                    onClick={() => {
+                      setSelection(context.selection);
+                      setConditional(true);
+                    }}
+                  >
+                    <PaintBucket />
+                    Conditional formatting…
+                  </DropdownMenuItem>
+                  {sheet.mode === "freeform" && (
+                    <>
+                      <DropdownMenuItem
+                        disabled={structureDisabled}
+                        onClick={() => openCellDialog("dropdown", context)}
+                      >
+                        <CircleChevronDown />
+                        Dropdown…
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        disabled={structureDisabled}
+                        onClick={() => openCellDialog("comment", context)}
+                      >
+                        <MessageSquare />
+                        {sheet.cells[context.cell.rowId]?.[context.cell.columnId]?.comment
+                          ? "Edit comment"
+                          : "Comment"}
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </>
+              )}
               renderRowMenu={(_row, context) =>
                 sheet.mode === "freeform" ? (
                   <>
@@ -1400,13 +1774,7 @@ export function AssuranceWorkbench({
               }
               freezeFirstRow={sheet.frozenRows > 0}
               freezeFirstColumn={sheet.frozenColumns > 0}
-              columnWidths={
-                readonly
-                  ? undefined
-                  : Object.fromEntries(
-                      sheet.columns.map((column) => [column.id, column.width ?? 140]),
-                    )
-              }
+              columnWidths={gridLayout.widths}
               onColumnWidthsChange={
                 readonly
                   ? undefined
@@ -1580,6 +1948,59 @@ export function AssuranceWorkbench({
               }
             >
               {work.applyAttempt ? "Retry applying changes" : "Apply changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {finding && (
+        <WorkbookFind
+          workbook={workbook}
+          sheetId={sheet.id}
+          results={work.results}
+          readonly={work.locked || fileBusy || work.cellDraftDirty}
+          canEditRecords={work.canEdit}
+          onUpdate={work.update}
+          onClose={() => setFinding(false)}
+          onSelect={(match) => {
+            setActiveSheet(match.sheetId);
+            setView("grid");
+            setQuestions((previous) => ({ ...previous, [match.sheetId]: emptyQuestion }));
+            const cell = { rowId: match.rowId, columnId: match.columnId };
+            setSelection({ anchor: cell, focus: cell });
+          }}
+        />
+      )}
+      {conditional && (
+        <WorkbookConditionalFormatting
+          sheet={sheet}
+          rowIds={selectedRows}
+          columnIds={selectedColumns}
+          readonly={readonly || work.cellDraftDirty}
+          onClose={() => setConditional(false)}
+          onSave={(rules) =>
+            work.perform({ type: "set-conditional-formats", sheetId: sheet.id, rules })
+          }
+        />
+      )}
+      <Dialog open={!!discussion} onOpenChange={(open) => !open && setDiscussion(null)}>
+        <DialogContent width="large">
+          <DialogHeader>
+            <DialogTitle>Cell review</DialogTitle>
+            <DialogDescription>
+              Review this record or saved cell and cite the evidence supporting it.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogBody>
+            {discussion && (
+              <Stack>
+                <AssuranceReviewPanel target={discussion} />
+                <AssuranceCitations target={discussion} />
+              </Stack>
+            )}
+          </DialogBody>
+          <DialogFooter>
+            <Button variant="subtle" onClick={() => setDiscussion(null)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

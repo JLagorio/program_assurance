@@ -1,0 +1,31 @@
+import { Meta, Canvas, ArgTypes } from "@storybook/addon-docs/blocks";
+import { Reorder, ReorderItem, ReorderHandle, ReorderMove } from "../..";
+import * as Stories from "./Reorder.stories";
+
+<Meta of={Stories} />
+
+# Reorder
+
+**Status: Experimental.**
+
+A controlled collection whose items move by pointer, keyboard or one press. Use it for tabs, favorites and ordinary lists. It introduces no listbox or option roles: links, checkboxes and buttons retain their semantics. DataTable retains its specialized column/row adapters.
+
+<Canvas of={Stories.SinglePress} />
+
+Give `items` stable unique identities in visual order, `getItemLabel` human-readable names, and commit `onReorder(items, { id, from, to })` in the host. Ledger persists nothing. Wrap each item in `ReorderItem` and include `ReorderHandle`. Always offer `ReorderMove` previous/next buttons or equivalent menu actions as a single-pointer alternative to dragging. Previous/next mean collection order; horizontal icons follow writing direction.
+
+Space picks up the focused handle; arrows move it, Space drops and Escape cancels. Pointer dragging begins after eight pixels, shows an insertion marker and scrolls overflowing ancestors at their edges. Keyboard movement reveals each target without continuing to scroll after the key is released. During a drag, the handle owns arrows and Escape even inside a dialog; leaving the handle, disabling the collection or unmounting cancels and removes its keyboard listeners. Ordinary typing, composition and focus in other controls retain their ownership. Announcements name the item and destination position. Reduced-motion mode removes reorder transitions. Native div props and refs reach Reorder and ReorderItem; IconButton props and refs reach the handle and move controls.
+
+<Canvas of={Stories.Keyboard} />
+<Canvas of={Stories.Horizontal} />
+<Canvas of={Stories.InsideDialog} />
+<Canvas of={Stories.KeyboardEdgeScrolling} />
+
+Set `disabled` while saving, restoring a draft or awaiting permission. An item's own `disabled` prevents picking it up; other items may pass it. This is not a fixed-position barrier. Hosts with protected source tabs must validate their own move operation. Keep order authoritative while saving and render a recoverable error on failure. Reordering never selects or opens an item.
+
+<Canvas of={Stories.Pending} />
+
+<ArgTypes of={Reorder} />
+<ArgTypes of={ReorderItem} />
+<ArgTypes of={ReorderHandle} />
+<ArgTypes of={ReorderMove} />

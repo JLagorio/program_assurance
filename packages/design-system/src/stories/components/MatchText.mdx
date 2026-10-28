@@ -1,0 +1,13 @@
+import { Meta, Canvas, ArgTypes } from "@storybook/addon-docs/blocks";
+import * as Stories from "./MatchText.stories";
+
+<Meta of={Stories} />
+
+# MatchText
+
+**Status: Experimental.** Plain text with semantic `mark` elements for literal query terms. A string is one phrase; an array matches individual terms. Matches ignore case by default, keep original characters and prefer the longest overlapping term. No HTML parsing or regular-expression syntax is accepted. The accessible text remains whole.
+
+<Canvas of={Stories.LiteralTerms} />
+<Canvas of={Stories.CaseSensitive} />
+<Canvas of={Stories.EmptyQuery} />
+<ArgTypes />

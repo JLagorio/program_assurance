@@ -1,0 +1,15 @@
+import { Meta, Canvas, ArgTypes } from "@storybook/addon-docs/blocks";
+import * as Stories from "./FindBar.stories";
+
+<Meta of={Stories} />
+
+# FindBar
+
+**Status: Experimental.** A controlled find row: query, zero-based current index, total and a navigation callback. Search execution and replacements belong to the host. Enter goes to the next match; Shift+Enter goes back. Both wrap. IME composition keeps Enter. Escape dismisses only when `onClose` is supplied.
+
+<Canvas of={Stories.Navigation} />
+
+No matches disables navigation. Loading retains the query and disables navigation while announcing progress. `truncated` marks a lower-bound count. Controls wrap in narrow containers; `inputRef` reaches the field and the native ref reaches the root. Optional children can hold scope or case controls. Keep replace eligibility and undo transactions in the application.
+
+<Canvas of={Stories.Searching} />
+<ArgTypes />

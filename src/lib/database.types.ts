@@ -1062,6 +1062,484 @@ export type Database = {
           },
         ];
       };
+      assurance_allocation_attention_generations: {
+        Row: {
+          changed_at: string;
+          generation: number;
+          requirement_revision_id: string;
+          system_id: string;
+          tenant_id: string;
+        };
+        Insert: {
+          changed_at: string;
+          generation: number;
+          requirement_revision_id: string;
+          system_id: string;
+          tenant_id: string;
+        };
+        Update: {
+          changed_at?: string;
+          generation?: number;
+          requirement_revision_id?: string;
+          system_id?: string;
+          tenant_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "assurance_allocation_attentio_tenant_id_requirement_revisi_fkey";
+            columns: ["tenant_id", "requirement_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "requirement_revisions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "assurance_allocation_attention_generat_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "composition_nodes";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "assurance_allocation_attention_generat_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "system_effective_baselines";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "assurance_allocation_attention_generat_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "system_effective_baselines";
+            referencedColumns: ["tenant_id", "system_id"];
+          },
+          {
+            foreignKeyName: "assurance_allocation_attention_generat_tenant_id_system_id_fkey";
+            columns: ["tenant_id", "system_id"];
+            isOneToOne: false;
+            referencedRelation: "systems";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "assurance_allocation_attention_generations_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      assurance_attention_acknowledgments: {
+        Row: {
+          item_key: string;
+          source_revision: string;
+          state: string | null;
+          tenant_id: string;
+          updated_at: string;
+          user_id: string;
+          version: number;
+        };
+        Insert: {
+          item_key: string;
+          source_revision: string;
+          state?: string | null;
+          tenant_id: string;
+          updated_at?: string;
+          user_id: string;
+          version?: number;
+        };
+        Update: {
+          item_key?: string;
+          source_revision?: string;
+          state?: string | null;
+          tenant_id?: string;
+          updated_at?: string;
+          user_id?: string;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "assurance_attention_acknowledgments_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      assurance_attention_requests: {
+        Row: {
+          created_at: string;
+          created_by: string;
+          id: string;
+          payload_sha256: string;
+          result: Json;
+          tenant_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by: string;
+          id: string;
+          payload_sha256: string;
+          result: Json;
+          tenant_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string;
+          id?: string;
+          payload_sha256?: string;
+          result?: Json;
+          tenant_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "assurance_attention_requests_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      assurance_citations: {
+        Row: {
+          anchor: string | null;
+          author_name: string;
+          created_at: string;
+          created_by: string;
+          evidence_revision: number;
+          evidence_sha256: string;
+          evidence_title: string;
+          evidence_version_id: string;
+          id: string;
+          page: number | null;
+          passage: string;
+          program_id: string | null;
+          rectangle: Json | null;
+          source_storage_object_id: string | null;
+          source_storage_object_name: string | null;
+          source_uri: string;
+          target: Json;
+          tenant_id: string;
+          version_number: number;
+        };
+        Insert: {
+          anchor?: string | null;
+          author_name: string;
+          created_at?: string;
+          created_by: string;
+          evidence_revision: number;
+          evidence_sha256: string;
+          evidence_title: string;
+          evidence_version_id: string;
+          id?: string;
+          page?: number | null;
+          passage: string;
+          program_id?: string | null;
+          rectangle?: Json | null;
+          source_storage_object_id?: string | null;
+          source_storage_object_name?: string | null;
+          source_uri: string;
+          target: Json;
+          tenant_id: string;
+          version_number: number;
+        };
+        Update: {
+          anchor?: string | null;
+          author_name?: string;
+          created_at?: string;
+          created_by?: string;
+          evidence_revision?: number;
+          evidence_sha256?: string;
+          evidence_title?: string;
+          evidence_version_id?: string;
+          id?: string;
+          page?: number | null;
+          passage?: string;
+          program_id?: string | null;
+          rectangle?: Json | null;
+          source_storage_object_id?: string | null;
+          source_storage_object_name?: string | null;
+          source_uri?: string;
+          target?: Json;
+          tenant_id?: string;
+          version_number?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "assurance_citations_tenant_id_evidence_version_id_fkey";
+            columns: ["tenant_id", "evidence_version_id"];
+            isOneToOne: false;
+            referencedRelation: "evidence_versions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "assurance_citations_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "assurance_citations_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "programs";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      assurance_navigation_items: {
+        Row: {
+          favorite: boolean;
+          position: number;
+          target: Json;
+          target_key: string;
+          tenant_id: string;
+          user_id: string;
+          visited_at: string | null;
+        };
+        Insert: {
+          favorite?: boolean;
+          position?: number;
+          target: Json;
+          target_key: string;
+          tenant_id: string;
+          user_id: string;
+          visited_at?: string | null;
+        };
+        Update: {
+          favorite?: boolean;
+          position?: number;
+          target?: Json;
+          target_key?: string;
+          tenant_id?: string;
+          user_id?: string;
+          visited_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "assurance_navigation_items_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      assurance_review_messages: {
+        Row: {
+          author_name: string;
+          body: string;
+          created_at: string;
+          created_by: string;
+          id: string;
+          kind: string;
+          parent_id: string | null;
+          tenant_id: string;
+          thread_id: string;
+        };
+        Insert: {
+          author_name: string;
+          body: string;
+          created_at?: string;
+          created_by: string;
+          id?: string;
+          kind?: string;
+          parent_id?: string | null;
+          tenant_id: string;
+          thread_id: string;
+        };
+        Update: {
+          author_name?: string;
+          body?: string;
+          created_at?: string;
+          created_by?: string;
+          id?: string;
+          kind?: string;
+          parent_id?: string | null;
+          tenant_id?: string;
+          thread_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "assurance_review_messages_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "assurance_review_messages_tenant_id_thread_id_fkey";
+            columns: ["tenant_id", "thread_id"];
+            isOneToOne: false;
+            referencedRelation: "assurance_review_threads";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "assurance_review_messages_tenant_id_thread_id_parent_id_fkey";
+            columns: ["tenant_id", "thread_id", "parent_id"];
+            isOneToOne: false;
+            referencedRelation: "assurance_review_messages";
+            referencedColumns: ["tenant_id", "thread_id", "id"];
+          },
+        ];
+      };
+      assurance_review_requests: {
+        Row: {
+          created_at: string;
+          created_by: string;
+          id: string;
+          payload_sha256: string;
+          result: Json;
+          tenant_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by: string;
+          id: string;
+          payload_sha256: string;
+          result: Json;
+          tenant_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string;
+          id?: string;
+          payload_sha256?: string;
+          result?: Json;
+          tenant_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "assurance_review_requests_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      assurance_review_threads: {
+        Row: {
+          author_name: string;
+          created_at: string;
+          created_by: string;
+          id: string;
+          program_id: string | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          revision: number;
+          status: string;
+          subject: string;
+          target: Json;
+          target_context: Json;
+          tenant_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          author_name: string;
+          created_at?: string;
+          created_by: string;
+          id?: string;
+          program_id?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          revision?: number;
+          status?: string;
+          subject: string;
+          target: Json;
+          target_context?: Json;
+          tenant_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          author_name?: string;
+          created_at?: string;
+          created_by?: string;
+          id?: string;
+          program_id?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          revision?: number;
+          status?: string;
+          subject?: string;
+          target?: Json;
+          target_context?: Json;
+          tenant_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "assurance_review_threads_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "assurance_review_threads_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "programs";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      assurance_saved_views: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          definition: Json;
+          id: string;
+          name: string;
+          owner_id: string;
+          revision: number;
+          scope_key: string;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          visibility: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          definition: Json;
+          id: string;
+          name: string;
+          owner_id: string;
+          revision?: number;
+          scope_key: string;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          visibility: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          definition?: Json;
+          id?: string;
+          name?: string;
+          owner_id?: string;
+          revision?: number;
+          scope_key?: string;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          visibility?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "assurance_saved_views_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       assurance_workbook_requests: {
         Row: {
           created_at: string;
@@ -12856,6 +13334,33 @@ export type Database = {
           },
         ];
       };
+      assurance_attention_sources: {
+        Row: {
+          item_key: string | null;
+          kind: string | null;
+          program_id: string | null;
+          reason: string | null;
+          source_revision: string | null;
+          target: Json | null;
+          tenant_id: string | null;
+          title: string | null;
+          updated_at: string | null;
+        };
+        Relationships: [];
+      };
+      assurance_search_documents: {
+        Row: {
+          body: string | null;
+          href: string | null;
+          id: string | null;
+          identifier: string | null;
+          kind: string | null;
+          tenant_id: string | null;
+          title: string | null;
+          updated_at: string | null;
+        };
+        Relationships: [];
+      };
       catalog_control_rows: {
         Row: {
           catalog_revision_id: string | null;
@@ -13553,6 +14058,25 @@ export type Database = {
         Args: { table_name: string };
         Returns: undefined;
       };
+      assurance_allocation_attention_context: {
+        Args: {
+          p_requirement_revision_id: string;
+          p_system_id: string;
+          p_tenant_id: string;
+        };
+        Returns: {
+          changed_at: string;
+          generation: number;
+        }[];
+      };
+      assurance_review_source_lines: {
+        Args: { value: string };
+        Returns: string[];
+      };
+      assurance_review_target_program: {
+        Args: { p_target: Json; p_tenant_id: string };
+        Returns: string;
+      };
       attach_parent_immutability: {
         Args: {
           child_table: string;
@@ -13598,6 +14122,23 @@ export type Database = {
       can_own_tenant: { Args: { target_tenant: string }; Returns: boolean };
       can_read_tenant: { Args: { target_tenant: string }; Returns: boolean };
       can_write_tenant: { Args: { target_tenant: string }; Returns: boolean };
+      command_assurance_attention: {
+        Args: { p_command: Json; p_request_id: string; p_tenant_id: string };
+        Returns: Json;
+      };
+      command_assurance_navigation: {
+        Args: {
+          p_keys?: string[];
+          p_operation: string;
+          p_target?: Json;
+          p_tenant_id: string;
+        };
+        Returns: undefined;
+      };
+      command_assurance_review: {
+        Args: { p_command: Json; p_request_id: string; p_tenant_id: string };
+        Returns: Json;
+      };
       copy_product_revision: {
         Args: { p_source_revision_id: string; p_tenant_id: string };
         Returns: string;
@@ -13633,6 +14174,10 @@ export type Database = {
           p_use_id: string;
         };
         Returns: Json;
+      };
+      delete_assurance_view: {
+        Args: { p_id: string; p_revision: number; p_tenant_id: string };
+        Returns: undefined;
       };
       edit_requirement: {
         Args: {
@@ -13687,6 +14232,19 @@ export type Database = {
         Returns: Json;
       };
       product_export_uuid: { Args: { seed: string }; Returns: string };
+      read_assurance_attention: {
+        Args: {
+          p_limit?: number;
+          p_offset?: number;
+          p_state?: string;
+          p_tenant_id: string;
+        };
+        Returns: Json;
+      };
+      read_assurance_navigation: {
+        Args: { p_tenant_id: string };
+        Returns: Json;
+      };
       read_assurance_workbook: {
         Args: {
           p_program_id: string;
@@ -13696,6 +14254,10 @@ export type Database = {
         Returns: Json;
       };
       reference_owner: { Args: { table_name: string }; Returns: string[] };
+      resolve_assurance_destination: {
+        Args: { p_target: Json; p_tenant_id: string };
+        Returns: Json;
+      };
       resolve_base_controls: {
         Args: {
           p_catalog_id: string;
@@ -13716,6 +14278,37 @@ export type Database = {
         };
         Returns: Json;
       };
+      save_assurance_view: {
+        Args: {
+          p_definition: Json;
+          p_id: string;
+          p_name: string;
+          p_revision?: number;
+          p_scope: string;
+          p_tenant_id: string;
+          p_visibility: string;
+        };
+        Returns: {
+          created_at: string;
+          created_by: string | null;
+          definition: Json;
+          id: string;
+          name: string;
+          owner_id: string;
+          revision: number;
+          scope_key: string;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          visibility: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "assurance_saved_views";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       save_assurance_workbook: {
         Args: {
           p_document: Json;
@@ -13731,6 +14324,17 @@ export type Database = {
       save_workspace_snapshot: {
         Args: { expected_revision: number; snapshot: Json };
         Returns: number;
+      };
+      search_assurance_records: {
+        Args: { p_limit?: number; p_query: string; p_tenant_id: string };
+        Returns: {
+          excerpt: string;
+          href: string;
+          id: string;
+          identifier: string;
+          kind: string;
+          title: string;
+        }[];
       };
       seed_library_contribution: {
         Args: {

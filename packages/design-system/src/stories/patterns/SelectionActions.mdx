@@ -1,0 +1,16 @@
+import { Meta, Canvas, ArgTypes } from "@storybook/addon-docs/blocks";
+import * as Stories from "./SelectionActions.stories";
+
+<Meta of={Stories} />
+
+# SelectionActions
+
+**Status: Experimental.** Actions for a captured selection, with an optional live element or virtual rectangle anchor. The host owns the selected text, cells or line range and supplies actions as children. Changing `selectionKey` opens actions for a new capture.
+
+<Canvas of={Stories.CapturedRange} />
+
+With a precise pointer and an anchor, actions float beside the range using Popover collision handling and scroll positioning. A fixed labelled trigger provides keyboard entry without stealing focus when the range is captured. Pointer actions preserve native text selection. Escape or outside dismissal returns to the inline action row; Escape restores focus to the first inline action when focus was in the popup. Touch and missing anchors use the inline row immediately. No action exists only on hover.
+
+<Canvas of={Stories.Inline} />
+<Canvas of={Stories.AtViewportEdge} />
+<ArgTypes />

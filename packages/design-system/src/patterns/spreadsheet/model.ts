@@ -128,6 +128,7 @@ export type SpreadsheetClipboard = {
   text: string;
   display: string[][];
   literal?: boolean[][] | undefined;
+  styles?: (Readonly<Record<string, unknown>> | null)[][] | undefined;
   rowNumbers: number[];
   columnNumbers: number[];
   source: SpreadsheetEdit[];
@@ -144,10 +145,12 @@ export function spreadsheetPaste({
   text,
   clipboard,
   valuesOnly = false,
+  formattingOnly = false,
   sheetId,
   translateInput,
   preparePasteValue,
   valueAt,
+  styleAt,
   canWrite,
 }: {
   rows: readonly SpreadsheetRow[];
@@ -157,18 +160,27 @@ export function spreadsheetPaste({
   text: string;
   clipboard: SpreadsheetClipboard | null;
   valuesOnly?: boolean | undefined;
+  formattingOnly?: boolean | undefined;
   sheetId?: string | undefined;
   translateInput?: SpreadsheetProps["translateInput"];
   preparePasteValue?: SpreadsheetProps["preparePasteValue"];
   valueAt: (cell: SpreadsheetCell) => string;
+  styleAt?: SpreadsheetProps["getClipboardStyle"];
   canWrite: (cell: SpreadsheetCell) => boolean;
-}): { edits: SpreadsheetEdit[]; cut: boolean } {
+}): {
+  edits: SpreadsheetEdit[];
+  styles: (SpreadsheetCell & { style: Readonly<Record<string, unknown>> | null })[];
+  cut: boolean;
+} {
   const range = selectionBounds(selection, rows, columns);
   if (!range) throw new Error("Select visible cells before pasting.");
   const origin = clipboard?.text === text ? clipboard : null;
+  if (formattingOnly && !origin?.styles)
+    throw new Error("Copy cells in this workbook before pasting formatting.");
+  const cut = origin?.kind === "cut" && !formattingOnly;
   const cells = valuesOnly && origin ? origin.display : parseTsv(text);
   const width = cells[0]?.length ?? 0;
-  const single = cells.length === 1 && width === 1 && origin?.kind !== "cut";
+  const single = cells.length === 1 && width === 1 && !cut;
   const endRow = single ? range.bottom : range.top + cells.length - 1;
   const endColumn = single ? range.end : range.start + width - 1;
   if (endRow >= rows.length || endColumn >= columns.length)
@@ -176,18 +188,30 @@ export function spreadsheetPaste({
       "The pasted range is larger than this sheet. Add rows or columns before pasting.",
     );
   const edits = new Map<string, SpreadsheetEdit>();
+  const styles = new Map<
+    string,
+    SpreadsheetCell & { style: Readonly<Record<string, unknown>> | null }
+  >();
   const key = (cell: SpreadsheetCell) => JSON.stringify([cell.rowId, cell.columnId]);
-  if (origin?.kind === "cut") {
+  if (cut && origin) {
     if (origin.sheetId !== sheetId)
       throw new Error(
         "Paste cut cells into their original sheet. Use Copy to transfer cells between sheets.",
       );
-    for (const source of origin.source) {
+    for (const [index, source] of origin.source.entries()) {
       if (!canWrite(source))
         throw new Error("The cut range includes a read-only cell. No cells were moved.");
       if (valueAt(source) !== source.value)
         throw new Error("The cut cells changed. Cut them again before pasting.");
+      if (!valuesOnly && origin.styles && styleAt) {
+        const width = origin.columnNumbers.length;
+        const originalStyle = origin.styles[Math.floor(index / width)]?.[index % width] ?? null;
+        if (JSON.stringify(styleAt(source) ?? null) !== JSON.stringify(originalStyle))
+          throw new Error("The cut cell formatting changed. Cut the cells again before pasting.");
+      }
       edits.set(key(source), { ...source, value: "" });
+      if (!valuesOnly && origin.styles)
+        styles.set(key(source), { rowId: source.rowId, columnId: source.columnId, style: null });
     }
   }
   for (let row = range.top; row <= endRow; row++) {
@@ -197,10 +221,22 @@ export function spreadsheetPaste({
       const cell = { rowId: rows[row]!.id, columnId: columns[column]!.id };
       if (!canWrite(cell))
         throw new Error("The pasted range includes a read-only cell. No cells were changed.");
+      if (!valuesOnly && origin?.styles)
+        styles.set(key(cell), {
+          ...cell,
+          style: structuredClone(origin.styles[sourceRow]?.[sourceColumn] ?? null),
+        });
+      if (formattingOnly) continue;
       let input = cells[sourceRow]![sourceColumn]!;
       if (valuesOnly || origin?.literal?.[sourceRow]?.[sourceColumn])
         input = preparePasteValue
-          ? preparePasteValue(cell, input)
+          ? preparePasteValue(
+              cell,
+              input,
+              !valuesOnly && origin?.styles
+                ? (origin.styles[sourceRow]?.[sourceColumn] ?? null)
+                : undefined,
+            )
           : input.startsWith("=")
             ? `'${input}`
             : input;
@@ -213,7 +249,7 @@ export function spreadsheetPaste({
       edits.set(key(cell), { ...cell, value: input });
     }
   }
-  return { edits: [...edits.values()], cut: origin?.kind === "cut" };
+  return { edits: [...edits.values()], styles: [...styles.values()], cut };
 }
 
 /** Measure actual word wrapping; total text width alone can underestimate line count. */

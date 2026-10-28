@@ -1,0 +1,10 @@
+/* Geometry adapter for PDF.js 5 TextLayer output. Scope to the reader; the full vendor
+   viewer stylesheet includes unrelated dialogs and unresolved image custom properties. */
+[data-evidence-pdf-page] { position:relative; width:100%; height:100%; }
+[data-evidence-pdf-page] canvas { display:block; width:100%; height:100%; }
+[data-pdf-text-layer] { position:absolute; inset:0; overflow:clip; line-height:1; text-align:initial; transform-origin:0 0; text-size-adjust:none; color-scheme:only light; forced-color-adjust:none; --min-font-size:1; }
+[data-pdf-text-layer] :is(span,br) { position:absolute; color:transparent; white-space:pre; transform-origin:0 0; cursor:text; }
+[data-pdf-text-layer] > :not(.markedContent), [data-pdf-text-layer] .markedContent span:not(.markedContent) { --font-height:0; --scale-x:1; --rotate:0deg; font-size:calc(var(--total-scale-factor) * var(--min-font-size) * var(--font-height)); transform:rotate(var(--rotate)) scaleX(var(--scale-x)) scale(calc(1 / var(--min-font-size))); }
+[data-pdf-text-layer] .markedContent { display:contents; }
+[data-pdf-text-layer] ::selection { background:Highlight; color:transparent; }
+[data-evidence-pdf-page][data-copy="false"] [data-pdf-text-layer] { user-select:none; }

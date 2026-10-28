@@ -1,0 +1,25 @@
+import { Meta, Canvas, ArgTypes } from "@storybook/addon-docs/blocks";
+import { Comparison } from "../..";
+import * as Stories from "./Comparison.stories";
+
+<Meta of={Stories} />
+
+# Comparison
+
+**Status: Experimental.**
+
+Two explicitly chosen surfaces with independent reading positions. The application owns the records, retrieval, pin/close actions and draft guards. The pattern takes content slots and never instantiates another editor for a pinned reference.
+
+<Canvas of={Stories.Playground} />
+
+Above 640px of its own container, the panes sit beside a resize separator. Arrow keys resize by 2 percent, Shift by 10; Home/End reach 25/75, Enter restores 50. Dragging follows pointer capture, respects right-to-left direction, and pointer cancellation restores the starting ratio.
+
+Below that width a labelled pane switch exposes one pane. Both subtrees remain mounted; hidden content leaves the accessibility tree and tab order. Draft values and each pane's scroll position survive switching and resizing. Give both panes stable React keys. Removing the secondary slot closes the reference without remounting the primary.
+
+<Canvas of={Stories.NarrowRetainsBoth} />
+
+<Canvas of={Stories.ResizeRetainsPosition} />
+
+`fill` occupies the remaining window and makes each pane independently scroll. Without it, set a bounded native `style.height` when independent scrolling is wanted. `ref`, native events, `style`, `className` and `data-*` reach the root div. Pane labels and separator text come from the host, so they can be translated and name the real task. This is an explicit work surface; it does not automatically add a details rail.
+
+<ArgTypes of={Comparison} />

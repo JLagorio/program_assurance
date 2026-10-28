@@ -81,7 +81,15 @@ export function StateBadge({ value }: { value: unknown }) {
  * is missing or hidden ("Not available"). Never a QueryState: one failure is reported once, for
  * its region.
  */
-export function RelationName({ table, id }: { table: TableName; id: string | null | undefined }) {
+export function RelationName({
+  table,
+  id,
+  peek = true,
+}: {
+  table: TableName;
+  id: string | null | undefined;
+  /** Disable when an enclosing link already owns navigation. */ peek?: boolean | undefined;
+}) {
   const query = useRow(table, id);
   if (!id) return <Absent />;
   const row = query.data as unknown as DataRecord | null | undefined;
@@ -96,10 +104,24 @@ export function RelationName({ table, id }: { table: TableName; id: string | nul
     );
   if (row === null) return <Absent label="Not available" />;
   const named = row["name"] ?? row["title"] ?? row["code"] ?? row["source_id"];
-  if (named !== null && named !== undefined && named !== "") return <>{String(named)}</>;
+  if (named !== null && named !== undefined && named !== "")
+    return peek ? (
+      <RecordLink table={table} record={row} peek>
+        {String(named)}
+      </RecordLink>
+    ) : (
+      <>{String(named)}</>
+    );
   // A revision has no name of its own: it reads as its version, never as its id.
   const version = row["version_number"];
-  if (typeof version === "number") return <>Version {version}</>;
+  if (typeof version === "number")
+    return peek ? (
+      <RecordLink table={table} record={row} peek>
+        Version {version}
+      </RecordLink>
+    ) : (
+      <>Version {version}</>
+    );
   return <Text color="color.text.subtle">Unnamed {productRecordNoun(table)}</Text>;
 }
 

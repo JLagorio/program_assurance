@@ -1,0 +1,20 @@
+import { Meta, Canvas, ArgTypes } from "@storybook/addon-docs/blocks";
+import * as Stories from "./ContextMenu.stories";
+import { ContextMenu, ContextMenuTrigger, ContextMenuContent } from "../..";
+
+<Meta of={Stories} />
+
+# ContextMenu
+
+**Status: Experimental.** A context target and floating menu using the same surface and items as DropdownMenu. Right-click and stationary long-press open it. Shift+F10 or the ContextMenu key opens at the focused target or its active descendant; text editors keep their native menu.
+
+<Canvas of={Stories.Actions} />
+
+Compose `DropdownMenuItem`, checkbox/radio items, groups, separators and submenus inside `ContextMenuContent`. These parts deliberately share one implementation; there is no second set of menu row styles. Use the same command identities, availability and handlers as visible controls and `CommandScope`. Supply a visible menu button or equivalent action path as well as a pointer menu.
+
+The root inherits Ledger direction. The trigger forwards refs, events and native attributes and defaults to `tabIndex=0`; a composite may override its slot, role and focus model. The content forwards native popup props and `finalFocus`, constrains itself to the window, and scrolls long menus. Native `render` composition must forward events and ref. A menu that opens a dialog hands focus to that task rather than restoring it early.
+
+<Canvas of={Stories.LongLabels} />
+<ArgTypes of={ContextMenu} />
+<ArgTypes of={ContextMenuTrigger} />
+<ArgTypes of={ContextMenuContent} />

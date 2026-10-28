@@ -1,3 +1,10 @@
+import {
+  PersonalNavigationProvider,
+  PersonalNavigationSection,
+  FavoriteCurrentRecord,
+} from "./personal-navigation";
+import { WorkspaceActionsProvider } from "./workspace-actions";
+import { RecordSearch } from "./workspace-search";
 import { RecordPreviewProvider } from "@/components/prototype/record-preview";
 import {
   createContext,
@@ -32,14 +39,12 @@ import {
   LinkButton,
   ModeSwitch,
   PageSkeleton,
-  SearchDialog,
   Shell,
   Stack,
   Text,
   useLedgerLocale,
   useMode,
   type ColorMode,
-  type SearchResult,
 } from "@ledger/design-system";
 import {
   Archive,
@@ -62,10 +67,7 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
-import { useRows } from "@/lib/models";
 import { labelFor } from "@/lib/records";
-import { determinations, programStatuses, riskStatuses } from "@/lib/status";
-import { StatusBadge } from "./status";
 import { AccountMenu, useSignOut, useWorkspace } from "./workspace";
 import { SchemaLayout } from "./schema-shell";
 
@@ -172,7 +174,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
   return inspector ? (
     <SchemaLayout>{children}</SchemaLayout>
   ) : (
-    <PrototypeLayout>{children}</PrototypeLayout>
+    <WorkspaceActionsProvider>
+      <PersonalNavigationProvider>
+        <PrototypeLayout>{children}</PrototypeLayout>
+      </PersonalNavigationProvider>
+    </WorkspaceActionsProvider>
   );
 }
 
@@ -202,6 +208,7 @@ function PrototypeLayout({ children }: { children: ReactNode }) {
           <RecordSearch />
         </Shell.TopNav.Middle>
         <Shell.TopNav.End>
+          <FavoriteCurrentRecord />
           {/* The three mode icons stay in the row while it has room; below its fold they leave it,
               and the mode is chosen in the account menu and Settings, as it is at every width. */}
           <Box className="@max-3xl/topnav:hidden">
@@ -222,6 +229,7 @@ function PrototypeLayout({ children }: { children: ReactNode }) {
       </Shell.TopNav>
       <Shell.SideNav>
         <Shell.SideNav.Body>
+          <PersonalNavigationSection />
           {groups.map((group) => (
             <Shell.SideNav.Section key={group.label} heading={group.label}>
               {group.items.map((item) => (
@@ -274,8 +282,8 @@ function PrototypeLayout({ children }: { children: ReactNode }) {
                 </KeyValue>
               </KeyValue.Group>
               <Text as="p">
-                Tab moves between controls, and Enter or Space activates them. Search finds
-                programs, risks and assessment findings by their name or code.
+                Tab moves between controls, and Enter or Space activates them. The launcher finds
+                records, matching evidence passages, saved views and actions for the current page.
               </Text>
               <Text as="p">
                 Create a program, define its systems and scope, then connect implementation,
@@ -362,108 +370,5 @@ function AppearanceItems() {
         ))}
       </DropdownMenuRadioGroup>
     </DropdownMenuGroup>
-  );
-}
-
-/**
- * The product's record search: the top nav's search opens a SearchDialog over programs, risks and
- * assessment findings, each row its code, its name and its status. Nothing loads until the reader
- * reaches for the search.
- */
-function RecordSearch() {
-  const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
-  const [wanted, setWanted] = useState(false);
-  const programs = useRows(
-    "programs",
-    {},
-    { enabled: wanted, columns: ["id", "code", "name", "status"] },
-  );
-  const risks = useRows(
-    "risks",
-    {},
-    { enabled: wanted, columns: ["id", "title", "status", "program_id"] },
-  );
-  const findings = useRows(
-    "assessment_findings",
-    {},
-    { enabled: wanted, columns: ["id", "title", "determination"] },
-  );
-  const results = useMemo<SearchResult[]>(() => {
-    const programName = new Map(
-      (programs.data ?? []).map((program) => [program.id, `${program.code} · ${program.name}`]),
-    );
-    return [
-      ...(programs.data ?? []).map((row) => ({
-        id: `programs/${row.id}`,
-        identifier: row.code,
-        title: row.name,
-        group: "Programs",
-        badge: <StatusBadge statuses={programStatuses} value={row.status} size="xsmall" />,
-      })),
-      ...(risks.data ?? []).map((row) => ({
-        id: `risks/${row.id}`,
-        title: row.title,
-        meta: row.program_id ? programName.get(row.program_id) : undefined,
-        group: "Risks",
-        badge: <StatusBadge statuses={riskStatuses} value={row.status} size="xsmall" />,
-      })),
-      ...(findings.data ?? []).map((row) => ({
-        id: `findings/${row.id}`,
-        title: row.title,
-        group: "Assessment findings",
-        badge: row.determination ? (
-          <StatusBadge statuses={determinations} value={row.determination} size="xsmall" />
-        ) : undefined,
-      })),
-    ];
-  }, [programs.data, risks.data, findings.data]);
-  const queries = [programs, risks, findings];
-  const failed = queries.filter((query) => query.isError);
-  // A chosen record replaces the page. The dialog then returns no focus, and the Shell takes it
-  // on to Main with the page change, instead of back to the search button (or, after ⌘K, to the
-  // first link of the new page).
-  const pathname = useRouterState({ select: (state) => state.location.pathname });
-  const chosen = useRef(false);
-  function openRecord(result: SearchResult) {
-    chosen.current = `/${result.id}` !== pathname;
-    const [kind, id = ""] = result.id.split("/");
-    if (kind === "programs")
-      void navigate({ to: "/programs/$programId", params: { programId: id } });
-    else if (kind === "risks") void navigate({ to: "/risks/$riskId", params: { riskId: id } });
-    else void navigate({ to: "/findings/$findingId", params: { findingId: id } });
-  }
-  const want = () => setWanted(true);
-  return (
-    <>
-      <Shell.TopNav.Search
-        label="Search programs, risks, and findings"
-        onOpen={() => {
-          chosen.current = false;
-          setWanted(true);
-          setOpen(true);
-        }}
-        // Start reading the records as the reader reaches for the search.
-        onPointerEnter={want}
-        onFocus={want}
-      />
-      <SearchDialog
-        open={open}
-        onOpenChange={setOpen}
-        results={results}
-        onSelect={openRecord}
-        finalFocus={() => !chosen.current}
-        placeholder="Search programs, risks and assessment findings"
-        loading={wanted && queries.some((query) => query.isPending)}
-        error={
-          failed.length === 0
-            ? undefined
-            : failed.length === queries.length
-              ? "Records could not be loaded. Check your connection and try again."
-              : "Some records could not be loaded, so these results may be incomplete."
-        }
-        onRetry={() => failed.forEach((query) => void query.refetch())}
-      />
-    </>
   );
 }

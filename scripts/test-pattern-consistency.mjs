@@ -101,7 +101,7 @@ async function checkHeader(path, title, width) {
   if (width === 390) {
     const navigation = page.getByRole("banner", { name: "Top navigation" });
     const search = await navigation
-      .getByRole("button", { name: "Search programs, risks, and findings", exact: true })
+      .getByRole("button", { name: "Search records, views, and actions", exact: true })
       .boundingBox();
     const actions = await navigation
       .getByRole("group", { name: "Actions", exact: true })

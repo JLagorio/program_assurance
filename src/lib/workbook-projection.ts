@@ -4,6 +4,9 @@ import {
   deserializeWorkbook,
   serializeWorkbook,
   validateStyle,
+  validateConditionalFormats,
+  LIMITS,
+  type ConditionalFormatRule,
   type CellStyle,
   type Sheet,
   type SheetColumn,
@@ -229,6 +232,52 @@ function sourcePresentationStyles(sheet: Sheet) {
   return styles.length ? { styles } : {};
 }
 
+/** Validate saved appearance before pruning identities removed from the authorized source. */
+function sourceConditionalFormats(
+  input: unknown,
+  source: Sheet,
+): ConditionalFormatRule[] | undefined {
+  if (input === undefined) return;
+  if (!Array.isArray(input) || input.length > 100)
+    throw new Error("Saved source conditional formatting is invalid.");
+  const historicalRows = new Set<string>();
+  const historicalColumns = new Set<string>();
+  for (const rule of input) {
+    if (
+      !rule ||
+      !Array.isArray(rule.rowIds) ||
+      !Array.isArray(rule.columnIds) ||
+      rule.rowIds.length > LIMITS.rows ||
+      rule.columnIds.length > LIMITS.columns ||
+      rule.rowIds.some((id: unknown) => typeof id !== "string" || !/^[\w-]{1,160}$/.test(id)) ||
+      rule.columnIds.some((id: unknown) => typeof id !== "string" || !/^[\w-]{1,160}$/.test(id))
+    )
+      throw new Error("Saved source conditional formatting has invalid identities.");
+    for (const id of rule.rowIds) historicalRows.add(id);
+    for (const id of rule.columnIds) historicalColumns.add(id);
+  }
+  // Historical IDs are schema-checked, then discarded unless the fresh source authorizes them.
+  validateConditionalFormats(input, {
+    rows: [...historicalRows].map((id) => ({ id })),
+    columns: [...historicalColumns].map((id) => ({ id, name: id })),
+  });
+  const rows = new Set(source.rows.map((row) => row.id));
+  const columns = new Set(source.columns.map((column) => column.id));
+  const rules = structuredClone(input)
+    .map((rule) => ({
+      ...rule,
+      rowIds: rule.rowIds.filter((id) => rows.has(id)),
+      columnIds: rule.columnIds.filter((id) => columns.has(id)),
+    }))
+    .filter((rule) => rule.rowIds.length && rule.columnIds.length);
+  return rules.length ? rules : undefined;
+}
+
+function sourceConditionalLayout(sheet: Sheet): { conditionalFormats?: ConditionalFormatRule[] } {
+  const rules = sourceConditionalFormats(sheet.conditionalFormats, sheet);
+  return rules ? { conditionalFormats: rules } : {};
+}
+
 /** Only freeform analysis and source presentation are persisted as a workbook document. */
 export function workbookDocument(workbook: Workbook): Record<string, unknown> {
   const analysis = workbook.sheets.filter((sheet) => sheet.mode === "freeform");
@@ -262,6 +311,7 @@ export function workbookDocument(workbook: Workbook): Record<string, unknown> {
                 ...(height !== undefined ? { height } : {}),
               })),
             ...sourcePresentationStyles(sheet),
+            ...sourceConditionalLayout(sheet),
             frozenRows: sheet.frozenRows,
             frozenColumns: sheet.frozenColumns,
           },
@@ -292,6 +342,7 @@ export function projectWorkbook(
             columns?: { id: string; width?: number; hidden?: boolean }[];
             rows?: { id: string; height?: number; hidden?: boolean }[];
             styles?: { rowId: string; columnId: string; style: unknown }[];
+            conditionalFormats?: unknown;
             frozenRows?: number;
             frozenColumns?: number;
           }
@@ -299,6 +350,8 @@ export function projectWorkbook(
       | undefined;
     for (const source of sources) {
       const layout = layouts?.[source.id];
+      const rules = sourceConditionalFormats(layout?.conditionalFormats, source);
+      if (rules) source.conditionalFormats = rules;
       const columnLayouts = Array.isArray(layout?.columns) ? layout.columns : [];
       const rowLayouts = new Map(
         (Array.isArray(layout?.rows) ? layout.rows : [])

@@ -557,7 +557,7 @@ function SystemProperties({
                 />
               }
             >
-              <RelationName table="systems" id={system.boundary_system_id} />
+              <RelationName table="systems" id={system.boundary_system_id} peek={false} />
             </TextLink>
           </KeyValue>
         )}
@@ -571,7 +571,7 @@ function SystemProperties({
                 />
               }
             >
-              <RelationName table="systems" id={system.parent_system_id} />
+              <RelationName table="systems" id={system.parent_system_id} peek={false} />
             </TextLink>
           </KeyValue>
         )}
@@ -679,7 +679,7 @@ export function ProgramComponentRecord({
                   />
                 }
               >
-                <RelationName table="systems" id={elementId} />
+                <RelationName table="systems" id={elementId} peek={false} />
               </TextLink>
             ) : element.data === undefined && element.isError ? (
               // The page's alert says why; the value keeps its place, as RelationName's does.

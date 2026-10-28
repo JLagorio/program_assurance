@@ -1,3 +1,4 @@
+import type { ReorderChange } from "../reorder";
 import type { ComponentProps, ReactNode } from "react";
 
 /** Stable field identity. Column order is presentation, never the cell's identity. */
@@ -52,6 +53,7 @@ export type SpreadsheetBorder = {
 };
 export type SpreadsheetCellStyle = {
   fontFamily?: string | undefined;
+  /** Document font size in points (1pt = 4/3 CSS pixels). */
   fontSize?: number | undefined;
   strikethrough?: boolean | undefined;
   color?: string | undefined;
@@ -76,7 +78,7 @@ export type SpreadsheetToolbarProps = ComponentProps<"div"> & {
   label: string;
 };
 
-export type SpreadsheetProps = Omit<ComponentProps<"div">, "onChange" | "children"> & {
+export type SpreadsheetProps = Omit<ComponentProps<"div">, "onChange" | "onPaste" | "children"> & {
   /** Names this grid; required even when a page heading names the workbook. */
   label: string;
   columns: readonly SpreadsheetColumn[];
@@ -84,6 +86,20 @@ export type SpreadsheetProps = Omit<ComponentProps<"div">, "onChange" | "childre
   /** One atomic intent. Reject to keep the editor's draft and expose Retry. The host owns validation, persistence and updating rows. */
   onChange?: ((edits: readonly SpreadsheetEdit[]) => void | Promise<void>) | undefined;
   /** Reports an unsaved editor draft so the host can guard navigation and structural operations. False after commit, cancellation or unmount. */
+  /** Host-provided formulas; completion inserts names without evaluating expressions. */
+  formulaFunctions?: readonly SpreadsheetFunction[] | undefined;
+  /** Parse references into stable selections in the current sheet; unknown/other-sheet references can be omitted. */
+  getFormulaReferences?:
+    ((input: string, cell: SpreadsheetCell) => readonly SpreadsheetFormulaReference[]) | undefined;
+  /** Encode a picked range for the current formula. Defaults to canonical A1 addresses in this sheet. */
+  getFormulaReference?: ((selection: SpreadsheetSelection) => string) | undefined;
+  /** Snapshot authored styles for local rich copy. External TSV never carries document styles. */
+  getClipboardStyle?:
+    ((cell: SpreadsheetCell) => Readonly<Record<string, unknown>> | undefined) | undefined;
+  /** One atomic paste intent including translated inputs and replacement styles. Rejection retains retry state. */
+  onPaste?: ((paste: SpreadsheetPaste) => void | Promise<void>) | undefined;
+  /** Evaluated, unformatted selection totals from the host. Null suppresses totals; undefined uses local numeric display values. */
+  selectionStatistics?: SpreadsheetStatistics | null | undefined;
   onDraftChange?: ((dirty: boolean) => void) | undefined;
   selection?: SpreadsheetSelection | null | undefined;
   onSelectionChange?: ((selection: SpreadsheetSelection | null) => void) | undefined;
@@ -104,8 +120,14 @@ export type SpreadsheetProps = Omit<ComponentProps<"div">, "onChange" | "childre
   displayValue?: ((cell: SpreadsheetCell, value: string) => string) | undefined;
   /** Unformatted calculated value for Paste values; defaults to displayValue/raw input. */
   clipboardValue?: ((cell: SpreadsheetCell, value: string) => string) | undefined;
-  /** Encode a calculated Paste values string for this target. Defaults to escaping leading =; record-backed literal cells can return the string unchanged. */
-  preparePasteValue?: ((cell: SpreadsheetCell, value: string) => string) | undefined;
+  /** Encode a literal input for this target. Optional style is incoming replacement metadata: undefined keeps current styling, null clears it. Defaults to escaping leading =; record-backed literal cells can return unchanged. */
+  preparePasteValue?:
+    | ((
+        cell: SpreadsheetCell,
+        value: string,
+        style?: Readonly<Record<string, unknown>> | null,
+      ) => string)
+    | undefined;
   /** Translate relative references for fill and locally copied ranges. Row coordinates use rowNumber - 1; columns use their zero-based positions. Defaults to literal copying. */
   translateInput?:
     | ((
@@ -137,6 +159,9 @@ export type SpreadsheetProps = Omit<ComponentProps<"div">, "onChange" | "childre
   onAddSheet?: (() => void) | undefined;
   getSheetActions?: ((sheetId: string) => readonly SpreadsheetSheetAction[]) | undefined;
   onSheetAction?: ((sheetId: string, actionId: string) => void) | undefined;
+  /** Drag/keyboard reorder; successful cell-draft commit precedes this callback. */
+  onSheetReorder?: ((ids: string[], change: ReorderChange) => void) | undefined;
+  isSheetReorderDisabled?: ((sheetId: string) => boolean) | undefined;
   onAddRows?: (() => void) | undefined;
   onAddColumns?: (() => void) | undefined;
   sheetRowCount?: number | undefined;
@@ -166,4 +191,48 @@ export type SpreadsheetProps = Omit<ComponentProps<"div">, "onChange" | "childre
   rowHeights?: Readonly<Record<string, number>> | undefined;
   /** Receives the complete explicit-height map. Removing an ID resets it to automatic height. */
   onRowHeightsChange?: ((heights: Readonly<Record<string, number>>) => void) | undefined;
+};
+
+/** Engine-neutral formatting controls; physical text alignment matches document interchange. */
+export type SpreadsheetFormat = Omit<SpreadsheetCellStyle, "align" | "tone"> & {
+  align?: "left" | "center" | "right" | undefined;
+  format?: "general" | "number" | "currency" | "percent" | "date" | "text" | undefined;
+  decimals?: number | undefined;
+};
+export type SpreadsheetBorderPreset =
+  "all" | "outside" | "inside" | "top" | "right" | "bottom" | "left" | "none";
+export type SpreadsheetFormattingProps = Omit<ComponentProps<"div">, "style" | "children"> & {
+  style?: SpreadsheetFormat | undefined;
+  disabled?: boolean | undefined;
+  /** Disable value-type formatting while retaining visual document styles. */
+  numberFormatDisabled?: boolean | undefined;
+  /** Properties with differing values in the selection. Applying a control replaces that property uniformly. */
+  mixed?: readonly (keyof SpreadsheetFormat)[] | undefined;
+  /** Resets unfinished toolbar input when selection changes. */
+  selectionKey?: string | undefined;
+  onFormat: (style: SpreadsheetFormat) => void;
+  onBorders: (preset: SpreadsheetBorderPreset, border: SpreadsheetBorder) => void;
+};
+
+export type SpreadsheetFunction = {
+  name: string;
+  signature: string;
+  description: string;
+  arguments?: readonly string[] | undefined;
+};
+export type SpreadsheetFormulaReference = {
+  selection: SpreadsheetSelection;
+  label?: string | undefined;
+};
+export type SpreadsheetPaste = {
+  mode: "all" | "values" | "formatting";
+  edits: readonly SpreadsheetEdit[];
+  /** Replacement document styles, never evaluated conditional formatting. Null clears authored styling. */
+  styles: readonly (SpreadsheetCell & { style: Readonly<Record<string, unknown>> | null })[];
+};
+export type SpreadsheetStatistics = {
+  count: number;
+  numericCount: number;
+  sum?: number | undefined;
+  average?: number | undefined;
 };

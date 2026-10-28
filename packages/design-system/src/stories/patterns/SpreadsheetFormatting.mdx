@@ -1,0 +1,25 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { SpreadsheetFormatting } from "../../patterns/spreadsheet";
+import * as Stories from "./SpreadsheetFormatting.stories";
+
+<Meta of={Stories} />
+
+# Spreadsheet formatting
+
+**Status: Experimental.** Controlled, engine-neutral document-formatting controls for a `SpreadsheetToolbar` or the grid's `actions` slot. The host applies each callback to its authorized selection and records undo history. Native div attributes, `className` and `ref` reach its inline group; the `style` prop describes document formatting rather than CSS. See the [Spreadsheet contract](?path=/docs/patterns-spreadsheet--docs) for grid integration.
+
+`style` describes the current selection's formatting. `onFormat` receives a patch: omitted properties are unchanged. Font sizes are points, from 8 to 72; row and column dimensions elsewhere in the grid are CSS pixels. `onBorders` receives a preset and line settings, and the host determines the selected range's outer and shared edges. Color values describe document content, independent of the application's theme.
+
+<Canvas of={Stories.Default} />
+
+<Canvas of={Stories.Formatting} />
+
+Pass differing property names through `mixed` rather than reporting the anchor cell as the whole selection. Mixed toggles expose `aria-pressed="mixed"` and apply the property uniformly when activated; mixed font and number-format controls show Mixed or an empty size. `selectionKey` resets unfinished font-size input when the range changes.
+
+<Canvas of={Stories.MixedSelection} />
+
+`disabled` pauses all changes. `numberFormatDisabled` protects field-defined value types while retaining visual formatting such as wrapping and bold. These controls do not validate records or replace host authorization.
+
+<Canvas of={Stories.ProtectedFormats} />
+
+<ArgTypes of={SpreadsheetFormatting} />

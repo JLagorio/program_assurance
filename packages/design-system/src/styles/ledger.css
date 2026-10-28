@@ -30,3 +30,10 @@
 @import "./toast.css";
 @import "./banner.css";
 @import "./forced-colors.css";
+
+@import "../patterns/document-reader.css";
+
+/* Highlights preserve a readable distinction in the operating system's colour palette. */
+@media (forced-colors: active) {
+  [data-slot="match-text-highlight"] { background: Highlight; color: HighlightText; forced-color-adjust: none; }
+}

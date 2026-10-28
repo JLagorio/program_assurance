@@ -808,7 +808,7 @@ const FOCUSABLE =
   'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export type ShellAsideProps = ComponentProps<"aside"> & {
-  /** The region's name, "<Record type> details" on a record ("Page context" by default). */
+  /** The region's name, `<Record type> details` on a record ("Page context" by default). */
   label?: string | undefined;
   /** Where the Details are a disclosure, its heading: "Details" (a locale message) by default. An Inspector.Group of the same name inside is the disclosure's own content, without a second title. */
   heading?: string | undefined;

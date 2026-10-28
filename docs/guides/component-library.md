@@ -94,6 +94,7 @@ render under their own name sets its `data-slot` before the caller's props, so t
 part's name wins: Button and IconButton, Input, Textarea, InputGroup with InputGroupText and
 InputGroupButton, Field, Alert (which ErrorSummary and the search and palette errors render as),
 Breadcrumb (which a PageHeader.Lead renders as a record's trail), Separator, TooltipTrigger and TooltipContent (which Truncate renders as),
+ContextMenuTrigger (which a spreadsheet viewport renders under its own slot),
 AlertDialogCancel (which an AlertDialogAction with no command renders as), Collapsible and
 CollapsibleContent (which Diff, Inspector, Section and DataTable.Metrics render under their own
 names), ScrollArea (which TabsList renders as its strip's scroller), and an overlay's title

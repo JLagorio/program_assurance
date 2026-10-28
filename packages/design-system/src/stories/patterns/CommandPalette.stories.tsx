@@ -356,3 +356,130 @@ export const RepeatedCommandIdentity: Story = {
     await expect(await canvas.findByRole("status")).toHaveTextContent("Third export");
   },
 };
+
+function RemoteLauncherDemo() {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [actionsOnly, setActionsOnly] = useState(false);
+  const [chosen, setChosen] = useState("");
+  const all: PaletteCommand[] = [
+    {
+      id: "record",
+      group: "Records",
+      label: "Access control assessment",
+      description: "Matching passage: access is reviewed at the start of every assessment period.",
+      run: () => setChosen("Opened assessment"),
+    },
+    {
+      id: "review",
+      group: "Current page",
+      label: "Resolve review",
+      disabledReason: "Editor access is required to resolve this review.",
+      run: () => setChosen("Should not run"),
+    },
+    {
+      id: "favorites",
+      group: "Actions",
+      label: "Manage favorites",
+      shortcut: "Mod+Shift+F",
+      run: () => setChosen("Opened favorites"),
+    },
+  ];
+  const items = all.filter(
+    (item) =>
+      (!actionsOnly || item.group !== "Records") &&
+      `${item.label} ${item.description ?? ""}`.toLowerCase().includes(query.toLowerCase()),
+  );
+  return (
+    <Stack space="space.150" alignInline="start">
+      <Button onClick={() => setOpen(true)}>Open workspace launcher</Button>
+      <span role="status">{chosen}</span>
+      <CommandPalette
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Workspace launcher"
+        query={query}
+        onQueryChange={setQuery}
+        filter={false}
+        commands={items}
+        controls={
+          <Button
+            size="small"
+            variant="subtle"
+            aria-pressed={actionsOnly}
+            onClick={() => setActionsOnly(!actionsOnly)}
+          >
+            Actions only
+          </Button>
+        }
+      />
+    </Stack>
+  );
+}
+export const RemoteLauncher: Story = {
+  render: RemoteLauncherDemo,
+  play: async ({ canvasElement }) => {
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.click(page.getByRole("button", { name: "Open workspace launcher" }));
+    const dialog = page.getByRole("dialog", { name: "Workspace launcher" });
+    await waitFor(() => expect(within(dialog).getByText(/Matching passage/)).toBeVisible());
+    const disabled = within(dialog).getByRole("option", { name: /Resolve review/ });
+    expect(disabled).toHaveAttribute("aria-disabled", "true");
+    expect(
+      within(dialog).getByText("Editor access is required to resolve this review."),
+    ).toBeVisible();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Actions only" }));
+    expect(within(dialog).queryByText("Access control assessment")).not.toBeInTheDocument();
+    await userEvent.type(within(dialog).getByRole("combobox"), "favorites");
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() =>
+      expect(page.queryByRole("dialog", { name: "Workspace launcher" })).not.toBeInTheDocument(),
+    );
+    expect(page.getByRole("status")).toHaveTextContent("Opened favorites");
+  },
+};
+
+/** Uncontrolled input and excerpt highlighting share one query, including after reopening. */
+export const MatchingExcerpts: Story = {
+  render: function MatchingExcerptsDemo() {
+    const [open, setOpen] = useState(false);
+    return (
+      <>
+        <Button onClick={() => setOpen(true)}>Find commands</Button>
+        <CommandPalette
+          open={open}
+          onClose={() => setOpen(false)}
+          commands={[
+            {
+              id: "copy",
+              group: "Clipboard",
+              label: "Copy passage",
+              description: "Copy the selected text.",
+              run: () => undefined,
+            },
+            { id: "paste", group: "Clipboard", label: "Paste passage", run: () => undefined },
+          ]}
+          highlightMatches
+        />
+      </>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Find commands" }));
+    let dialog = await page.findByRole("dialog", { name: "Command palette" });
+    await userEvent.type(within(dialog).getByRole("combobox"), "Copy");
+    await waitFor(() => expect(dialog.querySelectorAll("mark")).toHaveLength(2));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("dialog")).toBeNull());
+    await userEvent.click(canvas.getByRole("button", { name: "Find commands" }));
+    dialog = await page.findByRole("dialog", { name: "Command palette" });
+    await expect(within(dialog).getByRole("combobox")).toHaveValue("");
+    await expect(dialog.querySelectorAll("mark")).toHaveLength(0);
+    await waitFor(() =>
+      expect(within(dialog).getByRole("option", { name: "Paste passage" })).toBeVisible(),
+    );
+    await userEvent.keyboard("{Escape}");
+  },
+};

@@ -1,0 +1,42 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { Spreadsheet } from "../../patterns/spreadsheet";
+import * as Stories from "./SpreadsheetAuthoring.stories";
+
+<Meta of={Stories} />
+
+# Spreadsheet authoring
+
+**Status: Experimental.** These examples extend the [Spreadsheet contract](?path=/docs/patterns-spreadsheet--docs) with host-assisted formula entry, document-style clipboard operations and evaluated selection totals.
+
+## Formula assistance
+
+Supply `formulaFunctions` with names, signatures, descriptions and optional argument labels. Both the formula bar and inline text editor suggest matching functions while typing. Up/Down chooses a suggestion; Enter or Tab inserts its name and opening parenthesis without saving the cell. Escape first dismisses suggestions. Nested calls expose the current argument; quoted strings are excluded from completion. The host's engine evaluates formulas.
+
+`getFormulaReferences(input, cell)` resolves references to stable selections in the current sheet. Referenced cells show distinct token colors and accessible reference descriptions. Unsupported, incomplete or other-sheet references can be omitted. `getFormulaReference(selection)` encodes a picked range; the default uses this sheet's canonical A1 addresses. When the caret expects an operand, dragging over cells inserts a reference while retaining the original editor. **Insert cell reference** explicitly enables picking at another caret position. Releasing returns focus to the editor; Escape during a pick restores its original draft. Picking currently targets the displayed sheet.
+
+<Canvas of={Stories.FormulaAssistance} />
+<Canvas of={Stories.InlineReferenceCancellation} />
+
+## Click-away settlement
+
+Leaving an inline editor commits its local draft and reports the settled `onDraftChange` state before the next host click. A guarded Review action can therefore run on the same click; failed validation or a pending write keeps the guard active. This callback stages workbook data and does not imply a database write.
+
+<Canvas of={Stories.BlurCommitAction} />
+
+## Rich local clipboard
+
+`getClipboardStyle` snapshots authored document styles into the mounted workbook's local clipboard receipt. Plain system clipboard TSV retains values and formulas for interoperability. `onPaste` receives one atomic intent: `mode`, stable-ID `edits`, and replacement `styles`. A null style clears authored formatting. The host validates and applies the complete intent or rejects it; the grid never calls `onChange` separately for that paste. The host must retain record bindings and validate protected value formats. `preparePasteValue` receives an optional third argument for the incoming replacement style; use it when encoding literal formula-shaped text against the target’s final format.
+
+Normal paste carries copied values and styles. **Paste values** carries calculated inputs only. **Paste formatting** changes styles without modifying inputs, even when the receipt originated from Cut. Cuts otherwise clear their source only in the same accepted batch; changed source values or formatting reject a stale move. Hidden destinations are skipped, protected rectangles reject as a whole, and a failed atomic callback remains retryable. Rich styles stay local to this mounted workbook; external clipboard text has no style payload. Comments, dropdown rules and conditional-formatting results are not copied.
+
+<Canvas of={Stories.RichClipboard} />
+<Canvas of={Stories.RichPasteRecovery} />
+<Canvas of={Stories.ProtectedRichPaste} />
+
+## Evaluated totals
+
+Supply `selectionStatistics` with `count`, `numericCount` and optional `sum`/`average` computed from unformatted engine values. This preserves numeric totals when cells display currency or dates. Omit the prop for the local numeric-display fallback; pass null to suppress numeric totals. These are presentation values supplied by the host, not a second calculation engine.
+
+<Canvas of={Stories.CalculatedStatistics} />
+
+<ArgTypes of={Spreadsheet} />

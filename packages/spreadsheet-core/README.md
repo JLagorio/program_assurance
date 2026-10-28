@@ -1,16 +1,14 @@
 # Ledger spreadsheet core
 
-Framework-independent workbook operations for Program Assurance. This package is
-implemented independently of the Macro example. It imports no example code and
-uses the published `@ironcalc/wasm` 0.8.4 (MIT/Apache-2.0) calculation engine and
-ExcelJS 4.4.0 (MIT) XLSX reader/writer.
+Framework-independent workbook operations for Program Assurance, implemented
+independently of Macro. No Macro source is included. Calculation uses published
+`@ironcalc/wasm` 0.8.4 (MIT/Apache-2.0); XLSX uses ExcelJS 4.4.0 (MIT).
 
-The workbook stores authored input and formatting under stable sheet, row and
-column IDs. A1 addresses are a calculation and interchange representation, never
-the identity of a requirement or control. Record sheets can bind cells to
-`{ recordId, fieldId, revision }`. Their content is literal; formulas belong in
-freeform analysis sheets. The host owns source loading, permissions, revisions,
-reviewed apply-back, persistence and audit events.
+Cells use stable sheet, row and column IDs. A1 references are a calculation and
+interchange representation, never a requirement/control identity. Record sheets
+bind cells to `{ recordId, fieldId, revision }` and keep content literal. Formulas
+belong in freeform sheets. The host owns authorization, source loading, reviewed
+apply-back, persistence and audit events.
 
 ```ts
 import { createWorkbook, applyOperation } from "@ledger/spreadsheet-core";
@@ -29,65 +27,116 @@ const result = await calculation.calculate(workbook);
 calculation.dispose();
 ```
 
-`applyOperation` supports edit, paste, fill (relative formulas and numeric
-series), format, clear, sheet lifecycle, row/column insertion/deletion, frozen
-panes and column sizing. It validates the entire operation before returning a new
-revision. Failed operations leave the input unchanged. Record column validation
-and read-only rows/columns apply equally to typing, paste and fill. Snapshots
-validate shape and preserve bound source content, including read-only header
-values. The host must reconstruct record projections from authorized data.
+## Transactions and presentation
 
-Axis changes preserve row/column identities and rewrite direct A1 references,
-including absolute references, cross-sheet references and whole-row/column
-ranges. Dynamic `INDIRECT`, structured, external and 3-D references block
-structural mutations because they cannot be safely rewritten. Record structure
-is managed by the source, not by spreadsheet insert/delete. Duplicating a record
-sheet creates an independent literal analysis snapshot and removes write-back
-bindings.
+`applyOperation` validates each immutable transaction before returning a revision.
+Typing, paste and fill enforce record column validation and read-only axes. Visual
+formatting can decorate protected source cells without changing their data type.
+The host must reconstruct record projections from authorized source records.
+`createHistory` groups operations into local undo steps; it is not remote rollback.
 
-`createHistory` groups a mutation into one undo step. Revisions remain monotonic
-on undo/redo. This is local workbook history; it must not be used as a remote
-record rollback mechanism. There is no CRDT transport or collaboration backend
-in this package.
+`paste-cells` accepts an explicit stable-ID edit/style plan with `all`, `values` or
+`formatting` mode. This supports filtered/hidden views without accidentally writing
+intervening cells. The host plans formula translation, literal encoding and cut
+source clearing before submitting one atomic batch. Style replacements preserve
+destination bindings, notes and validation. Formatting-only paste preserves a
+literal-text marker; record sheets prohibit pasted number-format/type overrides.
+External TSV has no styling payload. Cut/copy metadata transfer is host-owned.
 
-`createCalculationClient` runs the actual IronCalc engine in a Vite module
-worker. New requests supersede older ones. A response must match both its
-request ID and workbook revision. Timeouts terminate the worker, and later
-requests start a fresh one. Calculated results are never written into source
-cells. Clock/random functions return an explicit error because upstream 0.8.4
-does not provide this adapter a shared clock/seed. Unsupported formulas remain
-visible as errors; there is no fallback JavaScript evaluator.
+`set-conditional-formats` stores bounded numeric comparisons, literal text
+contains/equality and blank rules. `conditionalCellStyle` returns a visual overlay;
+later matching rules override earlier fields. It never executes user JavaScript
+or changes values, number formats or source field types. Errors do not match.
+Rules target stable row/column IDs, shrink on deletion, remap on sheet duplication
+and do not automatically expand to new records. Supply current calculated values
+for formula-aware appearance. Empty optional rules are omitted from snapshots.
 
-`createWorkbookFileClient` from `/file-client` runs XLSX work in a separate
-cancelable worker. `importXlsx` returns a workbook and explicit fidelity warnings.
-Supported interchange includes cells, formulas, common formatting, column widths
-and frozen panes. Merges, charts, pivots, names, macros, cell validation, comments,
-links and advanced formats are not preserved. Native JSON snapshots preserve
-stable identities and bindings; XLSX import creates an independent analysis copy.
-CSV/TSV parsing supports quoted multiline fields, and record exports escape
-formula-shaped text.
+Axis operations retain identities and rewrite direct A1 references, including
+absolute, cross-sheet and whole-axis references. `INDIRECT`, structured, external
+and 3-D references block structural mutations that cannot be safely rewritten.
+Source structure remains source-managed. Duplicating a record sheet creates an
+independent literal analysis copy with write-back bindings removed.
 
-Limits are intentional: 32 sheets, 20,000 rows, 256 columns, 200,000 populated
-cells per workbook and 20,000 cells per mutation. XLSX input is limited to 10 MB
-compressed / 80 MB expanded directory size, with a 45-second worker deadline.
-These are validation bounds, not a promise of spreadsheet performance at every
-combination of those limits. Calculation currently rebuilds its engine model per
-revision; incremental evaluation and large-workbook benchmarks remain follow-up
-work. Formula and XLSX compatibility are not complete Excel parity.
+## Calculation, search and formula assistance
 
-Run `npm run test -w packages/spreadsheet-core` and
-`npm run typecheck -w packages/spreadsheet-core`. Tests load the real published
-WASM and independently create XLSX files, in addition to atomic edits, reference
-shifts, serialization, CSV safety and worker failure/staleness coverage.
+A worker retains one IronCalc model. After an acknowledged result, compatible
+revisions send sparse cell/metadata deltas. Changed inputs update the model;
+structural changes rebuild it. Presentation-only revisions reuse raw calculated
+values and refresh number displays without engine evaluation. This avoids model
+reconstruction, but input changes still evaluate through the upstream engine and
+collect results; it is not a guarantee of fully localized dependency evaluation.
+The main thread currently compares snapshots to construct deltas.
 
-With the local Vite app running, `node scripts/test-spreadsheet-core-browser.mjs`
-checks both real browser workers. `node scripts/test-assurance-workbench.mjs`
-also requires local Supabase and uses a disposable workspace to check staged
-record edits, atomic review/apply, analysis persistence, XLSX round trips,
-390px layout and exact retry after a committed request loses its response.
-Both scripts default to `http://localhost:8080`; set `APP_TEST_URL` to override.
+Request IDs, workbook revisions and acknowledged delta bases reject stale results.
+Superseding/canceling an active calculation terminates it. Timeouts, worker errors
+and lost state recover with a fresh snapshot (one resync retry). No calculated
+result is written into authored source data. Clock/random formulas return explicit
+errors because the pinned adapter has no shared clock/seed. Unsupported formulas
+remain visible errors; there is no fallback JavaScript evaluator.
 
-Primary dependency references:
+`findCells` searches literal authored input or current calculated display across
+selected sheets, excluding hidden axes by default. Results use stable IDs and
+canonical addresses. `replaceMatches` only replaces authored input, checks stale
+matches and protections, and returns one atomic workbook revision. The host can
+commit it with `history.replace`. Search/replacement text is not a regular expression.
+`selectionStatistics` counts cells, populated values, numeric values and errors,
+and provides sum/average/min/max. Pass explicit selected row/column IDs and current
+results; text digits remain text.
+
+`FORMULA_FUNCTIONS`, `formulaSuggestions` and `formulaSignature` provide a small
+curated catalog and quote-aware completion/signature context without loading WASM.
+They are not an exhaustive list of IronCalc functions. `formulaReferences` reports
+UTF-16 source spans and zero-based A1 cell/range coordinates, including quoted
+sheet names; whole-axis references are not returned for overlay rendering.
+
+## Interchange capability matrix
+
+| Capability                                                    | Native JSON | XLSX                                                                               | CSV / TSV                                                    | Internal rich paste                              |
+| ------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------ |
+| Inputs and formulas                                           | Exact       | Supported formulas retain source; engine compatibility varies                      | Text fields; export policy chooses authored/displayed values | Planned input edits; host translates references  |
+| Stable IDs, source bindings, revision                         | Exact       | Independent analysis copy; identities and bindings omitted                         | Omitted                                                      | Destination identities/bindings preserved        |
+| Fonts, colors, borders, alignment, wrap, number formats       | Exact       | Common subset; complex borders/custom formats simplified with import warnings      | Omitted                                                      | Style replacement or formatting-only             |
+| Row heights, column widths, hidden axes, frozen panes         | Exact       | Supported                                                                          | Omitted                                                      | Omitted                                          |
+| Notes and literal list validation                             | Exact       | Supported; formula/range validation warns and is omitted                           | Omitted                                                      | Destination retained; source metadata not copied |
+| Conditional rules                                             | Exact       | Supported numeric/text/blank rules round-trip; advanced rules warn and are omitted | Omitted                                                      | Not copied                                       |
+| Merges, charts, pivots, defined names, macros, rich text runs | Not modeled | Not preserved; rich text imports as plain text                                     | Not modeled                                                  | Not modeled                                      |
+
+Conditional XLSX export cannot retain explicit `false` font-emphasis overrides
+with the pinned ExcelJS writer; it rejects such rules and directs the user to a
+native snapshot. It also rejects scopes requiring over 4,096 disjoint rectangles.
+Supported exported rules use safe native Excel expressions, not opaque metadata.
+Import accepts those expressions and simple numeric `cellIs` rules. Unsupported
+rule semantics and non-Cartesian scopes produce warnings. Rule IDs are regenerated
+on XLSX import; their scopes and supported appearance are preserved.
+
+`createWorkbookFileClient` runs XLSX work in a separate cancelable worker.
+`importXlsx` returns fidelity warnings. JSON snapshots preserve modeled data, not
+approval history or external authorization. CSV/TSV supports quoted multiline
+fields; record exports escape formula-shaped text.
+
+## Bounds and verification
+
+Limits: 32 sheets, 20,000 rows, 256 columns, 200,000 populated cells per workbook,
+20,000 cells per mutation, and 100 conditional rules per sheet (200,000 scoped
+cells each). XLSX input is bounded to 10 MB compressed / 80 MB expanded with a
+45-second file-worker deadline. Bounds are not a performance guarantee at every
+combination, and formula/XLSX compatibility is not complete Excel parity.
+
+Run `npm test -w packages/spreadsheet-core` and
+`npm run typecheck -w packages/spreadsheet-core`. Tests load real WASM and XLSX,
+compare retained versus fresh calculation after input/structure/spill changes,
+and cover delta recovery, atomic rich paste, literals, conditional JSON/XLSX,
+reference shifts, search/replacement and summaries.
+
+With Vite running, `node scripts/test-spreadsheet-core-browser.mjs` checks both
+browser workers, including retained deltas and cancel/recovery. Set `BROWSER` to
+`chromium` (default), `firefox` or `webkit` after installing the corresponding
+Playwright browser. `node scripts/test-assurance-workbench.mjs` additionally needs
+local Supabase and uses a disposable workspace for review/apply, persistence,
+interchange, mobile layout and lost-response recovery. Both default to
+`http://localhost:8080`; set `APP_TEST_URL` to override.
+
+Primary references:
 
 - https://github.com/ironcalc/IronCalc/tree/main/bindings/wasm
 - https://docs.ironcalc.com/programming/javascript-bindings.html

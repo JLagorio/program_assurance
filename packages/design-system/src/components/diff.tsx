@@ -1,7 +1,15 @@
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { ChevronsDownUp, ChevronsUpDown } from "lucide-react";
-import { Fragment, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  Fragment,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
 import { cn } from "../lib/cn";
 import { useLedgerLocale } from "../lib/locale";
@@ -455,6 +463,22 @@ function fold(rows: readonly DiffRow[], context: number): Item[] {
 
 export type DiffLayout = "inline" | "side-by-side";
 
+/** A range in the original earlier or later text. Lines are one-based and inclusive. */
+export type DiffSelection = {
+  side: "before" | "after";
+  startLine: number;
+  endLine: number;
+  text: string;
+};
+/** Host-owned content anchored below the last original line in a range. */
+export type DiffAnnotation = {
+  id: string;
+  side: "before" | "after";
+  startLine: number;
+  endLine: number;
+  content: ReactNode;
+};
+
 export type DiffProps = Omit<useRender.ComponentProps<"div">, "children"> & {
   /** The earlier text. Lines split on line breaks; in a narrative, a paragraph is a line. */
   before: string;
@@ -466,6 +490,16 @@ export type DiffProps = Omit<useRender.ComponentProps<"div">, "children"> & {
    * inline wherever its own container is narrower than 36rem.
    */
   layout?: DiffLayout | undefined;
+  /** Receives a layout choice when the review controls are shown. Omit layout for local ownership. */
+  onLayoutChange?: ((layout: DiffLayout) => void) | undefined;
+  /** Show view switching, previous/next change and an unchanged-content toggle. Off by default. */
+  controls?: boolean | undefined;
+  /** Adds keyboard/touch accessible annotation buttons to changed lines. Shift-click extends a range on the same side. */
+  onSelectLines?: ((selection: DiffSelection) => void) | undefined;
+  /** A host-selected range, such as a focused discussion. Its original source lines stay highlighted. */
+  selection?: DiffSelection | null | undefined;
+  /** Discussion content, displayed once after each range's final line. The host owns persistence and authorization. */
+  annotations?: readonly DiffAnnotation[] | undefined;
   /** What the earlier text is: "Version 3", "Library". Heads its column and the legend. "Before" by default. */
   beforeLabel?: string | undefined;
   /** What the later text is: "Now", "This program". "After" by default. */
@@ -575,11 +609,91 @@ function Segments({ line }: { line: DiffLine }) {
   });
 }
 
+const emptyAnnotations: readonly DiffAnnotation[] = [];
+type ReviewContext = {
+  onPick?: ((side: "before" | "after", line: number, extend: boolean) => void) | undefined;
+  selection?: DiffSelection | null | undefined;
+  annotations: readonly DiffAnnotation[];
+  beforeLabel: string;
+  afterLabel: string;
+  controls: boolean;
+};
+const ReviewContext = createContext<ReviewContext>({
+  annotations: emptyAnnotations,
+  beforeLabel: "Before",
+  afterLabel: "After",
+  controls: false,
+});
+function selectedLine(
+  selection: DiffSelection | null | undefined,
+  line: DiffLine,
+  side: "before" | "after",
+) {
+  const number = line[side];
+  return (
+    !!selection &&
+    selection.side === side &&
+    number !== undefined &&
+    number >= selection.startLine &&
+    number <= selection.endLine
+  );
+}
+function LineAction({ line, side }: { line: DiffLine; side: "before" | "after" }) {
+  const review = useContext(ReviewContext);
+  const { t, formatNumber } = useLedgerLocale();
+  const number = line[side];
+  if (!review.onPick || line.kind === "equal" || number === undefined) return null;
+  return (
+    <span className="shrink-0 p-050">
+      <Button
+        size="xsmall"
+        variant="subtle"
+        aria-label={t("diffAnnotateLine", {
+          version: side === "before" ? review.beforeLabel : review.afterLabel,
+          line: formatNumber(number),
+        })}
+        onClick={(event) => review.onPick?.(side, number, event.shiftKey)}
+      >
+        {t("diffAnnotate")}
+      </Button>
+    </span>
+  );
+}
+function RowAnnotations({ row }: { row: DiffRow }) {
+  const { annotations } = useContext(ReviewContext);
+  return annotations
+    .filter((annotation) => annotation.endLine === row[annotation.side]?.[annotation.side])
+    .map((annotation) => (
+      <div
+        key={annotation.id}
+        data-slot="diff-annotation"
+        data-annotation-id={annotation.id}
+        data-side={annotation.side}
+        className="min-w-0 border-y border-default bg-surface-current p-150 font-body"
+      >
+        {annotation.content}
+      </div>
+    ));
+}
+
 type RowView = { width: number; code: boolean };
 
 function InlineLine({ line, width, code }: { line: DiffLine } & RowView) {
+  const review = useContext(ReviewContext);
+  const side =
+    line.kind === "equal"
+      ? (review.selection?.side ?? "before")
+      : line.kind === "delete"
+        ? "before"
+        : "after";
+  const selected = selectedLine(review.selection, line, side);
   return (
-    <div data-slot="diff-line" data-kind={line.kind} className={cn("flex", lineTone[line.kind])}>
+    <div
+      data-slot="diff-line"
+      data-kind={line.kind}
+      data-selected={selected || undefined}
+      className={cn("flex min-w-0 items-start", lineTone[line.kind], selected && "bg-selected")}
+    >
       {width ? (
         <>
           <LineNumber value={line.before} width={width} />
@@ -588,6 +702,7 @@ function InlineLine({ line, width, code }: { line: DiffLine } & RowView) {
       ) : null}
       <Marker kind={line.kind} />
       <LineText line={line} code={code} />
+      <LineAction line={line} side={side} />
     </div>
   );
 }
@@ -597,6 +712,7 @@ function InlineLine({ line, width, code }: { line: DiffLine } & RowView) {
 const narrowHidden = "@max-xl/diff:hidden";
 
 function SplitRow({ row, width, code }: { row: DiffRow } & RowView) {
+  const review = useContext(ReviewContext);
   const equal = isEqual(row);
   const half = (line: DiffLine | undefined, side: "before" | "after") => {
     const after = side === "after";
@@ -616,17 +732,26 @@ function SplitRow({ row, width, code }: { row: DiffRow } & RowView) {
       <div
         data-slot="diff-line"
         data-kind={line.kind}
+        data-selected={
+          selectedLine(review.selection, line, side) ||
+          (equal && !after && selectedLine(review.selection, line, "after")) ||
+          undefined
+        }
         aria-hidden={after && equal ? true : undefined}
         className={cn(
           "flex min-w-0 flex-1 @max-xl/diff:flex-none",
           lineTone[line.kind],
           after && "border-s border-default @max-xl/diff:border-s-0",
           after && equal && narrowHidden,
+          (selectedLine(review.selection, line, side) ||
+            (equal && !after && selectedLine(review.selection, line, "after"))) &&
+            "bg-selected",
         )}
       >
         {width ? <LineNumber value={after ? line.after : line.before} width={width} /> : null}
         <Marker kind={line.kind} />
         <LineText line={line} code={code} />
+        <LineAction line={line} side={side} />
       </div>
     );
   };
@@ -639,14 +764,34 @@ function SplitRow({ row, width, code }: { row: DiffRow } & RowView) {
 }
 
 function Rows({ rows, split, ...view }: { rows: readonly DiffRow[]; split: boolean } & RowView) {
+  const review = useContext(ReviewContext);
   return rows.map((row) => {
     const key = `${row.before?.before ?? "-"}:${row.after?.after ?? "-"}`;
-    if (split) return <SplitRow key={key} row={row} {...view} />;
-    if (isEqual(row)) return <InlineLine key={key} line={row.before!} {...view} />;
-    return (
-      <Fragment key={key}>
+    const changed = !isEqual(row);
+    const content = split ? (
+      <SplitRow row={row} {...view} />
+    ) : isEqual(row) ? (
+      <InlineLine line={row.before!} {...view} />
+    ) : (
+      <>
         {row.before ? <InlineLine line={row.before} {...view} /> : null}
         {row.after ? <InlineLine line={row.after} {...view} /> : null}
+      </>
+    );
+    return (
+      <Fragment key={key}>
+        {changed ? (
+          <div
+            data-slot="diff-change"
+            tabIndex={review.controls ? -1 : undefined}
+            className="focus:outline-field-focused"
+          >
+            {content}
+          </div>
+        ) : (
+          content
+        )}
+        <RowAnnotations row={row} />
       </Fragment>
     );
   });
@@ -706,7 +851,12 @@ function Fold({
 export function Diff({
   before,
   after,
-  layout = "inline",
+  layout: controlledLayout,
+  onLayoutChange,
+  controls = false,
+  onSelectLines,
+  selection,
+  annotations = emptyAnnotations,
   beforeLabel,
   afterLabel,
   context = 3,
@@ -719,11 +869,70 @@ export function Diff({
   ...props
 }: DiffProps) {
   const { t, formatNumber, locale } = useLedgerLocale();
+  const [localLayout, setLocalLayout] = useState<DiffLayout>("inline");
+  const layout = controlledLayout ?? localLayout;
+  const [expanded, setExpanded] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const anchor = useRef<{
+    side: "before" | "after";
+    line: number;
+    before: string;
+    after: string;
+  } | null>(null);
+  const [navigation, setNavigation] = useState({ before, after, index: -1 });
+  const activeIndex =
+    navigation.before === before && navigation.after === after ? navigation.index : -1;
   const result = useMemo(() => diffText(before, after), [before, after]);
-  const items = useMemo(
-    () => fold(result.rows, Math.max(0, Math.floor(context))),
-    [result.rows, context],
+  const validAnnotations = useMemo(
+    () =>
+      annotations.filter((annotation) => {
+        const count = splitLines(annotation.side === "before" ? before : after).length;
+        return (
+          Number.isInteger(annotation.startLine) &&
+          Number.isInteger(annotation.endLine) &&
+          annotation.startLine >= 1 &&
+          annotation.endLine >= annotation.startLine &&
+          annotation.endLine <= count
+        );
+      }),
+    [annotations, before, after],
   );
+  // Keep an annotated/focused unchanged line visible even when its context would otherwise fold.
+  const hasAnchors = validAnnotations.length > 0 || !!selection;
+  const items = useMemo(
+    () => fold(result.rows, expanded || hasAnchors ? Infinity : Math.max(0, Math.floor(context))),
+    [result.rows, context, expanded, hasAnchors],
+  );
+  const changes = result.changed + result.added + result.removed;
+  const navigateChange = (direction: 1 | -1) => {
+    if (!changes) return;
+    const index =
+      activeIndex < 0
+        ? direction === 1
+          ? 0
+          : changes - 1
+        : (activeIndex + direction + changes) % changes;
+    setNavigation({ before, after, index });
+    const target = rootRef.current?.querySelectorAll<HTMLElement>('[data-slot="diff-change"]')[
+      index
+    ];
+    target?.focus({ preventScroll: true });
+    target?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  };
+  const pick = (side: "before" | "after", line: number, extend: boolean) => {
+    const old = anchor.current;
+    const start =
+      extend && old?.side === side && old.before === before && old.after === after
+        ? old.line
+        : line;
+    if (start === line) anchor.current = { side, line, before, after };
+    const startLine = Math.min(start, line);
+    const endLine = Math.max(start, line);
+    const text = splitLines(side === "before" ? before : after)
+      .slice(startLine - 1, endLine)
+      .join("\n");
+    onSelectLines?.({ side, startLine, endLine, text });
+  };
   const from = beforeLabel ?? t("diffBefore");
   const to = afterLabel ?? t("diffAfter");
   const split = layout === "side-by-side";
@@ -796,7 +1005,7 @@ export function Diff({
   return useRender({
     defaultTagName: "div",
     render,
-    ref,
+    ref: [ref ?? null, rootRef],
     state: { slot: "diff" },
     props: mergeProps<"div">(
       { role: "group", "aria-label": t("diffLabel", { before: from, after: to }) },
@@ -810,7 +1019,79 @@ export function Diff({
           className,
         ),
         children: (
-          <>
+          <ReviewContext.Provider
+            value={{
+              annotations: validAnnotations,
+              selection,
+              beforeLabel: from,
+              afterLabel: to,
+              controls,
+              onPick: onSelectLines ? pick : undefined,
+            }}
+          >
+            {controls && (
+              <div
+                data-slot="diff-controls"
+                role="group"
+                aria-label={t("diffControls")}
+                className="flex flex-wrap items-center gap-100 border-b border-default p-100"
+              >
+                <Button
+                  size="small"
+                  variant="subtle"
+                  aria-pressed={layout === "inline"}
+                  onClick={() => {
+                    setLocalLayout("inline");
+                    onLayoutChange?.("inline");
+                  }}
+                >
+                  {t("diffInline")}
+                </Button>
+                <Button
+                  size="small"
+                  variant="subtle"
+                  aria-pressed={layout === "side-by-side"}
+                  onClick={() => {
+                    setLocalLayout("side-by-side");
+                    onLayoutChange?.("side-by-side");
+                  }}
+                >
+                  {t("diffSplit")}
+                </Button>
+                <Button
+                  size="small"
+                  variant="subtle"
+                  disabled={!changes}
+                  onClick={() => navigateChange(-1)}
+                >
+                  {t("diffPrevious")}
+                </Button>
+                <Button
+                  size="small"
+                  variant="subtle"
+                  disabled={!changes}
+                  onClick={() => navigateChange(1)}
+                >
+                  {t("diffNext")}
+                </Button>
+                <Button
+                  size="small"
+                  variant="subtle"
+                  disabled={hasAnchors || !result.unchanged}
+                  onClick={() => setExpanded(!expanded)}
+                >
+                  {t(expanded || hasAnchors ? "diffCollapse" : "diffExpand")}
+                </Button>
+                <span className="font-body-small text-subtle" role="status">
+                  {activeIndex < 0
+                    ? ""
+                    : t("diffPosition", {
+                        index: formatNumber(activeIndex + 1),
+                        count: formatNumber(changes),
+                      })}
+                </span>
+              </div>
+            )}
             {header}
             <div data-slot="diff-body">
               {items.map((item, index) =>
@@ -834,7 +1115,7 @@ export function Diff({
                 ),
               )}
             </div>
-          </>
+          </ReviewContext.Provider>
         ),
       },
     ),

@@ -225,7 +225,7 @@
   /* Selection tints the document surface without replacing its text or authored fill. */
   background: color-mix(
     in srgb,
-    var(--ds-color-border-focused) 8%,
+    var(--ds-color-border-selected) 8%,
     var(--spreadsheet-cell-background, var(--ds-elevation-surface)) 92%
   );
 }
@@ -237,7 +237,7 @@
   inset-block-end: calc(-1 * var(--ds-border-width));
   z-index: 1;
   pointer-events: none;
-  border: 0 solid var(--ds-color-border-focused);
+  border: 0 solid var(--ds-color-border-selected);
 }
 [data-slot="spreadsheet-range-outline"][data-top] {
   border-block-start-width: var(--ds-border-width);
@@ -697,4 +697,62 @@
 }
 [data-slot="spreadsheet-cell"][data-fill-preview][data-fill-end]::before {
   border-inline-end-width: var(--ds-border-width-focused);
+}
+
+/* Formula assistance is portaled so short rows and frozen panes never clip its controls. */
+[data-slot="spreadsheet-formula-assistance"] {
+  position: fixed;
+  z-index: var(--ds-layer-overlay);
+  max-block-size: min(40vh, var(--ds-dimension-container-xs));
+  overflow: auto;
+  border: var(--ds-border-width) solid var(--ds-color-border);
+  border-radius: var(--ds-radius-medium);
+  background: var(--ds-elevation-surface-raised);
+  box-shadow: var(--ds-elevation-shadow-overlay);
+  color: var(--ds-color-text);
+  font: var(--ds-font-body-small);
+}
+[data-slot="spreadsheet-formula-suggestion"],
+[data-slot="spreadsheet-formula-hint"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-025);
+  padding: var(--ds-space-100);
+  overflow-wrap: anywhere;
+}
+[data-slot="spreadsheet-formula-suggestion"] {
+  cursor: pointer;
+}
+[data-slot="spreadsheet-formula-suggestion"][aria-selected="true"] {
+  background: var(--ds-color-background-selected);
+}
+[data-slot="spreadsheet-formula-hint"] {
+  border-block-start: var(--ds-border-width) solid var(--ds-color-border);
+}
+[data-slot="spreadsheet-cell"][data-formula-reference] {
+  box-shadow: inset 0 0 0 var(--ds-border-width-selected) var(--ds-color-border-information);
+}
+[data-slot="spreadsheet-cell"][data-formula-reference="1"] {
+  box-shadow: inset 0 0 0 var(--ds-border-width-selected) var(--ds-color-border-success);
+}
+[data-slot="spreadsheet-cell"][data-formula-reference="2"] {
+  box-shadow: inset 0 0 0 var(--ds-border-width-selected) var(--ds-color-border-warning);
+}
+[data-slot="spreadsheet-cell"][data-formula-reference="3"] {
+  box-shadow: inset 0 0 0 var(--ds-border-width-selected) var(--ds-color-border-brand);
+}
+@media (forced-colors: active) {
+  [data-slot="spreadsheet-cell"][data-formula-reference] {
+    outline: var(--ds-border-width-selected) dashed Highlight;
+    outline-offset: calc(-1 * var(--ds-border-width-selected));
+  }
+  [data-slot="spreadsheet-formula-suggestion"][aria-selected="true"] {
+    background: Highlight;
+    color: HighlightText;
+  }
+}
+
+/* A formula range gesture owns touch movement until the reference is accepted or canceled. */
+[data-slot="spreadsheet-viewport"][data-formula-editing] {
+  touch-action: none;
 }

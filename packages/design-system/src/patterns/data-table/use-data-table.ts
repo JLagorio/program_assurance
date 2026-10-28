@@ -27,7 +27,7 @@ const hook = createTableHook({
   features: dataTableFeatures,
   enableMultiSort: false,
   enableSortingRemoval: false,
-  columnResizeMode: "onEnd",
+  columnResizeMode: "onChange",
   // TanStack's includesString, and a status map's labels too.
   globalFilterFn: "search",
 });
@@ -236,7 +236,7 @@ export function useDataTable<TData extends RowData>({
   initialState,
   ...rest
 }: DataTableOptions<TData>) {
-  const { timeZone } = useLedgerLocale();
+  const { timeZone, direction } = useLedgerLocale();
   const pins = pinsOf(columns);
   const view = viewName(viewOption);
   const viewVersion = typeof viewOption === "object" ? viewOption.version : undefined;
@@ -328,6 +328,7 @@ export function useDataTable<TData extends RowData>({
     );
 
   const table = hook.useAppTable<TData>({
+    columnResizeDirection: direction,
     ...rest,
     columns,
     data,

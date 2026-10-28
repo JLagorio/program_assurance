@@ -1,0 +1,25 @@
+import { Meta, Canvas, ArgTypes } from "@storybook/addon-docs/blocks";
+import { Citation } from "../..";
+import * as Stories from "./Citation.stories";
+
+<Meta of={Stories} />
+
+# Citation
+
+**Status: Experimental.**
+
+A source card with an exact quoted passage, source actions, optional discussion content and backlinks. Use Citation inside `Related layout="cards"`; it reuses Related.Card's title link, metadata, properties, actions and native list-item props. Its ref reaches that list item. Long quoted text wraps and preserves authored paragraph and line breaks.
+
+<Canvas of={Stories.Basic} />
+
+`passage` is plain text rendered through Prose, never HTML. `passageLabel` supplies the visible label and the blockquote's accessible name. An optional `cite` records the source URL on the semantic quote; use `link` and `source` for actual navigable controls. A router link goes through the inherited `link` prop. Native `id` and `tabIndex` support the host's deep-link focus and scrolling.
+
+The application supplies metadata such as an edition, page, locator or hash through `meta` and `properties`. A Citation does not compute or verify a hash, check the quoted passage against source bytes, authorize access, download a file, or decide whether a claim is supported. Keep captured source provenance separate from current editable source state in the application.
+
+<Canvas of={Stories.LongSourceAndQuote} />
+
+Put Open/Download controls, pending states and retryable failures in `source`. Put links back to referring records in `backlinks`, which wraps at narrow widths. `children` holds an optional Related discussions collection or ReviewThread. Their loading, paging, authorization and errors remain host-owned, and source failures must leave the captured passage and backlinks available.
+
+<Canvas of={Stories.SourceFailure} />
+
+<ArgTypes of={Citation} />

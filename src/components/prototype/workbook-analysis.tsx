@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   Chart,
   Field,
@@ -19,13 +19,22 @@ export function WorkbookAnalysis({
   sheet,
   rowIds,
   results,
+  settings,
+  onSettings,
 }: {
+  settings: { group: string; measure: string };
+  onSettings: (settings: { group: string; measure: string }) => void;
   sheet: Sheet;
   rowIds: string[];
   results?: CalculationResult | undefined;
 }) {
-  const [group, setGroup] = useState(sheet.columns[0]?.id ?? "");
-  const [measure, setMeasure] = useState("count");
+  const group = sheet.columns.some((column) => column.id === settings.group)
+    ? settings.group
+    : (sheet.columns[0]?.id ?? "");
+  const measure =
+    settings.measure === "count" || sheet.columns.some((column) => column.id === settings.measure)
+      ? settings.measure
+      : "count";
   const groupLabel = sheet.columns.find((column) => column.id === group)?.name ?? "Column";
   const measureLabel =
     measure === "count"
@@ -60,7 +69,10 @@ export function WorkbookAnalysis({
       <Inline space="space.200" shouldWrap>
         <Field>
           <FieldLabel>Group by</FieldLabel>
-          <Select value={group} onValueChange={(value) => value && setGroup(value)}>
+          <Select
+            value={group}
+            onValueChange={(value) => value && onSettings({ ...settings, group: value })}
+          >
             <SelectTrigger>
               <SelectValue>{groupLabel}</SelectValue>
             </SelectTrigger>
@@ -75,7 +87,10 @@ export function WorkbookAnalysis({
         </Field>
         <Field>
           <FieldLabel>Measure</FieldLabel>
-          <Select value={measure} onValueChange={(value) => value && setMeasure(value)}>
+          <Select
+            value={measure}
+            onValueChange={(value) => value && onSettings({ ...settings, measure: value })}
+          >
             <SelectTrigger>
               <SelectValue>{measureLabel}</SelectValue>
             </SelectTrigger>

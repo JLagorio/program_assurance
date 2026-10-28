@@ -1,3 +1,5 @@
+import { AssuranceReviewPanel } from "@/components/prototype/assurance-review";
+import { AssuranceCitations } from "@/components/prototype/assurance-review-citations";
 import { useConfirmation } from "@/components/app/confirmation";
 import {
   useCallback,
@@ -860,6 +862,18 @@ export function RecordDetail({
                         </KeyValue>
                       ))}
                   </KeyValue.Group>
+                  {name === "requirement_control_links" && (
+                    <>
+                      <AssuranceCitations target={{ kind: "mapping", recordId: id }} />
+                      <AssuranceReviewPanel target={{ kind: "mapping", recordId: id }} />
+                    </>
+                  )}
+                  {name === "assessment_findings" && (
+                    <>
+                      <AssuranceCitations target={{ kind: "assessment-finding", recordId: id }} />
+                      <AssuranceReviewPanel target={{ kind: "assessment-finding", recordId: id }} />
+                    </>
+                  )}
                   {incoming.length > 0 && (
                     <Section title="Related records">
                       <Stack space="space.300">

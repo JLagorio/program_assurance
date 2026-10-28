@@ -438,3 +438,75 @@ test("fill keeps literal formulas literal while translating genuine formulas in 
   );
   assert.deepEqual(mixed[1].values, { a: "", b: "" }, "A fill plan never mutates its input rows");
 });
+
+test("rich paste maps authored replacement styles to visible stable destinations atomically", () => {
+  const clip = clipboard([[source("one", "a"), source("one", "b")]], {
+    styles: [[{ bold: true }, null]],
+    columnNumbers: [0, 1],
+  });
+  const plan = paste({ text: clip.text, clipboard: clip, selection: selected("two", "c") });
+  assert.deepEqual(plan.styles, [
+    { rowId: "two", columnId: "c", style: { bold: true } },
+    { rowId: "two", columnId: "d", style: null },
+  ]);
+  assert.deepEqual(
+    plan.edits.map((edit) => edit.columnId),
+    ["c", "d"],
+  );
+  assert.throws(
+    () => paste({ text: clip.text, clipboard: clip, canWrite: (cell) => cell.columnId !== "b" }),
+    /read-only/,
+  );
+});
+test("formatting-only paste never moves cut source inputs and never replaces target input", () => {
+  const clip = clipboard([[source("one", "a")]], { kind: "cut", styles: [[{ italic: true }]] });
+  const plan = paste({ text: clip.text, clipboard: clip, formattingOnly: true });
+  assert.deepEqual(plan.edits, []);
+  assert.equal(plan.cut, false);
+  assert.deepEqual(plan.styles, [{ rowId: "two", columnId: "a", style: { italic: true } }]);
+  assert.throws(
+    () => paste({ text: "external", formattingOnly: true }),
+    /Copy cells in this workbook/,
+  );
+});
+test("rich overlapping cut clears source styles then lets destination metadata win", () => {
+  const clip = clipboard([[source("one", "a"), source("one", "b")]], {
+    kind: "cut",
+    styles: [[{ bold: true }, { italic: true }]],
+    columnNumbers: [0, 1],
+  });
+  const plan = paste({ text: clip.text, clipboard: clip, selection: selected("one", "b") });
+  assert.deepEqual(plan.styles, [
+    { rowId: "one", columnId: "a", style: null },
+    { rowId: "one", columnId: "b", style: { bold: true } },
+    { rowId: "one", columnId: "c", style: { italic: true } },
+  ]);
+  assert.equal(plan.cut, true);
+  assert.deepEqual(paste({ text: clip.text, clipboard: clip, valuesOnly: true }).styles, []);
+});
+
+test("rich paste encodes literal values against incoming style and stale cut styles reject", () => {
+  const clip = clipboard([[source("one", "a")]], {
+    literal: [[true]],
+    styles: [[{ format: "text" }]],
+  });
+  const calls = [];
+  paste({
+    text: clip.text,
+    clipboard: clip,
+    preparePasteValue: (cell, input, style) => {
+      calls.push(style);
+      return input;
+    },
+  });
+  assert.deepEqual(calls, [{ format: "text" }]);
+  assert.throws(
+    () =>
+      paste({
+        text: clip.text,
+        clipboard: { ...clip, kind: "cut" },
+        styleAt: () => ({ bold: true }),
+      }),
+    /formatting changed/,
+  );
+});

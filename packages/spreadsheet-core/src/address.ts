@@ -195,3 +195,35 @@ export function hasUnrewritableReferences(input: string): boolean {
   const formula = input.replace(/"(?:[^"]|"")*"/g, '""');
   return /\bINDIRECT\s*\(|\[|(?:'[^']*:[^']*'|[\p{L}\p{N}_]+:[\p{L}\p{N}_]+)!/iu.test(formula);
 }
+
+export type FormulaReferenceSpan = {
+  start: number;
+  end: number;
+  text: string;
+  sheet?: string;
+  range: CellRange;
+};
+/** Quote-aware direct A1 references for edit highlighting; whole-axis/indirect references are omitted. */
+export function formulaReferences(input: string): FormulaReferenceSpan[] {
+  if (!input.startsWith("=")) return [];
+  const references: FormulaReferenceSpan[] = [];
+  for (const match of input.matchAll(referencePattern)) {
+    if (match[0].startsWith('"') || !match[2]) continue;
+    const [first, last = first] = match[2].split(":");
+    const from = parseAddress(first!);
+    const to = parseAddress(last!);
+    if (!from || !to) continue;
+    const qualifier = match[1]?.slice(0, -1);
+    const sheet = qualifier?.startsWith("'")
+      ? qualifier.slice(1, -1).replaceAll("''", "'")
+      : qualifier;
+    references.push({
+      start: match.index,
+      end: match.index + match[0].length,
+      text: match[0],
+      ...(sheet ? { sheet } : {}),
+      range: normalizeRange({ start: from, end: to }),
+    });
+  }
+  return references;
+}

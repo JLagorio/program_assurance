@@ -14,8 +14,21 @@ import {
 } from "react";
 import { Link, linkOptions } from "@tanstack/react-router";
 import { createPortal } from "react-dom";
+import { Pin } from "lucide-react";
+import { useWorkspace } from "@/components/app/workspace";
+import { useWorkspaceActions } from "@/components/app/workspace-actions";
+import {
+  PinnedRecord,
+  RecordComparisonContext,
+  useRecordComparison,
+  type RecordIdentity,
+} from "./record-comparison";
+import { RecordPeek } from "./record-peek";
 import {
   HeadingLevelProvider,
+  Comparison,
+  IconButton,
+  Inline,
   PageHeader,
   Stack,
   PreviewNavigation,
@@ -108,6 +121,24 @@ function PreviewFrameSlot({ id, hidden }: { id: string; hidden: boolean }) {
 /** One application host keeps sibling and linked-record previews in the same shell surface. */
 export function RecordPreviewProvider({ children }: { children: ReactNode }) {
   const [frames, setFrames] = useState<PreviewFrame[]>([]);
+  const workspace = useWorkspace();
+  const [pinned, setPinned] = useState<RecordIdentity | null>(null);
+  const [activePane, setActivePane] = useState<"primary" | "secondary">("primary");
+  const pin = useCallback((identity: RecordIdentity) => {
+    setPinned(identity);
+    setActivePane("secondary");
+  }, []);
+  const unpin = useCallback(() => {
+    setPinned(null);
+    setActivePane("primary");
+  }, []);
+  useEffect(() => {
+    setPinned(null);
+  }, [workspace.tenantId]);
+  const comparison = useMemo(() => ({ pinned, pin, close: unpin }), [pinned, pin, unpin]);
+  useWorkspaceActions(
+    pinned ? [{ id: "compare:close", label: "Unpin comparison reference", run: unpin }] : [],
+  );
   const [targets, setTargets] = useState<ReadonlyMap<string, HTMLDivElement>>(new Map());
   const panel = useRef<HTMLElement>(null);
   // The control inside the panel that opened each nested frame, so Back returns to it.
@@ -179,6 +210,7 @@ export function RecordPreviewProvider({ children }: { children: ReactNode }) {
   // root last. Shell.Panel then returns focus to the shown record's row in the collection (below),
   // else to the control the reader last used in Main.
   const close = () => {
+    unpin();
     for (const frame of [...frameRef.current].reverse()) frame.props.onClose();
   };
   // Back is the one way to leave a single frame: it shows the parent frame again and returns focus
@@ -238,35 +270,71 @@ export function RecordPreviewProvider({ children }: { children: ReactNode }) {
     previousFrame.current = current?.id;
   }, [current]);
   return (
-    <PreviewFrames.Provider value={context}>
-      <PreviewTargets.Provider value={targets}>{children}</PreviewTargets.Provider>
-      {current && (
-        <Shell.Panel
-          {...panelProps}
-          label={label ? sentence(label) : "Record preview"}
-          finalFocus={finalFocus ?? returnFocus}
-          ref={panel}
-          onClose={close}
-        >
-          <Shell.Panel.Splitter />
-          <Shell.Panel.Header>
-            {/* Back leads the bar, first in the tab order, while there is a frame to go back to. */}
-            {current.parentId && <Shell.Panel.Back onClick={back} />}
-            <Shell.Panel.Actions>
-              <PreviewShown.Provider value={shown}>
-                {current.props.navigation}
-              </PreviewShown.Provider>
-            </Shell.Panel.Actions>
-            <Shell.Panel.Close />
-          </Shell.Panel.Header>
-          <Shell.Panel.Body>
-            {frames.map((frame) => (
-              <PreviewFrameSlot key={frame.id} id={frame.id} hidden={frame.id !== current.id} />
-            ))}
-          </Shell.Panel.Body>
-        </Shell.Panel>
-      )}
-    </PreviewFrames.Provider>
+    <RecordComparisonContext.Provider value={comparison}>
+      <PreviewFrames.Provider value={context}>
+        <PreviewTargets.Provider value={targets}>{children}</PreviewTargets.Provider>
+        {(current || pinned) && (
+          <Shell.Panel
+            {...panelProps}
+            label={
+              pinned
+                ? current
+                  ? "Record comparison"
+                  : "Pinned reference"
+                : label
+                  ? sentence(label)
+                  : "Record preview"
+            }
+            defaultWidth={pinned && current ? 960 : current?.props.defaultWidth}
+            finalFocus={finalFocus ?? returnFocus}
+            ref={panel}
+            onClose={close}
+          >
+            <Shell.Panel.Splitter />
+            <Shell.Panel.Header>
+              {/* Back leads the bar, first in the tab order, while there is a frame to go back to. */}
+              {current?.parentId && <Shell.Panel.Back onClick={back} />}
+              <Shell.Panel.Actions>
+                <PreviewShown.Provider value={shown}>
+                  {current?.props.navigation}
+                </PreviewShown.Provider>
+              </Shell.Panel.Actions>
+              <Shell.Panel.Close />
+            </Shell.Panel.Header>
+            <Shell.Panel.Body>
+              <Comparison
+                primary={
+                  current
+                    ? frames.map((frame) => (
+                        <PreviewFrameSlot
+                          key={frame.id}
+                          id={frame.id}
+                          hidden={frame.id !== current.id}
+                        />
+                      ))
+                    : null
+                }
+                secondary={
+                  pinned ? (
+                    <PinnedRecord
+                      key={`${pinned.table}:${pinned.id}`}
+                      identity={pinned}
+                      onClose={unpin}
+                    />
+                  ) : undefined
+                }
+                primaryLabel="Working record"
+                secondaryLabel="Pinned reference"
+                resizeLabel="Resize record comparison"
+                activePane={activePane}
+                onActivePaneChange={setActivePane}
+                fill={!!pinned}
+              />
+            </Shell.Panel.Body>
+          </Shell.Panel>
+        )}
+      </PreviewFrames.Provider>
+    </RecordComparisonContext.Provider>
   );
 }
 
@@ -395,12 +463,15 @@ export function RecordLink({
   table,
   record,
   children,
+  peek = false,
 }: {
   table: TableName;
   record: PreviewRecord;
   children: ReactNode;
+  /** Linked identifiers opt into a lazy summary and explicit compare action. */
+  peek?: boolean | undefined;
 }) {
-  return (
+  const link = (
     <TextLink
       render={
         <Link {...recordDestination(table, record)} onClick={(event) => event.stopPropagation()} />
@@ -408,6 +479,15 @@ export function RecordLink({
     >
       {children}
     </TextLink>
+  );
+  return peek ? (
+    <RecordPeek
+      identity={{ table, id: record.id, label: textOf(children) || recordName(record) }}
+      record={record}
+      trigger={link}
+    />
+  ) : (
+    link
   );
 }
 
@@ -485,6 +565,7 @@ export function RecordPreviewActions<T extends { id: string }>({
   recordLabel?: string | undefined;
 }) {
   const shown = useContext(PreviewShown);
+  const comparison = useRecordComparison();
   const show = shown?.show;
   useLayoutEffect(() => {
     show?.(record.id);
@@ -533,24 +614,40 @@ export function RecordPreviewActions<T extends { id: string }>({
   const onPrevious = placed && position > 1 ? () => showAt(position - 1) : undefined;
   const onNext = placed && position < count ? () => showAt(position + 1) : undefined;
   return (
-    <PreviewNavigation
-      position={position}
-      total={count}
-      onPrevious={onPrevious}
-      onNext={onNext}
-      recordLabel={recordLabel ?? shown?.title ?? recordName(record)}
-      openLink={
-        openLink === false
-          ? undefined
-          : (openLink ?? (
-              <Link
-                {...(destination ?? recordDestination(table, record))}
-                target="_blank"
-                rel="noopener noreferrer"
-              />
-            ))
-      }
-    />
+    <Inline space="space.050">
+      {comparison && openLink !== false && (
+        <IconButton
+          label="Pin reference for comparison"
+          variant="subtle"
+          icon={<Pin />}
+          onClick={() =>
+            comparison.pin({
+              table,
+              id: record.id,
+              label: recordLabel ?? shown?.title ?? recordName(record),
+            })
+          }
+        />
+      )}
+      <PreviewNavigation
+        position={position}
+        total={count}
+        onPrevious={onPrevious}
+        onNext={onNext}
+        recordLabel={recordLabel ?? shown?.title ?? recordName(record)}
+        openLink={
+          openLink === false
+            ? undefined
+            : (openLink ?? (
+                <Link
+                  {...(destination ?? recordDestination(table, record))}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                />
+              ))
+        }
+      />
+    </Inline>
   );
 }
 

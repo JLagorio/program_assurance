@@ -115,3 +115,61 @@ export {
 export { RecordBrowser, type RecordBrowserEmpty, type RecordBrowserProps } from "./record-browser";
 export * from "./spreadsheet";
 export { ChangeReview, type ChangeReviewProps, type ReviewChange } from "./change-review";
+
+export {
+  DocumentReader,
+  DocumentPage,
+  DocumentSelectionToolbar,
+  type DocumentReaderProps,
+  type DocumentPageProps,
+  type DocumentSelectionToolbarProps,
+  type DocumentRectangle,
+  type DocumentSelection,
+  type DocumentAnchor,
+} from "./document-reader";
+
+export { Comparison, type ComparisonProps } from "./comparison";
+export { Peek, type PeekProps } from "./peek";
+
+export {
+  ReviewThread,
+  type ReviewThreadProps,
+  type ReviewThreadEntry,
+  type ReviewThreadAction,
+} from "./review-thread";
+export { Citation, type CitationProps } from "./citation";
+
+export {
+  SavedViewPicker,
+  SavedViewManager,
+  SavedViewEditor,
+  type SavedViewPickerProps,
+  type SavedViewManagerProps,
+  type SavedViewEditorProps,
+  type SavedViewItem,
+  type SavedViewLabels,
+  type SavedViewDraft,
+  type SavedViewVisibility,
+} from "./saved-views";
+
+export {
+  Reorder,
+  ReorderItem,
+  ReorderHandle,
+  ReorderMove,
+  type ReorderProps,
+  type ReorderItemProps,
+  type ReorderHandleProps,
+  type ReorderMoveProps,
+  type ReorderChange,
+} from "./reorder";
+export {
+  useCollectionSelection,
+  type CollectionSelection,
+  type CollectionSelectionOptions,
+  type CollectionSelectionItemProps,
+} from "./use-collection-selection";
+
+export { FindBar, type FindBarProps } from "./find-bar";
+
+export { SelectionActions, type SelectionActionsProps } from "./selection-actions";

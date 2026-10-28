@@ -398,6 +398,22 @@ These have no part yet. A screen that needs one says so in writing, with a recom
 - A board of cards in columns (a kanban), and a calendar of events.
 - A file upload service: DropZone and FileTrigger choose and check files, and the application uploads them.
 
+## Shared work interactions
+
+| Need | Use |
+| --- | --- |
+| Pointer and keyboard actions on a target | ContextMenu with the existing DropdownMenu item parts |
+| Named user-created views | SavedViewPicker, SavedViewManager and SavedViewEditor |
+| A replyable discussion | ReviewThread over Composer and Timeline |
+| A quoted source and backlinks | Citation |
+| Find within a surface | FindBar, with host-owned match calculation |
+| Mark literal terms in an excerpt | MatchText |
+| Actions beside a captured range | SelectionActions |
+| Ordered cards, tabs or rows | Reorder and its handle/move parts |
+| Range selection across a visible collection | useCollectionSelection with native selection controls |
+
+See Guidance/Interaction states for selection, focus, edit and density contracts.
+
 <!-- page: Guidance/Recipes (src/stories/docs/Recipes.mdx) -->
 
 # Recipes
@@ -5651,6 +5667,40 @@ Axe does not certify keyboard quality, reading order, useful labels, focus visib
 
 The repository maintainers own the package contract and review changes to tokens, accessibility behavior and adapters. A contribution names a responsible reviewer and intended consumer. A new part's page opens with `**Status: Experimental.**`, saying why and who owns it, and names its known limitations; it becomes `**Status: Stable.**` once a product screen uses it and the documented checks and consumer review pass. A deprecated part's status line names its replacement, and the changelog and [Upgrading](?path=/docs/guidance-upgrading--docs#status) give the migration. User testing and assistive-technology review remain release work even when all automated checks pass.
 
+<!-- page: Guidance/Interaction states (src/stories/docs/InteractionStates.mdx) -->
+
+# Interaction states
+
+Use one interaction vocabulary across grids, lists, menus, editable fields and document selections. The existing semantic tokens own its colours and dimensions. A selection is retained application state; focus identifies where keyboard input goes. Neither implies an edit or a successful save.
+
+| State | Contract |
+| --- | --- |
+| Hover | Subtle surface tint and optional secondary actions. Every action also has a keyboard or visible menu path. Hover never changes selection. |
+| Selected | Selected fill or range perimeter, `aria-selected` or `aria-pressed` where the widget's semantics require it. Use `color.border.selected` for a retained range boundary. |
+| Keyboard focus | One visible focus indicator on the active control. Composite grids own one active-cell indicator; inner editors do not stack a second outer field border. |
+| Editing | Content stays aligned with its read state. Enter/Tab/Escape follow the family's documented save and cancel rules; composition and native text-selection keys remain available. |
+| Pending | Show the operation and prevent duplicate execution. Retain values, selection and reading position. A pending operation never silently clears a draft. |
+| Unavailable | Keep a useful explanation with an unavailable action. Read-only values remain readable, selectable and copyable. Permission checks belong to the host. |
+| Failure | Preserve the attempted value and give an explicit recovery path. Do not replace a loaded surface with an empty state after a refresh failure. |
+
+## Menus and commands
+
+ContextMenu and DropdownMenu use the same item parts, surface, spacing, submenus, checked states and disabled explanations. A context menu supplements visible controls. Use CommandScope's descriptors and guarded execution for the same action across shortcuts, menus and palettes; the host still authorizes the command.
+
+## Density and wrapping
+
+`compact` is a density, not a new control size. Use the established control and row dimensions, preserve touch-target minimums, and never shrink text to squeeze a toolbar into one row. Toolbar folds controls into More; SpreadsheetToolbar scrolls with visible edge controls. Menu descriptions wrap. Long values retain a reveal; manually sized spreadsheet rows preserve the chosen wrap and clipping behavior.
+
+## Selection actions and finding
+
+SelectionActions keeps a captured range usable when focus moves to an action. Fine-pointer layouts may float actions at the selection; touch and dismissed popovers use an inline row. A fixed trigger remains in the reading order. FindBar keeps query, current match and total together; the host supplies results and replacement eligibility. MatchText receives literal text and query terms, never HTML.
+
+## Lists, threads and views
+
+Reorder provides drag, keyboard and explicit move actions over stable identities. Collection selection applies only to the visible, enabled identities. ReviewThread composes Composer and Timeline; Citation composes a source locator and quoted passage. SavedViewPicker, SavedViewManager and SavedViewEditor present host-owned records and capabilities without a persistence layer.
+
+Every change to these interactions is exercised in stories at desktop and narrow widths, with keyboard, touch, right-to-left, dark and forced-colour coverage where applicable. Prototype workflows additionally verify the actual records, mutations, navigation and draft guards.
+
 <!-- page: Tokens/Color (src/stories/tokens/Color.mdx) -->
 
 # Colour and elevation
@@ -10111,6 +10161,57 @@ _Props of `CommandDialog`, generated from its types:_
 - [Kbd](?path=/docs/components-kbd--docs)
 - [Upgrading](?path=/docs/guidance-upgrading--docs#command): the earlier API's spellings and what they are now.
 
+<!-- page: Components/ContextMenu (src/stories/components/ContextMenu.mdx) -->
+
+# ContextMenu
+
+**Status: Experimental.** A context target and floating menu using the same surface and items as DropdownMenu. Right-click and stationary long-press open it. Shift+F10 or the ContextMenu key opens at the focused target or its active descendant; text editors keep their native menu.
+
+_Example: story `Stories.Actions`._
+
+Compose `DropdownMenuItem`, checkbox/radio items, groups, separators and submenus inside `ContextMenuContent`. These parts deliberately share one implementation; there is no second set of menu row styles. Use the same command identities, availability and handlers as visible controls and `CommandScope`. Supply a visible menu button or equivalent action path as well as a pointer menu.
+
+The root inherits Ledger direction. The trigger forwards refs, events and native attributes and defaults to `tabIndex=0`; a composite may override its slot, role and focus model. The content forwards native popup props and `finalFocus`, constrains itself to the window, and scrolls long menus. Native `render` composition must forward events and ref. A menu that opens a dialog hands focus to that task rather than restoring it early.
+
+_Example: story `Stories.LongLabels`._
+
+_Props of `ContextMenu`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `onOpenChange` | `((open: boolean, eventDetails: ContextMenuRootChangeEventDetails) => void)` |  | Event handler called when the menu is opened or closed. |
+| `disabled` | `boolean` | `false` | Whether the component should ignore user interaction. |
+| `actionsRef` | `RefObject<MenuRootActions \| null>` |  | A ref to imperative actions. - `unmount`: Manually unmounts the menu. Call this after any externally controlled closing animation finishes. - `close`: When specified, the menu can be closed imperatively. |
+| `open` | `boolean` |  | Whether the menu is currently open. |
+| `defaultOpen` | `boolean` | `false` | Whether the menu is initially open. To render a controlled menu, use the `open` prop instead. |
+| `onOpenChangeComplete` | `((open: boolean) => void)` |  | Event handler called after any animations complete when the menu is opened or closed. |
+| `orientation` | `"horizontal" \| "vertical"` | `'vertical'` | The visual orientation of the menu. Controls whether roving focus uses up/down or left/right arrow keys. |
+| `highlightItemOnHover` | `boolean` | `true` | Whether moving the pointer over items should highlight them. Disabling this prop allows CSS `:hover` to be differentiated from the `:focus` (`data-highlighted`) state. |
+| `loopFocus` | `boolean` | `true` | Whether to loop keyboard focus back to the first item when the end of the list is reached while using the arrow keys. |
+| `closeParentOnEsc` | `boolean` | `false` | When in a submenu, determines whether pressing the Escape key closes the entire menu, or only the current child menu. |
+
+_Props of `ContextMenuTrigger`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `className` | `string \| ((state: ContextMenuTriggerState) => string)` |  | CSS class applied to the element, or a function that returns a class based on the component's state. |
+| `style` | `CSSProperties \| ((state: ContextMenuTriggerState) => CSSProperties)` |  | Style applied to the element, or a function that returns a style object based on the component's state. |
+| `render` | `ReactElement<unknown, string \| JSXElementConstructor<any>> \| ComponentRenderFn<HTMLProps, ContextMenuTriggerState>` |  | Allows you to replace the component's HTML element with a different tag, or compose it with another component. Accepts a `ReactElement` or a function that returns the element to render. |
+
+_Props of `ContextMenuContent`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `id` | `string` |  | @ignore |
+| `finalFocus` | `boolean \| RefObject<HTMLElement \| null> \| ((closeType: InteractionType) => boolean \| void \| HTMLElement \| null)` |  | Determines the element to focus when the menu is closed. - `false`: Do not move focus. - `true`: Move focus based on the default behavior (trigger or previously focused element). - `RefObject`: Move focus to the ref element. - `function`: Called with the interaction type (`mouse`, `touch`, `pen`, or `keyboard`). Return an element to focus, `true` to use the default behavior, or `false`/`undefined` to do nothing. |
+| `className` | `string \| ((state: MenuPopupState) => string)` |  | CSS class applied to the element, or a function that returns a class based on the component's state. |
+| `render` | `ReactElement<unknown, string \| JSXElementConstructor<any>> \| ComponentRenderFn<HTMLProps, MenuPopupState>` |  | Allows you to replace the component's HTML element with a different tag, or compose it with another component. Accepts a `ReactElement` or a function that returns the element to render. |
+| `style` | `CSSProperties \| ((state: MenuPopupState) => CSSProperties)` |  | Style applied to the element, or a function that returns a style object based on the component's state. |
+| `side` | `"bottom" \| "inline-end" \| "inline-start" \| "left" \| "right" \| "top"` | `bottom` | Which side of the anchor element to align the popup against. May automatically change to avoid collisions. |
+| `align` | `"center" \| "end" \| "start"` | `start` | How to align the popup relative to the specified side. |
+| `sideOffset` | `number \| OffsetFunction` | `4` | Distance between the anchor and the popup in pixels. Also accepts a function that returns the distance to read the dimensions of the anchor and positioner elements, along with its side and alignment. The function takes a `data` object parameter with the following properties: - `data.anchor`: the dimensions of the anchor element with properties `width` and `height`. - `data.positioner`: the dimensions of the positioner element with properties `width` and `height`. - `data.side`: which side of the anchor element the positioner is aligned against. - `data.align`: how the positioner is aligned relative to the specified side. @example ```jsx <Positioner sideOffset={({ side, align, anchor, positioner }) => { return side === 'top' \|\| side === 'bottom' ? anchor.height : anchor.width; }} /> ``` |
+| `alignOffset` | `number \| OffsetFunction` | `0` | Additional offset along the alignment axis in pixels. Also accepts a function that returns the offset to read the dimensions of the anchor and positioner elements, along with its side and alignment. The function takes a `data` object parameter with the following properties: - `data.anchor`: the dimensions of the anchor element with properties `width` and `height`. - `data.positioner`: the dimensions of the positioner element with properties `width` and `height`. - `data.side`: which side of the anchor element the positioner is aligned against. - `data.align`: how the positioner is aligned relative to the specified side. @example ```jsx <Positioner alignOffset={({ side, align, anchor, positioner }) => { return side === 'top' \|\| side === 'bottom' ? anchor.width : anchor.height; }} /> ``` |
+
 <!-- page: Components/CopyButton (src/stories/components/CopyButton.mdx) -->
 
 # CopyButton
@@ -10982,6 +11083,20 @@ The Diff fills the width it is given. It measures itself for that fallback, so i
 
 _Example: story `Stories.BesideOtherContent`._
 
+## Reviewing a change
+
+`controls` adds Unified / Side by side, Previous / Next change, and Show / Collapse unchanged. Navigation moves focus to the changed row and announces its position; it wraps at either end. Empty comparisons disable navigation. Omit `layout` for local view state, or supply `layout` and `onLayoutChange` together to control it.
+
+_Example: story `Stories.ReviewControls`._
+
+`onSelectLines` adds an always available Discuss button to each changed line. Enter, Space or a tap selects that original source line; Shift-click another changed line on the same side selects the inclusive range. `DiffSelection` contains `side`, one-based `startLine` and `endLine`, and normalized `text`. It uses the same CRLF/CR/LF normalization and terminal-newline handling as `diffText`. Line numbers belong to the original earlier/later strings, never the visual row positions.
+
+The host supplies `selection` to focus an existing discussion and `annotations` with stable `id`, `side`, original `startLine` / `endLine` and arbitrary `content`. Each annotation appears once below its final source line in either layout. Out-of-bounds annotations are ignored. A selection or valid annotation keeps all unchanged context visible and disables collapse, so an anchored discussion cannot disappear in a fold. Persist the immutable version identifiers together with the source range; the component does not store discussion threads, users, permissions or record identities.
+
+_Example: story `Stories.AnnotatedReview`._
+
+_Example: story `Stories.ReviewLineEndings`._
+
 ## States
 
 | State          | What shows                                                                                   |
@@ -11048,7 +11163,12 @@ _Props of `Diff`, generated from its types:_
 | `render` | `ReactElement<unknown, string \| JSXElementConstructor<any>> \| ComponentRenderFn<HTMLProps, {}>` |  | Allows you to replace the component's HTML element with a different tag, or compose it with another component. Accepts a `ReactElement` or a function that returns the element to render. |
 | `before` (required) | `string` |  | The earlier text. Lines split on line breaks; in a narrative, a paragraph is a line. |
 | `after` (required) | `string` |  | The later text. |
-| `layout` | `"inline" \| "side-by-side"` | `inline` | `"inline"` (the default) shows one column: each edited line's earlier version above its later one. `"side-by-side"` puts the earlier text beside the later, row for row, and falls back to inline wherever its own container is narrower than 36rem. |
+| `layout` | `"inline" \| "side-by-side"` |  | `"inline"` (the default) shows one column: each edited line's earlier version above its later one. `"side-by-side"` puts the earlier text beside the later, row for row, and falls back to inline wherever its own container is narrower than 36rem. |
+| `onLayoutChange` | `((layout: DiffLayout) => void)` |  | Receives a layout choice when the review controls are shown. Omit layout for local ownership. |
+| `controls` | `boolean` | `false` | Show view switching, previous/next change and an unchanged-content toggle. Off by default. |
+| `onSelectLines` | `((selection: DiffSelection) => void)` |  | Adds keyboard/touch accessible annotation buttons to changed lines. Shift-click extends a range on the same side. |
+| `selection` | `DiffSelection \| null` |  | A host-selected range, such as a focused discussion. Its original source lines stay highlighted. |
+| `annotations` | `readonly DiffAnnotation[]` | `[]` | Discussion content, displayed once after each range's final line. The host owns persistence and authorization. |
 | `beforeLabel` | `string` |  | What the earlier text is: "Version 3", "Library". Heads its column and the legend. "Before" by default. |
 | `afterLabel` | `string` |  | What the later text is: "Now", "This program". "After" by default. |
 | `context` | `number` | `3` | Unchanged lines kept on each side of a change. A longer unchanged run folds behind a button that shows it (and the browser's find-in-page opens it). 3 by default; `Infinity` shows every line. |
@@ -13640,6 +13760,17 @@ _Props of `LedgerProvider`, generated from its types:_
 ## Related
 
 [DateTime](?path=/docs/components-datetime--docs) · [DatePicker](?path=/docs/components-datepicker--docs) · [DateTimeField](?path=/docs/components-datetimefield--docs) · [Calendar](?path=/docs/components-calendar--docs) · [Mode](?path=/docs/components-mode--docs) · [Getting started](?path=/docs/guidance-getting-started--docs)
+
+<!-- page: Components/MatchText (src/stories/components/MatchText.mdx) -->
+
+# MatchText
+
+**Status: Experimental.** Plain text with semantic `mark` elements for literal query terms. A string is one phrase; an array matches individual terms. Matches ignore case by default, keep original characters and prefer the longest overlapping term. No HTML parsing or regular-expression syntax is accepted. The accessible text remains whole.
+
+_Example: story `Stories.LiteralTerms`._
+_Example: story `Stories.CaseSensitive`._
+_Example: story `Stories.EmptyQuery`._
+_Rendered in the Storybook: ArgTypes._
 
 <!-- page: Components/Mode (src/stories/components/Mode.mdx) -->
 
@@ -18429,7 +18560,7 @@ _Props of `Shell.Aside`, generated from its types:_
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `label` | `string` |  | The region's name, "<Record type> details" on a record ("Page context" by default). |
+| `label` | `string` |  | The region's name, `<Record type> details` on a record ("Page context" by default). |
 | `heading` | `string` |  | Where the Details are a disclosure, its heading: "Details" (a locale message) by default. An Inspector.Group of the same name inside is the disclosure's own content, without a second title. |
 | `summary` | `ReactNode` |  | Where the Details are a disclosure, what its row shows after its heading, closed or open: the record's state, as its status badge. Static content only, since it is part of the disclosure's button and its name. |
 
@@ -20222,13 +20353,90 @@ A treemap is for a hierarchy. A flat list of five is a Bar, never a treemap whos
 
 _Example: story `Stories.Dont`._
 
+<!-- page: Patterns/Citation (src/stories/patterns/Citation.mdx) -->
+
+# Citation
+
+**Status: Experimental.**
+
+A source card with an exact quoted passage, source actions, optional discussion content and backlinks. Use Citation inside `Related layout="cards"`; it reuses Related.Card's title link, metadata, properties, actions and native list-item props. Its ref reaches that list item. Long quoted text wraps and preserves authored paragraph and line breaks.
+
+_Example: story `Stories.Basic`._
+
+`passage` is plain text rendered through Prose, never HTML. `passageLabel` supplies the visible label and the blockquote's accessible name. An optional `cite` records the source URL on the semantic quote; use `link` and `source` for actual navigable controls. A router link goes through the inherited `link` prop. Native `id` and `tabIndex` support the host's deep-link focus and scrolling.
+
+The application supplies metadata such as an edition, page, locator or hash through `meta` and `properties`. A Citation does not compute or verify a hash, check the quoted passage against source bytes, authorize access, download a file, or decide whether a claim is supported. Keep captured source provenance separate from current editable source state in the application.
+
+_Example: story `Stories.LongSourceAndQuote`._
+
+Put Open/Download controls, pending states and retryable failures in `source`. Put links back to referring records in `backlinks`, which wraps at narrow widths. `children` holds an optional Related discussions collection or ReviewThread. Their loading, paging, authorization and errors remain host-owned, and source failures must leave the captured passage and backlinks available.
+
+_Example: story `Stories.SourceFailure`._
+
+_Props of `Citation`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `link` | `ReactElement<{ className?: string; children?: ReactNode; }, string \| JSXElementConstructor<any>>` |  | A link element (a router's Link) that becomes the title. Leave it empty to use title; supplied children override the link text. |
+| `meta` | `ReactNode` |  | Under the title, subtle: kind, path, owner. |
+| `title` (required) | `ReactNode` |  | The record's name, one line. With `link`, it is the link. A name that is cut shows in full in a tooltip on hover and on keyboard focus of the link. |
+| `status` | `ReactNode` |  | One status at the start of the meta line: a Badge or an Indicator. |
+| `leading` | `ReactNode` |  | The mark before the title, 32px: a medium Avatar, square for a thing and round for a person. It spans the title and the meta line. |
+| `actions` | `ReactNode` |  | Icon buttons at the top end, shown on hover, on focus and always on a touch screen, their space kept so nothing shifts: open in a new tab, unlink, more. Never the way to the record; the title is. |
+| `properties` | `{ label: string; value: ReactNode; }[]` |  | Label and value pairs under the head: the properties the reader decides by. Four fit; six is the most. |
+| `passage` (required) | `string` |  | Exact quoted source text. Prose renders it safely; no HTML is interpreted. |
+| `passageLabel` (required) | `string` |  | Accessible name for the quoted passage, supplied in the reader's language. |
+| `cite` | `string` |  | Optional source URL for the semantic blockquote. This does not create a link. |
+| `source` | `ReactNode` |  | Open/download actions and source-read failures, owned by the host. |
+| `backlinks` | `ReactNode` |  | Links to the records that refer to this source. |
+| `children` | `ReactNode` |  | A discussion or other supporting detail below the source actions. |
+
+<!-- page: Patterns/Collection selection (src/stories/patterns/CollectionSelection.mdx) -->
+
+# Collection selection
+
+**Status: Experimental.**
+
+`useCollectionSelection` supplies selection and focus behavior for cards and lists with native checkbox/button controls. It imposes no listbox semantics on rows containing links and actions. The favorites manager uses it for selecting and removing several favorites.
+
+_Example: story `Stories.VisibleRange`._
+
+```tsx
+const selection = useCollectionSelection({
+  items: visibleItems.map(item => item.id),
+  disabledIds: lockedItems,
+  selectedIds,
+  onSelectionChange: setSelectedIds,
+  disabled: saving,
+});
+<Checkbox
+  {...selection.getItemProps(item.id)}
+  aria-label={`Select ${item.title}`}
+  checked={selection.isSelected(item.id)}
+  disabled={selection.isDisabled(item.id)}
+  onClick={event => selection.toggle(item.id, {
+    range: event.shiftKey,
+    additive: event.ctrlKey || event.metaKey,
+  })}
+/>
+```
+
+`items` means currently visible identities in visual order. Disabled identities never enter a range or Select all. `selectedIds` and `onSelectionChange` provide controlled state; omit `selectedIds` for local state, optionally initialized with `defaultSelectedIds`. The returned selection excludes hidden, removed and disabled items; hosts may separately preserve controlled selection across filtering. `allSelected` and `partiallySelected` drive a Select-all Checkbox. `selectAll()` selects visible available items, `clear()` clears selection and anchor, and `toggle(id, { range, additive })` toggles or extends from the last unmodified selection.
+
+Attach `getItemProps(id)` to the selection control, never the entire interactive row. It tracks focus, supports Shift+Up/Down/Home/End to extend the range, and Ctrl/Cmd+A to select all visible items while that control has focus. Space remains native activation. Ordinary links and text-entry shortcuts are untouched. When a focused control disappears, focus moves to the next available visible control, or the previous one at the end. It never takes focus back from another control or dialog. Hosts removing the last item supply their own empty-state focus destination.
+
+_Example: story `Stories.KeyboardAndFocus`._
+_Example: story `Stories.Disabled`._
+
+The hook owns no record identity, bulk operation, confirmation policy, persistence, filtering or authorization. Set `disabled` while a mutation is pending and keep failures recoverable. Do not use inside Spreadsheet or DataTable; those patterns own their selection models.
+
 <!-- page: Patterns/CommandPalette (src/stories/patterns/CommandPalette.mdx) -->
 
 # CommandPalette
 
 **Status: Stable.**
 
-A ⌘K palette over a page or a record: a field at the top, the commands under headings, a shortcut at the end of the ones that have one, the keys in the footer. Choosing a command closes the palette and runs it. The commands are plain objects the caller supplies, so the palette stays presentational and every page can reuse it; `useCommandPalette` holds the open state and toggles it on ⌘K on Apple platforms and Ctrl+K elsewhere, anywhere on the page. It runs a command; it does not pick a record, which is the [RecordPicker](?path=/docs/patterns-recordpicker--docs), and it does not search the product, which is the [SearchDialog](?path=/docs/patterns-searchdialog--docs) behind the top nav's search.
+A ⌘K palette over a page or a record: a field at the top, the commands under headings, a shortcut at the end of the ones that have one, the keys in the footer. Choosing a command closes the palette and runs it. The commands are plain objects the caller supplies, so the palette stays presentational and every page can reuse it; `useCommandPalette` holds the open state and toggles it on ⌘K on Apple platforms and Ctrl+K elsewhere, anywhere on the page. It runs a command; it does not pick a record, which is the [RecordPicker](?path=/docs/patterns-recordpicker--docs), and it can combine navigation commands with page actions in a single workspace launcher. [SearchDialog](?path=/docs/patterns-searchdialog--docs) remains the simpler choice for record-only search.
 
 _Example: story `Stories.CommandPaletteStory`._
 
@@ -20249,7 +20457,11 @@ _Example: story `Stories.CommandPaletteMatrix`._
 
 CommandPalette has one appearance. What varies is the commands, which are the page's: a record's verbs first, the places to go after, the preferences last.
 
-Not built, and why: search across records in the palette, because a record is found by the top nav's search and picked by the RecordPicker; nested pages of commands, because a command with choices is a Dialog of its own; recent commands at the top, because the order is the page's and it should read the same every time; icons before the commands, because the heading says the kind.
+The host may supply a controlled `query`, `onQueryChange`, `filter={false}` and a `controls` slot for category buttons when results come from a server. The host owns debounce, cancellation, authorization, ranking and recent history. A `description` carries a matching excerpt beneath a result. `disabledReason` keeps an unavailable action visible, explains why, and prevents execution. Navigation runs through the same `run` contract after the dialog closes.
+
+_Example: story `Stories.RemoteLauncher`._
+
+Nested command pages remain a separate Dialog task. The palette adds no global shortcuts by itself; one surface owns the launcher shortcut.
 
 ## Sizes
 
@@ -20275,7 +20487,7 @@ _Example: story `Stories.Failure`._
 
 ## Modifiers
 
-- **`commands`**: id, group, label, shortcut, hint, run. Commands with the same group in sequence share a heading. The `id` is identity only: it is never shown and never matched, so a UUID there cannot make a short query match every command.
+- **`commands`**: id, group, label, shortcut, hint, description, disabledReason, run. Commands with the same group in sequence share a heading. The `id` is identity only: it is never shown and never matched, so a UUID there cannot make a short query match every command.
 - **`title`**, **`description`**, **`placeholder`**, **`noResults`** and **`chooseHint`** relabel the dialog, the field, the empty sentence and Enter's verb; every default comes from the locale.
 - **`loading`**, **`error`** and **`onRetry`** for commands that arrive late or fail.
 - **`useCommandPalette({ shortcut })`** returns `open` and `setOpen`, and binds `shortcut` ("Mod+K" by default; `null` for none) while mounted.
@@ -20316,6 +20528,12 @@ _Props of `CommandPalette`, generated from its types:_
 | `open` (required) | `boolean` |  |  |
 | `onClose` (required) | `() => void` |  |  |
 | `commands` (required) | `PaletteCommand[]` |  | In the order they show, grouped by `group`. The page's verbs first, the places after. |
+| `query` | `string` |  | A controlled query for remote search. |
+| `onQueryChange` | `((query: string) => void)` |  |  |
+| `filter` | `boolean` | `true` | False when the caller has already matched and ordered remote results. |
+| `highlightMatches` | `boolean` | `false` | Mark literal query terms in labels and excerpts. |
+| `controls` | `ReactNode` |  | Search categories or scope controls between the input and results. |
+| `finalFocus` | `boolean \| RefObject<HTMLElement \| null> \| ((closeType: InteractionType) => boolean \| void \| HTMLElement \| null)` |  | Restores focus unless navigation or the selected action owns it. |
 | `placeholder` | `string` |  | The field's placeholder. "Type a command…" by default. |
 | `title` | `string` |  | The dialog's name and the field's. "Command palette" by default. |
 | `description` | `string` |  | Read after the name when the palette opens. "Search for a command to run." by default. |
@@ -20343,6 +20561,12 @@ A command is a verb and its object, under a heading that names its kind, never n
 
 _Example: story `Stories.Dont`._
 
+## Matching excerpts
+
+`highlightMatches` marks literal query terms in command labels and matching excerpts through MatchText. It preserves plain text and accessible result names; server search ranking and source navigation stay with the host. Uncontrolled input and marks reset together when the palette closes; a controlled query remains host-owned.
+
+_Example: story `Stories.MatchingExcerpts`._
+
 <!-- page: Patterns/CommandScope (src/stories/patterns/CommandScope.mdx) -->
 
 # CommandScope
@@ -20367,6 +20591,42 @@ _Props of `CommandScope`, generated from its types:_
 | --- | --- | --- | --- |
 | `commands` (required) | `readonly ScopedCommand[]` |  | Local actions override matching identities and shortcuts inherited from a parent scope. |
 | `onCommandError` | `((error: Error, command: ScopedCommand) => void)` |  | Receives a failed keyboard command. The host keeps its draft and presents the recovery. |
+
+<!-- page: Patterns/Comparison (src/stories/patterns/Comparison.mdx) -->
+
+# Comparison
+
+**Status: Experimental.**
+
+Two explicitly chosen surfaces with independent reading positions. The application owns the records, retrieval, pin/close actions and draft guards. The pattern takes content slots and never instantiates another editor for a pinned reference.
+
+_Example: story `Stories.Playground`._
+
+Above 640px of its own container, the panes sit beside a resize separator. Arrow keys resize by 2 percent, Shift by 10; Home/End reach 25/75, Enter restores 50. Dragging follows pointer capture, respects right-to-left direction, and pointer cancellation restores the starting ratio.
+
+Below that width a labelled pane switch exposes one pane. Both subtrees remain mounted; hidden content leaves the accessibility tree and tab order. Draft values and each pane's scroll position survive switching and resizing. Give both panes stable React keys. Removing the secondary slot closes the reference without remounting the primary.
+
+_Example: story `Stories.NarrowRetainsBoth`._
+
+_Example: story `Stories.ResizeRetainsPosition`._
+
+`fill` occupies the remaining window and makes each pane independently scroll. Without it, set a bounded native `style.height` when independent scrolling is wanted. `ref`, native events, `style`, `className` and `data-*` reach the root div. Pane labels and separator text come from the host, so they can be translated and name the real task. This is an explicit work surface; it does not automatically add a details rail.
+
+_Props of `Comparison`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `primary` (required) | `ReactNode` |  | The working pane. Keep its element identity stable to retain drafts and position. |
+| `secondary` | `ReactNode` |  | An explicitly opened reference. Omit to show only the working pane. |
+| `primaryLabel` (required) | `string` |  | Accessible pane names and the narrow layout's switch labels. |
+| `secondaryLabel` (required) | `string` |  |  |
+| `activePane` | `"primary" \| "secondary"` |  | Selected pane on narrow layouts. Both remain mounted; only one is exposed. |
+| `onActivePaneChange` | `((pane: "primary" \| "secondary") => void)` |  |  |
+| `defaultRatio` | `number` | `50` | Initial primary share, clamped to 25–75 percent. Defaults to 50. |
+| `onRatioChange` | `((ratio: number) => void)` |  | Reports pointer and keyboard resizing in percent. |
+| `resizeLabel` (required) | `string` |  | Accessible name of the resize separator. |
+| `splitAt` | `number` | `640` | Split at this container width in pixels; 640 by default. |
+| `fill` | `boolean` | `false` | Fill the remaining window and scroll each pane independently. |
 
 <!-- page: Patterns/Composer (src/stories/patterns/Composer.mdx) -->
 
@@ -20673,6 +20933,12 @@ _Example: story `Stories.PinnedColumns`._
 
 _Example: story `Stories.MovingColumns`._
 
+_Example: story `Stories.LiveColumnResize`._
+
+_Example: story `Stories.FlexibleColumnResize`._
+
+_Example: story `Stories.DeferredColumnResize`._
+
 _Example: story `Stories.ColumnWidthFromMenu`._
 
 _Example: story `Stories.PinnedNarrow`._
@@ -20730,7 +20996,7 @@ _Example: story `Stories.RowsOpenLikeLinks`._
 The hook's options, each one feature:
 
 - **`rowLabel`**: a row's readable name, its code or its title. Its controls say it: "Select REQ-001", "Row actions for REQ-001", "Reorder REQ-001", "Preview REQ-001", "Show details for REQ-001", "Show 3 more fields for REQ-001", and a row that moves is said by it. Unset, the name is the tree's `label`, else the text of the identity column (the one with the lowest `priority`, else the first) or of an `id` column, so a row keyed by a UUID is still named by what the reader sees. The row's id is never the name: a row with no readable text keeps the generic names ("Select row" and the id, "Row actions"). Give `rowLabel` when the identity's text is not the name a reader knows the row by, as when the name cell holds only a link element or the row reads best as its code and title together. **`selectable`**: the checkbox column, or `"single"` for a radio per row (Opening and choosing); a function says which rows can be chosen. **`value`** and **`onValueChange`** own the chosen id of a table that chooses one. **`getRowId`** keys each row, a record's own `id` unsaid, so a refresh never moves a selection or an open row to another record; rows with no unique `id` are keyed by position and the hook says so in the console. **`rowHeader`** names the column whose cell names its row, drawn as `th scope="row"`, so a screen reader says the row's identity with each cell. Unset, it is the identity column, the one a responsive row keeps longest, unless the row has only that one cell; `false` draws every cell as a `td`, for a table whose rows have no single name. **`preview`**, `{ onPreview, activeId }`, puts the eye on each row's first value and marks the open row, as an id column's `preview` and `active` do, but held by the table, so the columns stay at module level and a preview step redraws the two rows it changes, never the column model. Give a preview to the hook rather than to `c.id`, and keep the name a `c.text` rather than declaring it an id to get the eye; `displayedRows(table)` gives the rows the search and filters leave, in order, on every page, for a preview's previous and next, and `showRow(table, id)` turns the table to the page that holds one. **`pageSize`** pages, and **`pageSizes`** are the sizes the reader can choose from in the Pagination (`10, 20, 50, 100` unsaid); the choice persists with `view`. **`label`** names the table. **`manual`** with `rowCount` hands sorting, filtering or pagination to a server.
-- **`pinnable`, `hideable`, `resizable`, `reorderable`, `columnMenu`, `layout`, `view`**: the columns the reader owns. The column menu on a header's hover sorts, moves, pins and hides, and is always shown where any pointer is coarse; `DataTable.Columns` in the toolbar shows and hides, and under Wrap text lets the reader wrap a column whose values are cut (text, a name, a person, a custom cell; each item is named "Wrap Owner"), so its values run to several lines on any device; the gear beside it, `DataTable.Settings`, holds the rows' density and Reset view, which ends every wrap too. With `reorderable`, a column's grip drags it within the middle band, and its menu's Move left and Move right move it one place each way, disabled at the band's edges: a way to reorder that needs no drag, for the keyboard, a touch screen or a single pointer. After a move, focus is back on the column's menu, scrolled clear of the pinned columns, and a polite status says where the column stands ("Finding, 3 of 5"). A pinned column and the row actions keep their band. In a right-to-left table the words follow the screen, so Move right moves a column towards the start. With `resizable`, the handle drags, and the column's menu sets the width with one press each, a way that needs no drag (WCAG 2.5.7): **Wider** and **Narrower** step 32px and keep the menu open for another press, stopping at the column's minimum and maximum, and **Reset width** returns to the author's width; the same polite status says the width the column now has ("Finding, 272 pixels wide"). A column's `width` is also its floor, so Narrower stops there. The checkbox, the disclosure, the handle and the detail chevron are always the first columns and always pinned; the row's actions are always the last and always pinned to the end, so the kebab sits at the table's trailing edge however far the columns scroll; a pinned column keeps its hairline while the frame is scrolled, and the frame's scroll padding is the pinned bands, so a heading, a cell or a menu that scrolls into view for focus lands clear of them; a band's heading sticks to the frame's leading edge. Pins give way to a narrow frame: while the pinned columns would take more than 60% of it, they are drawn unpinned from the middle outward, the end band first and then the start column nearest the middle, so the id is the last to go and the middle keeps room to scroll; they return as the frame widens, and the reader's pins, the column menu and the export do not change. The preview eye sits at the end of the row's first value cell: it appears on the row's hover and on focus in the cell, stays on the row whose preview is open, and is always shown where any pointer is coarse; while it shows, the value beside it keeps the eye's 24px clear and ends in an ellipsis before it. An id column with `preview` is 24px wider by default to hold both. The row-actions kebab is always shown where any pointer is coarse. A column's `pin` is the author's default and `hideable: false` keeps it on screen. `view: "risks"` names the table, and the reader's order, widths, visibility, pins and wrapped columns persist in this browser under `ledger.table.risks.view`. `view: { id, version, scope }` also says the author's version, and raising it discards every layout stored under an older one, so a changed set of columns never inherits a stale layout; `scope` (a tenant or a user) keeps two readers in one browser apart. A column added since a layout was stored takes the author's place, visibility and pin, and a column the reader cannot hide always shows. The stored layout applies before the first paint; `useTableQuery` keeps the question (search, sort, filters, page) beside it, in the URL or the session (see Keeping the question).
+- **`pinnable`, `hideable`, `resizable`, `reorderable`, `columnMenu`, `layout`, `view`**: the columns the reader owns. The column menu on a header's hover sorts, moves, pins and hides, and is always shown where any pointer is coarse; `DataTable.Columns` in the toolbar shows and hides, and under Wrap text lets the reader wrap a column whose values are cut (text, a name, a person, a custom cell; each item is named "Wrap Owner"), so its values run to several lines on any device; the gear beside it, `DataTable.Settings`, holds the rows' density and Reset view, which ends every wrap too. With `reorderable`, a column's grip drags it within the middle band, and its menu's Move left and Move right move it one place each way, disabled at the band's edges: a way to reorder that needs no drag, for the keyboard, a touch screen or a single pointer. After a move, focus is back on the column's menu, scrolled clear of the pinned columns, and a polite status says where the column stands ("Finding, 3 of 5"). A pinned column and the row actions keep their band. In a right-to-left table the words follow the screen, so Move right moves a column towards the start. With `resizable`, dragging updates the header and cells live, in either writing direction; responsive columns start from the width on screen and scrolling tables keep their model widths; the saved view writes after release. `columnResizeMode: "onEnd"` opts into a guide-only preview until release. Responsive fitting still shares spare room and folds lower-priority fields, so a requested width can be constrained by the frame. The handle drags, and the column's menu sets the width with one press each, a way that needs no drag (WCAG 2.5.7): **Wider** and **Narrower** step 32px and keep the menu open for another press, stopping at the column's minimum and maximum, and **Reset width** returns to the author's width; the same polite status says the width the column now has ("Finding, 272 pixels wide"). A column's `width` is also its floor, so Narrower stops there. The checkbox, the disclosure, the handle and the detail chevron are always the first columns and always pinned; the row's actions are always the last and always pinned to the end, so the kebab sits at the table's trailing edge however far the columns scroll; a pinned column keeps its hairline while the frame is scrolled, and the frame's scroll padding is the pinned bands, so a heading, a cell or a menu that scrolls into view for focus lands clear of them; a band's heading sticks to the frame's leading edge. Pins give way to a narrow frame: while the pinned columns would take more than 60% of it, they are drawn unpinned from the middle outward, the end band first and then the start column nearest the middle, so the id is the last to go and the middle keeps room to scroll; they return as the frame widens, and the reader's pins, the column menu and the export do not change. The preview eye sits at the end of the row's first value cell: it appears on the row's hover and on focus in the cell, stays on the row whose preview is open, and is always shown where any pointer is coarse; while it shows, the value beside it keeps the eye's 24px clear and ends in an ellipsis before it. An id column with `preview` is 24px wider by default to hold both. The row-actions kebab is always shown where any pointer is coarse. A column's `pin` is the author's default and `hideable: false` keeps it on screen. `view: "risks"` names the table, and the reader's order, widths, visibility, pins and wrapped columns persist in this browser under `ledger.table.risks.view`. `view: { id, version, scope }` also says the author's version, and raising it discards every layout stored under an older one, so a changed set of columns never inherits a stale layout; `scope` (a tenant or a user) keeps two readers in one browser apart. A column added since a layout was stored takes the author's place, visibility and pin, and a column the reader cannot hide always shows. The stored layout applies before the first paint; `useTableQuery` keeps the question (search, sort, filters, page) beside it, in the URL or the session (see Keeping the question).
 - **`tree`**: `children` reads a row's parts, `label` names the row for the chevron, `hint` is the muted text after a folded row's first value, `initialExpanded` says which open first; a filter or a search keeps a matching row's ancestors, so a child never shows without its parent. The chevron is a leading column of its own, always first and always pinned, so the disclosure never moves when the reader reorders, hides or pins a column. It is one narrow width at every depth, so opening and closing a row never shifts the columns; the nesting reads as an indent on the row's first value. Set `guides: true` to move the existing disclosure into the first value cell alongside vertical ancestor guides. Each guide starts below its parent and spans only its descendant rows; there are no horizontal branches. The chevron, icon and label then indent together at each depth; the separate leading disclosure column is omitted. Guides are decorative, and the disclosure retains its expand/collapse label and keyboard behavior. **`detail`** opens a row into what it returns, a child table included; its open rows are its own state, so a tree's row opens its parts and its detail apart and neither closes the other. **`initialDetails`** says which details start open (ids, or `true` for every row); a table with no tree also reads `initialState.expanded`. It draws a leading chevron column of its own, which **`detailColumn: false`** leaves out: in a treegrid two chevron columns read as twins, so the row is opened from a cell instead, a `list` column with `opens: "detail"`. **`groupBy`** puts the rows under a band per value, and is the grouping however often it changes; each new grouping opens its groups; pagination is off while it is on, and so is `virtualize`. **`pinRows`** lets `row.pin("top")` and `"bottom"` hold rows under the header or above the footer. **`reorderRows`** puts a handle on every row and tells you which row moved next to which; sorting is off while it is on. The row actions menu gains **Move up** and **Move down**, one press each, disabled at the ends, and a polite status says where the row now stands ("FND-2200, 2 of 6"): the way to reorder that needs no drag. Give a reorderable table an actions column, `c.actions(() => [])` when the rows have no actions of their own, so every row has that menu.
 - **`virtualize`**: only the rows in view are drawn; give the renderer a `maxHeight` or `fill` and leave `pageSize` off.
 - **A number column's `footer`** totals the rows the filters leave on every page: sum, mean, min, max, count, or your own. In a tree it counts the rows with no parts (`footerRows: "leaves"`), or the top-level rows (`"top"`) where a parent's value already sums its parts, so the total never moves as a row opens.
@@ -20933,6 +21199,91 @@ _Example: story `Stories.HeaderControlsPhone`._
 A value its column cuts shows whole in the table's one tooltip, on hover, while the keyboard is on its cell or link, and after a long press on a touch screen; the reader can also wrap the column from the Columns menu.
 
 _Example: story `Stories.CutValues`._
+
+## Renderer adapters
+
+The default renderer composes these exported adapters. Applications normally configure reordering and column actions through `useDataTable`; custom table renderers can compose the same adapters with that table instance.
+
+`DragContext` receives the table instance and children, adding drag sensors and announcements only when row or column reordering is enabled. `ColumnSortable` scopes the visible middle column band; `RowSortable` scopes the currently rendered row model. Their children retain the table's own semantic markup.
+
+_Props of `DragContext`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `table` (required) | `DataTableInstance<TData>` |  |  |
+
+_Props of `ColumnSortable`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `table` (required) | `DataTableInstance<TData>` |  |  |
+
+_Props of `RowSortable`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `table` (required) | `DataTableInstance<TData>` |  |  |
+
+`HeaderMenu` receives the same table, its column and the optional set of columns actually drawn by the responsive renderer. Native button props and a ref reach its trigger. Its sort, visibility and move actions use that shared table state.
+
+_Props of `HeaderMenu`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `table` (required) | `DataTableInstance<TData>` |  |  |
+| `column` (required) | `Column<{ rowSortingFeature: TableFeature; columnFilteringFeature: TableFeature; globalFilteringFeature: TableFeature; columnFacetingFeature: TableFeature; ... 23 more ...; tableMeta: DataTableMeta; }, TData, unknown>` |  |  |
+| `drawn` | `ReadonlySet<string>` |  | The columns the header row draws, when a responsive table moves the rest into More fields. Move left and Move right step over the rest, so every move shows. |
+
+<!-- page: Patterns/DocumentReader (src/stories/patterns/DocumentReader.mdx) -->
+
+# DocumentReader
+
+**Status: Experimental.** A paged document workspace with fit-to-width zoom, a scrollable page and an optional document-scoped review area. It contains no PDF engine, data fetching or persistence.
+
+_Example: story `Stories.Reading`._
+
+`DocumentReader` controls page/zoom through callbacks. Invalid page input reverts to the current page. Previous/next are unavailable at the boundaries. Fit page width sets zoom to 1; the allowed toolbar range is 50–300%. The page scrolls inside the reader rather than widening its host. The review area wraps below the page in a narrow container.
+
+`DocumentPage` receives the renderer's original dimensions and selectable content. Text selection must start and end on this page. A pointer release or keyboard selection captures text and a normalized rectangle, independent of zoom. `mode="region"` allows a pointer/touch drag for scanned images; it returns empty text and the host must ask for a transcription. Page rectangles are measured from the displayed page's top-left, with x/y/width/height in 0–1. Cross-page selections are intentionally unsupported.
+
+_Example: story `Stories.TextSelection`._
+_Example: story `Stories.RegionSelection`._
+
+`DocumentSelectionToolbar` keeps the captured selection available when focus moves to actions. Callers omit unsupported actions. Cite, Discuss and Copy link are callbacks: the package makes no network call and never writes the clipboard. `onClear` dismisses the capture.
+
+`DocumentPage` anchors are native buttons with an accessible label, selected state and keyboard focus treatment. The host supplies their normalized rectangles and reacts to activation; selected discussion, original version/hash and stale anchor handling belong to the application. Passing a ref and native attributes reaches each part's outer DOM node.
+
+_Example: story `Stories.AnchoredDiscussion`._
+
+For PDFs, supply a canvas and aligned selectable text layer. Keep PDF parsing and worker loading in the adapter, load lazily, cancel rendering on page changes, validate private file identity and respect document extraction permissions. This kit part neither authenticates nor verifies a citation.
+
+_Props: generated from `Stories.Reading`; the Storybook page and the package's `.d.ts` list them._
+
+_Props of `DocumentPage`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `page` (required) | `number` |  |  |
+| `width` (required) | `number` |  | PDF viewport dimensions, in CSS pixels before fit-to-width scaling. |
+| `height` (required) | `number` |  |  |
+| `zoom` | `number` | `1` |  |
+| `mode` | `"region" \| "text"` | `text` |  |
+| `onSelectionChange` | `((selection: DocumentSelection) => void)` |  |  |
+| `anchors` | `readonly DocumentAnchor[]` | `[]` |  |
+| `onAnchorActivate` | `((id: string) => void)` |  |  |
+
+_Props of `DocumentSelectionToolbar`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `selection` (required) | `DocumentSelection` |  |  |
+| `anchor` | `Element \| VirtualElement \| RefObject<Element \| null> \| (() => Element \| VirtualElement \| null) \| null` |  | Live selection anchor; omit for the original fixed action row. |
+| `onCite` | `(() => void)` |  |  |
+| `onDiscuss` | `(() => void)` |  |  |
+| `onCopyLink` | `(() => void)` |  |  |
+| `onClear` (required) | `() => void` |  |  |
+
+Pass a live `anchor` to DocumentSelectionToolbar to use SelectionActions beside a captured passage. The fixed keyboard trigger remains available; touch and Escape use the inline actions. The selection data stays captured while the actions take focus.
 
 <!-- page: Patterns/Editable (src/stories/patterns/Editable.mdx) -->
 
@@ -21155,6 +21506,19 @@ _Rendered in the Storybook: Controls._
 A record that does not exist yet is a form, with Fields and a primary that creates it, never a column of Editables. An empty value's placeholder says what goes there, never an instruction ("Click to edit"). A value from a fixed set is an `Editable.Select`, never typed text.
 
 _Example: story `Stories.Dont`._
+
+<!-- page: Patterns/FindBar (src/stories/patterns/FindBar.mdx) -->
+
+# FindBar
+
+**Status: Experimental.** A controlled find row: query, zero-based current index, total and a navigation callback. Search execution and replacements belong to the host. Enter goes to the next match; Shift+Enter goes back. Both wrap. IME composition keeps Enter. Escape dismisses only when `onClose` is supplied.
+
+_Example: story `Stories.Navigation`._
+
+No matches disables navigation. Loading retains the query and disables navigation while announcing progress. `truncated` marks a lower-bound count. Controls wrap in narrow containers; `inputRef` reaches the field and the native ref reaches the root. Optional children can hold scope or case controls. Keep replace eligibility and undo transactions in the application.
+
+_Example: story `Stories.Searching`._
+_Rendered in the Storybook: ArgTypes._
 
 <!-- page: Patterns/Forms (src/stories/patterns/Forms.mdx) -->
 
@@ -21628,6 +21992,36 @@ _Example: story `Stories.Dont`._
 - [Section](?path=/docs/layout-section--docs): the collapsible block on a page body.
 - [AsideLayout](?path=/docs/layout-asidelayout--docs) and [Shell](?path=/docs/layout-shell--docs): the Aside a record's Details sit in, and the Panel a preview's do.
 - [Upgrading](?path=/docs/guidance-upgrading--docs#inspector): `groups` is Inspector.Group children.
+
+<!-- page: Patterns/Peek (src/stories/patterns/Peek.mdx) -->
+
+# Peek
+
+**Status: Experimental.**
+
+A real destination link with two accessible preview paths. Pointer hover and keyboard focus show an informational HoverCard. The adjacent labelled Preview button opens a Popover containing the same summary plus actions; it is always available to keyboard and touch users. The link retains normal click, modified click and open-in-new-tab behavior.
+
+_Example: story `Stories.Playground`._
+
+Pass a TextLink or router-backed link as `trigger`, a concise summary such as Glance as children, and host-owned navigation/compare actions. `onOpenChange(true)` is the lazy-fetch boundary: constructing a table of links need not fetch their full records. Display loading, missing and retry states in the content. The pattern never owns a query, record identity, router, permission decision or comparison state.
+
+_Example: story `Stories.KeyboardSummary`._
+
+The hover summary contains information only. Interactive actions belong in the explicit popup, reachable through its button without intercepting link navigation. Escape closes the popup and returns focus to its trigger. The popup remains inside an enclosing dialog's focus scope. Give `label` the record name, such as “Preview service policy”; the application translates it. Native span props and ref reach the root; anchor props and ref belong on `trigger`.
+
+A long link truncates within its available width while the preview button keeps its full target, including inside a narrow KeyValue or Inspector. The full name remains in the link’s accessible name and the opened summary.
+
+_Example: story `Stories.ConstrainedFact`._
+
+_Props of `Peek`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `trigger` (required) | `ReactElement<unknown, string \| JSXElementConstructor<any>>` |  | A real link. Its click and modified-click navigation remain intact. |
+| `label` (required) | `string` |  | Accessible name for the explicit keyboard/touch preview button and popup. |
+| `children` (required) | `ReactNode` |  | Informational content, often Glance; fetch only after onOpenChange(true). |
+| `actions` | `ReactNode` |  | Actions in the explicit preview popup, never required in the hover summary. |
+| `onOpenChange` | `((open: boolean) => void)` |  | Lets the host start a lazy read. Opening either surface reports true. |
 
 <!-- page: Patterns/PickerSheet (src/stories/patterns/PickerSheet.mdx) -->
 
@@ -22375,6 +22769,216 @@ A card can open a preview through a separate action while its title remains a na
 
 _Example: story `Stories.RecordNavigation`._
 
+<!-- page: Patterns/Reorder (src/stories/patterns/Reorder.mdx) -->
+
+# Reorder
+
+**Status: Experimental.**
+
+A controlled collection whose items move by pointer, keyboard or one press. Use it for tabs, favorites and ordinary lists. It introduces no listbox or option roles: links, checkboxes and buttons retain their semantics. DataTable retains its specialized column/row adapters.
+
+_Example: story `Stories.SinglePress`._
+
+Give `items` stable unique identities in visual order, `getItemLabel` human-readable names, and commit `onReorder(items, { id, from, to })` in the host. Ledger persists nothing. Wrap each item in `ReorderItem` and include `ReorderHandle`. Always offer `ReorderMove` previous/next buttons or equivalent menu actions as a single-pointer alternative to dragging. Previous/next mean collection order; horizontal icons follow writing direction.
+
+Space picks up the focused handle; arrows move it, Space drops and Escape cancels. Pointer dragging begins after eight pixels, shows an insertion marker and scrolls overflowing ancestors at their edges. Keyboard movement reveals each target without continuing to scroll after the key is released. During a drag, the handle owns arrows and Escape even inside a dialog; leaving the handle, disabling the collection or unmounting cancels and removes its keyboard listeners. Ordinary typing, composition and focus in other controls retain their ownership. Announcements name the item and destination position. Reduced-motion mode removes reorder transitions. Native div props and refs reach Reorder and ReorderItem; IconButton props and refs reach the handle and move controls.
+
+_Example: story `Stories.Keyboard`._
+_Example: story `Stories.Horizontal`._
+_Example: story `Stories.InsideDialog`._
+_Example: story `Stories.KeyboardEdgeScrolling`._
+
+Set `disabled` while saving, restoring a draft or awaiting permission. An item's own `disabled` prevents picking it up; other items may pass it. This is not a fixed-position barrier. Hosts with protected source tabs must validate their own move operation. Keep order authoritative while saving and render a recoverable error on failure. Reordering never selects or opens an item.
+
+_Example: story `Stories.Pending`._
+
+_Props of `Reorder`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `items` (required) | `readonly string[]` |  | Stable identities in their current order. The host commits the returned order. |
+| `getItemLabel` (required) | `(id: string) => string` |  | Human-readable names for drag announcements and handles. |
+| `onReorder` (required) | `(items: string[], change: ReorderChange) => void` |  |  |
+| `orientation` | `"horizontal" \| "vertical"` | `vertical` |  |
+| `disabled` | `boolean` | `false` | Disable while the host saves, restores a draft or cannot reorder this collection. |
+
+_Props of `ReorderItem`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `itemId` (required) | `string` |  | Must occur exactly once in the parent items. |
+| `disabled` | `boolean` | `false` | Keep this item in the collection but prevent picking it up. |
+
+_Props of `ReorderHandle`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `className` | `string \| ((state: ButtonState) => string)` |  | CSS class applied to the element, or a function that returns a class based on the component's state. |
+| `style` | `CSSProperties \| ((state: ButtonState) => CSSProperties)` |  | Style applied to the element, or a function that returns a style object based on the component's state. |
+| `nativeButton` | `boolean` | `true` | Whether the component renders a native `<button>` element when replacing it via the `render` prop. Set to `false` if the rendered element is not a button (for example, `<div>`). |
+| `render` | `ReactElement<unknown, string \| JSXElementConstructor<any>> \| ComponentRenderFn<HTMLProps, ButtonState>` |  | Allows you to replace the component's HTML element with a different tag, or compose it with another component. Accepts a `ReactElement` or a function that returns the element to render. |
+| `size` | `"medium" \| "small" \| "xsmall" \| "xxsmall"` |  | Small is 28px, the default; medium 32px with a larger icon; xsmall 24px, beside an xsmall Button; xxsmall 20px, the row control in a table, tree or list row. Where any pointer is coarse each takes a hit area of at least 24px. |
+| `focusableWhenDisabled` | `boolean` | `false` | Whether the button should be focusable when disabled. |
+| `variant` | `"primary" \| "secondary" \| "subtle"` |  |  |
+| `isSelected` | `boolean` |  | Paint the selected state and, on Button, set aria-pressed. |
+| `isLoading` | `boolean` |  | Block activation and show a spinner while keeping focus unless explicitly disabled. The button keeps its width and its name: the spinner takes the leading icon's place, else the trailing icon's, else it sits over the label, which keeps its space. |
+| `loadingLabel` | `string` |  | What the pending work is, said once through the page's polite live region when loading starts, such as "Saving requirement revision". `aria-busy` alone is not announced by the major screen readers. Leave it out when something else on the page already says it. |
+| `disabledReason` | `string` |  | Why the action is unavailable, for an action that truly cannot run. The button is disabled but stays in the tab order with `aria-disabled`, so the reader can reach it and learn why: the reason shows in a tooltip on hover, on keyboard focus and on a tap, and is the button's accessible description. It disables the button by itself and keeps it focusable even with `disabled`. An empty string is no reason. Prefer an enabled action that explains on use, such as a submit that reports what is missing. |
+| `isTooltipDisabled` | `boolean` |  | Keep the accessible name while omitting the tooltip. A `disabledReason` still shows its own. |
+| `label` | `string` |  |  |
+| `icon` | `ReactElement<unknown, string \| JSXElementConstructor<any>>` |  |  |
+
+_Props of `ReorderMove`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `className` | `string \| ((state: ButtonState) => string)` |  | CSS class applied to the element, or a function that returns a class based on the component's state. |
+| `style` | `CSSProperties \| ((state: ButtonState) => CSSProperties)` |  | Style applied to the element, or a function that returns a style object based on the component's state. |
+| `nativeButton` | `boolean` | `true` | Whether the component renders a native `<button>` element when replacing it via the `render` prop. Set to `false` if the rendered element is not a button (for example, `<div>`). |
+| `render` | `ReactElement<unknown, string \| JSXElementConstructor<any>> \| ComponentRenderFn<HTMLProps, ButtonState>` |  | Allows you to replace the component's HTML element with a different tag, or compose it with another component. Accepts a `ReactElement` or a function that returns the element to render. |
+| `size` | `"medium" \| "small" \| "xsmall" \| "xxsmall"` |  | Small is 28px, the default; medium 32px with a larger icon; xsmall 24px, beside an xsmall Button; xxsmall 20px, the row control in a table, tree or list row. Where any pointer is coarse each takes a hit area of at least 24px. |
+| `focusableWhenDisabled` | `boolean` | `false` | Whether the button should be focusable when disabled. |
+| `variant` | `"primary" \| "secondary" \| "subtle"` |  |  |
+| `isSelected` | `boolean` |  | Paint the selected state and, on Button, set aria-pressed. |
+| `isLoading` | `boolean` |  | Block activation and show a spinner while keeping focus unless explicitly disabled. The button keeps its width and its name: the spinner takes the leading icon's place, else the trailing icon's, else it sits over the label, which keeps its space. |
+| `loadingLabel` | `string` |  | What the pending work is, said once through the page's polite live region when loading starts, such as "Saving requirement revision". `aria-busy` alone is not announced by the major screen readers. Leave it out when something else on the page already says it. |
+| `disabledReason` | `string` |  | Why the action is unavailable, for an action that truly cannot run. The button is disabled but stays in the tab order with `aria-disabled`, so the reader can reach it and learn why: the reason shows in a tooltip on hover, on keyboard focus and on a tap, and is the button's accessible description. It disables the button by itself and keeps it focusable even with `disabled`. An empty string is no reason. Prefer an enabled action that explains on use, such as a submit that reports what is missing. |
+| `isTooltipDisabled` | `boolean` |  | Keep the accessible name while omitting the tooltip. A `disabledReason` still shows its own. |
+| `direction` (required) | `"next" \| "previous"` |  | Previous/next follow the collection order, including right-to-left layouts. |
+| `label` (required) | `string` |  |  |
+
+<!-- page: Patterns/ReviewThread (src/stories/patterns/ReviewThread.mdx) -->
+
+# ReviewThread
+
+**Status: Experimental.**
+
+A controlled discussion presentation: captured source context, current status and resolve/reopen action, a Composer, parent-reply context, a Timeline of comments and events, and host-owned history navigation. The component establishes one layout for reviews attached to a record, document passage, change or spreadsheet cell. It has no knowledge of those identities.
+
+_Example: story `Stories.Basic`._
+
+Supply localized `historyLabel`, `status` and action labels. Each `messages` entry has a stable id, an author, an optional ISO `dateTime`, optional parent/event metadata, a body (usually Prose), and an optional reply action. Timeline formats dates through LedgerProvider. Omit actions and the composer for a read-only thread; do not infer permission from its open/resolved state. Native div props and ref reach the root.
+
+The `composer` slot accepts the existing Composer; pass its controlled value and `onValueChange` when the surrounding dialog guards a draft. Composer serializes submission, clears only a fulfilled send, retains rejected text and returns focus to its field. The application must reject its submission promise on failure. `replyTarget` only describes the selected parent; cancelling it does not clear text. The host can focus its Composer ref when selecting a reply, as this example does.
+
+_Example: story `Stories.RepliesAndResolution`._
+
+`statusAction` and entry `reply` actions accept a visible label, optional `accessibleLabel`, an `onSelect` callback and disabled/pending states. A pending action uses Button's loading behavior. The host must handle asynchronous failures, pending permissions and writes, and disable the composer or other actions when needed. The component does not optimistically resolve, mutate messages, or announce a success before the application provides the updated state.
+
+_Example: story `Stories.Pending`._
+_Example: story `Stories.ReadOnlyAndEvents`._
+_Example: story `Stories.LongContent`._
+
+Use `context` for an immutable quote and `footer` for pagination; the host owns data loading, errors, identity, sorting and page boundaries. Wrap the whole pattern in the existing Dialog, Sheet, Section or reader panel according to the task. Those parents retain focus return, dirty-close confirmation, pending dismissal protection and navigation. A source quote or an open discussion never asserts approval of the underlying record.
+
+_Props of `ReviewThread`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `historyLabel` (required) | `string` |  | Accessible name of the message timeline. |
+| `status` (required) | `ReactNode` |  | Localized current state, such as "Open" or "Resolved". |
+| `statusAction` | `ReviewThreadAction` |  | Resolve or reopen command; omitted for readers without that permission. |
+| `context` | `ReactNode` |  | Immutable quoted source context, supplied and validated by the application. |
+| `composer` | `ReactNode` |  | Controlled Composer, including its own pending, failure and retry behavior. |
+| `replyTarget` | `{ label: ReactNode; cancel: ReviewThreadAction; }` |  | The selected parent comment; changing it never changes the composer's draft. |
+| `messages` (required) | `readonly ReviewThreadEntry[]` |  | Comment and event entries in display order. |
+| `empty` | `ReactNode` |  | Host-owned empty state, shown instead of the timeline when no entries exist. |
+| `footer` | `ReactNode` |  | Pagination or other history navigation; does not alter the composer. |
+
+<!-- page: Patterns/SavedViews (src/stories/patterns/SavedViews.mdx) -->
+
+# SavedViews
+
+**Status: Experimental.** Ledger maintains this controlled interaction family; its first application consumer is validating the editing and sharing contract.
+
+Use `SavedViewPicker` in a Toolbar's `views` slot to apply a named set of filters, sorting and layout. The picker presents stable ids, readable names, sharing labels and unavailable reasons. Applying a view, saving the current settings and opening management are callbacks; the kit stores no definition and changes no URL.
+
+_Example: story `Stories.Picker`._
+
+`SavedViewManager` lists the views the host has authorized. It filters that supplied list by name and description and shows Edit, Duplicate and Delete only when both the item capability and the matching callback are present. Favorites use a separate controlled state. Omit the favorite callback when that capability is absent. Long names truncate with the Button's accessible reveal; row actions wrap at narrow widths and remain available without hover.
+
+_Example: story `Stories.Manager`._
+
+_Example: story `Stories.LongNames`._
+
+`SavedViewEditor` edits a controlled name, visibility value and optional “replace settings” choice. The host supplies visibility options and disabled reasons, the title and the submit label. Keep the same draft after a failed save. Set `pending` while saving: the form and submit are blocked, Escape and every close path stay blocked, and focus remains inside the dialog. A name must contain non-whitespace text to submit; storage limits and other validation remain the host's responsibility. The visible name input is limited to 100 characters.
+
+_Example: story `Stories.Editor`._
+
+The host owns authorization, persistence, destination links, definition serialization, optimistic concurrency and unsaved-change policy. A Duplicate callback should create a new identity from the chosen view's definition, not from unrelated current settings. A Delete callback requests a host confirmation. Put confirmation overlays in `children` of the manager/editor so they nest inside the owning focus scope. `onOpenChange(false)` is a request: keep `open` true while asking whether to discard a dirty draft. Avoid having both dialogs open at once. When switching manager → editor, set the manager's `finalFocus={false}` and give the editor a `finalFocus` that finds the returning management control; when all overlays close, restore the picker's `triggerRef`.
+
+Loading, failed reads and compatibility notices are separate. A failed refresh keeps supplied views usable and exposes Retry; an empty or unmatched list is only shown once loading and errors have cleared. A failure applying or modifying a view belongs in the manager's `feedback`, while a save failure belongs in the editor's `error`. `labels` overrides the default visible and accessible words for translation; host descriptions and visibility labels are already supplied content.
+
+_Example: story `Stories.PendingAndRetry`._
+
+The picker inherits menu keyboard navigation and Escape focus return. Dialogs contain keyboard focus and use the same close/scroll behavior as Ledger Dialog. Refs and native attributes reach the picker's span, the manager's body root, and the editor's form; `triggerRef` reaches the picker's menu button, and `finalFocus` provides an explicit restoration target when the opener unmounts. These components perform no network requests and expose no role- or ownership-based permission inference.
+
+_Props of `SavedViewPicker`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `views` (required) | `readonly SavedViewItem[]` |  |  |
+| `selectedId` | `string` |  |  |
+| `loading` | `boolean` | `false` |  |
+| `error` | `string` |  | A failed read keeps the supplied views available. |
+| `onRetry` | `(() => void)` |  |  |
+| `notice` | `string` |  | Host-owned compatibility or scope notice. |
+| `onApply` (required) | `(id: string) => void` |  |  |
+| `onCreate` | `(() => void)` |  |  |
+| `labels` | `Partial<SavedViewLabels>` |  |  |
+| `open` (required) | `boolean` |  |  |
+| `onOpenChange` (required) | `(open: boolean) => void` |  |  |
+| `onManage` | `(() => void)` |  |  |
+| `disabled` | `boolean` |  |  |
+| `disabledReason` | `string` |  |  |
+| `triggerRef` | `Ref<HTMLButtonElement>` |  | The native root ref is a span; this ref reaches its menu button for focus restoration. |
+
+_Props of `SavedViewManager`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `views` (required) | `readonly SavedViewItem[]` |  |  |
+| `selectedId` | `string` |  |  |
+| `loading` | `boolean` | `false` |  |
+| `error` | `string` |  | A failed read keeps the supplied views available. |
+| `onRetry` | `(() => void)` |  |  |
+| `notice` | `string` |  | Host-owned compatibility or scope notice. |
+| `onApply` (required) | `(id: string) => void` |  |  |
+| `onCreate` | `(() => void)` |  |  |
+| `labels` | `Partial<SavedViewLabels>` |  |  |
+| `open` (required) | `boolean` |  |  |
+| `onOpenChange` (required) | `(open: boolean) => void` |  |  |
+| `description` | `string` |  |  |
+| `pending` | `boolean` | `false` | Blocks commands and dismissal while a host operation is in flight. |
+| `favoritePending` | `boolean` | `false` | Only favorite commands are busy; other views remain usable. |
+| `onEdit` | `((id: string) => void)` |  |  |
+| `onDuplicate` | `((id: string) => void)` |  |  |
+| `onDelete` | `((id: string) => void)` |  | Requests deletion. The host owns confirmation and the destructive operation. |
+| `onFavoriteChange` | `((id: string, favorite: boolean) => void)` |  |  |
+| `feedback` | `ReactNode` |  | Application feedback, including failures while applying or changing a view. |
+| `children` | `ReactNode` |  | Put host confirmation overlays here so they nest inside this dialog's focus scope. |
+| `finalFocus` | `boolean \| RefObject<HTMLElement \| null> \| ((closeType: InteractionType) => boolean \| void \| HTMLElement \| null)` |  |  |
+
+_Props of `SavedViewEditor`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `open` (required) | `boolean` |  |  |
+| `onOpenChange` (required) | `(open: boolean) => void` |  | The host may keep the editor open while it asks to discard unsaved changes. |
+| `title` (required) | `string` |  |  |
+| `description` | `string` |  |  |
+| `value` (required) | `SavedViewDraft` |  |  |
+| `onValueChange` (required) | `(value: SavedViewDraft) => void` |  |  |
+| `onSubmit` (required) | `() => void` |  |  |
+| `submitLabel` (required) | `string` |  |  |
+| `visibilityOptions` (required) | `readonly SavedViewVisibility[]` |  |  |
+| `showReplaceSettings` | `boolean` | `false` |  |
+| `pending` | `boolean` | `false` |  |
+| `error` | `string` |  |  |
+| `labels` | `Partial<SavedViewLabels>` |  |  |
+| `finalFocus` | `boolean \| RefObject<HTMLElement \| null> \| ((closeType: InteractionType) => boolean \| void \| HTMLElement \| null)` |  |  |
+| `children` | `ReactNode` |  | Host confirmation overlays are nested here; persistence and discard policy stay outside. |
+
 <!-- page: Patterns/SearchDialog (src/stories/patterns/SearchDialog.mdx) -->
 
 # SearchDialog
@@ -22487,6 +23091,20 @@ Records are found in a SearchDialog, each its identifier, its name, a line of me
 
 _Example: story `Stories.Dont`._
 
+<!-- page: Patterns/SelectionActions (src/stories/patterns/SelectionActions.mdx) -->
+
+# SelectionActions
+
+**Status: Experimental.** Actions for a captured selection, with an optional live element or virtual rectangle anchor. The host owns the selected text, cells or line range and supplies actions as children. Changing `selectionKey` opens actions for a new capture.
+
+_Example: story `Stories.CapturedRange`._
+
+With a precise pointer and an anchor, actions float beside the range using Popover collision handling and scroll positioning. A fixed labelled trigger provides keyboard entry without stealing focus when the range is captured. Pointer actions preserve native text selection. Escape or outside dismissal returns to the inline action row; Escape restores focus to the first inline action when focus was in the popup. Touch and missing anchors use the inline row immediately. No action exists only on hover.
+
+_Example: story `Stories.Inline`._
+_Example: story `Stories.AtViewportEdge`._
+_Rendered in the Storybook: ArgTypes._
+
 <!-- page: Patterns/Spreadsheet (src/stories/patterns/Spreadsheet.mdx) -->
 
 # Spreadsheet
@@ -22525,7 +23143,7 @@ _Example: story `Stories.Toolbar`._
 
 Right-click a cell, row heading or column heading to open its action menu. Shift+F10 and the Context Menu key open the menu for the current selection mode. Opening a cell menu inside a selected rectangle preserves that range; opening outside it chooses the target cell. `SpreadsheetMenuContext` includes the distinct pointer target, retained selection and visible row/column IDs. Hidden identities are excluded from the action scope. `renderCellMenu`, `renderRowMenu` and `renderColumnMenu` append host actions to this context; the host authorizes structural or record commands.
 
-Cell menus expose cut, copy, paste, paste values, clear values and fill. Drag the selection’s corner handle to repeat a source block vertically or horizontally, including translated formulas when `translateInput` is supplied. A preview does not write values; releasing commits one atomic batch, while Escape or pointer cancellation discards it. Ctrl/⌘D and Ctrl/⌘R fill down and right. The handle repeats values and formulas, without inferring number series or copying formatting. Protected destinations reject the whole operation. `onClearFormatting` is separate from clearing values. `clipboardValue` supplies an unformatted calculated value for Paste values. Copy carries values and formulas, without formatting, comments or dropdown rules. Cut retains its source until an atomic paste succeeds within the same sheet; it does not rewrite references elsewhere in the workbook. `preparePasteValue` lets hosts encode literal values for their model; by default Paste values escapes a leading `=`. Clipboard access depends on browser permission; errors remain visible and failed writes retain their retry state. Read-only and pending states keep unavailable writes disabled.
+Cell menus expose cut, copy, paste, paste values, clear values and fill. Drag the selection’s corner handle to repeat a source block vertically or horizontally, including translated formulas when `translateInput` is supplied. A preview does not write values; releasing commits one atomic batch, while Escape or pointer cancellation discards it. Ctrl/⌘D and Ctrl/⌘R fill down and right. The handle repeats values and formulas, without inferring number series or copying formatting. Protected destinations reject the whole operation. `onClearFormatting` is separate from clearing values. `clipboardValue` supplies an unformatted calculated value for Paste values. By default Copy carries values and formulas. Opt into authored style copying with `getClipboardStyle` and atomic `onPaste`; comments and dropdown rules are not copied. See the [authoring examples](?path=/docs/patterns-spreadsheet-authoring--docs). Cut retains its source until an atomic paste succeeds within the same sheet; it does not rewrite references elsewhere in the workbook. `preparePasteValue` lets hosts encode literal values for their model; by default Paste values escapes a leading `=`. Clipboard access depends on browser permission; errors remain visible and failed writes retain their retry state. Read-only and pending states keep unavailable writes disabled.
 
 Drag across row or column headings to select an axis range. Resizing a selected column updates the whole selected column range with a local preview and one committed width map; Escape restores the previous widths. Row and column menus hide their selected identities, reveal all hidden identities and set explicit dimensions. Keep the full `rows` and `columns` arrays and pass `hiddenRowIds` / `hiddenColumnIds`, paired with their change callbacks, to retain workbook addresses. Hiding B leaves C as C; hiding row 2 leaves row 3 as row 3. `rowHeights` and `onRowHeightsChange` control explicit row heights. Drag a row boundary to resize (whole selected rows resize together), double-click or press Enter on its separator to fit the content, or choose **Automatic row height** to remove explicit heights. The callback supplies the complete map: missing row IDs return to automatic sizing. Alt+Shift+Up/Down resizes the active row from the grid; separator Arrow keys resize by 8px, Shift by 32px. Explicit heights are 24–240px and automatic wrapped rows grow up to 480px; overflowing content stays within its cell. Local presentation state is available when those props are omitted; persistence belongs to the host.
 
@@ -22593,6 +23211,8 @@ This family supplies a workbook viewport, not XLSX round-trip fidelity or an Exc
 
 Cells with formula-shaped literal text, such as a record statement beginning with `=`, can be identified with `isCellLiteral`. Local copy and fill retain that intent, including across sheet changes; genuine formulas still use `translateInput`. System clipboard TSV stays unchanged. `preparePasteValue` encodes literal text for each destination: use the raw string for record or text-format cells, and escape a leading equals sign for formula-enabled cells. The host continues to validate and authorize the complete write.
 
+Reusable document controls are documented on the [Spreadsheet formatting page](?path=/docs/patterns-spreadsheet-formatting--docs). Formula assistance, rich paste and engine-supplied totals are on the [Spreadsheet authoring page](?path=/docs/patterns-spreadsheet-authoring--docs).
+
 _Props of `Spreadsheet`, generated from its types:_
 
 | Prop | Type | Default | Description |
@@ -22601,7 +23221,13 @@ _Props of `Spreadsheet`, generated from its types:_
 | `columns` (required) | `readonly SpreadsheetColumn[]` |  |  |
 | `rows` (required) | `readonly SpreadsheetRow[]` |  |  |
 | `onChange` | `((edits: readonly SpreadsheetEdit[]) => void \| Promise<void>)` |  | One atomic intent. Reject to keep the editor's draft and expose Retry. The host owns validation, persistence and updating rows. |
-| `onDraftChange` | `((dirty: boolean) => void)` |  | Reports an unsaved editor draft so the host can guard navigation and structural operations. False after commit, cancellation or unmount. |
+| `formulaFunctions` | `readonly SpreadsheetFunction[]` |  | Host-provided formulas; completion inserts names without evaluating expressions. |
+| `getFormulaReferences` | `((input: string, cell: SpreadsheetCell) => readonly SpreadsheetFormulaReference[])` |  | Parse references into stable selections in the current sheet; unknown/other-sheet references can be omitted. |
+| `getFormulaReference` | `((selection: SpreadsheetSelection) => string)` |  | Encode a picked range for the current formula. Defaults to canonical A1 addresses in this sheet. |
+| `getClipboardStyle` | `((cell: SpreadsheetCell) => Readonly<Record<string, unknown>>)` |  | Snapshot authored styles for local rich copy. External TSV never carries document styles. |
+| `onPaste` | `((paste: SpreadsheetPaste) => void \| Promise<void>)` |  | One atomic paste intent including translated inputs and replacement styles. Rejection retains retry state. |
+| `selectionStatistics` | `SpreadsheetStatistics \| null` |  | Evaluated, unformatted selection totals from the host. Null suppresses totals; undefined uses local numeric display values. |
+| `onDraftChange` | `((dirty: boolean) => void)` |  |  |
 | `selection` | `SpreadsheetSelection \| null` |  |  |
 | `onSelectionChange` | `((selection: SpreadsheetSelection \| null) => void)` |  |  |
 | `readOnly` | `boolean` | `false` |  |
@@ -22616,7 +23242,7 @@ _Props of `Spreadsheet`, generated from its types:_
 | `getCellComment` | `((cell: SpreadsheetCell) => string)` |  |  |
 | `displayValue` | `((cell: SpreadsheetCell, value: string) => string)` |  | Evaluated/formatted display; editing and clipboard preserve the raw input. |
 | `clipboardValue` | `((cell: SpreadsheetCell, value: string) => string)` |  | Unformatted calculated value for Paste values; defaults to displayValue/raw input. |
-| `preparePasteValue` | `((cell: SpreadsheetCell, value: string) => string)` |  | Encode a calculated Paste values string for this target. Defaults to escaping leading =; record-backed literal cells can return the string unchanged. |
+| `preparePasteValue` | `((cell: SpreadsheetCell, value: string, style?: Readonly<Record<string, unknown>> \| null) => string)` |  | Encode a literal input for this target. Optional style is incoming replacement metadata: undefined keeps current styling, null clears it. Defaults to escaping leading =; record-backed literal cells can return unchanged. |
 | `translateInput` | `((value: string, from: { row: number; column: number; }, to: { row: number; column: number; }) => string)` |  | Translate relative references for fill and locally copied ranges. Row coordinates use rowNumber - 1; columns use their zero-based positions. Defaults to literal copying. |
 | `onOpenRow` | `((rowId: string) => void)` |  |  |
 | `activeRowId` | `string` |  |  |
@@ -22637,6 +23263,8 @@ _Props of `Spreadsheet`, generated from its types:_
 | `onAddSheet` | `(() => void)` |  |  |
 | `getSheetActions` | `((sheetId: string) => readonly SpreadsheetSheetAction[])` |  |  |
 | `onSheetAction` | `((sheetId: string, actionId: string) => void)` |  |  |
+| `onSheetReorder` | `((ids: string[], change: ReorderChange) => void)` |  | Drag/keyboard reorder; successful cell-draft commit precedes this callback. |
+| `isSheetReorderDisabled` | `((sheetId: string) => boolean)` |  |  |
 | `onAddRows` | `(() => void)` |  |  |
 | `onAddColumns` | `(() => void)` |  |  |
 | `sheetRowCount` | `number` |  |  |
@@ -22663,6 +23291,147 @@ _Props of `SpreadsheetToolbar`, generated from its types:_
 | --- | --- | --- | --- |
 | `label` (required) | `string` |  | Accessible name for this group of workbook controls. |
 
+<!-- page: Patterns/Spreadsheet authoring (src/stories/patterns/SpreadsheetAuthoring.mdx) -->
+
+# Spreadsheet authoring
+
+**Status: Experimental.** These examples extend the [Spreadsheet contract](?path=/docs/patterns-spreadsheet--docs) with host-assisted formula entry, document-style clipboard operations and evaluated selection totals.
+
+## Formula assistance
+
+Supply `formulaFunctions` with names, signatures, descriptions and optional argument labels. Both the formula bar and inline text editor suggest matching functions while typing. Up/Down chooses a suggestion; Enter or Tab inserts its name and opening parenthesis without saving the cell. Escape first dismisses suggestions. Nested calls expose the current argument; quoted strings are excluded from completion. The host's engine evaluates formulas.
+
+`getFormulaReferences(input, cell)` resolves references to stable selections in the current sheet. Referenced cells show distinct token colors and accessible reference descriptions. Unsupported, incomplete or other-sheet references can be omitted. `getFormulaReference(selection)` encodes a picked range; the default uses this sheet's canonical A1 addresses. When the caret expects an operand, dragging over cells inserts a reference while retaining the original editor. **Insert cell reference** explicitly enables picking at another caret position. Releasing returns focus to the editor; Escape during a pick restores its original draft. Picking currently targets the displayed sheet.
+
+_Example: story `Stories.FormulaAssistance`._
+_Example: story `Stories.InlineReferenceCancellation`._
+
+## Click-away settlement
+
+Leaving an inline editor commits its local draft and reports the settled `onDraftChange` state before the next host click. A guarded Review action can therefore run on the same click; failed validation or a pending write keeps the guard active. This callback stages workbook data and does not imply a database write.
+
+_Example: story `Stories.BlurCommitAction`._
+
+## Rich local clipboard
+
+`getClipboardStyle` snapshots authored document styles into the mounted workbook's local clipboard receipt. Plain system clipboard TSV retains values and formulas for interoperability. `onPaste` receives one atomic intent: `mode`, stable-ID `edits`, and replacement `styles`. A null style clears authored formatting. The host validates and applies the complete intent or rejects it; the grid never calls `onChange` separately for that paste. The host must retain record bindings and validate protected value formats. `preparePasteValue` receives an optional third argument for the incoming replacement style; use it when encoding literal formula-shaped text against the target’s final format.
+
+Normal paste carries copied values and styles. **Paste values** carries calculated inputs only. **Paste formatting** changes styles without modifying inputs, even when the receipt originated from Cut. Cuts otherwise clear their source only in the same accepted batch; changed source values or formatting reject a stale move. Hidden destinations are skipped, protected rectangles reject as a whole, and a failed atomic callback remains retryable. Rich styles stay local to this mounted workbook; external clipboard text has no style payload. Comments, dropdown rules and conditional-formatting results are not copied.
+
+_Example: story `Stories.RichClipboard`._
+_Example: story `Stories.RichPasteRecovery`._
+_Example: story `Stories.ProtectedRichPaste`._
+
+## Evaluated totals
+
+Supply `selectionStatistics` with `count`, `numericCount` and optional `sum`/`average` computed from unformatted engine values. This preserves numeric totals when cells display currency or dates. Omit the prop for the local numeric-display fallback; pass null to suppress numeric totals. These are presentation values supplied by the host, not a second calculation engine.
+
+_Example: story `Stories.CalculatedStatistics`._
+
+_Props of `Spreadsheet`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` (required) | `string` |  | Names this grid; required even when a page heading names the workbook. |
+| `columns` (required) | `readonly SpreadsheetColumn[]` |  |  |
+| `rows` (required) | `readonly SpreadsheetRow[]` |  |  |
+| `onChange` | `((edits: readonly SpreadsheetEdit[]) => void \| Promise<void>)` |  | One atomic intent. Reject to keep the editor's draft and expose Retry. The host owns validation, persistence and updating rows. |
+| `formulaFunctions` | `readonly SpreadsheetFunction[]` |  | Host-provided formulas; completion inserts names without evaluating expressions. |
+| `getFormulaReferences` | `((input: string, cell: SpreadsheetCell) => readonly SpreadsheetFormulaReference[])` |  | Parse references into stable selections in the current sheet; unknown/other-sheet references can be omitted. |
+| `getFormulaReference` | `((selection: SpreadsheetSelection) => string)` |  | Encode a picked range for the current formula. Defaults to canonical A1 addresses in this sheet. |
+| `getClipboardStyle` | `((cell: SpreadsheetCell) => Readonly<Record<string, unknown>>)` |  | Snapshot authored styles for local rich copy. External TSV never carries document styles. |
+| `onPaste` | `((paste: SpreadsheetPaste) => void \| Promise<void>)` |  | One atomic paste intent including translated inputs and replacement styles. Rejection retains retry state. |
+| `selectionStatistics` | `SpreadsheetStatistics \| null` |  | Evaluated, unformatted selection totals from the host. Null suppresses totals; undefined uses local numeric display values. |
+| `onDraftChange` | `((dirty: boolean) => void)` |  |  |
+| `selection` | `SpreadsheetSelection \| null` |  |  |
+| `onSelectionChange` | `((selection: SpreadsheetSelection \| null) => void)` |  |  |
+| `readOnly` | `boolean` | `false` |  |
+| `pending` | `boolean` | `false` | External load/save activity. Existing values stay visible; writes pause. |
+| `error` | `ReactNode` |  |  |
+| `onRetry` | `(() => void)` |  |  |
+| `isCellReadOnly` | `((cell: SpreadsheetCell) => boolean)` |  |  |
+| `isCellLiteral` | `((cell: SpreadsheetCell) => boolean)` |  | Identifies cells whose formula-shaped input is literal text. Copy and fill preserve that intent. |
+| `getCellError` | `((cell: SpreadsheetCell) => string)` |  |  |
+| `getCellStyle` | `((cell: SpreadsheetCell) => SpreadsheetCellStyle)` |  |  |
+| `getCellOptions` | `((cell: SpreadsheetCell) => readonly { value: string; label: string; }[])` |  | Per-cell list validation overrides the column editor with a choice editor. |
+| `getCellComment` | `((cell: SpreadsheetCell) => string)` |  |  |
+| `displayValue` | `((cell: SpreadsheetCell, value: string) => string)` |  | Evaluated/formatted display; editing and clipboard preserve the raw input. |
+| `clipboardValue` | `((cell: SpreadsheetCell, value: string) => string)` |  | Unformatted calculated value for Paste values; defaults to displayValue/raw input. |
+| `preparePasteValue` | `((cell: SpreadsheetCell, value: string, style?: Readonly<Record<string, unknown>> \| null) => string)` |  | Encode a literal input for this target. Optional style is incoming replacement metadata: undefined keeps current styling, null clears it. Defaults to escaping leading =; record-backed literal cells can return unchanged. |
+| `translateInput` | `((value: string, from: { row: number; column: number; }, to: { row: number; column: number; }) => string)` |  | Translate relative references for fill and locally copied ranges. Row coordinates use rowNumber - 1; columns use their zero-based positions. Defaults to literal copying. |
+| `onOpenRow` | `((rowId: string) => void)` |  |  |
+| `activeRowId` | `string` |  |  |
+| `presence` | `readonly SpreadsheetPresence[]` | `[]` |  |
+| `toolbarStart` | `ReactNode` |  | Host view controls before the native clipboard and column controls. |
+| `actions` | `ReactNode` |  | Host operations after the native controls, separated as a group. |
+| `renderColumnMenu` | `((column: SpreadsheetColumn, context: SpreadsheetMenuContext) => ReactNode)` |  | Additional DropdownMenu items for this stable column, after native sizing and freeze actions. |
+| `renderCellMenu` | `((context: SpreadsheetMenuContext) => ReactNode)` |  |  |
+| `renderRowMenu` | `((row: SpreadsheetRow, context: SpreadsheetMenuContext) => ReactNode)` |  |  |
+| `onClearFormatting` | `((context: SpreadsheetMenuContext) => void)` |  |  |
+| `onUndo` | `(() => void)` |  |  |
+| `onRedo` | `(() => void)` |  |  |
+| `canUndo` | `boolean` | `false` |  |
+| `canRedo` | `boolean` | `false` |  |
+| `sheets` | `readonly SpreadsheetSheet[]` |  |  |
+| `activeSheetId` | `string` |  |  |
+| `onSheetChange` | `((sheetId: string) => void)` |  |  |
+| `onAddSheet` | `(() => void)` |  |  |
+| `getSheetActions` | `((sheetId: string) => readonly SpreadsheetSheetAction[])` |  |  |
+| `onSheetAction` | `((sheetId: string, actionId: string) => void)` |  |  |
+| `onSheetReorder` | `((ids: string[], change: ReorderChange) => void)` |  | Drag/keyboard reorder; successful cell-draft commit precedes this callback. |
+| `isSheetReorderDisabled` | `((sheetId: string) => boolean)` |  |  |
+| `onAddRows` | `(() => void)` |  |  |
+| `onAddColumns` | `(() => void)` |  |  |
+| `sheetRowCount` | `number` |  |  |
+| `sheetColumnCount` | `number` |  |  |
+| `hiddenRowIds` | `readonly string[]` |  | Hide by identity without removing rows/columns or changing their workbook addresses. |
+| `onHiddenRowIdsChange` | `((ids: readonly string[]) => void)` |  |  |
+| `hiddenColumnIds` | `readonly string[]` |  |  |
+| `onHiddenColumnIdsChange` | `((ids: readonly string[]) => void)` |  |  |
+| `headerDisplay` | `"labels" \| "letters"` | `labels` | Letters-only headings suit a workbook whose first data row carries field names. |
+| `density` | `"comfortable" \| "compact"` | `comfortable` |  |
+| `fillAvailable` | `boolean` | `false` | Fill a bounded parent; surplus grid surface stays visual, never creates records. |
+| `height` | `number` |  | Scrolling grid height in CSS pixels; defaults to a bounded viewport-relative height. Chrome remains outside the scroller. |
+| `freezeFirstColumn` | `boolean` |  | Controlled freeze state; omit for local state, initially true. The frozen identity yields in narrow viewports. |
+| `onFreezeFirstColumnChange` | `((frozen: boolean) => void)` |  | Required to change a supplied freezeFirstColumn through its column menus. |
+| `freezeFirstRow` | `boolean` | `false` | Keep the first data row visible below the column headings, for a workbook's field names. |
+| `columnWidths` | `Readonly<Record<string, number>>` |  | Controlled widths by stable column id. Omit for local resizing; supplied widths require onColumnWidthsChange. Reset restores each column’s first-seen width within its sheet. |
+| `onColumnWidthsChange` | `((widths: Readonly<Record<string, number>>) => void)` |  |  |
+| `rowHeights` | `Readonly<Record<string, number>>` |  | Explicit CSS-pixel row heights (24..240) override automatic growth (up to480). Omit an ID for automatic height. Supplied maps require onRowHeightsChange to resize. |
+| `onRowHeightsChange` | `((heights: Readonly<Record<string, number>>) => void)` |  | Receives the complete explicit-height map. Removing an ID resets it to automatic height. |
+
+<!-- page: Patterns/Spreadsheet formatting (src/stories/patterns/SpreadsheetFormatting.mdx) -->
+
+# Spreadsheet formatting
+
+**Status: Experimental.** Controlled, engine-neutral document-formatting controls for a `SpreadsheetToolbar` or the grid's `actions` slot. The host applies each callback to its authorized selection and records undo history. Native div attributes, `className` and `ref` reach its inline group; the `style` prop describes document formatting rather than CSS. See the [Spreadsheet contract](?path=/docs/patterns-spreadsheet--docs) for grid integration.
+
+`style` describes the current selection's formatting. `onFormat` receives a patch: omitted properties are unchanged. Font sizes are points, from 8 to 72; row and column dimensions elsewhere in the grid are CSS pixels. `onBorders` receives a preset and line settings, and the host determines the selected range's outer and shared edges. Color values describe document content, independent of the application's theme.
+
+_Example: story `Stories.Default`._
+
+_Example: story `Stories.Formatting`._
+
+Pass differing property names through `mixed` rather than reporting the anchor cell as the whole selection. Mixed toggles expose `aria-pressed="mixed"` and apply the property uniformly when activated; mixed font and number-format controls show Mixed or an empty size. `selectionKey` resets unfinished font-size input when the range changes.
+
+_Example: story `Stories.MixedSelection`._
+
+`disabled` pauses all changes. `numberFormatDisabled` protects field-defined value types while retaining visual formatting such as wrapping and bold. These controls do not validate records or replace host authorization.
+
+_Example: story `Stories.ProtectedFormats`._
+
+_Props of `SpreadsheetFormatting`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `style` | `SpreadsheetFormat` |  |  |
+| `disabled` | `boolean` | `false` |  |
+| `numberFormatDisabled` | `boolean` | `false` | Disable value-type formatting while retaining visual document styles. |
+| `mixed` | `readonly ("color" \| "fontFamily" \| "fontSize" \| "format" \| "bold" \| "wrap" \| "italic" \| "underline" \| "align" \| "strikethrough" \| "background" \| "borderTop" \| "borderRight" \| "borderBottom" \| "borderLeft" \| "verticalAlign" \| "decimals")[]` | `[]` | Properties with differing values in the selection. Applying a control replaces that property uniformly. |
+| `selectionKey` | `string` |  | Resets unfinished toolbar input when selection changes. |
+| `onFormat` (required) | `(style: SpreadsheetFormat) => void` |  |  |
+| `onBorders` (required) | `(preset: SpreadsheetBorderPreset, border: SpreadsheetBorder) => void` |  |  |
+
 <!-- page: Patterns/Spreadsheet interactions (src/stories/patterns/SpreadsheetInteractions.mdx) -->
 
 # Spreadsheet interactions
@@ -22677,6 +23446,10 @@ _Props of `SpreadsheetToolbar`, generated from its types:_
 
 _Example: story `Stories.SheetNavigation`._
 _Example: story `Stories.SheetActions`._
+
+`onSheetReorder(ids, { id, from, to })` enables the shared Reorder handle on each tab. `isSheetReorderDisabled(id)` protects source sheets, pending operations or active drafts. Space/arrows/Space reorders from a handle; Escape cancels. Dragging a tab never changes the active sheet. Keep Move left/right in its permitted actions as a one-press alternative. The encompassing Spreadsheet commits a cell draft before forwarding the reorder callback; an unsuccessful commit keeps the order unchanged.
+
+_Example: story `Stories.SheetOrdering`._
 _Example: story `Stories.SheetOverflow`._
 
 ## Context and range identity
@@ -22731,6 +23504,8 @@ _Props of `SpreadsheetSheetBar`, generated from its types:_
 | `onAddSheet` | `(() => void)` |  |  |
 | `getSheetActions` | `((sheetId: string) => readonly SpreadsheetSheetAction[])` |  | The host determines which actions each sheet permits; absent actions are not shown. |
 | `onSheetAction` | `((sheetId: string, actionId: string) => void)` |  |  |
+| `onSheetReorder` | `((ids: string[], change: ReorderChange) => void)` |  | Reordering is controlled; the host keeps source sheets and pending drafts protected. |
+| `isSheetReorderDisabled` | `((sheetId: string) => boolean)` |  |  |
 | `rowCount` (required) | `number` |  |  |
 | `columnCount` (required) | `number` |  |  |
 | `onAddRows` | `(() => void)` |  |  |
@@ -22746,7 +23521,13 @@ _Props of `Spreadsheet`, generated from its types:_
 | `columns` (required) | `readonly SpreadsheetColumn[]` |  |  |
 | `rows` (required) | `readonly SpreadsheetRow[]` |  |  |
 | `onChange` | `((edits: readonly SpreadsheetEdit[]) => void \| Promise<void>)` |  | One atomic intent. Reject to keep the editor's draft and expose Retry. The host owns validation, persistence and updating rows. |
-| `onDraftChange` | `((dirty: boolean) => void)` |  | Reports an unsaved editor draft so the host can guard navigation and structural operations. False after commit, cancellation or unmount. |
+| `formulaFunctions` | `readonly SpreadsheetFunction[]` |  | Host-provided formulas; completion inserts names without evaluating expressions. |
+| `getFormulaReferences` | `((input: string, cell: SpreadsheetCell) => readonly SpreadsheetFormulaReference[])` |  | Parse references into stable selections in the current sheet; unknown/other-sheet references can be omitted. |
+| `getFormulaReference` | `((selection: SpreadsheetSelection) => string)` |  | Encode a picked range for the current formula. Defaults to canonical A1 addresses in this sheet. |
+| `getClipboardStyle` | `((cell: SpreadsheetCell) => Readonly<Record<string, unknown>>)` |  | Snapshot authored styles for local rich copy. External TSV never carries document styles. |
+| `onPaste` | `((paste: SpreadsheetPaste) => void \| Promise<void>)` |  | One atomic paste intent including translated inputs and replacement styles. Rejection retains retry state. |
+| `selectionStatistics` | `SpreadsheetStatistics \| null` |  | Evaluated, unformatted selection totals from the host. Null suppresses totals; undefined uses local numeric display values. |
+| `onDraftChange` | `((dirty: boolean) => void)` |  |  |
 | `selection` | `SpreadsheetSelection \| null` |  |  |
 | `onSelectionChange` | `((selection: SpreadsheetSelection \| null) => void)` |  |  |
 | `readOnly` | `boolean` | `false` |  |
@@ -22761,7 +23542,7 @@ _Props of `Spreadsheet`, generated from its types:_
 | `getCellComment` | `((cell: SpreadsheetCell) => string)` |  |  |
 | `displayValue` | `((cell: SpreadsheetCell, value: string) => string)` |  | Evaluated/formatted display; editing and clipboard preserve the raw input. |
 | `clipboardValue` | `((cell: SpreadsheetCell, value: string) => string)` |  | Unformatted calculated value for Paste values; defaults to displayValue/raw input. |
-| `preparePasteValue` | `((cell: SpreadsheetCell, value: string) => string)` |  | Encode a calculated Paste values string for this target. Defaults to escaping leading =; record-backed literal cells can return the string unchanged. |
+| `preparePasteValue` | `((cell: SpreadsheetCell, value: string, style?: Readonly<Record<string, unknown>> \| null) => string)` |  | Encode a literal input for this target. Optional style is incoming replacement metadata: undefined keeps current styling, null clears it. Defaults to escaping leading =; record-backed literal cells can return unchanged. |
 | `translateInput` | `((value: string, from: { row: number; column: number; }, to: { row: number; column: number; }) => string)` |  | Translate relative references for fill and locally copied ranges. Row coordinates use rowNumber - 1; columns use their zero-based positions. Defaults to literal copying. |
 | `onOpenRow` | `((rowId: string) => void)` |  |  |
 | `activeRowId` | `string` |  |  |
@@ -22782,6 +23563,8 @@ _Props of `Spreadsheet`, generated from its types:_
 | `onAddSheet` | `(() => void)` |  |  |
 | `getSheetActions` | `((sheetId: string) => readonly SpreadsheetSheetAction[])` |  |  |
 | `onSheetAction` | `((sheetId: string, actionId: string) => void)` |  |  |
+| `onSheetReorder` | `((ids: string[], change: ReorderChange) => void)` |  | Drag/keyboard reorder; successful cell-draft commit precedes this callback. |
+| `isSheetReorderDisabled` | `((sheetId: string) => boolean)` |  |  |
 | `onAddRows` | `(() => void)` |  |  |
 | `onAddColumns` | `(() => void)` |  |  |
 | `sheetRowCount` | `number` |  |  |
@@ -22830,7 +23613,13 @@ _Props of `Spreadsheet`, generated from its types:_
 | `columns` (required) | `readonly SpreadsheetColumn[]` |  |  |
 | `rows` (required) | `readonly SpreadsheetRow[]` |  |  |
 | `onChange` | `((edits: readonly SpreadsheetEdit[]) => void \| Promise<void>)` |  | One atomic intent. Reject to keep the editor's draft and expose Retry. The host owns validation, persistence and updating rows. |
-| `onDraftChange` | `((dirty: boolean) => void)` |  | Reports an unsaved editor draft so the host can guard navigation and structural operations. False after commit, cancellation or unmount. |
+| `formulaFunctions` | `readonly SpreadsheetFunction[]` |  | Host-provided formulas; completion inserts names without evaluating expressions. |
+| `getFormulaReferences` | `((input: string, cell: SpreadsheetCell) => readonly SpreadsheetFormulaReference[])` |  | Parse references into stable selections in the current sheet; unknown/other-sheet references can be omitted. |
+| `getFormulaReference` | `((selection: SpreadsheetSelection) => string)` |  | Encode a picked range for the current formula. Defaults to canonical A1 addresses in this sheet. |
+| `getClipboardStyle` | `((cell: SpreadsheetCell) => Readonly<Record<string, unknown>>)` |  | Snapshot authored styles for local rich copy. External TSV never carries document styles. |
+| `onPaste` | `((paste: SpreadsheetPaste) => void \| Promise<void>)` |  | One atomic paste intent including translated inputs and replacement styles. Rejection retains retry state. |
+| `selectionStatistics` | `SpreadsheetStatistics \| null` |  | Evaluated, unformatted selection totals from the host. Null suppresses totals; undefined uses local numeric display values. |
+| `onDraftChange` | `((dirty: boolean) => void)` |  |  |
 | `selection` | `SpreadsheetSelection \| null` |  |  |
 | `onSelectionChange` | `((selection: SpreadsheetSelection \| null) => void)` |  |  |
 | `readOnly` | `boolean` | `false` |  |
@@ -22845,7 +23634,7 @@ _Props of `Spreadsheet`, generated from its types:_
 | `getCellComment` | `((cell: SpreadsheetCell) => string)` |  |  |
 | `displayValue` | `((cell: SpreadsheetCell, value: string) => string)` |  | Evaluated/formatted display; editing and clipboard preserve the raw input. |
 | `clipboardValue` | `((cell: SpreadsheetCell, value: string) => string)` |  | Unformatted calculated value for Paste values; defaults to displayValue/raw input. |
-| `preparePasteValue` | `((cell: SpreadsheetCell, value: string) => string)` |  | Encode a calculated Paste values string for this target. Defaults to escaping leading =; record-backed literal cells can return the string unchanged. |
+| `preparePasteValue` | `((cell: SpreadsheetCell, value: string, style?: Readonly<Record<string, unknown>> \| null) => string)` |  | Encode a literal input for this target. Optional style is incoming replacement metadata: undefined keeps current styling, null clears it. Defaults to escaping leading =; record-backed literal cells can return unchanged. |
 | `translateInput` | `((value: string, from: { row: number; column: number; }, to: { row: number; column: number; }) => string)` |  | Translate relative references for fill and locally copied ranges. Row coordinates use rowNumber - 1; columns use their zero-based positions. Defaults to literal copying. |
 | `onOpenRow` | `((rowId: string) => void)` |  |  |
 | `activeRowId` | `string` |  |  |
@@ -22866,6 +23655,8 @@ _Props of `Spreadsheet`, generated from its types:_
 | `onAddSheet` | `(() => void)` |  |  |
 | `getSheetActions` | `((sheetId: string) => readonly SpreadsheetSheetAction[])` |  |  |
 | `onSheetAction` | `((sheetId: string, actionId: string) => void)` |  |  |
+| `onSheetReorder` | `((ids: string[], change: ReorderChange) => void)` |  | Drag/keyboard reorder; successful cell-draft commit precedes this callback. |
+| `isSheetReorderDisabled` | `((sheetId: string) => boolean)` |  |  |
 | `onAddRows` | `(() => void)` |  |  |
 | `onAddColumns` | `(() => void)` |  |  |
 | `sheetRowCount` | `number` |  |  |
@@ -23754,9 +24545,9 @@ Types: `BackgroundToken`, `BleedProps`, `BoxProps`, `FlexProps`, `GridProps`, `H
 
 ## Components
 
-Values: `Absent`, `Accordion`, `AccordionContent`, `AccordionItem`, `AccordionTrigger`, `Alert`, `AlertAction`, `AlertDescription`, `AlertDialog`, `AlertDialogAction`, `AlertDialogBody`, `AlertDialogCancel`, `AlertDialogContent`, `AlertDialogDescription`, `AlertDialogFooter`, `AlertDialogHeader`, `AlertDialogMedia`, `AlertDialogOverlay`, `AlertDialogPortal`, `AlertDialogTitle`, `AlertDialogTrigger`, `AlertIcon`, `AlertTitle`, `Attachment`, `AttachmentAction`, `AttachmentActions`, `AttachmentContent`, `AttachmentDescription`, `AttachmentGroup`, `AttachmentLink`, `AttachmentMedia`, `AttachmentTitle`, `AttachmentTrigger`, `Avatar`, `AvatarBadge`, `AvatarFallback`, `AvatarGroup`, `AvatarGroupCount`, `avatarHue`, `AvatarImage`, `avatarInitials`, `Badge`, `badgeVariants`, `Banner`, `Breadcrumb`, `BreadcrumbEllipsis`, `BreadcrumbItem`, `BreadcrumbLink`, `BreadcrumbList`, `BreadcrumbPage`, `BreadcrumbSeparator`, `Button`, `ButtonGroup`, `ButtonGroupSeparator`, `ButtonGroupText`, `buttonGroupVariants`, `buttonVariants`, `Calendar`, `CalendarDayButton`, `Card`, `CardAction`, `CardContent`, `CardDescription`, `CardFooter`, `CardHeader`, `CardTitle`, `Checkbox`, `CheckboxGroup`, `CheckboxGroupSelectAll`, `CodeBlock`, `Collapsible`, `CollapsibleContent`, `CollapsibleHeader`, `CollapsibleTrigger`, `Combobox`, `ComboboxChip`, `ComboboxChipRemove`, `ComboboxChips`, `ComboboxChipsInput`, `ComboboxClear`, `ComboboxCollection`, `ComboboxContent`, `ComboboxEmpty`, `ComboboxGroup`, `ComboboxInput`, `ComboboxItem`, `ComboboxLabel`, `ComboboxList`, `ComboboxSeparator`, `ComboboxStatus`, `ComboboxTrigger`, `ComboboxValue`, `Command`, `CommandCount`, `CommandDialog`, `CommandEmpty`, `CommandFooter`, `CommandGroup`, `CommandInput`, `CommandItem`, `CommandList`, `CommandLoading`, `CommandSeparator`, `CommandShortcut`, `controlBase`, `controlHeight`, `CopyButton`, `Count`, `createToastManager`, `DateLabel`, `DatePicker`, `DateRangePicker`, `DateTime`, `DateTimeField`, `Dialog`, `DialogBody`, `DialogClose`, `DialogContent`, `DialogDescription`, `DialogFooter`, `DialogHeader`, `DialogOverlay`, `DialogPortal`, `DialogTitle`, `DialogTrigger`, `Diff`, `diffText`, `Dot`, `Drawer`, `DrawerBody`, `DrawerClose`, `DrawerContent`, `DrawerDescription`, `DrawerFooter`, `DrawerHeader`, `DrawerOverlay`, `DrawerPortal`, `DrawerSwipeHandle`, `DrawerTitle`, `DrawerTrigger`, `DropdownMenu`, `DropdownMenuCheckboxItem`, `DropdownMenuContent`, `DropdownMenuGroup`, `DropdownMenuItem`, `DropdownMenuLabel`, `DropdownMenuLinkItem`, `DropdownMenuPortal`, `DropdownMenuRadioGroup`, `DropdownMenuRadioItem`, `DropdownMenuSeparator`, `DropdownMenuShortcut`, `DropdownMenuSub`, `DropdownMenuSubContent`, `DropdownMenuSubTrigger`, `DropdownMenuTrigger`, `DropZone`, `Empty`, `EmptyContent`, `EmptyDescription`, `EmptyHeader`, `EmptyIllustration`, `EmptyMedia`, `EmptyTitle`, `ErrorSummary`, `Eyebrow`, `Fact`, `FactGroup`, `Field`, `FieldContent`, `FieldDescription`, `FieldError`, `FieldGroup`, `FieldLabel`, `FieldLegend`, `FieldSeparator`, `FieldSet`, `FieldTitle`, `FileTrigger`, `FilterChip`, `formatFileSize`, `formatShortcut`, `getModifierKey`, `HoverCard`, `HoverCardContent`, `HoverCardTrigger`, `Icon`, `IconButton`, `Id`, `IdList`, `Indicator`, `Input`, `InputGroup`, `InputGroupAddon`, `InputGroupButton`, `InputGroupInput`, `InputGroupText`, `InputGroupTextarea`, `Item`, `ItemGroup`, `Kbd`, `KbdGroup`, `KbdShortcut`, `KeyValue`, `KeyValueGroup`, `LinkButton`, `LinkIconButton`, `List`, `ListItem`, `NumberField`, `Pagination`, `PaginationContent`, `PaginationEllipsis`, `PaginationItem`, `PaginationLink`, `PaginationNext`, `PaginationPrevious`, `Person`, `Popover`, `PopoverClose`, `PopoverContent`, `PopoverDescription`, `PopoverHeader`, `PopoverTitle`, `PopoverTrigger`, `Progress`, `ProgressIndicator`, `ProgressLabel`, `ProgressStacked`, `ProgressTrack`, `ProgressValue`, `Prose`, `RadioGroup`, `RadioGroupItem`, `RelativeTime`, `ResizableHandle`, `ResizablePanel`, `ResizablePanelGroup`, `ScrollArea`, `ScrollBar`, `Scroller`, `ScrollerArrow`, `ScrollerViewport`, `SearchField`, `Select`, `SelectContent`, `SelectGroup`, `SelectItem`, `SelectLabel`, `SelectScrollDownButton`, `SelectScrollUpButton`, `SelectSeparator`, `SelectTrigger`, `SelectValue`, `Separator`, `Sheet`, `SheetBody`, `SheetClose`, `SheetContent`, `SheetDescription`, `SheetFooter`, `SheetHeader`, `SheetOverlay`, `SheetPortal`, `SheetTitle`, `SheetTrigger`, `shortcutKeys`, `Skeleton`, `Spinner`, `Stat`, `StatGrid`, `StatTile`, `Stepper`, `Switch`, `Table`, `Tabs`, `TabsContent`, `TabsList`, `tabsListVariants`, `TabsTrigger`, `Textarea`, `TextLink`, `TimeField`, `Timeline`, `TimelineGroup`, `TimelineItem`, `toast`, `Toast`, `ToastAction`, `ToastClose`, `ToastContent`, `ToastDescription`, `Toaster`, `ToastPortal`, `ToastProvider`, `ToastTitle`, `ToastViewport`, `Toggle`, `ToggleGroup`, `ToggleGroupItem`, `toggleVariants`, `Tooltip`, `TooltipContent`, `TooltipProvider`, `TooltipTrigger`, `Tree`, `Truncate`, `useComboboxAnchor`, `useFormatShortcut`, `useIsTruncated`, `useModifierKey`, `usePage`, `useSort`, `useToastManager`.
+Values: `Absent`, `Accordion`, `AccordionContent`, `AccordionItem`, `AccordionTrigger`, `Alert`, `AlertAction`, `AlertDescription`, `AlertDialog`, `AlertDialogAction`, `AlertDialogBody`, `AlertDialogCancel`, `AlertDialogContent`, `AlertDialogDescription`, `AlertDialogFooter`, `AlertDialogHeader`, `AlertDialogMedia`, `AlertDialogOverlay`, `AlertDialogPortal`, `AlertDialogTitle`, `AlertDialogTrigger`, `AlertIcon`, `AlertTitle`, `Attachment`, `AttachmentAction`, `AttachmentActions`, `AttachmentContent`, `AttachmentDescription`, `AttachmentGroup`, `AttachmentLink`, `AttachmentMedia`, `AttachmentTitle`, `AttachmentTrigger`, `Avatar`, `AvatarBadge`, `AvatarFallback`, `AvatarGroup`, `AvatarGroupCount`, `avatarHue`, `AvatarImage`, `avatarInitials`, `Badge`, `badgeVariants`, `Banner`, `Breadcrumb`, `BreadcrumbEllipsis`, `BreadcrumbItem`, `BreadcrumbLink`, `BreadcrumbList`, `BreadcrumbPage`, `BreadcrumbSeparator`, `Button`, `ButtonGroup`, `ButtonGroupSeparator`, `ButtonGroupText`, `buttonGroupVariants`, `buttonVariants`, `Calendar`, `CalendarDayButton`, `Card`, `CardAction`, `CardContent`, `CardDescription`, `CardFooter`, `CardHeader`, `CardTitle`, `Checkbox`, `CheckboxGroup`, `CheckboxGroupSelectAll`, `CodeBlock`, `Collapsible`, `CollapsibleContent`, `CollapsibleHeader`, `CollapsibleTrigger`, `Combobox`, `ComboboxChip`, `ComboboxChipRemove`, `ComboboxChips`, `ComboboxChipsInput`, `ComboboxClear`, `ComboboxCollection`, `ComboboxContent`, `ComboboxEmpty`, `ComboboxGroup`, `ComboboxInput`, `ComboboxItem`, `ComboboxLabel`, `ComboboxList`, `ComboboxSeparator`, `ComboboxStatus`, `ComboboxTrigger`, `ComboboxValue`, `Command`, `CommandCount`, `CommandDialog`, `CommandEmpty`, `CommandFooter`, `CommandGroup`, `CommandInput`, `CommandItem`, `CommandList`, `CommandLoading`, `CommandSeparator`, `CommandShortcut`, `ContextMenu`, `ContextMenuContent`, `ContextMenuTrigger`, `controlBase`, `controlHeight`, `CopyButton`, `Count`, `createToastManager`, `DateLabel`, `DatePicker`, `DateRangePicker`, `DateTime`, `DateTimeField`, `Dialog`, `DialogBody`, `DialogClose`, `DialogContent`, `DialogDescription`, `DialogFooter`, `DialogHeader`, `DialogOverlay`, `DialogPortal`, `DialogTitle`, `DialogTrigger`, `Diff`, `diffText`, `Dot`, `Drawer`, `DrawerBody`, `DrawerClose`, `DrawerContent`, `DrawerDescription`, `DrawerFooter`, `DrawerHeader`, `DrawerOverlay`, `DrawerPortal`, `DrawerSwipeHandle`, `DrawerTitle`, `DrawerTrigger`, `DropdownMenu`, `DropdownMenuCheckboxItem`, `DropdownMenuContent`, `DropdownMenuGroup`, `DropdownMenuItem`, `DropdownMenuLabel`, `DropdownMenuLinkItem`, `DropdownMenuPortal`, `DropdownMenuRadioGroup`, `DropdownMenuRadioItem`, `DropdownMenuSeparator`, `DropdownMenuShortcut`, `DropdownMenuSub`, `DropdownMenuSubContent`, `DropdownMenuSubTrigger`, `DropdownMenuTrigger`, `DropZone`, `Empty`, `EmptyContent`, `EmptyDescription`, `EmptyHeader`, `EmptyIllustration`, `EmptyMedia`, `EmptyTitle`, `ErrorSummary`, `Eyebrow`, `Fact`, `FactGroup`, `Field`, `FieldContent`, `FieldDescription`, `FieldError`, `FieldGroup`, `FieldLabel`, `FieldLegend`, `FieldSeparator`, `FieldSet`, `FieldTitle`, `FileTrigger`, `FilterChip`, `formatFileSize`, `formatShortcut`, `getModifierKey`, `HoverCard`, `HoverCardContent`, `HoverCardTrigger`, `Icon`, `IconButton`, `Id`, `IdList`, `Indicator`, `Input`, `InputGroup`, `InputGroupAddon`, `InputGroupButton`, `InputGroupInput`, `InputGroupText`, `InputGroupTextarea`, `Item`, `ItemGroup`, `Kbd`, `KbdGroup`, `KbdShortcut`, `KeyValue`, `KeyValueGroup`, `LinkButton`, `LinkIconButton`, `List`, `ListItem`, `MatchText`, `NumberField`, `Pagination`, `PaginationContent`, `PaginationEllipsis`, `PaginationItem`, `PaginationLink`, `PaginationNext`, `PaginationPrevious`, `Person`, `Popover`, `PopoverClose`, `PopoverContent`, `PopoverDescription`, `PopoverHeader`, `PopoverTitle`, `PopoverTrigger`, `Progress`, `ProgressIndicator`, `ProgressLabel`, `ProgressStacked`, `ProgressTrack`, `ProgressValue`, `Prose`, `RadioGroup`, `RadioGroupItem`, `RelativeTime`, `ResizableHandle`, `ResizablePanel`, `ResizablePanelGroup`, `ScrollArea`, `ScrollBar`, `Scroller`, `ScrollerArrow`, `ScrollerViewport`, `SearchField`, `Select`, `SelectContent`, `SelectGroup`, `SelectItem`, `SelectLabel`, `SelectScrollDownButton`, `SelectScrollUpButton`, `SelectSeparator`, `SelectTrigger`, `SelectValue`, `Separator`, `Sheet`, `SheetBody`, `SheetClose`, `SheetContent`, `SheetDescription`, `SheetFooter`, `SheetHeader`, `SheetOverlay`, `SheetPortal`, `SheetTitle`, `SheetTrigger`, `shortcutKeys`, `Skeleton`, `Spinner`, `Stat`, `StatGrid`, `StatTile`, `Stepper`, `Switch`, `Table`, `Tabs`, `TabsContent`, `TabsList`, `tabsListVariants`, `TabsTrigger`, `Textarea`, `TextLink`, `TimeField`, `Timeline`, `TimelineGroup`, `TimelineItem`, `toast`, `Toast`, `ToastAction`, `ToastClose`, `ToastContent`, `ToastDescription`, `Toaster`, `ToastPortal`, `ToastProvider`, `ToastTitle`, `ToastViewport`, `Toggle`, `ToggleGroup`, `ToggleGroupItem`, `toggleVariants`, `Tooltip`, `TooltipContent`, `TooltipProvider`, `TooltipTrigger`, `Tree`, `Truncate`, `useComboboxAnchor`, `useFormatShortcut`, `useIsTruncated`, `useModifierKey`, `usePage`, `useSort`, `useToastManager`.
 
-Types: `AbsentProps`, `AccordionContentProps`, `AccordionItemProps`, `AccordionProps`, `AccordionTriggerProps`, `AlertActionProps`, `AlertDescriptionProps`, `AlertDialogActionProps`, `AlertDialogBodyProps`, `AlertDialogCancelProps`, `AlertDialogContentProps`, `AlertDialogDescriptionProps`, `AlertDialogFooterProps`, `AlertDialogHeaderProps`, `AlertDialogMediaProps`, `AlertDialogOverlayProps`, `AlertDialogPortalProps`, `AlertDialogProps`, `AlertDialogTitleProps`, `AlertDialogTriggerProps`, `AlertDialogWidth`, `AlertIconProps`, `AlertProps`, `AlertTitleProps`, `AttachmentActionProps`, `AttachmentActionsProps`, `AttachmentContentProps`, `AttachmentDescriptionProps`, `AttachmentGroupProps`, `AttachmentLinkProps`, `AttachmentMediaProps`, `AttachmentProps`, `AttachmentSize`, `AttachmentState`, `AttachmentTitleProps`, `AttachmentTriggerProps`, `AvatarBadgeProps`, `AvatarFallbackProps`, `AvatarGroupCountProps`, `AvatarGroupProps`, `AvatarHue`, `AvatarImageProps`, `AvatarProps`, `AvatarSize`, `AvatarVariant`, `BadgeProps`, `BannerProps`, `BannerTone`, `BreadcrumbItemProps`, `BreadcrumbListProps`, `BreadcrumbProps`, `ButtonGroupProps`, `ButtonGroupSeparatorProps`, `ButtonGroupTextProps`, `ButtonProps`, `CalendarDayButtonProps`, `CalendarProps`, `CardActionProps`, `CardContentProps`, `CardDescriptionProps`, `CardFooterProps`, `CardHeaderProps`, `CardProps`, `CardSize`, `CardTitleProps`, `CheckboxGroupProps`, `CheckboxGroupSelectAllProps`, `CheckboxProps`, `CodeBlockProps`, `CollapsibleContentProps`, `CollapsibleHeaderProps`, `CollapsibleProps`, `CollapsibleTriggerProps`, `ComboboxChipProps`, `ComboboxChipRemoveProps`, `ComboboxChipsInputProps`, `ComboboxChipsProps`, `ComboboxClearProps`, `ComboboxCollectionProps`, `ComboboxContentProps`, `ComboboxEmptyProps`, `ComboboxGroupProps`, `ComboboxInputProps`, `ComboboxItemProps`, `ComboboxLabelProps`, `ComboboxListProps`, `ComboboxProps`, `ComboboxSeparatorProps`, `ComboboxStatusProps`, `ComboboxTriggerProps`, `ComboboxValueProps`, `CommandCountProps`, `CommandDialogProps`, `CommandEmptyProps`, `CommandFooterProps`, `CommandInputProps`, `CommandItemProps`, `CommandShortcutProps`, `ControlSize`, `CopyButtonProps`, `CountProps`, `DateLabelKind`, `DateLabelProps`, `DateLabelState`, `DatePickerProps`, `DateRangePickerProps`, `DateRangePreset`, `DateRangeValue`, `DateTimeFieldProps`, `DateTimeFormat`, `DateTimeProps`, `DateTimeValue`, `DialogBodyProps`, `DialogCloseProps`, `DialogContentProps`, `DialogDescriptionProps`, `DialogFooterProps`, `DialogHeaderProps`, `DialogOverlayProps`, `DialogPortalProps`, `DialogProps`, `DialogTitleProps`, `DialogTriggerProps`, `DialogWidth`, `DiffLayout`, `DiffLine`, `DiffProps`, `DiffResult`, `DiffRow`, `DiffSegment`, `DotProps`, `DrawerBodyProps`, `DrawerCloseProps`, `DrawerContentProps`, `DrawerDescriptionProps`, `DrawerFooterProps`, `DrawerHeaderProps`, `DrawerOverlayProps`, `DrawerPortalProps`, `DrawerProps`, `DrawerSwipeHandleProps`, `DrawerTitleProps`, `DrawerTriggerProps`, `DrawerWidth`, `DropdownMenuCheckboxItemProps`, `DropdownMenuContentProps`, `DropdownMenuGroupProps`, `DropdownMenuItemProps`, `DropdownMenuItemVariant`, `DropdownMenuLabelProps`, `DropdownMenuLinkItemProps`, `DropdownMenuPortalProps`, `DropdownMenuProps`, `DropdownMenuRadioGroupProps`, `DropdownMenuRadioItemProps`, `DropdownMenuSeparatorProps`, `DropdownMenuShortcutProps`, `DropdownMenuSubContentProps`, `DropdownMenuSubProps`, `DropdownMenuSubTriggerProps`, `DropdownMenuTriggerProps`, `DropZoneProps`, `EmptyContentProps`, `EmptyDescriptionProps`, `EmptyFrame`, `EmptyHeaderProps`, `EmptyIllustrationKind`, `EmptyIllustrationProps`, `EmptyMediaProps`, `EmptyProps`, `EmptySize`, `EmptyTitleProps`, `ErrorSummaryIssue`, `ErrorSummaryProps`, `EyebrowProps`, `FactGroupProps`, `FactProps`, `FieldContentProps`, `FieldDescriptionProps`, `FieldErrorProps`, `FieldGroupProps`, `FieldLabelProps`, `FieldLegendProps`, `FieldProps`, `FieldSeparatorProps`, `FieldSetProps`, `FieldTitleProps`, `FileRejection`, `FileRejectionReason`, `FileTriggerProps`, `FilterChipProps`, `FormatFileSizeOptions`, `FormatShortcutOptions`, `HoverCardContentProps`, `HoverCardProps`, `HoverCardTriggerProps`, `IconButtonProps`, `IconColorToken`, `IconProps`, `IconSize`, `IdListProps`, `IdProps`, `IndicatorProps`, `InputGroupAddonProps`, `InputGroupButtonProps`, `InputGroupButtonSize`, `InputGroupIconButtonProps`, `InputGroupProps`, `InputGroupTextareaProps`, `InputGroupTextButtonProps`, `InputGroupTextProps`, `InputProps`, `ItemGroupProps`, `ItemProps`, `ItemSize`, `KbdGroupProps`, `KbdProps`, `KbdShortcutProps`, `KeyValueGroupProps`, `KeyValueLabelWidth`, `KeyValueLayout`, `KeyValueProps`, `LinkButtonProps`, `LinkButtonVariant`, `LinkIconButtonProps`, `ListItemProps`, `ListProps`, `ListSpacing`, `ModifierKey`, `NumberFieldProps`, `PaginationContentProps`, `PaginationEllipsisProps`, `PaginationItemProps`, `PaginationLinkProps`, `PaginationNextProps`, `PaginationPreviousProps`, `PaginationProps`, `PersonProps`, `PopoverCloseProps`, `PopoverContentProps`, `PopoverDescriptionProps`, `PopoverHeaderProps`, `PopoverProps`, `PopoverTitleProps`, `PopoverTriggerProps`, `ProgressIndicatorProps`, `ProgressLabelProps`, `ProgressProps`, `ProgressSize`, `ProgressStackedProps`, `ProgressTrackProps`, `ProgressValueProps`, `ProseProps`, `RadioGroupItemProps`, `RadioGroupProps`, `RelativeTimeProps`, `ResizableHandleProps`, `ResizablePanelGroupProps`, `ResizablePanelProps`, `ScrollAreaProps`, `ScrollBarProps`, `ScrollerActivation`, `ScrollerArrowProps`, `ScrollerEdge`, `ScrollerOrientation`, `ScrollerProps`, `ScrollerSurface`, `ScrollerViewportProps`, `SearchFieldProps`, `SelectContentProps`, `SelectGroupProps`, `SelectItemProps`, `SelectLabelProps`, `SelectProps`, `SelectScrollDownButtonProps`, `SelectScrollUpButtonProps`, `SelectSeparatorProps`, `SelectTriggerProps`, `SelectTriggerSize`, `SelectValueProps`, `SeparatorProps`, `SheetBodyProps`, `SheetCloseProps`, `SheetContentProps`, `SheetDescriptionProps`, `SheetFooterProps`, `SheetHeaderProps`, `SheetOverlayProps`, `SheetPortalProps`, `SheetProps`, `SheetTitleProps`, `SheetTriggerProps`, `SheetWidth`, `ShortcutKey`, `SkeletonProps`, `SkeletonShape`, `SortDir`, `SpinnerProps`, `SpinnerSize`, `StackedSegment`, `StatGridProps`, `StatProps`, `StatTileProps`, `StepperItemProps`, `StepperOrientation`, `StepperProps`, `StepState`, `SwitchProps`, `SwitchSize`, `TableProps`, `TabsContentProps`, `TabsListProps`, `TabsProps`, `TabsTriggerProps`, `TdProps`, `TextareaProps`, `TextareaState`, `TextLinkProps`, `ThProps`, `TimeFieldHourCycle`, `TimeFieldProps`, `TimelineAlign`, `TimelineGroupProps`, `TimelineItemProps`, `TimelineItemWidth`, `TimelineOrientation`, `TimelineProps`, `TimelineSize`, `TimelineTimePosition`, `ToasterProps`, `ToastManager`, `ToastOptions`, `ToastPromiseOptions`, `ToastProviderProps`, `ToastType`, `ToastUpdateOptions`, `ToggleGroupItemProps`, `ToggleGroupProps`, `ToggleProps`, `ToggleSize`, `ToggleStyleProps`, `TooltipContentProps`, `TooltipProps`, `TooltipProviderProps`, `TooltipTriggerProps`, `TreeItemProps`, `TreeProps`, `TreeSize`, `TruncateLines`, `TruncateProps`, `UseIsTruncatedOptions`.
+Types: `AbsentProps`, `AccordionContentProps`, `AccordionItemProps`, `AccordionProps`, `AccordionTriggerProps`, `AlertActionProps`, `AlertDescriptionProps`, `AlertDialogActionProps`, `AlertDialogBodyProps`, `AlertDialogCancelProps`, `AlertDialogContentProps`, `AlertDialogDescriptionProps`, `AlertDialogFooterProps`, `AlertDialogHeaderProps`, `AlertDialogMediaProps`, `AlertDialogOverlayProps`, `AlertDialogPortalProps`, `AlertDialogProps`, `AlertDialogTitleProps`, `AlertDialogTriggerProps`, `AlertDialogWidth`, `AlertIconProps`, `AlertProps`, `AlertTitleProps`, `AttachmentActionProps`, `AttachmentActionsProps`, `AttachmentContentProps`, `AttachmentDescriptionProps`, `AttachmentGroupProps`, `AttachmentLinkProps`, `AttachmentMediaProps`, `AttachmentProps`, `AttachmentSize`, `AttachmentState`, `AttachmentTitleProps`, `AttachmentTriggerProps`, `AvatarBadgeProps`, `AvatarFallbackProps`, `AvatarGroupCountProps`, `AvatarGroupProps`, `AvatarHue`, `AvatarImageProps`, `AvatarProps`, `AvatarSize`, `AvatarVariant`, `BadgeProps`, `BannerProps`, `BannerTone`, `BreadcrumbItemProps`, `BreadcrumbListProps`, `BreadcrumbProps`, `ButtonGroupProps`, `ButtonGroupSeparatorProps`, `ButtonGroupTextProps`, `ButtonProps`, `CalendarDayButtonProps`, `CalendarProps`, `CardActionProps`, `CardContentProps`, `CardDescriptionProps`, `CardFooterProps`, `CardHeaderProps`, `CardProps`, `CardSize`, `CardTitleProps`, `CheckboxGroupProps`, `CheckboxGroupSelectAllProps`, `CheckboxProps`, `CodeBlockProps`, `CollapsibleContentProps`, `CollapsibleHeaderProps`, `CollapsibleProps`, `CollapsibleTriggerProps`, `ComboboxChipProps`, `ComboboxChipRemoveProps`, `ComboboxChipsInputProps`, `ComboboxChipsProps`, `ComboboxClearProps`, `ComboboxCollectionProps`, `ComboboxContentProps`, `ComboboxEmptyProps`, `ComboboxGroupProps`, `ComboboxInputProps`, `ComboboxItemProps`, `ComboboxLabelProps`, `ComboboxListProps`, `ComboboxProps`, `ComboboxSeparatorProps`, `ComboboxStatusProps`, `ComboboxTriggerProps`, `ComboboxValueProps`, `CommandCountProps`, `CommandDialogProps`, `CommandEmptyProps`, `CommandFooterProps`, `CommandInputProps`, `CommandItemProps`, `CommandShortcutProps`, `ContextMenuContentProps`, `ContextMenuProps`, `ContextMenuTriggerProps`, `ControlSize`, `CopyButtonProps`, `CountProps`, `DateLabelKind`, `DateLabelProps`, `DateLabelState`, `DatePickerProps`, `DateRangePickerProps`, `DateRangePreset`, `DateRangeValue`, `DateTimeFieldProps`, `DateTimeFormat`, `DateTimeProps`, `DateTimeValue`, `DialogBodyProps`, `DialogCloseProps`, `DialogContentProps`, `DialogDescriptionProps`, `DialogFooterProps`, `DialogHeaderProps`, `DialogOverlayProps`, `DialogPortalProps`, `DialogProps`, `DialogTitleProps`, `DialogTriggerProps`, `DialogWidth`, `DiffAnnotation`, `DiffLayout`, `DiffLine`, `DiffProps`, `DiffResult`, `DiffRow`, `DiffSegment`, `DiffSelection`, `DotProps`, `DrawerBodyProps`, `DrawerCloseProps`, `DrawerContentProps`, `DrawerDescriptionProps`, `DrawerFooterProps`, `DrawerHeaderProps`, `DrawerOverlayProps`, `DrawerPortalProps`, `DrawerProps`, `DrawerSwipeHandleProps`, `DrawerTitleProps`, `DrawerTriggerProps`, `DrawerWidth`, `DropdownMenuCheckboxItemProps`, `DropdownMenuContentProps`, `DropdownMenuGroupProps`, `DropdownMenuItemProps`, `DropdownMenuItemVariant`, `DropdownMenuLabelProps`, `DropdownMenuLinkItemProps`, `DropdownMenuPortalProps`, `DropdownMenuProps`, `DropdownMenuRadioGroupProps`, `DropdownMenuRadioItemProps`, `DropdownMenuSeparatorProps`, `DropdownMenuShortcutProps`, `DropdownMenuSubContentProps`, `DropdownMenuSubProps`, `DropdownMenuSubTriggerProps`, `DropdownMenuTriggerProps`, `DropZoneProps`, `EmptyContentProps`, `EmptyDescriptionProps`, `EmptyFrame`, `EmptyHeaderProps`, `EmptyIllustrationKind`, `EmptyIllustrationProps`, `EmptyMediaProps`, `EmptyProps`, `EmptySize`, `EmptyTitleProps`, `ErrorSummaryIssue`, `ErrorSummaryProps`, `EyebrowProps`, `FactGroupProps`, `FactProps`, `FieldContentProps`, `FieldDescriptionProps`, `FieldErrorProps`, `FieldGroupProps`, `FieldLabelProps`, `FieldLegendProps`, `FieldProps`, `FieldSeparatorProps`, `FieldSetProps`, `FieldTitleProps`, `FileRejection`, `FileRejectionReason`, `FileTriggerProps`, `FilterChipProps`, `FormatFileSizeOptions`, `FormatShortcutOptions`, `HoverCardContentProps`, `HoverCardProps`, `HoverCardTriggerProps`, `IconButtonProps`, `IconColorToken`, `IconProps`, `IconSize`, `IdListProps`, `IdProps`, `IndicatorProps`, `InputGroupAddonProps`, `InputGroupButtonProps`, `InputGroupButtonSize`, `InputGroupIconButtonProps`, `InputGroupProps`, `InputGroupTextareaProps`, `InputGroupTextButtonProps`, `InputGroupTextProps`, `InputProps`, `ItemGroupProps`, `ItemProps`, `ItemSize`, `KbdGroupProps`, `KbdProps`, `KbdShortcutProps`, `KeyValueGroupProps`, `KeyValueLabelWidth`, `KeyValueLayout`, `KeyValueProps`, `LinkButtonProps`, `LinkButtonVariant`, `LinkIconButtonProps`, `ListItemProps`, `ListProps`, `ListSpacing`, `MatchTextProps`, `ModifierKey`, `NumberFieldProps`, `PaginationContentProps`, `PaginationEllipsisProps`, `PaginationItemProps`, `PaginationLinkProps`, `PaginationNextProps`, `PaginationPreviousProps`, `PaginationProps`, `PersonProps`, `PopoverCloseProps`, `PopoverContentProps`, `PopoverDescriptionProps`, `PopoverHeaderProps`, `PopoverProps`, `PopoverTitleProps`, `PopoverTriggerProps`, `ProgressIndicatorProps`, `ProgressLabelProps`, `ProgressProps`, `ProgressSize`, `ProgressStackedProps`, `ProgressTrackProps`, `ProgressValueProps`, `ProseProps`, `RadioGroupItemProps`, `RadioGroupProps`, `RelativeTimeProps`, `ResizableHandleProps`, `ResizablePanelGroupProps`, `ResizablePanelProps`, `ScrollAreaProps`, `ScrollBarProps`, `ScrollerActivation`, `ScrollerArrowProps`, `ScrollerEdge`, `ScrollerOrientation`, `ScrollerProps`, `ScrollerSurface`, `ScrollerViewportProps`, `SearchFieldProps`, `SelectContentProps`, `SelectGroupProps`, `SelectItemProps`, `SelectLabelProps`, `SelectProps`, `SelectScrollDownButtonProps`, `SelectScrollUpButtonProps`, `SelectSeparatorProps`, `SelectTriggerProps`, `SelectTriggerSize`, `SelectValueProps`, `SeparatorProps`, `SheetBodyProps`, `SheetCloseProps`, `SheetContentProps`, `SheetDescriptionProps`, `SheetFooterProps`, `SheetHeaderProps`, `SheetOverlayProps`, `SheetPortalProps`, `SheetProps`, `SheetTitleProps`, `SheetTriggerProps`, `SheetWidth`, `ShortcutKey`, `SkeletonProps`, `SkeletonShape`, `SortDir`, `SpinnerProps`, `SpinnerSize`, `StackedSegment`, `StatGridProps`, `StatProps`, `StatTileProps`, `StepperItemProps`, `StepperOrientation`, `StepperProps`, `StepState`, `SwitchProps`, `SwitchSize`, `TableProps`, `TabsContentProps`, `TabsListProps`, `TabsProps`, `TabsTriggerProps`, `TdProps`, `TextareaProps`, `TextareaState`, `TextLinkProps`, `ThProps`, `TimeFieldHourCycle`, `TimeFieldProps`, `TimelineAlign`, `TimelineGroupProps`, `TimelineItemProps`, `TimelineItemWidth`, `TimelineOrientation`, `TimelineProps`, `TimelineSize`, `TimelineTimePosition`, `ToasterProps`, `ToastManager`, `ToastOptions`, `ToastPromiseOptions`, `ToastProviderProps`, `ToastType`, `ToastUpdateOptions`, `ToggleGroupItemProps`, `ToggleGroupProps`, `ToggleProps`, `ToggleSize`, `ToggleStyleProps`, `TooltipContentProps`, `TooltipProps`, `TooltipProviderProps`, `TooltipTriggerProps`, `TreeItemProps`, `TreeProps`, `TreeSize`, `TruncateLines`, `TruncateProps`, `UseIsTruncatedOptions`.
 
 ## Layout
 
@@ -23766,9 +24557,9 @@ Types: `AppLogoProps`, `AppSwitcherProps`, `AsideLayoutProps`, `IconComponent`, 
 
 ## Patterns
 
-Values: `ActionBar`, `categoricalTone`, `ChangeReview`, `Chart`, `chartColor`, `clearView`, `columnKinds`, `ColumnSortable`, `CommandPalette`, `CommandScope`, `Composer`, `countRows`, `createDataTableColumnHelper`, `DataTable`, `dataTableFeatures`, `DataTableSort`, `defineColumns`, `displayedRows`, `downloadCsv`, `DragContext`, `Editable`, `EditableDate`, `EditableSelect`, `EditableText`, `formatNumber`, `GateItem`, `Gates`, `Glance`, `HeaderMenu`, `Inspector`, `InspectorGroup`, `minWidths`, `PickerSheet`, `PreviewNavigation`, `PreviewSheet`, `readTableQuery`, `readView`, `RecordBrowser`, `RecordPicker`, `Related`, `RelatedCard`, `resetView`, `RowSortable`, `sameTableQuery`, `SearchDialog`, `showRow`, `Spreadsheet`, `SpreadsheetSheetBar`, `SpreadsheetToolbar`, `TablePagination`, `tableQueryFromSearch`, `tableQueryKey`, `tableQueryParamNames`, `tableQueryToSearch`, `tableQueryToString`, `TaskRow`, `toCsv`, `Toolbar`, `toRows`, `useCellContext`, `useColumnDrag`, `useCommandPalette`, `useDataTable`, `useHeaderContext`, `useRowDrag`, `useScopedCommands`, `useTableContext`, `useTableQuery`, `viewKey`, `WorkPane`, `WorkPaneRow`, `writeView`.
+Values: `ActionBar`, `categoricalTone`, `ChangeReview`, `Chart`, `chartColor`, `Citation`, `clearView`, `columnKinds`, `ColumnSortable`, `CommandPalette`, `CommandScope`, `Comparison`, `Composer`, `countRows`, `createDataTableColumnHelper`, `DataTable`, `dataTableFeatures`, `DataTableSort`, `defineColumns`, `displayedRows`, `DocumentPage`, `DocumentReader`, `DocumentSelectionToolbar`, `downloadCsv`, `DragContext`, `Editable`, `EditableDate`, `EditableSelect`, `EditableText`, `FindBar`, `formatNumber`, `GateItem`, `Gates`, `Glance`, `HeaderMenu`, `Inspector`, `InspectorGroup`, `minWidths`, `Peek`, `PickerSheet`, `PreviewNavigation`, `PreviewSheet`, `readTableQuery`, `readView`, `RecordBrowser`, `RecordPicker`, `Related`, `RelatedCard`, `Reorder`, `ReorderHandle`, `ReorderItem`, `ReorderMove`, `resetView`, `ReviewThread`, `RowSortable`, `sameTableQuery`, `SavedViewEditor`, `SavedViewManager`, `SavedViewPicker`, `SearchDialog`, `SelectionActions`, `showRow`, `Spreadsheet`, `SpreadsheetFormatting`, `SpreadsheetSheetBar`, `SpreadsheetToolbar`, `TablePagination`, `tableQueryFromSearch`, `tableQueryKey`, `tableQueryParamNames`, `tableQueryToSearch`, `tableQueryToString`, `TaskRow`, `toCsv`, `Toolbar`, `toRows`, `useCellContext`, `useCollectionSelection`, `useColumnDrag`, `useCommandPalette`, `useDataTable`, `useHeaderContext`, `useRowDrag`, `useScopedCommands`, `useTableContext`, `useTableQuery`, `viewKey`, `WorkPane`, `WorkPaneRow`, `writeView`.
 
-Types: `ActionBarAction`, `ActionBarProps`, `ActionBarState`, `ChangeReviewProps`, `ChartAreaProps`, `ChartBand`, `ChartBarProps`, `ChartColumn`, `ChartCrumb`, `ChartDatum`, `ChartDomain`, `ChartDonutProps`, `ChartFrameProps`, `ChartFrameState`, `ChartHeatmapProps`, `ChartLegendProps`, `ChartLineProps`, `ChartLink`, `ChartReference`, `ChartScaleProps`, `ChartScatterGroup`, `ChartScatterProps`, `ChartSelection`, `ChartSeries`, `ChartSize`, `ChartSparklineProps`, `ChartTone`, `ChartTreemapProps`, `ChartValue`, `ColumnDragOptions`, `ColumnKind`, `ColumnKinds`, `CommandPaletteProps`, `CommandScopeProps`, `ComposerProps`, `ComposerSuggestion`, `ComposerSuggestions`, `CsvOptions`, `DataTableColumn`, `DataTableColumnMeta`, `DataTableEmpty`, `DataTableFeatures`, `DataTableFilteredEmpty`, `DataTableInstance`, `DataTableMeta`, `DataTableNoun`, `DataTableOptions`, `DataTableOwnProps`, `DataTableProps`, `DataTableSortProps`, `DataTableState`, `DataTableView`, `DonutSelection`, `DonutSlice`, `EditableDateProps`, `EditableOption`, `EditableOptions`, `EditableProps`, `EditableSelectProps`, `EditableTextProps`, `ExportedRows`, `ExportOptions`, `FilterOption`, `Footer`, `GateItemProps`, `GatesProps`, `GlanceProps`, `HeatmapScale`, `HeatmapSelection`, `InspectorGroupData`, `InspectorGroupProps`, `InspectorProps`, `PaletteCommand`, `PickerRecord`, `PickerSheetCloseDetails`, `PickerSheetProps`, `PickerSheetSearch`, `Preset`, `PreviewNavigationProps`, `PreviewSheetProps`, `RecordBrowserEmpty`, `RecordBrowserProps`, `RecordPickerProps`, `RelatedCardProps`, `RelatedEmpty`, `RelatedLayout`, `RelatedProps`, `ReviewChange`, `RowAction`, `ScatterSelection`, `ScopedCommand`, `SearchDialogProps`, `SearchResult`, `SpreadsheetBorder`, `SpreadsheetCell`, `SpreadsheetCellStyle`, `SpreadsheetColumn`, `SpreadsheetEdit`, `SpreadsheetMenuContext`, `SpreadsheetPresence`, `SpreadsheetProps`, `SpreadsheetRow`, `SpreadsheetSelection`, `SpreadsheetSheet`, `SpreadsheetSheetAction`, `SpreadsheetSheetBarProps`, `SpreadsheetToolbarProps`, `StatusEntry`, `StatusMap`, `TablePaginationProps`, `TableQuery`, `TableQueryOptions`, `TableQueryParamOptions`, `TableQueryParams`, `TableQuerySearch`, `TaskRowProps`, `ToolbarProps`, `TreemapNodeInput`, `TreemapSelection`, `UseCommandPaletteOptions`, `WorkPaneProps`, `WorkPaneRowProps`, `WorkPaneView`.
+Types: `ActionBarAction`, `ActionBarProps`, `ActionBarState`, `ChangeReviewProps`, `ChartAreaProps`, `ChartBand`, `ChartBarProps`, `ChartColumn`, `ChartCrumb`, `ChartDatum`, `ChartDomain`, `ChartDonutProps`, `ChartFrameProps`, `ChartFrameState`, `ChartHeatmapProps`, `ChartLegendProps`, `ChartLineProps`, `ChartLink`, `ChartReference`, `ChartScaleProps`, `ChartScatterGroup`, `ChartScatterProps`, `ChartSelection`, `ChartSeries`, `ChartSize`, `ChartSparklineProps`, `ChartTone`, `ChartTreemapProps`, `ChartValue`, `CitationProps`, `CollectionSelection`, `CollectionSelectionItemProps`, `CollectionSelectionOptions`, `ColumnDragOptions`, `ColumnKind`, `ColumnKinds`, `CommandPaletteProps`, `CommandScopeProps`, `ComparisonProps`, `ComposerProps`, `ComposerSuggestion`, `ComposerSuggestions`, `CsvOptions`, `DataTableColumn`, `DataTableColumnMeta`, `DataTableEmpty`, `DataTableFeatures`, `DataTableFilteredEmpty`, `DataTableInstance`, `DataTableMeta`, `DataTableNoun`, `DataTableOptions`, `DataTableOwnProps`, `DataTableProps`, `DataTableSortProps`, `DataTableState`, `DataTableView`, `DocumentAnchor`, `DocumentPageProps`, `DocumentReaderProps`, `DocumentRectangle`, `DocumentSelection`, `DocumentSelectionToolbarProps`, `DonutSelection`, `DonutSlice`, `EditableDateProps`, `EditableOption`, `EditableOptions`, `EditableProps`, `EditableSelectProps`, `EditableTextProps`, `ExportedRows`, `ExportOptions`, `FilterOption`, `FindBarProps`, `Footer`, `GateItemProps`, `GatesProps`, `GlanceProps`, `HeatmapScale`, `HeatmapSelection`, `InspectorGroupData`, `InspectorGroupProps`, `InspectorProps`, `PaletteCommand`, `PeekProps`, `PickerRecord`, `PickerSheetCloseDetails`, `PickerSheetProps`, `PickerSheetSearch`, `Preset`, `PreviewNavigationProps`, `PreviewSheetProps`, `RecordBrowserEmpty`, `RecordBrowserProps`, `RecordPickerProps`, `RelatedCardProps`, `RelatedEmpty`, `RelatedLayout`, `RelatedProps`, `ReorderChange`, `ReorderHandleProps`, `ReorderItemProps`, `ReorderMoveProps`, `ReorderProps`, `ReviewChange`, `ReviewThreadAction`, `ReviewThreadEntry`, `ReviewThreadProps`, `RowAction`, `SavedViewDraft`, `SavedViewEditorProps`, `SavedViewItem`, `SavedViewLabels`, `SavedViewManagerProps`, `SavedViewPickerProps`, `SavedViewVisibility`, `ScatterSelection`, `ScopedCommand`, `SearchDialogProps`, `SearchResult`, `SelectionActionsProps`, `SpreadsheetBorder`, `SpreadsheetBorderPreset`, `SpreadsheetCell`, `SpreadsheetCellStyle`, `SpreadsheetColumn`, `SpreadsheetEdit`, `SpreadsheetFormat`, `SpreadsheetFormattingProps`, `SpreadsheetFormulaReference`, `SpreadsheetFunction`, `SpreadsheetMenuContext`, `SpreadsheetPaste`, `SpreadsheetPresence`, `SpreadsheetProps`, `SpreadsheetRow`, `SpreadsheetSelection`, `SpreadsheetSheet`, `SpreadsheetSheetAction`, `SpreadsheetSheetBarProps`, `SpreadsheetStatistics`, `SpreadsheetToolbarProps`, `StatusEntry`, `StatusMap`, `TablePaginationProps`, `TableQuery`, `TableQueryOptions`, `TableQueryParamOptions`, `TableQueryParams`, `TableQuerySearch`, `TaskRowProps`, `ToolbarProps`, `TreemapNodeInput`, `TreemapSelection`, `UseCommandPaletteOptions`, `WorkPaneProps`, `WorkPaneRowProps`, `WorkPaneView`.
 
 ## Mode
 

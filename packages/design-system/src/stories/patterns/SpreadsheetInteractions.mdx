@@ -16,6 +16,10 @@ import * as Stories from "./SpreadsheetInteractions.stories";
 
 <Canvas of={Stories.SheetNavigation} />
 <Canvas of={Stories.SheetActions} />
+
+`onSheetReorder(ids, { id, from, to })` enables the shared Reorder handle on each tab. `isSheetReorderDisabled(id)` protects source sheets, pending operations or active drafts. Space/arrows/Space reorders from a handle; Escape cancels. Dragging a tab never changes the active sheet. Keep Move left/right in its permitted actions as a one-press alternative. The encompassing Spreadsheet commits a cell draft before forwarding the reorder callback; an unsuccessful commit keeps the order unchanged.
+
+<Canvas of={Stories.SheetOrdering} />
 <Canvas of={Stories.SheetOverflow} />
 
 ## Context and range identity

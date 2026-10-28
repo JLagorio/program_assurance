@@ -260,7 +260,7 @@ function TaskDetail({ taskId }: { taskId: string }) {
               <RecordTrail current={task.title}>
                 <TrailLink to="/work">My work</TrailLink>
                 <TrailLink to="/programs/$programId" params={{ programId: task.program_id }}>
-                  <RelationName table="programs" id={task.program_id} />
+                  <RelationName table="programs" id={task.program_id} peek={false} />
                 </TrailLink>
               </RecordTrail>
               <PageHeader.Heading>
@@ -361,7 +361,11 @@ function TaskDetail({ taskId }: { taskId: string }) {
                                 />
                               }
                             >
-                              <RelationName table="workstreams" id={task.workstream_id} />
+                              <RelationName
+                                table="workstreams"
+                                id={task.workstream_id}
+                                peek={false}
+                              />
                             </TextLink>
                           ) : null,
                         ],

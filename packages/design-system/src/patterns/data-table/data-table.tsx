@@ -480,12 +480,29 @@ function HeaderCell<TData extends RowData>({
     Boolean(options?.reorderable) && leaf && !column.getIsPinned() && !header.isPlaceholder,
     { label: columnSpokenName(column), pointerOnly: hasMenu },
   );
+  const element = useRef<HTMLTableCellElement>(null);
+  const setDragNode = drag.setNodeRef;
+  const setHeader = useCallback(
+    (node: HTMLTableCellElement | null) => {
+      element.current = node;
+      setDragNode?.(node);
+    },
+    [setDragNode],
+  );
   const pin = leaf ? (drawnPins.get(column.id) ?? UNPINNED) : UNPINNED;
   const canResize = Boolean(options?.resizable) && leaf && column.getCanResize();
   const resizing = table.state.columnResizing;
   const menu = hasMenu ? <HeaderMenu table={table} column={column} drawn={layout?.ids} /> : null;
   const resizeMin = column.columnDef.minSize ?? 20;
   const resizeMax = Math.min(column.columnDef.maxSize ?? 10000, 10000);
+  // Responsive flexible columns can be wider than their model size. Start from their visible
+  // edge. A fixed, full-width scrolling table lets the browser distribute slack itself, so its
+  // model stays authoritative; feeding that extra space back as a size would count it twice.
+  const displayedWidth = () => {
+    if (!layout) return column.getSize();
+    const width = element.current?.getBoundingClientRect().width ?? 0;
+    return width > 0 ? width : column.getSize();
+  };
   const trailing =
     drag.grip || menu ? (
       <>
@@ -495,7 +512,7 @@ function HeaderCell<TData extends RowData>({
     ) : undefined;
   return (
     <Table.Header
-      ref={drag.setNodeRef}
+      ref={setHeader}
       colSpan={visibleHeaders(header, layout)}
       hairline={!header.isPlaceholder}
       // The heading sits where its figures do (end for a number, logical, so RTL mirrors it); a
@@ -519,7 +536,19 @@ function HeaderCell<TData extends RowData>({
             // With a menu, the keyboard sets the width there (Wider, Narrower, Reset width), so
             // the handle is no tab stop of its own; without one, the handle takes the arrow keys.
             resize: {
-              onResizeStart: header.getResizeHandler(),
+              onResizeStart: (event: unknown) => {
+                const start = event as { type?: string; touches?: { length: number } };
+                if (start.type === "touchstart" && start.touches?.length !== 1) return;
+                const width = displayedWidth();
+                header.getResizeHandler()(event);
+                // TanStack reads these transient starting sizes on each move, so pointer-down
+                // can record the visible width without changing the column's layout yet.
+                table.setColumnResizing((current) => ({
+                  ...current,
+                  startSize: width,
+                  columnSizingStart: [[column.id, width]],
+                }));
+              },
               onResizeReset: () => column.resetSize(),
               value: column.getSize(),
               min: resizeMin,
@@ -535,7 +564,7 @@ function HeaderCell<TData extends RowData>({
                           ? resizeMin
                           : change === "max"
                             ? resizeMax
-                            : column.getSize() + change;
+                            : displayedWidth() + change;
                       table.setColumnSizing((current) => ({
                         ...current,
                         [column.id]: Math.min(resizeMax, Math.max(resizeMin, next)),
@@ -543,7 +572,11 @@ function HeaderCell<TData extends RowData>({
                     },
                   }),
               isResizing: column.getIsResizing(),
-              resizeDelta: column.getIsResizing() ? resizing.deltaOffset : null,
+              resizeDelta:
+                column.getIsResizing() && table.options.columnResizeMode === "onEnd"
+                  ? (resizing.deltaOffset ?? 0) *
+                    (table.options.columnResizeDirection === "rtl" ? -1 : 1)
+                  : null,
             },
           }
         : {})}
