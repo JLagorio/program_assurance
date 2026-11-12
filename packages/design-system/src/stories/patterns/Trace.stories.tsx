@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createRef } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
-import { Dot } from "../../components";
+import { Dot, TextLink } from "../../components";
 import { Trace, type TraceStage } from "../../patterns";
 
 const meta = {
@@ -296,6 +296,56 @@ export const EmptyStage: Story = {
     await expect(canvas.getByText("Encrypt the command uplink").closest("[aria-current]")).not.toBe(
       null,
     );
+  },
+};
+
+/**
+ * A gap the reader can close from here carries its fix: `action` under what the stage says. The
+ * stage that holds records draws none, whatever it is given.
+ */
+export const EmptyStageAction: Story = {
+  args: {
+    label: "What the requirement REQ-412 answers and what proves it",
+    focus: "req-412",
+    stages: [
+      {
+        id: "controls",
+        label: "Controls",
+        nodes: [{ id: "sc-8", code: "SC-8", title: "Transmission confidentiality and integrity" }],
+        action: (
+          <TextLink size="small" render={<a href="#map-control" />}>
+            Map control
+          </TextLink>
+        ),
+      },
+      {
+        id: "requirements",
+        label: "Requirements",
+        nodes: [{ id: "req-412", code: "REQ-412", title: "Encrypt the command uplink" }],
+      },
+      {
+        id: "evidence",
+        label: "Evidence",
+        nodes: [],
+        empty: "No evidence linked",
+        action: (
+          <TextLink size="small" render={<a href="#link-evidence" />}>
+            Link evidence
+          </TextLink>
+        ),
+      },
+    ],
+    links: [{ from: "sc-8", to: "req-412" }],
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText("No evidence linked")).toBeVisible();
+    // The gap's fix is the trace's one link: the stage that holds a record offers none.
+    const fix = canvas.getByRole("link", { name: "Link evidence" });
+    await expect(fix).toBeVisible();
+    await expect(fix).toHaveAttribute("href", "#link-evidence");
+    await expect(canvas.getAllByRole("link")).toHaveLength(1);
+    await expect(canvas.queryByRole("link", { name: "Map control" })).toBeNull();
   },
 };
 

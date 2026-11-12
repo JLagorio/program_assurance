@@ -64,6 +64,7 @@ import { AssuranceWorkbench } from "./assurance-workbench";
 import { RequirementsTable } from "./requirements-table";
 import { ProgramSystemsTree } from "./program-systems-tree";
 import { ProgramLibrary } from "./program-library";
+import { ProgramControlStatusView } from "./program-control-status";
 import { ProgramControlStatusTray, ProgramOpenWork } from "./program-overview";
 import { ProgramTimeline } from "./program-timeline";
 import { ProgramActivity } from "./program-activity";
@@ -131,6 +132,7 @@ export function programTab(value: unknown): ProgramTab {
  */
 const programViews = [
   ["Posture", "/programs/$programId/posture"],
+  ["Control status", "/programs/$programId/control-status"],
   ["Control baseline", "/programs/$programId/control-baseline"],
   ["Cyber resiliency", "/programs/$programId/resiliency"],
   ["Workbook", "/programs/$programId/workbook"],
@@ -531,6 +533,8 @@ export function ProgramWorkspace({
                   reading={postureReading}
                   onReadingChange={onPostureReading ?? (() => {})}
                 />
+              ) : view === "Control status" ? (
+                <ProgramControlStatusView programId={programId} />
               ) : view === "Control baseline" ? (
                 <ProgramControlBaseline programId={programId} />
               ) : view === "Cyber resiliency" ? (

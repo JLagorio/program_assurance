@@ -17868,7 +17868,7 @@
     "TileMap": {
       "kind": "component",
       "file": "patterns/tile-map.tsx",
-      "line": 250,
+      "line": 252,
       "root": {},
       "props": {},
       "derived": {},
@@ -17877,7 +17877,7 @@
     "TileMap.Key": {
       "kind": "component",
       "file": "patterns/tile-map.tsx",
-      "line": 387,
+      "line": 415,
       "root": {},
       "props": {},
       "derived": {},
@@ -17886,7 +17886,7 @@
     "TileMapKey": {
       "kind": "component",
       "file": "patterns/tile-map.tsx",
-      "line": 387,
+      "line": 415,
       "root": {},
       "props": {},
       "derived": {},
@@ -18683,7 +18683,7 @@
     "Trace": {
       "kind": "component",
       "file": "patterns/trace.tsx",
-      "line": 261,
+      "line": 267,
       "root": {},
       "props": {},
       "derived": {},

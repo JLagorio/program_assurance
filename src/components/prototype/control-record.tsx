@@ -19,13 +19,15 @@ import { ShieldCheck } from "lucide-react";
 import { Page } from "@/components/app/shell";
 import { StatusBadge } from "@/components/app/status";
 import { controlPrograms, useAssuranceTrace } from "@/lib/assurance-trace";
+import { useProgramControlStatus } from "@/lib/control-status";
 import { idSet, useRow, useRows, type Row } from "@/lib/models";
 import { useParameterChoices } from "@/lib/parameter-reads";
-import { controlPublicationStatuses } from "@/lib/status";
+import { controlPublicationStatuses, controlStatuses } from "@/lib/status";
 import { TraceBand } from "./assurance-trace";
 import { ControlResiliency } from "./control-resiliency";
 import { ControlThreats } from "./control-threats";
 import { ControlLinks, ControlStatement, ParameterGroup } from "./library-controls";
+import { ControlStandingFacts } from "./control-status";
 import { ProductCollection } from "./product-collection";
 import { RecordLink, useOpenRecord } from "./record-preview";
 import { RecordTrail, TrailLink } from "./record-trail";
@@ -46,11 +48,17 @@ function useControlContext(control: Control | null | undefined) {
 function ControlDetails({
   control,
   programId,
+  summary,
+  standing,
   children,
 }: {
   control: Control;
   /** The program the control is read in: the control it enhances opens inside it too. */
   programId?: string | undefined;
+  /** What the closed Details say: the catalog's status unless the page has one of its own. */
+  summary?: ReactNode;
+  /** Rows before the control's own: where the program stands on it, and its next step. */
+  standing?: ReactNode;
   /** Rows after the control's own: what the page adds. */
   children?: ReactNode;
 }) {
@@ -58,10 +66,13 @@ function ControlDetails({
   return (
     <Shell.Aside
       label="Control details"
-      summary={<StatusBadge statuses={controlPublicationStatuses} value={control.status} />}
+      summary={
+        summary ?? <StatusBadge statuses={controlPublicationStatuses} value={control.status} />
+      }
     >
       <Inspector.Group title="Details">
         <KeyValue.Group>
+          {standing}
           <KeyValue label="Control">
             <Id>{control.code}</Id>
           </KeyValue>
@@ -86,7 +97,7 @@ function ControlDetails({
               )}
             </KeyValue>
           )}
-          <KeyValue label="Status">
+          <KeyValue label={standing ? "Catalog status" : "Status"}>
             <StatusBadge statuses={controlPublicationStatuses} value={control.status} />
           </KeyValue>
           <KeyValue label="Catalog" wrap>
@@ -406,6 +417,10 @@ export function ProgramControl({ programId, controlId }: { programId: string; co
   const query = useRow("controls", controlId);
   const program = useRow("programs", programId);
   const trace = useAssuranceTrace({ kind: "control", id: controlId, programId });
+  // Where the program stands on the control: one read for the whole baseline, which the Overview
+  // and the Control status view share, so the page opens on what the reader came from.
+  const statuses = useProgramControlStatus(programId);
+  const standing = statuses.data?.controls.find((item) => item.id === controlId);
   const control = query.data;
   return (
     <Page>
@@ -448,7 +463,22 @@ export function ProgramControl({ programId, controlId }: { programId: string; co
             />
             <AsideLayout
               aside={
-                <ControlDetails control={control} programId={programId}>
+                <ControlDetails
+                  control={control}
+                  programId={programId}
+                  summary={
+                    standing ? (
+                      <StatusBadge statuses={controlStatuses} value={standing.status} />
+                    ) : undefined
+                  }
+                  standing={
+                    <ControlStandingFacts
+                      programId={programId}
+                      controlId={controlId}
+                      requirements={trace.data?.requirements}
+                    />
+                  }
+                >
                   <KeyValue label="Catalog record" wrap>
                     <TextLink
                       render={<Link to="/catalog/controls/$controlId" params={{ controlId }} />}

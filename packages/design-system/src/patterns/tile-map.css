@@ -310,6 +310,27 @@ button[data-slot="tile-map-mark"]:focus-visible {
   color: var(--ds-color-text);
   font-weight: var(--ds-font-weight-medium);
 }
+/* A line that opens what its colour counts: the kit's 24px target, its meaning underlined under
+   the pointer and on keyboard focus, as a record's name in a table is. */
+[data-slot="tile-map-key-link"] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-075);
+  min-height: var(--ds-space-300);
+  border-radius: var(--ds-radius-xsmall);
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+}
+[data-slot="tile-map-key-link"]:hover > span:nth-child(2),
+[data-slot="tile-map-key-link"]:focus-visible > span:nth-child(2) {
+  color: var(--ds-color-text);
+  text-decoration: underline;
+}
+[data-slot="tile-map-key-link"]:focus-visible {
+  outline: var(--ds-border-width-focused) solid var(--ds-color-border-focused);
+  outline-offset: var(--ds-space-025);
+}
 
 /* The system palette keeps three things apart: filled, hollow and chosen. */
 @media (forced-colors: active) {

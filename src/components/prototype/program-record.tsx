@@ -62,6 +62,7 @@ import {
 } from "./system-assurance-details";
 import { useSystemAssurance } from "./use-system-assurance";
 import { TraceBand } from "./assurance-trace";
+import { ControlStandingFacts } from "./control-status";
 import { RelationName } from "./record-tools";
 import { RecordTrail, TrailLink } from "./record-trail";
 import { SspAssembly } from "./ssp-assembly";
@@ -787,10 +788,16 @@ export function ProgramControlRecord({
       }
       properties={
         <KeyValue.Group>
+          {/* Where the program stands on the control, before what its SSP records of it. */}
+          <ControlStandingFacts
+            programId={programId}
+            controlId={control.data?.id}
+            requirements={trace.data?.requirements}
+          />
           <KeyValue label="Code">
             {control.data?.code ? <Id>{control.data.code}</Id> : <Absent />}
           </KeyValue>
-          <KeyValue label="Status">
+          <KeyValue label="Implementation">
             <StatusBadge statuses={implementationStatuses} value={row.implementation_status} />
           </KeyValue>
           {/* Why the control does not apply: a fact only once the status says it does not. */}

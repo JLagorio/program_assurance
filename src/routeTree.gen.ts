@@ -51,6 +51,7 @@ import { Route as ProgramsProgramIdBaselineRouteImport } from './routes/programs
 import { Route as ProgramsProgramIdCompositionRouteImport } from './routes/programs.$programId_.composition'
 import { Route as ProgramsProgramIdConmonRouteImport } from './routes/programs.$programId_.conmon'
 import { Route as ProgramsProgramIdControlBaselineRouteImport } from './routes/programs.$programId_.control-baseline'
+import { Route as ProgramsProgramIdControlStatusRouteImport } from './routes/programs.$programId_.control-status'
 import { Route as ProgramsProgramIdDashboardRouteImport } from './routes/programs.$programId_.dashboard'
 import { Route as ProgramsProgramIdExportRouteImport } from './routes/programs.$programId_.export'
 import { Route as ProgramsProgramIdIngestionRouteImport } from './routes/programs.$programId_.ingestion'
@@ -288,6 +289,12 @@ const ProgramsProgramIdControlBaselineRoute =
     path: '/$programId/control-baseline',
     getParentRoute: () => ProgramsRoute,
   } as any)
+const ProgramsProgramIdControlStatusRoute =
+  ProgramsProgramIdControlStatusRouteImport.update({
+    id: '/$programId_/control-status',
+    path: '/$programId/control-status',
+    getParentRoute: () => ProgramsRoute,
+  } as any)
 const ProgramsProgramIdDashboardRoute =
   ProgramsProgramIdDashboardRouteImport.update({
     id: '/$programId_/dashboard',
@@ -426,6 +433,7 @@ export interface FileRoutesByFullPath {
   '/programs/$programId/composition': typeof ProgramsProgramIdCompositionRoute
   '/programs/$programId/conmon': typeof ProgramsProgramIdConmonRoute
   '/programs/$programId/control-baseline': typeof ProgramsProgramIdControlBaselineRoute
+  '/programs/$programId/control-status': typeof ProgramsProgramIdControlStatusRoute
   '/programs/$programId/dashboard': typeof ProgramsProgramIdDashboardRoute
   '/programs/$programId/export': typeof ProgramsProgramIdExportRoute
   '/programs/$programId/ingestion': typeof ProgramsProgramIdIngestionRoute
@@ -487,6 +495,7 @@ export interface FileRoutesByTo {
   '/programs/$programId/composition': typeof ProgramsProgramIdCompositionRoute
   '/programs/$programId/conmon': typeof ProgramsProgramIdConmonRoute
   '/programs/$programId/control-baseline': typeof ProgramsProgramIdControlBaselineRoute
+  '/programs/$programId/control-status': typeof ProgramsProgramIdControlStatusRoute
   '/programs/$programId/dashboard': typeof ProgramsProgramIdDashboardRoute
   '/programs/$programId/export': typeof ProgramsProgramIdExportRoute
   '/programs/$programId/ingestion': typeof ProgramsProgramIdIngestionRoute
@@ -549,6 +558,7 @@ export interface FileRoutesById {
   '/programs/$programId_/composition': typeof ProgramsProgramIdCompositionRoute
   '/programs/$programId_/conmon': typeof ProgramsProgramIdConmonRoute
   '/programs/$programId_/control-baseline': typeof ProgramsProgramIdControlBaselineRoute
+  '/programs/$programId_/control-status': typeof ProgramsProgramIdControlStatusRoute
   '/programs/$programId_/dashboard': typeof ProgramsProgramIdDashboardRoute
   '/programs/$programId_/export': typeof ProgramsProgramIdExportRoute
   '/programs/$programId_/ingestion': typeof ProgramsProgramIdIngestionRoute
@@ -612,6 +622,7 @@ export interface FileRouteTypes {
     | '/programs/$programId/composition'
     | '/programs/$programId/conmon'
     | '/programs/$programId/control-baseline'
+    | '/programs/$programId/control-status'
     | '/programs/$programId/dashboard'
     | '/programs/$programId/export'
     | '/programs/$programId/ingestion'
@@ -673,6 +684,7 @@ export interface FileRouteTypes {
     | '/programs/$programId/composition'
     | '/programs/$programId/conmon'
     | '/programs/$programId/control-baseline'
+    | '/programs/$programId/control-status'
     | '/programs/$programId/dashboard'
     | '/programs/$programId/export'
     | '/programs/$programId/ingestion'
@@ -734,6 +746,7 @@ export interface FileRouteTypes {
     | '/programs/$programId_/composition'
     | '/programs/$programId_/conmon'
     | '/programs/$programId_/control-baseline'
+    | '/programs/$programId_/control-status'
     | '/programs/$programId_/dashboard'
     | '/programs/$programId_/export'
     | '/programs/$programId_/ingestion'
@@ -1090,6 +1103,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProgramsProgramIdControlBaselineRouteImport
       parentRoute: typeof ProgramsRoute
     }
+    '/programs/$programId_/control-status': {
+      id: '/programs/$programId_/control-status'
+      path: '/$programId/control-status'
+      fullPath: '/programs/$programId/control-status'
+      preLoaderRoute: typeof ProgramsProgramIdControlStatusRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
     '/programs/$programId_/dashboard': {
       id: '/programs/$programId_/dashboard'
       path: '/$programId/dashboard'
@@ -1232,6 +1252,7 @@ interface ProgramsRouteChildren {
   ProgramsProgramIdCompositionRoute: typeof ProgramsProgramIdCompositionRoute
   ProgramsProgramIdConmonRoute: typeof ProgramsProgramIdConmonRoute
   ProgramsProgramIdControlBaselineRoute: typeof ProgramsProgramIdControlBaselineRoute
+  ProgramsProgramIdControlStatusRoute: typeof ProgramsProgramIdControlStatusRoute
   ProgramsProgramIdDashboardRoute: typeof ProgramsProgramIdDashboardRoute
   ProgramsProgramIdExportRoute: typeof ProgramsProgramIdExportRoute
   ProgramsProgramIdIngestionRoute: typeof ProgramsProgramIdIngestionRoute
@@ -1256,6 +1277,7 @@ const ProgramsRouteChildren: ProgramsRouteChildren = {
   ProgramsProgramIdCompositionRoute: ProgramsProgramIdCompositionRoute,
   ProgramsProgramIdConmonRoute: ProgramsProgramIdConmonRoute,
   ProgramsProgramIdControlBaselineRoute: ProgramsProgramIdControlBaselineRoute,
+  ProgramsProgramIdControlStatusRoute: ProgramsProgramIdControlStatusRoute,
   ProgramsProgramIdDashboardRoute: ProgramsProgramIdDashboardRoute,
   ProgramsProgramIdExportRoute: ProgramsProgramIdExportRoute,
   ProgramsProgramIdIngestionRoute: ProgramsProgramIdIngestionRoute,

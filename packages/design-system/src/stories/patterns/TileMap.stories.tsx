@@ -229,6 +229,42 @@ export const Stepping: Story = {
   },
 };
 
+/**
+ * A key whose lines open what they count: each line a link to the map's table filtered to the
+ * items that wear its colour. A line with no `link` stays text.
+ */
+export const LinkedKey: Story = {
+  args: { layout: "strip" },
+  render: (args) => (
+    <Stack space="space.150">
+      <TileMapKey
+        aria-label="Controls by where each stands"
+        items={[
+          { label: "In baseline", tone: "neutral", value: "9", link: <a href="#in-baseline" /> },
+          { label: "Added", tone: "brand", value: "4", link: <a href="#added" /> },
+          { label: "Removed", tone: "warning", fill: "outline", value: "2", link: <a href="#removed" /> },
+          { label: "Not selected", fill: "empty", value: "0" },
+        ]}
+      />
+      <div style={{ maxWidth: 420 }}>
+        <TileMap {...args} />
+      </div>
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const key = within(canvasElement).getByRole("list", { name: "Controls by where each stands" });
+    // A line's name is its meaning and its count; the swatch is decoration.
+    const added = within(key).getByRole("link", { name: "Added 4" });
+    await expect(added).toHaveAttribute("href", "#added");
+    await expect(within(key).getAllByRole("link")).toHaveLength(3);
+    // The kit's 24px target, though the line of text is shorter.
+    await expect(added.getBoundingClientRect().height).toBeGreaterThanOrEqual(24);
+    // A line without a link is text.
+    await expect(within(key).queryByRole("link", { name: /Not selected/ })).toBeNull();
+    await expect(within(key).getByText("Not selected")).toBeVisible();
+  },
+};
+
 /** `strip` is the whole set in one wrapped run with no words drawn: the map small enough for a card, where the card's title and a count say what it is. Each group still names itself to assistive technology when the marks choose. */
 export const Strip: Story = {
   args: { layout: "strip" },

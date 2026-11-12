@@ -1,3 +1,4 @@
+import { useRender } from "@base-ui/react/use-render";
 import {
   memo,
   useEffect,
@@ -9,6 +10,7 @@ import {
   type CSSProperties,
   type KeyboardEvent,
   type MouseEvent,
+  type ReactElement,
   type ReactNode,
   type RefObject,
 } from "react";
@@ -376,31 +378,64 @@ export type TileMapKeyItem = {
   fill?: TileMapFill | undefined;
   /** How many marks wear it. */
   value?: ReactNode | undefined;
+  /**
+   * A link element (a router's Link, or `<a href>`) that makes the line open the items that wear
+   * the colour: the map's table filtered to them. The swatch, the meaning and the count are the
+   * link, so its name is "No evidence 235".
+   */
+  link?:
+    | ReactElement<{
+        className?: string | undefined;
+        children?: ReactNode;
+      }>
+    | undefined;
 };
+
+/** A key line as a link: the swatch, the meaning and the count open what the colour counts. */
+function KeyLink({
+  link,
+  children,
+}: {
+  link: NonNullable<TileMapKeyItem["link"]>;
+  children: ReactNode;
+}) {
+  return useRender({
+    defaultTagName: "a",
+    render: link,
+    props: { children, ...{ "data-slot": "tile-map-key-link" } },
+  });
+}
 
 export type TileMapKeyProps = Omit<ComponentProps<"ul">, "children"> & {
   /** The colours in the order the reader meets them. */
   items: readonly TileMapKeyItem[];
 };
 
-/** What each colour of a TileMap means: a swatch drawn as the mark is, its meaning and its count. */
+/** What each colour of a TileMap means: a swatch drawn as the mark is, its meaning and its count. A line with a `link` opens the items that wear its colour. */
 export function TileMapKey({ items, className, ...props }: TileMapKeyProps) {
   return (
     <ul {...props} data-slot="tile-map-key" className={cn(className)}>
-      {items.map((item, index) => (
-        <li data-slot="tile-map-key-item" key={index}>
-          <span
-            aria-hidden
-            data-slot="tile-map-mark"
-            data-tone={item.tone ?? "neutral"}
-            data-fill={item.fill ?? "solid"}
-          />
-          <span>{item.label}</span>
-          {item.value === undefined ? null : (
-            <span data-slot="tile-map-key-value">{item.value}</span>
-          )}
-        </li>
-      ))}
+      {items.map((item, index) => {
+        const line = (
+          <>
+            <span
+              aria-hidden
+              data-slot="tile-map-mark"
+              data-tone={item.tone ?? "neutral"}
+              data-fill={item.fill ?? "solid"}
+            />
+            <span>{item.label}</span>
+            {item.value === undefined ? null : (
+              <span data-slot="tile-map-key-value">{item.value}</span>
+            )}
+          </>
+        );
+        return (
+          <li data-slot="tile-map-key-item" key={index}>
+            {item.link ? <KeyLink link={item.link}>{line}</KeyLink> : line}
+          </li>
+        );
+      })}
     </ul>
   );
 }

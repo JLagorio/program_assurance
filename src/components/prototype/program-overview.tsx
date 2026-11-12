@@ -1,4 +1,4 @@
-import type { ReactElement, ReactNode } from "react";
+import { useCallback, useMemo, type ReactElement, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   Card,
@@ -20,6 +20,8 @@ import {
   type StatusVocabulary,
 } from "@/lib/status";
 import { ControlStatusKey, ControlStatusMap } from "./control-status";
+import { controlStatusLink } from "./control-status-link";
+import { useOpenRecord } from "./record-preview";
 import { QueryState, type QueryStatus } from "./work-common";
 
 /** The program tabs that hold open work. */
@@ -146,9 +148,10 @@ export function ProgramOpenWork({
 
 /**
  * Where the program stands on every control of its control baseline: a Tray whose heading counts
- * the controls and opens the Control baseline view, over the whole baseline as one strip of
- * marks, each coloured by its status, under a key that counts each. A program with no baseline
- * draws nothing here: the Control baseline section under it says so.
+ * the controls and opens the Control status view, over the whole baseline as one strip of marks,
+ * each coloured by its status, under a key that counts each. A count of the key opens the view's
+ * List at that status, and a mark opens its control, so no number here is a dead end. A program
+ * with no baseline draws nothing here: the Control baseline section under it says so.
  */
 export function ProgramControlStatusTray({
   programId,
@@ -159,13 +162,19 @@ export function ProgramControlStatusTray({
 }) {
   const { formatNumber } = useLedgerLocale();
   const status = useProgramControlStatus(programId);
+  const openRecord = useOpenRecord();
+  const statusLink = useMemo(() => controlStatusLink(programId), [programId]);
+  const openControl = useCallback(
+    (controlId: string) => openRecord("controls", { id: controlId, program_id: programId }),
+    [openRecord, programId],
+  );
   if (status.data && !status.data.baseline) return null;
-  const baseline = <Link to="/programs/$programId/control-baseline" params={{ programId }} />;
+  const view = <Link to="/programs/$programId/control-status" params={{ programId }} />;
   return (
     <QueryState queries={[status]}>
       <Tray
         title="controls in the baseline"
-        link={baseline}
+        link={view}
         {...(status.data
           ? {
               value: status.data.total,
@@ -177,11 +186,12 @@ export function ProgramControlStatusTray({
           <CardContent>
             {status.data ? (
               <Stack space="space.150">
-                <ControlStatusKey counts={status.data.counts} />
+                <ControlStatusKey counts={status.data.counts} link={statusLink} />
                 <ControlStatusMap
                   status={status.data}
                   layout="strip"
                   label={`Controls in the control baseline of ${programName}, each coloured by where the program stands on it`}
+                  onSelect={openControl}
                 />
               </Stack>
             ) : (

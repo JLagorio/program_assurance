@@ -262,6 +262,13 @@
     "model": "programs"
   },
   {
+    "file": "programs.$programId_.control-status.tsx",
+    "path": "/programs/$programId/control-status",
+    "title": "Program",
+    "family": "program-view",
+    "model": "programs"
+  },
+  {
     "file": "programs.$programId_.posture.tsx",
     "path": "/programs/$programId/posture",
     "title": "Program",

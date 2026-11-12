@@ -24364,6 +24364,10 @@ A mark has a `tone`, one of the chart tokens, and a `fill`: `solid`, `outline` f
 
 Colour never says a state alone. Each mark's `label` and `description` are its tooltip and its name to assistive technology, and a `TileMap.Key` beside the map says what each colour means and how many marks wear it.
 
+_Example: story `Stories.LinkedKey`._
+
+A key line takes a `link` where the count has somewhere to go: the map's table filtered to the items that wear the colour. The swatch, the meaning and the count are the link, named by the meaning and the count ("Added 4"); a line whose colour counts nothing to open stays text.
+
 ## Choosing a mark
 
 _Example: story `Stories.Choosing`._
@@ -24587,6 +24591,10 @@ A link between stages that are not neighbours runs through each stage between th
 _Example: story `Stories.EmptyStage`._
 
 Give every stage of the chain, also the ones the focus does not reach, with what its absence means as `empty`: No evidence linked, No risk recorded. A missing stage is a finding, and a trace that drops the column hides it.
+
+_Example: story `Stories.EmptyStageAction`._
+
+Where the reader can close the gap from the record the trace is about, give the stage its fix as `action`: a small `TextLink` whose words are what fills it (Link evidence, Map control), drawn under `empty` and only while the stage holds no record. A stage with nothing wrong in it, such as No risk recorded, has none.
 
 ## A path
 

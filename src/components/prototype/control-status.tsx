@@ -1,5 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, type ReactElement, type ReactNode } from "react";
 import {
+  Absent,
+  KeyValue,
   Tally,
   TileMap,
   TileMapKey,
@@ -10,26 +12,34 @@ import {
   type TileMapLayout,
   type TileMapMark,
 } from "@ledger/design-system";
+import { StatusBadge } from "@/components/app/status";
+import type { AssuranceTrace } from "@/lib/assurance-trace";
 import {
   CONTROL_STATUS_ORDER,
   controlStatusFamilies,
+  useProgramControlStatus,
   type ControlStanding,
   type ControlStatus,
   type ControlStatusCounts,
   type ProgramControlStatus,
 } from "@/lib/control-status";
+import { controlNextStep } from "@/lib/next-steps";
 import { controlStatuses } from "@/lib/status";
+import { QueryValue } from "./library-shared";
+import { NextStepLink } from "./next-step";
+import { ReportFailures } from "./work-common";
 
 /**
  * How each status is drawn, once: the map's marks and its key read the same entry. An assessor's
- * determinations are the three filled tones; evidence waiting on one is the information fill; a
+ * determinations are the three bold tones, and the only bold colours on the map; evidence waiting
+ * on one is a pale step of the one-hue scale, so a baseline nobody has assessed reads quiet; a
  * control with no evidence is hollow, not there yet; one no requirement maps says nothing.
  */
 const marks = {
   satisfied: { tone: "success", fill: "solid" },
   partially_satisfied: { tone: "warning", fill: "solid" },
   other_than_satisfied: { tone: "danger", fill: "solid" },
-  not_assessed: { tone: "information", fill: "solid" },
+  not_assessed: { tone: "sequential.2", fill: "solid" },
   no_evidence: { tone: "neutral", fill: "outline" },
   no_requirement: { tone: "neutral", fill: "empty" },
 } as const satisfies Record<ControlStatus, Pick<TileMapMark, "tone" | "fill">>;
@@ -37,21 +47,36 @@ const marks = {
 /** The key's order: what an assessor decided first, then what waits. */
 const KEY_ORDER = [...CONTROL_STATUS_ORDER].reverse();
 
+/** A link element a key line or a card's title takes: the part gives it its words. */
+type LinkElement = ReactElement<{ className?: string | undefined; children?: ReactNode }>;
+
 /**
  * What each mark of a control status map means, with how many controls stand there. Satisfied is
  * always said, so the reader sees what done looks like; another status is said once a control
- * stands at it.
+ * stands at it. With `link`, a status that counts controls opens them: the program's Control
+ * status list asked for that status.
  */
-export function ControlStatusKey({ counts }: { counts: ControlStatusCounts }) {
+export function ControlStatusKey({
+  counts,
+  link,
+  label = "Control statuses",
+}: {
+  counts: ControlStatusCounts;
+  /** The link that lists the controls at a status. A status that counts none stays text. */
+  link?: ((status: ControlStatus) => LinkElement) | undefined;
+  /** The key's name. */
+  label?: string | undefined;
+}) {
   const { formatNumber } = useLedgerLocale();
   const items = KEY_ORDER.filter((status) => status === "satisfied" || counts[status] > 0).map(
     (status): TileMapKeyItem => ({
       label: controlStatuses[status].label,
       value: formatNumber(counts[status]),
       ...marks[status],
+      ...(link && counts[status] > 0 ? { link: link(status) } : {}),
     }),
   );
-  return <TileMapKey items={items} />;
+  return <TileMapKey aria-label={label} items={items} />;
 }
 
 /**
@@ -81,17 +106,20 @@ export function ControlStatusTally({
  * Every control of a program's control baseline as one mark, coloured by where the program stands
  * on it: `grid` is a row a family, `strip` the whole baseline in one run for a card. A mark says
  * its control, its status and what the program holds for it, in words. Give the same controls as a
- * table one step away: the program's Control baseline view.
+ * table one step away: the List of the program's Control status view.
  */
 export function ControlStatusMap({
   status,
   layout = "grid",
   label,
+  onSelect,
 }: {
   status: Pick<ProgramControlStatus, "controls">;
   layout?: TileMapLayout | undefined;
   /** The map's name: whose baseline it is. */
   label: string;
+  /** Makes each mark a button that opens its control: called with the control's id. */
+  onSelect?: ((controlId: string) => void) | undefined;
 }) {
   const { formatNumber } = useLedgerLocale();
   const groups = useMemo(() => {
@@ -114,5 +142,54 @@ export function ControlStatusMap({
       })),
     }));
   }, [status.controls, formatNumber]);
-  return <TileMap label={label} layout={layout} groups={groups} />;
+  const choose = useMemo(
+    () => (onSelect ? (mark: TileMapMark) => onSelect(mark.id) : undefined),
+    [onSelect],
+  );
+  return <TileMap label={label} layout={layout} groups={groups} onSelect={choose} />;
+}
+
+/**
+ * Where a program stands on one control, as the first rows of the control's Details: its control
+ * status and the next step that moves it up the ladder, a link to where the step is done. The
+ * status comes from the read the program's Overview and its Control status view share, so the
+ * page opens on what the reader came from. `requirements` are the requirements that map the
+ * control, as its trace reads them: the step names the first that cites no evidence.
+ */
+export function ControlStandingFacts({
+  programId,
+  controlId,
+  requirements,
+}: {
+  programId: string;
+  /** The catalog control; none while the record that names it loads. */
+  controlId: string | undefined;
+  requirements?: AssuranceTrace["requirements"] | undefined;
+}) {
+  const statuses = useProgramControlStatus(programId);
+  const standing = controlId
+    ? statuses.data?.controls.find((control) => control.id === controlId)
+    : undefined;
+  const step = standing ? controlNextStep(standing.status, requirements) : null;
+  return (
+    <>
+      <ReportFailures queries={[statuses]} />
+      <KeyValue label="Control status">
+        <QueryValue queries={[statuses]}>
+          {() =>
+            standing ? (
+              <StatusBadge statuses={controlStatuses} value={standing.status} />
+            ) : (
+              <Absent label="Not in the control baseline" />
+            )
+          }
+        </QueryValue>
+      </KeyValue>
+      {step && (
+        <KeyValue label="Next step" wrap>
+          <NextStepLink step={step} programId={programId} />
+        </KeyValue>
+      )}
+    </>
+  );
 }

@@ -35,6 +35,10 @@ A mark has a `tone`, one of the chart tokens, and a `fill`: `solid`, `outline` f
 
 Colour never says a state alone. Each mark's `label` and `description` are its tooltip and its name to assistive technology, and a `TileMap.Key` beside the map says what each colour means and how many marks wear it.
 
+<Canvas of={Stories.LinkedKey} />
+
+A key line takes a `link` where the count has somewhere to go: the map's table filtered to the items that wear the colour. The swatch, the meaning and the count are the link, named by the meaning and the count ("Added 4"); a line whose colour counts nothing to open stays text.
+
 ## Choosing a mark
 
 <Canvas of={Stories.Choosing} />

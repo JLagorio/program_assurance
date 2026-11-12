@@ -46,6 +46,12 @@ export type TraceStage = {
   nodes: readonly TraceNode[];
   /** What the stage says when it holds no record: "No evidence cited". */
   empty?: string | undefined;
+  /**
+   * What closes the gap, drawn under `empty` while the stage holds no record: a small TextLink
+   * whose words are the fix, "Link evidence". Give it only where the reader can make the fix from
+   * the record the trace is about; a stage with nothing wrong in it has none.
+   */
+  action?: ReactNode | undefined;
 };
 
 /**
@@ -459,9 +465,12 @@ export function Trace({
                       ),
                     )}
                   </ul>
-                ) : stage.empty ? (
-                  <p data-slot="trace-empty">{stage.empty}</p>
-                ) : null}
+                ) : (
+                  <>
+                    {stage.empty ? <p data-slot="trace-empty">{stage.empty}</p> : null}
+                    {stage.action ? <div data-slot="trace-action">{stage.action}</div> : null}
+                  </>
+                )}
                 {more > 0 || open ? (
                   <Button
                     size="small"

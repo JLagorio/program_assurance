@@ -11,6 +11,8 @@ export const registerViews = {
   operationalIssues: "operational-issues",
   assessmentFindings: "assessment-findings",
   systemAssets: "system-assets",
+  /** The List of a program's Control status view: its controls by where the program stands. */
+  controlStatus: "program-control-status",
 } as const;
 
 export type RegisterView = (typeof registerViews)[keyof typeof registerViews];

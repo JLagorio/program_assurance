@@ -11295,7 +11295,7 @@
     "\"src/patterns/tile-map\".TileMapKeyItem": [
       {
         "source": "src/patterns/tile-map.d.ts",
-        "declaration": "export type TileMapKeyItem = {\n    label: ReactNode;\n    tone?: TileMapTone | undefined;\n    fill?: TileMapFill | undefined;\n    value?: ReactNode | undefined;\n};"
+        "declaration": "export type TileMapKeyItem = {\n    label: ReactNode;\n    tone?: TileMapTone | undefined;\n    fill?: TileMapFill | undefined;\n    value?: ReactNode | undefined;\n    link?: ReactElement<{\n        className?: string | undefined;\n        children?: ReactNode;\n    }> | undefined;\n};"
       }
     ],
     "\"src/patterns/tile-map\".TileMapKeyProps": [
@@ -11367,7 +11367,7 @@
     "\"src/patterns/trace\".TraceStage": [
       {
         "source": "src/patterns/trace.d.ts",
-        "declaration": "export type TraceStage = {\n    id: string;\n    label: string;\n    nodes: readonly TraceNode[];\n    empty?: string | undefined;\n};"
+        "declaration": "export type TraceStage = {\n    id: string;\n    label: string;\n    nodes: readonly TraceNode[];\n    empty?: string | undefined;\n    action?: ReactNode | undefined;\n};"
       }
     ],
     "\"src/patterns/use-collection-selection\".CollectionSelection": [

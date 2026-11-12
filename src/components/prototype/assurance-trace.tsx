@@ -37,6 +37,8 @@ import {
   type StatusTone,
   type StatusVocabulary,
 } from "@/lib/status";
+import { traceGapFixes } from "@/lib/next-steps";
+import { NextStepLink } from "./next-step";
 import { ProductCollection } from "./product-collection";
 import { RecordLink, recordLink, useOpenRecord } from "./record-preview";
 import { DueDate, QueryState, type QueryStatus } from "./work-common";
@@ -156,12 +158,29 @@ function useTraceStages(trace: AssuranceTrace | undefined, programId: string | n
         link: recordLink("poam_items", { id: item.id }),
       })),
     };
-    const stages: TraceStage[] = (Object.keys(nodes) as TraceKind[]).map((kind) => ({
-      id: kind,
-      label: stageLabel[kind],
-      nodes: nodes[kind],
-      empty: emptyStage[kind],
-    }));
+    // A gap the reader can close from this record carries its fix: a link to where it is made.
+    const fixes = new Map(traceGapFixes(trace, scope).map((fix) => [fix.stage, fix]));
+    const stages: TraceStage[] = (Object.keys(nodes) as TraceKind[]).map((kind) => {
+      const fix = fixes.get(kind as "control" | "requirement" | "evidence");
+      return {
+        id: kind,
+        label: stageLabel[kind],
+        nodes: nodes[kind],
+        empty: emptyStage[kind],
+        ...(fix && scope
+          ? {
+              action: (
+                <NextStepLink
+                  step={fix}
+                  programId={scope}
+                  own={trace.focus.kind === "requirement"}
+                  size="small"
+                />
+              ),
+            }
+          : {}),
+      };
+    });
     return {
       stages,
       links: traceLinks(trace),
