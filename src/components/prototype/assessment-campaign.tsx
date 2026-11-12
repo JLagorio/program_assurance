@@ -1,5 +1,5 @@
 import { campaignTabs, type CampaignTab } from "./assessment-tabs";
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Absent,
   Alert,
@@ -963,9 +963,21 @@ function RunInspector({
   const body = useRef<HTMLElement>(null);
   const editable =
     workspace.role !== "viewer" && run && !["completed", "aborted"].includes(run.status);
-  /** A completed run loses the actions Complete run sat among: focus goes to the preview's title. */
-  const landOnTitle = () =>
-    requestAnimationFrame(() => {
+  /**
+   * A completed run loses the actions Complete run sat among: focus goes to the preview's title.
+   * It lands when the actions go, which is when the run read after the save says it is completed,
+   * and only if focus went with them. Landing as the save returns does not hold: the confirmation,
+   * still closing, hands focus back to Complete run, and the button then leaves with it.
+   */
+  const landing = useRef(false);
+  const actionsGone = !editable;
+  useEffect(() => {
+    if (!actionsGone || !landing.current) return;
+    landing.current = false;
+    // A frame later, so a confirmation that unmounts with the actions has returned focus first.
+    const pending = requestAnimationFrame(() => {
+      const active = document.activeElement;
+      if (active && active !== document.body && active.isConnected) return;
       let frame = body.current?.parentElement ?? null;
       while (frame && !frame.querySelector(":scope > [data-record-preview-header]"))
         frame = frame.parentElement;
@@ -975,6 +987,8 @@ function RunInspector({
       const target = title ?? body.current;
       if (target) focusLanding(target);
     });
+    return () => cancelAnimationFrame(pending);
+  }, [actionsGone]);
   const stepRows = [...(steps.data ?? [])]
     .sort((a, b) => a.sequence_number - b.sequence_number)
     .map((step) => {
@@ -996,6 +1010,7 @@ function RunInspector({
     });
     if (!confirmed) return;
     setError("");
+    landing.current = true;
     try {
       await save.mutateAsync({
         id: run.id,
@@ -1003,8 +1018,8 @@ function RunInspector({
         values: { status: "completed", completed_at: new Date().toISOString() },
       });
       toast.add({ title: `${run.title} completed`, type: "success" });
-      landOnTitle();
     } catch (cause) {
+      landing.current = false;
       setError(cause instanceof Error ? cause.message : "The run could not be completed.");
     }
   }

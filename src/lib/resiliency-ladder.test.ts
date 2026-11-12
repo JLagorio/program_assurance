@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { deriveStack, stackAt } from "./baseline-stack";
 import { itemGuidance, type ResiliencyControlLink } from "./frameworks";
 import {
@@ -14,6 +14,10 @@ import {
   type LadderSource,
   type ResiliencyLadder,
 } from "./resiliency-ladder";
+
+// The derivation takes its item helpers from the framework reads, which ask the workspace, and the
+// workspace's module draws with the design system: unmocked, this file needs the kit built.
+vi.mock("@/components/app/workspace", () => ({ useWorkspace: () => ({}) }));
 
 /*
  * The ladder is checked against what it is built from in the product: the pinned transcription of

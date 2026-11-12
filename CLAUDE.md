@@ -42,7 +42,7 @@ npm run check:lint-changelog            # a change to the lint comes with a kit 
 npm run lint:corpus -- --check          # ledger findings on the repo may only fall; no new stock Tailwind class passes (--update, --digest)
 npm run bench:lint                      # time the lint over the product and the kit (not in CI; write --json results outside the checkout)
 npm run eval:lint -- --dry-run          # the paired agent eval, with and without lint feedback (paid model calls; evals/README.md)
-npm run test:app                        # vitest src/lib/**/*.test.ts + runtime-data-boundary check
+npm run test:app                        # vitest src/lib/**/*.test.ts + runtime-data-boundary check; the kit resolves to a module that throws, so a test mocks @/components/app/workspace
 npx vitest run --config vitest.app.config.ts src/lib/system-tree.test.ts   # one app test file
 npm run build                           # ds-check → package build → vite build
 npm run models:generate                 # regenerate src/lib/database.types.ts from the local schema (after any migration)
@@ -92,7 +92,7 @@ npm run ds:check                               # every exported catalog part has
 npm run ds:api:check / ds:api:update           # public API baseline in packages/design-system/api/public-api.json
 ```
 
-CI (`.github/workflows/ci.yml`) runs five jobs side by side: **check** (tokens regenerate cleanly, `ds-check`, `check:allow-lists`, `check:lint-changelog`, package typecheck/lint/test, `lint:corpus --check`, `test:api` and the API baseline, package build, `test:consumer`, `npm pack`); **stories** (`test:a11y`, `test:layout`, `test:gates`); **storybook** (the static Storybook builds and `test:docs` renders every docs page); **app** (app typecheck + lint + format check, `test:app`, `npm run build`); **product-patterns** (a disposable Supabase stack with the pinned reference data, then `test:patterns` and `test:app-a11y`). Run the same set before calling a batch done.
+CI (`.github/workflows/ci.yml`) runs five jobs side by side: **check** (tokens regenerate cleanly, `ds-check`, `check:allow-lists`, `check:lint-changelog`, package typecheck/lint/test, `lint:corpus --check`, `test:api` and the API baseline, package build, `test:consumer`, `npm pack`); **stories** (`test:a11y`, `test:layout`, `test:gates`); **storybook** (the static Storybook builds and `test:docs` renders every docs page); **app** (app typecheck + lint + format check, `test:app`, `npm run build`); **product-patterns** (a disposable Supabase stack with the pinned reference data, then `test:patterns`, `test:workbook`, the spreadsheet workers in Firefox and WebKit, `test:workspace-capabilities`, `test:review-workspace`, `test:shared-interactions` and `test:app-a11y`). Run the same set before calling a batch done. The workflow file is the list, and a job stops at its first failing step. A check that passes on this machine can fail on the runner, which starts from a fresh checkout (no built kit until a step builds it, no `out/`) and draws slower, so read the run after a push: `gh run list --branch design-system`.
 
 Storybook MCP (`.mcp.json`, `http://localhost:6007/mcp`) is available when the package Storybook is running; prefer its `stories-preview` / `test-run` tools for verifying kit changes.
 

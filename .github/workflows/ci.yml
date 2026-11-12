@@ -73,7 +73,8 @@ jobs:
       - name: A packed external consumer imports, typechecks, renders and builds CSS
         run: npm run test:consumer -w packages/design-system
       - name: The package packs
-        run: npm pack -w packages/design-system --pack-destination out
+        # npm pack does not make its destination, and a fresh checkout has no out/.
+        run: mkdir -p out && npm pack -w packages/design-system --pack-destination out
       - uses: actions/upload-artifact@v4
         with:
           name: ledger-design-system
