@@ -292,7 +292,15 @@ export function applyBaseline(payload, { commit = false } = {}) {
       if v_extra is not null or v_lacking is not null then
         raise exception 'The final layer is not the fixture''s effective_control_ids (selected but not expected: %; expected but not selected: %). Nothing was written.',coalesce(v_extra,'none'),coalesce(v_lacking,'none');
       end if;
-      if not exists(select 1 from public.program_reference_choices where tenant_id=v_tenant and program_id=v_program and profile_resolution_id=v_resolution) then
+      -- The program's choice is this stack when it names the final layer, or a layer authored on
+      -- top of it (the showcase's program tailoring, npm run seed:demo-showcase).
+      if not exists(
+        with recursive stack(id,depth) as (
+          select c.profile_resolution_id,0 from public.program_reference_choices c where c.tenant_id=v_tenant and c.program_id=v_program
+          union all
+          select r.base_profile_resolution_id,s.depth+1 from stack s join public.profile_resolutions r on r.id=s.id
+          where r.base_profile_resolution_id is not null and s.depth<16)
+        select 1 from stack where id=v_resolution) then
         if exists(select 1 from public.program_reference_choices where tenant_id=v_tenant and program_id=v_program) then
           raise exception 'Program % already has a different control baseline; nothing was overwritten',p->>'programCode';
         end if;

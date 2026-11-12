@@ -54,7 +54,7 @@ The chosen values show on the profile record's Tailoring tab, under Parameters a
 
 ## Demo
 
-`npm run seed:demo-baseline -- --tenant <id> --account <email> --apply` gives WS-X90 (PRG-1090) its stack from the archived fixture: High (370), CNSSI 1253 allocation (554), Mission Assurance (549), Deployed Platform (550), Customer A (546). The CNSSI allocation is a third-party extraction the fixture marks as not authoritative. WS-X90's systems keep the archived selections their SSPs were imported with; the stack is recorded as the program's reference choice.
+`npm run seed:demo-baseline -- --tenant <id> --account <email> --apply` gives WS-X90 (PRG-1090) its stack from the archived fixture: High (370), CNSSI 1253 allocation (554), Mission Assurance (549), Deployed Platform (550), Customer A (546). The CNSSI allocation is a third-party extraction the fixture marks as not authoritative. WS-X90's systems keep the archived selections their SSPs were imported with; the stack is recorded as the program's reference choice. `npm run seed:demo-showcase` then adds the program's own tailoring on top, SA-24 and 13 cyber resiliency controls (560), and moves the reference choice to it (`docs/demo-seed-mapping.md`, Showcase scenario).
 
 Read by technique, every count on WS-X90 rises at the CNSSI 1253 allocation and holds after it: Segmentation 7 of 41 in High and 16 of 41 from there on, Substantiated Integrity 20 then 35 of 58, Unpredictability 1 then 2 of 7, Dynamic Positioning 0 then 1 of 8. WS-X90 does not select SA-24, so its Select is one list.
 
