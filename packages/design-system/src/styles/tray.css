@@ -1,0 +1,11 @@
+/* Tray: a focus ring on the bold tray's heading needs the heading's own contrast, as in a Banner. */
+[data-slot="tray"][data-tone="danger"] > [data-slot="tray-header"] :focus-visible {
+  outline: var(--ds-border-width-focused) solid currentColor;
+  outline-offset: var(--ds-space-025);
+}
+/* The system palette draws no fill: the tray keeps its edge, so what it holds still reads as one group. */
+@media (forced-colors: active) {
+  [data-slot="tray"] {
+    border: var(--ds-border-width) solid CanvasText;
+  }
+}

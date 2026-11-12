@@ -354,13 +354,14 @@
         "overflow-y": ["overflow-y-auto"],
         "overscroll": ["overscroll-none"],
         "pb": ["pb-200"],
+        "position": ["relative"],
         "px": ["px-250"],
         "utility:outline-field-focused": ["focus-visible:outline-field-focused"]
       },
       "props": {},
       "derived": {},
       "sets": {
-        "layout": ["flex", "min-h", "min-w", "overflow-y", "overscroll"],
+        "layout": ["flex", "min-h", "min-w", "overflow-y", "overscroll", "position"],
         "spacing": ["pb", "px"],
         "typography": ["font-family"],
         "shape": ["outline-style", "utility:outline-field-focused"]
@@ -424,7 +425,7 @@
     "AlertDialogDescription": {
       "kind": "component",
       "file": "components/alert-dialog.tsx",
-      "line": 253,
+      "line": 256,
       "root": {
         "break": ["break-words"],
         "font-family": ["font-body"],
@@ -441,7 +442,7 @@
     "AlertDialogFooter": {
       "kind": "component",
       "file": "components/alert-dialog.tsx",
-      "line": 222,
+      "line": 225,
       "root": {
         "align-items": ["items-center"],
         "bg-color": ["bg-surface-current"],
@@ -546,7 +547,7 @@
     "AlertDialogTitle": {
       "kind": "component",
       "file": "components/alert-dialog.tsx",
-      "line": 242,
+      "line": 245,
       "root": {
         "break": ["break-words"],
         "font-family": ["font-heading-overlay"],
@@ -3568,7 +3569,7 @@
     "Chart.Heatmap": {
       "kind": "component",
       "file": "patterns/chart/heatmap.tsx",
-      "line": 195,
+      "line": 233,
       "root": {
         "outline-style": ["outline-none"],
         "overflow-x": ["overflow-x-auto"],
@@ -3640,7 +3641,7 @@
     "Chart.Scale": {
       "kind": "component",
       "file": "patterns/chart/heatmap.tsx",
-      "line": 499,
+      "line": 580,
       "root": {
         "align-self": ["self-start"],
         "display": ["inline-flex"],
@@ -7158,12 +7159,13 @@
         "overflow-y": ["overflow-y-auto"],
         "overscroll": ["overscroll-none"],
         "p": ["p-250"],
+        "position": ["relative"],
         "utility:outline-field-focused": ["focus-visible:outline-field-focused"]
       },
       "props": {},
       "derived": {},
       "sets": {
-        "layout": ["flex", "min-h", "min-w", "overflow-y", "overscroll"],
+        "layout": ["flex", "min-h", "min-w", "overflow-y", "overscroll", "position"],
         "spacing": ["p"],
         "shape": ["outline-style", "utility:outline-field-focused"]
       }
@@ -7224,7 +7226,7 @@
     "DialogDescription": {
       "kind": "component",
       "file": "components/dialog.tsx",
-      "line": 305,
+      "line": 309,
       "root": {
         "break": ["break-words"],
         "font-family": ["font-body"],
@@ -7241,7 +7243,7 @@
     "DialogFooter": {
       "kind": "component",
       "file": "components/dialog.tsx",
-      "line": 262,
+      "line": 266,
       "root": {
         "align-items": ["items-center"],
         "bg-color": ["bg-surface-current"],
@@ -7332,7 +7334,7 @@
     "DialogTitle": {
       "kind": "component",
       "file": "components/dialog.tsx",
-      "line": 294,
+      "line": 298,
       "root": {
         "break": ["break-words"],
         "font-family": ["font-heading-overlay"],
@@ -7441,11 +7443,11 @@
     "Dot": {
       "kind": "component",
       "file": "components/badge.tsx",
-      "line": 358,
+      "line": 360,
       "root": {
         "display": ["inline-block"],
         "shrink": ["shrink-0"],
-        "size": ["size-075"],
+        "size": ["size-100"],
         "vertical-align": ["align-middle"]
       },
       "props": {
@@ -10190,7 +10192,7 @@
     "Indicator": {
       "kind": "component",
       "file": "components/badge.tsx",
-      "line": 388,
+      "line": 395,
       "root": {
         "align-items": ["items-center"],
         "display": ["inline-flex"],
@@ -11279,6 +11281,15 @@
         "spacing": ["gap-x"],
         "typography": ["font-family"]
       }
+    },
+    "Ladder": {
+      "kind": "component",
+      "file": "patterns/ladder.tsx",
+      "line": 543,
+      "root": {},
+      "props": {},
+      "derived": {},
+      "sets": {}
     },
     "LedgerProvider": {
       "kind": "component",
@@ -12378,6 +12389,60 @@
       "derived": {},
       "sets": {
         "layout": ["align-items", "display", "min-w"],
+        "spacing": ["gap"]
+      }
+    },
+    "PhaseBar": {
+      "kind": "component",
+      "file": "components/phase-bar.tsx",
+      "line": 52,
+      "root": {
+        "display": ["flex"],
+        "flex-wrap": ["flex-wrap"],
+        "gap-x": ["gap-x-075"],
+        "gap-y": ["gap-y-150"],
+        "min-w": ["min-w-0"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["display", "flex-wrap", "min-w"],
+        "spacing": ["gap-x", "gap-y"]
+      }
+    },
+    "PhaseBar.Item": {
+      "kind": "component",
+      "file": "components/phase-bar.tsx",
+      "line": 68,
+      "root": {
+        "basis": ["basis-0"],
+        "display": ["flex"],
+        "flex-direction": ["flex-col"],
+        "gap": ["gap-075"],
+        "min-w": ["min-w-1000"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["basis", "display", "flex-direction", "min-w"],
+        "spacing": ["gap"]
+      }
+    },
+    "PhaseBarItem": {
+      "kind": "component",
+      "file": "components/phase-bar.tsx",
+      "line": 68,
+      "root": {
+        "basis": ["basis-0"],
+        "display": ["flex"],
+        "flex-direction": ["flex-col"],
+        "gap": ["gap-075"],
+        "min-w": ["min-w-1000"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["basis", "display", "flex-direction", "min-w"],
         "spacing": ["gap"]
       }
     },
@@ -14097,6 +14162,7 @@
         "outline-style": ["outline-none"],
         "overflow-y": ["overflow-y-auto"],
         "overscroll": ["overscroll-none"],
+        "position": ["relative"],
         "px": ["px-200"],
         "py": ["py-150"],
         "utility:outline-field-focused": ["focus-visible:outline-field-focused"]
@@ -14104,7 +14170,7 @@
       "props": {},
       "derived": {},
       "sets": {
-        "layout": ["flex", "min-h", "min-w", "overflow-y", "overscroll"],
+        "layout": ["flex", "min-h", "min-w", "overflow-y", "overscroll", "position"],
         "spacing": ["px", "py"],
         "shape": ["outline-style", "utility:outline-field-focused"]
       }
@@ -14212,7 +14278,7 @@
     "SheetDescription": {
       "kind": "component",
       "file": "components/sheet.tsx",
-      "line": 314,
+      "line": 318,
       "root": {
         "break": ["break-words"],
         "font-family": ["font-body"],
@@ -14229,7 +14295,7 @@
     "SheetFooter": {
       "kind": "component",
       "file": "components/sheet.tsx",
-      "line": 283,
+      "line": 287,
       "root": {
         "align-items": ["items-center"],
         "bg-color": ["bg-surface-current"],
@@ -14320,7 +14386,7 @@
     "SheetTitle": {
       "kind": "component",
       "file": "components/sheet.tsx",
-      "line": 303,
+      "line": 307,
       "root": {
         "break": ["break-words"],
         "font-family": ["font-heading-overlay"],
@@ -16060,7 +16126,7 @@
     "Stat": {
       "kind": "component",
       "file": "components/stat.tsx",
-      "line": 154,
+      "line": 155,
       "root": {
         "display": ["flex"],
         "flex-direction": ["flex-col"],
@@ -16077,7 +16143,7 @@
     "Stat.Grid": {
       "kind": "component",
       "file": "components/stat.tsx",
-      "line": 181,
+      "line": 325,
       "root": {
         "utility:stagger-children": ["stagger-children"],
         "utility:stat-grid": ["stat-grid"]
@@ -16136,10 +16202,75 @@
         "motion": ["utility:stagger-children"]
       }
     },
+    "Stat.List": {
+      "kind": "component",
+      "file": "components/stat.tsx",
+      "line": 301,
+      "root": {
+        "display": ["flex"],
+        "flex-direction": ["flex-col"],
+        "gap": ["gap-050"],
+        "min-w": ["min-w-0"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["display", "flex-direction", "min-w"],
+        "spacing": ["gap"]
+      }
+    },
+    "Stat.Row": {
+      "kind": "component",
+      "file": "components/stat.tsx",
+      "line": 193,
+      "root": {
+        "bg-color": ["bg-surface-raised"],
+        "border-color": ["border-default"],
+        "border-w": ["border"],
+        "display": ["flex"],
+        "min-w": ["min-w-0"],
+        "rounded": ["rounded-medium"]
+      },
+      "props": {
+        "link": {
+          "align-items": {
+            "unset": ["items-center"]
+          },
+          "display": {
+            "unset": ["flex"]
+          },
+          "flex": {
+            "unset": ["flex-1"]
+          },
+          "gap": {
+            "unset": ["gap-150"]
+          },
+          "justify-content": {
+            "unset": ["justify-between"]
+          },
+          "min-w": {
+            "unset": ["min-w-0"]
+          },
+          "px": {
+            "unset": ["px-150"]
+          },
+          "py": {
+            "unset": ["py-100"]
+          }
+        }
+      },
+      "derived": {},
+      "sets": {
+        "layout": ["align-items", "display", "flex", "justify-content", "min-w"],
+        "spacing": ["gap", "px", "py"],
+        "color": ["bg-color", "border-color"],
+        "shape": ["border-w", "rounded"]
+      }
+    },
     "Stat.Tile": {
       "kind": "component",
       "file": "components/stat.tsx",
-      "line": 84,
+      "line": 85,
       "root": {
         "bg-color": ["bg-surface-current"],
         "display": ["flex"],
@@ -16170,7 +16301,7 @@
     "StatGrid": {
       "kind": "component",
       "file": "components/stat.tsx",
-      "line": 181,
+      "line": 325,
       "root": {
         "utility:stagger-children": ["stagger-children"],
         "utility:stat-grid": ["stat-grid"]
@@ -16229,10 +16360,75 @@
         "motion": ["utility:stagger-children"]
       }
     },
+    "StatList": {
+      "kind": "component",
+      "file": "components/stat.tsx",
+      "line": 301,
+      "root": {
+        "display": ["flex"],
+        "flex-direction": ["flex-col"],
+        "gap": ["gap-050"],
+        "min-w": ["min-w-0"]
+      },
+      "props": {},
+      "derived": {},
+      "sets": {
+        "layout": ["display", "flex-direction", "min-w"],
+        "spacing": ["gap"]
+      }
+    },
+    "StatRow": {
+      "kind": "component",
+      "file": "components/stat.tsx",
+      "line": 193,
+      "root": {
+        "bg-color": ["bg-surface-raised"],
+        "border-color": ["border-default"],
+        "border-w": ["border"],
+        "display": ["flex"],
+        "min-w": ["min-w-0"],
+        "rounded": ["rounded-medium"]
+      },
+      "props": {
+        "link": {
+          "align-items": {
+            "unset": ["items-center"]
+          },
+          "display": {
+            "unset": ["flex"]
+          },
+          "flex": {
+            "unset": ["flex-1"]
+          },
+          "gap": {
+            "unset": ["gap-150"]
+          },
+          "justify-content": {
+            "unset": ["justify-between"]
+          },
+          "min-w": {
+            "unset": ["min-w-0"]
+          },
+          "px": {
+            "unset": ["px-150"]
+          },
+          "py": {
+            "unset": ["py-100"]
+          }
+        }
+      },
+      "derived": {},
+      "sets": {
+        "layout": ["align-items", "display", "flex", "justify-content", "min-w"],
+        "spacing": ["gap", "px", "py"],
+        "color": ["bg-color", "border-color"],
+        "shape": ["border-w", "rounded"]
+      }
+    },
     "StatTile": {
       "kind": "component",
       "file": "components/stat.tsx",
-      "line": 84,
+      "line": 85,
       "root": {
         "bg-color": ["bg-surface-current"],
         "display": ["flex"],
@@ -16497,7 +16693,7 @@
         },
         "rowHeader": {
           "font-weight": {
-            "true": ["font-regular"]
+            "true": ["font-medium"]
           }
         },
         "wrap": {
@@ -16557,7 +16753,7 @@
     "Table.Detail": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1486,
+      "line": 1509,
       "root": {
         "px": ["px-200"],
         "py": ["py-150"],
@@ -16573,7 +16769,7 @@
     "Table.Disclosure": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1429,
+      "line": 1450,
       "root": {
         "h": ["h-row"],
         "max-w": ["max-w-0", "max-w-none"],
@@ -16628,7 +16824,7 @@
         },
         "rowHeader": {
           "font-weight": {
-            "true": ["font-regular"]
+            "true": ["font-medium"]
           }
         },
         "wrap": {
@@ -16688,7 +16884,7 @@
     "Table.Group": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1228,
+      "line": 1231,
       "root": {
         "border-color": ["border-default"],
         "border-w-t": ["border-t"]
@@ -16703,7 +16899,7 @@
     "Table.Handle": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1513,
+      "line": 1536,
       "root": {
         "align-items": ["items-center"],
         "bg-color": ["hover:bg-neutral-subtle-hovered"],
@@ -16873,7 +17069,7 @@
     "Table.Id": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1065,
+      "line": 1068,
       "root": {
         "h": ["h-row"],
         "max-w": ["max-w-0", "max-w-none"],
@@ -16928,7 +17124,7 @@
         },
         "rowHeader": {
           "font-weight": {
-            "true": ["font-regular"]
+            "true": ["font-medium"]
           }
         },
         "wrap": {
@@ -16988,7 +17184,7 @@
     "Table.List": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1579,
+      "line": 1602,
       "root": {
         "align-items": ["items-center"],
         "display": ["flex"],
@@ -17028,7 +17224,7 @@
     "Table.Name": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1751,
+      "line": 1774,
       "root": {
         "align-items": ["items-center"],
         "display": ["flex"],
@@ -17046,7 +17242,7 @@
     "Table.Row": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 938,
+      "line": 941,
       "root": {
         "border-color": ["border-default"],
         "border-w-b": ["border-b", "last:border-b-0"],
@@ -17081,7 +17277,7 @@
     "Table.Selection": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1145,
+      "line": 1148,
       "root": {},
       "props": {
         "header": {
@@ -17103,7 +17299,7 @@
     "Table.Tree": {
       "kind": "component",
       "file": "components/table.tsx",
-      "line": 1380,
+      "line": 1393,
       "root": {
         "h": ["h-row"],
         "max-w": ["max-w-0", "max-w-none"],
@@ -17158,7 +17354,7 @@
         },
         "rowHeader": {
           "font-weight": {
-            "true": ["font-regular"]
+            "true": ["font-medium"]
           }
         },
         "wrap": {
@@ -17421,6 +17617,15 @@
         "motion": ["duration", "ease", "transition"]
       }
     },
+    "Tally": {
+      "kind": "component",
+      "file": "components/tally.tsx",
+      "line": 69,
+      "root": {},
+      "props": {},
+      "derived": {},
+      "sets": {}
+    },
     "TaskRow": {
       "kind": "component",
       "file": "patterns/task-row.tsx",
@@ -17551,7 +17756,7 @@
     "TextLink": {
       "kind": "component",
       "file": "components/text-link.tsx",
-      "line": 45,
+      "line": 52,
       "root": {
         "content": ["data-in-text:before:content-none"],
         "duration": ["duration-fast"],
@@ -17559,7 +17764,6 @@
         "outline-style": ["outline-none"],
         "position": ["relative"],
         "rounded": ["rounded-xsmall"],
-        "text-color": ["text-brand"],
         "text-decoration": ["data-in-text:underline", "hover:underline"],
         "transition": ["transition-colors"],
         "underline-offset": ["underline-offset-2"],
@@ -17571,6 +17775,15 @@
           "font-family": {
             "medium": ["font-body"],
             "small": ["font-body-small"]
+          }
+        },
+        "tone": {
+          "text-color": {
+            "!neutral": ["text-brand"],
+            "neutral": ["text-default"]
+          },
+          "text-decoration": {
+            "neutral": ["focus-visible:underline"]
           }
         },
         "weight": {
@@ -17651,6 +17864,33 @@
         ],
         "motion": ["duration", "ease", "transition"]
       }
+    },
+    "TileMap": {
+      "kind": "component",
+      "file": "patterns/tile-map.tsx",
+      "line": 250,
+      "root": {},
+      "props": {},
+      "derived": {},
+      "sets": {}
+    },
+    "TileMap.Key": {
+      "kind": "component",
+      "file": "patterns/tile-map.tsx",
+      "line": 387,
+      "root": {},
+      "props": {},
+      "derived": {},
+      "sets": {}
+    },
+    "TileMapKey": {
+      "kind": "component",
+      "file": "patterns/tile-map.tsx",
+      "line": 387,
+      "root": {},
+      "props": {},
+      "derived": {},
+      "sets": {}
     },
     "TimeField": {
       "kind": "component",
@@ -18439,6 +18679,43 @@
       "props": {},
       "derived": {},
       "sets": {}
+    },
+    "Trace": {
+      "kind": "component",
+      "file": "patterns/trace.tsx",
+      "line": 261,
+      "root": {},
+      "props": {},
+      "derived": {},
+      "sets": {}
+    },
+    "Tray": {
+      "kind": "component",
+      "file": "components/tray.tsx",
+      "line": 64,
+      "root": {
+        "display": ["flex"],
+        "flex-direction": ["flex-col"],
+        "gap": ["gap-075"],
+        "min-w": ["min-w-0"],
+        "p": ["p-075"],
+        "rounded": ["rounded-xlarge"]
+      },
+      "props": {
+        "tone": {
+          "bg-color": {
+            "!danger": ["bg-surface-sunken"],
+            "danger": ["bg-danger-bold"]
+          }
+        }
+      },
+      "derived": {},
+      "sets": {
+        "layout": ["display", "flex-direction", "min-w"],
+        "spacing": ["gap", "p"],
+        "color": ["bg-color"],
+        "shape": ["rounded"]
+      }
     },
     "Tree": {
       "kind": "component",

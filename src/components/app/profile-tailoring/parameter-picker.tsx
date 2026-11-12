@@ -1,6 +1,7 @@
 import { useConfirmation, discardChanges } from "@/components/app/confirmation";
 import { useFormFeedback, type FormIssue } from "@/components/app/form-feedback";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
+import { CYBER_RESILIENCY_FRAMEWORK, useFramework, useFrameworkItems } from "@/lib/frameworks";
 import type { ParameterOverride, TailoringDecision } from "@/lib/program-wizard";
 import {
   previewProgramTailoring,
@@ -8,12 +9,35 @@ import {
   type WizardParameterPreview,
 } from "@/lib/program-wizard-reference";
 import {
+  RESILIENCY_KINDS,
+  RESILIENCY_PARAMETERS,
+  resiliencyParameter,
+  resiliencyVocabulary,
+  vocabularyValues,
+  type ResiliencyList,
+  type ResiliencyVocabulary,
+} from "@/lib/resiliency-choice";
+import {
   Alert,
+  AlertAction,
   AlertDescription,
   AlertTitle,
   Button,
   Checkbox,
   CheckboxGroup,
+  Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxCollection,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxGroup,
+  ComboboxItem,
+  ComboboxLabel,
+  ComboboxList,
+  ComboboxSeparator,
+  ComboboxValue,
   Dialog,
   DialogBody,
   DialogClose,
@@ -41,14 +65,24 @@ import {
   Prose,
   SearchField,
   Section,
+  Skeleton,
   Stack,
   Text,
   VisuallyHidden,
   WorkPane,
+  useComboboxAnchor,
   type WorkPaneView,
 } from "@ledger/design-system";
 import { AlertCircle } from "lucide-react";
-import { type ComponentProps, useEffect, useId, useRef, useState, type RefObject } from "react";
+import {
+  type ComponentProps,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 import { ChoiceField, TextField } from "../fields";
 import { parameterName } from "./names";
 import { focusAfterConfirmation, showOpenRow } from "./reveal-detail";
@@ -61,6 +95,54 @@ const originLabel: Record<WizardParameterPreview["origin"], string> = {
   override: "Override in this draft",
   unset: "No recorded value",
 };
+
+/**
+ * What a parameter's values are chosen from when a reference vocabulary names them: SA-24's five
+ * parameters name items of the cyber resiliency framework. `undefined` for every other parameter,
+ * and for these five while the framework's reference data is not loaded: the values are then typed.
+ */
+type Offer =
+  | { state: "loading" }
+  | { state: "failed"; retrying: boolean; retry: () => void }
+  | {
+      state: "ready";
+      vocabulary: ResiliencyVocabulary;
+      /** The framework and where it prints the list, when the framework's own record could be read. */
+      source: string | undefined;
+    };
+
+/**
+ * The cyber resiliency vocabulary, read once as the dialog opens on a set that holds one of
+ * SA-24's parameters, and what each parameter is offered from it.
+ */
+function useOffers(enabled: boolean) {
+  const items = useFrameworkItems(CYBER_RESILIENCY_FRAMEWORK, { kinds: RESILIENCY_KINDS, enabled });
+  const framework = useFramework(CYBER_RESILIENCY_FRAMEWORK, { enabled });
+  const title = framework.data?.title;
+  // One object a parameter for as long as the read stands: a list drawn from it keeps its place
+  // while the reader picks.
+  const ready = useMemo(() => {
+    const offers = new Map<string, Offer>();
+    for (const parameter of RESILIENCY_PARAMETERS) {
+      const vocabulary = resiliencyVocabulary(parameter.sourceId, items.data ?? []);
+      if (vocabulary)
+        offers.set(parameter.sourceId, {
+          state: "ready",
+          vocabulary,
+          source: title ? `${title} · ${vocabulary.printedIn.join(", ")}` : undefined,
+        });
+    }
+    return offers;
+  }, [items.data, title]);
+  return (parameterSourceId: string): Offer | undefined => {
+    if (!enabled || !resiliencyParameter(parameterSourceId)) return undefined;
+    // A refresh that fails keeps the vocabulary already read.
+    if (!items.data && items.error)
+      return { state: "failed", retrying: items.isFetching, retry: () => void items.refetch() };
+    if (!items.data || framework.isPending) return { state: "loading" };
+    return ready.get(parameterSourceId);
+  };
+}
 
 /** Set values for a parameter used by the effective control set, with the source's choices and guidance beside it. */
 export function ParameterPicker({
@@ -115,6 +197,12 @@ export function ParameterPicker({
       )
     : preview.parameters;
   const parameter = preview.parameters.find((item) => item.parameter.id === selected);
+  const offerFor = useOffers(
+    open &&
+      !readOnly &&
+      preview.parameters.some((item) => resiliencyParameter(item.parameter.source_id)),
+  );
+  const offer = parameter ? offerFor(parameter.parameter.source_id) : undefined;
   /** Chooses a parameter, once an unrecorded override is let go; false keeps the reader on it. */
   async function select(parameterId: string) {
     if (parameterId === selected) return true;
@@ -250,6 +338,7 @@ export function ParameterPicker({
                     baseResolutionId={baseResolutionId}
                     onDirty={setDirty}
                     headingRef={headingRef}
+                    offer={offer}
                   />
                 ) : undefined
               }
@@ -275,7 +364,13 @@ export function ParameterPicker({
               variant="primary"
               type="submit"
               form={formId}
-              disabledReason={parameter ? undefined : "Choose a parameter first."}
+              disabledReason={
+                !parameter
+                  ? "Choose a parameter first."
+                  : offer?.state === "loading"
+                    ? "The parameter's choices are loading."
+                    : undefined
+              }
             >
               Set parameter values
             </Button>
@@ -289,16 +384,122 @@ export function ParameterPicker({
 }
 
 type ParameterField = "values" | "rationale";
-/** How the values are entered: a Select for one literal choice, boxes for several, else lines of text. */
+/**
+ * How the values are entered: a Select for one literal choice, several from a list for more (boxes,
+ * or a searched list under headings when the choices come in groups), else lines of text.
+ */
 type EntryMode = "one" | "many" | "text";
 
-function entryMode(item: WizardParameterPreview): EntryMode {
+function entryMode(
+  item: WizardParameterPreview,
+  vocabulary: ResiliencyVocabulary | undefined,
+): EntryMode {
+  // A vocabulary's titles are chosen as a source's choices are, several at once. A value that
+  // names none of them was typed, and the values stay text.
+  if (vocabulary) return vocabularyValues(vocabulary, item.values) ? "many" : "text";
   const { choices, parameter, values } = item;
   // A choice with an embedded parameter or markup is not a literal the reader can pick as it stands.
   const literal = choices.length > 0 && !choices.some((choice) => /\{\{|<[^>]+>/.test(choice));
   if (!literal || !parameter.has_selection || values.some((value) => !choices.includes(value)))
     return "text";
   return (parameter.selection_count ?? "one") === "one" ? "one" : "many";
+}
+
+/** The words a searched list says about each of SA-24's lists. */
+const listWords: Record<ResiliencyList, { add: string; none: string }> = {
+  goals: { add: "Add a goal", none: "No goals found." },
+  objectives: { add: "Add an objective", none: "No objectives found." },
+  techniques: { add: "Add a technique", none: "No techniques found." },
+  approaches: { add: "Add an approach", none: "No approaches found." },
+  designPrinciples: { add: "Add a design principle", none: "No design principles found." },
+};
+
+/**
+ * Several choices that come under headings, in a searched list: one line a choice, chosen ones as
+ * chips. Typing finds a choice by its own words or its heading's, so a technique's name lists its
+ * approaches.
+ */
+function GroupedChoices({
+  label,
+  groups,
+  value,
+  onChange,
+  words,
+  description,
+  error,
+  controlRef,
+}: {
+  label: string;
+  groups: ResiliencyVocabulary["groups"];
+  value: string[];
+  onChange: (next: string[]) => void;
+  words: { add: string; none: string };
+  description?: string | undefined;
+  error?: string | undefined;
+  /** The input, as `useFormFeedback().ref(field)` registers it: where an error sends focus. */
+  controlRef?: ((node: HTMLElement | null) => void) | undefined;
+}) {
+  const anchor = useComboboxAnchor();
+  const items = useMemo(
+    () =>
+      groups.map((group) => ({
+        label: group.label,
+        items: group.options.map((option) => option.title),
+      })),
+    [groups],
+  );
+  const headings = useMemo(
+    () =>
+      new Map(
+        groups.flatMap((group) => group.options.map((option) => [option.title, group.label])),
+      ),
+    [groups],
+  );
+  return (
+    <Field invalid={error ? true : undefined} required>
+      <FieldLabel>{label}</FieldLabel>
+      <Combobox<string, true>
+        items={items}
+        multiple
+        value={value}
+        onValueChange={onChange}
+        filter={(choice, query) =>
+          `${choice} ${headings.get(choice) ?? ""}`
+            .toLocaleLowerCase()
+            .includes(query.trim().toLocaleLowerCase())
+        }
+      >
+        <ComboboxChips ref={anchor}>
+          <ComboboxValue>
+            {(chosen: string[]) =>
+              chosen.map((choice) => <ComboboxChip key={choice}>{choice}</ComboboxChip>)
+            }
+          </ComboboxValue>
+          <ComboboxChipsInput ref={controlRef} placeholder={words.add} />
+        </ComboboxChips>
+        <ComboboxContent anchor={anchor}>
+          <ComboboxEmpty>{words.none}</ComboboxEmpty>
+          <ComboboxList>
+            {(group: (typeof items)[number], index: number) => (
+              <ComboboxGroup key={group.label} items={group.items}>
+                {index > 0 && <ComboboxSeparator />}
+                <ComboboxLabel>{group.label}</ComboboxLabel>
+                <ComboboxCollection>
+                  {(choice: string) => (
+                    <ComboboxItem key={choice} value={choice}>
+                      {choice}
+                    </ComboboxItem>
+                  )}
+                </ComboboxCollection>
+              </ComboboxGroup>
+            )}
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
+      {description ? <FieldDescription>{description}</FieldDescription> : null}
+      {error ? <FieldError>{error}</FieldError> : null}
+    </Field>
+  );
 }
 
 function ParameterEditor({
@@ -314,6 +515,7 @@ function ParameterEditor({
   baseResolutionId,
   onDirty,
   headingRef,
+  offer,
 }: {
   formId: string;
   item: WizardParameterPreview;
@@ -327,9 +529,21 @@ function ParameterEditor({
   baseResolutionId: string;
   onDirty: (dirty: boolean) => void;
   headingRef: RefObject<HTMLHeadingElement | null>;
+  /** The reference vocabulary the values are chosen from, for a parameter that has one. */
+  offer: Offer | undefined;
 }) {
   const existing = parameters.find((override) => override.parameterId === item.parameter.id);
-  const mode = entryMode(item);
+  const vocabulary = offer?.state === "ready" ? offer.vocabulary : undefined;
+  const source = offer?.state === "ready" ? offer.source : undefined;
+  // While the vocabulary is on its way the values field keeps its place: what it is drawn as
+  // depends on the answer.
+  const waiting = offer?.state === "loading";
+  const mode = entryMode(item, vocabulary);
+  // What is picked from: the vocabulary's titles in the publication's order, else the source's choices.
+  const choices = useMemo(
+    () => vocabulary?.options.map((option) => option.title) ?? item.choices,
+    [vocabulary, item.choices],
+  );
   const [values, setValues] = useState<string[]>(item.values);
   const [text, setText] = useState(item.values.join("\n"));
   const [rationale, setRationale] = useState(existing?.rationale ?? "");
@@ -345,13 +559,15 @@ function ParameterEditor({
   }, [recorded, item.values]);
   const parameter = item.parameter;
   const control = data.controls.find((control) => control.id === parameter.control_id);
+  // A vocabulary's titles as it spells them, whatever case they were recorded in.
+  const chosen = vocabulary ? (vocabularyValues(vocabulary, values) ?? []) : values;
   const entered =
     mode === "text"
       ? text
           .split("\n")
           .map((value) => value.trim())
           .filter(Boolean)
-      : values;
+      : chosen;
   const valuesMessage =
     mode === "one"
       ? "Choose a value for this parameter."
@@ -373,8 +589,13 @@ function ParameterEditor({
     setConflicts([]);
     onDirty(true);
   };
+  /** Keeps the source's or the publication's order, whatever order the choices were picked in. */
+  const pick = (next: string[]) => {
+    setValues(choices.filter((choice) => next.includes(choice)));
+    changed();
+  };
   function record() {
-    if (readOnly) return;
+    if (readOnly || waiting) return;
     setRecorded(null);
     if (!feedback.report(issues)) return;
     const next = [
@@ -390,6 +611,10 @@ function ParameterEditor({
       return;
     }
     onChange(next);
+    // Both controls hold what was recorded: values typed as a list's own titles are picked from
+    // the list from here on.
+    setValues(entered);
+    setText(entered.join("\n"));
     setConflicts([]);
     setRecorded("recorded");
     onDirty(false);
@@ -463,8 +688,34 @@ function ParameterEditor({
             {readOnly ? null : (
               <Section title="Override">
                 <Stack space="space.150">
+                  {offer?.state === "failed" ? (
+                    <Alert variant="destructive" role="alert">
+                      <AlertCircle aria-hidden />
+                      <AlertTitle>The choices could not be loaded</AlertTitle>
+                      <AlertDescription>Type the values, or try again.</AlertDescription>
+                      <AlertAction>
+                        <Button
+                          size="small"
+                          isLoading={offer.retrying}
+                          onClick={() => {
+                            // What was typed meanwhile is picked once the choices arrive, where
+                            // it names them.
+                            setValues(entered);
+                            offer.retry();
+                          }}
+                        >
+                          Try again
+                        </Button>
+                      </AlertAction>
+                    </Alert>
+                  ) : null}
                   <ErrorSummary issues={feedback.summary} focusKey={feedback.attempts} />
-                  {mode === "one" ? (
+                  {waiting ? (
+                    <div aria-busy="true">
+                      <Skeleton shape="block" />
+                      <VisuallyHidden role="status">Loading the choices</VisuallyHidden>
+                    </div>
+                  ) : mode === "one" ? (
                     <ChoiceField
                       label="Parameter value"
                       value={values[0] ?? null}
@@ -478,19 +729,29 @@ function ParameterEditor({
                       controlRef={feedback.ref("values")}
                       description="One of the source's choices."
                     />
+                  ) : mode === "many" && vocabulary?.groups.length ? (
+                    <GroupedChoices
+                      label="Parameter values"
+                      groups={vocabulary.groups}
+                      value={chosen}
+                      onChange={pick}
+                      words={listWords[vocabulary.list]}
+                      description={source}
+                      error={errorFor("values")}
+                      controlRef={feedback.ref("values")}
+                    />
                   ) : mode === "many" ? (
                     <Field invalid={errorFor("values") ? true : undefined} required>
-                      <CheckboxGroup
-                        value={values}
-                        onValueChange={(next) => {
-                          // Keep the source's order, whatever order the boxes were ticked in.
-                          setValues(item.choices.filter((choice) => next.includes(choice)));
-                          changed();
-                        }}
-                      >
+                      <CheckboxGroup value={chosen} onValueChange={pick}>
                         <FieldLegend variant="label">Parameter values</FieldLegend>
-                        <FieldDescription>{choiceHeading}.</FieldDescription>
-                        {item.choices.map((choice, index) => (
+                        {vocabulary ? (
+                          source ? (
+                            <FieldDescription>{source}</FieldDescription>
+                          ) : null
+                        ) : (
+                          <FieldDescription>{choiceHeading}.</FieldDescription>
+                        )}
+                        {choices.map((choice, index) => (
                           <Field key={choice} orientation="horizontal">
                             {/* The first box is where an error sends focus. */}
                             <Checkbox

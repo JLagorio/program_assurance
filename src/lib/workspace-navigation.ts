@@ -102,8 +102,11 @@ export function navigationTargetFromLocation(
   const program = pathname.match(/^\/programs\/([\w-]+)$/);
   const requirement = pathname.match(/^\/programs\/[\w-]+\/requirements\/([\w-]+)$/);
   const workbook = pathname.match(/^\/programs\/([\w-]+)\/(?:workbook|sctm)$/);
-  const record = pathname.match(/^\/(risks|findings)\/([\w-]+)$/);
-  const control = pathname.match(/^\/records\/controls\/([\w-]+)$/);
+  // A risk's record is under the register; its old address redirects there.
+  const record = pathname.match(/^\/(?:register\/)?(risks|findings)\/([\w-]+)$/);
+  // A control's record is the catalog's; its schema record names the same control.
+  const control = pathname.match(/^\/(?:catalog|records)\/controls\/([\w-]+)$/);
+  const evidence = pathname.match(/^\/evidence\/([\w-]+)$/);
   // savedView is recorded by its actual onApply, never by the unfiltered destination route.
   if (search["savedView"]) return null;
   if (program) candidate = { kind: "program", recordId: program[1] };
@@ -122,6 +125,7 @@ export function navigationTargetFromLocation(
   else if (record)
     candidate = { kind: record[1] === "risks" ? "risk" : "finding", recordId: record[2] };
   else if (control) candidate = { kind: "control", recordId: control[1] };
+  else if (evidence) candidate = { kind: "evidence", recordId: evidence[1] };
   else if (pathname === "/evidence" && search["artifact"])
     candidate = { kind: "evidence", recordId: search["artifact"] };
   const parsed = navigationTargetSchema.safeParse(candidate);

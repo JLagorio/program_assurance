@@ -18,6 +18,9 @@ The catalog is organised by family. This page is organised by need: find the row
 | A label and value on one baseline, above the fold                                          | **Fact**, and **Fact.Group** for the four to six facts under a title.                                                                                                                                                                 | KeyValue, which is a rail row.                                                                |
 | A label and value in a rail, one per line                                                  | **KeyValue** in a **KeyValue.Group**, which shares the label width and puts the label over the value when narrow; **Inspector** for a folding group of them.                                                                          | A hand-written definition list.                                                               |
 | A headline number                                                                          | **Stat**; **Stat.Tile** in a **Stat.Grid** when framed.                                                                                                                                                                               | A Heading holding a number.                                                                   |
+| One count broken into the parts a reader acts on                                           | **Stat.List** of **Stat.Row**s, a line a part; in a **Tray** (experimental) when the heading holds the whole ("20 monitored devices").                                                                                                |
+| A few cards that one number counts, as one group                                           | **Tray** (experimental): a sunken surface under a counted heading, holding Cards or a Stat.List.                                                                                                                                      |
+| Where work stands along a few named phases                                                 | **PhaseBar** (experimental): one segmented bar, a segment a phase. A path the reader moves along is a **Stepper**.                                                                                                                    |
 | A value that is missing                                                                    | **Absent**, the muted dash, which a screen reader hears as "Not recorded"; `label` says more where the context knows more ("No due date").                                                                                            | An empty string, a hyphen typed by hand, or "N/A".                                            |
 | A name or value that stays on one line in a row, a rail or a list, readable in full        | **Truncate**, or Text `maxLines`; KeyValue does it itself. **useIsTruncated** when you cut the text yourself.                                                                                                                         | Truncating a sentence, a heading, an error or a notification, which wrap.                     |
 | A mark that stands for something with no word beside it: a boundary, a met check           | **Icon** with a `label`; without one when it sits beside its word.                                                                                                                                                                    | A bare glyph, or an Icon that acts, which is an IconButton.                                   |
@@ -39,6 +42,10 @@ The catalog is organised by family. This page is organised by need: find the row
 | A completion fraction                                                                      | **Progress**; **ProgressStacked** for parts of a whole.                                                                                                                                                                               | A Stat with a percentage, unless it is the headline.                                          |
 | Numbers drawn                                                                              | **Chart** and one of its kinds: Bar, Line, Area, Donut, Scatter, Heatmap, Treemap, Sparkline. **Chart.Frame** holds the data, size and format once, for a bare part inside.                                                           | A hand-drawn SVG, or the same props on the Frame and the part.                                |
 | A chart's numbers as a table                                                               | **Chart.Frame** around the part: its Table toggle and its CSV lay out what the part draws. Name the columns with `xLabel`, `columns`, Scatter `zLabel` and Treemap `levels`. A colour-scale Heatmap in a Frame also offers Values.    | A separate Table beside the chart, or a `title` on hover.                                     |
+| Every item of a large set at once, by group, coloured by its state                         | **TileMap** (experimental): `grid`, a row a group, `skyline`, one street, or `strip`, the whole set in one run for a card; **TileMap.Key** for what each colour means. A table of the same items stays on the page.                   | A Heatmap, whose rows and columns are both scales, or a table of a thousand rows to scan.     |
+| A record's chain, several hops at once: what it answers, what proves it, what was found    | **Trace** (experimental): the stages as columns of records joined by wires, read outward from one record. A stage with nothing in it says so. A collection the reader works through stays a table.                                    | A table per hop, or a network graph: a trace is a chain.                                      |
+| A whole structure of levels: what a few goals rest on, down to the many at the bottom      | **Ladder** (experimental): levels of nodes joined by wires, each a name, a figure and a tally, the last level one line a node. Choosing a node keeps its path. A table of the same records stays beside it.                           | A table per hop, or a network graph: a trace is a chain.                                      |
+| How many of a group's items are in each state, in a map's colours                          | **Tally** (experimental): one thin bar, a segment a state, the rest the empty track. The number stands beside it. A task's progress is a **Progress**.                                                                                | A table per hop, or a network graph: a trace is a chain.                                      |
 
 ## Work with cells and proposed changes
 
@@ -224,16 +231,16 @@ These have no part yet. A screen that needs one says so in writing, with a recom
 
 ## Shared work interactions
 
-| Need | Use |
-| --- | --- |
-| Pointer and keyboard actions on a target | ContextMenu with the existing DropdownMenu item parts |
-| Named user-created views | SavedViewPicker, SavedViewManager and SavedViewEditor |
-| A replyable discussion | ReviewThread over Composer and Timeline |
-| A quoted source and backlinks | Citation |
-| Find within a surface | FindBar, with host-owned match calculation |
-| Mark literal terms in an excerpt | MatchText |
-| Actions beside a captured range | SelectionActions |
-| Ordered cards, tabs or rows | Reorder and its handle/move parts |
+| Need                                        | Use                                                   |
+| ------------------------------------------- | ----------------------------------------------------- |
+| Pointer and keyboard actions on a target    | ContextMenu with the existing DropdownMenu item parts |
+| Named user-created views                    | SavedViewPicker, SavedViewManager and SavedViewEditor |
+| A replyable discussion                      | ReviewThread over Composer and Timeline               |
+| A quoted source and backlinks               | Citation                                              |
+| Find within a surface                       | FindBar, with host-owned match calculation            |
+| Mark literal terms in an excerpt            | MatchText                                             |
+| Actions beside a captured range             | SelectionActions                                      |
+| Ordered cards, tabs or rows                 | Reorder and its handle/move parts                     |
 | Range selection across a visible collection | useCollectionSelection with native selection controls |
 
 See Guidance/Interaction states for selection, focus, edit and density contracts.

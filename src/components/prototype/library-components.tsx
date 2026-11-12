@@ -47,7 +47,7 @@ import {
 import { ProductCollection } from "./product-collection";
 import { ProductRecordDialog } from "./product-record-dialog";
 import { RetainedTabPanels } from "./program-shared";
-import { recordDestination, RecordLink, useDisplayedRecords, useEndOnHide } from "./record-preview";
+import { RecordLink, useDisplayedRecords, useEndOnHide, useOpenRecord } from "./record-preview";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { RecordTrail, TrailLink } from "./record-trail";
 import {
@@ -516,7 +516,7 @@ function ComponentRevision({
   tab: ComponentTab;
   onTab: (tab: ComponentTab) => void;
 }) {
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   const locale = useLedgerLocale();
   const versionFocus = useVersionFocus(versionChoice);
   const components = useRows("defined_components", {
@@ -594,7 +594,11 @@ function ComponentRevision({
           priority: 0,
           minWidth: 220,
           cell: (row) => (
-            <RecordLink table="defined_component_implementations" record={row}>
+            <RecordLink
+              table="defined_component_implementations"
+              record={row}
+              onPreview={() => setClaimPreview(row)}
+            >
               {row.title}
             </RecordLink>
           ),
@@ -674,7 +678,11 @@ function ComponentRevision({
           priority: 0,
           minWidth: 200,
           cell: (row) => (
-            <RecordLink table="defined_components" record={row}>
+            <RecordLink
+              table="defined_components"
+              record={row}
+              onPreview={() => setStructurePreview(row)}
+            >
               {row.name}
             </RecordLink>
           ),
@@ -740,7 +748,7 @@ function ComponentRevision({
           priority: 0,
           minWidth: 220,
           cell: (row) => (
-            <RecordLink table="system_components" record={row}>
+            <RecordLink table="system_components" record={row} onPreview={() => setUsePreview(row)}>
               {row.name}
             </RecordLink>
           ),
@@ -957,7 +965,9 @@ function ComponentRevision({
                     table={table}
                     queries={[implementations, controls, components]}
                     onRowClick={(claim) =>
-                      void navigate(recordDestination("defined_component_implementations", claim))
+                      openRecord("defined_component_implementations", claim, () =>
+                        setClaimPreview(claim),
+                      )
                     }
                     empty={{
                       illustration: "shield",
@@ -986,7 +996,7 @@ function ComponentRevision({
                     queries={[components]}
                     fill
                     onRowClick={(row) =>
-                      void navigate(recordDestination("defined_components", row))
+                      openRecord("defined_components", row, () => setStructurePreview(row))
                     }
                     empty={{
                       illustration: "tree",
@@ -1020,7 +1030,9 @@ function ComponentRevision({
                     table={usesTable}
                     queries={[components, uses, systems, programs]}
                     fill
-                    onRowClick={(row) => void navigate(recordDestination("system_components", row))}
+                    onRowClick={(row) =>
+                      openRecord("system_components", row, () => setUsePreview(row))
+                    }
                     empty={{
                       illustration: "tree",
                       title: "No program uses yet",
@@ -1199,7 +1211,7 @@ function ComponentTraceability({
   kind: "Requirements" | "Evidence";
   uses: Row<"system_components">[];
 }) {
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   // Each read asks for the rows the one before it names: these uses' contributions, then only the
   // requirements or the evidence linked to them.
   const useIds = useMemo(() => uses.map((use) => use.id), [uses]);
@@ -1350,11 +1362,10 @@ function ComponentTraceability({
         queries={[contributions, requirementLinks, requirements, engineering]}
         fill
         onRowClick={(row) =>
-          void navigate(
-            recordDestination("engineering_requirements", {
-              id: row.requirementId,
-              program_id: row.program_id,
-            }),
+          openRecord(
+            "engineering_requirements",
+            { id: row.requirementId, program_id: row.program_id },
+            () => setRequirementPreview(row),
           )
         }
         empty={{
@@ -1400,9 +1411,7 @@ function ComponentTraceability({
         table={evidenceTable}
         queries={[contributions, evidenceLinks, evidence, artifacts]}
         fill
-        onRowClick={(row) =>
-          void navigate(recordDestination("evidence_artifacts", { id: row.artifact_id }))
-        }
+        onRowClick={(row) => openRecord("evidence_artifacts", { id: row.artifact_id })}
         empty={{
           illustration: "document",
           title: "No evidence traced yet",

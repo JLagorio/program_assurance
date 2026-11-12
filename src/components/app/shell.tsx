@@ -5,7 +5,11 @@ import {
 } from "./personal-navigation";
 import { WorkspaceActionsProvider } from "./workspace-actions";
 import { RecordSearch } from "./workspace-search";
-import { RecordPreviewProvider } from "@/components/prototype/record-preview";
+import {
+  RecordPreviewProvider,
+  type LinkedRecordRenderer,
+} from "@/components/prototype/record-preview";
+import { LinkedRecordPreview } from "@/components/prototype/linked-record-preview";
 import {
   createContext,
   useContext,
@@ -52,12 +56,12 @@ import {
   Bug,
   CircleHelp,
   ClipboardList,
-  Database,
   FileCheck2,
   FlaskConical,
   Gauge,
   Gavel,
   Inbox,
+  Layers,
   Library,
   ListChecks,
   LogOut,
@@ -96,6 +100,7 @@ const groups = [
     items: [
       { label: "Catalog", to: "/catalog", icon: FileCheck2 },
       { label: "Profiles", to: "/profiles", icon: ShieldCheck },
+      { label: "Overlays", to: "/overlays", icon: Layers },
       { label: "Components", to: "/library/components", icon: Library },
       { label: "Products", to: "/library/products", icon: Boxes },
       { label: "Requirements", to: "/library/requirements", icon: ListChecks },
@@ -103,12 +108,12 @@ const groups = [
   },
   {
     label: "System",
-    items: [
-      { label: "Suppliers", to: "/vendors", icon: Users },
-      { label: "Schema inspector", to: "/schema", icon: Database },
-    ],
+    items: [{ label: "Suppliers", to: "/vendors", icon: Users }],
   },
 ] as const;
+
+/** A record with no page of its own is previewed in the panel, as a collection's rows are. */
+const linkedPreview: LinkedRecordRenderer = (props) => <LinkedRecordPreview {...props} />;
 
 /** The address itself, or a page under it: `/programs` holds `/programs/…`, not `/programsx`. */
 const within = (pathname: string, to: string) => pathname === to || pathname.startsWith(`${to}/`);
@@ -257,7 +262,7 @@ function PrototypeLayout({ children }: { children: ReactNode }) {
         </Shell.SideNav.Footer>
         <Shell.SideNav.Splitter label="Resize side navigation" />
       </Shell.SideNav>
-      <RecordPreviewProvider>
+      <RecordPreviewProvider linked={linkedPreview}>
         <Shell.Main>{children}</Shell.Main>
       </RecordPreviewProvider>
       <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
@@ -265,7 +270,7 @@ function PrototypeLayout({ children }: { children: ReactNode }) {
           <DialogHeader>
             <DialogTitle>Help and shortcuts</DialogTitle>
             <DialogDescription>
-              Work in the prototype and inspect the same saved records in the schema inspector.
+              Find a record, move between screens and close what is open, from the keyboard.
             </DialogDescription>
           </DialogHeader>
           <DialogBody>
@@ -289,12 +294,6 @@ function PrototypeLayout({ children }: { children: ReactNode }) {
                 Create a program, define its systems and scope, then connect implementation,
                 assessment, evidence and remediation records.
               </Text>
-              {/* In its own row, so the Stack does not stretch it to the dialog's width. */}
-              <Inline>
-                <LinkButton render={<Link to="/schema" onClick={() => setHelpOpen(false)} />}>
-                  Open schema inspector
-                </LinkButton>
-              </Inline>
             </Stack>
           </DialogBody>
         </DialogContent>
@@ -322,6 +321,17 @@ function PrototypeLayout({ children }: { children: ReactNode }) {
               <KeyValue.Group layout="stacked">
                 <KeyValue label="Appearance">
                   <ModeSwitch showLabels />
+                </KeyValue>
+                {/* The stored records as the database holds them: a diagnostic view, off the
+                    product's navigation. A record's Actions menu opens its own schema record. */}
+                <KeyValue label="Diagnostics">
+                  <Inline>
+                    <LinkButton
+                      render={<Link to="/schema" onClick={() => setSettingsOpen(false)} />}
+                    >
+                      Open schema inspector
+                    </LinkButton>
+                  </Inline>
                 </KeyValue>
               </KeyValue.Group>
             </Stack>

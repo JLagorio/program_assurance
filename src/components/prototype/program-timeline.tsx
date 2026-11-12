@@ -5,18 +5,19 @@ import {
   DateTime,
   Inline,
   LinkButton,
+  PhaseBar,
   Progress,
   ProgressLabel,
   ProgressValue,
   Section,
   Stack,
   Text,
-  Timeline,
   useLedgerLocale,
+  type StepState,
 } from "@ledger/design-system";
 import { Check, CircleDashed, Clock3, Minus, TriangleAlert, X } from "lucide-react";
 import { lifecycleGateDate, programTimeline, type LifecycleGate } from "@/lib/program-timeline";
-import { lifecycleGateStatuses, statusTone } from "@/lib/status";
+import { lifecycleGateStatuses, statusLabel } from "@/lib/status";
 import { StatusBadge } from "@/components/app/status";
 import { EmptyMessage } from "./work-common";
 import { ProgramRecordDialog } from "./program-shared";
@@ -42,10 +43,18 @@ function gateTime(gate: LifecycleGate) {
   );
 }
 
+/** A gate's place on the bar: decided, where the work is now, ahead, or failed. */
+function gateState(status: string): StepState {
+  if (["completed", "passed", "waived"].includes(status)) return "done";
+  if (["blocked", "failed"].includes(status)) return "blocked";
+  if (["in_review", "in_progress", "at_risk"].includes(status)) return "current";
+  return "upcoming";
+}
+
 /**
- * One strip of gates across the Overview. The kit Timeline scrolls itself where it is narrower
- * than its stages; each stage keeps at least a rail's width (`itemWidth="rail"`), so its title and
- * date stay readable, and a cut title shows whole on hover and focus.
+ * One bar of gates across the Overview: each gate a segment in its state's colour, its name under
+ * it opening the gate. A gate that is under way, at risk or failed says its status before its
+ * day, since the segment's colour alone would not tell in review from at risk.
  */
 function GateRail({
   gates,
@@ -57,26 +66,30 @@ function GateRail({
   onSelect: (id: string) => void;
 }) {
   return (
-    <Stack space="space.050" className="min-w-0">
+    <Stack space="space.075" className="min-w-0">
       <Text size="small" color="color.text.subtle">
         {label}
       </Text>
-      <Timeline label={label} orientation="horizontal" align="start" size="large" itemWidth="rail">
-        {gates.map((gate) => (
-          <Timeline.Item
-            key={gate.id}
-            title={gate.title}
-            icon={gateIcon(gate.status)}
-            tone={statusTone(lifecycleGateStatuses, gate.status)}
-            time={gateTime(gate)}
-            meta={gate.sequence_number !== null ? `Step ${gate.sequence_number}` : undefined}
-            onSelect={() => onSelect(gate.id)}
-            footer={
-              <StatusBadge statuses={lifecycleGateStatuses} value={gate.status} size="xsmall" />
-            }
-          />
-        ))}
-      </Timeline>
+      <PhaseBar label={label}>
+        {gates.map((gate) => {
+          const state = gateState(gate.status);
+          const said = state === "current" || state === "blocked" || gate.status === "waived";
+          return (
+            <PhaseBar.Item
+              key={gate.id}
+              state={state}
+              label={gate.title}
+              meta={
+                <>
+                  {said ? `${statusLabel(lifecycleGateStatuses, gate.status)} · ` : null}
+                  {gateTime(gate)}
+                </>
+              }
+              onSelect={() => onSelect(gate.id)}
+            />
+          );
+        })}
+      </PhaseBar>
     </Stack>
   );
 }

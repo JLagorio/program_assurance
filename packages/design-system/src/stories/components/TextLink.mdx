@@ -47,6 +47,12 @@ Omitted size inherits surrounding text. `small` and `medium` set the body scale;
 
 <Canvas of={Stories.NewTab} />
 
+## A record's name
+
+`tone="neutral"` draws the words in `color.text` and underlines them under the pointer and on keyboard focus. Use it for a record's name in its own row or card, where the name is the row's identity and a column of blue would be louder than the status beside it. A link in a sentence, and any link whose words alone must say it is one, stays `brand`.
+
+<Canvas of={Stories.NeutralName} />
+
 ## Accessibility
 
 A real anchor retains Enter activation, copy-link and open-in-new-tab behavior. Space does not activate a link. Name the destination, such as “Full timeline”, rather than “Click here”. A link in prose carries its underline by itself; no class is needed. A `newTab` link's name ends with "(opens in a new tab)", so a screen reader hears where it will go before it goes; the icon is hidden.

@@ -51,9 +51,12 @@ async function check(title, primary, more = false) {
   await expect(header().getByRole("heading", { name: title, exact: true })).toHaveCount(1);
   await expect(chrome().getByRole("heading")).toHaveCount(0);
   await expect(chrome().getByRole("button", { name: /Edit|Complete|More/ })).toHaveCount(0);
+  // A procedure, its revision, a package version and a test run have no page of their own: the
+  // preview offers no fuller record, and nothing in it opens the schema inspector.
   await expect(
     chrome().getByRole("link", { name: "Open full record in new tab", exact: true }),
-  ).toBeVisible();
+  ).toHaveCount(0);
+  await expect(panel().locator('a[href^="/records/"]')).toHaveCount(0);
   await expect(header().getByRole("button", { name: primary, exact: true })).toBeVisible();
   await expect(header().getByRole("button")).toHaveCount(more ? 2 : 1);
   await expect

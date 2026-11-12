@@ -103,3 +103,29 @@ Their complete paths and SHA-256 hashes are in the manifest. No source module im
 ## Verification
 
 `node --test scripts/tests/demo-assurance.test.mjs scripts/tests/demo-workflow.test.mjs` checks actual archived-file/fixture hashes, generated table-column names, hierarchy ownership, complete requirement/contribution coverage, exact source selections, official NIST OSCAL 1.2.2 profile-schema validity, stable record IDs, exact source states, explicit same-program POA&M/risk joins, and absence of invented execution facts or source mutation. These are pure mapping checks. The separate import transaction check and committed import report establish what was actually written to the local database.
+
+## WS-X90 control baseline
+
+The import above reproduces WS-X90's saved 546-control selection as a draft profile for its SSP. It does not give the program a baseline: `PRG-1090` has no `program_reference_choices` row, so its Control baseline view has nothing to show. [A separate explicit step](../scripts/seed-demo-baseline.mjs) records the baseline as the layered stack the source describes.
+
+The source is `profiles[0]` of the archived [WS-X90 platform seed](../tests/fixtures/legacy-poc/src/data/wsx90-platform-seed.json): its `starting_selection`, its four `overlays` in order, and its `effective_control_ids`. The script reads the fixture from disk; application code never imports it. Controls are matched by code against the pinned catalog, and the starting selection must equal the published reference resolution of the NIST SP 800-53 Rev 5 High baseline.
+
+| Layer | Source overlay              | Decisions (add / remove) | Added | Reaffirmed | Removed | Controls |
+| ----: | --------------------------- | -----------------------: | ----: | ---------: | ------: | -------: |
+|     0 | NIST SP 800-53 Rev 5 High   |                          |       |            |         |      370 |
+|     1 | `OVL-CNSSI-1253-ALLOCATION` |                 201 / 17 |   201 |          0 |      17 |      554 |
+|     2 | `OVL-MISSION-ASSURANCE`     |                    3 / 5 |     0 |          3 |       5 |      549 |
+|     3 | `OVL-DEPLOYED-PLATFORM`     |                    3 / 0 |     1 |          2 |       0 |      550 |
+|     4 | `OVL-CUSTOMER-A`            |                    2 / 4 |     0 |          2 |       4 |      546 |
+
+Each overlay becomes a published `control_overlays` record in the target workspace: its code is the source `overlay_id`, its title the source `name`, its description the source `reason`. Each `adds` entry is an `include` decision and each `removes` entry an `exclude` decision, with the overlay's `reason` as the rationale. The source's per-control `tailoring_events` rationales are not copied. `apply_control_overlay` then authors one published layered profile per overlay, coded `PRG-1090/profiles/1/overlays/<n>`, on the layer beneath it. An add the layer beneath already selects is recorded as a reaffirmation in `profile_overlay_applications`, not as a rule. The CNSSI 1253 overlay is the source's nonauthoritative demo allocation; the records do not claim to implement CNSSI allocation rules.
+
+Before the program's `program_reference_choices` row is written, the final layer's selected controls are compared by code with the source `effective_control_ids`. Any difference, an unknown control code, a newly added control that is not active, or an overlay that changes nothing aborts the transaction.
+
+```sh
+npm run seed:demo-baseline -- --tenant UUID --account EMAIL            # read-only plan
+npm run seed:demo-baseline -- --tenant UUID --account EMAIL --check    # whole transaction, rolled back
+npm run seed:demo-baseline -- --tenant UUID --account EMAIL --apply    # commit
+```
+
+The step follows the importer's conventions: an explicit tenant and account, a read-only plan by default, and one transaction. It is idempotent. A repeat finds the overlays by code, the layers by profile code and the program's choice, and changes nothing. An overlay with the same code but different decisions, a draft overlay with the same code, a layer profile that is not that overlay on the layer beneath, or a program that already has a different baseline stops the run without overwriting anything. The overlays and layers are written outside the `demo_import_records` provenance tables.

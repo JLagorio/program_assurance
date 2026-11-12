@@ -8,9 +8,8 @@ import {
   defineColumns,
   type EmptyIllustrationKind,
 } from "@ledger/design-system";
-import { useNavigate } from "@tanstack/react-router";
 import type { TableName } from "@/lib/models";
-import { RecordLink, recordDestination, useDisplayedRecords } from "./record-preview";
+import { RecordLink, useDisplayedRecords, useOpenRecord } from "./record-preview";
 import { productCollectionNoun, productRecordNoun } from "@/lib/product-records";
 import { LevelIndicator, VocabularyValue } from "@/components/app/status";
 import {
@@ -137,9 +136,12 @@ export function AssessmentTable<T extends { id: string }>({
    */
   actionVariant?: "primary" | "secondary" | undefined;
 }) {
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   const [preview, setPreview] = useState<T | null>(null);
   const openPreview = onPreview ?? setPreview;
+  // The columns are built once: the name of a record with no page reaches the latest opener.
+  const openPreviewRef = useRef(openPreview);
+  openPreviewRef.current = openPreview;
   const byId = useMemo(() => new Map(rows.map((row) => [row.id, row])), [rows]);
   const byIdRef = useRef(byId);
   byIdRef.current = byId;
@@ -210,7 +212,12 @@ export function AssessmentTable<T extends { id: string }>({
               ...size,
               hideable: false,
               cell: (row) => (
-                <RecordLink table={model} record={raw(row)}>
+                // A record with no page is named by a button that opens its preview here.
+                <RecordLink
+                  table={model}
+                  record={raw(row)}
+                  onPreview={() => openPreviewRef.current(raw(row))}
+                >
                   {cell(row)}
                 </RecordLink>
               ),
@@ -327,7 +334,10 @@ export function AssessmentTable<T extends { id: string }>({
         }}
         onRowClick={
           model
-            ? (row) => void navigate(recordDestination(model, byId.get(row.id) ?? row))
+            ? (row) => {
+                const record = byId.get(row.id) ?? row;
+                openRecord(model, record, () => openPreview(record));
+              }
             : undefined
         }
         empty={{

@@ -24,12 +24,17 @@ import { StatusBadge, LevelIndicator } from "@/components/app/status";
 import { campaignStatuses, impactLevels } from "@/lib/status";
 import { type DataRecord } from "@/lib/records";
 import { productCreateLabel, productRecordNoun } from "@/lib/product-records";
-import { RecordPreviewActions, RecordPreviewPanel, useEndOnHide } from "./record-preview";
+import {
+  RecordLink,
+  RecordPreviewActions,
+  RecordPreviewPanel,
+  useEndOnHide,
+} from "./record-preview";
 import { AssessmentTable } from "./assessment-table";
 import type { AssessmentKind } from "./assessment-tabs";
 import { ProgramCollection } from "./program-shared";
 import { RelationName } from "./record-tools";
-import { DetailFacts, ModelForm, QueryState, SchemaLink, type FormTarget } from "./work-common";
+import { DetailFacts, ModelForm, QueryState, type FormTarget } from "./work-common";
 
 type AssessmentRecordKind = Exclude<AssessmentKind, "Scopes">;
 const tables: Record<AssessmentRecordKind, FormTarget["table"]> = {
@@ -214,9 +219,9 @@ export function AssessmentBrowser({
     ) : undefined;
   const planLink = (id: unknown) =>
     typeof id === "string" && id ? (
-      <SchemaLink table="assessment_plan_revisions" id={id}>
+      <RecordLink table="assessment_plan_revisions" record={{ id }}>
         {planOf(id)?.title ?? "Assessment plan revision"}
-      </SchemaLink>
+      </RecordLink>
     ) : null;
   const campaignLink = (id: unknown) =>
     typeof id === "string" && id ? (
@@ -493,13 +498,16 @@ export function AssessmentBrowser({
                 label: "Target",
                 value: (row) =>
                   row.target_control_part_id ? (
-                    <SchemaLink table="control_parts" id={row.target_control_part_id}>
+                    <RecordLink table="control_parts" record={{ id: row.target_control_part_id }}>
                       Control statement
-                    </SchemaLink>
+                    </RecordLink>
                   ) : row.requirement_revision_id ? (
-                    <SchemaLink table="requirement_revisions" id={row.requirement_revision_id}>
+                    <RecordLink
+                      table="requirement_revisions"
+                      record={{ id: row.requirement_revision_id }}
+                    >
                       Requirement revision
-                    </SchemaLink>
+                    </RecordLink>
                   ) : (
                     <Absent />
                   ),

@@ -2186,6 +2186,10 @@
       "target": "\"src/patterns/chart/heatmap\".HeatmapSelection",
       "kind": "type"
     },
+    ".#HeatmapStatus": {
+      "target": "\"src/patterns/chart/heatmap\".HeatmapStatus",
+      "kind": "type"
+    },
     ".#HoverCard": {
       "target": "\"src/components/hover-card\".HoverCard",
       "kind": "value"
@@ -2420,6 +2424,30 @@
     },
     ".#KeyValueProps": {
       "target": "\"src/components/key-value\".KeyValueProps",
+      "kind": "type"
+    },
+    ".#Ladder": {
+      "target": "\"src/patterns/ladder\".Ladder",
+      "kind": "value"
+    },
+    ".#LadderLevel": {
+      "target": "\"src/patterns/ladder\".LadderLevel",
+      "kind": "type"
+    },
+    ".#LadderLink": {
+      "target": "\"src/patterns/ladder\".LadderLink",
+      "kind": "type"
+    },
+    ".#LadderMark": {
+      "target": "\"src/patterns/ladder\".LadderMark",
+      "kind": "type"
+    },
+    ".#LadderNode": {
+      "target": "\"src/patterns/ladder\".LadderNode",
+      "kind": "type"
+    },
+    ".#LadderProps": {
+      "target": "\"src/patterns/ladder\".LadderProps",
       "kind": "type"
     },
     ".#LayoutElement": {
@@ -2680,6 +2708,22 @@
     },
     ".#PersonProps": {
       "target": "\"src/components/avatar\".PersonProps",
+      "kind": "type"
+    },
+    ".#PhaseBar": {
+      "target": "\"src/components/phase-bar\".PhaseBar",
+      "kind": "value"
+    },
+    ".#PhaseBarItem": {
+      "target": "\"src/components/phase-bar\".PhaseBarItem",
+      "kind": "value"
+    },
+    ".#PhaseBarItemProps": {
+      "target": "\"src/components/phase-bar\".PhaseBarItemProps",
+      "kind": "type"
+    },
+    ".#PhaseBarProps": {
+      "target": "\"src/components/phase-bar\".PhaseBarProps",
       "kind": "type"
     },
     ".#PickerRecord": {
@@ -3710,8 +3754,24 @@
       "target": "\"src/components/stat\".StatGridProps",
       "kind": "type"
     },
+    ".#StatList": {
+      "target": "\"src/components/stat\".StatList",
+      "kind": "value"
+    },
+    ".#StatListProps": {
+      "target": "\"src/components/stat\".StatListProps",
+      "kind": "type"
+    },
     ".#StatProps": {
       "target": "\"src/components/stat\".StatProps",
+      "kind": "type"
+    },
+    ".#StatRow": {
+      "target": "\"src/components/stat\".StatRow",
+      "kind": "value"
+    },
+    ".#StatRowProps": {
+      "target": "\"src/components/stat\".StatRowProps",
       "kind": "type"
     },
     ".#StatTile": {
@@ -3862,6 +3922,30 @@
       "target": "\"src/components/tabs\".TabsTriggerProps",
       "kind": "type"
     },
+    ".#Tally": {
+      "target": "\"src/components/tally\".Tally",
+      "kind": "value"
+    },
+    ".#TallyFill": {
+      "target": "\"src/components/tally\".TallyFill",
+      "kind": "type"
+    },
+    ".#TallyProps": {
+      "target": "\"src/components/tally\".TallyProps",
+      "kind": "type"
+    },
+    ".#TallySegment": {
+      "target": "\"src/components/tally\".TallySegment",
+      "kind": "type"
+    },
+    ".#TallySize": {
+      "target": "\"src/components/tally\".TallySize",
+      "kind": "type"
+    },
+    ".#TallyTone": {
+      "target": "\"src/components/tally\".TallyTone",
+      "kind": "type"
+    },
     ".#TaskRow": {
       "target": "\"src/patterns/task-row\".TaskRow",
       "kind": "value"
@@ -3912,6 +3996,46 @@
     },
     ".#ThProps": {
       "target": "\"src/components/table\".ThProps",
+      "kind": "type"
+    },
+    ".#TileMap": {
+      "target": "\"src/patterns/tile-map\".TileMap",
+      "kind": "value"
+    },
+    ".#TileMapFill": {
+      "target": "\"src/patterns/tile-map\".TileMapFill",
+      "kind": "type"
+    },
+    ".#TileMapGroup": {
+      "target": "\"src/patterns/tile-map\".TileMapGroup",
+      "kind": "type"
+    },
+    ".#TileMapKey": {
+      "target": "\"src/patterns/tile-map\".TileMapKey",
+      "kind": "value"
+    },
+    ".#TileMapKeyItem": {
+      "target": "\"src/patterns/tile-map\".TileMapKeyItem",
+      "kind": "type"
+    },
+    ".#TileMapKeyProps": {
+      "target": "\"src/patterns/tile-map\".TileMapKeyProps",
+      "kind": "type"
+    },
+    ".#TileMapLayout": {
+      "target": "\"src/patterns/tile-map\".TileMapLayout",
+      "kind": "type"
+    },
+    ".#TileMapMark": {
+      "target": "\"src/patterns/tile-map\".TileMapMark",
+      "kind": "type"
+    },
+    ".#TileMapProps": {
+      "target": "\"src/patterns/tile-map\".TileMapProps",
+      "kind": "type"
+    },
+    ".#TileMapTone": {
+      "target": "\"src/patterns/tile-map\".TileMapTone",
       "kind": "type"
     },
     ".#TimeField": {
@@ -4153,6 +4277,38 @@
     ".#toRows": {
       "target": "\"src/patterns/data-table/to-rows\".toRows",
       "kind": "value"
+    },
+    ".#Trace": {
+      "target": "\"src/patterns/trace\".Trace",
+      "kind": "value"
+    },
+    ".#TraceLink": {
+      "target": "\"src/patterns/trace\".TraceLink",
+      "kind": "type"
+    },
+    ".#TraceNode": {
+      "target": "\"src/patterns/trace\".TraceNode",
+      "kind": "type"
+    },
+    ".#TraceProps": {
+      "target": "\"src/patterns/trace\".TraceProps",
+      "kind": "type"
+    },
+    ".#TraceStage": {
+      "target": "\"src/patterns/trace\".TraceStage",
+      "kind": "type"
+    },
+    ".#Tray": {
+      "target": "\"src/components/tray\".Tray",
+      "kind": "value"
+    },
+    ".#TrayProps": {
+      "target": "\"src/components/tray\".TrayProps",
+      "kind": "type"
+    },
+    ".#TrayTone": {
+      "target": "\"src/components/tray\".TrayTone",
+      "kind": "type"
     },
     ".#Tree": {
       "target": "\"src/components/tree\".Tree",
@@ -4809,13 +4965,13 @@
     "\"src/components/badge\".Dot": [
       {
         "source": "src/components/badge.d.ts",
-        "declaration": "export declare function Dot({ tone, label, className, ...rest }: DotProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function Dot({ tone, label, shape, className, ...rest }: DotProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/badge\".DotProps": [
       {
         "source": "src/components/badge.d.ts",
-        "declaration": "export type DotProps = Omit<ComponentProps<\"svg\">, \"children\" | \"className\"> & {\n    tone?: Tone | undefined;\n    label?: string | undefined;\n    className?: string | undefined;\n};"
+        "declaration": "export type DotProps = Omit<ComponentProps<\"svg\">, \"children\" | \"className\"> & {\n    tone?: Tone | undefined;\n    label?: string | undefined;\n    shape?: \"square\" | \"round\" | undefined;\n    className?: string | undefined;\n};"
       }
     ],
     "\"src/components/badge\".Indicator": [
@@ -7020,6 +7176,30 @@
         "declaration": "export type PaginationProps = ComponentProps<\"nav\">;"
       }
     ],
+    "\"src/components/phase-bar\".PhaseBar": [
+      {
+        "source": "src/components/phase-bar.d.ts",
+        "declaration": "PhaseBar: typeof PhaseBarRoot & {\n    Item: typeof PhaseBarItem;\n}"
+      }
+    ],
+    "\"src/components/phase-bar\".PhaseBarItem": [
+      {
+        "source": "src/components/phase-bar.d.ts",
+        "declaration": "export declare function PhaseBarItem({ state, label, meta, weight, progress, onSelect, className, style, ...props }: PhaseBarItemProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/phase-bar\".PhaseBarItemProps": [
+      {
+        "source": "src/components/phase-bar.d.ts",
+        "declaration": "export type PhaseBarItemProps = Omit<ComponentProps<\"li\">, \"children\"> & {\n    state: StepState;\n    label: ReactNode;\n    meta?: ReactNode;\n    weight?: number | undefined;\n    progress?: number | undefined;\n    onSelect?: (() => void) | undefined;\n};"
+      }
+    ],
+    "\"src/components/phase-bar\".PhaseBarProps": [
+      {
+        "source": "src/components/phase-bar.d.ts",
+        "declaration": "export type PhaseBarProps = Omit<ComponentProps<\"ol\">, \"role\"> & {\n    label: string;\n    children: ReactNode;\n};"
+      }
+    ],
     "\"src/components/popover\".Popover": [
       {
         "source": "src/components/popover.d.ts",
@@ -7659,7 +7839,7 @@
     "\"src/components/stat\".Stat": [
       {
         "source": "src/components/stat.d.ts",
-        "declaration": "Stat: typeof StatRoot & {\n    Tile: typeof StatTile;\n    Grid: typeof StatGrid;\n}"
+        "declaration": "Stat: typeof StatRoot & {\n    Tile: typeof StatTile;\n    Grid: typeof StatGrid;\n    List: typeof StatList;\n    Row: typeof StatRow;\n}"
       }
     ],
     "\"src/components/stat\".StatGrid": [
@@ -7674,10 +7854,34 @@
         "declaration": "export type StatGridProps = ComponentProps<\"div\"> & {\n    cols?: 2 | 3 | 4 | 5 | 6 | undefined;\n    frame?: \"card\" | \"band\" | undefined;\n    children: ReactNode;\n};"
       }
     ],
+    "\"src/components/stat\".StatList": [
+      {
+        "source": "src/components/stat.d.ts",
+        "declaration": "export declare function StatList({ className, children, ...props }: StatListProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/stat\".StatListProps": [
+      {
+        "source": "src/components/stat.d.ts",
+        "declaration": "export type StatListProps = ComponentProps<\"ul\"> & {\n    children: ReactNode;\n};"
+      }
+    ],
     "\"src/components/stat\".StatProps": [
       {
         "source": "src/components/stat.d.ts",
         "declaration": "export type StatProps = Omit<ComponentProps<\"div\">, \"children\"> & {\n    label: string;\n    value: ReactNode;\n    tone?: Tone | undefined;\n    isLoading?: boolean | undefined;\n};"
+      }
+    ],
+    "\"src/components/stat\".StatRow": [
+      {
+        "source": "src/components/stat.d.ts",
+        "declaration": "export declare function StatRow({ label, value, tone, icon, isLoading, link, className, ...props }: StatRowProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/stat\".StatRowProps": [
+      {
+        "source": "src/components/stat.d.ts",
+        "declaration": "export type StatRowProps = Omit<ComponentProps<\"li\">, \"children\"> & {\n    label: string;\n    value: ReactNode;\n    tone?: Tone | undefined;\n    icon?: ReactNode;\n    isLoading?: boolean | undefined;\n    link?: ReactElement<{\n        className?: string | undefined;\n        children?: ReactNode;\n    }> | undefined;\n};"
       }
     ],
     "\"src/components/stat\".StatTile": [
@@ -7779,7 +7983,7 @@
     "\"src/components/table\".DisclosureCell": [
       {
         "source": "src/components/table.d.ts",
-        "declaration": "export declare function DisclosureCell({ hasChildren, expanded, onExpandedChange, onToggle: deprecatedToggle, label, width, pinned, offset, edge, className, onClick, ...props }: TableDisclosureProps): import(\"react\").JSX.Element;"
+        "declaration": "export declare function DisclosureCell({ hasChildren, expanded, onExpandedChange, onToggle: deprecatedToggle, label, controls, width, pinned, offset, edge, className, onClick, ...props }: TableDisclosureProps): import(\"react\").JSX.Element;"
       }
     ],
     "\"src/components/table\".HandleCell": [
@@ -7845,7 +8049,7 @@
     "\"src/components/table\".TableDisclosureProps": [
       {
         "source": "src/components/table.d.ts",
-        "declaration": "export type TableDisclosureProps = Omit<ComponentProps<\"td\">, \"align\" | \"children\" | \"onToggle\"> & PinnedProps & Disclosing & {\n    hasChildren?: boolean | undefined;\n    label: string;\n    width?: number | undefined;\n};"
+        "declaration": "export type TableDisclosureProps = Omit<ComponentProps<\"td\">, \"align\" | \"children\" | \"onToggle\"> & PinnedProps & Disclosing & {\n    hasChildren?: boolean | undefined;\n    label: string;\n    controls?: string | undefined;\n    width?: number | undefined;\n};"
       }
     ],
     "\"src/components/table\".TableGroup": [
@@ -7998,16 +8202,52 @@
         "declaration": "export type TabsTriggerProps = TabsPrimitive.Tab.Props;"
       }
     ],
+    "\"src/components/tally\".Tally": [
+      {
+        "source": "src/components/tally.d.ts",
+        "declaration": "export declare function Tally({ segments, total, size, scale, tone, label, className, ...props }: TallyProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/tally\".TallyFill": [
+      {
+        "source": "src/components/tally.d.ts",
+        "declaration": "export type TallyFill = \"solid\" | \"outline\" | \"empty\";"
+      }
+    ],
+    "\"src/components/tally\".TallyProps": [
+      {
+        "source": "src/components/tally.d.ts",
+        "declaration": "export type TallyProps = Omit<ComponentProps<\"span\">, \"children\"> & {\n    segments: readonly TallySegment[];\n    total?: number | undefined;\n    size?: TallySize | undefined;\n    scale?: number | undefined;\n    tone?: \"neutral\" | \"danger\" | undefined;\n    label?: string | undefined;\n};"
+      }
+    ],
+    "\"src/components/tally\".TallySegment": [
+      {
+        "source": "src/components/tally.d.ts",
+        "declaration": "export type TallySegment = {\n    key: string;\n    value: number;\n    tone?: TallyTone | undefined;\n    fill?: TallyFill | undefined;\n    label?: string | undefined;\n};"
+      }
+    ],
+    "\"src/components/tally\".TallySize": [
+      {
+        "source": "src/components/tally.d.ts",
+        "declaration": "export type TallySize = \"small\" | \"medium\" | \"large\" | \"xlarge\";"
+      }
+    ],
+    "\"src/components/tally\".TallyTone": [
+      {
+        "source": "src/components/tally.d.ts",
+        "declaration": "export type TallyTone = \"neutral\" | \"brand\" | \"information\" | \"success\" | \"warning\" | \"danger\" | \"sequential.1\" | \"sequential.2\" | \"sequential.3\" | \"sequential.4\" | \"sequential.5\";"
+      }
+    ],
     "\"src/components/text-link\".TextLink": [
       {
         "source": "src/components/text-link.d.ts",
-        "declaration": "export declare function TextLink({ render, size, weight, newTab, className, children, ...props }: TextLinkProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
+        "declaration": "export declare function TextLink({ render, size, weight, tone, newTab, className, children, ...props }: TextLinkProps): import(\"react\").ReactElement<unknown, string | import(\"react\").JSXElementConstructor<any>>;"
       }
     ],
     "\"src/components/text-link\".TextLinkProps": [
       {
         "source": "src/components/text-link.d.ts",
-        "declaration": "export type TextLinkProps = useRender.ComponentProps<\"a\"> & {\n    size?: \"small\" | \"medium\" | undefined;\n    weight?: \"regular\" | \"medium\" | undefined;\n    newTab?: boolean | undefined;\n};"
+        "declaration": "export type TextLinkProps = useRender.ComponentProps<\"a\"> & {\n    size?: \"small\" | \"medium\" | undefined;\n    weight?: \"regular\" | \"medium\" | undefined;\n    tone?: \"brand\" | \"neutral\" | undefined;\n    newTab?: boolean | undefined;\n};"
       }
     ],
     "\"src/components/textarea\".Textarea": [
@@ -8332,6 +8572,24 @@
       {
         "source": "src/components/tooltip.d.ts",
         "declaration": "export type TooltipTriggerProps<Payload = unknown> = TooltipPrimitive.Trigger.Props<Payload>;"
+      }
+    ],
+    "\"src/components/tray\".Tray": [
+      {
+        "source": "src/components/tray.d.ts",
+        "declaration": "export declare function Tray({ title, value, icon, link, action, tone, isLoading, className, style, children, ...props }: TrayProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/components/tray\".TrayProps": [
+      {
+        "source": "src/components/tray.d.ts",
+        "declaration": "export type TrayProps = Omit<ComponentProps<\"div\">, \"title\" | \"role\"> & {\n    title: ReactNode;\n    value?: ReactNode;\n    icon?: ReactNode;\n    link?: ReactElement<{\n        className?: string | undefined;\n        children?: ReactNode;\n    }> | undefined;\n    action?: ReactNode;\n    tone?: TrayTone | undefined;\n    isLoading?: boolean | undefined;\n    children?: ReactNode;\n};"
+      }
+    ],
+    "\"src/components/tray\".TrayTone": [
+      {
+        "source": "src/components/tray.d.ts",
+        "declaration": "export type TrayTone = \"neutral\" | \"danger\";"
       }
     ],
     "\"src/components/tree\".Tree": [
@@ -9225,7 +9483,7 @@
     "\"src/lib/locale-format\".defaultMessages": [
       {
         "source": "src/lib/locale-format.d.ts",
-        "declaration": "defaultMessages: {\n    close: string;\n    open: string;\n    back: string;\n    next: string;\n    previous: string;\n    previousRecord: string;\n    nextRecord: string;\n    openFullRecord: string;\n    opensInNewTab: string;\n    recordPosition: string;\n    recordOutsideResults: string;\n    recordPositionNamed: string;\n    recordOutsideResultsNamed: string;\n    recordPositionShort: string;\n    recordNotInResults: string;\n    recordNavigation: string;\n    backToPreviousRecord: string;\n    openTheFullRecord: string;\n    cancel: string;\n    confirm: string;\n    clear: string;\n    search: string;\n    find: string;\n    findPrevious: string;\n    findNext: string;\n    findClose: string;\n    findPosition: string;\n    loading: string;\n    progressIndeterminate: string;\n    skipTo: string;\n    closeSideNavigation: string;\n    resizeSideNavigation: string;\n    resizeDetails: string;\n    closeDetails: string;\n    resizePanelNamed: string;\n    closePanelNamed: string;\n    skipLinks: string;\n    banner: string;\n    topNavigation: string;\n    sideNavigation: string;\n    collapseSideNavigation: string;\n    expandSideNavigation: string;\n    mainContent: string;\n    pageContext: string;\n    actions: string;\n    switchProduct: string;\n    pixelsWide: string;\n    refreshing: string;\n    notifications: string;\n    pagination: string;\n    pageLabel: string;\n    previousPage: string;\n    nextPage: string;\n    firstPage: string;\n    lastPage: string;\n    pageOf: string;\n    chooseDate: string;\n    previousMonth: string;\n    nextMonth: string;\n    selection: string;\n    selectedCount: string;\n    selectedCountOf: string;\n    selectionShown: string;\n    selectAllCount: string;\n    selectAll: string;\n    selectPage: string;\n    selectRow: string;\n    reorderRow: string;\n    reorderColumn: string;\n    dragInstructions: string;\n    dragStarted: string;\n    dragOver: string;\n    dragOutside: string;\n    dragDropped: string;\n    dragCanceled: string;\n    shareOfTotal: string;\n    rowActions: string;\n    columns: string;\n    show: string;\n    rows: string;\n    compactRows: string;\n    resetView: string;\n    resetColumns: string;\n    columnMenu: string;\n    sortAscending: string;\n    sortDescending: string;\n    pinStart: string;\n    pinEnd: string;\n    unpin: string;\n    hideColumn: string;\n    moveLeft: string;\n    moveRight: string;\n    sort: string;\n    sortBy: string;\n    sortedBy: string;\n    sortedByDirection: string;\n    sortAnnounced: string;\n    sortRemoved: string;\n    sortDirection: string;\n    ascending: string;\n    descending: string;\n    oldestFirst: string;\n    newestFirst: string;\n    lowestFirst: string;\n    highestFirst: string;\n    aToZ: string;\n    zToA: string;\n    widenColumn: string;\n    narrowColumn: string;\n    resetColumnWidth: string;\n    columnWidthChanged: string;\n    from: string;\n    to: string;\n    chosenCount: string;\n    contains: string;\n    noFilterValues: string;\n    noMatchingValues: string;\n    searchFacet: string;\n    rangeReversed: string;\n    dragOverPosition: string;\n    dragDroppedPosition: string;\n    savedQuestions: string;\n    view: string;\n    tableSettings: string;\n    metrics: string;\n    groupBy: string;\n    groupedBy: string;\n    noGrouping: string;\n    filters: string;\n    clearAllFilters: string;\n    details: string;\n    moreFields: string;\n    wrapText: string;\n    wrapColumn: string;\n    moreFieldsFor: string;\n    showMoreFieldsOne: string;\n    showMoreFieldsOther: string;\n    hideMoreFieldsOne: string;\n    hideMoreFieldsOther: string;\n    showMoreFieldsForOne: string;\n    showMoreFieldsForOther: string;\n    hideMoreFieldsForOne: string;\n    hideMoreFieldsForOther: string;\n    columnMoved: string;\n    columnFolded: string;\n    parts: string;\n    detailsLabel: string;\n    reorder: string;\n    rowsError: string;\n    rowsStale: string;\n    nothingHere: string;\n    absent: string;\n    nothingToShow: string;\n    noResults: string;\n    noMatches: string;\n    noMatchesHint: string;\n    clearFilters: string;\n    retry: string;\n    chartError: string;\n    chartPath: string;\n    showChart: string;\n    showTable: string;\n    download: string;\n    expand: string;\n    tableLabel: string;\n    paginationLabel: string;\n    loadingLabel: string;\n    target: string;\n    point: string;\n    points: string;\n    value: string;\n    downloadCsv: string;\n    downloadPng: string;\n    chartValues: string;\n    chartCategory: string;\n    chartGroup: string;\n    chartName: string;\n    chartShare: string;\n    chartTable: string;\n    chartRole: string;\n    chartUnnamed: string;\n    chartKeysColumns: string;\n    chartKeysRows: string;\n    chartPoint: string;\n    chartSeriesValue: string;\n    chartTotal: string;\n    chartTotalValue: string;\n    chartImageFailed: string;\n    chartNoImage: string;\n    chartImageInTable: string;\n    chartMarkIn: string;\n    chartNoValue: string;\n    chartDimensions: string;\n    chartValueShare: string;\n    chartAlsoHere: string;\n    resizeColumn: string;\n    resize: string;\n    month: string;\n    year: string;\n    selected: string;\n    calendarWeek: string;\n    datePart: string;\n    timePart: string;\n    dateCalendarNavigation: string;\n    dateInvalid: string;\n    dateTooEarly: string;\n    dateTooLate: string;\n    dateUnavailable: string;\n    dateUnavailableReason: string;\n    dateUnavailableDay: string;\n    dateUnavailableDayReason: string;\n    dateEarliest: string;\n    dateLatest: string;\n    timeInvalid: string;\n    timeTooEarly: string;\n    timeTooLate: string;\n    dateTimeIncomplete: string;\n    chooseDates: string;\n    dateRangeSpoken: string;\n    dateRangeStart: string;\n    dateRangeEnd: string;\n    dateRangeSelected: string;\n    dateRangeChooseEnd: string;\n    dateRangePresets: string;\n    dateOverdue: string;\n    dateDueToday: string;\n    dateDueSoon: string;\n    dateExpired: string;\n    dateExpiresToday: string;\n    dateExpiresSoon: string;\n    preview: string;\n    previewRow: string;\n    previewLabel: string;\n    resizeColumnLabel: string;\n    listMore: string;\n    collapse: string;\n    collapseLabel: string;\n    expandLabel: string;\n    tableScrolls: string;\n    tableScrollsLabel: string;\n    code: string;\n    copyFailed: string;\n    today: string;\n    choose: string;\n    showOptions: string;\n    options: string;\n    remove: string;\n    removeNamed: string;\n    showingOf: string;\n    saveFailed: string;\n    saving: string;\n    saved: string;\n    notSaved: string;\n    editableNotSavedReason: string;\n    editableEdit: string;\n    editableRetryNamed: string;\n    editableDiscard: string;\n    editableDiscardNamed: string;\n    editableSaveNamed: string;\n    editableCancelNamed: string;\n    editableChooseDateNamed: string;\n    editableMultilineHint: string;\n    composerSuggestions: string;\n    composerSend: string;\n    composerSendFailed: string;\n    composerSendHint: string;\n    composerSuggestionsOne: string;\n    composerSuggestionsOther: string;\n    composerSuggestionActive: string;\n    rowRange: string;\n    rowRangePastEnd: string;\n    zeroRows: string;\n    rowsPerPage: string;\n    perPage: string;\n    copy: string;\n    copied: string;\n    required: string;\n    errorSummaryTitle: string;\n    requiredGroup: string;\n    editLabel: string;\n    save: string;\n    more: string;\n    moreFilters: string;\n    moreDisplay: string;\n    moreFiltersAndDisplay: string;\n    moreFiltersApplied: string;\n    moreFiltersAndDisplayApplied: string;\n    morePages: string;\n    display: string;\n    filtersAndDisplay: string;\n    showHiddenLevels: string;\n    breadcrumb: string;\n    loadingPage: string;\n    lightMode: string;\n    darkMode: string;\n    systemMode: string;\n    colorMode: string;\n    scrollUp: string;\n    scrollDown: string;\n    scrollBack: string;\n    scrollForward: string;\n    keyCommand: string;\n    keyControl: string;\n    keyOption: string;\n    keyAlt: string;\n    keyShift: string;\n    keyMeta: string;\n    keyEnter: string;\n    keyEscape: string;\n    keyTab: string;\n    keySpace: string;\n    keyBackspace: string;\n    keyDelete: string;\n    keyArrowUp: string;\n    keyArrowDown: string;\n    keyArrowLeft: string;\n    keyArrowRight: string;\n    keyCapControl: string;\n    keyCapAlt: string;\n    keyCapShift: string;\n    keyCapEscape: string;\n    keyCapTab: string;\n    keyCapSpace: string;\n    keyCapBackspace: string;\n    keyCapDelete: string;\n    keyHintMove: string;\n    keyHintChoose: string;\n    keyHintClose: string;\n    diffLabel: string;\n    diffBefore: string;\n    diffControls: string;\n    diffInline: string;\n    diffSplit: string;\n    diffPrevious: string;\n    diffNext: string;\n    diffExpand: string;\n    diffCollapse: string;\n    diffPosition: string;\n    diffAnnotate: string;\n    diffAnnotateLine: string;\n    diffAfter: string;\n    diffLegend: string;\n    diffChangedCount: string;\n    diffAddedCount: string;\n    diffRemovedCount: string;\n    diffNoChanges: string;\n    diffAdded: string;\n    diffRemoved: string;\n    diffShowLinesOne: string;\n    diffShowLinesOther: string;\n    diffHideLinesOne: string;\n    diffHideLinesOther: string;\n    searchDescription: string;\n    searchPlaceholder: string;\n    searching: string;\n    searchNoResults: string;\n    searchNoResultsHint: string;\n    searchFailed: string;\n    searchResultOne: string;\n    searchResultOther: string;\n    keyHintOpen: string;\n    keyHintRun: string;\n    commandPaletteTitle: string;\n    commandPaletteDescription: string;\n    commandPalettePlaceholder: string;\n    commandNoMatches: string;\n    commandFailed: string;\n    commandMatchOne: string;\n    commandMatchOther: string;\n    commandListLabel: string;\n    clearSearch: string;\n    characterLimit: string;\n    charactersLeftOne: string;\n    charactersLeftOther: string;\n    charactersOverOne: string;\n    charactersOverOther: string;\n    numberField: string;\n    increaseValue: string;\n    decreaseValue: string;\n    increaseValueFor: string;\n    decreaseValueFor: string;\n    contentScrolls: string;\n    namedContentScrolls: string;\n    stepDone: string;\n    stepCurrent: string;\n    stepUpcoming: string;\n    stepBlocked: string;\n    timelineUnread: string;\n    chooseFile: string;\n    chooseFiles: string;\n    dropFileHere: string;\n    dropFilesHere: string;\n    dropFileRelease: string;\n    dropFilesRelease: string;\n    fileTypeRejected: string;\n    fileTooLarge: string;\n    fileCountRejected: string;\n    fileAdded: string;\n    filesAddedOne: string;\n    filesAddedOther: string;\n    pickerNothingChosen: string;\n    pickerToChooseFromOne: string;\n    pickerToChooseFromOther: string;\n    pickerChosenOne: string;\n    pickerChosenOther: string;\n    pickerChosenOfOne: string;\n    pickerChosenOfOther: string;\n    tableRowOne: string;\n    tableRowOther: string;\n    tableResults: string;\n    tableResultsOf: string;\n    tableResultsRange: string;\n    tableNoMatching: string;\n    selectNamed: string;\n    reorderNamed: string;\n    reorderColumnNamed: string;\n    rowActionsFor: string;\n    showDetailsFor: string;\n    hideDetailsFor: string;\n    moveUp: string;\n    moveDown: string;\n    rowMoved: string;\n    tablePageEmpty: string;\n    goToFirstPage: string;\n    selectedCountHidden: string;\n    relatedEmpty: string;\n    recordBrowserSearch: string;\n    recordBrowserBack: string;\n    recordBrowserClearSelection: string;\n    recordBrowserFailed: string;\n    recordBrowserEmptyTitle: string;\n    recordBrowserEmptyDescription: string;\n    recordPickerEmpty: string;\n    recordPickerFailed: string;\n    workPaneList: string;\n    workPaneBack: string;\n    workPaneRowName: string;\n    gateMet: string;\n    gateNotMet: string;\n    taskRowCompleted: string;\n}"
+        "declaration": "defaultMessages: {\n    close: string;\n    open: string;\n    back: string;\n    next: string;\n    previous: string;\n    previousRecord: string;\n    nextRecord: string;\n    openFullRecord: string;\n    opensInNewTab: string;\n    recordPosition: string;\n    recordOutsideResults: string;\n    recordPositionNamed: string;\n    recordOutsideResultsNamed: string;\n    recordPositionShort: string;\n    recordNotInResults: string;\n    recordNavigation: string;\n    backToPreviousRecord: string;\n    openTheFullRecord: string;\n    cancel: string;\n    confirm: string;\n    clear: string;\n    search: string;\n    find: string;\n    findPrevious: string;\n    findNext: string;\n    findClose: string;\n    findPosition: string;\n    loading: string;\n    progressIndeterminate: string;\n    skipTo: string;\n    closeSideNavigation: string;\n    resizeSideNavigation: string;\n    resizeDetails: string;\n    closeDetails: string;\n    resizePanelNamed: string;\n    closePanelNamed: string;\n    skipLinks: string;\n    banner: string;\n    topNavigation: string;\n    sideNavigation: string;\n    collapseSideNavigation: string;\n    expandSideNavigation: string;\n    mainContent: string;\n    pageContext: string;\n    actions: string;\n    switchProduct: string;\n    pixelsWide: string;\n    refreshing: string;\n    notifications: string;\n    pagination: string;\n    pageLabel: string;\n    previousPage: string;\n    nextPage: string;\n    firstPage: string;\n    lastPage: string;\n    pageOf: string;\n    chooseDate: string;\n    previousMonth: string;\n    nextMonth: string;\n    selection: string;\n    selectedCount: string;\n    selectedCountOf: string;\n    selectionShown: string;\n    selectAllCount: string;\n    selectAll: string;\n    selectPage: string;\n    selectRow: string;\n    reorderRow: string;\n    reorderColumn: string;\n    dragInstructions: string;\n    dragStarted: string;\n    dragOver: string;\n    dragOutside: string;\n    dragDropped: string;\n    dragCanceled: string;\n    shareOfTotal: string;\n    rowActions: string;\n    columns: string;\n    show: string;\n    rows: string;\n    compactRows: string;\n    resetView: string;\n    resetColumns: string;\n    columnMenu: string;\n    sortAscending: string;\n    sortDescending: string;\n    pinStart: string;\n    pinEnd: string;\n    unpin: string;\n    hideColumn: string;\n    moveLeft: string;\n    moveRight: string;\n    sort: string;\n    sortBy: string;\n    sortedBy: string;\n    sortedByDirection: string;\n    sortAnnounced: string;\n    sortRemoved: string;\n    sortDirection: string;\n    ascending: string;\n    descending: string;\n    oldestFirst: string;\n    newestFirst: string;\n    lowestFirst: string;\n    highestFirst: string;\n    aToZ: string;\n    zToA: string;\n    widenColumn: string;\n    narrowColumn: string;\n    resetColumnWidth: string;\n    columnWidthChanged: string;\n    from: string;\n    to: string;\n    chosenCount: string;\n    contains: string;\n    noFilterValues: string;\n    noMatchingValues: string;\n    searchFacet: string;\n    rangeReversed: string;\n    dragOverPosition: string;\n    dragDroppedPosition: string;\n    savedQuestions: string;\n    view: string;\n    tableSettings: string;\n    metrics: string;\n    groupBy: string;\n    groupedBy: string;\n    noGrouping: string;\n    filters: string;\n    clearAllFilters: string;\n    details: string;\n    moreFields: string;\n    wrapText: string;\n    wrapColumn: string;\n    moreFieldsFor: string;\n    showMoreFieldsOne: string;\n    showMoreFieldsOther: string;\n    hideMoreFieldsOne: string;\n    hideMoreFieldsOther: string;\n    showMoreFieldsForOne: string;\n    showMoreFieldsForOther: string;\n    hideMoreFieldsForOne: string;\n    hideMoreFieldsForOther: string;\n    columnMoved: string;\n    columnFolded: string;\n    parts: string;\n    detailsLabel: string;\n    reorder: string;\n    rowsError: string;\n    rowsStale: string;\n    nothingHere: string;\n    absent: string;\n    nothingToShow: string;\n    noResults: string;\n    noMatches: string;\n    noMatchesHint: string;\n    clearFilters: string;\n    retry: string;\n    chartError: string;\n    chartPath: string;\n    showChart: string;\n    showTable: string;\n    download: string;\n    expand: string;\n    tableLabel: string;\n    paginationLabel: string;\n    loadingLabel: string;\n    target: string;\n    point: string;\n    points: string;\n    value: string;\n    downloadCsv: string;\n    downloadPng: string;\n    chartValues: string;\n    chartCategory: string;\n    chartGroup: string;\n    chartName: string;\n    chartShare: string;\n    chartTable: string;\n    chartRole: string;\n    chartUnnamed: string;\n    chartKeysColumns: string;\n    chartKeysRows: string;\n    chartPoint: string;\n    chartSeriesValue: string;\n    chartTotal: string;\n    chartTotalValue: string;\n    chartImageFailed: string;\n    chartNoImage: string;\n    chartImageInTable: string;\n    chartMarkIn: string;\n    chartNoValue: string;\n    chartDimensions: string;\n    chartValueShare: string;\n    chartAlsoHere: string;\n    resizeColumn: string;\n    resize: string;\n    month: string;\n    year: string;\n    selected: string;\n    calendarWeek: string;\n    datePart: string;\n    timePart: string;\n    dateCalendarNavigation: string;\n    dateInvalid: string;\n    dateTooEarly: string;\n    dateTooLate: string;\n    dateUnavailable: string;\n    dateUnavailableReason: string;\n    dateUnavailableDay: string;\n    dateUnavailableDayReason: string;\n    dateEarliest: string;\n    dateLatest: string;\n    timeInvalid: string;\n    timeTooEarly: string;\n    timeTooLate: string;\n    dateTimeIncomplete: string;\n    chooseDates: string;\n    dateRangeSpoken: string;\n    dateRangeStart: string;\n    dateRangeEnd: string;\n    dateRangeSelected: string;\n    dateRangeChooseEnd: string;\n    dateRangePresets: string;\n    dateOverdue: string;\n    dateDueToday: string;\n    dateDueSoon: string;\n    dateExpired: string;\n    dateExpiresToday: string;\n    dateExpiresSoon: string;\n    preview: string;\n    previewRow: string;\n    previewLabel: string;\n    resizeColumnLabel: string;\n    listMore: string;\n    traceLinkedTo: string;\n    traceShowMoreOne: string;\n    traceShowMoreOther: string;\n    traceShowFewer: string;\n    ladderShown: string;\n    ladderValue: string;\n    ladderFlagged: string;\n    ladderLinked: string;\n    ladderOnPath: string;\n    ladderRows: string;\n    ladderPath: string;\n    ladderPathCount: string;\n    collapse: string;\n    collapseLabel: string;\n    expandLabel: string;\n    tableScrolls: string;\n    tableScrollsLabel: string;\n    code: string;\n    copyFailed: string;\n    today: string;\n    choose: string;\n    showOptions: string;\n    options: string;\n    remove: string;\n    removeNamed: string;\n    showingOf: string;\n    saveFailed: string;\n    saving: string;\n    saved: string;\n    notSaved: string;\n    editableNotSavedReason: string;\n    editableEdit: string;\n    editableRetryNamed: string;\n    editableDiscard: string;\n    editableDiscardNamed: string;\n    editableSaveNamed: string;\n    editableCancelNamed: string;\n    editableChooseDateNamed: string;\n    editableMultilineHint: string;\n    composerSuggestions: string;\n    composerSend: string;\n    composerSendFailed: string;\n    composerSendHint: string;\n    composerSuggestionsOne: string;\n    composerSuggestionsOther: string;\n    composerSuggestionActive: string;\n    rowRange: string;\n    rowRangePastEnd: string;\n    zeroRows: string;\n    rowsPerPage: string;\n    perPage: string;\n    copy: string;\n    copied: string;\n    required: string;\n    errorSummaryTitle: string;\n    requiredGroup: string;\n    editLabel: string;\n    save: string;\n    more: string;\n    moreFilters: string;\n    moreDisplay: string;\n    moreFiltersAndDisplay: string;\n    moreFiltersApplied: string;\n    moreFiltersAndDisplayApplied: string;\n    morePages: string;\n    display: string;\n    filtersAndDisplay: string;\n    showHiddenLevels: string;\n    breadcrumb: string;\n    loadingPage: string;\n    lightMode: string;\n    darkMode: string;\n    systemMode: string;\n    colorMode: string;\n    scrollUp: string;\n    scrollDown: string;\n    scrollBack: string;\n    scrollForward: string;\n    keyCommand: string;\n    keyControl: string;\n    keyOption: string;\n    keyAlt: string;\n    keyShift: string;\n    keyMeta: string;\n    keyEnter: string;\n    keyEscape: string;\n    keyTab: string;\n    keySpace: string;\n    keyBackspace: string;\n    keyDelete: string;\n    keyArrowUp: string;\n    keyArrowDown: string;\n    keyArrowLeft: string;\n    keyArrowRight: string;\n    keyCapControl: string;\n    keyCapAlt: string;\n    keyCapShift: string;\n    keyCapEscape: string;\n    keyCapTab: string;\n    keyCapSpace: string;\n    keyCapBackspace: string;\n    keyCapDelete: string;\n    keyHintMove: string;\n    keyHintChoose: string;\n    keyHintClose: string;\n    diffLabel: string;\n    diffBefore: string;\n    diffControls: string;\n    diffInline: string;\n    diffSplit: string;\n    diffPrevious: string;\n    diffNext: string;\n    diffExpand: string;\n    diffCollapse: string;\n    diffPosition: string;\n    diffAnnotate: string;\n    diffAnnotateLine: string;\n    diffAfter: string;\n    diffLegend: string;\n    diffChangedCount: string;\n    diffAddedCount: string;\n    diffRemovedCount: string;\n    diffNoChanges: string;\n    diffAdded: string;\n    diffRemoved: string;\n    diffShowLinesOne: string;\n    diffShowLinesOther: string;\n    diffHideLinesOne: string;\n    diffHideLinesOther: string;\n    searchDescription: string;\n    searchPlaceholder: string;\n    searching: string;\n    searchNoResults: string;\n    searchNoResultsHint: string;\n    searchFailed: string;\n    searchResultOne: string;\n    searchResultOther: string;\n    keyHintOpen: string;\n    keyHintRun: string;\n    commandPaletteTitle: string;\n    commandPaletteDescription: string;\n    commandPalettePlaceholder: string;\n    commandNoMatches: string;\n    commandFailed: string;\n    commandMatchOne: string;\n    commandMatchOther: string;\n    commandListLabel: string;\n    clearSearch: string;\n    characterLimit: string;\n    charactersLeftOne: string;\n    charactersLeftOther: string;\n    charactersOverOne: string;\n    charactersOverOther: string;\n    numberField: string;\n    increaseValue: string;\n    decreaseValue: string;\n    increaseValueFor: string;\n    decreaseValueFor: string;\n    contentScrolls: string;\n    namedContentScrolls: string;\n    stepDone: string;\n    stepCurrent: string;\n    stepUpcoming: string;\n    stepBlocked: string;\n    timelineUnread: string;\n    chooseFile: string;\n    chooseFiles: string;\n    dropFileHere: string;\n    dropFilesHere: string;\n    dropFileRelease: string;\n    dropFilesRelease: string;\n    fileTypeRejected: string;\n    fileTooLarge: string;\n    fileCountRejected: string;\n    fileAdded: string;\n    filesAddedOne: string;\n    filesAddedOther: string;\n    pickerNothingChosen: string;\n    pickerToChooseFromOne: string;\n    pickerToChooseFromOther: string;\n    pickerChosenOne: string;\n    pickerChosenOther: string;\n    pickerChosenOfOne: string;\n    pickerChosenOfOther: string;\n    tableRowOne: string;\n    tableRowOther: string;\n    tableResults: string;\n    tableResultsOf: string;\n    tableResultsRange: string;\n    tableNoMatching: string;\n    selectNamed: string;\n    reorderNamed: string;\n    reorderColumnNamed: string;\n    rowActionsFor: string;\n    showDetailsFor: string;\n    hideDetailsFor: string;\n    moveUp: string;\n    moveDown: string;\n    rowMoved: string;\n    tablePageEmpty: string;\n    goToFirstPage: string;\n    selectedCountHidden: string;\n    relatedEmpty: string;\n    recordBrowserSearch: string;\n    recordBrowserBack: string;\n    recordBrowserClearSelection: string;\n    recordBrowserFailed: string;\n    recordBrowserEmptyTitle: string;\n    recordBrowserEmptyDescription: string;\n    recordPickerEmpty: string;\n    recordPickerFailed: string;\n    workPaneList: string;\n    workPaneBack: string;\n    workPaneRowName: string;\n    gateMet: string;\n    gateNotMet: string;\n    taskRowCompleted: string;\n}"
       }
     ],
     "\"src/lib/locale-format\".LedgerDirection": [
@@ -9603,7 +9861,7 @@
     "\"src/patterns/chart/heatmap\".ChartHeatmap": [
       {
         "source": "src/patterns/chart/heatmap.d.ts",
-        "declaration": "export declare function ChartHeatmap({ rows, columns, value, scale, domain, midpoint, zeroStep, showValues, size: sizeProp, format: formatProp, label, rowLabel, columnLabel, loading: loadingProp, onSelect, details, link, selectable, className, \"aria-describedby\": describedBy, ref: callerRef, ...native }: ChartHeatmapProps): import(\"react\").JSX.Element | null;"
+        "declaration": "export declare function ChartHeatmap({ rows, columns, value, scale, domain, midpoint, zeroStep, showValues, size: sizeProp, format: formatProp, label, rowLabel, columnLabel, columnHeadings, rowLevel, summary, loading: loadingProp, onSelect, details, link, selectable, className, \"aria-describedby\": describedBy, ref: callerRef, ...native }: ChartHeatmapProps): import(\"react\").JSX.Element | null;"
       }
     ],
     "\"src/patterns/chart/heatmap\".ChartHeatmapProps": [
@@ -9627,19 +9885,25 @@
     "\"src/patterns/chart/heatmap\".ChartScaleStep": [
       {
         "source": "src/patterns/chart/heatmap.d.ts",
-        "declaration": "export type ChartScaleStep = {\n    tone: Tone;\n    label: string;\n};"
+        "declaration": "export type ChartScaleStep = {\n    tone: Tone;\n    label: string;\n    emphasis?: \"subtle\" | \"bold\" | undefined;\n};"
       }
     ],
     "\"src/patterns/chart/heatmap\".HeatmapScale": [
       {
         "source": "src/patterns/chart/heatmap.d.ts",
-        "declaration": "export type HeatmapScale = \"sequential\" | \"diverging\" | ((value: number, row: string, column: string) => Tone);"
+        "declaration": "export type HeatmapScale = \"sequential\" | \"diverging\" | ((value: number, row: string, column: string) => HeatmapStatus);"
       }
     ],
     "\"src/patterns/chart/heatmap\".HeatmapSelection": [
       {
         "source": "src/patterns/chart/heatmap.d.ts",
         "declaration": "export type HeatmapSelection = {\n    row: string;\n    column: string;\n    value: number;\n};"
+      }
+    ],
+    "\"src/patterns/chart/heatmap\".HeatmapStatus": [
+      {
+        "source": "src/patterns/chart/heatmap.d.ts",
+        "declaration": "export type HeatmapStatus = Tone | {\n    tone: Tone;\n    emphasis?: \"subtle\" | \"bold\" | undefined;\n};"
       }
     ],
     "\"src/patterns/chart/line\".ChartArea": [
@@ -10506,6 +10770,42 @@
         "declaration": "export type InspectorProps = Omit<ComponentProps<\"div\">, \"children\"> & {\n    children?: ReactNode | undefined;\n    groups?: InspectorGroupData[] | undefined;\n    footer?: ReactNode | undefined;\n};"
       }
     ],
+    "\"src/patterns/ladder\".Ladder": [
+      {
+        "source": "src/patterns/ladder.d.ts",
+        "declaration": "export declare function Ladder({ levels, links, label, selected: selectedProp, defaultSelected, onSelect, highlighted, details, flagLabel, size, className, onClick, onKeyDown, onFocus, onPointerDownCapture, ref, ...props }: LadderProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/ladder\".LadderLevel": [
+      {
+        "source": "src/patterns/ladder.d.ts",
+        "declaration": "export type LadderLevel = {\n    id: string;\n    label: string;\n    nodes: readonly LadderNode[];\n    layout?: \"cards\" | \"rows\" | undefined;\n    empty?: string | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/ladder\".LadderLink": [
+      {
+        "source": "src/patterns/ladder.d.ts",
+        "declaration": "export type LadderLink = {\n    from: string;\n    to: string;\n};"
+      }
+    ],
+    "\"src/patterns/ladder\".LadderMark": [
+      {
+        "source": "src/patterns/ladder.d.ts",
+        "declaration": "export type LadderMark = {\n    key: string;\n    label: string;\n    description?: string | undefined;\n    tone?: TallyTone | undefined;\n    fill?: TallyFill | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/ladder\".LadderNode": [
+      {
+        "source": "src/patterns/ladder.d.ts",
+        "declaration": "export type LadderNode = {\n    id: string;\n    title: string;\n    value?: number | undefined;\n    total?: number | undefined;\n    valueLabel?: string | undefined;\n    segments?: readonly TallySegment[] | undefined;\n    marks?: readonly LadderMark[] | undefined;\n    flagged?: boolean | undefined;\n    marked?: string | undefined;\n    description?: string | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/ladder\".LadderProps": [
+      {
+        "source": "src/patterns/ladder.d.ts",
+        "declaration": "export type LadderProps = LadderOwnProps & Omit<ComponentProps<\"div\">, keyof LadderOwnProps | \"children\" | \"role\">;"
+      }
+    ],
     "\"src/patterns/peek\".Peek": [
       {
         "source": "src/patterns/peek.d.ts",
@@ -10968,6 +11268,66 @@
         "declaration": "export type TaskRowProps = Omit<ComponentProps<\"li\">, \"id\" | \"title\" | \"onSelect\" | \"children\"> & Pick<ItemProps, \"meta\" | \"actions\" | \"link\" | \"onSelect\" | \"className\"> & {\n    title: string;\n    completed?: boolean | undefined;\n    onCompletedChange?: ((completed: boolean) => void) | undefined;\n    completionLabel?: string | undefined;\n    completedLabel?: string | undefined;\n    completionDisabled?: boolean | undefined;\n    assignee?: ReactNode;\n    due?: ReactNode;\n    dueDateTime?: string | undefined;\n    status?: ReactNode;\n};"
       }
     ],
+    "\"src/patterns/tile-map\".TileMap": [
+      {
+        "source": "src/patterns/tile-map.d.ts",
+        "declaration": "TileMap: typeof TileMapRoot & {\n    Key: typeof TileMapKey;\n}"
+      }
+    ],
+    "\"src/patterns/tile-map\".TileMapFill": [
+      {
+        "source": "src/patterns/tile-map.d.ts",
+        "declaration": "export type TileMapFill = \"solid\" | \"outline\" | \"empty\";"
+      }
+    ],
+    "\"src/patterns/tile-map\".TileMapGroup": [
+      {
+        "source": "src/patterns/tile-map.d.ts",
+        "declaration": "export type TileMapGroup = {\n    id: string;\n    label: string;\n    title?: string | undefined;\n    value?: ReactNode | undefined;\n    marks: readonly TileMapMark[];\n};"
+      }
+    ],
+    "\"src/patterns/tile-map\".TileMapKey": [
+      {
+        "source": "src/patterns/tile-map.d.ts",
+        "declaration": "export declare function TileMapKey({ items, className, ...props }: TileMapKeyProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/tile-map\".TileMapKeyItem": [
+      {
+        "source": "src/patterns/tile-map.d.ts",
+        "declaration": "export type TileMapKeyItem = {\n    label: ReactNode;\n    tone?: TileMapTone | undefined;\n    fill?: TileMapFill | undefined;\n    value?: ReactNode | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/tile-map\".TileMapKeyProps": [
+      {
+        "source": "src/patterns/tile-map.d.ts",
+        "declaration": "export type TileMapKeyProps = Omit<ComponentProps<\"ul\">, \"children\"> & {\n    items: readonly TileMapKeyItem[];\n};"
+      }
+    ],
+    "\"src/patterns/tile-map\".TileMapLayout": [
+      {
+        "source": "src/patterns/tile-map.d.ts",
+        "declaration": "export type TileMapLayout = \"grid\" | \"skyline\" | \"strip\";"
+      }
+    ],
+    "\"src/patterns/tile-map\".TileMapMark": [
+      {
+        "source": "src/patterns/tile-map.d.ts",
+        "declaration": "export type TileMapMark = {\n    id: string;\n    label: string;\n    description?: string | undefined;\n    tone?: TileMapTone | undefined;\n    fill?: TileMapFill | undefined;\n    dimmed?: boolean | undefined;\n    parts?: readonly TileMapMark[] | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/tile-map\".TileMapProps": [
+      {
+        "source": "src/patterns/tile-map.d.ts",
+        "declaration": "export type TileMapProps = TileMapOwnProps & Omit<ComponentProps<\"div\">, keyof TileMapOwnProps | \"children\" | \"role\">;"
+      }
+    ],
+    "\"src/patterns/tile-map\".TileMapTone": [
+      {
+        "source": "src/patterns/tile-map.d.ts",
+        "declaration": "export type TileMapTone = \"neutral\" | \"brand\" | \"information\" | \"success\" | \"warning\" | \"danger\" | \"sequential.1\" | \"sequential.2\" | \"sequential.3\" | \"sequential.4\" | \"sequential.5\";"
+      }
+    ],
     "\"src/patterns/toolbar\".Toolbar": [
       {
         "source": "src/patterns/toolbar.d.ts",
@@ -10978,6 +11338,36 @@
       {
         "source": "src/patterns/toolbar.d.ts",
         "declaration": "export type ToolbarProps = Omit<ComponentProps<\"div\">, \"children\" | \"placeholder\" | \"onSearch\"> & {\n    search?: string | undefined;\n    defaultSearch?: string | undefined;\n    onSearch?: ((value: string) => void) | undefined;\n    placeholder?: string | undefined;\n    views?: ReactNode;\n    children?: ReactNode;\n    filters?: ReactNode;\n    activeFilters?: number | undefined;\n    actions?: ReactNode;\n    className?: string | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/trace\".Trace": [
+      {
+        "source": "src/patterns/trace.d.ts",
+        "declaration": "export declare function Trace({ stages, links, focus, label, limit, className, onPointerOver, onPointerLeave, onFocus, onBlur, ref, ...props }: TraceProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "\"src/patterns/trace\".TraceLink": [
+      {
+        "source": "src/patterns/trace.d.ts",
+        "declaration": "export type TraceLink = {\n    from: string;\n    to: string;\n};"
+      }
+    ],
+    "\"src/patterns/trace\".TraceNode": [
+      {
+        "source": "src/patterns/trace.d.ts",
+        "declaration": "export type TraceNode = {\n    id: string;\n    title: string;\n    code?: string | undefined;\n    mark?: ReactNode | undefined;\n    meta?: ReactNode | undefined;\n    link?: ReactElement | undefined;\n};"
+      }
+    ],
+    "\"src/patterns/trace\".TraceProps": [
+      {
+        "source": "src/patterns/trace.d.ts",
+        "declaration": "export type TraceProps = TraceOwnProps & Omit<ComponentProps<\"div\">, keyof TraceOwnProps | \"children\" | \"role\">;"
+      }
+    ],
+    "\"src/patterns/trace\".TraceStage": [
+      {
+        "source": "src/patterns/trace.d.ts",
+        "declaration": "export type TraceStage = {\n    id: string;\n    label: string;\n    nodes: readonly TraceNode[];\n    empty?: string | undefined;\n};"
       }
     ],
     "\"src/patterns/use-collection-selection\".CollectionSelection": [
@@ -11526,6 +11916,12 @@
         "declaration": "type InputBoundProps = {\n    placeholder?: string | undefined;\n    \"aria-label\"?: string | undefined;\n    \"aria-labelledby\"?: string | undefined;\n    \"aria-describedby\"?: string | undefined;\n    \"aria-invalid\"?: boolean | \"true\" | \"false\" | undefined;\n    \"aria-required\"?: boolean | \"true\" | \"false\" | undefined;\n    autoFocus?: boolean | undefined;\n};"
       }
     ],
+    "src/components/phase-bar.d.ts#PhaseBarRoot": [
+      {
+        "source": "src/components/phase-bar.d.ts",
+        "declaration": "declare function PhaseBarRoot({ label, className, children, ...props }: PhaseBarProps): import(\"react\").JSX.Element;"
+      }
+    ],
     "src/components/stat.d.ts#StatRoot": [
       {
         "source": "src/components/stat.d.ts",
@@ -11625,7 +12021,7 @@
     "src/patterns/chart/heatmap.d.ts#ChartHeatmapOwnProps": [
       {
         "source": "src/patterns/chart/heatmap.d.ts",
-        "declaration": "type ChartHeatmapOwnProps = {\n    rows: string[];\n    columns: string[];\n    value: (row: string, column: string) => number | null | undefined;\n    scale?: HeatmapScale | undefined;\n    domain?: readonly [\n        number,\n        number\n    ] | undefined;\n    midpoint?: number | undefined;\n    zeroStep?: boolean | undefined;\n    showValues?: boolean | undefined;\n    size?: ChartSize | undefined;\n    format?: Formatter | undefined;\n    label?: string | undefined;\n    rowLabel?: string | undefined;\n    columnLabel?: string | undefined;\n    loading?: boolean | undefined;\n    onSelect?: ((selection: HeatmapSelection) => void) | undefined;\n    details?: ((selection: HeatmapSelection) => ReactNode) | undefined;\n    link?: ((selection: HeatmapSelection) => ChartLink | undefined) | undefined;\n    selectable?: ((selection: HeatmapSelection) => boolean) | undefined;\n    className?: string | undefined;\n};"
+        "declaration": "type ChartHeatmapOwnProps = {\n    rows: string[];\n    columns: string[];\n    value: (row: string, column: string) => number | null | undefined;\n    scale?: HeatmapScale | undefined;\n    rowLevel?: ((row: string) => number) | undefined;\n    summary?: ((row: string) => boolean) | undefined;\n    domain?: readonly [\n        number,\n        number\n    ] | undefined;\n    midpoint?: number | undefined;\n    zeroStep?: boolean | undefined;\n    showValues?: boolean | undefined;\n    size?: ChartSize | undefined;\n    format?: Formatter | undefined;\n    label?: string | undefined;\n    rowLabel?: string | undefined;\n    columnLabel?: string | undefined;\n    columnHeadings?: \"horizontal\" | \"vertical\" | undefined;\n    loading?: boolean | undefined;\n    onSelect?: ((selection: HeatmapSelection) => void) | undefined;\n    details?: ((selection: HeatmapSelection) => ReactNode) | undefined;\n    link?: ((selection: HeatmapSelection) => ChartLink | undefined) | undefined;\n    selectable?: ((selection: HeatmapSelection) => boolean) | undefined;\n    className?: string | undefined;\n};"
       }
     ],
     "src/patterns/chart/line.d.ts#ChartAreaOwnProps": [
@@ -11748,6 +12144,12 @@
         "declaration": "declare function InspectorRoot({ groups, footer, children, ...props }: InspectorProps): import(\"react\").JSX.Element;"
       }
     ],
+    "src/patterns/ladder.d.ts#LadderOwnProps": [
+      {
+        "source": "src/patterns/ladder.d.ts",
+        "declaration": "type LadderOwnProps = {\n    levels: readonly LadderLevel[];\n    links: readonly LadderLink[];\n    label: string;\n    selected?: string | null | undefined;\n    defaultSelected?: string | null | undefined;\n    onSelect?: ((node: LadderNode | null) => void) | undefined;\n    highlighted?: readonly string[] | undefined;\n    details?: ((node: LadderNode) => ReactNode) | undefined;\n    flagLabel?: ((count: number) => string) | undefined;\n    size?: \"small\" | \"medium\" | undefined;\n    className?: string | undefined;\n};"
+      }
+    ],
     "src/patterns/preview-sheet.d.ts#PreviewSheetBaseProps": [
       {
         "source": "src/patterns/preview-sheet.d.ts",
@@ -11776,6 +12178,24 @@
       {
         "source": "src/patterns/saved-views.d.ts",
         "declaration": "type ViewCollection = {\n    views: readonly SavedViewItem[];\n    selectedId?: string | undefined;\n    loading?: boolean | undefined;\n    error?: string | undefined;\n    onRetry?: (() => void) | undefined;\n    notice?: string | undefined;\n    onApply: (id: string) => void;\n    onCreate?: (() => void) | undefined;\n    labels?: Partial<SavedViewLabels> | undefined;\n};"
+      }
+    ],
+    "src/patterns/tile-map.d.ts#TileMapOwnProps": [
+      {
+        "source": "src/patterns/tile-map.d.ts",
+        "declaration": "type TileMapOwnProps = {\n    groups: readonly TileMapGroup[];\n    layout?: TileMapLayout | undefined;\n    label: string;\n    selected?: string | null | undefined;\n    onSelect?: ((mark: TileMapMark, group: TileMapGroup) => void) | undefined;\n    partRows?: number | undefined;\n    className?: string | undefined;\n};"
+      }
+    ],
+    "src/patterns/tile-map.d.ts#TileMapRoot": [
+      {
+        "source": "src/patterns/tile-map.d.ts",
+        "declaration": "declare function TileMapRoot({ groups, layout, label, selected, onSelect, partRows, className, onClick, onKeyDown, onFocus, ref, ...props }: TileMapProps): import(\"react\").JSX.Element;"
+      }
+    ],
+    "src/patterns/trace.d.ts#TraceOwnProps": [
+      {
+        "source": "src/patterns/trace.d.ts",
+        "declaration": "type TraceOwnProps = {\n    stages: readonly TraceStage[];\n    links: readonly TraceLink[];\n    focus?: string | undefined;\n    label: string;\n    limit?: number | undefined;\n    className?: string | undefined;\n};"
       }
     ],
     "src/patterns/work-pane.d.ts#WorkPaneRoot": [

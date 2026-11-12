@@ -66,7 +66,7 @@ import { ProductCollection } from "./product-collection";
 import { ProductRecordDialog } from "./product-record-dialog";
 import { ProductStructure } from "./product-structure";
 import { RetainedTabPanels } from "./program-shared";
-import { recordDestination, RecordLink, useDisplayedRecords, useEndOnHide } from "./record-preview";
+import { RecordLink, useDisplayedRecords, useEndOnHide, useOpenRecord } from "./record-preview";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { RecordTrail, TrailLink } from "./record-trail";
 import {
@@ -562,7 +562,7 @@ function ProductRevision({
   tab: ProductTab;
   onTab: (tab: ProductTab) => void;
 }) {
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   // Choosing a version keeps the tab, so focus goes to the twin of the control that chose it: the
   // rail's select on Overview, the history's mark on Versions.
   const versionFocus = useVersionFocus(versionChoice);
@@ -666,7 +666,7 @@ function ProductRevision({
           priority: 0,
           minWidth: 220,
           cell: (row) => (
-            <RecordLink table="systems" record={row}>
+            <RecordLink table="systems" record={row} onPreview={() => setVariantPreview(row)}>
               {row.name}
             </RecordLink>
           ),
@@ -871,7 +871,7 @@ function ProductRevision({
                     table={variantsTable}
                     queries={[systems, insideVariants, programs]}
                     fill
-                    onRowClick={(row) => void navigate(recordDestination("systems", row))}
+                    onRowClick={(row) => openRecord("systems", row, () => setVariantPreview(row))}
                     empty={{
                       illustration: "tree",
                       title: "No variants yet",
@@ -957,7 +957,7 @@ function ConfigurationsTab({
   variants: Row<"systems">[];
   editable: boolean;
 }) {
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   const save = useModelSave("product_configurations");
   const includeAll = useIncludeAllElements();
   const { formatPlural } = useLedgerLocale();
@@ -1002,7 +1002,11 @@ function ConfigurationsTab({
           priority: 0,
           minWidth: 220,
           cell: (row) => (
-            <RecordLink table="product_configurations" record={row}>
+            <RecordLink
+              table="product_configurations"
+              record={row}
+              onPreview={() => setConfigurationPreview(row)}
+            >
               {row.name}
             </RecordLink>
           ),
@@ -1092,7 +1096,9 @@ function ConfigurationsTab({
   return (
     <>
       <ProductCollection
-        onRowClick={(row) => void navigate(recordDestination("product_configurations", row))}
+        onRowClick={(row) =>
+          openRecord("product_configurations", row, () => setConfigurationPreview(row))
+        }
         table={table}
         empty={{
           illustration: "records",

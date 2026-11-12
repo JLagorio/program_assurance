@@ -1,6 +1,6 @@
 {
   "format_version": 1,
-  "description": "Exact reference publications. No fictional program or assessment content. Hashes refer to decompressed source bytes.",
+  "description": "Exact reference publications, and this project's transcriptions of publications that are printed only as PDF (format reference-framework/1, never authoritative, each naming its PDF in transcribed_from). No fictional program or assessment content. Hashes refer to decompressed source bytes.",
   "sources": [
     {
       "id": "nist-sp800-53r5-oscal-catalog",
@@ -91,6 +91,69 @@
       "retrieved_at": "2026-09-09T03:09:00Z",
       "rights": "United States Government work; public domain.",
       "notes": "The official Cyber Exchange may require interactive/CAC access. This public mirror states this XML is included unmodified from DISA."
+    },
+    {
+      "id": "nist-sp800-160v2r1-cref-transcription",
+      "file": "NIST_SP-800-160v2r1_cyber-resiliency.json.gz",
+      "format": "reference-framework/1",
+      "authority": "NIST (transcribed by this project from the published PDF)",
+      "title": "NIST SP 800-160 Vol. 2 Rev. 1 cyber resiliency constructs (transcription)",
+      "release": "Rev. 1, published 2021-12-09",
+      "source_url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-160v2r1.pdf",
+      "authoritative": false,
+      "sha256": "9a66cbcbdb48d364ebfd0d9270a1106e60003653c9888e9884543b132f0d221e",
+      "uncompressed_bytes": 274598,
+      "retrieved_at": "2026-11-11T23:46:41Z",
+      "transcribed_from": {
+        "title": "Developing Cyber-Resilient Systems: A Systems Security Engineering Approach",
+        "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-160v2r1.pdf",
+        "sha256": "d3e9830faadfd1e7a43392194320c5203935c3d7f30f78896b55a8a53e0f0b15",
+        "bytes": 5201396
+      },
+      "rights": "The publication states: \"This publication may be used by nongovernmental organizations on a voluntary basis and is not subject to copyright in the United States. Attribution would, however, be appreciated by NIST.\" NIST's statement for its Technical Series publications (https://www.nist.gov/open/copyright-fair-use-and-licensing-statements-srd-data-software-and-technical-series-publications, read 2026-11-11): \"Works authored by NIST employees are not subject to Copyright protection within the United States; foreign rights are reserved. To the extent NIST may assert rights outside of the United States, the public is granted the non-exclusive, perpetual, paid-up, royalty-free, worldwide right to reprint works in all formats including print, electronically, and online, and in all subsequent editions, and derivative works. Please use the recommended citation format below followed by “Republished courtesy of the National Institute of Standards and Technology.” Some works published by NIST may have been written by third parties and may be subject to copyright protection.\" The publication's title page names authors at NIST and at The MITRE Corporation. Attribution: Ross, R., Pillitteri, V., Graubart, R., Bodeau, D., and McQuaid, R. (2021), Developing Cyber-Resilient Systems: A Systems Security Engineering Approach, NIST Special Publication (SP) 800-160, Vol. 2, Rev. 1, National Institute of Standards and Technology, Gaithersburg, MD, https://doi.org/10.6028/NIST.SP.800-160v2r1 (Accessed November 11, 2026). Republished courtesy of the National Institute of Standards and Technology.",
+      "notes": "This project's transcription of Tables 2, 3, D-4, D-6, D-9, D-12 to D-15 and E-1 (the cyber resiliency goals, objectives, techniques, approaches and design principles, the discussion Table D-4 prints for each technique and approach and the examples it lists for each approach, what supports what, and the SP 800-53 controls that support each approach) from the PDF that transcribed_from names, made by scripts/reference-transcribe/sp800-160v2r1-cref.mjs with pdftotext 26.04.0. The PDF is the authority and is not stored in the repository. The file's corrections list every place the transcription departs from the printed text."
+    },
+    {
+      "id": "nist-sp800-160v1r1-processes-transcription",
+      "file": "NIST_SP-800-160v1r1_life-cycle-processes.json.gz",
+      "format": "reference-framework/1",
+      "authority": "NIST (transcribed by this project from the published PDF)",
+      "title": "NIST SP 800-160 Vol. 1 Rev. 1 system life cycle processes (transcription)",
+      "release": "Rev. 1, published 2022-11-16",
+      "source_url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-160v1r1.pdf",
+      "authoritative": false,
+      "sha256": "753d639e1a35f3526dc0040cd9c34ae70c5472f7c0c7568d20ab5866f7fe2a44",
+      "uncompressed_bytes": 65914,
+      "retrieved_at": "2026-11-11T23:48:46Z",
+      "transcribed_from": {
+        "title": "Engineering Trustworthy Secure Systems",
+        "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-160v1r1.pdf",
+        "sha256": "eced250e47e542698ddfd5e72bd7feae14268e72a1e9ea49af9984c0e01ff7b8",
+        "bytes": 8181396
+      },
+      "rights": "The publication states: \"This publication may be used by nongovernmental organizations on a voluntary basis and is not subject to copyright in the United States. Attribution would, however, be appreciated by NIST.\" \"Content from ISO/IEC/IEEE 15288 referenced in this publication is used with permission from the Institute of Electrical and Electronics Engineers. It is noted as follows: Reprinted with permission from IEEE, Copyright IEEE 2015, All rights reserved. The reprinted material has been updated to reflect any changes in the international standard.\" NIST's statement for its Technical Series publications (https://www.nist.gov/open/copyright-fair-use-and-licensing-statements-srd-data-software-and-technical-series-publications, read 2026-11-11): \"Works authored by NIST employees are not subject to Copyright protection within the United States; foreign rights are reserved. To the extent NIST may assert rights outside of the United States, the public is granted the non-exclusive, perpetual, paid-up, royalty-free, worldwide right to reprint works in all formats including print, electronically, and online, and in all subsequent editions, and derivative works. Please use the recommended citation format below followed by “Republished courtesy of the National Institute of Standards and Technology.” Some works published by NIST may have been written by third parties and may be subject to copyright protection.\" The publication's title page names authors at NIST and at The MITRE Corporation. Attribution: Ross R, McEvilley M, Winstead M (2022) Engineering Trustworthy Secure Systems. (National Institute of Standards and Technology, Gaithersburg, MD), NIST Special Publication (SP) NIST SP 800-160v1r1. https://doi.org/10.6028/NIST.SP.800-160v1r1 Republished courtesy of the National Institute of Standards and Technology.",
+      "notes": "This project's transcription of Appendices H to K (the four process groups, the thirty system life cycle processes by name and identifier, and each process's security outcomes) from the PDF that transcribed_from names, made by scripts/reference-transcribe/sp800-160v1r1-processes.mjs with pdftotext 26.04.0. Each process's purpose, which the publication reprints from ISO/IEC/IEEE 15288 under IEEE's notice, is left out, and so is its Security Purpose. The PDF is the authority and is not stored in the repository. The file's corrections list every place the transcription departs from the printed text."
+    },
+    {
+      "id": "nist-sp800-160v2r1-attack-transcription",
+      "file": "NIST_SP-800-160v2r1_appendix-f.json.gz",
+      "format": "reference-framework/1",
+      "authority": "NIST, naming MITRE ATT&CK techniques and mitigations (transcribed by this project from the published PDF)",
+      "title": "ATT&CK techniques and mitigations in NIST SP 800-160 Vol. 2 Rev. 1, Appendix F (transcription)",
+      "release": "Rev. 1, published 2021-12-09",
+      "source_url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-160v2r1.pdf",
+      "authoritative": false,
+      "sha256": "33904777cf6cc426720f6768def04703b81969009548a5674095793d1db81d0f",
+      "uncompressed_bytes": 1705132,
+      "retrieved_at": "2026-11-11T23:46:41Z",
+      "transcribed_from": {
+        "title": "Developing Cyber-Resilient Systems: A Systems Security Engineering Approach",
+        "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-160v2r1.pdf",
+        "sha256": "d3e9830faadfd1e7a43392194320c5203935c3d7f30f78896b55a8a53e0f0b15",
+        "bytes": 5201396
+      },
+      "rights": "The publication states: \"This publication may be used by nongovernmental organizations on a voluntary basis and is not subject to copyright in the United States. Attribution would, however, be appreciated by NIST.\" NIST's statement for its Technical Series publications (https://www.nist.gov/open/copyright-fair-use-and-licensing-statements-srd-data-software-and-technical-series-publications, read 2026-11-11): \"Works authored by NIST employees are not subject to Copyright protection within the United States; foreign rights are reserved. To the extent NIST may assert rights outside of the United States, the public is granted the non-exclusive, perpetual, paid-up, royalty-free, worldwide right to reprint works in all formats including print, electronically, and online, and in all subsequent editions, and derivative works. Please use the recommended citation format below followed by “Republished courtesy of the National Institute of Standards and Technology.” Some works published by NIST may have been written by third parties and may be subject to copyright protection.\" The publication's title page names authors at NIST and at The MITRE Corporation. Attribution: Ross, R., Pillitteri, V., Graubart, R., Bodeau, D., and McQuaid, R. (2021), Developing Cyber-Resilient Systems: A Systems Security Engineering Approach, NIST Special Publication (SP) 800-160, Vol. 2, Rev. 1, National Institute of Standards and Technology, Gaithersburg, MD, https://doi.org/10.6028/NIST.SP.800-160v2r1 (Accessed November 11, 2026). Republished courtesy of the National Institute of Standards and Technology. Appendix F names MITRE ATT&CK tactics, techniques and mitigations by their ATT&CK identifiers and names. MITRE's terms of use for ATT&CK (https://attack.mitre.org/resources/legal-and-branding/terms-of-use/, read 2026-11-11): \"The MITRE Corporation (MITRE) hereby grants you a non-exclusive, royalty-free license to use ATT&CK® for research, development, and commercial purposes. Any copy you make for such purposes is authorized provided that you reproduce MITRE's copyright designation and this license in any such copy.\" \"© 2026 The MITRE Corporation. This work is reproduced and distributed with the permission of The MITRE Corporation.\"",
+      "notes": "This project's transcription of Appendix F: Table F-1 (the effects a mitigation can have on a threat event), Tables F-3 to F-16 (for each ATT&CK tactic, its techniques with the mitigations, cyber resiliency approaches, potential effects and SP 800-53 controls printed for each) and Tables F-17 to F-19 (the candidate mitigations) from the PDF that transcribed_from names, made by scripts/reference-transcribe/sp800-160v2r1-appendix-f.mjs with pdftotext 26.04.0. The appendix analyses ATT&CK for Enterprise, which the publication cites as [MITRE18] (The MITRE Corporation, 2018, https://attack.mitre.org), and names no ATT&CK version. One control label it prints, CM-4(4) in Table F-8, names no control of the pinned SP 800-53 Rev. 5 catalog: it makes no link and is kept on its row as props.controls_not_in_catalog. The PDF is the authority and is not stored in the repository. The file's corrections list every place the transcription departs from the printed text."
     }
   ]
 }

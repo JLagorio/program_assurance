@@ -68,11 +68,9 @@ import { Page } from "./shell";
 import { useWorkspace } from "./workspace";
 import { ProductCollection } from "@/components/prototype/product-collection";
 import {
-  RecordLink,
   RecordPreviewActions,
   RecordPreviewPanel,
   useDisplayedRecords,
-  recordDestination,
 } from "@/components/prototype/record-preview";
 import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
 import { QueryState } from "@/components/prototype/work-common";
@@ -277,9 +275,19 @@ function SchemaCollection({
               minWidth: 200,
               hideable: false,
               cell: (record) => (
-                <RecordLink table={model} record={record}>
+                // The inspector's own register: a name opens the record's schema record, as its row
+                // does, whether or not the product has a page for it.
+                <TextLink
+                  render={
+                    <Link
+                      to="/records/$collection/$recordId"
+                      params={{ collection: model, recordId: record.id }}
+                      onClick={(event) => event.stopPropagation()}
+                    />
+                  }
+                >
                   {recordTitle(record, collection)}
-                </RecordLink>
+                </TextLink>
               ),
             });
           if (vocabulary)
@@ -375,7 +383,12 @@ function SchemaCollection({
         action={create("small")}
         filters={activeFilter ? clearFilter : undefined}
         narrowed={!!activeFilter}
-        onRowClick={(record) => void navigate(recordDestination(model, record))}
+        onRowClick={(record) =>
+          void navigate({
+            to: "/records/$collection/$recordId",
+            params: { collection: model, recordId: record.id },
+          })
+        }
         empty={{
           illustration: "records",
           title: `No ${productCollectionNoun(name)} yet`,
@@ -405,6 +418,15 @@ function SchemaCollection({
               record={preview.record}
               rows={displayed}
               onSelect={setSelected}
+              // The inspector's preview opens the record's schema record, as its name does.
+              openLink={
+                <Link
+                  to="/records/$collection/$recordId"
+                  params={{ collection: model, recordId: preview.record.id }}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                />
+              }
             />
           }
         >

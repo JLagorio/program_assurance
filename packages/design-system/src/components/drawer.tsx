@@ -220,7 +220,7 @@ export function DrawerFooter({ className, ref, ...props }: DrawerFooterProps) {
 }
 export type DrawerTitleProps = Primitive.Title.Props;
 /**
- * The drawer's title, its h2: a Heading at `overlay`, 15/22 medium. A PageHeader.Title renders as
+ * The drawer's title, its h2: a Heading at `overlay`, 17/24 semibold. A PageHeader.Title renders as
  * it through `render`, keeping its own size, and the composing part's `data-slot` names the element,
  * as Button's does: the slot comes before the caller's props.
  */

@@ -2,7 +2,7 @@ import { useConfirmation } from "@/components/app/confirmation";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { ProductCollection } from "./product-collection";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
+import { Link, useBlocker } from "@tanstack/react-router";
 import { MoreHorizontal, Plus } from "lucide-react";
 import {
   Absent,
@@ -47,10 +47,10 @@ import {
   RecordLink,
   RecordPreviewActions,
   RecordPreviewPanel,
-  recordDestination,
   useDisplayedRecords,
   useRemovalFocus,
   useEndOnHide,
+  useOpenRecord,
 } from "./record-preview";
 import { QueryState } from "./work-common";
 
@@ -102,7 +102,7 @@ export function RequirementEvidence({
   readOnly?: boolean;
 }) {
   const workspace = useWorkspace();
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   const requirement = useRow("requirement_revisions", requirementRevisionId);
   const identity = useRow("engineering_requirements", requirement.data?.engineering_requirement_id);
   const links = useRows("requirement_evidence", { requirement_revision_id: requirementRevisionId });
@@ -230,7 +230,11 @@ export function RequirementEvidence({
           priority: 0,
           hideable: false,
           cell: (row) => (
-            <RecordLink table="evidence_versions" record={row.version}>
+            <RecordLink
+              table="evidence_versions"
+              record={row.version}
+              onPreview={() => setPreviewId(row.id)}
+            >
               {row.title}
             </RecordLink>
           ),
@@ -362,7 +366,9 @@ export function RequirementEvidence({
       <ProductCollection
         table={table}
         queries={queries}
-        onRowClick={(row) => void navigate(recordDestination("evidence_versions", row.version))}
+        onRowClick={(row) =>
+          openRecord("evidence_versions", row.version, () => setPreviewId(row.id))
+        }
         fill
         searchLabel="Find linked evidence"
         action={addEvidence}

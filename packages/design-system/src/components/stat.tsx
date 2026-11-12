@@ -1,4 +1,5 @@
 import { useRender } from "@base-ui/react/use-render";
+import { ChevronRight } from "lucide-react";
 import type { ComponentProps, ReactElement, ReactNode } from "react";
 
 import { cn } from "../lib/cn";
@@ -44,7 +45,7 @@ export type StatGridProps = ComponentProps<"div"> & {
 
 const isZero = (value: ReactNode) => value === 0 || value === "0";
 
-/** The figure: a Heading at `page` (20/26 semibold) as a div, since a number is not a title, with
+/** The figure: a Heading at `page` (24/30 semibold) as a div, since a number is not a title, with
     tabular numerals. Zero reads muted; a tone colours a number that is a status. */
 function Figure({ value, tone, children }: { value: ReactNode; tone: Tone; children: ReactNode }) {
   return (
@@ -168,6 +169,149 @@ function StatRoot({ label, value, tone = "neutral", isLoading, className, ...pro
   );
 }
 
+export type StatRowProps = Omit<ComponentProps<"li">, "children"> & {
+  /** What the number counts, on the row's line: "Need attention". */
+  label: string;
+  /** The number at the row's end. A number is written in the reader's locale; a string shows as given. Zero mutes the whole row. */
+  value: ReactNode;
+  /** A colour only when the number is a status: the label and the number take it together. A zero stays muted whatever the tone. */
+  tone?: Tone | undefined;
+  /** Before the label: an `Icon` for the kind of thing counted. Decoration, since the label says it. */
+  icon?: ReactNode;
+  /** The number is on its way: a Skeleton holds its place, the row is `aria-busy`, and a screen reader hears "Loading" after the label. */
+  isLoading?: boolean | undefined;
+  /** A link element (a router's Link, or `<a href>`) that fills the row and opens the register it counts, with a chevron after the label. Its name is the label and the number. A linked row holds no other control. */
+  link?:
+    | ReactElement<{
+        className?: string | undefined;
+        children?: ReactNode;
+      }>
+    | undefined;
+};
+
+/** One line of a Stat.List: an icon, the label and its number at the end. A breakdown of one count into its parts, where a Stat.Tile would be one number and a note. Zero reads muted. With `link`, the whole row opens the register it counts. */
+export function StatRow({
+  label,
+  value,
+  tone = "neutral",
+  icon,
+  isLoading,
+  link,
+  className,
+  ...props
+}: StatRowProps) {
+  const shown = useStatRowValue(value, isLoading);
+  const zero = isZero(value) && !isLoading;
+  const toned = !zero && tone !== "neutral";
+  const content = (
+    <>
+      <span className="flex min-w-0 flex-1 items-center gap-100">
+        {icon ? (
+          <span
+            data-slot="stat-row-icon"
+            className={cn(
+              "flex shrink-0 items-center",
+              zero ? "icon-subtlest" : toned ? toneClasses[tone].icon : "icon-subtle",
+            )}
+          >
+            {icon}
+          </span>
+        ) : null}
+        <span
+          data-slot="stat-row-label"
+          className={cn(
+            "min-w-0 break-words font-body font-medium",
+            zero ? "text-subtle" : toned ? toneClasses[tone].text : "text-default",
+            link && "group-hover/stat-link:underline group-focus-visible/stat-link:underline",
+          )}
+        >
+          {label}
+        </span>
+        {link ? (
+          <ChevronRight
+            aria-hidden
+            className={cn(
+              "size-icon-small shrink-0 rtl:rotate-180",
+              toned ? toneClasses[tone].icon : "icon-subtlest",
+            )}
+          />
+        ) : null}
+      </span>
+      <span
+        data-slot="stat-row-value"
+        className={cn(
+          "shrink-0 font-body-large font-semibold tabular-nums",
+          zero ? "text-subtlest" : toned ? toneClasses[tone].text : "text-default",
+        )}
+      >
+        {shown}
+      </span>
+    </>
+  );
+  const box = "flex min-w-0 flex-1 items-center justify-between gap-150 px-150 py-100";
+  // The link fills the row, so the row stays the list's child and its ring is drawn inside the edge.
+  const linked = useRender({
+    defaultTagName: "a",
+    render: link,
+    enabled: Boolean(link),
+    props: {
+      className: cn(
+        box,
+        "group/stat-link rounded-medium outline-none transition-colors duration-fast ease-standard hover:bg-surface-raised-hovered active:bg-surface-raised-pressed focus-visible:outline-field-focused motion-reduce:transition-none",
+      ),
+      children: content,
+      ...{ "data-slot": "stat-link" },
+    },
+  });
+  return (
+    <li
+      {...props}
+      aria-busy={isLoading ? true : props["aria-busy"]}
+      data-slot="stat-row"
+      className={cn(
+        "flex min-w-0 rounded-medium border border-default bg-surface-raised",
+        !link && box,
+        className,
+      )}
+    >
+      {link ? linked : content}
+    </li>
+  );
+}
+
+/** The row's number: in the reader's locale, or a line-sized placeholder while it loads. */
+function useStatRowValue(value: ReactNode, isLoading: boolean | undefined) {
+  const { formatNumber, t } = useLedgerLocale();
+  if (isLoading)
+    return (
+      <>
+        <Skeleton width={24} className="inline-block align-middle" />
+        <VisuallyHidden>{t("loading")}</VisuallyHidden>
+      </>
+    );
+  return typeof value === "number" && Number.isFinite(value) ? formatNumber(value) : value;
+}
+
+export type StatListProps = ComponentProps<"ul"> & {
+  /** Stat.Row lines, the part to act on first. */
+  children: ReactNode;
+};
+
+/** A count broken into its parts, one Stat.Row a line: each a raised row of its own, so the list reads on a Tray's sunken surface and on a page alike. Name it with `aria-label` or `aria-labelledby` when no heading above it does. */
+export function StatList({ className, children, ...props }: StatListProps) {
+  return (
+    // `role="list"` keeps the list, and its count, in WebKit, which drops it from a list without markers.
+    <ul
+      {...props}
+      role="list"
+      data-slot="stat-list"
+      className={cn("flex min-w-0 flex-col gap-050", className)}
+    >
+      {children}
+    </ul>
+  );
+}
+
 // stat.css: the columns asked for when they fit, folding in balanced steps by the grid's own width.
 const gridCols: Record<2 | 3 | 4 | 5 | 6, string> = {
   2: "stat-grid-2",
@@ -203,4 +347,9 @@ export function StatGrid({
   );
 }
 
-export const Stat = Object.assign(StatRoot, { Tile: StatTile, Grid: StatGrid });
+export const Stat = Object.assign(StatRoot, {
+  Tile: StatTile,
+  Grid: StatGrid,
+  List: StatList,
+  Row: StatRow,
+});

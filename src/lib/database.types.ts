@@ -3430,6 +3430,144 @@ export type Database = {
           },
         ];
       };
+      control_overlay_decisions: {
+        Row: {
+          action: string;
+          control_id: string;
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          overlay_id: string;
+          rationale: string;
+          revision: number;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          action: string;
+          control_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          overlay_id: string;
+          rationale: string;
+          revision?: number;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          action?: string;
+          control_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          overlay_id?: string;
+          rationale?: string;
+          revision?: number;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "control_overlay_decisions_control_id_fkey";
+            columns: ["control_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_control_rows";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "control_overlay_decisions_control_id_fkey";
+            columns: ["control_id"];
+            isOneToOne: false;
+            referencedRelation: "controls";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "control_overlay_decisions_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "control_overlay_decisions_tenant_id_overlay_id_fkey";
+            columns: ["tenant_id", "overlay_id"];
+            isOneToOne: false;
+            referencedRelation: "control_overlay_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "control_overlay_decisions_tenant_id_overlay_id_fkey";
+            columns: ["tenant_id", "overlay_id"];
+            isOneToOne: false;
+            referencedRelation: "control_overlays";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      control_overlays: {
+        Row: {
+          catalog_revision_id: string;
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          description: string | null;
+          id: string;
+          revision: number;
+          state: string;
+          tenant_id: string;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          catalog_revision_id: string;
+          code: string;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          id?: string;
+          revision?: number;
+          state?: string;
+          tenant_id: string;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          catalog_revision_id?: string;
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          id?: string;
+          revision?: number;
+          state?: string;
+          tenant_id?: string;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "control_overlays_catalog_revision_id_fkey";
+            columns: ["catalog_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_revisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "control_overlays_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       control_parts: {
         Row: {
           catalog_revision_id: string;
@@ -4796,6 +4934,528 @@ export type Database = {
           },
         ];
       };
+      framework_control_links: {
+        Row: {
+          catalog_revision_id: string | null;
+          control_id: string | null;
+          control_label: string;
+          created_at: string;
+          created_by: string | null;
+          framework_revision_id: string;
+          id: string;
+          item_id: string;
+          ordinal: number | null;
+          printed_in: string;
+          props: Json;
+          relation: string;
+          resolution_status: Database["public"]["Enums"]["reference_resolution_status"];
+          revision: number;
+          source_identifier: string;
+          tenant_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          catalog_revision_id?: string | null;
+          control_id?: string | null;
+          control_label: string;
+          created_at?: string;
+          created_by?: string | null;
+          framework_revision_id: string;
+          id?: string;
+          item_id: string;
+          ordinal?: number | null;
+          printed_in: string;
+          props?: Json;
+          relation: string;
+          resolution_status: Database["public"]["Enums"]["reference_resolution_status"];
+          revision?: number;
+          source_identifier: string;
+          tenant_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          catalog_revision_id?: string | null;
+          control_id?: string | null;
+          control_label?: string;
+          created_at?: string;
+          created_by?: string | null;
+          framework_revision_id?: string;
+          id?: string;
+          item_id?: string;
+          ordinal?: number | null;
+          printed_in?: string;
+          props?: Json;
+          relation?: string;
+          resolution_status?: Database["public"]["Enums"]["reference_resolution_status"];
+          revision?: number;
+          source_identifier?: string;
+          tenant_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "framework_control_links_catalog_revision_id_fkey";
+            columns: ["catalog_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_revisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_control_links_control_id_catalog_revision_id_fkey";
+            columns: ["control_id", "catalog_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_control_rows";
+            referencedColumns: ["id", "catalog_revision_id"];
+          },
+          {
+            foreignKeyName: "framework_control_links_control_id_catalog_revision_id_fkey";
+            columns: ["control_id", "catalog_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "controls";
+            referencedColumns: ["id", "catalog_revision_id"];
+          },
+          {
+            foreignKeyName: "framework_control_links_framework_revision_id_fkey";
+            columns: ["framework_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_revisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_control_links_framework_revision_id_fkey";
+            columns: ["framework_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_rows";
+            referencedColumns: ["framework_revision_id"];
+          },
+          {
+            foreignKeyName: "framework_control_links_item_id_fkey";
+            columns: ["item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_control_link_rows";
+            referencedColumns: ["technique_item_id"];
+          },
+          {
+            foreignKeyName: "framework_control_links_item_id_fkey";
+            columns: ["item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_item_rows";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_control_links_item_id_fkey";
+            columns: ["item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_control_links_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      framework_item_links: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          framework_revision_id: string;
+          id: string;
+          ordinal: number | null;
+          printed_in: string;
+          props: Json;
+          relation: string;
+          revision: number;
+          source_identifier: string;
+          source_item_id: string;
+          target_item_id: string;
+          tenant_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          framework_revision_id: string;
+          id?: string;
+          ordinal?: number | null;
+          printed_in: string;
+          props?: Json;
+          relation: string;
+          revision?: number;
+          source_identifier: string;
+          source_item_id: string;
+          target_item_id: string;
+          tenant_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          framework_revision_id?: string;
+          id?: string;
+          ordinal?: number | null;
+          printed_in?: string;
+          props?: Json;
+          relation?: string;
+          revision?: number;
+          source_identifier?: string;
+          source_item_id?: string;
+          target_item_id?: string;
+          tenant_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "framework_item_links_framework_revision_id_fkey";
+            columns: ["framework_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_revisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_item_links_framework_revision_id_fkey";
+            columns: ["framework_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_rows";
+            referencedColumns: ["framework_revision_id"];
+          },
+          {
+            foreignKeyName: "framework_item_links_source_item_id_fkey";
+            columns: ["source_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_control_link_rows";
+            referencedColumns: ["technique_item_id"];
+          },
+          {
+            foreignKeyName: "framework_item_links_source_item_id_fkey";
+            columns: ["source_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_item_rows";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_item_links_source_item_id_fkey";
+            columns: ["source_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_item_links_target_item_id_fkey";
+            columns: ["target_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_control_link_rows";
+            referencedColumns: ["technique_item_id"];
+          },
+          {
+            foreignKeyName: "framework_item_links_target_item_id_fkey";
+            columns: ["target_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_item_rows";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_item_links_target_item_id_fkey";
+            columns: ["target_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_item_links_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      framework_items: {
+        Row: {
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          framework_revision_id: string;
+          id: string;
+          kind: string;
+          ordinal: number;
+          parent_item_id: string | null;
+          printed_in: string;
+          props: Json;
+          prose: string | null;
+          revision: number;
+          tenant_id: string | null;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          code: string;
+          created_at?: string;
+          created_by?: string | null;
+          framework_revision_id: string;
+          id?: string;
+          kind: string;
+          ordinal: number;
+          parent_item_id?: string | null;
+          printed_in: string;
+          props?: Json;
+          prose?: string | null;
+          revision?: number;
+          tenant_id?: string | null;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          framework_revision_id?: string;
+          id?: string;
+          kind?: string;
+          ordinal?: number;
+          parent_item_id?: string | null;
+          printed_in?: string;
+          props?: Json;
+          prose?: string | null;
+          revision?: number;
+          tenant_id?: string | null;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "framework_items_framework_revision_id_fkey";
+            columns: ["framework_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_revisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_items_framework_revision_id_fkey";
+            columns: ["framework_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_rows";
+            referencedColumns: ["framework_revision_id"];
+          },
+          {
+            foreignKeyName: "framework_items_parent_item_id_framework_revision_id_fkey";
+            columns: ["parent_item_id", "framework_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_item_rows";
+            referencedColumns: ["id", "framework_revision_id"];
+          },
+          {
+            foreignKeyName: "framework_items_parent_item_id_framework_revision_id_fkey";
+            columns: ["parent_item_id", "framework_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_items";
+            referencedColumns: ["id", "framework_revision_id"];
+          },
+          {
+            foreignKeyName: "framework_items_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      framework_revisions: {
+        Row: {
+          catalog_revision_id: string | null;
+          content_sha256: string;
+          corrections: Json;
+          created_at: string;
+          created_by: string | null;
+          format: string;
+          framework_id: string;
+          id: string;
+          input_sha256: string;
+          method: Json;
+          revision: number;
+          source_document: Json;
+          state: Database["public"]["Enums"]["reference_revision_state"];
+          tenant_id: string | null;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+          version: string;
+        };
+        Insert: {
+          catalog_revision_id?: string | null;
+          content_sha256: string;
+          corrections?: Json;
+          created_at?: string;
+          created_by?: string | null;
+          format: string;
+          framework_id: string;
+          id?: string;
+          input_sha256: string;
+          method?: Json;
+          revision?: number;
+          source_document: Json;
+          state?: Database["public"]["Enums"]["reference_revision_state"];
+          tenant_id?: string | null;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version: string;
+        };
+        Update: {
+          catalog_revision_id?: string | null;
+          content_sha256?: string;
+          corrections?: Json;
+          created_at?: string;
+          created_by?: string | null;
+          format?: string;
+          framework_id?: string;
+          id?: string;
+          input_sha256?: string;
+          method?: Json;
+          revision?: number;
+          source_document?: Json;
+          state?: Database["public"]["Enums"]["reference_revision_state"];
+          tenant_id?: string | null;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "framework_revisions_catalog_revision_id_fkey";
+            columns: ["catalog_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_revisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_revisions_framework_id_fkey";
+            columns: ["framework_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_control_link_rows";
+            referencedColumns: ["framework_id"];
+          },
+          {
+            foreignKeyName: "framework_revisions_framework_id_fkey";
+            columns: ["framework_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_item_link_rows";
+            referencedColumns: ["framework_id"];
+          },
+          {
+            foreignKeyName: "framework_revisions_framework_id_fkey";
+            columns: ["framework_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_item_rows";
+            referencedColumns: ["framework_id"];
+          },
+          {
+            foreignKeyName: "framework_revisions_framework_id_fkey";
+            columns: ["framework_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_rows";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_revisions_framework_id_fkey";
+            columns: ["framework_id"];
+            isOneToOne: false;
+            referencedRelation: "frameworks";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_revisions_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      frameworks: {
+        Row: {
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          current_revision_id: string | null;
+          id: string;
+          revision: number;
+          source_id: string;
+          tenant_id: string | null;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          code: string;
+          created_at?: string;
+          created_by?: string | null;
+          current_revision_id?: string | null;
+          id?: string;
+          revision?: number;
+          source_id: string;
+          tenant_id?: string | null;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          current_revision_id?: string | null;
+          id?: string;
+          revision?: number;
+          source_id?: string;
+          tenant_id?: string | null;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "frameworks_current_revision_id_fkey";
+            columns: ["current_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_revisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "frameworks_current_revision_id_fkey";
+            columns: ["current_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_rows";
+            referencedColumns: ["framework_revision_id"];
+          },
+          {
+            foreignKeyName: "frameworks_source_id_fkey";
+            columns: ["source_id"];
+            isOneToOne: false;
+            referencedRelation: "ref_sources";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "frameworks_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       gate_criteria: {
         Row: {
           created_at: string;
@@ -4803,6 +5463,7 @@ export type Database = {
           description: string | null;
           gate_id: string;
           id: string;
+          outcome_item_id: string | null;
           required: boolean;
           revision: number;
           sequence_number: number | null;
@@ -4817,6 +5478,7 @@ export type Database = {
           description?: string | null;
           gate_id: string;
           id?: string;
+          outcome_item_id?: string | null;
           required?: boolean;
           revision?: number;
           sequence_number?: number | null;
@@ -4831,6 +5493,7 @@ export type Database = {
           description?: string | null;
           gate_id?: string;
           id?: string;
+          outcome_item_id?: string | null;
           required?: boolean;
           revision?: number;
           sequence_number?: number | null;
@@ -4840,6 +5503,27 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "gate_criteria_outcome_item_id_fkey";
+            columns: ["outcome_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_control_link_rows";
+            referencedColumns: ["technique_item_id"];
+          },
+          {
+            foreignKeyName: "gate_criteria_outcome_item_id_fkey";
+            columns: ["outcome_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_item_rows";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gate_criteria_outcome_item_id_fkey";
+            columns: ["outcome_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_items";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "gate_criteria_tenant_id_fkey";
             columns: ["tenant_id"];
@@ -4916,6 +5600,58 @@ export type Database = {
             columns: ["tenant_id", "gate_criterion_id"];
             isOneToOne: false;
             referencedRelation: "gate_criteria";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "gate_evidence_tenant_id_gate_criterion_id_fkey";
+            columns: ["tenant_id", "gate_criterion_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criterion_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      gate_outcome_requests: {
+        Row: {
+          created_at: string;
+          created_by: string;
+          gate_id: string;
+          id: string;
+          payload_sha256: string;
+          result: Json;
+          tenant_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by: string;
+          gate_id: string;
+          id: string;
+          payload_sha256: string;
+          result: Json;
+          tenant_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string;
+          gate_id?: string;
+          id?: string;
+          payload_sha256?: string;
+          result?: Json;
+          tenant_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "gate_outcome_requests_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gate_outcome_requests_tenant_id_gate_id_fkey";
+            columns: ["tenant_id", "gate_id"];
+            isOneToOne: false;
+            referencedRelation: "lifecycle_gates";
             referencedColumns: ["tenant_id", "id"];
           },
         ];
@@ -8757,6 +9493,77 @@ export type Database = {
           },
         ];
       };
+      profile_overlay_applications: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          not_applicable_control_ids: string[];
+          overlay_id: string;
+          profile_resolution_id: string;
+          reaffirmed_control_ids: string[];
+          revision: number;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          not_applicable_control_ids?: string[];
+          overlay_id: string;
+          profile_resolution_id: string;
+          reaffirmed_control_ids?: string[];
+          revision?: number;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          not_applicable_control_ids?: string[];
+          overlay_id?: string;
+          profile_resolution_id?: string;
+          reaffirmed_control_ids?: string[];
+          revision?: number;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "profile_overlay_applications_profile_resolution_id_fkey";
+            columns: ["profile_resolution_id"];
+            isOneToOne: true;
+            referencedRelation: "profile_resolutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "profile_overlay_applications_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "profile_overlay_applications_tenant_id_overlay_id_fkey";
+            columns: ["tenant_id", "overlay_id"];
+            isOneToOne: false;
+            referencedRelation: "control_overlay_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "profile_overlay_applications_tenant_id_overlay_id_fkey";
+            columns: ["tenant_id", "overlay_id"];
+            isOneToOne: false;
+            referencedRelation: "control_overlays";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
       profile_parameter_settings: {
         Row: {
           created_at: string;
@@ -10736,6 +11543,13 @@ export type Database = {
             referencedColumns: ["tenant_id", "id"];
           },
           {
+            foreignKeyName: "review_decisions_tenant_id_gate_criterion_id_fkey";
+            columns: ["tenant_id", "gate_criterion_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criterion_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "review_decisions_tenant_id_package_revision_id_fkey";
             columns: ["tenant_id", "package_revision_id"];
             isOneToOne: false;
@@ -10754,6 +11568,85 @@ export type Database = {
             columns: ["tenant_id", "risk_revision_id"];
             isOneToOne: false;
             referencedRelation: "risk_revisions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      risk_attack_techniques: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          framework_item_id: string;
+          id: string;
+          revision: number;
+          risk_id: string;
+          tenant_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          framework_item_id: string;
+          id?: string;
+          revision?: number;
+          risk_id: string;
+          tenant_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          framework_item_id?: string;
+          id?: string;
+          revision?: number;
+          risk_id?: string;
+          tenant_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "risk_attack_techniques_framework_item_id_fkey";
+            columns: ["framework_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_control_link_rows";
+            referencedColumns: ["technique_item_id"];
+          },
+          {
+            foreignKeyName: "risk_attack_techniques_framework_item_id_fkey";
+            columns: ["framework_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_item_rows";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "risk_attack_techniques_framework_item_id_fkey";
+            columns: ["framework_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "risk_attack_techniques_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "risk_attack_techniques_tenant_id_risk_id_fkey";
+            columns: ["tenant_id", "risk_id"];
+            isOneToOne: false;
+            referencedRelation: "risk_rows";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "risk_attack_techniques_tenant_id_risk_id_fkey";
+            columns: ["tenant_id", "risk_id"];
+            isOneToOne: false;
+            referencedRelation: "risks";
             referencedColumns: ["tenant_id", "id"];
           },
         ];
@@ -13485,6 +14378,69 @@ export type Database = {
           },
         ];
       };
+      control_overlay_rows: {
+        Row: {
+          application_count: number | null;
+          catalog_revision_id: string | null;
+          code: string | null;
+          created_at: string | null;
+          description: string | null;
+          exclude_count: number | null;
+          id: string | null;
+          include_count: number | null;
+          revision: number | null;
+          state: string | null;
+          tenant_id: string | null;
+          title: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          application_count?: never;
+          catalog_revision_id?: string | null;
+          code?: string | null;
+          created_at?: string | null;
+          description?: string | null;
+          exclude_count?: never;
+          id?: string | null;
+          include_count?: never;
+          revision?: number | null;
+          state?: string | null;
+          tenant_id?: string | null;
+          title?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          application_count?: never;
+          catalog_revision_id?: string | null;
+          code?: string | null;
+          created_at?: string | null;
+          description?: string | null;
+          exclude_count?: never;
+          id?: string | null;
+          include_count?: never;
+          revision?: number | null;
+          state?: string | null;
+          tenant_id?: string | null;
+          title?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "control_overlays_catalog_revision_id_fkey";
+            columns: ["catalog_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_revisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "control_overlays_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       evidence_artifact_rows: {
         Row: {
           artifact_kind: string | null;
@@ -13537,6 +14493,346 @@ export type Database = {
             columns: ["tenant_id", "scope_id"];
             isOneToOne: false;
             referencedRelation: "scopes";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      framework_control_link_rows: {
+        Row: {
+          catalog_revision_id: string | null;
+          control_code: string | null;
+          control_id: string | null;
+          control_label: string | null;
+          control_order: string | null;
+          control_title: string | null;
+          framework_code: string | null;
+          framework_id: string | null;
+          framework_revision_id: string | null;
+          id: string | null;
+          item_code: string | null;
+          item_id: string | null;
+          item_kind: string | null;
+          item_title: string | null;
+          ordinal: number | null;
+          parent_item_code: string | null;
+          parent_item_id: string | null;
+          parent_item_kind: string | null;
+          parent_item_title: string | null;
+          printed_in: string | null;
+          props: Json | null;
+          relation: string | null;
+          resolution_status: Database["public"]["Enums"]["reference_resolution_status"] | null;
+          source_identifier: string | null;
+          technique_code: string | null;
+          technique_item_id: string | null;
+          technique_title: string | null;
+          tenant_id: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "framework_control_links_catalog_revision_id_fkey";
+            columns: ["catalog_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_revisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_control_links_control_id_catalog_revision_id_fkey";
+            columns: ["control_id", "catalog_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_control_rows";
+            referencedColumns: ["id", "catalog_revision_id"];
+          },
+          {
+            foreignKeyName: "framework_control_links_control_id_catalog_revision_id_fkey";
+            columns: ["control_id", "catalog_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "controls";
+            referencedColumns: ["id", "catalog_revision_id"];
+          },
+          {
+            foreignKeyName: "framework_control_links_framework_revision_id_fkey";
+            columns: ["framework_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_revisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_control_links_framework_revision_id_fkey";
+            columns: ["framework_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_rows";
+            referencedColumns: ["framework_revision_id"];
+          },
+          {
+            foreignKeyName: "framework_control_links_item_id_fkey";
+            columns: ["item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_control_link_rows";
+            referencedColumns: ["technique_item_id"];
+          },
+          {
+            foreignKeyName: "framework_control_links_item_id_fkey";
+            columns: ["item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_item_rows";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_control_links_item_id_fkey";
+            columns: ["item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_control_links_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      framework_item_link_rows: {
+        Row: {
+          framework_code: string | null;
+          framework_id: string | null;
+          framework_revision_id: string | null;
+          id: string | null;
+          ordinal: number | null;
+          printed_in: string | null;
+          props: Json | null;
+          relation: string | null;
+          source_code: string | null;
+          source_framework_code: string | null;
+          source_identifier: string | null;
+          source_item_id: string | null;
+          source_kind: string | null;
+          source_title: string | null;
+          target_code: string | null;
+          target_framework_code: string | null;
+          target_item_id: string | null;
+          target_kind: string | null;
+          target_title: string | null;
+          tenant_id: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "framework_item_links_framework_revision_id_fkey";
+            columns: ["framework_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_revisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_item_links_framework_revision_id_fkey";
+            columns: ["framework_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_rows";
+            referencedColumns: ["framework_revision_id"];
+          },
+          {
+            foreignKeyName: "framework_item_links_source_item_id_fkey";
+            columns: ["source_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_control_link_rows";
+            referencedColumns: ["technique_item_id"];
+          },
+          {
+            foreignKeyName: "framework_item_links_source_item_id_fkey";
+            columns: ["source_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_item_rows";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_item_links_source_item_id_fkey";
+            columns: ["source_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_item_links_target_item_id_fkey";
+            columns: ["target_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_control_link_rows";
+            referencedColumns: ["technique_item_id"];
+          },
+          {
+            foreignKeyName: "framework_item_links_target_item_id_fkey";
+            columns: ["target_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_item_rows";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_item_links_target_item_id_fkey";
+            columns: ["target_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_item_links_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      framework_item_rows: {
+        Row: {
+          code: string | null;
+          code_order: string | null;
+          framework_code: string | null;
+          framework_id: string | null;
+          framework_revision_id: string | null;
+          id: string | null;
+          kind: string | null;
+          ordinal: number | null;
+          parent_code: string | null;
+          parent_item_id: string | null;
+          parent_kind: string | null;
+          parent_title: string | null;
+          printed_in: string | null;
+          props: Json | null;
+          prose: string | null;
+          revision_version: string | null;
+          tenant_id: string | null;
+          title: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "framework_items_framework_revision_id_fkey";
+            columns: ["framework_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_revisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "framework_items_framework_revision_id_fkey";
+            columns: ["framework_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_rows";
+            referencedColumns: ["framework_revision_id"];
+          },
+          {
+            foreignKeyName: "framework_items_parent_item_id_framework_revision_id_fkey";
+            columns: ["parent_item_id", "framework_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_item_rows";
+            referencedColumns: ["id", "framework_revision_id"];
+          },
+          {
+            foreignKeyName: "framework_items_parent_item_id_framework_revision_id_fkey";
+            columns: ["parent_item_id", "framework_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_items";
+            referencedColumns: ["id", "framework_revision_id"];
+          },
+          {
+            foreignKeyName: "framework_items_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      framework_rows: {
+        Row: {
+          authoritative: boolean | null;
+          authority: string | null;
+          catalog_revision_id: string | null;
+          code: string | null;
+          content_sha256: string | null;
+          corrections: Json | null;
+          format: string | null;
+          framework_revision_id: string | null;
+          id: string | null;
+          input_sha256: string | null;
+          method: Json | null;
+          notes: string | null;
+          recorded_at: string | null;
+          rights: string | null;
+          source_document: Json | null;
+          tenant_id: string | null;
+          title: string | null;
+          version: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "framework_revisions_catalog_revision_id_fkey";
+            columns: ["catalog_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_revisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "frameworks_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      gate_criterion_rows: {
+        Row: {
+          created_at: string | null;
+          description: string | null;
+          gate_id: string | null;
+          group_code: string | null;
+          group_title: string | null;
+          id: string | null;
+          outcome_code: string | null;
+          outcome_item_id: string | null;
+          process_code: string | null;
+          process_title: string | null;
+          required: boolean | null;
+          revision: number | null;
+          sequence_number: number | null;
+          tenant_id: string | null;
+          title: string | null;
+          updated_at: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "gate_criteria_outcome_item_id_fkey";
+            columns: ["outcome_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_control_link_rows";
+            referencedColumns: ["technique_item_id"];
+          },
+          {
+            foreignKeyName: "gate_criteria_outcome_item_id_fkey";
+            columns: ["outcome_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_item_rows";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gate_criteria_outcome_item_id_fkey";
+            columns: ["outcome_item_id"];
+            isOneToOne: false;
+            referencedRelation: "framework_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gate_criteria_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gate_criteria_tenant_id_gate_id_fkey";
+            columns: ["tenant_id", "gate_id"];
+            isOneToOne: false;
+            referencedRelation: "lifecycle_gates";
             referencedColumns: ["tenant_id", "id"];
           },
         ];
@@ -13614,6 +14910,45 @@ export type Database = {
             columns: ["base_profile_resolution_id"];
             isOneToOne: false;
             referencedRelation: "profile_resolutions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      program_control_requirement_counts: {
+        Row: {
+          control_id: string | null;
+          id: string | null;
+          program_id: string | null;
+          requirement_count: number | null;
+          tenant_id: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "engineering_requirements_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engineering_requirements_tenant_id_program_id_fkey";
+            columns: ["tenant_id", "program_id"];
+            isOneToOne: false;
+            referencedRelation: "programs";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "requirement_control_links_control_id_fkey";
+            columns: ["control_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_control_rows";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "requirement_control_links_control_id_fkey";
+            columns: ["control_id"];
+            isOneToOne: false;
+            referencedRelation: "controls";
             referencedColumns: ["id"];
           },
         ];
@@ -13990,6 +15325,15 @@ export type Database = {
       };
     };
     Functions: {
+      add_gate_security_outcomes: {
+        Args: {
+          p_gate_id: string;
+          p_outcome_item_ids: string[];
+          p_request_id: string;
+          p_tenant_id: string;
+        };
+        Returns: Json;
+      };
       add_program_system: {
         Args: {
           p_program_id: string;
@@ -14029,6 +15373,17 @@ export type Database = {
         };
         Returns: Json;
       };
+      apply_control_overlay: {
+        Args: {
+          p_base_resolution_id: string;
+          p_catalog_id: string;
+          p_code: string;
+          p_overlay_id: string;
+          p_tenant_id: string;
+          p_title: string;
+        };
+        Returns: string;
+      };
       apply_library_component: {
         Args: {
           p_assignment_id: string;
@@ -14058,6 +15413,14 @@ export type Database = {
         Args: { table_name: string };
         Returns: undefined;
       };
+      assign_record_owner: {
+        Args: {
+          p_collection: string;
+          p_owner_party_id: string;
+          p_record_ids: string[];
+        };
+        Returns: Json;
+      };
       assurance_allocation_attention_context: {
         Args: {
           p_requirement_revision_id: string;
@@ -14069,6 +15432,20 @@ export type Database = {
           generation: number;
         }[];
       };
+      assurance_issue_evidence: {
+        Args: { p_tenant_id: string };
+        Returns: {
+          artifact_id: string;
+          issue_id: string;
+        }[];
+      };
+      assurance_issue_risks: {
+        Args: { p_tenant_id: string };
+        Returns: {
+          issue_id: string;
+          risk_id: string;
+        }[];
+      };
       assurance_review_source_lines: {
         Args: { value: string };
         Returns: string[];
@@ -14076,6 +15453,15 @@ export type Database = {
       assurance_review_target_program: {
         Args: { p_target: Json; p_tenant_id: string };
         Returns: string;
+      };
+      assurance_trace: {
+        Args: {
+          p_id: string;
+          p_kind: string;
+          p_program_id?: string;
+          p_tenant_id: string;
+        };
+        Returns: Json;
       };
       attach_parent_immutability: {
         Args: {
@@ -14232,6 +15618,63 @@ export type Database = {
         Returns: Json;
       };
       product_export_uuid: { Args: { seed: string }; Returns: string };
+      program_control_status: { Args: { p_program_id: string }; Returns: Json };
+      program_posture: {
+        Args: { p_program_id: string; p_tenant_id: string };
+        Returns: Json;
+      };
+      program_posture_cell: {
+        Args: {
+          p_element_id?: string;
+          p_family_id?: string;
+          p_program_id: string;
+          p_tenant_id: string;
+        };
+        Returns: Json;
+      };
+      program_resiliency_choice: {
+        Args: { p_program_id: string };
+        Returns: Json;
+      };
+      program_resiliency_posture: {
+        Args: { p_program_id: string };
+        Returns: Json;
+      };
+      program_resiliency_posture_cell: {
+        Args: {
+          p_element_id?: string;
+          p_program_id: string;
+          p_technique_code?: string;
+        };
+        Returns: Json;
+      };
+      publish_control_overlay: {
+        Args: {
+          p_expected_revision: number;
+          p_overlay_id: string;
+          p_tenant_id: string;
+        };
+        Returns: {
+          catalog_revision_id: string;
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          description: string | null;
+          id: string;
+          revision: number;
+          state: string;
+          tenant_id: string;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "control_overlays";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       read_assurance_attention: {
         Args: {
           p_limit?: number;
@@ -14278,6 +15721,10 @@ export type Database = {
         };
         Returns: Json;
       };
+      risk_threats: {
+        Args: { p_risk_id: string; p_tenant_id: string };
+        Returns: Json;
+      };
       save_assurance_view: {
         Args: {
           p_definition: Json;
@@ -14321,6 +15768,34 @@ export type Database = {
         };
         Returns: Json;
       };
+      save_control_overlay: {
+        Args: {
+          p_expected_revision: number;
+          p_id: string;
+          p_overlay: Json;
+          p_tenant_id: string;
+        };
+        Returns: {
+          catalog_revision_id: string;
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          description: string | null;
+          id: string;
+          revision: number;
+          state: string;
+          tenant_id: string;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "control_overlays";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       save_workspace_snapshot: {
         Args: { expected_revision: number; snapshot: Json };
         Returns: number;
@@ -14350,6 +15825,35 @@ export type Database = {
           p_tenant_id: string;
         };
         Returns: Json;
+      };
+      set_control_overlay_decisions: {
+        Args: {
+          p_decisions: Json;
+          p_expected_revision: number;
+          p_overlay_id: string;
+          p_removed: Json;
+          p_tenant_id: string;
+        };
+        Returns: {
+          catalog_revision_id: string;
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          description: string | null;
+          id: string;
+          revision: number;
+          state: string;
+          tenant_id: string;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "control_overlays";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       update_library_assignment: {
         Args: {

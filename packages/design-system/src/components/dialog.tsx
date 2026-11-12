@@ -242,7 +242,11 @@ export function DialogBody({ className, render, ref, ...props }: DialogBodyProps
     props: mergeProps<"div">(props, {
       ...bodySlot("dialog-body"),
       className: cn(
-        "min-h-1000 min-w-0 flex-1 overflow-y-auto overscroll-none p-250 outline-none focus-visible:outline-field-focused",
+        // Relative, so an absolutely positioned descendant (a visually hidden label, such as a
+        // pager's "More pages") is placed against the body and scrolls with it. Placed against the
+        // popup it would give the popup something to scroll, and focus reaching the footer would
+        // scroll the whole dialog.
+        "relative min-h-1000 min-w-0 flex-1 overflow-y-auto overscroll-none p-250 outline-none focus-visible:outline-field-focused",
         className,
       ),
     }),
@@ -287,7 +291,7 @@ export function DialogFooter({
 }
 export type DialogTitleProps = Primitive.Title.Props;
 /**
- * The dialog's title, its h2: a Heading at `overlay`, 15/22 medium. A PageHeader.Title renders as
+ * The dialog's title, its h2: a Heading at `overlay`, 17/24 semibold. A PageHeader.Title renders as
  * it through `render`, keeping its own size, and the composing part's `data-slot` names the element,
  * as Button's does: the slot comes before the caller's props.
  */

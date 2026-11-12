@@ -299,7 +299,8 @@ try {
     await storedDialog
       .getByRole("link", { name: "Open control mapping", exact: true })
       .getAttribute("href"),
-    `/records/requirement_control_links/${mapping.id}`,
+    // A mapping is reviewed in its program's traceability matrix, never in the schema inspector.
+    `/programs/${program.id}/sctm`,
   );
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(url);

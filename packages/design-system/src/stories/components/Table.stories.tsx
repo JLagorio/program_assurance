@@ -1847,3 +1847,92 @@ export const DynamicFrame: Story = {
     await expect(canvas.getByRole("status")).toHaveTextContent("1 attached, 1 cleaned");
   },
 };
+
+const techniques = [
+  {
+    id: "redundancy",
+    name: "Redundancy",
+    approaches: 3,
+    guidance: "Provide multiple protected instances of critical resources.",
+  },
+  {
+    id: "segmentation",
+    name: "Segmentation",
+    approaches: 2,
+    guidance: "Define and separate system elements based on criticality and trustworthiness.",
+  },
+];
+
+function DetailRows() {
+  const [open, setOpen] = useState<string | null>(null);
+  return (
+    <Table label="Techniques">
+      <thead>
+        <tr>
+          <Table.Header width={36}>
+            <span className="sr-only">Details</span>
+          </Table.Header>
+          <Table.Header>Technique</Table.Header>
+          <Table.Header align="end" width={120}>
+            Approaches
+          </Table.Header>
+        </tr>
+      </thead>
+      <tbody>
+        {techniques.flatMap((row) => {
+          const detail = `technique-${row.id}-detail`;
+          const expanded = open === row.id;
+          return [
+            <Table.Row key={row.id} isStatic>
+              <Table.Disclosure
+                hasChildren
+                label={row.name}
+                controls={detail}
+                expanded={expanded}
+                onExpandedChange={(next) => setOpen(next ? row.id : null)}
+              />
+              <Table.Cell rowHeader>{row.name}</Table.Cell>
+              <Table.Cell align="end">{row.approaches}</Table.Cell>
+            </Table.Row>,
+            expanded ? (
+              <Table.Detail key={detail} id={detail} colSpan={3}>
+                <Text size="small">{row.guidance}</Text>
+              </Table.Detail>
+            ) : null,
+          ];
+        })}
+      </tbody>
+    </Table>
+  );
+}
+
+/** A row that opens into a `Table.Detail`, built by hand. `controls` on its `Table.Disclosure` names the detail row: the chevron is then the detail's opener, named "Show details for" the row and "Hide details for" it, with `aria-expanded` and `aria-controls`, as DataTable's own detail chevron reads. Without `controls` the chevron folds a hierarchy, "Expand" and "Collapse". */
+export const DetailByHand: Story = {
+  render: () => <DetailRows />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const opener = canvas.getByRole("button", { name: "Show details for Redundancy" });
+    await expect(opener).toHaveAttribute("aria-expanded", "false");
+    await expect(opener).toHaveAttribute("aria-controls", "technique-redundancy-detail");
+    await userEvent.click(opener);
+    const open = canvas.getByRole("button", { name: "Hide details for Redundancy" });
+    await expect(open).toBe(opener);
+    await expect(open).toHaveAttribute("aria-expanded", "true");
+    // The relation leads to the row that opened, right under its record.
+    const detail = canvasElement.ownerDocument.getElementById(
+      open.getAttribute("aria-controls") ?? "",
+    )!;
+    await expect(detail.tagName).toBe("TR");
+    await expect(detail.previousElementSibling).toBe(open.closest("tr"));
+    await expect(within(detail).getByText(techniques[0]!.guidance)).toBeVisible();
+    // One open at a time here; the other row still says it is closed.
+    await expect(
+      canvas.getByRole("button", { name: "Show details for Segmentation" }),
+    ).toHaveAttribute("aria-expanded", "false");
+    await userEvent.click(open);
+    await expect(opener).toHaveAttribute("aria-expanded", "false");
+    await expect(
+      canvasElement.ownerDocument.getElementById("technique-redundancy-detail"),
+    ).toBeNull();
+  },
+};

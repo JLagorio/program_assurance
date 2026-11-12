@@ -9,9 +9,9 @@ const report = (messageId, cls, advice, more = {}) => ({
 });
 /** The editor suggestion that writes the token class of the same value. */
 const same = (output) => ({ messageId: "sameValue", output });
-/** The two radii either side of the fixed 4px one, on the class's side. */
+/** The radius nearest the fixed 4px one, on the class's side: small at 3px, where medium at 6px is twice as far. */
 const radius = (side = "") =>
-  `Nearest: rounded${side}-small (3px, count chips, the checkbox, skeleton lines…) or rounded${side}-medium (5px, buttons, inputs, chips, tooltips, menu items).`;
+  `Nearest: rounded${side}-small (3px, count chips, the checkbox, skeleton lines…).`;
 /** The two design opacities, the nearest first. */
 const OPACITY =
   "Ledger has opacity-disabled (0.4, opacity of disabled elements when a disabled…) or opacity-loading (0.2, opacity of content in a loading state).";

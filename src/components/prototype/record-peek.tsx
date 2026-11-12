@@ -19,6 +19,7 @@ export function RecordPeek({
 }) {
   const [wanted, setWanted] = useState(false);
   const comparison = useRecordComparison();
+  const destination = recordDestination(identity.table, record);
   return (
     <Peek
       trigger={trigger}
@@ -28,13 +29,11 @@ export function RecordPeek({
       }}
       actions={
         <>
-          <LinkButton
-            size="small"
-            variant="subtle"
-            render={<Link {...recordDestination(identity.table, record)} />}
-          >
-            Open record
-          </LinkButton>
+          {destination && (
+            <LinkButton size="small" variant="subtle" render={<Link {...destination} />}>
+              Open record
+            </LinkButton>
+          )}
           {comparison && (
             <PopoverClose
               render={

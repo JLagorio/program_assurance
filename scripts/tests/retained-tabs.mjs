@@ -27,10 +27,11 @@ export async function checkRetainedTabs(page, { origin, programId, term, log = c
   log("PASS a retained program tab keeps its search while another tab shows");
 
   await tab(page, "Overview").click();
-  const tile = page.getByRole("link", { name: /^Open risks/ });
+  // The Overview's open risks tray: its heading is the count and the words, and opens the tab.
+  const tile = page.getByRole("link", { name: /^[\d,]+ open risks$/ });
   await tile.focus();
   await page.keyboard.press("Enter");
   await expect(tab(page, "POA&M & risk")).toHaveAttribute("aria-selected", "true");
   await expect(tab(page, "POA&M & risk")).toBeFocused();
-  log("PASS an Overview tile that chooses a tab moves focus to that tab");
+  log("PASS an Overview tray heading that chooses a tab moves focus to that tab");
 }

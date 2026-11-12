@@ -6,18 +6,18 @@ import * as Stories from "./Shape.stories";
 
 # Shape
 
-Radius is a set of named absolute steps on a 5px base. Bare `rounded` is banned: it is a static 4px no reset can remove. Border width is 1px by default and 2px for focus and selection.
+Radius is a set of named absolute steps on a 6px base. Bare `rounded` is banned: it is a static 4px no reset can remove. Border width is 1px by default and 2px for focus and selection.
 
 ## Radius
 
 | Token            | Value | Utility           | Use                                            |
 | ---------------- | ----- | ----------------- | ---------------------------------------------- |
-| `radius.xsmall`  | 2px   | `rounded-xsmall`  | Kbd, tiny chips.                               |
+| `radius.xsmall`  | 2px   | `rounded-xsmall`  | Kbd, tiny chips, a mark of a map.              |
 | `radius.small`   | 3px   | `rounded-small`   | Count, checkbox, Skeleton, inline hit targets. |
-| `radius.medium`  | 5px   | `rounded-medium`  | Button, Input, Chip, Tooltip, menu items.      |
-| `radius.large`   | 7px   | `rounded-large`   | Card, Popover, HoverCard, menus, listboxes.    |
-| `radius.xlarge`  | 9px   | `rounded-xlarge`  | No kit part: a Sheet runs flush to its edge.   |
-| `radius.xxlarge` | 12px  | `rounded-xxlarge` | Dialog, CommandPalette, a Drawer's free edge.  |
+| `radius.medium`  | 6px   | `rounded-medium`  | Button, Input, Chip, Tooltip, menu items.      |
+| `radius.large`   | 10px  | `rounded-large`   | Card, Popover, HoverCard, menus, listboxes.    |
+| `radius.xlarge`  | 12px  | `rounded-xlarge`  | Tray, the surface that holds cards.            |
+| `radius.xxlarge` | 16px  | `rounded-xxlarge` | Dialog, CommandPalette, a Drawer's free edge.  |
 | `radius.full`    | pill  | `rounded-full`    | Badge, Dot, Avatar, Switch, meters.            |
 
 The rule of thumb: the bigger the surface, the larger the radius. A control is medium, a card is large, a dialog is xxlarge.

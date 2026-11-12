@@ -3,7 +3,9 @@ import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import {
   catalogProfileOptions,
+  inspectBase,
   overlayDecisions,
+  stackDraftOverlays,
   previewProgramTailoring,
   type ProgramTailoringInput,
   type WizardReferenceData,
@@ -528,5 +530,86 @@ describe("bounded OSCAL profile inspection and tailoring preview", () => {
       overlay.data,
     ).parameters.find((row) => row.parameter.id === selected.id)!;
     expect(layered).toMatchObject({ values: ["Existing policy owner"], origin: "profile" });
+  });
+});
+
+describe("a draft stack of overlays", () => {
+  it("layers each overlay on the base as a chain the base inspection accepts", () => {
+    const baseIds = new Set(
+      data.selectedControls
+        .filter((row) => row.profile_resolution_id === input.baseResolutionId)
+        .map((row) => row.control_id),
+    );
+    const inBase = data.controls.filter((row) => baseIds.has(row.id));
+    const outside = data.controls.filter(
+      (row) =>
+        row.catalog_revision_id === input.catalogRevisionId &&
+        row.status === "active" &&
+        !baseIds.has(row.id),
+    );
+    const stack = stackDraftOverlays(
+      data,
+      input.catalogRevisionId,
+      input.baseResolutionId,
+      [
+        {
+          id: "first",
+          title: "First overlay",
+          decisions: [
+            { controlId: outside[0]!.id, action: "include", rationale: "Needed" },
+            { controlId: inBase[0]!.id, action: "include", rationale: "Reaffirmed" },
+            { controlId: inBase[1]!.id, action: "exclude", rationale: "Not fielded" },
+          ],
+        },
+        // Changes nothing where it is applied: it gets no layer, and its row says so.
+        {
+          id: "idle",
+          title: "Idle overlay",
+          decisions: [{ controlId: outside[0]!.id, action: "include", rationale: "Again" }],
+        },
+        {
+          id: "last",
+          title: "Last overlay",
+          decisions: [{ controlId: inBase[1]!.id, action: "include", rationale: "Fielded" }],
+        },
+      ],
+      "profile-key",
+    );
+    expect(
+      stack.derivation.layers.map((layer) => [layer.added, layer.removed, layer.total]),
+    ).toEqual([
+      [1, 1, baseIds.size],
+      [0, 0, baseIds.size],
+      [1, 0, baseIds.size + 1],
+    ]);
+    expect(stack.resolutionId).toBe("draft:profile-key:last");
+    const top = inspectBase(stack.resolutionId, stack.data);
+    expect(top.errors).toEqual([]);
+    expect(top.kind).toBe("overlay");
+    expect(top.chain.map((hop) => hop.title).slice(0, 2)).toEqual([
+      "Last overlay",
+      "First overlay",
+    ]);
+    expect(top.selected).toHaveLength(baseIds.size + 1);
+    // The reference records are untouched, and the program's tailoring previews on the stack.
+    expect(data.resolutions.some((row) => row.id.startsWith("draft:"))).toBe(false);
+    const preview = previewProgramTailoring(
+      { ...input, baseResolutionId: stack.resolutionId, tailoring: [], parameters: [] },
+      stack.data,
+    );
+    expect(preview.errors).toEqual([]);
+    expect(preview.counts.base).toBe(baseIds.size + 1);
+  });
+
+  it("is the base itself when no overlay is stacked", () => {
+    const stack = stackDraftOverlays(
+      data,
+      input.catalogRevisionId,
+      input.baseResolutionId,
+      [],
+      "k",
+    );
+    expect(stack.resolutionId).toBe(input.baseResolutionId);
+    expect(stack.data).toBe(data);
   });
 });

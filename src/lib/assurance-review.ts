@@ -449,19 +449,15 @@ export function reviewTargetHref(target: ReviewTarget, programId?: string | null
   if (target.kind === "passage")
     return `/evidence?version=${target.recordId}&reader=true&page=${target.page}&rectangle=${encodeURIComponent(JSON.stringify(target.rectangle))}&sha256=${target.sha256}`;
   if (target.kind === "evidence") return `/evidence?version=${target.recordId}`;
-  if (target.kind === "assessment-finding")
-    return `/records/assessment_findings/${target.recordId}`;
+  if (target.kind === "assessment-finding") return `/findings/${target.recordId}`;
   if (target.kind === "requirement-change" && programId)
     return `/programs/${programId}/requirements/${target.recordId}?tab=Edit%20history&edit=${target.editId}&field=${target.field}&side=${target.side}${target.startLine ? `&startLine=${target.startLine}&endLine=${target.endLine}` : ""}`;
   if ((target.kind === "requirement" || target.kind === "requirement-change") && programId)
     return `/programs/${programId}/requirements/${target.recordId}`;
-  const table =
-    target.kind === "requirement" || target.kind === "requirement-change"
-      ? "engineering_requirements"
-      : target.kind === "mapping"
-        ? "requirement_control_links"
-        : "evidence_versions";
-  return `/records/${table}/${target.recordId}`;
+  // A mapping is reviewed in its program's traceability matrix, which lists every mapping.
+  if (target.kind === "mapping" && programId) return `/programs/${programId}/sctm`;
+  // A target whose program is not recorded has no page to name: the reader picks the program.
+  return "/programs";
 }
 
 /** Retain the exact intent/id after an uncertain response. Changing the intent creates a new id. */

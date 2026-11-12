@@ -158,7 +158,7 @@ export const Truncation: Story = {
       indicator.parentElement!.getBoundingClientRect().right,
     );
     const dot = indicator.querySelector('[data-slot="dot"]')!.getBoundingClientRect();
-    await expect(dot.width).toBe(6);
+    await expect(dot.width).toBe(8);
     await expect(indicator).toHaveTextContent("Obligation not stated by the consumer");
     await userEvent.hover(cut);
     await waitFor(() =>

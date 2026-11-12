@@ -95,9 +95,16 @@ export function defaultValue(column: Column): string {
     : "";
 }
 
-/** The system-tree trigger derives this context on insert and keeps it immutable on update. */
+/**
+ * A column the database owns, which no form asks for or saves. The system-tree trigger derives a
+ * system's boundary on insert and keeps it immutable on update; the outcome a gate criterion was
+ * drawn from is recorded by Add security outcomes, and a direct write of it is refused.
+ */
 export function isDerivedRecordField(table: string, column: string): boolean {
-  return table === "systems" && column === "boundary_system_id";
+  return (
+    (table === "systems" && column === "boundary_system_id") ||
+    (table === "gate_criteria" && column === "outcome_item_id")
+  );
 }
 
 /** Empty optional values remain NULL; missing values with defaults are left to Postgres. */

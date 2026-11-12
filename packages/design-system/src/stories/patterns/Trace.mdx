@@ -1,0 +1,66 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Trace } from "../../patterns";
+import * as Stories from "./Trace.stories";
+
+<Meta of={Stories} />
+
+# Trace
+
+**Status: Experimental.** New with the risk, operational issue, control and evidence records, its first screens; the props may change while they settle. Owned by the design system.
+
+The stages of a chain as columns of records joined by wires: the controls a requirement meets, the evidence that proves it, what was found against that evidence, the risk that rests on it and what is being done. A record page's tables each show one hop from the record. A trace shows every hop at once, so the reader sees where a chain is thin, where it stops and what it reaches. It reads from one record, the `focus`, outward. A collection the reader searches, sorts or edits stays a [DataTable](?path=/docs/patterns-data-table--docs) on the same page.
+
+<Canvas of={Stories.Playground} />
+
+## Stages, records and links
+
+A stage is a named list of records in the caller's order. A record has a `title`, and may carry a `code` before it, a `mark` for its state and one short `meta` line. Colour never says a state alone: the `meta` says it in words, or the mark has a label. With a `link` the record is that link, so a modifier or middle click opens it in a new tab; without one it is text.
+
+A link names two records by their ids. It is drawn from the earlier stage to the later one, whichever end is named first. A link inside one stage is not drawn: a trace is a chain, not a network.
+
+The trace orders each stage's records around the focus so the wires stay apart: a record sits at the middle of the records it is linked to on the side nearer the focus, and one linked to nothing there keeps its place.
+
+## A link past a stage
+
+<Canvas of={Stories.PassingAStage} />
+
+A link between stages that are not neighbours runs through each stage between them in a gap of its own, so its wire never crosses a record. The gap is room and nothing to read.
+
+## A stage with nothing in it
+
+<Canvas of={Stories.EmptyStage} />
+
+Give every stage of the chain, also the ones the focus does not reach, with what its absence means as `empty`: No evidence linked, No risk recorded. A missing stage is a finding, and a trace that drops the column hides it.
+
+## A path
+
+<Canvas of={Stories.Path} />
+
+Hovering or focusing a record lights the records it leads to and comes from, through any number of links, and dims the rest. It is a reading aid: nothing is shown only on hover.
+
+## Many records
+
+<Canvas of={Stories.Folded} />
+
+A stage shows `limit` records, eight unless said, and folds the rest behind Show more with their wires. The focus is never folded. A trace is for a chain a reader can take in; when a stage regularly holds dozens, show the stage as a table and link to it.
+
+## Narrow
+
+<Canvas of={Stories.Phone} />
+
+The trace measures its own width. While each column has room to read (128px, and 32px between two for the wires) the stages stand side by side; in less they stack in the chain's order and the wires leave.
+
+## Accessibility
+
+The trace is a group named by `label`. Inside it the stages are an ordered list, each stage a list named by its `label` and count, and each record's description says what it is linked to (Linked to AU-10 Non-repudiation and Signing key rotation log), so the chain reads without the wires. The focus is the current item. The wires are decoration and are hidden from assistive technology.
+
+## Props
+
+<ArgTypes of={Trace} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+[TileMap](?path=/docs/patterns-tilemap--docs) · [Related](?path=/docs/patterns-related--docs) · [Stepper and Timeline](?path=/docs/components-timeline--docs) · [DataTable](?path=/docs/patterns-data-table--docs)

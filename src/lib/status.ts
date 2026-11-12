@@ -279,6 +279,26 @@ export const controlPublicationStatuses = vocabulary([
   ["active", "Active", "success"],
   ["withdrawn", "Withdrawn", "neutral"],
 ]);
+/** Where a catalog control stands in a program's control baseline, derived from its stack. */
+export const baselineControlStatuses = vocabulary([
+  ["in_baseline", "In baseline", "neutral"],
+  ["added", "Added", "information"],
+  ["removed", "Removed", "warning"],
+  ["not_selected", "Not selected", "neutral"],
+]);
+/**
+ * Where a program stands on a control of its control baseline: the furthest step it has reached,
+ * as `program_control_status` answers it. The first three say what the program records against
+ * the control; the last three are an assessor's determination, in RMF's words.
+ */
+export const controlStatuses = vocabulary([
+  ["no_requirement", "No requirement", "neutral"],
+  ["no_evidence", "No evidence", "warning"],
+  ["not_assessed", "Not assessed", "information"],
+  ["other_than_satisfied", "Other than satisfied", "danger"],
+  ["partially_satisfied", "Partially satisfied", "warning"],
+  ["satisfied", "Satisfied", "success"],
+]);
 export const referenceResolutionStatuses = vocabulary([
   ["resolved", "Resolved", "success"],
   ["unresolved", "Unresolved", "danger"],
@@ -328,7 +348,9 @@ const revisionTables = [
   "cci_revisions",
   "component_definition_revisions",
   "configuration_baselines",
+  "control_overlays",
   "evidence_versions",
+  "framework_revisions",
   "mapping_collections",
   "offered_implementations",
   "oscal_document_revisions",
@@ -364,6 +386,7 @@ export const fieldVocabularies: Readonly<
   defined_component_implementations: { implementation_status: implementationStatuses },
   evidence_reviews: { decision: evidenceReviewDecisions },
   evidence_uses: { decision: evidenceUseDecisions },
+  framework_control_links: { resolution_status: referenceResolutionStatuses },
   implemented_requirements: { implementation_status: implementationStatuses },
   import_issues: { severity: importIssueSeverities },
   ingestion_jobs: { status: ingestionJobStatuses },

@@ -3,7 +3,10 @@ import { expect as playwrightExpect } from "playwright/test";
 const expect = playwrightExpect.configure({ timeout: 30000 });
 
 /** Product preview anatomy, independent of the record's domain and content. */
-export async function expectPreviewHeader(page, { title, recordActions, nested = false } = {}) {
+export async function expectPreviewHeader(
+  page,
+  { title, recordActions, nested = false, fullRecord = true } = {},
+) {
   const panel = page.locator('[data-shell-area="panel"]');
   const outer = panel.locator('[data-slot="shell-panel-header"]');
   const inner = panel.locator("[data-record-preview-header]:visible");
@@ -22,15 +25,24 @@ export async function expectPreviewHeader(page, { title, recordActions, nested =
   await expect(
     panel.getByRole("button", { name: "Back to previous record", exact: true }),
   ).toHaveCount(nested ? 1 : 0);
-  // The whitelist catches any domain action moved into the global navigation bar.
-  await expect(outer.getByRole("button")).toHaveCount(nested ? 4 : 3);
-  await expect(outer.getByRole("link")).toHaveCount(1);
+  // The whitelist catches any domain action moved into the global navigation bar: previous, next,
+  // Close, Back in a nested frame, and Pin reference for comparison where the preview offers it.
+  const pin = await outer
+    .getByRole("button", { name: "Pin reference for comparison", exact: true })
+    .count();
+  await expect(outer.getByRole("button")).toHaveCount((nested ? 4 : 3) + pin);
+  // A record with a page offers it, in a new tab, and never the schema inspector. A record with
+  // no page of its own (`fullRecord: false`) offers no fuller record: its preview is all there is.
   const open = outer.getByRole("link", { name: "Open full record in new tab", exact: true });
-  await expect(open).toBeVisible();
-  await expect(open).toHaveAttribute("target", "_blank");
+  await expect(outer.getByRole("link")).toHaveCount(fullRecord ? 1 : 0);
   await expect(
     panel.getByRole("link", { name: "Open full record in new tab", exact: true }),
-  ).toHaveCount(1);
+  ).toHaveCount(fullRecord ? 1 : 0);
+  if (fullRecord) {
+    await expect(open).toBeVisible();
+    await expect(open).toHaveAttribute("target", "_blank");
+    await expect(open).toHaveAttribute("href", /^\/(?!records\/)/);
+  }
 
   const heading = title
     ? inner.getByRole("heading", { name: title, exact: true, level: 2 })

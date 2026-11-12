@@ -37,7 +37,15 @@ assert.ok(["127.0.0.1", "localhost"].includes(new URL(origin).hostname));
 const seeded = process.argv.includes("--seeded");
 const record = process.argv.includes("--record");
 const missing = randomUUID();
-const READ_RPCS = new Set(["ensure_personal_tenant", "app_schema", "product_component_definition"]);
+const READ_RPCS = new Set([
+  "ensure_personal_tenant",
+  "app_schema",
+  "product_component_definition",
+  "risk_threats",
+  "program_resiliency_choice",
+  "program_resiliency_posture",
+  "program_resiliency_posture_cell",
+]);
 
 /* ---------- the account and its records ---------- */
 

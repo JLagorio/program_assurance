@@ -1,0 +1,226 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Ladder } from "../../patterns";
+import * as Stories from "./Ladder.stories";
+
+<Meta of={Stories} />
+
+# Ladder
+
+**Status: Experimental.** New with the program's Cyber resiliency view, its first screen; the props may change while a second screen tries it. Owned by the design system.
+
+Ordered levels of nodes joined by wires, read as one picture: what a few goals rest on, level by level, down to the many things at the bottom. Each node is a name, a figure and a [Tally](?path=/docs/components-tally--docs) of what stands behind it, and the last level is one line a node with a mark for each item. Choosing a node keeps the paths through it and dims the rest. It answers what a table of any one level cannot: which of the many at the bottom hold up which of the few at the top, and where nothing holds.
+
+<Canvas of={Stories.Playground} />
+
+A ladder shows a whole structure at once. One record's own chain, from what it rests on to what it reaches, is a [Trace](?path=/docs/patterns-trace--docs). Every item of one set as a mark is a [TileMap](?path=/docs/patterns-tilemap--docs). A measure over two scales is a [Chart.Heatmap](?path=/docs/patterns-chart-heatmap--docs). The records of any one level, to search, sort and work through, stay a [DataTable](?path=/docs/patterns-data-table--docs) beside it.
+
+## Ladder or Trace
+
+Both draw columns joined by wires. They answer different questions.
+
+|                     | Trace                                                  | Ladder                                                            |
+| ------------------- | ------------------------------------------------------ | ----------------------------------------------------------------- |
+| What it shows       | One record's chain, outward from the `focus`           | A whole structure: every node of every level                      |
+| A node              | A record: a link to its page, a mark, one line of meta | A measure: a figure and a tally, and a button that keeps its path |
+| Order               | Each stage is reordered around the focus               | The caller's order, never changed                                 |
+| A path              | Lit while a record is hovered or focused               | Chosen and kept; each heading then counts what is kept            |
+| A link past a level | Drawn, in a gap of its own                             | Not drawn: it narrows the path                                    |
+| A level of many     | Folded behind Show more                                | Rows: one line a node, beside the node they belong to             |
+
+## Levels, nodes and links
+
+A **level** is a named run of nodes in the caller's order. The ladder never reorders them: the order is the source's, and a reader who knows the source finds a node where it is printed.
+
+A **node** has an `id` and a `title`. It may carry a figure, `value` of `total`, drawn "8/23" and said in words by `valueLabel` ("8 of 23 controls held"); `segments`, the tally under a card's name, its shares of `total` by state; and, on a row, `marks`, one for each item behind it. A node needs none of them: a name alone is a node.
+
+A level is drawn as `cards`, a name over a tally, or as `rows`, one line a node: its name, its figure and its marks. Rows are for the last level only, the level of many. Each row stands beside the node of the level before that its first link names, and the rows share one name column, one figure column and one marks column down the whole level. A card's tally is as long as its `total` is of the largest total in its level, and as full as its segments are of its own total, so the tallies of a level compare by length and by fill.
+
+A **link** names two nodes of different levels by their ids, either end first.
+
+- A link between **neighbouring levels** is drawn as a wire.
+- A link that **passes over a level** is not drawn. It says which nodes of the further level are on the nearer node's path, where the wires alone would say every node the level between leads to.
+
+So give the ladder every relation the source states, wires or not. Where a publication relates the fourth level to the third and also to the second, pass both sets: the first draws the wires and places the rows, and the second makes a node of the second level keep only the rows that support it, not every row of the nodes it is wired to.
+
+## A path
+
+<Canvas of={Stories.Chosen} />
+
+Choosing a node keeps its path and dims the rest. **A node is on the chosen node's path when it is linked to the path in every level between them that it has links into.** The ladder walks away from the chosen node one level at a time, towards both ends. A node of the next level joins the path when, in each level already walked that it has links into, one of those links reaches a node on the path; a node with no link into any of them stays off. In the story, Continue keeps Redundancy and Segmentation, the two techniques wired to it, and of Redundancy's three approaches only the two that are themselves linked to Continue: the third is wired to Redundancy, and its link over the techniques names another objective.
+
+While a path is kept, each level's heading counts it ("Techniques 2 of 2", "Approaches 3 of 5"), a wire is lit when both its ends are on one path, and each node on the path says so in its description. What is off the path steps back and stays readable: its words take `color.text.subtlest`, which holds its contrast, and only its tally, its marks and the wires fade. Nothing changes weight or size, so choosing a node moves no node. Pressing the chosen node again, or Escape, lets go.
+
+`selected` is one node, pressed. Leave it out and the ladder keeps the choice itself, from `defaultSelected`; `onSelect` hears the node chosen, and null when the reader lets go.
+
+<Canvas of={Stories.Highlighted} />
+
+`highlighted` is for a control outside the ladder that points at several nodes at once: the flagged ones, a search's matches. The paths through each are kept as a chosen node's is, and none is pressed. When both are given, both sets of paths are kept, so clear one when the other is set if the screen wants one at a time.
+
+## What needs attention
+
+<Canvas of={Stories.FlaggedPaths} />
+
+`flagged` on a node says nothing stands behind it and that this needs attention: its figure and its wire wear the danger tone, a row's empty marks become hollow outlines, and its level's heading counts it. Every node that leads to a flagged one counts them before its own figure, so the reader sees from the first level where the holes are. The screen sets only `flagged`; the ladder counts. `flagLabel` says a count in words ("3 approaches with nothing behind them") in a node's name, its tooltip and a heading.
+
+## A marked node
+
+<Canvas of={Stories.Marked} />
+
+`marked` draws the kit's round `Dot` before a node's name, on a card and on a row alike, and says why: the words join the node's name after its figure and are a line of its tooltip. Use it for the one thing a reader looks for across the levels, such as the nodes somebody chose. It means one thing a ladder. The ladder draws no key, so say what the dot means beside it with the same `<Dot shape="round" />`: a mark never stands without its words.
+
+## The whole picture
+
+<Canvas of={Stories.WholeProgram} />
+
+Seventy-six nodes, 128 wires and 421 marks. The key above is a `TileMap.Key`: a mark and a tally's segment take a TileMap mark's tones and fills, so one map of a screen's states feeds all three. The ladder does not draw the key, the totals above it or a control that steps its values; those are the screen's.
+
+## Details
+
+<Canvas of={Stories.Details} />
+
+With `details`, a chosen row opens a card anchored to it, holding what `details(node)` returns, as a [Chart.Heatmap](?path=/docs/patterns-chart-heatmap--docs) cell's does. The row says it opens one (`aria-haspopup`) and whether it is open. Escape or a press outside closes the card, lets go of the row and returns focus to it; pressing the row again closes it too. Rows only: a card opens none. Return nothing for a row that has no more to say and it is chosen as any node is.
+
+A row's marks are a picture of its figure. Each says its item and its state in the tooltip under the pointer, and nowhere else, so give the items as `details`, or on the page the row leads to: a reader without a pointer reaches them there.
+
+## Values that change
+
+<Canvas of={Stories.Replay} />
+
+The structure is the ids and the links. While they are the same from one render to the next, a change of values (a step through the layers of a baseline) changes the figures, the tallies and the marks in place: nothing is measured again, no wire is redrawn, the choice holds. The one exception is a value that moves a card: a figure that grows by a digit can take a card's numbers onto the line under its name, which moves the cards of its level, and the wires are then measured once more, in the next frame. A tally eases to its new share; figures and marks switch. Keep the `links` array's contents steady and memoize the levels on what they are worked out from.
+
+## A level with nothing in it
+
+<Canvas of={Stories.EmptyLevel} />
+
+Give every level of the structure, also one that holds no node, with what its absence means as `empty`. The level keeps its place, and a link across it still makes a path, though no wire is drawn.
+
+## Long names
+
+<Canvas of={Stories.LongNames} />
+
+A card shows two lines of a name and a row one, cut with an ellipsis. The whole name is always the node's accessible name, and the ladder's one tooltip says it under the pointer and on keyboard focus, with the figure in words, the mark, the flags and the node's `description`. A row with many marks gives each less room rather than taking a second line, and joins them into a bar where there is no room for a gap between two; it never cuts one off.
+
+## Narrow
+
+The ladder measures its own width, not the window's, and it stacks by what it holds. Its levels stand side by side while each has the room it needs to read: a level of cards 124px (a 108px card, which holds a word of sixteen letters whole, and `space.200` for its wires) and the rows 264px (twenty letters of a name, a figure, and marks that have joined into a bar); 116px and 248px at `size="small"`. Three levels of cards and the rows therefore keep their wires down to 636px of the ladder's own width, 596px small, which is the room a 480px panel leaves beside them in a 1440px window.
+
+<Canvas of={Stories.BesideAPanel} />
+
+As it narrows towards that floor, the row names give way first, a card's numbers take the line under its name, and the wires keep at least `space.200`. No word is broken and no mark is cut off.
+
+<Canvas of={Stories.Phone} />
+
+In less room (a phone, a narrow frame) the levels stack in their order: each card one line at full width, the rows under the node they belong to, at `dimension.row.menu` so a finger finds one. The wires leave, since there is nothing between two stacked levels for them to cross. Nothing else changes: the same nodes in the same order, the path still dims the rest and the headings still count it, and each node's description still says what it is linked to. A sideways-scrolling picture was the alternative, and it would hide the last level, the one a reader acts on, behind three screens of scrolling.
+
+A ladder that leaves the page without leaving the document (a tab's hidden panel, a page a phone's panel covers) has no room to read, so it keeps the form it had and is measured again once it is shown: it comes back as the reader left it, never side by side for a frame where it stacks.
+
+## Sizes
+
+<Canvas of={Stories.Small} />
+
+`size="small"` is the dense ladder: 16px rows in `font.body.xsmall`, for a ladder that must stand in one window. `medium`, the default, is 20px rows in `font.body.small`. Wherever a pointer is coarse the rows are 24px in either size.
+
+## Keyboard
+
+<Canvas of={Stories.Keyboard} />
+
+The ladder is one Tab stop: the node last focused, else the chosen one, else the first. Seventy-six nodes would otherwise be seventy-six stops between the page's controls.
+
+| Key                        | What it does                                                                                                                              |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Up, Down                   | The node before or after in the level; through a level of rows, on across its groups                                                      |
+| Left, Right                | The level before or after (mirrored right to left): the first node there that this one is linked to, else the one that stands as far down |
+| Home, End                  | The first or last node of the level                                                                                                       |
+| Ctrl or ⌘ with Home or End | The first or last node of the ladder                                                                                                      |
+| Enter, Space               | Choose the node; on the chosen node, let go                                                                                               |
+| Escape                     | Let go of the choice, focus staying where it is; in a details card, close it and return to its row                                        |
+
+## Accessibility
+
+- **A structure, not a drawing.** The ladder is a group named by `label`. Inside it the levels are an ordered list; each level is a list named by its heading ("Objectives 3", and while a path is kept "Objectives 1 of 3"), and a level of rows is a list under each node the rows stand beside, named by both ("Approaches, Redundancy").
+- **Every node is a button** with `aria-pressed`. Its name is its title, its figure in words, its mark and its flags: "Redundancy: 8 of 11 controls held, 1 approach with nothing behind it". Its description says what it is linked to, level by level ("Objectives: Continue and Reconstitute. Approaches: Protected Backup and Restore, Surplus Capacity, and Replication"), and begins "On the path" when it is on a kept one. A level with more than eight linked names says the first eight and how many more.
+- **The relations are words.** The wires are decoration and are hidden from assistive technology; a description carries every link a wire draws and every link that passes over a level.
+- **The choice is announced.** Choosing a node says its path once, politely: "Path through Continue: 1 of 2 Goals, 1 of 3 Objectives, 2 of 2 Techniques, and 3 of 5 Approaches".
+- **Not colour alone.** The chosen node has a heavier edge as well as a fill; a flagged node has its count, its words and hollow marks; a mark's state is in its tooltip and in the key. In forced colours the chosen node and the lit wires take Highlight, and filled, hollow and empty marks stay three things.
+- **Motion.** A tally eases to a new share and colours ease on hover and on a path; none of it under reduced motion.
+- **Touch.** Rows are 24px wherever a pointer is coarse, and menu-row height when stacked. A mark is too small to press and is not a control.
+
+## Its table
+
+The ladder prints every number it encodes: each node's figure is text, each heading's count is text, and its structure is lists of buttons, so there is nothing in it a reader can only see. It therefore has no Table toggle of its own, as a chart has. What it cannot do is sort, search or export. Put a table of the same records one toggle or one tab away, in the same states and the same numbers, as a TileMap keeps its table beside it.
+
+## Style
+
+| Element   | Token                                                                                                                                       |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Type      | `font.body.small`, tabular numerals; `font.body.xsmall` at `size="small"`; headings `font.body.xsmall` medium in `color.text.subtle`        |
+| Card      | `color.border` · `radius.medium` · `elevation.surface.current` · hover `color.border.bold`                                                  |
+| Chosen    | `color.border.selected` at `border.width.selected` on `color.background.selected`; a row, the same fill inside a ring                       |
+| Row       | `space.250` high, `space.200` small, `space.300` under a coarse pointer, `dimension.row.menu` stacked · `radius.small`                      |
+| Tally     | [Tally](?path=/docs/components-tally--docs) `size="small"`; hollow danger track on a flagged node                                           |
+| Marks     | `space.050` wide, a hairline apart · the Tally's tones and fills · empty `color.chart.track`; hollow `color.border.danger` on a flagged row |
+| Mark dot  | `Dot shape="round"`, neutral                                                                                                                |
+| Flag      | `color.text.danger`, a hollow mark and a count                                                                                              |
+| Wires     | `color.border` · lit `color.border.bold` · flagged `color.border.danger` · off the path `opacity.loading`                                   |
+| Wire room | from `space.200` to `space.800` between two levels, growing with the ladder's own width                                                     |
+| Off path  | `color.text.subtlest`, the same weight; tally, marks, dot and flag mark at `opacity.loading`                                                |
+| Motion    | `motion.duration.fast` on colours; a tally's `motion.duration.moderate`; none under reduced motion                                          |
+
+## Props
+
+The ladder's box takes the native props and ref of a `div`.
+
+<Canvas of={Stories.NativeAttributes} />
+
+<ArgTypes of={Ladder} />
+
+<Controls of={Stories.Playground} />
+
+### LadderLevel
+
+| Field    | Type                | What it is                                               |
+| -------- | ------------------- | -------------------------------------------------------- |
+| `id`     | `string`            | Unique among the levels.                                 |
+| `label`  | `string`            | The level's name, as its nodes are called: "Objectives". |
+| `nodes`  | `LadderNode[]`      | Its nodes, in the order they read.                       |
+| `layout` | `"cards" \| "rows"` | `cards` by default; `rows` for the last level only.      |
+| `empty`  | `string`            | What the level says when it holds no node.               |
+
+### LadderNode
+
+| Field         | Type             | What it is                                                                   |
+| ------------- | ---------------- | ---------------------------------------------------------------------------- |
+| `id`          | `string`         | Unique in the ladder: what a link's ends, `selected` and `highlighted` name. |
+| `title`       | `string`         | The node's name.                                                             |
+| `value`       | `number`         | The figure before the stroke: how much is held.                              |
+| `total`       | `number`         | The figure after it: how much stands behind the node.                        |
+| `valueLabel`  | `string`         | The figure in words, for the node's name and its tooltip. "8 of 23" unsaid.  |
+| `segments`    | `TallySegment[]` | The tally under a card's name; a row with no `marks` draws it too.           |
+| `marks`       | `LadderMark[]`   | A row's items, one mark each, in the order given.                            |
+| `flagged`     | `boolean`        | Nothing stands behind the node, and that needs attention.                    |
+| `marked`      | `string`         | A round Dot before the name, and the words that say why.                     |
+| `description` | `string`         | A sentence or two: the last line of the tooltip.                             |
+
+### LadderMark and LadderLink
+
+| Type         | Field         | What it is                                                  |
+| ------------ | ------------- | ----------------------------------------------------------- |
+| `LadderMark` | `key`         | Unique in its node.                                         |
+|              | `label`       | The item's name: the first line of its tooltip.             |
+|              | `description` | Its state in words: the tooltip's second line.              |
+|              | `tone`        | A `TallyTone`, `neutral` by default.                        |
+|              | `fill`        | A `TallyFill`, `solid` by default.                          |
+| `LadderLink` | `from`, `to`  | The ids of two nodes of different levels, either end first. |
+
+A node's `segments` are a Tally's `TallySegment`.
+
+## Related
+
+[Tally](?path=/docs/components-tally--docs) · [Trace](?path=/docs/patterns-trace--docs) · [TileMap](?path=/docs/patterns-tilemap--docs) · [Chart.Heatmap](?path=/docs/patterns-chart-heatmap--docs) · [DataTable](?path=/docs/patterns-data-table--docs)
+
+## Don't
+
+One level and no links is a list of rows. A DataTable sorts it, searches it and pages it; a ladder does none of those.
+
+<Canvas of={Stories.Dont} />

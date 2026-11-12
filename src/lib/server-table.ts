@@ -621,11 +621,24 @@ export function useServerPosition(
 let watchStamp = 0;
 
 /**
- * Marks every page of a register stale when a model its view derives from is written. A write
- * marks its own model's reads stale (`invalidateModel`), never another's: a quiet read of each
- * model the view derives from, which a write marks stale and reads again, passes the write on.
+ * Marks every page of a register stale when a model its view derives from is written.
  */
 function useDerivedFrom(tenantId: string, models: readonly TableName[] | undefined, own: string) {
+  useStaleOnWrite(tenantId, models, ["models", tenantId, own, "page"]);
+}
+
+/**
+ * Marks the reads under `queryKey` stale when one of `models` is written. A write marks its own
+ * model's reads stale (`invalidateModel`), never another's: a quiet read of each model, which a
+ * write marks stale and reads again, passes the write on. A register's pages watch the models
+ * their view derives from; a read of another shape (a function's answer over several models)
+ * names its own key.
+ */
+export function useStaleOnWrite(
+  tenantId: string,
+  models: readonly TableName[] | undefined,
+  queryKey: readonly unknown[],
+) {
   const cache = useQueryClient();
   const watches = useQueries({
     queries: (models ?? []).map((model) => ({
@@ -639,11 +652,13 @@ function useDerivedFrom(tenantId: string, models: readonly TableName[] | undefin
     ? watches.map((watch) => watch.data).join(",")
     : null;
   const seen = useRef(stamps);
+  const key = useRef(queryKey);
+  key.current = queryKey;
   useEffect(() => {
     if (stamps === null) return;
     const before = seen.current;
     seen.current = stamps;
     if (before !== null && before !== stamps)
-      void cache.invalidateQueries({ queryKey: ["models", tenantId, own, "page"] });
-  }, [stamps, cache, tenantId, own]);
+      void cache.invalidateQueries({ queryKey: key.current });
+  }, [stamps, cache]);
 }

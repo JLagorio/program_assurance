@@ -38,13 +38,28 @@
     "collectionTabs": ["Controls", "CCIs"],
     "tabExceptions": {
       "Sources": "Imported source metadata, not a register."
-    }
+    },
+    "previewOnly": ["CCIs"]
+  },
+  {
+    "file": "catalog_.controls.$controlId.tsx",
+    "path": "/catalog/controls/$controlId",
+    "title": "Control",
+    "family": "record",
+    "model": "controls"
   },
   {
     "file": "evidence.tsx",
     "path": "/evidence",
     "title": "Evidence",
     "family": "register",
+    "model": "evidence_artifacts"
+  },
+  {
+    "file": "evidence_.$artifactId.tsx",
+    "path": "/evidence/$artifactId",
+    "title": "Evidence artifact",
+    "family": "record",
     "model": "evidence_artifacts"
   },
   {
@@ -79,7 +94,8 @@
     "model": "operational_issues",
     "tabList": "Findings and asset collections",
     "collectionTabs": ["Operational issues", "Observations", "Assessment findings", "Assets"],
-    "tabExceptions": {}
+    "tabExceptions": {},
+    "previewOnly": ["Observations"]
   },
   {
     "file": "index.tsx",
@@ -152,6 +168,20 @@
     "model": "requirement_definitions"
   },
   {
+    "file": "overlays.$overlayId.tsx",
+    "path": "/overlays/$overlayId",
+    "title": "Overlay",
+    "family": "record",
+    "model": "control_overlays"
+  },
+  {
+    "file": "overlays.index.tsx",
+    "path": "/overlays/",
+    "title": "Overlays",
+    "family": "register",
+    "model": "control_overlays"
+  },
+  {
     "file": "packages.$pkgId.tsx",
     "path": "/packages/$pkgId",
     "title": "Authorization package",
@@ -207,7 +237,8 @@
       "Schedule": "Tasks, gates and responsibilities are distinct collections.",
       "Findings": "Operational issues and observations are distinct collections.",
       "POA&M & risk": "POA&M plans, remediation items and risks are distinct collections."
-    }
+    },
+    "previewOnly": ["Library"]
   },
   {
     "file": "programs.$programId_.authorization.tsx",
@@ -219,6 +250,27 @@
   {
     "file": "programs.$programId_.baseline.tsx",
     "path": "/programs/$programId/baseline",
+    "title": "Program",
+    "family": "program-view",
+    "model": "programs"
+  },
+  {
+    "file": "programs.$programId_.control-baseline.tsx",
+    "path": "/programs/$programId/control-baseline",
+    "title": "Program",
+    "family": "program-view",
+    "model": "programs"
+  },
+  {
+    "file": "programs.$programId_.posture.tsx",
+    "path": "/programs/$programId/posture",
+    "title": "Program",
+    "family": "program-view",
+    "model": "programs"
+  },
+  {
+    "file": "programs.$programId_.resiliency.tsx",
+    "path": "/programs/$programId/resiliency",
     "title": "Program",
     "family": "program-view",
     "model": "programs"
@@ -258,9 +310,9 @@
     "family": "record",
     "model": "implemented_requirements",
     "missingRecord": {
-      "kind": "Control implementation",
+      "kind": "Control",
       "backTo": "/programs",
-      "reason": "A control implementation requires a selected control and security-plan revision; SSP workflows seed these dependencies."
+      "reason": "The address names a control implementation or a catalog control read inside the program; an id that is neither is a missing control. The SSP workflows seed an implementation, and the Controls name link check opens one."
     }
   },
   {
@@ -329,7 +381,8 @@
     "collectionTabs": ["Overview", "Controls", "Requirements", "Library", "Evidence", "Inventory"],
     "tabExceptions": {
       "SSP": "SSP assembly and security-plan revisions are distinct collections on a system boundary."
-    }
+    },
+    "previewOnly": ["Library"]
   },
   {
     "file": "programs.$programId_.te-phases.tsx",
@@ -404,7 +457,7 @@
     "tabList": "Risk sections",
     "collectionTabs": ["Assessments", "Work", "Activity"],
     "tabExceptions": {
-      "Overview": "Latest assessment properties and Details rail.",
+      "Overview": "The risk's band and trace, its latest assessment, the ATT&CK techniques it names with the controls that counter them, its remediation and its Details rail.",
       "Responses": "Requires an assessment revision; combines properties and two collections.",
       "Evidence": "Requires an assessment revision; this independent fixture checks its prerequisite empty state."
     }
@@ -444,7 +497,8 @@
     "path": "/vendors",
     "title": "Suppliers",
     "family": "register",
-    "model": "parties"
+    "model": "parties",
+    "previewOnly": true
   },
   {
     "file": "work.tsx",

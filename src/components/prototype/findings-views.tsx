@@ -1,12 +1,5 @@
-import {
-  EmptyMessage,
-  MissingRecord,
-  RecordActions,
-  VersionName,
-  type QueryStatus,
-} from "./work-common";
+import { EmptyMessage, MissingRecord, RecordActions, type QueryStatus } from "./work-common";
 import { useMemo, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import { FileText, Plus } from "lucide-react";
 import {
   Absent,
@@ -19,6 +12,7 @@ import {
   PageHeader,
   Person,
   Prose,
+  Section,
   Shell,
   Skeleton,
   Stack,
@@ -26,25 +20,43 @@ import {
   TabsList,
   TabsTrigger,
   Text,
+  Timeline,
   VisuallyHidden,
   defineColumns,
 } from "@ledger/design-system";
-import { useRow, type Row } from "@/lib/models";
+import { idSet, useRow, useRows, type Row } from "@/lib/models";
+import { ownerField } from "@/lib/owner-assign";
+import { useAssuranceTrace } from "@/lib/assurance-trace";
+import { labelFor, type DataRecord } from "@/lib/records";
 import { registerViews } from "@/lib/register-views";
-import { serverRead, type ServerRow } from "@/lib/server-table";
+import { serverRead, useServerResult, type ServerRow } from "@/lib/server-table";
 import { determinations, operationalIssueStatuses, severityLevels } from "@/lib/status";
 import { LevelIndicator, StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
 import { Page } from "@/components/app/shell";
-import type { DataRecord } from "@/lib/records";
 import { ObservationsRegister } from "./observations-register";
 import { RetainedTabPanels } from "./program-shared";
 import { ProductCollection } from "./product-collection";
+import { useOwnerAssignment, useOwnerOptions } from "./assign-owner";
 import { useServerCollection, vocabularyOptions } from "./collection-question";
-import { RecordLink, recordDestination, useDisplayedRecords, useEndOnHide } from "./record-preview";
+import {
+  RecordLink,
+  useDisplayedRecords,
+  useEndOnHide,
+  useLinkedPreview,
+  useOpenRecord,
+} from "./record-preview";
+import { TraceBand } from "./assurance-trace";
 import { RecordSummaryPreview, type RecordSummaryField } from "./record-summary-preview";
 import { RecordTrail, TrailLink } from "./record-trail";
-import { EntityEditor, EntitySection, ModelFacts, QueryState, RelationName } from "./record-tools";
+import {
+  EntityEditor,
+  EntitySection,
+  ModelFacts,
+  QueryState,
+  RelationName,
+  RevisionName,
+} from "./record-tools";
 
 /** Authored text under its name, keeping its line breaks; a labelled Absent when there is none. */
 function Described({ label, text }: { label: string; text: string | null | undefined }) {
@@ -60,7 +72,7 @@ const missing = (id: string | null | undefined) => (id ? "Not available" : "Not 
 
 /**
  * An operational issue as its register reads it: every column its preview's Edit seeds the form
- * from, and its program by name.
+ * from, and its program and owner by name.
  */
 type IssueRow = ServerRow<
   "operational_issue_rows",
@@ -78,7 +90,8 @@ type IssueRow = ServerRow<
   | "closure_rationale"
   | "revision"
   | "updated_at"
-  | "program_name",
+  | "program_name"
+  | "owner_name",
   "tenant_id" | "title" | "program_id" | "status" | "revision" | "updated_at"
 >;
 
@@ -102,11 +115,13 @@ const issueRead = serverRead({
     "revision",
     "updated_at",
     "program_name",
+    "owner_name",
   ],
-  search: ["title", "program_name"],
+  search: ["title", "program_name", "owner_name"],
   fields: {
-    // The program sorts, and is found, by its name.
+    // The program and the owner sort, and are found, by their names.
     program_id: { column: "program_name", filter: false },
+    owner_party_id: ownerField,
     status: { labels: operationalIssueStatuses, sort: "status_rank" },
     severity: { labels: severityLevels, sort: "severity_rank" },
   },
@@ -146,18 +161,38 @@ const issueColumns = defineColumns<IssueRow>((c) => [
     priority: 1,
     statuses: operationalIssueStatuses,
   }),
+  c.person("owner_party_id", {
+    header: "Owner",
+    priority: 4,
+    cell: (row) =>
+      row.owner_name ? (
+        <Person name={row.owner_name} />
+      ) : (
+        <Absent label={missing(row.owner_party_id)} />
+      ),
+  }),
 ]);
 
-/** What the preview says of an issue: the register's columns, its program read by its id. */
+/**
+ * What the preview says of an issue: the register's columns, its program and its owner read by
+ * their ids, which the preview's Edit saves, so a changed owner reads at once.
+ */
 const issueFields: RecordSummaryField<IssueRow>[] = [
   {
     key: "program_id",
     label: "Program",
     render: (row) => <RelationName table="programs" id={row.program_id} />,
   },
+  {
+    key: "owner_party_id",
+    label: "Owner",
+    render: (row) => <RelationName table="parties" id={row.owner_party_id} />,
+  },
   { key: "severity", label: "Severity", statuses: severityLevels },
   { key: "status", label: "Status", statuses: operationalIssueStatuses },
 ];
+
+const issueNoun = { one: "operational issue", other: "operational issues" };
 
 /**
  * The workspace's operational issues, read a page at a time: the server pages, sorts, filters and
@@ -165,7 +200,7 @@ const issueFields: RecordSummaryField<IssueRow>[] = [
  */
 function OperationalIssueRegister() {
   const workspace = useWorkspace();
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   const [creating, setCreating] = useState(false);
   const [preview, setPreview] = useState<IssueRow | null>(null);
   useEndOnHide(() => setPreview(null));
@@ -179,9 +214,18 @@ function OperationalIssueRegister() {
     view: registerViews.operationalIssues,
     resizable: true,
     reorderable: true,
+    // A reader who may edit chooses issues to assign them an owner together.
+    selectable: workspace.role !== "viewer",
   });
   const { table } = collection;
   const displayed = useDisplayedRecords(table);
+  const owners = useOwnerAssignment({
+    table,
+    collection: "operational_issues",
+    noun: issueNoun,
+    result: useServerResult(issueRead),
+  });
+  const ownerOptions = useOwnerOptions(issueRead);
   const create = (size: "small" | "medium") =>
     workspace.role !== "viewer" ? (
       <Button size={size} variant="primary" iconBefore={<Plus />} onClick={() => setCreating(true)}>
@@ -204,8 +248,9 @@ function OperationalIssueRegister() {
       <ProductCollection
         {...collection}
         fill
-        noun={{ one: "operational issue", other: "operational issues" }}
-        onRowClick={(row) => void navigate(recordDestination("operational_issues", row))}
+        noun={issueNoun}
+        onRowClick={(row) => openRecord("operational_issues", row)}
+        selection={owners.selection}
         empty={{
           illustration: "records",
           icon: <FileText />,
@@ -229,10 +274,12 @@ function OperationalIssueRegister() {
               column="status"
               options={vocabularyOptions(operationalIssueStatuses)}
             />
+            <DataTable.Filter table={table} column="owner_party_id" options={ownerOptions} />
           </>
         }
         action={create("small")}
       />
+      {owners.dialog}
       {preview && (
         <RecordSummaryPreview
           model="operational_issues"
@@ -350,7 +397,7 @@ const findingFields: RecordSummaryField<FindingRow>[] = [
  */
 function AssessmentFindingRegister() {
   const workspace = useWorkspace();
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   const [creating, setCreating] = useState(false);
   const [preview, setPreview] = useState<FindingRow | null>(null);
   useEndOnHide(() => setPreview(null));
@@ -390,7 +437,7 @@ function AssessmentFindingRegister() {
         {...collection}
         fill
         noun={{ one: "assessment finding", other: "assessment findings" }}
-        onRowClick={(row) => void navigate(recordDestination("assessment_findings", row))}
+        onRowClick={(row) => openRecord("assessment_findings", row)}
         empty={{
           illustration: "records",
           icon: <FileText />,
@@ -669,7 +716,7 @@ export function FindingRecord({ id }: { id: string }) {
                       key: "evidence_version_id",
                       label: "Evidence version",
                       render: (record) => (
-                        <VersionName
+                        <RevisionName
                           table="evidence_versions"
                           id={record["evidence_version_id"] as string}
                         />
@@ -694,7 +741,7 @@ export function FindingRecord({ id }: { id: string }) {
                       key: "risk_revision_id",
                       label: "Risk assessment",
                       render: (record) => (
-                        <VersionName
+                        <RevisionName
                           table="risk_revisions"
                           id={record["risk_revision_id"] as string}
                         />
@@ -712,8 +759,114 @@ export function FindingRecord({ id }: { id: string }) {
     </Page>
   );
 }
+/** An observation as an issue's story reads it. */
+type IssueObservation = Pick<
+  Row<"observations">,
+  "id" | "title" | "description" | "method" | "observed_at" | "observer_party_id"
+>;
+
+/**
+ * What was observed, in the order it was observed: an issue's observations folded into its record.
+ * An observation has no page of its own; choosing one opens its preview, with the evidence it
+ * cites. Linking another is the section's action.
+ */
+function IssueObservations({ issue }: { issue: Row<"operational_issues"> }) {
+  const workspace = useWorkspace();
+  const preview = useLinkedPreview();
+  const [linking, setLinking] = useState(false);
+  const links = useRows(
+    "issue_observations",
+    { issue_id: issue.id },
+    { columns: ["id", "observation_id"] },
+  );
+  const observations = useRows(
+    "observations",
+    { id: idSet(links.data?.map((link) => link.observation_id)) },
+    {
+      columns: ["id", "title", "description", "method", "observed_at", "observer_party_id"],
+      enabled: links.isSuccess,
+    },
+  );
+  const rows = useMemo<IssueObservation[]>(
+    () =>
+      [...(observations.data ?? [])].sort((a, b) =>
+        (a.observed_at ?? "").localeCompare(b.observed_at ?? ""),
+      ),
+    [observations.data],
+  );
+  const link =
+    workspace.role !== "viewer" ? (
+      <Button
+        size="small"
+        variant="secondary"
+        iconBefore={<Plus />}
+        onClick={() => setLinking(true)}
+      >
+        Link observation
+      </Button>
+    ) : undefined;
+  return (
+    <Section
+      title="Observations"
+      count={links.isSuccess ? links.data.length : undefined}
+      countMax={9999}
+      action={link}
+    >
+      {linking && (
+        <EntityEditor
+          table="issue_observations"
+          initialValues={{ issue_id: issue.id }}
+          operationLabel="Link observation"
+          onCancel={() => setLinking(false)}
+          onSaved={() => setLinking(false)}
+        />
+      )}
+      <QueryState queries={[links, observations]}>
+        {rows.length ? (
+          <Timeline label="Observations" wrap>
+            {rows.map((observation) => (
+              <Timeline.Item
+                key={observation.id}
+                title={observation.title}
+                meta={labelFor(observation.method)}
+                // An observation that only repeats the issue adds nothing under its name.
+                {...(observation.description?.trim() &&
+                observation.description.trim() !== issue.description?.trim()
+                  ? { description: observation.description }
+                  : {})}
+                {...(observation.observed_at ? { dateTime: observation.observed_at } : {})}
+                {...(preview
+                  ? {
+                      onSelect: () =>
+                        preview({
+                          table: "observations",
+                          id: observation.id,
+                          label: observation.title,
+                        }),
+                    }
+                  : {})}
+              />
+            ))}
+          </Timeline>
+        ) : (
+          <EmptyMessage
+            compact
+            title="No observations linked"
+            description="An observation records what was seen, and the evidence for it."
+          />
+        )}
+      </QueryState>
+    </Section>
+  );
+}
+
+/**
+ * An operational issue's record: where it stands and what it reaches, as its band and trace; what
+ * was observed; and the remediation items and tasks that answer it.
+ */
 export function IssueRecord({ id }: { id: string }) {
   const query = useRow("operational_issues", id);
+  const trace = useAssuranceTrace({ kind: "issue", id });
   const [editing, setEditing] = useState<DataRecord | null>(null);
   const row = query.data;
   return (
@@ -744,6 +897,7 @@ export function IssueRecord({ id }: { id: string }) {
                 onCancel={() => setEditing(null)}
               />
             )}
+            <TraceBand trace={trace} kind="issue" name={`the operational issue ${row.title}`} />
             <AsideLayout
               aside={
                 <Shell.Aside
@@ -757,6 +911,16 @@ export function IssueRecord({ id }: { id: string }) {
                       fields={[
                         { key: "status", label: "Status" },
                         { key: "severity", label: "Severity" },
+                        {
+                          key: "program_id",
+                          label: "Program",
+                          render: (record) => (
+                            <RelationName
+                              table="programs"
+                              id={record["program_id"] as string | null}
+                            />
+                          ),
+                        },
                         {
                           key: "owner_party_id",
                           label: "Owner",
@@ -776,27 +940,9 @@ export function IssueRecord({ id }: { id: string }) {
                 </Shell.Aside>
               }
             >
-              <Stack space="space.200" className="min-w-0">
+              <Stack space="space.250" className="min-w-0">
                 <Described label="Description" text={row.description} />
-                <EntitySection
-                  showHeading
-                  table="issue_observations"
-                  links="observations"
-                  filters={{ issue_id: id }}
-                  title="Observations"
-                  columns={[
-                    {
-                      key: "observation_id",
-                      label: "Observation",
-                      render: (record) => (
-                        <RelationName
-                          table="observations"
-                          id={record["observation_id"] as string}
-                        />
-                      ),
-                    },
-                  ]}
-                />
+                <IssueObservations issue={row} />
                 <EntitySection
                   showHeading
                   table="issue_poams"

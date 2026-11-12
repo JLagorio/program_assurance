@@ -1,8 +1,9 @@
+import { useProgramBaselines } from "@/lib/baseline-reads";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { ProductCollection } from "./product-collection";
 import { useCollectionTable } from "./collection-question";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import {
   RecordLink,
   RecordPreviewActions,
@@ -10,6 +11,7 @@ import {
   recordDestination,
   useDisplayedRecords,
   useEndOnHide,
+  useOpenRecord,
 } from "./record-preview";
 import { EmptyMessage, QueryState, type QueryStatus } from "./work-common";
 import {
@@ -187,7 +189,11 @@ function OpenSystems({ programId }: { programId: string }) {
 }
 
 /** A control's row: the assembly, named by its code and title together. */
-type ControlRow = SspControlAssembly & { name: string };
+type ControlRow = SspControlAssembly & {
+  name: string;
+  /** Where the program's control baseline gets the control: the reference baseline or a layer. */
+  origin: string | null;
+};
 
 /** Rows from several scoped reads of one table, each once. */
 function uniqueById<T extends { id: string }>(rows: readonly T[]): T[] {
@@ -640,12 +646,34 @@ function SspAssemblyPlan({
     setSelectedId(undefined);
     setEvidenceId(undefined);
   });
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   // Each control is named by its code and title together ("AC-2(1) Automated system account
   // management"), so the code never folds away from a title that repeats across families.
+  // Where the program's baseline gets each control, by the catalog control: the program's stack
+  // is read once, and a program with no recorded baseline shows no Origin column.
+  const { baselines } = useProgramBaselines(programId);
+  const origins = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const baseline of baselines) {
+      const titles = new Map(baseline.derivation.layers.map((layer) => [layer.key, layer.title]));
+      for (const [controlId, origin] of baseline.derivation.origins)
+        if (!map.has(controlId))
+          map.set(
+            controlId,
+            origin.layerKey ? (titles.get(origin.layerKey) ?? "A layer") : "Baseline",
+          );
+    }
+    return map;
+  }, [baselines]);
+  const hasBaseline = baselines.length > 0;
   const controlRows = useMemo<ControlRow[]>(
-    () => rows.map((row) => ({ ...row, name: `${row.code} ${row.title}` })),
-    [rows],
+    () =>
+      rows.map((row) => ({
+        ...row,
+        name: `${row.code} ${row.title}`,
+        origin: origins.get(row.selection.control_id) ?? null,
+      })),
+    [rows, origins],
   );
   const selected = controlRows.find((row) => row.id === selectedId);
   const editable = plan.state === "draft" && workspace.role !== "viewer";
@@ -704,12 +732,21 @@ function SspAssemblyPlan({
               <Absent />
             ),
         }),
+        ...(hasBaseline
+          ? [
+              c.text("origin", {
+                header: "Origin",
+                width: 220,
+                cell: (row) => row.origin ?? <Absent label="Not in the program baseline" />,
+              }),
+            ]
+          : []),
         c.text("narrative", { header: "Control narrative", width: 160 }),
         c.number("contributionCount", { header: "Contributions", width: 140 }),
         c.number("requirementCount", { header: "Requirements", width: 130 }),
         c.number("evidenceCount", { header: "Evidence", width: 105 }),
       ]),
-    [controlRecord, openPreview],
+    [controlRecord, openPreview, hasBaseline],
   );
   // Each preview is its table's, so opening or stepping through one never rebuilds the columns.
   const controlPreview = useMemo(
@@ -1030,7 +1067,7 @@ function SspAssemblyPlan({
         queries={[...context, ...queries]}
         onRowClick={(row) => {
           const record = controlRecord(row);
-          if (record) void navigate(recordDestination("implemented_requirements", record));
+          if (record) openRecord("implemented_requirements", record, () => openPreview(row));
           else openPreview(row);
         }}
         empty={{
@@ -1041,7 +1078,12 @@ function SspAssemblyPlan({
         fill={fill}
         searchLabel="Find selected controls"
         views={views}
-        filters={<DataTable.Filter table={table} column="narrative" />}
+        filters={
+          <>
+            {hasBaseline ? <DataTable.Filter table={table} column="origin" /> : null}
+            <DataTable.Filter table={table} column="narrative" />
+          </>
+        }
       />
       {selected && (
         // The preview stays open under a dialog opened from it, so focus returns to its trigger.

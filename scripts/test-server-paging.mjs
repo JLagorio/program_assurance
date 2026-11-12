@@ -601,7 +601,8 @@ try {
   const lastOnPage = ccis[PAGE - 1];
   const firstOnNext = ccis[PAGE];
   await eye(cciTable, lastOnPage.id).click();
-  await expectPreviewHeader(page, { title: lastOnPage.code });
+  // A CCI has no page of its own: its preview offers no fuller record.
+  await expectPreviewHeader(page, { title: lastOnPage.code, fullRecord: false });
   await expect(status()).toHaveText(`${lastOnPage.code}, ${PAGE} of ${number(cciTotal)} records`);
   await step("Next record").click();
   await expect(panel().getByRole("heading", { name: firstOnNext.code, exact: true })).toBeVisible();
@@ -872,6 +873,71 @@ try {
   const exported = JSON.parse(await readFile(await (await download).path(), "utf8"));
   assert.equal(exported.length, riskTotal, "The export holds the whole result");
   console.log(`PASS Export writes every risk of the result (${riskTotal})`);
+
+  // ——— Assign owner: the chosen risks take one owner in one request ————————————————————————
+  // The Owner filter's No owner counts every risk nobody owns, across the pages.
+  await fresh("/risks");
+  await expect(rows(riskTable)).toHaveCount(PAGE);
+  await page
+    .getByRole("button", { name: /^Owner/ })
+    .first()
+    .click();
+  const noOwner = page.getByRole("checkbox", { name: /^No owner/ });
+  await expect(noOwner.locator("xpath=ancestor::label[1]")).toContainText(String(riskTotal));
+  await noOwner.click();
+  await page.keyboard.press("Escape");
+  await expect(range(riskLabel)).toContainText(`1–${PAGE} of ${number(riskTotal)}`);
+  await expect.poll(() => question().get("risk-register.filters")).toContain("No owner");
+  // Choosing the page puts the selection bar in the toolbar's place, and offers the whole result
+  // as a second, explicit step.
+  const selectAll = riskTable.locator("thead").getByRole("checkbox");
+  await selectAll.click();
+  const selectionBar = page.getByRole("region", { name: "Selection", exact: true });
+  await expect(selectionBar).toContainText(`${PAGE} selected`);
+  await selectionBar
+    .getByRole("button", { name: `Select all ${riskTotal} risks`, exact: true })
+    .click();
+  await expect(selectionBar).toContainText(`${riskTotal} selected`);
+  const assignOwner = selectionBar.getByRole("button", { name: "Assign owner", exact: true });
+  await expect(assignOwner).toBeFocused();
+  await assignOwner.click();
+  const ownerDialog = page.getByRole("dialog", { name: "Assign owner", exact: true });
+  await expect(ownerDialog).toContainText(`${riskTotal} risks selected`);
+  // Submitted with no owner, the field says what fixes it and takes focus.
+  const ownerField = ownerDialog.getByRole("combobox", { name: /^Owner/ });
+  await ownerDialog.getByRole("button", { name: "Assign owner", exact: true }).click();
+  await expect(ownerDialog).toContainText("Choose an owner.");
+  await expect(ownerField).toBeFocused();
+  await ownerField.click();
+  await page.getByRole("option", { name: /^Avery Paging/ }).click();
+  const assigned = page.waitForRequest((request) =>
+    request.url().includes("/rest/v1/rpc/assign_record_owner"),
+  );
+  await ownerDialog.getByRole("button", { name: "Assign owner", exact: true }).click();
+  const sent = JSON.parse((await assigned).postData() ?? "{}");
+  assert.equal(sent.p_collection, "risks");
+  assert.equal(
+    new Set(sent.p_record_ids).size,
+    riskTotal,
+    "One request names every chosen risk, the ones on the other page too",
+  );
+  // The Dialog closes, the bar goes with the selection and focus stays in the table.
+  await expect(ownerDialog).toHaveCount(0);
+  await expect(selectionBar).toHaveCount(0);
+  await expect(selectAll).toBeFocused();
+  // Nobody is left without an owner: the view is empty, and every risk names the one chosen.
+  await expect(rows(riskTable)).toHaveCount(0);
+  assert.equal(
+    await count(
+      client
+        .from("risks")
+        .select("id", { count: "exact", head: true })
+        .eq("owner_party_id", owners[0].id),
+    ),
+    riskTotal,
+    "Every chosen risk took the owner",
+  );
+  console.log(`PASS Assign owner gives every chosen risk one owner in one request (${riskTotal})`);
 
   /** Sorts a column by its header's button until it reads `direction`. */
   async function sortBy(table, label, direction) {

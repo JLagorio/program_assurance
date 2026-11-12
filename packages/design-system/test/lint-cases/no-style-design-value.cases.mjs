@@ -349,15 +349,15 @@ export default {
     },
     {
       // The widths and radii the scales hold, named by role only: a width has none.
-      code: 'import type { CSSProperties } from "react"; export const card: CSSProperties = { width: 128, borderWidth: 1, borderRadius: "5px", outlineWidth: 2 };',
+      code: 'import type { CSSProperties } from "react"; export const card: CSSProperties = { width: 128, borderWidth: 1, borderRadius: "6px", outlineWidth: 2 };',
       only: "ts",
       errors: [
         length("width", "128px"),
         length("borderWidth", "1px", {
           token: ' On the border width scale 1px is border.width: token("border.width").',
         }),
-        length("borderRadius", "5px", {
-          token: ' On the radius scale 5px is radius.medium: token("radius.medium").',
+        length("borderRadius", "6px", {
+          token: ' On the radius scale 6px is radius.medium: token("radius.medium").',
         }),
         // Two tokens hold 2px, border.width.selected and .focused: the role decides, not the value.
         length("outlineWidth", "2px", {
@@ -385,7 +385,7 @@ export default {
         length("borderRadius", "8px", {
           attribute: "contentStyle",
           token:
-            ' Nearest on the radius scale: token("radius.large") (7px) or token("radius.xlarge") (9px).',
+            ' Nearest on the radius scale: token("radius.medium") (6px) or token("radius.large") (10px).',
         }),
         colour("color", "#333", {
           attribute: "contentStyle",

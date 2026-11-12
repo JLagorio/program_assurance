@@ -120,7 +120,7 @@ test("an exact value is one pick of that value; between two steps, both are name
   assert.equal(stock("-top-4").replacement, "-top-200");
   assert.equal(stock("text-xs").replacement, "font-body-small");
   assert.equal(stock("font-normal").replacement, "font-regular");
-  assert.equal(stock("rounded-xl").replacement, "rounded-xxlarge");
+  assert.equal(stock("rounded-xl").replacement, "rounded-xlarge");
   const between = stock("p-3.5");
   assert.equal(between.replacement, undefined);
   assert.equal(between.words[0], "Nearest: p-150 (12px) or p-200 (16px).");
@@ -376,14 +376,14 @@ test("a value is named in its own terms: zero, a pill, a weight, an outline, a d
   assert.match(styleLengthHint("borderRadius", "50%"), /token\("radius\.full"\)/);
   // A size whose step sets a weight the size did not is named with it, never picked; a deprecated
   // step (font-heading-small, kept for one version) is never named.
-  for (const advice of [stock("text-xl"), arbitrary("text-[20px]")]) {
+  for (const advice of [stock("text-2xl"), arbitrary("text-[24px]")]) {
     assert.equal(advice.replacement, undefined);
-    assert.match(advice.words[0], /^20px is font-heading-page \(weight 600, /);
+    assert.match(advice.words[0], /^24px is font-heading-page \(weight 600, /);
     assert.doesNotMatch(advice.words.join(" "), /font-heading-small/);
   }
   assert.equal(stock("text-xs").replacement, "font-body-small");
   assert.match(
-    styleLengthHint("fontSize", "20px"),
+    styleLengthHint("fontSize", "24px"),
     /font-heading-page, which also sets weight 600/,
   );
   // An outline's width is on the border width scale; a ring is the focus outline.

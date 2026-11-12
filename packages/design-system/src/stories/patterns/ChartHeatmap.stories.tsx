@@ -5,17 +5,21 @@ import { Chart } from "../..";
 import { Badge, Button, KeyValue } from "../../components";
 import { Box, Grid, Stack, Text } from "../../primitives";
 import {
+  elements,
   families,
   findingsByFamilyMonth,
   heatMonths,
   impacts,
   likelihoods,
   phases,
+  requirementsByElementTechnique,
   riskCount,
   riskTone,
   risksAt,
+  techniques,
   varianceByPhase,
 } from "../_lib/chart-data";
+import { along, isRtl, scrolledFromStart, towardsEnd } from "../_lib/direction";
 import * as storyLayout from "../_lib/matrix";
 import * as pairLayout from "../_lib/pair";
 
@@ -299,6 +303,281 @@ export const Status: Story = {
   },
 };
 
+/** Rows in a hierarchy: `rowLevel` indents each row's name under the row that holds it, and a `summary` row prints its totals as numbers with no fill, so a total never reads as one more cell of the scale. A status function may give one level `emphasis: "bold"`, the tone's solid fill, so the worst reads apart from the level under it in the same tone. */
+export const GroupedRows: Story = {
+  render: () => (
+    <Chart
+      title="Open findings by element and family"
+      description="Each cell in the tone of its worst finding, with how many."
+    >
+      <Stack space="space.150">
+        <Chart.Heatmap
+          rows={[
+            "Space segment",
+            "Flight computer",
+            "Payload controller",
+            "Ground segment",
+            "Mission operations",
+            "Key management",
+          ]}
+          columns={["AC", "AU", "IA", "SC"]}
+          value={(row, column) =>
+            (
+              ({
+                "Space segment": { AC: 3, AU: 5, IA: 0, SC: 2 },
+                "Flight computer": { AC: 1, AU: 2, IA: 0, SC: 2 },
+                "Payload controller": { AC: 2, AU: 3, IA: 0, SC: 0 },
+                "Ground segment": { AC: 4, AU: 1, IA: 2, SC: 0 },
+                "Mission operations": { AC: 4, AU: 0, IA: 1, SC: 0 },
+                "Key management": { AC: 0, AU: 1, IA: 1, SC: 0 },
+              }) as Record<string, Record<string, number>>
+            )[row]?.[column]
+          }
+          scale={(value, row, column) =>
+            row === "Payload controller" && column === "AU"
+              ? { tone: "danger", emphasis: "bold" }
+              : value >= 3
+                ? "danger"
+                : value === 2
+                  ? "warning"
+                  : "neutral"
+          }
+          rowLevel={(row) => (row.endsWith("segment") ? 0 : 1)}
+          summary={(row) => row.endsWith("segment")}
+          zeroStep
+          selectable={() => false}
+          label="Open findings by element and family"
+          rowLabel="Element"
+          columnLabel="Family"
+        />
+        <Chart.Scale
+          scale="status"
+          steps={[
+            { tone: "neutral", label: "Low" },
+            { tone: "warning", label: "Moderate" },
+            { tone: "danger", label: "High" },
+            { tone: "danger", emphasis: "bold", label: "Critical" },
+          ]}
+        />
+      </Stack>
+    </Chart>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const grid = canvas.getByRole("table", { name: "Open findings by element and family" });
+    const row = (name: string) => within(grid).getByRole("rowheader", { name }).closest("tr")!;
+    const faces = (name: string) =>
+      Array.from(row(name).querySelectorAll<HTMLElement>('[data-slot="chart-heatmap-cell"]'));
+    // A summary row is numbers with no fill; the rows under it wear the scale.
+    await expect(row("Space segment")).toHaveAttribute("data-summary");
+    for (const face of faces("Space segment")) await expect(face.className).not.toMatch(/\bbg-/);
+    await expect(faces("Space segment").map((face) => face.textContent)).toEqual([
+      "3",
+      "5",
+      "0",
+      "2",
+    ]);
+    await expect(row("Flight computer")).not.toHaveAttribute("data-summary");
+    // The one bold cell reads apart from the subtle danger beside it.
+    await expect(faces("Payload controller")[1]!.className).toMatch(/\bbg-danger-bold\b/);
+    await expect(faces("Mission operations")[0]!.className).toMatch(/\bbg-danger\b/);
+    // With `zeroStep`, none wears no tone: a muted number, never the lowest level's fill.
+    await expect(faces("Mission operations")[1]!.className).not.toMatch(/\bbg-/);
+    await expect(faces("Mission operations")[1]).toHaveTextContent("0");
+    // A row under another starts further in.
+    const start = (name: string) =>
+      parseFloat(
+        getComputedStyle(within(grid).getByRole("rowheader", { name })).paddingInlineStart,
+      );
+    await expect(start("Flight computer")).toBeGreaterThan(start("Space segment"));
+    // The key names the bold step in words.
+    await expect(canvas.getByText("Critical")).toBeVisible();
+  },
+};
+
+/** Long column names over narrow cells. `columnHeadings="vertical"` turns each name to read up the page from its column, so a column is as wide as its cells: these fourteen techniques take 40px each, where their names on one line would take three times the room and scroll the grid sideways. Every heading is still its column's name, whole; the pointer over it, a cell's title and the Table toggle say it level. */
+export const VerticalHeadings: Story = {
+  render: () => (
+    <Chart
+      title="Requirements by element and technique"
+      description="Allocated requirements whose controls support the technique"
+    >
+      <Stack space="space.150">
+        <Chart.Heatmap
+          rows={elements.map((element) => element.name)}
+          columns={techniques}
+          value={(element, technique) =>
+            requirementsByElementTechnique[element]?.[techniques.indexOf(technique)]
+          }
+          domain={[0, 5]}
+          zeroStep
+          size="small"
+          columnHeadings="vertical"
+          rowLevel={(name) => elements.find((element) => element.name === name)?.level ?? 0}
+          summary={(name) => elements.find((element) => element.name === name)?.total ?? false}
+          label="Requirements by element and technique"
+          rowLabel="Element"
+          columnLabel="Technique"
+        />
+        <Chart.Scale scale="sequential" domain={[0, 5]} zeroStep />
+      </Stack>
+    </Chart>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const grid = canvas.getByRole("table", { name: "Requirements by element and technique" });
+    const headers = within(grid).getAllByRole("columnheader").slice(1);
+    // Every heading is its column's name, whole, and says it level under the pointer.
+    await expect(headers.map((header) => header.textContent)).toEqual(techniques);
+    await expect(
+      within(grid).getByRole("columnheader", { name: "Substantiated Integrity" }),
+    ).toBeVisible();
+    const headings = headers.map((header) =>
+      header.querySelector<HTMLElement>("[data-heatmap-heading]")!,
+    );
+    // The names are measured in the face the reader sees, once it has loaded.
+    await canvasElement.ownerDocument.fonts.ready;
+    for (const heading of headings) {
+      await expect(heading).toHaveAttribute("title", heading.textContent);
+      // Turned: on one line that runs up the page, taller than it is wide.
+      await waitFor(() => {
+        const box = heading.getBoundingClientRect();
+        expect(box.height).toBeGreaterThan(box.width);
+        expect(Math.round(box.width)).toBeLessThanOrEqual(16);
+      });
+      // It turns the other way where the page reads right to left, its mirror.
+      await expect(getComputedStyle(heading).rotate).toBe(isRtl(heading) ? "none" : "180deg");
+    }
+    // The names start on one line, beside their columns, however long each is.
+    const starts = headings.map((heading) => heading.getBoundingClientRect().bottom);
+    await expect(Math.max(...starts) - Math.min(...starts)).toBeLessThanOrEqual(1);
+    // The columns take their cells' width, one width, and not their names'.
+    await waitFor(() => {
+      const widths = headers.map((header) => Math.round(header.getBoundingClientRect().width));
+      expect(new Set(widths).size).toBe(1);
+      expect(widths[0]).toBeLessThanOrEqual(48);
+    });
+    // On one line every column would be as wide as the longest name: these take under half that.
+    const rowNames = within(grid).getAllByRole("columnheader")[0]!.getBoundingClientRect().width;
+    const longest = Math.max(...headings.map((heading) => heading.getBoundingClientRect().height));
+    await expect(grid.offsetWidth - rowNames).toBeLessThan((longest * techniques.length) / 2);
+    // So the grid fits a box the names on one line would overflow: no sideways scroll, no region.
+    const box = grid.parentElement!;
+    if (box.clientWidth >= grid.offsetWidth) {
+      await waitFor(() => {
+        expect(box.scrollWidth).toBeLessThanOrEqual(box.clientWidth + 1);
+        expect(box).not.toHaveAttribute("role");
+        expect(box).not.toHaveAttribute("tabindex");
+      });
+    }
+    // A cell says its column level, and so does the table twin.
+    await expect(
+      within(grid).getByTitle("Flight computer, Substantiated Integrity: 3"),
+    ).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Table" }));
+    const table = await canvas.findByRole("table", {
+      name: "Requirements by element and technique, as a table",
+    });
+    await expect(
+      within(table)
+        .getAllByRole("columnheader")
+        .map((header) => header.textContent),
+    ).toEqual(["Element", ...techniques]);
+    await expect(table.querySelector("[data-heatmap-heading]")).toBeNull();
+    await userEvent.click(canvas.getByRole("button", { name: "Table" }));
+    await expect(
+      await canvas.findByRole("table", { name: "Requirements by element and technique" }),
+    ).toBeVisible();
+  },
+};
+
+/** A name longer than a heading's line, about twenty-five characters, takes a second line beside the first, so the band of headings keeps a readable height and the columns their width. A name that needs a third line widens every column alike, as the second grid shows. Keep to names of a few words: the longer a name, the more of it the reader turns their head for. */
+export const VerticalHeadingsLongNames: Story = {
+  render: () => (
+    <Stack space="space.300">
+      <Chart.Heatmap
+        rows={["Flight computer", "Mission operations", "Key management"]}
+        columns={[
+          "Identity management and access control",
+          "Awareness and training",
+          "Data security",
+          "Platform security",
+        ]}
+        value={(element, category) => (element.length + category.length) % 5}
+        columnHeadings="vertical"
+        showValues
+        size="small"
+        label="Requirements by element and category"
+        rowLabel="Element"
+        columnLabel="Category"
+      />
+      <Chart.Heatmap
+        rows={["Flight computer", "Mission operations", "Key management"]}
+        columns={[
+          "Identity management, authentication and access control",
+          "Awareness and training",
+          "Data security",
+          "Platform security",
+        ]}
+        value={(element, category) => (element.length + category.length) % 5}
+        columnHeadings="vertical"
+        showValues
+        size="small"
+        label="Requirements by element and category, a longer name"
+        rowLabel="Element"
+        columnLabel="Category"
+      />
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const grid = canvas.getByRole("table", { name: "Requirements by element and category" });
+    const longer = canvas.getByRole("table", {
+      name: "Requirements by element and category, a longer name",
+    });
+    const heading = (table: HTMLElement, name: string) =>
+      within(table)
+        .getByRole("columnheader", { name })
+        .querySelector<HTMLElement>("[data-heatmap-heading]")!
+        .getBoundingClientRect();
+    const widths = (table: HTMLElement) =>
+      within(table)
+        .getAllByRole("columnheader")
+        .slice(1)
+        .map((header) => Math.round(header.getBoundingClientRect().width));
+    // The names are measured in the face the reader sees, once it has loaded.
+    await canvasElement.ownerDocument.fonts.ready;
+    // The long name runs to a second line, as deep again, and neither line is longer than the cap.
+    await waitFor(() => {
+      const line = heading(grid, "Data security");
+      const two = heading(grid, "Identity management and access control");
+      expect(Math.round(two.width)).toBe(Math.round(line.width) * 2);
+      expect(two.height).toBeGreaterThan(line.height);
+      expect(two.height).toBeLessThanOrEqual(161);
+    });
+    // Two lines fit the cells' width: the columns are the width they were, and all one width.
+    await waitFor(() => {
+      expect(new Set(widths(grid)).size).toBe(1);
+      expect(widths(grid)[0]).toBeLessThanOrEqual(48);
+    });
+    // A third line is deeper than a cell is wide, so every column widens with it, alike.
+    await waitFor(() => {
+      const line = heading(longer, "Data security");
+      const three = heading(longer, "Identity management, authentication and access control");
+      expect(Math.round(three.width)).toBeGreaterThanOrEqual(Math.round(line.width) * 3);
+      expect(three.height).toBeLessThanOrEqual(161);
+      expect(new Set(widths(longer)).size).toBe(1);
+      expect(widths(longer)[0]).toBeGreaterThan(widths(grid)[0]!);
+    });
+    // Each name is whole all the same.
+    await expect(
+      within(longer).getByRole("columnheader", {
+        name: "Identity management, authentication and access control",
+      }),
+    ).toBeVisible();
+  },
+};
+
 /** The cells that hold risks are buttons: a click, or Enter, opens the cell's card with the risks in it. A cell of zero has nothing to open and is no tab stop; `selectable` says otherwise when it should. */
 export const Details: Story = {
   render: () => (
@@ -523,12 +802,13 @@ export const Narrow: Story = {
     });
     await expect(region).toHaveAttribute("tabindex", "0");
     await expect(canvas.queryByRole("region", { name: /three months/ })).toBeNull();
-    // Scrolled to its end, the row names are still at the start of the box.
+    // Scrolled to its end, the row names are still at the start of the box, whichever way the
+    // page reads: the scroll and the start are asked of the direction helpers.
     const rowName = within(region).getByRole("rowheader", { name: "AC" });
-    const before = rowName.getBoundingClientRect().left;
-    region.scrollLeft = region.scrollWidth;
-    await waitFor(() => expect(region.scrollLeft).toBeGreaterThan(0));
-    await expect(Math.round(rowName.getBoundingClientRect().left)).toBe(Math.round(before));
+    const before = along(rowName).start;
+    region.scrollLeft = towardsEnd(region, region.scrollWidth);
+    await waitFor(() => expect(scrolledFromStart(region)).toBeGreaterThan(1));
+    await expect(Math.round(along(rowName).start)).toBe(Math.round(before));
   },
 };
 

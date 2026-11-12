@@ -1,10 +1,9 @@
 import { useMemo } from "react";
-import { Link } from "@tanstack/react-router";
 import { Section, Timeline, useLedgerLocale } from "@ledger/design-system";
 import { useRows, type Row, type TableName } from "@/lib/models";
 import { labelFor } from "@/lib/records";
 import { programRequirementScope } from "@/lib/requirement-reads";
-import { recordDestination } from "./record-preview";
+import { recordLink } from "./record-preview";
 import { EmptyMessage, QueryState } from "./work-common";
 
 /** An entry: one event, or consecutive edits of one requirement by one person. */
@@ -126,14 +125,10 @@ export function ProgramActivity({ programId }: { programId: string }) {
           : entry.events.length > 1
             ? `Saved ${edits} as draft revisions.`
             : "Saved a draft revision.",
-        link: (
-          <Link
-            {...recordDestination("engineering_requirements", {
-              id: entry.requirement.id,
-              program_id: programId,
-            })}
-          />
-        ),
+        link: recordLink("engineering_requirements", {
+          id: entry.requirement.id,
+          program_id: programId,
+        }),
       };
     }
     // A recorded verb phrase ("assigned …") reads after the person who did it; any other text is
@@ -147,9 +142,8 @@ export function ProgramActivity({ programId }: { programId: string }) {
       // A person the event does not record, or one the roster does not name, is "Someone".
       title: `${actor ?? "Someone"} ${deed}`,
       description: said || undefined,
-      link: record ? (
-        <Link {...recordDestination(record.table, { id: record.id, program_id: programId })} />
-      ) : undefined,
+      // The record it names, where that record has a page.
+      link: record ? recordLink(record.table, { id: record.id, program_id: programId }) : undefined,
     };
   };
   /** The day and the minute in the reader's zone; the full moment is the tooltip. */

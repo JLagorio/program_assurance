@@ -39,11 +39,13 @@ import { Plus } from "lucide-react";
 import { Page } from "@/components/app/shell";
 import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
+import { useAssuranceTrace } from "@/lib/assurance-trace";
 import { idSet, useRow, useRows, type Row } from "@/lib/models";
 import { programRequirementScope } from "@/lib/requirement-reads";
 import { labelFor, type DataRecord } from "@/lib/records";
 import { requirementIdentityLinks } from "@/lib/requirement-tree";
 import { revisionStates } from "@/lib/status";
+import { TraceBand } from "./assurance-trace";
 import { RelationName } from "./record-tools";
 import { RecordTrail, TrailLink } from "./record-trail";
 import { RequirementEvidence } from "./requirement-evidence";
@@ -259,29 +261,37 @@ export function RequirementRecordContent({
                               <RequirementHierarchy revisionId={active.id} programId={programId} />
                             </>
                           ) : (
-                            // Overview beside the page's Details: the rail at its end where it
-                            // fits, else a closed disclosure above it that says the state. They
-                            // stay mounted with the panel, so a draft in them survives a tab.
-                            <AsideLayout
-                              aside={
-                                <Shell.Aside
-                                  label="Requirement details"
-                                  summary={
-                                    <StatusBadge statuses={revisionStates} value={active.state} />
-                                  }
-                                >
-                                  <Inspector.Group title="Details">{details}</Inspector.Group>
-                                </Shell.Aside>
-                              }
-                            >
-                              <Stack space="space.250" className="min-w-0">
-                                {body}
-                                <RequirementHierarchy
-                                  revisionId={active.id}
-                                  programId={programId}
-                                />
-                              </Stack>
-                            </AsideLayout>
+                            <>
+                              {/* Where the requirement stands on the chain, across the page. */}
+                              <RequirementBand
+                                requirementId={requirementId}
+                                name={`${code} ${active.title}`}
+                              />
+                              {/* Overview beside the page's Details: the rail at its end where it
+                                  fits, else a closed disclosure above it that says the state.
+                                  They stay mounted with the panel, so a draft in them survives a
+                                  tab. */}
+                              <AsideLayout
+                                aside={
+                                  <Shell.Aside
+                                    label="Requirement details"
+                                    summary={
+                                      <StatusBadge statuses={revisionStates} value={active.state} />
+                                    }
+                                  >
+                                    <Inspector.Group title="Details">{details}</Inspector.Group>
+                                  </Shell.Aside>
+                                }
+                              >
+                                <Stack space="space.250" className="min-w-0">
+                                  {body}
+                                  <RequirementHierarchy
+                                    revisionId={active.id}
+                                    programId={programId}
+                                  />
+                                </Stack>
+                              </AsideLayout>
+                            </>
                           )}
                         </ProgramQueryState>
                         <AssuranceCitations
@@ -328,6 +338,7 @@ export function RequirementRecordContent({
                               columns={[
                                 {
                                   key: "procedure_revision_id",
+                                  names: "procedure_revisions",
                                   title: "Procedure",
                                   render: (row) => (
                                     <RelationName
@@ -401,6 +412,15 @@ export function RequirementRecordContent({
     </Stack>
   );
   return frame(content);
+}
+
+/**
+ * The requirement's band and trace: the controls it meets, the evidence that supports it, and
+ * what was found and is being done about that evidence. Read as the Overview first shows.
+ */
+function RequirementBand({ requirementId, name }: { requirementId: string; name: string }) {
+  const trace = useAssuranceTrace({ kind: "requirement", id: requirementId });
+  return <TraceBand trace={trace} kind="requirement" name={`the requirement ${name}`} />;
 }
 
 const changeLabels: Record<string, string> = {

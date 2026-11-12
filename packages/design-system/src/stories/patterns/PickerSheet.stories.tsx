@@ -429,6 +429,85 @@ export const SearchWithNoMatch: Story = {
   },
 };
 
+/** Two hundred requirements: eight pages of twenty-five, more than the pager lists. */
+const longCatalogue = Array.from({ length: 200 }, (_, i) => ({
+  id: `REQ-${String(101 + i).padStart(4, "0")}`,
+  text: statements[i % statements.length]!,
+  family: families[i % families.length]!,
+  state: (["Approved", "Draft", "Verified"] as const)[i % 3]!,
+}));
+
+function ManyPagesPicker() {
+  const [open, setOpen] = useState(false);
+  const table = useDataTable({
+    columns: catalogueColumns,
+    data: longCatalogue,
+    getRowId: (r) => r.id,
+    selectable: true,
+    rowLabel: (r) => r.id,
+    label: "Requirements",
+    pageSize: 25,
+  });
+  return (
+    <Stack space="space.200">
+      <Inline space="space.150" rowSpace="space.150" alignBlock="center" shouldWrap>
+        <Button variant="secondary" onClick={() => setOpen(true)}>
+          Allocate requirements
+        </Button>
+      </Inline>
+      <PickerSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Allocate requirements"
+        subtitle="Flight computer"
+        table={table}
+        search={{ placeholder: "Search requirements" }}
+        action={{
+          label: `Allocate ${Object.keys(table.state.rowSelection).length} to Flight computer`,
+          onClick: () => setOpen(false),
+        }}
+      >
+        <DataTable table={table} responsive />
+      </PickerSheet>
+    </Stack>
+  );
+}
+
+/**
+ * A table of more pages than its pager lists: an ellipsis stands for the pages between, with
+ * "More pages" for a screen reader. The sheet's body is its one scroller, so those hidden words
+ * scroll with the rows; the keyboard walks from the pager to the footer and the sheet holds still,
+ * its header at the top.
+ */
+export const ManyPages: Story = {
+  render: () => <ManyPagesPicker />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.click(canvas.getByRole("button", { name: "Allocate requirements" }));
+    const popup = await page.findByRole("dialog", { name: "Allocate requirements" });
+    const region = popup.querySelector<HTMLElement>('[data-slot="sheet-body"]')!;
+    const footer = popup.querySelector<HTMLElement>('[data-slot="sheet-footer"]')!;
+    const pager = within(popup).getByRole("navigation", { name: /pagination/i });
+    await expect(within(pager).getByText("More pages")).toHaveClass("sr-only");
+    // The rows overflow the body, and the body is all that scrolls: the popup has nothing to.
+    await expect(region.scrollHeight).toBeGreaterThan(region.clientHeight);
+    await expect(popup.scrollHeight).toBeLessThanOrEqual(popup.clientHeight + 1);
+    // From the pager's last control, Tab reaches the footer, and nothing but the body has moved.
+    within(pager).getByRole("button", { name: "Next page" }).focus();
+    await waitFor(() => expect(region.scrollTop).toBeGreaterThan(0));
+    await userEvent.tab();
+    await expect(footer).toContainElement(canvasElement.ownerDocument.activeElement as HTMLElement);
+    await expect(popup.scrollTop).toBe(0);
+    await expect(
+      within(popup).getByRole("heading", { name: "Allocate requirements" }).getBoundingClientRect()
+        .top,
+    ).toBeGreaterThanOrEqual(popup.getBoundingClientRect().top);
+    await expect(footer.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight + 1);
+    await closeSheet(canvasElement);
+  },
+};
+
 /** The save each PendingAndFailure run is waiting on; its play function settles it. */
 const waitingSaves: Array<() => void> = [];
 

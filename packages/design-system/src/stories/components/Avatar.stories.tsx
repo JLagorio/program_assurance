@@ -169,7 +169,7 @@ const initialsType = {
   small: ["11px", "14px", "500"],
   medium: ["13px", "18px", "500"],
   large: ["15px", "22px", "500"],
-  xlarge: ["20px", "26px", "600"],
+  xlarge: ["24px", "30px", "600"],
 } as const;
 
 /** A group at every size: the +n circle is as large as the avatars it follows, with type a step under theirs, and the overlap is about a quarter of their size. The initials take a body step at medium weight up to large, and `font.heading.page` at xlarge. */

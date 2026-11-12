@@ -171,7 +171,7 @@ export function Heading({ className, ...props }: SectionHeadingProps) {
     />
   );
 }
-/** The Section's heading, and a region's accessible name: a Heading at `section`, 13/18 semibold, the size of a disclosure's header, at the Section's level: an h2 outside every HeadingLevelProvider, one below the surrounding level inside one (an h3 in a titled Section). `render` sets another element outright, which keeps the `section` size. */
+/** The Section's heading, and a region's accessible name: a Heading at `section`, 15/22 semibold, the size of a disclosure's header, at the Section's level: an h2 outside every HeadingLevelProvider, one below the surrounding level inside one (an h3 in a titled Section). `render` sets another element outright, which keeps the `section` size. */
 export function Title({ render, ref, className, ...props }: SectionTitleProps) {
   const section = useContext(SectionContext);
   const surrounding = useHeadingLevel();

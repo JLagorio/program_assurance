@@ -79,6 +79,7 @@ export {
   type DonutSelection,
   type DonutSlice,
   type HeatmapScale,
+  type HeatmapStatus,
   type HeatmapSelection,
   type ScatterSelection,
   type TreemapNodeInput,
@@ -111,6 +112,30 @@ export {
   type WorkPaneRowProps,
   type WorkPaneView,
 } from "./work-pane";
+
+export {
+  TileMap,
+  TileMapKey,
+  type TileMapFill,
+  type TileMapGroup,
+  type TileMapKeyItem,
+  type TileMapKeyProps,
+  type TileMapLayout,
+  type TileMapMark,
+  type TileMapProps,
+  type TileMapTone,
+} from "./tile-map";
+
+export { Trace, type TraceLink, type TraceNode, type TraceProps, type TraceStage } from "./trace";
+
+export {
+  Ladder,
+  type LadderLevel,
+  type LadderLink,
+  type LadderMark,
+  type LadderNode,
+  type LadderProps,
+} from "./ladder";
 
 export { RecordBrowser, type RecordBrowserEmpty, type RecordBrowserProps } from "./record-browser";
 export * from "./spreadsheet";

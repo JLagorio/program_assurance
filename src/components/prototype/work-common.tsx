@@ -379,6 +379,7 @@ const missingRecordDestinations = {
   "/programs": "Open programs",
   "/campaigns": "Open assessment campaigns",
   "/findings": "Open findings and assets",
+  "/evidence": "Open evidence",
   "/register": "Open POA&M and risk register",
   "/packages": "Open authorization packages",
   "/profiles": "Open profiles",
@@ -458,27 +459,6 @@ export function ModelForm({
       onSaved={onSaved}
       onClose={onClose}
     />
-  );
-}
-
-export function SchemaLink({
-  table,
-  id,
-  children = "Inspect record",
-}: {
-  table: string;
-  id: string;
-  children?: ReactNode;
-}) {
-  return (
-    <TextLink
-      size="small"
-      render={
-        <Link to="/records/$collection/$recordId" params={{ collection: table, recordId: id }} />
-      }
-    >
-      {children}
-    </TextLink>
   );
 }
 

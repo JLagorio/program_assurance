@@ -12,6 +12,13 @@ export type TextLinkProps = useRender.ComponentProps<"a"> & {
   size?: "small" | "medium" | undefined;
   weight?: "regular" | "medium" | undefined;
   /**
+   * `brand` is the link colour. `neutral` draws the words in `color.text`, underlined under the
+   * pointer and on keyboard focus: a record's name in its own row or card, where the name is the
+   * identity and colour is kept for status. A link in a sentence stays `brand`.
+   * @default "brand"
+   */
+  tone?: "brand" | "neutral" | undefined;
+  /**
    * Opens the destination in a new tab and says so: `target="_blank"`, `rel="noopener noreferrer"`,
    * an external-link icon after the last word, and "(opens in a new tab)" read after the name.
    * For a destination outside the product, or one that would cost the reader their place (a
@@ -46,6 +53,7 @@ export function TextLink({
   render,
   size,
   weight,
+  tone = "brand",
   newTab = false,
   className,
   children,
@@ -73,13 +81,14 @@ export function TextLink({
     defaultTagName: "a",
     render,
     ref: markInText,
-    state: { slot: "text-link" },
+    state: { slot: "text-link", tone },
     props: mergeProps<"a">(
       {
         className: cn(
           // A link in a sentence is underlined at rest, since its colour against the text beside it is
           // 2.0:1 in dark mode (WCAG 1.4.1); a link standing alone underlines on hover.
-          "relative rounded-xsmall text-brand underline-offset-2 outline-none transition-colors duration-fast ease-standard hover:underline data-in-text:underline focus-visible:outline-focused",
+          "relative rounded-xsmall underline-offset-2 outline-none transition-colors duration-fast ease-standard hover:underline data-in-text:underline focus-visible:outline-focused",
+          tone === "neutral" ? "text-default focus-visible:underline" : "text-brand",
           touchArea,
           size && sizes[size],
           weight && weights[weight],

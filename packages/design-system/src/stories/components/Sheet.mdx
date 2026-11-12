@@ -30,7 +30,7 @@ Not for work beside a list the reader keeps using: that is the Shell's panel, wh
 ## Anatomy
 
 - **SheetContent** brings its portal, the blanket and a close button at the top end (an IconButton named Close, with no tooltip, first in the Tab order where it is drawn, while the first field still takes focus on open), and slides from `side`: `right` by default, `left`, `top` or `bottom`, or `start` and `end`, which follow the reading direction. It records the overlay surface as the current one, so a sticky header or pinned cell inside matches the sheet.
-- **SheetHeader** holds the title (the sheet's h2, a [Heading](?path=/docs/primitives-heading--docs) at `overlay`, 15/22 medium; headings inside start at h3) and the description, which wrap an unbroken value. A record's name as the title is a PageHeader.Title rendered as SheetTitle, and keeps the page title's size.
+- **SheetHeader** holds the title (the sheet's h2, a [Heading](?path=/docs/primitives-heading--docs) at `overlay`, 17/24 semibold; headings inside start at h3) and the description, which wrap an unbroken value. A record's name as the title is a PageHeader.Title rendered as SheetTitle, and keeps the page title's size.
 - **SheetBody** is the one scrolling region, with the sheet's inset. A toolbar row that should not scroll sits between the header and the body.
 - **SheetFooter** stays outside the scroll, on the sheet's own surface below a hairline. The header, the body and the footer share the sheet's `space.200` inline inset.
 - **SheetPortal** and **SheetOverlay** are exported for a custom popup, as Dialog's are.

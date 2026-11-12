@@ -23,6 +23,8 @@
 @import "./layout.css";
 @import "./touch.css";
 @import "./stat.css";
+@import "./tally.css";
+@import "./tray.css";
 @import "./avatar.css";
 @import "./shell.css";
 @import "./drawer.css";
@@ -32,6 +34,9 @@
 @import "./forced-colors.css";
 
 @import "../patterns/document-reader.css";
+@import "../patterns/tile-map.css";
+@import "../patterns/trace.css";
+@import "../patterns/ladder.css";
 
 /* Highlights preserve a readable distinction in the operating system's colour palette. */
 @media (forced-colors: active) {

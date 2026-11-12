@@ -1,0 +1,92 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Tally } from "../../components";
+import * as Stories from "./Tally.stories";
+
+<Meta of={Stories} />
+
+# Tally
+
+**Status: Experimental.** New with the program's Cyber resiliency view, its first screen; the props may change while a second screen tries it. Owned by the design system.
+
+How many of a group's items are in each state, as one thin bar: each segment its share of a total, the rest the empty track. It is a [TileMap](?path=/docs/patterns-tilemap--docs)'s marks counted into a bar, so it takes the same tones and fills and one key explains both. Put the number beside it: the bar shows the proportion, and the number is the reading.
+
+<Canvas of={Stories.Playground} />
+
+## Choosing between the bars
+
+| What the reader is watching                                            | Part                                                                             |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| A task that finishes: an upload, an import                             | [Progress](?path=/docs/components-progress--docs)                                |
+| Parts of a whole in the status tones, a hatched hole, parts that click | `ProgressStacked`, on the [Progress](?path=/docs/components-progress--docs) page |
+| Where work stands along a few named phases                             | [PhaseBar](?path=/docs/components-phasebar--docs)                                |
+| How many items of a group are in each state, in a map's colours        | `Tally`                                                                          |
+| Every item as its own mark, to find one by where it stands             | [TileMap](?path=/docs/patterns-tilemap--docs)                                    |
+
+A tally is not a progressbar: nothing is under way, and a screen reader would hear a percentage of a job that is not running. It keeps apart from `ProgressStacked` by its vocabulary. A stacked bar speaks the status tones (success, warning, danger) and hatches what is unknown; a tally speaks a map's chart tones and has a hollow segment, for what was there and is not now, and a remainder that is the track. Use the one whose key is already on the page.
+
+## Tones and fills
+
+A segment has a `tone`, one of the chart tokens, and a `fill`: `solid`, `outline` for an item that was there and is not now, and `empty`, the track's own colour, for a caller that names the rest as a segment. They are the names a TileMap mark takes (`TallyTone` is `TileMapTone`, `TallyFill` is `TileMapFill`), so one map of a screen's states feeds a `TileMap.Key`, a tally's segments and a [Ladder](?path=/docs/patterns-ladder--docs)'s marks. Keep to a few states: one hue for what changed and a hollow segment for what left read in every colour vision.
+
+<Canvas of={Stories.TonesAndFills} />
+
+Colour never says a state alone. Each segment's `label` ("70 added") is its title under the pointer and a part of the tally's name, and a key beside the tally says what each colour means.
+
+## Sizes
+
+`size` is the bar's thickness: `small` 4px under a name, `medium` 6px in a row, `large` 8px in a band, and `xlarge` 12px where the bar is a table cell's whole reading. The bar is as long as its box.
+
+<Canvas of={Stories.Sizes} />
+
+## Comparing a column
+
+`scale`, from 0 to 1, sets the bar's own length as a share of its box: a row's total against the largest in its column. The bars of a column then compare twice, by their length (how much stands behind each row) and by how full they are (how much of it is held).
+
+<Canvas of={Stories.Scaled} />
+
+## Nothing held
+
+`tone="danger"` is for a tally that holds nothing where something is expected. The unfilled track becomes a hollow outline in the danger tone, never a fill, so an empty bar does not pass for a low value. Say it in the number beside the bar too.
+
+<Canvas of={Stories.Nothing} />
+
+## In a table
+
+In a cell the number is the text and the tally is decoration under it: leave `label` unsaid, so a screen reader reads the row as numbers and is not told of an image a cell.
+
+<Canvas of={Stories.InATable} />
+
+## A changing value
+
+When a value changes, its segment eases to the new share in place over `motion.duration.moderate`. A segment of nothing keeps its place at no width, so it grows from where it stands. Under reduced motion the bar switches.
+
+<Canvas of={Stories.Changing} />
+
+## Accessibility
+
+- **Named or decorative, never between.** With `label` the tally is `role="img"`, named by the label and the labels of its segments that hold something: "Controls behind Adaptive Response: 4 in baseline, 4 added". Without `label` it is hidden from assistive technology, and the number beside it carries the value.
+- **Not colour alone.** A segment says its state in its `label`; hollow and filled differ by shape as well as hue.
+- **Forced colours.** Filled, hollow and empty stay three things in the system palette: a filled segment is CanvasText, a hollow one an outline, and the track an outline in GrayText.
+- **Right to left.** The segments run from the inline start, so the bar mirrors.
+
+## Style
+
+| Element | Token                                                                                                 |
+| ------- | ----------------------------------------------------------------------------------------------------- |
+| Bar     | `space.050`, `space.075`, `space.100` or `space.150` thick · `radius.xsmall`                          |
+| Track   | `color.chart.track`; with `tone="danger"`, a `color.border.danger` outline                            |
+| Segment | `color.chart.*` in its tone · hollow: `elevation.surface.current` inside an edge in the tone          |
+| Motion  | `motion.duration.moderate`, `motion.easing.standard` on a segment's length; none under reduced motion |
+
+## Props
+
+The span's native props and ref reach the tally's box.
+
+<ArgTypes of={Tally} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+[Progress](?path=/docs/components-progress--docs) · [PhaseBar](?path=/docs/components-phasebar--docs) · [TileMap](?path=/docs/patterns-tilemap--docs) · [Ladder](?path=/docs/patterns-ladder--docs) · [Stat](?path=/docs/components-stat--docs)

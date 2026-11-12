@@ -416,6 +416,20 @@ export {
   type PaginationEllipsisProps,
 } from "./pagination";
 export {
+  Tally,
+  type TallyFill,
+  type TallyProps,
+  type TallySegment,
+  type TallySize,
+  type TallyTone,
+} from "./tally";
+export {
+  PhaseBar,
+  PhaseBarItem,
+  type PhaseBarItemProps,
+  type PhaseBarProps,
+} from "./phase-bar";
+export {
   Popover,
   PopoverClose,
   PopoverContent,
@@ -533,8 +547,12 @@ export { Spinner, type SpinnerProps, type SpinnerSize } from "./spinner";
 export {
   Stat,
   StatGrid,
+  StatList,
+  StatRow,
   StatTile,
   type StatGridProps,
+  type StatListProps,
+  type StatRowProps,
   type StatProps,
   type StatTileProps,
 } from "./stat";
@@ -618,6 +636,7 @@ export {
   type TooltipProviderProps,
   type TooltipTriggerProps,
 } from "./tooltip";
+export { Tray, type TrayProps, type TrayTone } from "./tray";
 export { Tree, type TreeItemProps, type TreeProps, type TreeSize } from "./tree";
 export {
   Truncate,

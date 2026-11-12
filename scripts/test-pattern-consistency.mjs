@@ -345,12 +345,11 @@ try {
     supplierPanel.getByRole("heading", { name: supplier.name, exact: true }),
   ).toBeVisible();
   await expect(supplierPanel.getByRole("status")).toHaveText(`${supplier.name}, 2 of 3 records`);
+  // An organization has no page of its own: its preview offers no fuller record.
   await expect(
     supplierPanel.getByRole("link", { name: "Open full record in new tab" }),
-  ).toHaveAttribute("href", `/records/parties/${supplier.id}`);
-  await expect(
-    supplierPanel.getByRole("link", { name: "Open full record in new tab" }),
-  ).toHaveAttribute("target", "_blank");
+  ).toHaveCount(0);
+  await expect(supplierPanel.locator('a[href^="/records/"]')).toHaveCount(0);
   await supplierPanel.getByRole("button", { name: "Next record" }).click();
   await expect(
     supplierPanel.getByRole("heading", { name: alphaSupplier.name, exact: true }),
@@ -497,7 +496,7 @@ try {
   await expect(preview.getByRole("heading", { name: artifact.title, exact: true })).toBeVisible();
   await expect(
     preview.getByRole("link", { name: "Open full record in new tab", exact: true }),
-  ).toHaveAttribute("href", `/records/evidence_artifacts/${artifact.id}`);
+  ).toHaveAttribute("href", `/evidence/${artifact.id}`);
   await expect(preview.locator('[data-slot="preview-navigation"]').getByRole("status")).toHaveText(
     `${artifact.title}, 3 of 4 records`,
   );
@@ -511,7 +510,7 @@ try {
   await expect(lastEvidence).toBeHidden();
   await expect(
     tableRow(evidenceTable, artifact.id).getByRole("link", { name: artifact.title, exact: true }),
-  ).toHaveAttribute("href", `/records/evidence_artifacts/${artifact.id}`);
+  ).toHaveAttribute("href", `/evidence/${artifact.id}`);
   console.log("PASS Evidence keyboard preview and collected-date sorting, including missing dates");
 
   await page.goto(`${origin}/catalog?edition=${catalog.id}`);

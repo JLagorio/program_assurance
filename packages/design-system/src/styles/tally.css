@@ -1,0 +1,121 @@
+/* Tally: a thin bar of segments, each its share of a whole. The segments wear a TileMap mark's
+   tones and fills (the chart tokens; solid, hollow or empty), so a map's key explains a tally too.
+   The thickness is a step of the spacing scale. The box is the room the bar may take and the track
+   is the bar itself, whose length `scale` sets as a share of the box, so the bars of a column
+   compare by their length as well as by how full they are. */
+[data-slot="tally"] {
+  --tally-edge: var(--ds-border-width);
+  display: flex;
+  inline-size: 100%;
+  min-inline-size: 0;
+  block-size: var(--ds-space-075);
+}
+[data-slot="tally"][data-size="small"] {
+  block-size: var(--ds-space-050);
+}
+[data-slot="tally"][data-size="large"] {
+  block-size: var(--ds-space-100);
+}
+[data-slot="tally"][data-size="xlarge"] {
+  block-size: var(--ds-space-150);
+}
+[data-slot="tally-track"] {
+  display: flex;
+  flex: none;
+  inline-size: 100%;
+  block-size: 100%;
+  overflow: hidden;
+  border-radius: var(--ds-radius-xsmall);
+  background-color: var(--ds-color-chart-track);
+}
+/* Nothing where something is expected: the unfilled track is an outline, never a fill, so it does
+   not pass for a low value. */
+[data-slot="tally"][data-tone="danger"] > [data-slot="tally-track"] {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 var(--tally-edge) var(--ds-color-border-danger);
+}
+
+/* ---------- a segment ---------- */
+[data-slot="tally-segment"] {
+  flex: none;
+  block-size: 100%;
+  transition: inline-size var(--ds-motion-duration-moderate) var(--ds-motion-easing-standard);
+}
+
+/* ---------- the paint ----------
+   A segment's tone and fill. A Ladder row's marks are the same segments standing apart, one an
+   item, so they are painted here too and the two can never drift: the row sets only their size. */
+:is([data-slot="tally-segment"], [data-slot="ladder-mark"]) {
+  --tally-ink: var(--ds-color-chart-neutral);
+  background-color: var(--tally-ink);
+}
+:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-tone="brand"] {
+  --tally-ink: var(--ds-color-chart-brand);
+}
+:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-tone="information"] {
+  --tally-ink: var(--ds-color-chart-information);
+}
+:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-tone="success"] {
+  --tally-ink: var(--ds-color-chart-success);
+}
+:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-tone="warning"] {
+  --tally-ink: var(--ds-color-chart-warning);
+}
+:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-tone="danger"] {
+  --tally-ink: var(--ds-color-chart-danger);
+}
+:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-tone="sequential.1"] {
+  --tally-ink: var(--ds-color-chart-sequential-1);
+}
+:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-tone="sequential.2"] {
+  --tally-ink: var(--ds-color-chart-sequential-2);
+}
+:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-tone="sequential.3"] {
+  --tally-ink: var(--ds-color-chart-sequential-3);
+}
+:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-tone="sequential.4"] {
+  --tally-ink: var(--ds-color-chart-sequential-4);
+}
+:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-tone="sequential.5"] {
+  --tally-ink: var(--ds-color-chart-sequential-5);
+}
+/* Hollow: it was there and is not now. The surface shows through, edged in the tone. */
+:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-fill="outline"] {
+  background-color: var(--ds-utility-elevation-surface-current);
+  box-shadow: inset 0 0 0 var(--tally-edge, var(--ds-border-width)) var(--tally-ink);
+}
+/* Empty: the track's own colour, for a caller that names the rest as a segment. */
+:is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-fill="empty"] {
+  background-color: transparent;
+}
+
+/* A value changes while the structure stays: the segments ease to their new shares. Reduced
+   motion switches them. */
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="tally-segment"] {
+    transition: none;
+  }
+}
+
+/* The system palette keeps three things apart: filled, hollow and empty. */
+@media (forced-colors: active) {
+  [data-slot="tally-track"] {
+    forced-color-adjust: none;
+    background-color: Canvas;
+    box-shadow: inset 0 0 0 var(--tally-edge) GrayText;
+  }
+  [data-slot="tally"][data-tone="danger"] > [data-slot="tally-track"] {
+    box-shadow: inset 0 0 0 var(--tally-edge) CanvasText;
+  }
+  :is([data-slot="tally-segment"], [data-slot="ladder-mark"]) {
+    forced-color-adjust: none;
+    background-color: CanvasText;
+  }
+  :is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-fill="outline"] {
+    background-color: Canvas;
+    box-shadow: inset 0 0 0 var(--tally-edge, var(--ds-border-width)) CanvasText;
+  }
+  :is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-fill="empty"] {
+    background-color: transparent;
+  }
+}

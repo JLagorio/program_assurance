@@ -7,6 +7,7 @@ import {
   RecordPreviewPanel,
   recordDestination,
   useDisplayedRecords,
+  useOpenRecord,
 } from "@/components/prototype/record-preview";
 import type { ParameterOverride, TailoringDecision } from "@/lib/program-wizard";
 import {
@@ -43,7 +44,7 @@ import {
   useDataTable,
   type Preset,
 } from "@ledger/design-system";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { AlertCircle, MoreHorizontal, Plus, ShieldMinus, ShieldPlus } from "lucide-react";
 import { useId, useMemo, useRef, useState, type ComponentProps, type ReactNode } from "react";
 import { ControlPicker } from "./control-picker";
@@ -91,12 +92,13 @@ function TailoringLink({
         {children}
       </RecordLink>
     );
+  const destination = recordDestination(table, record);
+  // A record with no page (a parameter) is read in the row's preview, which the row opens.
+  if (!destination) return <>{children}</>;
   return (
     <TextLink
       newTab
-      render={
-        <Link {...recordDestination(table, record)} onClick={(event) => event.stopPropagation()} />
-      }
+      render={<Link {...destination} onClick={(event) => event.stopPropagation()} />}
     >
       {children}
     </TextLink>
@@ -136,7 +138,7 @@ export function ProfileTailoringEditor({
       ),
     [given, catalogRevisionId, baseResolutionId, decisions, parameters, data],
   );
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   const { confirm, confirmation } = useConfirmation();
   const [previewControl, setPreviewControl] = useState<string | null>(null);
   const [tab, setTab] = useState("Controls");
@@ -415,9 +417,7 @@ export function ProfileTailoringEditor({
                 table={table}
                 keepQuestion={keep("effective")}
                 onRowClick={(row) =>
-                  editable
-                    ? setPreviewControl(row.id)
-                    : void navigate(recordDestination("controls", row))
+                  editable ? setPreviewControl(row.id) : openRecord("controls", row)
                 }
                 views={<DataTable.Presets table={table} presets={presets} variant="menu" />}
                 empty={{
@@ -522,7 +522,7 @@ function DecisionTable({
   emptyIcon: ReactNode;
   action?: ReactNode;
 }) {
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   const items = rows.map(({ decision, control }) => ({
     id: decision.controlId,
     code: control?.code ?? "Unavailable control",
@@ -588,9 +588,7 @@ function DecisionTable({
         // One of the tab's several collections: the page's header or the wizard's footer keeps the
         // one primary.
         actionVariant="secondary"
-        onRowClick={(row) =>
-          editable ? setSelected(row) : void navigate(recordDestination("controls", row))
-        }
+        onRowClick={(row) => (editable ? setSelected(row) : openRecord("controls", row))}
         compact
         empty={{ icon: emptyIcon, title: emptyTitle, description: emptyDescription }}
       />
@@ -712,7 +710,7 @@ function ParameterTable({
   primaryId: string;
   onRemove: (id: string) => void;
 }) {
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   const rows = parameters.map((override) => {
     const parameter = data.parameters.find((item) => item.id === override.parameterId);
     const control = data.controls.find((item) => item.id === parameter?.control_id);
@@ -787,9 +785,7 @@ function ParameterTable({
         table={table}
         keepQuestion={keep}
         searchLabel="Find a parameter override"
-        onRowClick={(row) =>
-          editable ? setSelected(row) : void navigate(recordDestination("parameters", row))
-        }
+        onRowClick={(row) => (editable ? setSelected(row) : openRecord("parameters", row))}
         action={
           <Button
             size="small"

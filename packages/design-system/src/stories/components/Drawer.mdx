@@ -45,7 +45,7 @@ Each action names its object and the drawer ends with Done; "Options", bare verb
 </Drawer>
 ```
 
-Content composes Portal, the modal Overlay, Base UI Viewport/Popup and the text-selectable Content region inside Base UI's VirtualKeyboardProvider, and records the overlay surface as the current one, so a sticky header or pinned cell inside matches the drawer. Header, Body, Title, Description, Footer and Close are explicit parts; the title is the drawer's h2, a [Heading](?path=/docs/primitives-heading--docs) at `overlay` (15/22 medium), and headings inside start at h3. Portal, Overlay and SwipeHandle are also exported for custom native compositions.
+Content composes Portal, the modal Overlay, Base UI Viewport/Popup and the text-selectable Content region inside Base UI's VirtualKeyboardProvider, and records the overlay surface as the current one, so a sticky header or pinned cell inside matches the drawer. Header, Body, Title, Description, Footer and Close are explicit parts; the title is the drawer's h2, a [Heading](?path=/docs/primitives-heading--docs) at `overlay` (17/24 semibold), and headings inside start at h3. Portal, Overlay and SwipeHandle are also exported for custom native compositions.
 
 DrawerBody is the one scrolling region between the header and the footer, with the drawer's inset, at least 80px tall. Base UI lets a swipe that starts in it scroll it, and dismiss once it is at its edge. Read-only content that overflows makes it a tab stop, "Content, scrolls". In a window under 30rem tall the drawer scrolls as one, with the footer held at the bottom.
 

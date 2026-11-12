@@ -17,7 +17,7 @@ A Dot with a word: severity or health beside a label, in a row or a rail. High, 
 
 | Part | What it is                                                                                                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dot  | 6px, round, `color.icon.<tone>`. It never shrinks.                                                                                                      |
+| Dot  | 8px, a rounded square, `color.icon.<tone>`. It never shrinks.                                                                                           |
 | Word | `font.body` after the Dot, `space.075` away: `color.text`, or `color.text.subtle` when the tone is neutral. It truncates, with the whole word on hover. |
 
 ## Variants
@@ -33,7 +33,7 @@ Not built, and why: an icon per tone (failed, warning, in progress), because the
 
 ## Sizes
 
-One size. The Dot is 6px whatever the text beside it; the word is `font.body`, the row's size, and in a `font.body.small` line it takes that size from the parent. An Indicator is as wide as its word and truncates when the column is narrower.
+One size. The Dot is 8px whatever the text beside it; the word is `font.body`, the row's size, and in a `font.body.small` line it takes that size from the parent. An Indicator is as wide as its word and truncates when the column is narrower.
 
 ## Long content
 
@@ -63,10 +63,10 @@ An Indicator has one state and does not hover, focus or disable. The tone is the
 
 | Element | Token                                                                         |
 | ------- | ----------------------------------------------------------------------------- |
-| Dot     | 6px · `color.icon.<tone>` · `color.icon.subtlest` at neutral                  |
+| Dot     | 8px · `color.icon.<tone>` · `color.icon.subtlest` at neutral                  |
 | Word    | `font.body` · `color.text` · `color.text.subtle` at neutral · `space.075` gap |
 
-The icon colours are Badge's, so a danger Dot and a danger Badge's text are one red, and the icon colour is the step tuned for a 6px mark.
+The icon colours are Badge's, so a danger Dot and a danger Badge's text are one red, and the icon colour is the step tuned for a small mark. The Dot is the status mark: the rounded square a [TileMap](?path=/docs/patterns-tilemap--docs) draws for one item and its key for one colour, so a legend, a row's status and a map of units read as one sign. `shape="round"` is the point on a line, which a Timeline's marker draws.
 
 ## Accessibility
 

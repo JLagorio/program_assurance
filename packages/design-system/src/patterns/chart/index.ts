@@ -31,6 +31,7 @@ export {
   type ChartHeatmapProps,
   type ChartScaleProps,
   type HeatmapScale,
+  type HeatmapStatus,
   type HeatmapSelection,
 } from "./heatmap";
 export { ChartArea, ChartLine, type ChartAreaProps, type ChartLineProps } from "./line";

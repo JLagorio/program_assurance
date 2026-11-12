@@ -50,6 +50,9 @@ const RTL_FAMILIES = [
   "Toaster",
   "Toolbar",
   "Tree",
+  "Trace",
+  "ChartHeatmap",
+  "Ladder",
 ];
 // Gates print their counts instead of failing when this is set (see test/storybook.setup.ts).
 const record = process.env["LEDGER_GATES_RECORD"] === "1";
@@ -261,6 +264,8 @@ export default mergeConfig(
             "Id",
             "TaskRow",
             "Glance",
+            "Trace",
+            "Ladder",
           ]),
           provide: { ...noAxe, "ledger/gate": "long" },
         }),

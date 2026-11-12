@@ -1,5 +1,6 @@
 import type { Row } from "./models";
 import type { Json } from "./database.types";
+import { deriveStack, type BaselineDerivation } from "./baseline-stack";
 import { resolutionChain, type ChainHop } from "./profile-chain";
 
 /** The layered resolver the database authors with: a base profile imported with include-all. */
@@ -348,8 +349,8 @@ export function inspectBase(
   };
 
   if (chain.kind === "overlay" && resolution?.base_profile_resolution_id) {
-    if (depth > 3) {
-      errors.push("Profile layering deeper than three levels is not supported.");
+    if (depth > 8) {
+      errors.push("Profile layering deeper than eight levels is not supported.");
       return { ...result, errors: [...new Set(errors)] };
     }
     const base = inspectBase(resolution.base_profile_resolution_id, data, depth + 1);
@@ -863,4 +864,161 @@ export function previewProgramTailoring(
       ),
     ],
   };
+}
+
+/** A published overlay as the setup's draft stack reads it. */
+export type DraftOverlay = {
+  id: string;
+  title: string;
+  decisions: readonly { controlId: string; action: "include" | "exclude"; rationale: string }[];
+};
+export type DraftStack<T extends WizardReferenceData = WizardReferenceData> = {
+  /** The reference records with one unsaved layer per overlay that changes the baseline. */
+  data: T;
+  /** The top of the draft stack: what the program's own tailoring is layered on. */
+  resolutionId: string;
+  derivation: BaselineDerivation;
+};
+
+/**
+ * Stack overlays on a base before anything is saved. Each overlay that changes the baseline
+ * becomes a layered resolution in a copy of the reference records, in the shape the database
+ * will author, so every reader of a saved chain (the base inspection, the tailoring preview, the
+ * chain) reads the draft stack as it will be. An overlay that changes nothing gets no layer; its
+ * row in `derivation` says so.
+ */
+export function stackDraftOverlays<T extends WizardReferenceData>(
+  data: T,
+  catalogRevisionId: string,
+  baseResolutionId: string,
+  overlays: readonly DraftOverlay[],
+  key: string,
+): DraftStack<T> {
+  const baseIds = data.selectedControls
+    .filter((row) => row.profile_resolution_id === baseResolutionId)
+    .map((row) => row.control_id);
+  const derivation = deriveStack(
+    baseIds,
+    overlays.map((overlay) => ({
+      key: overlay.id,
+      kind: "overlay" as const,
+      title: overlay.title,
+      overlayId: overlay.id,
+      decisions: overlay.decisions,
+    })),
+  );
+  if (!overlays.length) return { data, resolutionId: baseResolutionId, derivation };
+  const sourceIds = new Map(data.controls.map((control) => [control.id, control.source_id]));
+  const catalogDocument = data.catalogRevisions.find(
+    (row) => row.id === catalogRevisionId,
+  )?.document_revision_id;
+  const next = {
+    profiles: [...data.profiles],
+    profileRevisions: [...data.profileRevisions],
+    resolutions: [...data.resolutions],
+    resolutionInputs: [...data.resolutionInputs],
+    selectedControls: [...data.selectedControls],
+    profileImports: [...data.profileImports],
+    profileRules: [...data.profileRules],
+  };
+  let cursor = baseResolutionId;
+  const selected = new Set(baseIds);
+  for (const layer of derivation.layers) {
+    const added = layer.effects.filter((row) => row.effect === "added");
+    const removed = layer.effects.filter((row) => row.effect === "removed");
+    for (const row of added) selected.add(row.controlId);
+    for (const row of removed) selected.delete(row.controlId);
+    if (!added.length && !removed.length) continue;
+    const base = next.resolutions.find((row) => row.id === cursor);
+    const baseRevision = next.profileRevisions.find((row) => row.id === base?.profile_revision_id);
+    if (!base || !baseRevision) break;
+    const id = `draft:${key}:${layer.key}`;
+    next.profiles.push({ id: `${id}:profile`, code: id, title: layer.title });
+    next.profileRevisions.push({
+      id: `${id}:revision`,
+      profile_id: `${id}:profile`,
+      document_revision_id: `${id}:document`,
+      title: layer.title,
+      version: "draft",
+      state: "published",
+    });
+    next.resolutions.push({
+      id,
+      profile_revision_id: `${id}:revision`,
+      state: "published",
+      input_sha256: "",
+      output_sha256: "",
+      resolver_name: LAYERED_RESOLVER.name,
+      resolver_version: LAYERED_RESOLVER.version,
+      base_profile_resolution_id: cursor,
+    });
+    const inputs = new Set([
+      `${id}:document`,
+      baseRevision.document_revision_id,
+      ...(catalogDocument ? [catalogDocument] : []),
+      ...next.resolutionInputs
+        .filter((row) => row.profile_resolution_id === cursor)
+        .map((row) => row.document_revision_id),
+    ]);
+    [...inputs].forEach((document_revision_id, ordinal) =>
+      next.resolutionInputs.push({ profile_resolution_id: id, document_revision_id, ordinal }),
+    );
+    next.profileImports.push({
+      id: `${id}:import:0`,
+      profile_revision_id: `${id}:revision`,
+      catalog_revision_id: null,
+      imported_profile_revision_id: baseRevision.id,
+      ordinal: 0,
+      include_all: true,
+      href: `#${id}:base`,
+    });
+    if (added.length)
+      next.profileImports.push({
+        id: `${id}:import:1`,
+        profile_revision_id: `${id}:revision`,
+        catalog_revision_id: catalogRevisionId,
+        imported_profile_revision_id: null,
+        ordinal: 1,
+        include_all: false,
+        href: `#${id}:catalog`,
+      });
+    next.profileRules.push({
+      id: `${id}:merge`,
+      profile_revision_id: `${id}:revision`,
+      profile_import_id: null,
+      kind: "merge",
+      ordinal: 0,
+      source_pointer: "/profile/merge",
+      definition: { "as-is": true },
+      rationale: null,
+    });
+    const rule = (kind: "include" | "exclude", row: (typeof added)[number], ordinal: number) => {
+      const at = kind === "include" ? 1 : 0;
+      next.profileRules.push({
+        id: `${id}:${kind}:${ordinal}`,
+        profile_revision_id: `${id}:revision`,
+        profile_import_id: `${id}:import:${at}`,
+        kind,
+        ordinal,
+        source_pointer: `/profile/imports/${at}/${kind}-controls/${ordinal}`,
+        definition: {
+          "with-child-controls": "no",
+          "with-ids": [sourceIds.get(row.controlId) ?? row.controlId],
+        },
+        rationale: row.rationale,
+      });
+    };
+    added.forEach((row, ordinal) => rule("include", row, ordinal));
+    removed.forEach((row, ordinal) => rule("exclude", row, ordinal));
+    [...selected].forEach((control_id, ordinal) =>
+      next.selectedControls.push({
+        id: `${id}:selected:${control_id}`,
+        profile_resolution_id: id,
+        control_id,
+        ordinal,
+      }),
+    );
+    cursor = id;
+  }
+  return { data: { ...data, ...next } as T, resolutionId: cursor, derivation };
 }

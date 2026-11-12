@@ -30,7 +30,7 @@ const meta = {
 } satisfies Meta<typeof Section>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-/** The built-in header. A one-line title sits centred on its action's row, semibold at body size. `divided` draws the rule inside the header, `space.100` above the content, which keeps its own flow: inline content stays one line. */
+/** The built-in header. A one-line title sits centred on its action's row, semibold a step above the body. `divided` draws the rule inside the header, `space.100` above the content, which keeps its own flow: inline content stays one line. */
 export const Presentation: Story = {
   render: () => (
     <Stack space="space.400">
@@ -46,7 +46,7 @@ export const Presentation: Story = {
     const canvas = within(canvasElement);
     const center = (box: DOMRect) => (box.top + box.bottom) / 2;
     const title = canvas.getByRole("heading", { name: "Evidence" });
-    // The section title is Heading's `section` size: 13/18 semibold, an h2 outside a provider.
+    // The section title is Heading's `section` size: 15/22 semibold, an h2 outside a provider.
     await expect(typeOf(title)).toEqual({ tag: "H2", ...ramp.section });
     const action = canvas.getByRole("button", { name: "Attach file" });
     await expect(

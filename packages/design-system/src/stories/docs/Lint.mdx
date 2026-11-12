@@ -189,7 +189,7 @@ classify("mt-4").rule; // "ledger/no-margin": the one rule that reports the clas
 suggestClass("p-4").replacements; // ["p-200"], the editor suggestion: the same 16px
 suggestClass("dark:bg-gray-900", { siblings: "bg-white" }).advice[0]; // the roles of its colour
 kitPartOf("T.Cell", "@ledger/design-system", { imported: "Table" }); // "Table.Cell"
-tokensOfValue("16px").map(({ name, role }) => `${name} (${role})`); // dimension.icon.medium (icon-size), space.200 (space)
+tokensOfValue("16px").map(({ name, role }) => `${name} (${role})`); // dimension.icon.medium (icon-size), radius.xxlarge (radius), space.200 (space)
 tokenValue("motion.duration.medium").ms; // 150
 tokenOfClass("gap-150"); // "space.150"
 classCategories("hover:p-200").categories; // ["spacing"]

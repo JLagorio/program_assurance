@@ -5,6 +5,7 @@ import {
   FieldLabel,
   AlertDialog,
   AlertDialogAction,
+  AlertDialogBody,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -63,7 +64,7 @@ import {
 
 import { ChevronDown, MoreHorizontal } from "lucide-react";
 
-import { Inline, Stack, Text } from "../../primitives";
+import { Inline, Stack, Text, VisuallyHidden } from "../../primitives";
 
 const meta = {
   title: "Components/Overlays",
@@ -379,6 +380,145 @@ export const Modal: Story = {
         )!;
         await expect(getComputedStyle(edge).outlineStyle).toBe("solid");
       }
+      await userEvent.keyboard("{Escape}");
+      await waitFor(() => expect(body.queryByRole(role)).toBeNull());
+    }
+  },
+};
+
+const sixtyChanges = Array.from(
+  { length: 60 },
+  (_, i) => `Change ${i + 1}: the owner and the due date were updated.`,
+);
+
+function LongBodyOverlays() {
+  const [open, setOpen] = useState<"dialog" | "sheet" | "drawer" | "alert" | null>(null);
+  const close = () => setOpen(null);
+  const closing = (next: boolean) => {
+    if (!next) close();
+  };
+  // More than a body shows, ending in words only a screen reader needs.
+  const changes = (
+    <>
+      <Stack space="space.100">
+        {sixtyChanges.map((change) => (
+          <Text key={change}>{change}</Text>
+        ))}
+      </Stack>
+      <VisuallyHidden>End of the changes</VisuallyHidden>
+    </>
+  );
+  return (
+    <Inline space="space.200" shouldWrap>
+      <Button onClick={() => setOpen("dialog")}>Long dialog</Button>
+      <Button onClick={() => setOpen("sheet")}>Long sheet</Button>
+      <Button onClick={() => setOpen("drawer")}>Long drawer</Button>
+      <Button variant="danger" onClick={() => setOpen("alert")}>
+        Long alert dialog
+      </Button>
+
+      <Dialog open={open === "dialog"} onOpenChange={closing}>
+        <DialogContent width="medium">
+          <DialogHeader>
+            <DialogTitle>Review changes</DialogTitle>
+          </DialogHeader>
+          <DialogBody>{changes}</DialogBody>
+          <DialogFooter>
+            <Button variant="primary" onClick={close}>
+              Publish changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Sheet open={open === "sheet"} onOpenChange={closing}>
+        <SheetContent side="end" width="medium">
+          <SheetHeader>
+            <SheetTitle>Changes to CTRL-0412</SheetTitle>
+          </SheetHeader>
+          <SheetBody>{changes}</SheetBody>
+          <SheetFooter>
+            <Button variant="primary" onClick={close}>
+              Done
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+      <Drawer open={open === "drawer"} onOpenChange={closing}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Recent changes</DrawerTitle>
+          </DrawerHeader>
+          <DrawerBody>{changes}</DrawerBody>
+          <DrawerFooter>
+            <DrawerClose render={<Button />}>Close</DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+
+      <AlertDialog open={open === "alert"} onOpenChange={closing}>
+        <AlertDialogContent width="medium">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Discard sixty changes?</AlertDialogTitle>
+            <AlertDialogDescription>They are removed for everyone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogBody>{changes}</AlertDialogBody>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep changes</AlertDialogCancel>
+            <AlertDialogAction render={<AlertDialogCancel />} variant="danger">
+              Discard changes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Inline>
+  );
+}
+
+/**
+ * A body longer than its overlay is the one part that scrolls, and what it holds scrolls with it,
+ * down to words only a screen reader needs at its end. The keyboard walks from the body to the
+ * footer and the overlay holds still: its title stays at the top and its footer at the bottom.
+ */
+export const LongBodies: Story = {
+  render: () => <LongBodyOverlays />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement),
+      body = within(canvasElement.ownerDocument.body);
+    const cases = [
+      ["Long dialog", "dialog", "Review changes", "dialog"],
+      ["Long sheet", "dialog", "Changes to CTRL-0412", "sheet"],
+      ["Long drawer", "dialog", "Recent changes", "drawer"],
+      ["Long alert dialog", "alertdialog", "Discard sixty changes?", "alert-dialog"],
+    ] as const;
+    for (const [opener, role, name, slot] of cases) {
+      await userEvent.click(canvas.getByRole("button", { name: opener }));
+      const popup = await body.findByRole(role, { name });
+      // What a sticky footer sticks to: the popup, or a Drawer's content inside its popup.
+      const scroller = popup.querySelector<HTMLElement>('[data-slot="drawer-content"]') ?? popup;
+      const footer = popup.querySelector<HTMLElement>(`[data-slot="${slot}-footer"]`)!;
+      // Read-only and overflowing, the body is a tab stop; the hidden words are inside it.
+      const region = await within(popup).findByRole("group", { name: "Content, scrolls" });
+      await expect(region).toHaveAttribute("data-slot", `${slot}-body`);
+      await expect(within(region).getByText("End of the changes")).toHaveClass("sr-only");
+      await expect(region.scrollHeight).toBeGreaterThan(region.clientHeight);
+      // The body is all that scrolls: nothing it holds gives the overlay itself room to.
+      await expect(scroller.scrollHeight).toBeLessThanOrEqual(scroller.clientHeight + 1);
+      // From the body, Tab reaches the footer, and the overlay has not moved under the reader.
+      region.focus();
+      await userEvent.tab();
+      await expect(footer).toContainElement(
+        canvasElement.ownerDocument.activeElement as HTMLElement,
+      );
+      await expect(scroller.scrollTop).toBe(0);
+      await expect(
+        within(popup).getByRole("heading", { name }).getBoundingClientRect().top,
+      ).toBeGreaterThanOrEqual(popup.getBoundingClientRect().top);
+      // Once a drawer has slid in, its footer is at the window's bottom, as the others' are.
+      await waitFor(() =>
+        expect(footer.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight + 1),
+      );
       await userEvent.keyboard("{Escape}");
       await waitFor(() => expect(body.queryByRole(role)).toBeNull());
     }

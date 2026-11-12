@@ -2,9 +2,9 @@ import { EvidenceReaderWorkspace, type EvidenceReaderWorkspaceProps } from "./ev
 import { AssuranceReviewPanel } from "./assurance-review";
 import { AssuranceCitations } from "./assurance-review-citations";
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import {
   Absent,
+  AsideLayout,
   Button,
   DateLabel,
   DateTime,
@@ -17,10 +17,13 @@ import {
   DataTable,
   defineColumns,
   Inline,
+  Inspector,
+  PageHeader,
   Person,
   PreviewSheet,
   Prose,
   Section,
+  Shell,
   Stack,
   TextLink,
   useDataTable,
@@ -31,12 +34,17 @@ import {
   RecordLink,
   RecordPreviewPanel,
   RecordPreviewActions,
-  recordDestination,
   useDisplayedRecords,
   useEndOnHide,
+  useOpenRecord,
 } from "./record-preview";
+import { RecordTrail, TrailLink } from "./record-trail";
+import { TraceBand } from "./assurance-trace";
+import { useAssuranceTrace } from "@/lib/assurance-trace";
+import { Page } from "@/components/app/shell";
 import type { ReactNode } from "react";
 import { ProductCollection } from "./product-collection";
+import { useOwnerAssignment, useOwnerOptions } from "./assign-owner";
 import {
   useServerCollection,
   useServerPresetCounts,
@@ -46,7 +54,8 @@ import { MoreHorizontal, Plus } from "lucide-react";
 import { useRow, useRows, type Row, type TableName } from "@/lib/models";
 import { labelFor, type DataRecord } from "@/lib/records";
 import { createEvidenceSchema } from "@/lib/evidence-create";
-import { serverRead, type ServerRow } from "@/lib/server-table";
+import { ownerField } from "@/lib/owner-assign";
+import { serverRead, useServerResult, type ServerRow } from "@/lib/server-table";
 import { evidenceReviewDecisions, revisionStates, type StatusVocabulary } from "@/lib/status";
 import { StatusBadge } from "@/components/app/status";
 import { useWorkspace } from "@/components/app/workspace";
@@ -60,7 +69,14 @@ import {
   FileSize,
 } from "./evidence-version-details";
 import { RelationName } from "./record-tools";
-import { DetailFacts, ModelForm, type FormTarget } from "./work-common";
+import {
+  DetailFacts,
+  MissingRecord,
+  ModelForm,
+  QueryState,
+  RecordActions,
+  type FormTarget,
+} from "./work-common";
 
 /** The latest review's decision, and "Not reviewed" where the latest version has none. */
 const latestReviewStatuses: StatusVocabulary = {
@@ -219,7 +235,7 @@ const evidenceRead = (programId: string | undefined) =>
     fields: {
       program: { column: "program_name", filter: false },
       kind: { column: "artifact_kind", labels: kindLabels },
-      owner: { column: "owner_name", filter: false },
+      owner: ownerField,
       version: { column: "latest_version_number", filter: false },
       collected: { column: "collected_at", filter: false },
       review: { labels: latestReviewStatuses, sort: "review_rank" },
@@ -240,6 +256,7 @@ const presets: Preset[] = [
     filters: [{ id: "review", value: ["needs_revision"] }],
   },
 ];
+const evidenceNoun = { one: "evidence artifact", other: "evidence artifacts" };
 
 /** Of two copies of one artifact, the later revision: the page's after a refresh, else the one saved. */
 const later = <T extends { revision: number }>(a: T | undefined, b: T | undefined) =>
@@ -277,7 +294,7 @@ function EvidenceRegister({
   initialVersionId?: string | undefined;
 }) {
   const workspace = useWorkspace();
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   const [selectedId, setSelectedId] = useState<string | null>(initialArtifactId ?? null);
   // The artifact the reader opened or saved last, while the page may not hold it.
   const [held, setHeld] = useState<Artifact | null>(null);
@@ -329,9 +346,18 @@ function EvidenceRegister({
     view: `evidence-${programId ?? "all"}`,
     resizable: true,
     reorderable: true,
+    // A reader who may edit chooses artifacts to assign them an owner together.
+    selectable: workspace.role !== "viewer",
   });
   const { table } = collection;
   const presetCounts = useServerPresetCounts(read, presets);
+  const owners = useOwnerAssignment({
+    table,
+    collection: "evidence_artifacts",
+    noun: evidenceNoun,
+    result: useServerResult(read),
+  });
+  const ownerOptions = useOwnerOptions(read, "owner");
   const displayed = useDisplayedRecords(table);
   const onPage = displayed.find((row) => row.id === selectedId);
   const kept = held?.id === selectedId ? held : undefined;
@@ -367,7 +393,8 @@ function EvidenceRegister({
         {...collection}
         fill
         searchLabel="Find evidence"
-        onRowClick={(row) => void navigate(recordDestination("evidence_artifacts", row))}
+        onRowClick={(row) => openRecord("evidence_artifacts", row)}
+        selection={owners.selection}
         empty={{
           illustration: "document",
           title: "No evidence yet",
@@ -385,6 +412,7 @@ function EvidenceRegister({
               options={vocabularyOptions(latestReviewStatuses)}
             />
             <DataTable.Filter table={table} column="kind" options={kindOptions} />
+            <DataTable.Filter table={table} column="owner" options={ownerOptions} />
           </>
         }
         action={
@@ -403,6 +431,7 @@ function EvidenceRegister({
           ) : undefined
         }
       />
+      {owners.dialog}
       {/* The panel stays mounted under a form opened from it, so focus returns to the trigger. */}
       {selected && (
         <EvidencePreview
@@ -434,11 +463,8 @@ const versionTableColumns = defineColumns<Row<"evidence_versions">>((c) => [
     // "Version 12" needs little room: a minimum leaves the State beside it in a narrow panel.
     minWidth: 120,
     hideable: false,
-    cell: (row) => (
-      <RecordLink table="evidence_versions" record={row}>
-        Version {row.version_number}
-      </RecordLink>
-    ),
+    // A version's name reads as text here: its row, and its eye, open its review.
+    cell: (row) => `Version ${row.version_number}`,
   }),
   c.status("state", { header: "State", width: 130, statuses: revisionStates }),
   c.date("collected_at", { header: "Collected" }),
@@ -456,23 +482,27 @@ const versionTableColumns = defineColumns<Row<"evidence_versions">>((c) => [
   }),
 ]);
 
-function EvidencePreview({
+/**
+ * An artifact's versions: the table, its create action, and the modal review of the chosen
+ * version. The artifact's preview and its record page share it, so a version is reviewed the same
+ * way from either.
+ */
+function EvidenceVersions({
   artifact,
   formOpen,
-  navigation,
   versionId,
   onSelectVersion: setVersionId,
-  onClose,
   onEdit,
+  actionVariant = "secondary",
 }: {
-  artifact: Artifact;
-  /** A form is open over the preview: the modal version review steps aside so they do not stack. */
+  artifact: Pick<Artifact, "id" | "title">;
+  /** A form is open over the versions: the modal version review steps aside so they do not stack. */
   formOpen: boolean;
-  navigation: ReactNode;
   versionId: string | null;
   onSelectVersion: (id: string | null) => void;
-  onClose: () => void;
   onEdit: (target: FormTarget) => void;
+  /** The create action's weight: a secondary where the surface's header keeps its one primary. */
+  actionVariant?: "primary" | "secondary" | undefined;
 }) {
   const workspace = useWorkspace();
   const versions = useRows("evidence_versions", { artifact_id: artifact.id });
@@ -543,6 +573,81 @@ function EvidencePreview({
     </Button>
   ) : undefined;
   return (
+    <>
+      <Section title="Versions">
+        {/* An artifact's few versions ask nothing of a search: the toolbar keeps the create. */}
+        <ProductCollection
+          compact
+          search={false}
+          table={table}
+          queries={[versions]}
+          action={createVersion}
+          actionVariant={actionVariant}
+          // A version has no page of its own: its row opens its review, as its name does.
+          onRowClick={(row) => setVersionId(row.id)}
+          empty={{
+            illustration: "document",
+            title: "No versions yet",
+            description:
+              "Create a draft version to upload a file or reference an external artifact.",
+          }}
+        />
+      </Section>
+      {current && !formOpen && (
+        <PreviewSheet
+          open
+          onClose={() => setVersionId(null)}
+          title={`${artifact.title} · Version ${current.version_number}`}
+          navigation={
+            <RecordPreviewActions
+              table="evidence_versions"
+              record={current}
+              rows={displayed}
+              onSelect={(row) => setVersionId(row.id)}
+              // The review is the version's own surface: there is no fuller record to open.
+              openLink={false}
+            />
+          }
+          {...reopenFocus}
+          actions={
+            writable ? (
+              <EvidenceVersionActions
+                version={current}
+                onEdit={editFromSheet}
+                reviewButton={reviewButton}
+                menuButton={menuButton}
+              />
+            ) : undefined
+          }
+        >
+          <EvidenceVersion key={current.id} version={current} />
+        </PreviewSheet>
+      )}
+    </>
+  );
+}
+
+function EvidencePreview({
+  artifact,
+  formOpen,
+  navigation,
+  versionId,
+  onSelectVersion,
+  onClose,
+  onEdit,
+}: {
+  artifact: Artifact;
+  /** A form is open over the preview: the modal version review steps aside so they do not stack. */
+  formOpen: boolean;
+  navigation: ReactNode;
+  versionId: string | null;
+  onSelectVersion: (id: string | null) => void;
+  onClose: () => void;
+  onEdit: (target: FormTarget) => void;
+}) {
+  const workspace = useWorkspace();
+  const writable = workspace.role !== "viewer";
+  return (
     <RecordPreviewPanel
       title={artifact.title}
       label="Evidence artifact preview"
@@ -584,54 +689,150 @@ function EvidencePreview({
             ],
           ]}
         />
-        <Section title="Versions">
-          {/* The preview's few versions ask nothing of a search: the toolbar keeps the create. */}
-          <ProductCollection
-            compact
-            search={false}
-            table={table}
-            queries={[versions]}
-            action={createVersion}
-            // The preview's record header keeps the one primary, Edit evidence artifact.
-            actionVariant="secondary"
-            empty={{
-              illustration: "document",
-              title: "No versions yet",
-              description:
-                "Create a draft version to upload a file or reference an external artifact.",
-            }}
-          />
-        </Section>
-        {current && !formOpen && (
-          <PreviewSheet
-            open
-            onClose={() => setVersionId(null)}
-            title={`${artifact.title} · Version ${current.version_number}`}
-            navigation={
-              <RecordPreviewActions
-                table="evidence_versions"
-                record={current}
-                rows={displayed}
-                onSelect={(row) => setVersionId(row.id)}
-              />
-            }
-            {...reopenFocus}
-            actions={
-              writable ? (
-                <EvidenceVersionActions
-                  version={current}
-                  onEdit={editFromSheet}
-                  reviewButton={reviewButton}
-                  menuButton={menuButton}
-                />
-              ) : undefined
-            }
-          >
-            <EvidenceVersion key={current.id} version={current} />
-          </PreviewSheet>
-        )}
+        <EvidenceVersions
+          artifact={artifact}
+          formOpen={formOpen}
+          versionId={versionId}
+          onSelectVersion={onSelectVersion}
+          onEdit={onEdit}
+        />
       </Stack>
     </RecordPreviewPanel>
+  );
+}
+
+/**
+ * An evidence artifact's record: what it supports and what was found against it, as its trace,
+ * then its versions. A version is reviewed in the modal version review, opened from its row or
+ * named in the address (`version`).
+ */
+export function EvidenceRecord({
+  id,
+  versionId,
+  onVersionChange,
+}: {
+  id: string;
+  /** The version whose review is open, when the address names one. */
+  versionId?: string | undefined;
+  /** Puts the reviewed version in the address, or takes it out; local without it. */
+  onVersionChange?: ((versionId: string | null) => void) | undefined;
+}) {
+  const query = useRow("evidence_artifacts", id);
+  const trace = useAssuranceTrace({ kind: "evidence", id });
+  const [form, setForm] = useState<FormTarget | null>(null);
+  const [localVersion, setLocalVersion] = useState<string | null>(null);
+  const shownVersion = onVersionChange ? (versionId ?? null) : localVersion;
+  const artifact = query.data;
+  // The artifact as the chain reads it: its latest version, when it was collected, its review.
+  const latest = trace.data?.evidence.find((item) => item.id === id);
+  return (
+    <Page>
+      <QueryState query={query} shape="record" region>
+        {artifact ? (
+          <>
+            <PageHeader>
+              <RecordTrail current={artifact.title}>
+                <TrailLink to="/evidence">Evidence</TrailLink>
+              </RecordTrail>
+              <PageHeader.Heading>
+                <PageHeader.Title>{artifact.title}</PageHeader.Title>
+              </PageHeader.Heading>
+              <PageHeader.Actions>
+                <RecordActions
+                  table="evidence_artifacts"
+                  id={id}
+                  onEdit={() =>
+                    setForm({ table: "evidence_artifacts", existing: artifact as DataRecord })
+                  }
+                  editLabel="Edit evidence artifact"
+                />
+              </PageHeader.Actions>
+            </PageHeader>
+            {form && <ModelForm target={form} onClose={() => setForm(null)} />}
+            <TraceBand trace={trace} kind="evidence" name={`the evidence ${artifact.title}`} />
+            <AsideLayout
+              aside={
+                <Shell.Aside
+                  label="Evidence details"
+                  summary={
+                    latest ? (
+                      <StatusBadge statuses={latestReviewStatuses} value={latest.review} />
+                    ) : undefined
+                  }
+                >
+                  <Inspector.Group title="Details">
+                    <DetailFacts
+                      facts={[
+                        [
+                          "Latest review",
+                          latest ? (
+                            <StatusBadge statuses={latestReviewStatuses} value={latest.review} />
+                          ) : null,
+                        ],
+                        ["Kind", labelFor(artifact.artifact_kind)],
+                        [
+                          "Program",
+                          artifact.program_id ? (
+                            <RelationName table="programs" id={artifact.program_id} />
+                          ) : null,
+                        ],
+                        [
+                          "Owner",
+                          artifact.owner_party_id ? (
+                            <RelationName table="parties" id={artifact.owner_party_id} />
+                          ) : null,
+                        ],
+                        [
+                          "Latest version",
+                          latest?.version_number ? `Version ${latest.version_number}` : null,
+                        ],
+                        [
+                          "Collected",
+                          latest?.collected_at ? <DateTime value={latest.collected_at} /> : null,
+                        ],
+                        [
+                          "Expires",
+                          latest?.expires_at ? (
+                            <DateLabel kind="expiry" value={latest.expires_at} />
+                          ) : null,
+                        ],
+                        [
+                          "Source",
+                          artifact.source_uri ? (
+                            <ExternalReference uri={artifact.source_uri} />
+                          ) : null,
+                        ],
+                        [
+                          "Retain until",
+                          artifact.retention_until ? (
+                            <DateTime value={artifact.retention_until} />
+                          ) : null,
+                        ],
+                      ]}
+                    />
+                  </Inspector.Group>
+                </Shell.Aside>
+              }
+            >
+              <Stack space="space.250" className="min-w-0">
+                <Prose label="Description" className="max-w-layout-measure">
+                  {artifact.description?.trim() ? artifact.description : <Absent />}
+                </Prose>
+                <EvidenceVersions
+                  artifact={artifact}
+                  formOpen={!!form}
+                  versionId={shownVersion}
+                  onSelectVersion={onVersionChange ?? setLocalVersion}
+                  onEdit={setForm}
+                />
+              </Stack>
+            </AsideLayout>
+          </>
+        ) : (
+          <MissingRecord backTo="/evidence" kind="Evidence artifact" />
+        )}
+      </QueryState>
+    </Page>
   );
 }
 

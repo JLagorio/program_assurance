@@ -1,5 +1,7 @@
 import { EmptyMessage, QueryState, type QueryStatus } from "@/components/prototype/work-common";
-import { RecordLink, recordDestination } from "@/components/prototype/record-preview";
+import { ControlStatusTally } from "@/components/prototype/control-status";
+import { QueryValue } from "@/components/prototype/library-shared";
+import { RecordLink, recordLink, useOpenRecord } from "@/components/prototype/record-preview";
 import { questionSearch } from "@/components/prototype/collection-question";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, type ReactNode } from "react";
@@ -10,11 +12,13 @@ import {
   DataTable,
   Grid,
   Id,
+  Inline,
   LinkButton,
   PageHeader,
   Section,
   Stack,
   Stat,
+  Text,
   TextLink,
   Timeline,
   defineColumns,
@@ -27,6 +31,11 @@ import {
   type TableQuery,
 } from "@ledger/design-system";
 import { FolderKanban, Plus, ShieldAlert } from "lucide-react";
+import {
+  controlStatusShare,
+  useProgramControlStatus,
+  useProgramsControlStatus,
+} from "@/lib/control-status";
 import { useRows, type Row, type TableName } from "@/lib/models";
 import {
   determinations,
@@ -98,6 +107,7 @@ function Widget<T extends { id: string }>({
   viewAll,
   table,
   queries,
+  values,
   retryLabel,
   empty,
   onRowClick,
@@ -106,12 +116,18 @@ function Widget<T extends { id: string }>({
   viewAll: ReactNode;
   table: DataTableInstance<T>;
   queries: QueryStatus[];
+  /**
+   * Reads a column draws in place, one a row (a program's control status): a failure joins the
+   * widget's one alert with Retry, the rows stay, and the cell says Could not load. They never
+   * hold the rows back.
+   */
+  values?: QueryStatus[] | undefined;
   retryLabel: string;
   empty: DataTableEmpty;
   onRowClick: (row: T) => void;
 }) {
-  const failed = queries.filter((query) => query.isError);
-  const missing = failed.some((query) => query.data === undefined);
+  const failed = [...queries, ...(values ?? [])].filter((query) => query.isError);
+  const missing = queries.some((query) => query.isError && query.data === undefined);
   return (
     <Section title={title} action={viewAll}>
       <Stack space="space.150">
@@ -254,6 +270,33 @@ type RiskRow = {
 };
 type ProgramRow = Pick<Row<"programs">, "id" | "code" | "name" | "status" | "updated_at">;
 
+/**
+ * Where a program stands on its control baseline, in one line: the share an assessor found
+ * satisfied, then every status as its share of the baseline. The widget reads the same answer for
+ * its alert (`useProgramsControlStatus`), so this asks nothing more.
+ */
+function ProgramControlStatusCell({ program }: { program: ProgramRow }) {
+  const { formatNumber } = useLedgerLocale();
+  const status = useProgramControlStatus(program.id);
+  return (
+    <QueryValue queries={[status]}>
+      {() =>
+        status.data?.baseline ? (
+          <Inline space="space.100" alignBlock="center" className="min-w-0">
+            <Text numeric>{formatNumber(controlStatusShare(status.data, "satisfied"))}%</Text>
+            <ControlStatusTally
+              status={status.data}
+              label={`Control status of ${program.name}, ${formatNumber(status.data.total)} controls`}
+            />
+          </Inline>
+        ) : (
+          <Absent label="No control baseline" />
+        )
+      }
+    </QueryValue>
+  );
+}
+
 /** An activity entry: one event, or consecutive edits of one requirement by one person. */
 type FeedEntry = {
   events: Row<"activity_events">[];
@@ -301,7 +344,7 @@ const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1
 
 function Portfolio() {
   const workspace = useWorkspace();
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   const { locale, formatNumber, formatPlural } = useLedgerLocale();
   const formatList = (items: string[]) =>
     new Intl.ListFormat(locale, { style: "long", type: "conjunction" }).format(items);
@@ -551,16 +594,26 @@ function Portfolio() {
           sortable: false,
           statuses: programStatuses,
         }),
+        // Satisfied, as a share of the control baseline, beside a tally of its six statuses.
+        c.custom("control_status", {
+          header: "Controls satisfied",
+          width: 200,
+          priority: 2,
+          cell: (row) => <ProgramControlStatusCell program={row} />,
+        }),
         c.text("code", {
           header: "Code",
           width: 120,
-          priority: 2,
+          priority: 3,
           sortable: false,
           cell: (row) => <Id>{row.code}</Id>,
         }),
-        c.date("updated_at", { header: "Updated", priority: 3, sortable: false }),
+        c.date("updated_at", { header: "Updated", priority: 4, sortable: false }),
       ]),
     [],
+  );
+  const programControls = useProgramsControlStatus(
+    useMemo(() => programRows.map((row) => row.id), [programRows]),
   );
   const programTable = useDataTable({
     columns: programColumns,
@@ -625,14 +678,10 @@ function Portfolio() {
             ? `Saved ${edits} as draft revisions.`
             : "Saved a draft revision.",
         meta: program,
-        link: (
-          <Link
-            {...recordDestination("engineering_requirements", {
-              id: entry.requirement.id,
-              program_id: entry.requirement.programId,
-            })}
-          />
-        ),
+        link: recordLink("engineering_requirements", {
+          id: entry.requirement.id,
+          program_id: entry.requirement.programId,
+        }),
       };
     }
     // A recorded verb phrase ("assigned …") reads after the person who did it; any other text is
@@ -646,11 +695,10 @@ function Portfolio() {
       title: actor ? `${actor} ${deed}` : capitalize(deed),
       description: said || undefined,
       meta: program,
-      link: record ? (
-        <Link
-          {...recordDestination(record.table, { id: record.id, program_id: latest.program_id })}
-        />
-      ) : undefined,
+      // The record it names, where that record has a page.
+      link: record
+        ? recordLink(record.table, { id: record.id, program_id: latest.program_id })
+        : undefined,
     };
   };
 
@@ -731,7 +779,7 @@ function Portfolio() {
                   size: "compact",
                   icon: <ShieldAlert />,
                 }}
-                onRowClick={(row) => void navigate(recordDestination("risks", row))}
+                onRowClick={(row) => openRecord("risks", row)}
               />
               <Widget
                 title="Recently updated programs"
@@ -749,6 +797,7 @@ function Portfolio() {
                 }
                 table={programTable}
                 queries={[programs]}
+                values={[...programControls.values()]}
                 retryLabel="Retry loading programs"
                 empty={{
                   title: "No programs yet",
@@ -768,7 +817,7 @@ function Portfolio() {
                     </LinkButton>
                   ) : undefined,
                 }}
-                onRowClick={(row) => void navigate(recordDestination("programs", row))}
+                onRowClick={(row) => openRecord("programs", row)}
               />
             </Stack>
             <Section title="Recent activity" className="min-w-0">

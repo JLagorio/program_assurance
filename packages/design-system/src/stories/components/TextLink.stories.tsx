@@ -297,3 +297,29 @@ export const DoDont: Story = {
     await expect(named).toHaveAttribute("href", vague!.getAttribute("href"));
   },
 };
+
+/** A record's name in its own row: `tone="neutral"` draws it in the text colour, underlined under the pointer and on keyboard focus, so colour stays with the status beside it. */
+export const NeutralName: Story = {
+  render: () => (
+    <TextLink tone="neutral" weight="medium" href="#risk">
+      Payload arm and release relay
+    </TextLink>
+  ),
+  play: async ({ canvasElement }) => {
+    const link = within(canvasElement).getByRole("link", { name: "Payload arm and release relay" });
+    await expect(link).toHaveAttribute("data-tone", "neutral");
+    // The words are the text colour, not the link colour. In forced colours the system paints
+    // every link in its own link colour, whatever the tone, so a name still reads as a link.
+    if (!matchMedia("(forced-colors: active)").matches) {
+      const probe = document.createElement("span");
+      probe.className = "text-default";
+      canvasElement.append(probe);
+      await expect(getComputedStyle(link).color).toBe(getComputedStyle(probe).color);
+      probe.remove();
+    }
+    // Keyboard focus underlines it, as the pointer does.
+    await userEvent.tab();
+    await expect(link).toHaveFocus();
+    await expect(getComputedStyle(link).textDecorationLine).toBe("underline");
+  },
+};

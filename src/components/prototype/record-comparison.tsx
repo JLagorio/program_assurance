@@ -180,6 +180,9 @@ export function PinnedRecord({
   onClose: () => void;
 }) {
   const row = useRow(identity.table, identity.id);
+  const destination = row.data
+    ? recordDestination(identity.table, { ...row.data, id: identity.id })
+    : null;
   return (
     <Stack space="space.200" data-record-reference={`${identity.table}:${identity.id}`}>
       <Inline spread="space-between" shouldWrap>
@@ -187,14 +190,8 @@ export function PinnedRecord({
           Pinned reference
         </Text>
         <Inline space="space.050">
-          {row.data && (
-            <LinkButton
-              size="small"
-              variant="subtle"
-              render={
-                <Link {...recordDestination(identity.table, { ...row.data, id: identity.id })} />
-              }
-            >
+          {destination && (
+            <LinkButton size="small" variant="subtle" render={<Link {...destination} />}>
               Open record
             </LinkButton>
           )}

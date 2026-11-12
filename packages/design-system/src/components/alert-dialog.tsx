@@ -208,7 +208,10 @@ export function AlertDialogBody({ className, render, ref, ...props }: AlertDialo
     props: mergeProps<"div">(props, {
       ...bodySlot("alert-dialog-body"),
       className: cn(
-        "min-h-1000 min-w-0 flex-1 overflow-y-auto overscroll-none px-250 pb-200 font-body outline-none focus-visible:outline-field-focused",
+        // Relative, so an absolutely positioned descendant (a visually hidden label) is placed
+        // against the body and scrolls with it. Placed against the popup it would give the popup
+        // something to scroll, and focus reaching the footer would scroll the whole prompt.
+        "relative min-h-1000 min-w-0 flex-1 overflow-y-auto overscroll-none px-250 pb-200 font-body outline-none focus-visible:outline-field-focused",
         className,
       ),
     }),
@@ -235,7 +238,7 @@ export function AlertDialogFooter({ className, ref, ...props }: AlertDialogFoote
 }
 export type AlertDialogTitleProps = Primitive.Title.Props;
 /**
- * The alert dialog's title, its h2: a Heading at `overlay`, 15/22 medium. Another title part renders
+ * The alert dialog's title, its h2: a Heading at `overlay`, 17/24 semibold. Another title part renders
  * as it through `render`, keeping its own size, and the composing part's `data-slot` names the
  * element, as Button's does: the slot comes before the caller's props.
  */

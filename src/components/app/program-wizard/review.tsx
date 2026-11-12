@@ -182,11 +182,16 @@ export function ReviewStep({
               ]
                 .filter(Boolean)
                 .join(" · ")
-            : "adopted as-is";
+            : profile.overlayIds.length
+              ? "not tailored"
+              : "adopted as-is";
           return (
             <Text as="p" key={profile.key}>
-              {base ? `${base.title} ${base.version}` : "Unavailable profile"} · {summary} ·{" "}
-              {preview?.counts.selected ?? 0} controls
+              {base ? `${base.title} ${base.version}` : "Unavailable profile"}
+              {profile.overlayIds.length
+                ? ` · ${count(profile.overlayIds.length, "overlay")} stacked`
+                : ""}{" "}
+              · {summary} · {preview?.counts.selected ?? 0} controls
             </Text>
           );
         })}

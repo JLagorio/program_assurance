@@ -1,6 +1,6 @@
 import { ProductCollection } from "./product-collection";
 import { useCollectionTable } from "./collection-question";
-import { DueDate, QueryState } from "./work-common";
+import { DueDate, QueryState, type QueryStatus } from "./work-common";
 import {
   Activity,
   createContext,
@@ -16,8 +16,15 @@ import {
 import {
   Absent,
   Button,
+  ButtonGroup,
+  ButtonGroupSeparator,
   DataTable,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   HeadingLevelProvider,
+  IconButton,
   KeyValue,
   Person,
   Section,
@@ -28,17 +35,16 @@ import {
   type EmptyIllustrationKind,
   type StackProps,
 } from "@ledger/design-system";
-import { Plus, Pencil } from "lucide-react";
-import { useNavigate } from "@tanstack/react-router";
+import { ChevronDown, Plus, Pencil } from "lucide-react";
 import {
   RecordLink,
   RecordPreviewActions,
   RecordPreviewPanel,
-  recordDestination,
+  useOpenRecord,
   useDisplayedRecords,
   useEndOnHide,
 } from "./record-preview";
-import { useRows, type TableName } from "@/lib/models";
+import { idSet, useRows, type TableName } from "@/lib/models";
 import {
   displayValue,
   labelFor,
@@ -61,11 +67,19 @@ import { useCollection } from "@/lib/collections";
 import { ProductRecordDialog } from "./product-record-dialog";
 import {
   productCollectionNoun,
+  productColumnLabel,
   productCreateLabel,
   productRecordNoun,
 } from "@/lib/product-records";
-import { FactValue, RelationName, defaultOrder } from "@/components/prototype/record-tools";
+import {
+  FactValue,
+  RelationName,
+  defaultOrder,
+  useLinkedNames,
+} from "@/components/prototype/record-tools";
 import { linkedName } from "@/lib/link-name";
+import { useGateCriterionSources } from "@/lib/gate-criteria";
+import { AddSecurityOutcomes, CriterionSource } from "./gate-criteria-outcomes";
 
 export type ProgramTableName = Parameters<typeof useRows>[0];
 export type ProgramColumn = {
@@ -74,8 +88,9 @@ export type ProgramColumn = {
   /** Search, sort, and filter value when the cell is derived from related records. */
   value?: (row: DataRecord) => string | number | boolean | null;
   render?: (row: DataRecord) => ReactNode;
-  /** A date's readable minimum, for a cell that says more than the day ("Oct 4, 2026 · Due in 2
-   * days"); a date otherwise takes its kind's width. */
+  /** A readable minimum: for a date whose cell says more than the day ("Oct 4, 2026 · Due in 2
+   * days"), which otherwise takes its kind's width, and for words that say nothing once cut (a
+   * process's name). */
   minWidth?: number | undefined;
   /**
    * A person (an owner, an assignee, a party) is drawn with their avatar and sorts, filters and
@@ -84,6 +99,12 @@ export type ProgramColumn = {
    * never "Not recorded".
    */
   kind?: "person" | undefined;
+  /**
+   * The column names another record by its id (a verification's procedure, a pin's component):
+   * the table that record is in. The collection reads those names once, so the row sorts, searches
+   * and names its controls by the record, never by its id; `render` still draws the cell.
+   */
+  names?: TableName | undefined;
 };
 
 export { QueryState as ProgramQueryState } from "./work-common";
@@ -251,7 +272,10 @@ const IDENTIFIER = /^(code|source_id|asset_id|serial_number|version|version_numb
 const RELATION_KEY = /_id$/;
 
 /** A fact's label: the column's words, a relation named for what it points at ("Owner", not "Owner party"). */
-function factLabel(name: string) {
+function factLabel(table: string, name: string) {
+  // The product's own words for a column come first, as a form names it: "Security outcome".
+  const named = productColumnLabel(table, name);
+  if (named) return named;
   // A date reads as the event: "Due", "Decided", "Updated", not "Due on" or "Decided at".
   return labelFor(name.replace(/_party_id$/, "").replace(/_(id|at|on)$/, ""));
 }
@@ -408,7 +432,7 @@ function ProgramRecordDialogSurface({
                 {facts.map(({ name, relation }) => {
                   const value = row[name];
                   return (
-                    <KeyValue key={name} label={labels?.[name] ?? factLabel(name)} wrap>
+                    <KeyValue key={name} label={labels?.[name] ?? factLabel(table, name)} wrap>
                       {relation && value ? (
                         <RelationName
                           table={relation.target_table as TableName}
@@ -502,6 +526,8 @@ export function ProgramCollection({
   canCreate = true,
   readOnly = false,
   extraActions,
+  createMenu,
+  queries,
   empty,
   prerequisite,
   fill,
@@ -524,6 +550,18 @@ export function ProgramCollection({
   canCreate?: boolean;
   readOnly?: boolean;
   extraActions?: ReactNode;
+  /**
+   * The collection's other ways to create its record, as a labelled icon menu joined to the create
+   * action: "More ways to create a gate criterion", holding Add security outcomes. It shows where
+   * the create action does, under the same role check.
+   */
+  createMenu?:
+    { label: string; items: readonly { label: string; onSelect: () => void }[] } | undefined;
+  /**
+   * The reads a column's `value` draws from beside the rows (the process a criterion was drawn
+   * from): the collection waits on them and says their failure with its own.
+   */
+  queries?: readonly QueryStatus[] | undefined;
   /** What the register says with no records; the picture, title and description have defaults by table. */
   empty?: { title?: string; description?: string; illustration?: EmptyIllustrationKind | false };
   /** What has to exist first. Shown as the empty state's description while `canCreate` is false. */
@@ -532,7 +570,7 @@ export function ProgramCollection({
   fill?: boolean | undefined;
 }) {
   const dialogNavigation = useContext(ProgramDialogNavigation);
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   const displayedRef = useRef<DataRecord[]>([]);
   const query = useRows(name, filters);
   const workspace = useWorkspace();
@@ -562,6 +600,16 @@ export function ProgramCollection({
   const labels = Object.fromEntries(columns.map((column) => [column.key, column.title]));
   const previewWordsRef = useRef({ identity, labels });
   previewWordsRef.current = { identity, labels };
+  // A column that names another record by its id reads that record's names once.
+  const naming = columns.find((column) => column.names && !column.value);
+  const namingKey = naming?.key;
+  const linkedIds = useMemo(
+    () =>
+      namingKey ? idSet(records.map((row) => row[namingKey] as string | null | undefined)) : [],
+    [namingKey, records],
+  );
+  const linked = useLinkedNames(naming?.names, linkedIds);
+  const linkNames = linked.names;
   // A caller's inline `columns` or `where` are new on every render of the page, so these rows are
   // too; useCollectionTable keeps rows whose values are unchanged, and with them the table's page.
   const rows = useMemo(
@@ -569,11 +617,18 @@ export function ProgramCollection({
       records.map((row) => {
         const view: DataRecord = { ...row };
         for (const column of columns) if (column.value) view[column.key] = column.value(row);
+        if (namingKey) {
+          // The linked record's name; one the reader cannot see leaves the row unnamed.
+          const id = row[namingKey];
+          const name = typeof id === "string" ? linkNames.get(id) : undefined;
+          if (name) view[namingKey] = name;
+          else delete view[namingKey];
+        }
         for (const column of columns)
           if (DATE_KEYS.test(column.key) && view[column.key] == null) delete view[column.key];
         return view;
       }),
-    [records, columns],
+    [records, columns, namingKey, linkNames],
   );
   // Each status or level column reads through its vocabulary: the badge or indicator, the rank it
   // sorts by, the labels its filter and search use. A field the product has not mapped reads in
@@ -632,7 +687,7 @@ export function ProgramCollection({
               minWidth: 180,
               priority: 0,
               cell: (row) => (
-                <RecordLink table={name} record={raw(row)}>
+                <RecordLink table={name} record={raw(row)} onPreview={() => open(raw(row))}>
                   {render?.(raw(row)) ?? linkedName(name, raw(row), row[column.key])}
                 </RecordLink>
               ),
@@ -689,16 +744,20 @@ export function ProgramCollection({
             header,
             cell: primary
               ? (row) => (
-                  <RecordLink table={name} record={raw(row)}>
+                  <RecordLink table={name} record={raw(row)} onPreview={() => open(raw(row))}>
                     {cell(row)}
                   </RecordLink>
                 )
               : cell,
-            ...(primary ? { priority: 0, minWidth: 180 } : {}),
+            ...(primary
+              ? { priority: 0, minWidth: 180 }
+              : column.minWidth === undefined
+                ? {}
+                : { minWidth: column.minWidth }),
           });
         }),
       ),
-    [columns, name, vocabularies],
+    [columns, name, vocabularies, open],
   );
   // The preview is the table's, so stepping through rows never rebuilds the columns.
   const preview = useMemo(
@@ -741,6 +800,43 @@ export function ProgramCollection({
   // its create form or a preview opens.
   const allowCreate = !readOnly && canCreate && workspace.role !== "viewer";
   const createActionLabel = productCreateLabel(name, { ...filters, ...initialValues });
+  // The create action, small in the toolbar and in the empty state. A collection with other ways
+  // to create its record joins them to it as a labelled icon menu. ProductCollection draws a lone
+  // Button in the collection's weight; it cannot reach into a group or a menu trigger's render,
+  // so a group is written in that weight: a secondary where the collection sits among others.
+  const createButton = (variant: "primary" | "secondary") => (
+    <Button size="small" variant={variant} iconBefore={<Plus />} onClick={openCreate}>
+      {createActionLabel}
+    </Button>
+  );
+  const createWeight = section ? "secondary" : "primary";
+  const createAction = createMenu ? (
+    <ButtonGroup aria-label={createActionLabel}>
+      {createButton(createWeight)}
+      <ButtonGroupSeparator isDecorative />
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <IconButton
+              label={createMenu.label}
+              icon={<ChevronDown />}
+              size="small"
+              variant={createWeight}
+            />
+          }
+        />
+        <DropdownMenuContent align="end">
+          {createMenu.items.map((item) => (
+            <DropdownMenuItem key={item.label} onClick={item.onSelect}>
+              {item.label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </ButtonGroup>
+  ) : (
+    createButton("primary")
+  );
   // The collection in running text: "SSP revisions" and "POA&M plans" keep their acronyms.
   const noun = productCollectionNoun(name, { ...filters, ...initialValues });
   // What the collection belongs to, named by the key it is filtered on: "for this system".
@@ -761,7 +857,7 @@ export function ProgramCollection({
   const content = (
     <ProductCollection
       table={table}
-      queries={[query]}
+      queries={[query, ...linked.queries, ...(queries ?? [])]}
       fill={fill}
       // A named collection sits beside others on its tab: the compact shape, as EntitySection, and
       // a secondary create action, since the page header keeps the surface's one primary.
@@ -773,26 +869,18 @@ export function ProgramCollection({
       filters={chips.map((key) => (
         <DataTable.Filter key={key} table={table} column={key} />
       ))}
-      action={
-        allowCreate ? (
-          <Button size="small" variant="primary" iconBefore={<Plus />} onClick={openCreate}>
-            {createActionLabel}
-          </Button>
-        ) : (
-          extraActions
-        )
-      }
-      onRowClick={(row) => void navigate(recordDestination(name, byId.get(row.id) ?? row))}
+      action={allowCreate ? createAction : extraActions}
+      // A record with no page opens its preview, as its name and its eye do.
+      onRowClick={(row) => {
+        const record = byId.get(row.id) ?? row;
+        openRecord(name, record, () => open(record));
+      }}
       empty={{
         illustration: empty?.illustration ?? collectionIllustration[name] ?? "records",
         title: empty?.title ?? `No ${noun} yet`,
         description,
-        action: allowCreate ? (
-          // Small, as in the toolbar: ProductCollection draws it medium in a centred first-record empty.
-          <Button size="small" variant="primary" iconBefore={<Plus />} onClick={openCreate}>
-            {createActionLabel}
-          </Button>
-        ) : undefined,
+        // Small, as in the toolbar: ProductCollection draws it medium in a centred first-record empty.
+        action: allowCreate ? createAction : undefined,
       }}
     />
   );
@@ -831,6 +919,7 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
           columns={[
             {
               key: "system_component_id",
+              names: "system_components",
               title: "Component",
               render: (item) => (
                 <RelationName table="system_components" id={String(item["system_component_id"])} />
@@ -850,6 +939,7 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
           columns={[
             {
               key: "parameter_id",
+              names: "parameters",
               title: "Parameter",
               render: (item) => (
                 <RelationName table="parameters" id={String(item["parameter_id"])} />
@@ -873,6 +963,7 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
         columns={[
           {
             key: "profile_resolution_id",
+            names: "profile_resolutions",
             title: "Profile resolution",
             render: (item) => (
               <RelationName
@@ -1035,20 +1126,7 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
         ]}
       />
     );
-  if (table === "lifecycle_gates")
-    return (
-      <ProgramCollection
-        name="gate_criteria"
-        section
-        title="Gate criteria"
-        filters={{ gate_id: row.id }}
-        columns={[
-          { key: "title", title: "Criterion" },
-          { key: "required", title: "Required" },
-          { key: "description", title: "Description" },
-        ]}
-      />
-    );
+  if (table === "lifecycle_gates") return <GateCriteria gate={row} />;
   if (table === "ingestion_jobs")
     return (
       <ProgramCollection
@@ -1064,4 +1142,56 @@ function ProgramLinkedRecords({ table, row }: { table: ProgramTableName; row: Da
       />
     );
   return null;
+}
+
+/**
+ * A gate's criteria: written one at a time, or drawn from the security outcomes of the system
+ * life cycle processes (NIST SP 800-160 Vol. 1) through Add security outcomes, the collection's
+ * second way to create. Source names the process a criterion was drawn from.
+ */
+function GateCriteria({ gate }: { gate: DataRecord }) {
+  const [adding, setAdding] = useState(false);
+  const sources = useGateCriterionSources(gate.id);
+  const drawn = sources.data;
+  const columns = useMemo<ProgramColumn[]>(
+    () => [
+      { key: "title", title: "Criterion" },
+      {
+        // After the criterion, so a narrow frame folds the description before it, and wide
+        // enough to read a process's name whole.
+        key: "source",
+        title: "Source",
+        minWidth: 220,
+        // The process's name, which the rows sort, search and export by.
+        value: (row) => drawn?.byCriterion.get(row.id)?.process ?? null,
+        render: (row) => <CriterionSource criterion={row} sources={drawn} />,
+      },
+      { key: "required", title: "Required" },
+      { key: "description", title: "Description" },
+    ],
+    [drawn],
+  );
+  const createMenu = useMemo(
+    () => ({
+      label: "More ways to create a gate criterion",
+      items: [{ label: "Add security outcomes", onSelect: () => setAdding(true) }],
+    }),
+    [],
+  );
+  return (
+    <>
+      <ProgramCollection
+        name="gate_criteria"
+        section
+        title="Gate criteria"
+        filters={{ gate_id: gate.id }}
+        columns={columns}
+        queries={[sources]}
+        createMenu={createMenu}
+      />
+      {adding && (
+        <AddSecurityOutcomes gate={gate} sources={sources} onClose={() => setAdding(false)} />
+      )}
+    </>
+  );
 }

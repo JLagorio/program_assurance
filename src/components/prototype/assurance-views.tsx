@@ -2,15 +2,16 @@ import {
   RecordLink,
   RecordPreviewActions,
   RecordPreviewPanel,
-  recordDestination,
   useDisplayedRecords,
   useEndOnHide,
+  useOpenRecord,
 } from "./record-preview";
 import { ProductCollection } from "./product-collection";
+import { useOwnerAssignment, useOwnerOptions } from "./assign-owner";
 import { useServerCollection, vocabularyOptions } from "./collection-question";
 import { RecordSummaryPreview, type RecordSummaryField } from "./record-summary-preview";
 import { LibrarySelect } from "./library-shared";
-import { DueDate, EmptyMessage, MissingRecord, RecordActions, VersionName } from "./work-common";
+import { DueDate, EmptyMessage, MissingRecord, RecordActions } from "./work-common";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -24,6 +25,7 @@ import {
   Inspector,
   PageHeader,
   Person,
+  Prose,
   Section,
   Shell,
   Stack,
@@ -39,6 +41,7 @@ import { useWorkspace } from "@/components/app/workspace";
 import { useDraftGuard } from "@/components/app/use-draft-guard";
 import { Page } from "@/components/app/shell";
 import { useSetPlannedCompletion } from "@/lib/due-dates";
+import { ownerField } from "@/lib/owner-assign";
 import { type DataRecord } from "@/lib/records";
 import {
   remediationStatuses,
@@ -59,10 +62,14 @@ import {
   ModelTable,
   QueryState,
   RelationName,
+  RevisionName,
   type DisplayColumn,
 } from "./record-tools";
 import { RecordTrail, TrailLink } from "./record-trail";
 import { RetainedTabPanels } from "./program-shared";
+import { TraceBand, TraceRemediationSection } from "./assurance-trace";
+import { RiskThreats } from "./risk-threats";
+import { useAssuranceTrace } from "@/lib/assurance-trace";
 
 const asRecords = (rows: unknown[] | undefined) => (rows ?? []) as DataRecord[];
 /** A person: in a table, their avatar and name, sorted and found by the name; as a fact, the name. */
@@ -250,7 +257,7 @@ const riskRead = serverRead({
   fields: {
     // The program and the owner sort, and are found, by their names.
     program_id: { column: "program_name", filter: false },
-    owner_party_id: { column: "owner_name", filter: false },
+    owner_party_id: ownerField,
     status: { labels: riskStatuses, sort: "status_rank" },
     severity: { labels: severityLevels, sort: "severity_rank" },
     likelihood: { labels: riskLevels, sort: "likelihood_rank" },
@@ -337,9 +344,12 @@ const riskFields: RecordSummaryField<RiskRow>[] = [
   { key: "impact", label: "Impact", statuses: riskLevels },
 ];
 
+const riskNoun = { one: "risk", other: "risks" };
+
 export function RiskList({ headingScope = "page" }: { headingScope?: "page" | "section" }) {
   const workspace = useWorkspace(),
-    navigate = useNavigate();
+    navigate = useNavigate(),
+    openRecord = useOpenRecord();
   const [creating, setCreating] = useState(false);
   const [preview, setPreview] = useState<RiskRow | null>(null);
   // A preview belongs to its tab: it ends when the register's tab hides this collection.
@@ -356,10 +366,19 @@ export function RiskList({ headingScope = "page" }: { headingScope?: "page" | "s
     view: registerViews.risks,
     resizable: true,
     reorderable: true,
+    // A reader who may edit chooses risks to assign them an owner together.
+    selectable: workspace.role !== "viewer",
   });
   const { table } = collection;
   const displayed = useDisplayedRecords(table);
   const readResult = useServerResult(riskRead);
+  const owners = useOwnerAssignment({
+    table,
+    collection: "risks",
+    noun: riskNoun,
+    result: readResult,
+  });
+  const ownerOptions = useOwnerOptions(riskRead);
   const [exporting, setExporting] = useState(false);
   /** Every risk the question leaves, across its pages, as the register shows them. */
   const exportRisks = () => {
@@ -406,8 +425,9 @@ export function RiskList({ headingScope = "page" }: { headingScope?: "page" | "s
       <ProductCollection
         {...collection}
         fill
-        noun={{ one: "risk", other: "risks" }}
-        onRowClick={(row) => void navigate(recordDestination("risks", row))}
+        noun={riskNoun}
+        onRowClick={(row) => openRecord("risks", row)}
+        selection={owners.selection}
         empty={{
           illustration: "records",
           title: "No risks yet",
@@ -440,11 +460,13 @@ export function RiskList({ headingScope = "page" }: { headingScope?: "page" | "s
               column="impact"
               options={vocabularyOptions(riskLevels)}
             />
+            <DataTable.Filter table={table} column="owner_party_id" options={ownerOptions} />
           </>
         }
         commands={[{ label: "Export risks", onSelect: exportRisks, disabled: exporting }]}
         action={create("small")}
       />
+      {owners.dialog}
       {preview && (
         <RecordSummaryPreview
           model="risks"
@@ -546,67 +568,7 @@ export function RiskRecord({
                 {(name) => (
                   <>
                     {name === "overview" && (
-                      // Overview beside the risk's Details: the rail at its end where it fits,
-                      // else a closed disclosure above it whose row carries the risk's status.
-                      // They leave with the tab.
-                      <AsideLayout
-                        aside={
-                          <Shell.Aside
-                            label="Risk details"
-                            summary={<StatusBadge statuses={riskStatuses} value={record.status} />}
-                          >
-                            <Inspector.Group title="Details">
-                              <ModelFacts
-                                table="risks"
-                                record={record as DataRecord}
-                                fields={[
-                                  program,
-                                  party(),
-                                  "status",
-                                  {
-                                    key: "scope_id",
-                                    label: "Scope",
-                                    render: (row) => (
-                                      <RelationName
-                                        table="scopes"
-                                        id={row["scope_id"] as string | null}
-                                      />
-                                    ),
-                                  },
-                                ]}
-                              />
-                            </Inspector.Group>
-                          </Shell.Aside>
-                        }
-                      >
-                        <Section title="Latest assessment">
-                          <QueryState query={versions}>
-                            {assessment ? (
-                              <ModelFacts
-                                table="risk_revisions"
-                                record={assessment as DataRecord}
-                                fields={[
-                                  { key: "version_number", label: "Version" },
-                                  "state",
-                                  "threat",
-                                  "vulnerability",
-                                  "likelihood",
-                                  "impact",
-                                  "severity",
-                                  { key: "assessment_rationale", label: "Rationale" },
-                                  { key: "assessed_at", label: "Assessed" },
-                                ]}
-                              />
-                            ) : (
-                              <EmptyMessage
-                                compact
-                                title="No risk assessment yet"
-                                description="An assessment records the threat, the vulnerability, and how likely and severe the risk is."
-                              />
-                            )}
-                          </QueryState>
-                        </Section>
-                      </AsideLayout>
+                      <RiskOverview record={record} versions={versions} assessment={assessment} />
                     )}
                     {name === "assessments" && (
                       <EntitySection
@@ -741,6 +703,111 @@ export function RiskRecord({
     </Page>
   );
 }
+/**
+ * A risk's Overview: where it stands and what it rests on, as its band and trace, then what its
+ * latest assessment says, the ATT&CK techniques it names with the controls that counter them
+ * (RiskThreats), and what is being done about it. The Details sit beside the body where
+ * they fit, else in a closed disclosure above it whose row carries the risk's status; they leave
+ * with the tab.
+ */
+function RiskOverview({
+  record,
+  versions,
+  assessment,
+}: {
+  record: Row<"risks">;
+  versions: ReturnType<typeof useRows<"risk_revisions">>;
+  assessment: Row<"risk_revisions"> | undefined;
+}) {
+  const trace = useAssuranceTrace({ kind: "risk", id: record.id });
+  // What the assessment says in its authors' words; a field nobody wrote is left out.
+  const authored = (
+    [
+      ["Statement", assessment?.description],
+      ["Threat", assessment?.threat],
+      ["Vulnerability", assessment?.vulnerability],
+      ["Rationale", assessment?.assessment_rationale],
+    ] as const
+  ).filter(([, text]) => text?.trim());
+  return (
+    <Stack space="space.250" className="min-w-0">
+      <TraceBand trace={trace} kind="risk" name={`the risk ${record.title}`} />
+      <AsideLayout
+        aside={
+          <Shell.Aside
+            label="Risk details"
+            summary={<StatusBadge statuses={riskStatuses} value={record.status} />}
+          >
+            <Inspector.Group title="Details">
+              <ModelFacts
+                table="risks"
+                record={record as DataRecord}
+                fields={[
+                  "status",
+                  program,
+                  party(),
+                  {
+                    key: "scope_id",
+                    label: "Scope",
+                    render: (row) => (
+                      <RelationName table="scopes" id={row["scope_id"] as string | null} />
+                    ),
+                  },
+                ]}
+              />
+              {assessment && (
+                <ModelFacts
+                  table="risk_revisions"
+                  record={assessment as DataRecord}
+                  fields={[
+                    "severity",
+                    "likelihood",
+                    "impact",
+                    { key: "version_number", label: "Assessment" },
+                    "state",
+                    { key: "assessed_at", label: "Assessed" },
+                  ]}
+                />
+              )}
+            </Inspector.Group>
+          </Shell.Aside>
+        }
+      >
+        <Stack space="space.250" className="min-w-0">
+          <Section title="Latest assessment">
+            <QueryState query={versions}>
+              {!assessment ? (
+                <EmptyMessage
+                  compact
+                  title="No risk assessment yet"
+                  description="An assessment records the threat, the vulnerability, and how likely and severe the risk is."
+                />
+              ) : authored.length ? (
+                <Stack space="space.200">
+                  {authored.map(([label, text]) => (
+                    <Prose key={label} label={label} className="max-w-layout-measure">
+                      {text}
+                    </Prose>
+                  ))}
+                </Stack>
+              ) : (
+                <EmptyMessage
+                  compact
+                  title="Nothing written yet"
+                  description="The assessment has no statement, threat, vulnerability or rationale."
+                />
+              )}
+            </QueryState>
+          </Section>
+          {/* The threat in ATT&CK's words, and which of the controls that counter it the program holds. */}
+          <RiskThreats risk={record} />
+          <TraceRemediationSection items={trace.data?.remediation} queries={[trace]} />
+        </Stack>
+      </AsideLayout>
+    </Stack>
+  );
+}
+
 /** The draft assessment's edit, in its section's action; the trigger stays while its dialog is open. */
 function AssessmentEditor({ row }: { row: Row<"risk_revisions"> }) {
   const workspace = useWorkspace();
@@ -886,9 +953,14 @@ export function Register({
     </Page>
   );
 }
+/**
+ * A remediation item's record: how its milestones stand and what it answers, as its band and
+ * trace; then its commitments, the latest one's plan and its milestones.
+ */
 export function PoamRecord({ id }: { id: string }) {
   const query = useRow("poam_items", id),
     versions = useRows("poam_item_revisions", { poam_item_id: id });
+  const trace = useAssuranceTrace({ kind: "remediation", id });
   const [editing, setEditing] = useState<DataRecord | null>(null),
     [selected, setSelected] = useState<string | null>(null);
   const record = query.data;
@@ -921,6 +993,11 @@ export function PoamRecord({ id }: { id: string }) {
                 onCancel={() => setEditing(null)}
               />
             )}
+            <TraceBand
+              trace={trace}
+              kind="remediation"
+              name={`the remediation item ${record.title}`}
+            />
             <AsideLayout
               aside={
                 <Shell.Aside
@@ -1115,7 +1192,7 @@ function PoamVersion({
           {
             key: "risk_revision_id",
             render: (row) => (
-              <VersionName table="risk_revisions" id={row["risk_revision_id"] as string} />
+              <RevisionName table="risk_revisions" id={row["risk_revision_id"] as string} />
             ),
           },
         ]}
@@ -1244,7 +1321,7 @@ export function PoamDocument({ id }: { id: string }) {
                             {
                               key: "poam_item_revision_id",
                               render: (row) => (
-                                <VersionName
+                                <RevisionName
                                   table="poam_item_revisions"
                                   id={row["poam_item_revision_id"] as string}
                                 />

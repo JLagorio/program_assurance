@@ -22,6 +22,14 @@ A new part is Experimental until a product screen uses it and its page, plays an
 
 What code written for 0.7.0 changes in the next version.
 
+### Changed
+
+No name changes, so no code changes unless it pins a drawn value.
+
+- **The radius scale from `medium` up and the heading ramp moved up a step.** The token and class names stand; a test or a style of your own that pins a pixel value reads the new one (Foundations/Shape, Foundations/Typography).
+- **Dot is an 8px rounded square**, the status mark; a marker on a line of your own that wants the old point takes `shape="round"`.
+- **A table row's name is drawn in `color.text` at medium weight**, a link in it included. A `TextLink` that names a record outside a table takes `tone="neutral"` for the same look.
+
 ### Deprecated
 
 Each still works in the next version and goes in the one after.
@@ -291,12 +299,12 @@ The sizes are the titles the kit draws ([Heading](?path=/docs/primitives-heading
 | Written as                           | Write                                                                                                                                                                  |
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `size="large"`                       | `size="display"`, the same style                                                                                                                                       |
-| `size="medium"`                      | `size="page"`, PageHeader.Title's 20/26; `medium` drew 22/28                                                                                                           |
-| `size="small"`                       | `size="page"` (20/26 semibold) for a page or record title, with `as="h2"` to keep the element `small` drew, or `size="section"` (13/18 semibold) for a section's title |
+| `size="medium"`                      | `size="page"`, PageHeader.Title's 24/30; `medium` drew 22/28                                                                                                           |
+| `size="small"`                       | `size="page"` (24/30 semibold) for a page or record title, with `as="h2"` to keep the element `small` drew, or `size="section"` (15/22 semibold) for a section's title |
 | `size="xsmall"`                      | `size="overlay"`, the same style and element                                                                                                                           |
 | A raw `h1`–`h6` with heading classes | A `Heading` at the size it matches, or the part that draws that title: PageHeader.Title, Section.Title, DialogTitle                                                    |
 
-The deprecated sizes draw the steps that replace them for one version: `medium` draws `page`'s 20/26, and `small` draws `page` at medium weight. The `font.heading.large`, `.medium`, `.small` and `.xsmall` steps are deprecated and stay for one version, and `ledger/no-deprecated-token` writes `font-heading-display`, `font-heading-page`, `font-heading-page` and `font-heading-overlay` in their place; a new title takes `page`, `overlay`, `section` or `display` ([Typography](?path=/docs/tokens-typography--docs)).
+The deprecated sizes draw the steps that replace them for one version: `medium` draws `page`'s 24/30, and `small` draws `page` at medium weight. The `font.heading.large`, `.medium`, `.small` and `.xsmall` steps are deprecated and stay for one version, and `ledger/no-deprecated-token` writes `font-heading-display`, `font-heading-page`, `font-heading-page` and `font-heading-overlay` in their place; a new title takes `page`, `overlay`, `section` or `display` ([Typography](?path=/docs/tokens-typography--docs)).
 
 ## HoverCard
 

@@ -74,3 +74,35 @@
     justify-content: flex-start;
   }
 }
+
+/* A Heatmap's vertical column heading (`columnHeadings="vertical"`): the name turned to read up the
+   page from its column, so the column takes its cells' width and not its name's. The box is set in
+   a vertical writing mode, so it takes its own height in the header row and no script measures it.
+   Turned half round, it reads from the bottom, the name starting beside its column, and a second
+   line follows the first as it would on a page turned the same way. Where the page reads right to
+   left it stays as the writing mode sets it, which is that page's mirror: the name still starts at
+   the bottom, turned the other way. A name longer than a line (twice the spacing scale's largest
+   step, about twenty-five characters) wraps onto the next, and a word longer than a line breaks.
+   The line is as long as the name, to that cap, whatever height the header row starts from: left
+   to the row's own height, a name would wrap at it. */
+[data-heatmap-heading="vertical"] {
+  display: inline-block;
+  inline-size: max-content;
+  max-inline-size: calc(2 * var(--ds-space-1000));
+  vertical-align: bottom;
+  writing-mode: vertical-rl;
+  rotate: 180deg;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+[data-heatmap-heading="vertical"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+  rotate: none;
+}
+
+/* A heatmap's zero is a faint point; the system palette keeps it visible. */
+@media (forced-colors: active) {
+  [data-slot="chart-heatmap-zero"] {
+    forced-color-adjust: none;
+    background-color: GrayText;
+  }
+}

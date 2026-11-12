@@ -94,14 +94,14 @@ Utilities take the same key on any spacing or sizing property: `p-200`, `gap-100
 | `font.body.large`      | 15/22 | Reading text, dialog body.                                                                                                                                              |
 | `font.body.small`      | 12/16 | Table headers, field labels, badges, KeyValue; labels add `font.weight.medium`.                                                                                         |
 | `font.body.xsmall`     | 11/14 | Metadata under a name, a hint beside a control, a chart's subtitle.                                                                                                     |
-| `font.heading.page`    | 20/26 | The page and record title (PageHeader.Title) and a Stat's figure, semibold; Heading `page`.                                                                             |
-| `font.heading.overlay` | 15/22 | An overlay's title (DialogTitle, SheetTitle, AlertDialogTitle, DrawerTitle) and a card's; Heading `overlay`.                                                            |
-| `font.heading.section` | 13/18 | A section's title (Section.Title): the body size at semibold; Heading `section`.                                                                                        |
-| `font.heading.display` | 28/34 | Display: a figure bigger than a Stat's, or the one title of a screen with nothing else on it, such as sign-in. Semibold; Heading `display`. Not a page or record title. |
+| `font.heading.page`    | 24/30 | The page and record title (PageHeader.Title) and a Stat's figure, semibold; Heading `page`.                                                                             |
+| `font.heading.overlay` | 17/24 | An overlay's title (DialogTitle, SheetTitle, AlertDialogTitle, DrawerTitle) and a card's; Heading `overlay`.                                                            |
+| `font.heading.section` | 15/22 | A section's title (Section.Title): a step above the body, at semibold; Heading `section`.                                                                                        |
+| `font.heading.display` | 32/40 | Display: a figure bigger than a Stat's, or the one title of a screen with nothing else on it, such as sign-in. Semibold; Heading `display`. Not a page or record title. |
 | `font.heading.xxsmall` | 11/14 | Eyebrows, group headings, menu section labels (the component adds the uppercase).                                                                                       |
 | `font.code`            | 12/18 | Code blocks only.                                                                                                                                                       |
 
-A Section's title is `font.heading.section`, the body size at semibold, the size of the text it heads. `font.heading.large`, `.medium`, `.small` and `.xsmall` are deprecated and stay for one version, and a new title never takes one: they are `display`, `page`, `page` (or `section` for a section's title) and `overlay`. Prose never grows past `dimension.layout.measure`, 720px (`max-w-layout-measure`).
+A Section's title is `font.heading.section`, a step above the body at semibold. `font.heading.large`, `.medium`, `.small` and `.xsmall` are deprecated and stay for one version, and a new title never takes one: they are `display`, `page`, `page` (or `section` for a section's title) and `overlay`. Prose never grows past `dimension.layout.measure`, 720px (`max-w-layout-measure`).
 
 ## Sizes
 
@@ -123,7 +123,7 @@ A Section's title is `font.heading.section`, the body size at semibold, the size
 
 ## Radius
 
-`radius.xsmall` 2px, `small` 3px, `medium` 5px, `large` 7px, `xlarge` 9px, `xxlarge` 12px and `full`, as `rounded-xsmall` to `rounded-full`. The bigger the surface, the larger the radius: a control is medium, a card large. Which part takes which is one table, on the [Shape](?path=/docs/tokens-shape--docs) sheet; a part you build takes the radius of the part it sits beside.
+`radius.xsmall` 2px, `small` 3px, `medium` 6px, `large` 10px, `xlarge` 12px, `xxlarge` 16px and `full`, as `rounded-xsmall` to `rounded-full`. The bigger the surface, the larger the radius: a control is medium, a card large. Which part takes which is one table, on the [Shape](?path=/docs/tokens-shape--docs) sheet; a part you build takes the radius of the part it sits beside.
 
 ## Motion
 

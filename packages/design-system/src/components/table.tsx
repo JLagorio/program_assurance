@@ -828,7 +828,7 @@ export type TdProps = Omit<ComponentProps<"td">, "align"> &
     align?: TableAlign | undefined;
     /** The value wraps, breaking a long unbroken one (a URN, a hash), instead of ending in an ellipsis. For a value that must be read whole. */
     wrap?: boolean | undefined;
-    /** The cell names its row (`th scope="row"`), so a screen reader announces the row's identity with every other cell and control in it. One per row: the id or the name. */
+    /** The cell names its row (`th scope="row"`), so a screen reader announces the row's identity with every other cell and control in it. The name is drawn in `color.text` at medium weight, a link or a link-styled button in it included, which underline under the pointer. One per row: the id or the name. */
     rowHeader?: boolean | undefined;
   };
 
@@ -898,7 +898,10 @@ export function Td({
         // A cell the keyboard reaches (a treegrid's cell) shows the kit's ring inside its edge.
         "h-row max-w-0 px-150 align-middle focus-visible:outline-field-focused",
         wrap ? "whitespace-normal break-words" : cn("truncate whitespace-nowrap", LINK_KEEPS_RING),
-        rowHeader && "font-regular",
+        // The row's name is its identity, drawn in the text colour at medium weight: a link or a
+        // link-styled button in it underlines under the pointer, and colour stays with status.
+        rowHeader &&
+          "font-medium [&_[data-slot=text-link]]:text-default [&_[data-button-variant=link]]:text-default",
         pinnedClass(pinned, edge, "z-10"),
         pinned && ROW_FILL,
         className,
@@ -1341,18 +1344,28 @@ function RowChevron({
   expanded,
   label,
   onToggle,
+  controls,
 }: {
   expanded: boolean;
   label: string;
   onToggle: () => void;
+  /** The id of the detail row the chevron opens: with it the chevron says so, as DataTable's does. */
+  controls?: string | undefined;
 }) {
   const { t } = useLedgerLocale();
   return (
     <IconButton
-      label={expanded ? t("collapseLabel", { label }) : t("expandLabel", { label })}
+      label={
+        controls === undefined
+          ? expanded
+            ? t("collapseLabel", { label })
+            : t("expandLabel", { label })
+          : t(expanded ? "hideDetailsFor" : "showDetailsFor", { label })
+      }
       variant="subtle"
       size="xxsmall"
       isTooltipDisabled
+      {...(controls === undefined ? {} : { "aria-expanded": expanded, "aria-controls": controls })}
       onClick={(e) => {
         e.stopPropagation();
         onToggle();
@@ -1415,6 +1428,13 @@ export type TableDisclosureProps = Omit<ComponentProps<"td">, "align" | "childre
     hasChildren?: boolean | undefined;
     /** The row's plain name, for the chevron's accessible label: "Expand Ground segment". */
     label: string;
+    /**
+     * The `id` of the `Table.Detail` row this chevron opens, where the row opens into a detail
+     * rather than onto rows under it. The chevron then reads as DataTable's own detail chevron
+     * does: named "Show details for" and "Hide details for" the row, it states `aria-expanded`
+     * and names the detail row in `aria-controls`.
+     */
+    controls?: string | undefined;
     /** The column's width in pixels, for a table with no header row. */
     width?: number | undefined;
   };
@@ -1423,8 +1443,9 @@ export type TableDisclosureProps = Omit<ComponentProps<"td">, "align" | "childre
  * The chevron column of a hierarchy: its own leading cell, always first, so the disclosure never
  * moves when the reader reorders, hides or pins a column. One narrow column whatever the depth: the
  * indent belongs to the row's first value, so no width is reserved for a nesting most rows do not
- * have. A row with no parts keeps the space, so the values below it line up. The cell's native
- * props, `className` and `ref` reach the cell; a click in it never reaches the row.
+ * have. A row with no parts keeps the space, so the values below it line up. With `controls` it
+ * is the opener of a `Table.Detail` row and says what it opens. The cell's native props,
+ * `className` and `ref` reach the cell; a click in it never reaches the row.
  */
 export function DisclosureCell({
   hasChildren = false,
@@ -1432,6 +1453,7 @@ export function DisclosureCell({
   onExpandedChange,
   onToggle: deprecatedToggle,
   label,
+  controls,
   width,
   pinned,
   offset,
@@ -1457,7 +1479,7 @@ export function DisclosureCell({
     >
       <span className="flex items-center justify-center">
         {hasChildren ? (
-          <RowChevron expanded={expanded} label={label} onToggle={onToggle} />
+          <RowChevron expanded={expanded} label={label} onToggle={onToggle} controls={controls} />
         ) : (
           <span aria-hidden className="block size-250 shrink-0" />
         )}
@@ -1480,7 +1502,8 @@ export type TableDetailProps = Omit<ComponentProps<"td">, "id"> & {
 /**
  * The row a record opens into: one cell spanning every column, holding whatever the record has to
  * show at length, a child table included. The chevron that opens it carries `aria-controls` with
- * this row's `id`. `id` names the row; the cell's native props, `className` and `ref` reach the
+ * this row's `id`: DataTable's does it unsaid, and a `Table.Disclosure` drawn by hand takes the id
+ * as `controls`. `id` names the row; the cell's native props, `className` and `ref` reach the
  * one cell, which holds the content and its padding.
  */
 export function DetailRow({ id, colSpan, className, children, ...props }: TableDetailProps) {

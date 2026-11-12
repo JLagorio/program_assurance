@@ -57,6 +57,7 @@ function constrainedFields() {
 const enumFields: Record<string, keyof typeof Constants.public.Enums> = {
   "catalog_revisions.state": "reference_revision_state",
   "cci_revisions.state": "reference_revision_state",
+  "framework_revisions.state": "reference_revision_state",
   "mapping_collections.state": "reference_revision_state",
   "oscal_document_revisions.state": "reference_revision_state",
   "profile_resolutions.state": "reference_revision_state",
@@ -64,6 +65,7 @@ const enumFields: Record<string, keyof typeof Constants.public.Enums> = {
   "cci_items.status": "cci_status",
   "controls.status": "control_publication_status",
   "cci_references.resolution_status": "reference_resolution_status",
+  "framework_control_links.resolution_status": "reference_resolution_status",
   "oscal_document_imports.resolution_status": "reference_resolution_status",
 };
 

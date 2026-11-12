@@ -24,10 +24,12 @@ export type TailoringDecision = {
   rationale: string;
 };
 export type ParameterOverride = { parameterId: string; values: string[]; rationale: string };
-/** A base profile the program adopts as-is, or an overlay layered on it when tailored. */
+/** A base profile the program adopts as-is, with overlays stacked on it, tailored, or both. */
 export type ProgramProfileDraft = {
   key: string;
   baseResolutionId: string;
+  /** The published overlays stacked on the base, in the order they apply. */
+  overlayIds: string[];
   tailoring: TailoringDecision[];
   parameters: ParameterOverride[];
 };
@@ -196,6 +198,10 @@ export const programWizardSchema = z
           .object({
             key: uuid,
             baseResolutionId: uuid,
+            overlayIds: z
+              .array(uuid)
+              .max(6, "Stack at most six overlays on a base profile.")
+              .refine((ids) => new Set(ids).size === ids.length, "Stack each overlay once."),
             tailoring,
             parameters,
           })
@@ -235,13 +241,14 @@ export const programWizardSchema = z
         });
       profileKeys.add(profile.key);
       if (!profile.tailoring.length && !profile.parameters.length) {
-        if (untailoredBases.has(profile.baseResolutionId))
+        const stack = [profile.baseResolutionId, ...profile.overlayIds].join("/");
+        if (untailoredBases.has(stack))
           context.addIssue({
             code: "custom",
             path: ["profiles", index, "baseResolutionId"],
             message: "Choose each base profile once unless you tailor it.",
           });
-        untailoredBases.add(profile.baseResolutionId);
+        untailoredBases.add(stack);
       }
       for (const field of ["tailoring", "parameters"] as const) {
         const ids = new Set<string>();

@@ -57,12 +57,11 @@ import {
   useDataTable,
   useLedgerLocale,
 } from "@ledger/design-system";
-import { useNavigate } from "@tanstack/react-router";
 import { AlertCircle, Plus } from "lucide-react";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { ProductCollection } from "./product-collection";
 import { systemIcon } from "./program-systems-tree";
-import { RecordLink, recordDestination, useDisplayedRecords } from "./record-preview";
+import { RecordLink, useDisplayedRecords, useOpenRecord } from "./record-preview";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { EmptyMessage } from "./work-common";
 
@@ -112,7 +111,7 @@ export function ProductStructure({
   const { formatPlural } = useLedgerLocale();
   const [sheet, setSheet] = useState<ElementDialogTarget | null>(null);
   const { confirm, confirmation } = useConfirmation();
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   const [selected, setSelected] = useState<StructureRow | null>(null);
   const canEdit = editable && revision.state === "draft";
   const active = configurations.filter((row) => row.state === "active");
@@ -215,7 +214,7 @@ export function ProductStructure({
               </Badge>
             ) : null,
           cell: (row) => (
-            <RecordLink table="product_elements" record={row}>
+            <RecordLink table="product_elements" record={row} onPreview={() => setSelected(row)}>
               {row.name}
             </RecordLink>
           ),
@@ -304,7 +303,7 @@ export function ProductStructure({
         }
         table={table}
         queries={[elements, memberships, definedComponents, componentRevisions, definitions]}
-        onRowClick={(row) => void navigate(recordDestination("product_elements", row))}
+        onRowClick={(row) => openRecord("product_elements", row, () => setSelected(row))}
         empty={{
           illustration: "tree",
           title: "No elements in this version",

@@ -7,6 +7,7 @@ import {
   type ProgramWizardDraft,
 } from "@/lib/program-wizard";
 import type {
+  DraftStack,
   ProgramTailoringPreview,
   WizardCatalogOption,
   WizardProfileOption,
@@ -134,6 +135,7 @@ export function wizardIssues({
   catalogs,
   profiles,
   previews,
+  stacks,
   libraryItems,
   productItems,
 }: {
@@ -147,6 +149,8 @@ export function wizardIssues({
   catalogs: readonly WizardCatalogOption[];
   profiles: readonly WizardProfileOption[];
   previews: ReadonlyMap<string, ProgramTailoringPreview>;
+  /** Each program profile's overlays applied to its base, by the profile's key. */
+  stacks: ReadonlyMap<string, DraftStack>;
   libraryItems: readonly LibraryComponentItem[];
   productItems: readonly ProductConfigurationItem[];
 }): WizardIssue[] {
@@ -330,6 +334,22 @@ export function wizardIssues({
           rank,
           prefix,
         );
+      const layers = stacks.get(profile.key)?.derivation.layers ?? [];
+      if (layers.length !== profile.overlayIds.length)
+        catalogStep(
+          field,
+          "Remove the overlay that is no longer published from its stack.",
+          rank,
+          prefix,
+        );
+      for (const layer of layers)
+        if (!layer.added && !layer.removed)
+          catalogStep(
+            field,
+            `${layer.title} changes nothing where it is in the stack. Remove it, or move it earlier.`,
+            rank,
+            prefix,
+          );
       for (const message of previews.get(profile.key)?.errors ?? [])
         catalogStep(field, message, rank, prefix);
     }

@@ -3,26 +3,26 @@
     "$type": "dimension",
     "xsmall": {
       "$value": "2px",
-      "$description": "Kbd, tiny chips. The smallest step."
+      "$description": "Kbd, tiny chips, a mark of a map. The smallest step."
     },
     "small": {
       "$value": "3px",
       "$description": "Count chips, the checkbox, skeleton lines, inline hit targets."
     },
     "medium": {
-      "$value": "5px",
+      "$value": "6px",
       "$description": "Buttons, inputs, chips, tooltips, menu items. The scale's base."
     },
     "large": {
-      "$value": "7px",
+      "$value": "10px",
       "$description": "Cards, popovers, hover cards, menus and listboxes."
     },
     "xlarge": {
-      "$value": "9px",
-      "$description": "A large surface of a product's own, between a card and a dialog. No kit part draws it: a sheet runs flush to the window's edge, and a dialog is xxlarge."
+      "$value": "12px",
+      "$description": "A surface that holds cards: the Tray. Between a card and a dialog; a sheet runs flush to the window's edge, and a dialog is xxlarge."
     },
     "xxlarge": {
-      "$value": "12px",
+      "$value": "16px",
       "$description": "Dialogs, the command palette, a drawer's free edge, spotlight cards."
     },
     "full": {

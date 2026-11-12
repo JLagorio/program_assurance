@@ -1,0 +1,81 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { Tray } from "../../components";
+import * as Stories from "./Tray.stories";
+
+<Meta of={Stories} />
+
+# Tray
+
+**Status: Experimental.** New with the program's Overview, its first screen; the props may change while a second screen tries it. Owned by the design system.
+
+A sunken surface that holds raised cards under one heading, and the heading is a count: "20 monitored devices", "2 frameworks". It groups what belongs to one number. A [Section](?path=/docs/layout-section--docs) titles a block of the page; a tray draws an edge around the cards its heading counts, so a dashboard reads as a few counted groups instead of a run of cards. What it holds draws its own raised surface: a [Card](?path=/docs/components-card--docs), or a `Stat.List` whose rows break the count into its parts.
+
+<Canvas of={Stories.Playground} />
+
+## Holding cards
+
+<Canvas of={Stories.HoldingCards} />
+
+The tray stacks its children `space.075` apart. For cards side by side, give it one Grid with an intrinsic template, so the columns follow the tray's own width.
+
+## A heading that opens the register
+
+With `link`, the heading's text is the link and a chevron follows it. Each `Stat.Row` takes a `link` of its own for its part of the register.
+
+<Canvas of={Stories.Linked} />
+
+## The one that cannot wait
+
+`tone="danger"` fills the tray with the bold danger colour. Use it for the one count on a screen that cannot wait, and at most once: two bold trays compete, and a screen of them says nothing. The rows inside stay raised and carry their own tone.
+
+<Canvas of={Stories.Danger} />
+
+## States
+
+| State   | What changes                                                                                                                  |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Zero    | The number in `color.text.subtlest` on the neutral tray: nothing is not a status.                                             |
+| Loading | `isLoading`: a Skeleton where the number goes, `aria-busy` on the tray and a hidden "Loading" in the heading.                 |
+| Linked  | `link`: the heading underlines under the pointer and takes the focus ring; on the bold tray the ring is the heading's colour. |
+
+<Canvas of={Stories.Loading} />
+<Canvas of={Stories.WithAnAction} />
+
+## Content
+
+- **The heading is a count and a noun**, lower case after the number: "20 monitored devices", "2 frameworks". Pass a number as `value`: the tray writes it in the reader's locale. Without `value` the title stands alone, sentence case.
+- **`action` is one thing**: a key for the marks inside, one figure, a link. A create button belongs to the collection's toolbar, not here.
+- **A tray is not a page section.** It holds a handful of cards or rows that one number counts. A table, a form or a chart with its own title is a Section or a Card.
+
+## Accessibility
+
+- **A named group, never a landmark**: `role="group"` named by its heading, so a dashboard of trays adds nothing to the landmark list.
+- **The heading takes the contextual level**: an h2 outside every [HeadingLevelProvider](?path=/docs/primitives-heading--docs), one below a titled Section. What the tray holds takes the level below.
+
+<Canvas of={Stories.HeadingLevels} />
+
+- **Colour is not the only signal.** The bold tray's heading says what it counts; in forced colours every tray keeps a border, so its group still reads.
+
+## Style
+
+| Element | Token                                                                                      |
+| ------- | ------------------------------------------------------------------------------------------ |
+| Tray    | `elevation.surface.sunken` · `radius.xlarge` · `space.075` inset and between what it holds |
+| Danger  | `color.background.danger.bold` · heading and icon in `color.text.inverse`                  |
+| Heading | `font.heading.section` · `color.text` · the number tabular, `color.text.subtlest` at zero  |
+| Action  | `font.body.small` · `color.text.subtle`                                                    |
+
+## Props
+
+Tray forwards native `div` props and its ref to the outer element and names itself last with `data-slot="tray"`; its parts are `tray-header`, `tray-title`, `tray-value`, `tray-link`, `tray-action` and `tray-content`.
+
+<ArgTypes of={Tray} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Stat](?path=/docs/components-stat--docs): `Stat.List` and `Stat.Row`, the breakdown a tray holds, and `Stat.Grid` for headline numbers with no group around them.
+- [Card](?path=/docs/components-card--docs): the raised surface a tray holds.
+- [Section](?path=/docs/layout-section--docs): a titled block of the page.

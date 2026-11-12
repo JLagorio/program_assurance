@@ -1,3 +1,4 @@
+import { ControlBaselineSummary, ProgramControlBaseline } from "./control-baseline";
 import { DueDate, EmptyMessage, MissingRecord, type QueryStatus } from "./work-common";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -32,7 +33,6 @@ import {
   Section,
   Shell,
   Stack,
-  Stat,
   Tabs,
   TabsList,
   TabsTrigger,
@@ -64,6 +64,7 @@ import { AssuranceWorkbench } from "./assurance-workbench";
 import { RequirementsTable } from "./requirements-table";
 import { ProgramSystemsTree } from "./program-systems-tree";
 import { ProgramLibrary } from "./program-library";
+import { ProgramControlStatusTray, ProgramOpenWork } from "./program-overview";
 import { ProgramTimeline } from "./program-timeline";
 import { ProgramActivity } from "./program-activity";
 import { ProgramSspAssembly } from "./ssp-assembly";
@@ -71,7 +72,10 @@ import { RecordTrail, TrailLink } from "./record-trail";
 import { RelationName } from "./record-tools";
 import { ProductCollection } from "./product-collection";
 import { useCollectionTable } from "./collection-question";
-import { RecordLink, recordDestination } from "./record-preview";
+import { RecordLink, useOpenRecord } from "./record-preview";
+import { ProgramPosture } from "./program-posture";
+import { ProgramResiliency } from "./program-resiliency";
+import type { PostureReading } from "@/lib/program-posture";
 import type { SystemElement } from "@/lib/system-tree";
 import type { RequirementTab } from "./requirement-record";
 import {
@@ -126,6 +130,9 @@ export function programTab(value: unknown): ProgramTab {
  * on the Overview (the old dashboard address) is not offered here.
  */
 const programViews = [
+  ["Posture", "/programs/$programId/posture"],
+  ["Control baseline", "/programs/$programId/control-baseline"],
+  ["Cyber resiliency", "/programs/$programId/resiliency"],
   ["Workbook", "/programs/$programId/workbook"],
   ["Configuration baseline", "/programs/$programId/baseline"],
   ["Traceability matrix", "/programs/$programId/sctm"],
@@ -144,6 +151,8 @@ export function ProgramWorkspace({
   requirementId,
   requirementTab,
   assessmentTab,
+  postureReading,
+  onPostureReading,
 }: {
   programId: string;
   /** The tab; a retired name shows the tab its content moved to. */
@@ -153,6 +162,9 @@ export function ProgramWorkspace({
   requirementTab?: RequirementTab | undefined;
   /** The Assessment campaigns tab's own tab, which the address keeps. */
   assessmentTab?: AssessmentKind | undefined;
+  /** What the Posture view counts, which the address keeps, and how it is chosen. */
+  postureReading?: PostureReading | undefined;
+  onPostureReading?: ((reading: PostureReading) => void) | undefined;
 }) {
   const tab = programTab(tabName);
   const workspace = useWorkspace();
@@ -169,7 +181,7 @@ export function ProgramWorkspace({
   const issues = useRows(
     "operational_issues",
     { program_id: programId },
-    { columns: ["id", "status"] },
+    { columns: ["id", "status", "severity"] },
   );
   const risks = useRows("risks", { program_id: programId }, { columns: ["id", "status"] });
   const evidence = useRows("evidence_artifacts", { program_id: programId }, { columns: ["id"] });
@@ -226,21 +238,8 @@ export function ProgramWorkspace({
     ...(assessments.isSuccess && { "Assessment campaigns": assessments.data.length }),
     ...(evidence.isSuccess && { Evidence: evidence.data.length }),
   };
-  const openTasks = tasks.data?.filter((task) => !["done", "cancelled"].includes(task.status));
-  const openIssues = issues.data?.filter(
-    (issue) => !["closed", "resolved", "cancelled"].includes(issue.status),
-  );
-  const openRisks = risks.data?.filter((risk) => risk.status !== "closed");
-  const queues: {
-    label: string;
-    query: QueryStatus;
-    value: number | undefined;
-    tab: ProgramTab;
-  }[] = [
-    { label: "Open tasks", query: tasks, value: openTasks?.length, tab: "Schedule" },
-    { label: "Open issues", query: issues, value: openIssues?.length, tab: "Findings" },
-    { label: "Open risks", query: risks, value: openRisks?.length, tab: "POA&M & risk" },
-  ];
+  // The Overview's open work: its three reads, said in one alert when one fails.
+  const queues: QueryStatus[] = [tasks, issues, risks];
   const canEditProgram = workspace.role !== "viewer";
   const tabLink = (next: ProgramTab) => (
     <Link to="/programs/$programId" params={{ programId }} search={{ tab: next }} />
@@ -254,34 +253,9 @@ export function ProgramWorkspace({
           // closed disclosure above it whose row says the status. They leave with the tab.
           <AsideLayout aside={<ProgramDetailsAside program={program} />}>
             <Stack space="space.300" className="min-w-0">
-              {queues.some((queue) => queue.query.isError) && (
-                <ProgramQueryState queries={queues.map((queue) => queue.query)} />
-              )}
-              <Stat.Grid
-                cols={3}
-                role="group"
-                aria-label="Open work"
-                aria-busy={queues.some(
-                  (queue) => queue.value === undefined && !queue.query.isError,
-                )}
-              >
-                {queues.map((queue) => {
-                  const failed = queue.value === undefined && queue.query.isError;
-                  return (
-                    <Stat.Tile
-                      key={queue.label}
-                      label={queue.label}
-                      // A queue opens the tab that holds it.
-                      link={tabLink(queue.tab)}
-                      value={failed ? <Absent label="Not available" /> : (queue.value ?? null)}
-                      isLoading={queue.value === undefined && !failed}
-                      note={
-                        failed ? "Could not load" : queue.value === 0 ? "Nothing open" : undefined
-                      }
-                    />
-                  );
-                })}
-              </Stat.Grid>
+              {queues.some((queue) => queue.isError) && <ProgramQueryState queries={queues} />}
+              <ProgramOpenWork tasks={tasks} issues={issues} risks={risks} tabLink={tabLink} />
+              <ProgramControlStatusTray programId={programId} programName={program.name} />
               <ProgramQueryState queries={[gates]}>
                 <ProgramTimeline programId={programId} gates={gates.data ?? []} />
               </ProgramQueryState>
@@ -298,6 +272,7 @@ export function ProgramWorkspace({
                   />
                 )}
               </Section>
+              <ControlBaselineSummary programId={programId} />
               <ProgramQueryState queries={[systems]}>
                 {/* A sibling of the Overview's sections, so it heads its own part of the outline. */}
                 <HeadingLevelProvider level={2}>
@@ -550,6 +525,16 @@ export function ProgramWorkspace({
                 <AssuranceWorkbench programId={programId} initialSheet="mappings" />
               ) : view === "Workbook" ? (
                 <AssuranceWorkbench programId={programId} />
+              ) : view === "Posture" ? (
+                <ProgramPosture
+                  programId={programId}
+                  reading={postureReading}
+                  onReadingChange={onPostureReading ?? (() => {})}
+                />
+              ) : view === "Control baseline" ? (
+                <ProgramControlBaseline programId={programId} />
+              ) : view === "Cyber resiliency" ? (
+                <ProgramResiliency programId={programId} />
               ) : view === "Residual risk" ? (
                 <ProgramResidualRisk programId={programId} />
               ) : view === "Continuous monitoring" ? (
@@ -796,7 +781,7 @@ type LatestAssessment = Pick<
 
 /** Each risk at its latest assessment: likelihood, impact and the severity that remains. */
 function ProgramResidualRisk({ programId }: { programId: string }) {
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   const risks = useRows(
     "risks",
     { program_id: programId },
@@ -893,7 +878,7 @@ function ProgramResidualRisk({ programId }: { programId: string }) {
         <DataTable.Filter key="severity" table={table} column="severity" />,
         <DataTable.Filter key="status" table={table} column="status" />,
       ]}
-      onRowClick={(row) => void navigate(recordDestination("risks", row))}
+      onRowClick={(row) => openRecord("risks", row)}
       empty={{
         illustration: "shield",
         title: "No risks yet",

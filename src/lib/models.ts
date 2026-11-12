@@ -65,6 +65,26 @@ type Schema = Omit<Tables, "composition_nodes" | "composition_nodes_archive_2026
     Insert: never;
     Update: never;
   };
+  control_overlay_rows: {
+    Row: Tables["control_overlays"]["Row"] & {
+      include_count: number;
+      exclude_count: number;
+      application_count: number;
+    };
+    Insert: never;
+    Update: never;
+  };
+  program_control_requirement_counts: {
+    Row: {
+      id: string;
+      tenant_id: string;
+      program_id: string;
+      control_id: string;
+      requirement_count: number;
+    };
+    Insert: never;
+    Update: never;
+  };
   profile_resolution_catalogs: {
     Row: {
       id: string;

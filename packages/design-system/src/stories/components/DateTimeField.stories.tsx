@@ -15,6 +15,10 @@ const LosAngeles = ({ children }: { children: ReactNode }) => (
   <LedgerProvider timeZone="America/Los_Angeles">{children}</LedgerProvider>
 );
 
+/* An empty field names its zone as of now, so the name is Daylight or Standard by the day the
+   story runs; a field with a value names the zone at that value, which a story can spell out. */
+const emptyTime = (label: string) => new RegExp(`^${label} Time Pacific (Daylight|Standard) Time$`);
+
 const meta = {
   title: "Components/DateTimeField",
   component: DateTimeField,
@@ -124,7 +128,7 @@ export const DefaultTimeAndIncomplete: Story = {
     const message = group.parentElement?.querySelector('[data-slot="field-error"]');
     await expect(message).toHaveTextContent("Enter both a date and a time.");
     const collectedTime = canvas.getByRole("spinbutton", {
-      name: "Evidence collected Time Pacific Daylight Time",
+      name: emptyTime("Evidence collected"),
     });
     await expect(collectedTime).toHaveAttribute("aria-invalid", "true");
     await expect(collectedTime).toHaveAccessibleDescription(/Enter both a date and a time\./);
@@ -199,7 +203,7 @@ export const EnterWithHalfAnEntry: Story = {
     const canvas = within(canvasElement);
     submitTask.mockClear();
     const day = canvas.getByRole("textbox", { name: "Due Date" });
-    const time = canvas.getByRole("spinbutton", { name: "Due Time Pacific Daylight Time" });
+    const time = canvas.getByRole("spinbutton", { name: emptyTime("Due") });
     await userEvent.type(day, "Oct 2, 2026{Enter}");
     await expect(submitTask).not.toHaveBeenCalled();
     await expect(day).toHaveFocus();
@@ -248,7 +252,7 @@ export const FormReset: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const day = canvas.getByRole("textbox", { name: "Collected Date" });
-    const time = canvas.getByRole("spinbutton", { name: "Collected Time Pacific Daylight Time" });
+    const time = canvas.getByRole("spinbutton", { name: emptyTime("Collected") });
     await userEvent.type(day, "Oct 2, 2026");
     await userEvent.click(canvas.getByRole("button", { name: "Reset the form" }));
     await waitFor(() => expect(day).toHaveValue(""));

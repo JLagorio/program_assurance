@@ -1,0 +1,64 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { TileMap, TileMapKey } from "../../patterns";
+import * as Stories from "./TileMap.stories";
+
+<Meta of={Stories} />
+
+# TileMap
+
+**Status: Experimental.** New with the program's Control baseline view, its first screen; the props may change while a second screen tries it. Owned by the design system.
+
+Every item of a set as one small mark, grouped: a catalog's thousand controls by family. It answers what a table cannot at a glance: how much of the whole is in, where the changes fall, which groups nothing touched. A table of the same items stays beside it, since a map is for seeing and a [DataTable](?path=/docs/patterns-data-table--docs) for working through. For how much of a measure falls where, with rows and columns that are both scales, use [Chart.Heatmap](?path=/docs/patterns-chart-heatmap--docs).
+
+<Canvas of={Stories.Playground} />
+
+## Layouts
+
+| Layout    | What it draws                                                                                                                                                   | Use it for                                                   |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `grid`    | A row a group: its code, its name, its marks, its value. An item is a square, and the items that belong to it (`parts`) are the slim bars after it.             | Comparing groups, and finding one item by where it stands.   |
+| `skyline` | One street: items stand on a ground line and their parts rise above them, six to a column, and each group is a district named under the line. The street wraps. | Seeing which items carry the most parts, and where they sit. |
+| `strip`   | Every mark in one wrapped run, a wider gap between groups, and no words drawn.                                                                                  | The whole set at a glance inside a card.                     |
+
+<Canvas of={Stories.Skyline} />
+
+`strip` draws every mark in one wrapped run and no words: the map small enough for a card, on a dashboard or an overview, where the card's title and one count say what the marks are. A wider gap ends each group. It is for the whole at a glance; the `grid` of the same items is where a reader finds one.
+
+<Canvas of={Stories.Strip} />
+
+The map measures its own width, not the window's. Under 40rem the Grid puts each group's words on one line and its marks beneath; the Skyline wraps a district's street onto a second line with its own ground line.
+
+## Colour
+
+A mark has a `tone`, one of the chart tokens, and a `fill`: `solid`, `outline` for an item that was here and is not now (or is not there yet), and `empty` for an item with nothing to say. Keep to a few states. One hue for what changed and a hollow mark for what left reads in every colour vision; a second hue for a second kind of change does not, so say it in the mark's `description` instead. For how far along (not started, partly, done) use the `sequential` steps of one hue.
+
+Colour never says a state alone. Each mark's `label` and `description` are its tooltip and its name to assistive technology, and a `TileMap.Key` beside the map says what each colour means and how many marks wear it.
+
+## Choosing a mark
+
+<Canvas of={Stories.Choosing} />
+
+With `onSelect` the marks are buttons and the map is one Tab stop: the mark last focused, else the chosen one, else the first. Left and Right move to the next mark, Up and Down to the first mark of the group before or after, Home and End to the map's ends, and Enter or Space chooses. `selected` rings the chosen mark. Without `onSelect` the map is one image named by `label`.
+
+A mark is 12px, so on a touch screen each has the kit's 24px hit area and neighbours overlap: a tap chooses a mark near the finger, and the tooltip says which. Give the same items as a table on the page, where each row is a full target.
+
+## One state after another
+
+<Canvas of={Stories.Stepping} />
+
+The marks keep their ids from one render to the next, so a change of state changes colours in place and the reader sees what moved. The caller owns the steps: a ToggleGroup beside the map, and the groups for the step it shows.
+
+## Props
+
+<ArgTypes of={TileMap} />
+
+<Controls of={Stories.Playground} />
+
+### TileMap.Key
+
+<ArgTypes of={TileMapKey} />
+
+## Related
+
+[Chart.Heatmap](?path=/docs/patterns-chart-heatmap--docs) · [Chart.Treemap](?path=/docs/patterns-chart-treemap--docs) · [DataTable](?path=/docs/patterns-data-table--docs) · [WorkPane](?path=/docs/patterns-workpane--docs)

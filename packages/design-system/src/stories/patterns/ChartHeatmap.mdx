@@ -19,7 +19,7 @@ A grid of rows by columns with a value painted in each cell: how much, across tw
 | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Cell    | `radius.xsmall`, 2px from its neighbours, its fill the value's step on the scale; a faint step (one close to the surface) adds a `color.border.bold` edge. With `zeroStep`, a zero is `color.chart.track`. A cell with no value is a dashed edge with no fill and no number. |
 | Value   | Printed in the cell on a status scale (the tone's text on its fill); on a colour scale a screen-reader-only text, or with `showValues` the number on an `elevation.surface` chip.                                                                                            |
-| Headers | Column names across the top, row names down the side, in `font.body.xsmall` and `font.body.small`; the corner names the rows.                                                                                                                                                |
+| Headers | Column names across the top, row names down the side, in `font.body.xsmall` and `font.body.small`; the corner names the rows. With `columnHeadings="vertical"` a column's name reads up the page from its column.                                                            |
 | Scale   | `Chart.Scale`: the five steps in a row with the ends or the thresholds named, the midpoint's word on a diverging one, or the status tones with their words. Under the grid, `space.150` away.                                                                                |
 | Tooltip | The cell's title: row, column, value.                                                                                                                                                                                                                                        |
 | Card    | On a chosen cell: the row and column, the value, then the caller's facts.                                                                                                                                                                                                    |
@@ -49,6 +49,18 @@ A cell is at least 40px wide, and every value column takes the widest heading's 
 
 <Canvas of={Stories.Narrow} />
 
+## Long column names
+
+On one line, a heading makes every value column as wide as the longest name. Where the names are long and the cells hold a digit or two, that width goes to the names: fourteen techniques take three times the room their counts need, and the grid scrolls sideways over cells that are mostly space. `columnHeadings="vertical"` turns each heading to read up the page from its column, so a column is as wide as its cells and the names take height instead, once, above the grid.
+
+<Canvas of={Stories.VerticalHeadings} />
+
+Use it for names that have no short form and that, on one line, would make the grid scroll. Where the vocabulary has a short form its readers know (a family's code, a month), head the columns with that, and keep `horizontal` while the grid fits: a turned name is slower to read. Each heading stands over its own column, so under the row names of a grid that still scrolls, on a phone, a hidden column's name is hidden with it. Where the page reads right to left the headings turn the other way, its mirror.
+
+A name longer than a heading's line, about twenty-five characters, takes a second line beside the first, and the columns keep their width; a name that needs a third line widens every column alike. Keep to names of a few words.
+
+<Canvas of={Stories.VerticalHeadingsLongNames} />
+
 ## States
 
 | State    | What changes                                                                                                                                                                                                                    |
@@ -65,11 +77,21 @@ A cell that opens a register is a link, not a button: `link` returns the link el
 
 <Canvas of={Stories.Links} />
 
+## Rows in a hierarchy
+
+<Canvas of={Stories.GroupedRows} />
+
+Where the rows hold other rows (a system and its elements, a division and its teams), give them in the hierarchy's order and say each row's depth with `rowLevel`: its name is indented under the row that holds it, three levels at most. `summary` marks the rows that total the rows under them. A summary row prints its numbers with no fill, so a total is never read as one more step of the scale, and the grid reads as its lowest rows with their totals above them. The caller owns the totals: the grid draws the value it is given for every row.
+
+A status function may return a tone with `emphasis: "bold"`, the tone's solid fill, for the one level that must not read as its neighbour: critical beside high, where both are danger. Keep it to one level, and name it on the key with the same `emphasis`.
+
 ## Modifiers
 
 - **`scale`**, **`domain`**, **`midpoint`**, **`showValues`** as in Variants.
-- **`zeroStep`** gives zero a step of its own, so none reads apart from a few. Give the Scale the same.
+- **`rowLevel`** and **`summary`** as in Rows in a hierarchy.
+- **`zeroStep`** gives zero a step of its own, so none reads apart from a few. Give the Scale the same. A zero is then quiet: its number is in the cell's title and said to assistive technology, never drawn, so the cells that hold something are the ones a reader sees. On a sequential scale the track-coloured cell is the mark; on a status scale and in a `summary` row it is a faint point with no fill, never the lowest level's tone.
 - **`rowLabel`**, **`columnLabel`** name the dimensions: the corner cell, and what a screen reader hears.
+- **`columnHeadings`** as in Long column names: `vertical` turns the headings, so a column is as wide as its cells. `horizontal` when unsaid.
 - **`format`** for the values, the tooltip, the card and the Frame's table. The Frame's, else the kit's.
 - **`onSelect`** and **`details`** as in States; the selection is `{ row, column, value }`. **`selectable`** says which cells choose or link.
 - **`link`** returns the link a cell opens, from the same selection, or `undefined` to leave the cell as it is. A cell it links does not also choose.
@@ -97,7 +119,7 @@ A cell that opens a register is a link, not a button: `link` returns the link el
 | Cell           | `color.chart.sequential.<step>` · `color.chart.diverging.<step>` · or `color.background.<tone>` with `color.text.<tone>` · `radius.xsmall` · 2px apart                           |
 | Faint step     | `color.chart.sequential.1` to `3`, `color.chart.diverging.negative`, `midpoint`, `positive` and `color.chart.track` add a 1px `color.border.bold` edge, in the cells and the key |
 | Empty          | No fill · a 1px dashed `color.border.bold` edge                                                                                                                                  |
-| Headers        | `font.body.xsmall` medium `color.text.subtlest` across · `font.body.small` `color.text.subtle` down                                                                              |
+| Headers        | `font.body.xsmall` medium `color.text.subtlest` across, or turned with a line of 160px at most · `font.body.small` `color.text.subtle` down                                      |
 | Scale          | Five steps 24 by 8, 32 by 8 with thresholds · `radius.xsmall` · labels in `font.body.xsmall` `color.text.subtlest` · status swatches 12px in the cells' fills                    |
 | Forced colours | A cell and a step keep their fill, outlined in `CanvasText`; an empty cell is a dashed `GrayText` box                                                                            |
 | Chosen         | `color.border.focused` outline                                                                                                                                                   |
@@ -111,6 +133,7 @@ A cell that opens a register is a link, not a button: `link` returns the link el
 - **No cell sinks into the page.** The steps close to the surface fall under 3:1 on it in one mode or the other, so they wear a `color.border.bold` edge, which holds 3:1; an empty cell's edge is dashed and it has no fill, so it never passes for a low value.
 - **A colour scale's values are one press away** in a Frame: Values, a toggle button whose name stays "Values" while `aria-pressed` says whether they show, prints every value on its cell for keyboard, touch and magnifier readers alike. The reader's choice holds across the table view and the expanded Dialog.
 - **The table twin is the grid pivoted**: the Frame's Table toggle and CSV lay it out as a row per row and a column per column in the grid's order, headed by `rowLabel`, every value printed and no colour.
+- **A vertical heading is the same header cell**: its text is whole and where it was in the markup, so a screen reader hears each column's name, and each cell as "row, column, value", as before. For a reader who would rather not turn their head, the pointer over a heading says the name level (its `title`), and so do a cell's title, its card and the table twin, for the keyboard and touch too.
 - **Cells that choose are buttons**, focusable in reading order, with the kit's focus ring, each named by its place and value ("Likely, Critical: 3"); a zero is no tab stop unless `selectable` says so. A cell that opens a card says so (`aria-haspopup="dialog"`) and whether it is open (`aria-expanded`). The card is a dialog and focus returns to the cell when it closes.
 - **Cells that open a register are links**, named the same way, and the table twin carries the same links, so the reader who reads the numbers as a table can open them too.
 - **The words are the locale's**: the cell's title ("SC, Jun: 12", "AU, Apr: none") and the dimensions ("Likelihood by Impact") come from `LedgerProvider` messages.

@@ -5,10 +5,11 @@ import {
   recordDestination,
   useDisplayedRecords,
   useEndOnHide,
+  useOpenRecord,
 } from "./record-preview";
 import { ProductCollection } from "./product-collection";
 import { useMemo, useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import {
   Absent,
   Badge,
@@ -54,7 +55,7 @@ export function ProgramLibrary({
   programId: string;
   fill?: boolean | undefined;
 }) {
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   const [selectedId, setSelectedId] = useState<string>();
   // A preview belongs to its tab: it ends when the program's Library tab hides.
   useEndOnHide(() => setSelectedId(undefined));
@@ -148,6 +149,7 @@ export function ProgramLibrary({
             <RecordLink
               table={row.definitionId ? "component_definitions" : "profile_resolutions"}
               record={{ id: row.definitionId ?? row.id.replace("baseline:", "") }}
+              onPreview={() => setSelectedId(row.id)}
             >
               {row.name}
             </RecordLink>
@@ -215,11 +217,13 @@ export function ProgramLibrary({
       <ProductCollection
         table={table}
         fill={fill}
+        // A component definition opens its library record; a baseline's resolved profile has no
+        // page, so its row opens this preview.
         onRowClick={(row) =>
-          void navigate(
-            recordDestination(row.definitionId ? "component_definitions" : "profile_resolutions", {
-              id: row.definitionId ?? row.id.replace("baseline:", ""),
-            }),
+          openRecord(
+            row.definitionId ? "component_definitions" : "profile_resolutions",
+            { id: row.definitionId ?? row.id.replace("baseline:", "") },
+            () => setSelectedId(row.id),
           )
         }
         empty={{

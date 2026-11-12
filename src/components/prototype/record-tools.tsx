@@ -2,7 +2,6 @@ import { ProductCollection, type ProductCollectionProps } from "./product-collec
 import { useCollectionTable } from "./collection-question";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { useMemo, useState, type ReactNode, useRef } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
 import { FileText, Link2, Plus } from "lucide-react";
 import {
   Button,
@@ -11,7 +10,6 @@ import {
   Section,
   Skeleton,
   Text,
-  TextLink,
   VisuallyHidden,
   Absent,
   DataTable,
@@ -25,7 +23,7 @@ import { ProductRecordDialog } from "./product-record-dialog";
 import { useWorkspace } from "@/components/app/workspace";
 import { LevelIndicator, VocabularyValue } from "@/components/app/status";
 import { linkedName } from "@/lib/link-name";
-import { useRow, useRows, type TableName, type Filters } from "@/lib/models";
+import { idSet, useRow, useRows, type TableName, type Filters } from "@/lib/models";
 import {
   displayValue,
   labelFor,
@@ -52,9 +50,9 @@ import {
   RecordLink,
   RecordPreviewActions,
   RecordPreviewPanel,
-  recordDestination,
   useDisplayedRecords,
   useEndOnHide,
+  useOpenRecord,
 } from "./record-preview";
 
 /**
@@ -73,6 +71,12 @@ export function StateBadge({ value }: { value: unknown }) {
       size="xsmall"
     />
   );
+}
+
+/** A record's own words for a name, in the order a name is chosen: its name, title or code. */
+function ownName(row: DataRecord | null | undefined) {
+  const named = row?.["name"] ?? row?.["title"] ?? row?.["code"] ?? row?.["source_id"];
+  return named === null || named === undefined || named === "" ? undefined : String(named);
 }
 
 /**
@@ -103,14 +107,14 @@ export function RelationName({
       </>
     );
   if (row === null) return <Absent label="Not available" />;
-  const named = row["name"] ?? row["title"] ?? row["code"] ?? row["source_id"];
-  if (named !== null && named !== undefined && named !== "")
+  const named = ownName(row);
+  if (named !== undefined)
     return peek ? (
       <RecordLink table={table} record={row} peek>
-        {String(named)}
+        {named}
       </RecordLink>
     ) : (
-      <>{String(named)}</>
+      <>{named}</>
     );
   // A revision has no name of its own: it reads as its version, never as its id.
   const version = row["version_number"];
@@ -123,6 +127,89 @@ export function RelationName({
       <>Version {version}</>
     );
   return <Text color="color.text.subtle">Unnamed {productRecordNoun(table)}</Text>;
+}
+
+/** The record a revision is a version of: where its name is read, by the key that names it. */
+const revisionOwners: Partial<Record<TableName, readonly [owner: TableName, key: string]>> = {
+  evidence_versions: ["evidence_artifacts", "artifact_id"],
+  risk_revisions: ["risks", "risk_id"],
+  poam_item_revisions: ["poam_items", "poam_item_id"],
+};
+
+/**
+ * A revision named by the record it is a version of ("Signature test report · Version 2"), and
+ * linked to that record at the version: an evidence version, a risk assessment, a remediation
+ * commitment. A revision has no name of its own, and "Version 2" alone says nothing in a list of
+ * several records' versions. It loads, fails and goes missing as RelationName does.
+ */
+export function RevisionName({ table, id }: { table: TableName; id: string | null | undefined }) {
+  const revision = useRow(table, id);
+  const row = revision.data as unknown as DataRecord | null | undefined;
+  const owner = revisionOwners[table];
+  const ownerId = owner && row ? row[owner[1]] : null;
+  const owned = useRow(owner?.[0] ?? table, typeof ownerId === "string" ? ownerId : null);
+  if (!id) return <Absent />;
+  if (row === undefined && revision.isError)
+    return <Text color="color.text.subtle">Could not load</Text>;
+  if (row === undefined)
+    return (
+      <>
+        <Skeleton shape="line" width={96} />
+        <VisuallyHidden>Loading</VisuallyHidden>
+      </>
+    );
+  if (row === null) return <Absent label="Not available" />;
+  const version =
+    typeof row["version_number"] === "number" ? `Version ${row["version_number"]}` : "Revision";
+  const record = owned.data as unknown as DataRecord | null | undefined;
+  const name = record ? (record["title"] ?? record["name"]) : null;
+  return (
+    <RecordLink table={table} record={row}>
+      {typeof name === "string" && name ? `${name} · ${version}` : version}
+    </RecordLink>
+  );
+}
+
+/**
+ * The names of the records a link table links, read once for the table, so a link row sorts,
+ * searches, exports and names its controls (Preview, Row actions for) by the record it links and
+ * never by an id. A revision with no name of its own reads as RevisionName names it ("Signature
+ * test report · Version 2"). `queries` are the reads, for the collection's loading and failure.
+ */
+export function useLinkedNames(table: TableName | undefined, ids: readonly string[]) {
+  const reads = !!table && ids.length > 0;
+  const linked = useRows(table ?? "parties", { id: [...ids] }, { enabled: reads });
+  const owner = table ? revisionOwners[table] : undefined;
+  const ownerIds = useMemo(
+    () =>
+      owner
+        ? idSet(
+            ((linked.data ?? []) as unknown as DataRecord[]).map(
+              (row) => row[owner[1]] as string | null | undefined,
+            ),
+          )
+        : [],
+    [owner, linked.data],
+  );
+  const readsOwners = !!owner && ownerIds.length > 0;
+  const owners = useRows(owner?.[0] ?? "parties", { id: ownerIds }, { enabled: readsOwners });
+  const names = useMemo(() => {
+    const found = new Map<string, string>();
+    if (!reads) return found;
+    const owned = new Map(
+      ((owners.data ?? []) as unknown as DataRecord[]).map((row) => [row.id, ownName(row)]),
+    );
+    for (const row of (linked.data ?? []) as unknown as DataRecord[]) {
+      const version =
+        typeof row["version_number"] === "number" ? `Version ${row["version_number"]}` : undefined;
+      const parent = owner ? owned.get(String(row[owner[1]])) : undefined;
+      const name = ownName(row) ?? (parent && version ? `${parent} · ${version}` : version);
+      if (name) found.set(row.id, name);
+    }
+    return found;
+  }, [reads, linked.data, owner, owners.data]);
+  const queries: QueryStatus[] = [...(reads ? [linked] : []), ...(readsOwners ? [owners] : [])];
+  return { names, queries };
 }
 
 export type DisplayColumn = {
@@ -274,10 +361,18 @@ export function ModelTable({
   queries,
   noun,
   compact,
+  links,
 }: {
   model: TableName;
   rows: DataRecord[];
   columns: DisplayColumn[];
+  /**
+   * The rows are links to records of this model, named in the identity column (an issue's
+   * observations: `issue_observations` rows that name `observations`). The name is then the linked
+   * record's own link, as the column's `render` draws it, a row click opens that record, and the
+   * eye previews the link row.
+   */
+  links?: TableName | undefined;
   onPreview?: ((row: DataRecord) => void) | undefined;
   selectedId?: string | undefined;
   onDisplayedRowsChange?: ((rows: DataRecord[]) => void) | undefined;
@@ -305,11 +400,14 @@ export function ModelTable({
   /** A few rows beside other content (a record body's section): ProductCollection's compact form. */
   compact?: boolean | undefined;
 }) {
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   const primaryIndex = identityIndex(columns);
   const [preview, setPreview] = useState<DataRecord | null>(null);
   useEndOnHide(() => setPreview(null));
   const openPreview = onPreview ?? setPreview;
+  // The columns are built once: the name of a record with no page reaches the latest opener.
+  const openPreviewRef = useRef(openPreview);
+  openPreviewRef.current = openPreview;
   const byId = useMemo(() => new Map(rows.map((row) => [row.id, row])), [rows]);
   const byIdRef = useRef(byId);
   byIdRef.current = byId;
@@ -331,6 +429,14 @@ export function ModelTable({
     () => new Map((people.data ?? []).map((party) => [party.id, party.name])),
     [people.data],
   );
+  // A link table is named by the records it links: their names, read once for the table.
+  const identityKey = columns[primaryIndex]?.key ?? "";
+  const linkedIds = useMemo(
+    () => (links ? idSet(rows.map((row) => row[identityKey] as string | null | undefined)) : []),
+    [links, rows, identityKey],
+  );
+  const linked = useLinkedNames(links, linkedIds);
+  const linkNames = linked.names;
   const kinds = useMemo(
     () =>
       new Map(
@@ -359,6 +465,12 @@ export function ModelTable({
             const name = typeof id === "string" ? names.get(id) : undefined;
             if (name) next[column.key] = name;
             else delete next[column.key];
+          } else if (links && column.key === identityKey) {
+            // The linked record's name; one the reader cannot see leaves the row unnamed.
+            const id = row[column.key];
+            const name = typeof id === "string" ? linkNames.get(id) : undefined;
+            if (name) next[column.key] = name;
+            else delete next[column.key];
           }
           const value = next[column.key];
           const kind = kinds.get(column.key);
@@ -367,7 +479,7 @@ export function ModelTable({
         }
         return next;
       }),
-    [rows, columns, kinds, peopleKeys, names],
+    [rows, columns, kinds, peopleKeys, names, links, identityKey, linkNames],
   );
   const vocabularies = useMemo(
     () =>
@@ -427,11 +539,20 @@ export function ModelTable({
               minWidth: 180,
               priority: 0,
               ...size,
-              cell: (row) => (
-                <RecordLink table={model} record={raw(row)}>
-                  {render?.(raw(row)) ?? linkedName(model, raw(row), row[column.key])}
-                </RecordLink>
-              ),
+              cell: (row) =>
+                // A link row is named by the record it links, which is that record's own link.
+                links && render ? (
+                  render(raw(row))
+                ) : (
+                  // A record with no page is named by a button that opens its preview here.
+                  <RecordLink
+                    table={model}
+                    record={raw(row)}
+                    onPreview={() => openPreviewRef.current(raw(row))}
+                  >
+                    {render?.(raw(row)) ?? linkedName(model, raw(row), row[column.key])}
+                  </RecordLink>
+                ),
             });
           const kind = kinds.get(column.key);
           if (kind === "status") {
@@ -490,7 +611,7 @@ export function ModelTable({
           return c.text(column.key, { header, ...size, cell });
         }),
       ),
-    [columns, primaryIndex, kinds, vocabularies, model, peopleKeys],
+    [columns, primaryIndex, kinds, vocabularies, model, peopleKeys, links],
   );
   const chips =
     filters ??
@@ -520,9 +641,17 @@ export function ModelTable({
         table={table}
         fill={fill}
         compact={compact}
-        queries={[...(queries ?? []), ...(peopleKeys.size ? [people] : [])]}
+        queries={[...(queries ?? []), ...(peopleKeys.size ? [people] : []), ...linked.queries]}
         noun={nouns}
-        onRowClick={(row) => void navigate(recordDestination(model, byId.get(row.id) ?? row))}
+        onRowClick={(row) => {
+          const record = byId.get(row.id) ?? row;
+          const preview = () => openPreview(record);
+          // A link row opens the record it names; a record with no page opens its preview.
+          const target = links ? record[identityKey] : undefined;
+          if (links && typeof target === "string") openRecord(links, { id: target }, preview);
+          else if (links) preview();
+          else openRecord(model, record, preview);
+        }}
         empty={{
           illustration: message.illustration ?? "records",
           title: message.title ?? "Nothing recorded yet",
@@ -844,6 +973,7 @@ export function EntitySection({
         compact={compact}
         view={view}
         actionVariant={actionVariant}
+        links={links}
         onPreview={onOpen ?? setSelected}
         selectedId={selectedId ?? selected?.id}
         onDisplayedRowsChange={(rows) => {
@@ -868,21 +998,6 @@ export function EntitySection({
     </>
   );
   return showHeading ? <Section title={title}>{content}</Section> : content;
-}
-export function InspectLink({ table, id }: { table: TableName; id?: string }) {
-  return (
-    <TextLink
-      render={
-        id ? (
-          <Link to="/records/$collection/$recordId" params={{ collection: table, recordId: id }} />
-        ) : (
-          <Link to="/records/$collection" params={{ collection: table }} />
-        )
-      }
-    >
-      Inspect backend record{!id ? "s" : ""}
-    </TextLink>
-  );
 }
 /** Save data as a JSON file, through the kit's download helper. */
 export function downloadJson(filename: string, data: unknown) {

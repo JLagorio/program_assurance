@@ -1,0 +1,69 @@
+import { ArgTypes, Canvas, Controls, Meta } from "@storybook/addon-docs/blocks";
+
+import { PhaseBar } from "../../components";
+import * as Stories from "./PhaseBar.stories";
+
+<Meta of={Stories} />
+
+# PhaseBar
+
+**Status: Experimental.** New with the program's Lifecycle timeline, its first screen; the props may change while a second screen tries it. Owned by the design system.
+
+Where a piece of work stands along a few named phases, as one segmented bar: each phase a segment in its state's colour, with its name under it. It reports where the work stands. A path the reader moves along is a [Stepper](?path=/docs/components-stepper--docs); how far one task has gone is a [Progress](?path=/docs/components-progress--docs).
+
+<Canvas of={Stories.Playground} />
+
+## States
+
+| State      | Segment                                                              | Name                   |
+| ---------- | -------------------------------------------------------------------- | ---------------------- |
+| `done`     | Filled, `color.background.success.bold`                              | `color.text`, medium   |
+| `current`  | Filled, `color.background.information.bold`, or as far as `progress` | `color.text`, semibold |
+| `upcoming` | The track alone, `color.background.neutral`                          | `color.text.subtle`    |
+| `blocked`  | Filled, `color.background.danger.bold`                               | `color.text.danger`    |
+
+The state is drawn and also spoken, in the locale's words before the name ("Completed: Preparation"), and the current phase carries `aria-current="step"`.
+
+<Canvas of={Stories.Blocked} />
+
+## Weight and progress
+
+Every phase takes an equal share unless `weight` says otherwise: a three-month observation period beside one-week phases takes a larger number. `progress`, 0 to 1, fills a `current` phase part of the way; unsaid, the current segment is filled.
+
+<Canvas of={Stories.WeightedWithProgress} />
+
+## Opening a phase
+
+With `onSelect`, a phase's name is a button that opens what the phase is: a gate's record, a review. The button is named by the state and the name ("Current: PDR"). A phase without it is text and no tab stop.
+
+<Canvas of={Stories.OpeningAPhase} />
+
+## In a narrow frame
+
+Each phase keeps a floor of 80px. When the bar cannot give every phase that, the phases take another line, each with its own segment, and a long name wraps.
+
+<Canvas of={Stories.InANarrowFrame} />
+
+## Content
+
+- **A name is a word or two**: "Preparation", "Internal audit", a gate's code. It wraps; it is never cut.
+- **`meta` is one line**: a day, a range, what blocks it.
+- **Five phases read at a glance; past about eight, use a Stepper** in a rail, where each step has a row.
+
+## Props
+
+PhaseBar is an `ol` and PhaseBar.Item its `li`; both forward native props and refs and name themselves last with `data-slot` (`phase-bar`, `phase-bar-item`, with `phase-bar-segment`, `phase-bar-fill`, `phase-bar-label`, `phase-bar-button` and `phase-bar-meta` inside). PhaseBar.Item is also exported by name, as `PhaseBarItem`.
+
+<ArgTypes of={PhaseBar} />
+
+### PhaseBar.Item
+
+<ArgTypes of={PhaseBar.Item} />
+
+<Controls of={Stories.Playground} />
+
+## Related
+
+- [Stepper](?path=/docs/components-stepper--docs): a path the reader moves along.
+- [Progress](?path=/docs/components-progress--docs): how far one task has gone.
+- [Timeline](?path=/docs/components-timeline--docs): what happened, in order.

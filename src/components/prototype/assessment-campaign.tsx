@@ -50,7 +50,7 @@ import { useConfirmation } from "@/components/app/confirmation";
 import { StatusBadge } from "@/components/app/status";
 import { revisionStates, stepDeterminations, testRunStatuses } from "@/lib/status";
 import { productCreateLabel, productRecordNoun } from "@/lib/product-records";
-import { RecordPreviewActions, RecordPreviewPanel } from "./record-preview";
+import { RecordLink, RecordPreviewActions, RecordPreviewPanel } from "./record-preview";
 import { AssessmentTable } from "./assessment-table";
 import { ModelFacts, RelationName, type DisplayColumn } from "./record-tools";
 import {
@@ -58,7 +58,6 @@ import {
   DueDate,
   ModelForm,
   QueryState,
-  SchemaLink,
   type FormTarget,
   type QueryStatus,
 } from "./work-common";
@@ -89,9 +88,9 @@ function SspVersion({ id }: { id: string }) {
         ? "Pinned SSP revision"
         : "SSP revision";
   return (
-    <SchemaLink table="ssp_revisions" id={id}>
+    <RecordLink table="ssp_revisions" record={{ id: id }}>
       {label}
-    </SchemaLink>
+    </RecordLink>
   );
 }
 
@@ -1059,23 +1058,29 @@ function RunInspector({
                 ["Status", <StatusBadge statuses={testRunStatuses} value={run.status} />],
                 [
                   "Procedure revision",
-                  <SchemaLink table="procedure_revisions" id={run.procedure_revision_id}>
+                  <RecordLink
+                    table="procedure_revisions"
+                    record={{ id: run.procedure_revision_id }}
+                  >
                     <RelationName
                       table="procedure_revisions"
                       id={run.procedure_revision_id}
                       peek={false}
                     />
-                  </SchemaLink>,
+                  </RecordLink>,
                 ],
                 [
                   "Configuration baseline",
-                  <SchemaLink table="configuration_baselines" id={run.configuration_baseline_id}>
+                  <RecordLink
+                    table="configuration_baselines"
+                    record={{ id: run.configuration_baseline_id }}
+                  >
                     <RelationName
                       table="configuration_baselines"
                       id={run.configuration_baseline_id}
                       peek={false}
                     />
-                  </SchemaLink>,
+                  </RecordLink>,
                 ],
                 [
                   "Assessor",
@@ -1324,9 +1329,9 @@ function RegressionComparison({ runs }: { runs: Row<"test_runs">[] }) {
             key: "step",
             label: "Step",
             value: (row) => (
-              <SchemaLink table="procedure_steps" id={row.stepId}>
+              <RecordLink table="procedure_steps" record={{ id: row.stepId }}>
                 {row.step}
-              </SchemaLink>
+              </RecordLink>
             ),
           },
           { key: "previousRun", label: "Previous run" },

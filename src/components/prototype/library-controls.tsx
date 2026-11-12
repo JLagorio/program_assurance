@@ -27,16 +27,16 @@ import {
   useDataTable,
   useLedgerLocale,
 } from "@ledger/design-system";
-import { useNavigate } from "@tanstack/react-router";
 import { Fragment, useMemo, useState, type ReactNode } from "react";
+import { ControlResiliency } from "./control-resiliency";
 import { QueryValue } from "./library-shared";
 import { ProductCollection } from "./product-collection";
 import {
   RecordLink,
   RecordPreviewActions,
   RecordPreviewPanel,
-  recordDestination,
   useDisplayedRecords,
+  useOpenRecord,
 } from "./record-preview";
 import { EmptyMessage, QueryState } from "./work-common";
 
@@ -81,7 +81,7 @@ export function LibraryControlTable<C extends ControlTableRow>({
   /** The published profiles selecting each control, by control id; adds a Selected by column. */
   selectedBy?: Map<string, ControlSelector[]> | undefined;
 }) {
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   // Only the families and editions these controls name.
   const groupIds = useMemo(() => idSet(controls.map((control) => control.group_id)), [controls]);
   const editionIds = useMemo(
@@ -181,7 +181,7 @@ export function LibraryControlTable<C extends ControlTableRow>({
       table={table}
       queries={[groups, revisions]}
       fill
-      onRowClick={(row) => void navigate(recordDestination("controls", row))}
+      onRowClick={(row) => openRecord("controls", row)}
       empty={{
         illustration: "shield",
         title: "No controls yet",
@@ -499,6 +499,7 @@ export function ControlInspector<C extends ControlSummary>({
   control,
   onClose,
   selectionId,
+  programId,
   records,
   onSelect,
   task,
@@ -506,6 +507,8 @@ export function ControlInspector<C extends ControlSummary>({
   control: C;
   onClose: () => void;
   selectionId?: string;
+  /** The program the control is read in: a technique's name then opens its Control baseline. */
+  programId?: string | undefined;
 } & (
   | { records: C[]; onSelect: (row: C) => void; task?: never }
   | { task: string; records?: never; onSelect?: never }
@@ -657,6 +660,8 @@ export function ControlInspector<C extends ControlSummary>({
               </QueryState>
             </Section>
           )}
+          {/* What the control supports in cyber resiliency, closed until asked for. */}
+          <ControlResiliency controlId={control.id} programId={programId} isCollapsible />
           <Tabs value={tab} onValueChange={(value) => setTab(value as typeof tab)}>
             <TabsList variant="line" aria-label="Control sections">
               {(["Statements", "Objectives", "Parameters", "Links"] as const).map((name) => (
@@ -745,7 +750,7 @@ function ImportSource({ id }: { id: string | null }) {
   );
 }
 
-function ParameterGroup({
+export function ParameterGroup({
   parameter,
   parameters,
   choices,
@@ -820,7 +825,7 @@ function ParameterGroup({
 }
 
 /** The control's links: related controls, which open their records, and cited references. */
-function ControlLinks({ links }: { links: readonly Row<"control_links">[] }) {
+export function ControlLinks({ links }: { links: readonly Row<"control_links">[] }) {
   const related = links.filter((link) => link.target_control_id);
   const references = links.filter((link) => link.resource_id);
   const other = links.filter((link) => !link.target_control_id && !link.resource_id);

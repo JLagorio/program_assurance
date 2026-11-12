@@ -40,7 +40,7 @@ const defaultTag = {
 /** A displayed number is never a heading, whatever the context says. */
 const displayed = new Set<HeadingSize>(["display", "large"]);
 
-/** A title the kit draws: `page` (PageHeader.Title, 20/26 semibold), `overlay` (an overlay's title, 15/22 medium), `section` (Section.Title, 13/18 semibold) or `display` (28/34 semibold, a figure bigger than a Stat's). */
+/** A title the kit draws: `page` (PageHeader.Title, 24/30 semibold), `overlay` (an overlay's title, 17/24 semibold), `section` (Section.Title, 15/22 semibold) or `display` (32/40 semibold, a figure bigger than a Stat's). */
 export type HeadingSize =
   | "display"
   | "page"
@@ -48,9 +48,9 @@ export type HeadingSize =
   | "section"
   /** @deprecated `large` is `display`, the same style; `ledger/no-deprecated-name` fixes it. */
   | "large"
-  /** @deprecated A page or record title is `page`, 20/26, what PageHeader.Title draws; `medium` draws `page` for one version, and `ledger/no-deprecated-name` fixes it. */
+  /** @deprecated A page or record title is `page`, 24/30, what PageHeader.Title draws; `medium` draws `page` for one version, and `ledger/no-deprecated-name` fixes it. */
   | "medium"
-  /** @deprecated A page or record title is `page` (20/26 semibold) and a section's title `section` (13/18 semibold); `small` draws `page` at medium weight, 20/26 medium, for one version. */
+  /** @deprecated A page or record title is `page` (24/30 semibold) and a section's title `section` (15/22 semibold); `small` draws `page` at medium weight, 24/30 medium, for one version. */
   | "small"
   /** @deprecated `xsmall` is `overlay`, the same style and element; `ledger/no-deprecated-name` fixes it. */
   | "xsmall";
@@ -60,7 +60,7 @@ export type HeadingProps = {
   as?: HeadingElement | undefined;
   ref?: Ref<HTMLElement> | undefined;
   children?: ReactNode | undefined;
-  /** The title it matches: `page` (font.heading.page, 20/26 semibold: the page and record title, and a Stat's figure as a div) · `overlay` (font.heading.overlay, 15/22 medium: an overlay's title, a card's title, a group inside an overlay) · `section` (font.heading.section, 13/18 semibold: a section's title) · `display` (font.heading.display, 28/34 semibold: a figure bigger than a Stat's, or the sign-in screen's title). `large`, `medium`, `small` and `xsmall` are deprecated. */
+  /** The title it matches: `page` (font.heading.page, 24/30 semibold: the page and record title, and a Stat's figure as a div) · `overlay` (font.heading.overlay, 17/24 semibold: an overlay's title, a card's title, a group inside an overlay) · `section` (font.heading.section, 15/22 semibold: a section's title) · `display` (font.heading.display, 32/40 semibold: a figure bigger than a Stat's, or the sign-in screen's title). `large`, `medium`, `small` and `xsmall` are deprecated. */
   size: HeadingSize;
   /** `color.text` by default; `color.text.inverse` on a bold fill, which a Box with a bold background sets for you. A tone is not a heading colour. */
   color?: HeadingColorToken | undefined;

@@ -20,9 +20,12 @@ import { Route as SchemaRouteImport } from './routes/schema'
 import { Route as VendorsRouteImport } from './routes/vendors'
 import { Route as WorkRouteImport } from './routes/work'
 import { Route as CampaignsCampaignIdRouteImport } from './routes/campaigns.$campaignId'
+import { Route as EvidenceArtifactIdRouteImport } from './routes/evidence_.$artifactId'
 import { Route as FindingsIndexRouteImport } from './routes/findings.index'
 import { Route as FindingsFindingIdRouteImport } from './routes/findings.$findingId'
 import { Route as IssuesIssueIdRouteImport } from './routes/issues.$issueId'
+import { Route as OverlaysIndexRouteImport } from './routes/overlays.index'
+import { Route as OverlaysOverlayIdRouteImport } from './routes/overlays.$overlayId'
 import { Route as PackagesIndexRouteImport } from './routes/packages.index'
 import { Route as PackagesPkgIdRouteImport } from './routes/packages.$pkgId'
 import { Route as PoamDocumentsDocumentIdRouteImport } from './routes/poam-documents.$documentId'
@@ -35,6 +38,7 @@ import { Route as RegisterIndexRouteImport } from './routes/register.index'
 import { Route as RisksRiskIdRouteImport } from './routes/risks.$riskId'
 import { Route as TasksTaskIdRouteImport } from './routes/tasks.$taskId'
 import { Route as WorkstreamsWorkstreamIdRouteImport } from './routes/workstreams.$workstreamId'
+import { Route as CatalogControlsControlIdRouteImport } from './routes/catalog_.controls.$controlId'
 import { Route as FindingsAssetsAssetIdRouteImport } from './routes/findings.assets.$assetId'
 import { Route as LibraryComponentsIndexRouteImport } from './routes/library.components.index'
 import { Route as LibraryComponentsComponentKeyRouteImport } from './routes/library.components.$componentKey'
@@ -46,10 +50,13 @@ import { Route as ProgramsProgramIdAuthorizationRouteImport } from './routes/pro
 import { Route as ProgramsProgramIdBaselineRouteImport } from './routes/programs.$programId_.baseline'
 import { Route as ProgramsProgramIdCompositionRouteImport } from './routes/programs.$programId_.composition'
 import { Route as ProgramsProgramIdConmonRouteImport } from './routes/programs.$programId_.conmon'
+import { Route as ProgramsProgramIdControlBaselineRouteImport } from './routes/programs.$programId_.control-baseline'
 import { Route as ProgramsProgramIdDashboardRouteImport } from './routes/programs.$programId_.dashboard'
 import { Route as ProgramsProgramIdExportRouteImport } from './routes/programs.$programId_.export'
 import { Route as ProgramsProgramIdIngestionRouteImport } from './routes/programs.$programId_.ingestion'
 import { Route as ProgramsProgramIdInheritanceRouteImport } from './routes/programs.$programId_.inheritance'
+import { Route as ProgramsProgramIdPostureRouteImport } from './routes/programs.$programId_.posture'
+import { Route as ProgramsProgramIdResiliencyRouteImport } from './routes/programs.$programId_.resiliency'
 import { Route as ProgramsProgramIdRiskRouteImport } from './routes/programs.$programId_.risk'
 import { Route as ProgramsProgramIdSctmRouteImport } from './routes/programs.$programId_.sctm'
 import { Route as ProgramsProgramIdTePhasesRouteImport } from './routes/programs.$programId_.te-phases'
@@ -117,6 +124,11 @@ const CampaignsCampaignIdRoute = CampaignsCampaignIdRouteImport.update({
   path: '/$campaignId',
   getParentRoute: () => CampaignsRoute,
 } as any)
+const EvidenceArtifactIdRoute = EvidenceArtifactIdRouteImport.update({
+  id: '/evidence_/$artifactId',
+  path: '/evidence/$artifactId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FindingsIndexRoute = FindingsIndexRouteImport.update({
   id: '/findings/',
   path: '/findings/',
@@ -130,6 +142,16 @@ const FindingsFindingIdRoute = FindingsFindingIdRouteImport.update({
 const IssuesIssueIdRoute = IssuesIssueIdRouteImport.update({
   id: '/issues/$issueId',
   path: '/issues/$issueId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OverlaysIndexRoute = OverlaysIndexRouteImport.update({
+  id: '/overlays/',
+  path: '/overlays/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OverlaysOverlayIdRoute = OverlaysOverlayIdRouteImport.update({
+  id: '/overlays/$overlayId',
+  path: '/overlays/$overlayId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PackagesIndexRoute = PackagesIndexRouteImport.update({
@@ -192,6 +214,12 @@ const WorkstreamsWorkstreamIdRoute = WorkstreamsWorkstreamIdRouteImport.update({
   path: '/workstreams/$workstreamId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CatalogControlsControlIdRoute =
+  CatalogControlsControlIdRouteImport.update({
+    id: '/catalog_/controls/$controlId',
+    path: '/catalog/controls/$controlId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const FindingsAssetsAssetIdRoute = FindingsAssetsAssetIdRouteImport.update({
   id: '/findings/assets/$assetId',
   path: '/findings/assets/$assetId',
@@ -254,6 +282,12 @@ const ProgramsProgramIdConmonRoute = ProgramsProgramIdConmonRouteImport.update({
   path: '/$programId/conmon',
   getParentRoute: () => ProgramsRoute,
 } as any)
+const ProgramsProgramIdControlBaselineRoute =
+  ProgramsProgramIdControlBaselineRouteImport.update({
+    id: '/$programId_/control-baseline',
+    path: '/$programId/control-baseline',
+    getParentRoute: () => ProgramsRoute,
+  } as any)
 const ProgramsProgramIdDashboardRoute =
   ProgramsProgramIdDashboardRouteImport.update({
     id: '/$programId_/dashboard',
@@ -275,6 +309,18 @@ const ProgramsProgramIdInheritanceRoute =
   ProgramsProgramIdInheritanceRouteImport.update({
     id: '/$programId_/inheritance',
     path: '/$programId/inheritance',
+    getParentRoute: () => ProgramsRoute,
+  } as any)
+const ProgramsProgramIdPostureRoute =
+  ProgramsProgramIdPostureRouteImport.update({
+    id: '/$programId_/posture',
+    path: '/$programId/posture',
+    getParentRoute: () => ProgramsRoute,
+  } as any)
+const ProgramsProgramIdResiliencyRoute =
+  ProgramsProgramIdResiliencyRouteImport.update({
+    id: '/$programId_/resiliency',
+    path: '/$programId/resiliency',
     getParentRoute: () => ProgramsRoute,
   } as any)
 const ProgramsProgramIdRiskRoute = ProgramsProgramIdRiskRouteImport.update({
@@ -352,8 +398,10 @@ export interface FileRoutesByFullPath {
   '/vendors': typeof VendorsRoute
   '/work': typeof WorkRoute
   '/campaigns/$campaignId': typeof CampaignsCampaignIdRoute
+  '/evidence/$artifactId': typeof EvidenceArtifactIdRoute
   '/findings/$findingId': typeof FindingsFindingIdRoute
   '/issues/$issueId': typeof IssuesIssueIdRoute
+  '/overlays/$overlayId': typeof OverlaysOverlayIdRoute
   '/packages/$pkgId': typeof PackagesPkgIdRoute
   '/poam-documents/$documentId': typeof PoamDocumentsDocumentIdRoute
   '/profiles/$profileId': typeof ProfilesProfileIdRoute
@@ -364,9 +412,11 @@ export interface FileRoutesByFullPath {
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
   '/findings/': typeof FindingsIndexRoute
+  '/overlays/': typeof OverlaysIndexRoute
   '/packages/': typeof PackagesIndexRoute
   '/profiles/': typeof ProfilesIndexRoute
   '/register/': typeof RegisterIndexRoute
+  '/catalog/controls/$controlId': typeof CatalogControlsControlIdRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
   '/library/products/$productKey': typeof LibraryProductsProductKeyRoute
@@ -375,10 +425,13 @@ export interface FileRoutesByFullPath {
   '/programs/$programId/baseline': typeof ProgramsProgramIdBaselineRoute
   '/programs/$programId/composition': typeof ProgramsProgramIdCompositionRoute
   '/programs/$programId/conmon': typeof ProgramsProgramIdConmonRoute
+  '/programs/$programId/control-baseline': typeof ProgramsProgramIdControlBaselineRoute
   '/programs/$programId/dashboard': typeof ProgramsProgramIdDashboardRoute
   '/programs/$programId/export': typeof ProgramsProgramIdExportRoute
   '/programs/$programId/ingestion': typeof ProgramsProgramIdIngestionRoute
   '/programs/$programId/inheritance': typeof ProgramsProgramIdInheritanceRoute
+  '/programs/$programId/posture': typeof ProgramsProgramIdPostureRoute
+  '/programs/$programId/resiliency': typeof ProgramsProgramIdResiliencyRoute
   '/programs/$programId/risk': typeof ProgramsProgramIdRiskRoute
   '/programs/$programId/sctm': typeof ProgramsProgramIdSctmRoute
   '/programs/$programId/te-phases': typeof ProgramsProgramIdTePhasesRoute
@@ -406,8 +459,10 @@ export interface FileRoutesByTo {
   '/vendors': typeof VendorsRoute
   '/work': typeof WorkRoute
   '/campaigns/$campaignId': typeof CampaignsCampaignIdRoute
+  '/evidence/$artifactId': typeof EvidenceArtifactIdRoute
   '/findings/$findingId': typeof FindingsFindingIdRoute
   '/issues/$issueId': typeof IssuesIssueIdRoute
+  '/overlays/$overlayId': typeof OverlaysOverlayIdRoute
   '/packages/$pkgId': typeof PackagesPkgIdRoute
   '/poam-documents/$documentId': typeof PoamDocumentsDocumentIdRoute
   '/profiles/$profileId': typeof ProfilesProfileIdRoute
@@ -418,9 +473,11 @@ export interface FileRoutesByTo {
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
   '/findings': typeof FindingsIndexRoute
+  '/overlays': typeof OverlaysIndexRoute
   '/packages': typeof PackagesIndexRoute
   '/profiles': typeof ProfilesIndexRoute
   '/register': typeof RegisterIndexRoute
+  '/catalog/controls/$controlId': typeof CatalogControlsControlIdRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
   '/library/products/$productKey': typeof LibraryProductsProductKeyRoute
@@ -429,10 +486,13 @@ export interface FileRoutesByTo {
   '/programs/$programId/baseline': typeof ProgramsProgramIdBaselineRoute
   '/programs/$programId/composition': typeof ProgramsProgramIdCompositionRoute
   '/programs/$programId/conmon': typeof ProgramsProgramIdConmonRoute
+  '/programs/$programId/control-baseline': typeof ProgramsProgramIdControlBaselineRoute
   '/programs/$programId/dashboard': typeof ProgramsProgramIdDashboardRoute
   '/programs/$programId/export': typeof ProgramsProgramIdExportRoute
   '/programs/$programId/ingestion': typeof ProgramsProgramIdIngestionRoute
   '/programs/$programId/inheritance': typeof ProgramsProgramIdInheritanceRoute
+  '/programs/$programId/posture': typeof ProgramsProgramIdPostureRoute
+  '/programs/$programId/resiliency': typeof ProgramsProgramIdResiliencyRoute
   '/programs/$programId/risk': typeof ProgramsProgramIdRiskRoute
   '/programs/$programId/sctm': typeof ProgramsProgramIdSctmRoute
   '/programs/$programId/te-phases': typeof ProgramsProgramIdTePhasesRoute
@@ -461,8 +521,10 @@ export interface FileRoutesById {
   '/vendors': typeof VendorsRoute
   '/work': typeof WorkRoute
   '/campaigns/$campaignId': typeof CampaignsCampaignIdRoute
+  '/evidence_/$artifactId': typeof EvidenceArtifactIdRoute
   '/findings/$findingId': typeof FindingsFindingIdRoute
   '/issues/$issueId': typeof IssuesIssueIdRoute
+  '/overlays/$overlayId': typeof OverlaysOverlayIdRoute
   '/packages/$pkgId': typeof PackagesPkgIdRoute
   '/poam-documents/$documentId': typeof PoamDocumentsDocumentIdRoute
   '/profiles/$profileId': typeof ProfilesProfileIdRoute
@@ -473,9 +535,11 @@ export interface FileRoutesById {
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/workstreams/$workstreamId': typeof WorkstreamsWorkstreamIdRoute
   '/findings/': typeof FindingsIndexRoute
+  '/overlays/': typeof OverlaysIndexRoute
   '/packages/': typeof PackagesIndexRoute
   '/profiles/': typeof ProfilesIndexRoute
   '/register/': typeof RegisterIndexRoute
+  '/catalog_/controls/$controlId': typeof CatalogControlsControlIdRoute
   '/findings/assets/$assetId': typeof FindingsAssetsAssetIdRoute
   '/library/components/$componentKey': typeof LibraryComponentsComponentKeyRoute
   '/library/products/$productKey': typeof LibraryProductsProductKeyRoute
@@ -484,10 +548,13 @@ export interface FileRoutesById {
   '/programs/$programId_/baseline': typeof ProgramsProgramIdBaselineRoute
   '/programs/$programId_/composition': typeof ProgramsProgramIdCompositionRoute
   '/programs/$programId_/conmon': typeof ProgramsProgramIdConmonRoute
+  '/programs/$programId_/control-baseline': typeof ProgramsProgramIdControlBaselineRoute
   '/programs/$programId_/dashboard': typeof ProgramsProgramIdDashboardRoute
   '/programs/$programId_/export': typeof ProgramsProgramIdExportRoute
   '/programs/$programId_/ingestion': typeof ProgramsProgramIdIngestionRoute
   '/programs/$programId_/inheritance': typeof ProgramsProgramIdInheritanceRoute
+  '/programs/$programId_/posture': typeof ProgramsProgramIdPostureRoute
+  '/programs/$programId_/resiliency': typeof ProgramsProgramIdResiliencyRoute
   '/programs/$programId_/risk': typeof ProgramsProgramIdRiskRoute
   '/programs/$programId_/sctm': typeof ProgramsProgramIdSctmRoute
   '/programs/$programId_/te-phases': typeof ProgramsProgramIdTePhasesRoute
@@ -517,8 +584,10 @@ export interface FileRouteTypes {
     | '/vendors'
     | '/work'
     | '/campaigns/$campaignId'
+    | '/evidence/$artifactId'
     | '/findings/$findingId'
     | '/issues/$issueId'
+    | '/overlays/$overlayId'
     | '/packages/$pkgId'
     | '/poam-documents/$documentId'
     | '/profiles/$profileId'
@@ -529,9 +598,11 @@ export interface FileRouteTypes {
     | '/tasks/$taskId'
     | '/workstreams/$workstreamId'
     | '/findings/'
+    | '/overlays/'
     | '/packages/'
     | '/profiles/'
     | '/register/'
+    | '/catalog/controls/$controlId'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
     | '/library/products/$productKey'
@@ -540,10 +611,13 @@ export interface FileRouteTypes {
     | '/programs/$programId/baseline'
     | '/programs/$programId/composition'
     | '/programs/$programId/conmon'
+    | '/programs/$programId/control-baseline'
     | '/programs/$programId/dashboard'
     | '/programs/$programId/export'
     | '/programs/$programId/ingestion'
     | '/programs/$programId/inheritance'
+    | '/programs/$programId/posture'
+    | '/programs/$programId/resiliency'
     | '/programs/$programId/risk'
     | '/programs/$programId/sctm'
     | '/programs/$programId/te-phases'
@@ -571,8 +645,10 @@ export interface FileRouteTypes {
     | '/vendors'
     | '/work'
     | '/campaigns/$campaignId'
+    | '/evidence/$artifactId'
     | '/findings/$findingId'
     | '/issues/$issueId'
+    | '/overlays/$overlayId'
     | '/packages/$pkgId'
     | '/poam-documents/$documentId'
     | '/profiles/$profileId'
@@ -583,9 +659,11 @@ export interface FileRouteTypes {
     | '/tasks/$taskId'
     | '/workstreams/$workstreamId'
     | '/findings'
+    | '/overlays'
     | '/packages'
     | '/profiles'
     | '/register'
+    | '/catalog/controls/$controlId'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
     | '/library/products/$productKey'
@@ -594,10 +672,13 @@ export interface FileRouteTypes {
     | '/programs/$programId/baseline'
     | '/programs/$programId/composition'
     | '/programs/$programId/conmon'
+    | '/programs/$programId/control-baseline'
     | '/programs/$programId/dashboard'
     | '/programs/$programId/export'
     | '/programs/$programId/ingestion'
     | '/programs/$programId/inheritance'
+    | '/programs/$programId/posture'
+    | '/programs/$programId/resiliency'
     | '/programs/$programId/risk'
     | '/programs/$programId/sctm'
     | '/programs/$programId/te-phases'
@@ -625,8 +706,10 @@ export interface FileRouteTypes {
     | '/vendors'
     | '/work'
     | '/campaigns/$campaignId'
+    | '/evidence_/$artifactId'
     | '/findings/$findingId'
     | '/issues/$issueId'
+    | '/overlays/$overlayId'
     | '/packages/$pkgId'
     | '/poam-documents/$documentId'
     | '/profiles/$profileId'
@@ -637,9 +720,11 @@ export interface FileRouteTypes {
     | '/tasks/$taskId'
     | '/workstreams/$workstreamId'
     | '/findings/'
+    | '/overlays/'
     | '/packages/'
     | '/profiles/'
     | '/register/'
+    | '/catalog_/controls/$controlId'
     | '/findings/assets/$assetId'
     | '/library/components/$componentKey'
     | '/library/products/$productKey'
@@ -648,10 +733,13 @@ export interface FileRouteTypes {
     | '/programs/$programId_/baseline'
     | '/programs/$programId_/composition'
     | '/programs/$programId_/conmon'
+    | '/programs/$programId_/control-baseline'
     | '/programs/$programId_/dashboard'
     | '/programs/$programId_/export'
     | '/programs/$programId_/ingestion'
     | '/programs/$programId_/inheritance'
+    | '/programs/$programId_/posture'
+    | '/programs/$programId_/resiliency'
     | '/programs/$programId_/risk'
     | '/programs/$programId_/sctm'
     | '/programs/$programId_/te-phases'
@@ -679,8 +767,10 @@ export interface RootRouteChildren {
   SchemaRoute: typeof SchemaRoute
   VendorsRoute: typeof VendorsRoute
   WorkRoute: typeof WorkRoute
+  EvidenceArtifactIdRoute: typeof EvidenceArtifactIdRoute
   FindingsFindingIdRoute: typeof FindingsFindingIdRoute
   IssuesIssueIdRoute: typeof IssuesIssueIdRoute
+  OverlaysOverlayIdRoute: typeof OverlaysOverlayIdRoute
   PackagesPkgIdRoute: typeof PackagesPkgIdRoute
   PoamDocumentsDocumentIdRoute: typeof PoamDocumentsDocumentIdRoute
   ProfilesProfileIdRoute: typeof ProfilesProfileIdRoute
@@ -688,9 +778,11 @@ export interface RootRouteChildren {
   TasksTaskIdRoute: typeof TasksTaskIdRoute
   WorkstreamsWorkstreamIdRoute: typeof WorkstreamsWorkstreamIdRoute
   FindingsIndexRoute: typeof FindingsIndexRoute
+  OverlaysIndexRoute: typeof OverlaysIndexRoute
   PackagesIndexRoute: typeof PackagesIndexRoute
   ProfilesIndexRoute: typeof ProfilesIndexRoute
   RegisterIndexRoute: typeof RegisterIndexRoute
+  CatalogControlsControlIdRoute: typeof CatalogControlsControlIdRoute
   FindingsAssetsAssetIdRoute: typeof FindingsAssetsAssetIdRoute
   LibraryComponentsComponentKeyRoute: typeof LibraryComponentsComponentKeyRoute
   LibraryProductsProductKeyRoute: typeof LibraryProductsProductKeyRoute
@@ -781,6 +873,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CampaignsCampaignIdRouteImport
       parentRoute: typeof CampaignsRoute
     }
+    '/evidence_/$artifactId': {
+      id: '/evidence_/$artifactId'
+      path: '/evidence/$artifactId'
+      fullPath: '/evidence/$artifactId'
+      preLoaderRoute: typeof EvidenceArtifactIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/findings/': {
       id: '/findings/'
       path: '/findings'
@@ -800,6 +899,20 @@ declare module '@tanstack/react-router' {
       path: '/issues/$issueId'
       fullPath: '/issues/$issueId'
       preLoaderRoute: typeof IssuesIssueIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/overlays/': {
+      id: '/overlays/'
+      path: '/overlays'
+      fullPath: '/overlays/'
+      preLoaderRoute: typeof OverlaysIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/overlays/$overlayId': {
+      id: '/overlays/$overlayId'
+      path: '/overlays/$overlayId'
+      fullPath: '/overlays/$overlayId'
+      preLoaderRoute: typeof OverlaysOverlayIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/packages/': {
@@ -886,6 +999,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkstreamsWorkstreamIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/catalog_/controls/$controlId': {
+      id: '/catalog_/controls/$controlId'
+      path: '/catalog/controls/$controlId'
+      fullPath: '/catalog/controls/$controlId'
+      preLoaderRoute: typeof CatalogControlsControlIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/findings/assets/$assetId': {
       id: '/findings/assets/$assetId'
       path: '/findings/assets/$assetId'
@@ -963,6 +1083,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProgramsProgramIdConmonRouteImport
       parentRoute: typeof ProgramsRoute
     }
+    '/programs/$programId_/control-baseline': {
+      id: '/programs/$programId_/control-baseline'
+      path: '/$programId/control-baseline'
+      fullPath: '/programs/$programId/control-baseline'
+      preLoaderRoute: typeof ProgramsProgramIdControlBaselineRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
     '/programs/$programId_/dashboard': {
       id: '/programs/$programId_/dashboard'
       path: '/$programId/dashboard'
@@ -989,6 +1116,20 @@ declare module '@tanstack/react-router' {
       path: '/$programId/inheritance'
       fullPath: '/programs/$programId/inheritance'
       preLoaderRoute: typeof ProgramsProgramIdInheritanceRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
+    '/programs/$programId_/posture': {
+      id: '/programs/$programId_/posture'
+      path: '/$programId/posture'
+      fullPath: '/programs/$programId/posture'
+      preLoaderRoute: typeof ProgramsProgramIdPostureRouteImport
+      parentRoute: typeof ProgramsRoute
+    }
+    '/programs/$programId_/resiliency': {
+      id: '/programs/$programId_/resiliency'
+      path: '/$programId/resiliency'
+      fullPath: '/programs/$programId/resiliency'
+      preLoaderRoute: typeof ProgramsProgramIdResiliencyRouteImport
       parentRoute: typeof ProgramsRoute
     }
     '/programs/$programId_/risk': {
@@ -1090,10 +1231,13 @@ interface ProgramsRouteChildren {
   ProgramsProgramIdBaselineRoute: typeof ProgramsProgramIdBaselineRoute
   ProgramsProgramIdCompositionRoute: typeof ProgramsProgramIdCompositionRoute
   ProgramsProgramIdConmonRoute: typeof ProgramsProgramIdConmonRoute
+  ProgramsProgramIdControlBaselineRoute: typeof ProgramsProgramIdControlBaselineRoute
   ProgramsProgramIdDashboardRoute: typeof ProgramsProgramIdDashboardRoute
   ProgramsProgramIdExportRoute: typeof ProgramsProgramIdExportRoute
   ProgramsProgramIdIngestionRoute: typeof ProgramsProgramIdIngestionRoute
   ProgramsProgramIdInheritanceRoute: typeof ProgramsProgramIdInheritanceRoute
+  ProgramsProgramIdPostureRoute: typeof ProgramsProgramIdPostureRoute
+  ProgramsProgramIdResiliencyRoute: typeof ProgramsProgramIdResiliencyRoute
   ProgramsProgramIdRiskRoute: typeof ProgramsProgramIdRiskRoute
   ProgramsProgramIdSctmRoute: typeof ProgramsProgramIdSctmRoute
   ProgramsProgramIdTePhasesRoute: typeof ProgramsProgramIdTePhasesRoute
@@ -1111,10 +1255,13 @@ const ProgramsRouteChildren: ProgramsRouteChildren = {
   ProgramsProgramIdBaselineRoute: ProgramsProgramIdBaselineRoute,
   ProgramsProgramIdCompositionRoute: ProgramsProgramIdCompositionRoute,
   ProgramsProgramIdConmonRoute: ProgramsProgramIdConmonRoute,
+  ProgramsProgramIdControlBaselineRoute: ProgramsProgramIdControlBaselineRoute,
   ProgramsProgramIdDashboardRoute: ProgramsProgramIdDashboardRoute,
   ProgramsProgramIdExportRoute: ProgramsProgramIdExportRoute,
   ProgramsProgramIdIngestionRoute: ProgramsProgramIdIngestionRoute,
   ProgramsProgramIdInheritanceRoute: ProgramsProgramIdInheritanceRoute,
+  ProgramsProgramIdPostureRoute: ProgramsProgramIdPostureRoute,
+  ProgramsProgramIdResiliencyRoute: ProgramsProgramIdResiliencyRoute,
   ProgramsProgramIdRiskRoute: ProgramsProgramIdRiskRoute,
   ProgramsProgramIdSctmRoute: ProgramsProgramIdSctmRoute,
   ProgramsProgramIdTePhasesRoute: ProgramsProgramIdTePhasesRoute,
@@ -1164,8 +1311,10 @@ const rootRouteChildren: RootRouteChildren = {
   SchemaRoute: SchemaRoute,
   VendorsRoute: VendorsRoute,
   WorkRoute: WorkRoute,
+  EvidenceArtifactIdRoute: EvidenceArtifactIdRoute,
   FindingsFindingIdRoute: FindingsFindingIdRoute,
   IssuesIssueIdRoute: IssuesIssueIdRoute,
+  OverlaysOverlayIdRoute: OverlaysOverlayIdRoute,
   PackagesPkgIdRoute: PackagesPkgIdRoute,
   PoamDocumentsDocumentIdRoute: PoamDocumentsDocumentIdRoute,
   ProfilesProfileIdRoute: ProfilesProfileIdRoute,
@@ -1173,9 +1322,11 @@ const rootRouteChildren: RootRouteChildren = {
   TasksTaskIdRoute: TasksTaskIdRoute,
   WorkstreamsWorkstreamIdRoute: WorkstreamsWorkstreamIdRoute,
   FindingsIndexRoute: FindingsIndexRoute,
+  OverlaysIndexRoute: OverlaysIndexRoute,
   PackagesIndexRoute: PackagesIndexRoute,
   ProfilesIndexRoute: ProfilesIndexRoute,
   RegisterIndexRoute: RegisterIndexRoute,
+  CatalogControlsControlIdRoute: CatalogControlsControlIdRoute,
   FindingsAssetsAssetIdRoute: FindingsAssetsAssetIdRoute,
   LibraryComponentsComponentKeyRoute: LibraryComponentsComponentKeyRoute,
   LibraryProductsProductKeyRoute: LibraryProductsProductKeyRoute,

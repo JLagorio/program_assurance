@@ -1,6 +1,7 @@
 import {
   createContext,
   isValidElement,
+  memo,
   useCallback,
   useContext,
   useEffect,
@@ -10,9 +11,10 @@ import {
   useRef,
   useState,
   type ComponentProps,
+  type JSX,
   type ReactNode,
 } from "react";
-import { Link, linkOptions } from "@tanstack/react-router";
+import { Link, linkOptions, useNavigate, useRouterState } from "@tanstack/react-router";
 import { createPortal } from "react-dom";
 import { Pin } from "lucide-react";
 import { useWorkspace } from "@/components/app/workspace";
@@ -25,6 +27,7 @@ import {
 } from "./record-comparison";
 import { RecordPeek } from "./record-peek";
 import {
+  Button,
   HeadingLevelProvider,
   Comparison,
   IconButton,
@@ -65,6 +68,26 @@ const PreviewFrames = createContext<{
   setTarget: (id: string, element: HTMLDivElement | null) => void;
 } | null>(null);
 const PreviewParent = createContext<string | null>(null);
+/**
+ * Opens the preview of a record that has no page of its own, from wherever its name is drawn:
+ * `parentId` is the preview frame the name sits in, when it sits in one, so Back returns there.
+ */
+const LinkedPreview = createContext<
+  ((identity: RecordIdentity, parentId: string | null, opener: Element | null) => void) | null
+>(null);
+/** A linked record's preview, as the host draws it: the application's one renderer for it. */
+export type LinkedRecordRenderer = (props: {
+  identity: RecordIdentity;
+  onClose: () => void;
+}) => ReactNode;
+type LinkedEntry = {
+  key: number;
+  identity: RecordIdentity;
+  parentId: string | null;
+  /** Where a preview opened from the page stands: the page, and the tab panel that held its name. */
+  path: string;
+  panel: Element | null;
+};
 const PreviewTargets = createContext<ReadonlyMap<string, HTMLDivElement>>(new Map());
 /**
  * What the header's navigation knows about the frame it steps through: the frame's name, said with
@@ -118,9 +141,45 @@ function PreviewFrameSlot({ id, hidden }: { id: string; hidden: boolean }) {
   return <div ref={target} hidden={hidden} />;
 }
 
+/**
+ * One linked record's preview, drawn by the host. It is drawn once for its entry: the host
+ * re-renders whenever a frame registers, and a frame drawn again would register again.
+ */
+const LinkedFrame = memo(function LinkedFrame({
+  entry,
+  render,
+  onClose,
+}: {
+  entry: LinkedEntry;
+  render: LinkedRecordRenderer;
+  onClose: (key: number) => void;
+}) {
+  const close = useCallback(() => onClose(entry.key), [onClose, entry.key]);
+  const frame = useMemo(
+    () => render({ identity: entry.identity, onClose: close }),
+    [render, entry.identity, close],
+  );
+  return <PreviewParent.Provider value={entry.parentId}>{frame}</PreviewParent.Provider>;
+});
+
 /** One application host keeps sibling and linked-record previews in the same shell surface. */
-export function RecordPreviewProvider({ children }: { children: ReactNode }) {
+export function RecordPreviewProvider({
+  children,
+  linked: renderLinked,
+}: {
+  children: ReactNode;
+  /**
+   * Draws the preview of a record that has no page: a name that leads nowhere else opens it here,
+   * in the same panel as a collection's preview. Without it such a name is plain text.
+   */
+  linked?: LinkedRecordRenderer | undefined;
+}) {
   const [frames, setFrames] = useState<PreviewFrame[]>([]);
+  const [linked, setLinked] = useState<LinkedEntry[]>([]);
+  const linkedKey = useRef(0);
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const pathRef = useRef(pathname);
+  pathRef.current = pathname;
   const workspace = useWorkspace();
   const [pinned, setPinned] = useState<RecordIdentity | null>(null);
   const [activePane, setActivePane] = useState<"primary" | "secondary">("primary");
@@ -177,6 +236,15 @@ export function RecordPreviewProvider({ children }: { children: ReactNode }) {
   const remove = useCallback((id: string) => {
     mountedFrames.current.delete(id);
     nestedOpeners.current.delete(id);
+    // A linked preview opened from a frame leaves with it, and so does one opened from that one.
+    const gone = new Set([id]);
+    for (const frame of frameRef.current)
+      if (frame.parentId && gone.has(frame.parentId)) gone.add(frame.id);
+    setLinked((previous) =>
+      previous.some((entry) => entry.parentId !== null && gone.has(entry.parentId))
+        ? previous.filter((entry) => entry.parentId === null || !gone.has(entry.parentId))
+        : previous,
+    );
     setFrames((previous) => {
       const removed = new Set([id]);
       for (const frame of previous)
@@ -195,6 +263,47 @@ export function RecordPreviewProvider({ children }: { children: ReactNode }) {
       return next;
     });
   }, []);
+  const openLinked = useCallback(
+    (identity: RecordIdentity, parentId: string | null, opener: Element | null) => {
+      const entry: LinkedEntry = {
+        key: (linkedKey.current += 1),
+        identity,
+        parentId,
+        path: pathRef.current,
+        panel: parentId === null ? (opener?.closest('[role="tabpanel"]') ?? null) : null,
+      };
+      // From the page it is the panel's one preview; from inside a preview it is a frame over it.
+      setLinked((previous) => (parentId === null ? [entry] : [...previous, entry]));
+    },
+    [],
+  );
+  const closeLinked = useCallback((key: number) => {
+    // A frame opened from this one closes with it: they were opened in order.
+    setLinked((previous) => {
+      const at = previous.findIndex((entry) => entry.key === key);
+      return at < 0 ? previous : previous.slice(0, at);
+    });
+  }, []);
+  // A preview opened from the page belongs to that page, and to the tab its name sat in: another
+  // page, or the tab's panel hiding, ends it, as a collection's preview ends with its tab.
+  useEffect(() => {
+    setLinked((previous) =>
+      previous.some((entry) => entry.path !== pathname)
+        ? previous.filter((entry) => entry.path === pathname)
+        : previous,
+    );
+  }, [pathname]);
+  const watched = linked.find((entry) => entry.parentId === null)?.panel ?? null;
+  useEffect(() => {
+    if (!watched) return;
+    const end = () => {
+      if (watched.isConnected && !watched.closest("[hidden]")) return;
+      setLinked((previous) => previous.filter((entry) => entry.panel !== watched));
+    };
+    const observer = new MutationObserver(end);
+    observer.observe(watched, { attributes: true, attributeFilter: ["hidden"] });
+    return () => observer.disconnect();
+  }, [watched]);
   const context = useMemo(() => ({ register, remove, setTarget }), [register, remove, setTarget]);
   const current = frames.at(-1);
   const {
@@ -272,7 +381,20 @@ export function RecordPreviewProvider({ children }: { children: ReactNode }) {
   return (
     <RecordComparisonContext.Provider value={comparison}>
       <PreviewFrames.Provider value={context}>
-        <PreviewTargets.Provider value={targets}>{children}</PreviewTargets.Provider>
+        <PreviewTargets.Provider value={targets}>
+          <LinkedPreview.Provider value={renderLinked ? openLinked : null}>
+            {children}
+            {renderLinked &&
+              linked.map((entry) => (
+                <LinkedFrame
+                  key={entry.key}
+                  entry={entry}
+                  render={renderLinked}
+                  onClose={closeLinked}
+                />
+              ))}
+          </LinkedPreview.Provider>
+        </PreviewTargets.Provider>
         {(current || pinned) && (
           <Shell.Panel
             {...panelProps}
@@ -381,10 +503,19 @@ export function RecordPreviewPanel(props: RecordPreviewPanelProps) {
     : null;
 }
 
-/** Only destinations backed by an existing record route; all other models have a schema record. */
+/**
+ * Where a record's name leads: its page. A record with no page of its own has none (`null`): its
+ * name opens its preview instead, and the schema inspector is reached from a record's Actions
+ * menu, never from a name. A record read inside a program (`program_id` on what is passed) opens
+ * the program's page for it; a revision opens the record it is a version of.
+ */
 export function recordDestination(table: TableName, record: PreviewRecord) {
   const id = record.id;
-  const programId = typeof record["program_id"] === "string" ? record["program_id"] : undefined;
+  const named = (key: string) => {
+    const value = record[key];
+    return typeof value === "string" && value ? value : undefined;
+  };
+  const programId = named("program_id");
   switch (table) {
     case "programs":
       return linkOptions({ to: "/programs/$programId", params: { programId: id } });
@@ -419,6 +550,45 @@ export function recordDestination(table: TableName, record: PreviewRecord) {
       });
     case "profiles":
       return linkOptions({ to: "/profiles/$profileId", params: { profileId: id } });
+    case "control_overlays":
+    case "control_overlay_rows":
+      return linkOptions({ to: "/overlays/$overlayId", params: { overlayId: id } });
+    // A catalog control opens its catalog record; read inside a program, the program's control.
+    case "controls":
+      return programId
+        ? linkOptions({
+            to: "/programs/$programId/controls/$controlId",
+            params: { programId, controlId: id },
+          })
+        : linkOptions({ to: "/catalog/controls/$controlId", params: { controlId: id } });
+    case "evidence_artifacts":
+      return linkOptions({ to: "/evidence/$artifactId", params: { artifactId: id } });
+    // A version opens the record it is a version of, at that version.
+    case "evidence_versions": {
+      const artifactId = named("artifact_id");
+      if (artifactId)
+        return linkOptions({
+          to: "/evidence/$artifactId",
+          params: { artifactId },
+          search: { version: id },
+        });
+      break;
+    }
+    case "risk_revisions": {
+      const riskId = named("risk_id");
+      if (riskId)
+        return linkOptions({
+          to: "/register/risks/$riskId",
+          params: { riskId },
+          search: { tab: "assessments" },
+        });
+      break;
+    }
+    case "poam_item_revisions": {
+      const poamId = named("poam_item_id");
+      if (poamId) return linkOptions({ to: "/register/poam/$poamId", params: { poamId } });
+      break;
+    }
     case "systems":
       if (programId)
         return linkOptions({
@@ -449,35 +619,120 @@ export function recordDestination(table: TableName, record: PreviewRecord) {
         });
       break;
   }
-  return linkOptions({
-    to: "/records/$collection/$recordId",
-    params: { collection: table, recordId: id },
-  });
+  return null;
+}
+
+/** Where a record's name leads, when it has a page. */
+export type RecordDestination = NonNullable<ReturnType<typeof recordDestination>>;
+
+/**
+ * The link to a record's page as an element, for a part that takes one (a feed entry, a trace's
+ * record, a chart's mark); nothing for a record with no page, which such a part draws as text.
+ */
+export function recordLink(table: TableName, record: PreviewRecord): JSX.Element | undefined {
+  const destination = recordDestination(table, record);
+  return destination ? <Link {...destination} /> : undefined;
 }
 
 /**
+ * Opens a record that has no page, as its name does: its preview, in the panel beside the page or
+ * as a frame over the preview the name sits in. `null` where no preview can open (outside the
+ * application's shell), so the name is plain text there.
+ */
+export function useLinkedPreview() {
+  const open = useContext(LinkedPreview);
+  const parentId = useContext(PreviewParent);
+  return useMemo(
+    () =>
+      open
+        ? (identity: RecordIdentity, opener?: Element | null) =>
+            open(identity, parentId, opener ?? null)
+        : null,
+    [open, parentId],
+  );
+}
+
+/**
+ * Opens a record as a row click does: its page, or its preview where it has no page. A collection
+ * with a preview of its own passes it as `preview`, so the row opens there, among its neighbours.
+ */
+export function useOpenRecord() {
+  const navigate = useNavigate();
+  const linked = useLinkedPreview();
+  return useCallback(
+    (table: TableName, record: PreviewRecord, preview?: (() => void) | undefined) => {
+      const destination = recordDestination(table, record);
+      if (destination) void navigate(destination);
+      else if (preview) preview();
+      else linked?.({ table, id: record.id, label: recordName(record) });
+    },
+    [navigate, linked],
+  );
+}
+
+/**
+ * Set inside a record's name. A name drawn within it (a link row named by the record it links) is
+ * that name's words, never a second link or button inside the first.
+ */
+const InsideRecordName = createContext(false);
+
+/**
  * A record's name, linked to its record page. In a table cell that cuts it, the table shows it
- * whole on hover, on the link's keyboard focus and on a long press (the kit's cut reveal).
+ * whole on hover, on the link's keyboard focus and on a long press (the kit's cut reveal). A
+ * record with no page is named by a link-styled button that opens its preview: the collection's
+ * own (`onPreview`), else the panel's preview of the record alone. Inside a dialog or a sheet,
+ * where no preview can open beside the task, such a name is plain text.
  */
 export function RecordLink({
   table,
   record,
   children,
   peek = false,
+  onPreview,
 }: {
   table: TableName;
   record: PreviewRecord;
   children: ReactNode;
   /** Linked identifiers opt into a lazy summary and explicit compare action. */
   peek?: boolean | undefined;
+  /** Opens the collection's own preview of the record, for a record with no page. */
+  onPreview?: (() => void) | undefined;
 }) {
+  const destination = recordDestination(table, record);
+  const linked = useLinkedPreview();
+  const inside = useContext(InsideRecordName);
+  // Whether the name sits in a modal surface, read once it is drawn.
+  const [modal, setModal] = useState(false);
+  const place = useCallback((node: HTMLElement | null) => {
+    if (node) setModal(!!node.closest('[role="dialog"], [role="alertdialog"]'));
+  }, []);
+  if (inside) return <>{children}</>;
+  const words = <InsideRecordName.Provider value>{children}</InsideRecordName.Provider>;
+  if (!destination) {
+    if (!onPreview && (!linked || modal)) return <>{children}</>;
+    return (
+      <Button
+        ref={place}
+        variant="link"
+        truncate
+        onClick={(event) => {
+          // The row's own click would open it a second time.
+          event.stopPropagation();
+          if (onPreview) onPreview();
+          else
+            linked?.(
+              { table, id: record.id, label: textOf(children) || recordName(record) },
+              event.currentTarget,
+            );
+        }}
+      >
+        {words}
+      </Button>
+    );
+  }
   const link = (
-    <TextLink
-      render={
-        <Link {...recordDestination(table, record)} onClick={(event) => event.stopPropagation()} />
-      }
-    >
-      {children}
+    <TextLink render={<Link {...destination} onClick={(event) => event.stopPropagation()} />}>
+      {words}
     </TextLink>
   );
   return peek ? (
@@ -556,7 +811,8 @@ export function RecordPreviewActions<T extends { id: string }>({
 }: {
   table: TableName;
   record: PreviewRecord;
-  destination?: ReturnType<typeof recordDestination> | undefined;
+  /** The record's page, when the caller has resolved it; `null` for a record with none. */
+  destination?: RecordDestination | null | undefined;
   /** The full-record link; `false` for a preview inside a selection task, which opens no record. */
   openLink?: ComponentProps<typeof PreviewNavigation>["openLink"] | false | undefined;
   rows: readonly T[];
@@ -613,6 +869,8 @@ export function RecordPreviewActions<T extends { id: string }>({
   const placed = position > 0;
   const onPrevious = placed && position > 1 ? () => showAt(position - 1) : undefined;
   const onNext = placed && position < count ? () => showAt(position + 1) : undefined;
+  // A record with no page has no full record to open: its preview is all there is.
+  const page = destination === undefined ? recordDestination(table, record) : destination;
   return (
     <Inline space="space.050">
       {comparison && openLink !== false && (
@@ -638,13 +896,8 @@ export function RecordPreviewActions<T extends { id: string }>({
         openLink={
           openLink === false
             ? undefined
-            : (openLink ?? (
-                <Link
-                  {...(destination ?? recordDestination(table, record))}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                />
-              ))
+            : (openLink ??
+              (page ? <Link {...page} target="_blank" rel="noopener noreferrer" /> : undefined))
         }
       />
     </Inline>

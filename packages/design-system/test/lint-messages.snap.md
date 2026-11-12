@@ -198,7 +198,7 @@ descendant: "[&_button]:bg-danger-bold" styles the elements inside the one it is
 ## ledger/no-static-design-value
 
 ```text
-fixedRadius: "rounded" is a fixed 4px radius, off the radius scale. Nearest: rounded-small (3px, count chips, the checkbox, skeleton lines…) or rounded-medium (5px, buttons, inputs, chips, tooltips, menu items).
+fixedRadius: "rounded" is a fixed 4px radius, off the radius scale. Nearest: rounded-small (3px, count chips, the checkbox, skeleton lines…).
 numericOpacity: "opacity-50" is a numeric opacity. Ledger has opacity-disabled (0.4, opacity of disabled elements when a disabled…) or opacity-loading (0.2, opacity of content in a loading state).
 numericDuration: "duration-200" is a numeric duration. Nearest: duration-moderate (240ms, a dialog or a sheet arriving, the panel…) or duration-medium (150ms, a menu or a popover arriving, a section…).
 numericBorder: "border-2" is a numeric border width. 2px is border-w-selected (the width used to indicate a selected element…) or border-w-focused (the width used for the focus ring on…).

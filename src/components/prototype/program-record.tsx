@@ -30,6 +30,7 @@ import {
   VisuallyHidden,
 } from "@ledger/design-system";
 import { ChevronDown } from "lucide-react";
+import { useAssuranceTrace } from "@/lib/assurance-trace";
 import { useRow } from "@/lib/models";
 import { useProductLookup } from "@/lib/product-items";
 import type { SystemElement } from "@/lib/system-tree";
@@ -60,6 +61,7 @@ import {
   impactProvenance,
 } from "./system-assurance-details";
 import { useSystemAssurance } from "./use-system-assurance";
+import { TraceBand } from "./assurance-trace";
 import { RelationName } from "./record-tools";
 import { RecordTrail, TrailLink } from "./record-trail";
 import { SspAssembly } from "./ssp-assembly";
@@ -107,6 +109,7 @@ function ProgramRecordFrame({
   collection,
   trail,
   actions,
+  band,
   properties,
   summary,
   queries,
@@ -126,6 +129,8 @@ function ProgramRecordFrame({
   trail?: ReactNode[] | undefined;
   /** Header actions beside Edit. */
   actions?: ReactNode;
+  /** A chain record's band and trace, across the page between the header and the body. */
+  band?: ReactNode;
   /** The Details rows (KeyValues) of a record without tabs, beside everything under the header. A tabbed record leaves it out and lays RecordDetails beside its Overview. */
   properties?: ReactNode;
   /** The record's state as its status badge, for the Details disclosure's row on a phone. */
@@ -191,6 +196,7 @@ function ProgramRecordFrame({
             </DropdownMenu>
           </PageHeader.Actions>
         </PageHeader>
+        {band}
         {properties !== undefined ? (
           <AsideLayout
             aside={
@@ -727,6 +733,10 @@ export function ProgramControlRecord({
   const system = useRow("systems", plan.data?.system_id);
   const selected = useRow("selected_controls", implementation.data?.selected_control_id);
   const control = useRow("controls", selected.data?.control_id);
+  // The control's chain in this program: the requirements that meet it here, and what follows.
+  const trace = useAssuranceTrace(
+    control.data ? { kind: "control", id: control.data.id, programId } : null,
+  );
   const [showSource, setShowSource] = useState(false);
   const pending =
     implementation.isPending ||
@@ -763,6 +773,16 @@ export function ProgramControlRecord({
           <DropdownMenuItem onClick={() => setShowSource(true)}>
             Read control and assessment objectives
           </DropdownMenuItem>
+        )
+      }
+      band={
+        control.data && (
+          <TraceBand
+            trace={trace}
+            kind="control"
+            name={`the control ${control.data.code} ${control.data.title}`}
+            programId={programId}
+          />
         )
       }
       properties={
@@ -831,6 +851,7 @@ export function ProgramControlRecord({
         <ControlInspector
           task="Control source inspection"
           control={control.data}
+          programId={programId}
           onClose={() => setShowSource(false)}
         />
       )}

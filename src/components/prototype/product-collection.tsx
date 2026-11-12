@@ -71,6 +71,13 @@ export type ProductCollectionProps<T extends { id: string }> = Omit<
    */
   actionVariant?: "primary" | "secondary" | undefined;
   commands?: { label: string; onSelect: () => void; disabled?: boolean }[] | undefined;
+  /**
+   * The verbs for the chosen rows (Assign owner), as small Buttons. While rows are chosen the
+   * table's selection bar takes the toolbar's place and draws them beside the count and Clear, so
+   * the rows stay where they were. They act on every chosen row, the ones on other pages too. Give
+   * the table `selectable` for a reader who may run them, and leave both off for one who may not.
+   */
+  selection?: ReactNode;
   /** The sort as a toolbar menu, for rows whose columns fold into More fields. On unless the
    * collection's order is its meaning. */
   sort?: boolean | undefined;
@@ -208,6 +215,7 @@ export function ProductCollection<T extends { id: string }>({
   filters,
   action: drawnAction,
   commands,
+  selection,
   empty: drawnEmpty,
   sort = true,
   keepQuestion = true,
@@ -270,6 +278,8 @@ export function ProductCollection<T extends { id: string }>({
   const displayControls = showSort || showColumns || !compact || !!commands?.length;
   const hasToolbar =
     search || views || Children.toArray(filters).length > 0 || action || displayControls;
+  // While rows are chosen the selection bar takes the toolbar's slot, so the rows stay in place.
+  const choosing = !!selection && Object.values(table.state.rowSelection).some(Boolean);
   const collection = (
     <DataTable
       {...props}
@@ -290,7 +300,9 @@ export function ProductCollection<T extends { id: string }>({
         ...(compact ? { size: "compact" as const, icon: empty?.icon ?? <Inbox /> } : {}),
       }}
       toolbar={
-        hasToolbar ? (
+        choosing ? (
+          <DataTable.SelectionBar table={table} actions={selection} />
+        ) : hasToolbar ? (
           <Toolbar
             {...(search
               ? {

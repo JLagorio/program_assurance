@@ -1,6 +1,5 @@
 import { ProductCollection } from "./product-collection";
 import { useMemo, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import {
   Absent,
   Badge,
@@ -26,6 +25,7 @@ import {
   recordDestination,
   useDisplayedRecords,
   useEndOnHide,
+  useOpenRecord,
 } from "./record-preview";
 import { Plus } from "lucide-react";
 import { StatusBadge } from "@/components/app/status";
@@ -44,12 +44,13 @@ type Line = LibraryUseRow & {
   appliedByName: string | null;
 };
 
-const libraryDestination = (row: LibraryUseRow) =>
+/** The record a library line names: a component definition, a resolved profile, or the element. */
+const libraryRecord = (row: LibraryUseRow, programId: string) =>
   row.definitionId
-    ? recordDestination("component_definitions", { id: row.definitionId })
+    ? ({ table: "component_definitions", record: { id: row.definitionId } } as const)
     : row.revisionId
-      ? recordDestination("profile_resolutions", { id: row.revisionId })
-      : recordDestination("systems", { id: row.elementId });
+      ? ({ table: "profile_resolutions", record: { id: row.revisionId } } as const)
+      : ({ table: "systems", record: { id: row.elementId, program_id: programId } } as const);
 
 const presets: Preset[] = [
   { id: "all", label: "Everything applied" },
@@ -82,7 +83,7 @@ export function SystemLibrary({
   onAddFromLibrary?: (() => void) | undefined;
 }) {
   const workspace = useWorkspace();
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   const components = useRows("system_components", { system_id: element.boundary_system_id });
   // Each read asks for what the boundary's components name, never a whole table.
   const scope = useMemo(
@@ -171,17 +172,9 @@ export function SystemLibrary({
           description: (row) => row.detail,
           cell: (row) => (
             <RecordLink
-              table={
-                row.definitionId
-                  ? "component_definitions"
-                  : row.revisionId
-                    ? "profile_resolutions"
-                    : "systems"
-              }
-              record={{
-                id: row.definitionId ?? row.revisionId ?? row.elementId,
-                program_id: programId,
-              }}
+              {...libraryRecord(row, programId)}
+              // A resolved profile has no page: its name opens this preview.
+              onPreview={() => setSelectedId(row.id)}
             >
               {row.name}
             </RecordLink>
@@ -262,7 +255,10 @@ export function SystemLibrary({
     <>
       <ProductCollection
         table={table}
-        onRowClick={(row) => void navigate(libraryDestination(row))}
+        onRowClick={(row) => {
+          const { table: model, record } = libraryRecord(row, programId);
+          openRecord(model, record, () => setSelectedId(row.id));
+        }}
         empty={{
           illustration: "records",
           title: "Nothing from the library yet",
@@ -320,7 +316,10 @@ export function SystemLibrary({
             <RecordPreviewActions
               table="component_definitions"
               record={selected}
-              destination={libraryDestination(selected)}
+              destination={recordDestination(
+                libraryRecord(selected, programId).table,
+                libraryRecord(selected, programId).record,
+              )}
               rows={displayed}
               onSelect={(row) => setSelectedId(row.id)}
             />

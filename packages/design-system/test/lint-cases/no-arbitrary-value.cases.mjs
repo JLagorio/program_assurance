@@ -202,19 +202,19 @@ export default {
       // type size, a border width or a duration, and an editor suggestion only for the same value,
       // never a fix. Off the scale, the scale's range. On an element use-primitives does not read, the
       // class is the answer.
-      code: '<button className="p-[13px] p-[16px] -top-[13px] rounded-[5px] border-[2px] border-t-[1px] duration-[250ms] p-[400px]" />',
+      code: '<button className="p-[13px] p-[16px] -top-[13px] rounded-[6px] border-[2px] border-t-[1px] duration-[250ms] p-[400px]" />',
       output: null,
       errors: [
         arbitrary("p-[13px]", "Nearest: p-150 (12px) or p-200 (16px).", { line: 1, column: 19 }),
         arbitrary("p-[16px]", "16px is p-200 (space.200).", {
           suggestions: [
             same(
-              '<button className="p-[13px] p-200 -top-[13px] rounded-[5px] border-[2px] border-t-[1px] duration-[250ms] p-[400px]" />',
+              '<button className="p-[13px] p-200 -top-[13px] rounded-[6px] border-[2px] border-t-[1px] duration-[250ms] p-[400px]" />',
             ),
           ],
         }),
         arbitrary("-top-[13px]", "Nearest: -top-150 (12px) or -top-200 (16px)."),
-        arbitrary("rounded-[5px]", "5px is rounded-medium.", {
+        arbitrary("rounded-[6px]", "6px is rounded-medium.", {
           suggestions: [
             same(
               '<button className="p-[13px] p-[16px] -top-[13px] rounded-medium border-[2px] border-t-[1px] duration-[250ms] p-[400px]" />',
@@ -230,7 +230,7 @@ export default {
         arbitrary("border-t-[1px]", "1px is border-t.", {
           suggestions: [
             same(
-              '<button className="p-[13px] p-[16px] -top-[13px] rounded-[5px] border-[2px] border-t duration-[250ms] p-[400px]" />',
+              '<button className="p-[13px] p-[16px] -top-[13px] rounded-[6px] border-[2px] border-t duration-[250ms] p-[400px]" />',
             ),
           ],
         }),

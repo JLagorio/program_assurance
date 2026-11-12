@@ -86,10 +86,10 @@ const onScreen = (row) =>
 async function expectRecord(model, id, title, nested = false) {
   await expect(panel()).toHaveCount(1);
   if (title) await expect(panel().getByRole("heading", { name: title, exact: true })).toBeVisible();
-  await expect(
-    panel().getByRole("link", { name: "Open full record in new tab", exact: true }),
-  ).toHaveAttribute("href", `/records/${model}/${id}`);
-  await expectPreviewHeader(page, { title, nested });
+  // A gate, a responsibility, a criterion, an observation and a citation have no page of their
+  // own: the preview offers no fuller record, and nothing in it opens the schema inspector.
+  await expect(panel().locator(`a[href^="/records/"]`)).toHaveCount(0);
+  await expectPreviewHeader(page, { title, nested, fullRecord: false });
 }
 
 try {

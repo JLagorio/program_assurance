@@ -5,8 +5,8 @@ import {
   RecordLink,
   RecordPreviewActions,
   RecordPreviewPanel,
-  recordDestination,
   useDisplayedRecords,
+  useOpenRecord,
 } from "@/components/prototype/record-preview";
 import { EmptyMessage, QueryState } from "@/components/prototype/work-common";
 import { Constants } from "@/lib/database.types";
@@ -231,7 +231,7 @@ function CatalogControls({
   onSelect: (control: CatalogControl) => void;
   onDisplayedRowsChange: (rows: CatalogControl[]) => void;
 }) {
-  const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   // The edition's families, for the Family filter: the server's rows are one page of them.
   const groups = useRows(
     "catalog_groups",
@@ -355,7 +355,7 @@ function CatalogControls({
       queries={[...collection.queries, groups, resolutions, profileRevisions, profiles]}
       fill
       noun={{ one: "control", other: "controls" }}
-      onRowClick={(row) => void navigate(recordDestination("controls", row))}
+      onRowClick={(row) => openRecord("controls", row)}
       empty={{
         illustration: "shield",
         title: "No controls yet",
@@ -410,31 +410,33 @@ type CciItem = ServerRow<
   "code" | "definition" | "status" | "published_on" | "types"
 >;
 
-const cciColumns = defineColumns<CciItem>((c) => [
-  c.id("code", {
-    header: "CCI",
-    width: 180,
-    priority: 0,
-    hideable: false,
-    cell: (row) => (
-      <RecordLink table="cci_items" record={row}>
-        {row.code}
-      </RecordLink>
-    ),
-  }),
-  c.text("definition", { header: "Definition", hideable: false }),
-  c.text("controls", { header: "Mapped controls", width: 180 }),
-  // The Type filter offers each type on its own, and a CCI of both is found under either; one
-  // with none is found under Not recorded, as its cell says.
-  c.list("types", {
-    header: "Type",
-    width: 132,
-    items: (row) => row.types.map((type) => ({ key: type, label: labelFor(type) })),
-    emptyLabel: "Not recorded",
-  }),
-  c.status("status", { header: "Source status", width: 130, statuses: cciStatuses }),
-  c.date("published_on", { header: "Published" }),
-]);
+/** The CCI register's columns. A CCI has no page: its name opens its preview, with `open`. */
+const cciColumns = (open: (row: CciItem) => void) =>
+  defineColumns<CciItem>((c) => [
+    c.id("code", {
+      header: "CCI",
+      width: 180,
+      priority: 0,
+      hideable: false,
+      cell: (row) => (
+        <RecordLink table="cci_items" record={row} onPreview={() => open(row)}>
+          {row.code}
+        </RecordLink>
+      ),
+    }),
+    c.text("definition", { header: "Definition", hideable: false }),
+    c.text("controls", { header: "Mapped controls", width: 180 }),
+    // The Type filter offers each type on its own, and a CCI of both is found under either; one
+    // with none is found under Not recorded, as its cell says.
+    c.list("types", {
+      header: "Type",
+      width: 132,
+      items: (row) => row.types.map((type) => ({ key: type, label: labelFor(type) })),
+      emptyLabel: "Not recorded",
+    }),
+    c.status("status", { header: "Source status", width: 130, statuses: cciStatuses }),
+    c.date("published_on", { header: "Published" }),
+  ]);
 
 const cciTypeOptions = [
   ...Constants.public.Enums.cci_type.map((type) => ({ value: type, label: labelFor(type) })),
@@ -443,13 +445,13 @@ const cciTypeOptions = [
 
 function CciTable() {
   const [selected, setSelected] = useState<CciItem | null>(null);
-  const navigate = useNavigate();
   const collection = useServerCollection<CciItem>(cciRead, {
     preview: useMemo(
       () => ({ onPreview: setSelected, activeId: selected?.id ?? null }),
       [selected?.id],
     ),
-    columns: cciColumns,
+    // One list for every render: stepping through the preview rebuilds none.
+    columns: useMemo(() => cciColumns(setSelected), []),
     label: "Control correlation identifiers",
     view: "live-catalog-ccis",
     resizable: true,
@@ -463,7 +465,8 @@ function CciTable() {
         {...collection}
         fill
         noun={{ one: "CCI", other: "CCIs" }}
-        onRowClick={(row) => void navigate(recordDestination("cci_items", row))}
+        // A CCI has no page of its own: its row opens its preview, as its name does.
+        onRowClick={setSelected}
         empty={{
           illustration: "shield",
           title: "No CCIs yet",

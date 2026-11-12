@@ -102,16 +102,20 @@ select pg_temp.expect((select source_label='Authorization boundary scope adoptio
 insert into public.ssp_revisions(tenant_id,system_id,profile_resolution_id,version_number) select ${q("tenant")},${q("root")},resolution_id,1 from reference;
 select pg_temp.expect((select source_label='Authorization boundary SSP' from public.system_effective_baselines where system_id=${q("child")}),'Latest boundary SSP takes precedence over root scope');
 reset role;
--- Three layers on the reference resolve; a fourth is refused.
-do $layers$ declare l3 uuid; base uuid; drop_one jsonb; begin
-  select adopted_profile_resolution_id into base from public.systems where id=${q("grandchild")};
-  select jsonb_build_array(jsonb_build_object('controlId',control_id,'action','exclude','rationale','Depth check')) into drop_one from public.selected_controls where profile_resolution_id=base order by ordinal limit 1;
-  l3:=public.author_tailored_profile(${q("tenant")},(select catalog_id from reference),base,drop_one,'[]'::jsonb,'depth/3','Depth three','Third layer');
-  if (select depth from public.profile_resolution_catalogs where profile_resolution_id=l3)<>3 then raise exception 'Third layer did not resolve at depth 3'; end if;
-  select jsonb_build_array(jsonb_build_object('controlId',control_id,'action','exclude','rationale','Depth check')) into drop_one from public.selected_controls where profile_resolution_id=l3 order by ordinal limit 1;
+-- Eight layers on the reference resolve (a baseline, its overlays, then tailoring); a ninth is refused.
+do $layers$ declare top uuid; drop_one jsonb; depth_now integer; begin
+  select adopted_profile_resolution_id into top from public.systems where id=${q("grandchild")};
+  select depth into depth_now from public.profile_resolution_catalogs where profile_resolution_id=top;
+  while depth_now<8 loop
+    select jsonb_build_array(jsonb_build_object('controlId',control_id,'action','exclude','rationale','Depth check')) into drop_one from public.selected_controls where profile_resolution_id=top order by ordinal limit 1;
+    depth_now:=depth_now+1;
+    top:=public.author_tailored_profile(${q("tenant")},(select catalog_id from reference),top,drop_one,'[]'::jsonb,'depth/'||depth_now,'Depth '||depth_now,'Layer '||depth_now);
+    if (select depth from public.profile_resolution_catalogs where profile_resolution_id=top)<>depth_now then raise exception 'Layer % did not resolve at its depth',depth_now; end if;
+  end loop;
+  select jsonb_build_array(jsonb_build_object('controlId',control_id,'action','exclude','rationale','Depth check')) into drop_one from public.selected_controls where profile_resolution_id=top order by ordinal limit 1;
   begin
-    perform public.author_tailored_profile(${q("tenant")},(select catalog_id from reference),l3,drop_one,'[]'::jsonb,'depth/4','Depth four','Fourth layer');
-    raise exception 'Unexpected success';
+    perform public.author_tailored_profile(${q("tenant")},(select catalog_id from reference),top,drop_one,'[]'::jsonb,'depth/9','Depth nine','Ninth layer');
+    raise exception 'Unexpected success' using errcode='P0001';
   exception when others then if sqlstate<>'23514' then raise; end if; end;
 end $layers$;
 rollback;`);

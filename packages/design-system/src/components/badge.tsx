@@ -351,11 +351,13 @@ export type DotProps = Omit<ComponentProps<"svg">, "children" | "className"> & {
   tone?: Tone | undefined;
   /** The status as a word ("Suspect"), read by a screen reader: with it the dot is an image named by the label; without it the dot is hidden and the text beside it carries the status. A sighted reader still sees colour alone, so a status shows its word beside the dot, or is an Indicator; the label is the last resort. */
   label?: string | undefined;
+  /** `square`, the status mark, by default. `round` is the point on a line: a Timeline's marker, where a ring already holds it. */
+  shape?: "square" | "round" | undefined;
   className?: string | undefined;
 };
 
-/** A 6px status dot, the mark beside a status whose word is written next to it; never the status alone. It is an icon, so it takes the tone's icon colour, which is tuned to read at small sizes. Native svg props and the ref reach the dot. */
-export function Dot({ tone = "neutral", label, className, ...rest }: DotProps) {
+/** The status mark: an 8px rounded square beside a status whose word is written next to it; never the status alone. It is the same mark a TileMap draws for one item and its key for one colour, so a legend, a row's status and a map of units read as one sign. It is an icon, so it takes the tone's icon colour, which is tuned to read at small sizes. Native svg props and the ref reach the mark. */
+export function Dot({ tone = "neutral", label, shape = "square", className, ...rest }: DotProps) {
   return (
     <svg
       viewBox="0 0 8 8"
@@ -365,13 +367,18 @@ export function Dot({ tone = "neutral", label, className, ...rest }: DotProps) {
       aria-hidden={label ? undefined : true}
       data-slot="dot"
       data-tone={tone}
+      data-shape={shape}
       className={cn(
-        "inline-block size-075 shrink-0 align-middle",
+        "inline-block size-100 shrink-0 align-middle",
         toneClasses[tone].icon,
         className,
       )}
     >
-      <circle cx="4" cy="4" r="4" fill="currentColor" />
+      {shape === "round" ? (
+        <circle cx="4" cy="4" r="4" fill="currentColor" />
+      ) : (
+        <rect width="8" height="8" rx="2" fill="currentColor" />
+      )}
     </svg>
   );
 }

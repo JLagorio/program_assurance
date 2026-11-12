@@ -977,7 +977,10 @@ export const CanonicalRows: Story = {
       { row: 7, column: 0 },
       { row: 2, column: 0 },
     );
-    await expect(canvas.getByRole("status")).toHaveTextContent("A8 … A3");
+    // The selection summary by its slot: the sheet strip's reorder keeps a status region too.
+    await expect(
+      canvasElement.querySelector('[data-slot="spreadsheet-summary"]'),
+    ).toHaveTextContent("A8 … A3");
     const copied = new DataTransfer();
     grid.dispatchEvent(new ClipboardEvent("copy", { bubbles: true, clipboardData: copied }));
     await userEvent.clear(address);

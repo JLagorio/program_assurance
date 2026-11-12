@@ -194,6 +194,9 @@ The catalog is organised by family. This page is organised by need: find the row
 | A label and value on one baseline, above the fold                                          | **Fact**, and **Fact.Group** for the four to six facts under a title.                                                                                                                                                                 | KeyValue, which is a rail row.                                                                |
 | A label and value in a rail, one per line                                                  | **KeyValue** in a **KeyValue.Group**, which shares the label width and puts the label over the value when narrow; **Inspector** for a folding group of them.                                                                          | A hand-written definition list.                                                               |
 | A headline number                                                                          | **Stat**; **Stat.Tile** in a **Stat.Grid** when framed.                                                                                                                                                                               | A Heading holding a number.                                                                   |
+| One count broken into the parts a reader acts on                                           | **Stat.List** of **Stat.Row**s, a line a part; in a **Tray** (experimental) when the heading holds the whole ("20 monitored devices").                                                                                                |
+| A few cards that one number counts, as one group                                           | **Tray** (experimental): a sunken surface under a counted heading, holding Cards or a Stat.List.                                                                                                                                      |
+| Where work stands along a few named phases                                                 | **PhaseBar** (experimental): one segmented bar, a segment a phase. A path the reader moves along is a **Stepper**.                                                                                                                    |
 | A value that is missing                                                                    | **Absent**, the muted dash, which a screen reader hears as "Not recorded"; `label` says more where the context knows more ("No due date").                                                                                            | An empty string, a hyphen typed by hand, or "N/A".                                            |
 | A name or value that stays on one line in a row, a rail or a list, readable in full        | **Truncate**, or Text `maxLines`; KeyValue does it itself. **useIsTruncated** when you cut the text yourself.                                                                                                                         | Truncating a sentence, a heading, an error or a notification, which wrap.                     |
 | A mark that stands for something with no word beside it: a boundary, a met check           | **Icon** with a `label`; without one when it sits beside its word.                                                                                                                                                                    | A bare glyph, or an Icon that acts, which is an IconButton.                                   |
@@ -215,6 +218,10 @@ The catalog is organised by family. This page is organised by need: find the row
 | A completion fraction                                                                      | **Progress**; **ProgressStacked** for parts of a whole.                                                                                                                                                                               | A Stat with a percentage, unless it is the headline.                                          |
 | Numbers drawn                                                                              | **Chart** and one of its kinds: Bar, Line, Area, Donut, Scatter, Heatmap, Treemap, Sparkline. **Chart.Frame** holds the data, size and format once, for a bare part inside.                                                           | A hand-drawn SVG, or the same props on the Frame and the part.                                |
 | A chart's numbers as a table                                                               | **Chart.Frame** around the part: its Table toggle and its CSV lay out what the part draws. Name the columns with `xLabel`, `columns`, Scatter `zLabel` and Treemap `levels`. A colour-scale Heatmap in a Frame also offers Values.    | A separate Table beside the chart, or a `title` on hover.                                     |
+| Every item of a large set at once, by group, coloured by its state                         | **TileMap** (experimental): `grid`, a row a group, `skyline`, one street, or `strip`, the whole set in one run for a card; **TileMap.Key** for what each colour means. A table of the same items stays on the page.                   | A Heatmap, whose rows and columns are both scales, or a table of a thousand rows to scan.     |
+| A record's chain, several hops at once: what it answers, what proves it, what was found    | **Trace** (experimental): the stages as columns of records joined by wires, read outward from one record. A stage with nothing in it says so. A collection the reader works through stays a table.                                    | A table per hop, or a network graph: a trace is a chain.                                      |
+| A whole structure of levels: what a few goals rest on, down to the many at the bottom      | **Ladder** (experimental): levels of nodes joined by wires, each a name, a figure and a tally, the last level one line a node. Choosing a node keeps its path. A table of the same records stays beside it.                           | A table per hop, or a network graph: a trace is a chain.                                      |
+| How many of a group's items are in each state, in a map's colours                          | **Tally** (experimental): one thin bar, a segment a state, the rest the empty track. The number stands beside it. A task's progress is a **Progress**.                                                                                | A table per hop, or a network graph: a trace is a chain.                                      |
 
 ## Work with cells and proposed changes
 
@@ -400,16 +407,16 @@ These have no part yet. A screen that needs one says so in writing, with a recom
 
 ## Shared work interactions
 
-| Need | Use |
-| --- | --- |
-| Pointer and keyboard actions on a target | ContextMenu with the existing DropdownMenu item parts |
-| Named user-created views | SavedViewPicker, SavedViewManager and SavedViewEditor |
-| A replyable discussion | ReviewThread over Composer and Timeline |
-| A quoted source and backlinks | Citation |
-| Find within a surface | FindBar, with host-owned match calculation |
-| Mark literal terms in an excerpt | MatchText |
-| Actions beside a captured range | SelectionActions |
-| Ordered cards, tabs or rows | Reorder and its handle/move parts |
+| Need                                        | Use                                                   |
+| ------------------------------------------- | ----------------------------------------------------- |
+| Pointer and keyboard actions on a target    | ContextMenu with the existing DropdownMenu item parts |
+| Named user-created views                    | SavedViewPicker, SavedViewManager and SavedViewEditor |
+| A replyable discussion                      | ReviewThread over Composer and Timeline               |
+| A quoted source and backlinks               | Citation                                              |
+| Find within a surface                       | FindBar, with host-owned match calculation            |
+| Mark literal terms in an excerpt            | MatchText                                             |
+| Actions beside a captured range             | SelectionActions                                      |
+| Ordered cards, tabs or rows                 | Reorder and its handle/move parts                     |
 | Range selection across a visible collection | useCollectionSelection with native selection controls |
 
 See Guidance/Interaction states for selection, focus, edit and density contracts.
@@ -611,14 +618,14 @@ Utilities take the same key on any spacing or sizing property: `p-200`, `gap-100
 | `font.body.large`      | 15/22 | Reading text, dialog body.                                                                                                                                              |
 | `font.body.small`      | 12/16 | Table headers, field labels, badges, KeyValue; labels add `font.weight.medium`.                                                                                         |
 | `font.body.xsmall`     | 11/14 | Metadata under a name, a hint beside a control, a chart's subtitle.                                                                                                     |
-| `font.heading.page`    | 20/26 | The page and record title (PageHeader.Title) and a Stat's figure, semibold; Heading `page`.                                                                             |
-| `font.heading.overlay` | 15/22 | An overlay's title (DialogTitle, SheetTitle, AlertDialogTitle, DrawerTitle) and a card's; Heading `overlay`.                                                            |
-| `font.heading.section` | 13/18 | A section's title (Section.Title): the body size at semibold; Heading `section`.                                                                                        |
-| `font.heading.display` | 28/34 | Display: a figure bigger than a Stat's, or the one title of a screen with nothing else on it, such as sign-in. Semibold; Heading `display`. Not a page or record title. |
+| `font.heading.page`    | 24/30 | The page and record title (PageHeader.Title) and a Stat's figure, semibold; Heading `page`.                                                                             |
+| `font.heading.overlay` | 17/24 | An overlay's title (DialogTitle, SheetTitle, AlertDialogTitle, DrawerTitle) and a card's; Heading `overlay`.                                                            |
+| `font.heading.section` | 15/22 | A section's title (Section.Title): a step above the body, at semibold; Heading `section`.                                                                                        |
+| `font.heading.display` | 32/40 | Display: a figure bigger than a Stat's, or the one title of a screen with nothing else on it, such as sign-in. Semibold; Heading `display`. Not a page or record title. |
 | `font.heading.xxsmall` | 11/14 | Eyebrows, group headings, menu section labels (the component adds the uppercase).                                                                                       |
 | `font.code`            | 12/18 | Code blocks only.                                                                                                                                                       |
 
-A Section's title is `font.heading.section`, the body size at semibold, the size of the text it heads. `font.heading.large`, `.medium`, `.small` and `.xsmall` are deprecated and stay for one version, and a new title never takes one: they are `display`, `page`, `page` (or `section` for a section's title) and `overlay`. Prose never grows past `dimension.layout.measure`, 720px (`max-w-layout-measure`).
+A Section's title is `font.heading.section`, a step above the body at semibold. `font.heading.large`, `.medium`, `.small` and `.xsmall` are deprecated and stay for one version, and a new title never takes one: they are `display`, `page`, `page` (or `section` for a section's title) and `overlay`. Prose never grows past `dimension.layout.measure`, 720px (`max-w-layout-measure`).
 
 ## Sizes
 
@@ -640,7 +647,7 @@ A Section's title is `font.heading.section`, the body size at semibold, the size
 
 ## Radius
 
-`radius.xsmall` 2px, `small` 3px, `medium` 5px, `large` 7px, `xlarge` 9px, `xxlarge` 12px and `full`, as `rounded-xsmall` to `rounded-full`. The bigger the surface, the larger the radius: a control is medium, a card large. Which part takes which is one table, on the [Shape](?path=/docs/tokens-shape--docs) sheet; a part you build takes the radius of the part it sits beside.
+`radius.xsmall` 2px, `small` 3px, `medium` 6px, `large` 10px, `xlarge` 12px, `xxlarge` 16px and `full`, as `rounded-xsmall` to `rounded-full`. The bigger the surface, the larger the radius: a control is medium, a card large. Which part takes which is one table, on the [Shape](?path=/docs/tokens-shape--docs) sheet; a part you build takes the radius of the part it sits beside.
 
 ## Motion
 
@@ -823,6 +830,14 @@ A new part is Experimental until a product screen uses it and its page, plays an
 ## Unreleased
 
 What code written for 0.7.0 changes in the next version.
+
+### Changed
+
+No name changes, so no code changes unless it pins a drawn value.
+
+- **The radius scale from `medium` up and the heading ramp moved up a step.** The token and class names stand; a test or a style of your own that pins a pixel value reads the new one (Foundations/Shape, Foundations/Typography).
+- **Dot is an 8px rounded square**, the status mark; a marker on a line of your own that wants the old point takes `shape="round"`.
+- **A table row's name is drawn in `color.text` at medium weight**, a link in it included. A `TextLink` that names a record outside a table takes `tone="neutral"` for the same look.
 
 ### Deprecated
 
@@ -1093,12 +1108,12 @@ The sizes are the titles the kit draws ([Heading](?path=/docs/primitives-heading
 | Written as                           | Write                                                                                                                                                                  |
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `size="large"`                       | `size="display"`, the same style                                                                                                                                       |
-| `size="medium"`                      | `size="page"`, PageHeader.Title's 20/26; `medium` drew 22/28                                                                                                           |
-| `size="small"`                       | `size="page"` (20/26 semibold) for a page or record title, with `as="h2"` to keep the element `small` drew, or `size="section"` (13/18 semibold) for a section's title |
+| `size="medium"`                      | `size="page"`, PageHeader.Title's 24/30; `medium` drew 22/28                                                                                                           |
+| `size="small"`                       | `size="page"` (24/30 semibold) for a page or record title, with `as="h2"` to keep the element `small` drew, or `size="section"` (15/22 semibold) for a section's title |
 | `size="xsmall"`                      | `size="overlay"`, the same style and element                                                                                                                           |
 | A raw `h1`–`h6` with heading classes | A `Heading` at the size it matches, or the part that draws that title: PageHeader.Title, Section.Title, DialogTitle                                                    |
 
-The deprecated sizes draw the steps that replace them for one version: `medium` draws `page`'s 20/26, and `small` draws `page` at medium weight. The `font.heading.large`, `.medium`, `.small` and `.xsmall` steps are deprecated and stay for one version, and `ledger/no-deprecated-token` writes `font-heading-display`, `font-heading-page`, `font-heading-page` and `font-heading-overlay` in their place; a new title takes `page`, `overlay`, `section` or `display` ([Typography](?path=/docs/tokens-typography--docs)).
+The deprecated sizes draw the steps that replace them for one version: `medium` draws `page`'s 24/30, and `small` draws `page` at medium weight. The `font.heading.large`, `.medium`, `.small` and `.xsmall` steps are deprecated and stay for one version, and `ledger/no-deprecated-token` writes `font-heading-display`, `font-heading-page`, `font-heading-page` and `font-heading-overlay` in their place; a new title takes `page`, `overlay`, `section` or `display` ([Typography](?path=/docs/tokens-typography--docs)).
 
 ## HoverCard
 
@@ -1542,7 +1557,7 @@ classify("mt-4").rule; // "ledger/no-margin": the one rule that reports the clas
 suggestClass("p-4").replacements; // ["p-200"], the editor suggestion: the same 16px
 suggestClass("dark:bg-gray-900", { siblings: "bg-white" }).advice[0]; // the roles of its colour
 kitPartOf("T.Cell", "@ledger/design-system", { imported: "Table" }); // "Table.Cell"
-tokensOfValue("16px").map(({ name, role }) => `${name} (${role})`); // dimension.icon.medium (icon-size), space.200 (space)
+tokensOfValue("16px").map(({ name, role }) => `${name} (${role})`); // dimension.icon.medium (icon-size), radius.xxlarge (radius), space.200 (space)
 tokenValue("motion.duration.medium").ms; // 150
 tokenOfClass("gap-150"); // "space.150"
 classCategories("hover:p-200").categories; // ["spacing"]
@@ -6167,18 +6182,18 @@ _Example: story `Stories.Preference`._
 
 # Shape
 
-Radius is a set of named absolute steps on a 5px base. Bare `rounded` is banned: it is a static 4px no reset can remove. Border width is 1px by default and 2px for focus and selection.
+Radius is a set of named absolute steps on a 6px base. Bare `rounded` is banned: it is a static 4px no reset can remove. Border width is 1px by default and 2px for focus and selection.
 
 ## Radius
 
 | Token            | Value | Utility           | Use                                            |
 | ---------------- | ----- | ----------------- | ---------------------------------------------- |
-| `radius.xsmall`  | 2px   | `rounded-xsmall`  | Kbd, tiny chips.                               |
+| `radius.xsmall`  | 2px   | `rounded-xsmall`  | Kbd, tiny chips, a mark of a map.              |
 | `radius.small`   | 3px   | `rounded-small`   | Count, checkbox, Skeleton, inline hit targets. |
-| `radius.medium`  | 5px   | `rounded-medium`  | Button, Input, Chip, Tooltip, menu items.      |
-| `radius.large`   | 7px   | `rounded-large`   | Card, Popover, HoverCard, menus, listboxes.    |
-| `radius.xlarge`  | 9px   | `rounded-xlarge`  | No kit part: a Sheet runs flush to its edge.   |
-| `radius.xxlarge` | 12px  | `rounded-xxlarge` | Dialog, CommandPalette, a Drawer's free edge.  |
+| `radius.medium`  | 6px   | `rounded-medium`  | Button, Input, Chip, Tooltip, menu items.      |
+| `radius.large`   | 10px  | `rounded-large`   | Card, Popover, HoverCard, menus, listboxes.    |
+| `radius.xlarge`  | 12px  | `rounded-xlarge`  | Tray, the surface that holds cards.            |
+| `radius.xxlarge` | 16px  | `rounded-xxlarge` | Dialog, CommandPalette, a Drawer's free edge.  |
 | `radius.full`    | pill  | `rounded-full`    | Badge, Dot, Avatar, Switch, meters.            |
 
 The rule of thumb: the bigger the surface, the larger the radius. A control is medium, a card is large, a dialog is xxlarge.
@@ -6294,10 +6309,10 @@ _Example: story `Stories.PackagedFaces`._
 
 | Token | Utility | Size | Weight | Use |
 | --- | --- | --- | --- | --- |
-| `font.heading.display` | `font-heading-display` | 28/34 | semibold | Heading `display`: a figure bigger than a Stat's, the one title of a screen with nothing else (sign-in). Not a page or record title. |
-| `font.heading.page` | `font-heading-page` | 20/26 | semibold | Heading `page`: the page and record title (PageHeader.Title, on a page and as a preview's record name) and a Stat's figure. |
-| `font.heading.overlay` | `font-heading-overlay` | 15/22 | medium | Heading `overlay`: an overlay's title (DialogTitle, SheetTitle, AlertDialogTitle, DrawerTitle), a card's title, a group inside an overlay. |
-| `font.heading.section` | `font-heading-section` | 13/18 | semibold | Heading `section`: a section's title (Section.Title), the body size at semibold. |
+| `font.heading.display` | `font-heading-display` | 32/40 | semibold | Heading `display`: a figure bigger than a Stat's, the one title of a screen with nothing else (sign-in). Not a page or record title. |
+| `font.heading.page` | `font-heading-page` | 24/30 | semibold | Heading `page`: the page and record title (PageHeader.Title, on a page and as a preview's record name) and a Stat's figure. |
+| `font.heading.overlay` | `font-heading-overlay` | 17/24 | semibold | Heading `overlay`: an overlay's title (DialogTitle, SheetTitle, AlertDialogTitle, DrawerTitle), a card's title, a group inside an overlay. |
+| `font.heading.section` | `font-heading-section` | 15/22 | semibold | Heading `section`: a section's title (Section.Title), a step above the body at semibold. |
 | `font.heading.xxsmall` | `font-heading-xxsmall` | 11/14 | medium | Eyebrows, group headings, menu section labels. The component adds the uppercase. |
 | `font.body.large` | `font-body-large` | 15/22 | regular | Reading text and dialog body. |
 | `font.body` | `font-body` | 13/18 | regular | Controls, cells, tabs, inputs, menu items. |
@@ -6313,10 +6328,10 @@ These steps are deprecated and stay for one version. Nothing in the kit sets the
 
 | Token | Size | Weight | Replaced by |
 | --- | --- | --- | --- |
-| `font.heading.large` | 28/34 | semibold | `font.heading.display`, the same style. |
-| `font.heading.medium` | 22/28 | semibold | `font.heading.page`, 20/26, for a page title. |
+| `font.heading.large` | 32/40 | semibold | `font.heading.display`, the same style. |
+| `font.heading.medium` | 22/28 | semibold | `font.heading.page`, 24/30, for a page title. |
 | `font.heading.small` | 20/26 | medium | `font.heading.page` for a page or record title; `font.heading.section` for a section's title. |
-| `font.heading.xsmall` | 15/22 | medium | `font.heading.overlay`, the same style. |
+| `font.heading.xsmall` | 17/24 | semibold | `font.heading.overlay`, the same style. |
 
 ## Weight
 
@@ -6842,7 +6857,7 @@ Not built, and why: a size between `display` and `page` (the page title is the b
 | `section` | `font.heading.section` | 13 / 18 / semibold      | `h2`    | Section.Title.                                                 |
 | `display` | `font.heading.display` | 28 / 34 / semibold      | `div`   | A figure bigger than a Stat's.                                 |
 
-`section` is the body size at semibold, the size of a disclosure's header, so a section's title sits level with the controls in its row. Under the ramp, `font.heading.xxsmall` at 11 / 14, uppercase, is the Eyebrow.
+`section` is a step above the body at semibold, the size of a disclosure's header. Under the ramp, `font.heading.xxsmall` at 11 / 14, uppercase, is the Eyebrow.
 
 ## The titles the kit draws
 
@@ -6908,7 +6923,7 @@ _Props of `Heading`, generated from its types:_
 | --- | --- | --- | --- |
 | `as` | `"div" \| "h1" \| "h2" \| "h3" \| "h4" \| "h5" \| "h6" \| "span"` |  | The element, when the outline needs a level other than the contextual one. Without it a Heading takes the level from the nearest HeadingLevelProvider (or titled Section, or panel body), and outside every provider the size's default: `page` an h1, `section` an h2, `overlay` an h3, `display` a div. Level is semantic and chosen by the page; size is visual and chosen by the design. |
 | `ref` | `Ref<HTMLElement>` |  |  |
-| `size` (required) | `"display" \| "large" \| "medium" \| "overlay" \| "page" \| "section" \| "small" \| "xsmall"` |  | The title it matches: `page` (font.heading.page, 20/26 semibold: the page and record title, and a Stat's figure as a div) · `overlay` (font.heading.overlay, 15/22 medium: an overlay's title, a card's title, a group inside an overlay) · `section` (font.heading.section, 13/18 semibold: a section's title) · `display` (font.heading.display, 28/34 semibold: a figure bigger than a Stat's, or the sign-in screen's title). `large`, `medium`, `small` and `xsmall` are deprecated. |
+| `size` (required) | `"display" \| "large" \| "medium" \| "overlay" \| "page" \| "section" \| "small" \| "xsmall"` |  | The title it matches: `page` (font.heading.page, 24/30 semibold: the page and record title, and a Stat's figure as a div) · `overlay` (font.heading.overlay, 17/24 semibold: an overlay's title, a card's title, a group inside an overlay) · `section` (font.heading.section, 15/22 semibold: a section's title) · `display` (font.heading.display, 32/40 semibold: a figure bigger than a Stat's, or the sign-in screen's title). `large`, `medium`, `small` and `xsmall` are deprecated. |
 | `color` | `"color.text.inverse" \| "color.text.warning.inverse" \| "color.text"` |  | `color.text` by default; `color.text.inverse` on a bold fill, which a Box with a bold background sets for you. A tone is not a heading colour. |
 | `className` | `string` |  |  |
 
@@ -7673,7 +7688,7 @@ Not for a form: that is a [Dialog](?path=/docs/components-dialog--docs). Not for
 
 ## Anatomy
 
-- **AlertDialogHeader** holds an optional AlertDialogMedia, the title (the question, an h2, a [Heading](?path=/docs/primitives-heading--docs) at `overlay`, 15/22 medium) and the description (the consequence).
+- **AlertDialogHeader** holds an optional AlertDialogMedia, the title (the question, an h2, a [Heading](?path=/docs/primitives-heading--docs) at `overlay`, 17/24 semibold) and the description (the consequence).
 - **AlertDialogBody** holds what the decision affects when one line is not enough: the records a delete removes, a field for a reason. It follows the header with its inset and no divider, and scrolls between the header and the footer so the answers stay in view.
 - **AlertDialogFooter** holds AlertDialogCancel, the safe answer, before AlertDialogAction, the verb, on the dialog's own surface below a hairline.
 - AlertDialogContent records the overlay surface as the current one; AlertDialogPortal and AlertDialogOverlay are exported for a custom popup.
@@ -8101,7 +8116,7 @@ _Example: story `Stories.People`._
 | `small`  | 24px | two      | `font.body.xsmall` at medium, 11/14 | The default. A group of reviewers in a row. |
 | `medium` | 32px | two      | `font.body` at medium, 13/18        | A card, a rail, the account menu.           |
 | `large`  | 40px | two      | `font.body.large` at medium, 15/22  | A record's owner in its header.             |
-| `xlarge` | 64px | two      | `font.heading.page`, 20/26 semibold | A person's own record.                      |
+| `xlarge` | 64px | two      | `font.heading.page`, 24/30 semibold | A person's own record.                      |
 
 In a group, the +n circle takes its members' size and a type size under theirs, and the overlap scales with them: 4px at xsmall, 6px at small, 8px at medium and large, 16px at xlarge.
 
@@ -10878,7 +10893,7 @@ Not for a decision that needs one sentence: that is an [AlertDialog](?path=/docs
 ```
 
 - **DialogContent** brings its portal, the blanket and a close button at the top end, an IconButton named Close with no tooltip. The close button is first in the Tab order, where it is drawn; the first field still takes focus when the dialog opens. It records the overlay surface as the current one, so a sticky header, a pinned cell or a scroll arrow inside paints the dialog's colour, not the page's.
-- **DialogHeader** holds the title and the description; the title is the dialog's h2, a [Heading](?path=/docs/primitives-heading--docs) at `overlay` (15/22 medium), and headings inside the dialog start at h3. Both wrap an unbroken value, such as a record's code or a server's error, inside the popup.
+- **DialogHeader** holds the title and the description; the title is the dialog's h2, a [Heading](?path=/docs/primitives-heading--docs) at `overlay` (17/24 semibold), and headings inside the dialog start at h3. Both wrap an unbroken value, such as a record's code or a server's error, inside the popup.
 - **DialogBody** is the one scrolling region, with the dialog's inset. Put the form in it and the buttons in the footer; never make a `fieldset` or a hand-written `div` the scroller.
 - **DialogFooter** stays outside the scroll, on the dialog's own surface below a hairline, with Cancel, a subtle button, before the primary. `showCloseButton` adds a subtle Close in Cancel's place, before the children.
 - DialogPortal and DialogOverlay are exported for a custom popup.
@@ -11238,7 +11253,7 @@ _Example: story `Stories.DoDont`._
 </Drawer>
 ```
 
-Content composes Portal, the modal Overlay, Base UI Viewport/Popup and the text-selectable Content region inside Base UI's VirtualKeyboardProvider, and records the overlay surface as the current one, so a sticky header or pinned cell inside matches the drawer. Header, Body, Title, Description, Footer and Close are explicit parts; the title is the drawer's h2, a [Heading](?path=/docs/primitives-heading--docs) at `overlay` (15/22 medium), and headings inside start at h3. Portal, Overlay and SwipeHandle are also exported for custom native compositions.
+Content composes Portal, the modal Overlay, Base UI Viewport/Popup and the text-selectable Content region inside Base UI's VirtualKeyboardProvider, and records the overlay surface as the current one, so a sticky header or pinned cell inside matches the drawer. Header, Body, Title, Description, Footer and Close are explicit parts; the title is the drawer's h2, a [Heading](?path=/docs/primitives-heading--docs) at `overlay` (17/24 semibold), and headings inside start at h3. Portal, Overlay and SwipeHandle are also exported for custom native compositions.
 
 DrawerBody is the one scrolling region between the header and the footer, with the drawer's inset, at least 80px tall. Base UI lets a swipe that starts in it scroll it, and dismiss once it is at its edge. Read-only content that overflows makes it a tab stop, "Content, scrolls". In a window under 30rem tall the drawer scrolls as one, with the footer held at the bottom.
 
@@ -12755,7 +12770,7 @@ _Example: story `Stories.IndicatorMatrix`._
 
 | Part | What it is                                                                                                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dot  | 6px, round, `color.icon.<tone>`. It never shrinks.                                                                                                      |
+| Dot  | 8px, a rounded square, `color.icon.<tone>`. It never shrinks.                                                                                           |
 | Word | `font.body` after the Dot, `space.075` away: `color.text`, or `color.text.subtle` when the tone is neutral. It truncates, with the whole word on hover. |
 
 ## Variants
@@ -12771,7 +12786,7 @@ Not built, and why: an icon per tone (failed, warning, in progress), because the
 
 ## Sizes
 
-One size. The Dot is 6px whatever the text beside it; the word is `font.body`, the row's size, and in a `font.body.small` line it takes that size from the parent. An Indicator is as wide as its word and truncates when the column is narrower.
+One size. The Dot is 8px whatever the text beside it; the word is `font.body`, the row's size, and in a `font.body.small` line it takes that size from the parent. An Indicator is as wide as its word and truncates when the column is narrower.
 
 ## Long content
 
@@ -12801,10 +12816,10 @@ _Example: story `Stories.InRows`._
 
 | Element | Token                                                                         |
 | ------- | ----------------------------------------------------------------------------- |
-| Dot     | 6px · `color.icon.<tone>` · `color.icon.subtlest` at neutral                  |
+| Dot     | 8px · `color.icon.<tone>` · `color.icon.subtlest` at neutral                  |
 | Word    | `font.body` · `color.text` · `color.text.subtle` at neutral · `space.075` gap |
 
-The icon colours are Badge's, so a danger Dot and a danger Badge's text are one red, and the icon colour is the step tuned for a 6px mark.
+The icon colours are Badge's, so a danger Dot and a danger Badge's text are one red, and the icon colour is the step tuned for a small mark. The Dot is the status mark: the rounded square a [TileMap](?path=/docs/patterns-tilemap--docs) draws for one item and its key for one colour, so a legend, a row's status and a map of units read as one sign. `shape="round"` is the point on a line, which a Timeline's marker draws.
 
 ## Accessibility
 
@@ -12831,6 +12846,7 @@ _Props of `Dot`, generated from its types:_
 | --- | --- | --- | --- |
 | `tone` | `"danger" \| "information" \| "neutral" \| "success" \| "warning"` | `neutral` |  |
 | `label` | `string` |  | The status as a word ("Suspect"), read by a screen reader: with it the dot is an image named by the label; without it the dot is hidden and the text beside it carries the status. A sighted reader still sees colour alone, so a status shows its word beside the dot, or is an Indicator; the label is the last resort. |
+| `shape` | `"round" \| "square"` | `square` | `square`, the status mark, by default. `round` is the point on a line: a Timeline's marker, where a ring already holds it. |
 | `className` | `string` |  |  |
 
 Indicator takes a span's native props and a ref, Dot an svg's; each names itself last with `data-slot` (`indicator`, `dot`) and its `data-tone`.
@@ -14271,6 +14287,83 @@ _Props of `TablePagination`, generated from its types:_
 
 [DataTable](?path=/docs/patterns-data-table--docs), [Table](?path=/docs/components-table--docs), [Button](?path=/docs/components-button--docs).
 
+<!-- page: Components/PhaseBar (src/stories/components/PhaseBar.mdx) -->
+
+# PhaseBar
+
+**Status: Experimental.** New with the program's Lifecycle timeline, its first screen; the props may change while a second screen tries it. Owned by the design system.
+
+Where a piece of work stands along a few named phases, as one segmented bar: each phase a segment in its state's colour, with its name under it. It reports where the work stands. A path the reader moves along is a [Stepper](?path=/docs/components-stepper--docs); how far one task has gone is a [Progress](?path=/docs/components-progress--docs).
+
+_Example: story `Stories.Playground`._
+
+## States
+
+| State      | Segment                                                              | Name                   |
+| ---------- | -------------------------------------------------------------------- | ---------------------- |
+| `done`     | Filled, `color.background.success.bold`                              | `color.text`, medium   |
+| `current`  | Filled, `color.background.information.bold`, or as far as `progress` | `color.text`, semibold |
+| `upcoming` | The track alone, `color.background.neutral`                          | `color.text.subtle`    |
+| `blocked`  | Filled, `color.background.danger.bold`                               | `color.text.danger`    |
+
+The state is drawn and also spoken, in the locale's words before the name ("Completed: Preparation"), and the current phase carries `aria-current="step"`.
+
+_Example: story `Stories.Blocked`._
+
+## Weight and progress
+
+Every phase takes an equal share unless `weight` says otherwise: a three-month observation period beside one-week phases takes a larger number. `progress`, 0 to 1, fills a `current` phase part of the way; unsaid, the current segment is filled.
+
+_Example: story `Stories.WeightedWithProgress`._
+
+## Opening a phase
+
+With `onSelect`, a phase's name is a button that opens what the phase is: a gate's record, a review. The button is named by the state and the name ("Current: PDR"). A phase without it is text and no tab stop.
+
+_Example: story `Stories.OpeningAPhase`._
+
+## In a narrow frame
+
+Each phase keeps a floor of 80px. When the bar cannot give every phase that, the phases take another line, each with its own segment, and a long name wraps.
+
+_Example: story `Stories.InANarrowFrame`._
+
+## Content
+
+- **A name is a word or two**: "Preparation", "Internal audit", a gate's code. It wraps; it is never cut.
+- **`meta` is one line**: a day, a range, what blocks it.
+- **Five phases read at a glance; past about eight, use a Stepper** in a rail, where each step has a row.
+
+## Props
+
+PhaseBar is an `ol` and PhaseBar.Item its `li`; both forward native props and refs and name themselves last with `data-slot` (`phase-bar`, `phase-bar-item`, with `phase-bar-segment`, `phase-bar-fill`, `phase-bar-label`, `phase-bar-button` and `phase-bar-meta` inside). PhaseBar.Item is also exported by name, as `PhaseBarItem`.
+
+_Props of `PhaseBar`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` (required) | `string` |  | The list's accessible name, required so the bar is never an unnamed list: "Lifecycle gates", "Audit phases". An `aria-label` overrides it. |
+
+### PhaseBar.Item
+
+_Props of `PhaseBar.Item`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `state` (required) | `"blocked" \| "current" \| "done" \| "upcoming"` |  | `done`, `current`, `upcoming`, or `blocked` for the phase that failed. |
+| `label` (required) | `ReactNode` |  | The phase's name under its segment, a word or two: "Preparation", "Observation period". It wraps. |
+| `meta` | `ReactNode` |  | One line under the name: a day, a range, who has it. |
+| `weight` | `number` | `1` | The phase's share of the bar, against its neighbours': a three-month period beside one-week phases takes `weight={12}`. Every phase keeps a floor, so a short one stays readable. |
+| `progress` | `number` |  | How far through a `current` phase the work is, 0 to 1: its segment fills that far. Unsaid, the current segment is filled. |
+
+_Rendered in the Storybook: Controls._
+
+## Related
+
+- [Stepper](?path=/docs/components-stepper--docs): a path the reader moves along.
+- [Progress](?path=/docs/components-progress--docs): how far one task has gone.
+- [Timeline](?path=/docs/components-timeline--docs): what happened, in order.
+
 <!-- page: Components/Popover (src/stories/components/Popover.mdx) -->
 
 # Popover
@@ -15254,7 +15347,7 @@ Not for work beside a list the reader keeps using: that is the Shell's panel, wh
 ## Anatomy
 
 - **SheetContent** brings its portal, the blanket and a close button at the top end (an IconButton named Close, with no tooltip, first in the Tab order where it is drawn, while the first field still takes focus on open), and slides from `side`: `right` by default, `left`, `top` or `bottom`, or `start` and `end`, which follow the reading direction. It records the overlay surface as the current one, so a sticky header or pinned cell inside matches the sheet.
-- **SheetHeader** holds the title (the sheet's h2, a [Heading](?path=/docs/primitives-heading--docs) at `overlay`, 15/22 medium; headings inside start at h3) and the description, which wrap an unbroken value. A record's name as the title is a PageHeader.Title rendered as SheetTitle, and keeps the page title's size.
+- **SheetHeader** holds the title (the sheet's h2, a [Heading](?path=/docs/primitives-heading--docs) at `overlay`, 17/24 semibold; headings inside start at h3) and the description, which wrap an unbroken value. A record's name as the title is a PageHeader.Title rendered as SheetTitle, and keeps the page title's size.
 - **SheetBody** is the one scrolling region, with the sheet's inset. A toolbar row that should not scroll sits between the header and the body.
 - **SheetFooter** stays outside the scroll, on the sheet's own surface below a hairline. The header, the body and the footer share the sheet's `space.200` inline inset.
 - **SheetPortal** and **SheetOverlay** are exported for a custom popup, as Dialog's are.
@@ -15579,7 +15672,7 @@ _Example: story `Stories.StatMatrix`._
 | Part  | What it is                                                                                                                                                                                                                 |
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Label | `font.body.small` in `color.text.subtle`: what the number counts. Above the number in a Tile, below it in a bare Stat.                                                                                                     |
-| Value | A [Heading](?path=/docs/primitives-heading--docs) at `page` as a `div` (`font.heading.page`, 20/26 semibold), tabular. `color.text`, or the tone's text colour when the number is a status; zero in `color.text.subtlest`. |
+| Value | A [Heading](?path=/docs/primitives-heading--docs) at `page` as a `div` (`font.heading.page`, 24/30 semibold), tabular. `color.text`, or the tone's text colour when the number is a status; zero in `color.text.subtlest`. |
 | Note  | `font.body.small` in `color.text.subtle`, one line under the value. Tile only.                                                                                                                                             |
 | Trend | Beside the value, `space.150` from it: a Chart.Sparkline of the same count over time, from `trend`. Tile only.                                                                                                             |
 | Link  | With `link`, the link fills the tile and holds the label, value, trend and note, so the whole tile is one target. Tile only.                                                                                               |
@@ -15592,12 +15685,19 @@ _Example: story `Stories.StatMatrix`._
 | `Stat.Tile` in a Grid | The headline numbers of a record or a screen: at the top as a card, or as a band between two sections. |
 | Linked `Stat.Tile`    | A dashboard count that opens its filtered register: "Open risks" opens the risk register, filtered.    |
 | `Stat`                | A summary row inside a Section, where a framed grid would be a card inside a card.                     |
+| `Stat.Row` in a List  | One count broken into the parts a reader acts on, each a line: in a Tray, or under a Section title.    |
 
 _Example: story `Stories.Linked`._
 
 A count whose history matters takes a sparkline in `trend`, beside the number; the number stays the value, and the note says what the line shows ("Down from 14 in January"). A series read for its values is a [Chart](?path=/docs/patterns-chart-overview--docs).
 
 _Example: story `Stories.WithATrend`._
+
+## A count in its parts
+
+`Stat.List` breaks one count into its parts, a `Stat.Row` a line: an icon, the label and its number at the row's end. Use it where the parts are what the reader acts on (7 need attention, 9 compliant, 4 dormant), inside a [Tray](?path=/docs/components-tray--docs) whose heading holds the whole, or under a Section title. Each row is a raised surface of its own, so the list reads on a tray's sunken surface and on a page alike. A row's `tone` colours its label and its number together, zero mutes the whole row whatever its tone, and a row with `link` opens its part of the register, with a chevron after its label.
+
+_Example: story `Stories.Breakdown`._
 
 Not built, and why: no delta or trend arrow ("+3 this week"), because a colour and an arrow for a change need a polarity the tile cannot know, and the note says it in words; no icon in the tile; no tinted tile, because the tone colours the number and a tinted tile would make every number read as a status; no link on a bare `Stat`, because a summary row inside a Section is read, not opened.
 
@@ -15676,7 +15776,7 @@ The toned value is Badge's text colour for the tone, so a danger count and a dan
 
 Stat, Stat.Tile and Stat.Grid forward native `div` props and refs to their outer elements, and name themselves last with `data-slot` (`stat`, `stat-tile`, `stat-grid`; a tile's link is `stat-link`, its trend `stat-trend`). IDs, ARIA, data attributes and events are preserved; `className` merges with each part’s defaults. Styles override the Grid’s default gutter background and accept ordinary sizing on all three parts. With `link`, the ref still reaches the tile; the link element keeps its own props, ref and handlers (`link={<Link to="/risks" search={{ status: "open" }} />}`).
 
-Stat and Stat.Tile keep their configured `label`/`value`/`note` slots. Compose tiles through Stat.Grid’s children. Zero remains muted, and tones, responsive columns and frames retain their existing defaults. Stat.Tile and Stat.Grid are also exported by name, as `StatTile` and `StatGrid`.
+Stat and Stat.Tile keep their configured `label`/`value`/`note` slots. Compose tiles through Stat.Grid’s children. Zero remains muted, and tones, responsive columns and frames retain their existing defaults. Stat.List is a `ul` and Stat.Row its `li` (`stat-list`, `stat-row`, with `stat-row-icon`, `stat-row-label` and `stat-row-value` inside). The parts are also exported by name, as `StatTile`, `StatGrid`, `StatList` and `StatRow`.
 
 _Props of `Stat`, generated from its types:_
 
@@ -15710,6 +15810,22 @@ _Props of `Stat.Grid`, generated from its types:_
 | `cols` | `2 \| 3 \| 4 \| 5 \| 6` | `4` | The most columns across, shown when the grid has room. The grid takes its columns from its own width, not the window's: each tile keeps at least 128px, so as the grid narrows six and five fold to three, every count folds to two (in a 320px panel and on a 320px phone), and it is one column below 257px. |
 | `frame` | `"band" \| "card"` | `card` | `card` frames the row with a border and rounded corners; `band` runs edge to edge between two rules. |
 
+### Stat.List
+
+_Props: generated from `Stat.List`; the Storybook page and the package's `.d.ts` list them._
+
+### Stat.Row
+
+_Props of `Stat.Row`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` (required) | `string` |  | What the number counts, on the row's line: "Need attention". |
+| `tone` | `"danger" \| "information" \| "neutral" \| "success" \| "warning"` | `neutral` | A colour only when the number is a status: the label and the number take it together. A zero stays muted whatever the tone. |
+| `icon` | `ReactNode` |  | Before the label: an `Icon` for the kind of thing counted. Decoration, since the label says it. |
+| `isLoading` | `boolean` |  | The number is on its way: a Skeleton holds its place, the row is `aria-busy`, and a screen reader hears "Loading" after the label. |
+| `link` | `ReactElement<{ className?: string; children?: ReactNode; }, string \| JSXElementConstructor<any>>` |  | A link element (a router's Link, or `<a href>`) that fills the row and opens the register it counts, with a chevron after the label. Its name is the label and the number. A linked row holds no other control. |
+
 ### Playground
 
 _Example: story `Stories.Playground`._
@@ -15718,6 +15834,7 @@ _Rendered in the Storybook: Controls._
 
 ## Related
 
+- [Tray](?path=/docs/components-tray--docs): the counted group a Stat.List sits in.
 - [Progress](?path=/docs/components-progress--docs): the bar a number often has beside it.
 - [Chart](?path=/docs/patterns-chart-overview--docs): a number over time.
 - [KeyValue](?path=/docs/components-keyvalue--docs): a fact that is not a headline.
@@ -16034,7 +16151,7 @@ Table has one appearance. What varies is the parts a register takes:
 | Rows the reader chooses for a batch action            | `Table.Selection` in the header and in each row; the bar above names the count and the verbs.                                                                                                                          |
 | Records under headings                                | `Table.Group`, one per heading, opened and closed.                                                                                                                                                                     |
 | A hierarchy with columns                              | A plain table with `Table.Disclosure` as the leading cell (or `Table.Tree` as the name cell); the caller flattens and folds, and Tab reaches each chevron. DataTable's tree mode is the treegrid, with the arrow keys. |
-| A record that opens into more                         | `Table.Detail` under its row, a chevron in the row.                                                                                                                                                                    |
+| A record that opens into more                         | `Table.Detail` under its row, and a `Table.Disclosure` in the row whose `controls` names the detail row's `id`.                                                                                                        |
 | Rows in an order the reader sets                      | `Table.Handle` as the first cell.                                                                                                                                                                                      |
 | Sort, filters, pages, pinned columns, a thousand rows | `DataTable`.                                                                                                                                                                                                           |
 | A few facts about one thing                           | `KeyValue`.                                                                                                                                                                                                            |
@@ -16087,6 +16204,7 @@ Loading, empty and error belong to the DataTable, which keeps the header and dra
 - **`resize` and `trailing`** on a header are the DataTable's: a handle on the trailing edge, named after the column, and a control that shows on hover and focus, and always, beside the heading, where any pointer is coarse; there a DataTable that scrolls sideways draws the column 24px wider for each 20px control (less the 2px between two), so the heading keeps its room, and a responsive one keeps the author's width, so no column folds for it: the heading gives way and shows whole on hover and focus. An end-aligned heading keeps them at its start. By hand only in a header the DataTable cannot draw.
 - **`isSelected` and `isStatic`** on a row.
 - **`expanded` and `onExpandedChange`** on `Table.Group`, `Table.Tree` and `Table.Disclosure`: whether the rows under it show, and the call its chevron makes with the next state, the same pair [Tree](?path=/docs/components-tree--docs)'s items take (`isExpanded` there, beside `isSelected`). Table.Group's `open` and every part's `onToggle` are the deprecated names, still read for one version.
+- **`controls`** on `Table.Disclosure`: the `id` of the `Table.Detail` row its chevron opens, where a row opens into a detail rather than onto rows under it. The chevron is then named "Show details for" and "Hide details for" the row, states `aria-expanded` and names the detail row in `aria-controls`, as DataTable's own detail chevron does. Without it the chevron folds a hierarchy and says "Expand" and "Collapse".
 - **`tone="subtle"`** on `Table.Id` where the id is not the link, in a grouped listing; `onPreview` and `isActive` for the eye, and `label` for its name when the id is not a plain string.
 
 `useSort` reads each sortable column through a function that returns the raw value: an ISO day or instant, a number, a Date or the text, never the label the cell formats, so 2 September sorts before 14 September. Text collates in the LedgerProvider's locale with numbers inside it read as numbers, and an absent value (`null`, `undefined`, `""`) sorts last in either direction. `usePage` clamps its page when the list shrinks.
@@ -16096,6 +16214,8 @@ _Example: story `Stories.SortedAndPaged`._
 _Example: story `Stories.Groups`._
 
 _Example: story `Stories.TreeStory`._
+
+_Example: story `Stories.DetailByHand`._
 
 _Example: story `Stories.RichNamesStory`._
 
@@ -16147,7 +16267,7 @@ _Example: story `Stories.RightToLeft`._
 - **Sorting.** The header's button reports `aria-sort`; Space or Enter sorts; the chevron shows on hover and on focus, so a keyboard user sees which headers sort. On a pointer that can hover there is no persistent sign that a table sorts, which is why the chevron follows focus; where any pointer is coarse it is always shown, unless the column's menu, which sorts, is beside it.
 - **Keyboard.** Tab moves through the interactive elements in reading order: sort buttons, checkboxes, the eye, chevrons, links. That is enough for a table; only a treegrid takes arrow keys, and only DataTable's tree mode is one. A focused control is scrolled clear of the pinned columns and the sticky header.
 - **Selection is a checkbox with a name**: "Select CTRL-0412", and the header's "Select all". The row's click opens the record and does not select; a click beside the box in its cell selects and does not open.
-- **Every control is named.** The eye is "Preview CTRL-0412", after the row, and the table's one tooltip says "Preview" over it, so a row mounts no tooltip of its own; the chevrons say what they do in their names and carry none. The group's chevron is named by its title and `aria-expanded` says whether it is open; the tree's names its row and its action, "Expand Ground segment"; a detail row's chevron carries `aria-controls`; a resize handle is named after its column, "Resize Control".
+- **Every control is named.** The eye is "Preview CTRL-0412", after the row, and the table's one tooltip says "Preview" over it, so a row mounts no tooltip of its own; the chevrons say what they do in their names and carry none. The group's chevron is named by its title and `aria-expanded` says whether it is open; the tree's names its row and its action, "Expand Ground segment"; a detail row's chevron carries `aria-expanded` and `aria-controls` (DataTable's unsaid, a `Table.Disclosure` by hand through `controls`); a resize handle is named after its column, "Resize Control".
 - **A list line is a button** with the whole list as its description: each item, its meta and status, and the note, so the card is not the only way to them. "+2" is spoken "and 2 more". The lines share the table's one card: each opens it with its own list, so a closed card costs a row nothing, and a line whose row is open shows none.
 - **A cut value shows whole for every reader.** The table holds one tooltip for its cells: a value its column cuts shows whole in it while the pointer rests on the cell, while the keyboard is on the cell or a link in it (a record's name), and after a long press on a touch screen, which then opens nothing. Only the cut parts show (a name, then its second line, a status Badge's words); a value that fits shows nothing more, and no cell carries a `title`. A one-line [Truncate](?path=/docs/components-truncate--docs) in a cell that truncates is the table's to show, so it mounts no tooltip of its own. The table sets one writing direction for its popups rather than one per popup. The tooltip is a visual copy of words the cell already holds, hidden from assistive technology; the pointer can move onto it and Escape closes it, going no further, except in a field, whose Escape stays its own. A cut heading shows whole the same way, on hover and while its sort button has focus. A value that must be read whole wraps.
 - **Not colour alone.** Hover and selection have the checkbox and the id's colour beside the fill; the open row's eye has its ring; the sort has its arrow and `aria-sort`; the header text at `color.text.subtle` passes 4.5:1. In forced colours a chosen row keeps a Highlight edge and the open row's eye a Highlight fill.
@@ -16214,7 +16334,7 @@ _Props of `Table.Cell`, generated from its types:_
 | `minWidth` | `number` |  | The column's least width in pixels, for a table with no header row. |
 | `align` | `"center" \| "end" \| "start"` |  | Where the content sits: `end` for a number, in tabular numerals. Logical, so an RTL table mirrors it. Match the column's heading. |
 | `wrap` | `boolean` |  | The value wraps, breaking a long unbroken one (a URN, a hash), instead of ending in an ellipsis. For a value that must be read whole. |
-| `rowHeader` | `boolean` |  | The cell names its row (`th scope="row"`), so a screen reader announces the row's identity with every other cell and control in it. One per row: the id or the name. |
+| `rowHeader` | `boolean` |  | The cell names its row (`th scope="row"`), so a screen reader announces the row's identity with every other cell and control in it. The name is drawn in `color.text` at medium weight, a link or a link-styled button in it included, which underline under the pointer. One per row: the id or the name. |
 
 ### Table.Id
 
@@ -16324,6 +16444,7 @@ _Props of `Table.Disclosure`, generated from its types:_
 | `onToggle` | `(() => void)` |  | Called when the chevron is pressed. @deprecated Use `onExpandedChange`, which is called with the next state; `onToggle` is still called for one version where `onExpandedChange` is not given. |
 | `hasChildren` | `boolean` | `false` |  |
 | `label` (required) | `string` |  | The row's plain name, for the chevron's accessible label: "Expand Ground segment". |
+| `controls` | `string` |  | The `id` of the `Table.Detail` row this chevron opens, where the row opens into a detail rather than onto rows under it. The chevron then reads as DataTable's own detail chevron does: named "Show details for" and "Hide details for" the row, it states `aria-expanded` and names the detail row in `aria-controls`. |
 
 ### Table.Detail
 
@@ -16528,6 +16649,103 @@ A filter over one list is a ToggleGroup or a toolbar filter, never tabs. A tab i
 
 _Example: story `Stories.Dont`._
 
+<!-- page: Components/Tally (src/stories/components/Tally.mdx) -->
+
+# Tally
+
+**Status: Experimental.** New with the program's Cyber resiliency view, its first screen; the props may change while a second screen tries it. Owned by the design system.
+
+How many of a group's items are in each state, as one thin bar: each segment its share of a total, the rest the empty track. It is a [TileMap](?path=/docs/patterns-tilemap--docs)'s marks counted into a bar, so it takes the same tones and fills and one key explains both. Put the number beside it: the bar shows the proportion, and the number is the reading.
+
+_Example: story `Stories.Playground`._
+
+## Choosing between the bars
+
+| What the reader is watching                                            | Part                                                                             |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| A task that finishes: an upload, an import                             | [Progress](?path=/docs/components-progress--docs)                                |
+| Parts of a whole in the status tones, a hatched hole, parts that click | `ProgressStacked`, on the [Progress](?path=/docs/components-progress--docs) page |
+| Where work stands along a few named phases                             | [PhaseBar](?path=/docs/components-phasebar--docs)                                |
+| How many items of a group are in each state, in a map's colours        | `Tally`                                                                          |
+| Every item as its own mark, to find one by where it stands             | [TileMap](?path=/docs/patterns-tilemap--docs)                                    |
+
+A tally is not a progressbar: nothing is under way, and a screen reader would hear a percentage of a job that is not running. It keeps apart from `ProgressStacked` by its vocabulary. A stacked bar speaks the status tones (success, warning, danger) and hatches what is unknown; a tally speaks a map's chart tones and has a hollow segment, for what was there and is not now, and a remainder that is the track. Use the one whose key is already on the page.
+
+## Tones and fills
+
+A segment has a `tone`, one of the chart tokens, and a `fill`: `solid`, `outline` for an item that was there and is not now, and `empty`, the track's own colour, for a caller that names the rest as a segment. They are the names a TileMap mark takes (`TallyTone` is `TileMapTone`, `TallyFill` is `TileMapFill`), so one map of a screen's states feeds a `TileMap.Key`, a tally's segments and a [Ladder](?path=/docs/patterns-ladder--docs)'s marks. Keep to a few states: one hue for what changed and a hollow segment for what left read in every colour vision.
+
+_Example: story `Stories.TonesAndFills`._
+
+Colour never says a state alone. Each segment's `label` ("70 added") is its title under the pointer and a part of the tally's name, and a key beside the tally says what each colour means.
+
+## Sizes
+
+`size` is the bar's thickness: `small` 4px under a name, `medium` 6px in a row, `large` 8px in a band, and `xlarge` 12px where the bar is a table cell's whole reading. The bar is as long as its box.
+
+_Example: story `Stories.Sizes`._
+
+## Comparing a column
+
+`scale`, from 0 to 1, sets the bar's own length as a share of its box: a row's total against the largest in its column. The bars of a column then compare twice, by their length (how much stands behind each row) and by how full they are (how much of it is held).
+
+_Example: story `Stories.Scaled`._
+
+## Nothing held
+
+`tone="danger"` is for a tally that holds nothing where something is expected. The unfilled track becomes a hollow outline in the danger tone, never a fill, so an empty bar does not pass for a low value. Say it in the number beside the bar too.
+
+_Example: story `Stories.Nothing`._
+
+## In a table
+
+In a cell the number is the text and the tally is decoration under it: leave `label` unsaid, so a screen reader reads the row as numbers and is not told of an image a cell.
+
+_Example: story `Stories.InATable`._
+
+## A changing value
+
+When a value changes, its segment eases to the new share in place over `motion.duration.moderate`. A segment of nothing keeps its place at no width, so it grows from where it stands. Under reduced motion the bar switches.
+
+_Example: story `Stories.Changing`._
+
+## Accessibility
+
+- **Named or decorative, never between.** With `label` the tally is `role="img"`, named by the label and the labels of its segments that hold something: "Controls behind Adaptive Response: 4 in baseline, 4 added". Without `label` it is hidden from assistive technology, and the number beside it carries the value.
+- **Not colour alone.** A segment says its state in its `label`; hollow and filled differ by shape as well as hue.
+- **Forced colours.** Filled, hollow and empty stay three things in the system palette: a filled segment is CanvasText, a hollow one an outline, and the track an outline in GrayText.
+- **Right to left.** The segments run from the inline start, so the bar mirrors.
+
+## Style
+
+| Element | Token                                                                                                 |
+| ------- | ----------------------------------------------------------------------------------------------------- |
+| Bar     | `space.050`, `space.075`, `space.100` or `space.150` thick · `radius.xsmall`                          |
+| Track   | `color.chart.track`; with `tone="danger"`, a `color.border.danger` outline                            |
+| Segment | `color.chart.*` in its tone · hollow: `elevation.surface.current` inside an edge in the tone          |
+| Motion  | `motion.duration.moderate`, `motion.easing.standard` on a segment's length; none under reduced motion |
+
+## Props
+
+The span's native props and ref reach the tally's box.
+
+_Props of `Tally`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `segments` (required) | `readonly TallySegment[]` |  | The segments in order, from the start. |
+| `total` | `number` |  | The whole the segments are shares of. Their sum when unsaid; where it is larger, the rest is the empty track. |
+| `size` | `"large" \| "medium" \| "small" \| "xlarge"` | `medium` | `small` is 4px, under a name; `medium` 6px; `large` 8px; `xlarge` 12px, a table cell whose reading is the bar. |
+| `scale` | `number` | `1` | The bar's own length as a share of its box, from 0 to 1: a row's total against the largest in its column, so the bars of a column compare. |
+| `tone` | `"danger" \| "neutral"` | `neutral` | `danger` draws the unfilled track as a hollow danger outline: a tally that holds nothing where something is expected. |
+| `label` | `string` |  | The tally's accessible name ("Coverage of Adaptive Response"). With it the tally is an image named by it and its segments' labels; without it the tally is decorative, and the number beside it carries the value. |
+
+_Rendered in the Storybook: Controls._
+
+## Related
+
+[Progress](?path=/docs/components-progress--docs) · [PhaseBar](?path=/docs/components-phasebar--docs) · [TileMap](?path=/docs/patterns-tilemap--docs) · [Ladder](?path=/docs/patterns-ladder--docs) · [Stat](?path=/docs/components-stat--docs)
+
 <!-- page: Components/Textarea (src/stories/components/Textarea.mdx) -->
 
 # Textarea
@@ -16657,6 +16875,12 @@ _Example: story `Stories.InProse`._
 
 _Example: story `Stories.NewTab`._
 
+## A record's name
+
+`tone="neutral"` draws the words in `color.text` and underlines them under the pointer and on keyboard focus. Use it for a record's name in its own row or card, where the name is the row's identity and a column of blue would be louder than the status beside it. A link in a sentence, and any link whose words alone must say it is one, stays `brand`.
+
+_Example: story `Stories.NeutralName`._
+
 ## Accessibility
 
 A real anchor retains Enter activation, copy-link and open-in-new-tab behavior. Space does not activate a link. Name the destination, such as “Full timeline”, rather than “Click here”. A link in prose carries its underline by itself; no class is needed. A `newTab` link's name ends with "(opens in a new tab)", so a screen reader hears where it will go before it goes; the icon is hidden.
@@ -16678,6 +16902,7 @@ _Props of `TextLink`, generated from its types:_
 | `render` | `ReactElement<unknown, string \| JSXElementConstructor<any>> \| ComponentRenderFn<HTMLProps, {}>` |  | Allows you to replace the component's HTML element with a different tag, or compose it with another component. Accepts a `ReactElement` or a function that returns the element to render. |
 | `size` | `"medium" \| "small"` |  | Left unset, the link takes the surrounding size. |
 | `weight` | `"medium" \| "regular"` |  |  |
+| `tone` | `"brand" \| "neutral"` | `brand` | `brand` is the link colour. `neutral` draws the words in `color.text`, underlined under the pointer and on keyboard focus: a record's name in its own row or card, where the name is the identity and colour is kept for status. A link in a sentence stays `brand`. |
 | `newTab` | `boolean` | `false` | Opens the destination in a new tab and says so: `target="_blank"`, `rel="noopener noreferrer"`, an external-link icon after the last word, and "(opens in a new tab)" read after the name. For a destination outside the product, or one that would cost the reader their place (a draft, a wizard step, a dialog). A `target` or `rel` of your own wins. |
 
 Native anchor attributes, events and refs pass through. `render` merges rendered-element refs and handlers; put element-specific props on the rendered component.
@@ -17432,6 +17657,93 @@ _Props of `TooltipProvider`, generated from its types:_
 
 [IconButton](?path=/docs/components-iconbutton--docs) · [Kbd](?path=/docs/components-kbd--docs) · [HoverCard](?path=/docs/components-hovercard--docs) · [Popover](?path=/docs/components-popover--docs) · [Overlays](?path=/docs/components-overlays--docs)
 
+<!-- page: Components/Tray (src/stories/components/Tray.mdx) -->
+
+# Tray
+
+**Status: Experimental.** New with the program's Overview, its first screen; the props may change while a second screen tries it. Owned by the design system.
+
+A sunken surface that holds raised cards under one heading, and the heading is a count: "20 monitored devices", "2 frameworks". It groups what belongs to one number. A [Section](?path=/docs/layout-section--docs) titles a block of the page; a tray draws an edge around the cards its heading counts, so a dashboard reads as a few counted groups instead of a run of cards. What it holds draws its own raised surface: a [Card](?path=/docs/components-card--docs), or a `Stat.List` whose rows break the count into its parts.
+
+_Example: story `Stories.Playground`._
+
+## Holding cards
+
+_Example: story `Stories.HoldingCards`._
+
+The tray stacks its children `space.075` apart. For cards side by side, give it one Grid with an intrinsic template, so the columns follow the tray's own width.
+
+## A heading that opens the register
+
+With `link`, the heading's text is the link and a chevron follows it. Each `Stat.Row` takes a `link` of its own for its part of the register.
+
+_Example: story `Stories.Linked`._
+
+## The one that cannot wait
+
+`tone="danger"` fills the tray with the bold danger colour. Use it for the one count on a screen that cannot wait, and at most once: two bold trays compete, and a screen of them says nothing. The rows inside stay raised and carry their own tone.
+
+_Example: story `Stories.Danger`._
+
+## States
+
+| State   | What changes                                                                                                                  |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Zero    | The number in `color.text.subtlest` on the neutral tray: nothing is not a status.                                             |
+| Loading | `isLoading`: a Skeleton where the number goes, `aria-busy` on the tray and a hidden "Loading" in the heading.                 |
+| Linked  | `link`: the heading underlines under the pointer and takes the focus ring; on the bold tray the ring is the heading's colour. |
+
+_Example: story `Stories.Loading`._
+_Example: story `Stories.WithAnAction`._
+
+## Content
+
+- **The heading is a count and a noun**, lower case after the number: "20 monitored devices", "2 frameworks". Pass a number as `value`: the tray writes it in the reader's locale. Without `value` the title stands alone, sentence case.
+- **`action` is one thing**: a key for the marks inside, one figure, a link. A create button belongs to the collection's toolbar, not here.
+- **A tray is not a page section.** It holds a handful of cards or rows that one number counts. A table, a form or a chart with its own title is a Section or a Card.
+
+## Accessibility
+
+- **A named group, never a landmark**: `role="group"` named by its heading, so a dashboard of trays adds nothing to the landmark list.
+- **The heading takes the contextual level**: an h2 outside every [HeadingLevelProvider](?path=/docs/primitives-heading--docs), one below a titled Section. What the tray holds takes the level below.
+
+_Example: story `Stories.HeadingLevels`._
+
+- **Colour is not the only signal.** The bold tray's heading says what it counts; in forced colours every tray keeps a border, so its group still reads.
+
+## Style
+
+| Element | Token                                                                                      |
+| ------- | ------------------------------------------------------------------------------------------ |
+| Tray    | `elevation.surface.sunken` · `radius.xlarge` · `space.075` inset and between what it holds |
+| Danger  | `color.background.danger.bold` · heading and icon in `color.text.inverse`                  |
+| Heading | `font.heading.section` · `color.text` · the number tabular, `color.text.subtlest` at zero  |
+| Action  | `font.body.small` · `color.text.subtle`                                                    |
+
+## Props
+
+Tray forwards native `div` props and its ref to the outer element and names itself last with `data-slot="tray"`; its parts are `tray-header`, `tray-title`, `tray-value`, `tray-link`, `tray-action` and `tray-content`.
+
+_Props of `Tray`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `title` (required) | `ReactNode` |  | What the tray holds. With `value` it is the words after the number, so the heading reads as one count: "monitored devices" under `value={20}` is "20 monitored devices". |
+| `value` | `ReactNode` |  | The count the heading leads with. A number is written in the reader's locale; a string shows as given. Zero reads muted on the neutral tray. |
+| `icon` | `ReactNode` |  | Before the heading: an `Icon` for the kind of thing the tray holds. Decoration, since the title says it. |
+| `link` | `ReactElement<{ className?: string; children?: ReactNode; }, string \| JSXElementConstructor<any>>` |  | A link element (a router's Link, or `<a href>`) that becomes the heading's text, with a chevron after it: the heading opens the register the tray counts. |
+| `action` | `ReactNode` |  | At the heading's end: a key for what the tray holds, one figure, a link. It takes the next row when the heading needs the width. |
+| `tone` | `"danger" \| "neutral"` | `neutral` | `danger` fills the tray with the bold danger colour and draws its heading on it. One a screen at most. |
+| `isLoading` | `boolean` |  | The count is on its way: a Skeleton holds its place in the heading, the tray is `aria-busy`, and a screen reader hears "Loading". |
+
+_Rendered in the Storybook: Controls._
+
+## Related
+
+- [Stat](?path=/docs/components-stat--docs): `Stat.List` and `Stat.Row`, the breakdown a tray holds, and `Stat.Grid` for headline numbers with no group around them.
+- [Card](?path=/docs/components-card--docs): the raised surface a tray holds.
+- [Section](?path=/docs/layout-section--docs): a titled block of the page.
+
 <!-- page: Components/Tree (src/stories/components/Tree.mdx) -->
 
 # Tree
@@ -17986,7 +18298,7 @@ Description is for a page outside the register and record shapes, such as a sett
 
 ## Title levels
 
-The Title is a [Heading](?path=/docs/primitives-heading--docs) at `page`, 20/26 semibold, and the h1 on a page. Inside a [HeadingLevelProvider](?path=/docs/primitives-heading--docs) it takes that level instead: a preview's inner record header, in a panel or a sheet whose outline starts at 2, renders the record's name as an h2 with the same type style. The content after that header goes one level below through a HeadingLevelProvider without `level`, so its Sections are h3s. `render` sets the element outright, `render={<h2 />}`, or a sheet's or a dialog's own title part where the surface needs its title for its accessible name; either keeps the `page` size. A title the PageHeader does not draw is a Heading at the size it matches, never a raw heading with the Title's classes: a change to the ramp would miss it.
+The Title is a [Heading](?path=/docs/primitives-heading--docs) at `page`, 24/30 semibold, and the h1 on a page. Inside a [HeadingLevelProvider](?path=/docs/primitives-heading--docs) it takes that level instead: a preview's inner record header, in a panel or a sheet whose outline starts at 2, renders the record's name as an h2 with the same type style. The content after that header goes one level below through a HeadingLevelProvider without `level`, so its Sections are h3s. `render` sets the element outright, `render={<h2 />}`, or a sheet's or a dialog's own title part where the surface needs its title for its accessible name; either keeps the `page` size. A title the PageHeader does not draw is a Heading at the size it matches, never a raw heading with the Title's classes: a change to the ramp would miss it.
 
 _Example: story `Stories.TitleLevels`._
 
@@ -18187,7 +18499,7 @@ _Example: story `Stories.Dont`._
 
 Optional presentation for a titled block of a page. `title`, `count`, `description` and `action` render the built-in header (a count of rows takes `countMax={9999}`, the cap a tab strip's counts take, where Count's own is 99); leave `title` out and compose Section.Header, Section.Heading, Section.Title, Section.Description and Section.Actions yourself when the heading needs a badge or two actions. Native section props and refs pass through every part.
 
-The title is a [Heading](?path=/docs/primitives-heading--docs) at `section`, semibold at body size (13/18), and a one-line title sits centred on its action's row. A rule is opt-in with `divided`: it is drawn inside the header's end, `space.100` above the content, so the content starts clear of it and keeps its own flow.
+The title is a [Heading](?path=/docs/primitives-heading--docs) at `section`, semibold a step above the body (15/22), and a one-line title sits centred on its action's row. A rule is opt-in with `divided`: it is drawn inside the header's end, `space.100` above the content, so the content starts clear of it and keeps its own flow.
 
 _Example: story `Stories.Presentation`._
 _Example: story `Stories.Composed`._
@@ -19609,7 +19921,7 @@ _Example: story `Stories.HeatmapMatrix`._
 | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Cell    | `radius.xsmall`, 2px from its neighbours, its fill the value's step on the scale; a faint step (one close to the surface) adds a `color.border.bold` edge. With `zeroStep`, a zero is `color.chart.track`. A cell with no value is a dashed edge with no fill and no number. |
 | Value   | Printed in the cell on a status scale (the tone's text on its fill); on a colour scale a screen-reader-only text, or with `showValues` the number on an `elevation.surface` chip.                                                                                            |
-| Headers | Column names across the top, row names down the side, in `font.body.xsmall` and `font.body.small`; the corner names the rows.                                                                                                                                                |
+| Headers | Column names across the top, row names down the side, in `font.body.xsmall` and `font.body.small`; the corner names the rows. With `columnHeadings="vertical"` a column's name reads up the page from its column.                                                            |
 | Scale   | `Chart.Scale`: the five steps in a row with the ends or the thresholds named, the midpoint's word on a diverging one, or the status tones with their words. Under the grid, `space.150` away.                                                                                |
 | Tooltip | The cell's title: row, column, value.                                                                                                                                                                                                                                        |
 | Card    | On a chosen cell: the row and column, the value, then the caller's facts.                                                                                                                                                                                                    |
@@ -19639,6 +19951,18 @@ A cell is at least 40px wide, and every value column takes the widest heading's 
 
 _Example: story `Stories.Narrow`._
 
+## Long column names
+
+On one line, a heading makes every value column as wide as the longest name. Where the names are long and the cells hold a digit or two, that width goes to the names: fourteen techniques take three times the room their counts need, and the grid scrolls sideways over cells that are mostly space. `columnHeadings="vertical"` turns each heading to read up the page from its column, so a column is as wide as its cells and the names take height instead, once, above the grid.
+
+_Example: story `Stories.VerticalHeadings`._
+
+Use it for names that have no short form and that, on one line, would make the grid scroll. Where the vocabulary has a short form its readers know (a family's code, a month), head the columns with that, and keep `horizontal` while the grid fits: a turned name is slower to read. Each heading stands over its own column, so under the row names of a grid that still scrolls, on a phone, a hidden column's name is hidden with it. Where the page reads right to left the headings turn the other way, its mirror.
+
+A name longer than a heading's line, about twenty-five characters, takes a second line beside the first, and the columns keep their width; a name that needs a third line widens every column alike. Keep to names of a few words.
+
+_Example: story `Stories.VerticalHeadingsLongNames`._
+
 ## States
 
 | State    | What changes                                                                                                                                                                                                                    |
@@ -19655,11 +19979,21 @@ A cell that opens a register is a link, not a button: `link` returns the link el
 
 _Example: story `Stories.Links`._
 
+## Rows in a hierarchy
+
+_Example: story `Stories.GroupedRows`._
+
+Where the rows hold other rows (a system and its elements, a division and its teams), give them in the hierarchy's order and say each row's depth with `rowLevel`: its name is indented under the row that holds it, three levels at most. `summary` marks the rows that total the rows under them. A summary row prints its numbers with no fill, so a total is never read as one more step of the scale, and the grid reads as its lowest rows with their totals above them. The caller owns the totals: the grid draws the value it is given for every row.
+
+A status function may return a tone with `emphasis: "bold"`, the tone's solid fill, for the one level that must not read as its neighbour: critical beside high, where both are danger. Keep it to one level, and name it on the key with the same `emphasis`.
+
 ## Modifiers
 
 - **`scale`**, **`domain`**, **`midpoint`**, **`showValues`** as in Variants.
-- **`zeroStep`** gives zero a step of its own, so none reads apart from a few. Give the Scale the same.
+- **`rowLevel`** and **`summary`** as in Rows in a hierarchy.
+- **`zeroStep`** gives zero a step of its own, so none reads apart from a few. Give the Scale the same. A zero is then quiet: its number is in the cell's title and said to assistive technology, never drawn, so the cells that hold something are the ones a reader sees. On a sequential scale the track-coloured cell is the mark; on a status scale and in a `summary` row it is a faint point with no fill, never the lowest level's tone.
 - **`rowLabel`**, **`columnLabel`** name the dimensions: the corner cell, and what a screen reader hears.
+- **`columnHeadings`** as in Long column names: `vertical` turns the headings, so a column is as wide as its cells. `horizontal` when unsaid.
 - **`format`** for the values, the tooltip, the card and the Frame's table. The Frame's, else the kit's.
 - **`onSelect`** and **`details`** as in States; the selection is `{ row, column, value }`. **`selectable`** says which cells choose or link.
 - **`link`** returns the link a cell opens, from the same selection, or `undefined` to leave the cell as it is. A cell it links does not also choose.
@@ -19687,7 +20021,7 @@ _Example: story `Stories.Loading`._
 | Cell           | `color.chart.sequential.<step>` · `color.chart.diverging.<step>` · or `color.background.<tone>` with `color.text.<tone>` · `radius.xsmall` · 2px apart                           |
 | Faint step     | `color.chart.sequential.1` to `3`, `color.chart.diverging.negative`, `midpoint`, `positive` and `color.chart.track` add a 1px `color.border.bold` edge, in the cells and the key |
 | Empty          | No fill · a 1px dashed `color.border.bold` edge                                                                                                                                  |
-| Headers        | `font.body.xsmall` medium `color.text.subtlest` across · `font.body.small` `color.text.subtle` down                                                                              |
+| Headers        | `font.body.xsmall` medium `color.text.subtlest` across, or turned with a line of 160px at most · `font.body.small` `color.text.subtle` down                                      |
 | Scale          | Five steps 24 by 8, 32 by 8 with thresholds · `radius.xsmall` · labels in `font.body.xsmall` `color.text.subtlest` · status swatches 12px in the cells' fills                    |
 | Forced colours | A cell and a step keep their fill, outlined in `CanvasText`; an empty cell is a dashed `GrayText` box                                                                            |
 | Chosen         | `color.border.focused` outline                                                                                                                                                   |
@@ -19701,6 +20035,7 @@ _Example: story `Stories.Loading`._
 - **No cell sinks into the page.** The steps close to the surface fall under 3:1 on it in one mode or the other, so they wear a `color.border.bold` edge, which holds 3:1; an empty cell's edge is dashed and it has no fill, so it never passes for a low value.
 - **A colour scale's values are one press away** in a Frame: Values, a toggle button whose name stays "Values" while `aria-pressed` says whether they show, prints every value on its cell for keyboard, touch and magnifier readers alike. The reader's choice holds across the table view and the expanded Dialog.
 - **The table twin is the grid pivoted**: the Frame's Table toggle and CSV lay it out as a row per row and a column per column in the grid's order, headed by `rowLabel`, every value printed and no colour.
+- **A vertical heading is the same header cell**: its text is whole and where it was in the markup, so a screen reader hears each column's name, and each cell as "row, column, value", as before. For a reader who would rather not turn their head, the pointer over a heading says the name level (its `title`), and so do a cell's title, its card and the table twin, for the keyboard and touch too.
 - **Cells that choose are buttons**, focusable in reading order, with the kit's focus ring, each named by its place and value ("Likely, Critical: 3"); a zero is no tab stop unless `selectable` says so. A cell that opens a card says so (`aria-haspopup="dialog"`) and whether it is open (`aria-expanded`). The card is a dialog and focus returns to the cell when it closes.
 - **Cells that open a register are links**, named the same way, and the table twin carries the same links, so the reader who reads the numbers as a table can open them too.
 - **The words are the locale's**: the cell's title ("SC, Jun: 12", "AU, Apr: none") and the dimensions ("Likelihood by Impact") come from `LedgerProvider` messages.
@@ -19716,16 +20051,19 @@ _Props of `Chart.Heatmap`, generated from its types:_
 | `rows` (required) | `string[]` |  | The row names, top to bottom. |
 | `columns` (required) | `string[]` |  | The column names, left to right. |
 | `value` (required) | `(row: string, column: string) => number \| null \| undefined` |  | The value at a row and column. `undefined` or `null` leaves the cell empty. |
-| `scale` | `HeatmapScale` | `sequential` | `sequential` paints how much in one hue; `diverging` paints above and below `midpoint` in two; a function says which status tone a cell carries, from its value or its row and column, and the cell prints its value. |
+| `scale` | `HeatmapScale` | `sequential` | `sequential` paints how much in one hue; `diverging` paints above and below `midpoint` in two; a function says which status a cell carries (a tone, or a tone with `emphasis`), from its value or its row and column, and the cell prints its value. |
+| `rowLevel` | `((row: string) => number)` |  | A row's depth where the rows are a hierarchy, 0 at the top: its name is indented by it, three levels at most. Give the rows in the hierarchy's order, each row under the one that holds it. |
+| `summary` | `((row: string) => boolean)` |  | The rows that total the rows under them: a summary row's values are printed as numbers with no fill, so a total never reads as one more cell of the scale, and its name is set in medium weight. Its cells choose and link as any other. |
 | `domain` | `readonly [number, number]` |  | The values at the ends of the scale. The data's own when unsaid. Give `Chart.Scale` the same `domain`, so the key's thresholds are the grid's. |
 | `midpoint` | `number` | `0` | The value that reads as nothing on a diverging scale. Zero when unsaid. |
-| `zeroStep` | `boolean` |  | On a sequential scale, zero takes a step of its own in `color.chart.track`, so none reads apart from a few; every other value bins as before. Give `Chart.Scale` the same `zeroStep`. |
+| `zeroStep` | `boolean` |  | Zero takes a step of its own, so none reads apart from a few, and it is quiet: its number is said to assistive technology and in the cell's title, never drawn. On a sequential scale it is `color.chart.track`, and every other value bins as before; give `Chart.Scale` the same `zeroStep`. On a status scale a zero wears no tone: its number is printed muted with no fill, and the function is not asked about it. |
 | `showValues` | `boolean` |  | Print the value in each cell. On for a status scale, where the tone's fill carries its text. On a colour scale a printed value sits on a surface chip; unsaid there, a Frame around the grid offers the reader a Values toggle that prints them, and the Frame's table twin carries them either way. `false` keeps them hidden and offers no toggle. |
 | `size` | `"large" \| "medium" \| "small"` | `medium` | The cell's height: `small` 24px, `medium` 32px, `large` 40px. `large` in the expanded Dialog. |
 | `format` | `Formatter` |  | The value's format in the cells, the tooltip, the card and the table twin. The Frame's, else the kit's. |
 | `label` | `string` |  | The grid's accessible name: it is a table. The Frame's title when unsaid. |
 | `rowLabel` | `string` |  | What the rows and the columns are: the corner cell, and the description a screen reader hears. |
 | `columnLabel` | `string` |  |  |
+| `columnHeadings` | `"horizontal" \| "vertical"` | `horizontal` | How a column's heading is set. `horizontal` sets it on one line, and every value column takes the widest heading's width. `vertical` turns it to read up the page from its column, so a column is as wide as its cells: for long names over narrow cells, where the names alone would make the grid scroll sideways. A name past about twenty-five characters takes a second line beside the first. The heading is still the column's name to a screen reader, and the cell's title, its card and the table twin say it level. |
 | `loading` | `boolean` |  | Draws skeleton cells in place of the values, the grid keeping its rows and columns. The Frame sets it from `state="loading"`. |
 | `onSelect` | `((selection: HeatmapSelection) => void)` |  | Makes the cells buttons: called when one is clicked or chosen with Enter or Space. |
 | `details` | `((selection: HeatmapSelection) => ReactNode)` |  | More about the chosen cell, in a card anchored to it. The card's head (the row, the column and the value) is the kit's. |
@@ -21993,6 +22331,242 @@ _Example: story `Stories.Dont`._
 - [AsideLayout](?path=/docs/layout-asidelayout--docs) and [Shell](?path=/docs/layout-shell--docs): the Aside a record's Details sit in, and the Panel a preview's do.
 - [Upgrading](?path=/docs/guidance-upgrading--docs#inspector): `groups` is Inspector.Group children.
 
+<!-- page: Patterns/Ladder (src/stories/patterns/Ladder.mdx) -->
+
+# Ladder
+
+**Status: Experimental.** New with the program's Cyber resiliency view, its first screen; the props may change while a second screen tries it. Owned by the design system.
+
+Ordered levels of nodes joined by wires, read as one picture: what a few goals rest on, level by level, down to the many things at the bottom. Each node is a name, a figure and a [Tally](?path=/docs/components-tally--docs) of what stands behind it, and the last level is one line a node with a mark for each item. Choosing a node keeps the paths through it and dims the rest. It answers what a table of any one level cannot: which of the many at the bottom hold up which of the few at the top, and where nothing holds.
+
+_Example: story `Stories.Playground`._
+
+A ladder shows a whole structure at once. One record's own chain, from what it rests on to what it reaches, is a [Trace](?path=/docs/patterns-trace--docs). Every item of one set as a mark is a [TileMap](?path=/docs/patterns-tilemap--docs). A measure over two scales is a [Chart.Heatmap](?path=/docs/patterns-chart-heatmap--docs). The records of any one level, to search, sort and work through, stay a [DataTable](?path=/docs/patterns-data-table--docs) beside it.
+
+## Ladder or Trace
+
+Both draw columns joined by wires. They answer different questions.
+
+|                     | Trace                                                  | Ladder                                                            |
+| ------------------- | ------------------------------------------------------ | ----------------------------------------------------------------- |
+| What it shows       | One record's chain, outward from the `focus`           | A whole structure: every node of every level                      |
+| A node              | A record: a link to its page, a mark, one line of meta | A measure: a figure and a tally, and a button that keeps its path |
+| Order               | Each stage is reordered around the focus               | The caller's order, never changed                                 |
+| A path              | Lit while a record is hovered or focused               | Chosen and kept; each heading then counts what is kept            |
+| A link past a level | Drawn, in a gap of its own                             | Not drawn: it narrows the path                                    |
+| A level of many     | Folded behind Show more                                | Rows: one line a node, beside the node they belong to             |
+
+## Levels, nodes and links
+
+A **level** is a named run of nodes in the caller's order. The ladder never reorders them: the order is the source's, and a reader who knows the source finds a node where it is printed.
+
+A **node** has an `id` and a `title`. It may carry a figure, `value` of `total`, drawn "8/23" and said in words by `valueLabel` ("8 of 23 controls held"); `segments`, the tally under a card's name, its shares of `total` by state; and, on a row, `marks`, one for each item behind it. A node needs none of them: a name alone is a node.
+
+A level is drawn as `cards`, a name over a tally, or as `rows`, one line a node: its name, its figure and its marks. Rows are for the last level only, the level of many. Each row stands beside the node of the level before that its first link names, and the rows share one name column, one figure column and one marks column down the whole level. A card's tally is as long as its `total` is of the largest total in its level, and as full as its segments are of its own total, so the tallies of a level compare by length and by fill.
+
+A **link** names two nodes of different levels by their ids, either end first.
+
+- A link between **neighbouring levels** is drawn as a wire.
+- A link that **passes over a level** is not drawn. It says which nodes of the further level are on the nearer node's path, where the wires alone would say every node the level between leads to.
+
+So give the ladder every relation the source states, wires or not. Where a publication relates the fourth level to the third and also to the second, pass both sets: the first draws the wires and places the rows, and the second makes a node of the second level keep only the rows that support it, not every row of the nodes it is wired to.
+
+## A path
+
+_Example: story `Stories.Chosen`._
+
+Choosing a node keeps its path and dims the rest. **A node is on the chosen node's path when it is linked to the path in every level between them that it has links into.** The ladder walks away from the chosen node one level at a time, towards both ends. A node of the next level joins the path when, in each level already walked that it has links into, one of those links reaches a node on the path; a node with no link into any of them stays off. In the story, Continue keeps Redundancy and Segmentation, the two techniques wired to it, and of Redundancy's three approaches only the two that are themselves linked to Continue: the third is wired to Redundancy, and its link over the techniques names another objective.
+
+While a path is kept, each level's heading counts it ("Techniques 2 of 2", "Approaches 3 of 5"), a wire is lit when both its ends are on one path, and each node on the path says so in its description. What is off the path steps back and stays readable: its words take `color.text.subtlest`, which holds its contrast, and only its tally, its marks and the wires fade. Nothing changes weight or size, so choosing a node moves no node. Pressing the chosen node again, or Escape, lets go.
+
+`selected` is one node, pressed. Leave it out and the ladder keeps the choice itself, from `defaultSelected`; `onSelect` hears the node chosen, and null when the reader lets go.
+
+_Example: story `Stories.Highlighted`._
+
+`highlighted` is for a control outside the ladder that points at several nodes at once: the flagged ones, a search's matches. The paths through each are kept as a chosen node's is, and none is pressed. When both are given, both sets of paths are kept, so clear one when the other is set if the screen wants one at a time.
+
+## What needs attention
+
+_Example: story `Stories.FlaggedPaths`._
+
+`flagged` on a node says nothing stands behind it and that this needs attention: its figure and its wire wear the danger tone, a row's empty marks become hollow outlines, and its level's heading counts it. Every node that leads to a flagged one counts them before its own figure, so the reader sees from the first level where the holes are. The screen sets only `flagged`; the ladder counts. `flagLabel` says a count in words ("3 approaches with nothing behind them") in a node's name, its tooltip and a heading.
+
+## A marked node
+
+_Example: story `Stories.Marked`._
+
+`marked` draws the kit's round `Dot` before a node's name, on a card and on a row alike, and says why: the words join the node's name after its figure and are a line of its tooltip. Use it for the one thing a reader looks for across the levels, such as the nodes somebody chose. It means one thing a ladder. The ladder draws no key, so say what the dot means beside it with the same `<Dot shape="round" />`: a mark never stands without its words.
+
+## The whole picture
+
+_Example: story `Stories.WholeProgram`._
+
+Seventy-six nodes, 128 wires and 421 marks. The key above is a `TileMap.Key`: a mark and a tally's segment take a TileMap mark's tones and fills, so one map of a screen's states feeds all three. The ladder does not draw the key, the totals above it or a control that steps its values; those are the screen's.
+
+## Details
+
+_Example: story `Stories.Details`._
+
+With `details`, a chosen row opens a card anchored to it, holding what `details(node)` returns, as a [Chart.Heatmap](?path=/docs/patterns-chart-heatmap--docs) cell's does. The row says it opens one (`aria-haspopup`) and whether it is open. Escape or a press outside closes the card, lets go of the row and returns focus to it; pressing the row again closes it too. Rows only: a card opens none. Return nothing for a row that has no more to say and it is chosen as any node is.
+
+A row's marks are a picture of its figure. Each says its item and its state in the tooltip under the pointer, and nowhere else, so give the items as `details`, or on the page the row leads to: a reader without a pointer reaches them there.
+
+## Values that change
+
+_Example: story `Stories.Replay`._
+
+The structure is the ids and the links. While they are the same from one render to the next, a change of values (a step through the layers of a baseline) changes the figures, the tallies and the marks in place: nothing is measured again, no wire is redrawn, the choice holds. The one exception is a value that moves a card: a figure that grows by a digit can take a card's numbers onto the line under its name, which moves the cards of its level, and the wires are then measured once more, in the next frame. A tally eases to its new share; figures and marks switch. Keep the `links` array's contents steady and memoize the levels on what they are worked out from.
+
+## A level with nothing in it
+
+_Example: story `Stories.EmptyLevel`._
+
+Give every level of the structure, also one that holds no node, with what its absence means as `empty`. The level keeps its place, and a link across it still makes a path, though no wire is drawn.
+
+## Long names
+
+_Example: story `Stories.LongNames`._
+
+A card shows two lines of a name and a row one, cut with an ellipsis. The whole name is always the node's accessible name, and the ladder's one tooltip says it under the pointer and on keyboard focus, with the figure in words, the mark, the flags and the node's `description`. A row with many marks gives each less room rather than taking a second line, and joins them into a bar where there is no room for a gap between two; it never cuts one off.
+
+## Narrow
+
+The ladder measures its own width, not the window's, and it stacks by what it holds. Its levels stand side by side while each has the room it needs to read: a level of cards 124px (a 108px card, which holds a word of sixteen letters whole, and `space.200` for its wires) and the rows 264px (twenty letters of a name, a figure, and marks that have joined into a bar); 116px and 248px at `size="small"`. Three levels of cards and the rows therefore keep their wires down to 636px of the ladder's own width, 596px small, which is the room a 480px panel leaves beside them in a 1440px window.
+
+_Example: story `Stories.BesideAPanel`._
+
+As it narrows towards that floor, the row names give way first, a card's numbers take the line under its name, and the wires keep at least `space.200`. No word is broken and no mark is cut off.
+
+_Example: story `Stories.Phone`._
+
+In less room (a phone, a narrow frame) the levels stack in their order: each card one line at full width, the rows under the node they belong to, at `dimension.row.menu` so a finger finds one. The wires leave, since there is nothing between two stacked levels for them to cross. Nothing else changes: the same nodes in the same order, the path still dims the rest and the headings still count it, and each node's description still says what it is linked to. A sideways-scrolling picture was the alternative, and it would hide the last level, the one a reader acts on, behind three screens of scrolling.
+
+A ladder that leaves the page without leaving the document (a tab's hidden panel, a page a phone's panel covers) has no room to read, so it keeps the form it had and is measured again once it is shown: it comes back as the reader left it, never side by side for a frame where it stacks.
+
+## Sizes
+
+_Example: story `Stories.Small`._
+
+`size="small"` is the dense ladder: 16px rows in `font.body.xsmall`, for a ladder that must stand in one window. `medium`, the default, is 20px rows in `font.body.small`. Wherever a pointer is coarse the rows are 24px in either size.
+
+## Keyboard
+
+_Example: story `Stories.Keyboard`._
+
+The ladder is one Tab stop: the node last focused, else the chosen one, else the first. Seventy-six nodes would otherwise be seventy-six stops between the page's controls.
+
+| Key                        | What it does                                                                                                                              |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Up, Down                   | The node before or after in the level; through a level of rows, on across its groups                                                      |
+| Left, Right                | The level before or after (mirrored right to left): the first node there that this one is linked to, else the one that stands as far down |
+| Home, End                  | The first or last node of the level                                                                                                       |
+| Ctrl or ⌘ with Home or End | The first or last node of the ladder                                                                                                      |
+| Enter, Space               | Choose the node; on the chosen node, let go                                                                                               |
+| Escape                     | Let go of the choice, focus staying where it is; in a details card, close it and return to its row                                        |
+
+## Accessibility
+
+- **A structure, not a drawing.** The ladder is a group named by `label`. Inside it the levels are an ordered list; each level is a list named by its heading ("Objectives 3", and while a path is kept "Objectives 1 of 3"), and a level of rows is a list under each node the rows stand beside, named by both ("Approaches, Redundancy").
+- **Every node is a button** with `aria-pressed`. Its name is its title, its figure in words, its mark and its flags: "Redundancy: 8 of 11 controls held, 1 approach with nothing behind it". Its description says what it is linked to, level by level ("Objectives: Continue and Reconstitute. Approaches: Protected Backup and Restore, Surplus Capacity, and Replication"), and begins "On the path" when it is on a kept one. A level with more than eight linked names says the first eight and how many more.
+- **The relations are words.** The wires are decoration and are hidden from assistive technology; a description carries every link a wire draws and every link that passes over a level.
+- **The choice is announced.** Choosing a node says its path once, politely: "Path through Continue: 1 of 2 Goals, 1 of 3 Objectives, 2 of 2 Techniques, and 3 of 5 Approaches".
+- **Not colour alone.** The chosen node has a heavier edge as well as a fill; a flagged node has its count, its words and hollow marks; a mark's state is in its tooltip and in the key. In forced colours the chosen node and the lit wires take Highlight, and filled, hollow and empty marks stay three things.
+- **Motion.** A tally eases to a new share and colours ease on hover and on a path; none of it under reduced motion.
+- **Touch.** Rows are 24px wherever a pointer is coarse, and menu-row height when stacked. A mark is too small to press and is not a control.
+
+## Its table
+
+The ladder prints every number it encodes: each node's figure is text, each heading's count is text, and its structure is lists of buttons, so there is nothing in it a reader can only see. It therefore has no Table toggle of its own, as a chart has. What it cannot do is sort, search or export. Put a table of the same records one toggle or one tab away, in the same states and the same numbers, as a TileMap keeps its table beside it.
+
+## Style
+
+| Element   | Token                                                                                                                                       |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Type      | `font.body.small`, tabular numerals; `font.body.xsmall` at `size="small"`; headings `font.body.xsmall` medium in `color.text.subtle`        |
+| Card      | `color.border` · `radius.medium` · `elevation.surface.current` · hover `color.border.bold`                                                  |
+| Chosen    | `color.border.selected` at `border.width.selected` on `color.background.selected`; a row, the same fill inside a ring                       |
+| Row       | `space.250` high, `space.200` small, `space.300` under a coarse pointer, `dimension.row.menu` stacked · `radius.small`                      |
+| Tally     | [Tally](?path=/docs/components-tally--docs) `size="small"`; hollow danger track on a flagged node                                           |
+| Marks     | `space.050` wide, a hairline apart · the Tally's tones and fills · empty `color.chart.track`; hollow `color.border.danger` on a flagged row |
+| Mark dot  | `Dot shape="round"`, neutral                                                                                                                |
+| Flag      | `color.text.danger`, a hollow mark and a count                                                                                              |
+| Wires     | `color.border` · lit `color.border.bold` · flagged `color.border.danger` · off the path `opacity.loading`                                   |
+| Wire room | from `space.200` to `space.800` between two levels, growing with the ladder's own width                                                     |
+| Off path  | `color.text.subtlest`, the same weight; tally, marks, dot and flag mark at `opacity.loading`                                                |
+| Motion    | `motion.duration.fast` on colours; a tally's `motion.duration.moderate`; none under reduced motion                                          |
+
+## Props
+
+The ladder's box takes the native props and ref of a `div`.
+
+_Example: story `Stories.NativeAttributes`._
+
+_Props of `Ladder`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `levels` (required) | `readonly LadderLevel[]` |  | The levels in order, from the first to the last. |
+| `links` (required) | `readonly LadderLink[]` |  | What is linked to what. A link between neighbouring levels is drawn as a wire. A link that passes over a level is not drawn: it says which nodes of the further level are on the nearer node's path, where the wires alone would say every node the level between leads to. |
+| `label` (required) | `string` |  | The ladder's accessible name: what its levels are, and what its figures count. |
+| `selected` | `string \| null` |  | The chosen node's id: its path is kept and the rest dims. Controlled when given, with null for none. |
+| `defaultSelected` | `string \| null` |  | The node chosen at first, where the ladder keeps the choice itself. |
+| `onSelect` | `((node: LadderNode \| null) => void)` |  | Called with the node the reader chose, and with null when they let go of it: the chosen node pressed again, Escape, or its details closed. |
+| `highlighted` | `readonly string[]` |  | Nodes an outside control points at (the flagged ones, a search's matches): the paths through them are kept as a chosen node's is, and none is pressed. |
+| `details` | `((node: LadderNode) => ReactNode)` |  | More about a chosen row, in a card anchored to it. Rows only: a card opens none. |
+| `flagLabel` | `((count: number) => string)` |  | What a count of flagged nodes says, in a node's name, its tooltip and a heading: "3 approaches with nothing behind them". |
+| `size` | `"medium" \| "small"` | `medium` | `small` is 16px rows in the smallest type, for a ladder that must stand in one window; `medium` is 20px rows. A coarse pointer gets 24px rows either way. |
+| `className` | `string` |  |  |
+
+_Rendered in the Storybook: Controls._
+
+### LadderLevel
+
+| Field    | Type                | What it is                                               |
+| -------- | ------------------- | -------------------------------------------------------- |
+| `id`     | `string`            | Unique among the levels.                                 |
+| `label`  | `string`            | The level's name, as its nodes are called: "Objectives". |
+| `nodes`  | `LadderNode[]`      | Its nodes, in the order they read.                       |
+| `layout` | `"cards" \| "rows"` | `cards` by default; `rows` for the last level only.      |
+| `empty`  | `string`            | What the level says when it holds no node.               |
+
+### LadderNode
+
+| Field         | Type             | What it is                                                                   |
+| ------------- | ---------------- | ---------------------------------------------------------------------------- |
+| `id`          | `string`         | Unique in the ladder: what a link's ends, `selected` and `highlighted` name. |
+| `title`       | `string`         | The node's name.                                                             |
+| `value`       | `number`         | The figure before the stroke: how much is held.                              |
+| `total`       | `number`         | The figure after it: how much stands behind the node.                        |
+| `valueLabel`  | `string`         | The figure in words, for the node's name and its tooltip. "8 of 23" unsaid.  |
+| `segments`    | `TallySegment[]` | The tally under a card's name; a row with no `marks` draws it too.           |
+| `marks`       | `LadderMark[]`   | A row's items, one mark each, in the order given.                            |
+| `flagged`     | `boolean`        | Nothing stands behind the node, and that needs attention.                    |
+| `marked`      | `string`         | A round Dot before the name, and the words that say why.                     |
+| `description` | `string`         | A sentence or two: the last line of the tooltip.                             |
+
+### LadderMark and LadderLink
+
+| Type         | Field         | What it is                                                  |
+| ------------ | ------------- | ----------------------------------------------------------- |
+| `LadderMark` | `key`         | Unique in its node.                                         |
+|              | `label`       | The item's name: the first line of its tooltip.             |
+|              | `description` | Its state in words: the tooltip's second line.              |
+|              | `tone`        | A `TallyTone`, `neutral` by default.                        |
+|              | `fill`        | A `TallyFill`, `solid` by default.                          |
+| `LadderLink` | `from`, `to`  | The ids of two nodes of different levels, either end first. |
+
+A node's `segments` are a Tally's `TallySegment`.
+
+## Related
+
+[Tally](?path=/docs/components-tally--docs) · [Trace](?path=/docs/patterns-trace--docs) · [TileMap](?path=/docs/patterns-tilemap--docs) · [Chart.Heatmap](?path=/docs/patterns-chart-heatmap--docs) · [DataTable](?path=/docs/patterns-data-table--docs)
+
+## Don't
+
+One level and no links is a list of rows. A DataTable sorts it, searches it and pages it; a ladder does none of those.
+
+_Example: story `Stories.Dont`._
+
 <!-- page: Patterns/Peek (src/stories/patterns/Peek.mdx) -->
 
 # Peek
@@ -23758,6 +24332,80 @@ The status is your product's words, given as content, and completion a separate 
 
 _Example: story `Stories.Dont`._
 
+<!-- page: Patterns/TileMap (src/stories/patterns/TileMap.mdx) -->
+
+# TileMap
+
+**Status: Experimental.** New with the program's Control baseline view, its first screen; the props may change while a second screen tries it. Owned by the design system.
+
+Every item of a set as one small mark, grouped: a catalog's thousand controls by family. It answers what a table cannot at a glance: how much of the whole is in, where the changes fall, which groups nothing touched. A table of the same items stays beside it, since a map is for seeing and a [DataTable](?path=/docs/patterns-data-table--docs) for working through. For how much of a measure falls where, with rows and columns that are both scales, use [Chart.Heatmap](?path=/docs/patterns-chart-heatmap--docs).
+
+_Example: story `Stories.Playground`._
+
+## Layouts
+
+| Layout    | What it draws                                                                                                                                                   | Use it for                                                   |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `grid`    | A row a group: its code, its name, its marks, its value. An item is a square, and the items that belong to it (`parts`) are the slim bars after it.             | Comparing groups, and finding one item by where it stands.   |
+| `skyline` | One street: items stand on a ground line and their parts rise above them, six to a column, and each group is a district named under the line. The street wraps. | Seeing which items carry the most parts, and where they sit. |
+| `strip`   | Every mark in one wrapped run, a wider gap between groups, and no words drawn.                                                                                  | The whole set at a glance inside a card.                     |
+
+_Example: story `Stories.Skyline`._
+
+`strip` draws every mark in one wrapped run and no words: the map small enough for a card, on a dashboard or an overview, where the card's title and one count say what the marks are. A wider gap ends each group. It is for the whole at a glance; the `grid` of the same items is where a reader finds one.
+
+_Example: story `Stories.Strip`._
+
+The map measures its own width, not the window's. Under 40rem the Grid puts each group's words on one line and its marks beneath; the Skyline wraps a district's street onto a second line with its own ground line.
+
+## Colour
+
+A mark has a `tone`, one of the chart tokens, and a `fill`: `solid`, `outline` for an item that was here and is not now (or is not there yet), and `empty` for an item with nothing to say. Keep to a few states. One hue for what changed and a hollow mark for what left reads in every colour vision; a second hue for a second kind of change does not, so say it in the mark's `description` instead. For how far along (not started, partly, done) use the `sequential` steps of one hue.
+
+Colour never says a state alone. Each mark's `label` and `description` are its tooltip and its name to assistive technology, and a `TileMap.Key` beside the map says what each colour means and how many marks wear it.
+
+## Choosing a mark
+
+_Example: story `Stories.Choosing`._
+
+With `onSelect` the marks are buttons and the map is one Tab stop: the mark last focused, else the chosen one, else the first. Left and Right move to the next mark, Up and Down to the first mark of the group before or after, Home and End to the map's ends, and Enter or Space chooses. `selected` rings the chosen mark. Without `onSelect` the map is one image named by `label`.
+
+A mark is 12px, so on a touch screen each has the kit's 24px hit area and neighbours overlap: a tap chooses a mark near the finger, and the tooltip says which. Give the same items as a table on the page, where each row is a full target.
+
+## One state after another
+
+_Example: story `Stories.Stepping`._
+
+The marks keep their ids from one render to the next, so a change of state changes colours in place and the reader sees what moved. The caller owns the steps: a ToggleGroup beside the map, and the groups for the step it shows.
+
+## Props
+
+_Props of `TileMap`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `groups` (required) | `readonly TileMapGroup[]` |  | The groups in order, each with its marks in order. |
+| `layout` | `"grid" \| "skyline" \| "strip"` | `"grid"` | `grid` is a row a group; `skyline` is one street, each group a district; `strip` is every mark in one wrapped run with no words drawn, the whole set at a glance inside a card. |
+| `label` (required) | `string` |  | The map's accessible name: what the marks are and what their colour says. |
+| `selected` | `string \| null` |  | The chosen mark's id. |
+| `onSelect` | `((mark: TileMapMark, group: TileMapGroup) => void)` |  | Makes the marks buttons: called when one is clicked or chosen with Enter or Space. The map is then one Tab stop, and the arrow keys move between marks. Without it the map is one image named by `label`, so give the same facts as a table beside it. |
+| `partRows` | `number` | `6` | In Skyline, how many parts stack above an item before a second column starts. |
+| `className` | `string` |  |  |
+
+_Rendered in the Storybook: Controls._
+
+### TileMap.Key
+
+_Props of `TileMapKey`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `items` (required) | `readonly TileMapKeyItem[]` |  | The colours in the order the reader meets them. |
+
+## Related
+
+[Chart.Heatmap](?path=/docs/patterns-chart-heatmap--docs) · [Chart.Treemap](?path=/docs/patterns-chart-treemap--docs) · [DataTable](?path=/docs/patterns-data-table--docs) · [WorkPane](?path=/docs/patterns-workpane--docs)
+
 <!-- page: Patterns/Toolbar (src/stories/patterns/Toolbar.mdx) -->
 
 # Toolbar
@@ -23909,6 +24557,77 @@ _Rendered in the Storybook: Controls._
 Every control in the row is the small size, up to five actions sit at the end with the primary last, and the primary goes in `actions`, never as a child beside the search, a default-size Button among small ones, or seven actions in a row.
 
 _Example: story `Stories.Dont`._
+
+<!-- page: Patterns/Trace (src/stories/patterns/Trace.mdx) -->
+
+# Trace
+
+**Status: Experimental.** New with the risk, operational issue, control and evidence records, its first screens; the props may change while they settle. Owned by the design system.
+
+The stages of a chain as columns of records joined by wires: the controls a requirement meets, the evidence that proves it, what was found against that evidence, the risk that rests on it and what is being done. A record page's tables each show one hop from the record. A trace shows every hop at once, so the reader sees where a chain is thin, where it stops and what it reaches. It reads from one record, the `focus`, outward. A collection the reader searches, sorts or edits stays a [DataTable](?path=/docs/patterns-data-table--docs) on the same page.
+
+_Example: story `Stories.Playground`._
+
+## Stages, records and links
+
+A stage is a named list of records in the caller's order. A record has a `title`, and may carry a `code` before it, a `mark` for its state and one short `meta` line. Colour never says a state alone: the `meta` says it in words, or the mark has a label. With a `link` the record is that link, so a modifier or middle click opens it in a new tab; without one it is text.
+
+A link names two records by their ids. It is drawn from the earlier stage to the later one, whichever end is named first. A link inside one stage is not drawn: a trace is a chain, not a network.
+
+The trace orders each stage's records around the focus so the wires stay apart: a record sits at the middle of the records it is linked to on the side nearer the focus, and one linked to nothing there keeps its place.
+
+## A link past a stage
+
+_Example: story `Stories.PassingAStage`._
+
+A link between stages that are not neighbours runs through each stage between them in a gap of its own, so its wire never crosses a record. The gap is room and nothing to read.
+
+## A stage with nothing in it
+
+_Example: story `Stories.EmptyStage`._
+
+Give every stage of the chain, also the ones the focus does not reach, with what its absence means as `empty`: No evidence linked, No risk recorded. A missing stage is a finding, and a trace that drops the column hides it.
+
+## A path
+
+_Example: story `Stories.Path`._
+
+Hovering or focusing a record lights the records it leads to and comes from, through any number of links, and dims the rest. It is a reading aid: nothing is shown only on hover.
+
+## Many records
+
+_Example: story `Stories.Folded`._
+
+A stage shows `limit` records, eight unless said, and folds the rest behind Show more with their wires. The focus is never folded. A trace is for a chain a reader can take in; when a stage regularly holds dozens, show the stage as a table and link to it.
+
+## Narrow
+
+_Example: story `Stories.Phone`._
+
+The trace measures its own width. While each column has room to read (128px, and 32px between two for the wires) the stages stand side by side; in less they stack in the chain's order and the wires leave.
+
+## Accessibility
+
+The trace is a group named by `label`. Inside it the stages are an ordered list, each stage a list named by its `label` and count, and each record's description says what it is linked to (Linked to AU-10 Non-repudiation and Signing key rotation log), so the chain reads without the wires. The focus is the current item. The wires are decoration and are hidden from assistive technology.
+
+## Props
+
+_Props of `Trace`, generated from its types:_
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `stages` (required) | `readonly TraceStage[]` |  | The stages in the order the chain reads, start to end. |
+| `links` (required) | `readonly TraceLink[]` |  | The links between the records of different stages. A link inside one stage is not drawn. |
+| `focus` | `string` |  | The record the trace is about: it is marked current, and the others are ordered around it. |
+| `label` (required) | `string` |  | The trace's accessible name: what it follows, and from which record. |
+| `limit` | `number` | `8` | How many records a stage shows before the rest fold behind Show more. |
+| `className` | `string` |  |  |
+
+_Rendered in the Storybook: Controls._
+
+## Related
+
+[TileMap](?path=/docs/patterns-tilemap--docs) · [Related](?path=/docs/patterns-related--docs) · [Stepper and Timeline](?path=/docs/components-timeline--docs) · [DataTable](?path=/docs/patterns-data-table--docs)
 
 <!-- page: Patterns/WorkPane (src/stories/patterns/WorkPane.mdx) -->
 
@@ -24475,10 +25194,10 @@ Every design value is a token. The utility is the Tailwind class the lint allows
 | `font.heading.display` | `font-heading-display` | `--ds-font-heading-display` |  | Heading `display`: a figure bigger than a Stat's, or the one title of a screen with nothing else on it (sign-in), set as its h1. Never a page or record title. |
 | `font.heading.page` | `font-heading-page` | `--ds-font-heading-page` |  | Heading `page`: the page and record title, which PageHeader.Title draws on a page and as a preview's record name, and a Stat's figure. |
 | `font.heading.overlay` | `font-heading-overlay` | `--ds-font-heading-overlay` |  | Heading `overlay`: an overlay's title, which DialogTitle, SheetTitle, AlertDialogTitle and DrawerTitle draw; a card's title and a group heading inside an overlay take it too. |
-| `font.heading.section` | `font-heading-section` | `--ds-font-heading-section` |  | Heading `section`: a section's title, which Section.Title draws: body size at semibold. |
+| `font.heading.section` | `font-heading-section` | `--ds-font-heading-section` |  | Heading `section`: a section's title, which Section.Title draws: a step above the body, at semibold. |
 | `font.heading.large` | `font-heading-large` | `--ds-font-heading-large` | deprecated font.heading.display | Deprecated: font.heading.display, the same style. Kept for one version. |
-| `font.heading.medium` | `font-heading-medium` | `--ds-font-heading-medium` | deprecated font.heading.page | Deprecated: font.heading.page (20/26) for a page or record title. Kept for one version. |
-| `font.heading.small` | `font-heading-small` | `--ds-font-heading-small` | deprecated font.heading.page | Deprecated: font.heading.page (20/26 semibold) for a page or record title, font.heading.section for a section's title. Kept for one version. |
+| `font.heading.medium` | `font-heading-medium` | `--ds-font-heading-medium` | deprecated font.heading.page | Deprecated: font.heading.page (24/30) for a page or record title. Kept for one version. |
+| `font.heading.small` | `font-heading-small` | `--ds-font-heading-small` | deprecated font.heading.page | Deprecated: font.heading.page (24/30 semibold) for a page or record title, font.heading.section for a section's title. Kept for one version. |
 | `font.heading.xsmall` | `font-heading-xsmall` | `--ds-font-heading-xsmall` | deprecated font.heading.overlay | Deprecated: font.heading.overlay, the same style. Kept for one version. |
 | `font.heading.xxsmall` | `font-heading-xxsmall` | `--ds-font-heading-xxsmall` |  | Eyebrows, group headings and menu section labels. The component adds the uppercase. |
 | `font.code` | `font-code` | `--ds-font-code` |  | Code blocks only. |
@@ -24499,11 +25218,11 @@ Every design value is a token. The utility is the Tailwind class the lint allows
 | `motion.easing.exit` | `ease-exit` | `--ds-motion-easing-exit` |  | For what leaves for good: speeding up out of view. |
 | `opacity.disabled` | `opacity-disabled` | `--ds-opacity-disabled` |  | Use for the opacity of disabled elements when a disabled token does not exist. |
 | `opacity.loading` | `opacity-loading` | `--ds-opacity-loading` |  | Use for the opacity of content in a loading state. |
-| `radius.xsmall` | `rounded-xsmall` | `--ds-radius-xsmall` |  | Kbd, tiny chips. The smallest step. |
+| `radius.xsmall` | `rounded-xsmall` | `--ds-radius-xsmall` |  | Kbd, tiny chips, a mark of a map. The smallest step. |
 | `radius.small` | `rounded-small` | `--ds-radius-small` |  | Count chips, the checkbox, skeleton lines, inline hit targets. |
 | `radius.medium` | `rounded-medium` | `--ds-radius-medium` |  | Buttons, inputs, chips, tooltips, menu items. The scale's base. |
 | `radius.large` | `rounded-large` | `--ds-radius-large` |  | Cards, popovers, hover cards, menus and listboxes. |
-| `radius.xlarge` | `rounded-xlarge` | `--ds-radius-xlarge` |  | A large surface of a product's own, between a card and a dialog. No kit part draws it: a sheet runs flush to the window's edge, and a dialog is xxlarge. |
+| `radius.xlarge` | `rounded-xlarge` | `--ds-radius-xlarge` |  | A surface that holds cards: the Tray. Between a card and a dialog; a sheet runs flush to the window's edge, and a dialog is xxlarge. |
 | `radius.xxlarge` | `rounded-xxlarge` | `--ds-radius-xxlarge` |  | Dialogs, the command palette, a drawer's free edge, spotlight cards. |
 | `radius.full` | `rounded-full` | `--ds-radius-full` |  | Dots, avatars, pills, meters. |
 | `border.width.selected` | `border-w-selected` | `--ds-border-width-selected` |  | The width used to indicate a selected element, such as an active tab or a chosen item. |
@@ -24545,9 +25264,9 @@ Types: `BackgroundToken`, `BleedProps`, `BoxProps`, `FlexProps`, `GridProps`, `H
 
 ## Components
 
-Values: `Absent`, `Accordion`, `AccordionContent`, `AccordionItem`, `AccordionTrigger`, `Alert`, `AlertAction`, `AlertDescription`, `AlertDialog`, `AlertDialogAction`, `AlertDialogBody`, `AlertDialogCancel`, `AlertDialogContent`, `AlertDialogDescription`, `AlertDialogFooter`, `AlertDialogHeader`, `AlertDialogMedia`, `AlertDialogOverlay`, `AlertDialogPortal`, `AlertDialogTitle`, `AlertDialogTrigger`, `AlertIcon`, `AlertTitle`, `Attachment`, `AttachmentAction`, `AttachmentActions`, `AttachmentContent`, `AttachmentDescription`, `AttachmentGroup`, `AttachmentLink`, `AttachmentMedia`, `AttachmentTitle`, `AttachmentTrigger`, `Avatar`, `AvatarBadge`, `AvatarFallback`, `AvatarGroup`, `AvatarGroupCount`, `avatarHue`, `AvatarImage`, `avatarInitials`, `Badge`, `badgeVariants`, `Banner`, `Breadcrumb`, `BreadcrumbEllipsis`, `BreadcrumbItem`, `BreadcrumbLink`, `BreadcrumbList`, `BreadcrumbPage`, `BreadcrumbSeparator`, `Button`, `ButtonGroup`, `ButtonGroupSeparator`, `ButtonGroupText`, `buttonGroupVariants`, `buttonVariants`, `Calendar`, `CalendarDayButton`, `Card`, `CardAction`, `CardContent`, `CardDescription`, `CardFooter`, `CardHeader`, `CardTitle`, `Checkbox`, `CheckboxGroup`, `CheckboxGroupSelectAll`, `CodeBlock`, `Collapsible`, `CollapsibleContent`, `CollapsibleHeader`, `CollapsibleTrigger`, `Combobox`, `ComboboxChip`, `ComboboxChipRemove`, `ComboboxChips`, `ComboboxChipsInput`, `ComboboxClear`, `ComboboxCollection`, `ComboboxContent`, `ComboboxEmpty`, `ComboboxGroup`, `ComboboxInput`, `ComboboxItem`, `ComboboxLabel`, `ComboboxList`, `ComboboxSeparator`, `ComboboxStatus`, `ComboboxTrigger`, `ComboboxValue`, `Command`, `CommandCount`, `CommandDialog`, `CommandEmpty`, `CommandFooter`, `CommandGroup`, `CommandInput`, `CommandItem`, `CommandList`, `CommandLoading`, `CommandSeparator`, `CommandShortcut`, `ContextMenu`, `ContextMenuContent`, `ContextMenuTrigger`, `controlBase`, `controlHeight`, `CopyButton`, `Count`, `createToastManager`, `DateLabel`, `DatePicker`, `DateRangePicker`, `DateTime`, `DateTimeField`, `Dialog`, `DialogBody`, `DialogClose`, `DialogContent`, `DialogDescription`, `DialogFooter`, `DialogHeader`, `DialogOverlay`, `DialogPortal`, `DialogTitle`, `DialogTrigger`, `Diff`, `diffText`, `Dot`, `Drawer`, `DrawerBody`, `DrawerClose`, `DrawerContent`, `DrawerDescription`, `DrawerFooter`, `DrawerHeader`, `DrawerOverlay`, `DrawerPortal`, `DrawerSwipeHandle`, `DrawerTitle`, `DrawerTrigger`, `DropdownMenu`, `DropdownMenuCheckboxItem`, `DropdownMenuContent`, `DropdownMenuGroup`, `DropdownMenuItem`, `DropdownMenuLabel`, `DropdownMenuLinkItem`, `DropdownMenuPortal`, `DropdownMenuRadioGroup`, `DropdownMenuRadioItem`, `DropdownMenuSeparator`, `DropdownMenuShortcut`, `DropdownMenuSub`, `DropdownMenuSubContent`, `DropdownMenuSubTrigger`, `DropdownMenuTrigger`, `DropZone`, `Empty`, `EmptyContent`, `EmptyDescription`, `EmptyHeader`, `EmptyIllustration`, `EmptyMedia`, `EmptyTitle`, `ErrorSummary`, `Eyebrow`, `Fact`, `FactGroup`, `Field`, `FieldContent`, `FieldDescription`, `FieldError`, `FieldGroup`, `FieldLabel`, `FieldLegend`, `FieldSeparator`, `FieldSet`, `FieldTitle`, `FileTrigger`, `FilterChip`, `formatFileSize`, `formatShortcut`, `getModifierKey`, `HoverCard`, `HoverCardContent`, `HoverCardTrigger`, `Icon`, `IconButton`, `Id`, `IdList`, `Indicator`, `Input`, `InputGroup`, `InputGroupAddon`, `InputGroupButton`, `InputGroupInput`, `InputGroupText`, `InputGroupTextarea`, `Item`, `ItemGroup`, `Kbd`, `KbdGroup`, `KbdShortcut`, `KeyValue`, `KeyValueGroup`, `LinkButton`, `LinkIconButton`, `List`, `ListItem`, `MatchText`, `NumberField`, `Pagination`, `PaginationContent`, `PaginationEllipsis`, `PaginationItem`, `PaginationLink`, `PaginationNext`, `PaginationPrevious`, `Person`, `Popover`, `PopoverClose`, `PopoverContent`, `PopoverDescription`, `PopoverHeader`, `PopoverTitle`, `PopoverTrigger`, `Progress`, `ProgressIndicator`, `ProgressLabel`, `ProgressStacked`, `ProgressTrack`, `ProgressValue`, `Prose`, `RadioGroup`, `RadioGroupItem`, `RelativeTime`, `ResizableHandle`, `ResizablePanel`, `ResizablePanelGroup`, `ScrollArea`, `ScrollBar`, `Scroller`, `ScrollerArrow`, `ScrollerViewport`, `SearchField`, `Select`, `SelectContent`, `SelectGroup`, `SelectItem`, `SelectLabel`, `SelectScrollDownButton`, `SelectScrollUpButton`, `SelectSeparator`, `SelectTrigger`, `SelectValue`, `Separator`, `Sheet`, `SheetBody`, `SheetClose`, `SheetContent`, `SheetDescription`, `SheetFooter`, `SheetHeader`, `SheetOverlay`, `SheetPortal`, `SheetTitle`, `SheetTrigger`, `shortcutKeys`, `Skeleton`, `Spinner`, `Stat`, `StatGrid`, `StatTile`, `Stepper`, `Switch`, `Table`, `Tabs`, `TabsContent`, `TabsList`, `tabsListVariants`, `TabsTrigger`, `Textarea`, `TextLink`, `TimeField`, `Timeline`, `TimelineGroup`, `TimelineItem`, `toast`, `Toast`, `ToastAction`, `ToastClose`, `ToastContent`, `ToastDescription`, `Toaster`, `ToastPortal`, `ToastProvider`, `ToastTitle`, `ToastViewport`, `Toggle`, `ToggleGroup`, `ToggleGroupItem`, `toggleVariants`, `Tooltip`, `TooltipContent`, `TooltipProvider`, `TooltipTrigger`, `Tree`, `Truncate`, `useComboboxAnchor`, `useFormatShortcut`, `useIsTruncated`, `useModifierKey`, `usePage`, `useSort`, `useToastManager`.
+Values: `Absent`, `Accordion`, `AccordionContent`, `AccordionItem`, `AccordionTrigger`, `Alert`, `AlertAction`, `AlertDescription`, `AlertDialog`, `AlertDialogAction`, `AlertDialogBody`, `AlertDialogCancel`, `AlertDialogContent`, `AlertDialogDescription`, `AlertDialogFooter`, `AlertDialogHeader`, `AlertDialogMedia`, `AlertDialogOverlay`, `AlertDialogPortal`, `AlertDialogTitle`, `AlertDialogTrigger`, `AlertIcon`, `AlertTitle`, `Attachment`, `AttachmentAction`, `AttachmentActions`, `AttachmentContent`, `AttachmentDescription`, `AttachmentGroup`, `AttachmentLink`, `AttachmentMedia`, `AttachmentTitle`, `AttachmentTrigger`, `Avatar`, `AvatarBadge`, `AvatarFallback`, `AvatarGroup`, `AvatarGroupCount`, `avatarHue`, `AvatarImage`, `avatarInitials`, `Badge`, `badgeVariants`, `Banner`, `Breadcrumb`, `BreadcrumbEllipsis`, `BreadcrumbItem`, `BreadcrumbLink`, `BreadcrumbList`, `BreadcrumbPage`, `BreadcrumbSeparator`, `Button`, `ButtonGroup`, `ButtonGroupSeparator`, `ButtonGroupText`, `buttonGroupVariants`, `buttonVariants`, `Calendar`, `CalendarDayButton`, `Card`, `CardAction`, `CardContent`, `CardDescription`, `CardFooter`, `CardHeader`, `CardTitle`, `Checkbox`, `CheckboxGroup`, `CheckboxGroupSelectAll`, `CodeBlock`, `Collapsible`, `CollapsibleContent`, `CollapsibleHeader`, `CollapsibleTrigger`, `Combobox`, `ComboboxChip`, `ComboboxChipRemove`, `ComboboxChips`, `ComboboxChipsInput`, `ComboboxClear`, `ComboboxCollection`, `ComboboxContent`, `ComboboxEmpty`, `ComboboxGroup`, `ComboboxInput`, `ComboboxItem`, `ComboboxLabel`, `ComboboxList`, `ComboboxSeparator`, `ComboboxStatus`, `ComboboxTrigger`, `ComboboxValue`, `Command`, `CommandCount`, `CommandDialog`, `CommandEmpty`, `CommandFooter`, `CommandGroup`, `CommandInput`, `CommandItem`, `CommandList`, `CommandLoading`, `CommandSeparator`, `CommandShortcut`, `ContextMenu`, `ContextMenuContent`, `ContextMenuTrigger`, `controlBase`, `controlHeight`, `CopyButton`, `Count`, `createToastManager`, `DateLabel`, `DatePicker`, `DateRangePicker`, `DateTime`, `DateTimeField`, `Dialog`, `DialogBody`, `DialogClose`, `DialogContent`, `DialogDescription`, `DialogFooter`, `DialogHeader`, `DialogOverlay`, `DialogPortal`, `DialogTitle`, `DialogTrigger`, `Diff`, `diffText`, `Dot`, `Drawer`, `DrawerBody`, `DrawerClose`, `DrawerContent`, `DrawerDescription`, `DrawerFooter`, `DrawerHeader`, `DrawerOverlay`, `DrawerPortal`, `DrawerSwipeHandle`, `DrawerTitle`, `DrawerTrigger`, `DropdownMenu`, `DropdownMenuCheckboxItem`, `DropdownMenuContent`, `DropdownMenuGroup`, `DropdownMenuItem`, `DropdownMenuLabel`, `DropdownMenuLinkItem`, `DropdownMenuPortal`, `DropdownMenuRadioGroup`, `DropdownMenuRadioItem`, `DropdownMenuSeparator`, `DropdownMenuShortcut`, `DropdownMenuSub`, `DropdownMenuSubContent`, `DropdownMenuSubTrigger`, `DropdownMenuTrigger`, `DropZone`, `Empty`, `EmptyContent`, `EmptyDescription`, `EmptyHeader`, `EmptyIllustration`, `EmptyMedia`, `EmptyTitle`, `ErrorSummary`, `Eyebrow`, `Fact`, `FactGroup`, `Field`, `FieldContent`, `FieldDescription`, `FieldError`, `FieldGroup`, `FieldLabel`, `FieldLegend`, `FieldSeparator`, `FieldSet`, `FieldTitle`, `FileTrigger`, `FilterChip`, `formatFileSize`, `formatShortcut`, `getModifierKey`, `HoverCard`, `HoverCardContent`, `HoverCardTrigger`, `Icon`, `IconButton`, `Id`, `IdList`, `Indicator`, `Input`, `InputGroup`, `InputGroupAddon`, `InputGroupButton`, `InputGroupInput`, `InputGroupText`, `InputGroupTextarea`, `Item`, `ItemGroup`, `Kbd`, `KbdGroup`, `KbdShortcut`, `KeyValue`, `KeyValueGroup`, `LinkButton`, `LinkIconButton`, `List`, `ListItem`, `MatchText`, `NumberField`, `Pagination`, `PaginationContent`, `PaginationEllipsis`, `PaginationItem`, `PaginationLink`, `PaginationNext`, `PaginationPrevious`, `Person`, `PhaseBar`, `PhaseBarItem`, `Popover`, `PopoverClose`, `PopoverContent`, `PopoverDescription`, `PopoverHeader`, `PopoverTitle`, `PopoverTrigger`, `Progress`, `ProgressIndicator`, `ProgressLabel`, `ProgressStacked`, `ProgressTrack`, `ProgressValue`, `Prose`, `RadioGroup`, `RadioGroupItem`, `RelativeTime`, `ResizableHandle`, `ResizablePanel`, `ResizablePanelGroup`, `ScrollArea`, `ScrollBar`, `Scroller`, `ScrollerArrow`, `ScrollerViewport`, `SearchField`, `Select`, `SelectContent`, `SelectGroup`, `SelectItem`, `SelectLabel`, `SelectScrollDownButton`, `SelectScrollUpButton`, `SelectSeparator`, `SelectTrigger`, `SelectValue`, `Separator`, `Sheet`, `SheetBody`, `SheetClose`, `SheetContent`, `SheetDescription`, `SheetFooter`, `SheetHeader`, `SheetOverlay`, `SheetPortal`, `SheetTitle`, `SheetTrigger`, `shortcutKeys`, `Skeleton`, `Spinner`, `Stat`, `StatGrid`, `StatList`, `StatRow`, `StatTile`, `Stepper`, `Switch`, `Table`, `Tabs`, `TabsContent`, `TabsList`, `tabsListVariants`, `TabsTrigger`, `Tally`, `Textarea`, `TextLink`, `TimeField`, `Timeline`, `TimelineGroup`, `TimelineItem`, `toast`, `Toast`, `ToastAction`, `ToastClose`, `ToastContent`, `ToastDescription`, `Toaster`, `ToastPortal`, `ToastProvider`, `ToastTitle`, `ToastViewport`, `Toggle`, `ToggleGroup`, `ToggleGroupItem`, `toggleVariants`, `Tooltip`, `TooltipContent`, `TooltipProvider`, `TooltipTrigger`, `Tray`, `Tree`, `Truncate`, `useComboboxAnchor`, `useFormatShortcut`, `useIsTruncated`, `useModifierKey`, `usePage`, `useSort`, `useToastManager`.
 
-Types: `AbsentProps`, `AccordionContentProps`, `AccordionItemProps`, `AccordionProps`, `AccordionTriggerProps`, `AlertActionProps`, `AlertDescriptionProps`, `AlertDialogActionProps`, `AlertDialogBodyProps`, `AlertDialogCancelProps`, `AlertDialogContentProps`, `AlertDialogDescriptionProps`, `AlertDialogFooterProps`, `AlertDialogHeaderProps`, `AlertDialogMediaProps`, `AlertDialogOverlayProps`, `AlertDialogPortalProps`, `AlertDialogProps`, `AlertDialogTitleProps`, `AlertDialogTriggerProps`, `AlertDialogWidth`, `AlertIconProps`, `AlertProps`, `AlertTitleProps`, `AttachmentActionProps`, `AttachmentActionsProps`, `AttachmentContentProps`, `AttachmentDescriptionProps`, `AttachmentGroupProps`, `AttachmentLinkProps`, `AttachmentMediaProps`, `AttachmentProps`, `AttachmentSize`, `AttachmentState`, `AttachmentTitleProps`, `AttachmentTriggerProps`, `AvatarBadgeProps`, `AvatarFallbackProps`, `AvatarGroupCountProps`, `AvatarGroupProps`, `AvatarHue`, `AvatarImageProps`, `AvatarProps`, `AvatarSize`, `AvatarVariant`, `BadgeProps`, `BannerProps`, `BannerTone`, `BreadcrumbItemProps`, `BreadcrumbListProps`, `BreadcrumbProps`, `ButtonGroupProps`, `ButtonGroupSeparatorProps`, `ButtonGroupTextProps`, `ButtonProps`, `CalendarDayButtonProps`, `CalendarProps`, `CardActionProps`, `CardContentProps`, `CardDescriptionProps`, `CardFooterProps`, `CardHeaderProps`, `CardProps`, `CardSize`, `CardTitleProps`, `CheckboxGroupProps`, `CheckboxGroupSelectAllProps`, `CheckboxProps`, `CodeBlockProps`, `CollapsibleContentProps`, `CollapsibleHeaderProps`, `CollapsibleProps`, `CollapsibleTriggerProps`, `ComboboxChipProps`, `ComboboxChipRemoveProps`, `ComboboxChipsInputProps`, `ComboboxChipsProps`, `ComboboxClearProps`, `ComboboxCollectionProps`, `ComboboxContentProps`, `ComboboxEmptyProps`, `ComboboxGroupProps`, `ComboboxInputProps`, `ComboboxItemProps`, `ComboboxLabelProps`, `ComboboxListProps`, `ComboboxProps`, `ComboboxSeparatorProps`, `ComboboxStatusProps`, `ComboboxTriggerProps`, `ComboboxValueProps`, `CommandCountProps`, `CommandDialogProps`, `CommandEmptyProps`, `CommandFooterProps`, `CommandInputProps`, `CommandItemProps`, `CommandShortcutProps`, `ContextMenuContentProps`, `ContextMenuProps`, `ContextMenuTriggerProps`, `ControlSize`, `CopyButtonProps`, `CountProps`, `DateLabelKind`, `DateLabelProps`, `DateLabelState`, `DatePickerProps`, `DateRangePickerProps`, `DateRangePreset`, `DateRangeValue`, `DateTimeFieldProps`, `DateTimeFormat`, `DateTimeProps`, `DateTimeValue`, `DialogBodyProps`, `DialogCloseProps`, `DialogContentProps`, `DialogDescriptionProps`, `DialogFooterProps`, `DialogHeaderProps`, `DialogOverlayProps`, `DialogPortalProps`, `DialogProps`, `DialogTitleProps`, `DialogTriggerProps`, `DialogWidth`, `DiffAnnotation`, `DiffLayout`, `DiffLine`, `DiffProps`, `DiffResult`, `DiffRow`, `DiffSegment`, `DiffSelection`, `DotProps`, `DrawerBodyProps`, `DrawerCloseProps`, `DrawerContentProps`, `DrawerDescriptionProps`, `DrawerFooterProps`, `DrawerHeaderProps`, `DrawerOverlayProps`, `DrawerPortalProps`, `DrawerProps`, `DrawerSwipeHandleProps`, `DrawerTitleProps`, `DrawerTriggerProps`, `DrawerWidth`, `DropdownMenuCheckboxItemProps`, `DropdownMenuContentProps`, `DropdownMenuGroupProps`, `DropdownMenuItemProps`, `DropdownMenuItemVariant`, `DropdownMenuLabelProps`, `DropdownMenuLinkItemProps`, `DropdownMenuPortalProps`, `DropdownMenuProps`, `DropdownMenuRadioGroupProps`, `DropdownMenuRadioItemProps`, `DropdownMenuSeparatorProps`, `DropdownMenuShortcutProps`, `DropdownMenuSubContentProps`, `DropdownMenuSubProps`, `DropdownMenuSubTriggerProps`, `DropdownMenuTriggerProps`, `DropZoneProps`, `EmptyContentProps`, `EmptyDescriptionProps`, `EmptyFrame`, `EmptyHeaderProps`, `EmptyIllustrationKind`, `EmptyIllustrationProps`, `EmptyMediaProps`, `EmptyProps`, `EmptySize`, `EmptyTitleProps`, `ErrorSummaryIssue`, `ErrorSummaryProps`, `EyebrowProps`, `FactGroupProps`, `FactProps`, `FieldContentProps`, `FieldDescriptionProps`, `FieldErrorProps`, `FieldGroupProps`, `FieldLabelProps`, `FieldLegendProps`, `FieldProps`, `FieldSeparatorProps`, `FieldSetProps`, `FieldTitleProps`, `FileRejection`, `FileRejectionReason`, `FileTriggerProps`, `FilterChipProps`, `FormatFileSizeOptions`, `FormatShortcutOptions`, `HoverCardContentProps`, `HoverCardProps`, `HoverCardTriggerProps`, `IconButtonProps`, `IconColorToken`, `IconProps`, `IconSize`, `IdListProps`, `IdProps`, `IndicatorProps`, `InputGroupAddonProps`, `InputGroupButtonProps`, `InputGroupButtonSize`, `InputGroupIconButtonProps`, `InputGroupProps`, `InputGroupTextareaProps`, `InputGroupTextButtonProps`, `InputGroupTextProps`, `InputProps`, `ItemGroupProps`, `ItemProps`, `ItemSize`, `KbdGroupProps`, `KbdProps`, `KbdShortcutProps`, `KeyValueGroupProps`, `KeyValueLabelWidth`, `KeyValueLayout`, `KeyValueProps`, `LinkButtonProps`, `LinkButtonVariant`, `LinkIconButtonProps`, `ListItemProps`, `ListProps`, `ListSpacing`, `MatchTextProps`, `ModifierKey`, `NumberFieldProps`, `PaginationContentProps`, `PaginationEllipsisProps`, `PaginationItemProps`, `PaginationLinkProps`, `PaginationNextProps`, `PaginationPreviousProps`, `PaginationProps`, `PersonProps`, `PopoverCloseProps`, `PopoverContentProps`, `PopoverDescriptionProps`, `PopoverHeaderProps`, `PopoverProps`, `PopoverTitleProps`, `PopoverTriggerProps`, `ProgressIndicatorProps`, `ProgressLabelProps`, `ProgressProps`, `ProgressSize`, `ProgressStackedProps`, `ProgressTrackProps`, `ProgressValueProps`, `ProseProps`, `RadioGroupItemProps`, `RadioGroupProps`, `RelativeTimeProps`, `ResizableHandleProps`, `ResizablePanelGroupProps`, `ResizablePanelProps`, `ScrollAreaProps`, `ScrollBarProps`, `ScrollerActivation`, `ScrollerArrowProps`, `ScrollerEdge`, `ScrollerOrientation`, `ScrollerProps`, `ScrollerSurface`, `ScrollerViewportProps`, `SearchFieldProps`, `SelectContentProps`, `SelectGroupProps`, `SelectItemProps`, `SelectLabelProps`, `SelectProps`, `SelectScrollDownButtonProps`, `SelectScrollUpButtonProps`, `SelectSeparatorProps`, `SelectTriggerProps`, `SelectTriggerSize`, `SelectValueProps`, `SeparatorProps`, `SheetBodyProps`, `SheetCloseProps`, `SheetContentProps`, `SheetDescriptionProps`, `SheetFooterProps`, `SheetHeaderProps`, `SheetOverlayProps`, `SheetPortalProps`, `SheetProps`, `SheetTitleProps`, `SheetTriggerProps`, `SheetWidth`, `ShortcutKey`, `SkeletonProps`, `SkeletonShape`, `SortDir`, `SpinnerProps`, `SpinnerSize`, `StackedSegment`, `StatGridProps`, `StatProps`, `StatTileProps`, `StepperItemProps`, `StepperOrientation`, `StepperProps`, `StepState`, `SwitchProps`, `SwitchSize`, `TableProps`, `TabsContentProps`, `TabsListProps`, `TabsProps`, `TabsTriggerProps`, `TdProps`, `TextareaProps`, `TextareaState`, `TextLinkProps`, `ThProps`, `TimeFieldHourCycle`, `TimeFieldProps`, `TimelineAlign`, `TimelineGroupProps`, `TimelineItemProps`, `TimelineItemWidth`, `TimelineOrientation`, `TimelineProps`, `TimelineSize`, `TimelineTimePosition`, `ToasterProps`, `ToastManager`, `ToastOptions`, `ToastPromiseOptions`, `ToastProviderProps`, `ToastType`, `ToastUpdateOptions`, `ToggleGroupItemProps`, `ToggleGroupProps`, `ToggleProps`, `ToggleSize`, `ToggleStyleProps`, `TooltipContentProps`, `TooltipProps`, `TooltipProviderProps`, `TooltipTriggerProps`, `TreeItemProps`, `TreeProps`, `TreeSize`, `TruncateLines`, `TruncateProps`, `UseIsTruncatedOptions`.
+Types: `AbsentProps`, `AccordionContentProps`, `AccordionItemProps`, `AccordionProps`, `AccordionTriggerProps`, `AlertActionProps`, `AlertDescriptionProps`, `AlertDialogActionProps`, `AlertDialogBodyProps`, `AlertDialogCancelProps`, `AlertDialogContentProps`, `AlertDialogDescriptionProps`, `AlertDialogFooterProps`, `AlertDialogHeaderProps`, `AlertDialogMediaProps`, `AlertDialogOverlayProps`, `AlertDialogPortalProps`, `AlertDialogProps`, `AlertDialogTitleProps`, `AlertDialogTriggerProps`, `AlertDialogWidth`, `AlertIconProps`, `AlertProps`, `AlertTitleProps`, `AttachmentActionProps`, `AttachmentActionsProps`, `AttachmentContentProps`, `AttachmentDescriptionProps`, `AttachmentGroupProps`, `AttachmentLinkProps`, `AttachmentMediaProps`, `AttachmentProps`, `AttachmentSize`, `AttachmentState`, `AttachmentTitleProps`, `AttachmentTriggerProps`, `AvatarBadgeProps`, `AvatarFallbackProps`, `AvatarGroupCountProps`, `AvatarGroupProps`, `AvatarHue`, `AvatarImageProps`, `AvatarProps`, `AvatarSize`, `AvatarVariant`, `BadgeProps`, `BannerProps`, `BannerTone`, `BreadcrumbItemProps`, `BreadcrumbListProps`, `BreadcrumbProps`, `ButtonGroupProps`, `ButtonGroupSeparatorProps`, `ButtonGroupTextProps`, `ButtonProps`, `CalendarDayButtonProps`, `CalendarProps`, `CardActionProps`, `CardContentProps`, `CardDescriptionProps`, `CardFooterProps`, `CardHeaderProps`, `CardProps`, `CardSize`, `CardTitleProps`, `CheckboxGroupProps`, `CheckboxGroupSelectAllProps`, `CheckboxProps`, `CodeBlockProps`, `CollapsibleContentProps`, `CollapsibleHeaderProps`, `CollapsibleProps`, `CollapsibleTriggerProps`, `ComboboxChipProps`, `ComboboxChipRemoveProps`, `ComboboxChipsInputProps`, `ComboboxChipsProps`, `ComboboxClearProps`, `ComboboxCollectionProps`, `ComboboxContentProps`, `ComboboxEmptyProps`, `ComboboxGroupProps`, `ComboboxInputProps`, `ComboboxItemProps`, `ComboboxLabelProps`, `ComboboxListProps`, `ComboboxProps`, `ComboboxSeparatorProps`, `ComboboxStatusProps`, `ComboboxTriggerProps`, `ComboboxValueProps`, `CommandCountProps`, `CommandDialogProps`, `CommandEmptyProps`, `CommandFooterProps`, `CommandInputProps`, `CommandItemProps`, `CommandShortcutProps`, `ContextMenuContentProps`, `ContextMenuProps`, `ContextMenuTriggerProps`, `ControlSize`, `CopyButtonProps`, `CountProps`, `DateLabelKind`, `DateLabelProps`, `DateLabelState`, `DatePickerProps`, `DateRangePickerProps`, `DateRangePreset`, `DateRangeValue`, `DateTimeFieldProps`, `DateTimeFormat`, `DateTimeProps`, `DateTimeValue`, `DialogBodyProps`, `DialogCloseProps`, `DialogContentProps`, `DialogDescriptionProps`, `DialogFooterProps`, `DialogHeaderProps`, `DialogOverlayProps`, `DialogPortalProps`, `DialogProps`, `DialogTitleProps`, `DialogTriggerProps`, `DialogWidth`, `DiffAnnotation`, `DiffLayout`, `DiffLine`, `DiffProps`, `DiffResult`, `DiffRow`, `DiffSegment`, `DiffSelection`, `DotProps`, `DrawerBodyProps`, `DrawerCloseProps`, `DrawerContentProps`, `DrawerDescriptionProps`, `DrawerFooterProps`, `DrawerHeaderProps`, `DrawerOverlayProps`, `DrawerPortalProps`, `DrawerProps`, `DrawerSwipeHandleProps`, `DrawerTitleProps`, `DrawerTriggerProps`, `DrawerWidth`, `DropdownMenuCheckboxItemProps`, `DropdownMenuContentProps`, `DropdownMenuGroupProps`, `DropdownMenuItemProps`, `DropdownMenuItemVariant`, `DropdownMenuLabelProps`, `DropdownMenuLinkItemProps`, `DropdownMenuPortalProps`, `DropdownMenuProps`, `DropdownMenuRadioGroupProps`, `DropdownMenuRadioItemProps`, `DropdownMenuSeparatorProps`, `DropdownMenuShortcutProps`, `DropdownMenuSubContentProps`, `DropdownMenuSubProps`, `DropdownMenuSubTriggerProps`, `DropdownMenuTriggerProps`, `DropZoneProps`, `EmptyContentProps`, `EmptyDescriptionProps`, `EmptyFrame`, `EmptyHeaderProps`, `EmptyIllustrationKind`, `EmptyIllustrationProps`, `EmptyMediaProps`, `EmptyProps`, `EmptySize`, `EmptyTitleProps`, `ErrorSummaryIssue`, `ErrorSummaryProps`, `EyebrowProps`, `FactGroupProps`, `FactProps`, `FieldContentProps`, `FieldDescriptionProps`, `FieldErrorProps`, `FieldGroupProps`, `FieldLabelProps`, `FieldLegendProps`, `FieldProps`, `FieldSeparatorProps`, `FieldSetProps`, `FieldTitleProps`, `FileRejection`, `FileRejectionReason`, `FileTriggerProps`, `FilterChipProps`, `FormatFileSizeOptions`, `FormatShortcutOptions`, `HoverCardContentProps`, `HoverCardProps`, `HoverCardTriggerProps`, `IconButtonProps`, `IconColorToken`, `IconProps`, `IconSize`, `IdListProps`, `IdProps`, `IndicatorProps`, `InputGroupAddonProps`, `InputGroupButtonProps`, `InputGroupButtonSize`, `InputGroupIconButtonProps`, `InputGroupProps`, `InputGroupTextareaProps`, `InputGroupTextButtonProps`, `InputGroupTextProps`, `InputProps`, `ItemGroupProps`, `ItemProps`, `ItemSize`, `KbdGroupProps`, `KbdProps`, `KbdShortcutProps`, `KeyValueGroupProps`, `KeyValueLabelWidth`, `KeyValueLayout`, `KeyValueProps`, `LinkButtonProps`, `LinkButtonVariant`, `LinkIconButtonProps`, `ListItemProps`, `ListProps`, `ListSpacing`, `MatchTextProps`, `ModifierKey`, `NumberFieldProps`, `PaginationContentProps`, `PaginationEllipsisProps`, `PaginationItemProps`, `PaginationLinkProps`, `PaginationNextProps`, `PaginationPreviousProps`, `PaginationProps`, `PersonProps`, `PhaseBarItemProps`, `PhaseBarProps`, `PopoverCloseProps`, `PopoverContentProps`, `PopoverDescriptionProps`, `PopoverHeaderProps`, `PopoverProps`, `PopoverTitleProps`, `PopoverTriggerProps`, `ProgressIndicatorProps`, `ProgressLabelProps`, `ProgressProps`, `ProgressSize`, `ProgressStackedProps`, `ProgressTrackProps`, `ProgressValueProps`, `ProseProps`, `RadioGroupItemProps`, `RadioGroupProps`, `RelativeTimeProps`, `ResizableHandleProps`, `ResizablePanelGroupProps`, `ResizablePanelProps`, `ScrollAreaProps`, `ScrollBarProps`, `ScrollerActivation`, `ScrollerArrowProps`, `ScrollerEdge`, `ScrollerOrientation`, `ScrollerProps`, `ScrollerSurface`, `ScrollerViewportProps`, `SearchFieldProps`, `SelectContentProps`, `SelectGroupProps`, `SelectItemProps`, `SelectLabelProps`, `SelectProps`, `SelectScrollDownButtonProps`, `SelectScrollUpButtonProps`, `SelectSeparatorProps`, `SelectTriggerProps`, `SelectTriggerSize`, `SelectValueProps`, `SeparatorProps`, `SheetBodyProps`, `SheetCloseProps`, `SheetContentProps`, `SheetDescriptionProps`, `SheetFooterProps`, `SheetHeaderProps`, `SheetOverlayProps`, `SheetPortalProps`, `SheetProps`, `SheetTitleProps`, `SheetTriggerProps`, `SheetWidth`, `ShortcutKey`, `SkeletonProps`, `SkeletonShape`, `SortDir`, `SpinnerProps`, `SpinnerSize`, `StackedSegment`, `StatGridProps`, `StatListProps`, `StatProps`, `StatRowProps`, `StatTileProps`, `StepperItemProps`, `StepperOrientation`, `StepperProps`, `StepState`, `SwitchProps`, `SwitchSize`, `TableProps`, `TabsContentProps`, `TabsListProps`, `TabsProps`, `TabsTriggerProps`, `TallyFill`, `TallyProps`, `TallySegment`, `TallySize`, `TallyTone`, `TdProps`, `TextareaProps`, `TextareaState`, `TextLinkProps`, `ThProps`, `TimeFieldHourCycle`, `TimeFieldProps`, `TimelineAlign`, `TimelineGroupProps`, `TimelineItemProps`, `TimelineItemWidth`, `TimelineOrientation`, `TimelineProps`, `TimelineSize`, `TimelineTimePosition`, `ToasterProps`, `ToastManager`, `ToastOptions`, `ToastPromiseOptions`, `ToastProviderProps`, `ToastType`, `ToastUpdateOptions`, `ToggleGroupItemProps`, `ToggleGroupProps`, `ToggleProps`, `ToggleSize`, `ToggleStyleProps`, `TooltipContentProps`, `TooltipProps`, `TooltipProviderProps`, `TooltipTriggerProps`, `TrayProps`, `TrayTone`, `TreeItemProps`, `TreeProps`, `TreeSize`, `TruncateLines`, `TruncateProps`, `UseIsTruncatedOptions`.
 
 ## Layout
 
@@ -24557,9 +25276,9 @@ Types: `AppLogoProps`, `AppSwitcherProps`, `AsideLayoutProps`, `IconComponent`, 
 
 ## Patterns
 
-Values: `ActionBar`, `categoricalTone`, `ChangeReview`, `Chart`, `chartColor`, `Citation`, `clearView`, `columnKinds`, `ColumnSortable`, `CommandPalette`, `CommandScope`, `Comparison`, `Composer`, `countRows`, `createDataTableColumnHelper`, `DataTable`, `dataTableFeatures`, `DataTableSort`, `defineColumns`, `displayedRows`, `DocumentPage`, `DocumentReader`, `DocumentSelectionToolbar`, `downloadCsv`, `DragContext`, `Editable`, `EditableDate`, `EditableSelect`, `EditableText`, `FindBar`, `formatNumber`, `GateItem`, `Gates`, `Glance`, `HeaderMenu`, `Inspector`, `InspectorGroup`, `minWidths`, `Peek`, `PickerSheet`, `PreviewNavigation`, `PreviewSheet`, `readTableQuery`, `readView`, `RecordBrowser`, `RecordPicker`, `Related`, `RelatedCard`, `Reorder`, `ReorderHandle`, `ReorderItem`, `ReorderMove`, `resetView`, `ReviewThread`, `RowSortable`, `sameTableQuery`, `SavedViewEditor`, `SavedViewManager`, `SavedViewPicker`, `SearchDialog`, `SelectionActions`, `showRow`, `Spreadsheet`, `SpreadsheetFormatting`, `SpreadsheetSheetBar`, `SpreadsheetToolbar`, `TablePagination`, `tableQueryFromSearch`, `tableQueryKey`, `tableQueryParamNames`, `tableQueryToSearch`, `tableQueryToString`, `TaskRow`, `toCsv`, `Toolbar`, `toRows`, `useCellContext`, `useCollectionSelection`, `useColumnDrag`, `useCommandPalette`, `useDataTable`, `useHeaderContext`, `useRowDrag`, `useScopedCommands`, `useTableContext`, `useTableQuery`, `viewKey`, `WorkPane`, `WorkPaneRow`, `writeView`.
+Values: `ActionBar`, `categoricalTone`, `ChangeReview`, `Chart`, `chartColor`, `Citation`, `clearView`, `columnKinds`, `ColumnSortable`, `CommandPalette`, `CommandScope`, `Comparison`, `Composer`, `countRows`, `createDataTableColumnHelper`, `DataTable`, `dataTableFeatures`, `DataTableSort`, `defineColumns`, `displayedRows`, `DocumentPage`, `DocumentReader`, `DocumentSelectionToolbar`, `downloadCsv`, `DragContext`, `Editable`, `EditableDate`, `EditableSelect`, `EditableText`, `FindBar`, `formatNumber`, `GateItem`, `Gates`, `Glance`, `HeaderMenu`, `Inspector`, `InspectorGroup`, `Ladder`, `minWidths`, `Peek`, `PickerSheet`, `PreviewNavigation`, `PreviewSheet`, `readTableQuery`, `readView`, `RecordBrowser`, `RecordPicker`, `Related`, `RelatedCard`, `Reorder`, `ReorderHandle`, `ReorderItem`, `ReorderMove`, `resetView`, `ReviewThread`, `RowSortable`, `sameTableQuery`, `SavedViewEditor`, `SavedViewManager`, `SavedViewPicker`, `SearchDialog`, `SelectionActions`, `showRow`, `Spreadsheet`, `SpreadsheetFormatting`, `SpreadsheetSheetBar`, `SpreadsheetToolbar`, `TablePagination`, `tableQueryFromSearch`, `tableQueryKey`, `tableQueryParamNames`, `tableQueryToSearch`, `tableQueryToString`, `TaskRow`, `TileMap`, `TileMapKey`, `toCsv`, `Toolbar`, `toRows`, `Trace`, `useCellContext`, `useCollectionSelection`, `useColumnDrag`, `useCommandPalette`, `useDataTable`, `useHeaderContext`, `useRowDrag`, `useScopedCommands`, `useTableContext`, `useTableQuery`, `viewKey`, `WorkPane`, `WorkPaneRow`, `writeView`.
 
-Types: `ActionBarAction`, `ActionBarProps`, `ActionBarState`, `ChangeReviewProps`, `ChartAreaProps`, `ChartBand`, `ChartBarProps`, `ChartColumn`, `ChartCrumb`, `ChartDatum`, `ChartDomain`, `ChartDonutProps`, `ChartFrameProps`, `ChartFrameState`, `ChartHeatmapProps`, `ChartLegendProps`, `ChartLineProps`, `ChartLink`, `ChartReference`, `ChartScaleProps`, `ChartScatterGroup`, `ChartScatterProps`, `ChartSelection`, `ChartSeries`, `ChartSize`, `ChartSparklineProps`, `ChartTone`, `ChartTreemapProps`, `ChartValue`, `CitationProps`, `CollectionSelection`, `CollectionSelectionItemProps`, `CollectionSelectionOptions`, `ColumnDragOptions`, `ColumnKind`, `ColumnKinds`, `CommandPaletteProps`, `CommandScopeProps`, `ComparisonProps`, `ComposerProps`, `ComposerSuggestion`, `ComposerSuggestions`, `CsvOptions`, `DataTableColumn`, `DataTableColumnMeta`, `DataTableEmpty`, `DataTableFeatures`, `DataTableFilteredEmpty`, `DataTableInstance`, `DataTableMeta`, `DataTableNoun`, `DataTableOptions`, `DataTableOwnProps`, `DataTableProps`, `DataTableSortProps`, `DataTableState`, `DataTableView`, `DocumentAnchor`, `DocumentPageProps`, `DocumentReaderProps`, `DocumentRectangle`, `DocumentSelection`, `DocumentSelectionToolbarProps`, `DonutSelection`, `DonutSlice`, `EditableDateProps`, `EditableOption`, `EditableOptions`, `EditableProps`, `EditableSelectProps`, `EditableTextProps`, `ExportedRows`, `ExportOptions`, `FilterOption`, `FindBarProps`, `Footer`, `GateItemProps`, `GatesProps`, `GlanceProps`, `HeatmapScale`, `HeatmapSelection`, `InspectorGroupData`, `InspectorGroupProps`, `InspectorProps`, `PaletteCommand`, `PeekProps`, `PickerRecord`, `PickerSheetCloseDetails`, `PickerSheetProps`, `PickerSheetSearch`, `Preset`, `PreviewNavigationProps`, `PreviewSheetProps`, `RecordBrowserEmpty`, `RecordBrowserProps`, `RecordPickerProps`, `RelatedCardProps`, `RelatedEmpty`, `RelatedLayout`, `RelatedProps`, `ReorderChange`, `ReorderHandleProps`, `ReorderItemProps`, `ReorderMoveProps`, `ReorderProps`, `ReviewChange`, `ReviewThreadAction`, `ReviewThreadEntry`, `ReviewThreadProps`, `RowAction`, `SavedViewDraft`, `SavedViewEditorProps`, `SavedViewItem`, `SavedViewLabels`, `SavedViewManagerProps`, `SavedViewPickerProps`, `SavedViewVisibility`, `ScatterSelection`, `ScopedCommand`, `SearchDialogProps`, `SearchResult`, `SelectionActionsProps`, `SpreadsheetBorder`, `SpreadsheetBorderPreset`, `SpreadsheetCell`, `SpreadsheetCellStyle`, `SpreadsheetColumn`, `SpreadsheetEdit`, `SpreadsheetFormat`, `SpreadsheetFormattingProps`, `SpreadsheetFormulaReference`, `SpreadsheetFunction`, `SpreadsheetMenuContext`, `SpreadsheetPaste`, `SpreadsheetPresence`, `SpreadsheetProps`, `SpreadsheetRow`, `SpreadsheetSelection`, `SpreadsheetSheet`, `SpreadsheetSheetAction`, `SpreadsheetSheetBarProps`, `SpreadsheetStatistics`, `SpreadsheetToolbarProps`, `StatusEntry`, `StatusMap`, `TablePaginationProps`, `TableQuery`, `TableQueryOptions`, `TableQueryParamOptions`, `TableQueryParams`, `TableQuerySearch`, `TaskRowProps`, `ToolbarProps`, `TreemapNodeInput`, `TreemapSelection`, `UseCommandPaletteOptions`, `WorkPaneProps`, `WorkPaneRowProps`, `WorkPaneView`.
+Types: `ActionBarAction`, `ActionBarProps`, `ActionBarState`, `ChangeReviewProps`, `ChartAreaProps`, `ChartBand`, `ChartBarProps`, `ChartColumn`, `ChartCrumb`, `ChartDatum`, `ChartDomain`, `ChartDonutProps`, `ChartFrameProps`, `ChartFrameState`, `ChartHeatmapProps`, `ChartLegendProps`, `ChartLineProps`, `ChartLink`, `ChartReference`, `ChartScaleProps`, `ChartScatterGroup`, `ChartScatterProps`, `ChartSelection`, `ChartSeries`, `ChartSize`, `ChartSparklineProps`, `ChartTone`, `ChartTreemapProps`, `ChartValue`, `CitationProps`, `CollectionSelection`, `CollectionSelectionItemProps`, `CollectionSelectionOptions`, `ColumnDragOptions`, `ColumnKind`, `ColumnKinds`, `CommandPaletteProps`, `CommandScopeProps`, `ComparisonProps`, `ComposerProps`, `ComposerSuggestion`, `ComposerSuggestions`, `CsvOptions`, `DataTableColumn`, `DataTableColumnMeta`, `DataTableEmpty`, `DataTableFeatures`, `DataTableFilteredEmpty`, `DataTableInstance`, `DataTableMeta`, `DataTableNoun`, `DataTableOptions`, `DataTableOwnProps`, `DataTableProps`, `DataTableSortProps`, `DataTableState`, `DataTableView`, `DocumentAnchor`, `DocumentPageProps`, `DocumentReaderProps`, `DocumentRectangle`, `DocumentSelection`, `DocumentSelectionToolbarProps`, `DonutSelection`, `DonutSlice`, `EditableDateProps`, `EditableOption`, `EditableOptions`, `EditableProps`, `EditableSelectProps`, `EditableTextProps`, `ExportedRows`, `ExportOptions`, `FilterOption`, `FindBarProps`, `Footer`, `GateItemProps`, `GatesProps`, `GlanceProps`, `HeatmapScale`, `HeatmapSelection`, `HeatmapStatus`, `InspectorGroupData`, `InspectorGroupProps`, `InspectorProps`, `LadderLevel`, `LadderLink`, `LadderMark`, `LadderNode`, `LadderProps`, `PaletteCommand`, `PeekProps`, `PickerRecord`, `PickerSheetCloseDetails`, `PickerSheetProps`, `PickerSheetSearch`, `Preset`, `PreviewNavigationProps`, `PreviewSheetProps`, `RecordBrowserEmpty`, `RecordBrowserProps`, `RecordPickerProps`, `RelatedCardProps`, `RelatedEmpty`, `RelatedLayout`, `RelatedProps`, `ReorderChange`, `ReorderHandleProps`, `ReorderItemProps`, `ReorderMoveProps`, `ReorderProps`, `ReviewChange`, `ReviewThreadAction`, `ReviewThreadEntry`, `ReviewThreadProps`, `RowAction`, `SavedViewDraft`, `SavedViewEditorProps`, `SavedViewItem`, `SavedViewLabels`, `SavedViewManagerProps`, `SavedViewPickerProps`, `SavedViewVisibility`, `ScatterSelection`, `ScopedCommand`, `SearchDialogProps`, `SearchResult`, `SelectionActionsProps`, `SpreadsheetBorder`, `SpreadsheetBorderPreset`, `SpreadsheetCell`, `SpreadsheetCellStyle`, `SpreadsheetColumn`, `SpreadsheetEdit`, `SpreadsheetFormat`, `SpreadsheetFormattingProps`, `SpreadsheetFormulaReference`, `SpreadsheetFunction`, `SpreadsheetMenuContext`, `SpreadsheetPaste`, `SpreadsheetPresence`, `SpreadsheetProps`, `SpreadsheetRow`, `SpreadsheetSelection`, `SpreadsheetSheet`, `SpreadsheetSheetAction`, `SpreadsheetSheetBarProps`, `SpreadsheetStatistics`, `SpreadsheetToolbarProps`, `StatusEntry`, `StatusMap`, `TablePaginationProps`, `TableQuery`, `TableQueryOptions`, `TableQueryParamOptions`, `TableQueryParams`, `TableQuerySearch`, `TaskRowProps`, `TileMapFill`, `TileMapGroup`, `TileMapKeyItem`, `TileMapKeyProps`, `TileMapLayout`, `TileMapMark`, `TileMapProps`, `TileMapTone`, `ToolbarProps`, `TraceLink`, `TraceNode`, `TraceProps`, `TraceStage`, `TreemapNodeInput`, `TreemapSelection`, `UseCommandPaletteOptions`, `WorkPaneProps`, `WorkPaneRowProps`, `WorkPaneView`.
 
 ## Mode
 

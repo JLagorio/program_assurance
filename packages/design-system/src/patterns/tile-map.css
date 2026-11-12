@@ -1,0 +1,332 @@
+/*
+  TileMap: every item of a set as one small mark, grouped, in one of two layouts. The marks'
+  colours are the chart tokens; the sizes are steps of the spacing scale. The part measures its
+  own width (a container), so a panel beside it narrows it as a phone does.
+*/
+[data-slot="tile-map"],
+[data-slot="tile-map-key"] {
+  --tile-map-size: var(--ds-space-150);
+  --tile-map-part: calc(var(--tile-map-size) * 5 / 12);
+  --tile-map-gap: var(--ds-space-025);
+  --tile-map-edge: calc(var(--ds-border-width) * 1.5);
+}
+[data-slot="tile-map"] {
+  container: tile-map / inline-size;
+  position: relative;
+  min-width: 0;
+  font: var(--ds-font-body-small);
+  letter-spacing: var(--ds-font-body-small-letter-spacing);
+  font-variant-numeric: tabular-nums;
+  color: var(--ds-color-text-subtle);
+}
+
+/* ---------- a mark ---------- */
+[data-slot="tile-map-mark"] {
+  --tile-map-ink: var(--ds-color-chart-neutral);
+  position: relative;
+  display: block;
+  flex: none;
+  box-sizing: border-box;
+  inline-size: var(--tile-map-size);
+  block-size: var(--tile-map-size);
+  padding: 0;
+  border: 0;
+  border-radius: var(--ds-radius-xsmall);
+  appearance: none;
+  background-color: var(--tile-map-ink);
+  transition:
+    background-color var(--ds-motion-duration-moderate) var(--ds-motion-easing-standard),
+    box-shadow var(--ds-motion-duration-moderate) var(--ds-motion-easing-standard),
+    opacity var(--ds-motion-duration-fast) var(--ds-motion-easing-standard);
+}
+[data-slot="tile-map-mark"][data-tone="brand"] {
+  --tile-map-ink: var(--ds-color-chart-brand);
+}
+[data-slot="tile-map-mark"][data-tone="information"] {
+  --tile-map-ink: var(--ds-color-chart-information);
+}
+[data-slot="tile-map-mark"][data-tone="success"] {
+  --tile-map-ink: var(--ds-color-chart-success);
+}
+[data-slot="tile-map-mark"][data-tone="warning"] {
+  --tile-map-ink: var(--ds-color-chart-warning);
+}
+[data-slot="tile-map-mark"][data-tone="danger"] {
+  --tile-map-ink: var(--ds-color-chart-danger);
+}
+[data-slot="tile-map-mark"][data-tone="sequential.1"] {
+  --tile-map-ink: var(--ds-color-chart-sequential-1);
+}
+[data-slot="tile-map-mark"][data-tone="sequential.2"] {
+  --tile-map-ink: var(--ds-color-chart-sequential-2);
+}
+[data-slot="tile-map-mark"][data-tone="sequential.3"] {
+  --tile-map-ink: var(--ds-color-chart-sequential-3);
+}
+[data-slot="tile-map-mark"][data-tone="sequential.4"] {
+  --tile-map-ink: var(--ds-color-chart-sequential-4);
+}
+[data-slot="tile-map-mark"][data-tone="sequential.5"] {
+  --tile-map-ink: var(--ds-color-chart-sequential-5);
+}
+/* Hollow: the item was here and is not now, or is not there yet. */
+[data-slot="tile-map-mark"][data-fill="outline"] {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 var(--tile-map-edge) var(--tile-map-ink);
+}
+/* Nothing to say: the item exists and carries no state. */
+[data-slot="tile-map-mark"][data-fill="empty"] {
+  background-color: var(--ds-color-chart-track);
+}
+[data-slot="tile-map-mark"][data-dimmed] {
+  opacity: var(--ds-opacity-loading);
+}
+button[data-slot="tile-map-mark"] {
+  cursor: pointer;
+}
+button[data-slot="tile-map-mark"]:hover,
+[data-slot="tile-map-mark"][aria-current="true"] {
+  z-index: 1;
+  opacity: 1;
+  outline: var(--ds-border-width-selected) solid var(--ds-color-text);
+  outline-offset: var(--ds-border-width);
+}
+button[data-slot="tile-map-mark"]:focus-visible {
+  z-index: 2;
+  opacity: 1;
+  outline: var(--ds-border-width-focused) solid var(--ds-color-border-focused);
+  outline-offset: var(--ds-space-025);
+}
+/* A coarse pointer gets the kit's 24px hit area around each mark (touch.css). */
+@media (any-pointer: coarse) {
+  button[data-slot="tile-map-mark"]::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, var(--ds-space-300));
+    height: max(100%, var(--ds-space-300));
+    transform: translate(-50%, -50%);
+  }
+}
+/* The hit areas reach past the last mark of a line; the map keeps them inside itself, so they
+   never widen the page. */
+@media (any-pointer: coarse) {
+  [data-slot="tile-map"]:not([role="img"]) > [data-slot="tile-map-groups"] {
+    padding-inline-end: var(--ds-space-075);
+    padding-block-end: var(--ds-space-075);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="tile-map-mark"] {
+    transition: none;
+  }
+}
+
+/* ---------- a group's words ---------- */
+[data-slot="tile-map-group-label"] {
+  color: var(--ds-color-text);
+  font-weight: var(--ds-font-weight-semibold);
+}
+[data-slot="tile-map-group-title"] {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[data-slot="tile-map-group-value"] {
+  color: var(--ds-color-text-subtlest);
+  white-space: nowrap;
+}
+[data-slot="tile-map-marks"] {
+  display: flex;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+[data-slot="tile-map-stack"] {
+  display: flex;
+  flex: none;
+}
+
+/* ---------- Grid: a row a group — label, title, marks, value ---------- */
+[data-layout="grid"] > [data-slot="tile-map-groups"] {
+  display: grid;
+  grid-template-columns: max-content fit-content(16rem) minmax(0, 1fr) max-content;
+  column-gap: var(--ds-space-150);
+  row-gap: var(--ds-space-150);
+}
+[data-layout="grid"] [data-slot="tile-map-group"] {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  align-items: start;
+  row-gap: var(--ds-space-075);
+}
+[data-layout="grid"] [data-slot="tile-map-group-header"] {
+  display: contents;
+}
+[data-layout="grid"] [data-slot="tile-map-group-label"] {
+  grid-area: 1 / 1;
+}
+[data-layout="grid"] [data-slot="tile-map-group-title"] {
+  grid-area: 1 / 2;
+}
+[data-layout="grid"] [data-slot="tile-map-group-value"] {
+  grid-area: 1 / 4;
+  text-align: end;
+}
+[data-layout="grid"] [data-slot="tile-map-marks"] {
+  grid-area: 1 / 3;
+  gap: var(--ds-space-050) var(--ds-space-075);
+  /* The marks sit on the words' first line. */
+  padding-block: var(--ds-space-025);
+}
+/* An item is a square; the items that belong to it are the slim bars after it. */
+[data-layout="grid"] [data-slot="tile-map-stack"] {
+  gap: var(--tile-map-gap);
+}
+[data-layout="grid"] [data-slot="tile-map-parts"] {
+  display: contents;
+}
+[data-layout="grid"] [data-slot="tile-map-mark"][data-part] {
+  inline-size: var(--tile-map-part);
+}
+/* Narrow: the words on one line, the marks under them. */
+@container tile-map (max-width: 40rem) {
+  [data-layout="grid"] > [data-slot="tile-map-groups"] {
+    grid-template-columns: max-content minmax(0, 1fr) max-content;
+    row-gap: var(--ds-space-200);
+  }
+  [data-layout="grid"] [data-slot="tile-map-group-value"] {
+    grid-area: 1 / 3;
+  }
+  [data-layout="grid"] [data-slot="tile-map-marks"] {
+    grid-area: 2 / 1 / 3 / -1;
+    padding-block: 0;
+  }
+}
+
+/* ---------- Skyline: one street. Items stand on a ground line, what belongs to each rises
+   above it, and each group is a district named under the line. ---------- */
+[data-layout="skyline"] > [data-slot="tile-map-groups"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--ds-space-300) var(--ds-space-250);
+}
+[data-layout="skyline"] [data-slot="tile-map-group"] {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--ds-space-075);
+  min-width: 0;
+  max-width: 100%;
+}
+/* The words take the district's width and never widen it. */
+[data-layout="skyline"] [data-slot="tile-map-group-header"] {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ds-space-075);
+  inline-size: 0;
+  min-inline-size: 100%;
+}
+[data-layout="skyline"] [data-slot="tile-map-group-title"] {
+  flex: 1;
+}
+[data-layout="skyline"] [data-slot="tile-map-marks"] {
+  align-items: flex-end;
+  row-gap: var(--ds-space-200);
+}
+/* Each item carries its own piece of the ground line, so the line wraps with the street. */
+[data-layout="skyline"] [data-slot="tile-map-stack"] {
+  flex-direction: column-reverse;
+  gap: var(--tile-map-gap);
+  padding-inline: var(--tile-map-edge);
+  padding-block-end: var(--ds-space-050);
+  border-block-end: var(--tile-map-edge) solid var(--ds-color-border-bold);
+}
+[data-layout="skyline"] [data-slot="tile-map-mark"]:not([data-part]) {
+  inline-size: 100%;
+  min-inline-size: var(--tile-map-size);
+}
+/* Filled upwards, a column at a time: the grid is flipped so its first row is the lowest. */
+[data-layout="skyline"] [data-slot="tile-map-parts"] {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(var(--tile-map-rows, 1), var(--tile-map-size));
+  grid-auto-columns: var(--tile-map-size);
+  gap: var(--tile-map-gap);
+  transform: scaleY(-1);
+}
+
+/* ---------- Strip: every mark in one wrapped run and no words drawn: the whole set at a glance
+   inside a card. A group's name stays its group's accessible name, and a wider gap ends it. ---------- */
+[data-layout="strip"] > [data-slot="tile-map-groups"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-050) var(--ds-space-050);
+}
+[data-layout="strip"] [data-slot="tile-map-group"],
+[data-layout="strip"] [data-slot="tile-map-marks"],
+[data-layout="strip"] [data-slot="tile-map-parts"] {
+  display: contents;
+}
+[data-layout="strip"] [data-slot="tile-map-group-header"] {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+[data-layout="strip"] [data-slot="tile-map-stack"] {
+  gap: var(--tile-map-gap);
+}
+[data-layout="strip"] [data-slot="tile-map-stack"]:last-child {
+  margin-inline-end: var(--ds-space-075);
+}
+[data-layout="strip"] [data-slot="tile-map-mark"][data-part] {
+  inline-size: var(--tile-map-part);
+}
+
+/* ---------- the key ---------- */
+[data-slot="tile-map-key"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-075) var(--ds-space-200);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font: var(--ds-font-body-small);
+  letter-spacing: var(--ds-font-body-small-letter-spacing);
+  font-variant-numeric: tabular-nums;
+  color: var(--ds-color-text-subtle);
+}
+[data-slot="tile-map-key-item"] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-075);
+}
+[data-slot="tile-map-key-value"] {
+  color: var(--ds-color-text);
+  font-weight: var(--ds-font-weight-medium);
+}
+
+/* The system palette keeps three things apart: filled, hollow and chosen. */
+@media (forced-colors: active) {
+  [data-slot="tile-map-mark"] {
+    forced-color-adjust: none;
+    background-color: CanvasText;
+  }
+  [data-slot="tile-map-mark"][data-fill="outline"] {
+    background-color: Canvas;
+    box-shadow: inset 0 0 0 var(--tile-map-edge) CanvasText;
+  }
+  [data-slot="tile-map-mark"][data-fill="empty"] {
+    background-color: Canvas;
+    box-shadow: inset 0 0 0 var(--ds-border-width) GrayText;
+  }
+  [data-slot="tile-map-mark"][aria-current="true"] {
+    background-color: Highlight;
+    outline-color: Highlight;
+  }
+}

@@ -32,9 +32,22 @@ import {
   type TwinSource,
 } from "./_shared";
 
-/** One hue for how much, two for above and below, or a function that says which status tone a cell carries, from its value or its place. */
+/**
+ * The status a cell carries: its tone, in the Badge's subtle fill, or the tone with `emphasis`.
+ * `bold` is the tone's solid fill, for the one level that must not read as its neighbour (critical
+ * beside high, where both are danger).
+ */
+export type HeatmapStatus = Tone | { tone: Tone; emphasis?: "subtle" | "bold" | undefined };
+
+/** One hue for how much, two for above and below, or a function that says which status a cell carries, from its value or its place. */
 export type HeatmapScale =
-  "sequential" | "diverging" | ((value: number, row: string, column: string) => Tone);
+  "sequential" | "diverging" | ((value: number, row: string, column: string) => HeatmapStatus);
+
+/** A status as its fill: the tone's subtle or bold classes. */
+const statusFill = (status: HeatmapStatus) =>
+  typeof status === "string"
+    ? toneClasses[status].subtle
+    : toneClasses[status.tone][status.emphasis ?? "subtle"];
 
 /** What was chosen on a heatmap: the cell's row, column and value. */
 export type HeatmapSelection = { row: string; column: string; value: number };
@@ -46,13 +59,24 @@ type ChartHeatmapOwnProps = {
   columns: string[];
   /** The value at a row and column. `undefined` or `null` leaves the cell empty. */
   value: (row: string, column: string) => number | null | undefined;
-  /** `sequential` paints how much in one hue; `diverging` paints above and below `midpoint` in two; a function says which status tone a cell carries, from its value or its row and column, and the cell prints its value. */
+  /** `sequential` paints how much in one hue; `diverging` paints above and below `midpoint` in two; a function says which status a cell carries (a tone, or a tone with `emphasis`), from its value or its row and column, and the cell prints its value. */
   scale?: HeatmapScale | undefined;
+  /**
+   * A row's depth where the rows are a hierarchy, 0 at the top: its name is indented by it, three
+   * levels at most. Give the rows in the hierarchy's order, each row under the one that holds it.
+   */
+  rowLevel?: ((row: string) => number) | undefined;
+  /**
+   * The rows that total the rows under them: a summary row's values are printed as numbers with
+   * no fill, so a total never reads as one more cell of the scale, and its name is set in medium
+   * weight. Its cells choose and link as any other.
+   */
+  summary?: ((row: string) => boolean) | undefined;
   /** The values at the ends of the scale. The data's own when unsaid. Give `Chart.Scale` the same `domain`, so the key's thresholds are the grid's. */
   domain?: readonly [number, number] | undefined;
   /** The value that reads as nothing on a diverging scale. Zero when unsaid. */
   midpoint?: number | undefined;
-  /** On a sequential scale, zero takes a step of its own in `color.chart.track`, so none reads apart from a few; every other value bins as before. Give `Chart.Scale` the same `zeroStep`. */
+  /** Zero takes a step of its own, so none reads apart from a few, and it is quiet: its number is said to assistive technology and in the cell's title, never drawn. On a sequential scale it is `color.chart.track`, and every other value bins as before; give `Chart.Scale` the same `zeroStep`. On a status scale a zero wears no tone: its number is printed muted with no fill, and the function is not asked about it. */
   zeroStep?: boolean | undefined;
   /** Print the value in each cell. On for a status scale, where the tone's fill carries its text. On a colour scale a printed value sits on a surface chip; unsaid there, a Frame around the grid offers the reader a Values toggle that prints them, and the Frame's table twin carries them either way. `false` keeps them hidden and offers no toggle. */
   showValues?: boolean | undefined;
@@ -65,6 +89,15 @@ type ChartHeatmapOwnProps = {
   /** What the rows and the columns are: the corner cell, and the description a screen reader hears. */
   rowLabel?: string | undefined;
   columnLabel?: string | undefined;
+  /**
+   * How a column's heading is set. `horizontal` sets it on one line, and every value column takes
+   * the widest heading's width. `vertical` turns it to read up the page from its column, so a
+   * column is as wide as its cells: for long names over narrow cells, where the names alone would
+   * make the grid scroll sideways. A name past about twenty-five characters takes a second line
+   * beside the first. The heading is still the column's name to a screen reader, and the cell's
+   * title, its card and the table twin say it level. @default "horizontal"
+   */
+  columnHeadings?: "horizontal" | "vertical" | undefined;
   /** Draws skeleton cells in place of the values, the grid keeping its rows and columns. The Frame sets it from `state="loading"`. */
   loading?: boolean | undefined;
   /** Makes the cells buttons: called when one is clicked or chosen with Enter or Space. */
@@ -89,6 +122,9 @@ export type ChartHeatmapProps = ChartHeatmapOwnProps &
   Omit<ComponentProps<"div">, keyof ChartHeatmapOwnProps | "children" | "role">;
 
 const cellHeights: Record<ChartSize, string> = { small: "h-300", medium: "h-400", large: "h-500" };
+
+/** A row name's indent by its level in a hierarchy of rows: a step of the spacing scale a level. */
+const indents = ["ps-0", "ps-200", "ps-400", "ps-600"] as const;
 
 /** A cell that opens something, a button or a link: it fills its cell, its ring drawn above its neighbours. */
 const opener =
@@ -150,7 +186,9 @@ function useOverflow(
 
 /**
  * The width every value column takes: the widest column heading's, 40px at least, so a long
- * heading ("Moderate") does not make its column look weighted beside a short one ("Minor").
+ * heading ("Moderate") does not make its column look weighted beside a short one ("Minor"). A
+ * vertical heading is as wide as its lines are deep, so it widens the columns only from its third
+ * line.
  */
 function useColumnWidth(table: RefObject<HTMLTableElement | null>, key: string) {
   const [width, setWidth] = useState<number | undefined>(undefined);
@@ -206,6 +244,9 @@ export function ChartHeatmap({
   label,
   rowLabel,
   columnLabel,
+  columnHeadings = "horizontal",
+  rowLevel,
+  summary,
   loading: loadingProp,
   onSelect,
   details,
@@ -240,7 +281,11 @@ export function ChartHeatmap({
   );
   const tableRef = useRef<HTMLTableElement>(null);
   const overflows = useOverflow(scroller, tableRef);
-  const columnWidth = useColumnWidth(tableRef, `${columns.join("\u0000")}|${size}`);
+  const vertical = columnHeadings === "vertical";
+  const columnWidth = useColumnWidth(
+    tableRef,
+    `${columns.join("\u0000")}|${size}|${columnHeadings}`,
+  );
   const values = useMemo(
     () => rows.map((r) => columns.map((c) => value(r, c))),
     [rows, columns, value],
@@ -309,7 +354,9 @@ export function ChartHeatmap({
   if (offstage) return null;
   const chooses = Boolean(onSelect || details);
   const paint = (v: number, r: string, c: string): Paint => {
-    if (typeof scale === "function") return { className: toneClasses[scale(v, r, c)].subtle };
+    if (typeof scale === "function")
+      // None is not a level of the status: a muted number and no fill.
+      return { className: zeroStep && v === 0 ? "text-subtlest" : statusFill(scale(v, r, c)) };
     if (scale === "diverging") {
       const step = divergingStep(v, min, max, midpoint);
       return stepPaint(divergingColor(step), faintStep(step));
@@ -375,87 +422,117 @@ export function ChartHeatmap({
             )}
             {columns.map((c) => (
               <th key={c} scope="col" className={cn(head, "text-center")} style={column}>
-                <span data-heatmap-heading="" className="whitespace-nowrap">
-                  {c}
-                </span>
+                {vertical ? (
+                  // Turned by chart.css, which keys on the attribute's value. The name is whole
+                  // and the header cell's own; its title says it level under the pointer.
+                  <span data-heatmap-heading="vertical" title={c}>
+                    {c}
+                  </span>
+                ) : (
+                  <span data-heatmap-heading="" className="whitespace-nowrap">
+                    {c}
+                  </span>
+                )}
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {rows.map((r, ri) => (
-            <tr key={r}>
-              <th
-                scope="row"
-                className={cn(
-                  sticky,
-                  "pe-100 text-start font-body-small font-regular whitespace-nowrap text-subtle",
-                )}
-              >
-                {r}
-              </th>
-              {columns.map((c, ci) => {
-                const v = values[ri]?.[ci];
-                const has = !loading && typeof v === "number";
-                const p: Paint = has ? paint(v, r, c) : {};
-                const title = cellName(r, c, has ? v : undefined);
-                const chosen = picked !== null && picked.row === r && picked.column === c;
-                const selection = has ? { row: r, column: c, value: v } : null;
-                const to = selection ? linkOf(selection) : undefined;
-                const face = (
-                  <span
-                    data-slot="chart-heatmap-cell"
-                    data-empty={has ? undefined : ""}
-                    className={cn(
-                      "flex h-full w-full items-center justify-center rounded-xsmall font-body-small tabular-nums",
-                      p.className,
-                      // No value is an outline and no fill, dashed, so it never reads as a low one.
-                      loading
-                        ? "animate-pulse bg-skeleton"
-                        : !has && "border border-dashed border-bold",
-                      picked !== null && !chosen && "opacity-disabled",
-                    )}
-                    style={p.style}
-                    title={loading ? undefined : title}
-                  >
-                    {has && printed && !status ? (
-                      <span className="rounded-xsmall bg-surface px-050 text-default">
-                        {format(v)}
-                      </span>
-                    ) : has && printed ? (
-                      format(v)
-                    ) : has ? (
-                      <span className="sr-only">{format(v)}</span>
-                    ) : null}
-                  </span>
-                );
-                return (
-                  <td key={c} className={cn("min-w-500 pb-025 pe-025", cellHeights[size])}>
-                    {to ? (
-                      // Links navigate: the cell is the caller's link, named by its place and value.
-                      <CellLink link={to} label={title} className={opener}>
-                        {face}
-                      </CellLink>
-                    ) : chooses && selection && canChoose(selection) ? (
-                      <button
-                        type="button"
-                        aria-label={title}
-                        // A card is a dialog: the cell says it opens one, and whether it is open.
-                        aria-haspopup={details ? "dialog" : undefined}
-                        aria-expanded={details ? chosen : undefined}
-                        className={cn(opener, chosen && "z-20 outline-focused")}
-                        onClick={(e) => choose(selection, e.currentTarget)}
-                      >
-                        {face}
-                      </button>
-                    ) : (
-                      face
-                    )}
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
+          {rows.map((r, ri) => {
+            const total = summary?.(r) ?? false;
+            return (
+              <tr key={r} data-summary={total ? "" : undefined}>
+                <th
+                  scope="row"
+                  className={cn(
+                    sticky,
+                    "pe-100 text-start font-body-small whitespace-nowrap",
+                    total ? "font-medium text-default" : "font-regular text-subtle",
+                    rowLevel && indents[Math.min(Math.max(0, Math.round(rowLevel(r))), 3)],
+                  )}
+                >
+                  {r}
+                </th>
+                {columns.map((c, ci) => {
+                  const v = values[ri]?.[ci];
+                  const has = !loading && typeof v === "number";
+                  // A total is a number, not a step of the scale: no fill.
+                  const p: Paint = has && !total ? paint(v, r, c) : {};
+                  const title = cellName(r, c, has ? v : undefined);
+                  const chosen = picked !== null && picked.row === r && picked.column === c;
+                  const selection = has ? { row: r, column: c, value: v } : null;
+                  const to = selection ? linkOf(selection) : undefined;
+                  const face = (
+                    <span
+                      data-slot="chart-heatmap-cell"
+                      data-empty={has ? undefined : ""}
+                      className={cn(
+                        "flex h-full w-full items-center justify-center rounded-xsmall font-body-small tabular-nums",
+                        p.className,
+                        // No value is an outline and no fill, dashed, so it never reads as a low one.
+                        loading
+                          ? "animate-pulse bg-skeleton"
+                          : !has && "border border-dashed border-bold",
+                        picked !== null && !chosen && "opacity-disabled",
+                      )}
+                      style={p.style}
+                      title={loading ? undefined : title}
+                    >
+                      {has && v === 0 && (zeroStep || total) ? (
+                        // None is quiet: the number is said, not drawn. A cell with a fill of its
+                        // own (the sequential zero step) is the mark; elsewhere a faint point
+                        // keeps the grid's rhythm.
+                        <>
+                          <span className="sr-only">{format(v)}</span>
+                          {status || total ? (
+                            <span
+                              aria-hidden
+                              data-slot="chart-heatmap-zero"
+                              className="size-050 rounded-full bg-neutral-hovered"
+                            />
+                          ) : null}
+                        </>
+                      ) : has && total ? (
+                        <span className="font-medium text-default">{format(v)}</span>
+                      ) : has && printed && !status ? (
+                        <span className="rounded-xsmall bg-surface px-050 text-default">
+                          {format(v)}
+                        </span>
+                      ) : has && printed ? (
+                        format(v)
+                      ) : has ? (
+                        <span className="sr-only">{format(v)}</span>
+                      ) : null}
+                    </span>
+                  );
+                  return (
+                    <td key={c} className={cn("min-w-500 pb-025 pe-025", cellHeights[size])}>
+                      {to ? (
+                        // Links navigate: the cell is the caller's link, named by its place and value.
+                        <CellLink link={to} label={title} className={opener}>
+                          {face}
+                        </CellLink>
+                      ) : chooses && selection && canChoose(selection) ? (
+                        <button
+                          type="button"
+                          aria-label={title}
+                          // A card is a dialog: the cell says it opens one, and whether it is open.
+                          aria-haspopup={details ? "dialog" : undefined}
+                          aria-expanded={details ? chosen : undefined}
+                          className={cn(opener, chosen && "z-20 outline-focused")}
+                          onClick={(e) => choose(selection, e.currentTarget)}
+                        >
+                          {face}
+                        </button>
+                      ) : (
+                        face
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
       {picked && details ? (
@@ -472,8 +549,12 @@ export function ChartHeatmap({
   );
 }
 
-/** A status step on a key: the tone its cells wear, and what the tone means. */
-export type ChartScaleStep = { tone: Tone; label: string };
+/** A status step on a key: the tone its cells wear, with the cells' `emphasis` where they have one, and what it means. */
+export type ChartScaleStep = {
+  tone: Tone;
+  label: string;
+  emphasis?: "subtle" | "bold" | undefined;
+};
 
 /** A Chart.Scale takes its box's native props, `className` and `ref` too. */
 export type ChartScaleProps = Omit<ComponentProps<"div">, "children"> & {
@@ -520,11 +601,17 @@ export function ChartScale({
         data-slot="chart-scale"
       >
         {statusSteps?.map((s) => (
-          <span key={`${s.tone}-${s.label}`} className="inline-flex items-center gap-075">
+          <span
+            key={`${s.tone}-${s.emphasis ?? "subtle"}-${s.label}`}
+            className="inline-flex items-center gap-075"
+          >
             <span
               data-slot="chart-scale-step"
               aria-hidden
-              className={cn("size-150 shrink-0 rounded-xsmall", toneClasses[s.tone].subtle)}
+              className={cn(
+                "size-150 shrink-0 rounded-xsmall",
+                toneClasses[s.tone][s.emphasis ?? "subtle"],
+              )}
             />
             {s.label}
           </span>

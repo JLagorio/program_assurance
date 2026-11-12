@@ -32,7 +32,7 @@ import { LibrarySelect, QueryValue } from "./library-shared";
 import { canAuthorLibrary, nextVersionNumber, usePublishVersion } from "./library-utils";
 import { ProductCollection } from "./product-collection";
 import { ProductRecordDialog } from "./product-record-dialog";
-import { RecordLink, recordDestination, useDisplayedRecords } from "./record-preview";
+import { RecordLink, useDisplayedRecords, useOpenRecord } from "./record-preview";
 import { RecordSummaryPreview } from "./record-summary-preview";
 import { RecordTrail, TrailLink } from "./record-trail";
 import { EmptyMessage, MissingRecord, QueryState, RecordActions } from "./work-common";
@@ -242,6 +242,7 @@ export function RequirementLibraryRecord({
   initialVersion?: string;
 }) {
   const navigate = useNavigate();
+  const openRecord = useOpenRecord();
   const locale = useLedgerLocale();
   const workspace = useWorkspace();
   const definition = useRow("requirement_definitions", id);
@@ -319,7 +320,11 @@ export function RequirementLibraryRecord({
           priority: 0,
           minWidth: 220,
           cell: (row) => (
-            <RecordLink table="engineering_requirements" record={row}>
+            <RecordLink
+              table="engineering_requirements"
+              record={row}
+              onPreview={() => setAdoptionPreview(row)}
+            >
               {row.title}
             </RecordLink>
           ),
@@ -566,7 +571,7 @@ export function RequirementLibraryRecord({
                       table={adoptionTable}
                       queries={[adoptions, programs, requirementContents]}
                       onRowClick={(row) =>
-                        void navigate(recordDestination("engineering_requirements", row))
+                        openRecord("engineering_requirements", row, () => setAdoptionPreview(row))
                       }
                       empty={{
                         illustration: "records",

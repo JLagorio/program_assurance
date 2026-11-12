@@ -43,7 +43,7 @@ export function PageHeaderLead({ render, ref, className, ...props }: PageHeaderL
 export function PageHeaderHeading({ className, ...props }: PageHeaderHeadingProps) {
   return <div {...props} data-slot="page-header-heading" className={cn("min-w-0", className)} />;
 }
-/** What names the page or the record: a Heading at `page`, 20/26 semibold, an h1 on a page. Inside a HeadingLevelProvider (a preview's body starts at 2) it takes that level, and `render` sets another element outright: `render={<h2 />}`, or a dialog's title part, which keeps the `page` size. */
+/** What names the page or the record: a Heading at `page`, 24/30 semibold, an h1 on a page. Inside a HeadingLevelProvider (a preview's body starts at 2) it takes that level, and `render` sets another element outright: `render={<h2 />}`, or a dialog's title part, which keeps the `page` size. */
 export function PageHeaderTitle({ render, ref, className, ...props }: PageHeaderTitleProps) {
   const level = useHeadingLevel();
   return useRender({

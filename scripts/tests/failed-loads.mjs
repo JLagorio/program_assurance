@@ -147,9 +147,14 @@ export async function checkFailedLoads(
     await expect(stale.first()).toBeVisible();
     await expect(gateRow).toBeVisible();
     await expect(back).toBeVisible();
+    // The nested frame still shows the criterion. It has no page of its own, so the preview
+    // offers no fuller record.
+    await expect(
+      panel.getByRole("heading", { level: 2, name: criterion.title, exact: true }),
+    ).toBeVisible();
     await expect(
       panel.getByRole("link", { name: "Open full record in new tab", exact: true }),
-    ).toHaveAttribute("href", `/records/gate_criteria/${criterion.id}`);
+    ).toHaveCount(0);
     await expect
       .poll(() => panel.evaluate((element) => element.contains(document.activeElement)), {
         message: "Focus stays in the nested frame while the refresh fails",

@@ -62,6 +62,9 @@ const nouns = {
   configuration_baselines: "configuration baseline",
   control_links: "control link",
   control_mappings: "mapping entry",
+  control_overlay_decisions: "overlay decision",
+  control_overlay_rows: "overlay",
+  control_overlays: "overlay",
   control_parts: "control part",
   controls: "control",
   defined_component_evidence: "evidence citation",
@@ -81,8 +84,22 @@ const nouns = {
   finding_evidence: "evidence citation",
   finding_observations: "supporting observation",
   finding_risks: "linked risk assessment",
+  // A framework read beside the control catalog (NIST SP 800-160): an item is a technique, an
+  // approach, a process or an outcome, and a control link the control that supports one.
+  framework_control_link_rows: "framework control link",
+  framework_control_links: "framework control link",
+  framework_item_link_rows: "framework item link",
+  framework_item_links: "framework item link",
+  framework_item_rows: "framework item",
+  framework_items: "framework item",
+  framework_revisions: "framework revision",
+  framework_rows: "framework",
+  frameworks: "framework",
   gate_criteria: "gate criterion",
+  // A gate's criteria with the security outcome and the life cycle process each was drawn from.
+  gate_criterion_rows: "gate criterion",
   gate_evidence: "evidence citation",
+  gate_outcome_requests: "gate outcome request",
   implementation_evidence: "evidence citation",
   implementation_statements: "implementation statement",
   implemented_requirements: "control implementation",
@@ -138,6 +155,7 @@ const nouns = {
   product_revisions: "product version",
   products: "product",
   profile_imports: "profile import",
+  profile_overlay_applications: "overlay application",
   profile_parameter_settings: "parameter setting",
   profile_parameter_values: "parameter setting value",
   profile_resolution_catalogs: "resolution catalog",
@@ -146,6 +164,7 @@ const nouns = {
   profile_revisions: "profile revision",
   profile_rules: "tailoring rule",
   profiles: "profile",
+  program_control_requirement_counts: "control coverage",
   program_reference_choices: "reference choice",
   // The program Requirements register: a requirement, its latest revision and its place in a tree.
   program_requirement_rows: "engineering requirement",
@@ -169,6 +188,8 @@ const nouns = {
   result_observations: "result observation",
   result_sets: "result set",
   review_decisions: "review decision",
+  // An ATT&CK technique a risk concerns, from NIST SP 800-160 Vol. 2 Rev. 1, Appendix F.
+  risk_attack_techniques: "linked ATT&CK technique",
   risk_observations: "linked observation",
   risk_responses: "risk response",
   risk_revisions: "risk assessment",
@@ -221,11 +242,77 @@ function isModel(table: string): table is NamedModel {
   return Object.hasOwn(nouns, table);
 }
 
+/**
+ * What a framework item is, by its kind (`framework_items.kind`), in the product's words. `noun`
+ * names one; `holders` say what the items that hold it are to it, nearest first, as its preview
+ * labels them (a security outcome's Process and Group); `coded` marks a kind whose code is the
+ * publication's own identifier, read with its title (T1190 Exploit Public-Facing Application);
+ * `text` names what the publication prints of it, where that is a definition. One map: a
+ * preview's name, its title, its facts and their labels read it.
+ */
+const frameworkItemKinds: Readonly<
+  Record<string, { noun: string; holders?: readonly string[]; coded?: boolean; text?: string }>
+> = {
+  // The cyber resiliency constructs of NIST SP 800-160 Vol. 2 Rev. 1.
+  goal: { noun: "resiliency goal", text: "Definition" },
+  objective: { noun: "resiliency objective", text: "Definition" },
+  technique: { noun: "resiliency technique", text: "Definition" },
+  approach: { noun: "approach", holders: ["Technique"], text: "Definition" },
+  "strategic-design-principle": { noun: "strategic design principle" },
+  "structural-design-principle": { noun: "structural design principle" },
+  // ATT&CK as the volume's Appendix F names it. A specific effect is held by a high-level one.
+  tactic: { noun: "tactic" },
+  "attack-technique": { noun: "ATT&CK technique", coded: true },
+  mitigation: { noun: "ATT&CK mitigation", coded: true },
+  "candidate-mitigation": { noun: "candidate mitigation", coded: true },
+  effect: { noun: "effect", holders: ["High-level effect"], text: "Definition" },
+  // The system life cycle processes of NIST SP 800-160 Vol. 1 Rev. 1.
+  "process-group": { noun: "process group" },
+  process: { noun: "life cycle process", holders: ["Group"] },
+  outcome: { noun: "security outcome", holders: ["Process", "Group"] },
+};
+
+/** A framework item as the product words it. */
+export type FrameworkItemWords = {
+  /** What one is, singular and in sentence case: "security outcome". */
+  noun: string;
+  /** What the items that hold it are to it, nearest first: "Process", then "Group". */
+  holders: readonly string[];
+  /** Its code is the publication's identifier and leads its name: "T1190 Exploit…". */
+  coded: boolean;
+  /** The label of what the publication prints of it: "Definition", else "Description". */
+  text: string;
+};
+
+/** The product's words for a framework item of a kind; `undefined` for a kind it has none for. */
+export function frameworkItemWords(kind: unknown): FrameworkItemWords | undefined {
+  const words =
+    typeof kind === "string" && Object.hasOwn(frameworkItemKinds, kind)
+      ? frameworkItemKinds[kind]
+      : undefined;
+  if (!words) return undefined;
+  return {
+    noun: words.noun,
+    holders: words.holders ?? [],
+    coded: words.coded ?? false,
+    text: words.text ?? "Description",
+  };
+}
+
+/** The framework items' table, or the view that reads the current revision's. */
+const isFrameworkItems = (table: string) =>
+  table === "framework_items" || table === "framework_item_rows";
+
 /** Labels describe real tables; fields and choices still come from the database. */
 export function productRecordNoun(table: string, values?: Record<string, unknown>): string {
   if (table === "parties") {
     const type = values?.["party_type"];
     if (type === "organization" || type === "person" || type === "team") return type;
+  }
+  // A framework item is named for what it is: a security outcome, an ATT&CK technique.
+  if (isFrameworkItems(table)) {
+    const words = frameworkItemWords(values?.["kind"]);
+    if (words) return words.noun;
   }
   if (isModel(table)) return nouns[table];
   // A name the models do not know (a stale key, a diagnostic collection) still reads as words.
@@ -238,6 +325,30 @@ export function productCreateLabel(table: string, values?: Record<string, unknow
 }
 
 /**
+ * The columns the product names in words their own names do not say, by table: a form's field and
+ * a preview's fact read the same.
+ */
+const columnLabels: Record<string, Record<string, string>> = {
+  // A criterion drawn from NIST SP 800-160 Vol. 1 names the security outcome it came from.
+  gate_criteria: { outcome_item_id: "Security outcome" },
+};
+
+/**
+ * The product's own words for a column, where it has them; a form or a preview derives the rest.
+ * `values` are the record's, for a column whose words depend on what the record is: the item that
+ * holds a framework item is a security outcome's Process and an approach's Technique.
+ */
+export function productColumnLabel(
+  table: string,
+  column: string,
+  values?: Record<string, unknown>,
+): string | undefined {
+  if (isFrameworkItems(table) && column === "parent_item_id")
+    return frameworkItemWords(values?.["kind"])?.holders[0];
+  return columnLabels[table]?.[column];
+}
+
+/**
  * A form field's label in the product's words. A party reference is named for the role it records
  * ("Owner", "Sponsor", "Author", as the record previews name it), and a few columns take the
  * register's words ("Contact email"); every other column reads as its own name without `_id`.
@@ -247,6 +358,8 @@ export function productFieldLabel(
   column: string,
   values?: Record<string, unknown>,
 ): string {
+  const named = productColumnLabel(table, column, values);
+  if (named) return named;
   // Status is operational progress (Active, Retired); State is a version's draft or published.
   if ((table === "products" || table === "product_configurations") && column === "state")
     return "Status";

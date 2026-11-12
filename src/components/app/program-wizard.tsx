@@ -1,3 +1,4 @@
+import { useRows } from "@/lib/models";
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -30,7 +31,12 @@ import {
   type ProgramWizardDraft,
   type SystemWizardDraft,
 } from "@/lib/program-wizard";
-import { catalogProfileOptions, previewProgramTailoring } from "@/lib/program-wizard-reference";
+import {
+  catalogProfileOptions,
+  previewProgramTailoring,
+  stackDraftOverlays,
+} from "@/lib/program-wizard-reference";
+import { usePublishedOverlays } from "@/lib/baseline-reads";
 import { useWizardResources } from "./program-wizard/resources";
 import { ProgramStep } from "./program-wizard/program";
 import { CatalogStep } from "./program-wizard/catalog";
@@ -120,24 +126,57 @@ export function ProgramWizard() {
     description: `Your program setup will be lost: its details, ${plural(draft.profiles.length, "base profile")} and ${plural(draft.systems.length, "system")}.`,
   });
 
-  const options = useMemo(() => catalogProfileOptions(resources.data), [resources.data]);
-  const previews = useMemo(
+  // A layer an overlay made of a baseline is part of some program's stack, not a base to choose:
+  // the same result comes from stacking that overlay here.
+  const overlayLayers = useRows("profile_overlay_applications", undefined, {
+    columns: ["profile_resolution_id"],
+  });
+  const options = useMemo(() => {
+    const all = catalogProfileOptions(resources.data);
+    const layers = new Set((overlayLayers.data ?? []).map((row) => row.profile_resolution_id));
+    return { ...all, profiles: all.profiles.filter((profile) => !layers.has(profile.id)) };
+  }, [resources.data, overlayLayers.data]);
+  const published = usePublishedOverlays();
+  // Each program profile's draft stack: its base with its overlays applied in order, in the
+  // shape the saved chain will have, so the tailoring and every count read the stacked baseline.
+  const stacks = useMemo(
     () =>
       new Map(
         draft.profiles.map((profile: ProgramProfileDraft) => [
           profile.key,
-          previewProgramTailoring(
-            {
-              catalogRevisionId: draft.catalogRevisionId,
-              baseResolutionId: profile.baseResolutionId,
-              tailoring: profile.tailoring,
-              parameters: profile.parameters,
-            },
+          stackDraftOverlays(
             resources.data,
+            draft.catalogRevisionId,
+            profile.baseResolutionId,
+            profile.overlayIds.flatMap(
+              (id) => published.overlays.find((overlay) => overlay.id === id) ?? [],
+            ),
+            profile.key,
           ),
         ]),
       ),
-    [draft.profiles, draft.catalogRevisionId, resources.data],
+    [draft.profiles, draft.catalogRevisionId, resources.data, published.overlays],
+  );
+  const previews = useMemo(
+    () =>
+      new Map(
+        draft.profiles.map((profile: ProgramProfileDraft) => {
+          const stack = stacks.get(profile.key);
+          return [
+            profile.key,
+            previewProgramTailoring(
+              {
+                catalogRevisionId: draft.catalogRevisionId,
+                baseResolutionId: stack?.resolutionId ?? profile.baseResolutionId,
+                tailoring: profile.tailoring,
+                parameters: profile.parameters,
+              },
+              stack?.data ?? resources.data,
+            ),
+          ];
+        }),
+      ),
+    [draft.profiles, draft.catalogRevisionId, resources.data, stacks],
   );
   // The catalog step checks the draft against the reference records once they are in, while the
   // library and the products may still be loading.
@@ -150,6 +189,7 @@ export function ProgramWizard() {
         catalogs: options.catalogs,
         profiles: options.profiles,
         previews,
+        stacks,
         libraryItems: resources.libraryItems,
         productItems: resources.productItems,
       }),
@@ -159,6 +199,7 @@ export function ProgramWizard() {
       resources.ready,
       options,
       previews,
+      stacks,
       resources.libraryItems,
       resources.productItems,
     ],
@@ -346,6 +387,9 @@ export function ProgramWizard() {
         profiles={options.profiles}
         data={resources.data}
         previews={previews}
+        stacks={stacks}
+        overlays={published.overlays}
+        overlayQueries={published.queries}
         editingKey={editingKey}
         onEditingKeyChange={setEditingKey}
         errorFor={errorFor}

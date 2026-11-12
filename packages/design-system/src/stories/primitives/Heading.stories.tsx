@@ -396,7 +396,7 @@ const deprecatedSizes: { size: HeadingSize; text: string }[] = [
   { size: "small", text: "small, deprecated" },
   { size: "xsmall", text: "xsmall, deprecated" },
 ];
-/** The deprecated sizes, for one version, each drawn with the step that replaced it: `large` is `display`, `medium` is `page`, `small` is `page` at medium weight (20/26 medium) and `xsmall` is `overlay`. Each keeps its element. */
+/** The deprecated sizes, for one version, each drawn with the step that replaced it: `large` is `display`, `medium` is `page`, `small` is `page` at medium weight (24/30 medium) and `xsmall` is `overlay`. Each keeps its element. */
 export const DeprecatedSizes: Story = {
   name: "Deprecated sizes",
   tags: ["!manifest"],
@@ -421,10 +421,10 @@ export const DeprecatedSizes: Story = {
     });
     await expect(typeOf(canvas.getByText("small, deprecated"))).toEqual({
       tag: "H2",
-      size: "20px",
-      lineHeight: "26px",
+      size: "24px",
+      lineHeight: "30px",
       weight: "500",
-      tracking: -0.3,
+      tracking: -0.36,
     });
     await expect(typeOf(canvas.getByText("xsmall, deprecated"))).toEqual({
       tag: "H3",

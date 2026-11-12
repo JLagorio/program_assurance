@@ -44,7 +44,7 @@ export type ChainData = {
 export function resolutionChain(
   resolutionId: string,
   data: ChainData,
-  maxDepth = 3,
+  maxDepth = 8,
 ): ResolutionChain {
   const hops: ChainHop[] = [];
   const errors: string[] = [];
@@ -99,7 +99,7 @@ export function resolutionChain(
       if (base?.profile_revision_id !== first.imported_profile_revision_id)
         errors.push(`${title} records a base resolution that does not match its import.`);
       if (hops.length > maxDepth) {
-        errors.push("Profile layering deeper than three levels is not supported.");
+        errors.push("Profile layering deeper than eight levels is not supported.");
         break;
       }
       cursor = resolution.base_profile_resolution_id;

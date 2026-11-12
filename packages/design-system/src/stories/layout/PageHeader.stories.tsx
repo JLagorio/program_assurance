@@ -106,7 +106,7 @@ export const Record: Story = {
     const header = headerOf(canvasElement).getBoundingClientRect();
     const lead = canvas.getByRole("navigation", { name: "Breadcrumb" }).getBoundingClientRect();
     const heading = canvas.getByRole("heading", { level: 1 });
-    // The page and record title is Heading's `page` size: 20/26 semibold, an h1.
+    // The page and record title is Heading's `page` size: 24/30 semibold, an h1.
     await expect(typeOf(heading)).toEqual({ tag: "H1", ...ramp.page });
     const title = heading.getBoundingClientRect();
     const action = canvas.getByRole("button", { name: "Actions" }).getBoundingClientRect();

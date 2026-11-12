@@ -1,0 +1,234 @@
+/*
+  Trace: the stages of a chain as columns of records joined by wires. The colours are the
+  border, surface and text tokens; the sizes are steps of the spacing scale. The part measures
+  its own width and stacks its stages where the columns would not read, so a panel beside it
+  narrows it as a phone does.
+*/
+[data-slot="trace"] {
+  --trace-gap: var(--ds-space-400);
+  --trace-edge: var(--ds-border-width);
+  position: relative;
+  min-width: 0;
+  font: var(--ds-font-body-small);
+  letter-spacing: var(--ds-font-body-small-letter-spacing);
+  color: var(--ds-color-text);
+}
+
+/* ---------- the stages ---------- */
+[data-slot="trace-stages"] {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  column-gap: var(--trace-gap);
+  row-gap: var(--ds-space-150);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* Every stage's name on one line across the columns, and its records centred under it. */
+[data-slot="trace-stage"] {
+  display: grid;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
+  min-width: 0;
+}
+[data-slot="trace-stage-header"] {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-075);
+  min-width: 0;
+  font: var(--ds-font-body-xsmall);
+  font-weight: var(--ds-font-weight-medium);
+  letter-spacing: var(--ds-font-body-xsmall-letter-spacing);
+  color: var(--ds-color-text-subtle);
+}
+[data-slot="trace-stage-header"] > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[data-slot="trace-stage-body"] {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: var(--ds-space-100);
+  min-width: 0;
+}
+[data-slot="trace-stage-body"] > button {
+  align-self: flex-start;
+}
+[data-slot="trace-nodes"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-100);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-width: 0;
+}
+[data-slot="trace-empty"] {
+  margin: 0;
+  color: var(--ds-color-text-subtlest);
+}
+
+/* ---------- a record ---------- */
+[data-slot="trace-node"] {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+[data-slot="trace-node-body"] {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-075);
+  box-sizing: border-box;
+  min-height: var(--ds-space-400);
+  padding: calc(var(--ds-space-075) - var(--trace-edge)) var(--ds-space-100);
+  border: var(--trace-edge) solid var(--ds-color-border);
+  border-radius: var(--ds-radius-medium);
+  background-color: var(--ds-utility-elevation-surface-current);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color var(--ds-motion-duration-fast) var(--ds-motion-easing-standard),
+    background-color var(--ds-motion-duration-fast) var(--ds-motion-easing-standard),
+    opacity var(--ds-motion-duration-fast) var(--ds-motion-easing-standard);
+}
+a[data-slot="trace-node-body"] {
+  cursor: pointer;
+}
+a[data-slot="trace-node-body"]:hover {
+  border-color: var(--ds-color-border-bold);
+  background-color: var(--ds-color-background-neutral-subtle-hovered);
+}
+a[data-slot="trace-node-body"]:active {
+  background-color: var(--ds-color-background-neutral-subtle-pressed);
+}
+a[data-slot="trace-node-body"]:focus-visible {
+  outline: var(--ds-border-width-focused) solid var(--ds-color-border-focused);
+  outline-offset: var(--ds-space-025);
+}
+/* The record the trace is about: a heavier edge, which holds where colours are forced. */
+[data-slot="trace-node-body"][aria-current] {
+  --trace-edge: var(--ds-border-width-selected);
+  border-color: var(--ds-color-border-selected);
+  background-color: var(--ds-color-background-selected);
+}
+a[data-slot="trace-node-body"][aria-current]:hover {
+  border-color: var(--ds-color-border-selected);
+  background-color: var(--ds-color-background-selected-hovered);
+}
+[data-slot="trace-node-mark"] {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  /* One line of the name tall, so the mark sits on the first line. */
+  block-size: 1lh;
+}
+[data-slot="trace-node-text"] {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--ds-space-025);
+  min-width: 0;
+}
+[data-slot="trace-node-code"] {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--ds-font-weight-medium);
+  color: var(--ds-color-text-subtle);
+  overflow-wrap: anywhere;
+}
+[data-slot="trace-node-title"] {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow-wrap: break-word;
+}
+[data-slot="trace-node-meta"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-050);
+  font: var(--ds-font-body-xsmall);
+  letter-spacing: var(--ds-font-body-xsmall-letter-spacing);
+  color: var(--ds-color-text-subtle);
+}
+/* The gap a link takes through a stage it passes. */
+[data-slot="trace-pass"] {
+  block-size: var(--ds-space-150);
+}
+
+/* ---------- the wires ---------- */
+[data-slot="trace-wires"] {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+[data-slot="trace-wire"] {
+  fill: none;
+  stroke: var(--ds-color-border-bold);
+  stroke-width: var(--ds-border-width);
+  transition:
+    stroke var(--ds-motion-duration-fast) var(--ds-motion-easing-standard),
+    opacity var(--ds-motion-duration-fast) var(--ds-motion-easing-standard);
+}
+
+/* ---------- a path, lit ---------- */
+[data-slot="trace"][data-active] [data-slot="trace-wire"]:not([data-lit]) {
+  stroke: var(--ds-color-border);
+}
+[data-slot="trace"][data-active] [data-slot="trace-wire"][data-lit] {
+  stroke: var(--ds-color-border-selected);
+  stroke-width: var(--ds-border-width-selected);
+}
+[data-slot="trace"][data-active] [data-slot="trace-node"]:not([data-lit]) {
+  opacity: var(--ds-opacity-disabled);
+}
+[data-slot="trace"][data-active]
+  [data-slot="trace-node"][data-lit]
+  [data-slot="trace-node-body"]:not([aria-current]) {
+  border-color: var(--ds-color-border-bold);
+}
+
+/* ---------- stacked: a stage under a stage, no wires ---------- */
+[data-slot="trace"][data-layout="stack"] [data-slot="trace-stages"] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: none;
+  row-gap: var(--ds-space-200);
+}
+[data-slot="trace"][data-layout="stack"] [data-slot="trace-stage"] {
+  grid-row: auto;
+  grid-template-rows: none;
+  row-gap: var(--ds-space-075);
+}
+[data-slot="trace"][data-layout="stack"] [data-slot="trace-pass"] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="trace-node-body"],
+  [data-slot="trace-wire"] {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  [data-slot="trace-wire"] {
+    stroke: CanvasText;
+  }
+  [data-slot="trace"][data-active] [data-slot="trace-wire"][data-lit] {
+    stroke: Highlight;
+  }
+  [data-slot="trace-node-body"][aria-current] {
+    border-color: Highlight;
+  }
+  a[data-slot="trace-node-body"]:focus-visible {
+    outline-color: Highlight;
+  }
+}

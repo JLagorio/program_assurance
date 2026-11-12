@@ -1,0 +1,542 @@
+/*
+  Ladder: ordered levels of nodes joined by wires, the last level one line a node. The colours are
+  the border, surface, text and chart tokens; the sizes are steps of the spacing scale, and the
+  room between two levels grows with the part's own width. The part is a container, and it stacks
+  by what it holds: the levels stand side by side while each has the room it needs to read, and in
+  less they stack and the wires leave, so a panel beside it narrows it as a phone does. A row's
+  marks are a Tally's segments standing apart, painted by src/styles/tally.css.
+*/
+[data-slot="ladder"] {
+  --ladder-edge: var(--ds-border-width);
+  --ladder-pitch: var(--ds-space-250);
+  --ladder-tick: var(--ds-space-050);
+  --ladder-group-gap: var(--ds-space-075);
+  /* The narrowest a level reads. A card: a word of sixteen letters whole, its numbers on the line
+     under it. The rows: twenty letters of a name, a figure, and marks that have joined into a
+     bar. The room the wires take between two levels is never less than a step either. */
+  --ladder-card-min: calc(1.35 * var(--ds-space-1000));
+  --ladder-rows-min: calc(3.3 * var(--ds-space-1000));
+  --ladder-marks-min: calc(0.8 * var(--ds-space-1000));
+  --ladder-gap-min: var(--ds-space-200);
+  /* The room the wires take between two levels, and between a node and its rows. */
+  --ladder-gap: clamp(var(--ladder-gap-min), calc(6cqi - var(--ds-space-300)), var(--ds-space-800));
+  --ladder-fan: clamp(var(--ds-space-200), 2cqi, var(--ds-space-400));
+  /* A level of cards; a row's name, as long as the longest up to a quarter of the ladder, and
+     the first to give way; a row's marks. */
+  --ladder-card-track: minmax(calc(var(--ladder-card-min) + var(--ladder-gap)), 1.25fr);
+  --ladder-name-track: fit-content(26cqi);
+  --ladder-marks-track: minmax(var(--ladder-marks-min), 1fr);
+  container: ladder / inline-size;
+  position: relative;
+  min-width: 0;
+  font: var(--ds-font-body-small);
+  letter-spacing: var(--ds-font-body-small-letter-spacing);
+  font-variant-numeric: tabular-nums;
+  color: var(--ds-color-text);
+}
+[data-slot="ladder"][data-size="small"] {
+  --ladder-pitch: var(--ds-space-200);
+  --ladder-group-gap: var(--ds-space-050);
+  --ladder-card-min: calc(1.25 * var(--ds-space-1000));
+  --ladder-rows-min: calc(3.1 * var(--ds-space-1000));
+  font: var(--ds-font-body-xsmall);
+  letter-spacing: var(--ds-font-body-xsmall-letter-spacing);
+}
+/* A finger needs 24px of row, whatever the size. */
+@media (any-pointer: coarse) {
+  [data-slot="ladder"] {
+    --ladder-pitch: var(--ds-space-300);
+  }
+}
+
+/* The room this ladder's levels need side by side: so many levels of cards, each with its wires
+   after it, and the rows. Worked out here from the tokens and read by the part; nothing is drawn. */
+[data-slot="ladder-room"] {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inline-size: 0;
+  block-size: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+}
+[data-slot="ladder-room"] > span {
+  display: block;
+  inline-size: calc(
+    var(--ladder-cards, 0) * (var(--ladder-card-min) + var(--ladder-gap-min)) +
+      var(--ladder-rows, 0) * var(--ladder-rows-min)
+  );
+}
+
+/* ---------- the levels ---------- */
+[data-slot="ladder-levels"] {
+  display: grid;
+  grid-template-columns: var(--ladder-columns);
+  grid-template-rows: auto 1fr;
+  row-gap: var(--ds-space-100);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* Every level's heading on one line across the ladder, and its nodes under it. */
+[data-slot="ladder-level"] {
+  display: grid;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
+  min-width: 0;
+}
+[data-slot="ladder-level-header"] {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ds-space-075);
+  min-width: 0;
+  /* A heading keeps to its level: the name gives way first, then the count, and nothing paints
+     past the level's edge. */
+  overflow: hidden;
+  padding-inline: var(--ds-space-100);
+  font: var(--ds-font-body-xsmall);
+  font-weight: var(--ds-font-weight-medium);
+  letter-spacing: var(--ds-font-body-xsmall-letter-spacing);
+  color: var(--ds-color-text-subtle);
+  white-space: nowrap;
+}
+[data-slot="ladder-level-label"] {
+  flex: 0 1000 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+[data-slot="ladder-level-count"] {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ds-color-text);
+}
+/* A level of cards spreads over the height the tallest level gives. */
+[data-slot="ladder-nodes"] {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: var(--ds-space-100);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  padding-inline-end: var(--ladder-gap);
+  list-style: none;
+}
+[data-slot="ladder-nodes"] > li {
+  display: flex;
+  min-width: 0;
+}
+/* The last level has no wires after it, so no room for them. */
+[data-slot="ladder-level"]:last-child > [data-slot="ladder-nodes"] {
+  padding-inline-end: 0;
+}
+[data-slot="ladder-empty"] {
+  margin: 0;
+  padding-inline: var(--ds-space-100);
+  color: var(--ds-color-text-subtlest);
+}
+
+/* ---------- the last level: rows beside their node ---------- */
+[data-slot="ladder-level"][data-tree] {
+  grid-template-columns: subgrid;
+}
+[data-slot="ladder-level"][data-tree="parented"] {
+  grid-column: span 4;
+}
+[data-slot="ladder-level"][data-tree="alone"] {
+  grid-column: span 3;
+}
+[data-tree] > [data-slot="ladder-level-header"] {
+  grid-row: 1;
+  grid-column: 1;
+}
+[data-tree] > [data-slot="ladder-level-header"][data-rows] {
+  grid-column: 1 / -1;
+}
+[data-tree="parented"] > [data-slot="ladder-level-header"][data-rows] {
+  grid-column: 2 / -1;
+}
+[data-slot="ladder-groups"] {
+  display: grid;
+  grid-row: 2;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-content: space-around;
+  row-gap: var(--ladder-group-gap);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+[data-slot="ladder-group"] {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+  min-width: 0;
+}
+[data-slot="ladder-group-node"] {
+  display: flex;
+  grid-column: 1;
+  min-width: 0;
+  padding-inline-end: var(--ladder-fan);
+}
+[data-slot="ladder-rows"] {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+[data-tree="parented"] [data-slot="ladder-rows"] {
+  grid-column: 2 / -1;
+}
+[data-slot="ladder-rows"] > li {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  min-width: 0;
+}
+
+/* ---------- a node ---------- */
+[data-slot="ladder-node"],
+[data-slot="ladder-row"] {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  min-width: 0;
+  margin: 0;
+  appearance: none;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    border-color var(--ds-motion-duration-fast) var(--ds-motion-easing-standard),
+    background-color var(--ds-motion-duration-fast) var(--ds-motion-easing-standard),
+    color var(--ds-motion-duration-fast) var(--ds-motion-easing-standard);
+}
+:is([data-slot="ladder-node"], [data-slot="ladder-row"]):focus-visible {
+  z-index: 2;
+  outline: var(--ds-border-width-focused) solid var(--ds-color-border-focused);
+  outline-offset: var(--ds-space-025);
+}
+[data-slot="ladder-node"] {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--ds-space-050);
+  padding: calc(var(--ds-space-050) - var(--ladder-edge))
+    calc(var(--ds-space-100) - var(--ladder-edge)) calc(var(--ds-space-075) - var(--ladder-edge));
+  border: var(--ladder-edge) solid var(--ds-color-border);
+  border-radius: var(--ds-radius-medium);
+  background-color: var(--ds-utility-elevation-surface-current);
+}
+[data-slot="ladder-node"]:hover {
+  border-color: var(--ds-color-border-bold);
+}
+[data-slot="ladder-node"]:active {
+  background-color: var(--ds-color-background-neutral-subtle-pressed);
+}
+/* The chosen node: a heavier edge, which holds where colours are forced. */
+[data-slot="ladder-node"][aria-pressed="true"] {
+  --ladder-edge: var(--ds-border-width-selected);
+  border-color: var(--ds-color-border-selected);
+  background-color: var(--ds-color-background-selected);
+}
+/* The name, then the numbers at the line's end. A name wraps onto a second line beside them
+   while its longest word has room; where it has none, the numbers take the next line, so a
+   narrow card never cuts a word to keep them. */
+[data-slot="ladder-node-line"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--ds-space-075);
+  min-width: 0;
+}
+[data-slot="ladder-node"] [data-slot="ladder-node-title"] {
+  display: -webkit-box;
+  flex: 1 1 0;
+  min-inline-size: min-content;
+  max-inline-size: 100%;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow-wrap: break-word;
+  font-weight: var(--ds-font-weight-medium);
+}
+/* A marked node: the kit's round Dot before its name, on the name's first line. */
+[data-slot="ladder-node-title"] > [data-slot="dot"] {
+  margin-inline-end: var(--ds-space-075);
+}
+[data-slot="ladder-node-numbers"] {
+  display: inline-flex;
+  flex: none;
+  align-items: baseline;
+  gap: var(--ds-space-075);
+  margin-inline-start: auto;
+}
+[data-slot="ladder-figure"] {
+  flex: none;
+  color: var(--ds-color-text-subtlest);
+  white-space: nowrap;
+}
+[data-slot="ladder-figure-value"] {
+  font-weight: var(--ds-font-weight-medium);
+  color: var(--ds-color-text);
+}
+/* What needs attention: a hollow mark and a count, in the danger tone. */
+[data-slot="ladder-flag"] {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--ds-space-050);
+  font-weight: var(--ds-font-weight-medium);
+  color: var(--ds-color-text-danger);
+  white-space: nowrap;
+}
+[data-slot="ladder-flag-mark"] {
+  box-sizing: border-box;
+  inline-size: var(--ds-space-075);
+  block-size: var(--ds-space-100);
+  border: var(--ds-border-width) solid currentColor;
+  border-radius: var(--ds-border-width);
+}
+[data-flagged] > [data-slot="ladder-figure"] > [data-slot="ladder-figure-value"],
+[data-flagged] [data-slot="ladder-node-numbers"] [data-slot="ladder-figure-value"] {
+  font-weight: var(--ds-font-weight-semibold);
+  color: var(--ds-color-text-danger);
+}
+
+/* ---------- a row ---------- */
+[data-slot="ladder-row"] {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+  column-gap: var(--ds-space-100);
+  block-size: var(--ladder-pitch);
+  padding-block: 0;
+  padding-inline: var(--ds-space-075);
+  border: 0;
+  border-radius: var(--ds-radius-small);
+  background-color: transparent;
+  white-space: nowrap;
+}
+[data-slot="ladder-row"]:hover {
+  background-color: var(--ds-color-background-neutral-subtle-hovered);
+}
+[data-slot="ladder-row"]:active {
+  background-color: var(--ds-color-background-neutral-subtle-pressed);
+}
+[data-slot="ladder-row"][aria-pressed="true"] {
+  background-color: var(--ds-color-background-selected);
+  box-shadow: inset 0 0 0 var(--ds-border-width-selected) var(--ds-color-border-selected);
+}
+[data-slot="ladder-row"] > [data-slot="ladder-node-title"] {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+[data-slot="ladder-row"] > [data-slot="ladder-figure"] {
+  text-align: end;
+}
+/* A hairline stands between two marks while each has room for one. A row with more marks than
+   that joins them into a bar, as a tally is, and never cuts one off. */
+[data-slot="ladder-marks"] {
+  display: flex;
+  gap: clamp(
+    0%,
+    calc(100% / var(--ladder-count, 1) - 2 * var(--ds-border-width)),
+    var(--ds-border-width)
+  );
+  min-width: 0;
+}
+/* One an item. The paint is the Tally's (tally.css); the row gives the size, and a row with
+   many gives each less. The size is the mark's own, so a track sized by its rows' marks (the
+   stacked form's) knows how much they ask for. */
+[data-slot="ladder-mark"] {
+  flex: 0 1 auto;
+  box-sizing: border-box;
+  inline-size: var(--ladder-tick);
+  min-inline-size: 0;
+  block-size: min(calc(var(--ladder-pitch) - var(--ds-space-100)), var(--ds-space-150));
+  border-radius: var(--ds-border-width);
+}
+/* An empty mark is the track's colour, as a tally's unfilled part is. */
+[data-slot="ladder-mark"][data-fill="empty"] {
+  background-color: var(--ds-color-chart-track);
+}
+/* Nothing behind the row: its empty marks are outlines, never fills, and say so in the danger tone. */
+[data-slot="ladder-row"][data-flagged] [data-slot="ladder-mark"][data-fill="empty"] {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 var(--ds-border-width) var(--ds-color-border-danger);
+}
+[data-slot="ladder-row"] > [data-slot="tally"] {
+  align-self: center;
+}
+
+/* ---------- the wires ---------- */
+[data-slot="ladder-wires"] {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+[data-slot="ladder-wire"] {
+  fill: none;
+  stroke: var(--ds-color-border);
+  stroke-width: var(--ds-border-width);
+  transition:
+    stroke var(--ds-motion-duration-fast) var(--ds-motion-easing-standard),
+    opacity var(--ds-motion-duration-fast) var(--ds-motion-easing-standard);
+}
+[data-slot="ladder-wire"][data-flagged] {
+  stroke: var(--ds-color-border-danger);
+}
+
+/* ---------- a path, kept ----------
+   What is off the path steps back and stays readable: its words take the faintest text colour,
+   which still holds its contrast, and only its tally, its marks and the wires fade. Nothing
+   changes weight or size, so choosing a node moves no node and no wire is measured again. */
+[data-slot="ladder"][data-active] [data-slot="ladder-wire"]:not([data-lit]) {
+  opacity: var(--ds-opacity-loading);
+}
+[data-slot="ladder"][data-active] [data-slot="ladder-wire"][data-lit]:not([data-flagged]) {
+  stroke: var(--ds-color-border-bold);
+}
+[data-slot="ladder"][data-active] [data-ladder-id]:not([data-lit]) {
+  color: var(--ds-color-text-subtlest);
+}
+[data-slot="ladder"][data-active]
+  [data-ladder-id]:not([data-lit])
+  :is([data-slot="ladder-figure-value"], [data-slot="ladder-flag"]) {
+  color: inherit;
+}
+[data-slot="ladder"][data-active]
+  [data-ladder-id]:not([data-lit])
+  :is(
+    [data-slot="tally"],
+    [data-slot="ladder-marks"],
+    [data-slot="ladder-flag-mark"],
+    [data-slot="dot"]
+  ) {
+  opacity: var(--ds-opacity-loading);
+}
+
+/* ---------- stacked: a level under a level, no wires ----------
+   The part sets `data-layout` from the room its levels need (ladder-room, above). */
+[data-slot="ladder"][data-layout="stack"] [data-slot="ladder-wires"] {
+  display: none;
+}
+[data-slot="ladder"][data-layout="stack"] [data-slot="ladder-levels"] {
+  --ladder-pitch: var(--ds-dimension-row-menu);
+  grid-template-columns: minmax(0, 1fr) max-content fit-content(28%);
+  grid-template-rows: none;
+  row-gap: var(--ds-space-250);
+}
+[data-slot="ladder"][data-layout="stack"] [data-slot="ladder-level"] {
+  grid-row: auto;
+  grid-column: 1 / -1;
+  grid-template-rows: none;
+  grid-template-columns: subgrid;
+  row-gap: var(--ds-space-075);
+}
+[data-slot="ladder"][data-layout="stack"] [data-slot="ladder-level"] > * {
+  grid-row: auto;
+  grid-column: 1 / -1;
+}
+[data-slot="ladder"][data-layout="stack"] [data-slot="ladder-level-header"] {
+  padding-inline: 0;
+}
+[data-slot="ladder"][data-layout="stack"] [data-slot="ladder-nodes"] {
+  padding-inline-end: 0;
+}
+[data-slot="ladder"][data-layout="stack"] [data-slot="ladder-groups"] {
+  row-gap: var(--ds-space-150);
+}
+[data-slot="ladder"][data-layout="stack"] [data-slot="ladder-group"] {
+  row-gap: var(--ds-space-050);
+}
+[data-slot="ladder"][data-layout="stack"] [data-slot="ladder-group-node"] {
+  grid-column: 1 / -1;
+  padding-inline-end: 0;
+}
+[data-slot="ladder"][data-layout="stack"] [data-slot="ladder-rows"] {
+  grid-column: 1 / -1;
+  padding-inline-start: var(--ds-space-150);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="ladder-node"],
+  [data-slot="ladder-row"],
+  [data-slot="ladder-wire"] {
+    transition: none;
+  }
+}
+
+/* The system palette keeps the chosen node, the path and the flag apart. */
+@media (forced-colors: active) {
+  [data-slot="ladder-wire"],
+  [data-slot="ladder-wire"][data-flagged] {
+    stroke: CanvasText;
+  }
+  [data-slot="ladder"][data-active] [data-slot="ladder-wire"][data-lit] {
+    stroke: Highlight;
+  }
+  /* The chosen node is the kit's pressed control (src/styles/forced-colors.css): a Highlight fill
+     with everything inside it in HighlightText. The token fill and edge give way to it. */
+  [data-slot="ladder-node"][aria-pressed="true"],
+  [data-slot="ladder-row"][aria-pressed="true"] {
+    border-color: Highlight;
+    background-color: Highlight;
+    box-shadow: none;
+  }
+  :is([data-slot="ladder-node"], [data-slot="ladder-row"]):focus-visible {
+    outline: var(--ds-border-width-focused) solid Highlight;
+    outline-offset: var(--ds-space-025);
+  }
+  /* Focus on a Highlight fill is drawn in CanvasText, so it reads apart from the fill. */
+  :is([data-slot="ladder-node"], [data-slot="ladder-row"])[aria-pressed="true"]:focus-visible {
+    outline-color: CanvasText;
+  }
+  /* On that fill a tally and a row's marks stay three things in the one colour left: filled,
+     hollow, and empty, which is a line along the foot. */
+  [data-slot="ladder"] [data-ladder-id][aria-pressed="true"] [data-slot="tally-track"] {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 var(--ds-border-width) HighlightText;
+  }
+  [data-slot="ladder"]
+    [data-ladder-id][aria-pressed="true"]
+    :is([data-slot="tally-segment"], [data-slot="ladder-mark"]) {
+    background-color: HighlightText;
+    box-shadow: none;
+  }
+  [data-slot="ladder"]
+    [data-ladder-id][aria-pressed="true"]
+    :is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-fill="outline"] {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 var(--ds-border-width) HighlightText;
+  }
+  [data-slot="ladder"]
+    [data-ladder-id][aria-pressed="true"]
+    :is([data-slot="tally-segment"], [data-slot="ladder-mark"])[data-fill="empty"] {
+    background-color: transparent;
+    box-shadow: inset 0 calc(-1 * var(--ds-border-width)) 0 0 HighlightText;
+  }
+  [data-slot="ladder-mark"][data-fill="empty"],
+  [data-slot="ladder-row"][data-flagged] [data-slot="ladder-mark"][data-fill="empty"] {
+    background-color: Canvas;
+    box-shadow: inset 0 0 0 var(--ds-border-width) GrayText;
+  }
+}

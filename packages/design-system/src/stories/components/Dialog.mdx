@@ -51,7 +51,7 @@ Not for a decision that needs one sentence: that is an [AlertDialog](?path=/docs
 ```
 
 - **DialogContent** brings its portal, the blanket and a close button at the top end, an IconButton named Close with no tooltip. The close button is first in the Tab order, where it is drawn; the first field still takes focus when the dialog opens. It records the overlay surface as the current one, so a sticky header, a pinned cell or a scroll arrow inside paints the dialog's colour, not the page's.
-- **DialogHeader** holds the title and the description; the title is the dialog's h2, a [Heading](?path=/docs/primitives-heading--docs) at `overlay` (15/22 medium), and headings inside the dialog start at h3. Both wrap an unbroken value, such as a record's code or a server's error, inside the popup.
+- **DialogHeader** holds the title and the description; the title is the dialog's h2, a [Heading](?path=/docs/primitives-heading--docs) at `overlay` (17/24 semibold), and headings inside the dialog start at h3. Both wrap an unbroken value, such as a record's code or a server's error, inside the popup.
 - **DialogBody** is the one scrolling region, with the dialog's inset. Put the form in it and the buttons in the footer; never make a `fieldset` or a hand-written `div` the scroller.
 - **DialogFooter** stays outside the scroll, on the dialog's own surface below a hairline, with Cancel, a subtle button, before the primary. `showCloseButton` adds a subtle Close in Cancel's place, before the children.
 - DialogPortal and DialogOverlay are exported for a custom popup.

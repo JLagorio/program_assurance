@@ -550,7 +550,7 @@ const element = <span className={cn(recipe(), "!text-default")} />;`,
       // and a colour in its state; one class of the same value is an editor suggestion, never a
       // fix, and a value between two steps names both. On an element use-primitives does not read,
       // the class is the answer.
-      code: '<button className="p-4 text-sm -top-4 translate-y-1 shadow-lg font-bold rounded-md hover:bg-blue-600" />',
+      code: '<button className="p-4 text-sm -top-4 translate-y-1 shadow-lg font-bold rounded-lg hover:bg-blue-600" />',
       errors: [
         {
           ...stock("p-4", "spacing step 4 (16px)", "16px is p-200 (space.200)."),
@@ -558,7 +558,7 @@ const element = <span className={cn(recipe(), "!text-default")} />;`,
           column: 19,
           suggestions: [
             same(
-              '<button className="p-200 text-sm -top-4 translate-y-1 shadow-lg font-bold rounded-md hover:bg-blue-600" />',
+              '<button className="p-200 text-sm -top-4 translate-y-1 shadow-lg font-bold rounded-lg hover:bg-blue-600" />',
             ),
           ],
         },
@@ -571,7 +571,7 @@ const element = <span className={cn(recipe(), "!text-default")} />;`,
           ...stock("-top-4", "spacing step 4 (16px)", "16px is -top-200 (space.200)."),
           suggestions: [
             same(
-              '<button className="p-4 text-sm -top-200 translate-y-1 shadow-lg font-bold rounded-md hover:bg-blue-600" />',
+              '<button className="p-4 text-sm -top-200 translate-y-1 shadow-lg font-bold rounded-lg hover:bg-blue-600" />',
             ),
           ],
         },
@@ -579,7 +579,7 @@ const element = <span className={cn(recipe(), "!text-default")} />;`,
           ...stock("translate-y-1", "spacing step 1 (4px)", "4px is translate-y-050 (space.050)."),
           suggestions: [
             same(
-              '<button className="p-4 text-sm -top-4 translate-y-050 shadow-lg font-bold rounded-md hover:bg-blue-600" />',
+              '<button className="p-4 text-sm -top-4 translate-y-050 shadow-lg font-bold rounded-lg hover:bg-blue-600" />',
             ),
           ],
         },
@@ -594,9 +594,9 @@ const element = <span className={cn(recipe(), "!text-default")} />;`,
           "Nearest: font-semibold (600, titles…) or font-medium (500, labels, UI headings, emphasis inside body text).",
         ),
         stock(
-          "rounded-md",
-          "radius md (6px)",
-          "Nearest: rounded-medium (5px, buttons, inputs, chips, tooltips, menu items) or rounded-large (7px, cards, popovers, hover cards, menus and…).",
+          "rounded-lg",
+          "radius lg (8px)",
+          "Nearest: rounded-medium (6px, buttons, inputs, chips, tooltips, menu items) or rounded-large (10px, cards, popovers, hover cards, menus and…).",
         ),
         stock(
           "hover:bg-blue-600",
@@ -701,7 +701,7 @@ const element = <span className={cn(recipe(), "!text-default")} />;`,
       // the border width scale; an easing names its Ledger curve; a bracketed data attribute is its
       // state. A viewport length is Tailwind's own (min-h-dvw generates CSS), another utility
       // (w-row) or another emphasis (bg-danger-bolder) is never a misspelling.
-      code: '<p className="p-4 gap-2 space-y-4 text-xl outline-2 ease-in-out data-[disabled]:bg-gray-100 min-h-dvw w-row bg-danger-bolder" />',
+      code: '<p className="p-4 gap-2 space-y-4 text-2xl outline-2 ease-in-out data-[disabled]:bg-gray-100 min-h-dvw w-row bg-danger-bolder" />',
       errors: [
         stock("p-4", "spacing step 4 (16px)", '16px is space.200: padding="space.200" on a Box.'),
         stock("gap-2", "spacing step 2 (8px)", '8px is space.100: space="space.100" on a Stack.'),
@@ -711,9 +711,9 @@ const element = <span className={cn(recipe(), "!text-default")} />;`,
           '16px is space.200: space="space.200" on a Stack, which spaces its children without margins.',
         ),
         stock(
-          "text-xl",
-          "text size xl (20px)",
-          "20px is font-heading-page (weight 600, heading `page`: the page and record title…).",
+          "text-2xl",
+          "text size 2xl (24px)",
+          "24px is font-heading-page (weight 600, heading `page`: the page and record title…).",
         ),
         stock(
           "outline-2",

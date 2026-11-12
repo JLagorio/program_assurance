@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * The declared route inventory drives identity, collection and touch-preview checks, and the
- * check that no route outside the schema inspector reads the record schema as it opens.
+ * The declared route inventory drives identity, collection and touch-preview checks, the check
+ * that no route outside the schema inspector reads the record schema as it opens, and the check
+ * that no such route draws a link into the schema inspector.
  */
 import assert from "node:assert/strict";
 import { readFile, mkdir } from "node:fs/promises";
@@ -35,6 +36,55 @@ const readsSchema = (path) => path === "/schema" || path.startsWith("/records/")
 const schemaReads = [];
 /** The route, or the route's tab, being opened; null while a surface that may read the schema is. */
 let opening = null;
+/**
+ * A name never leads into the schema inspector. A record's page is where its name goes; a record
+ * with no page of its own is named by a button that opens its preview; and the inspector is
+ * reached from a record's Actions menu or from Settings. So a route other than /schema and
+ * /records/* draws no link to /records/* or /schema in Main, as it opens or under any of its
+ * declared tabs. Every one found names the route, the tab and where it leads.
+ */
+const schemaLinks = [];
+async function sweepSchemaLinks(width, where) {
+  const found = await page
+    .getByRole("main")
+    .locator('a[href^="/records/"], a[href="/schema"]')
+    .evaluateAll((links) =>
+      links
+        .filter((link) => link.getClientRects().length > 0)
+        .map((link) => `${link.getAttribute("href")} "${link.textContent?.trim().slice(0, 40)}"`),
+    );
+  for (const link of found) schemaLinks.push(`${width}px ${where}: ${link}`);
+}
+/**
+ * A control is named by what a reader knows: a record's name, never its id. So on the same routes
+ * no button, link or checkbox in Main carries a record id in its name, as the route opens or
+ * under any of its declared tabs: a link row is named by the record it links (Preview Signature
+ * test report), and a record with no name is "Unnamed risk".
+ */
+const idNames = [];
+async function sweepIdNames(width, where) {
+  const found = await page
+    .getByRole("main")
+    .locator("button, a, [role=checkbox]")
+    .evaluateAll((controls) => {
+      // An id standing as a word of the name ("Preview 558d8944-…"), not one inside an address.
+      const id = /(^|\s)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(\s|$)/i;
+      const name = (control) =>
+        control.getAttribute("aria-label") ||
+        (control.getAttribute("aria-labelledby") ?? "")
+          .split(" ")
+          .map((part) => document.getElementById(part)?.textContent ?? "")
+          .join(" ")
+          .trim() ||
+        (control.textContent ?? "").trim();
+      return controls
+        .filter((control) => control.getClientRects().length > 0)
+        .map(name)
+        .filter((text) => id.test(text))
+        .map((text) => text.slice(0, 80));
+    });
+  for (const name of found) idNames.push(`${width}px ${where}: "${name}"`);
+}
 async function insert(model, values) {
   const result = await workspace.client
     .from(model)
@@ -77,6 +127,11 @@ async function bounds(width, label) {
   assert.ok(heading && heading.x >= -1 && heading.x + heading.width <= width + 1, label);
 }
 async function verifyCollection(screen, width, tabName) {
+  // The collection's records have no page of their own: a name opens the preview, and the
+  // preview has no fuller record to open.
+  const previewOnly =
+    screen.previewOnly === true ||
+    (Array.isArray(screen.previewOnly) && screen.previewOnly.includes(tabName));
   const table = page.getByRole("table").or(page.getByRole("treegrid")).first();
   // Retained tab panels stay mounted but hidden, so only the visible region's empty counts.
   const empty = page
@@ -130,7 +185,23 @@ async function verifyCollection(screen, width, tabName) {
     await bounds(width, `${screen.path} ${tabName ?? ""} empty collection`);
     return;
   }
-  await expect(row.getByRole("link").first()).toHaveAttribute("href", /\//);
+  // The row names its record: a link to its page, or, for a record with no page, a button that
+  // opens its preview. Never a link into the schema inspector, outside the inspector's own
+  // registers, whose names open schema records.
+  const inspector = screen.family === "schema-register";
+  if (inspector)
+    await expect(row.getByRole("link").first()).toHaveAttribute("href", /^\/records\//);
+  else await expect(row.locator('a[href^="/records/"], a[href="/schema"]')).toHaveCount(0);
+  if (inspector) {
+    // Checked above.
+  } else if (previewOnly) {
+    const nameButton = row.locator('[data-slot="button"]').first();
+    await expect(nameButton).toBeVisible();
+    await nameButton.click();
+    await expect(page.getByRole("button", { name: /^Close (details|.+ preview)$/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Open full record/ })).toHaveCount(0);
+    await page.getByRole("button", { name: /^Close (details|.+ preview)$/ }).click();
+  } else await expect(row.getByRole("link").first()).toHaveAttribute("href", /^\/(?!records\/)/);
   const eye = row.getByRole("button", { name: /Preview/ }).first();
   await expect(eye).toBeVisible();
   if (width === 390) {
@@ -160,8 +231,14 @@ async function verifyCollection(screen, width, tabName) {
     await expect(page.getByRole("button", { name: "Previous record", exact: true })).toBeEnabled();
   } else await expect(next).toBeDisabled();
   const fullRecord = page.getByRole("link", { name: /Open full record/ }).first();
-  await expect(fullRecord).toHaveAttribute("target", "_blank");
-  await expect(fullRecord).toHaveAttribute("href", /\//);
+  if (previewOnly) await expect(fullRecord).toHaveCount(0);
+  else {
+    await expect(fullRecord).toHaveAttribute("target", "_blank");
+    await expect(fullRecord).toHaveAttribute(
+      "href",
+      inspector ? /^\/records\// : /^\/(?!records\/)/,
+    );
+  }
   await bounds(width, `${screen.path} with preview`);
   await page.screenshot({
     path: `${artifacts}/${screen.file.replaceAll(".tsx", "")}-${tabName?.replaceAll(/[^a-z0-9]/gi, "-") ?? "default"}-${width}-preview.png`,
@@ -228,8 +305,10 @@ function tabNamed(tabs, tabName) {
  * before any preview, so a tab's schema read is counted against it. It ends on the tab the route
  * opened on, so the checks after it start where the route did.
  */
-async function sweepSchemaReads(screen, withTabs, inflight) {
+async function sweepSchemaReads(screen, withTabs, inflight, width) {
   await settled(inflight);
+  await sweepSchemaLinks(width, screen.path);
+  await sweepIdNames(width, screen.path);
   if (withTabs && screen.tabList) {
     const tabs = page.getByRole("tablist", { name: screen.tabList, exact: true });
     const opened = await tabs
@@ -241,6 +320,8 @@ async function sweepSchemaReads(screen, withTabs, inflight) {
       opening = `${screen.path} tab ${tabName}`;
       await tabNamed(tabs, tabName).click();
       await settled(inflight);
+      await sweepSchemaLinks(width, opening);
+      await sweepIdNames(width, opening);
     }
     opening = null;
     const openedTab = tabs.getByRole("tab").nth(Math.max(opened, 0));
@@ -270,6 +351,16 @@ async function verifyMissingRecord(screen) {
 }
 
 try {
+  // An overlay is decided against one published catalog edition of the reference data.
+  const edition = await dependency(
+    workspace.client
+      .from("catalog_revisions")
+      .select("id")
+      .is("tenant_id", null)
+      .eq("state", "published")
+      .limit(1)
+      .single(),
+  );
   for (const label of ["Alpha", "Beta"]) {
     const program = await insert("programs", {
       code: `SCREEN-${label}`,
@@ -337,6 +428,21 @@ try {
       code: `REQ-${label}`,
       title: `${label} requirement`,
     });
+    // An overlay is created through its command: the table takes no direct insert.
+    const overlay = await dependency(
+      workspace.client.rpc("save_control_overlay", {
+        p_tenant_id: workspace.tenantId,
+        p_id: randomUUID(),
+        p_expected_revision: null,
+        p_overlay: {
+          code: `OVL-${label}`,
+          title: `${label} overlay`,
+          description: "",
+          catalogRevisionId: edition.id,
+        },
+      }),
+    );
+    (fixtures.control_overlays ??= []).push(overlay);
   }
   // A recorded control implementation in the first program, so the program's Controls tab has a
   // name link to follow to its control record.
@@ -467,8 +573,12 @@ try {
       }
       if (opening) {
         const found = schemaReads.length;
-        await sweepSchemaReads(screen, !!fixture, inflight);
+        const linked = schemaLinks.length;
+        const named = idNames.length;
+        await sweepSchemaReads(screen, !!fixture, inflight, width);
         for (const read of schemaReads.slice(found)) console.log(`FAIL schema read ${read}`);
+        for (const link of schemaLinks.slice(linked)) console.log(`FAIL schema link ${link}`);
+        for (const control of idNames.slice(named)) console.log(`FAIL id name ${control}`);
       }
       if (["register", "schema-register"].includes(screen.family)) {
         await expect(page.getByRole("heading", { level: 1 })).toHaveText(
@@ -531,6 +641,16 @@ try {
     schemaReads,
     [],
     `A route other than /schema and /records/* reads the record schema as it opens:\n${schemaReads.join("\n")}`,
+  );
+  assert.deepEqual(
+    schemaLinks,
+    [],
+    `A route other than /schema and /records/* links into the schema inspector:\n${schemaLinks.join("\n")}`,
+  );
+  assert.deepEqual(
+    idNames,
+    [],
+    `A route other than /schema and /records/* names a control by a record id:\n${idNames.join("\n")}`,
   );
 } catch (error) {
   await page?.screenshot({ path: `${artifacts}/failure.png` }).catch(() => {});

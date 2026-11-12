@@ -9,6 +9,7 @@ import { ControlInspector, LibraryControlTable } from "@/components/prototype/li
 import { QueryValue } from "@/components/prototype/library-shared";
 import { canAuthorLibrary } from "@/components/prototype/library-utils";
 import { ProductRecordDialog } from "@/components/prototype/product-record-dialog";
+import { RecordLink } from "@/components/prototype/record-preview";
 import { RecordTrail, TrailLink } from "@/components/prototype/record-trail";
 import {
   EmptyMessage,
@@ -519,19 +520,12 @@ function ProfileRevision({
                             {() => {
                               const document = sourceDocument.data?.[0];
                               return document ? (
-                                <TextLink
-                                  render={
-                                    <Link
-                                      to="/records/$collection/$recordId"
-                                      params={{
-                                        collection: "oscal_document_revisions",
-                                        recordId: document.id,
-                                      }}
-                                    />
-                                  }
+                                <RecordLink
+                                  table="oscal_document_revisions"
+                                  record={{ id: document.id }}
                                 >
                                   {document.title} · {document.document_version}
-                                </TextLink>
+                                </RecordLink>
                               ) : (
                                 <Absent label="Not available" />
                               );

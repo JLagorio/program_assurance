@@ -18,7 +18,7 @@ A number with its name. `Stat.Tile` is a label, a big tabular number and a one-l
 | Part  | What it is                                                                                                                                                                                                                 |
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Label | `font.body.small` in `color.text.subtle`: what the number counts. Above the number in a Tile, below it in a bare Stat.                                                                                                     |
-| Value | A [Heading](?path=/docs/primitives-heading--docs) at `page` as a `div` (`font.heading.page`, 20/26 semibold), tabular. `color.text`, or the tone's text colour when the number is a status; zero in `color.text.subtlest`. |
+| Value | A [Heading](?path=/docs/primitives-heading--docs) at `page` as a `div` (`font.heading.page`, 24/30 semibold), tabular. `color.text`, or the tone's text colour when the number is a status; zero in `color.text.subtlest`. |
 | Note  | `font.body.small` in `color.text.subtle`, one line under the value. Tile only.                                                                                                                                             |
 | Trend | Beside the value, `space.150` from it: a Chart.Sparkline of the same count over time, from `trend`. Tile only.                                                                                                             |
 | Link  | With `link`, the link fills the tile and holds the label, value, trend and note, so the whole tile is one target. Tile only.                                                                                               |
@@ -31,12 +31,19 @@ A number with its name. `Stat.Tile` is a label, a big tabular number and a one-l
 | `Stat.Tile` in a Grid | The headline numbers of a record or a screen: at the top as a card, or as a band between two sections. |
 | Linked `Stat.Tile`    | A dashboard count that opens its filtered register: "Open risks" opens the risk register, filtered.    |
 | `Stat`                | A summary row inside a Section, where a framed grid would be a card inside a card.                     |
+| `Stat.Row` in a List  | One count broken into the parts a reader acts on, each a line: in a Tray, or under a Section title.    |
 
 <Canvas of={Stories.Linked} />
 
 A count whose history matters takes a sparkline in `trend`, beside the number; the number stays the value, and the note says what the line shows ("Down from 14 in January"). A series read for its values is a [Chart](?path=/docs/patterns-chart-overview--docs).
 
 <Canvas of={Stories.WithATrend} />
+
+## A count in its parts
+
+`Stat.List` breaks one count into its parts, a `Stat.Row` a line: an icon, the label and its number at the row's end. Use it where the parts are what the reader acts on (7 need attention, 9 compliant, 4 dormant), inside a [Tray](?path=/docs/components-tray--docs) whose heading holds the whole, or under a Section title. Each row is a raised surface of its own, so the list reads on a tray's sunken surface and on a page alike. A row's `tone` colours its label and its number together, zero mutes the whole row whatever its tone, and a row with `link` opens its part of the register, with a chevron after its label.
+
+<Canvas of={Stories.Breakdown} />
 
 Not built, and why: no delta or trend arrow ("+3 this week"), because a colour and an arrow for a change need a polarity the tile cannot know, and the note says it in words; no icon in the tile; no tinted tile, because the tone colours the number and a tinted tile would make every number read as a status; no link on a bare `Stat`, because a summary row inside a Section is read, not opened.
 
@@ -115,7 +122,7 @@ The toned value is Badge's text colour for the tone, so a danger count and a dan
 
 Stat, Stat.Tile and Stat.Grid forward native `div` props and refs to their outer elements, and name themselves last with `data-slot` (`stat`, `stat-tile`, `stat-grid`; a tile's link is `stat-link`, its trend `stat-trend`). IDs, ARIA, data attributes and events are preserved; `className` merges with each part’s defaults. Styles override the Grid’s default gutter background and accept ordinary sizing on all three parts. With `link`, the ref still reaches the tile; the link element keeps its own props, ref and handlers (`link={<Link to="/risks" search={{ status: "open" }} />}`).
 
-Stat and Stat.Tile keep their configured `label`/`value`/`note` slots. Compose tiles through Stat.Grid’s children. Zero remains muted, and tones, responsive columns and frames retain their existing defaults. Stat.Tile and Stat.Grid are also exported by name, as `StatTile` and `StatGrid`.
+Stat and Stat.Tile keep their configured `label`/`value`/`note` slots. Compose tiles through Stat.Grid’s children. Zero remains muted, and tones, responsive columns and frames retain their existing defaults. Stat.List is a `ul` and Stat.Row its `li` (`stat-list`, `stat-row`, with `stat-row-icon`, `stat-row-label` and `stat-row-value` inside). The parts are also exported by name, as `StatTile`, `StatGrid`, `StatList` and `StatRow`.
 
 <ArgTypes of={Stat} />
 
@@ -127,6 +134,14 @@ Stat and Stat.Tile keep their configured `label`/`value`/`note` slots. Compose t
 
 <ArgTypes of={Stat.Grid} />
 
+### Stat.List
+
+<ArgTypes of={Stat.List} />
+
+### Stat.Row
+
+<ArgTypes of={Stat.Row} />
+
 ### Playground
 
 <Canvas of={Stories.Playground} />
@@ -135,6 +150,7 @@ Stat and Stat.Tile keep their configured `label`/`value`/`note` slots. Compose t
 
 ## Related
 
+- [Tray](?path=/docs/components-tray--docs): the counted group a Stat.List sits in.
 - [Progress](?path=/docs/components-progress--docs): the bar a number often has beside it.
 - [Chart](?path=/docs/patterns-chart-overview--docs): a number over time.
 - [KeyValue](?path=/docs/components-keyvalue--docs): a fact that is not a headline.

@@ -3595,8 +3595,8 @@
         "$value": {
           "fontFamily": "{font.family.heading}",
           "fontWeight": "{font.weight.semibold}",
-          "fontSize": "1.75rem",
-          "lineHeight": "2.125rem",
+          "fontSize": "2rem",
+          "lineHeight": "2.5rem",
           "letterSpacing": "{font.letterSpacing.400}"
         },
         "$description": "Heading `display`: a figure bigger than a Stat's, or the one title of a screen with nothing else on it (sign-in), set as its h1. Never a page or record title."
@@ -3605,8 +3605,8 @@
         "$value": {
           "fontFamily": "{font.family.heading}",
           "fontWeight": "{font.weight.semibold}",
-          "fontSize": "1.25rem",
-          "lineHeight": "1.625rem",
+          "fontSize": "1.5rem",
+          "lineHeight": "1.875rem",
           "letterSpacing": "{font.letterSpacing.300}"
         },
         "$description": "Heading `page`: the page and record title, which PageHeader.Title draws on a page and as a preview's record name, and a Stat's figure."
@@ -3614,9 +3614,9 @@
       "overlay": {
         "$value": {
           "fontFamily": "{font.family.heading}",
-          "fontWeight": "{font.weight.medium}",
-          "fontSize": "0.9375rem",
-          "lineHeight": "1.375rem",
+          "fontWeight": "{font.weight.semibold}",
+          "fontSize": "1.0625rem",
+          "lineHeight": "1.5rem",
           "letterSpacing": "{font.letterSpacing.300}"
         },
         "$description": "Heading `overlay`: an overlay's title, which DialogTitle, SheetTitle, AlertDialogTitle and DrawerTitle draw; a card's title and a group heading inside an overlay take it too."
@@ -3625,19 +3625,19 @@
         "$value": {
           "fontFamily": "{font.family.heading}",
           "fontWeight": "{font.weight.semibold}",
-          "fontSize": "0.8125rem",
-          "lineHeight": "1.125rem",
-          "letterSpacing": "{font.letterSpacing.200}"
+          "fontSize": "0.9375rem",
+          "lineHeight": "1.375rem",
+          "letterSpacing": "{font.letterSpacing.300}"
         },
-        "$description": "Heading `section`: a section's title, which Section.Title draws: body size at semibold."
+        "$description": "Heading `section`: a section's title, which Section.Title draws: a step above the body, at semibold."
       },
       "large": {
         "$type": "typography",
         "$value": {
           "fontFamily": "{font.family.heading}",
           "fontWeight": "{font.weight.semibold}",
-          "fontSize": "1.75rem",
-          "lineHeight": "2.125rem",
+          "fontSize": "2rem",
+          "lineHeight": "2.5rem",
           "letterSpacing": "{font.letterSpacing.400}"
         },
         "$description": "Deprecated: font.heading.display, the same style. Kept for one version.",
@@ -3655,7 +3655,7 @@
           "lineHeight": "1.75rem",
           "letterSpacing": "{font.letterSpacing.400}"
         },
-        "$description": "Deprecated: font.heading.page (20/26) for a page or record title. Kept for one version.",
+        "$description": "Deprecated: font.heading.page (24/30) for a page or record title. Kept for one version.",
         "$extensions": {
           "ledger": {
             "deprecated": "font.heading.page"
@@ -3670,7 +3670,7 @@
           "lineHeight": "1.625rem",
           "letterSpacing": "{font.letterSpacing.300}"
         },
-        "$description": "Deprecated: font.heading.page (20/26 semibold) for a page or record title, font.heading.section for a section's title. Kept for one version.",
+        "$description": "Deprecated: font.heading.page (24/30 semibold) for a page or record title, font.heading.section for a section's title. Kept for one version.",
         "$extensions": {
           "ledger": {
             "deprecated": "font.heading.page"
@@ -3680,9 +3680,9 @@
       "xsmall": {
         "$value": {
           "fontFamily": "{font.family.heading}",
-          "fontWeight": "{font.weight.medium}",
-          "fontSize": "0.9375rem",
-          "lineHeight": "1.375rem",
+          "fontWeight": "{font.weight.semibold}",
+          "fontSize": "1.0625rem",
+          "lineHeight": "1.5rem",
           "letterSpacing": "{font.letterSpacing.300}"
         },
         "$description": "Deprecated: font.heading.overlay, the same style. Kept for one version.",
@@ -3877,26 +3877,26 @@
     "$type": "dimension",
     "xsmall": {
       "$value": "2px",
-      "$description": "Kbd, tiny chips. The smallest step."
+      "$description": "Kbd, tiny chips, a mark of a map. The smallest step."
     },
     "small": {
       "$value": "3px",
       "$description": "Count chips, the checkbox, skeleton lines, inline hit targets."
     },
     "medium": {
-      "$value": "5px",
+      "$value": "6px",
       "$description": "Buttons, inputs, chips, tooltips, menu items. The scale's base."
     },
     "large": {
-      "$value": "7px",
+      "$value": "10px",
       "$description": "Cards, popovers, hover cards, menus and listboxes."
     },
     "xlarge": {
-      "$value": "9px",
-      "$description": "A large surface of a product's own, between a card and a dialog. No kit part draws it: a sheet runs flush to the window's edge, and a dialog is xxlarge."
+      "$value": "12px",
+      "$description": "A surface that holds cards: the Tray. Between a card and a dialog; a sheet runs flush to the window's edge, and a dialog is xxlarge."
     },
     "xxlarge": {
-      "$value": "12px",
+      "$value": "16px",
       "$description": "Dialogs, the command palette, a drawer's free edge, spotlight cards."
     },
     "full": {

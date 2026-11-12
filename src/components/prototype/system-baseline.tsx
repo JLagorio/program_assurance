@@ -428,6 +428,7 @@ export function SystemControls({
   const addFromLibrary = useRef(onAddFromLibrary);
   addFromLibrary.current = onAddFromLibrary;
   const canAddFromLibrary = !!onAddFromLibrary;
+  const programId = system.data?.program_id;
   const columns = useMemo(
     () =>
       defineColumns<ControlRow>((c) => [
@@ -442,8 +443,12 @@ export function SystemControls({
           minWidth: 180,
           priority: 0,
           hideable: false,
+          // Read inside a program, a control opens the program's record of it, with its trace.
           cell: (row) => (
-            <RecordLink table="controls" record={row}>
+            <RecordLink
+              table="controls"
+              record={programId ? { ...row, program_id: programId } : row}
+            >
               {row.title}
             </RecordLink>
           ),
@@ -484,7 +489,7 @@ export function SystemControls({
             ]
           : []),
       ]),
-    [canAddFromLibrary],
+    [canAddFromLibrary, programId],
   );
   // The preview is the table's, so opening or stepping through it never rebuilds the columns.
   const inspectedId = inspected?.id ?? null;

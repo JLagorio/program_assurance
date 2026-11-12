@@ -272,6 +272,60 @@ export const riskTone = (_value: number, row: string, col: string): Tone => {
   return score >= 15 ? "danger" : score >= 8 ? "warning" : score >= 4 ? "information" : "success";
 };
 
+/** The fourteen cyber resiliency techniques of NIST SP 800-160 Vol. 2: column names with no short form, over cells that hold a digit or two. */
+export const techniques = [
+  "Adaptive Response",
+  "Analytic Monitoring",
+  "Contextual Awareness",
+  "Coordinated Protection",
+  "Deception",
+  "Diversity",
+  "Dynamic Positioning",
+  "Non-Persistence",
+  "Privilege Restriction",
+  "Realignment",
+  "Redundancy",
+  "Segmentation",
+  "Substantiated Integrity",
+  "Unpredictability",
+];
+/** A system's elements in tree order, each with its depth; an element that holds others is a row of totals. */
+export const elements = [
+  { name: "Mission system", level: 0, total: true },
+  { name: "Space segment", level: 1, total: true },
+  { name: "Flight computer", level: 2, total: false },
+  { name: "Payload controller", level: 2, total: false },
+  { name: "Crosslink radio", level: 2, total: false },
+  { name: "Ground segment", level: 1, total: true },
+  { name: "Mission operations", level: 2, total: false },
+  { name: "Key management", level: 2, total: false },
+  { name: "Telemetry archive", level: 2, total: false },
+];
+/** Requirements each lowest element meets under each technique, in the techniques' order. */
+const requirementsByLowestElement: Record<string, number[]> = {
+  "Flight computer": [2, 3, 0, 1, 0, 0, 0, 1, 2, 0, 1, 2, 3, 0],
+  "Payload controller": [1, 2, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 2, 0],
+  "Crosslink radio": [0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0],
+  "Mission operations": [3, 5, 2, 2, 0, 0, 0, 1, 3, 1, 1, 2, 2, 0],
+  "Key management": [0, 1, 0, 1, 1, 0, 0, 1, 4, 0, 1, 1, 3, 1],
+  "Telemetry archive": [0, 2, 1, 0, 0, 1, 0, 0, 1, 0, 2, 1, 2, 0],
+};
+/** The same counts for every element: an element that holds others totals the lowest elements under it. */
+export const requirementsByElementTechnique: Record<string, number[]> = Object.fromEntries(
+  elements.map((element, at) => {
+    const own = requirementsByLowestElement[element.name];
+    if (own) return [element.name, own];
+    const total = techniques.map(() => 0);
+    for (const under of elements.slice(at + 1)) {
+      if (under.level <= element.level) break;
+      requirementsByLowestElement[under.name]?.forEach((count, technique) => {
+        total[technique] = (total[technique] ?? 0) + count;
+      });
+    }
+    return [element.name, total];
+  }),
+);
+
 /** Weekly open findings over six months, with real dates: the time axis picks its own ticks. */
 export const byWeek = Array.from({ length: 26 }, (_, i) => {
   const date = new Date(2026, 2, 2 + i * 7);

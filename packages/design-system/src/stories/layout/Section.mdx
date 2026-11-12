@@ -10,7 +10,7 @@ import * as Stories from "./Section.stories";
 
 Optional presentation for a titled block of a page. `title`, `count`, `description` and `action` render the built-in header (a count of rows takes `countMax={9999}`, the cap a tab strip's counts take, where Count's own is 99); leave `title` out and compose Section.Header, Section.Heading, Section.Title, Section.Description and Section.Actions yourself when the heading needs a badge or two actions. Native section props and refs pass through every part.
 
-The title is a [Heading](?path=/docs/primitives-heading--docs) at `section`, semibold at body size (13/18), and a one-line title sits centred on its action's row. A rule is opt-in with `divided`: it is drawn inside the header's end, `space.100` above the content, so the content starts clear of it and keeps its own flow.
+The title is a [Heading](?path=/docs/primitives-heading--docs) at `section`, semibold a step above the body (15/22), and a one-line title sits centred on its action's row. A rule is opt-in with `divided`: it is drawn inside the header's end, `space.100` above the content, so the content starts clear of it and keeps its own flow.
 
 <Canvas of={Stories.Presentation} />
 <Canvas of={Stories.Composed} />

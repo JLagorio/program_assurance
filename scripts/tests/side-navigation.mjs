@@ -14,7 +14,9 @@ export async function expectIconSideNavigation(page, { screenshot }) {
   const mark = logo.locator('[data-slot="shell-mark"]');
   const title = logo.getByText("Program Assurance", { exact: true });
   const tooltip = page.locator('[data-slot="tooltip-content"][data-open]');
-  const items = nav.locator('[data-slot="shell-sidenav-item"]');
+  // The destinations: the items that have an address. Favorites and recent opens a dialog, and
+  // has none to check.
+  const items = nav.locator('a[href][data-slot="shell-sidenav-item"]');
   const link = (name) => nav.getByRole("link", { name, exact: true });
   const noOverflow = async () => {
     await expect

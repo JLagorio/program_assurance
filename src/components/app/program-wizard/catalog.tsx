@@ -1,7 +1,7 @@
 import { useConfirmation } from "@/components/app/confirmation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Library } from "lucide-react";
+import { ArrowDown, ArrowUp, Library, Plus, X } from "lucide-react";
 import {
   announce,
   Badge,
@@ -9,6 +9,10 @@ import {
   Button,
   Checkbox,
   CheckboxGroup,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   Empty,
   EmptyDescription,
   EmptyHeader,
@@ -20,6 +24,7 @@ import {
   FieldError,
   FieldLabel,
   FieldLegend,
+  IconButton,
   Inline,
   RadioGroup,
   RadioGroupItem,
@@ -30,18 +35,24 @@ import {
 } from "@ledger/design-system";
 import type { ProgramWizardDraft } from "@/lib/program-wizard";
 import type {
+  DraftStack,
   ProgramTailoringPreview,
   WizardCatalogOption,
   WizardProfileOption,
 } from "@/lib/program-wizard-reference";
+import type { PublishedOverlay } from "@/lib/baseline-reads";
+import { BaselineStackTable, type StackRow } from "@/components/prototype/baseline-stack";
+import { QueryState, type QueryStatus } from "@/components/prototype/work-common";
 import { ProfileTailoringEditor } from "../profile-tailoring/editor";
 import { wizardField } from "./issues";
 import type { WizardResources } from "./resources";
 
 /**
- * Step 2: the catalog edition and the base profiles, the same records as the Catalog and Profiles
- * pages. A chosen base can be tailored for this program: what goes out of the base, what comes in
- * from the catalog, each with a reason. The result is one program profile per chosen base.
+ * Step 2: the catalog edition and the base profiles, the same records as the Catalog, Profiles and
+ * Overlays pages. A chosen base takes published overlays, stacked in the order they apply, and
+ * then the program's own tailoring: what goes out, what comes in from the catalog, each with a
+ * reason. The stack under each chosen base shows what every layer changes and the baseline that
+ * results: one program profile per chosen base.
  */
 export function CatalogStep({
   draft,
@@ -50,6 +61,9 @@ export function CatalogStep({
   profiles,
   data,
   previews,
+  stacks,
+  overlays,
+  overlayQueries,
   editingKey,
   onEditingKeyChange,
   errorFor,
@@ -61,6 +75,11 @@ export function CatalogStep({
   profiles: WizardProfileOption[];
   data: WizardResources;
   previews: Map<string, ProgramTailoringPreview>;
+  /** Each program profile's base with its overlays applied, by the profile's key. */
+  stacks: Map<string, DraftStack<WizardResources>>;
+  /** The published overlays a base can take. */
+  overlays: readonly PublishedOverlay[];
+  overlayQueries: QueryStatus[];
   editingKey: string | null;
   onEditingKeyChange: (key: string | null) => void;
   /** The field's message from the last Continue, once the step has been checked. */
@@ -124,7 +143,13 @@ export function CatalogStep({
         ...draft,
         profiles: [
           ...draft.profiles,
-          { key: crypto.randomUUID(), baseResolutionId: option.id, tailoring: [], parameters: [] },
+          {
+            key: crypto.randomUUID(),
+            baseResolutionId: option.id,
+            overlayIds: [],
+            tailoring: [],
+            parameters: [],
+          },
         ],
       });
       setRefused(null);
@@ -157,6 +182,23 @@ export function CatalogStep({
       setRefused(null);
     }
   }
+  const codes = useMemo(
+    () => new Map(data.controls.map((control) => [control.id, control.code])),
+    [data.controls],
+  );
+  const offered = overlays.filter(
+    (overlay) => overlay.catalogRevisionId === draft.catalogRevisionId,
+  );
+  /** Change one program profile's overlay stack; the tailoring above it is checked again. */
+  function setOverlays(key: string, overlayIds: string[], said: string) {
+    onChange({
+      ...draft,
+      profiles: draft.profiles.map((profile) =>
+        profile.key === key ? { ...profile, overlayIds } : profile,
+      ),
+    });
+    announce(said);
+  }
   const editing = draft.profiles.find((profile) => profile.key === editingKey);
   const editingOption = profiles.find((option) => option.id === editing?.baseResolutionId);
   if (editing && editingOption) {
@@ -168,8 +210,12 @@ export function CatalogStep({
               Tailor for this program · {editingOption.title}
             </Section.Title>
             <Section.Description>
-              Version {editingOption.version} · {editingOption.controlCount} controls in the base.
-              What you tailor out and in becomes a program profile layered on this base.
+              Version {editingOption.version} ·{" "}
+              {previews.get(editing.key)?.counts.base ?? editingOption.controlCount} controls
+              {editing.overlayIds.length
+                ? ` after ${editing.overlayIds.length === 1 ? "its overlay" : `its ${editing.overlayIds.length} overlays`}`
+                : " in the base"}
+              . What you tailor out and in becomes the last layer of this program profile.
             </Section.Description>
           </Section.Heading>
           <Section.Actions>
@@ -181,10 +227,10 @@ export function CatalogStep({
         </Section.Header>
         <ProfileTailoringEditor
           catalogRevisionId={draft.catalogRevisionId}
-          baseResolutionId={editing.baseResolutionId}
+          baseResolutionId={stacks.get(editing.key)?.resolutionId ?? editing.baseResolutionId}
           decisions={editing.tailoring}
           parameters={editing.parameters}
-          data={data}
+          data={stacks.get(editing.key)?.data ?? data}
           preview={previews.get(editing.key)}
           onChange={(next) =>
             onChange({
@@ -265,7 +311,7 @@ export function CatalogStep({
         title="Base profiles"
         count={draft.profiles.length || null}
         countMax={9999}
-        description="The published profiles this program starts from. Each becomes a program profile, the base as it is or tailored for this program, and every system adopts one of them."
+        description="Choose the published baselines this program starts from. Stack overlays on a baseline in the order they apply, then tailor it for this program. Each becomes a program profile, and every system adopts one of them."
       >
         {!draft.catalogRevisionId ? (
           <Text as="p" color="color.text.subtle">
@@ -292,80 +338,210 @@ export function CatalogStep({
                   const rowError =
                     errorFor(wizardField.profile(option.id)) ??
                     (refused?.id === option.id ? refused.message : undefined);
+                  const stack = existing ? stacks.get(existing.key) : undefined;
+                  const rows: StackRow[] = [
+                    ...(stack?.derivation.layers ?? []),
+                    ...(tailored && preview
+                      ? [
+                          {
+                            key: "tailoring",
+                            kind: "tailoring" as const,
+                            title: "Program tailoring",
+                            added: preview.counts.added,
+                            removed: preview.counts.excluded,
+                            total: preview.counts.selected,
+                          },
+                        ]
+                      : []),
+                  ];
+                  const available = existing
+                    ? offered.filter((overlay) => !existing.overlayIds.includes(overlay.id))
+                    : [];
                   return (
-                    <Inline
-                      key={option.id}
-                      space="space.200"
-                      alignBlock="start"
-                      spread="space-between"
-                      shouldWrap
-                    >
-                      <Field
-                        orientation="horizontal"
-                        className="min-w-0"
-                        invalid={rowError ? true : undefined}
+                    <Stack key={option.id} space="space.150">
+                      <Inline
+                        space="space.200"
+                        alignBlock="start"
+                        spread="space-between"
+                        shouldWrap
                       >
-                        {/* An unavailable profile stays in the tab order, read-only, so its
+                        <Field
+                          orientation="horizontal"
+                          className="min-w-0"
+                          invalid={rowError ? true : undefined}
+                        >
+                          {/* An unavailable profile stays in the tab order, read-only, so its
                             reason (the description) is heard where the reader meets it. */}
-                        <Checkbox
-                          value={option.id}
-                          readOnly={!option.supported && !existing}
-                          ref={controlRef(wizardField.profile(option.id))}
-                        />
-                        <FieldContent>
-                          <FieldLabel>{option.title}</FieldLabel>
-                          <FieldDescription>
-                            <Badge
-                              variant="secondary"
-                              tone={option.kind === "overlay" ? "information" : "neutral"}
-                              size="xsmall"
-                            >
-                              {option.kind === "overlay"
-                                ? `Tailored from ${option.baseTitle ?? "a base profile"}`
-                                : "Reference profile"}
-                            </Badge>{" "}
-                            Version {option.version} · {option.controlCount} of{" "}
-                            {option.catalogControlCount} catalog controls
-                          </FieldDescription>
-                          {!option.supported ? (
+                          <Checkbox
+                            value={option.id}
+                            readOnly={!option.supported && !existing}
+                            ref={controlRef(wizardField.profile(option.id))}
+                          />
+                          <FieldContent>
+                            <FieldLabel>{option.title}</FieldLabel>
                             <FieldDescription>
-                              Not available: {option.errors.join(" ")}
+                              <Badge
+                                variant="secondary"
+                                tone={option.kind === "overlay" ? "information" : "neutral"}
+                                size="xsmall"
+                              >
+                                {option.kind === "overlay"
+                                  ? `Tailored from ${option.baseTitle ?? "a base profile"}`
+                                  : "Reference profile"}
+                              </Badge>{" "}
+                              Version {option.version} · {option.controlCount} of{" "}
+                              {option.catalogControlCount} catalog controls
                             </FieldDescription>
+                            {!option.supported ? (
+                              <FieldDescription>
+                                Not available: {option.errors.join(" ")}
+                              </FieldDescription>
+                            ) : null}
+                            {rowError ? <FieldError>{rowError}</FieldError> : null}
+                          </FieldContent>
+                        </Field>
+                        <Inline space="space.150" alignBlock="center" shouldWrap>
+                          {option.profileId ? (
+                            <TextLink
+                              size="small"
+                              newTab
+                              render={
+                                <Link
+                                  to="/profiles/$profileId"
+                                  params={{ profileId: option.profileId }}
+                                />
+                              }
+                            >
+                              Open profile
+                            </TextLink>
                           ) : null}
-                          {rowError ? <FieldError>{rowError}</FieldError> : null}
-                        </FieldContent>
-                      </Field>
-                      <Inline space="space.150" alignBlock="center" shouldWrap>
-                        {option.profileId ? (
-                          <TextLink
-                            size="small"
-                            newTab
-                            render={
-                              <Link
-                                to="/profiles/$profileId"
-                                params={{ profileId: option.profileId }}
-                              />
-                            }
-                          >
-                            Open profile
-                          </TextLink>
-                        ) : null}
-                        {existing ? (
-                          <Button
-                            ref={(node: HTMLElement | null) => {
-                              tailorButtons.current.set(existing.key, node);
-                            }}
-                            size="small"
-                            variant={tailored ? "secondary" : "subtle"}
-                            onClick={() => onEditingKeyChange(existing.key)}
-                          >
-                            {tailored
-                              ? `Edit tailoring · Out ${preview?.counts.excluded ?? 0} · In ${preview?.counts.added ?? 0}`
-                              : "Tailor for this program…"}
-                          </Button>
-                        ) : null}
+                          {existing ? (
+                            <Button
+                              ref={(node: HTMLElement | null) => {
+                                tailorButtons.current.set(existing.key, node);
+                              }}
+                              size="small"
+                              variant={tailored ? "secondary" : "subtle"}
+                              onClick={() => onEditingKeyChange(existing.key)}
+                            >
+                              {tailored
+                                ? `Edit tailoring · Out ${preview?.counts.excluded ?? 0} · In ${preview?.counts.added ?? 0}`
+                                : "Tailor for this program…"}
+                            </Button>
+                          ) : null}
+                        </Inline>
                       </Inline>
-                    </Inline>
+                      {existing && stack ? (
+                        <Box paddingInlineStart="space.300">
+                          <Stack space="space.100">
+                            <BaselineStackTable
+                              label={`How the ${option.title} program profile is formed`}
+                              reference={{
+                                name: option.title,
+                                count: stack.derivation.baselineCount,
+                              }}
+                              layers={rows}
+                              actions={(layer, index) =>
+                                layer.kind === "overlay" ? (
+                                  <Inline space="space.050" alignInline="end">
+                                    <IconButton
+                                      size="small"
+                                      variant="subtle"
+                                      icon={<ArrowUp />}
+                                      label={`Move ${layer.title} earlier`}
+                                      {...(index === 0
+                                        ? { disabledReason: "It is the first overlay." }
+                                        : {})}
+                                      onClick={() => {
+                                        const ids = [...existing.overlayIds];
+                                        ids.splice(index - 1, 2, ids[index]!, ids[index - 1]!);
+                                        setOverlays(
+                                          existing.key,
+                                          ids,
+                                          `${layer.title} now applies as layer ${index}.`,
+                                        );
+                                      }}
+                                    />
+                                    <IconButton
+                                      size="small"
+                                      variant="subtle"
+                                      icon={<ArrowDown />}
+                                      label={`Move ${layer.title} later`}
+                                      {...(index === existing.overlayIds.length - 1
+                                        ? { disabledReason: "It is the last overlay." }
+                                        : {})}
+                                      onClick={() => {
+                                        const ids = [...existing.overlayIds];
+                                        ids.splice(index, 2, ids[index + 1]!, ids[index]!);
+                                        setOverlays(
+                                          existing.key,
+                                          ids,
+                                          `${layer.title} now applies as layer ${index + 2}.`,
+                                        );
+                                      }}
+                                    />
+                                    <IconButton
+                                      size="small"
+                                      variant="subtle"
+                                      icon={<X />}
+                                      label={`Remove ${layer.title} from the stack`}
+                                      onClick={() =>
+                                        setOverlays(
+                                          existing.key,
+                                          existing.overlayIds.filter((id) => id !== layer.key),
+                                          `${layer.title} removed from the stack.`,
+                                        )
+                                      }
+                                    />
+                                  </Inline>
+                                ) : null
+                              }
+                            />
+                            <QueryState queries={overlayQueries}>
+                              {available.length ? (
+                                <Inline>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger
+                                      render={
+                                        <Button
+                                          size="small"
+                                          variant="secondary"
+                                          iconBefore={<Plus />}
+                                        >
+                                          Add overlay
+                                        </Button>
+                                      }
+                                    />
+                                    <DropdownMenuContent align="start">
+                                      {available.map((overlay) => (
+                                        <DropdownMenuItem
+                                          key={overlay.id}
+                                          onClick={() =>
+                                            setOverlays(
+                                              existing.key,
+                                              [...existing.overlayIds, overlay.id],
+                                              `${overlay.title} added as layer ${existing.overlayIds.length + 1}.`,
+                                            )
+                                          }
+                                        >
+                                          {overlay.code} · {overlay.title}
+                                        </DropdownMenuItem>
+                                      ))}
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </Inline>
+                              ) : (
+                                <Text as="p" size="small" color="color.text.subtle">
+                                  {offered.length
+                                    ? "Every published overlay for this edition is in the stack."
+                                    : "No published overlays for this catalog edition. Overlays are created and published under Libraries, Overlays."}
+                                </Text>
+                              )}
+                            </QueryState>
+                          </Stack>
+                        </Box>
+                      ) : null}
+                    </Stack>
                   );
                 })}
               </Stack>

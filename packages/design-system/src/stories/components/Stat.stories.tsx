@@ -1,8 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createRef, useState, type MouseEvent } from "react";
+import { CircleAlert, Moon, ShieldCheck } from "lucide-react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
-import { Absent, Card, CardContent, Stat, tones } from "../../components";
+import { Absent, Card, CardContent, Icon, Stat, tones } from "../../components";
 import { Shell } from "../../layout";
 import { LedgerProvider } from "../../lib/locale";
 import { Chart } from "../../patterns";
@@ -647,5 +648,60 @@ export const OnACard: Story = {
     const surface = getComputedStyle(card).backgroundColor;
     for (const tile of card.querySelectorAll<HTMLElement>('[data-slot="stat-tile"]'))
       await expect(getComputedStyle(tile).backgroundColor).toBe(surface);
+  },
+};
+
+/** A count broken into its parts: one Stat.Row a line, the part to act on first. A row's tone colours its label and its number together, zero mutes the whole row, and a linked row opens its part of the register. */
+export const Breakdown: Story = {
+  render: () => (
+    <Box style={{ width: 320, maxWidth: "100%" }}>
+      <Stat.List aria-label="Monitored devices">
+        <Stat.Row
+          label="Need attention"
+          value={7}
+          tone="danger"
+          icon={
+            <Icon>
+              <CircleAlert />
+            </Icon>
+          }
+          link={<a href="#attention" onClick={(event) => event.preventDefault()} />}
+        />
+        <Stat.Row
+          label="Compliant"
+          value={1234}
+          icon={
+            <Icon>
+              <ShieldCheck />
+            </Icon>
+          }
+        />
+        <Stat.Row
+          label="Dormant"
+          value={0}
+          tone="warning"
+          icon={
+            <Icon>
+              <Moon />
+            </Icon>
+          }
+        />
+        <Stat.Row label="Onboarding" value={0} isLoading />
+      </Stat.List>
+    </Box>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const list = canvas.getByRole("list", { name: "Monitored devices" });
+    const rows = within(list).getAllByRole("listitem");
+    await expect(rows).toHaveLength(4);
+    // A linked row is one link named by its label and its number.
+    await expect(within(rows[0]!).getByRole("link", { name: /Need attention\s*7/ })).toBeVisible();
+    // A number is written in the reader's locale.
+    await expect(within(rows[1]!).getByText("1,234")).toBeVisible();
+    // Zero is muted whatever the tone: nothing is not a status.
+    const zero = rows[2]!.querySelector('[data-slot="stat-row-value"]')!;
+    await expect(zero).toHaveClass("text-subtlest");
+    await expect(rows[3]!).toHaveAttribute("aria-busy", "true");
   },
 };

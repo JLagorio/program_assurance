@@ -314,7 +314,7 @@ export function TimelineItem({
         {cloneElement(icon, { className: cn(s.icon, icon.props.className) })}
       </span>
     ) : size === "small" ? (
-      <Dot tone={tone} className="size-100" />
+      <Dot shape="round" tone={tone} className="size-100" />
     ) : (
       <span
         className={cn(
@@ -322,7 +322,7 @@ export function TimelineItem({
           size === "large" ? "size-200" : "size-150",
         )}
       >
-        <Dot tone={tone} className={size === "large" ? "size-100" : undefined} />
+        <Dot shape="round" tone={tone} className={size === "large" ? "size-100" : undefined} />
       </span>
     ));
 

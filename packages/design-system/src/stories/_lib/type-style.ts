@@ -14,8 +14,8 @@ export function typeOf(element: Element) {
 
 /** The ramp's four styles as they render at the browser's default text size. */
 export const ramp = {
-  display: { size: "28px", lineHeight: "34px", weight: "600", tracking: -0.56 },
-  page: { size: "20px", lineHeight: "26px", weight: "600", tracking: -0.3 },
-  overlay: { size: "15px", lineHeight: "22px", weight: "500", tracking: -0.225 },
-  section: { size: "13px", lineHeight: "18px", weight: "600", tracking: -0.104 },
+  display: { size: "32px", lineHeight: "40px", weight: "600", tracking: -0.64 },
+  page: { size: "24px", lineHeight: "30px", weight: "600", tracking: -0.36 },
+  overlay: { size: "17px", lineHeight: "24px", weight: "600", tracking: -0.255 },
+  section: { size: "15px", lineHeight: "22px", weight: "600", tracking: -0.225 },
 } as const;

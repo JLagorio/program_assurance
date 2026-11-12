@@ -33,6 +33,19 @@ describe("workspace navigation identities", () => {
       kind: "evidence",
       recordId: id,
     });
+    // A record's own page names it: the evidence artifact, the catalog control, the risk.
+    expect(navigationTargetFromLocation(`/evidence/${id}`, {})).toEqual({
+      kind: "evidence",
+      recordId: id,
+    });
+    expect(navigationTargetFromLocation(`/catalog/controls/${id}`, {})).toEqual({
+      kind: "control",
+      recordId: id,
+    });
+    expect(navigationTargetFromLocation(`/register/risks/${id}`, {})).toEqual({
+      kind: "risk",
+      recordId: id,
+    });
     expect(navigationTargetFromLocation("/programs/not-a-uuid", {})).toBeNull();
     expect(navigationTargetFromLocation("/programs", {})).toBeNull();
   });
